@@ -8,8 +8,6 @@ import prompts from "prompts";
 import { execa } from "execa";
 const { detect: detectPackageManager } = require("detect-package-manager");
 
-// import { detect as detectPackageManager } from "detect-package-manager";
-
 import { logger, handleError } from "@/src/helpers";
 import {
   fetchComponentTree, fetchHelperTree, getItemTargetPath, getRegistryIndex, resolveComponentTree, resolveHelperTree
@@ -23,6 +21,8 @@ import {
 } from "@/src/helpers/packageManagerHelpers";
 import { getConfig } from "@/src/helpers/config";
 import { AMINO_HELPER_FILE_MARKER_REGEX } from "../helpers/constants/cli";
+import { transform } from "../helpers/transformers";
+import { TConfig } from "../helpers/config/schema";
 
 const addOptionsSchema = z.object({
   components: z.array(z.string()).optional(),
@@ -32,6 +32,25 @@ const addOptionsSchema = z.object({
   allComponents: z.boolean(),
   path: z.string().optional()
 });
+
+const processComponentFilesFromRegistry = async (
+  targetPath: string,
+  item: TComponentRegistryIndexItem,
+  config: TConfig
+) => {
+  item.directory!.content.forEach(async (directoryItem: TRegistryIndexItemFile | TRegistryIndexItemDirectory) => {
+    let filePath = path.resolve(targetPath, item.directory!.name, directoryItem.name);
+    
+    if (directoryItem) {
+
+    } else {
+
+    }
+    // - TODO: -> Run code transforms here.
+
+    // await fs.writeFile(filePath, item.content);
+  });
+}
 
 // - TODO: -> Logic to handle adding icons, placing them in their correct directory.
 export const add = new Command()
@@ -129,7 +148,7 @@ export const add = new Command()
         if (!targetPath) return;
         if (!existsSync(targetPath)) await fs.mkdir(targetPath, { recursive: true });
 
-        const componentExists = existsSync(path.resolve(targetPath, item.directory.name));
+        const componentExists = existsSync(path.resolve(targetPath, (item.isIcon) ? item.file!.name! : item.directory!.name));
 
         if (componentExists && !options.overwrite) {
           if (selectedComponents.includes(item.name)) {
@@ -159,18 +178,24 @@ export const add = new Command()
           return;
         }
 
-        await fs.mkdir(item.directory.name, { recursive: true });
+        if (!item.isIcon) await fs.mkdir(path.join(targetPath, item.directory!.name), { recursive: true });
 
-        // - TODO: -> Recursively iterate through component's directory structure, installing all files
-        //            and sub-directories in the correct structure at the properly resolved components
-        //            directory path.
-        item.directory.content.forEach(async (file: TRegistryIndexItemFile | TRegistryIndexItemDirectory) => {
-          let filePath = path.resolve(targetPath, item.directory.name, file.name);
+        if (item.isIcon) {
+          let filePath = path.resolve(targetPath, item.file!.name);
 
-          // - TODO: -> Run code transforms here.
+          const transformedFileContent = await transform({
+            filename: item.file!.name,
+            raw: item.file!.content as string,
+            config
+          });
 
-          // await fs.writeFile(filePath, item.content);
-        });
+          if (!config.tsx) filePath.replace(/\.tsx?/g, ".jsx");
+
+          await fs.writeFile(filePath, transformedFileContent);
+        }
+        else {
+          
+        }
 
         // -> Helpers
         if (item.helperRegistryDependencies) {

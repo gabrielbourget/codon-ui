@@ -1,5 +1,5 @@
 {
-  "name": "amino-ui-cli",
+  "name": "aminoui-cli",
   "description": "Distribute centralized resources into your codebase in a modular fashion.",
   "module": "index.ts",
   "type": "module",
@@ -11,7 +11,10 @@
     "build": "tsup",
     "start:dev": "cross-env COMPONENTS_REGISTRY_URL=http://localhost:3001 node dist/index.js",
     "start": "node dist/index.js",
-    "test": "echo \"Error: no tests specified\" && exit 1"
+    "test": "echo \"Error: no tests specified\" && exit 1",
+    "pub:beta": "npm build && npm publish --access public --tag beta",
+    "pub:next": "npm build && npm publish --access public --tag next",
+    "pub:release": "npm build && npm publish --access public"
   },
   "dependencies": {
     "@babel/core": "^7.24.4",
@@ -30,6 +33,7 @@
     "path": "^0.12.7",
     "prompts": "^2.4.2",
     "recast": "^0.23.6",
+    "rimraf": "^5.0.5",
     "ts-morph": "^22.0.0",
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",

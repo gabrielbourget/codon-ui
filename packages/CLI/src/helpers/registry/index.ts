@@ -120,8 +120,6 @@ export const resolveHelperTree = async (
   );
 };
 
-// - TODO: -> Somehow need to account for recursion through nested directory structures, and maintain that directory structure
-//            to recreate it on the user's machine who's using the CLI.
 export const fetchComponentTree = async (tree: TComponentRegistryIndex) => {
   try {
     const paths = tree.map((entry: TComponentRegistryIndexItem) => `${entry.name}.json`);

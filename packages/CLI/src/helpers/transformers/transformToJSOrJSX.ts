@@ -56,7 +56,7 @@ const parserOptions: ParserOptions = {
   ],
 }
 
-export const transformToJSX: TTransform<String> = async ({ sourceFile, config }) => {
+export const transformToJS: TTransform<String> = async ({ sourceFile, config }) => {
   const output = sourceFile.getFullText();
 
   if (config.tsx) return output;
@@ -76,7 +76,7 @@ export const transformToJSX: TTransform<String> = async ({ sourceFile, config })
   });
 
   if (!result || !result.ast) {
-    throw new Error("Failed to transform TSX to JSX");
+    throw new Error("Failed to transform TSX or TS to JSX or JS");
   }
 
   return recast.print(result.ast).code;

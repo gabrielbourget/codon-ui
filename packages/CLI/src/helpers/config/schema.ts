@@ -11,7 +11,6 @@ export const coreConfigSchema = z.object({
     constants: z.string(),
     globalCSS: z.string(),
     textCSS: z.string(),
-    serverSideStyles: z.string(),
   }),
 }).strict();
 
@@ -26,7 +25,6 @@ export const configSchema = coreConfigSchema.extend({
     constants: z.string(),
     globalCSS: z.string(),
     textCSS: z.string(),
-    serverSideStyles: z.string(),
   })
 });
 

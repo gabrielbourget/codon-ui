@@ -1,5 +1,6 @@
+#!/usr/bin/env node
+
 import { Command } from "commander";
-// import figlet from "figlet";
 import { getPackageInfo } from "./helpers/getPackageInfo";
 import { diff } from "./commands/diff";
 import { add } from "./commands/add";

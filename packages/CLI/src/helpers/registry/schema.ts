@@ -24,8 +24,6 @@ export const availableHelperRegistryItemTypeSchema = z.union([
   z.literal(REGISTRY_ITEM_TYPE__TEXT_CSS),
 ]);
 
-
-
 export type TRegistryIndexItemFile = {
   name: string;
   pathSegment: string;
@@ -37,7 +35,7 @@ export type TRegistryIndexItemDirectory = {
   content: (TRegistryIndexItemFile | TRegistryIndexItemDirectory)[];
 };
 
-export const registryIndexItemFileSchema = z.object({
+export const componentRegistryIndexItemFileSchema = z.object({
   name: z.string(),
   pathSegment: z.string(),
   content: z.string()
@@ -47,7 +45,7 @@ export const registryIndexItemDirectorySchema: ZodType<TRegistryIndexItemDirecto
   z.object({
     name: z.string(),
     content: z.array(
-      z.union([registryIndexItemFileSchema, registryIndexItemDirectorySchema])
+      z.union([componentRegistryIndexItemFileSchema, registryIndexItemDirectorySchema])
     )
   })
 );
@@ -59,7 +57,8 @@ export const componentRegistryIndexItemSchema = z.object({
   devDependencies: z.array(z.string()).optional(),
   componentRegistryDependencies: z.array(z.string()).optional(),
   helperRegistryDependencies: z.array(z.string()).optional(),
-  directory: registryIndexItemDirectorySchema,
+  directory: registryIndexItemDirectorySchema.optional(),
+  file: componentRegistryIndexItemFileSchema.optional(),
 });
 
 export type TComponentRegistryIndexItem = z.infer<typeof componentRegistryIndexItemSchema>;
@@ -68,10 +67,16 @@ export const componentRegistryIndexSchema = z.array(componentRegistryIndexItemSc
 
 export type TComponentRegistryIndex = z.infer<typeof componentRegistryIndexSchema>;
 
+export const helperRegistryIndexItemFileSchema = z.object({
+  name: z.string(),
+  content: z.string()
+});
+
 export const helperRegistryIndexItemSchema = z.object({
   name: z.string(),
   type: availableHelperRegistryItemTypeSchema,
-  file: registryIndexItemFileSchema
+  fileName: z.string(),
+  file: helperRegistryIndexItemFileSchema
 });
 
 export type THelperRegistryIndexItem = z.infer<typeof helperRegistryIndexItemSchema>;
