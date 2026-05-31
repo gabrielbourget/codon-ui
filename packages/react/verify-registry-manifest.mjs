@@ -140,15 +140,21 @@ const validateRelativePath = ({ basePath, context, mustExist = false, value }) =
 
 const validateStringArray = (expression, constants, context) => {
   const arrayExpression = readArrayExpression(expression, context)
-  if (!arrayExpression) return
+  if (!arrayExpression) return []
+  const values = []
 
   arrayExpression.elements.forEach((element, index) => {
     const value = readStringValue(element, constants, `${context}[${index}]`)
 
     if (!value) {
       fail(`Expected ${context}[${index}] to be non-empty.`)
+      return
     }
+
+    values.push(value)
   })
+
+  return values
 }
 
 const validateDependencyMap = (expression, constants, context) => {
@@ -197,6 +203,10 @@ const validateManifestFile = ({ constants, expression, itemName, index, validFil
   if (role && !validFileRoles.has(role)) {
     fail(`Expected ${context}.role to be one of ${[...validFileRoles].join(", ")}, received ${role}.`)
   }
+
+  if (!targetRole || !targetPath) return undefined
+
+  return { targetPath, targetRole }
 }
 
 const validateManifestItem = ({ constants, expression, index, validFileRoles, validItemTypes, validTargetRoles }) => {
@@ -230,22 +240,104 @@ const validateManifestItem = ({ constants, expression, index, validFileRoles, va
     fail(`Expected ${context}.files to include at least one explicit file.`)
   }
 
-  files?.elements.forEach((fileExpression, fileIndex) =>
-    validateManifestFile({
+  const fileTargets = []
+
+  files?.elements.forEach((fileExpression, fileIndex) => {
+    const fileTarget = validateManifestFile({
       constants,
       expression: fileExpression,
       itemName: context,
       index: fileIndex,
       validFileRoles,
       validTargetRoles,
-    }),
-  )
+    })
+
+    if (fileTarget) fileTargets.push(fileTarget)
+  })
 
   const registryDependencies = properties.get("registryDependencies")
-  if (registryDependencies) validateStringArray(registryDependencies, constants, `${context}.registryDependencies`)
+  const registryDependencyNames = registryDependencies
+    ? validateStringArray(registryDependencies, constants, `${context}.registryDependencies`)
+    : []
   ;["peerDependencies", "runtimeDependencies", "devDependencies"].forEach((dependencyFieldName) => {
     const dependencies = properties.get(dependencyFieldName)
     if (dependencies) validateDependencyMap(dependencies, constants, `${context}.${dependencyFieldName}`)
+  })
+
+  if (!name) return undefined
+
+  return {
+    fileTargets,
+    name,
+    registryDependencies: registryDependencyNames,
+  }
+}
+
+const validateManifestGraph = (manifestItems) => {
+  const itemNames = new Set()
+
+  manifestItems.forEach((item) => {
+    if (itemNames.has(item.name)) {
+      fail(`Expected registry item "${item.name}" to be defined once.`)
+      return
+    }
+
+    itemNames.add(item.name)
+  })
+
+  manifestItems.forEach((item) => {
+    item.registryDependencies.forEach((dependencyName) => {
+      if (!itemNames.has(dependencyName)) {
+        fail(`Expected registry item "${item.name}" dependency "${dependencyName}" to be defined in the manifest.`)
+      }
+    })
+  })
+
+  const itemByName = new Map(manifestItems.map((item) => [item.name, item]))
+  const visitedItemNames = new Set()
+  const visitingItemNames = new Set()
+  const registryDependencyPath = []
+
+  const visitItem = (itemName) => {
+    if (visitedItemNames.has(itemName)) return
+
+    const item = itemByName.get(itemName)
+    if (!item) return
+
+    if (visitingItemNames.has(itemName)) {
+      const cycleStartIndex = registryDependencyPath.indexOf(itemName)
+      const cyclePath = [...registryDependencyPath.slice(Math.max(cycleStartIndex, 0)), itemName]
+
+      fail(`Expected registry dependencies not to cycle, received ${cyclePath.join(" -> ")}.`)
+      return
+    }
+
+    visitingItemNames.add(itemName)
+    registryDependencyPath.push(itemName)
+
+    item.registryDependencies.forEach(visitItem)
+
+    registryDependencyPath.pop()
+    visitingItemNames.delete(itemName)
+    visitedItemNames.add(itemName)
+  }
+
+  manifestItems.forEach((item) => visitItem(item.name))
+
+  const fileTargetsByKey = new Map()
+
+  manifestItems.forEach((item) => {
+    item.fileTargets.forEach((fileTarget) => {
+      const targetKey = `${fileTarget.targetRole}:${fileTarget.targetPath}`
+      const existingItemName = fileTargetsByKey.get(targetKey)
+
+      if (existingItemName) {
+        fail(`Expected registry target ${targetKey} to be owned once, received ${existingItemName} and ${item.name}.`)
+        return
+      }
+
+      fileTargetsByKey.set(targetKey, item.name)
+    })
   })
 }
 
@@ -272,17 +364,22 @@ if (!manifestExpression) {
   fail("Expected src/registry/manifest.ts to export reactRegistryManifest.")
 } else {
   const manifest = readArrayExpression(manifestExpression, "reactRegistryManifest")
+  const manifestItems = []
 
-  manifest?.elements.forEach((itemExpression, index) =>
-    validateManifestItem({
+  manifest?.elements.forEach((itemExpression, index) => {
+    const manifestItem = validateManifestItem({
       constants,
       expression: itemExpression,
       index,
       validFileRoles,
       validItemTypes,
       validTargetRoles,
-    }),
-  )
+    })
+
+    if (manifestItem) manifestItems.push(manifestItem)
+  })
+
+  validateManifestGraph(manifestItems)
 }
 
 if (process.exitCode) {

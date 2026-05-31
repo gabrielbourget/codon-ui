@@ -1,3 +1,19 @@
+export {
+  createRegistryFileTargetKey,
+  REGISTRY_GRAPH_ISSUE__CIRCULAR_DEPENDENCY,
+  REGISTRY_GRAPH_ISSUE__DUPLICATE_FILE_TARGET,
+  REGISTRY_GRAPH_ISSUE__DUPLICATE_ITEM,
+  REGISTRY_GRAPH_ISSUE__MISSING_DEPENDENCY,
+  REGISTRY_GRAPH_ISSUE__MISSING_ITEM,
+  REGISTRY_GRAPH_ISSUES,
+  resolveRegistryInstallGraph,
+} from "./graph"
+export type {
+  TRegistryGraphIssue,
+  TRegistryGraphIssueCode,
+  TRegistryGraphResolution,
+  TResolvedRegistryGraphItem,
+} from "./graph"
 export { reactRegistryManifest } from "./manifest"
 export type {
   TRegistryDependencyMap,
