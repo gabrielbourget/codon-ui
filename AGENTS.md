@@ -119,10 +119,18 @@ appear, return to deliberate planning mode.
 - Package manager: `pnpm`.
 - Root verification uses ordered scripts:
   - `pnpm check`
+  - `pnpm verify:github-actions`
+  - `pnpm verify:tooling`
+  - `pnpm verify:build`
+  - `pnpm verify:tests`
+  - `pnpm verify:ci`
   - `pnpm build:react`
   - `pnpm build:cli`
 - Root checks use `pnpm -r` scripts where practical. Do not reopen a Turbo migration casually.
 - Prefer workspace-scoped commands for focused checks, such as `pnpm -F @amino-ui/react build`.
+- `pnpm verify:ci` is the local mirror of the initial GitHub Actions CI surface.
+- `pnpm verify:build` intentionally runs the web app with `pnpm -F web exec next build` so the CI baseline can validate
+  Next build behavior without treating unresolved registry artifact generation as authoritative.
 - If scripts differ, inspect `package.json` before guessing.
 
 ## Workflow Rules
@@ -169,8 +177,11 @@ Prefer the narrowest verification command that exercises the touched behavior.
 
 For Amino UI implementation work, normally run:
 
-- `pnpm check`
+- `pnpm check` or `pnpm verify:tooling` when the change touches shared tooling or repo workflow.
 - A focused package build when relevant, such as `pnpm build:react` or `pnpm build:cli`.
+- `pnpm verify:build` when the build surface or CI workflow changes.
+- `pnpm verify:tests` when test scripts or test harness behavior changes.
+- `pnpm verify:github-actions` when `.github` workflow or local action files change.
 - `git diff --check`
 
 For Wavemap roadmap updates, verify in the Wavemap repo with:

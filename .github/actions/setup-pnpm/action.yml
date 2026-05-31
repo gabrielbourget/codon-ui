@@ -1,0 +1,48 @@
+# yaml-language-server: $schema=https://json.schemastore.org/github-action.json
+name: Setup PNPM
+description: Set up Node, Corepack, pinned PNPM, PNPM store cache, and optional dependency install.
+
+inputs:
+  node-version:
+    description: Node.js version to activate.
+    default: "24.15.0"
+  pnpm-version:
+    description: PNPM version to activate through Corepack.
+    default: "10.18.3"
+  install:
+    description: Whether to run pnpm install after toolchain and cache setup.
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        package-manager-cache: false
+
+    - name: Enable Corepack
+      shell: bash
+      run: corepack enable
+
+    - name: Activate Pinned PNPM
+      shell: bash
+      run: corepack prepare pnpm@${{ inputs.pnpm-version }} --activate
+
+    - name: Get PNPM Store Path
+      id: pnpm_cache
+      shell: bash
+      run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache PNPM Store
+      uses: actions/cache@v5
+      with:
+        path: ${{ steps.pnpm_cache.outputs.STORE_PATH }}
+        key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+        restore-keys: |
+          ${{ runner.os }}-pnpm-store-
+
+    - name: Install Dependencies
+      if: ${{ inputs.install == 'true' }}
+      shell: bash
+      run: pnpm install --frozen-lockfile

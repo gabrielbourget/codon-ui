@@ -19,7 +19,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
     "typecheck": "tsc --noEmit",
-    "test": "echo \"Error: no tests specified\" && exit 1",
+    "test": "echo \"[aminoui-cli] no tests yet\"",
     "pub:beta": "npm build && npm publish --access public --tag beta",
     "pub:next": "npm build && npm publish --access public --tag next",
     "pub:release": "npm build && npm publish --access public"
