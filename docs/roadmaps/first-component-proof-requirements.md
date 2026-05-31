@@ -19,6 +19,8 @@ Use these Wavemap notes as the current source of truth for candidate readiness:
 The Amino UI repo should not duplicate every Wavemap finding. It should track only the target-repo decisions needed to
 receive and prove the component.
 
+The first draft `Switch` manifest plan lives in `switch-manifest-plan.md`.
+
 ## Required Packet Before Source Movement
 
 The first implementation pass must know:
