@@ -105,6 +105,8 @@ During foundation passes:
 - Do not add React Aria or other runtime dependencies until the first received component needs them.
 - Do not add generated token writers or CLI palette generation.
 - Do not implement CLI install, update, diff, status, or ejection behavior as incidental cleanup.
+- Before renovating CLI behavior, preserve a shared advisory-only mode so expected config, registry, dependency, and
+  project-shape findings can report without failing or slowing broader processes.
 - Do not decide package publication, release automation, or deploy workflows casually.
 - Do not treat legacy shadcn-derived scaffolding as authoritative.
 - Do not make broad registry behavior changes without an approved pass.

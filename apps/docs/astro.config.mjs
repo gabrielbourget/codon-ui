@@ -27,6 +27,10 @@ export default defineConfig({
           label: "Registry",
           items: ["registry/contracts"],
         },
+        {
+          label: "CLI",
+          items: ["cli/baseline-contract"],
+        },
       ],
     }),
   ],

@@ -26,3 +26,4 @@ No component source has moved yet.
 - [Extraction Boundaries](/foundation/extraction-boundaries/) captures the guardrails for the first component proof.
 - [`@amino-ui/react`](/packages/react/) summarizes the receiver package.
 - [Registry Contracts](/registry/contracts/) explains the current manifest posture.
+- [CLI Baseline Contract](/cli/baseline-contract/) records the advisory-mode policy before command behavior expands.
