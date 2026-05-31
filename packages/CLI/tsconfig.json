@@ -3,11 +3,15 @@
   "compilerOptions": {
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "composite": true,
+    "composite": false,
+    "incremental": false,
+    "declarationMap": false,
     "downlevelIteration": true,
     "rootDir": ".",
     "outDir": "dist",
     "baseUrl": ".",
     "paths": { "@/*": ["./*"] }
-  }
+  },
+  "include": ["src/**/*.ts", "tsup.config.ts"],
+  "exclude": ["dist", "node_modules"]
 }
