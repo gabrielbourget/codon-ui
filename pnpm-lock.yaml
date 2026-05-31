@@ -119,6 +119,9 @@ importers:
       '@babel/core':
         specifier: ^7.24.4
         version: 7.29.0
+      '@babel/parser':
+        specifier: ^7.29.3
+        version: 7.29.3
       '@babel/plugin-transform-typescript':
         specifier: ^7.24.1
         version: 7.28.6(@babel/core@7.29.0)
