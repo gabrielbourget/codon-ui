@@ -10,6 +10,7 @@ Current boundaries:
 - Component source belongs under `src/`.
 - Package-facing exports belong in `src/index.ts`.
 - Default package CSS is exported as `@amino-ui/react/theme.css`.
+- The default CSS contract is tracked in `../../docs/roadmaps/react-theme-css-contract.md`.
 - React and React DOM are peer dependencies.
 - React Aria dependencies should be added only when the first component that needs them lands.
 
