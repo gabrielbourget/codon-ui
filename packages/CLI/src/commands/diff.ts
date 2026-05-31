@@ -6,7 +6,15 @@ import { Command } from "commander"
 import { diffLines, type Change } from "diff"
 import { z } from "zod"
 
-import { handleError, logger } from "@/src/helpers"
+import {
+  createCommandContext,
+  createWarningDiagnostic,
+  formatUnknownError,
+  handleError,
+  logger,
+  printDiagnostics,
+  type TCommandContext,
+} from "@/src/helpers"
 import { getConfig } from "@/src/helpers/config"
 import type { TConfig } from "@/src/helpers/config/schema"
 import { fetchComponentTree, getRegistryIndex } from "@/src/helpers/registry"
@@ -19,10 +27,13 @@ import type {
 
 const updateOptionsSchema = z.object({
   component: z.string().optional(),
-  skipConfirmationPrompt: z.boolean(),
+  skipConfirmationPrompt: z.boolean().default(true),
   cwd: z.string(),
   path: z.string().optional(),
+  advisory: z.boolean().default(false),
 })
+
+const DIFF_ADVISORY_REGISTRY_TIMEOUT_MS = 5_000
 
 type RegistryFileDiff = {
   file: string
@@ -85,25 +96,36 @@ export const diff = new Command()
   .argument("[component]", "The component you'd like to check for updates.")
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
+  .option("--advisory", "Report diagnostics without failing for expected findings.", false)
   .action(async (name, CLIOptions) => {
+    const options = updateOptionsSchema.parse({ component: name, ...CLIOptions })
+    const commandContext = createCommandContext({ advisory: options.advisory })
+
     try {
-      const options = updateOptionsSchema.parse({ component: name, ...CLIOptions })
       const cwd = path.resolve(options.cwd)
 
       if (!existsSync(cwd)) {
+        if (commandContext.advisory) {
+          printDiagnostics([createWarningDiagnostic(`The path ${cwd} could not be found.`)])
+          return
+        }
+
         logger.error(`The path ${cwd} could not be found. Please try again.`)
         process.exit(1)
       }
 
-      const config = await getConfig(cwd)
+      const config = await getDiffConfig(cwd, commandContext)
       if (!config) {
+        if (commandContext.advisory) return
+
         logger.warn(
           `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate a components.json file.`,
         )
         process.exit(1)
       }
 
-      const registryIndex = (await getRegistryIndex({ registryType: "components" })) as TComponentRegistryIndex
+      const registryIndex = await getComponentRegistryIndex(commandContext)
+      if (!registryIndex) return
 
       // -> No component chosen for analysis.
       if (!options.component) {
@@ -111,7 +133,9 @@ export const diff = new Command()
 
         const componentsWithUpdates: { name: string; changes: RegistryFileDiff[] }[] = []
         for (const component of componentsInProject) {
-          const changes = await diffComponent(component, config)
+          const changes = await diffComponent(component, config, commandContext)
+          if (!changes) continue
+
           if (changes.length) {
             componentsWithUpdates.push({
               name: component.name,
@@ -140,11 +164,19 @@ export const diff = new Command()
       const component = registryIndex.find((item) => item.name === options.component)
 
       if (!component) {
+        if (commandContext.advisory) {
+          printDiagnostics([
+            createWarningDiagnostic(`The component ${options.component} does not exist in the registry.`),
+          ])
+          return
+        }
+
         logger.error(`The component ${chalk.green(options.component)} does not exist in the registry.`)
         process.exit(1)
       }
 
-      const changes = await diffComponent(component, config)
+      const changes = await diffComponent(component, config, commandContext)
+      if (!changes) return
 
       if (!changes.length) {
         logger.info("No changes required, the chosen component is up to date.")
@@ -157,14 +189,77 @@ export const diff = new Command()
         logger.info("")
       }
     } catch (error) {
+      if (commandContext.advisory) {
+        printDiagnostics([
+          createWarningDiagnostic(`Diff advisory check could not complete. ${formatUnknownError(error)}`),
+        ])
+        return
+      }
+
       handleError(error)
     }
   })
 
-const diffComponent = async (component: TComponentRegistryIndexItem, config: TConfig): Promise<RegistryFileDiff[]> => {
-  const payload = await fetchComponentTree([component])
+const getDiffConfig = async (cwd: string, commandContext: TCommandContext): Promise<TConfig | null> => {
+  try {
+    const config = await getConfig(cwd)
+    if (config) return config
+
+    if (commandContext.advisory) {
+      printDiagnostics([
+        createWarningDiagnostic(
+          `No existing configuration found. Run ${chalk.green(`init`)} before strict diff checks.`,
+        ),
+      ])
+      return null
+    }
+
+    return null
+  } catch (error) {
+    if (commandContext.advisory) {
+      printDiagnostics([createWarningDiagnostic(`Configuration could not be loaded. ${formatUnknownError(error)}`)])
+      return null
+    }
+
+    throw error
+  }
+}
+
+const getComponentRegistryIndex = async (commandContext: TCommandContext): Promise<TComponentRegistryIndex | null> => {
+  try {
+    return (await getRegistryIndex({
+      registryType: "components",
+      reportErrors: !commandContext.advisory,
+      timeoutMs: commandContext.advisory ? DIFF_ADVISORY_REGISTRY_TIMEOUT_MS : undefined,
+    })) as TComponentRegistryIndex
+  } catch (error) {
+    if (commandContext.advisory) {
+      printDiagnostics([
+        createWarningDiagnostic(`Component registry could not be loaded. ${formatUnknownError(error)}`),
+      ])
+      return null
+    }
+
+    throw error
+  }
+}
+
+const diffComponent = async (
+  component: TComponentRegistryIndexItem,
+  config: TConfig,
+  commandContext: TCommandContext,
+): Promise<RegistryFileDiff[] | null> => {
+  const payload = await fetchComponentTree([component], {
+    reportErrors: !commandContext.advisory,
+    timeoutMs: commandContext.advisory ? DIFF_ADVISORY_REGISTRY_TIMEOUT_MS : undefined,
+  })
 
   if (!payload) {
+    if (commandContext.advisory) {
+      printDiagnostics([createWarningDiagnostic(`Registry payload for ${component.name} could not be loaded.`)])
+      return null
+    }
+
     console.error(`Error encountered while diffing component for changes.`)
     process.exit(1)
   }

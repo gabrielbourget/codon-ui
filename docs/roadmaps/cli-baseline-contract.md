@@ -12,11 +12,11 @@ component proof is ready.
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                       |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Mutating and not proof-ready. Needs a preflight/report contract before it can be trusted.                             |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Mutating and coupled to legacy registry artifacts. Freeze behavior until registry source policy is settled.           |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | Closest to read-only, but still exits hard on missing config/registry/component and depends on legacy artifact shape. |
+| Command | Current role                                                                                                                       | Renovation read                                                                                             |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Mutating and not proof-ready. Needs a preflight/report contract before it can be trusted.                   |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Mutating and coupled to legacy registry artifacts. Freeze behavior until registry source policy is settled. |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.    |
 
 Current helper surface:
 
@@ -96,6 +96,20 @@ Do not broaden behavior before these risks are handled deliberately:
 4. Add fixture tests for config loading, registry schema parsing, package-manager helper output, and file transforms.
 5. Add advisory preflight paths for `init` and `add` without enabling new apply behavior.
 6. Decide install metadata shape before implementing `status`, `update`, or ejection behavior.
+
+## Implementation Notes
+
+The first implementation slice added shared command context and diagnostic helpers, then wired `diff --advisory`.
+
+Current `diff --advisory` behavior:
+
+- Reports missing `cwd`, missing config, missing registry, missing component, and missing registry payload as warnings.
+- Exits `0` for those expected findings.
+- Suppresses lower-level raw registry fetch logging for advisory registry requests.
+- Uses a five-second registry fetch timeout so advisory checks do not stall broader processes indefinitely.
+- Does not write files, create directories, install packages, mutate lockfiles, or prompt.
+
+Normal `diff` behavior remains strict.
 
 ## Stop Conditions
 

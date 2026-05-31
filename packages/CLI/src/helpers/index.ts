@@ -1,3 +1,5 @@
+export * from "./commandContext"
+export * from "./diagnostics"
 export * from "./getPackageInfo"
 export * from "./logger"
 export * from "./handleError"

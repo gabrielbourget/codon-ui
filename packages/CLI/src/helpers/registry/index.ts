@@ -25,18 +25,33 @@ const { COMPONENT_REGISTRY_URL } = process.env
 
 const baseUrl = COMPONENT_REGISTRY_URL ?? "https://aminoui.com"
 
+type TRegistryRequestOptions = {
+  reportErrors?: boolean
+  timeoutMs?: number
+}
+
 export const getRegistryIndex = async ({
   registryType,
+  reportErrors = true,
+  timeoutMs,
 }: {
   registryType: TAvailableRegistryTypes
-}): Promise<TComponentRegistryIndex | THelperRegistryIndex> => {
+} & TRegistryRequestOptions): Promise<TComponentRegistryIndex | THelperRegistryIndex> => {
   let registryIndex: TComponentRegistryIndex | THelperRegistryIndex = []
   try {
     if (registryType === REGISTRY_TYPE__COMPONENTS) {
-      const [result] = await fetchRegistry(["index.json"], { registryType: REGISTRY_TYPE__COMPONENTS })
+      const [result] = await fetchRegistry(["index.json"], {
+        registryType: REGISTRY_TYPE__COMPONENTS,
+        reportErrors,
+        timeoutMs,
+      })
       registryIndex = componentRegistryIndexSchema.parse(result)
     } else if (registryType === REGISTRY_TYPE__HELPERS) {
-      const [result] = await fetchRegistry(["index.json"], { registryType: REGISTRY_TYPE__HELPERS })
+      const [result] = await fetchRegistry(["index.json"], {
+        registryType: REGISTRY_TYPE__HELPERS,
+        reportErrors,
+        timeoutMs,
+      })
       registryIndex = helperRegistryIndexSchema.parse(result)
     }
 
@@ -71,17 +86,20 @@ export const getItemTargetPath = async (
   }
 }
 
-export const fetchRegistry = async (paths: string[], { registryType }: { registryType: TAvailableRegistryTypes }) => {
+export const fetchRegistry = async (
+  paths: string[],
+  { registryType, reportErrors = true, timeoutMs }: { registryType: TAvailableRegistryTypes } & TRegistryRequestOptions,
+) => {
   try {
     const results = await Promise.all(
       paths.map(async (path) => {
         if (registryType === REGISTRY_TYPE__COMPONENTS) {
           // - TODO: -> Figure out how shadcn uses agent here but it doesn't work for me.
           // const response = await fetch(`${baseUrl}/registry/${path}`, { agent });
-          const response = await fetch(`${baseUrl}/registry/components/${path}`)
+          const response = await fetchRegistryJson(`${baseUrl}/registry/components/${path}`, timeoutMs)
           return await response.json()
         } else if (registryType === REGISTRY_TYPE__HELPERS) {
-          const response = await fetch(`${baseUrl}/registry/helpers/${path}`)
+          const response = await fetchRegistryJson(`${baseUrl}/registry/helpers/${path}`, timeoutMs)
           return await response.json()
         }
       }),
@@ -89,8 +107,21 @@ export const fetchRegistry = async (paths: string[], { registryType }: { registr
 
     return results
   } catch (error) {
-    console.log(error)
+    if (reportErrors) console.log(error)
     throw new Error(`Failed to fetch registry from ${baseUrl}.`)
+  }
+}
+
+const fetchRegistryJson = async (url: string, timeoutMs?: number) => {
+  if (!timeoutMs) return await fetch(url)
+
+  const abortController = new AbortController()
+  const timeout = setTimeout(() => abortController.abort(), timeoutMs)
+
+  try {
+    return await fetch(url, { signal: abortController.signal })
+  } finally {
+    clearTimeout(timeout)
   }
 }
 
@@ -140,24 +171,33 @@ export const resolveHelperTree = async (
   )
 }
 
-export const fetchComponentTree = async (tree: TComponentRegistryIndex) => {
+export const fetchComponentTree = async (
+  tree: TComponentRegistryIndex,
+  { reportErrors = true, timeoutMs }: TRegistryRequestOptions = {},
+) => {
   try {
     const paths = tree.map((entry: TComponentRegistryIndexItem) => `${entry.name}.json`)
-    const result = await fetchRegistry(paths, { registryType: "components" })
+    const result = await fetchRegistry(paths, { registryType: "components", reportErrors, timeoutMs })
 
     return componentRegistryIndexSchema.parse(result)
   } catch (error) {
-    console.error(`Error encountered while fetching import tree from the component registry -> ${error}`)
+    if (reportErrors) {
+      console.error(`Error encountered while fetching import tree from the component registry -> ${error}`)
+    }
   }
 }
 
-export const fetchHelperTree = async (tree: THelperRegistryIndex): Promise<THelperRegistryIndex | undefined> => {
+export const fetchHelperTree = async (
+  tree: THelperRegistryIndex,
+  { reportErrors = true, timeoutMs }: TRegistryRequestOptions = {},
+): Promise<THelperRegistryIndex | undefined> => {
   try {
     const paths = tree.map((entry: THelperRegistryIndexItem) => `${entry.name}.json`)
-    const result = await fetchRegistry(paths, { registryType: "helpers" })
+    const result = await fetchRegistry(paths, { registryType: "helpers", reportErrors, timeoutMs })
 
     return helperRegistryIndexSchema.parse(result)
   } catch (error) {
-    console.error(`Error encountered while fetching import tree from the helpers registry -> ${error}`)
+    if (reportErrors)
+      console.error(`Error encountered while fetching import tree from the helpers registry -> ${error}`)
   }
 }

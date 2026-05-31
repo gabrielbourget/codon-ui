@@ -8,11 +8,11 @@ component extraction.
 
 ## Current Surface
 
-| Command | Current state                                                                              |
-| ------- | ------------------------------------------------------------------------------------------ |
-| `init`  | Mutates config, helper files, directories, and package dependencies.                       |
-| `add`   | Fetches legacy registry JSON, writes files, transforms source, and installs dependencies.  |
-| `diff`  | Reads local files and registry payloads, but still hard-fails for ordinary missing inputs. |
+| Command | Current state                                                                                                   |
+| ------- | --------------------------------------------------------------------------------------------------------------- |
+| `init`  | Mutates config, helper files, directories, and package dependencies.                                            |
+| `add`   | Fetches legacy registry JSON, writes files, transforms source, and installs dependencies.                       |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing. |
 
 None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
 dependency policy, and tests are settled.
@@ -31,13 +31,14 @@ Advisory mode should:
 `--advisory` is different from a future dry-run. Advisory mode is for non-blocking diagnostics. Dry-run can later preview
 approved mutations.
 
+Current `diff --advisory` reports missing cwd, config, registry, component, and registry payload issues as warnings with
+exit `0`. Advisory registry requests are quieted and timeboxed to avoid blocking broader processes.
+
 ## Renovation Order
 
-1. Add shared diagnostic and advisory command context helpers.
-2. Convert `diff` first because it is closest to read-only.
-3. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
-4. Add advisory preflight paths for `init` and `add`.
-5. Defer `status`, `update`, and ejection behavior until install metadata is approved.
+1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
+2. Add advisory preflight paths for `init` and `add`.
+3. Defer `status`, `update`, and ejection behavior until install metadata is approved.
 
 ## Boundaries
 
