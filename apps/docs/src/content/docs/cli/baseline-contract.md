@@ -40,6 +40,21 @@ exit `0`. Advisory registry requests are quieted and timeboxed to avoid blocking
 2. Add advisory preflight paths for `init` and `add`.
 3. Defer `status`, `update`, and ejection behavior until install metadata is approved.
 
+## Design Packet
+
+The next CLI discussion should use the Wavemap extraction and polish roadmaps as inputs. Those roadmaps frame the CLI as
+declarative, metadata-driven source distribution, with `Switch` still the first likely proof only after theme delivery,
+package-safe imports, dependency policy, and focused tests are settled.
+
+Discussion targets before strict `init` or `add` behavior expands:
+
+- theme tiers: package default CSS, narrow `Switch` compatibility bridge, consumer-owned mapping, later generated output;
+- install metadata: file hashes, registry ids, versions, dependencies, and chosen theme tier;
+- ownership states: registry-owned, locally modified, ejected, consumer-owned support, and unknown;
+- update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
+  ejected files;
+- first proof mode: prefer advisory `init`/`add` reports until the metadata ledger and registry authority are approved.
+
 ## Boundaries
 
 Do not expand CLI install/update/diff behavior, registry artifact shape, component movement, generated token writers, or

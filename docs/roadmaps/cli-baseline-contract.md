@@ -111,6 +111,67 @@ Current `diff --advisory` behavior:
 
 Normal `diff` behavior remains strict.
 
+The next cleanup slice normalized Commander option parsing for `init`, `add`, and `diff` so each command maps external
+flag names into its internal option shape in one place. It also made the current `add` command await component file
+writes, nested directory writes, helper writes, and dependency installs in sequence. That does not make `add` proof-ready;
+it only removes accidental async behavior before the command contract is redesigned.
+
+## Design Discussion Packet
+
+This packet is an agenda for the next CLI design conversation, not approval to implement the behaviors below.
+
+Reference inputs from the Wavemap roadmaps:
+
+- The extraction roadmap frames the component-library CLI as declarative rather than investigative: registry metadata
+  should tell the CLI what to install, track, diff, update, and eject.
+- The extraction roadmap's delete-and-reinstall proof expects Wavemap to remove a local component slice, rehydrate it
+  from the library surface, and verify the app with reviewable diffs.
+- The polish roadmap keeps `Switch` as the first proof candidate, but only after package-safe imports, CSS-module support,
+  theme delivery, peer/runtime policy, and focused tests are decided.
+- Both roadmaps keep generated token output, broad theme generation, publication automation, and open-ended CLI behavior
+  outside the first proof.
+
+Topics to settle before real `init` or `add` implementation expands:
+
+| Topic                       | Discussion target                                                                                                                                                             |
+| --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Theme integration tiers     | Decide which tiers the CLI can report or install: package default CSS, narrow proof-local bridge, consumer-owned mapping, and later generated token output.                   |
+| Install metadata            | Decide whether the consumer ledger lives in `amino-ui.config.json`, a sidecar file, or both, and whether it records file hashes, registry item ids, versions, and theme tier. |
+| Source ownership states     | Define `registry-owned`, `locally modified`, `ejected`, `consumer-owned support`, and `unknown` before update/status commands exist.                                          |
+| Update behavior             | Decide which states are eligible for automatic update, which require manual merge, and which should never be changed by the CLI.                                              |
+| Registry artifact authority | Decide whether `add` consumes generated JSON artifacts, package-local manifests, or an explicit proof file list for the first `Switch` case.                                  |
+| Dependency policy           | Decide whether command output installs peer/runtime packages, reports missing packages, or defers to project package managers during the first proof.                         |
+| Verification surface        | Decide the minimum fixture tests and command smokes needed before `init`, `add`, `status`, `update`, or `eject` become trusted behavior.                                      |
+
+Recommended starting theme tiers for discussion:
+
+| Tier | Name                         | CLI posture before first proof                                                                                            |
+| ---- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Package default CSS          | Report or install `@amino-ui/react/theme.css` as the baseline import. No generated tokens.                                |
+| 1    | Narrow compatibility bridge  | For the first `Switch` proof only, install or report the small bridge that maps the current required compatibility names. |
+| 2    | Consumer-owned theme mapping | Detect and report that the consumer owns the mapping. Do not overwrite without explicit approval.                         |
+| 3    | Generated theme output       | Defer. The CLI may eventually generate palette/theme files, but that is not part of the first proof.                      |
+
+Recommended starting ownership states for discussion:
+
+| State                    | Meaning                                                                                  | Update stance                                                              |
+| ------------------------ | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `registry-owned`         | Installed file hash still matches the recorded registry payload.                         | Eligible for automatic update after update behavior is approved.           |
+| `locally-modified`       | File was installed by the registry but now differs from the recorded install hash.       | Show diff and require manual merge or explicit overwrite.                  |
+| `ejected`                | Consumer intentionally took ownership of the file or component slice.                    | Never auto-update. Registry can still show upstream changes for reference. |
+| `consumer-owned-support` | Theme bridge, mapping, or support file is intentionally maintained by the consumer repo. | Validate/report presence and drift, but do not overwrite by default.       |
+| `unknown`                | File exists at a target path without matching install metadata.                          | Treat as a blocker in strict apply mode and a warning in advisory mode.    |
+
+Minimum command direction before the first `Switch` proof:
+
+- `init --advisory` should report config presence, target paths, package manager, theme tier candidates, and missing
+  peer/runtime packages without writing files or running installs.
+- `add --advisory Switch` should resolve the planned component graph, support files, theme tier, dependencies, and
+  overwrite conflicts without writing files or running installs.
+- The first strict `add Switch` path should not exist until install metadata and ownership states are approved.
+- `status`, `update`, and `eject` should wait until the metadata ledger exists; otherwise the CLI cannot distinguish
+  registry-owned source from consumer-owned edits.
+
 ## Stop Conditions
 
 Return to deliberate planning if CLI work requires:
