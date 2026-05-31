@@ -2,8 +2,8 @@
 
 Canonical React source package for Amino UI components.
 
-This package is currently an empty receiver shell. It exists to establish package ownership, exports, verification, and
-the default CSS entrypoint before any Wavemap component source is moved into the monorepo.
+This package is currently a receiver shell. It exists to establish package ownership, exports, verification, and the
+default CSS entrypoint before any Wavemap component source is moved into the monorepo.
 
 Current boundaries:
 
@@ -20,3 +20,4 @@ Not included yet:
 - Registry artifact generation.
 - CLI install, update, or diff behavior.
 - Generated token files or token writers.
+- Wavemap compatibility aliases for legacy app-local CSS variables.
