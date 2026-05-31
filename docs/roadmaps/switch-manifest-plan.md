@@ -69,11 +69,11 @@ not settled.
 
 The `Switch` proof needs support beyond the three component files:
 
-| Support item | Current read | Decision needed |
-| ------------ | ------------ | --------------- |
-| `theme-css` | `@amino-ui/react/theme.css` exists and is checked. | Decide whether `Switch` CSS is rewritten to the package contract or receives a proof-local compatibility bridge. |
-| `tokens/geometry` | Current Wavemap source needs `ORTHOGONAL`, `ROUNDED`, `ROUND`, and `TCornerGeometry`. | Decide package-local support path and whether these constants are public support API. |
-| `tokens/theme-order` | Current Wavemap source needs five order constants and `TThemingOrderCode`. | Decide whether the first proof keeps five orders or narrows the `Switch` proof to the current package theme contract. |
+| Support item         | Current read                                                                                | Decision needed                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `theme-css`          | `@amino-ui/react/theme.css` exists, is checked, and has an active support manifest entry.   | Use a narrow proof-local compatibility bridge for the first proof; do not broaden the package default wholesale.                          |
+| `tokens/geometry`    | `packages/react/src/tokens/geometry.ts` exists and has an active support manifest entry.    | Future package source should import directly from `../../tokens/geometry`; do not make it a public package export yet.                    |
+| `tokens/theme-order` | `packages/react/src/tokens/theme-order.ts` exists and has an active support manifest entry. | Keep the five current theme orders for the first proof; do not add accent ramps to the package default just because the type allows them. |
 
 ## Theme Compatibility Gap
 
@@ -85,13 +85,11 @@ The `Switch` proof needs support beyond the three component files:
 - Wavemap compatibility aliases: `--disabledOpacity`, `--colorTransition`, `--bgColorTransition`,
   `--borderColorTransition`, `--border_radius_1`, `--focus-ring-color`, `--shadow_1`.
 
-The first implementation pass should choose one of two paths:
+The first implementation pass should use a narrow proof-local compatibility bridge.
 
-1. Rewrite `Switch` CSS to the current package variables during receipt.
-2. Add a narrow proof-local compatibility bridge that maps these names to package variables.
-
-Do not broaden `@amino-ui/react/theme.css` with all Wavemap aliases or accent ramps unless the owner explicitly approves
-that theme policy.
+That bridge should map only the names needed by the received `Switch` CSS and should stay outside the package default.
+Do not broaden `@amino-ui/react/theme.css` with Wavemap aliases or accent ramps unless the owner explicitly approves that
+theme policy.
 
 ## Test Plan Draft
 
@@ -111,8 +109,8 @@ Expected test adaptation:
 Do not activate the manifest until these are resolved:
 
 - Source location in Amino UI.
-- Import path replacing Wavemap `_registry/tokens`.
-- Theme compatibility path.
+- Final component import edits from Wavemap `_registry/tokens` to `../../tokens/geometry` and `../../tokens/theme-order`.
+- Exact proof-local compatibility bridge file location and install shape.
 - React Aria Components version/range.
 - `classnames` direct dependency version or replacement.
 - Test harness location and command.
