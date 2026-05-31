@@ -28,7 +28,6 @@ import type {
   TComponentRegistryIndex,
   TComponentRegistryIndexItem,
   THelperRegistryIndex,
-  THelperRegistryIndexItem,
   TRegistryIndexItemDirectory,
   TRegistryIndexItemFile,
   componentRegistryIndexItemSchema,
@@ -57,37 +56,45 @@ const addOptionsSchema = z
 const parseAddOptions = (components: string[] | undefined, CLIOptions: unknown) =>
   addOptionsSchema.parse({ components, ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}) })
 
+const resolveTargetFilePath = (filePath: string, config: TConfig) => {
+  if (config.tsx) return filePath
+
+  return filePath.replace(/\.tsx$/u, ".jsx").replace(/\.ts$/u, ".js")
+}
+
+const isRegistryDirectory = (
+  item: TRegistryIndexItemFile | TRegistryIndexItemDirectory,
+): item is TRegistryIndexItemDirectory => registryIndexItemDirectorySchema.safeParse(item).success
+
 const processComponentFilesFromRegistry = async (
   targetPath: string,
-  item: TComponentRegistryIndexItem,
+  directory: TRegistryIndexItemDirectory,
   config: TConfig,
 ) => {
-  item.directory!.content.forEach(async (directoryItem: TRegistryIndexItemFile | TRegistryIndexItemDirectory) => {
-    if (registryIndexItemDirectorySchema.safeParse(directoryItem).success) {
-      await processComponentFilesFromRegistry(path.join(targetPath, item.directory!.name), item, config)
-    } else {
-      const filePath = path.resolve(targetPath, item.directory!.name, directoryItem.name)
-      const fileNameComponents = directoryItem.name.split(".")
-      const extension = fileNameComponents[fileNameComponents.length - 1]
+  const directoryPath = path.resolve(targetPath, directory.name)
+  if (!existsSync(directoryPath)) await fs.mkdir(directoryPath, { recursive: true })
 
-      if (extension === "css") await fs.writeFile(filePath, directoryItem.content as string)
-      else {
-        const transformedFileContent = await transform({
-          filename: directoryItem.name,
-          raw: directoryItem.content as string,
-          config,
-        })
-
-        if (extension === "tsx") {
-          if (!config.tsx) filePath.replace(/\.tsx?/g, ".jsx")
-        } else if (extension === "ts") {
-          if (!config.tsx) filePath.replace(/\.ts?/g, ".js")
-        }
-
-        await fs.writeFile(filePath, transformedFileContent)
-      }
+  for (const directoryItem of directory.content) {
+    if (isRegistryDirectory(directoryItem)) {
+      await processComponentFilesFromRegistry(directoryPath, directoryItem, config)
+      continue
     }
-  })
+
+    const filePath = resolveTargetFilePath(path.resolve(directoryPath, directoryItem.name), config)
+    const fileNameComponents = directoryItem.name.split(".")
+    const extension = fileNameComponents[fileNameComponents.length - 1]
+
+    if (extension === "css") await fs.writeFile(filePath, directoryItem.content)
+    else {
+      const transformedFileContent = await transform({
+        filename: directoryItem.name,
+        raw: directoryItem.content,
+        config,
+      })
+
+      await fs.writeFile(filePath, transformedFileContent)
+    }
+  }
 }
 
 export const add = new Command()
@@ -174,7 +181,7 @@ export const add = new Command()
 
       const spinner = ora(`Installing selected components...`).start()
 
-      resolvedPayload.forEach(async (item: TComponentRegistryIndexItem) => {
+      for (const item of resolvedPayload) {
         spinner.text = `Installing ${item.name}...`
 
         const targetPathType = item.isIcon ? "icons" : "components"
@@ -192,29 +199,25 @@ export const add = new Command()
         )
 
         if (componentExists && !options.overwrite) {
-          if (selectedComponents.includes(item.name)) {
-            spinner.stop()
-            const { overwrite } = await prompts({
-              type: "confirm",
-              name: "overwrite",
-              message: `Component ${item.name} already exists. Would you like to overwrite its content?`,
-              initial: false,
-            })
-
-            if (!overwrite) {
-              logger.info(
-                `Skipped ${item.name}. To overwrite its content, run the command with the ${chalk.green("--overwrite")} flag.`,
-              )
-
-              return
-            }
-
-            spinner.start(`Installing ${item.name}...`)
-          } else return
+          if (!selectedComponents.includes(item.name)) continue
 
           spinner.stop()
-          logger.warn(`The ${item.name} component already exists. Skipping...`)
-          return
+          const { overwrite } = await prompts({
+            type: "confirm",
+            name: "overwrite",
+            message: `Component ${item.name} already exists. Would you like to overwrite its content?`,
+            initial: false,
+          })
+
+          if (!overwrite) {
+            logger.info(
+              `Skipped ${item.name}. To overwrite its content, run the command with the ${chalk.green("--overwrite")} flag.`,
+            )
+
+            continue
+          }
+
+          spinner.start(`Installing ${item.name}...`)
         }
 
         if (!item.isIcon && !existsSync(path.join(targetPath, item.directory!.name)))
@@ -229,24 +232,22 @@ export const add = new Command()
             config,
           })
 
-          if (!config.tsx) filePath.replace(/\.tsx?/g, ".jsx")
-
-          await fs.writeFile(filePath, transformedFileContent)
-        } else processComponentFilesFromRegistry(targetPath, item, config)
+          await fs.writeFile(resolveTargetFilePath(filePath, config), transformedFileContent)
+        } else await processComponentFilesFromRegistry(targetPath, item.directory!, config)
 
         // -> Helpers
         if (item.helperRegistryDependencies) {
           const tree = await resolveHelperTree(helperRegistryIndex, item.helperRegistryDependencies)
           const resolvedHelperPayload = await fetchHelperTree(tree)
 
-          resolvedHelperPayload?.forEach(async (helper: THelperRegistryIndexItem) => {
+          for (const helper of resolvedHelperPayload ?? []) {
             const targetPath = await getItemTargetPath(config, helper.type)
 
-            if (!targetPath) return
+            if (!targetPath) continue
             if (!existsSync(targetPath)) await fs.mkdir(targetPath, { recursive: true })
 
-            const helperFilePath = path.join(targetPath, helper.file.name)
-            const fileExists = existsSync(path.join(targetPath, helperFilePath))
+            const helperFilePath = resolveTargetFilePath(path.join(targetPath, helper.file.name), config)
+            const fileExists = existsSync(helperFilePath)
 
             if (fileExists) {
               const fileContents = await fs.readFile(helperFilePath, "utf-8")
@@ -263,7 +264,7 @@ export const add = new Command()
 
               await fs.writeFile(helperFilePath, transformedFileContent)
             }
-          })
+          }
         }
 
         // -> Dependencies
@@ -282,7 +283,7 @@ export const add = new Command()
             { cwd },
           )
         }
-      })
+      }
 
       spinner.succeed("Selected components were installed successfully.")
     } catch (error) {
