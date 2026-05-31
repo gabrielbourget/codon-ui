@@ -10,7 +10,7 @@ Wavemap's full application theme or introducing generated token machinery before
 ## Current Status
 
 - `packages/react/theme.css` is exported as `@amino-ui/react/theme.css`.
-- The file is hand-authored and currently acts as an empty entrypoint.
+- The file is hand-authored and defines the first narrow default `--aui-` variable contract.
 - No Wavemap component source consumes this package yet.
 - No registry artifact generator reads from `packages/react` yet.
 - React and React DOM are the only declared peers for `@amino-ui/react`.
@@ -111,6 +111,7 @@ For contract-only changes:
 
 For implementation changes to `packages/react/theme.css`:
 
+- `pnpm -F @amino-ui/react check:theme-css`
 - `pnpm check`
 - `pnpm build:react`
 - `git diff --check`
