@@ -16,6 +16,7 @@
     "./stylelint/base": "./stylelint/base.cjs",
     "./tsconfig/base": "./tsconfig/base.json",
     "./tsconfig/frontend": "./tsconfig/frontend/tsconfig.json",
+    "./tsconfig/react": "./tsconfig/react/tsconfig.json",
     "./tsconfig/node": "./tsconfig/node/tsconfig.json"
   },
   "files": [
