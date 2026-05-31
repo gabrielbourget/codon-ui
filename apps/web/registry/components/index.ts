@@ -1,6 +1,6 @@
 import type { TComponentRegistry } from "./schema";
 
-export const components: TComponentRegistry = [
+export const componentRegistry: TComponentRegistry = [
   // - TODO: -> Uncomment and double check details once component is implemented
   // {
   //   name: "accordion",

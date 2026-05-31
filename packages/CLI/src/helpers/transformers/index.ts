@@ -41,5 +41,7 @@ export const transform = async (options: TTransformOptions) => {
     transformer({ sourceFile, ...options });
   }
 
+  if (options.config.tsx) return sourceFile.getFullText();
+
   return await transformToJS({sourceFile,...options});
 };

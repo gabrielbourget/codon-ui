@@ -16,14 +16,21 @@ export const REGISTRY_ITEM_TYPE__TEXT_CSS = "textCSS";
 export const AVAILABLE_REGISTRY_ITEM_TYPES = [
   REGISTRY_ITEM_TYPE__COMPONENT, REGISTRY_ITEM_TYPE__ICON, REGISTRY_ITEM_TYPE__UTIL, REGISTRY_ITEM_TYPE__CONSTANT,
   REGISTRY_ITEM_TYPE__TYPE, REGISTRY_ITEM_TYPE__GLOBAL_CSS, REGISTRY_ITEM_TYPE__TEXT_CSS,
-];
+] as const;
+
 export type TAvailableRegistryItemTypes = typeof AVAILABLE_REGISTRY_ITEM_TYPES[number];
+
+export const AVAILABLE_HELPER_REGISTRY_ITEM_TYPES = [
+  REGISTRY_ITEM_TYPE__UTIL, REGISTRY_ITEM_TYPE__CONSTANT, REGISTRY_ITEM_TYPE__TYPE,
+  REGISTRY_ITEM_TYPE__GLOBAL_CSS, REGISTRY_ITEM_TYPE__TEXT_CSS
+] as const;
+
+export type TAvailableHelperRegistryItemTypes = typeof AVAILABLE_HELPER_REGISTRY_ITEM_TYPES[number];
+
 export const availableHelperRegistryItemTypeSchema = z.union([
   z.literal(REGISTRY_ITEM_TYPE__UTIL), z.literal(REGISTRY_ITEM_TYPE__CONSTANT), z.literal(REGISTRY_ITEM_TYPE__TYPE),
   z.literal(REGISTRY_ITEM_TYPE__GLOBAL_CSS), z.literal(REGISTRY_ITEM_TYPE__TEXT_CSS),
 ]);
-
-
 
 export type TRegistryIndexItemFile = {
   name: string;
@@ -59,7 +66,7 @@ export const componentRegistryIndexItemSchema = z.object({
   componentRegistryDependencies: z.array(z.string()).optional(),
   helperRegistryDependencies: z.array(z.string()).optional(),
   directory: registryIndexItemDirectorySchema.optional(),
-  file: z.string().optional()
+  file: componentRegistryIndexItemFileSchema.optional()
 });
 
 export type TComponentRegistryIndexItem = z.infer<typeof componentRegistryIndexItemSchema>;

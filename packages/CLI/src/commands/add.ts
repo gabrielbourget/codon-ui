@@ -14,7 +14,8 @@ import {
 } from "@/src/helpers/registry";
 import {
   TComponentRegistryIndex, TComponentRegistryIndexItem, THelperRegistryIndex, THelperRegistryIndexItem,
-  TRegistryIndexItemDirectory, TRegistryIndexItemFile, componentRegistryIndexItemSchema
+  TRegistryIndexItemDirectory, TRegistryIndexItemFile, componentRegistryIndexItemSchema,
+  registryIndexItemDirectorySchema
 } from "@/src/helpers/registry/schema";
 import {
   computePackageManagerAddCommand, computePackageManagerDevDependencyFlag
@@ -39,20 +40,34 @@ const processComponentFilesFromRegistry = async (
   config: TConfig
 ) => {
   item.directory!.content.forEach(async (directoryItem: TRegistryIndexItemFile | TRegistryIndexItemDirectory) => {
-    let filePath = path.resolve(targetPath, item.directory!.name, directoryItem.name);
-    
-    if (directoryItem) {
-
+    if (registryIndexItemDirectorySchema.safeParse(directoryItem).success) {
+      await processComponentFilesFromRegistry(path.join(targetPath, item.directory!.name), item, config);
     } else {
+      const filePath = path.resolve(targetPath, item.directory!.name, directoryItem.name);
+      const fileNameComponents = directoryItem.name.split(".");
+      const extension = fileNameComponents[fileNameComponents.length - 1];
 
+      if (extension === "css") await fs.writeFile(filePath, directoryItem.content as string);
+
+      else {
+        const transformedFileContent = await transform({
+          filename: directoryItem.name,
+          raw: directoryItem.content as string,
+          config
+        });
+
+        if (extension === "tsx") {
+          if (!config.tsx) filePath.replace(/\.tsx?/g, ".jsx");
+        } else if (extension === "ts") {
+          if (!config.tsx) filePath.replace(/\.ts?/g, ".js");
+        }
+
+        await fs.writeFile(filePath, transformedFileContent);
+      }
     }
-    // - TODO: -> Run code transforms here.
-
-    // await fs.writeFile(filePath, item.content);
   });
 }
 
-// - TODO: -> Logic to handle adding icons, placing them in their correct directory.
 export const add = new Command()
   .name("add")
   .description("Add one or more components to your project.")
@@ -69,7 +84,6 @@ export const add = new Command()
   .action(async (components, CLIOptions) => {
     try {
       const options = addOptionsSchema.parse({ components, ...CLIOptions });
-
       const cwd = path.resolve(options.cwd);
 
       if (!existsSync(cwd)) {
@@ -80,7 +94,7 @@ export const add = new Command()
       const config = await getConfig(cwd);
       if (!config) {
         logger.warn(
-          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate a components.json file.`
+          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate a components.json configuration file.`
         );
         process.exit(1);
       }
@@ -178,7 +192,8 @@ export const add = new Command()
           return;
         }
 
-        if (!item.isIcon) await fs.mkdir(path.join(targetPath, item.directory!.name), { recursive: true });
+        if (!item.isIcon && !existsSync(path.join(targetPath, item.directory!.name)))
+          await fs.mkdir(path.join(targetPath, item.directory!.name), { recursive: true });
 
         if (item.isIcon) {
           let filePath = path.resolve(targetPath, item.file!.name);
@@ -193,9 +208,8 @@ export const add = new Command()
 
           await fs.writeFile(filePath, transformedFileContent);
         }
-        else {
-          
-        }
+
+        else processComponentFilesFromRegistry(targetPath, item, config);
 
         // -> Helpers
         if (item.helperRegistryDependencies) {
@@ -213,12 +227,21 @@ export const add = new Command()
 
             if (fileExists) {
               const fileContents = await fs.readFile(helperFilePath, "utf-8");
+
               if (!AMINO_HELPER_FILE_MARKER_REGEX.test(fileContents)) {
                 await fs.appendFile(helperFilePath, `\n ${helper.file.content}`)
               }
             }
 
-            else await fs.writeFile(helperFilePath, helper.file.content);
+            else {
+              const transformedFileContent = await transform({
+                filename: helper.file.name,
+                raw: helper.file.content,
+                config
+              });
+
+              await fs.writeFile(helperFilePath, transformedFileContent);
+            }
           });
         }
 
@@ -230,10 +253,7 @@ export const add = new Command()
         if (item.dependencies?.length) {
           await execa(
             packageManager,
-            [
-              packageManagerAddCommand,
-              ...item.dependencies
-            ],
+            [packageManagerAddCommand, ...item.dependencies],
             { cwd }
           );
         }
@@ -241,11 +261,7 @@ export const add = new Command()
         if (item.devDependencies?.length) {
           await execa(
             packageManager,
-            [
-              packageManagerAddCommand,
-              ...item.devDependencies,
-              packageManagerDevDependencyFlag
-            ],
+            [packageManagerAddCommand, ...item.devDependencies, packageManagerDevDependencyFlag],
             { cwd }
           );
         }

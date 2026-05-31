@@ -59,8 +59,6 @@ const parserOptions: ParserOptions = {
 export const transformToJS: TTransform<String> = async ({ sourceFile, config }) => {
   const output = sourceFile.getFullText();
 
-  if (config.tsx) return output;
-
   const ast = recast.parse(output, {
     parser: {
       parse: (code: string) => parse(code, parserOptions)
