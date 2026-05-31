@@ -33,10 +33,20 @@ import { computePackageManagerAddCommand } from "../helpers/packageManagerHelper
 const BASE_COMPONENT_LIBRARY_DEPENDENCIES = ["react", "react-dom", "classnames"]
 
 const initOptionsSchema = z.object({
-  cwd: z.string(),
-  skipConfirmationPrompt: z.boolean(),
-  defaults: z.boolean(),
+  cwd: z.string().default(process.cwd()),
+  yes: z.boolean().default(true),
+  defaults: z.boolean().default(false),
 })
+
+const parseInitOptions = (CLIOptions: unknown) => {
+  const options = initOptionsSchema.parse(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {})
+
+  return {
+    cwd: options.cwd,
+    defaults: options.defaults,
+    skipConfirmationPrompt: options.yes,
+  }
+}
 
 export const init = new Command()
   .name("init")
@@ -46,7 +56,7 @@ export const init = new Command()
   .option("-d, --defaults", "Use the default component library configuration.", false)
   .action(async (CLIOptions) => {
     try {
-      const options = initOptionsSchema.parse(CLIOptions)
+      const options = parseInitOptions(CLIOptions)
       const cwd = path.resolve(options.cwd)
 
       if (!existsSync(cwd)) {

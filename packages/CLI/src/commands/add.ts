@@ -35,17 +35,27 @@ import type {
 } from "@/src/helpers/registry/schema"
 
 import type { TConfig } from "../helpers/config/schema"
-import { AMINO_HELPER_FILE_MARKER_REGEX } from "../helpers/constants/cli"
+import { AMINO_HELPER_FILE_MARKER_REGEX, DEFAULT_COMPONENT_CONFIG_FILE } from "../helpers/constants/cli"
 import { transform } from "../helpers/transformers"
 
-const addOptionsSchema = z.object({
-  components: z.array(z.string()).optional(),
-  skipConfirmationPrompt: z.boolean(),
-  overwrite: z.boolean(),
-  cwd: z.string(),
-  allComponents: z.boolean(),
-  path: z.string().optional(),
-})
+const addOptionsSchema = z
+  .object({
+    components: z.array(z.string()).optional(),
+    yes: z.boolean().default(true),
+    overwrite: z.boolean().default(false),
+    cwd: z.string().default(process.cwd()),
+    all: z.boolean().default(false),
+    path: z.string().optional(),
+  })
+  .transform(({ all, components, yes, ...options }) => ({
+    ...options,
+    allComponents: all,
+    components,
+    skipConfirmationPrompt: yes,
+  }))
+
+const parseAddOptions = (components: string[] | undefined, CLIOptions: unknown) =>
+  addOptionsSchema.parse({ components, ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}) })
 
 const processComponentFilesFromRegistry = async (
   targetPath: string,
@@ -95,7 +105,7 @@ export const add = new Command()
   )
   .action(async (components, CLIOptions) => {
     try {
-      const options = addOptionsSchema.parse({ components, ...CLIOptions })
+      const options = parseAddOptions(components, CLIOptions)
       const cwd = path.resolve(options.cwd)
 
       if (!existsSync(cwd)) {
@@ -106,7 +116,7 @@ export const add = new Command()
       const config = await getConfig(cwd)
       if (!config) {
         logger.warn(
-          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate a components.json configuration file.`,
+          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate an ${DEFAULT_COMPONENT_CONFIG_FILE} configuration file.`,
         )
         process.exit(1)
       }

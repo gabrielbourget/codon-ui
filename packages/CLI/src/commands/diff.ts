@@ -17,6 +17,7 @@ import {
 } from "@/src/helpers"
 import { getConfig } from "@/src/helpers/config"
 import type { TConfig } from "@/src/helpers/config/schema"
+import { DEFAULT_COMPONENT_CONFIG_FILE } from "@/src/helpers/constants/cli"
 import { fetchComponentTree, getRegistryIndex } from "@/src/helpers/registry"
 import type {
   TComponentRegistryIndex,
@@ -27,13 +28,26 @@ import type {
 
 const updateOptionsSchema = z.object({
   component: z.string().optional(),
-  skipConfirmationPrompt: z.boolean().default(true),
-  cwd: z.string(),
-  path: z.string().optional(),
+  yes: z.boolean().default(true),
+  cwd: z.string().default(process.cwd()),
   advisory: z.boolean().default(false),
 })
 
 const DIFF_ADVISORY_REGISTRY_TIMEOUT_MS = 5_000
+
+const parseDiffOptions = (component: string | undefined, CLIOptions: unknown) => {
+  const options = updateOptionsSchema.parse({
+    component,
+    ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}),
+  })
+
+  return {
+    advisory: options.advisory,
+    component: options.component,
+    cwd: options.cwd,
+    skipConfirmationPrompt: options.yes,
+  }
+}
 
 type RegistryFileDiff = {
   file: string
@@ -98,7 +112,7 @@ export const diff = new Command()
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--advisory", "Report diagnostics without failing for expected findings.", false)
   .action(async (name, CLIOptions) => {
-    const options = updateOptionsSchema.parse({ component: name, ...CLIOptions })
+    const options = parseDiffOptions(name, CLIOptions)
     const commandContext = createCommandContext({ advisory: options.advisory })
 
     try {
@@ -119,7 +133,7 @@ export const diff = new Command()
         if (commandContext.advisory) return
 
         logger.warn(
-          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate a components.json file.`,
+          `No existing configuration found. Please run the ${chalk.green(`init`)} command to generate an ${DEFAULT_COMPONENT_CONFIG_FILE} file.`,
         )
         process.exit(1)
       }
@@ -208,7 +222,7 @@ const getDiffConfig = async (cwd: string, commandContext: TCommandContext): Prom
     if (commandContext.advisory) {
       printDiagnostics([
         createWarningDiagnostic(
-          `No existing configuration found. Run ${chalk.green(`init`)} before strict diff checks.`,
+          `No existing configuration found. Run ${chalk.green(`init`)} to generate ${DEFAULT_COMPONENT_CONFIG_FILE} before strict diff checks.`,
         ),
       ])
       return null
