@@ -25,20 +25,20 @@ The first draft `Switch` manifest plan lives in `switch-manifest-plan.md`.
 
 The first implementation pass must know:
 
-| Area | Required decision |
-| ---- | ----------------- |
-| Proof model | Source-installed registry slice, package import, or CLI-installed behavior. The current recommendation is source-installed registry slice first. |
-| Proof location | Exact temporary or durable location where the received source graph lands. |
-| Public exports | Component export name, props type export name, and whether helper/default values stay private. |
-| Source graph | Exact source, style, support, and test files included in the proof. |
-| Exclusions | Wavemap consumers and app/domain files that must not travel with the component. |
-| Import strategy | Whether source imports are edited in place, rewritten during copy, or routed through package-local support barrels. |
-| Theme CSS | Default CSS import path, load order, and whether a Wavemap compatibility bridge is needed. |
-| Token support | Concrete import path for geometry and theme-order support. |
-| CSS modules | Whether the proof assumes consumer CSS-module support or introduces a build transform. |
-| Runtime dependencies | Peer/direct policy for React, React DOM, React Aria Components, `classnames`, and test-only packages. |
-| Client boundary | Whether `"use client"` is preserved and how SSR/type-only imports are documented. |
-| Verification | Focused tests, smoke checks, forbidden-import scan, typecheck/build commands, and roadmap verification. |
+| Area                 | Required decision                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Proof model          | Source-installed registry slice, package import, or CLI-installed behavior. The current recommendation is source-installed registry slice first. |
+| Proof location       | Exact temporary or durable location where the received source graph lands.                                                                       |
+| Public exports       | Component export name, props type export name, and whether helper/default values stay private.                                                   |
+| Source graph         | Exact source, style, support, and test files included in the proof.                                                                              |
+| Exclusions           | Wavemap consumers and app/domain files that must not travel with the component.                                                                  |
+| Import strategy      | Whether source imports are edited in place, rewritten during copy, or routed through package-local support barrels.                              |
+| Theme CSS            | Default CSS import path, load order, and whether a Wavemap compatibility bridge is needed.                                                       |
+| Token support        | Concrete import path for geometry and theme-order support.                                                                                       |
+| CSS modules          | Whether the proof assumes consumer CSS-module support or introduces a build transform.                                                           |
+| Runtime dependencies | Peer/direct policy for React, React DOM, React Aria Components, `classnames`, and test-only packages.                                            |
+| Client boundary      | Whether `"use client"` is preserved and how SSR/type-only imports are documented.                                                                |
+| Verification         | Focused tests, smoke checks, forbidden-import scan, typecheck/build commands, and roadmap verification.                                          |
 
 ## `Switch` First-Read Assumptions
 

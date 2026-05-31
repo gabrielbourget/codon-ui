@@ -59,23 +59,23 @@ workflow requires that tradeoff.
 
 The first manifest shape should be small and explicit:
 
-| Field | Purpose |
-| ----- | ------- |
-| `name` | Stable registry item id, such as `switch`. |
-| `type` | Item category, initially `component`, `support`, `style`, or `theme`. |
-| `sourcePackage` | Owning package, initially `@amino-ui/react`. |
-| `files` | Explicit ordered source file entries. |
-| `registryDependencies` | Other registry items that must install with this item. |
-| `peerDependencies` | Consumer-owned peers required by installed source. |
-| `runtimeDependencies` | Runtime packages the generated install metadata may need to add or validate. |
+| Field                  | Purpose                                                                      |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| `name`                 | Stable registry item id, such as `switch`.                                   |
+| `type`                 | Item category, initially `component`, `support`, `style`, or `theme`.        |
+| `sourcePackage`        | Owning package, initially `@amino-ui/react`.                                 |
+| `files`                | Explicit ordered source file entries.                                        |
+| `registryDependencies` | Other registry items that must install with this item.                       |
+| `peerDependencies`     | Consumer-owned peers required by installed source.                           |
+| `runtimeDependencies`  | Runtime packages the generated install metadata may need to add or validate. |
 
 Each file entry should include:
 
-| Field | Purpose |
-| ----- | ------- |
-| `sourcePath` | Tracked source file relative to the repo root. |
-| `targetPath` | Suggested install path relative to a consumer source root. |
-| `role` | File role, such as `source`, `style`, `test`, `theme`, or `support`. |
+| Field        | Purpose                                                              |
+| ------------ | -------------------------------------------------------------------- |
+| `sourcePath` | Tracked source file relative to the repo root.                       |
+| `targetPath` | Suggested install path relative to a consumer source root.           |
+| `role`       | File role, such as `source`, `style`, `test`, `theme`, or `support`. |
 
 Generated artifacts may add content, hashes, provenance, and version metadata, but those values should be derived from the
 tracked manifest and source files.

@@ -20,6 +20,7 @@ main() {
   pnpm build:react
   pnpm build:cli
   pnpm build:web
+  pnpm build:docs
 }
 
 main "$@"

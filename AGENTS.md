@@ -124,6 +124,7 @@ appear, return to deliberate planning mode.
   - `pnpm verify:build`
   - `pnpm verify:tests`
   - `pnpm verify:ci`
+  - `pnpm build:docs`
   - `pnpm build:react`
   - `pnpm build:cli`
 - Root checks use `pnpm -r` scripts where practical. Do not reopen a Turbo migration casually.
@@ -131,6 +132,7 @@ appear, return to deliberate planning mode.
 - `pnpm verify:ci` is the local mirror of the initial GitHub Actions CI surface.
 - `pnpm verify:build` intentionally runs the web app with `pnpm -F web exec next build` so the CI baseline can validate
   Next build behavior without treating unresolved registry artifact generation as authoritative.
+- `apps/docs` owns the Astro/Starlight docs site. Keep it documentation-only until hosting/deployment policy is approved.
 - If scripts differ, inspect `package.json` before guessing.
 
 ## Workflow Rules

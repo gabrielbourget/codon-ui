@@ -33,18 +33,18 @@ without hidden consumer assumptions.
 
 Initial token families:
 
-| Family | Purpose | First-contract examples |
-| ------ | ------- | ----------------------- |
-| Foreground and background | Plain readable defaults for unopinionated components. | `--aui-foreground`, `--aui-background` |
-| Surface and border roles | Shared neutral appearance for controls, panels, and component containers. | `--aui-surface`, `--aui-surface-raised`, `--aui-border`, `--aui-border-muted` |
-| Neutral ramp | Light/dark neutral steps that semantic roles can reference. | `--aui-neutral-100` through `--aui-neutral-800` |
-| Focus | Accessible focus affordances shared by controls. | `--aui-focus-ring`, `--aui-focus-ring-offset` |
-| State | Cross-component status and validation colors. | `--aui-state-danger`, `--aui-state-warning`, `--aui-state-success` |
-| Control roles | Defaults for primitive controls and selected states. | `--aui-control-background`, `--aui-control-border`, `--aui-control-selected-background` |
-| Spacing | Package-local rhythm for component internals. | `--aui-space-1` through `--aui-space-20` |
-| Radius | Package-local corner geometry values. | `--aui-radius-1` through `--aui-radius-5` |
-| Shadow | Reusable elevation values. | `--aui-shadow-1` through `--aui-shadow-5` |
-| Motion and opacity | Shared transitions and disabled/backdrop opacity. | `--aui-transition-color`, `--aui-opacity-disabled` |
+| Family                    | Purpose                                                                   | First-contract examples                                                                 |
+| ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| Foreground and background | Plain readable defaults for unopinionated components.                     | `--aui-foreground`, `--aui-background`                                                  |
+| Surface and border roles  | Shared neutral appearance for controls, panels, and component containers. | `--aui-surface`, `--aui-surface-raised`, `--aui-border`, `--aui-border-muted`           |
+| Neutral ramp              | Light/dark neutral steps that semantic roles can reference.               | `--aui-neutral-100` through `--aui-neutral-800`                                         |
+| Focus                     | Accessible focus affordances shared by controls.                          | `--aui-focus-ring`, `--aui-focus-ring-offset`                                           |
+| State                     | Cross-component status and validation colors.                             | `--aui-state-danger`, `--aui-state-warning`, `--aui-state-success`                      |
+| Control roles             | Defaults for primitive controls and selected states.                      | `--aui-control-background`, `--aui-control-border`, `--aui-control-selected-background` |
+| Spacing                   | Package-local rhythm for component internals.                             | `--aui-space-1` through `--aui-space-20`                                                |
+| Radius                    | Package-local corner geometry values.                                     | `--aui-radius-1` through `--aui-radius-5`                                               |
+| Shadow                    | Reusable elevation values.                                                | `--aui-shadow-1` through `--aui-shadow-5`                                               |
+| Motion and opacity        | Shared transitions and disabled/backdrop opacity.                         | `--aui-transition-color`, `--aui-opacity-disabled`                                      |
 
 ## Deferred Surface
 
@@ -80,14 +80,14 @@ surface that should not become Amino UI defaults automatically.
 
 Use these Wavemap reads as guidance:
 
-| Wavemap reference | Amino UI posture |
-| ----------------- | ---------------- |
-| `--aui-foreground`, `--aui-background` | Bring forward as core semantic roles. |
-| `--aui-neutral-1` through `--aui-neutral-8` | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Amino UI. |
-| `--aui-control-*`, `--aui-surface-*`, `--aui-border*` | Bring forward selectively for primitive controls and containers. |
-| `--aui-status-*` and validation aliases | Bring forward as state roles, using `state` naming for the package default if that remains clearer. |
-| Compatibility shims such as `--foreground`, `--distance_1`, and `--border_radius_1` | Keep out of the package default until a consumer install proof requires them. |
-| App chrome z-index aliases, font-face assumptions, gradients, maps, and platform colors | Keep Wavemap-local. |
+| Wavemap reference                                                                       | Amino UI posture                                                                                                |
+| --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `--aui-foreground`, `--aui-background`                                                  | Bring forward as core semantic roles.                                                                           |
+| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Amino UI. |
+| `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively for primitive controls and containers.                                                |
+| `--aui-status-*` and validation aliases                                                 | Bring forward as state roles, using `state` naming for the package default if that remains clearer.             |
+| Compatibility shims such as `--foreground`, `--distance_1`, and `--border_radius_1`     | Keep out of the package default until a consumer install proof requires them.                                   |
+| App chrome z-index aliases, font-face assumptions, gradients, maps, and platform colors | Keep Wavemap-local.                                                                                             |
 
 ## Stop Conditions
 
