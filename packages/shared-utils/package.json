@@ -7,7 +7,8 @@
   "scripts": {
     "format": "prettier --write .",
     "format:write": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "precommit": "pnpm format:check"
   },
   "exports": {
     "./eslint/base": "./eslint/base.mjs",

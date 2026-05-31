@@ -4,10 +4,7 @@
   "pipeline": {
     "build": {
       "dependsOn": ["^build"],
-      "env": [
-        "NEXT_PUBLIC_APP_URL",
-        "COMPONENTS_REGISTRY_URL"
-      ],
+      "env": ["NEXT_PUBLIC_APP_URL", "COMPONENTS_REGISTRY_URL"],
       "outputs": ["dist/**", ".next/**", "build/**", "public/registry/**", "!**/.next/cache/**"]
     },
     "preview": {

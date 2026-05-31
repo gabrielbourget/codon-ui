@@ -15,6 +15,7 @@
     "format:write": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "next build && next start -p 3001",
+    "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm typecheck",
     "stylelint": "stylelint \"{src,registry}/**/*.{css,scss}\"",
     "typecheck": "tsc --noEmit"
   },

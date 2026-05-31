@@ -17,6 +17,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
     "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
+    "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
     "typecheck": "tsc --noEmit",
     "test": "echo \"Error: no tests specified\" && exit 1",
     "pub:beta": "npm build && npm publish --access public --tag beta",
