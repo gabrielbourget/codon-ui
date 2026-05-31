@@ -137,6 +137,7 @@ For contract-only changes:
 For manifest or builder implementation changes:
 
 - `pnpm check`
+- `pnpm -F @amino-ui/react check:registry-manifest`
 - Focused package builds for touched packages.
 - A registry artifact smoke check once the builder is renovated enough to be trusted.
 - `git diff --check`
