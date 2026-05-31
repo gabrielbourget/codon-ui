@@ -5,5 +5,5 @@ export const logger = {
   warn: (...args: unknown[]) => console.log(chalk.yellow(...args)),
   info: (...args: unknown[]) => console.log(chalk.cyan(...args)),
   success: (...args: unknown[]) => console.log(chalk.green(...args)),
-  newLine: () => console.log("")
-};
+  newLine: () => console.log(""),
+}

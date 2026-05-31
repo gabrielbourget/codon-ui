@@ -1,0 +1,47 @@
+{
+  "name": "@amino-ui/react",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Canonical React source package for Amino UI components.",
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./theme.css": "./theme.css"
+  },
+  "files": [
+    "dist",
+    "theme.css"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest",
+    "check:registry-manifest": "node verify-registry-manifest.mjs",
+    "check:theme-css": "node verify-theme-css-contract.mjs",
+    "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",
+    "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --cache",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
+    "stylelint": "stylelint \"*.css\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@amino-ui/shared-utils": "workspace:*",
+    "eslint": "^9.0.0",
+    "prettier": "^3.8.1",
+    "stylelint": "^16.3.1",
+    "typescript": "^5.4.3"
+  }
+}

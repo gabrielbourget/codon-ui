@@ -1,0 +1,25 @@
+{
+  "name": "@amino-ui/docs",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "dev": "ASTRO_TELEMETRY_DISABLED=1 astro dev",
+    "build": "ASTRO_TELEMETRY_DISABLED=1 astro build",
+    "preview": "ASTRO_TELEMETRY_DISABLED=1 astro preview",
+    "format": "prettier --write .",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@pagefind/default-ui": "1.5.2",
+    "@astrojs/starlight": "0.38.5",
+    "astro": "6.2.2"
+  },
+  "devDependencies": {
+    "@amino-ui/shared-utils": "workspace:*",
+    "prettier": "^3.8.1",
+    "typescript": "^5.4.4"
+  }
+}

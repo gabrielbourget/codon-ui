@@ -3,28 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@10.18.3",
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "npm build:registry && next build",
+    "build": "pnpm build:registry && next build",
     "build:registry": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/build-registry.ts",
     "start": "next start -p 3001",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint . --max-warnings=0 --cache",
+    "lint:fix": "eslint . --fix --cache",
+    "format": "prettier --write .",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check .",
     "preview": "next build && next start -p 3001",
+    "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm typecheck",
+    "stylelint": "stylelint \"{src,registry}/**/*.{css,scss}\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "14.1.4",
     "react": "^18",
     "react-dom": "^18",
+    "rimraf": "^5.0.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@amino-ui/shared-utils": "workspace:*",
+    "@next/eslint-plugin-next": "^15.4.6",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
-    "eslint": "^8",
-    "eslint-config-next": "14.1.4",
+    "eslint": "^9.0.0",
+    "prettier": "^3.8.1",
+    "stylelint": "^16.3.1",
     "typescript": "^5"
   }
 }

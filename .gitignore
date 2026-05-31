@@ -15,6 +15,7 @@ lerna-debug.log*
 # Caches 
 
 .cache
+.astro
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 

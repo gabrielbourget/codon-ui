@@ -5,141 +5,141 @@
 // --------- //
 
 type TPrimaryColor = {
-  primary_p4: string;
-  primary_p3: string;
-  primary_p2: string;
-  primary_p1: string;
-  primary: string;
-  primary_m1: string;
-  primary_m2: string;
-};
+  primary_p4: string
+  primary_p3: string
+  primary_p2: string
+  primary_p1: string
+  primary: string
+  primary_m1: string
+  primary_m2: string
+}
 
 type TSecondaryColor = {
-  secondary_p4: string;
-  secondary_p3: string;
-  secondary_p2: string;
-  secondary_p1: string;
-  secondary: string;
-  secondary_m1: string;
-  secondary_m2: string;
-};
+  secondary_p4: string
+  secondary_p3: string
+  secondary_p2: string
+  secondary_p1: string
+  secondary: string
+  secondary_m1: string
+  secondary_m2: string
+}
 
 type TTertiaryColor = {
-  tertiary_p4: string;
-  tertiary_p3: string;
-  tertiary_p2: string;
-  tertiary_p1: string;
-  tertiary: string;
-  tertiary_m1: string;
-  tertiary_m2: string;
-};
+  tertiary_p4: string
+  tertiary_p3: string
+  tertiary_p2: string
+  tertiary_p1: string
+  tertiary: string
+  tertiary_m1: string
+  tertiary_m2: string
+}
 
 type TQuaternaryColor = {
-  quaternary_p4: string;
-  quaternary_p3: string;
-  quaternary_p2: string;
-  quaternary_p1: string;
-  quaternary: string;
-  quaternary_m1: string;
-  quaternary_m2: string;
-};
+  quaternary_p4: string
+  quaternary_p3: string
+  quaternary_p2: string
+  quaternary_p1: string
+  quaternary: string
+  quaternary_m1: string
+  quaternary_m2: string
+}
 
 type TQuintenaryColor = {
-  quintenary_p4: string;
-  quintenary_p3: string;
-  quintenary_p2: string;
-  quintenary_p1: string;
-  quintenary: string;
-  quintenary_m1: string;
-  quintenary_m2: string;
-};
+  quintenary_p4: string
+  quintenary_p3: string
+  quintenary_p2: string
+  quintenary_p1: string
+  quintenary: string
+  quintenary_m1: string
+  quintenary_m2: string
+}
 
 type TGrayScale = {
-  white: string;
-  grey1: string;
-  grey2: string;
-  grey3: string;
-  grey4: string;
-  grey5: string;
-  grey6: string;
-  grey7: string;
-  grey8: string;
-  almost_black: string;
-  black: string;
-};
+  white: string
+  grey1: string
+  grey2: string
+  grey3: string
+  grey4: string
+  grey5: string
+  grey6: string
+  grey7: string
+  grey8: string
+  almost_black: string
+  black: string
+}
 
 type TThemePaletteVariants = {
-  foreground: string;
-  background: string;
-  neutral_1: string;
-  neutral_2: string;
-  neutral_3: string;
-  neutral_4: string;
-  neutral_5: string;
-  neutral_6: string;
-  neutral_7: string;
-  neutral_8: string;
-  errorOrDangerState: string;
-  color: string;
-  shadow_1: string;
-  shadow_2: string;
-  shadow_3: string;
-  shadow_4: string;
-  shadow_5: string;
-  drop_shadow_1: string;
+  foreground: string
+  background: string
+  neutral_1: string
+  neutral_2: string
+  neutral_3: string
+  neutral_4: string
+  neutral_5: string
+  neutral_6: string
+  neutral_7: string
+  neutral_8: string
+  errorOrDangerState: string
+  color: string
+  shadow_1: string
+  shadow_2: string
+  shadow_3: string
+  shadow_4: string
+  shadow_5: string
+  drop_shadow_1: string
 }
 
 export type TPalette = {
-  white: string;
-  grey1: string;
-  grey2: string;
-  grey3: string;
-  grey4: string;
-  grey5: string;
-  grey6: string;
-  grey7: string;
-  grey8: string;
-  almost_black: string;
-  black: string;
-  warningState: string;
-  successState: string;
-  primary_p4: string;
-  primary_p3: string;
-  primary_p2: string;
-  primary_p1: string;
-  primary: string;
-  primary_m1: string;
-  primary_m2: string;
-  secondary_p4: string;
-  secondary_p3: string;
-  secondary_p2: string;
-  secondary_p1: string;
-  secondary: string;
-  secondary_m1: string;
-  secondary_m2: string;
-  tertiary_p4: string;
-  tertiary_p3: string;
-  tertiary_p2: string;
-  tertiary_p1: string;
-  tertiary: string;
-  tertiary_m1: string;
-  tertiary_m2: string;
-  quaternary_p4: string;
-  quaternary_p3: string;
-  quaternary_p2: string;
-  quaternary_p1: string;
-  quaternary: string;
-  quaternary_m1: string;
-  quaternary_m2: string;
-  quintenary_p4: string;
-  quintenary_p3: string;
-  quintenary_p2: string;
-  quintenary_p1: string;
-  quintenary: string;
-  quintenary_m1: string;
-  quintenary_m2: string;
-  light: TThemePaletteVariants;
-  dark: TThemePaletteVariants;
+  white: string
+  grey1: string
+  grey2: string
+  grey3: string
+  grey4: string
+  grey5: string
+  grey6: string
+  grey7: string
+  grey8: string
+  almost_black: string
+  black: string
+  warningState: string
+  successState: string
+  primary_p4: string
+  primary_p3: string
+  primary_p2: string
+  primary_p1: string
+  primary: string
+  primary_m1: string
+  primary_m2: string
+  secondary_p4: string
+  secondary_p3: string
+  secondary_p2: string
+  secondary_p1: string
+  secondary: string
+  secondary_m1: string
+  secondary_m2: string
+  tertiary_p4: string
+  tertiary_p3: string
+  tertiary_p2: string
+  tertiary_p1: string
+  tertiary: string
+  tertiary_m1: string
+  tertiary_m2: string
+  quaternary_p4: string
+  quaternary_p3: string
+  quaternary_p2: string
+  quaternary_p1: string
+  quaternary: string
+  quaternary_m1: string
+  quaternary_m2: string
+  quintenary_p4: string
+  quintenary_p3: string
+  quintenary_p2: string
+  quintenary_p1: string
+  quintenary: string
+  quintenary_m1: string
+  quintenary_m2: string
+  light: TThemePaletteVariants
+  dark: TThemePaletteVariants
 }
 
 // ----------------- //
@@ -153,8 +153,8 @@ export const primaryColor: TPrimaryColor = {
   primary_p1: "#ad2aee",
   primary: "#9611d8",
   primary_m1: "#730da5",
-  primary_m2: "#520976"
-};
+  primary_m2: "#520976",
+}
 
 export const secondaryColor: TSecondaryColor = {
   secondary_p4: "#bdf4ef",
@@ -164,7 +164,7 @@ export const secondaryColor: TSecondaryColor = {
   secondary: "#189689",
   secondary_m1: "#126e64",
   secondary_m2: "#0b423c",
-};
+}
 
 export const tertiaryColor: TTertiaryColor = {
   tertiary_p4: "#e9fcf1",
@@ -173,8 +173,8 @@ export const tertiaryColor: TTertiaryColor = {
   tertiary_p1: "#1fc665",
   tertiary: "#17934b",
   tertiary_m1: "#116e38",
-  tertiary_m2: "#0a4222"
-};
+  tertiary_m2: "#0a4222",
+}
 
 export const quaternaryColor: TQuaternaryColor = {
   quaternary_p4: "#eae9fc",
@@ -183,8 +183,8 @@ export const quaternaryColor: TQuaternaryColor = {
   quaternary_p1: "#4037e2",
   quaternary: "#261dc6",
   quaternary_m1: "#1e179c",
-  quaternary_m2: "#15106f"
-};
+  quaternary_m2: "#15106f",
+}
 
 export const quintenaryColor: TQuintenaryColor = {
   quintenary_p4: "#FFFFFF",
@@ -193,8 +193,8 @@ export const quintenaryColor: TQuintenaryColor = {
   quintenary_p1: "#FFFFFF",
   quintenary: "#EFF6F9",
   quintenary_m1: "#D6DDE0",
-  quintenary_m2: "#BDC4C7"
-};
+  quintenary_m2: "#BDC4C7",
+}
 
 export const greyScale: TGrayScale = {
   white: "#FFF",
@@ -208,9 +208,9 @@ export const greyScale: TGrayScale = {
   grey8: "#2C2C2C",
   almost_black: "#171717",
   black: "#000",
-};
+}
 
-export const otherColors: any = {
+export const otherColors: Record<string, string> = {
   TWITTER_BLUE: "#1DA1F2",
   FACEBOOK_BLUE: "#4267B2",
   SOUNDCLOUD_ORANGE: "#FF3C03",
@@ -218,7 +218,7 @@ export const otherColors: any = {
   BANDCAMP_TURQUOISE: "#1AA1C2",
   SPOTIFY_GREEN: "#1CD760",
   BEATPORT_GREEN: "#A8E00F",
-  MAP_MARKER_RED: "#EA4435"
+  MAP_MARKER_RED: "#EA4435",
 }
 
 const light = {
@@ -274,6 +274,7 @@ export const palette: TPalette = {
   ...secondaryColor,
   ...tertiaryColor,
   ...quaternaryColor,
+  ...quintenaryColor,
   light,
   dark,
-};
+}

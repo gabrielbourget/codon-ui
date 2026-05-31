@@ -8,6 +8,6 @@
     "esModuleInterop": true,
     "isolatedModules": false
   },
-  "include": ["scripts/**/*.ts"],
+  "include": ["registry/**/*.ts"],
   "exclude": ["node_modules"]
 }

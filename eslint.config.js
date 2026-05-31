@@ -1,10 +1,8 @@
-import turbo from "turbo";
+import base from "@amino-ui/shared-utils/eslint/base"
 
 export default [
+  ...base,
   {
-    "extends": {
-      "next/core-web-vitals": coreWebVitals,
-      "turbo": turbo,
-    },
-  }
-];
+    ignores: ["node_modules/**", "dist/**", ".next/**", "coverage/**", ".turbo/**"],
+  },
+]

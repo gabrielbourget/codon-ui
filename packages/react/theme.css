@@ -1,0 +1,115 @@
+:root {
+  --aui-space-unit: 5px;
+  --aui-space-1: calc(1 * var(--aui-space-unit));
+  --aui-space-2: calc(2 * var(--aui-space-unit));
+  --aui-space-3: calc(3 * var(--aui-space-unit));
+  --aui-space-4: calc(4 * var(--aui-space-unit));
+  --aui-space-5: calc(5 * var(--aui-space-unit));
+  --aui-space-6: calc(6 * var(--aui-space-unit));
+  --aui-space-7: calc(7 * var(--aui-space-unit));
+  --aui-space-8: calc(8 * var(--aui-space-unit));
+  --aui-space-9: calc(9 * var(--aui-space-unit));
+  --aui-space-10: calc(10 * var(--aui-space-unit));
+  --aui-space-11: calc(11 * var(--aui-space-unit));
+  --aui-space-12: calc(12 * var(--aui-space-unit));
+  --aui-space-13: calc(13 * var(--aui-space-unit));
+  --aui-space-14: calc(14 * var(--aui-space-unit));
+  --aui-space-15: calc(15 * var(--aui-space-unit));
+  --aui-space-16: calc(16 * var(--aui-space-unit));
+  --aui-space-17: calc(17 * var(--aui-space-unit));
+  --aui-space-18: calc(18 * var(--aui-space-unit));
+  --aui-space-19: calc(19 * var(--aui-space-unit));
+  --aui-space-20: calc(20 * var(--aui-space-unit));
+
+  --aui-radius-1: 5px;
+  --aui-radius-2: 10px;
+  --aui-radius-3: 15px;
+  --aui-radius-4: 20px;
+  --aui-radius-5: 25px;
+
+  --aui-transition-background-color: background-color 0.25s ease-in-out;
+  --aui-transition-border-color: border-color 0.25s ease-in-out;
+  --aui-transition-box-shadow: box-shadow 0.45s ease-in-out;
+  --aui-transition-color: color 0.25s ease-in-out;
+  --aui-transition-opacity: opacity 0.25s ease-in-out;
+  --aui-transition-outline: outline 0.25s ease-in-out;
+
+  --aui-opacity-disabled: 0.4;
+  --aui-opacity-backdrop: 0.6;
+
+  --aui-surface: var(--aui-background);
+  --aui-surface-foreground: var(--aui-foreground);
+  --aui-surface-muted: var(--aui-neutral-100);
+  --aui-surface-raised: var(--aui-neutral-100);
+  --aui-surface-raised-foreground: var(--aui-foreground);
+  --aui-border: var(--aui-neutral-300);
+  --aui-border-muted: var(--aui-neutral-200);
+
+  --aui-focus-ring: #2563eb;
+  --aui-focus-ring-offset: 2px;
+
+  --aui-control-background: var(--aui-background);
+  --aui-control-foreground: var(--aui-foreground);
+  --aui-control-border: var(--aui-border);
+  --aui-control-placeholder: var(--aui-neutral-500);
+  --aui-control-hover-background: var(--aui-neutral-100);
+  --aui-control-pressed-background: var(--aui-neutral-200);
+  --aui-control-selected-background: var(--aui-focus-ring);
+  --aui-control-selected-background-hover: color-mix(in srgb, var(--aui-focus-ring) 90%, var(--aui-foreground) 10%);
+  --aui-control-selected-background-pressed: color-mix(in srgb, var(--aui-focus-ring) 80%, var(--aui-foreground) 20%);
+  --aui-control-selected-foreground: #fff;
+  --aui-control-disabled-opacity: var(--aui-opacity-disabled);
+}
+
+:root,
+[data-theme="light"] {
+  --aui-foreground: #171717;
+  --aui-background: #fff;
+  --aui-neutral-100: #efefef;
+  --aui-neutral-200: #c6c6c6;
+  --aui-neutral-300: #9e9e9e;
+  --aui-neutral-400: #878787;
+  --aui-neutral-500: #707070;
+  --aui-neutral-600: #474747;
+  --aui-neutral-700: #3d3d3d;
+  --aui-neutral-800: #2c2c2c;
+
+  --aui-state-danger: #b73434;
+  --aui-state-danger-surface: #fff0f0;
+  --aui-state-warning: #a66b00;
+  --aui-state-warning-surface: #fff7dc;
+  --aui-state-success: #2f7d18;
+  --aui-state-success-surface: #e8fcf1;
+
+  --aui-shadow-1: 0 2px 3px rgb(0 0 0 / 12%), 0 2px 2px rgb(0 0 0 / 24%);
+  --aui-shadow-2: 0 3px 6px rgb(0 0 0 / 16%), 0 3px 6px rgb(0 0 0 / 23%);
+  --aui-shadow-3: 0 10px 20px rgb(0 0 0 / 19%), 0 6px 6px rgb(0 0 0 / 23%);
+  --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 25%), 0 10px 10px rgb(0 0 0 / 22%);
+  --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 30%), 0 15px 12px rgb(0 0 0 / 22%);
+}
+
+[data-theme="dark"] {
+  --aui-foreground: #fff;
+  --aui-background: #171717;
+  --aui-neutral-100: #2c2c2c;
+  --aui-neutral-200: #3d3d3d;
+  --aui-neutral-300: #474747;
+  --aui-neutral-400: #707070;
+  --aui-neutral-500: #878787;
+  --aui-neutral-600: #9e9e9e;
+  --aui-neutral-700: #c6c6c6;
+  --aui-neutral-800: #efefef;
+
+  --aui-state-danger: #ff6b5f;
+  --aui-state-danger-surface: #371919;
+  --aui-state-warning: #f0b429;
+  --aui-state-warning-surface: #30250d;
+  --aui-state-success: #6ad060;
+  --aui-state-success-surface: #173016;
+
+  --aui-shadow-1: 0 2px 3px rgb(0 0 0 / 35%), 0 2px 2px rgb(0 0 0 / 28%);
+  --aui-shadow-2: 0 3px 6px rgb(0 0 0 / 40%), 0 3px 6px rgb(0 0 0 / 32%);
+  --aui-shadow-3: 0 10px 20px rgb(0 0 0 / 45%), 0 6px 6px rgb(0 0 0 / 34%);
+  --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 50%), 0 10px 10px rgb(0 0 0 / 36%);
+  --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 55%), 0 15px 12px rgb(0 0 0 / 38%);
+}

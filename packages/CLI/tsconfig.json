@@ -1,26 +1,17 @@
 {
+  "extends": "../shared-utils/tsconfig/node/tsconfig.json",
   "compilerOptions": {
-    "lib": ["ESNext"],
-    "module": "esnext",
-    "target": "esnext",
-    "moduleResolution": "bundler",
-    "moduleDetection": "force",
     "allowImportingTsExtensions": true,
     "noEmit": true,
-    "composite": true,
-    "strict": true,
+    "composite": false,
+    "incremental": false,
+    "declarationMap": false,
     "downlevelIteration": true,
-    "skipLibCheck": true,
-    "jsx": "react-jsx",
-    "allowSyntheticDefaultImports": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowJs": true,
     "rootDir": ".",
     "outDir": "dist",
-    "sourceMap": true,
-    "esModuleInterop": true,
-    "isolatedModules": true,
     "baseUrl": ".",
     "paths": { "@/*": ["./*"] }
-  }
+  },
+  "include": ["src/**/*.ts", "tsup.config.ts"],
+  "exclude": ["dist", "node_modules"]
 }

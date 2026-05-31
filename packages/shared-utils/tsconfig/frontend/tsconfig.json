@@ -1,0 +1,8 @@
+{
+  "extends": "../base.json",
+  "compilerOptions": {
+    "jsx": "preserve",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "plugins": [{ "name": "next" }]
+  }
+}
