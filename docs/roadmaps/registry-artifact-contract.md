@@ -9,7 +9,16 @@ This contract defines the target shape before `Switch` or any other Wavemap comp
 
 ## Current Status
 
-The current registry code is legacy scaffold and should not be treated as authoritative.
+`packages/react` now owns the starter registry contract:
+
+- `src/registry/manifest.ts` is the canonical manifest receiver for React package source.
+- `src/registry/types.ts` defines item types, file roles, target roles, dependency maps, and manifest file entries.
+- `src/registry/graph.ts` resolves requested registry items into dependency-first install order and reports graph issues
+  without throwing.
+- `verify-registry-manifest.mjs` checks source file existence, supported domains, dependency references, dependency
+  cycles, and duplicate file targets.
+
+The current web app registry code is legacy scaffold and should not be treated as authoritative.
 
 Current reads:
 
@@ -21,6 +30,14 @@ Current reads:
 - The builder reads component directories and helper files from the web app registry tree rather than from
   `packages/react`.
 - The CLI currently fetches registry artifacts, but install/update/diff behavior is not proof-ready.
+
+Current active React manifest entries are support-only:
+
+- `theme-css`
+- `tokens/geometry`
+- `tokens/theme-order`
+
+No component manifest entry is active yet.
 
 ## Source Of Truth
 
@@ -55,27 +72,45 @@ That means:
 The first component proof should not depend on committed generated artifacts unless a deliberate hosting or review
 workflow requires that tradeoff.
 
+## Producer MVP Contract
+
+The producer side should stay small until the first component receipt proves the source graph:
+
+1. Source and manifests live under `packages/react`.
+2. Manifest items declare every file they own.
+3. File entries use `targetRole` plus `targetPath`, so a consumer layout can decide where roles such as components,
+   tokens, utilities, types, theme files, and assets land.
+4. The graph planner orders requested items after their registry dependencies.
+5. The graph planner reports missing items, duplicate items, missing registry dependencies, dependency cycles, and
+   duplicate file targets as structured issues.
+6. Artifact generation remains a later step that consumes this canonical contract.
+
+This gives the CLI and future builder enough shape to discuss consumer layouts without hard-coding a single physical
+directory convention too early.
+
 ## Minimum Manifest Shape
 
 The first manifest shape should be small and explicit:
 
-| Field                  | Purpose                                                                      |
-| ---------------------- | ---------------------------------------------------------------------------- |
-| `name`                 | Stable registry item id, such as `switch`.                                   |
-| `type`                 | Item category, initially `component`, `support`, `style`, or `theme`.        |
-| `sourcePackage`        | Owning package, initially `@amino-ui/react`.                                 |
-| `files`                | Explicit ordered source file entries.                                        |
-| `registryDependencies` | Other registry items that must install with this item.                       |
-| `peerDependencies`     | Consumer-owned peers required by installed source.                           |
-| `runtimeDependencies`  | Runtime packages the generated install metadata may need to add or validate. |
+| Field                  | Purpose                                                                                       |
+| ---------------------- | --------------------------------------------------------------------------------------------- |
+| `name`                 | Stable registry item id, such as `switch`.                                                    |
+| `type`                 | Item category, currently `component`, `support`, `style`, `theme`, `asset`, or `test`.        |
+| `sourcePackage`        | Owning package, initially `@amino-ui/react`.                                                  |
+| `files`                | Explicit ordered source file entries.                                                         |
+| `registryDependencies` | Other registry items that must install before this item.                                      |
+| `peerDependencies`     | Consumer-owned peers required by installed source.                                            |
+| `runtimeDependencies`  | Runtime packages the generated install metadata may need to add or validate.                  |
+| `devDependencies`      | Test or build dependencies needed only for generated verification or optional consumer tests. |
 
 Each file entry should include:
 
-| Field        | Purpose                                                              |
-| ------------ | -------------------------------------------------------------------- |
-| `sourcePath` | Tracked source file relative to the repo root.                       |
-| `targetPath` | Suggested install path relative to a consumer source root.           |
-| `role`       | File role, such as `source`, `style`, `test`, `theme`, or `support`. |
+| Field        | Purpose                                                                                     |
+| ------------ | ------------------------------------------------------------------------------------------- |
+| `sourcePath` | Tracked source file relative to the repo root.                                              |
+| `targetRole` | Semantic installation bucket, such as `components`, `tokens`, `utils`, `types`, or `theme`. |
+| `targetPath` | Suggested install path relative to the consumer's chosen root for that target role.         |
+| `role`       | File role, such as `source`, `style`, `test`, `theme`, `support`, or `asset`.               |
 
 Generated artifacts may add content, hashes, provenance, and version metadata, but those values should be derived from the
 tracked manifest and source files.
