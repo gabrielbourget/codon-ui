@@ -8,7 +8,7 @@
         "NEXT_PUBLIC_APP_URL",
         "COMPONENTS_REGISTRY_URL"
       ],
-      "outputs": ["dist/**", ".next/**"]
+      "outputs": ["dist/**", ".next/**", "build/**", "public/registry/**", "!**/.next/cache/**"]
     },
     "preview": {
       "env": ["NEXT_PUBLIC_APP_URL"],
@@ -25,15 +25,20 @@
       "cache": false,
       "outputs": []
     },
+    "stylelint": {
+      "outputs": []
+    },
     "format:check": {
-      "cache": false,
       "outputs": []
     },
     "format:write": {
       "cache": false,
       "outputs": []
     },
-    "typecheck": {},
+    "typecheck": {
+      "dependsOn": ["^typecheck"],
+      "outputs": []
+    },
     "dev": {
       "cache": false
     },
