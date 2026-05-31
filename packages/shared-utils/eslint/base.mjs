@@ -1,6 +1,6 @@
-import js from "@eslint/js";
-import eslintConfigPrettier from "eslint-config-prettier";
-import tseslint from "typescript-eslint";
+import js from "@eslint/js"
+import eslintConfigPrettier from "eslint-config-prettier"
+import tseslint from "typescript-eslint"
 
 export default [
   js.configs.recommended,
@@ -19,10 +19,7 @@ export default [
       "no-restricted-syntax": "off",
       "@typescript-eslint/no-restricted-imports": "off",
 
-      "@typescript-eslint/no-unused-vars": [
-        "error",
-        { ignoreRestSiblings: true, argsIgnorePattern: "^_" },
-      ],
+      "@typescript-eslint/no-unused-vars": ["error", { ignoreRestSiblings: true, argsIgnorePattern: "^_" }],
       "@typescript-eslint/consistent-type-imports": [
         "error",
         { prefer: "type-imports", disallowTypeAnnotations: false },
@@ -31,14 +28,7 @@ export default [
       "import/order": [
         "error",
         {
-          groups: [
-            "builtin",
-            "external",
-            "internal",
-            "parent",
-            "sibling",
-            "index",
-          ],
+          groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
           pathGroups: [
             { pattern: "@/**", group: "internal", position: "after" },
             { pattern: "@src/**", group: "internal", position: "after" },
@@ -57,4 +47,4 @@ export default [
   },
 
   eslintConfigPrettier,
-];
+]

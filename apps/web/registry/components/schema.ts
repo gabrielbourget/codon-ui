@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "zod"
 
 export const componentRegistryEntrySchema = z.object({
   name: z.string(),
@@ -8,11 +8,11 @@ export const componentRegistryEntrySchema = z.object({
   componentRegistryDependencies: z.array(z.string()).optional(),
   helperRegistryDependencies: z.array(z.string()).optional(),
   directory: z.string().optional(),
-  file: z.string().optional()
-});
+  file: z.string().optional(),
+})
 
-export type TComponentRegistryEntry = z.infer<typeof componentRegistrySchema>;
+export type TComponentRegistryEntry = z.infer<typeof componentRegistrySchema>
 
-export const componentRegistrySchema = z.array(componentRegistryEntrySchema);
+export const componentRegistrySchema = z.array(componentRegistryEntrySchema)
 
-export type TComponentRegistry = z.infer<typeof componentRegistrySchema>;
+export type TComponentRegistry = z.infer<typeof componentRegistrySchema>

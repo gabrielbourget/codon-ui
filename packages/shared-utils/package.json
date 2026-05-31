@@ -6,6 +6,7 @@
   "packageManager": "pnpm@10.18.3",
   "scripts": {
     "format": "prettier --write .",
+    "format:write": "prettier --write .",
     "format:check": "prettier --check ."
   },
   "exports": {

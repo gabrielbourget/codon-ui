@@ -17,4 +17,4 @@ export default {
   embeddedLanguageFormatting: "auto",
   requirePragma: false,
   insertPragma: false,
-};
+}

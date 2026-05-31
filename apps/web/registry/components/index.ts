@@ -1,4 +1,4 @@
-import type { TComponentRegistry } from "./schema";
+import type { TComponentRegistry } from "./schema"
 
 export const componentRegistry: TComponentRegistry = [
   // - TODO: -> Uncomment and double check details once component is implemented
@@ -24,8 +24,14 @@ export const componentRegistry: TComponentRegistry = [
     isIcon: false,
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: [
-      "text", "button", "garbage-bin-icon", "checkmark-icon", "info-icon", "octagon-frame-exclamation-icon",
-      "triangle-frame-exclamation-icon", "x-icon"
+      "text",
+      "button",
+      "garbage-bin-icon",
+      "checkmark-icon",
+      "info-icon",
+      "octagon-frame-exclamation-icon",
+      "triangle-frame-exclamation-icon",
+      "x-icon",
     ],
     helperRegistryDependencies: ["textCSS", "types/accessibility", "constants/geometry", "types/geometry"],
     directory: "AlertDialog",
@@ -60,7 +66,13 @@ export const componentRegistry: TComponentRegistry = [
     isIcon: false,
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: [
-      "button", "click-popover", "link", "listbox-item", "text", "context-menu-horizontal-icon", "chevron-right-icon`"
+      "button",
+      "click-popover",
+      "link",
+      "listbox-item",
+      "text",
+      "context-menu-horizontal-icon",
+      "chevron-right-icon`",
     ],
     helperRegistryDependencies: ["constants/theme", "types/theme", "types/accessibility", "types/utils"],
     directory: "Breadcrumbs",
@@ -302,7 +314,12 @@ export const componentRegistry: TComponentRegistry = [
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: ["button", "text"],
     helperRegistryDependencies: [
-      "textCSS", "constants/theme", "types/theme", "constants/geometry", "types/geometry", "types/accessibility"
+      "textCSS",
+      "constants/theme",
+      "types/theme",
+      "constants/geometry",
+      "types/geometry",
+      "types/accessibility",
     ],
     directory: "Modal",
   },
@@ -324,12 +341,27 @@ export const componentRegistry: TComponentRegistry = [
     isIcon: false,
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: [
-      "button", "click-popover","counter", "line-segment", "listbox-item", "form-field",
-      "number-input", "select", "text"
+      "button",
+      "click-popover",
+      "counter",
+      "line-segment",
+      "listbox-item",
+      "form-field",
+      "number-input",
+      "select",
+      "text",
     ],
     helperRegistryDependencies: [
-      "constants/geometry", "types/geometry", "constants/theme", "types/theme", "constants/ui", "utils/data",
-      "double-chevron-left-icon", "double-chevron-right-icon", "chevron-left-icon", "chevron-right-icon"
+      "constants/geometry",
+      "types/geometry",
+      "constants/theme",
+      "types/theme",
+      "constants/ui",
+      "utils/data",
+      "double-chevron-left-icon",
+      "double-chevron-right-icon",
+      "chevron-left-icon",
+      "chevron-right-icon",
     ],
     directory: "Pagination",
   },
@@ -414,7 +446,12 @@ export const componentRegistry: TComponentRegistry = [
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: ["combo-box", "tag-group", "tag", "listbox-item", "text"],
     helperRegistryDependencies: [
-      "constants/gometry", "types/geometry", "constants/theme", "types/theme", "constants/ui", "types/data"
+      "constants/gometry",
+      "types/geometry",
+      "constants/theme",
+      "types/theme",
+      "constants/ui",
+      "types/data",
     ],
     directory: "TagComboBox",
   },
@@ -459,8 +496,14 @@ export const componentRegistry: TComponentRegistry = [
     isIcon: false,
     dependencies: ["react-aria-components"],
     componentRegistryDependencies: [
-      "button", "text", "garbage-bin-icon", "checkmark-icon", "info-icon", "octagon-frame-exclamation-icon",
-      "triangle-frame-exclamation-icon", "x-icon"
+      "button",
+      "text",
+      "garbage-bin-icon",
+      "checkmark-icon",
+      "info-icon",
+      "octagon-frame-exclamation-icon",
+      "triangle-frame-exclamation-icon",
+      "x-icon",
     ],
     helperRegistryDependencies: ["textCSS", "types/accesibility"],
     directory: "Toaster",
@@ -507,4 +550,4 @@ export const componentRegistry: TComponentRegistry = [
     isIcon: true,
     file: "XIcon.tsx",
   },
-];
+]

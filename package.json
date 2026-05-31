@@ -34,9 +34,11 @@
     "turbo": "^1.13.2"
   },
   "devDependencies": {
+    "@amino-ui/shared-utils": "workspace:*",
     "@types/node": "^20.12.5",
     "@types/react": "^18.2.74",
     "@types/react-dom": "^18.2.24",
+    "prettier": "^3.8.1",
     "typescript": "^5.4.4"
   }
 }

@@ -1,9 +1,10 @@
-import { type TTransform } from "@/src/helpers/transformers"
-import { ParserOptions, parse } from "@babel/parser";
-const { transformFromAstSync } = require("@babel/core");
-// @ts-ignore
+import { transformFromAstSync } from "@babel/core"
+import { parse } from "@babel/parser"
+import type { ParserOptions } from "@babel/parser"
 import transformTypescript from "@babel/plugin-transform-typescript"
 import * as recast from "recast"
+
+import { type TTransform } from "@/src/helpers/transformers"
 
 // This is a copy of the babel options from recast/parser.
 // The goal here is to tolerate as much syntax as possible.
@@ -56,14 +57,14 @@ const parserOptions: ParserOptions = {
   ],
 }
 
-export const transformToJS: TTransform<String> = async ({ sourceFile, config }) => {
-  const output = sourceFile.getFullText();
+export const transformToJS: TTransform<string> = async ({ sourceFile }) => {
+  const output = sourceFile.getFullText()
 
   const ast = recast.parse(output, {
     parser: {
-      parse: (code: string) => parse(code, parserOptions)
-    }
-  });
+      parse: (code: string) => parse(code, parserOptions),
+    },
+  })
 
   const result = transformFromAstSync(ast, output, {
     cloneInputAst: false,
@@ -71,11 +72,11 @@ export const transformToJS: TTransform<String> = async ({ sourceFile, config }) 
     ast: true,
     plugins: [transformTypescript],
     configFile: false,
-  });
+  })
 
   if (!result || !result.ast) {
-    throw new Error("Failed to transform TSX or TS to JSX or JS");
+    throw new Error("Failed to transform TSX or TS to JSX or JS")
   }
 
-  return recast.print(result.ast).code;
-};
+  return recast.print(result.ast).code
+}

@@ -1,3 +1,3 @@
-export * from "./getPackageInfo";
-export * from "./logger";
-export * from "./handleError";
+export * from "./getPackageInfo"
+export * from "./logger"
+export * from "./handleError"

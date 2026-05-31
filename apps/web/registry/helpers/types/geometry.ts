@@ -1,5 +1,5 @@
 // amino-ui-helper-file-marker
 
-import { AVAILABLE_CORNER_GEOMETRIES } from "@/src/constants/geometry";
+import type { AVAILABLE_CORNER_GEOMETRIES } from "@/src/constants/geometry"
 
-export type TAvailableCornerGeometries = typeof AVAILABLE_CORNER_GEOMETRIES[number];
+export type TAvailableCornerGeometries = (typeof AVAILABLE_CORNER_GEOMETRIES)[number]
