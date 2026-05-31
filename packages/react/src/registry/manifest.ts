@@ -5,6 +5,8 @@ import {
   REGISTRY_ITEM_TYPE__SUPPORT,
   REGISTRY_ITEM_TYPE__THEME,
   REGISTRY_SOURCE_PACKAGE__REACT,
+  REGISTRY_TARGET_ROLE__THEME,
+  REGISTRY_TARGET_ROLE__TOKENS,
 } from "./types"
 
 export const reactRegistryManifest = [
@@ -15,7 +17,8 @@ export const reactRegistryManifest = [
     files: [
       {
         sourcePath: "packages/react/theme.css",
-        targetPath: "components/_registry/theme/theme.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "theme.css",
         role: REGISTRY_FILE_ROLE__THEME,
       },
     ],
@@ -27,7 +30,8 @@ export const reactRegistryManifest = [
     files: [
       {
         sourcePath: "packages/react/src/tokens/geometry.ts",
-        targetPath: "components/_registry/tokens/geometry.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "geometry.ts",
         role: REGISTRY_FILE_ROLE__SUPPORT,
       },
     ],
@@ -39,7 +43,8 @@ export const reactRegistryManifest = [
     files: [
       {
         sourcePath: "packages/react/src/tokens/theme-order.ts",
-        targetPath: "components/_registry/tokens/theme-order.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "theme-order.ts",
         role: REGISTRY_FILE_ROLE__SUPPORT,
       },
     ],

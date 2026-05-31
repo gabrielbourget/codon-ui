@@ -167,16 +167,18 @@ const validateDependencyMap = (expression, constants, context) => {
   })
 }
 
-const validateManifestFile = ({ constants, expression, itemName, index, validFileRoles }) => {
+const validateManifestFile = ({ constants, expression, itemName, index, validFileRoles, validTargetRoles }) => {
   const context = `${itemName}.files[${index}]`
   const properties = readObjectProperties(expression, context)
   const sourcePathExpression = requireProperty(properties, "sourcePath", context)
+  const targetRoleExpression = requireProperty(properties, "targetRole", context)
   const targetPathExpression = requireProperty(properties, "targetPath", context)
   const roleExpression = requireProperty(properties, "role", context)
 
-  if (!sourcePathExpression || !targetPathExpression || !roleExpression) return
+  if (!sourcePathExpression || !targetRoleExpression || !targetPathExpression || !roleExpression) return
 
   const sourcePath = readStringValue(sourcePathExpression, constants, `${context}.sourcePath`)
+  const targetRole = readStringValue(targetRoleExpression, constants, `${context}.targetRole`)
   const targetPath = readStringValue(targetPathExpression, constants, `${context}.targetPath`)
   const role = readStringValue(roleExpression, constants, `${context}.role`)
 
@@ -188,12 +190,16 @@ const validateManifestFile = ({ constants, expression, itemName, index, validFil
     validateRelativePath({ basePath: repoRoot, context: `${context}.targetPath`, value: targetPath })
   }
 
+  if (targetRole && !validTargetRoles.has(targetRole)) {
+    fail(`Expected ${context}.targetRole to be one of ${[...validTargetRoles].join(", ")}, received ${targetRole}.`)
+  }
+
   if (role && !validFileRoles.has(role)) {
     fail(`Expected ${context}.role to be one of ${[...validFileRoles].join(", ")}, received ${role}.`)
   }
 }
 
-const validateManifestItem = ({ constants, expression, index, validFileRoles, validItemTypes }) => {
+const validateManifestItem = ({ constants, expression, index, validFileRoles, validItemTypes, validTargetRoles }) => {
   const context = `reactRegistryManifest[${index}]`
   const properties = readObjectProperties(expression, context)
   const nameExpression = requireProperty(properties, "name", context)
@@ -231,6 +237,7 @@ const validateManifestItem = ({ constants, expression, index, validFileRoles, va
       itemName: context,
       index: fileIndex,
       validFileRoles,
+      validTargetRoles,
     }),
   )
 
@@ -245,8 +252,9 @@ const validateManifestItem = ({ constants, expression, index, validFileRoles, va
 const manifestSourceFile = parseSourceFile(manifestSourcePath)
 const typeSourceFile = parseSourceFile(typesSourcePath)
 const constants = collectStringConstants(typeSourceFile)
-const validItemTypes = new Set(["component", "support", "style", "theme"])
-const validFileRoles = new Set(["source", "style", "test", "theme", "support"])
+const validItemTypes = new Set(["component", "support", "style", "theme", "asset", "test"])
+const validFileRoles = new Set(["source", "style", "test", "theme", "support", "asset"])
+const validTargetRoles = new Set(["components", "tokens", "utils", "types", "theme", "assets"])
 
 let manifestExpression
 
@@ -266,7 +274,14 @@ if (!manifestExpression) {
   const manifest = readArrayExpression(manifestExpression, "reactRegistryManifest")
 
   manifest?.elements.forEach((itemExpression, index) =>
-    validateManifestItem({ constants, expression: itemExpression, index, validFileRoles, validItemTypes }),
+    validateManifestItem({
+      constants,
+      expression: itemExpression,
+      index,
+      validFileRoles,
+      validItemTypes,
+      validTargetRoles,
+    }),
   )
 }
 
