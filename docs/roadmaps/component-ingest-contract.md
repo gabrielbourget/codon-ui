@@ -104,6 +104,11 @@ import rewrites, theme requirements, dependency classification, available source
 files, and planned-but-not-written lockfile effects. The deferred optional focused test is packet metadata only until the
 component-library testing work area.
 
+`add switch --dry-run --json` now reuses that same registry source and packet metadata to preview the first strict-write
+shape without mutating the consumer. The dry-run output reports existing target blockers, available write candidates,
+dependency decision counts, and `would-write` lockfile effects while still leaving config, files, lockfiles, directories,
+and package metadata untouched.
+
 ## Stop Conditions
 
 Return to deliberate planning if ingest work requires:

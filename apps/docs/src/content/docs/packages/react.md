@@ -16,8 +16,8 @@ support tokens, and registry manifests.
 - `src/tokens/theme-order.ts` owns theme-order support.
 - `src/registry/manifest.ts` owns the internal registry manifest.
 - `src/registry/ingest.ts` owns the type-only component receipt packet shape.
-- `src/registry/switch-ingest-packet.data.json` owns the packet data that still feeds early `add switch --advisory`
-  planning until generated component registry artifacts exist.
+- `src/registry/switch-ingest-packet.data.json` owns the packet data that still feeds early `add switch --advisory` and
+  `add switch --dry-run` planning until generated component registry artifacts exist.
 - `src/registry/switch-ingest-packet.ts` exposes that data as the typed packet.
 
 ## Peer Policy

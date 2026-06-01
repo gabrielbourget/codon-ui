@@ -8,12 +8,12 @@ component extraction.
 
 ## Current Surface
 
-| Command | Current state                                                                                                                                          |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                         |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                |
-| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` can now plan support items and the `Switch` packet without writes. |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                        |
+| Command | Current state                                                                                                                                                                                                     |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                                                                                    |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                                           |
+| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` plans support items and `Switch`; `add switch --dry-run --json` previews the first local-registry write shape without writes. |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                   |
 
 None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
 dependency policy, and tests are settled.
@@ -34,8 +34,8 @@ Advisory mode should:
 - avoid file writes, config writes, directory creation, package installs, and lockfile changes;
 - skip or timebox slow network, package-manager, and full-project scans unless explicitly requested.
 
-`--advisory` is different from a future dry-run. Advisory mode is for non-blocking diagnostics. Dry-run can later preview
-approved mutations.
+`--advisory` is different from dry-run. Advisory mode is for non-blocking diagnostics. Dry-run previews approved mutation
+shapes while still avoiding writes.
 
 Current `diff --advisory` reports missing cwd, config, registry, component, and registry payload issues as warnings with
 exit `0`. Advisory registry requests are quieted and timeboxed to avoid blocking broader processes.
@@ -60,11 +60,18 @@ requirement; compatible declarations in the target package are reported as `sati
 report available source; the optional focused test is metadata-only until the component-library testing work area. This
 is not strict `add switch`.
 
+Current `add switch --dry-run --json` uses the same local React registry source and packet metadata, but reports
+would-apply effects instead of advisory-only effects. It still writes no files, config, lockfile, directories, or package
+metadata. Missing `amino-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
+paths so the first fixture can preview the exact write set before strict `init` exists. Existing targets are counted as
+blockers, dependency decisions are summarized, and the lockfile effect reports `would-write`.
+
 ## Renovation Order
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
-3. Defer `status`, `update`, and ejection behavior until install metadata is approved.
+3. Add dry-run previews before strict writes.
+4. Defer `status`, `update`, and ejection behavior until install metadata is approved.
 
 ## Design Packet
 

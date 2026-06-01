@@ -79,7 +79,9 @@ Before implementing the proof, collect and record:
 - Non-active typed ingest packet that records source files, exclusions, import rewrites, dependencies, theme requirements,
   and verification commands.
 - `add switch --advisory --json` evidence showing planned files, support graph, dependency posture, theme requirements,
-  source availability for received runtime files, deferred optional test source status, and not-written lockfile effects.
+  source availability for received runtime files, deferred optional test metadata, and not-written lockfile effects.
+- `add switch --dry-run --json` evidence showing the same registry graph as a would-apply preview with existing-target
+  blockers, dependency decision counts, and would-write lockfile effects.
 
 ## Stop Conditions
 

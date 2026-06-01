@@ -50,3 +50,7 @@ The CLI can now read `packages/CLI/registry/local-react.registry.json` plus the 
 That output is planning evidence only: it reports support files, received component files, dependency posture, theme
 requirements, and not-written lockfile effects without writing files. Runtime `Switch` files report available source; the
 optional focused test remains metadata-only until the testing work area.
+
+`add switch --dry-run --json` now reuses the same local React registry source and packet metadata to preview the first
+write shape. It remains non-mutating, but reports would-write file counts, existing target blockers, dependency decision
+counts, and `would-write` lockfile effects.

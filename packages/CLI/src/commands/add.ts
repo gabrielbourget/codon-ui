@@ -10,16 +10,24 @@ import prompts from "prompts"
 import { z } from "zod"
 
 import {
+  addDryRunSchema,
   addAdvisorySchema,
+  AMINO_UI_CONFIG_FILE_NAME,
   createAddAdvisoryEffects,
+  createAddDryRunEffects,
   consumerConfigSchema,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   handleError,
+  INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
+  INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
+  INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   logger,
   readLocalRegistrySource,
   readComponentPacketsForRegistrySource,
-  resolveDefaultAddAdvisoryRegistrySourcePath,
+  resolveDefaultAddRegistrySourcePath,
+  type TConsumerConfig,
+  type TInstallPlanFinding,
 } from "@/src/helpers"
 import { getConfig } from "@/src/helpers/config"
 import {
@@ -57,6 +65,7 @@ const addOptionsSchema = z
     all: z.boolean().default(false),
     path: z.string().optional(),
     advisory: z.boolean().default(false),
+    dryRun: z.boolean().default(false),
     json: z.boolean().default(false),
     registrySource: z.string().optional(),
   })
@@ -69,6 +78,48 @@ const addOptionsSchema = z
 
 const parseAddOptions = (components: string[] | undefined, CLIOptions: unknown) =>
   addOptionsSchema.parse({ components, ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}) })
+
+const readConsumerConfigForDryRun = async (
+  cwd: string,
+): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {
+  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+  const fallbackConfig = consumerConfigSchema.parse({})
+
+  if (!existsSync(configPath)) {
+    return {
+      config: fallbackConfig,
+      findings: [
+        {
+          code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
+          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
+          severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+        },
+      ],
+    }
+  }
+
+  try {
+    return {
+      config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
+      findings: [],
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unknown config parse error."
+
+    return {
+      config: fallbackConfig,
+      findings: [
+        {
+          code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
+          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
+          severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+        },
+      ],
+    }
+  }
+}
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
   if (config.tsx) return filePath
@@ -120,8 +171,9 @@ export const add = new Command()
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-a, --all", "Add all available components to your project.", false)
   .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
-  .option("--json", "Print machine-readable advisory output.", false)
-  .option("--registry-source <path>", "Path to a local registry source JSON file for advisory planning.")
+  .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
+  .option("--json", "Print machine-readable output.", false)
+  .option("--registry-source <path>", "Path to a local registry source JSON file for planning.")
   .option(
     "-p, --path <path>",
     "A path to the directory where your chosen components should be added. Defaults to 'components'.",
@@ -137,11 +189,16 @@ export const add = new Command()
         process.exit(1)
       }
 
-      if (options.advisory) {
+      if (options.advisory && options.dryRun) {
+        logger.error("Please choose either --advisory or --dry-run, not both.")
+        process.exit(1)
+      }
+
+      if (options.advisory || options.dryRun) {
         const explicitRequestedItems = options.components ?? []
         const registrySourcePathOption =
           options.registrySource ??
-          resolveDefaultAddAdvisoryRegistrySourcePath({
+          resolveDefaultAddRegistrySourcePath({
             allComponents: options.allComponents,
             requestedItems: explicitRequestedItems,
           })
@@ -158,18 +215,54 @@ export const add = new Command()
           registrySource,
           requestedItems,
         })
+        const configPlan = options.dryRun
+          ? await readConsumerConfigForDryRun(cwd)
+          : {
+              config: consumerConfigSchema.parse({}),
+              findings: [],
+            }
         const installPlan = createRegistryInstallPlan({
-          config: consumerConfigSchema.parse({}),
+          config: configPlan.config,
           consumerRoot: cwd,
           registrySource: advisoryRegistrySource,
           requestedItems,
           sourceRoot,
         })
-        const findings = [...componentPacketFindings, ...installPlan.findings]
+        const findings = [...configPlan.findings, ...componentPacketFindings, ...installPlan.findings]
         const installPlanWithFindings = createRegistryInstallPlanWithFindings({
           findings,
           installPlan,
         })
+
+        if (options.dryRun) {
+          const dryRun = addDryRunSchema.parse({
+            componentPackets,
+            cwd,
+            dryRun: true,
+            effects: createAddDryRunEffects(installPlanWithFindings),
+            findings,
+            installPlan: installPlanWithFindings,
+            registrySourcePath,
+          })
+
+          if (options.json) {
+            console.log(JSON.stringify(dryRun, null, 2))
+            return
+          }
+
+          logger.info(`${chalk.green("[ Dry Run Add ]")} No files were written.`)
+          logger.info(`Registry source: ${dryRun.registrySourcePath}`)
+          logger.info(`Requested items: ${dryRun.installPlan.requestedItems.join(", ") || "(none)"}`)
+          logger.info(`Planned files: ${dryRun.effects.files.plannedCount}`)
+          logger.info(`Would write files: ${dryRun.effects.files.wouldWriteCount}`)
+          logger.info(`Existing target blockers: ${dryRun.effects.files.blockedExistingTargetCount}`)
+          logger.info(`Missing sources: ${dryRun.effects.files.missingSourceCount}`)
+          logger.info(`Dependency decisions: ${dryRun.effects.dependencies.requiresDecisionCount}`)
+          logger.info(`Findings: ${dryRun.findings.length}`)
+
+          return
+        }
+
         const advisory = addAdvisorySchema.parse({
           advisory: true,
           componentPackets,

@@ -230,3 +230,52 @@ export const addAdvisorySchema = z
   .strict()
 
 export type TAddAdvisory = z.infer<typeof addAdvisorySchema>
+
+export const addDryRunEffectsSchema = z
+  .object({
+    dependencies: z
+      .object({
+        incompatibleCount: z.number().int().nonnegative(),
+        missingCount: z.number().int().nonnegative(),
+        requiresDecisionCount: z.number().int().nonnegative(),
+        satisfiedCount: z.number().int().nonnegative(),
+        unresolvedCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+    files: z
+      .object({
+        blockedExistingTargetCount: z.number().int().nonnegative(),
+        missingSourceCount: z.number().int().nonnegative(),
+        plannedCount: z.number().int().nonnegative(),
+        wouldWriteCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+    installsDependencies: z.literal(false),
+    writesConfig: z.literal(false),
+    writesFiles: z.literal(false),
+    writesLockfile: z.literal(false),
+    lockfile: z
+      .object({
+        plannedFileCount: z.number().int().nonnegative(),
+        plannedItems: z.array(z.string().min(1)).default([]),
+        status: z.literal("would-write"),
+      })
+      .strict(),
+  })
+  .strict()
+
+export type TAddDryRunEffects = z.infer<typeof addDryRunEffectsSchema>
+
+export const addDryRunSchema = z
+  .object({
+    componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
+    cwd: z.string().min(1),
+    dryRun: z.literal(true),
+    effects: addDryRunEffectsSchema,
+    registrySourcePath: z.string().min(1),
+    installPlan: registryInstallPlanSchema,
+    findings: z.array(installPlanFindingSchema).default([]),
+  })
+  .strict()
+
+export type TAddDryRun = z.infer<typeof addDryRunSchema>

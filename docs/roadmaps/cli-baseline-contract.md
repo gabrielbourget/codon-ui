@@ -12,12 +12,12 @@ component proof is ready.
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                          |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes.             |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                           |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can now plan support items and the `Switch` packet without writes. |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                 |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                    |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes.                                                                       |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                     |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can plan support items and `Switch`; `add switch --dry-run` can preview the first local-registry write shape without writes. |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                           |
 
 Current helper surface:
 
@@ -62,7 +62,7 @@ Advisory mode is not the same as dry-run:
 | Mode                      | Meaning                                                                                          |
 | ------------------------- | ------------------------------------------------------------------------------------------------ |
 | `--advisory`              | Non-blocking diagnostics. Avoid mutations and downgrade expected findings to warnings.           |
-| Future `--dry-run`        | Preview an intended mutation. May still be strict once apply/update behavior is approved.        |
+| `--dry-run`               | Preview an intended mutation. Stays non-mutating, but can report would-apply blockers/effects.   |
 | Future default apply mode | Mutate files or install packages only after command contracts, manifests, and tests are settled. |
 
 ## Command Advisory Expectations
@@ -220,6 +220,26 @@ Current `Switch` advisory command:
 aui add switch --advisory --json --cwd <consumer-project>
 ```
 
+The first `Switch` dry-run slice now uses the same local React registry source and packet metadata, but reports
+would-apply effects instead of advisory-only effects:
+
+- `add switch --dry-run --json` stays non-mutating: no file writes, config writes, lockfile writes, dependency installs,
+  prompts, or directory creation.
+- Missing `amino-ui.config.json` is a warning for now. The command uses the default `registry-contained` paths so the
+  first fixture can preview exact writes before strict `init` exists.
+- Existing target files are counted as blockers in `effects.files.blockedExistingTargetCount`; the current fixture has
+  one blocker for `src/components/_registry/theme.css`.
+- `effects.files.wouldWriteCount` counts available-source files that do not already exist.
+- `effects.dependencies` summarizes satisfied, missing, incompatible, unresolved, and decision-required dependency
+  entries without modifying package metadata.
+- `effects.lockfile.status` reports `would-write` to distinguish dry-run from advisory `not-written` effects.
+
+Current `Switch` dry-run command:
+
+```sh
+aui add switch --dry-run --json --cwd <consumer-project>
+```
+
 ## Design Discussion Packet
 
 This packet is an agenda for the next CLI design conversation, not approval to implement the behaviors below.
@@ -272,6 +292,8 @@ Minimum command direction before the first `Switch` proof:
   peer/runtime packages without writing files or running installs.
 - `add --advisory Switch` should resolve the planned component graph, support files, theme tier, dependencies, and
   overwrite conflicts without writing files or running installs.
+- `add --dry-run Switch` should preview the exact write set, overwrite blockers, dependency decisions, and lockfile shape
+  before strict mutation exists.
 - The first strict `add Switch` path should not exist until install metadata and ownership states are approved.
 - `status`, `update`, and `eject` should wait until the metadata ledger exists; otherwise the CLI cannot distinguish
   registry-owned source from consumer-owned edits.

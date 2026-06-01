@@ -76,6 +76,11 @@ layout, `Switch/Switch.tsx` resolves to `src/components/Switch/Switch.tsx`.
 graph, then read the packet for public export intent, import rewrites, theme requirements, dependency posture, and
 verification notes. That advisory output is not a strict install path.
 
+`add switch --dry-run --json` uses the same local React registry source and packet metadata to preview the write shape for
+the default `registry-contained` layout. It reports would-write files, existing target blockers, missing source counts,
+dependency decision counts, and `would-write` lockfile effects without writing config, files, lockfiles, directories, or
+package metadata.
+
 ## Support Items To Decide
 
 The `Switch` proof needs support beyond the three component files:

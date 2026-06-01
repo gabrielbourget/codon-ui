@@ -35,7 +35,7 @@ export const getDefaultLocalReactRegistrySourcePath = () => {
 
 export const getDefaultLocalRegistrySourcePath = getDefaultLocalSupportRegistrySourcePath
 
-export const resolveDefaultAddAdvisoryRegistrySourcePath = ({
+export const resolveDefaultAddRegistrySourcePath = ({
   allComponents,
   requestedItems,
 }: {

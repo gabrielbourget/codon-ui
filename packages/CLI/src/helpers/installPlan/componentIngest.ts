@@ -6,19 +6,28 @@ import { fileURLToPath } from "url"
 import { z } from "zod"
 
 import {
+  INSTALL_PLAN_DEPENDENCY_STATUS__INCOMPATIBLE,
+  INSTALL_PLAN_DEPENDENCY_STATUS__MISSING,
+  INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
+  INSTALL_PLAN_DEPENDENCY_STATUS__UNRESOLVED,
   INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
+  INSTALL_PLAN_FILE_STATUS__EXISTING,
+  INSTALL_PLAN_SOURCE_STATUS__MISSING,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   REGISTRY_ITEM_TYPES,
 } from "./constants"
 import {
   addAdvisoryComponentPacketSchema,
   addAdvisoryEffectsSchema,
+  addDryRunEffectsSchema,
   dependencyMapSchema,
   localRegistryFileSchema,
   localRegistrySourceSchema,
   registryInstallPlanSchema,
   type TAddAdvisoryComponentPacket,
   type TAddAdvisoryEffects,
+  type TAddDryRunEffects,
+  type TInstallPlanDependencyStatus,
   type TInstallPlanFinding,
   type TLocalRegistrySource,
   type TRegistryInstallPlan,
@@ -181,6 +190,49 @@ export const createAddAdvisoryEffects = (installPlan: TRegistryInstallPlan): TAd
     writesFiles: false,
     writesLockfile: false,
   })
+
+export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddDryRunEffects => {
+  const blockedExistingTargetCount = installPlan.files.filter(
+    (file) => file.targetStatus === INSTALL_PLAN_FILE_STATUS__EXISTING,
+  ).length
+  const missingSourceCount = installPlan.files.filter(
+    (file) => file.sourceStatus === INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  ).length
+  const wouldWriteCount = installPlan.files.filter(
+    (file) =>
+      file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING &&
+      file.sourceStatus !== INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  ).length
+  const countDependenciesByStatus = (status: TInstallPlanDependencyStatus) =>
+    installPlan.dependencyPlan.filter((dependency) => dependency.status === status).length
+  const missingCount = countDependenciesByStatus(INSTALL_PLAN_DEPENDENCY_STATUS__MISSING)
+  const incompatibleCount = countDependenciesByStatus(INSTALL_PLAN_DEPENDENCY_STATUS__INCOMPATIBLE)
+
+  return addDryRunEffectsSchema.parse({
+    dependencies: {
+      incompatibleCount,
+      missingCount,
+      requiresDecisionCount: missingCount + incompatibleCount,
+      satisfiedCount: countDependenciesByStatus(INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED),
+      unresolvedCount: countDependenciesByStatus(INSTALL_PLAN_DEPENDENCY_STATUS__UNRESOLVED),
+    },
+    files: {
+      blockedExistingTargetCount,
+      missingSourceCount,
+      plannedCount: installPlan.files.length,
+      wouldWriteCount,
+    },
+    installsDependencies: false,
+    lockfile: {
+      plannedFileCount: installPlan.files.length,
+      plannedItems: installPlan.items.map((item) => item.name),
+      status: "would-write",
+    },
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+}
 
 export const createRegistryInstallPlanWithFindings = ({
   findings,
