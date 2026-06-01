@@ -20,7 +20,7 @@
     "theme.css"
   ],
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node copy-build-assets.mjs",
     "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest && pnpm check:registry-graph && pnpm check:local-registry-snapshot",
     "check:local-registry-snapshot": "pnpm exec tsx verify-local-registry-snapshot.ts",
     "check:registry-graph": "pnpm exec tsx verify-registry-graph.ts",
@@ -28,21 +28,26 @@
     "check:theme-css": "node verify-theme-css-contract.mjs",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --cache",
-    "format": "prettier --write \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
-    "format:write": "prettier --write \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
-    "format:check": "prettier --check \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format": "prettier --write \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:write": "prettier --write \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
-    "stylelint": "stylelint \"*.css\"",
+    "stylelint": "stylelint \"*.css\" \"src/**/*.css\"",
     "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "classnames": "^2.3.2"
   },
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
     "@amino-ui/shared-utils": "workspace:*",
     "eslint": "^9.0.0",
     "prettier": "^3.8.1",
+    "react-aria-components": "^1.17.0",
     "stylelint": "^16.3.1",
     "typescript": "^5.4.3"
   }
