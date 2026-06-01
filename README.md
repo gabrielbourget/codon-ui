@@ -1,16 +1,53 @@
-# resource-distribution-cli
+# Amino UI
 
-To install dependencies:
+Amino UI is being renovated into the canonical component-library and registry source for reusable React UI. The current
+branch is foundation work: package-manager alignment, shared tooling, CI, a React source receiver, default theme CSS,
+registry manifest contracts, receiver support tokens, and documentation.
 
-```bash
-bun install
+No Wavemap component source has moved into this repository yet.
+
+## Workspace
+
+This repo is a `pnpm` monorepo.
+
+| Path                    | Purpose                                                                                                                  |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                            |
+| `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                         |
+| `packages/CLI`          | Existing CLI package with `aminoui-cli` and `aui` bins. Strict install/update/diff behavior is not proof-ready yet.      |
+| `packages/react`        | Private `@amino-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests. |
+| `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                              |
+
+## Commands
+
+```sh
+pnpm install
+pnpm check
+pnpm verify:ci
+pnpm build:react
+pnpm build:docs
+pnpm dev:docs
 ```
 
-To run:
+Focused checks:
 
-```bash
-bun run index.ts
+```sh
+pnpm -F @amino-ui/react check:contracts
+pnpm -F @amino-ui/react build
+pnpm -F @amino-ui/docs build
 ```
 
-This project was created using `bun init` in bun v1.0.14. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
-# resource-distribution-cli
+## Current Boundaries
+
+- `@amino-ui/react/theme.css` is hand-authored and intentionally narrow.
+- React, React DOM, and React Aria Components are current `@amino-ui/react` peers.
+- `Switch` is the first received component source slice under `packages/react/src/components/Switch`.
+- Registry manifests have real support entries and an active `switch` component entry.
+- `Switch` still waits on strict CLI install behavior, lockfile writes, focused test harness work, and the Wavemap
+  delete-and-rehydrate proof.
+
+## Guardrails
+
+Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish
+packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the roadmap docs under
+`docs/roadmaps` before opening follow-up implementation passes.

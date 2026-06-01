@@ -1,5 +1,7 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
+.turbo
+
 # Logs
 
 logs
@@ -13,6 +15,7 @@ lerna-debug.log*
 # Caches 
 
 .cache
+apps/docs/.astro/
 
 # Diagnostic reports (https://nodejs.org/api/report.html)
 
@@ -21,7 +24,7 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 # Runtime data
 
 pids
-_.pid
+_.pidres
 _.seed
 *.pid.lock
 

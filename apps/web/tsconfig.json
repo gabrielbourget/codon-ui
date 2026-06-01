@@ -1,0 +1,14 @@
+{
+  "extends": "../../packages/shared-utils/tsconfig/frontend/tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/src/*": ["./registry/helpers/*"],
+      "@src/*": ["./registry/helpers/*", "./src/*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "eslint.config.mjs"],
+  "exclude": ["node_modules"]
+}

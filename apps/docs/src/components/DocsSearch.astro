@@ -1,0 +1,90 @@
+---
+import StarlightSearch from "@astrojs/starlight/components/Search.astro"
+---
+
+<StarlightSearch {...Astro.props} />
+
+<script>
+  import { pagefindUserConfig } from "virtual:starlight/pagefind-config"
+
+  type TDocsSearchWindow = Window & {
+    __aminoDocsSearchInitRegistered?: boolean
+    __aminoDocsSearchSawInitialPageLoad?: boolean
+  }
+
+  const PAGEFIND_MOUNTED_ATTRIBUTE = "data-amino-pagefind-mounted"
+
+  const parseTranslations = (siteSearchElement: HTMLElement | null) => {
+    try {
+      return JSON.parse(siteSearchElement?.dataset.translations ?? "{}")
+    } catch {
+      return {}
+    }
+  }
+
+  const buildURLFormatter = (siteSearchElement: HTMLElement | null) => {
+    if (siteSearchElement?.dataset.stripTrailingSlash === undefined) {
+      return (path: string) => path
+    }
+
+    return (path: string) => path.replace(/(.)\/(#.*)?$/, "$1$2")
+  }
+
+  const initializePagefindSearch = async () => {
+    if (import.meta.env.DEV) return
+
+    const searchElement = document.querySelector<HTMLElement>("#starlight__search")
+
+    if (!searchElement) return
+    if (searchElement.hasAttribute(PAGEFIND_MOUNTED_ATTRIBUTE)) return
+    if (searchElement.querySelector(".pagefind-ui")) return
+
+    searchElement.setAttribute(PAGEFIND_MOUNTED_ATTRIBUTE, "true")
+
+    const siteSearchElement = searchElement.closest<HTMLElement>("site-search")
+    const translations = parseTranslations(siteSearchElement)
+    const formatURL = buildURLFormatter(siteSearchElement)
+
+    const { PagefindUI } = await import("@pagefind/default-ui")
+
+    new PagefindUI({
+      ...pagefindUserConfig,
+      element: "#starlight__search",
+      baseUrl: import.meta.env.BASE_URL,
+      bundlePath: import.meta.env.BASE_URL.replace(/\/$/, "") + "/pagefind/",
+      showImages: false,
+      translations,
+      showSubResults: true,
+      processResult: (result: { url: string; sub_results: Array<{ url: string }> }) => {
+        result.url = formatURL(result.url)
+        result.sub_results = result.sub_results.map((subResult) => {
+          subResult.url = formatURL(subResult.url)
+          return subResult
+        })
+      },
+    })
+
+    const dialog = searchElement.closest("dialog")
+    if (dialog?.open) searchElement.querySelector<HTMLInputElement>("input")?.focus()
+  }
+
+  const scheduleSearchInitialization = () => {
+    window.setTimeout(() => void initializePagefindSearch(), 0)
+  }
+
+  const docsSearchWindow = window as TDocsSearchWindow
+
+  if (!docsSearchWindow.__aminoDocsSearchInitRegistered) {
+    docsSearchWindow.__aminoDocsSearchInitRegistered = true
+
+    document.addEventListener("astro:after-swap", scheduleSearchInitialization)
+    document.addEventListener("astro:page-load", () => {
+      if (!docsSearchWindow.__aminoDocsSearchSawInitialPageLoad) {
+        docsSearchWindow.__aminoDocsSearchSawInitialPageLoad = true
+        return
+      }
+
+      scheduleSearchInitialization()
+    })
+  }
+</script>

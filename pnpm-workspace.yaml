@@ -1,0 +1,9 @@
+packages:
+  - "apps/*"
+  - "packages/*"
+
+# Delay newly published registry packages by 7 days before pnpm will install them.
+# Local workspace packages use workspace:* links, so they do not need a registry-age bypass.
+minimumReleaseAge: 10080
+
+minimumReleaseAgeExclude: []

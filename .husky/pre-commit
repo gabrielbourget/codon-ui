@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+set -eu
+
+echo "[husky] pre-commit starting..."
+pnpm precommit
+echo "[husky] pre-commit checks complete."

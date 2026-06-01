@@ -1,0 +1,15 @@
+export const THEME_ORDER_CODE__PRIMARY = "primary"
+export const THEME_ORDER_CODE__SECONDARY = "secondary"
+export const THEME_ORDER_CODE__TERTIARY = "tertiary"
+export const THEME_ORDER_CODE__QUATERNARY = "quaternary"
+export const THEME_ORDER_CODE__QUINTENARY = "quintenary"
+
+export const AVAILABLE_THEMING_ORDER_CODES = [
+  THEME_ORDER_CODE__PRIMARY,
+  THEME_ORDER_CODE__SECONDARY,
+  THEME_ORDER_CODE__TERTIARY,
+  THEME_ORDER_CODE__QUATERNARY,
+  THEME_ORDER_CODE__QUINTENARY,
+] as const
+
+export type TThemingOrderCode = (typeof AVAILABLE_THEMING_ORDER_CODES)[number]

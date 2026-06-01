@@ -1,0 +1,376 @@
+import crypto from "crypto"
+import { existsSync, readFileSync } from "fs"
+import path from "path"
+
+import { Project, ScriptKind } from "ts-morph"
+
+import {
+  resolveConsumerLayout,
+  resolveConsumerRegistryFileTarget,
+  type TConsumerConfig,
+} from "@/src/helpers/consumerContract"
+
+import {
+  INSTALL_PLAN_DEPENDENCY_KIND__DEV,
+  INSTALL_PLAN_DEPENDENCY_KIND__PEER,
+  INSTALL_PLAN_DEPENDENCY_KIND__RUNTIME,
+  INSTALL_PLAN_FILE_STATUS__EXISTING,
+  INSTALL_PLAN_FILE_STATUS__MISSING,
+  INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY,
+  INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET,
+  INSTALL_PLAN_FINDING__DUPLICATE_ITEM,
+  INSTALL_PLAN_FINDING__MISSING_DEPENDENCY,
+  INSTALL_PLAN_FINDING__MISSING_ITEM,
+  INSTALL_PLAN_FINDING__SOURCE_FILE_MISSING,
+  INSTALL_PLAN_FINDING__SUPPORT_TARGET_REUSED,
+  INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
+  INSTALL_PLAN_FINDING_SEVERITY__INFO,
+  INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+  INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+  INSTALL_PLAN_SOURCE_STATUS__AVAILABLE,
+  INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__TYPESCRIPT_EXPORT_SUPERSET,
+  INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__WRITE,
+  REGISTRY_ITEM_TYPE__SUPPORT,
+} from "./constants"
+import { createDependencyOwnerKey, createInstallPlanDependencyInspection } from "./dependencyInspection"
+import {
+  installPlanDependenciesSchema,
+  registryInstallPlanSchema,
+  type TInstallPlanDependencies,
+  type TInstallPlanFile,
+  type TInstallPlanFinding,
+  type TInstallPlanTargetCompatibility,
+  type TInstallPlanItem,
+  type TLocalRegistryItem,
+  type TLocalRegistrySource,
+  type TRegistryInstallPlan,
+} from "./schema"
+
+const TYPESCRIPT_EXTENSIONS = [".ts", ".tsx"] as const
+
+const mergeDependencyMaps = (dependencyMaps: readonly Record<string, string>[]) =>
+  dependencyMaps.reduce<Record<string, string>>(
+    (mergedDependencies, dependencyMap) => ({
+      ...mergedDependencies,
+      ...dependencyMap,
+    }),
+    {},
+  )
+
+const mergeInstallPlanDependencies = (items: readonly TLocalRegistryItem[]): TInstallPlanDependencies =>
+  installPlanDependenciesSchema.parse({
+    devDependencies: mergeDependencyMaps(items.map((item) => item.devDependencies)),
+    peerDependencies: mergeDependencyMaps(items.map((item) => item.peerDependencies)),
+    runtimeDependencies: mergeDependencyMaps(items.map((item) => item.runtimeDependencies)),
+  })
+
+const createDependencyOwnerMap = (items: readonly TLocalRegistryItem[]) => {
+  const dependencyOwners = new Map<string, string>()
+
+  items.forEach((item) => {
+    Object.keys(item.peerDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__PEER,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+
+    Object.keys(item.runtimeDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__RUNTIME,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+
+    Object.keys(item.devDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__DEV,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+  })
+
+  return dependencyOwners
+}
+
+const createFileTargetKey = (file: Pick<TInstallPlanFile, "resolvedPath">) => file.resolvedPath
+
+const createContentHash = (filePath: string) =>
+  `sha256:${crypto.createHash("sha256").update(readFileSync(filePath)).digest("hex")}`
+
+const getScriptKind = (filePath: string) => {
+  if (filePath.endsWith(".tsx")) return ScriptKind.TSX
+  if (filePath.endsWith(".ts")) return ScriptKind.TS
+
+  return undefined
+}
+
+const isTypeScriptSourceFile = (filePath: string) =>
+  TYPESCRIPT_EXTENSIONS.some((extension) => filePath.endsWith(extension))
+
+const readExportedNames = (filePath: string) => {
+  const scriptKind = getScriptKind(filePath)
+
+  if (!scriptKind) return new Set<string>()
+
+  const project = new Project({ compilerOptions: {} })
+  const sourceFile = project.createSourceFile(filePath, readFileSync(filePath, "utf8"), {
+    overwrite: true,
+    scriptKind,
+  })
+
+  return new Set([...sourceFile.getExportedDeclarations().keys()].filter((exportedName) => exportedName !== "default"))
+}
+
+const createSupportTargetCompatibility = ({
+  sourceContentHash,
+  sourcePath,
+  targetContentHash,
+  targetPath,
+}: {
+  sourceContentHash: string
+  sourcePath: string
+  targetContentHash: string
+  targetPath: string
+}): TInstallPlanTargetCompatibility | undefined => {
+  if (sourceContentHash === targetContentHash) return INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH
+  if (!isTypeScriptSourceFile(sourcePath) || !isTypeScriptSourceFile(targetPath)) return undefined
+
+  try {
+    const sourceExports = readExportedNames(sourcePath)
+    const targetExports = readExportedNames(targetPath)
+
+    if (sourceExports.size === 0) return undefined
+
+    return [...sourceExports].every((exportedName) => targetExports.has(exportedName))
+      ? INSTALL_PLAN_TARGET_COMPATIBILITY__TYPESCRIPT_EXPORT_SUPERSET
+      : undefined
+  } catch {
+    return undefined
+  }
+}
+
+export const createRegistryInstallPlan = ({
+  consumerRoot,
+  config,
+  registrySource,
+  requestedItems,
+  sourceRoot,
+}: {
+  consumerRoot?: string
+  config: TConsumerConfig
+  registrySource: TLocalRegistrySource
+  requestedItems: readonly string[]
+  sourceRoot?: string
+}): TRegistryInstallPlan => {
+  const findings: TInstallPlanFinding[] = []
+  const itemsByName = new Map<string, TLocalRegistryItem>()
+
+  registrySource.items.forEach((item) => {
+    if (itemsByName.has(item.name)) {
+      findings.push({
+        code: INSTALL_PLAN_FINDING__DUPLICATE_ITEM,
+        itemName: item.name,
+        message: `Registry item "${item.name}" is defined more than once.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+      })
+      return
+    }
+
+    itemsByName.set(item.name, item)
+  })
+
+  const resolvedItems: TLocalRegistryItem[] = []
+  const visitedItemNames = new Set<string>()
+  const visitingItemNames = new Set<string>()
+  const registryDependencyPath: string[] = []
+
+  const visitItem = (itemName: string, parentName?: string) => {
+    if (visitedItemNames.has(itemName)) return
+
+    const item = itemsByName.get(itemName)
+
+    if (!item) {
+      findings.push({
+        code: parentName ? INSTALL_PLAN_FINDING__MISSING_DEPENDENCY : INSTALL_PLAN_FINDING__MISSING_ITEM,
+        itemName: parentName ?? itemName,
+        message: parentName
+          ? `Registry item "${parentName}" depends on missing registry item "${itemName}".`
+          : `Registry item "${itemName}" was requested but is not defined.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+      })
+      return
+    }
+
+    if (visitingItemNames.has(itemName)) {
+      const cycleStartIndex = registryDependencyPath.indexOf(itemName)
+      const cyclePath = [...registryDependencyPath.slice(Math.max(cycleStartIndex, 0)), itemName]
+
+      findings.push({
+        code: INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY,
+        itemName: parentName ?? itemName,
+        message: `Registry item dependency cycle detected: ${cyclePath.join(" -> ")}.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+      })
+      return
+    }
+
+    visitingItemNames.add(itemName)
+    registryDependencyPath.push(itemName)
+
+    item.registryDependencies.forEach((dependencyName) => {
+      visitItem(dependencyName, item.name)
+    })
+
+    registryDependencyPath.pop()
+    visitingItemNames.delete(itemName)
+    visitedItemNames.add(itemName)
+    resolvedItems.push(item)
+  }
+
+  requestedItems.forEach((itemName) => visitItem(itemName))
+
+  const layout = resolveConsumerLayout(config)
+  findings.push(...layout.findings)
+
+  const files: TInstallPlanFile[] = resolvedItems.flatMap((item) =>
+    item.files.map((file) => {
+      const resolvedFileTarget = resolveConsumerRegistryFileTarget({
+        file,
+        targetPaths: layout.targetPaths,
+      })
+      const resolvedTargetPath = consumerRoot ? path.resolve(consumerRoot, resolvedFileTarget.resolvedPath) : undefined
+      const targetExists = Boolean(resolvedTargetPath && existsSync(resolvedTargetPath))
+      const targetStatus = targetExists ? INSTALL_PLAN_FILE_STATUS__EXISTING : INSTALL_PLAN_FILE_STATUS__MISSING
+      const resolvedSourcePath = sourceRoot ? path.resolve(sourceRoot, file.sourcePath) : undefined
+      const sourceExists = resolvedSourcePath ? existsSync(resolvedSourcePath) : false
+      const sourceStatus = sourceExists ? INSTALL_PLAN_SOURCE_STATUS__AVAILABLE : INSTALL_PLAN_SOURCE_STATUS__MISSING
+      const contentHash = sourceExists && resolvedSourcePath ? createContentHash(resolvedSourcePath) : file.contentHash
+      const targetContentHash = targetExists && resolvedTargetPath ? createContentHash(resolvedTargetPath) : undefined
+      const targetCompatibility =
+        item.type === REGISTRY_ITEM_TYPE__SUPPORT &&
+        sourceExists &&
+        resolvedSourcePath &&
+        resolvedTargetPath &&
+        contentHash &&
+        targetContentHash
+          ? createSupportTargetCompatibility({
+              sourceContentHash: contentHash,
+              sourcePath: resolvedSourcePath,
+              targetContentHash,
+              targetPath: resolvedTargetPath,
+            })
+          : undefined
+      const targetResolution = targetExists
+        ? targetCompatibility
+          ? INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+          : INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING
+        : INSTALL_PLAN_TARGET_RESOLUTION__WRITE
+
+      return {
+        ...file,
+        contentHash,
+        itemName: item.name,
+        resolvedPath: resolvedFileTarget.resolvedPath,
+        sourceStatus,
+        targetCompatibility,
+        targetContentHash,
+        targetResolution,
+        targetStatus,
+      }
+    }),
+  )
+
+  const fileTargetOwners = new Map<string, string>()
+
+  files.forEach((file) => {
+    const targetKey = createFileTargetKey(file)
+    const existingOwner = fileTargetOwners.get(targetKey)
+
+    if (existingOwner) {
+      findings.push({
+        code: INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET,
+        itemName: file.itemName,
+        message: `Registry items "${existingOwner}" and "${file.itemName}" both target ${targetKey}.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+        targetPath: targetKey,
+      })
+      return
+    }
+
+    fileTargetOwners.set(targetKey, file.itemName)
+  })
+
+  files.forEach((file) => {
+    if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return
+
+    if (file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING) {
+      findings.push({
+        code: INSTALL_PLAN_FINDING__SUPPORT_TARGET_REUSED,
+        itemName: file.itemName,
+        message: `Existing support file at ${file.resolvedPath} satisfies registry item "${file.itemName}" by ${file.targetCompatibility}.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__INFO,
+        targetPath: file.resolvedPath,
+      })
+      return
+    }
+
+    findings.push({
+      code: INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
+      itemName: file.itemName,
+      message: `Target file already exists at ${file.resolvedPath}.`,
+      severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+      targetPath: file.resolvedPath,
+    })
+  })
+
+  files.forEach((file) => {
+    if (file.sourceStatus !== INSTALL_PLAN_SOURCE_STATUS__MISSING) return
+
+    findings.push({
+      code: INSTALL_PLAN_FINDING__SOURCE_FILE_MISSING,
+      itemName: file.itemName,
+      message: `Source file is missing at ${file.sourcePath}.`,
+      severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+      sourcePath: file.sourcePath,
+      targetPath: file.resolvedPath,
+    })
+  })
+
+  const items: TInstallPlanItem[] = resolvedItems.map((item) => ({
+    files: files.filter((file) => file.itemName === item.name),
+    name: item.name,
+    registryDependencies: item.registryDependencies,
+    sourcePackage: item.sourcePackage,
+    type: item.type,
+  }))
+
+  const dependencies = mergeInstallPlanDependencies(resolvedItems)
+  const dependencyInspection = createInstallPlanDependencyInspection({
+    consumerRoot,
+    dependencies,
+    dependencyOwners: createDependencyOwnerMap(resolvedItems),
+  })
+
+  findings.push(...dependencyInspection.findings)
+
+  return registryInstallPlanSchema.parse({
+    dependencies,
+    dependencyPlan: dependencyInspection.dependencyPlan,
+    files,
+    findings,
+    items,
+    requestedItems,
+    sourceIdentity: registrySource.sourceIdentity,
+  })
+}

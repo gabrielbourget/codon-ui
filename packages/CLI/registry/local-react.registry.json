@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": "@amino-ui/react-local",
+  "sourceRoot": "../../..",
+  "items": [
+    {
+      "name": "theme-css",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/theme.css",
+          "targetRole": "theme",
+          "targetPath": "theme.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/geometry",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/geometry.ts",
+          "targetRole": "tokens",
+          "targetPath": "geometry.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "theme/switch-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Switch/switch-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "switch-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/theme-order",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/theme-order.ts",
+          "targetRole": "tokens",
+          "targetPath": "theme-order.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "switch",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Switch/Switch.tsx",
+          "targetRole": "components",
+          "targetPath": "Switch/Switch.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Switch/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Switch/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Switch/SwitchStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Switch/SwitchStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": {
+        "classnames": "^2.3.2"
+      }
+    }
+  ]
+}

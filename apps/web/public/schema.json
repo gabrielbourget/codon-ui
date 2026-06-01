@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "properties": {
+    "style": {
+      "type": "string",
+      "enum": ["default", "new-york"]
+    },
+    "rsc": {
+      "type": "boolean"
+    },
+    "tsx": {
+      "type": "boolean"
+    },
+    "aliases": {
+      "type": "object",
+      "properties": {
+        "components": {
+          "type": "string"
+        },
+        "utils": {
+          "type": "string"
+        },
+        "types": {
+          "type": "string"
+        },
+        "constants": {
+          "type": "string"
+        },
+        "globalCSS": {
+          "type": "string"
+        },
+        "textCSS": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

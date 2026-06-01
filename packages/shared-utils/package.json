@@ -1,0 +1,38 @@
+{
+  "name": "@amino-ui/shared-utils",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "scripts": {
+    "format": "prettier --write .",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check .",
+    "precommit": "pnpm format:check"
+  },
+  "exports": {
+    "./eslint/base": "./eslint/base.mjs",
+    "./prettier/index": "./prettier/index.mjs",
+    "./stylelint/base": "./stylelint/base.cjs",
+    "./tsconfig/base": "./tsconfig/base.json",
+    "./tsconfig/frontend": "./tsconfig/frontend/tsconfig.json",
+    "./tsconfig/react": "./tsconfig/react/tsconfig.json",
+    "./tsconfig/node": "./tsconfig/node/tsconfig.json"
+  },
+  "files": [
+    "eslint",
+    "prettier",
+    "stylelint",
+    "tsconfig"
+  ],
+  "dependencies": {
+    "@eslint/js": "^9.36.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-import": "^2.32.0",
+    "postcss-scss": "^4.0.9",
+    "prettier": "^3.8.1",
+    "stylelint-config-standard": "^39.0.1",
+    "stylelint-config-standard-scss": "^15.0.1",
+    "typescript-eslint": "^8.44.1"
+  }
+}
