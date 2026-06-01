@@ -1,3 +1,6 @@
+import { existsSync } from "fs"
+import path from "path"
+
 import {
   resolveConsumerLayout,
   resolveConsumerRegistryFileTarget,
@@ -5,12 +8,16 @@ import {
 } from "@/src/helpers/consumerContract"
 
 import {
+  INSTALL_PLAN_FILE_STATUS__EXISTING,
+  INSTALL_PLAN_FILE_STATUS__MISSING,
   INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY,
   INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET,
   INSTALL_PLAN_FINDING__DUPLICATE_ITEM,
   INSTALL_PLAN_FINDING__MISSING_DEPENDENCY,
   INSTALL_PLAN_FINDING__MISSING_ITEM,
+  INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+  INSTALL_PLAN_FINDING_SEVERITY__WARNING,
 } from "./constants"
 import {
   installPlanDependenciesSchema,
@@ -43,10 +50,12 @@ const mergeInstallPlanDependencies = (items: readonly TLocalRegistryItem[]): TIn
 const createFileTargetKey = (file: Pick<TInstallPlanFile, "resolvedPath">) => file.resolvedPath
 
 export const createRegistryInstallPlan = ({
+  consumerRoot,
   config,
   registrySource,
   requestedItems,
 }: {
+  consumerRoot?: string
   config: TConsumerConfig
   registrySource: TLocalRegistrySource
   requestedItems: readonly string[]
@@ -122,14 +131,23 @@ export const createRegistryInstallPlan = ({
   findings.push(...layout.findings)
 
   const files: TInstallPlanFile[] = resolvedItems.flatMap((item) =>
-    item.files.map((file) => ({
-      ...file,
-      itemName: item.name,
-      resolvedPath: resolveConsumerRegistryFileTarget({
+    item.files.map((file) => {
+      const resolvedFileTarget = resolveConsumerRegistryFileTarget({
         file,
         targetPaths: layout.targetPaths,
-      }).resolvedPath,
-    })),
+      })
+      const targetStatus =
+        consumerRoot && existsSync(path.resolve(consumerRoot, resolvedFileTarget.resolvedPath))
+          ? INSTALL_PLAN_FILE_STATUS__EXISTING
+          : INSTALL_PLAN_FILE_STATUS__MISSING
+
+      return {
+        ...file,
+        itemName: item.name,
+        resolvedPath: resolvedFileTarget.resolvedPath,
+        targetStatus,
+      }
+    }),
   )
 
   const fileTargetOwners = new Map<string, string>()
@@ -150,6 +168,18 @@ export const createRegistryInstallPlan = ({
     }
 
     fileTargetOwners.set(targetKey, file.itemName)
+  })
+
+  files.forEach((file) => {
+    if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return
+
+    findings.push({
+      code: INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
+      itemName: file.itemName,
+      message: `Target file already exists at ${file.resolvedPath}.`,
+      severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+      targetPath: file.resolvedPath,
+    })
   })
 
   const items: TInstallPlanItem[] = resolvedItems.map((item) => ({

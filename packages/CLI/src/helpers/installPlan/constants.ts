@@ -1,6 +1,14 @@
 export const LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION = 1
 export const REGISTRY_INSTALL_PLAN_SCHEMA_VERSION = 1
 
+export const INSTALL_PLAN_FILE_STATUS__MISSING = "missing"
+export const INSTALL_PLAN_FILE_STATUS__EXISTING = "existing"
+
+export const INSTALL_PLAN_FILE_STATUSES = [
+  INSTALL_PLAN_FILE_STATUS__MISSING,
+  INSTALL_PLAN_FILE_STATUS__EXISTING,
+] as const
+
 export const REGISTRY_ITEM_TYPE__COMPONENT = "component"
 export const REGISTRY_ITEM_TYPE__SUPPORT = "support"
 export const REGISTRY_ITEM_TYPE__STYLE = "style"
@@ -48,3 +56,4 @@ export const INSTALL_PLAN_FINDING__MISSING_ITEM = "missing-item"
 export const INSTALL_PLAN_FINDING__MISSING_DEPENDENCY = "missing-registry-dependency"
 export const INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY = "circular-registry-dependency"
 export const INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET = "duplicate-file-target"
+export const INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS = "target-file-exists"

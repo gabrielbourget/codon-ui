@@ -3,6 +3,7 @@ import { z } from "zod"
 import { consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
 
 import {
+  INSTALL_PLAN_FILE_STATUSES,
   INSTALL_PLAN_FINDING_SEVERITIES,
   LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION,
   REGISTRY_FILE_ROLES,
@@ -12,6 +13,7 @@ import {
 
 export type TRegistryItemType = (typeof REGISTRY_ITEM_TYPES)[number]
 export type TRegistryFileRole = (typeof REGISTRY_FILE_ROLES)[number]
+export type TInstallPlanFileStatus = (typeof INSTALL_PLAN_FILE_STATUSES)[number]
 export type TInstallPlanFindingSeverity = (typeof INSTALL_PLAN_FINDING_SEVERITIES)[number]
 
 export const dependencyMapSchema = z.record(z.string().min(1), z.string().min(1))
@@ -73,6 +75,7 @@ export const installPlanFileSchema = z
     targetRole: consumerTargetRoleSchema,
     targetPath: z.string().min(1),
     resolvedPath: z.string().min(1),
+    targetStatus: z.enum(INSTALL_PLAN_FILE_STATUSES),
     role: z.enum(REGISTRY_FILE_ROLES),
     contentHash: z.string().min(1).optional(),
   })
