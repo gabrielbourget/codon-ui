@@ -9,6 +9,7 @@ import ora from "ora"
 import prompts from "prompts"
 import { z } from "zod"
 
+import { createConsumerInitAdvisory } from "@/src/helpers"
 import { getConfig, resolveConfigPaths } from "@/src/helpers/config"
 import { coreConfigSchema, type TConfig } from "@/src/helpers/config/schema"
 import {
@@ -36,6 +37,8 @@ const initOptionsSchema = z.object({
   cwd: z.string().default(process.cwd()),
   yes: z.boolean().default(true),
   defaults: z.boolean().default(false),
+  advisory: z.boolean().default(false),
+  json: z.boolean().default(false),
 })
 
 const parseInitOptions = (CLIOptions: unknown) => {
@@ -43,7 +46,9 @@ const parseInitOptions = (CLIOptions: unknown) => {
 
   return {
     cwd: options.cwd,
+    advisory: options.advisory,
     defaults: options.defaults,
+    json: options.json,
     skipConfirmationPrompt: options.yes,
   }
 }
@@ -54,6 +59,8 @@ export const init = new Command()
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-d, --defaults", "Use the default component library configuration.", false)
+  .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
+  .option("--json", "Print machine-readable advisory output.", false)
   .action(async (CLIOptions) => {
     try {
       const options = parseInitOptions(CLIOptions)
@@ -62,6 +69,25 @@ export const init = new Command()
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
         process.exit(1)
+      }
+
+      if (options.advisory) {
+        const advisory = createConsumerInitAdvisory(cwd)
+
+        if (options.json) {
+          console.log(JSON.stringify(advisory, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Advisory Init ]")} No files were written.`)
+        logger.info(`Package manager: ${advisory.packageManager}`)
+        logger.info(`Config file: ${advisory.configFile}`)
+        logger.info(`Lockfile: ${advisory.lockfile}`)
+        logger.info(`Layout mode: ${advisory.proposedConfig.layoutMode}`)
+        logger.info(`Theme tier: ${advisory.proposedConfig.theme.tier}`)
+        logger.info(`Dependency policy: ${advisory.proposedConfig.dependencies.policy}`)
+
+        return
       }
 
       const projectConfig = await getProjectConfig(cwd)

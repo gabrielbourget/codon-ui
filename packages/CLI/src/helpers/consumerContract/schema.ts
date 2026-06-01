@@ -97,6 +97,24 @@ export const consumerAdvisoryFindingSchema = z
   })
   .strict()
 
+export const consumerProjectContextSchema = z
+  .object({
+    cwd: z.string().min(1),
+    hasComponentsDirectory: z.boolean(),
+    hasConfigFile: z.boolean(),
+    hasLockfile: z.boolean(),
+    hasPackageJson: z.boolean(),
+    hasRegistryDirectory: z.boolean(),
+    hasSrcDirectory: z.boolean(),
+    hasTsConfig: z.boolean(),
+    packageManager: z.enum(CONSUMER_PACKAGE_MANAGERS),
+    packageName: z.string().optional(),
+    projectKind: z.string(),
+  })
+  .strict()
+
+export type TConsumerProjectContext = z.infer<typeof consumerProjectContextSchema>
+
 export const consumerInitAdvisorySchema = z
   .object({
     advisory: z.literal(true),
@@ -104,7 +122,9 @@ export const consumerInitAdvisorySchema = z
     cwd: z.string().min(1),
     lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
     packageManager: z.enum(CONSUMER_PACKAGE_MANAGERS),
+    project: consumerProjectContextSchema,
     proposedConfig: consumerConfigSchema,
+    targetPaths: z.record(consumerTargetRoleSchema, z.string().min(1)),
     findings: z.array(consumerAdvisoryFindingSchema).default([]),
   })
   .strict()
