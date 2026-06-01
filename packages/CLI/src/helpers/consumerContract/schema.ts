@@ -14,7 +14,6 @@ import {
   CONSUMER_THEME_TIERS,
   DEFAULT_REGISTRY_CONTAINED_COMPONENTS_PATH,
   DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH,
-  DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS,
 } from "./constants"
 
 export type TConsumerLayoutMode = (typeof CONSUMER_LAYOUT_MODES)[number]
@@ -26,7 +25,7 @@ export type TConsumerOwnershipState = (typeof CONSUMER_OWNERSHIP_STATES)[number]
 export type TConsumerAdvisorySeverity = (typeof CONSUMER_ADVISORY_SEVERITIES)[number]
 
 export const consumerTargetRoleSchema = z.enum(CONSUMER_TARGET_ROLES)
-export const consumerTargetPathMapSchema = z.record(consumerTargetRoleSchema, z.string().min(1))
+export const consumerTargetPathOverridesSchema = z.record(consumerTargetRoleSchema, z.string().min(1))
 
 export const consumerConfigSchema = z
   .object({
@@ -37,7 +36,7 @@ export const consumerConfigSchema = z
       .object({
         components: z.string().min(1).default(DEFAULT_REGISTRY_CONTAINED_COMPONENTS_PATH),
         registry: z.string().min(1).default(DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH),
-        roles: consumerTargetPathMapSchema.default(DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS),
+        roles: consumerTargetPathOverridesSchema.default({}),
       })
       .default({}),
     registry: z
