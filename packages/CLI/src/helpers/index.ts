@@ -1,4 +1,5 @@
 export * from "./commandContext"
+export * from "./consumerContract"
 export * from "./diagnostics"
 export * from "./getPackageInfo"
 export * from "./logger"
