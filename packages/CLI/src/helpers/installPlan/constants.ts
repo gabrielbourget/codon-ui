@@ -42,3 +42,9 @@ export const INSTALL_PLAN_FINDING_SEVERITIES = [
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
 ] as const
+
+export const INSTALL_PLAN_FINDING__DUPLICATE_ITEM = "duplicate-item"
+export const INSTALL_PLAN_FINDING__MISSING_ITEM = "missing-item"
+export const INSTALL_PLAN_FINDING__MISSING_DEPENDENCY = "missing-registry-dependency"
+export const INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY = "circular-registry-dependency"
+export const INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET = "duplicate-file-target"
