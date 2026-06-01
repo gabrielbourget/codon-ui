@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest && pnpm check:registry-graph",
+    "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest && pnpm check:registry-graph && pnpm check:local-registry-snapshot",
+    "check:local-registry-snapshot": "pnpm exec tsx verify-local-registry-snapshot.ts",
     "check:registry-graph": "pnpm exec tsx verify-registry-graph.ts",
     "check:registry-manifest": "node verify-registry-manifest.mjs",
     "check:theme-css": "node verify-theme-css-contract.mjs",
