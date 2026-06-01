@@ -155,8 +155,13 @@ The support-item add advisory slice added the first read-only registry planning 
 - An install-plan resolver for requested registry items, graph dependencies, resolved target files, and dependency
   summaries.
 - `add --advisory --json` support-item output.
+- Read-only source payload status for planned files: `available` when the declared source file can be read and `missing`
+  when it cannot.
+- Computed source `contentHash` values using `sha256:<hex>` for available source files.
 - Read-only target status for planned files: `missing` when the target does not exist and `existing` when a consumer file
   already occupies the target path.
+- Missing source findings using `source-file-missing` warnings. These make strict install readiness visible without
+  turning advisory mode into a failing command.
 - Existing target findings using `target-file-exists` warnings. These remain advisory findings and do not make the
   command write files or exit non-zero.
 
@@ -171,8 +176,9 @@ The local support snapshot currently covers `theme-css`, `tokens/geometry`, and 
 `vite-registry-contained` fixture, planned files resolve under `src/components/_registry`. Fixture assertions now verify
 that `tokens/geometry` is reported as a missing target in the default fixture, `theme-css` is reported as an existing
 target in the `--all` support plan, and an explicit existing-token fixture reports an existing `tokens/geometry` target.
-This is not `add switch`, strict writes, config writing, lockfile writing, dependency installation, generated registry
-artifact hosting, or package publication behavior.
+They also verify available source status, `sha256:<hex>` content hashes, missing source warnings from a fixture registry
+source, and no-mutation behavior. This is not `add switch`, strict writes, config writing, lockfile writing, dependency
+installation, generated registry artifact hosting, update/ejection classification, or package publication behavior.
 
 ## Design Discussion Packet
 

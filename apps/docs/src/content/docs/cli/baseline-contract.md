@@ -41,11 +41,12 @@ under `src/components/_registry`.
 
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
-Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, target
-status, graph dependencies, and dependency summaries without writing files. Planned files use `missing` or `existing`
-target status, and existing targets produce `target-file-exists` warning findings while the command remains read-only and
-non-blocking. The current support-only items are `theme-css`, `tokens/geometry`, and `tokens/theme-order`; this is not
-`add switch` yet.
+Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, source
+status, target status, graph dependencies, and dependency summaries without writing files. Available source files include
+`sha256:<hex>` content hashes; missing source files produce `source-file-missing` warning findings. Planned files use
+`missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while the
+command remains read-only and non-blocking. The current support-only items are `theme-css`, `tokens/geometry`, and
+`tokens/theme-order`; this is not `add switch` yet.
 
 ## Renovation Order
 
