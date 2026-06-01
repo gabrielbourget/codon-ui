@@ -8,12 +8,12 @@ component extraction.
 
 ## Current Surface
 
-| Command | Current state                                                                                                   |
-| ------- | --------------------------------------------------------------------------------------------------------------- |
-| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.  |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                         |
-| `add`   | Fetches legacy registry JSON, writes files, transforms source, and installs dependencies.                       |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing. |
+| Command | Current state                                                                                                                                                 |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                                |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                       |
+| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` can now plan support items from a local registry snapshot without writes. |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                               |
 
 None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
 dependency policy, and tests are settled.
@@ -40,6 +40,10 @@ dependency policy, and role paths without writing files. The default `registry-c
 under `src/components/_registry`.
 
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
+
+Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, graph
+dependencies, and dependency summaries without writing files. The current support-only items are `theme-css`,
+`tokens/geometry`, and `tokens/theme-order`; this is not `add switch` yet.
 
 ## Renovation Order
 
