@@ -145,6 +145,7 @@ export const add = new Command()
           : (options.components ?? [])
         const installPlan = createRegistryInstallPlan({
           config: consumerConfigSchema.parse({}),
+          consumerRoot: cwd,
           registrySource,
           requestedItems,
         })
@@ -165,6 +166,9 @@ export const add = new Command()
         logger.info(`Registry source: ${advisory.registrySourcePath}`)
         logger.info(`Requested items: ${advisory.installPlan.requestedItems.join(", ") || "(none)"}`)
         logger.info(`Planned files: ${advisory.installPlan.files.length}`)
+        logger.info(
+          `Existing targets: ${advisory.installPlan.files.filter((file) => file.targetStatus === "existing").length}`,
+        )
         logger.info(`Findings: ${advisory.findings.length}`)
 
         return
