@@ -71,14 +71,14 @@
     "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
     "apps/wavemap-front-end/src/components/Forms/AddOrEditEventForm/AddOrEditEventForm.tsx"
   ],
-  "registryDependencies": ["theme-css", "tokens/geometry", "tokens/theme-order"],
+  "registryDependencies": ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
   "peerDependencies": {
     "react": "^18.2.0 || ^19.0.0",
     "react-dom": "^18.2.0 || ^19.0.0",
-    "react-aria-components": "TO_DECIDE"
+    "react-aria-components": "^1.17.0"
   },
   "runtimeDependencies": {
-    "classnames": "TO_DECIDE"
+    "classnames": "^2.3.2"
   },
   "devDependencies": {
     "@testing-library/jest-dom": "TO_DECIDE",
@@ -120,12 +120,11 @@
           "sourcePath": "packages/react/src/components/Switch/switch-compatibility.css",
           "targetRole": "theme",
           "targetPath": "switch-compatibility.css",
-          "role": "theme",
-          "required": false
+          "role": "theme"
         }
       ],
       "notes": [
-        "Bridge file shape is not approved yet; keep it outside the package default theme.css until the proof bridge is reviewed."
+        "Install this narrow bridge alongside theme.css for the first Switch proof; do not fold these Wavemap compatibility aliases into the default theme contract casually."
       ]
     }
   ],

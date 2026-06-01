@@ -16,7 +16,6 @@ import {
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   createRegistrySourceWithDraftSwitchPacket,
-  createUnresolvedDependencyFindings,
   getDefaultLocalRegistrySourcePath,
   handleError,
   logger,
@@ -162,11 +161,7 @@ export const add = new Command()
           requestedItems,
           sourceRoot,
         })
-        const findings = [
-          ...componentPacketFindings,
-          ...installPlan.findings,
-          ...createUnresolvedDependencyFindings(installPlan.dependencies),
-        ]
+        const findings = [...componentPacketFindings, ...installPlan.findings]
         const installPlanWithFindings = createRegistryInstallPlanWithFindings({
           findings,
           installPlan,

@@ -3,6 +3,8 @@ import { z } from "zod"
 import { consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
 
 import {
+  INSTALL_PLAN_DEPENDENCY_KINDS,
+  INSTALL_PLAN_DEPENDENCY_STATUSES,
   INSTALL_PLAN_FILE_STATUSES,
   INSTALL_PLAN_FINDING_SEVERITIES,
   INSTALL_PLAN_SOURCE_STATUSES,
@@ -16,6 +18,8 @@ export type TRegistryItemType = (typeof REGISTRY_ITEM_TYPES)[number]
 export type TRegistryFileRole = (typeof REGISTRY_FILE_ROLES)[number]
 export type TInstallPlanFileStatus = (typeof INSTALL_PLAN_FILE_STATUSES)[number]
 export type TInstallPlanSourceStatus = (typeof INSTALL_PLAN_SOURCE_STATUSES)[number]
+export type TInstallPlanDependencyKind = (typeof INSTALL_PLAN_DEPENDENCY_KINDS)[number]
+export type TInstallPlanDependencyStatus = (typeof INSTALL_PLAN_DEPENDENCY_STATUSES)[number]
 export type TInstallPlanFindingSeverity = (typeof INSTALL_PLAN_FINDING_SEVERITIES)[number]
 
 export const dependencyMapSchema = z.record(z.string().min(1), z.string().min(1))
@@ -111,6 +115,19 @@ export const installPlanDependenciesSchema = z
 
 export type TInstallPlanDependencies = z.infer<typeof installPlanDependenciesSchema>
 
+export const installPlanDependencySchema = z
+  .object({
+    name: z.string().min(1),
+    kind: z.enum(INSTALL_PLAN_DEPENDENCY_KINDS),
+    requiredRange: z.string().min(1),
+    status: z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES),
+    declaredRange: z.string().min(1).optional(),
+    declaredIn: z.enum(["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]).optional(),
+  })
+  .strict()
+
+export type TInstallPlanDependency = z.infer<typeof installPlanDependencySchema>
+
 export const registryInstallPlanSchema = z
   .object({
     schemaVersion: z.literal(REGISTRY_INSTALL_PLAN_SCHEMA_VERSION).default(REGISTRY_INSTALL_PLAN_SCHEMA_VERSION),
@@ -119,6 +136,7 @@ export const registryInstallPlanSchema = z
     items: z.array(installPlanItemSchema).default([]),
     files: z.array(installPlanFileSchema).default([]),
     dependencies: installPlanDependenciesSchema.default({}),
+    dependencyPlan: z.array(installPlanDependencySchema).default([]),
     findings: z.array(installPlanFindingSchema).default([]),
   })
   .strict()

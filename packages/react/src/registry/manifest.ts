@@ -37,6 +37,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/switch-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Switch/switch-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "switch-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "tokens/theme-order",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

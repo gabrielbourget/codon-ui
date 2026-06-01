@@ -7,7 +7,6 @@ import { z } from "zod"
 
 import {
   INSTALL_PLAN_FINDING__DRAFT_PACKET_UNAVAILABLE,
-  INSTALL_PLAN_FINDING__UNRESOLVED_DEPENDENCY_VERSION,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   REGISTRY_ITEM_TYPES,
 } from "./constants"
@@ -21,7 +20,6 @@ import {
   registryInstallPlanSchema,
   type TAddAdvisoryComponentPacket,
   type TAddAdvisoryEffects,
-  type TInstallPlanDependencies,
   type TInstallPlanFinding,
   type TLocalRegistryItem,
   type TLocalRegistrySource,
@@ -29,7 +27,6 @@ import {
 } from "./schema"
 
 const DRAFT_SWITCH_ITEM_NAME = "switch"
-const UNRESOLVED_DEPENDENCY_VERSION = "TO_DECIDE"
 
 const ingestPublicExportSchema = z
   .object({
@@ -190,39 +187,6 @@ export const createRegistrySourceWithDraftSwitchPacket = async ({
     }
   }
 }
-
-const createUnresolvedDependencyFindingsForMap = ({
-  dependencyKind,
-  dependencies,
-}: {
-  dependencyKind: string
-  dependencies: Record<string, string>
-}): TInstallPlanFinding[] =>
-  Object.entries(dependencies)
-    .filter(([, version]) => version === UNRESOLVED_DEPENDENCY_VERSION)
-    .map(([dependencyName]) => ({
-      code: INSTALL_PLAN_FINDING__UNRESOLVED_DEPENDENCY_VERSION,
-      itemName: DRAFT_SWITCH_ITEM_NAME,
-      message: `${dependencyKind} "${dependencyName}" has unresolved version "${UNRESOLVED_DEPENDENCY_VERSION}".`,
-      severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-    }))
-
-export const createUnresolvedDependencyFindings = (
-  dependencies: TInstallPlanDependencies,
-): readonly TInstallPlanFinding[] => [
-  ...createUnresolvedDependencyFindingsForMap({
-    dependencies: dependencies.peerDependencies,
-    dependencyKind: "Peer dependency",
-  }),
-  ...createUnresolvedDependencyFindingsForMap({
-    dependencies: dependencies.runtimeDependencies,
-    dependencyKind: "Runtime dependency",
-  }),
-  ...createUnresolvedDependencyFindingsForMap({
-    dependencies: dependencies.devDependencies,
-    dependencyKind: "Dev dependency",
-  }),
-]
 
 export const createAddAdvisoryEffects = (installPlan: TRegistryInstallPlan): TAddAdvisoryEffects =>
   addAdvisoryEffectsSchema.parse({

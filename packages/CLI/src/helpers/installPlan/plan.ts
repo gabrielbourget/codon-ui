@@ -9,6 +9,9 @@ import {
 } from "@/src/helpers/consumerContract"
 
 import {
+  INSTALL_PLAN_DEPENDENCY_KIND__DEV,
+  INSTALL_PLAN_DEPENDENCY_KIND__PEER,
+  INSTALL_PLAN_DEPENDENCY_KIND__RUNTIME,
   INSTALL_PLAN_FILE_STATUS__EXISTING,
   INSTALL_PLAN_FILE_STATUS__MISSING,
   INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY,
@@ -23,6 +26,7 @@ import {
   INSTALL_PLAN_SOURCE_STATUS__AVAILABLE,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
 } from "./constants"
+import { createDependencyOwnerKey, createInstallPlanDependencyInspection } from "./dependencyInspection"
 import {
   installPlanDependenciesSchema,
   registryInstallPlanSchema,
@@ -50,6 +54,41 @@ const mergeInstallPlanDependencies = (items: readonly TLocalRegistryItem[]): TIn
     peerDependencies: mergeDependencyMaps(items.map((item) => item.peerDependencies)),
     runtimeDependencies: mergeDependencyMaps(items.map((item) => item.runtimeDependencies)),
   })
+
+const createDependencyOwnerMap = (items: readonly TLocalRegistryItem[]) => {
+  const dependencyOwners = new Map<string, string>()
+
+  items.forEach((item) => {
+    Object.keys(item.peerDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__PEER,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+
+    Object.keys(item.runtimeDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__RUNTIME,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+
+    Object.keys(item.devDependencies).forEach((dependencyName) => {
+      const key = createDependencyOwnerKey({
+        kind: INSTALL_PLAN_DEPENDENCY_KIND__DEV,
+        name: dependencyName,
+      })
+
+      if (!dependencyOwners.has(key)) dependencyOwners.set(key, item.name)
+    })
+  })
+
+  return dependencyOwners
+}
 
 const createFileTargetKey = (file: Pick<TInstallPlanFile, "resolvedPath">) => file.resolvedPath
 
@@ -218,8 +257,18 @@ export const createRegistryInstallPlan = ({
     type: item.type,
   }))
 
+  const dependencies = mergeInstallPlanDependencies(resolvedItems)
+  const dependencyInspection = createInstallPlanDependencyInspection({
+    consumerRoot,
+    dependencies,
+    dependencyOwners: createDependencyOwnerMap(resolvedItems),
+  })
+
+  findings.push(...dependencyInspection.findings)
+
   return registryInstallPlanSchema.parse({
-    dependencies: mergeInstallPlanDependencies(resolvedItems),
+    dependencies,
+    dependencyPlan: dependencyInspection.dependencyPlan,
     files,
     findings,
     items,

@@ -30,6 +30,19 @@
       ]
     },
     {
+      "name": "theme/switch-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Switch/switch-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "switch-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
