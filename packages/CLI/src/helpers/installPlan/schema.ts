@@ -1,6 +1,6 @@
 import { z } from "zod"
 
-import { consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
+import { consumerLockfileSchema, consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
 
 import {
   INSTALL_PLAN_DEPENDENCY_KINDS,
@@ -279,3 +279,54 @@ export const addDryRunSchema = z
   .strict()
 
 export type TAddDryRun = z.infer<typeof addDryRunSchema>
+
+export const addStrictEffectsSchema = z
+  .object({
+    dependencies: z
+      .object({
+        incompatibleCount: z.number().int().nonnegative(),
+        missingCount: z.number().int().nonnegative(),
+        requiresDecisionCount: z.number().int().nonnegative(),
+        satisfiedCount: z.number().int().nonnegative(),
+        unresolvedCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+    files: z
+      .object({
+        blockedExistingTargetCount: z.number().int().nonnegative(),
+        missingSourceCount: z.number().int().nonnegative(),
+        plannedCount: z.number().int().nonnegative(),
+        writtenCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+    installsDependencies: z.literal(false),
+    writesConfig: z.literal(false),
+    writesFiles: z.boolean(),
+    writesLockfile: z.boolean(),
+    lockfile: z
+      .object({
+        plannedFileCount: z.number().int().nonnegative(),
+        plannedItems: z.array(z.string().min(1)).default([]),
+        status: z.enum(["blocked", "written"]),
+        writtenFileCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict()
+
+export type TAddStrictEffects = z.infer<typeof addStrictEffectsSchema>
+
+export const addStrictSchema = z
+  .object({
+    applied: z.boolean(),
+    componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
+    cwd: z.string().min(1),
+    effects: addStrictEffectsSchema,
+    registrySourcePath: z.string().min(1),
+    installPlan: registryInstallPlanSchema,
+    findings: z.array(installPlanFindingSchema).default([]),
+    lockfileData: consumerLockfileSchema,
+  })
+  .strict()
+
+export type TAddStrict = z.infer<typeof addStrictSchema>

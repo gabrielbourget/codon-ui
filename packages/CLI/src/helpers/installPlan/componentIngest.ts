@@ -20,6 +20,7 @@ import {
   addAdvisoryComponentPacketSchema,
   addAdvisoryEffectsSchema,
   addDryRunEffectsSchema,
+  addStrictEffectsSchema,
   dependencyMapSchema,
   localRegistryFileSchema,
   localRegistrySourceSchema,
@@ -27,6 +28,7 @@ import {
   type TAddAdvisoryComponentPacket,
   type TAddAdvisoryEffects,
   type TAddDryRunEffects,
+  type TAddStrictEffects,
   type TInstallPlanDependencyStatus,
   type TInstallPlanFinding,
   type TLocalRegistrySource,
@@ -231,6 +233,38 @@ export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddD
     writesConfig: false,
     writesFiles: false,
     writesLockfile: false,
+  })
+}
+
+export const createAddStrictEffects = ({
+  applied,
+  installPlan,
+  writtenFileCount = 0,
+}: {
+  applied: boolean
+  installPlan: TRegistryInstallPlan
+  writtenFileCount?: number
+}): TAddStrictEffects => {
+  const dryRunEffects = createAddDryRunEffects(installPlan)
+
+  return addStrictEffectsSchema.parse({
+    dependencies: dryRunEffects.dependencies,
+    files: {
+      blockedExistingTargetCount: dryRunEffects.files.blockedExistingTargetCount,
+      missingSourceCount: dryRunEffects.files.missingSourceCount,
+      plannedCount: dryRunEffects.files.plannedCount,
+      writtenCount: applied ? writtenFileCount : 0,
+    },
+    installsDependencies: false,
+    lockfile: {
+      plannedFileCount: installPlan.files.length,
+      plannedItems: installPlan.items.map((item) => item.name),
+      status: applied ? "written" : "blocked",
+      writtenFileCount: applied ? writtenFileCount : 0,
+    },
+    writesConfig: false,
+    writesFiles: applied,
+    writesLockfile: applied,
   })
 }
 

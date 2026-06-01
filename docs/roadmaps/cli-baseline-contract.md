@@ -12,24 +12,24 @@ component proof is ready.
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                    |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract.                       |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                     |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can plan support items and `Switch`; `add switch --dry-run` can preview the first local-registry write shape without writes. |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                           |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract. |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                               |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.             |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                     |
 
 Current helper surface:
 
-| Area                    | Current role                                                                                   | Renovation read                                                                                                                |
-| ----------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                             |
-| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use.         |
-| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.                 |
-| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.        | Proves support graph and `Switch` planning without public registry hosting, generated artifacts, or strict install behavior.   |
-| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support and `Switch` advisory planning now classify target package metadata for default `registry-contained` layout. |
-| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                               |
-| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                            |
+| Area                    | Current role                                                                                   | Renovation read                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                     |
+| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use. |
+| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.         |
+| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.        | Proves support graph and `Switch` planning/install without public registry hosting or generated artifacts.             |
+| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Support and `Switch` planning now classify target package metadata for default `registry-contained` layout.            |
+| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                       |
+| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                    |
 
 ## Advisory Mode Requirement
 
@@ -250,6 +250,21 @@ Current `Switch` dry-run command:
 aui add switch --dry-run --json --cwd <consumer-project>
 ```
 
+The first strict `Switch` install slice now consumes the same local React registry source after the consumer has run
+strict init:
+
+```sh
+aui init --defaults --json --cwd <consumer-project>
+aui add switch --json --cwd <consumer-project>
+```
+
+This strict path currently supports only the explicit `switch` request. It reads `amino-ui.config.json` and
+`amino-ui.lock.json`, requires the default dependency graph to be already satisfied, rejects missing source files,
+rejects existing target files rather than overwriting, writes the seven planned support/theme/component files, rewrites
+package-local token imports to the installed consumer registry token paths, and updates `amino-ui.lock.json` with
+hash-based item/file ownership metadata plus satisfied dependency decisions. It does not install or update packages,
+generate hosted registry artifacts, run component tests, or implement status/update/eject behavior.
+
 ## Design Discussion Packet
 
 This packet is an agenda for the next CLI design conversation, not approval to implement the behaviors below.
@@ -304,7 +319,8 @@ Minimum command direction before the first `Switch` proof:
   overwrite conflicts without writing files or running installs.
 - `add --dry-run Switch` should preview the exact write set, overwrite blockers, dependency decisions, and lockfile shape
   before strict mutation exists.
-- The first strict `add Switch` path should not exist until install metadata and ownership states are approved.
+- The first strict `add Switch` path should stay limited to the satisfied-dependency, no-existing-target proof path until
+  dependency prompts, overwrite policy, and update/eject metadata are designed.
 - `status`, `update`, and `eject` should wait until the metadata ledger exists; otherwise the CLI cannot distinguish
   registry-owned source from consumer-owned edits.
 
@@ -313,7 +329,7 @@ Minimum command direction before the first `Switch` proof:
 Return to deliberate planning if CLI work requires:
 
 - Changing registry artifact shape.
-- Activating component install/update/diff behavior against `packages/react` manifests.
+- Broadening component install/update/diff behavior beyond the explicit `Switch` proof path.
 - Moving Wavemap component source.
 - Adding React Aria, `classnames`, Vitest, Testing Library, or other first-proof dependencies.
 - Deciding package publication, release automation, or `bin` distribution policy.

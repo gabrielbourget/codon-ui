@@ -12,10 +12,13 @@ import { z } from "zod"
 import {
   addDryRunSchema,
   addAdvisorySchema,
+  addStrictSchema,
   AMINO_UI_CONFIG_FILE_NAME,
   createAddAdvisoryEffects,
   createAddDryRunEffects,
+  createAddStrictEffects,
   consumerConfigSchema,
+  createStrictAddBlockerFindings,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   handleError,
@@ -25,7 +28,10 @@ import {
   logger,
   readLocalRegistrySource,
   readComponentPacketsForRegistrySource,
+  readConsumerConfigForStrictAdd,
+  readConsumerLockfileForStrictAdd,
   resolveDefaultAddRegistrySourcePath,
+  writeStrictRegistryInstall,
   type TConsumerConfig,
   type TInstallPlanFinding,
 } from "@/src/helpers"
@@ -78,6 +84,16 @@ const addOptionsSchema = z
 
 const parseAddOptions = (components: string[] | undefined, CLIOptions: unknown) =>
   addOptionsSchema.parse({ components, ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}) })
+
+const SWITCH_REGISTRY_ITEM_NAME = "switch"
+
+const isStrictSwitchAddRequest = ({
+  allComponents,
+  components,
+}: {
+  allComponents: boolean
+  components?: readonly string[]
+}) => !allComponents && components?.length === 1 && components[0] === SWITCH_REGISTRY_ITEM_NAME
 
 const readConsumerConfigForDryRun = async (
   cwd: string,
@@ -290,6 +306,114 @@ export const add = new Command()
           `Existing targets: ${advisory.installPlan.files.filter((file) => file.targetStatus === "existing").length}`,
         )
         logger.info(`Findings: ${advisory.findings.length}`)
+
+        return
+      }
+
+      if (isStrictSwitchAddRequest(options)) {
+        const explicitRequestedItems = options.components ?? []
+        const registrySourcePathOption =
+          options.registrySource ??
+          resolveDefaultAddRegistrySourcePath({
+            allComponents: options.allComponents,
+            requestedItems: explicitRequestedItems,
+          })
+        const { registrySource, registrySourcePath, sourceRoot } =
+          await readLocalRegistrySource(registrySourcePathOption)
+        const {
+          componentPackets,
+          findings: componentPacketFindings,
+          registrySource: advisoryRegistrySource,
+        } = await readComponentPacketsForRegistrySource({
+          registrySource,
+          requestedItems: explicitRequestedItems,
+        })
+        const configPlan = await readConsumerConfigForStrictAdd(cwd)
+        const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+        const installPlan = createRegistryInstallPlan({
+          config: configPlan.config,
+          consumerRoot: cwd,
+          registrySource: advisoryRegistrySource,
+          requestedItems: explicitRequestedItems,
+          sourceRoot,
+        })
+        const planWithInitialFindings = createRegistryInstallPlanWithFindings({
+          findings: [
+            ...configPlan.findings,
+            ...lockfilePlan.findings,
+            ...componentPacketFindings,
+            ...installPlan.findings,
+          ],
+          installPlan,
+        })
+        const strictBlockerFindings = createStrictAddBlockerFindings(planWithInitialFindings)
+        const findings = [...planWithInitialFindings.findings, ...strictBlockerFindings]
+        const installPlanWithFindings = createRegistryInstallPlanWithFindings({
+          findings,
+          installPlan: planWithInitialFindings,
+        })
+
+        if (strictBlockerFindings.length > 0) {
+          const blockedResult = addStrictSchema.parse({
+            applied: false,
+            componentPackets,
+            cwd,
+            effects: createAddStrictEffects({
+              applied: false,
+              installPlan: installPlanWithFindings,
+            }),
+            findings,
+            installPlan: installPlanWithFindings,
+            lockfileData: lockfilePlan.lockfileData,
+            registrySourcePath,
+          })
+
+          if (options.json) {
+            console.log(JSON.stringify(blockedResult, null, 2))
+          } else {
+            logger.error(`${chalk.red("[ Strict Add ]")} No files were written.`)
+            logger.error(`Findings: ${blockedResult.findings.length}`)
+            logger.error(`Dependency decisions: ${blockedResult.effects.dependencies.requiresDecisionCount}`)
+            logger.error(`Existing target blockers: ${blockedResult.effects.files.blockedExistingTargetCount}`)
+            logger.error(`Missing sources: ${blockedResult.effects.files.missingSourceCount}`)
+          }
+
+          process.exitCode = 1
+          return
+        }
+
+        const lockfileData = await writeStrictRegistryInstall({
+          consumerRoot: cwd,
+          installPlan: installPlanWithFindings,
+          lockfileData: lockfilePlan.lockfileData,
+          sourceRoot,
+          themeTier: configPlan.config.theme.tier,
+        })
+        const result = addStrictSchema.parse({
+          applied: true,
+          componentPackets,
+          cwd,
+          effects: createAddStrictEffects({
+            applied: true,
+            installPlan: installPlanWithFindings,
+            writtenFileCount: installPlanWithFindings.files.length,
+          }),
+          findings,
+          installPlan: installPlanWithFindings,
+          lockfileData,
+          registrySourcePath,
+        })
+
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Strict Add ]")} Switch installed.`)
+        logger.info(`Registry source: ${result.registrySourcePath}`)
+        logger.info(`Written files: ${result.effects.files.writtenCount}`)
+        logger.info(`Lockfile items: ${result.effects.lockfile.plannedItems.length}`)
+        logger.info(`Findings: ${result.findings.length}`)
 
         return
       }

@@ -4,6 +4,8 @@ import {
   AMINO_UI_CONFIG_FILE_NAME,
   AMINO_UI_LOCK_FILE_NAME,
   CONSUMER_ADVISORY_SEVERITIES,
+  CONSUMER_DEPENDENCY_ACTION__NONE,
+  CONSUMER_DEPENDENCY_ACTIONS,
   CONSUMER_DEPENDENCY_POLICIES,
   CONSUMER_LAYOUT_MODE__REGISTRY_CONTAINED,
   CONSUMER_LAYOUT_MODES,
@@ -20,6 +22,7 @@ export type TConsumerLayoutMode = (typeof CONSUMER_LAYOUT_MODES)[number]
 export type TConsumerTargetRole = (typeof CONSUMER_TARGET_ROLES)[number]
 export type TConsumerThemeTier = (typeof CONSUMER_THEME_TIERS)[number]
 export type TConsumerDependencyPolicy = (typeof CONSUMER_DEPENDENCY_POLICIES)[number]
+export type TConsumerDependencyAction = (typeof CONSUMER_DEPENDENCY_ACTIONS)[number]
 export type TConsumerPackageManager = (typeof CONSUMER_PACKAGE_MANAGERS)[number]
 export type TConsumerOwnershipState = (typeof CONSUMER_OWNERSHIP_STATES)[number]
 export type TConsumerAdvisorySeverity = (typeof CONSUMER_ADVISORY_SEVERITIES)[number]
@@ -79,11 +82,25 @@ export const consumerLockfileItemSchema = z
   })
   .strict()
 
+export const consumerLockfileDependencySchema = z
+  .object({
+    action: z.enum(CONSUMER_DEPENDENCY_ACTIONS).default(CONSUMER_DEPENDENCY_ACTION__NONE),
+    declaredIn: z.enum(["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]).optional(),
+    declaredRange: z.string().min(1).optional(),
+    kind: z.string().min(1),
+    name: z.string().min(1),
+    requiredRange: z.string().min(1),
+    status: z.string().min(1),
+  })
+  .strict()
+
 export const consumerLockfileSchema = z
   .object({
     lockfileVersion: z.literal(1).default(1),
     configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    dependencies: z.array(consumerLockfileDependencySchema).default([]),
     items: z.record(z.string().min(1), consumerLockfileItemSchema).default({}),
+    themeTier: z.enum(CONSUMER_THEME_TIERS).optional(),
   })
   .strict()
 

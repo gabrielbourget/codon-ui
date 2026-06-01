@@ -8,12 +8,12 @@ component extraction.
 
 ## Current Surface
 
-| Command | Current state                                                                                                                                                                                                     |
-| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                   |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                                           |
-| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` plans support items and `Switch`; `add switch --dry-run --json` previews the first local-registry write shape without writes. |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                   |
+| Command | Current state                                                                                                                                                                                  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                        |
+| `add`   | Legacy normal mode remains for other inputs. `add --advisory --json` and `add switch --dry-run --json` plan the local-registry graph; strict `add switch --json` writes the first proof graph. |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                |
 
 None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
 dependency policy, and tests are settled.
@@ -71,13 +71,21 @@ metadata. Missing `amino-ui.config.json` is a warning for now, and the command f
 paths so the first fixture can preview the exact write set before strict `init` exists. Existing targets are counted as
 blockers, dependency decisions are summarized, and the lockfile effect reports `would-write`.
 
+Current strict `add switch --json` reads the same local React registry source after strict init has created
+`amino-ui.config.json` and `amino-ui.lock.json`. It requires already-satisfied dependencies, rejects missing source files
+and existing target files, writes the seven planned support/theme/component files, rewrites package-local token imports to
+the installed registry token paths, and records hash-based lockfile item/file ownership plus satisfied dependency
+decisions. It does not install packages, overwrite files, generate hosted registry artifacts, or implement update/eject
+behavior.
+
 ## Renovation Order
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
 3. Seed strict init with config and empty Amino lockfile only.
 4. Add dry-run previews before strict component writes.
-5. Defer `status`, `update`, and ejection behavior until install metadata is approved.
+5. Add the first strict `Switch` install path for the satisfied-dependency, no-conflict proof.
+6. Defer `status`, `update`, and ejection behavior until installed metadata has proof evidence.
 
 ## Design Packet
 
