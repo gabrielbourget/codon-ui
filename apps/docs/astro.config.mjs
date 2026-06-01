@@ -25,7 +25,7 @@ export default defineConfig({
         },
         {
           label: "Registry",
-          items: ["registry/contracts"],
+          items: ["registry/contracts", "registry/ingest"],
         },
         {
           label: "CLI",

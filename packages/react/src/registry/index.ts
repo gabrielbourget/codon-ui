@@ -14,6 +14,25 @@ export type {
   TRegistryGraphResolution,
   TResolvedRegistryGraphItem,
 } from "./graph"
+export {
+  REGISTRY_INGEST_THEME_STRATEGIES,
+  REGISTRY_INGEST_THEME_STRATEGY__CONSUMER_OWNED,
+  REGISTRY_INGEST_THEME_STRATEGY__DEFAULT_CONTRACT,
+  REGISTRY_INGEST_THEME_STRATEGY__PROOF_COMPATIBILITY_BRIDGE,
+  REGISTRY_INGEST_VERIFICATION_KIND__COMMAND,
+  REGISTRY_INGEST_VERIFICATION_KIND__SCAN,
+  REGISTRY_INGEST_VERIFICATION_KINDS,
+} from "./ingest"
+export type {
+  TRegistryIngestFile,
+  TRegistryIngestImportResolution,
+  TRegistryIngestPacket,
+  TRegistryIngestPublicExport,
+  TRegistryIngestThemeRequirement,
+  TRegistryIngestThemeStrategy,
+  TRegistryIngestVerificationKind,
+  TRegistryIngestVerificationStep,
+} from "./ingest"
 export { reactRegistryManifest } from "./manifest"
 export type {
   TRegistryDependencyMap,

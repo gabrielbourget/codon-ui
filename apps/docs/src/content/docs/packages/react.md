@@ -13,6 +13,7 @@ support tokens, and registry manifests.
 - `src/tokens/geometry.ts` owns corner geometry support.
 - `src/tokens/theme-order.ts` owns theme-order support.
 - `src/registry/manifest.ts` owns the internal registry manifest.
+- `src/registry/ingest.ts` owns the type-only component receipt packet shape.
 
 ## Peer Policy
 

@@ -31,16 +31,19 @@ The likely registry item is:
   files: [
     {
       sourcePath: "packages/react/src/components/Switch/Switch.tsx",
+      targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
       targetPath: "components/Switch/Switch.tsx",
       role: REGISTRY_FILE_ROLE__SOURCE,
     },
     {
       sourcePath: "packages/react/src/components/Switch/helpers.tsx",
+      targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
       targetPath: "components/Switch/helpers.tsx",
       role: REGISTRY_FILE_ROLE__SOURCE,
     },
     {
       sourcePath: "packages/react/src/components/Switch/SwitchStyles.module.css",
+      targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
       targetPath: "components/Switch/SwitchStyles.module.css",
       role: REGISTRY_FILE_ROLE__STYLE,
     },
