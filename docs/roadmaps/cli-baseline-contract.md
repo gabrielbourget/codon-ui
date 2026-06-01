@@ -155,6 +155,10 @@ The support-item add advisory slice added the first read-only registry planning 
 - An install-plan resolver for requested registry items, graph dependencies, resolved target files, and dependency
   summaries.
 - `add --advisory --json` support-item output.
+- Read-only target status for planned files: `missing` when the target does not exist and `existing` when a consumer file
+  already occupies the target path.
+- Existing target findings using `target-file-exists` warnings. These remain advisory findings and do not make the
+  command write files or exit non-zero.
 
 Current support advisory commands:
 
@@ -164,9 +168,11 @@ aminoui-cli add --all --advisory --json --cwd <consumer-project>
 ```
 
 The local support snapshot currently covers `theme-css`, `tokens/geometry`, and `tokens/theme-order`. Against the
-`vite-registry-contained` fixture, planned files resolve under `src/components/_registry`. This is not `add switch`,
-strict writes, config writing, lockfile writing, dependency installation, generated registry artifact hosting, or package
-publication behavior.
+`vite-registry-contained` fixture, planned files resolve under `src/components/_registry`. Fixture assertions now verify
+that `tokens/geometry` is reported as a missing target in the default fixture, `theme-css` is reported as an existing
+target in the `--all` support plan, and an explicit existing-token fixture reports an existing `tokens/geometry` target.
+This is not `add switch`, strict writes, config writing, lockfile writing, dependency installation, generated registry
+artifact hosting, or package publication behavior.
 
 ## Design Discussion Packet
 
