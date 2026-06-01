@@ -36,6 +36,7 @@ Current reads:
 Current active React manifest entries are support-only:
 
 - `theme-css`
+- `theme/switch-compatibility`
 - `tokens/geometry`
 - `tokens/theme-order`
 
@@ -125,8 +126,10 @@ Before moving `Switch`, the registry contract needs only enough shape to express
 - Any component-local style files.
 - Registry-owned support files such as theme-order or corner-geometry constants if they remain needed.
 - `@amino-ui/react/theme.css` as the package default theme contract.
+- The narrow `theme/switch-compatibility` bridge while `Switch` still needs Wavemap compatibility aliases.
 - React and React DOM as peer dependencies.
-- React Aria dependencies only when the received component actually needs them.
+- React Aria Components as a first-proof peer dependency and `classnames` as a first-proof runtime dependency when
+  `Switch` source is received.
 
 The first proof does not need:
 

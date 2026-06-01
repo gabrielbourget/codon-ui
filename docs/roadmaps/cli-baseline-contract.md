@@ -21,15 +21,15 @@ Current command surface:
 
 Current helper surface:
 
-| Area                    | Current role                                                                                   | Renovation read                                                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                     |
-| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use. |
-| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.         |
-| Local registry snapshot | Stores a support-only manifest-shaped JSON source for early CLI planning.                      | Proves support graph planning without public registry hosting, generated artifacts, or `Switch` source movement.       |
-| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support and draft `Switch` planning exist for default `registry-contained` layout.                           |
-| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                       |
-| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                    |
+| Area                    | Current role                                                                                   | Renovation read                                                                                                             |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                          |
+| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use.      |
+| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.              |
+| Local registry snapshot | Stores a support-only manifest-shaped JSON source for early CLI planning.                      | Proves support graph planning without public registry hosting, generated artifacts, or `Switch` source movement.            |
+| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support and draft `Switch` planning now classify target package metadata for default `registry-contained` layout. |
+| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                            |
+| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                         |
 
 ## Advisory Mode Requirement
 
@@ -176,13 +176,15 @@ aminoui-cli add tokens/geometry --advisory --json --cwd <consumer-project>
 aminoui-cli add --all --advisory --json --cwd <consumer-project>
 ```
 
-The local support snapshot currently covers `theme-css`, `tokens/geometry`, and `tokens/theme-order`. Against the
-`vite-registry-contained` fixture, planned files resolve under `src/components/_registry`. Fixture assertions now verify
-that `tokens/geometry` is reported as a missing target in the default fixture, `theme-css` is reported as an existing
-target in the `--all` support plan, and an explicit existing-token fixture reports an existing `tokens/geometry` target.
-They also verify available source status, `sha256:<hex>` content hashes, missing source warnings from a fixture registry
-source, and no-mutation behavior. This is not strict writes, config writing, lockfile writing, dependency installation,
-generated registry artifact hosting, update/ejection classification, or package publication behavior.
+The local support snapshot currently covers `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
+`tokens/theme-order`. Against the `vite-registry-contained` fixture, planned files resolve under
+`src/components/_registry`. Fixture assertions now verify that `tokens/geometry` is reported as a missing target in the
+default fixture, `theme-css` is reported as an existing target in the `--all` support plan, the narrow
+`theme/switch-compatibility` bridge is available as a planned theme file, and an explicit existing-token fixture reports
+an existing `tokens/geometry` target. They also verify available source status, `sha256:<hex>` content hashes, missing
+source warnings from a fixture registry source, and no-mutation behavior. This is not strict writes, config writing,
+lockfile writing, dependency installation, generated registry artifact hosting, update/ejection classification, or
+package publication behavior.
 
 The draft `Switch` add advisory slice added component planning without source movement:
 
@@ -190,11 +192,14 @@ The draft `Switch` add advisory slice added component planning without source mo
 - `packages/react/src/registry/switch-ingest-packet.ts` re-exports that data as the typed draft packet.
 - `add switch --advisory --json` appends that packet to the local support registry source only when `switch` is
   explicitly requested.
-- The plan resolves `theme-css`, `tokens/geometry`, `tokens/theme-order`, and draft `Switch` files under the default
-  `registry-contained` layout.
+- The plan resolves `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, `tokens/theme-order`, and draft
+  `Switch` files under the default `registry-contained` layout.
 - `Switch` source files report `source-file-missing` warnings because source receipt into Amino UI has not happened.
-- React Aria Components, `classnames`, and focused-test package versions report `unresolved-dependency-version` warnings
-  while their versions remain `TO_DECIDE`.
+- React Aria Components is classified as a `^1.17.0` peer requirement and `classnames` as a `^2.3.2` runtime
+  requirement. If a target repo already declares compatible ranges, the advisory plan reports `satisfied` and takes no
+  package action.
+- Focused-test package versions still report `unresolved-dependency-version` warnings while their ranges remain
+  `TO_DECIDE`.
 - Advisory effects report no file writes, config writes, lockfile writes, or dependency installs; lockfile output is
   planned metadata only.
 

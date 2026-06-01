@@ -41,8 +41,9 @@ The initial strategies are:
 
 `Switch` remains the first packet target, but the packet is still draft-only. It records source files, optional focused
 test material, excluded Wavemap consumers, import rewrites, support dependencies, theme bridge requirements, dependency
-posture, and verification commands. It should be normalized into manifest items only after the source files exist in
-`packages/react` and the theme/dependency decisions are approved.
+posture, and verification commands. Its first-proof package posture now treats React Aria Components as a `^1.17.0` peer
+requirement and `classnames` as a `^2.3.2` runtime requirement. It should be normalized into manifest items only after
+the source files exist in `packages/react` and the remaining proof details are approved.
 
 The CLI can now read the draft packet for `add switch --advisory --json`. That output is planning evidence only: it
 reports support files, draft component files, dependency posture, theme requirements, missing source status, and

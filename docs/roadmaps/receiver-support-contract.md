@@ -43,11 +43,12 @@ package API decision is approved.
 
 `packages/react/src/registry/manifest.ts` now activates only support/theme entries:
 
-| Manifest item        | Source                                     | Suggested registry target                    |
-| -------------------- | ------------------------------------------ | -------------------------------------------- |
-| `theme-css`          | `packages/react/theme.css`                 | `components/_registry/theme/theme.css`       |
-| `tokens/geometry`    | `packages/react/src/tokens/geometry.ts`    | `components/_registry/tokens/geometry.ts`    |
-| `tokens/theme-order` | `packages/react/src/tokens/theme-order.ts` | `components/_registry/tokens/theme-order.ts` |
+| Manifest item                | Source                                                          | Suggested registry target                           |
+| ---------------------------- | --------------------------------------------------------------- | --------------------------------------------------- |
+| `theme-css`                  | `packages/react/theme.css`                                      | `src/components/_registry/theme.css`                |
+| `theme/switch-compatibility` | `packages/react/src/components/Switch/switch-compatibility.css` | `src/components/_registry/switch-compatibility.css` |
+| `tokens/geometry`            | `packages/react/src/tokens/geometry.ts`                         | `src/components/_registry/tokens/geometry.ts`       |
+| `tokens/theme-order`         | `packages/react/src/tokens/theme-order.ts`                      | `src/components/_registry/tokens/theme-order.ts`    |
 
 There is still no active `switch` component item. The manifest checker now proves that the first support entries point at
 tracked source files and use the current registry item/file roles.
@@ -69,16 +70,18 @@ The bridge should be included only with the first proof slice or Wavemap consume
 default. It should map only the variables needed by the received `Switch` CSS, and it should remain easy to delete once
 the component CSS is rewritten to the durable `--aui-` contract.
 
+The current proof bridge lives at `packages/react/src/components/Switch/switch-compatibility.css` and is exposed as the
+`theme/switch-compatibility` registry item. The default consumer layout resolves it under
+`src/components/_registry/switch-compatibility.css`.
+
 ## Still Blocked Before `Switch`
 
 Before moving or copying `Switch`, the next approved pass still needs:
 
 - Exact proof location for the component source graph.
 - Final package-facing export names for `Switch` and `SwitchProps`.
-- Dependency policy and versions for React Aria Components, `classnames`, and any test-only packages.
+- Test-only package ranges if the focused test moves with the proof.
 - Focused test relocation plan.
-- Decision about whether the compatibility bridge is installed as a registry support file, a proof-local CSS file beside
-  `Switch`, or a Wavemap-local consumer bridge.
 
 ## Stop Conditions
 

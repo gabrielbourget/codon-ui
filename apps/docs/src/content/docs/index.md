@@ -15,7 +15,7 @@ before Wavemap component source moves into this repo.
 - `@amino-ui/react/theme.css` is a hand-authored default CSS contract.
 - Registry manifests can express tracked theme/support files.
 - CI and local verification commands are in place.
-- Internal geometry and theme-order token support exists for the future `Switch` proof.
+- Internal geometry, theme-order, and narrow bridge support exists for the future `Switch` proof.
 
 No component source has moved yet.
 

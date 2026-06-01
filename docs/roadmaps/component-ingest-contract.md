@@ -66,8 +66,9 @@ This keeps the first proof minimal while preserving room for richer consumer lay
 - [x] Record source provenance from Wavemap.
 - [x] List `Switch.tsx`, `helpers.tsx`, `SwitchStyles.module.css`, and focused test material.
 - [x] Mark Wavemap app call sites as excluded consumer paths.
-- [x] Declare support dependencies on `theme-css`, `tokens/geometry`, and `tokens/theme-order`.
-- [ ] Decide React Aria Components and `classnames` versions before activation.
+- [x] Declare support dependencies on `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
+      `tokens/theme-order`.
+- [x] Decide first-proof React Aria Components and `classnames` ranges before activation.
 - [x] Record proof-local compatibility bridge requirements.
 - [x] Record forbidden-import scans and focused verification commands.
 - [x] Make the draft packet readable by CLI advisory planning without activating it.
@@ -85,9 +86,10 @@ The draft packet captures:
 - Import rewrites from Wavemap's `_registry/tokens` alias to package-local geometry and theme-order modules.
 - Exclusions for Settings form usage, boolean filter usage, component showcase usage, and commented legacy event-form
   scratch.
-- Existing support dependencies on `theme-css`, `tokens/geometry`, and `tokens/theme-order`.
-- First-proof dependency posture: React and React DOM peers, React Aria Components peer to decide, `classnames` runtime
-  dependency to decide, and test packages to decide only if the focused test moves.
+- Existing support dependencies on `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
+  `tokens/theme-order`.
+- First-proof dependency posture: React and React DOM peers, React Aria Components peer at `^1.17.0`, `classnames`
+  runtime dependency at `^2.3.2`, and test packages to decide only if the focused test moves.
 - Default theme variables already covered by `theme.css` and missing compatibility variables that require a narrow
   proof-local bridge.
 
@@ -95,8 +97,9 @@ The draft packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and
 later public API review says otherwise.
 
 `add switch --advisory --json` now reads the draft packet data and produces a non-mutating plan. That plan reports
-support files, draft component files, public export intent, import rewrites, theme requirements, unresolved dependency
-versions, missing source status for the not-yet-received `Switch` files, and planned-but-not-written lockfile effects.
+support files, draft component files, public export intent, import rewrites, theme requirements, dependency
+classification, unresolved test dependency versions, missing source status for the not-yet-received `Switch` files, and
+planned-but-not-written lockfile effects.
 
 ## Stop Conditions
 

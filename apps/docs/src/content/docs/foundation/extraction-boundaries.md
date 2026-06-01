@@ -16,12 +16,14 @@ first proof candidate, but it has not moved into Amino UI.
 - Geometry and theme-order support tokens.
 - Docs-only `Switch` planning.
 - Non-active typed `Switch` ingest packet.
+- Narrow `Switch` compatibility bridge registry item.
+- Advisory dependency classification for target package metadata.
 
 ## Remaining Before `Switch`
 
 - Exact proof location.
-- Compatibility bridge file location and install shape.
-- React Aria Components and `classnames` dependency policy.
+- Source receipt into `packages/react/src/components/Switch`.
+- Strict dependency action policy after advisory classification.
 - Final package barrel shape for `Switch` and `SwitchProps`.
 - Focused test relocation.
 

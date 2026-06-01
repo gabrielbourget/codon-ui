@@ -14,11 +14,12 @@ packages/react source + explicit registry manifests -> generated registry artifa
 
 The current active manifest entries are support-only:
 
-| Item                 | Role                           |
-| -------------------- | ------------------------------ |
-| `theme-css`          | Package default CSS support.   |
-| `tokens/geometry`    | Corner geometry token support. |
-| `tokens/theme-order` | Theme-order token support.     |
+| Item                         | Role                                |
+| ---------------------------- | ----------------------------------- |
+| `theme-css`                  | Package default CSS support.        |
+| `theme/switch-compatibility` | Narrow first-proof `Switch` bridge. |
+| `tokens/geometry`            | Corner geometry token support.      |
+| `tokens/theme-order`         | Theme-order token support.          |
 
 No component manifest entry is active yet.
 

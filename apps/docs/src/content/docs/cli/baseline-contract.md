@@ -47,15 +47,17 @@ under `src/components/_registry`.
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
 Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, source
-status, target status, graph dependencies, and dependency summaries without writing files. Available source files include
-`sha256:<hex>` content hashes; missing source files produce `source-file-missing` warning findings. Planned files use
-`missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while the
-command remains read-only and non-blocking.
+status, target status, graph dependencies, and target package classification without writing files. Available source
+files include `sha256:<hex>` content hashes; missing source files produce `source-file-missing` warning findings. Planned
+files use `missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while
+the command remains read-only and non-blocking.
 
 When `switch` is explicitly requested, advisory mode appends the draft `Switch` ingest packet as a non-active component
 planning item. The output reports component files, support graph files, public export intent, import rewrites, theme
-requirements, unresolved dependency versions, and planned-but-not-written lockfile effects. `Switch` source files are
-reported as missing because source receipt has not happened yet. This is not strict `add switch`.
+requirements, dependency posture, and planned-but-not-written lockfile effects. React Aria Components is currently a
+`^1.17.0` peer requirement and `classnames` is a `^2.3.2` runtime requirement; compatible declarations in the target
+package are reported as `satisfied`. `Switch` source files are reported as missing because source receipt has not happened
+yet. This is not strict `add switch`.
 
 ## Renovation Order
 

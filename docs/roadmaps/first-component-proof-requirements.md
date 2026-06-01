@@ -35,7 +35,7 @@ The first implementation pass must know:
 | Source graph         | Exact source, style, support, and test files included in the proof.                                                                              |
 | Exclusions           | Wavemap consumers and app/domain files that must not travel with the component.                                                                  |
 | Import strategy      | Whether source imports are edited in place, rewritten during copy, or routed through package-local support barrels.                              |
-| Theme CSS            | Default CSS import path, load order, and whether a Wavemap compatibility bridge is needed.                                                       |
+| Theme CSS            | Default CSS import path, load order, and narrow proof-local Wavemap compatibility bridge.                                                        |
 | Token support        | Concrete import path for geometry and theme-order support.                                                                                       |
 | CSS modules          | Whether the proof assumes consumer CSS-module support or introduces a build transform.                                                           |
 | Runtime dependencies | Peer/direct policy for React, React DOM, React Aria Components, `classnames`, and test-only packages.                                            |
@@ -58,8 +58,8 @@ Carry these assumptions forward from the Wavemap polish audit unless a fresh sou
 - `calibrateComponent`, `DEFAULT_ON_ICON`, and `DEFAULT_OFF_ICON` should stay private unless a later API review chooses
   otherwise.
 - React and React DOM are peers.
-- React Aria Components is expected to be a peer for source-installed component proof once `Switch` lands.
-- `classnames` is implementation runtime surface, not a consumer-provided platform peer.
+- React Aria Components is a `^1.17.0` peer requirement for the first source-installed component proof.
+- `classnames` is `^2.3.2` implementation runtime surface, not a consumer-provided platform peer.
 - CSS modules are part of the first proof; flattening CSS belongs to a later packaging decision.
 - Generated token writers, CLI theme generation, package publication, CLI install/update/diff behavior, and deploy
   workflows are outside the first proof.
