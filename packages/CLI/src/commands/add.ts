@@ -9,7 +9,15 @@ import ora from "ora"
 import prompts from "prompts"
 import { z } from "zod"
 
-import { logger, handleError } from "@/src/helpers"
+import {
+  addAdvisorySchema,
+  consumerConfigSchema,
+  createRegistryInstallPlan,
+  getDefaultLocalRegistrySourcePath,
+  handleError,
+  logger,
+  readLocalRegistrySource,
+} from "@/src/helpers"
 import { getConfig } from "@/src/helpers/config"
 import {
   computePackageManagerAddCommand,
@@ -45,6 +53,9 @@ const addOptionsSchema = z
     cwd: z.string().default(process.cwd()),
     all: z.boolean().default(false),
     path: z.string().optional(),
+    advisory: z.boolean().default(false),
+    json: z.boolean().default(false),
+    registrySource: z.string().optional(),
   })
   .transform(({ all, components, yes, ...options }) => ({
     ...options,
@@ -105,6 +116,13 @@ export const add = new Command()
   .option("-o, --overwrite", "Overwrite existing files.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-a, --all", "Add all available components to your project.", false)
+  .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
+  .option("--json", "Print machine-readable advisory output.", false)
+  .option(
+    "--registry-source <path>",
+    "Path to a local registry source JSON file for advisory planning.",
+    getDefaultLocalRegistrySourcePath(),
+  )
   .option(
     "-p, --path <path>",
     "A path to the directory where your chosen components should be added. Defaults to 'components'.",
@@ -118,6 +136,38 @@ export const add = new Command()
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
         process.exit(1)
+      }
+
+      if (options.advisory) {
+        const { registrySource, registrySourcePath } = await readLocalRegistrySource(options.registrySource)
+        const requestedItems = options.allComponents
+          ? registrySource.items.map((item) => item.name)
+          : (options.components ?? [])
+        const installPlan = createRegistryInstallPlan({
+          config: consumerConfigSchema.parse({}),
+          registrySource,
+          requestedItems,
+        })
+        const advisory = addAdvisorySchema.parse({
+          advisory: true,
+          cwd,
+          findings: installPlan.findings,
+          installPlan,
+          registrySourcePath,
+        })
+
+        if (options.json) {
+          console.log(JSON.stringify(advisory, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Advisory Add ]")} No files were written.`)
+        logger.info(`Registry source: ${advisory.registrySourcePath}`)
+        logger.info(`Requested items: ${advisory.installPlan.requestedItems.join(", ") || "(none)"}`)
+        logger.info(`Planned files: ${advisory.installPlan.files.length}`)
+        logger.info(`Findings: ${advisory.findings.length}`)
+
+        return
       }
 
       const config = await getConfig(cwd)
