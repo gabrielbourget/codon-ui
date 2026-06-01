@@ -19,7 +19,8 @@ Use these Wavemap notes as the current source of truth for candidate readiness:
 The Amino UI repo should not duplicate every Wavemap finding. It should track only the target-repo decisions needed to
 receive and prove the component.
 
-The first draft `Switch` manifest plan lives in `switch-manifest-plan.md`. The current typed, non-active packet lives in
+The first draft `Switch` manifest plan lives in `switch-manifest-plan.md`. The current non-active packet data lives in
+`packages/react/src/registry/switch-ingest-packet.data.json` and is exposed through
 `packages/react/src/registry/switch-ingest-packet.ts`.
 
 ## Required Packet Before Source Movement
@@ -77,6 +78,8 @@ Before implementing the proof, collect and record:
 - Candidate manifest entries or explicit file-list plan.
 - Non-active typed ingest packet that records source files, exclusions, import rewrites, dependencies, theme requirements,
   and verification commands.
+- `add switch --advisory --json` evidence showing planned files, support graph, dependency posture, theme requirements,
+  missing source status, and not-written lockfile effects.
 
 ## Stop Conditions
 
@@ -85,7 +88,7 @@ Return to deliberate planning if the proof requires:
 - Moving source before the approval packet is complete.
 - New dependency installs or lockfile changes.
 - Broad registry builder rewrites.
-- CLI install, update, diff, status, or ejection behavior.
+- Strict CLI install, update, diff, status, or ejection behavior.
 - Generated token writers or palette generation.
 - Package publication or release automation.
 - Wavemap component source edits outside the named proof graph.

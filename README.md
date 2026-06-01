@@ -14,7 +14,7 @@ This repo is a `pnpm` monorepo.
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                            |
 | `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                         |
-| `packages/CLI`          | Existing `aminoui-cli` package. Install/update/diff behavior is not proof-ready yet.                                     |
+| `packages/CLI`          | Existing CLI package with `aminoui-cli` and `aui` bins. Strict install/update/diff behavior is not proof-ready yet.      |
 | `packages/react`        | Private `@amino-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests. |
 | `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                              |
 

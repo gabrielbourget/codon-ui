@@ -9,7 +9,7 @@ Amino UI uses `pnpm` workspaces. Treat each workspace as an ownership boundary, 
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `apps/docs`             | Static documentation site for the monorepo and curated roadmap guidance.                                        |
 | `apps/web`              | Existing Next app and legacy registry web surface.                                                              |
-| `packages/CLI`          | Existing `aminoui-cli` package.                                                                                 |
+| `packages/CLI`          | Existing CLI package with `aminoui-cli` and `aui` bins.                                                         |
 | `packages/react`        | Private React source receiver package and current home for default CSS, support tokens, and registry manifests. |
 | `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                     |
 

@@ -13,9 +13,10 @@ verification explicit before files move from Wavemap into Amino UI.
 artifacts, install dependencies, or mutate consumers.
 
 The first concrete packet target is now represented by
-`packages/react/src/registry/switch-ingest-packet.ts`. It is a draft packet only: it is not part of the active registry
-manifest, it does not point at copied package source, and it does not approve dependency installs or `add switch`
-behavior.
+`packages/react/src/registry/switch-ingest-packet.data.json`, with
+`packages/react/src/registry/switch-ingest-packet.ts` exposing the typed draft packet. It is a draft packet only: it is
+not part of the active registry manifest, it does not point at copied package source, and it does not approve dependency
+installs or strict `add switch` behavior.
 
 ## Packet Shape
 
@@ -69,6 +70,7 @@ This keeps the first proof minimal while preserving room for richer consumer lay
 - [ ] Decide React Aria Components and `classnames` versions before activation.
 - [x] Record proof-local compatibility bridge requirements.
 - [x] Record forbidden-import scans and focused verification commands.
+- [x] Make the draft packet readable by CLI advisory planning without activating it.
 - [ ] Normalize into an active manifest item only after source receipt.
 
 ## Draft `Switch` Packet Read
@@ -91,6 +93,10 @@ The draft packet captures:
 
 The draft packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and `DEFAULT_OFF_ICON` private unless a
 later public API review says otherwise.
+
+`add switch --advisory --json` now reads the draft packet data and produces a non-mutating plan. That plan reports
+support files, draft component files, public export intent, import rewrites, theme requirements, unresolved dependency
+versions, missing source status for the not-yet-received `Switch` files, and planned-but-not-written lockfile effects.
 
 ## Stop Conditions
 

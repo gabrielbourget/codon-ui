@@ -4,8 +4,9 @@
 
 This is the first draft of the `Switch` registry manifest plan. It is intentionally docs-only.
 
-A non-active typed ingest packet now lives at `packages/react/src/registry/switch-ingest-packet.ts`. Treat that packet as
-the current review surface for source receipt. It is not an active `reactRegistryManifest` item.
+A non-active typed ingest packet now lives at `packages/react/src/registry/switch-ingest-packet.ts`, backed by
+`packages/react/src/registry/switch-ingest-packet.data.json`. Treat that packet as the current review surface for source
+receipt and CLI advisory planning. It is not an active `reactRegistryManifest` item.
 
 Do not activate a `Switch` manifest item until the source files exist in Amino UI and the remaining proof decisions are
 approved.
@@ -74,6 +75,10 @@ not settled.
 The target paths are relative to the configured `components` role. Under the default `registry-contained` consumer
 layout, `Switch/Switch.tsx` resolves to `src/components/Switch/Switch.tsx`.
 
+`add switch --advisory --json` can now read the draft packet data and report the planned component files, support graph,
+theme requirements, dependency posture, missing source status, and not-written lockfile effects. That advisory output is
+not an install path and does not activate the manifest.
+
 ## Support Items To Decide
 
 The `Switch` proof needs support beyond the three component files:
@@ -133,7 +138,7 @@ Return to deliberate planning if the next pass requires:
 
 - New dependency installs or lockfile changes before dependency policy is approved.
 - Generated token writers.
-- CLI install/update/diff/status/ejection behavior.
+- Strict CLI install/update/diff/status/ejection behavior.
 - Registry builder rewrites.
 - Package publication or release automation.
 - Moving Wavemap consumers with the component.

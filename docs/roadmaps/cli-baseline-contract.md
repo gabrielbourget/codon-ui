@@ -12,24 +12,24 @@ component proof is ready.
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                                 |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes.                    |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                  |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can now plan support items from a local registry snapshot without writes. |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                        |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes.                   |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                 |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can now plan support items and the draft `Switch` packet without writes. |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                       |
 
 Current helper surface:
 
-| Area                    | Current role                                                                                   | Renovation read                                                                                                         |
-| ----------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                      |
-| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use.  |
-| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.          |
-| Local registry snapshot | Stores a support-only manifest-shaped JSON source for early CLI planning.                      | Proves support graph planning without public registry hosting, generated artifacts, or `Switch` source movement.        |
-| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support planning exists for default `registry-contained` layout; component planning still waits for `Switch`. |
-| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                        |
-| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                     |
+| Area                    | Current role                                                                                   | Renovation read                                                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                     |
+| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use. |
+| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.         |
+| Local registry snapshot | Stores a support-only manifest-shaped JSON source for early CLI planning.                      | Proves support graph planning without public registry hosting, generated artifacts, or `Switch` source movement.       |
+| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support and draft `Switch` planning exist for default `registry-contained` layout.                           |
+| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                       |
+| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                    |
 
 ## Advisory Mode Requirement
 
@@ -87,7 +87,7 @@ Do not broaden behavior before these risks are handled deliberately:
 - The registry client has no timeout or advisory fallback.
 - The current registry schema is legacy web-registry shape, not the approved `packages/react` manifest/artifact contract.
 - Transform helpers have no fixture tests.
-- `bin` points to `dist/index.js`; fresh installs can warn or fail before build output exists.
+- `bin` aliases point to `dist/index.js`; fresh installs can warn or fail before build output exists.
 - `pub:*` scripts call `npm build` and publication behavior is not approved.
 - Current command names and options are inherited scaffold surface, not settled public API.
 
@@ -137,6 +137,10 @@ aminoui-cli init --advisory --json --cwd <consumer-project>
 aminoui-cli info --json --cwd <consumer-project>
 ```
 
+The package also exposes `aui` as a shorter bin alias for future command examples. Existing local pnpm shims may need an
+install refresh before `pnpm exec aui` resolves, but package metadata now points both `aminoui-cli` and `aui` at
+`dist/index.js`.
+
 Against the `vite-registry-contained` fixture, both commands report:
 
 - package manager: `pnpm`
@@ -177,8 +181,28 @@ The local support snapshot currently covers `theme-css`, `tokens/geometry`, and 
 that `tokens/geometry` is reported as a missing target in the default fixture, `theme-css` is reported as an existing
 target in the `--all` support plan, and an explicit existing-token fixture reports an existing `tokens/geometry` target.
 They also verify available source status, `sha256:<hex>` content hashes, missing source warnings from a fixture registry
-source, and no-mutation behavior. This is not `add switch`, strict writes, config writing, lockfile writing, dependency
-installation, generated registry artifact hosting, update/ejection classification, or package publication behavior.
+source, and no-mutation behavior. This is not strict writes, config writing, lockfile writing, dependency installation,
+generated registry artifact hosting, update/ejection classification, or package publication behavior.
+
+The draft `Switch` add advisory slice added component planning without source movement:
+
+- The draft packet data now lives at `packages/react/src/registry/switch-ingest-packet.data.json`.
+- `packages/react/src/registry/switch-ingest-packet.ts` re-exports that data as the typed draft packet.
+- `add switch --advisory --json` appends that packet to the local support registry source only when `switch` is
+  explicitly requested.
+- The plan resolves `theme-css`, `tokens/geometry`, `tokens/theme-order`, and draft `Switch` files under the default
+  `registry-contained` layout.
+- `Switch` source files report `source-file-missing` warnings because source receipt into Amino UI has not happened.
+- React Aria Components, `classnames`, and focused-test package versions report `unresolved-dependency-version` warnings
+  while their versions remain `TO_DECIDE`.
+- Advisory effects report no file writes, config writes, lockfile writes, or dependency installs; lockfile output is
+  planned metadata only.
+
+Current draft `Switch` advisory command:
+
+```sh
+aui add switch --advisory --json --cwd <consumer-project>
+```
 
 ## Design Discussion Packet
 

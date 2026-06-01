@@ -8,15 +8,20 @@ component extraction.
 
 ## Current Surface
 
-| Command | Current state                                                                                                                                                 |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                                |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                       |
-| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` can now plan support items from a local registry snapshot without writes. |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                               |
+| Command | Current state                                                                                                                                                |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                               |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                      |
+| `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` can now plan support items and the draft `Switch` packet without writes. |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                              |
 
 None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
 dependency policy, and tests are settled.
+
+## Command Names
+
+The package still publishes the existing `aminoui-cli` bin and now also exposes `aui` as the shorter command alias. Both
+point at `dist/index.js`; package distribution policy remains separate from this alias.
 
 ## Advisory Mode
 
@@ -45,8 +50,12 @@ Current `add --advisory --json` reads the local support registry snapshot and re
 status, target status, graph dependencies, and dependency summaries without writing files. Available source files include
 `sha256:<hex>` content hashes; missing source files produce `source-file-missing` warning findings. Planned files use
 `missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while the
-command remains read-only and non-blocking. The current support-only items are `theme-css`, `tokens/geometry`, and
-`tokens/theme-order`; this is not `add switch` yet.
+command remains read-only and non-blocking.
+
+When `switch` is explicitly requested, advisory mode appends the draft `Switch` ingest packet as a non-active component
+planning item. The output reports component files, support graph files, public export intent, import rewrites, theme
+requirements, unresolved dependency versions, and planned-but-not-written lockfile effects. `Switch` source files are
+reported as missing because source receipt has not happened yet. This is not strict `add switch`.
 
 ## Renovation Order
 
