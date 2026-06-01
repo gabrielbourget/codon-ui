@@ -1,0 +1,46 @@
+{
+  "schemaVersion": 1,
+  "sourceIdentity": "@amino-ui/react-local-support",
+  "sourceRoot": "../../..",
+  "items": [
+    {
+      "name": "theme-css",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/theme.css",
+          "targetRole": "theme",
+          "targetPath": "theme.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/geometry",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/geometry.ts",
+          "targetRole": "tokens",
+          "targetPath": "geometry.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/theme-order",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/theme-order.ts",
+          "targetRole": "tokens",
+          "targetPath": "theme-order.ts",
+          "role": "support"
+        }
+      ]
+    }
+  ]
+}
