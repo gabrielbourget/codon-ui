@@ -4,7 +4,10 @@
   "module": "./dist/index.js",
   "type": "module",
   "exports": "./dist/index.js",
-  "bin": "./dist/index.js",
+  "bin": {
+    "aminoui-cli": "./dist/index.js",
+    "aui": "./dist/index.js"
+  },
   "version": "0.0.1",
   "packageManager": "pnpm@10.18.3",
   "scripts": {

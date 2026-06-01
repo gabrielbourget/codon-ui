@@ -66,3 +66,5 @@ export const INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY = "circular-registry-depe
 export const INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET = "duplicate-file-target"
 export const INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS = "target-file-exists"
 export const INSTALL_PLAN_FINDING__SOURCE_FILE_MISSING = "source-file-missing"
+export const INSTALL_PLAN_FINDING__DRAFT_PACKET_UNAVAILABLE = "draft-packet-unavailable"
+export const INSTALL_PLAN_FINDING__UNRESOLVED_DEPENDENCY_VERSION = "unresolved-dependency-version"

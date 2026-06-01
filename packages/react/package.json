@@ -27,9 +27,9 @@
     "check:theme-css": "node verify-theme-css-contract.mjs",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --cache",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
-    "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format": "prettier --write \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:write": "prettier --write \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
     "stylelint": "stylelint \"*.css\"",
     "typecheck": "tsc --noEmit"

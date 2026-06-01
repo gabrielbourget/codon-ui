@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+import path from "path"
+
 import { Command } from "commander"
 
 import { add } from "./commands/add"
@@ -13,9 +15,10 @@ process.on("SIGTERM", () => process.exit(0))
 
 const main = async () => {
   const packageInfo = getPackageInfo()
+  const commandName = path.basename(process.argv[1] ?? "aminoui-cli")
 
   const program = new Command()
-    .name("amino-ui-cli")
+    .name(commandName)
     .description("Add components and their dependencies directly into your project as needed.")
     .version(packageInfo.version!, "-v, --version", "Display the version number.")
 

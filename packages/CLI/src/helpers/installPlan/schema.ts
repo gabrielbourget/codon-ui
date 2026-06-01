@@ -27,6 +27,7 @@ export const localRegistryFileSchema = z
     targetPath: z.string().min(1),
     role: z.enum(REGISTRY_FILE_ROLES),
     contentHash: z.string().min(1).optional(),
+    required: z.boolean().optional(),
   })
   .strict()
 
@@ -82,6 +83,7 @@ export const installPlanFileSchema = z
     targetStatus: z.enum(INSTALL_PLAN_FILE_STATUSES),
     role: z.enum(REGISTRY_FILE_ROLES),
     contentHash: z.string().min(1).optional(),
+    required: z.boolean().optional(),
   })
   .strict()
 
@@ -123,10 +125,86 @@ export const registryInstallPlanSchema = z
 
 export type TRegistryInstallPlan = z.infer<typeof registryInstallPlanSchema>
 
+export const addAdvisoryComponentPublicExportSchema = z
+  .object({
+    exportedName: z.string().min(1),
+    sourcePath: z.string().min(1),
+    localName: z.string().min(1).optional(),
+    typeOnly: z.boolean().optional(),
+  })
+  .strict()
+
+export const addAdvisoryComponentImportResolutionSchema = z
+  .object({
+    sourcePath: z.string().min(1),
+    importSource: z.string().min(1),
+    registryDependencyName: z.string().min(1).optional(),
+    replacementSource: z.string().min(1).optional(),
+    advisory: z.boolean().optional(),
+    notes: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+export const addAdvisoryComponentThemeRequirementSchema = z
+  .object({
+    strategy: z.string().min(1),
+    cssVariables: z.array(z.string().min(1)).default([]),
+    files: z.array(localRegistryFileSchema).default([]),
+    notes: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+export const addAdvisoryComponentVerificationStepSchema = z
+  .object({
+    kind: z.string().min(1),
+    command: z.string().min(1),
+    workingDirectory: z.string().min(1).optional(),
+    advisory: z.boolean().optional(),
+    notes: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+export const addAdvisoryComponentPacketSchema = z
+  .object({
+    activationStatus: z.literal("draft-only"),
+    name: z.string().min(1),
+    sourceRepository: z.string().min(1).optional(),
+    sourceRef: z.string().min(1).optional(),
+    publicExports: z.array(addAdvisoryComponentPublicExportSchema).default([]),
+    importResolutions: z.array(addAdvisoryComponentImportResolutionSchema).default([]),
+    excludedSourcePaths: z.array(z.string().min(1)).default([]),
+    themeRequirements: z.array(addAdvisoryComponentThemeRequirementSchema).default([]),
+    verification: z.array(addAdvisoryComponentVerificationStepSchema).default([]),
+    notes: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+export type TAddAdvisoryComponentPacket = z.infer<typeof addAdvisoryComponentPacketSchema>
+
+export const addAdvisoryEffectsSchema = z
+  .object({
+    installsDependencies: z.literal(false),
+    writesConfig: z.literal(false),
+    writesFiles: z.literal(false),
+    writesLockfile: z.literal(false),
+    lockfile: z
+      .object({
+        plannedFileCount: z.number().int().nonnegative(),
+        plannedItems: z.array(z.string().min(1)).default([]),
+        status: z.literal("not-written"),
+      })
+      .strict(),
+  })
+  .strict()
+
+export type TAddAdvisoryEffects = z.infer<typeof addAdvisoryEffectsSchema>
+
 export const addAdvisorySchema = z
   .object({
     advisory: z.literal(true),
+    componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    effects: addAdvisoryEffectsSchema,
     registrySourcePath: z.string().min(1),
     installPlan: registryInstallPlanSchema,
     findings: z.array(installPlanFindingSchema).default([]),

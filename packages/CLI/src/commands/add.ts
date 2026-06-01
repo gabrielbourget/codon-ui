@@ -11,8 +11,12 @@ import { z } from "zod"
 
 import {
   addAdvisorySchema,
+  createAddAdvisoryEffects,
   consumerConfigSchema,
+  createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
+  createRegistrySourceWithDraftSwitchPacket,
+  createUnresolvedDependencyFindings,
   getDefaultLocalRegistrySourcePath,
   handleError,
   logger,
@@ -143,18 +147,37 @@ export const add = new Command()
         const requestedItems = options.allComponents
           ? registrySource.items.map((item) => item.name)
           : (options.components ?? [])
+        const {
+          componentPackets,
+          findings: componentPacketFindings,
+          registrySource: advisoryRegistrySource,
+        } = await createRegistrySourceWithDraftSwitchPacket({
+          registrySource,
+          requestedItems,
+        })
         const installPlan = createRegistryInstallPlan({
           config: consumerConfigSchema.parse({}),
           consumerRoot: cwd,
-          registrySource,
+          registrySource: advisoryRegistrySource,
           requestedItems,
           sourceRoot,
         })
+        const findings = [
+          ...componentPacketFindings,
+          ...installPlan.findings,
+          ...createUnresolvedDependencyFindings(installPlan.dependencies),
+        ]
+        const installPlanWithFindings = createRegistryInstallPlanWithFindings({
+          findings,
+          installPlan,
+        })
         const advisory = addAdvisorySchema.parse({
           advisory: true,
+          componentPackets,
           cwd,
-          findings: installPlan.findings,
-          installPlan,
+          effects: createAddAdvisoryEffects(installPlanWithFindings),
+          findings,
+          installPlan: installPlanWithFindings,
           registrySourcePath,
         })
 
@@ -167,6 +190,7 @@ export const add = new Command()
         logger.info(`Registry source: ${advisory.registrySourcePath}`)
         logger.info(`Requested items: ${advisory.installPlan.requestedItems.join(", ") || "(none)"}`)
         logger.info(`Planned files: ${advisory.installPlan.files.length}`)
+        logger.info(`Component packets: ${advisory.componentPackets.length}`)
         logger.info(
           `Available sources: ${advisory.installPlan.files.filter((file) => file.sourceStatus === "available").length}`,
         )
