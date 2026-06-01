@@ -9,6 +9,9 @@ graph, support files, public exports, theme requirements, dependency policy, and
 `packages/react/src/registry/ingest.ts` defines the current type-only packet. It does not copy files, generate registry
 artifacts, install dependencies, or mutate consumer projects.
 
+`packages/react/src/registry/switch-ingest-packet.ts` is the first concrete draft packet. It is not an active manifest
+item and does not approve source movement, dependency installs, `add switch`, or registry artifact generation.
+
 ## Packet Areas
 
 | Area               | Purpose                                                                                   |
@@ -35,5 +38,7 @@ The initial strategies are:
 
 ## First Proof Boundary
 
-`Switch` remains the first likely packet target, but no packet is active yet. The packet should be normalized into manifest
-items only after the source files exist in `packages/react` and the theme/dependency decisions are approved.
+`Switch` remains the first packet target, but the packet is still draft-only. It records source files, optional focused
+test material, excluded Wavemap consumers, import rewrites, support dependencies, theme bridge requirements, dependency
+posture, and verification commands. It should be normalized into manifest items only after the source files exist in
+`packages/react` and the theme/dependency decisions are approved.

@@ -14,6 +14,7 @@ support tokens, and registry manifests.
 - `src/tokens/theme-order.ts` owns theme-order support.
 - `src/registry/manifest.ts` owns the internal registry manifest.
 - `src/registry/ingest.ts` owns the type-only component receipt packet shape.
+- `src/registry/switch-ingest-packet.ts` owns the non-active draft packet for the first `Switch` proof.
 
 ## Peer Policy
 
@@ -27,5 +28,6 @@ implementation runtime surface for the first proof, not as a consumer platform p
 - Public token exports.
 - Published package artifacts.
 - Component source.
+- Active `Switch` registry metadata.
 - Component test harness.
 - Runtime provider or generated theme machinery.

@@ -15,13 +15,14 @@ first proof candidate, but it has not moved into Amino UI.
 - CI verification foundation.
 - Geometry and theme-order support tokens.
 - Docs-only `Switch` planning.
+- Non-active typed `Switch` ingest packet.
 
 ## Remaining Before `Switch`
 
 - Exact proof location.
 - Compatibility bridge file location and install shape.
 - React Aria Components and `classnames` dependency policy.
-- Package-facing `Switch` and `SwitchProps` export shape.
+- Final package barrel shape for `Switch` and `SwitchProps`.
 - Focused test relocation.
 
 ## Stop Conditions

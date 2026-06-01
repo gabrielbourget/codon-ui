@@ -12,7 +12,10 @@ verification explicit before files move from Wavemap into Amino UI.
 `packages/react/src/registry/ingest.ts` defines a type-only packet shape. It does not copy files, generate registry
 artifacts, install dependencies, or mutate consumers.
 
-The first packet target remains `Switch`, but no `Switch` packet is active yet.
+The first concrete packet target is now represented by
+`packages/react/src/registry/switch-ingest-packet.ts`. It is a draft packet only: it is not part of the active registry
+manifest, it does not point at copied package source, and it does not approve dependency installs or `add switch`
+behavior.
 
 ## Packet Shape
 
@@ -59,14 +62,35 @@ This keeps the first proof minimal while preserving room for richer consumer lay
 
 ## First `Switch` Packet Checklist
 
-- [ ] Record source provenance from Wavemap.
-- [ ] List `Switch.tsx`, `helpers.tsx`, `SwitchStyles.module.css`, and focused test material.
-- [ ] Mark Wavemap app call sites as excluded consumer paths.
-- [ ] Declare support dependencies on `theme-css`, `tokens/geometry`, and `tokens/theme-order`.
+- [x] Record source provenance from Wavemap.
+- [x] List `Switch.tsx`, `helpers.tsx`, `SwitchStyles.module.css`, and focused test material.
+- [x] Mark Wavemap app call sites as excluded consumer paths.
+- [x] Declare support dependencies on `theme-css`, `tokens/geometry`, and `tokens/theme-order`.
 - [ ] Decide React Aria Components and `classnames` versions before activation.
-- [ ] Record proof-local compatibility bridge requirements.
-- [ ] Record forbidden-import scans and focused verification commands.
+- [x] Record proof-local compatibility bridge requirements.
+- [x] Record forbidden-import scans and focused verification commands.
 - [ ] Normalize into an active manifest item only after source receipt.
+
+## Draft `Switch` Packet Read
+
+The draft packet captures:
+
+- Wavemap source paths for `Switch.tsx`, `helpers.tsx`, `SwitchStyles.module.css`, and the focused test.
+- Role-based consumer targets under `Switch/...` so the default `components` role resolves to `src/components/Switch/...`
+  instead of duplicating a `components` path segment.
+- Public surface intent: named `Switch` export and package-facing `SwitchProps` type aliasing the current `TSwitchProps`
+  source name.
+- Import rewrites from Wavemap's `_registry/tokens` alias to package-local geometry and theme-order modules.
+- Exclusions for Settings form usage, boolean filter usage, component showcase usage, and commented legacy event-form
+  scratch.
+- Existing support dependencies on `theme-css`, `tokens/geometry`, and `tokens/theme-order`.
+- First-proof dependency posture: React and React DOM peers, React Aria Components peer to decide, `classnames` runtime
+  dependency to decide, and test packages to decide only if the focused test moves.
+- Default theme variables already covered by `theme.css` and missing compatibility variables that require a narrow
+  proof-local bridge.
+
+The draft packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and `DEFAULT_OFF_ICON` private unless a
+later public API review says otherwise.
 
 ## Stop Conditions
 

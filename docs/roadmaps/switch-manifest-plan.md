@@ -4,6 +4,9 @@
 
 This is the first draft of the `Switch` registry manifest plan. It is intentionally docs-only.
 
+A non-active typed ingest packet now lives at `packages/react/src/registry/switch-ingest-packet.ts`. Treat that packet as
+the current review surface for source receipt. It is not an active `reactRegistryManifest` item.
+
 Do not activate a `Switch` manifest item until the source files exist in Amino UI and the remaining proof decisions are
 approved.
 
@@ -32,19 +35,19 @@ The likely registry item is:
     {
       sourcePath: "packages/react/src/components/Switch/Switch.tsx",
       targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-      targetPath: "components/Switch/Switch.tsx",
+      targetPath: "Switch/Switch.tsx",
       role: REGISTRY_FILE_ROLE__SOURCE,
     },
     {
       sourcePath: "packages/react/src/components/Switch/helpers.tsx",
       targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-      targetPath: "components/Switch/helpers.tsx",
+      targetPath: "Switch/helpers.tsx",
       role: REGISTRY_FILE_ROLE__SOURCE,
     },
     {
       sourcePath: "packages/react/src/components/Switch/SwitchStyles.module.css",
       targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-      targetPath: "components/Switch/SwitchStyles.module.css",
+      targetPath: "Switch/SwitchStyles.module.css",
       role: REGISTRY_FILE_ROLE__STYLE,
     },
   ],
@@ -67,6 +70,9 @@ The likely registry item is:
 This draft uses the current manifest skeleton shape, but it should not be copied into
 `packages/react/src/registry/manifest.ts` yet because the referenced files do not exist and the dependency versions are
 not settled.
+
+The target paths are relative to the configured `components` role. Under the default `registry-contained` consumer
+layout, `Switch/Switch.tsx` resolves to `src/components/Switch/Switch.tsx`.
 
 ## Support Items To Decide
 
@@ -118,6 +124,8 @@ Do not activate the manifest until these are resolved:
 - `classnames` direct dependency version or replacement.
 - Test harness location and command.
 - Whether `SwitchProps` is an alias over `TSwitchProps` or a source rename.
+- Whether the draft packet's `Switch/__tests__/Switch.test.tsx` target remains co-located with the installed source or
+  moves into a package-only test harness before activation.
 
 ## Stop Conditions
 
