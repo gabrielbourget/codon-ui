@@ -9,7 +9,7 @@ import ora from "ora"
 import prompts from "prompts"
 import { z } from "zod"
 
-import { createConsumerInitAdvisory } from "@/src/helpers"
+import { createConsumerInitAdvisory, writeConsumerInitSeed } from "@/src/helpers"
 import { getConfig, resolveConfigPaths } from "@/src/helpers/config"
 import { coreConfigSchema, type TConfig } from "@/src/helpers/config/schema"
 import {
@@ -60,7 +60,7 @@ export const init = new Command()
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-d, --defaults", "Use the default component library configuration.", false)
   .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
-  .option("--json", "Print machine-readable advisory output.", false)
+  .option("--json", "Print machine-readable output.", false)
   .action(async (CLIOptions) => {
     try {
       const options = parseInitOptions(CLIOptions)
@@ -86,6 +86,27 @@ export const init = new Command()
         logger.info(`Layout mode: ${advisory.proposedConfig.layoutMode}`)
         logger.info(`Theme tier: ${advisory.proposedConfig.theme.tier}`)
         logger.info(`Dependency policy: ${advisory.proposedConfig.dependencies.policy}`)
+
+        return
+      }
+
+      if (options.defaults) {
+        const result = await writeConsumerInitSeed(cwd)
+
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2))
+          return
+        }
+
+        logger.info(
+          `${chalk.green("[ Init ]")} ${result.initialized ? "Consumer files written." : "No files written."}`,
+        )
+        logger.info(`Config file: ${result.configFile}`)
+        logger.info(`Lockfile: ${result.lockfile}`)
+        logger.info(`Layout mode: ${result.config.layoutMode}`)
+        logger.info(`Theme tier: ${result.config.theme.tier}`)
+        logger.info(`Dependency policy: ${result.config.dependencies.policy}`)
+        logger.info(`Findings: ${result.findings.length}`)
 
         return
       }

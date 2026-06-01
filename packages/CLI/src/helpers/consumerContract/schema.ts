@@ -130,3 +130,25 @@ export const consumerInitAdvisorySchema = z
   .strict()
 
 export type TConsumerInitAdvisory = z.infer<typeof consumerInitAdvisorySchema>
+
+export const consumerInitSeedResultSchema = z
+  .object({
+    config: consumerConfigSchema,
+    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    cwd: z.string().min(1),
+    effects: z
+      .object({
+        createsDirectories: z.literal(false),
+        installsDependencies: z.literal(false),
+        writesConfig: z.boolean(),
+        writesLockfile: z.boolean(),
+      })
+      .strict(),
+    findings: z.array(consumerAdvisoryFindingSchema).default([]),
+    initialized: z.boolean(),
+    lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
+    lockfileData: consumerLockfileSchema,
+  })
+  .strict()
+
+export type TConsumerInitSeedResult = z.infer<typeof consumerInitSeedResultSchema>

@@ -10,7 +10,7 @@ component extraction.
 
 | Command | Current state                                                                                                                                                                                                     |
 | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.                                                                                                    |
+| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                   |
 | `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                                           |
 | `add`   | Normal mode still mutates through the legacy registry path. `add --advisory --json` plans support items and `Switch`; `add switch --dry-run --json` previews the first local-registry write shape without writes. |
 | `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                   |
@@ -44,6 +44,11 @@ Current `init --advisory --json` reports the proposed consumer config, package m
 dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
 under `src/components/_registry`.
 
+Current `init --defaults --json` is the first strict new-contract seed path. It writes only `amino-ui.config.json` and an
+empty `amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
+dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
+overwritten.
+
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
 Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, source
@@ -70,8 +75,9 @@ blockers, dependency decisions are summarized, and the lockfile effect reports `
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
-3. Add dry-run previews before strict writes.
-4. Defer `status`, `update`, and ejection behavior until install metadata is approved.
+3. Seed strict init with config and empty Amino lockfile only.
+4. Add dry-run previews before strict component writes.
+5. Defer `status`, `update`, and ejection behavior until install metadata is approved.
 
 ## Design Packet
 

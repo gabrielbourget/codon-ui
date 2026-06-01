@@ -5,15 +5,14 @@ import {
   CONSUMER_ADVISORY_SEVERITY__WARNING,
   CONSUMER_PACKAGE_MANAGER__UNKNOWN,
 } from "./constants"
+import { createDefaultConsumerConfig } from "./initSeed"
 import { resolveConsumerLayout } from "./layout"
 import { getConsumerProjectContext } from "./projectContext"
-import { consumerConfigSchema, consumerInitAdvisorySchema, type TConsumerInitAdvisory } from "./schema"
+import { consumerInitAdvisorySchema, type TConsumerInitAdvisory } from "./schema"
 
 export const createConsumerInitAdvisory = (cwd: string): TConsumerInitAdvisory => {
   const project = getConsumerProjectContext(cwd)
-  const proposedConfig = consumerConfigSchema.parse({
-    $schema: "https://aminoui.com/schema.json",
-  })
+  const proposedConfig = createDefaultConsumerConfig()
   const layout = resolveConsumerLayout(proposedConfig)
   const findings = [...layout.findings]
 

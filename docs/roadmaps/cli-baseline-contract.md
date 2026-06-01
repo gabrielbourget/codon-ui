@@ -14,7 +14,7 @@ Current command surface:
 
 | Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                    |
 | ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes.                                                                       |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract.                       |
 | `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                     |
 | `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating; `add --advisory` can plan support items and `Switch`; `add switch --dry-run` can preview the first local-registry write shape without writes. |
 | `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                           |
@@ -140,6 +140,16 @@ aminoui-cli info --json --cwd <consumer-project>
 The package also exposes `aui` as a shorter bin alias for future command examples. Existing local pnpm shims may need an
 install refresh before `pnpm exec aui` resolves, but package metadata now points both `aminoui-cli` and `aui` at
 `dist/index.js`.
+
+The first strict init seed slice added a new-contract default path:
+
+```sh
+aui init --defaults --json --cwd <consumer-project>
+```
+
+This path writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when neither file exists. It does not
+create directories, install dependencies, write helper files, install support files, or touch package-manager lockfiles.
+If either file already exists, it reports warnings and writes nothing; overwrite policy is deferred.
 
 Against the `vite-registry-contained` fixture, both commands report:
 
