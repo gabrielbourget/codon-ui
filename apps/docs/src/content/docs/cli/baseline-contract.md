@@ -10,7 +10,8 @@ component extraction.
 
 | Command | Current state                                                                                                   |
 | ------- | --------------------------------------------------------------------------------------------------------------- |
-| `init`  | Mutates config, helper files, directories, and package dependencies.                                            |
+| `init`  | Normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only.  |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                         |
 | `add`   | Fetches legacy registry JSON, writes files, transforms source, and installs dependencies.                       |
 | `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing. |
 
@@ -33,6 +34,12 @@ approved mutations.
 
 Current `diff --advisory` reports missing cwd, config, registry, component, and registry payload issues as warnings with
 exit `0`. Advisory registry requests are quieted and timeboxed to avoid blocking broader processes.
+
+Current `init --advisory --json` reports the proposed consumer config, package manager, project context, theme tier,
+dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
+under `src/components/_registry`.
+
+Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
 ## Renovation Order
 

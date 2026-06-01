@@ -12,11 +12,12 @@ component proof is ready.
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                             |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Mutating and not proof-ready. Needs a preflight/report contract before it can be trusted.                   |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Mutating and coupled to legacy registry artifacts. Freeze behavior until registry source policy is settled. |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.    |
+| Command | Current role                                                                                                                       | Renovation read                                                                                              |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` now reports the new consumer contract without writes. |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                               |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Mutating and coupled to legacy registry artifacts. Freeze behavior until registry source policy is settled.  |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.     |
 
 Current helper surface:
 
@@ -115,6 +116,35 @@ The next cleanup slice normalized Commander option parsing for `init`, `add`, an
 flag names into its internal option shape in one place. It also made the current `add` command await component file
 writes, nested directory writes, helper writes, and dependency installs in sequence. That does not make `add` proof-ready;
 it only removes accidental async behavior before the command contract is redesigned.
+
+The consumer contract slice added the first new CLI-side contract for the `Switch` proof path:
+
+- `amino-ui.config.json` remains the human-authored setup intent file.
+- `amino-ui.lock.json` is reserved as the generated install provenance file.
+- `registry-contained`, `integrated`, and `custom` layout modes are modeled, but only `registry-contained` has path
+  resolution behavior.
+- The default `registry-contained` layout resolves support roles under `src/components/_registry`.
+- The default dependency policy is `report-only`.
+- Ownership states are modeled as `registry-owned`, `locally-modified`, `consumer-owned-support`, `ejected`, and
+  `unknown`.
+
+Current read-only command behavior:
+
+```sh
+aminoui-cli init --advisory --json --cwd <consumer-project>
+aminoui-cli info --json --cwd <consumer-project>
+```
+
+Against the `vite-registry-contained` fixture, both commands report:
+
+- package manager: `pnpm`
+- project kind: `vite-like`
+- layout mode: `registry-contained`
+- theme tier: `default-contract`
+- dependency policy: `report-only`
+- role paths under `src/components/_registry`
+
+These commands do not write config, lockfiles, support files, directories, or dependencies.
 
 ## Design Discussion Packet
 
