@@ -8,6 +8,7 @@ import {
   AMINO_UI_CONFIG_FILE_NAME,
   AMINO_UI_LOCK_FILE_NAME,
   CONSUMER_DEPENDENCY_ACTION__NONE,
+  CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
   consumerConfigSchema,
   consumerLockfileSchema,
@@ -28,6 +29,7 @@ import {
   INSTALL_PLAN_FINDING__STRICT_ADD_SOURCE_BLOCKER,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
 } from "./constants"
 import {
   type TInstallPlanFile,
@@ -220,7 +222,10 @@ export const createStrictAddBlockerFindings = (installPlan: TRegistryInstallPlan
   })
 
   installPlan.files.forEach((file) => {
-    if (file.targetStatus === INSTALL_PLAN_FILE_STATUS__EXISTING) {
+    if (
+      file.targetStatus === INSTALL_PLAN_FILE_STATUS__EXISTING &&
+      file.targetResolution !== INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+    ) {
       blockerFindings.push({
         code: INSTALL_PLAN_FINDING__STRICT_ADD_EXISTING_TARGET_BLOCKER,
         itemName: file.itemName,
@@ -271,8 +276,14 @@ export const writeStrictRegistryInstall = async ({
   const installedHashesByPath = new Map<string, string>()
 
   for (const file of installPlan.files) {
-    const sourcePath = path.resolve(sourceRoot, file.sourcePath)
     const targetPath = path.resolve(consumerRoot, file.resolvedPath)
+
+    if (file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING) {
+      installedHashesByPath.set(file.resolvedPath, createContentHash(await fs.readFile(targetPath)))
+      continue
+    }
+
+    const sourcePath = path.resolve(sourceRoot, file.sourcePath)
     const sourceContent = await fs.readFile(sourcePath, "utf8")
     const installedContent = rewriteInstallPlanImportSpecifiers({
       content: sourceContent,
@@ -291,7 +302,10 @@ export const writeStrictRegistryInstall = async ({
       {
         files: item.files.map((file) => ({
           installedHash: installedHashesByPath.get(file.resolvedPath),
-          ownershipState: CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
+          ownershipState:
+            file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+              ? CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT
+              : CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
           path: file.resolvedPath,
           sourceHash: file.contentHash,
           targetRole: file.targetRole,

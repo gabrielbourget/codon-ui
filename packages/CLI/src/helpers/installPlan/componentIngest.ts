@@ -11,8 +11,10 @@ import {
   INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
   INSTALL_PLAN_DEPENDENCY_STATUS__UNRESOLVED,
   INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
-  INSTALL_PLAN_FILE_STATUS__EXISTING,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__WRITE,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   REGISTRY_ITEM_TYPES,
 } from "./constants"
@@ -195,14 +197,17 @@ export const createAddAdvisoryEffects = (installPlan: TRegistryInstallPlan): TAd
 
 export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddDryRunEffects => {
   const blockedExistingTargetCount = installPlan.files.filter(
-    (file) => file.targetStatus === INSTALL_PLAN_FILE_STATUS__EXISTING,
+    (file) => file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING,
+  ).length
+  const reusedExistingTargetCount = installPlan.files.filter(
+    (file) => file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   ).length
   const missingSourceCount = installPlan.files.filter(
     (file) => file.sourceStatus === INSTALL_PLAN_SOURCE_STATUS__MISSING,
   ).length
   const wouldWriteCount = installPlan.files.filter(
     (file) =>
-      file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING &&
+      file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__WRITE &&
       file.sourceStatus !== INSTALL_PLAN_SOURCE_STATUS__MISSING,
   ).length
   const countDependenciesByStatus = (status: TInstallPlanDependencyStatus) =>
@@ -222,6 +227,7 @@ export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddD
       blockedExistingTargetCount,
       missingSourceCount,
       plannedCount: installPlan.files.length,
+      reusedExistingTargetCount,
       wouldWriteCount,
     },
     installsDependencies: false,
@@ -253,6 +259,7 @@ export const createAddStrictEffects = ({
       blockedExistingTargetCount: dryRunEffects.files.blockedExistingTargetCount,
       missingSourceCount: dryRunEffects.files.missingSourceCount,
       plannedCount: dryRunEffects.files.plannedCount,
+      reusedExistingTargetCount: dryRunEffects.files.reusedExistingTargetCount,
       writtenCount: applied ? writtenFileCount : 0,
     },
     installsDependencies: false,

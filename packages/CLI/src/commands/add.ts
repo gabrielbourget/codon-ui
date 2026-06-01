@@ -25,6 +25,7 @@ import {
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+  INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   logger,
   readLocalRegistrySource,
   readComponentPacketsForRegistrySource,
@@ -271,6 +272,7 @@ export const add = new Command()
           logger.info(`Requested items: ${dryRun.installPlan.requestedItems.join(", ") || "(none)"}`)
           logger.info(`Planned files: ${dryRun.effects.files.plannedCount}`)
           logger.info(`Would write files: ${dryRun.effects.files.wouldWriteCount}`)
+          logger.info(`Reused existing support files: ${dryRun.effects.files.reusedExistingTargetCount}`)
           logger.info(`Existing target blockers: ${dryRun.effects.files.blockedExistingTargetCount}`)
           logger.info(`Missing sources: ${dryRun.effects.files.missingSourceCount}`)
           logger.info(`Dependency decisions: ${dryRun.effects.dependencies.requiresDecisionCount}`)
@@ -374,6 +376,7 @@ export const add = new Command()
             logger.error(`${chalk.red("[ Strict Add ]")} No files were written.`)
             logger.error(`Findings: ${blockedResult.findings.length}`)
             logger.error(`Dependency decisions: ${blockedResult.effects.dependencies.requiresDecisionCount}`)
+            logger.error(`Reused existing support files: ${blockedResult.effects.files.reusedExistingTargetCount}`)
             logger.error(`Existing target blockers: ${blockedResult.effects.files.blockedExistingTargetCount}`)
             logger.error(`Missing sources: ${blockedResult.effects.files.missingSourceCount}`)
           }
@@ -389,6 +392,9 @@ export const add = new Command()
           sourceRoot,
           themeTier: configPlan.config.theme.tier,
         })
+        const writtenFileCount = installPlanWithFindings.files.filter(
+          (file) => file.targetResolution !== INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+        ).length
         const result = addStrictSchema.parse({
           applied: true,
           componentPackets,
@@ -396,7 +402,7 @@ export const add = new Command()
           effects: createAddStrictEffects({
             applied: true,
             installPlan: installPlanWithFindings,
-            writtenFileCount: installPlanWithFindings.files.length,
+            writtenFileCount,
           }),
           findings,
           installPlan: installPlanWithFindings,
@@ -412,6 +418,7 @@ export const add = new Command()
         logger.info(`${chalk.green("[ Strict Add ]")} Switch installed.`)
         logger.info(`Registry source: ${result.registrySourcePath}`)
         logger.info(`Written files: ${result.effects.files.writtenCount}`)
+        logger.info(`Reused existing support files: ${result.effects.files.reusedExistingTargetCount}`)
         logger.info(`Lockfile items: ${result.effects.lockfile.plannedItems.length}`)
         logger.info(`Findings: ${result.findings.length}`)
 

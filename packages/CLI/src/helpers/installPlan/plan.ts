@@ -2,6 +2,8 @@ import crypto from "crypto"
 import { existsSync, readFileSync } from "fs"
 import path from "path"
 
+import { Project, ScriptKind } from "ts-morph"
+
 import {
   resolveConsumerLayout,
   resolveConsumerRegistryFileTarget,
@@ -20,11 +22,19 @@ import {
   INSTALL_PLAN_FINDING__MISSING_DEPENDENCY,
   INSTALL_PLAN_FINDING__MISSING_ITEM,
   INSTALL_PLAN_FINDING__SOURCE_FILE_MISSING,
+  INSTALL_PLAN_FINDING__SUPPORT_TARGET_REUSED,
   INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
+  INSTALL_PLAN_FINDING_SEVERITY__INFO,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_SOURCE_STATUS__AVAILABLE,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__TYPESCRIPT_EXPORT_SUPERSET,
+  INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+  INSTALL_PLAN_TARGET_RESOLUTION__WRITE,
+  REGISTRY_ITEM_TYPE__SUPPORT,
 } from "./constants"
 import { createDependencyOwnerKey, createInstallPlanDependencyInspection } from "./dependencyInspection"
 import {
@@ -33,11 +43,14 @@ import {
   type TInstallPlanDependencies,
   type TInstallPlanFile,
   type TInstallPlanFinding,
+  type TInstallPlanTargetCompatibility,
   type TInstallPlanItem,
   type TLocalRegistryItem,
   type TLocalRegistrySource,
   type TRegistryInstallPlan,
 } from "./schema"
+
+const TYPESCRIPT_EXTENSIONS = [".ts", ".tsx"] as const
 
 const mergeDependencyMaps = (dependencyMaps: readonly Record<string, string>[]) =>
   dependencyMaps.reduce<Record<string, string>>(
@@ -94,6 +107,58 @@ const createFileTargetKey = (file: Pick<TInstallPlanFile, "resolvedPath">) => fi
 
 const createContentHash = (filePath: string) =>
   `sha256:${crypto.createHash("sha256").update(readFileSync(filePath)).digest("hex")}`
+
+const getScriptKind = (filePath: string) => {
+  if (filePath.endsWith(".tsx")) return ScriptKind.TSX
+  if (filePath.endsWith(".ts")) return ScriptKind.TS
+
+  return undefined
+}
+
+const isTypeScriptSourceFile = (filePath: string) =>
+  TYPESCRIPT_EXTENSIONS.some((extension) => filePath.endsWith(extension))
+
+const readExportedNames = (filePath: string) => {
+  const scriptKind = getScriptKind(filePath)
+
+  if (!scriptKind) return new Set<string>()
+
+  const project = new Project({ compilerOptions: {} })
+  const sourceFile = project.createSourceFile(filePath, readFileSync(filePath, "utf8"), {
+    overwrite: true,
+    scriptKind,
+  })
+
+  return new Set([...sourceFile.getExportedDeclarations().keys()].filter((exportedName) => exportedName !== "default"))
+}
+
+const createSupportTargetCompatibility = ({
+  sourceContentHash,
+  sourcePath,
+  targetContentHash,
+  targetPath,
+}: {
+  sourceContentHash: string
+  sourcePath: string
+  targetContentHash: string
+  targetPath: string
+}): TInstallPlanTargetCompatibility | undefined => {
+  if (sourceContentHash === targetContentHash) return INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH
+  if (!isTypeScriptSourceFile(sourcePath) || !isTypeScriptSourceFile(targetPath)) return undefined
+
+  try {
+    const sourceExports = readExportedNames(sourcePath)
+    const targetExports = readExportedNames(targetPath)
+
+    if (sourceExports.size === 0) return undefined
+
+    return [...sourceExports].every((exportedName) => targetExports.has(exportedName))
+      ? INSTALL_PLAN_TARGET_COMPATIBILITY__TYPESCRIPT_EXPORT_SUPERSET
+      : undefined
+  } catch {
+    return undefined
+  }
+}
 
 export const createRegistryInstallPlan = ({
   consumerRoot,
@@ -184,14 +249,33 @@ export const createRegistryInstallPlan = ({
         file,
         targetPaths: layout.targetPaths,
       })
-      const targetStatus =
-        consumerRoot && existsSync(path.resolve(consumerRoot, resolvedFileTarget.resolvedPath))
-          ? INSTALL_PLAN_FILE_STATUS__EXISTING
-          : INSTALL_PLAN_FILE_STATUS__MISSING
+      const resolvedTargetPath = consumerRoot ? path.resolve(consumerRoot, resolvedFileTarget.resolvedPath) : undefined
+      const targetExists = Boolean(resolvedTargetPath && existsSync(resolvedTargetPath))
+      const targetStatus = targetExists ? INSTALL_PLAN_FILE_STATUS__EXISTING : INSTALL_PLAN_FILE_STATUS__MISSING
       const resolvedSourcePath = sourceRoot ? path.resolve(sourceRoot, file.sourcePath) : undefined
       const sourceExists = resolvedSourcePath ? existsSync(resolvedSourcePath) : false
       const sourceStatus = sourceExists ? INSTALL_PLAN_SOURCE_STATUS__AVAILABLE : INSTALL_PLAN_SOURCE_STATUS__MISSING
       const contentHash = sourceExists && resolvedSourcePath ? createContentHash(resolvedSourcePath) : file.contentHash
+      const targetContentHash = targetExists && resolvedTargetPath ? createContentHash(resolvedTargetPath) : undefined
+      const targetCompatibility =
+        item.type === REGISTRY_ITEM_TYPE__SUPPORT &&
+        sourceExists &&
+        resolvedSourcePath &&
+        resolvedTargetPath &&
+        contentHash &&
+        targetContentHash
+          ? createSupportTargetCompatibility({
+              sourceContentHash: contentHash,
+              sourcePath: resolvedSourcePath,
+              targetContentHash,
+              targetPath: resolvedTargetPath,
+            })
+          : undefined
+      const targetResolution = targetExists
+        ? targetCompatibility
+          ? INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+          : INSTALL_PLAN_TARGET_RESOLUTION__BLOCK_EXISTING
+        : INSTALL_PLAN_TARGET_RESOLUTION__WRITE
 
       return {
         ...file,
@@ -199,6 +283,9 @@ export const createRegistryInstallPlan = ({
         itemName: item.name,
         resolvedPath: resolvedFileTarget.resolvedPath,
         sourceStatus,
+        targetCompatibility,
+        targetContentHash,
+        targetResolution,
         targetStatus,
       }
     }),
@@ -226,6 +313,17 @@ export const createRegistryInstallPlan = ({
 
   files.forEach((file) => {
     if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return
+
+    if (file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING) {
+      findings.push({
+        code: INSTALL_PLAN_FINDING__SUPPORT_TARGET_REUSED,
+        itemName: file.itemName,
+        message: `Existing support file at ${file.resolvedPath} satisfies registry item "${file.itemName}" by ${file.targetCompatibility}.`,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__INFO,
+        targetPath: file.resolvedPath,
+      })
+      return
+    }
 
     findings.push({
       code: INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,

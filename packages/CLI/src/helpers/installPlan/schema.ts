@@ -8,6 +8,8 @@ import {
   INSTALL_PLAN_FILE_STATUSES,
   INSTALL_PLAN_FINDING_SEVERITIES,
   INSTALL_PLAN_SOURCE_STATUSES,
+  INSTALL_PLAN_TARGET_COMPATIBILITIES,
+  INSTALL_PLAN_TARGET_RESOLUTIONS,
   LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION,
   REGISTRY_FILE_ROLES,
   REGISTRY_INSTALL_PLAN_SCHEMA_VERSION,
@@ -18,6 +20,8 @@ export type TRegistryItemType = (typeof REGISTRY_ITEM_TYPES)[number]
 export type TRegistryFileRole = (typeof REGISTRY_FILE_ROLES)[number]
 export type TInstallPlanFileStatus = (typeof INSTALL_PLAN_FILE_STATUSES)[number]
 export type TInstallPlanSourceStatus = (typeof INSTALL_PLAN_SOURCE_STATUSES)[number]
+export type TInstallPlanTargetResolution = (typeof INSTALL_PLAN_TARGET_RESOLUTIONS)[number]
+export type TInstallPlanTargetCompatibility = (typeof INSTALL_PLAN_TARGET_COMPATIBILITIES)[number]
 export type TInstallPlanDependencyKind = (typeof INSTALL_PLAN_DEPENDENCY_KINDS)[number]
 export type TInstallPlanDependencyStatus = (typeof INSTALL_PLAN_DEPENDENCY_STATUSES)[number]
 export type TInstallPlanFindingSeverity = (typeof INSTALL_PLAN_FINDING_SEVERITIES)[number]
@@ -85,6 +89,9 @@ export const installPlanFileSchema = z
     resolvedPath: z.string().min(1),
     sourceStatus: z.enum(INSTALL_PLAN_SOURCE_STATUSES),
     targetStatus: z.enum(INSTALL_PLAN_FILE_STATUSES),
+    targetResolution: z.enum(INSTALL_PLAN_TARGET_RESOLUTIONS),
+    targetCompatibility: z.enum(INSTALL_PLAN_TARGET_COMPATIBILITIES).optional(),
+    targetContentHash: z.string().min(1).optional(),
     role: z.enum(REGISTRY_FILE_ROLES),
     contentHash: z.string().min(1).optional(),
     required: z.boolean().optional(),
@@ -247,6 +254,7 @@ export const addDryRunEffectsSchema = z
         blockedExistingTargetCount: z.number().int().nonnegative(),
         missingSourceCount: z.number().int().nonnegative(),
         plannedCount: z.number().int().nonnegative(),
+        reusedExistingTargetCount: z.number().int().nonnegative(),
         wouldWriteCount: z.number().int().nonnegative(),
       })
       .strict(),
@@ -296,6 +304,7 @@ export const addStrictEffectsSchema = z
         blockedExistingTargetCount: z.number().int().nonnegative(),
         missingSourceCount: z.number().int().nonnegative(),
         plannedCount: z.number().int().nonnegative(),
+        reusedExistingTargetCount: z.number().int().nonnegative(),
         writtenCount: z.number().int().nonnegative(),
       })
       .strict(),
