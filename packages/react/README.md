@@ -2,24 +2,24 @@
 
 Canonical React source package for Amino UI components.
 
-This package is currently a receiver shell. It exists to establish package ownership, exports, verification, and the
-default CSS entrypoint before any Wavemap component source is moved into the monorepo.
+This package now owns the first received `Switch` source slice. It exists to establish package ownership, exports,
+verification, registry manifests, and the default CSS entrypoint before consumer-side delete-and-rehydrate proof work.
 
 Current boundaries:
 
-- Component source belongs under `src/`.
+- Component source belongs under `src/`; `Switch` currently lives under `src/components/Switch`.
 - Package-facing exports belong in `src/index.ts`.
 - Default package CSS is exported as `@amino-ui/react/theme.css`.
 - The default CSS contract is tracked in `../../docs/roadmaps/react-theme-css-contract.md`.
 - Internal registry manifest skeletons belong under `src/registry`.
-- The CLI local support registry snapshot must match `src/registry/manifest.ts`.
-- React and React DOM are peer dependencies.
-- React Aria dependencies should be added only when the first component that needs them lands.
+- The CLI local support registry snapshot must match the support/theme subset of `src/registry/manifest.ts`.
+- React, React DOM, and React Aria Components are peer dependencies.
+- `classnames` is a runtime dependency while the received `Switch` source still uses it.
 
 Not included yet:
 
-- Wavemap component source.
 - Registry artifact generation or local registry snapshot codegen.
 - CLI install, update, or diff behavior.
 - Generated token files or token writers.
 - Broad Wavemap compatibility aliases in the default theme.
+- Package-side component test harness.

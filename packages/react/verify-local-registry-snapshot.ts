@@ -7,6 +7,7 @@ import { reactRegistryManifest } from "./src/registry"
 const LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION = 1
 const LOCAL_REGISTRY_SOURCE_IDENTITY = "@amino-ui/react-local-support"
 const LOCAL_REGISTRY_SOURCE_ROOT = "../../.."
+const LOCAL_SUPPORT_REGISTRY_ITEM_TYPES = new Set(["support", "theme"])
 
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const repoRoot = path.resolve(packageRoot, "../..")
@@ -31,11 +32,14 @@ const stableStringify = (value: unknown): string => {
 }
 
 const snapshot = JSON.parse(readFileSync(localRegistrySnapshotPath, "utf8")) as unknown
+const localSupportRegistryManifest = reactRegistryManifest.filter((item) =>
+  LOCAL_SUPPORT_REGISTRY_ITEM_TYPES.has(item.type),
+)
 const expectedSnapshot = {
   schemaVersion: LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION,
   sourceIdentity: LOCAL_REGISTRY_SOURCE_IDENTITY,
   sourceRoot: LOCAL_REGISTRY_SOURCE_ROOT,
-  items: reactRegistryManifest,
+  items: localSupportRegistryManifest,
 }
 
 const actualSnapshotSignature = stableStringify(snapshot)
@@ -43,13 +47,17 @@ const expectedSnapshotSignature = stableStringify(expectedSnapshot)
 
 if (actualSnapshotSignature !== expectedSnapshotSignature) {
   fail(
-    "packages/CLI/registry/local-react-support.registry.json has drifted from packages/react/src/registry/manifest.ts.",
+    "packages/CLI/registry/local-react-support.registry.json has drifted from the support/theme subset in packages/react/src/registry/manifest.ts.",
   )
-  fail("Update the tracked snapshot to match the canonical React manifest, or add an approved generator pass.")
+  fail(
+    "Update the tracked support snapshot to match the canonical React manifest subset, or add an approved generator pass.",
+  )
 }
 
 if (process.exitCode) {
   process.exit()
 }
 
-console.log("[local-registry-snapshot-contract] local support registry snapshot matches reactRegistryManifest.")
+console.log(
+  "[local-registry-snapshot-contract] local support registry snapshot matches reactRegistryManifest support/theme items.",
+)

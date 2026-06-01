@@ -14,9 +14,9 @@ artifacts, install dependencies, or mutate consumers.
 
 The first concrete packet target is now represented by
 `packages/react/src/registry/switch-ingest-packet.data.json`, with
-`packages/react/src/registry/switch-ingest-packet.ts` exposing the typed draft packet. It is a draft packet only: it is
-not part of the active registry manifest, it does not point at copied package source, and it does not approve dependency
-installs or strict `add switch` behavior.
+`packages/react/src/registry/switch-ingest-packet.ts` exposing the typed packet. The runtime `Switch` source now points at
+copied package source and `switch` is active in the producer manifest. The packet still feeds early CLI advisory planning
+until generated component registry artifacts or a local component registry reader replace the draft append path.
 
 ## Packet Shape
 
@@ -34,8 +34,9 @@ The packet captures:
 | `themeRequirements`   | Default theme use, proof compatibility bridge needs, or consumer-owned theme assumptions.   |
 | `verification`        | Commands or scans needed to prove the receipt; each step can be advisory.                   |
 
-The ingest packet should be normalized into manifest items only after the source files exist in `packages/react` and the
-dependency/theme decisions are approved.
+The ingest packet can be normalized into manifest items only after the source files exist in `packages/react` and the
+dependency/theme decisions are approved. `Switch` has passed that producer-side checkpoint; strict consumer installation
+remains separate.
 
 ## Theme Strategies
 
@@ -72,13 +73,14 @@ This keeps the first proof minimal while preserving room for richer consumer lay
 - [x] Record proof-local compatibility bridge requirements.
 - [x] Record forbidden-import scans and focused verification commands.
 - [x] Make the draft packet readable by CLI advisory planning without activating it.
-- [ ] Normalize into an active manifest item only after source receipt.
+- [x] Normalize into an active manifest item only after source receipt.
 
 ## Draft `Switch` Packet Read
 
-The draft packet captures:
+The packet captures:
 
-- Wavemap source paths for `Switch.tsx`, `helpers.tsx`, `SwitchStyles.module.css`, and the focused test.
+- Package source paths for `Switch.tsx`, `helpers.tsx`, and `SwitchStyles.module.css`; the focused test remains optional
+  deferred proof material.
 - Role-based consumer targets under `Switch/...` so the default `components` role resolves to `src/components/Switch/...`
   instead of duplicating a `components` path segment.
 - Public surface intent: named `Switch` export and package-facing `SwitchProps` type aliasing the current `TSwitchProps`
@@ -88,8 +90,8 @@ The draft packet captures:
   scratch.
 - Existing support dependencies on `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
   `tokens/theme-order`.
-- First-proof dependency posture: React and React DOM peers, React Aria Components peer at `^1.17.0`, `classnames`
-  runtime dependency at `^2.3.2`, and test packages to decide only if the focused test moves.
+- First-proof dependency posture: React and React DOM peers, React Aria Components peer at `^1.17.0`, and `classnames`
+  runtime dependency at `^2.3.2`; test packages are deferred until the testing work area.
 - Default theme variables already covered by `theme.css` and missing compatibility variables that require a narrow
   proof-local bridge.
 
@@ -97,16 +99,16 @@ The draft packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and
 later public API review says otherwise.
 
 `add switch --advisory --json` now reads the draft packet data and produces a non-mutating plan. That plan reports
-support files, draft component files, public export intent, import rewrites, theme requirements, dependency
-classification, unresolved test dependency versions, missing source status for the not-yet-received `Switch` files, and
-planned-but-not-written lockfile effects.
+support files, received component files, public export intent, import rewrites, theme requirements, dependency
+classification, available source status for the received runtime `Switch` files, deferred optional test source status,
+and planned-but-not-written lockfile effects.
 
 ## Stop Conditions
 
 Return to deliberate planning if ingest work requires:
 
-- Moving `Switch` or another Wavemap component before the packet is approved.
-- Adding dependency installs or lockfile changes.
+- Moving another Wavemap component before the packet is approved.
+- Adding unapproved dependency installs or lockfile changes.
 - Generating token writers.
 - Implementing CLI install/update/diff/status/ejection behavior.
 - Committing generated registry artifacts as source.

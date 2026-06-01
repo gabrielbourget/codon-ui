@@ -6,25 +6,25 @@
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#read-only-switch-graph-audit",
   "files": [
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/Switch.tsx",
+      "sourcePath": "packages/react/src/components/Switch/Switch.tsx",
       "targetRole": "components",
       "targetPath": "Switch/Switch.tsx",
       "role": "source"
     },
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/helpers.tsx",
+      "sourcePath": "packages/react/src/components/Switch/helpers.tsx",
       "targetRole": "components",
       "targetPath": "Switch/helpers.tsx",
       "role": "source"
     },
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/SwitchStyles.module.css",
+      "sourcePath": "packages/react/src/components/Switch/SwitchStyles.module.css",
       "targetRole": "components",
       "targetPath": "Switch/SwitchStyles.module.css",
       "role": "style"
     },
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/__tests__/Switch.test.tsx",
+      "sourcePath": "packages/react/src/components/Switch/__tests__/Switch.test.tsx",
       "targetRole": "components",
       "targetPath": "Switch/__tests__/Switch.test.tsx",
       "role": "test",
@@ -35,30 +35,30 @@
     {
       "exportedName": "Switch",
       "localName": "default",
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/Switch.tsx"
+      "sourcePath": "packages/react/src/components/Switch/Switch.tsx"
     },
     {
       "exportedName": "SwitchProps",
       "localName": "TSwitchProps",
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/helpers.tsx",
+      "sourcePath": "packages/react/src/components/Switch/helpers.tsx",
       "typeOnly": true
     }
   ],
   "importResolutions": [
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/helpers.tsx",
+      "sourcePath": "packages/react/src/components/Switch/helpers.tsx",
       "importSource": "@/src/components/_registry/tokens",
       "replacementSource": "../../tokens/geometry",
-      "notes": ["Replace geometry constants and types with the package-local token module during source receipt."]
+      "notes": ["Geometry constants and types now import from the package-local token module."]
     },
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/helpers.tsx",
+      "sourcePath": "packages/react/src/components/Switch/helpers.tsx",
       "importSource": "@/src/components/_registry/tokens",
       "replacementSource": "../../tokens/theme-order",
-      "notes": ["Replace theme-order constants and types with the package-local token module during source receipt."]
+      "notes": ["Theme-order constants and types now import from the package-local token module."]
     },
     {
-      "sourcePath": "apps/wavemap-front-end/src/components/Switch/__tests__/Switch.test.tsx",
+      "sourcePath": "packages/react/src/components/Switch/__tests__/Switch.test.tsx",
       "importSource": "@/src/components/Switch/Switch",
       "replacementSource": "../Switch",
       "advisory": true,
@@ -79,12 +79,6 @@
   },
   "runtimeDependencies": {
     "classnames": "^2.3.2"
-  },
-  "devDependencies": {
-    "@testing-library/jest-dom": "TO_DECIDE",
-    "@testing-library/react": "TO_DECIDE",
-    "@testing-library/user-event": "TO_DECIDE",
-    "vitest": "TO_DECIDE"
   },
   "themeRequirements": [
     {
@@ -131,10 +125,10 @@
   "verification": [
     {
       "kind": "scan",
-      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/(?!components/_registry/tokens)\" apps/wavemap-front-end/src/components/Switch/Switch.tsx apps/wavemap-front-end/src/components/Switch/helpers.tsx apps/wavemap-front-end/src/components/Switch/SwitchStyles.module.css",
-      "workingDirectory": "../wavemap",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/Switch/Switch.tsx packages/react/src/components/Switch/helpers.tsx packages/react/src/components/Switch/SwitchStyles.module.css",
+      "workingDirectory": ".",
       "advisory": true,
-      "notes": ["Read-only audit result was clean except for the expected registry token support edge."]
+      "notes": ["Source-receipt scan should remain clean after the approved token import rewrites."]
     },
     {
       "kind": "command",
@@ -151,7 +145,7 @@
     }
   ],
   "notes": [
-    "Draft only: do not add this packet to reactRegistryManifest until Switch source exists in packages/react.",
+    "Switch runtime source has been received into packages/react; this packet still feeds early CLI advisory planning until generated component registry artifacts exist.",
     "Preserve the client component boundary and CSS-module source model for the first proof.",
     "Keep calibrateComponent, DEFAULT_ON_ICON, and DEFAULT_OFF_ICON private unless a later API review approves exporting them.",
     "Do not move Wavemap consumers, component showcase code, or commented legacy event-form scratch with the component."

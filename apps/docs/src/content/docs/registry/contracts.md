@@ -12,7 +12,7 @@ derived from tracked source and explicit manifests.
 packages/react source + explicit registry manifests -> generated registry artifacts
 ```
 
-The current active manifest entries are support-only:
+The current active manifest entries are:
 
 | Item                         | Role                                |
 | ---------------------------- | ----------------------------------- |
@@ -20,8 +20,7 @@ The current active manifest entries are support-only:
 | `theme/switch-compatibility` | Narrow first-proof `Switch` bridge. |
 | `tokens/geometry`            | Corner geometry token support.      |
 | `tokens/theme-order`         | Theme-order token support.          |
-
-No component manifest entry is active yet.
+| `switch`                     | Received first-proof component.     |
 
 ## Manifest Shape
 
@@ -68,8 +67,9 @@ The planner does not generate artifacts, mutate consumer projects, install packa
 tracked source file that would feed a future generated artifact.
 
 `pnpm -F @amino-ui/react check:local-registry-snapshot` verifies that
-`packages/CLI/registry/local-react-support.registry.json` still matches the active React manifest. The JSON snapshot is
-tracked for early advisory planning only; code generation remains a later registry-artifact pass.
+`packages/CLI/registry/local-react-support.registry.json` still matches the support/theme subset of the active React
+manifest. The JSON snapshot is tracked for early advisory planning only; code generation remains a later
+registry-artifact pass.
 
 ## Artifact Policy
 

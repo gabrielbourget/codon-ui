@@ -10,8 +10,9 @@ graph, support files, public exports, theme requirements, dependency policy, and
 artifacts, install dependencies, or mutate consumer projects.
 
 `packages/react/src/registry/switch-ingest-packet.data.json` is the first concrete draft packet data source, and
-`packages/react/src/registry/switch-ingest-packet.ts` exposes it as a typed packet. It is not an active manifest item and
-does not approve source movement, dependency installs, strict `add switch`, or registry artifact generation.
+`packages/react/src/registry/switch-ingest-packet.ts` exposes it as a typed packet. `Switch` runtime source has now been
+received into `packages/react` and activated in the producer manifest. The packet remains the early CLI advisory source
+until generated component registry artifacts or a local component registry reader exists.
 
 ## Packet Areas
 
@@ -39,12 +40,13 @@ The initial strategies are:
 
 ## First Proof Boundary
 
-`Switch` remains the first packet target, but the packet is still draft-only. It records source files, optional focused
+`Switch` remains the first packet target. It records source files, optional focused
 test material, excluded Wavemap consumers, import rewrites, support dependencies, theme bridge requirements, dependency
 posture, and verification commands. Its first-proof package posture now treats React Aria Components as a `^1.17.0` peer
-requirement and `classnames` as a `^2.3.2` runtime requirement. It should be normalized into manifest items only after
-the source files exist in `packages/react` and the remaining proof details are approved.
+requirement and `classnames` as a `^2.3.2` runtime requirement. It has been normalized into the active producer manifest;
+strict consumer install behavior remains separate.
 
 The CLI can now read the draft packet for `add switch --advisory --json`. That output is planning evidence only: it
-reports support files, draft component files, dependency posture, theme requirements, missing source status, and
-not-written lockfile effects without writing files or activating `Switch`.
+reports support files, received component files, dependency posture, theme requirements, missing source status, and
+not-written lockfile effects without writing files. Runtime `Switch` files now report available source; the missing
+source status applies only to the deferred optional focused test.

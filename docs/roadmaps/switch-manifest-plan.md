@@ -2,14 +2,14 @@
 
 ## Purpose
 
-This is the first draft of the `Switch` registry manifest plan. It is intentionally docs-only.
+This records the first `Switch` registry manifest plan and the source-receipt checkpoint.
 
-A non-active typed ingest packet now lives at `packages/react/src/registry/switch-ingest-packet.ts`, backed by
-`packages/react/src/registry/switch-ingest-packet.data.json`. Treat that packet as the current review surface for source
-receipt and CLI advisory planning. It is not an active `reactRegistryManifest` item.
+The typed ingest packet lives at `packages/react/src/registry/switch-ingest-packet.ts`, backed by
+`packages/react/src/registry/switch-ingest-packet.data.json`. The runtime source has now been received into
+`packages/react/src/components/Switch`, and `switch` is active in `reactRegistryManifest`.
 
-Do not activate a `Switch` manifest item until the source files exist in Amino UI and the remaining proof decisions are
-approved.
+The packet still feeds early CLI advisory planning until a generated or local component registry source replaces the
+draft-packet append path.
 
 ## Current Read
 
@@ -25,7 +25,7 @@ Wavemap's read-only `Switch` graph audit confirmed:
 
 ## Draft Registry Item
 
-The likely registry item is:
+The active registry item is:
 
 ```ts
 {
@@ -69,15 +69,12 @@ The likely registry item is:
 }
 ```
 
-This draft uses the current manifest skeleton shape, but it should not be copied into
-`packages/react/src/registry/manifest.ts` yet because the component source files do not exist in Amino UI.
-
 The target paths are relative to the configured `components` role. Under the default `registry-contained` consumer
 layout, `Switch/Switch.tsx` resolves to `src/components/Switch/Switch.tsx`.
 
 `add switch --advisory --json` can now read the draft packet data and report the planned component files, support graph,
-theme requirements, dependency posture, missing source status, and not-written lockfile effects. That advisory output is
-not an install path and does not activate the manifest.
+theme requirements, dependency posture, available runtime source status, deferred optional test source status, and
+not-written lockfile effects. That advisory output is not a strict install path.
 
 ## Support Items To Decide
 
@@ -120,16 +117,18 @@ Expected test adaptation:
   content slots, native class/style merge, wrapper prop hygiene, and CSS selector regressions.
 - Add only a minimal smoke test if the package test harness is not ready yet.
 
-## Blockers Before Active Manifest
+## Source Receipt Checkpoint
 
-Do not activate the manifest until these are resolved:
+- `Switch.tsx`, `helpers.tsx`, and `SwitchStyles.module.css` now live under `packages/react/src/components/Switch`.
+- `helpers.tsx` imports geometry and theme-order constants/types from package-local token support modules.
+- The public package barrel exports `Switch` and aliases `TSwitchProps` as `SwitchProps` for the bridge phase.
+- `react-aria-components` is a peer dependency and dev dependency for local package builds at `^1.17.0`.
+- `classnames` is a package runtime dependency at `^2.3.2`.
+- The active manifest entry depends on `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
+  `tokens/theme-order`.
 
-- Source receipt into `packages/react/src/components/Switch`.
-- Final component import edits from Wavemap `_registry/tokens` to `../../tokens/geometry` and `../../tokens/theme-order`.
-- Test harness location and command.
-- Whether `SwitchProps` is an alias over `TSwitchProps` or a source rename.
-- Whether the draft packet's `Switch/__tests__/Switch.test.tsx` target remains co-located with the installed source or
-  moves into a package-only test harness before activation.
+The focused test remains deferred until the component-library testing work area. The optional packet entry continues to
+surface it as missing source so strict install readiness is visible.
 
 ## Stop Conditions
 

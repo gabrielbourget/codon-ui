@@ -40,14 +40,14 @@ pnpm -F @amino-ui/docs build
 ## Current Boundaries
 
 - `@amino-ui/react/theme.css` is hand-authored and intentionally narrow.
-- React and React DOM are the only current `@amino-ui/react` peers.
-- React Aria Components should be added only when the first received component needs it.
-- Registry manifests have real support entries, but no active component entry.
-- `Switch` remains the likely first extraction proof candidate, but source movement waits on proof location, dependency
-  policy, compatibility bridge shape, public export aliases, and focused test relocation.
+- React, React DOM, and React Aria Components are current `@amino-ui/react` peers.
+- `Switch` is the first received component source slice under `packages/react/src/components/Switch`.
+- Registry manifests have real support entries and an active `switch` component entry.
+- `Switch` still waits on strict CLI install behavior, lockfile writes, focused test harness work, and the Wavemap
+  delete-and-rehydrate proof.
 
 ## Guardrails
 
-Do not treat this foundation branch as approval to move components, expand CLI install behavior, publish packages, add
-generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the roadmap docs under
+Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish
+packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the roadmap docs under
 `docs/roadmaps` before opening follow-up implementation passes.

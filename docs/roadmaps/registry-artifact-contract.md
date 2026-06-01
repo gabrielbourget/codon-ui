@@ -41,8 +41,7 @@ Current active React manifest entries are support-only:
 - `theme/switch-compatibility`
 - `tokens/geometry`
 - `tokens/theme-order`
-
-No component manifest entry is active yet.
+- `switch`
 
 ## Source Of Truth
 
@@ -64,8 +63,9 @@ The registry builder should consume explicit manifests or file lists. It should 
 directory recursion, generated output directories, or stale web-app registry lists.
 
 The current CLI local support registry at `packages/CLI/registry/local-react-support.registry.json` is a checked-in
-snapshot for early advisory planning only. It must match the active React manifest. A later generator pass can replace the
-manual snapshot update step, but this pass deliberately adds verification rather than code generation.
+snapshot for early advisory planning only. It must match the support/theme subset of the active React manifest. A later
+generator pass can replace the manual snapshot update step, but this pass deliberately adds verification rather than code
+generation.
 
 ## Artifact Policy
 

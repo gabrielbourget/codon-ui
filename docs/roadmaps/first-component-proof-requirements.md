@@ -6,8 +6,8 @@ The first component proof should show that Amino UI can own a small real compone
 publication, or generated-token work expands around it.
 
 `Switch` remains the likely first proof candidate because Wavemap's polish and extraction roadmaps already classify it as
-small, representative, and free of app-domain runtime imports. This document names the approval packet needed before any
-source movement.
+small, representative, and free of app-domain runtime imports. This document names the approval packet and source-receipt
+constraints needed before strict consumer install proof work.
 
 ## Source Roadmaps
 
@@ -19,7 +19,7 @@ Use these Wavemap notes as the current source of truth for candidate readiness:
 The Amino UI repo should not duplicate every Wavemap finding. It should track only the target-repo decisions needed to
 receive and prove the component.
 
-The first draft `Switch` manifest plan lives in `switch-manifest-plan.md`. The current non-active packet data lives in
+The first `Switch` manifest plan lives in `switch-manifest-plan.md`. The current advisory packet data lives in
 `packages/react/src/registry/switch-ingest-packet.data.json` and is exposed through
 `packages/react/src/registry/switch-ingest-packet.ts`.
 
@@ -49,7 +49,7 @@ Carry these assumptions forward from the Wavemap polish audit unless a fresh sou
 - Runtime source files are `Switch.tsx`, `helpers.tsx`, and `SwitchStyles.module.css`.
 - The focused Wavemap test is useful proof material, but it needs package-safe imports before it can become a package
   test.
-- The current typed packet lists the focused test as optional proof material, not installable runtime source.
+- The current typed packet lists the focused test as optional deferred proof material, not installable runtime source.
 - Current Wavemap consumers prove usage only. Settings, filtering, showcase, and commented legacy consumers should not be
   installed with the component.
 - `Switch` should expose a named public component export.
@@ -79,7 +79,7 @@ Before implementing the proof, collect and record:
 - Non-active typed ingest packet that records source files, exclusions, import rewrites, dependencies, theme requirements,
   and verification commands.
 - `add switch --advisory --json` evidence showing planned files, support graph, dependency posture, theme requirements,
-  missing source status, and not-written lockfile effects.
+  source availability for received runtime files, deferred optional test source status, and not-written lockfile effects.
 
 ## Stop Conditions
 
