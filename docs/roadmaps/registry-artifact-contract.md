@@ -19,8 +19,8 @@ This contract defines the target shape before `Switch` or any other Wavemap comp
   cycles, and duplicate file targets.
 - `verify-registry-graph.ts` smoke-tests the active manifest by resolving the graph and reading the local source files
   that would feed generated artifacts.
-- `verify-local-registry-snapshot.ts` checks the tracked CLI local support registry snapshot against the canonical React
-  manifest so early advisory planning cannot silently drift.
+- `verify-local-registry-snapshot.ts` checks the tracked CLI local support and full React registry snapshots against the
+  canonical React manifest so early advisory planning cannot silently drift.
 
 The current web app registry code is legacy scaffold and should not be treated as authoritative.
 
@@ -35,7 +35,7 @@ Current reads:
   `packages/react`.
 - The CLI currently fetches registry artifacts, but install/update/diff behavior is not proof-ready.
 
-Current active React manifest entries are support-only:
+Current active React manifest entries:
 
 - `theme-css`
 - `theme/switch-compatibility`
@@ -63,9 +63,11 @@ The registry builder should consume explicit manifests or file lists. It should 
 directory recursion, generated output directories, or stale web-app registry lists.
 
 The current CLI local support registry at `packages/CLI/registry/local-react-support.registry.json` is a checked-in
-snapshot for early advisory planning only. It must match the support/theme subset of the active React manifest. A later
-generator pass can replace the manual snapshot update step, but this pass deliberately adds verification rather than code
-generation.
+snapshot for support-only advisory planning. It must match the support/theme subset of the active React manifest.
+
+The full local React registry at `packages/CLI/registry/local-react.registry.json` is a checked-in snapshot for early
+`Switch` advisory planning. It must match the active React manifest. A later generator pass can replace the manual
+snapshot update step, but this pass deliberately adds verification rather than code generation.
 
 ## Artifact Policy
 

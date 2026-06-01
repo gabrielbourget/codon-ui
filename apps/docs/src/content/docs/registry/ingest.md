@@ -9,10 +9,10 @@ graph, support files, public exports, theme requirements, dependency policy, and
 `packages/react/src/registry/ingest.ts` defines the current type-only packet. It does not copy files, generate registry
 artifacts, install dependencies, or mutate consumer projects.
 
-`packages/react/src/registry/switch-ingest-packet.data.json` is the first concrete draft packet data source, and
+`packages/react/src/registry/switch-ingest-packet.data.json` is the first concrete packet data source, and
 `packages/react/src/registry/switch-ingest-packet.ts` exposes it as a typed packet. `Switch` runtime source has now been
-received into `packages/react` and activated in the producer manifest. The packet remains the early CLI advisory source
-until generated component registry artifacts or a local component registry reader exists.
+received into `packages/react` and activated in the producer manifest. The full local React registry source now owns
+advisory install-plan files; the packet remains advisory metadata until generated component registry artifacts exist.
 
 ## Packet Areas
 
@@ -46,7 +46,7 @@ posture, and verification commands. Its first-proof package posture now treats R
 requirement and `classnames` as a `^2.3.2` runtime requirement. It has been normalized into the active producer manifest;
 strict consumer install behavior remains separate.
 
-The CLI can now read the draft packet for `add switch --advisory --json`. That output is planning evidence only: it
-reports support files, received component files, dependency posture, theme requirements, missing source status, and
-not-written lockfile effects without writing files. Runtime `Switch` files now report available source; the missing
-source status applies only to the deferred optional focused test.
+The CLI can now read `packages/CLI/registry/local-react.registry.json` plus the packet for `add switch --advisory --json`.
+That output is planning evidence only: it reports support files, received component files, dependency posture, theme
+requirements, and not-written lockfile effects without writing files. Runtime `Switch` files report available source; the
+optional focused test remains metadata-only until the testing work area.

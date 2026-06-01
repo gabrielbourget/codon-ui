@@ -15,11 +15,11 @@ import {
   consumerConfigSchema,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
-  createRegistrySourceWithDraftSwitchPacket,
-  getDefaultLocalRegistrySourcePath,
   handleError,
   logger,
   readLocalRegistrySource,
+  readComponentPacketsForRegistrySource,
+  resolveDefaultAddAdvisoryRegistrySourcePath,
 } from "@/src/helpers"
 import { getConfig } from "@/src/helpers/config"
 import {
@@ -121,11 +121,7 @@ export const add = new Command()
   .option("-a, --all", "Add all available components to your project.", false)
   .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
   .option("--json", "Print machine-readable advisory output.", false)
-  .option(
-    "--registry-source <path>",
-    "Path to a local registry source JSON file for advisory planning.",
-    getDefaultLocalRegistrySourcePath(),
-  )
+  .option("--registry-source <path>", "Path to a local registry source JSON file for advisory planning.")
   .option(
     "-p, --path <path>",
     "A path to the directory where your chosen components should be added. Defaults to 'components'.",
@@ -142,15 +138,23 @@ export const add = new Command()
       }
 
       if (options.advisory) {
-        const { registrySource, registrySourcePath, sourceRoot } = await readLocalRegistrySource(options.registrySource)
+        const explicitRequestedItems = options.components ?? []
+        const registrySourcePathOption =
+          options.registrySource ??
+          resolveDefaultAddAdvisoryRegistrySourcePath({
+            allComponents: options.allComponents,
+            requestedItems: explicitRequestedItems,
+          })
+        const { registrySource, registrySourcePath, sourceRoot } =
+          await readLocalRegistrySource(registrySourcePathOption)
         const requestedItems = options.allComponents
           ? registrySource.items.map((item) => item.name)
-          : (options.components ?? [])
+          : explicitRequestedItems
         const {
           componentPackets,
           findings: componentPacketFindings,
           registrySource: advisoryRegistrySource,
-        } = await createRegistrySourceWithDraftSwitchPacket({
+        } = await readComponentPacketsForRegistrySource({
           registrySource,
           requestedItems,
         })

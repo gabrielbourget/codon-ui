@@ -6,7 +6,7 @@ import { fileURLToPath } from "url"
 import { z } from "zod"
 
 import {
-  INSTALL_PLAN_FINDING__DRAFT_PACKET_UNAVAILABLE,
+  INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   REGISTRY_ITEM_TYPES,
 } from "./constants"
@@ -15,18 +15,16 @@ import {
   addAdvisoryEffectsSchema,
   dependencyMapSchema,
   localRegistryFileSchema,
-  localRegistryItemSchema,
   localRegistrySourceSchema,
   registryInstallPlanSchema,
   type TAddAdvisoryComponentPacket,
   type TAddAdvisoryEffects,
   type TInstallPlanFinding,
-  type TLocalRegistryItem,
   type TLocalRegistrySource,
   type TRegistryInstallPlan,
 } from "./schema"
 
-const DRAFT_SWITCH_ITEM_NAME = "switch"
+const SWITCH_ITEM_NAME = "switch"
 
 const ingestPublicExportSchema = z
   .object({
@@ -115,21 +113,9 @@ const readSwitchIngestPacket = async () => {
   return registryIngestPacketSchema.parse(JSON.parse(await readFile(packetDataPath, "utf8")))
 }
 
-const createLocalRegistryItemFromIngestPacket = (packet: TRegistryIngestPacket): TLocalRegistryItem =>
-  localRegistryItemSchema.parse({
-    devDependencies: packet.devDependencies,
-    files: packet.files,
-    name: packet.name,
-    peerDependencies: packet.peerDependencies,
-    registryDependencies: packet.registryDependencies,
-    runtimeDependencies: packet.runtimeDependencies,
-    sourcePackage: packet.sourcePackage,
-    type: packet.type,
-  })
-
 const createAdvisoryComponentPacketFromIngestPacket = (packet: TRegistryIngestPacket): TAddAdvisoryComponentPacket =>
   addAdvisoryComponentPacketSchema.parse({
-    activationStatus: "draft-only",
+    activationStatus: "local-registry",
     excludedSourcePaths: packet.excludedSourcePaths,
     importResolutions: packet.importResolutions,
     name: packet.name,
@@ -141,14 +127,14 @@ const createAdvisoryComponentPacketFromIngestPacket = (packet: TRegistryIngestPa
     verification: packet.verification,
   })
 
-export const createRegistrySourceWithDraftSwitchPacket = async ({
+export const readComponentPacketsForRegistrySource = async ({
   registrySource,
   requestedItems,
 }: {
   registrySource: TLocalRegistrySource
   requestedItems: readonly string[]
 }): Promise<TComponentPacketRegistrySourceResult> => {
-  if (!requestedItems.includes(DRAFT_SWITCH_ITEM_NAME)) {
+  if (!requestedItems.includes(SWITCH_ITEM_NAME)) {
     return {
       componentPackets: [],
       findings: [],
@@ -158,27 +144,22 @@ export const createRegistrySourceWithDraftSwitchPacket = async ({
 
   try {
     const packet = await readSwitchIngestPacket()
-    const switchRegistryItem = createLocalRegistryItemFromIngestPacket(packet)
-    const hasSwitchItem = registrySource.items.some((item) => item.name === switchRegistryItem.name)
+    const hasSwitchItem = registrySource.items.some((item) => item.name === packet.name)
 
     return {
-      componentPackets: [createAdvisoryComponentPacketFromIngestPacket(packet)],
+      componentPackets: hasSwitchItem ? [createAdvisoryComponentPacketFromIngestPacket(packet)] : [],
       findings: [],
-      registrySource: localRegistrySourceSchema.parse({
-        ...registrySource,
-        items: hasSwitchItem ? registrySource.items : [...registrySource.items, switchRegistryItem],
-        sourceIdentity: hasSwitchItem ? registrySource.sourceIdentity : `${registrySource.sourceIdentity}+draft-switch`,
-      }),
+      registrySource: localRegistrySourceSchema.parse(registrySource),
     }
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not load draft Switch ingest packet."
+    const message = error instanceof Error ? error.message : "Could not load Switch advisory packet."
 
     return {
       componentPackets: [],
       findings: [
         {
-          code: INSTALL_PLAN_FINDING__DRAFT_PACKET_UNAVAILABLE,
-          itemName: DRAFT_SWITCH_ITEM_NAME,
+          code: INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
+          itemName: SWITCH_ITEM_NAME,
           message,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
         },

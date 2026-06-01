@@ -184,7 +184,7 @@ export const addAdvisoryComponentVerificationStepSchema = z
 
 export const addAdvisoryComponentPacketSchema = z
   .object({
-    activationStatus: z.literal("draft-only"),
+    activationStatus: z.literal("local-registry"),
     name: z.string().min(1),
     sourceRepository: z.string().min(1).optional(),
     sourceRef: z.string().min(1).optional(),

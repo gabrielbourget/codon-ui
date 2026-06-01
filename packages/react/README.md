@@ -13,6 +13,7 @@ Current boundaries:
 - The default CSS contract is tracked in `../../docs/roadmaps/react-theme-css-contract.md`.
 - Internal registry manifest skeletons belong under `src/registry`.
 - The CLI local support registry snapshot must match the support/theme subset of `src/registry/manifest.ts`.
+- The CLI full local React registry snapshot must match all active entries in `src/registry/manifest.ts`.
 - React, React DOM, and React Aria Components are peer dependencies.
 - `classnames` is a runtime dependency while the received `Switch` source still uses it.
 

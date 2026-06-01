@@ -15,8 +15,8 @@ artifacts, install dependencies, or mutate consumers.
 The first concrete packet target is now represented by
 `packages/react/src/registry/switch-ingest-packet.data.json`, with
 `packages/react/src/registry/switch-ingest-packet.ts` exposing the typed packet. The runtime `Switch` source now points at
-copied package source and `switch` is active in the producer manifest. The packet still feeds early CLI advisory planning
-until generated component registry artifacts or a local component registry reader replace the draft append path.
+copied package source and `switch` is active in the producer manifest. The packet now provides advisory metadata while
+install-plan files come from the local React registry source.
 
 ## Packet Shape
 
@@ -72,10 +72,10 @@ This keeps the first proof minimal while preserving room for richer consumer lay
 - [x] Decide first-proof React Aria Components and `classnames` ranges before activation.
 - [x] Record proof-local compatibility bridge requirements.
 - [x] Record forbidden-import scans and focused verification commands.
-- [x] Make the draft packet readable by CLI advisory planning without activating it.
+- [x] Make the packet readable by CLI advisory planning without making it the registry item authority.
 - [x] Normalize into an active manifest item only after source receipt.
 
-## Draft `Switch` Packet Read
+## `Switch` Packet Read
 
 The packet captures:
 
@@ -95,13 +95,14 @@ The packet captures:
 - Default theme variables already covered by `theme.css` and missing compatibility variables that require a narrow
   proof-local bridge.
 
-The draft packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and `DEFAULT_OFF_ICON` private unless a
-later public API review says otherwise.
+The packet deliberately keeps `calibrateComponent`, `DEFAULT_ON_ICON`, and `DEFAULT_OFF_ICON` private unless a later
+public API review says otherwise.
 
-`add switch --advisory --json` now reads the draft packet data and produces a non-mutating plan. That plan reports
-support files, received component files, public export intent, import rewrites, theme requirements, dependency
-classification, available source status for the received runtime `Switch` files, deferred optional test source status,
-and planned-but-not-written lockfile effects.
+`add switch --advisory --json` now reads `switch` from `packages/CLI/registry/local-react.registry.json` and reads the
+packet for metadata only. The non-mutating plan reports support files, received component files, public export intent,
+import rewrites, theme requirements, dependency classification, available source status for the received runtime `Switch`
+files, and planned-but-not-written lockfile effects. The deferred optional focused test is packet metadata only until the
+component-library testing work area.
 
 ## Stop Conditions
 

@@ -26,7 +26,7 @@ Current helper surface:
 | Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                             |
 | Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use.         |
 | Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.                 |
-| Local registry snapshot | Stores a support-only manifest-shaped JSON source for early CLI planning.                      | Proves support graph planning without public registry hosting, generated artifacts, or strict `Switch` install behavior.       |
+| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.        | Proves support graph and `Switch` planning without public registry hosting, generated artifacts, or strict install behavior.   |
 | Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Read-only support and `Switch` advisory planning now classify target package metadata for default `registry-contained` layout. |
 | File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                               |
 | Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                            |
@@ -155,8 +155,8 @@ These commands do not write config, lockfiles, support files, directories, or de
 The support-item add advisory slice added the first read-only registry planning path:
 
 - A local support-only registry source at `packages/CLI/registry/local-react-support.registry.json`.
-- A local registry snapshot contract check that verifies the tracked CLI JSON still matches
-  `packages/react/src/registry/manifest.ts`.
+- A local registry snapshot contract check that verifies the tracked support JSON still matches the support/theme subset
+  of `packages/react/src/registry/manifest.ts`.
 - A read-only local registry source reader.
 - An install-plan resolver for requested registry items, graph dependencies, resolved target files, and dependency
   summaries.
@@ -188,21 +188,24 @@ source warnings from a fixture registry source, and no-mutation behavior. This i
 lockfile writing, dependency installation, generated registry artifact hosting, update/ejection classification, or
 package publication behavior.
 
-The snapshot is still tracked JSON, not generated output. Until a later generator pass exists,
-`pnpm -F @amino-ui/react check:local-registry-snapshot` fails if the snapshot drifts from the support/theme subset of the
-canonical React manifest.
+The snapshots are still tracked JSON, not generated output. Until a later generator pass exists,
+`pnpm -F @amino-ui/react check:local-registry-snapshot` fails if the support snapshot drifts from the support/theme subset
+or if the full local React snapshot drifts from the canonical React manifest.
 
-The `Switch` add advisory slice now has received package source but still uses the draft packet append path until a
-generated or local component registry source exists:
+The local `Switch` registry source slice removed the draft append path:
 
-- The draft packet data now lives at `packages/react/src/registry/switch-ingest-packet.data.json`.
-- `packages/react/src/registry/switch-ingest-packet.ts` re-exports that data as the typed draft packet.
-- `add switch --advisory --json` appends that packet to the local support registry source only when `switch` is
-  explicitly requested.
+- A full local React registry source now lives at `packages/CLI/registry/local-react.registry.json`.
+- `add switch --advisory --json` selects that full local registry source by default when `switch` is explicitly
+  requested.
+- `add --all --advisory --json` stays support-only for now and continues to use
+  `packages/CLI/registry/local-react-support.registry.json`.
+- The packet data at `packages/react/src/registry/switch-ingest-packet.data.json` still provides metadata such as public
+  exports, import rewrites, exclusions, theme requirements, and verification notes.
+- The component packet status is now `local-registry`, not `draft-only`.
 - The plan resolves `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, `tokens/theme-order`, and received
   `Switch` runtime files under the default `registry-contained` layout.
-- Runtime `Switch` source files report `available`; the optional focused test still reports `source-file-missing` until
-  the component-library testing work area.
+- Runtime `Switch` source files report `available`; the optional focused test is metadata-only until the
+  component-library testing work area.
 - React Aria Components is classified as a `^1.17.0` peer requirement and `classnames` as a `^2.3.2` runtime
   requirement. If a target repo already declares compatible ranges, the advisory plan reports `satisfied` and takes no
   package action.

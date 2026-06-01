@@ -33,7 +33,7 @@ export type {
   TRegistryIngestVerificationKind,
   TRegistryIngestVerificationStep,
 } from "./ingest"
-export { switchIngestPacketDraft } from "./switch-ingest-packet"
+export { switchIngestPacket } from "./switch-ingest-packet"
 export { reactRegistryManifest } from "./manifest"
 export type {
   TRegistryDependencyMap,

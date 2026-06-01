@@ -52,12 +52,13 @@ files include `sha256:<hex>` content hashes; missing source files produce `sourc
 files use `missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while
 the command remains read-only and non-blocking.
 
-When `switch` is explicitly requested, advisory mode appends the `Switch` ingest packet as an early component planning
-item. The output reports component files, support graph files, public export intent, import rewrites, theme
-requirements, dependency posture, and planned-but-not-written lockfile effects. React Aria Components is currently a
-`^1.17.0` peer requirement and `classnames` is a `^2.3.2` runtime requirement; compatible declarations in the target
-package are reported as `satisfied`. Runtime `Switch` source files now report available source; the optional focused test
-still reports missing source until the component-library testing work area. This is not strict `add switch`.
+When `switch` is explicitly requested, advisory mode reads `packages/CLI/registry/local-react.registry.json` for the
+install plan and reads the `Switch` ingest packet for metadata. The output reports component files, support graph files,
+public export intent, import rewrites, theme requirements, dependency posture, and planned-but-not-written lockfile
+effects. React Aria Components is currently a `^1.17.0` peer requirement and `classnames` is a `^2.3.2` runtime
+requirement; compatible declarations in the target package are reported as `satisfied`. Runtime `Switch` source files
+report available source; the optional focused test is metadata-only until the component-library testing work area. This
+is not strict `add switch`.
 
 ## Renovation Order
 

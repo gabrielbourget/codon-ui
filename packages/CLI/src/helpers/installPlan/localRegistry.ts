@@ -11,7 +11,9 @@ export type TLocalRegistryReadResult = {
   sourceRoot: string
 }
 
-export const getDefaultLocalRegistrySourcePath = () => {
+const SWITCH_REGISTRY_ITEM_NAME = "switch"
+
+export const getDefaultLocalSupportRegistrySourcePath = () => {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
   const candidatePaths = [
     path.resolve(moduleDirectory, "../registry/local-react-support.registry.json"),
@@ -19,6 +21,32 @@ export const getDefaultLocalRegistrySourcePath = () => {
   ]
 
   return candidatePaths.find((candidatePath) => existsSync(candidatePath)) ?? candidatePaths[0]
+}
+
+export const getDefaultLocalReactRegistrySourcePath = () => {
+  const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
+  const candidatePaths = [
+    path.resolve(moduleDirectory, "../registry/local-react.registry.json"),
+    path.resolve(moduleDirectory, "../../../registry/local-react.registry.json"),
+  ]
+
+  return candidatePaths.find((candidatePath) => existsSync(candidatePath)) ?? candidatePaths[0]
+}
+
+export const getDefaultLocalRegistrySourcePath = getDefaultLocalSupportRegistrySourcePath
+
+export const resolveDefaultAddAdvisoryRegistrySourcePath = ({
+  allComponents,
+  requestedItems,
+}: {
+  allComponents: boolean
+  requestedItems: readonly string[]
+}) => {
+  if (!allComponents && requestedItems.includes(SWITCH_REGISTRY_ITEM_NAME)) {
+    return getDefaultLocalReactRegistrySourcePath()
+  }
+
+  return getDefaultLocalSupportRegistrySourcePath()
 }
 
 export const readLocalRegistrySource = async (

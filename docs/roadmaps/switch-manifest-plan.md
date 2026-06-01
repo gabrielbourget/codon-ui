@@ -8,8 +8,8 @@ The typed ingest packet lives at `packages/react/src/registry/switch-ingest-pack
 `packages/react/src/registry/switch-ingest-packet.data.json`. The runtime source has now been received into
 `packages/react/src/components/Switch`, and `switch` is active in `reactRegistryManifest`.
 
-The packet still feeds early CLI advisory planning until a generated or local component registry source replaces the
-draft-packet append path.
+The packet now feeds advisory metadata. The planned install files for `add switch --advisory` come from
+`packages/CLI/registry/local-react.registry.json` until generated registry artifacts exist.
 
 ## Current Read
 
@@ -23,7 +23,7 @@ Wavemap's read-only `Switch` graph audit confirmed:
   browser storage, or broad support folders.
 - The only app-alias runtime edge is `_registry/tokens` for geometry and theme-order support.
 
-## Draft Registry Item
+## Active Registry Item
 
 The active registry item is:
 
@@ -72,9 +72,9 @@ The active registry item is:
 The target paths are relative to the configured `components` role. Under the default `registry-contained` consumer
 layout, `Switch/Switch.tsx` resolves to `src/components/Switch/Switch.tsx`.
 
-`add switch --advisory --json` can now read the draft packet data and report the planned component files, support graph,
-theme requirements, dependency posture, available runtime source status, deferred optional test source status, and
-not-written lockfile effects. That advisory output is not a strict install path.
+`add switch --advisory --json` can now read the full local React registry source for planned component files and support
+graph, then read the packet for public export intent, import rewrites, theme requirements, dependency posture, and
+verification notes. That advisory output is not a strict install path.
 
 ## Support Items To Decide
 
