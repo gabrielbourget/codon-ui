@@ -155,6 +155,8 @@ These commands do not write config, lockfiles, support files, directories, or de
 The support-item add advisory slice added the first read-only registry planning path:
 
 - A local support-only registry source at `packages/CLI/registry/local-react-support.registry.json`.
+- A local registry snapshot contract check that verifies the tracked CLI JSON still matches
+  `packages/react/src/registry/manifest.ts`.
 - A read-only local registry source reader.
 - An install-plan resolver for requested registry items, graph dependencies, resolved target files, and dependency
   summaries.
@@ -185,6 +187,9 @@ an existing `tokens/geometry` target. They also verify available source status, 
 source warnings from a fixture registry source, and no-mutation behavior. This is not strict writes, config writing,
 lockfile writing, dependency installation, generated registry artifact hosting, update/ejection classification, or
 package publication behavior.
+
+The snapshot is still tracked JSON, not generated output. Until a later generator pass exists,
+`pnpm -F @amino-ui/react check:local-registry-snapshot` fails if the snapshot drifts from the canonical React manifest.
 
 The draft `Switch` add advisory slice added component planning without source movement:
 

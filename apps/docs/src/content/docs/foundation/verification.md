@@ -38,6 +38,8 @@ artifact generation policy is still unresolved.
 pnpm -F @amino-ui/react check:contracts
 pnpm -F @amino-ui/react check:theme-css
 pnpm -F @amino-ui/react check:registry-manifest
+pnpm -F @amino-ui/react check:registry-graph
+pnpm -F @amino-ui/react check:local-registry-snapshot
 ```
 
 Use these focused commands when touching `packages/react/theme.css`, token support, or registry manifest files.

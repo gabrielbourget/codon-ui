@@ -67,6 +67,10 @@ The planner does not generate artifacts, mutate consumer projects, install packa
 `pnpm -F @amino-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
 tracked source file that would feed a future generated artifact.
 
+`pnpm -F @amino-ui/react check:local-registry-snapshot` verifies that
+`packages/CLI/registry/local-react-support.registry.json` still matches the active React manifest. The JSON snapshot is
+tracked for early advisory planning only; code generation remains a later registry-artifact pass.
+
 ## Artifact Policy
 
 `public/registry` should be treated as generated build output unless a later release or deployment policy deliberately

@@ -12,13 +12,14 @@ Current boundaries:
 - Default package CSS is exported as `@amino-ui/react/theme.css`.
 - The default CSS contract is tracked in `../../docs/roadmaps/react-theme-css-contract.md`.
 - Internal registry manifest skeletons belong under `src/registry`.
+- The CLI local support registry snapshot must match `src/registry/manifest.ts`.
 - React and React DOM are peer dependencies.
 - React Aria dependencies should be added only when the first component that needs them lands.
 
 Not included yet:
 
 - Wavemap component source.
-- Registry artifact generation.
+- Registry artifact generation or local registry snapshot codegen.
 - CLI install, update, or diff behavior.
 - Generated token files or token writers.
-- Wavemap compatibility aliases for legacy app-local CSS variables.
+- Broad Wavemap compatibility aliases in the default theme.

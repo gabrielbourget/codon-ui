@@ -19,6 +19,8 @@ This contract defines the target shape before `Switch` or any other Wavemap comp
   cycles, and duplicate file targets.
 - `verify-registry-graph.ts` smoke-tests the active manifest by resolving the graph and reading the local source files
   that would feed generated artifacts.
+- `verify-local-registry-snapshot.ts` checks the tracked CLI local support registry snapshot against the canonical React
+  manifest so early advisory planning cannot silently drift.
 
 The current web app registry code is legacy scaffold and should not be treated as authoritative.
 
@@ -60,6 +62,10 @@ Canonical source should live in `packages/react`:
 
 The registry builder should consume explicit manifests or file lists. It should not infer ownership through broad
 directory recursion, generated output directories, or stale web-app registry lists.
+
+The current CLI local support registry at `packages/CLI/registry/local-react-support.registry.json` is a checked-in
+snapshot for early advisory planning only. It must match the active React manifest. A later generator pass can replace the
+manual snapshot update step, but this pass deliberately adds verification rather than code generation.
 
 ## Artifact Policy
 
@@ -179,6 +185,7 @@ For manifest or builder implementation changes:
 - `pnpm check`
 - `pnpm -F @amino-ui/react check:registry-manifest`
 - `pnpm -F @amino-ui/react check:registry-graph`
+- `pnpm -F @amino-ui/react check:local-registry-snapshot`
 - Focused package builds for touched packages.
 - A registry artifact smoke check once the builder is renovated enough to be trusted.
 - `git diff --check`
