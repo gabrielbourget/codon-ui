@@ -139,7 +139,7 @@ export const add = new Command()
       }
 
       if (options.advisory) {
-        const { registrySource, registrySourcePath } = await readLocalRegistrySource(options.registrySource)
+        const { registrySource, registrySourcePath, sourceRoot } = await readLocalRegistrySource(options.registrySource)
         const requestedItems = options.allComponents
           ? registrySource.items.map((item) => item.name)
           : (options.components ?? [])
@@ -148,6 +148,7 @@ export const add = new Command()
           consumerRoot: cwd,
           registrySource,
           requestedItems,
+          sourceRoot,
         })
         const advisory = addAdvisorySchema.parse({
           advisory: true,
@@ -166,6 +167,9 @@ export const add = new Command()
         logger.info(`Registry source: ${advisory.registrySourcePath}`)
         logger.info(`Requested items: ${advisory.installPlan.requestedItems.join(", ") || "(none)"}`)
         logger.info(`Planned files: ${advisory.installPlan.files.length}`)
+        logger.info(
+          `Available sources: ${advisory.installPlan.files.filter((file) => file.sourceStatus === "available").length}`,
+        )
         logger.info(
           `Existing targets: ${advisory.installPlan.files.filter((file) => file.targetStatus === "existing").length}`,
         )

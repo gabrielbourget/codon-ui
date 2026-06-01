@@ -9,6 +9,14 @@ export const INSTALL_PLAN_FILE_STATUSES = [
   INSTALL_PLAN_FILE_STATUS__EXISTING,
 ] as const
 
+export const INSTALL_PLAN_SOURCE_STATUS__AVAILABLE = "available"
+export const INSTALL_PLAN_SOURCE_STATUS__MISSING = "missing"
+
+export const INSTALL_PLAN_SOURCE_STATUSES = [
+  INSTALL_PLAN_SOURCE_STATUS__AVAILABLE,
+  INSTALL_PLAN_SOURCE_STATUS__MISSING,
+] as const
+
 export const REGISTRY_ITEM_TYPE__COMPONENT = "component"
 export const REGISTRY_ITEM_TYPE__SUPPORT = "support"
 export const REGISTRY_ITEM_TYPE__STYLE = "style"
@@ -57,3 +65,4 @@ export const INSTALL_PLAN_FINDING__MISSING_DEPENDENCY = "missing-registry-depend
 export const INSTALL_PLAN_FINDING__CIRCULAR_DEPENDENCY = "circular-registry-dependency"
 export const INSTALL_PLAN_FINDING__DUPLICATE_FILE_TARGET = "duplicate-file-target"
 export const INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS = "target-file-exists"
+export const INSTALL_PLAN_FINDING__SOURCE_FILE_MISSING = "source-file-missing"
