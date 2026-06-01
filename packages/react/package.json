@@ -21,7 +21,8 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
-    "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest",
+    "check:contracts": "pnpm check:theme-css && pnpm check:registry-manifest && pnpm check:registry-graph",
+    "check:registry-graph": "pnpm exec tsx verify-registry-graph.ts",
     "check:registry-manifest": "node verify-registry-manifest.mjs",
     "check:theme-css": "node verify-theme-css-contract.mjs",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",

@@ -17,6 +17,8 @@ This contract defines the target shape before `Switch` or any other Wavemap comp
   without throwing.
 - `verify-registry-manifest.mjs` checks source file existence, supported domains, dependency references, dependency
   cycles, and duplicate file targets.
+- `verify-registry-graph.ts` smoke-tests the active manifest by resolving the graph and reading the local source files
+  that would feed generated artifacts.
 
 The current web app registry code is legacy scaffold and should not be treated as authoritative.
 
@@ -173,6 +175,7 @@ For manifest or builder implementation changes:
 
 - `pnpm check`
 - `pnpm -F @amino-ui/react check:registry-manifest`
+- `pnpm -F @amino-ui/react check:registry-graph`
 - Focused package builds for touched packages.
 - A registry artifact smoke check once the builder is renovated enough to be trusted.
 - `git diff --check`

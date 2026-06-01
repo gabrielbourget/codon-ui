@@ -63,6 +63,9 @@ order and reports issues for:
 
 The planner does not generate artifacts, mutate consumer projects, install packages, or define update behavior.
 
+`pnpm -F @amino-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
+tracked source file that would feed a future generated artifact.
+
 ## Artifact Policy
 
 `public/registry` should be treated as generated build output unless a later release or deployment policy deliberately
