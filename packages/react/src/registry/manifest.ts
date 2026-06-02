@@ -93,6 +93,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/radio-group-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "radio-group-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "tokens/theme-order",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -232,6 +245,40 @@ export const reactRegistryManifest = [
       },
     ],
     registryDependencies: ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "radio-group",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/RadioGroup/RadioGroup.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "RadioGroup/RadioGroup.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/RadioGroup/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "RadioGroup/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/RadioGroup/RadioGroupStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "RadioGroup/RadioGroupStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/radio-group-compatibility", "radio"],
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-aria-components": "^1.17.0",

@@ -82,6 +82,19 @@
       ]
     },
     {
+      "name": "theme/radio-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",

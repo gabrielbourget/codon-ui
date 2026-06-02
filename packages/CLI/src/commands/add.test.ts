@@ -29,11 +29,13 @@ const verifyComponentAddPlanning = async ({
   expectedItems,
   expectedResolvedPaths,
   expectedCompatibilityBridgeSourcePath,
+  expectedPlannedCount = 7,
 }: {
   itemName: string
   expectedItems: string[]
   expectedResolvedPaths: string[]
   expectedCompatibilityBridgeSourcePath: string
+  expectedPlannedCount?: number
 }) => {
   const requestedItems = [itemName]
   const packetResult = await readComponentPacketsForRegistrySource({
@@ -64,8 +66,8 @@ const verifyComponentAddPlanning = async ({
   )
   assert.deepEqual(installPlan.files.map((file) => file.resolvedPath).sort(), expectedResolvedPaths)
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
-  assert.equal(dryRunEffects.files.plannedCount, 7)
-  assert.equal(dryRunEffects.files.wouldWriteCount, 7)
+  assert.equal(dryRunEffects.files.plannedCount, expectedPlannedCount)
+  assert.equal(dryRunEffects.files.wouldWriteCount, expectedPlannedCount)
   assert.equal(dryRunEffects.dependencies.missingCount, 4)
 }
 
@@ -120,4 +122,32 @@ await verifyComponentAddPlanning({
   expectedCompatibilityBridgeSourcePath: "Radio/radio-compatibility.css",
 })
 
-console.log("[aminoui-cli] checkbox, toggle-button, and radio add planning verified")
+await verifyComponentAddPlanning({
+  itemName: "radio-group",
+  expectedItems: [
+    "theme-css",
+    "theme/radio-group-compatibility",
+    "theme/radio-compatibility",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "radio",
+    "radio-group",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Radio/Radio.tsx",
+    "src/components/Radio/RadioStyles.module.css",
+    "src/components/Radio/helpers.ts",
+    "src/components/RadioGroup/RadioGroup.tsx",
+    "src/components/RadioGroup/RadioGroupStyles.module.css",
+    "src/components/RadioGroup/helpers.ts",
+    "src/components/_registry/radio-compatibility.css",
+    "src/components/_registry/radio-group-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedCompatibilityBridgeSourcePath: "RadioGroup/radio-group-compatibility.css",
+  expectedPlannedCount: 11,
+})
+
+console.log("[aminoui-cli] checkbox, toggle-button, radio, and radio-group add planning verified")
