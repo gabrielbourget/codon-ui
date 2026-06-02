@@ -105,4 +105,19 @@ await verifyComponentAddPlanning({
   expectedCompatibilityBridgeSourcePath: "ToggleButton/toggle-button-compatibility.css",
 })
 
-console.log("[aminoui-cli] checkbox and toggle-button add planning verified")
+await verifyComponentAddPlanning({
+  itemName: "radio",
+  expectedItems: ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order", "radio"],
+  expectedResolvedPaths: [
+    "src/components/Radio/Radio.tsx",
+    "src/components/Radio/RadioStyles.module.css",
+    "src/components/Radio/helpers.ts",
+    "src/components/_registry/radio-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedCompatibilityBridgeSourcePath: "Radio/radio-compatibility.css",
+})
+
+console.log("[aminoui-cli] checkbox, toggle-button, and radio add planning verified")

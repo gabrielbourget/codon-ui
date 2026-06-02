@@ -11,7 +11,7 @@ export type TLocalRegistryReadResult = {
   sourceRoot: string
 }
 
-const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set(["switch", "checkbox", "toggle-button"])
+const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set(["switch", "checkbox", "toggle-button", "radio"])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>
   requestedItems.some((itemName) => LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES.has(itemName))

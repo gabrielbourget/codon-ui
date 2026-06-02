@@ -69,6 +69,19 @@
       ]
     },
     {
+      "name": "theme/radio-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
