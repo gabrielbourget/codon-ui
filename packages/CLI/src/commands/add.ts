@@ -19,6 +19,7 @@ import {
   createAddStrictEffects,
   consumerConfigSchema,
   createStrictAddBlockerFindings,
+  createStrictAddLockfileReusePlan,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   handleError,
@@ -347,11 +348,15 @@ export const add = new Command()
           ],
           installPlan,
         })
-        const strictBlockerFindings = createStrictAddBlockerFindings(planWithInitialFindings)
-        const findings = [...planWithInitialFindings.findings, ...strictBlockerFindings]
+        const reusableTargetPlan = createStrictAddLockfileReusePlan({
+          installPlan: planWithInitialFindings,
+          lockfileData: lockfilePlan.lockfileData,
+        })
+        const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
+        const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
         const installPlanWithFindings = createRegistryInstallPlanWithFindings({
           findings,
-          installPlan: planWithInitialFindings,
+          installPlan: reusableTargetPlan,
         })
 
         if (strictBlockerFindings.length > 0) {
