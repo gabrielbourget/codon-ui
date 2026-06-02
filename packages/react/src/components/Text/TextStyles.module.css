@@ -1,0 +1,229 @@
+.base {
+  display: flex;
+  align-items: center;
+  height: auto;
+  transition: var(--aui-transition-color, color 0.25s ease-in-out);
+  color: inherit;
+}
+
+.base--unselectable {
+  user-select: none;
+}
+
+.composedInLink {
+  cursor: pointer;
+}
+
+.d1 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d1-font-size, 42.5rem);
+  line-height: var(--aui-text-d1-line-height, 1);
+}
+
+.d2 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d2-font-size, 32rem);
+  line-height: var(--aui-text-d2-line-height, 1);
+}
+
+.d3 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d3-font-size, 24rem);
+  line-height: var(--aui-text-d3-line-height, 1);
+}
+
+.d4 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d4-font-size, 18rem);
+  line-height: var(--aui-text-d4-line-height, 1);
+}
+
+.d5 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d5-font-size, 13.4rem);
+  line-height: var(--aui-text-d5-line-height, 1);
+}
+
+.d6 {
+  font-family: var(--aui-font-family-display, system-ui, sans-serif);
+  font-size: var(--aui-text-d6-font-size, 10rem);
+  line-height: var(--aui-text-d6-line-height, 1);
+}
+
+.h1 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h1-font-size, 3.8rem);
+  line-height: var(--aui-text-h1-line-height, 1);
+}
+
+.h1-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h1-sm-font-size, 2.4rem);
+  line-height: var(--aui-text-h1-sm-line-height, 1);
+}
+
+.h2 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h2-font-size, 2.4rem);
+  line-height: var(--aui-text-h2-line-height, 1);
+}
+
+.h2-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h2-sm-font-size, 2rem);
+  line-height: var(--aui-text-h2-sm-line-height, 1);
+}
+
+.h3 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h3-font-size, 2rem);
+  line-height: var(--aui-text-h3-line-height, 1);
+}
+
+.h3-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h3-sm-font-size, 1.8rem);
+  line-height: var(--aui-text-h3-sm-line-height, 1);
+}
+
+.h4 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h4-font-size, 1.8rem);
+  line-height: var(--aui-text-h4-line-height, 1);
+}
+
+.h4-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h4-sm-font-size, 1.6rem);
+  line-height: var(--aui-text-h4-sm-line-height, 1);
+}
+
+.h5 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h5-font-size, 1.6rem);
+  line-height: var(--aui-text-h5-line-height, 1);
+}
+
+.h5-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h5-sm-font-size, 1.4rem);
+  line-height: var(--aui-text-h5-sm-line-height, 1);
+}
+
+.h6 {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h6-font-size, 1.4rem);
+  line-height: var(--aui-text-h6-line-height, 1);
+}
+
+.h6-sm {
+  font-family: var(--aui-font-family-heading, system-ui, sans-serif);
+  font-size: var(--aui-text-h6-sm-font-size, 1.2rem);
+  line-height: var(--aui-text-h6-sm-line-height, 1);
+}
+
+.b1 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b1-font-size, 7.6rem);
+  line-height: var(--aui-text-b1-line-height, 1);
+}
+
+.b2 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b2-font-size, 5.8rem);
+  line-height: var(--aui-text-b2-line-height, 1);
+}
+
+.b3 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b3-font-size, 4.2rem);
+  line-height: var(--aui-text-b3-line-height, 1);
+}
+
+.b4 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b4-font-size, 3.2rem);
+  line-height: var(--aui-text-b4-line-height, 1);
+}
+
+.b5 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b5-font-size, 2.4rem);
+  line-height: var(--aui-text-b5-line-height, 1);
+}
+
+.b6 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b6-font-size, 2.2rem);
+  line-height: var(--aui-text-b6-line-height, 1);
+}
+
+.b7 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b7-font-size, 2rem);
+  line-height: var(--aui-text-b7-line-height, 1);
+}
+
+.b8 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b8-font-size, 1.8rem);
+  line-height: var(--aui-text-b8-line-height, 1);
+}
+
+.b9 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b9-font-size, 1.6rem);
+  line-height: var(--aui-text-b9-line-height, 1);
+}
+
+.b10 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b10-font-size, 1.4rem);
+  line-height: var(--aui-text-b10-line-height, 1);
+}
+
+.b11 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b11-font-size, 1.2rem);
+  line-height: var(--aui-text-b11-line-height, 1);
+}
+
+.b12 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b12-font-size, 1.1rem);
+  line-height: var(--aui-text-b12-line-height, 1);
+}
+
+.b13 {
+  font-family: var(--aui-font-family-body, system-ui, sans-serif);
+  font-size: var(--aui-text-b13-font-size, 1rem);
+  line-height: var(--aui-text-b13-line-height, 1);
+}
+
+.fw-light {
+  font-weight: var(--aui-font-weight-light, 300);
+}
+
+.fw-regular {
+  font-weight: var(--aui-font-weight-regular, 400);
+}
+
+.fw-semibold {
+  font-weight: var(--aui-font-weight-semibold, 600);
+}
+
+.fw-medium {
+  font-weight: var(--aui-font-weight-medium, 500);
+}
+
+.fw-bold {
+  font-weight: var(--aui-font-weight-bold, 700);
+}
+
+.fw-extrabold {
+  font-weight: var(--aui-font-weight-extrabold, 800);
+}
+
+.fs-italic {
+  font-style: italic;
+}

@@ -1,11 +1,4 @@
-export { Checkbox } from "./components/Checkbox"
-export type { CheckboxProps } from "./components/Checkbox"
-export { Radio } from "./components/Radio"
-export type { RadioProps } from "./components/Radio"
-export { RadioGroup } from "./components/RadioGroup"
-export type { RadioGroupProps } from "./components/RadioGroup"
-export { Switch } from "./components/Switch"
-export type { SwitchProps } from "./components/Switch"
+export { default as Text } from "./Text"
 export {
   AVAILABLE_ELEM_TYPES,
   AVAILABLE_FONT_STYLES,
@@ -61,14 +54,11 @@ export {
   FONT_WEIGHT__MEDIUM,
   FONT_WEIGHT__REGULAR,
   FONT_WEIGHT__SEMIBOLD,
-  Text,
-} from "./components/Text"
+} from "./constants"
+export type { TTextProps as TextProps } from "./helpers"
 export type {
-  TextAvailableElementType,
-  TextAvailableFontStyle,
-  TextAvailableFontVariant,
-  TextAvailableFontWeight,
-  TextProps,
-} from "./components/Text"
-export { ToggleButton } from "./components/ToggleButton"
-export type { ToggleButtonProps } from "./components/ToggleButton"
+  TAvailableElementTypes as TextAvailableElementType,
+  TAvailableFontStyles as TextAvailableFontStyle,
+  TAvailableFontVariants as TextAvailableFontVariant,
+  TAvailableFontWeights as TextAvailableFontWeight,
+} from "./types"
