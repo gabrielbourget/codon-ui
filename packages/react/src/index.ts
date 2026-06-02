@@ -8,6 +8,8 @@ export { Slider } from "./components/Slider"
 export type { SliderProps } from "./components/Slider"
 export { Switch } from "./components/Switch"
 export type { SwitchProps } from "./components/Switch"
+export { Tag } from "./components/Tag"
+export type { TagProps } from "./components/Tag"
 export {
   AVAILABLE_ELEM_TYPES,
   AVAILABLE_FONT_STYLES,

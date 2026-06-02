@@ -1,0 +1,12 @@
+/* Proof bridge only: keep received Tag source renderable before the broader spacing/radius/shadow contract is settled. */
+:root {
+  --distance_1: var(--aui-space-1);
+  --border_radius_1: var(--aui-radius-1);
+  --shadow_1: var(--aui-shadow-1);
+  --focus-ring-color: var(--aui-focus-ring);
+  --disabledOpacity: var(--aui-opacity-disabled);
+  --bgColorTransition: var(--aui-transition-background-color);
+  --colorTransition: var(--aui-transition-color);
+  --borderColorTransition: var(--aui-transition-border-color);
+  --boxShadowTransition: var(--aui-transition-box-shadow);
+}
