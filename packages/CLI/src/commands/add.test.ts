@@ -2,10 +2,12 @@ import assert from "node:assert/strict"
 
 import {
   consumerConfigSchema,
+  consumerLockfileSchema,
   createAddDryRunEffects,
   createRegistryInstallPlan,
   getDefaultLocalReactRegistrySourcePath,
   getDefaultLocalSupportRegistrySourcePath,
+  mergeStrictAddLockfileDependencies,
   readComponentPacketsForRegistrySource,
   readLocalRegistrySource,
   resolveDefaultAddRegistrySourcePath,
@@ -23,6 +25,22 @@ assert.equal(
 )
 
 const { registrySource, sourceRoot } = await readLocalRegistrySource(registrySourcePath)
+
+const createComponentInstallPlan = async (itemName: string) => {
+  const packetResult = await readComponentPacketsForRegistrySource({
+    registrySource,
+    requestedItems: [itemName],
+  })
+
+  assert.equal(packetResult.findings.length, 0)
+
+  return createRegistryInstallPlan({
+    config: consumerConfigSchema.parse({}),
+    registrySource: packetResult.registrySource,
+    requestedItems: [itemName],
+    sourceRoot,
+  })
+}
 
 const verifyComponentAddPlanning = async ({
   itemName,
@@ -214,4 +232,29 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 6,
 })
 
-console.log("[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, and tag add planning verified")
+const sliderInstallPlan = await createComponentInstallPlan("slider")
+const tagInstallPlan = await createComponentInstallPlan("tag")
+const existingSliderLockfile = consumerLockfileSchema.parse({
+  dependencies: sliderInstallPlan.dependencyPlan.map((dependency) => ({
+    ...dependency,
+    action: "none",
+  })),
+})
+const mergedTagDependencies = mergeStrictAddLockfileDependencies({
+  installPlan: tagInstallPlan,
+  lockfileData: existingSliderLockfile,
+})
+
+assert.deepEqual(
+  mergedTagDependencies.map((dependency) => `${dependency.kind}:${dependency.name}`),
+  ["peer:react", "peer:react-aria-components", "peer:react-dom", "runtime:classnames"],
+)
+assert.equal(
+  mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.requiredRange,
+  "^1.17.0",
+)
+assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
+
+console.log(
+  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, and dependency merge add planning verified",
+)

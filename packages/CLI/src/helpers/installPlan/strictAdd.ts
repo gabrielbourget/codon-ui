@@ -293,6 +293,32 @@ const getStrictAddReusableLockfileFile = ({
   return lockfileFile
 }
 
+const createLockfileDependencyKey = (dependency: Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">) =>
+  `${dependency.kind}:${dependency.name}`
+
+export const mergeStrictAddLockfileDependencies = ({
+  installPlan,
+  lockfileData,
+}: {
+  installPlan: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+}): TConsumerLockfile["dependencies"] => {
+  const dependencyEntriesByKey = new Map<string, TConsumerLockfile["dependencies"][number]>()
+
+  lockfileData.dependencies.forEach((dependency) => {
+    dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), dependency)
+  })
+
+  installPlan.dependencyPlan.forEach((dependency) => {
+    dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), {
+      ...dependency,
+      action: CONSUMER_DEPENDENCY_ACTION__NONE,
+    })
+  })
+
+  return [...dependencyEntriesByKey.values()]
+}
+
 export const createStrictAddLockfileReusePlan = ({
   installPlan,
   lockfileData,
@@ -388,10 +414,7 @@ export const writeStrictRegistryInstall = async ({
   )
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
-    dependencies: installPlan.dependencyPlan.map((dependency) => ({
-      ...dependency,
-      action: CONSUMER_DEPENDENCY_ACTION__NONE,
-    })),
+    dependencies: mergeStrictAddLockfileDependencies({ installPlan, lockfileData }),
     items: {
       ...lockfileData.items,
       ...nextItems,
