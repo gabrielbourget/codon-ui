@@ -119,6 +119,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/tag-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Tag/tag-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "tag-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "theme/text-typography",
     type: REGISTRY_ITEM_TYPE__THEME,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -353,6 +366,39 @@ export const reactRegistryManifest = [
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "tag",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Tag/Tag.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Tag/Tag.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Tag/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Tag/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Tag/TagStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Tag/TagStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/tag-compatibility", "tokens/geometry"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
       "react-dom": "^18.2.0 || ^19.0.0",
     },
     runtimeDependencies: {

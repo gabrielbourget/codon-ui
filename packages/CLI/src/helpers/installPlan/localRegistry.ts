@@ -19,6 +19,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "radio-group",
   "text",
   "slider",
+  "tag",
 ])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>

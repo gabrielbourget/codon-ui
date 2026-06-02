@@ -198,4 +198,20 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 13,
 })
 
-console.log("[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, and slider add planning verified")
+await verifyComponentAddPlanning({
+  itemName: "tag",
+  expectedItems: ["theme-css", "theme/tag-compatibility", "tokens/geometry", "tag"],
+  expectedResolvedPaths: [
+    "src/components/Tag/Tag.tsx",
+    "src/components/Tag/TagStyles.module.css",
+    "src/components/Tag/helpers.ts",
+    "src/components/_registry/tag-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+  ],
+  expectedThemeSourcePath: "Tag/tag-compatibility.css",
+  expectedMissingDependencyCount: 3,
+  expectedPlannedCount: 6,
+})
+
+console.log("[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, and tag add planning verified")

@@ -108,6 +108,19 @@
       ]
     },
     {
+      "name": "theme/tag-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",

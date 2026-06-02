@@ -108,6 +108,19 @@
       ]
     },
     {
+      "name": "theme/tag-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -358,6 +371,41 @@
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "tag",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/Tag.tsx",
+          "targetRole": "components",
+          "targetPath": "Tag/Tag.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tag/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Tag/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tag/TagStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Tag/TagStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/tag-compatibility",
+        "tokens/geometry"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
