@@ -34,7 +34,7 @@
     "format:check": "prettier --check \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
     "stylelint": "stylelint \"*.css\" \"src/**/*.css\"",
-    "test": "node verify-switch-proof.mjs && node verify-checkbox-proof.mjs && node verify-toggle-button-proof.mjs && node verify-radio-proof.mjs",
+    "test": "node verify-switch-proof.mjs && node verify-checkbox-proof.mjs && node verify-toggle-button-proof.mjs && node verify-radio-proof.mjs && node verify-radio-group-proof.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
