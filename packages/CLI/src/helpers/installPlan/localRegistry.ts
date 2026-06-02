@@ -17,6 +17,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "toggle-button",
   "radio",
   "radio-group",
+  "text",
 ])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>

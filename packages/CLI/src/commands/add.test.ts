@@ -28,13 +28,15 @@ const verifyComponentAddPlanning = async ({
   itemName,
   expectedItems,
   expectedResolvedPaths,
-  expectedCompatibilityBridgeSourcePath,
+  expectedThemeSourcePath,
+  expectedMissingDependencyCount = 4,
   expectedPlannedCount = 7,
 }: {
   itemName: string
   expectedItems: string[]
   expectedResolvedPaths: string[]
-  expectedCompatibilityBridgeSourcePath: string
+  expectedThemeSourcePath: string
+  expectedMissingDependencyCount?: number
   expectedPlannedCount?: number
 }) => {
   const requestedItems = [itemName]
@@ -48,7 +50,7 @@ const verifyComponentAddPlanning = async ({
   assert.equal(componentPacket?.activationStatus, "local-registry")
   assert.ok(
     componentPacket?.themeRequirements.some((requirement) =>
-      requirement.files.some((file) => file.sourcePath.endsWith(expectedCompatibilityBridgeSourcePath)),
+      requirement.files.some((file) => file.sourcePath.endsWith(expectedThemeSourcePath)),
     ),
   )
 
@@ -68,7 +70,7 @@ const verifyComponentAddPlanning = async ({
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
   assert.equal(dryRunEffects.files.plannedCount, expectedPlannedCount)
   assert.equal(dryRunEffects.files.wouldWriteCount, expectedPlannedCount)
-  assert.equal(dryRunEffects.dependencies.missingCount, 4)
+  assert.equal(dryRunEffects.dependencies.missingCount, expectedMissingDependencyCount)
 }
 
 await verifyComponentAddPlanning({
@@ -83,7 +85,7 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/geometry.ts",
     "src/components/_registry/tokens/theme-order.ts",
   ],
-  expectedCompatibilityBridgeSourcePath: "Checkbox/checkbox-compatibility.css",
+  expectedThemeSourcePath: "Checkbox/checkbox-compatibility.css",
 })
 
 await verifyComponentAddPlanning({
@@ -104,7 +106,7 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/geometry.ts",
     "src/components/_registry/tokens/theme-order.ts",
   ],
-  expectedCompatibilityBridgeSourcePath: "ToggleButton/toggle-button-compatibility.css",
+  expectedThemeSourcePath: "ToggleButton/toggle-button-compatibility.css",
 })
 
 await verifyComponentAddPlanning({
@@ -119,7 +121,23 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/geometry.ts",
     "src/components/_registry/tokens/theme-order.ts",
   ],
-  expectedCompatibilityBridgeSourcePath: "Radio/radio-compatibility.css",
+  expectedThemeSourcePath: "Radio/radio-compatibility.css",
+})
+
+await verifyComponentAddPlanning({
+  itemName: "text",
+  expectedItems: ["theme-css", "theme/text-typography", "text"],
+  expectedResolvedPaths: [
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+  ],
+  expectedThemeSourcePath: "Text/text-typography.css",
+  expectedMissingDependencyCount: 3,
 })
 
 await verifyComponentAddPlanning({
@@ -146,8 +164,8 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/geometry.ts",
     "src/components/_registry/tokens/theme-order.ts",
   ],
-  expectedCompatibilityBridgeSourcePath: "RadioGroup/radio-group-compatibility.css",
+  expectedThemeSourcePath: "RadioGroup/radio-group-compatibility.css",
   expectedPlannedCount: 11,
 })
 
-console.log("[aminoui-cli] checkbox, toggle-button, radio, and radio-group add planning verified")
+console.log("[aminoui-cli] checkbox, toggle-button, radio, text, and radio-group add planning verified")
