@@ -168,4 +168,34 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 11,
 })
 
-console.log("[aminoui-cli] checkbox, toggle-button, radio, text, and radio-group add planning verified")
+await verifyComponentAddPlanning({
+  itemName: "slider",
+  expectedItems: [
+    "theme-css",
+    "theme/slider-compatibility",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "theme/text-typography",
+    "text",
+    "slider",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Slider/Slider.tsx",
+    "src/components/Slider/SliderStyles.module.css",
+    "src/components/Slider/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/slider-compatibility.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "Slider/slider-compatibility.css",
+  expectedPlannedCount: 13,
+})
+
+console.log("[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, and slider add planning verified")

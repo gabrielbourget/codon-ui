@@ -95,6 +95,19 @@
       ]
     },
     {
+      "name": "theme/slider-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Slider/slider-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "slider-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
