@@ -36,6 +36,7 @@ export type {
 export { checkboxIngestPacket } from "./checkbox-ingest-packet"
 export { radioIngestPacket } from "./radio-ingest-packet"
 export { radioGroupIngestPacket } from "./radio-group-ingest-packet"
+export { sliderIngestPacket } from "./slider-ingest-packet"
 export { switchIngestPacket } from "./switch-ingest-packet"
 export { textIngestPacket } from "./text-ingest-packet"
 export { toggleButtonIngestPacket } from "./toggle-button-ingest-packet"

@@ -4,6 +4,8 @@ export { Radio } from "./components/Radio"
 export type { RadioProps } from "./components/Radio"
 export { RadioGroup } from "./components/RadioGroup"
 export type { RadioGroupProps } from "./components/RadioGroup"
+export { Slider } from "./components/Slider"
+export type { SliderProps } from "./components/Slider"
 export { Switch } from "./components/Switch"
 export type { SwitchProps } from "./components/Switch"
 export {
