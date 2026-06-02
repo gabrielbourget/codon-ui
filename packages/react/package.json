@@ -26,6 +26,7 @@
     "check:registry-graph": "pnpm exec tsx verify-registry-graph.ts",
     "check:registry-manifest": "node verify-registry-manifest.mjs",
     "check:theme-css": "node verify-theme-css-contract.mjs",
+    "generate:local-registry-snapshot": "pnpm exec tsx generate-local-registry-snapshot.ts",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --cache",
     "format": "prettier --write \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",

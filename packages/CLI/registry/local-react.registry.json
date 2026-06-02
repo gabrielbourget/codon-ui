@@ -79,15 +79,18 @@
           "role": "style"
         }
       ],
-      "registryDependencies": ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
+      "registryDependencies": [
+        "theme-css",
+        "theme/switch-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       },
-      "runtimeDependencies": {
-        "classnames": "^2.3.2"
-      }
+      "runtimeDependencies": { "classnames": "^2.3.2" }
     }
   ]
 }
