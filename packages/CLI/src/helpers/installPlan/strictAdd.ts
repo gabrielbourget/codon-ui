@@ -268,7 +268,7 @@ export const createStrictAddBlockerFindings = (installPlan: TRegistryInstallPlan
   return blockerFindings
 }
 
-const isStrictAddLockfileReusableTarget = ({
+const getStrictAddReusableLockfileFile = ({
   file,
   installPlan,
   lockfileData,
@@ -277,20 +277,20 @@ const isStrictAddLockfileReusableTarget = ({
   installPlan: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
 }) => {
-  if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return false
-  if (!file.contentHash || !file.targetContentHash) return false
+  if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return undefined
+  if (!file.contentHash || !file.targetContentHash) return undefined
 
   const lockfileItem = lockfileData.items[file.itemName]
   const lockfileFile = lockfileItem?.files.find((candidateFile) => candidateFile.path === file.resolvedPath)
 
-  return Boolean(
-    lockfileItem?.sourceIdentity === installPlan.sourceIdentity &&
-    lockfileFile &&
-    lockfileFile.targetRole === file.targetRole &&
-    lockfileFile.sourceHash === file.contentHash &&
-    lockfileFile.installedHash === file.targetContentHash &&
-    REUSABLE_LOCKFILE_OWNERSHIP_STATES.has(lockfileFile.ownershipState),
-  )
+  if (lockfileItem?.sourceIdentity !== installPlan.sourceIdentity) return undefined
+  if (!lockfileFile) return undefined
+  if (lockfileFile.targetRole !== file.targetRole) return undefined
+  if (lockfileFile.sourceHash !== file.contentHash) return undefined
+  if (lockfileFile.installedHash !== file.targetContentHash) return undefined
+  if (!REUSABLE_LOCKFILE_OWNERSHIP_STATES.has(lockfileFile.ownershipState)) return undefined
+
+  return lockfileFile
 }
 
 export const createStrictAddLockfileReusePlan = ({
@@ -302,7 +302,7 @@ export const createStrictAddLockfileReusePlan = ({
 }): TRegistryInstallPlan => {
   const reusablePaths = new Set<string>()
   const files = installPlan.files.map((file) => {
-    if (!isStrictAddLockfileReusableTarget({ file, installPlan, lockfileData })) return file
+    if (!getStrictAddReusableLockfileFile({ file, installPlan, lockfileData })) return file
 
     reusablePaths.add(file.resolvedPath)
 
@@ -372,9 +372,10 @@ export const writeStrictRegistryInstall = async ({
         files: item.files.map((file) => ({
           installedHash: installedHashesByPath.get(file.resolvedPath),
           ownershipState:
-            file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+            getStrictAddReusableLockfileFile({ file, installPlan, lockfileData })?.ownershipState ??
+            (file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
               ? CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT
-              : CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
+              : CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED),
           path: file.resolvedPath,
           sourceHash: file.contentHash,
           targetRole: file.targetRole,
