@@ -1,0 +1,371 @@
+/* stylelint-disable custom-property-pattern */
+.toggleButton {
+  height: auto;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  gap: var(--distance_1);
+  align-items: center;
+  justify-content: center;
+  padding: var(--distance_1);
+  border: 1px solid var(--aui-control-border);
+  background-color: inherit;
+  transition: var(--bgColorTransition), var(--borderColorTransition), var(--colorTransition);
+}
+
+.toggleButton > * {
+  color: var(--aui-control-foreground);
+  transition: var(--colorTransition);
+}
+
+.toggleButton--applyFocusStyle [data-focused] {
+  outline: 1.5px solid var(--focus-ring-color);
+}
+.toggleButton--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+.toggleButton--noFocusStyle[data-focused] {
+  outline: none;
+}
+
+.toggleButton--rounded {
+  border-radius: var(--border_radius_1);
+}
+.toggleButton--round {
+  border-radius: 50%;
+  padding: var(--distance_1) 7px;
+}
+
+.toggleButton--raised {
+  box-shadow: var(--shadow_1);
+}
+
+.toggleButton--no-bg-color-provided-fallback {
+  background-color: var(--aui-control-background);
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-hovered] {
+  background-color: var(--aui-control-hover-background);
+  cursor: pointer;
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-pressed] {
+  background-color: var(--aui-control-pressed-background);
+  cursor: pointer;
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-selected] {
+  background-color: var(--aui-control-selected-background);
+  border: 1px solid var(--aui-control-selected-background);
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-selected] > * {
+  color: var(--aui-control-selected-foreground);
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-selected][data-hovered] {
+  background-color: var(--aui-control-selected-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--no-bg-color-provided-fallback[data-selected][data-pressed] {
+  background-color: var(--aui-control-selected-background-pressed);
+  cursor: pointer;
+}
+
+.toggleButton[data-disabled] {
+  opacity: var(--disabledOpacity);
+}
+.toggleButton[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.toggleButton--primary[data-hovered] {
+  background-color: var(--aui-color-primary-100);
+  cursor: pointer;
+}
+
+.toggleButton--primary[data-pressed] {
+  background-color: var(--aui-color-primary-200);
+  cursor: pointer;
+}
+
+.toggleButton--primary[data-selected] {
+  background-color: var(--aui-action-primary-background);
+  border: 1px solid var(--aui-action-primary-border);
+}
+
+.toggleButton--primary[data-selected] > * {
+  color: var(--aui-action-primary-foreground);
+}
+
+.toggleButton--primary[data-selected][data-hovered] {
+  background-color: var(--aui-action-primary-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--primary[data-selected][data-pressed] {
+  background-color: var(--aui-action-primary-background-pressed);
+  cursor: pointer;
+}
+
+.toggleButton--secondary[data-hovered] {
+  background-color: var(--aui-color-secondary-100);
+  cursor: pointer;
+}
+
+.toggleButton--secondary[data-pressed] {
+  background-color: var(--aui-color-secondary-200);
+  cursor: pointer;
+}
+
+.toggleButton--secondary[data-selected] {
+  background-color: var(--aui-action-secondary-background);
+  border: 1px solid var(--aui-action-secondary-border);
+}
+
+.toggleButton--secondary[data-selected] > * {
+  color: var(--aui-action-secondary-foreground);
+}
+
+.toggleButton--secondary[data-selected][data-hovered] {
+  background-color: var(--aui-action-secondary-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--secondary[data-selected][data-pressed] {
+  background-color: var(--aui-action-secondary-background-pressed);
+  cursor: pointer;
+}
+
+.toggleButton--tertiary[data-hovered] {
+  background-color: var(--aui-color-tertiary-100);
+  cursor: pointer;
+}
+
+.toggleButton--tertiary[data-pressed] {
+  background-color: var(--aui-color-tertiary-200);
+  cursor: pointer;
+}
+
+.toggleButton--tertiary[data-selected] {
+  background-color: var(--aui-action-tertiary-background);
+  border: 1px solid var(--aui-action-tertiary-border);
+}
+
+.toggleButton--tertiary[data-selected] > * {
+  color: var(--aui-action-tertiary-foreground);
+}
+
+.toggleButton--tertiary[data-selected][data-hovered] {
+  background-color: var(--aui-action-tertiary-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--tertiary[data-selected][data-pressed] {
+  background-color: var(--aui-action-tertiary-background-pressed);
+  cursor: pointer;
+}
+
+.toggleButton--quaternary[data-hovered] {
+  background-color: var(--aui-color-quaternary-100);
+  cursor: pointer;
+}
+
+.toggleButton--quaternary[data-pressed] {
+  background-color: var(--aui-color-quaternary-200);
+  cursor: pointer;
+}
+
+.toggleButton--quaternary[data-selected] {
+  background-color: var(--aui-action-quaternary-background);
+  border: 1px solid var(--aui-action-quaternary-border);
+}
+
+.toggleButton--quaternary[data-selected] > * {
+  color: var(--aui-action-quaternary-foreground);
+}
+
+.toggleButton--quaternary[data-selected][data-hovered] {
+  background-color: var(--aui-action-quaternary-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--quaternary[data-selected][data-pressed] {
+  background-color: var(--aui-action-quaternary-background-pressed);
+  cursor: pointer;
+}
+
+.toggleButton--quintenary[data-hovered] {
+  background-color: var(--aui-color-quintenary-100);
+  cursor: pointer;
+}
+
+.toggleButton--quintenary[data-pressed] {
+  background-color: var(--aui-color-quintenary-200);
+  cursor: pointer;
+}
+
+.toggleButton--quintenary[data-selected] {
+  background-color: var(--aui-action-quintenary-background);
+  border: 1px solid var(--aui-action-quintenary-border);
+}
+
+.toggleButton--quintenary[data-selected] > * {
+  color: var(--aui-action-quintenary-foreground);
+}
+
+.toggleButton--quintenary[data-selected][data-hovered] {
+  background-color: var(--aui-action-quintenary-background-hover);
+  cursor: pointer;
+}
+
+.toggleButton--quintenary[data-selected][data-pressed] {
+  background-color: var(--aui-action-quintenary-background-pressed);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-hovered] {
+  background-color: var(--aui-color-primary-700);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-pressed] {
+  background-color: var(--aui-color-primary-600);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-selected] {
+  background-color: var(--aui-action-primary-background);
+  border: 1px solid var(--aui-action-primary-border);
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-selected] > * {
+  color: var(--aui-action-primary-foreground);
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-selected][data-hovered] {
+  background-color: var(--aui-action-primary-background-hover);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--primary[data-selected][data-pressed] {
+  background-color: var(--aui-action-primary-background-pressed);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-hovered] {
+  background-color: var(--aui-color-secondary-700);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-pressed] {
+  background-color: var(--aui-color-secondary-600);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-selected] {
+  background-color: var(--aui-action-secondary-background);
+  border: 1px solid var(--aui-action-secondary-border);
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-selected] > * {
+  color: var(--aui-action-secondary-foreground);
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-selected][data-hovered] {
+  background-color: var(--aui-action-secondary-background-hover);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--secondary[data-selected][data-pressed] {
+  background-color: var(--aui-action-secondary-background-pressed);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-hovered] {
+  background-color: var(--aui-color-tertiary-700);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-pressed] {
+  background-color: var(--aui-color-tertiary-600);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-selected] {
+  background-color: var(--aui-action-tertiary-background);
+  border: 1px solid var(--aui-action-tertiary-border);
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-selected] > * {
+  color: var(--aui-action-tertiary-foreground);
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-selected][data-hovered] {
+  background-color: var(--aui-action-tertiary-background-hover);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--tertiary[data-selected][data-pressed] {
+  background-color: var(--aui-action-tertiary-background-pressed);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-hovered] {
+  background-color: var(--aui-color-quaternary-700);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-pressed] {
+  background-color: var(--aui-color-quaternary-600);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-selected] {
+  background-color: var(--aui-action-quaternary-background);
+  border: 1px solid var(--aui-action-quaternary-border);
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-selected] > * {
+  color: var(--aui-action-quaternary-foreground);
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-selected][data-hovered] {
+  background-color: var(--aui-action-quaternary-background-hover);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quaternary[data-selected][data-pressed] {
+  background-color: var(--aui-action-quaternary-background-pressed);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-hovered] {
+  background-color: var(--aui-color-quintenary-700);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-pressed] {
+  background-color: var(--aui-color-quintenary-600);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-selected] {
+  background-color: var(--aui-action-quintenary-background);
+  border: 1px solid var(--aui-action-quintenary-border);
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-selected] > * {
+  color: var(--aui-action-quintenary-foreground);
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-selected][data-hovered] {
+  background-color: var(--aui-action-quintenary-background-hover);
+  cursor: pointer;
+}
+
+body[data-theme="dark"] .toggleButton--quintenary[data-selected][data-pressed] {
+  background-color: var(--aui-action-quintenary-background-pressed);
+  cursor: pointer;
+}
