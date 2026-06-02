@@ -1,0 +1,181 @@
+{
+  "name": "radio",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#radio-next-candidate-planning-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Radio/Radio.tsx",
+      "targetRole": "components",
+      "targetPath": "Radio/Radio.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Radio/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Radio/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Radio/RadioStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Radio/RadioStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Radio/__tests__/Radio.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Radio/__tests__/Radio.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Radio",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Radio/Radio.tsx"
+    },
+    {
+      "exportedName": "RadioProps",
+      "localName": "TRadioProps",
+      "sourcePath": "packages/react/src/components/Radio/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Radio/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Geometry constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Radio/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theme-order constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Radio/__tests__/Radio.test.tsx",
+      "importSource": "@/src/components/Radio/Radio",
+      "replacementSource": "../Radio",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/RadioGroup/__tests__/RadioGroup.test.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-border",
+        "--aui-control-hover-background",
+        "--aui-control-pressed-background",
+        "--aui-control-selected-background",
+        "--aui-control-selected-foreground"
+      ],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": [
+        "--distance_1",
+        "--text-color",
+        "--disabledOpacity",
+        "--border_radius_1",
+        "--focus-ring-color",
+        "--aui-color-primary-100",
+        "--aui-color-primary-200",
+        "--aui-color-primary-500",
+        "--aui-color-primary-600",
+        "--aui-color-primary-700",
+        "--aui-color-secondary-100",
+        "--aui-color-secondary-200",
+        "--aui-color-secondary-500",
+        "--aui-color-secondary-600",
+        "--aui-color-secondary-700",
+        "--aui-color-tertiary-100",
+        "--aui-color-tertiary-200",
+        "--aui-color-tertiary-500",
+        "--aui-color-tertiary-600",
+        "--aui-color-tertiary-700",
+        "--aui-color-quaternary-100",
+        "--aui-color-quaternary-200",
+        "--aui-color-quaternary-500",
+        "--aui-color-quaternary-600",
+        "--aui-color-quaternary-700",
+        "--aui-color-quintenary-100",
+        "--aui-color-quintenary-200",
+        "--aui-color-quintenary-500",
+        "--aui-color-quintenary-600",
+        "--aui-color-quintenary-700"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first Radio proof; do not fold these aliases into the Switch, Checkbox, or ToggleButton compatibility bridges casually.",
+        "Radio keeps its documented selected one-color exception because selected radios do not need a selected text/icon foreground pairing."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/Radio/Radio.tsx packages/react/src/components/Radio/helpers.ts packages/react/src/components/Radio/RadioStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after the approved token import rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Radio proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Radio/__tests__/Radio.test.tsx src/components/RadioGroup/__tests__/RadioGroup.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Radio runtime source has been received into packages/react; this packet still feeds early CLI advisory planning until generated component registry artifacts exist.",
+    "Preserve the client component boundary and CSS-module source model for the fourth component proof.",
+    "Keep calibrateComponent private unless a later API review approves exporting helper internals.",
+    "Do not move RadioGroup, Text, component-showcase code, or focused test composition with the Radio component.",
+    "This source-receipt pass does not activate a radio manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

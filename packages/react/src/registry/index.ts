@@ -34,6 +34,7 @@ export type {
   TRegistryIngestVerificationStep,
 } from "./ingest"
 export { checkboxIngestPacket } from "./checkbox-ingest-packet"
+export { radioIngestPacket } from "./radio-ingest-packet"
 export { switchIngestPacket } from "./switch-ingest-packet"
 export { toggleButtonIngestPacket } from "./toggle-button-ingest-packet"
 export { reactRegistryManifest } from "./manifest"

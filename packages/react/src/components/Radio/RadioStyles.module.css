@@ -1,0 +1,198 @@
+.radio {
+  display: flex;
+  align-items: center;
+  gap: var(--distance_1);
+  color: var(--text-color);
+  forced-color-adjust: none;
+}
+
+.radio[data-disabled] {
+  opacity: var(--disabledOpacity);
+}
+
+.radio[data-hovered] .shape--fallback {
+  background-color: var(--aui-control-hover-background);
+}
+.radio[data-hovered] .shape--primary {
+  background-color: var(--aui-color-primary-100);
+}
+.radio[data-hovered] .shape--secondary {
+  background-color: var(--aui-color-secondary-100);
+}
+.radio[data-hovered] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-100);
+}
+.radio[data-hovered] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-100);
+}
+.radio[data-hovered] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-100);
+}
+
+.radio[data-pressed] .shape--fallback {
+  background-color: var(--aui-control-pressed-background);
+}
+.radio[data-pressed] .shape--primary {
+  background-color: var(--aui-color-primary-200);
+}
+.radio[data-pressed] .shape--secondary {
+  background-color: var(--aui-color-secondary-200);
+}
+.radio[data-pressed] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-200);
+}
+.radio[data-pressed] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-200);
+}
+.radio[data-pressed] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-200);
+}
+
+.radio[data-focused] .shape--applyFocusStyle {
+  outline: 1.5px solid var(--focus-ring-color);
+}
+.radio[data-focused] .shape--noFocusStyle {
+  outline: none;
+}
+
+.radio[data-focus-visible] .shape--applyFocusStyle {
+  outline: 1.5px solid var(--focus-ring-color);
+}
+.radio[data-focus-visible] .shape--noFocusStyle {
+  outline: none;
+}
+
+.radio[data-selected] .shape--fallback {
+  background-color: var(--aui-control-selected-background);
+}
+.radio[data-selected] .shape--primary {
+  background-color: var(--aui-color-primary-500);
+}
+.radio[data-selected] .shape--secondary {
+  background-color: var(--aui-color-secondary-500);
+}
+.radio[data-selected] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-500);
+}
+.radio[data-selected] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-500);
+}
+.radio[data-selected] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-500);
+}
+
+.radio[data-selected] svg {
+  stroke-dashoffset: 44;
+}
+
+.radio[data-indeterminate] svg {
+  stroke: none;
+  fill: var(--aui-control-selected-foreground);
+}
+
+.shape {
+  width: 20px;
+  height: 20px;
+  transition:
+    all 0.25s ease-in-out,
+    outline 0s,
+    border 0s;
+  display: grid;
+  place-items: center;
+  background-color: inherit;
+}
+
+.shape--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.shape--rounded {
+  border-radius: var(--border_radius_1);
+}
+.shape--round {
+  border-radius: 50%;
+}
+
+.shape--fallback {
+  border: 2px solid var(--aui-control-border);
+}
+.shape--primary {
+  border: 2px solid var(--aui-color-primary-500);
+}
+.shape--secondary {
+  border: 2px solid var(--aui-color-secondary-500);
+}
+.shape--tertiary {
+  border: 2px solid var(--aui-color-tertiary-500);
+}
+.shape--quaternary {
+  border: 2px solid var(--aui-color-quaternary-500);
+}
+.shape--quintenary {
+  border: 2px solid var(--aui-color-quintenary-500);
+}
+
+body[data-theme="dark"] .radio[data-hovered] .shape--primary {
+  background-color: var(--aui-color-primary-700);
+}
+body[data-theme="dark"] .radio[data-hovered] .shape--secondary {
+  background-color: var(--aui-color-secondary-700);
+}
+body[data-theme="dark"] .radio[data-hovered] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-700);
+}
+body[data-theme="dark"] .radio[data-hovered] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-700);
+}
+body[data-theme="dark"] .radio[data-hovered] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-700);
+}
+
+body[data-theme="dark"] .radio[data-pressed] .shape--primary {
+  background-color: var(--aui-color-primary-600);
+}
+body[data-theme="dark"] .radio[data-pressed] .shape--secondary {
+  background-color: var(--aui-color-secondary-600);
+}
+body[data-theme="dark"] .radio[data-pressed] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-600);
+}
+body[data-theme="dark"] .radio[data-pressed] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-600);
+}
+body[data-theme="dark"] .radio[data-pressed] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-600);
+}
+
+/* -> Keeping these locked to one color because clicking a selected radio item will not change the selection state. */
+body[data-theme="dark"] .radio[data-selected][data-hovered] .shape--primary {
+  background-color: var(--aui-color-primary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-hovered] .shape--secondary {
+  background-color: var(--aui-color-secondary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-hovered] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-hovered] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-hovered] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-500);
+}
+
+body[data-theme="dark"] .radio[data-selected][data-pressed] .shape--primary {
+  background-color: var(--aui-color-primary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-pressed] .shape--secondary {
+  background-color: var(--aui-color-secondary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-pressed] .shape--tertiary {
+  background-color: var(--aui-color-tertiary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-pressed] .shape--quaternary {
+  background-color: var(--aui-color-quaternary-500);
+}
+body[data-theme="dark"] .radio[data-selected][data-pressed] .shape--quintenary {
+  background-color: var(--aui-color-quintenary-500);
+}

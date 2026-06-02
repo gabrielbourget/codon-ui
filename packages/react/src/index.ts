@@ -1,5 +1,7 @@
 export { Checkbox } from "./components/Checkbox"
 export type { CheckboxProps } from "./components/Checkbox"
+export { Radio } from "./components/Radio"
+export type { RadioProps } from "./components/Radio"
 export { Switch } from "./components/Switch"
 export type { SwitchProps } from "./components/Switch"
 export { ToggleButton } from "./components/ToggleButton"
