@@ -54,6 +54,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/checkbox-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Checkbox/checkbox-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "checkbox-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "tokens/theme-order",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -91,6 +104,40 @@ export const reactRegistryManifest = [
       },
     ],
     registryDependencies: ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "checkbox",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Checkbox/Checkbox.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Checkbox/Checkbox.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Checkbox/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Checkbox/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Checkbox/CheckboxStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Checkbox/CheckboxStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/checkbox-compatibility", "tokens/geometry", "tokens/theme-order"],
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-aria-components": "^1.17.0",

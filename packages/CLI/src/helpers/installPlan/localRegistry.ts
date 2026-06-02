@@ -11,7 +11,10 @@ export type TLocalRegistryReadResult = {
   sourceRoot: string
 }
 
-const SWITCH_REGISTRY_ITEM_NAME = "switch"
+const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set(["switch", "checkbox"])
+
+export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>
+  requestedItems.some((itemName) => LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES.has(itemName))
 
 export const getDefaultLocalSupportRegistrySourcePath = () => {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
@@ -42,7 +45,7 @@ export const resolveDefaultAddRegistrySourcePath = ({
   allComponents: boolean
   requestedItems: readonly string[]
 }) => {
-  if (!allComponents && requestedItems.includes(SWITCH_REGISTRY_ITEM_NAME)) {
+  if (!allComponents && isLocalReactRegistryComponentItemRequest(requestedItems)) {
     return getDefaultLocalReactRegistrySourcePath()
   }
 

@@ -43,6 +43,19 @@
       ]
     },
     {
+      "name": "theme/checkbox-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "checkbox-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
