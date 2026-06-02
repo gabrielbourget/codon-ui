@@ -33,6 +33,7 @@ export type {
   TRegistryIngestVerificationKind,
   TRegistryIngestVerificationStep,
 } from "./ingest"
+export { checkboxIngestPacket } from "./checkbox-ingest-packet"
 export { switchIngestPacket } from "./switch-ingest-packet"
 export { reactRegistryManifest } from "./manifest"
 export type {

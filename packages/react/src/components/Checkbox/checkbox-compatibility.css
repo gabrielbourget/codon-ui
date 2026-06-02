@@ -1,0 +1,65 @@
+/* Proof bridge only: keep received Checkbox source renderable before the broader action palette contract is settled. */
+:root {
+  --distance_1: var(--aui-space-1);
+  --text-color: var(--aui-foreground);
+  --disabledOpacity: var(--aui-opacity-disabled);
+  --border_radius_1: var(--aui-radius-1);
+  --focus-ring-color: var(--aui-focus-ring);
+  --shadow_1: var(--aui-shadow-1);
+
+  --aui-color-primary-100: color-mix(in srgb, var(--aui-control-selected-background) 15%, var(--aui-background) 85%);
+  --aui-color-primary-200: color-mix(in srgb, var(--aui-control-selected-background) 30%, var(--aui-background) 70%);
+  --aui-color-primary-500: var(--aui-control-selected-background);
+  --aui-color-primary-600: color-mix(in srgb, var(--aui-control-selected-background) 85%, var(--aui-foreground) 15%);
+  --aui-color-primary-700: color-mix(in srgb, var(--aui-control-selected-background) 75%, var(--aui-foreground) 25%);
+
+  --aui-color-secondary-100: color-mix(in srgb, var(--aui-control-pressed-background) 15%, var(--aui-background) 85%);
+  --aui-color-secondary-200: color-mix(in srgb, var(--aui-control-pressed-background) 30%, var(--aui-background) 70%);
+  --aui-color-secondary-500: var(--aui-control-pressed-background);
+  --aui-color-secondary-600: color-mix(in srgb, var(--aui-control-pressed-background) 85%, var(--aui-foreground) 15%);
+  --aui-color-secondary-700: color-mix(in srgb, var(--aui-control-pressed-background) 75%, var(--aui-foreground) 25%);
+
+  --aui-color-tertiary-100: color-mix(in srgb, var(--aui-state-success) 15%, var(--aui-background) 85%);
+  --aui-color-tertiary-200: color-mix(in srgb, var(--aui-state-success) 30%, var(--aui-background) 70%);
+  --aui-color-tertiary-500: var(--aui-state-success);
+  --aui-color-tertiary-600: color-mix(in srgb, var(--aui-state-success) 85%, var(--aui-foreground) 15%);
+  --aui-color-tertiary-700: color-mix(in srgb, var(--aui-state-success) 75%, var(--aui-foreground) 25%);
+
+  --aui-color-quaternary-100: color-mix(in srgb, var(--aui-state-warning) 15%, var(--aui-background) 85%);
+  --aui-color-quaternary-200: color-mix(in srgb, var(--aui-state-warning) 30%, var(--aui-background) 70%);
+  --aui-color-quaternary-500: var(--aui-state-warning);
+  --aui-color-quaternary-600: color-mix(in srgb, var(--aui-state-warning) 85%, var(--aui-foreground) 15%);
+  --aui-color-quaternary-700: color-mix(in srgb, var(--aui-state-warning) 75%, var(--aui-foreground) 25%);
+
+  --aui-color-quintenary-100: color-mix(in srgb, var(--aui-state-danger) 15%, var(--aui-background) 85%);
+  --aui-color-quintenary-200: color-mix(in srgb, var(--aui-state-danger) 30%, var(--aui-background) 70%);
+  --aui-color-quintenary-500: var(--aui-state-danger);
+  --aui-color-quintenary-600: color-mix(in srgb, var(--aui-state-danger) 85%, var(--aui-foreground) 15%);
+  --aui-color-quintenary-700: color-mix(in srgb, var(--aui-state-danger) 75%, var(--aui-foreground) 25%);
+
+  --aui-action-primary-background: var(--aui-color-primary-500);
+  --aui-action-primary-background-hover: var(--aui-color-primary-600);
+  --aui-action-primary-background-pressed: var(--aui-color-primary-700);
+  --aui-action-primary-border: var(--aui-action-primary-background);
+  --aui-action-primary-foreground: var(--aui-control-selected-foreground);
+  --aui-action-secondary-background: var(--aui-color-secondary-500);
+  --aui-action-secondary-background-hover: var(--aui-color-secondary-600);
+  --aui-action-secondary-background-pressed: var(--aui-color-secondary-700);
+  --aui-action-secondary-border: var(--aui-action-secondary-background);
+  --aui-action-secondary-foreground: var(--aui-control-selected-foreground);
+  --aui-action-tertiary-background: var(--aui-color-tertiary-500);
+  --aui-action-tertiary-background-hover: var(--aui-color-tertiary-600);
+  --aui-action-tertiary-background-pressed: var(--aui-color-tertiary-700);
+  --aui-action-tertiary-border: var(--aui-action-tertiary-background);
+  --aui-action-tertiary-foreground: var(--aui-control-selected-foreground);
+  --aui-action-quaternary-background: var(--aui-color-quaternary-500);
+  --aui-action-quaternary-background-hover: var(--aui-color-quaternary-600);
+  --aui-action-quaternary-background-pressed: var(--aui-color-quaternary-700);
+  --aui-action-quaternary-border: var(--aui-action-quaternary-background);
+  --aui-action-quaternary-foreground: var(--aui-control-selected-foreground);
+  --aui-action-quintenary-background: var(--aui-color-quintenary-500);
+  --aui-action-quintenary-background-hover: var(--aui-color-quintenary-600);
+  --aui-action-quintenary-background-pressed: var(--aui-color-quintenary-700);
+  --aui-action-quintenary-border: var(--aui-action-quintenary-background);
+  --aui-action-quintenary-foreground: var(--aui-control-selected-foreground);
+}
