@@ -132,6 +132,13 @@
     },
     {
       "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Switch proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
       "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Switch/__tests__/Switch.test.tsx",
       "workingDirectory": "../wavemap",
       "advisory": true,
