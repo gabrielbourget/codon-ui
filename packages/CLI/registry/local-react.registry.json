@@ -56,6 +56,19 @@
       ]
     },
     {
+      "name": "theme/toggle-button-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "toggle-button-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
@@ -132,6 +145,43 @@
       "registryDependencies": [
         "theme-css",
         "theme/checkbox-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "toggle-button",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/ToggleButton.tsx",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/ToggleButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/ToggleButtonStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/ToggleButtonStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/toggle-button-compatibility",
         "tokens/geometry",
         "tokens/theme-order"
       ],

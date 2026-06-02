@@ -67,6 +67,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/toggle-button-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "toggle-button-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "tokens/theme-order",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -138,6 +151,40 @@ export const reactRegistryManifest = [
       },
     ],
     registryDependencies: ["theme-css", "theme/checkbox-compatibility", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "toggle-button",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/ToggleButton/ToggleButton.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleButton/ToggleButton.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ToggleButton/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleButton/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ToggleButton/ToggleButtonStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleButton/ToggleButtonStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/toggle-button-compatibility", "tokens/geometry", "tokens/theme-order"],
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-aria-components": "^1.17.0",

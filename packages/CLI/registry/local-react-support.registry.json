@@ -56,6 +56,19 @@
       ]
     },
     {
+      "name": "theme/toggle-button-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "toggle-button-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
