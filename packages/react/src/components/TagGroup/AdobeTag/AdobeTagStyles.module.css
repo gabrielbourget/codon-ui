@@ -1,0 +1,262 @@
+/* stylelint-disable custom-property-pattern */
+.tag {
+  height: auto;
+  width: auto;
+  display: flex;
+  flex-direction: row;
+  gap: var(--distance_1);
+  align-items: center;
+  justify-content: center;
+  padding: var(--distance_1);
+  background-color: var(--aui-control-background);
+  border: 1px solid var(--aui-control-border);
+  transition: var(--bgColorTransition), var(--borderColorTransition), var(--colorTransition);
+}
+
+.tag[data-hovered] {
+  cursor: pointer;
+}
+
+.tag > * {
+  color: var(--aui-control-foreground);
+  transition: var(--colorTransition);
+}
+
+.tag__icon {
+  fill: var(--aui-control-foreground);
+}
+
+.tag__removeButton {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font: inherit;
+  line-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.tag__removeButton[data-focus-visible] {
+  outline: 1.5px solid var(--focus-ring-color);
+  outline-offset: 1.5px;
+}
+
+.tag[data-disabled] {
+  opacity: var(--disabledOpacity);
+}
+
+.tag:hover {
+  cursor: not-allowed;
+}
+
+.tag--applyFocusStyle[data-focused] {
+  outline: 1.5px solid var(--focus-ring-color);
+}
+
+.tag--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.tag--noFocusStyle [data-focused] {
+  outline: none;
+}
+
+.tag--rounded {
+  border-radius: var(--border_radius_1);
+}
+
+.tag--round {
+  border-radius: 10000px;
+  padding: var(--distance_1) 7px;
+}
+
+.tag--raised {
+  box-shadow: var(--shadow_1);
+}
+
+.tag--no-bg-color-provided-fallback {
+  background-color: var(--aui-control-background);
+}
+
+.tag--transparent {
+  background-color: transparent;
+}
+
+.tag--default[data-hovered] {
+  background-color: var(--aui-control-hover-background);
+  cursor: pointer;
+}
+
+.tag--default[data-pressed] {
+  background-color: var(--aui-control-pressed-background);
+  cursor: pointer;
+}
+
+.tag--default[data-selected] {
+  background-color: var(--aui-control-selected-background);
+  border: 1px solid var(--aui-control-selected-background);
+}
+
+.tag--default[data-selected] > * {
+  color: var(--aui-control-selected-foreground);
+}
+
+.tag--default[data-selected][data-hovered] {
+  background-color: var(--aui-control-selected-background-hover);
+  cursor: pointer;
+}
+
+.tag--default[data-selected][data-pressed] {
+  background-color: var(--aui-control-selected-background-pressed);
+  cursor: pointer;
+}
+
+.tag--primary[data-hovered] {
+  background-color: var(--aui-tag-primary-hover-background);
+  cursor: pointer;
+}
+
+.tag--primary[data-pressed] {
+  background-color: var(--aui-tag-primary-pressed-background);
+  cursor: pointer;
+}
+
+.tag--primary[data-selected] {
+  background-color: var(--aui-tag-primary-selected-background);
+  border: 1px solid var(--aui-tag-primary-selected-border);
+}
+
+.tag--primary[data-selected] > * {
+  color: var(--aui-tag-primary-selected-foreground);
+}
+
+.tag--primary[data-selected][data-hovered] {
+  background-color: var(--aui-tag-primary-selected-hover-background);
+  cursor: pointer;
+}
+
+.tag--primary[data-selected][data-pressed] {
+  background-color: var(--aui-tag-primary-selected-pressed-background);
+  cursor: pointer;
+}
+
+.tag--secondary[data-hovered] {
+  background-color: var(--aui-tag-secondary-hover-background);
+  cursor: pointer;
+}
+
+.tag--secondary[data-pressed] {
+  background-color: var(--aui-tag-secondary-pressed-background);
+  cursor: pointer;
+}
+
+.tag--secondary[data-selected] {
+  background-color: var(--aui-tag-secondary-selected-background);
+  border: 1px solid var(--aui-tag-secondary-selected-border);
+
+  & > * {
+    color: var(--aui-tag-secondary-selected-foreground);
+  }
+}
+
+.tag--secondary[data-selected][data-hovered] {
+  background-color: var(--aui-tag-secondary-selected-hover-background);
+  cursor: pointer;
+}
+
+.tag--secondary[data-selected][data-pressed] {
+  background-color: var(--aui-tag-secondary-selected-pressed-background);
+  cursor: pointer;
+}
+
+.tag--tertiary[data-hovered] {
+  background-color: var(--aui-tag-tertiary-hover-background);
+  cursor: pointer;
+}
+
+.tag--tertiary[data-pressed] {
+  background-color: var(--aui-tag-tertiary-pressed-background);
+  cursor: pointer;
+}
+
+.tag--tertiary[data-selected] {
+  background-color: var(--aui-tag-tertiary-selected-background);
+  border: 1px solid var(--aui-tag-tertiary-selected-border);
+
+  & > * {
+    color: var(--aui-tag-tertiary-selected-foreground);
+  }
+}
+
+.tag--tertiary[data-selected][data-hovered] {
+  background-color: var(--aui-tag-tertiary-selected-hover-background);
+  cursor: pointer;
+}
+
+.tag--tertiary[data-selected][data-pressed] {
+  background-color: var(--aui-tag-tertiary-selected-pressed-background);
+  cursor: pointer;
+}
+
+.tag--quaternary[data-hovered] {
+  background-color: var(--aui-tag-quaternary-hover-background);
+  cursor: pointer;
+}
+
+.tag--quaternary[data-pressed] {
+  background-color: var(--aui-tag-quaternary-pressed-background);
+  cursor: pointer;
+}
+
+.tag--quaternary[data-selected] {
+  background-color: var(--aui-tag-quaternary-selected-background);
+  border: 1px solid var(--aui-tag-quaternary-selected-border);
+
+  & > * {
+    color: var(--aui-tag-quaternary-selected-foreground);
+  }
+}
+
+.tag--quaternary[data-selected][data-hovered] {
+  background-color: var(--aui-tag-quaternary-selected-hover-background);
+  cursor: pointer;
+}
+
+.tag--quaternary[data-selected][data-pressed] {
+  background-color: var(--aui-tag-quaternary-selected-pressed-background);
+  cursor: pointer;
+}
+
+.tag--quintenary[data-hovered] {
+  background-color: var(--aui-tag-quintenary-hover-background);
+  cursor: pointer;
+}
+
+.tag--quintenary[data-pressed] {
+  background-color: var(--aui-tag-quintenary-pressed-background);
+  cursor: pointer;
+}
+
+.tag--quintenary[data-selected] {
+  background-color: var(--aui-tag-quintenary-selected-background);
+  border: 1px solid var(--aui-tag-quintenary-selected-border);
+
+  & > * {
+    color: var(--aui-tag-quintenary-selected-foreground);
+  }
+}
+
+.tag--quintenary[data-selected][data-hovered] {
+  background-color: var(--aui-tag-quintenary-selected-hover-background);
+  cursor: pointer;
+}
+
+.tag--quintenary[data-selected][data-pressed] {
+  background-color: var(--aui-tag-quintenary-selected-pressed-background);
+  cursor: pointer;
+}

@@ -1,0 +1,5 @@
+export { default as Tag } from "./AdobeTag/AdobeTag"
+export type { TTagProps as TagProps } from "./AdobeTag/helpers"
+export { default as TagGroup } from "./TagGroup"
+export { ORIENTATION__HORIZONTAL, ORIENTATION__VERTICAL } from "./helpers"
+export type { TTagGroupOrientations as TagGroupOrientation, TTagGroupProps as TagGroupProps } from "./helpers"
