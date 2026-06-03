@@ -119,6 +119,10 @@
         "--aui-font-family-body",
         "--aui-font-family-heading",
         "--aui-font-family-display",
+        "--aui-font-family-system",
+        "--aui-font-family-body-override",
+        "--aui-font-family-heading-override",
+        "--aui-font-family-display-override",
         "--aui-text-d1-font-size",
         "--aui-text-h1-sm-font-size",
         "--aui-text-b10-font-size",
@@ -137,7 +141,7 @@
       ],
       "notes": [
         "The typography support file is a neutral example preset: consumers can override the CSS variables without taking Wavemap font files or font loading.",
-        "Wavemap should map its app-owned --fontface_primary / Switzer setup to the neutral --aui-font-family-* variables during consumer rehydration."
+        "Wavemap should map its app-owned --fontface_primary / Switzer setup to the neutral --aui-font-family-*-override variables during consumer rehydration."
       ]
     }
   ],

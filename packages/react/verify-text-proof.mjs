@@ -85,6 +85,12 @@ const requiredTypographyVariables = [
   "--aui-font-weight-regular",
   "--aui-font-weight-extrabold",
 ]
+const requiredTypographySupportVariables = [
+  "--aui-font-family-system",
+  "--aui-font-family-body-override",
+  "--aui-font-family-heading-override",
+  "--aui-font-family-display-override",
+]
 
 assert(textSource.startsWith('"use client"'), "Text must preserve the client component boundary")
 assert(textSource.includes("forwardRef<HTMLElement, TTextProps>"), "Text must forward an HTMLElement ref")
@@ -105,6 +111,9 @@ requiredStyleSelectors.forEach((selector) => {
 })
 requiredTypographyVariables.forEach((cssVariable) => {
   assert(stylesSource.includes(cssVariable), `Text CSS module must read ${cssVariable}`)
+  assert(typographySupportSource.includes(cssVariable), `Text typography support must define ${cssVariable}`)
+})
+requiredTypographySupportVariables.forEach((cssVariable) => {
   assert(typographySupportSource.includes(cssVariable), `Text typography support must define ${cssVariable}`)
 })
 assert(
@@ -181,6 +190,12 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "Text packet must record default typography support")
 requiredTypographyVariables.forEach((cssVariable) => {
+  assert(
+    defaultContractRequirement.cssVariables.includes(cssVariable),
+    `Text packet must record theme pressure for ${cssVariable}`,
+  )
+})
+requiredTypographySupportVariables.forEach((cssVariable) => {
   assert(
     defaultContractRequirement.cssVariables.includes(cssVariable),
     `Text packet must record theme pressure for ${cssVariable}`,
