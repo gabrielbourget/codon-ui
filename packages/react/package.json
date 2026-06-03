@@ -34,19 +34,21 @@
     "format:check": "prettier --check \"src/**/*.{css,json,ts,tsx}\" \"*.{css,json,md,mjs,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
     "stylelint": "stylelint \"*.css\" \"src/**/*.css\"",
-    "test": "node verify-switch-proof.mjs && node verify-checkbox-proof.mjs && node verify-toggle-button-proof.mjs && node verify-radio-proof.mjs && node verify-radio-group-proof.mjs && node verify-text-proof.mjs && node verify-slider-proof.mjs && node verify-tag-proof.mjs && node verify-tag-group-proof.mjs && node verify-circular-progress-proof.mjs && node verify-counter-proof.mjs",
+    "test": "node verify-switch-proof.mjs && node verify-checkbox-proof.mjs && node verify-toggle-button-proof.mjs && node verify-radio-proof.mjs && node verify-radio-group-proof.mjs && node verify-text-proof.mjs && node verify-slider-proof.mjs && node verify-tag-proof.mjs && node verify-tag-group-proof.mjs && node verify-circular-progress-proof.mjs && node verify-counter-proof.mjs && node verify-avatar-proof.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "classnames": "^2.3.2"
   },
   "peerDependencies": {
+    "@radix-ui/react-avatar": "^1.1.11",
     "react": "^18.2.0 || ^19.0.0",
     "react-aria-components": "^1.17.0",
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
     "@amino-ui/shared-utils": "workspace:*",
+    "@radix-ui/react-avatar": "^1.1.11",
     "eslint": "^9.0.0",
     "prettier": "^3.8.1",
     "react-aria-components": "^1.17.0",

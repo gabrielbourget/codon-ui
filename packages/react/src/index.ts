@@ -1,3 +1,5 @@
+export { Avatar } from "./components/Avatar"
+export type { AvatarProps } from "./components/Avatar"
 export { Checkbox } from "./components/Checkbox"
 export type { CheckboxProps } from "./components/Checkbox"
 export { CircularProgress } from "./components/CircularProgress"

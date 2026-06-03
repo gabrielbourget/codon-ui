@@ -33,6 +33,7 @@ export type {
   TRegistryIngestVerificationKind,
   TRegistryIngestVerificationStep,
 } from "./ingest"
+export { avatarIngestPacket } from "./avatar-ingest-packet"
 export { checkboxIngestPacket } from "./checkbox-ingest-packet"
 export { circularProgressIngestPacket } from "./circular-progress-ingest-packet"
 export { counterIngestPacket } from "./counter-ingest-packet"
