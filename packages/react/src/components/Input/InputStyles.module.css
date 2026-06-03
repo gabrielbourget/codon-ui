@@ -1,0 +1,58 @@
+.input {
+  height: auto;
+  width: auto;
+  padding: var(--aui-space-1);
+  border: 1px solid var(--aui-control-border);
+  transition: var(--aui-transition-border-color);
+  background-color: var(--aui-control-background);
+  color: var(--aui-control-foreground);
+}
+
+.input--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.input--round {
+  border-radius: 50%;
+  padding: var(--aui-space-1) 7px;
+}
+
+.input--applyFocusStyle[data-focused],
+.input--applyFocusStyle:focus,
+.input--applyFocusStyle:focus-visible {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.input--noFocusStyle[data-focused],
+.input--noFocusStyle:focus,
+.input--noFocusStyle:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.input--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.input::placeholder {
+  color: var(--aui-control-placeholder);
+  font-style: italic;
+  font-size: 12px;
+  opacity: 1;
+}
+
+.input[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}
+.input[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.input--errorState {
+  border: 1px solid var(--aui-state-danger);
+}
+.input--warningState {
+  border: 1px solid var(--aui-state-warning);
+}
+.input--successState {
+  border: 1px solid var(--aui-state-success);
+}

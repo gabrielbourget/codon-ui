@@ -1,0 +1,167 @@
+{
+  "name": "input",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#input-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Input/Input.tsx",
+      "targetRole": "components",
+      "targetPath": "Input/Input.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Input/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/InputStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Input/InputStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/__tests__/Input.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Input/__tests__/Input.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Input",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Input/Input.tsx"
+    },
+    {
+      "exportedName": "InputProps",
+      "localName": "TInputProps",
+      "sourcePath": "packages/react/src/components/Input/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Input/Input.tsx",
+      "importSource": "react-aria-components#Input",
+      "replacementSource": "react-aria-components#Input",
+      "notes": ["Input keeps React Aria Input as an explicit package peer dependency for this proof."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens#geometry",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Input corner geometry imports from package-local geometry token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/helpers.ts",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["Input reuses installed Text CSS-module typography classes rather than moving Text source into Input."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/InputStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition/validation aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": [
+        "Input CSS now reads default Amino spacing, radius, focus, transition, disabled opacity, control, and validation state variables directly.",
+        "The validation-state borders map to --aui-state-danger, --aui-state-warning, and --aui-state-success without an Input-local compatibility bridge."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Input/__tests__/Input.test.tsx",
+      "importSource": "@/src/components/Input/Input",
+      "replacementSource": "../Input",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/TextArea/TextArea.tsx",
+    "apps/wavemap-front-end/src/components/NumberInput/NumberInput.tsx",
+    "apps/wavemap-front-end/src/components/Stepper/Stepper.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+    "apps/wavemap-front-end/src/components/FormField/FormField.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-space-1",
+        "--aui-radius-1",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-transition-border-color",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-placeholder",
+        "--aui-state-danger",
+        "--aui-state-warning",
+        "--aui-state-success"
+      ],
+      "notes": [
+        "Input CSS rewrites stable Wavemap aliases directly to the existing package default theme contract.",
+        "Validation border colors use the default state tokens instead of adding theme/input-compatibility."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border\" packages/react/src/components/Input/Input.tsx packages/react/src/components/Input/helpers.ts packages/react/src/components/Input/InputStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved import and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Input proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Input/__tests__/Input.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Input runtime source has been received into packages/react with geometry treated as installed token support and Text treated as an installed registry dependency for typography classes.",
+    "Preserve the client component boundary, React Aria Input root, disabled mapping, size/geometry/focus/validation class computation, root class/style render-prop merging, custom style behavior, and wrapper-only prop hygiene for the first Input proof.",
+    "Keep calibrateComponent, size constants/types, geometry/focus/validation helpers, and class/style merge helpers private unless a later API review approves exporting helper internals.",
+    "Do not move TextArea, NumberInput, Stepper, ComboBox, Select, TagComboBox, typeahead/search wrappers, filtering adapters, forms, saved views, FormField, showcase code, or broader app consumers into the Input runtime source graph.",
+    "This source-receipt pass does not activate an input manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}
