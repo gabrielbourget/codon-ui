@@ -30,6 +30,19 @@
       ]
     },
     {
+      "name": "tokens/a11y",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/a11y.ts",
+          "targetRole": "tokens",
+          "targetPath": "a11y.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",

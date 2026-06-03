@@ -30,6 +30,19 @@
       ]
     },
     {
+      "name": "tokens/a11y",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/a11y.ts",
+          "targetRole": "tokens",
+          "targetPath": "a11y.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -555,6 +568,42 @@
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "counter",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
+          "targetRole": "components",
+          "targetPath": "Counter/Counter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Counter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Counter/CounterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Counter/CounterStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/a11y",
+        "text",
+        "circular-progress"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }

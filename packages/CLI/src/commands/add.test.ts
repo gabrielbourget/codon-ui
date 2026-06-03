@@ -47,13 +47,15 @@ const verifyComponentAddPlanning = async ({
   expectedItems,
   expectedResolvedPaths,
   expectedThemeSourcePath,
+  expectedThemeVariables = [],
   expectedMissingDependencyCount = 4,
   expectedPlannedCount = 7,
 }: {
   itemName: string
   expectedItems: string[]
   expectedResolvedPaths: string[]
-  expectedThemeSourcePath: string
+  expectedThemeSourcePath?: string
+  expectedThemeVariables?: string[]
   expectedMissingDependencyCount?: number
   expectedPlannedCount?: number
 }) => {
@@ -66,11 +68,20 @@ const verifyComponentAddPlanning = async ({
 
   assert.equal(packetResult.findings.length, 0)
   assert.equal(componentPacket?.activationStatus, "local-registry")
-  assert.ok(
-    componentPacket?.themeRequirements.some((requirement) =>
-      requirement.files.some((file) => file.sourcePath.endsWith(expectedThemeSourcePath)),
-    ),
-  )
+  if (expectedThemeSourcePath) {
+    assert.ok(
+      componentPacket?.themeRequirements.some((requirement) =>
+        requirement.files.some((file) => file.sourcePath.endsWith(expectedThemeSourcePath)),
+      ),
+    )
+  }
+  for (const expectedThemeVariable of expectedThemeVariables) {
+    assert.ok(
+      componentPacket?.themeRequirements.some((requirement) =>
+        requirement.cssVariables.some((cssVariable) => cssVariable === expectedThemeVariable),
+      ),
+    )
+  }
 
   const installPlan = createRegistryInstallPlan({
     config: consumerConfigSchema.parse({}),
@@ -276,6 +287,44 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 9,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "counter",
+  expectedItems: [
+    "theme-css",
+    "tokens/a11y",
+    "theme/text-typography",
+    "text",
+    "theme/circular-progress-compatibility",
+    "tokens/svg",
+    "tokens/theme-order",
+    "circular-progress",
+    "counter",
+  ],
+  expectedResolvedPaths: [
+    "src/components/CircularProgress/CircularProgress.tsx",
+    "src/components/CircularProgress/CircularProgressStyles.module.css",
+    "src/components/CircularProgress/Path/Path.tsx",
+    "src/components/CircularProgress/Path/helpers.ts",
+    "src/components/CircularProgress/helpers.ts",
+    "src/components/Counter/Counter.tsx",
+    "src/components/Counter/CounterStyles.module.css",
+    "src/components/Counter/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/circular-progress-compatibility.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/svg.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-1", "--aui-transition-color", "--aui-state-warning", "--aui-state-danger"],
+  expectedPlannedCount: 19,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -300,5 +349,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, and dependency merge add planning verified",
+  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
 )

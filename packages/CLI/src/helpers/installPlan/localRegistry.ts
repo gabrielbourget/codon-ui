@@ -22,6 +22,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "tag",
   "tag-group",
   "circular-progress",
+  "counter",
 ])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>
