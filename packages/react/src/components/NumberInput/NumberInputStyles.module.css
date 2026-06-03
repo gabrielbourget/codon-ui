@@ -1,0 +1,79 @@
+.numberInput {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  background: var(--aui-control-background);
+  border: 1px solid var(--aui-control-border);
+  border-radius: var(--aui-radius-1);
+  transition: var(--aui-transition-border-color), var(--aui-transition-color);
+}
+
+.numberInput::placeholder {
+  color: var(--aui-control-placeholder);
+  font-style: italic;
+  font-size: 12px;
+  opacity: 1;
+}
+
+.numberInput[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}
+.numberInput[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.numberInput--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.numberInput--round {
+  border-radius: 10000px;
+  padding: var(--aui-space-1) 7px;
+}
+
+.numberInput--applyFocusStyle[data-focus-within] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+.numberInput--noFocusStyle[data-focus-within] {
+  outline: none;
+}
+
+.numberInput--offsetFocusRing {
+  outline-offset: 3px;
+}
+
+.numberInput--errorState {
+  border-color: var(--aui-state-danger);
+}
+.numberInput--warningState {
+  border-color: var(--aui-state-warning);
+}
+.numberInput--successState {
+  border-color: var(--aui-state-success);
+}
+
+.numberInput__group {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  border-radius: var(--aui-radius-1);
+  padding-right: 2px;
+}
+
+.numberInput__buttonColumn {
+  height: 100%;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+}
+
+.numberInput div div button * {
+  color: var(--aui-control-placeholder);
+}
+.numberInput__icon {
+  stroke: var(--aui-control-foreground);
+}
