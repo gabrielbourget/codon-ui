@@ -155,6 +155,32 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "checkbox-group",
+  expectedItems: [
+    "theme-css",
+    "theme/checkbox-compatibility",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "checkbox",
+    "checkbox-group",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Checkbox/Checkbox.tsx",
+    "src/components/Checkbox/CheckboxStyles.module.css",
+    "src/components/Checkbox/helpers.ts",
+    "src/components/CheckboxGroup/CheckboxGroup.tsx",
+    "src/components/CheckboxGroup/CheckboxGroupStyles.module.css",
+    "src/components/CheckboxGroup/helpers.ts",
+    "src/components/_registry/checkbox-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-2", "--aui-opacity-disabled"],
+  expectedPlannedCount: 10,
+})
+
+await verifyComponentAddPlanning({
   itemName: "toggle-button",
   expectedItems: [
     "theme-css",
@@ -386,5 +412,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
 )

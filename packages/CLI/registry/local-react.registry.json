@@ -355,6 +355,38 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "checkbox-group",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/CheckboxGroup.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroupStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/CheckboxGroupStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "checkbox"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
