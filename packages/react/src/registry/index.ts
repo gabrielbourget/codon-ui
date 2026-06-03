@@ -35,6 +35,7 @@ export type {
 } from "./ingest"
 export { checkboxIngestPacket } from "./checkbox-ingest-packet"
 export { circularProgressIngestPacket } from "./circular-progress-ingest-packet"
+export { counterIngestPacket } from "./counter-ingest-packet"
 export { radioIngestPacket } from "./radio-ingest-packet"
 export { radioGroupIngestPacket } from "./radio-group-ingest-packet"
 export { sliderIngestPacket } from "./slider-ingest-packet"
