@@ -550,6 +550,50 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "time-picker",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/TimePicker.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/labels.ts",
+          "targetRole": "components",
+          "targetPath": "TimePicker/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/DefaultClockIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/DefaultClockIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TimePicker/TimePickerStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

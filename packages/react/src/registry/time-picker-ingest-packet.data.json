@@ -1,0 +1,189 @@
+{
+  "name": "time-picker",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/WAVEMAP_COMPONENT_POLISH_AUDIT.md#timepicker",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx",
+      "targetRole": "components",
+      "targetPath": "TimePicker/TimePicker.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "TimePicker/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/labels.ts",
+      "targetRole": "components",
+      "targetPath": "TimePicker/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/DefaultClockIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "TimePicker/DefaultClockIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "TimePicker/TimePickerStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "targetRole": "components",
+      "targetPath": "TimePicker/__tests__/TimePicker.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "TimePicker",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx"
+    },
+    {
+      "exportedName": "TimePickerProps",
+      "localName": "TTimePickerProps",
+      "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx",
+      "importSource": "react-aria-components#TimeField,DateInput,DateSegment,Group",
+      "replacementSource": "react-aria-components#TimeField,DateInput,DateSegment,Group",
+      "notes": ["TimePicker keeps React Aria time-field primitives as explicit package peer dependency usage."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens#geometry",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["TimePicker corner geometry imports from package-local geometry token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": [
+        "TimePicker reuses installed Text CSS-module typography classes rather than moving Text source into TimePicker."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/DefaultClockIcon.tsx",
+      "importSource": "local default clock icon",
+      "replacementSource": "currentColor-backed component-local SVG",
+      "notes": ["TimePicker owns its tiny default clock affordance locally instead of promoting broad icon support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition/validation aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": [
+        "TimePicker CSS now reads default Amino spacing, radius, focus, transition, disabled opacity, control, and validation state variables directly.",
+        "The validation-state borders map to --aui-state-danger, --aui-state-warning, and --aui-state-success without a TimePicker-local compatibility bridge."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "importSource": "@/src/components/TimePicker/TimePicker",
+      "replacementSource": "../TimePicker",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/TimePicker/i18n.ts",
+    "apps/wavemap-front-end/src/components/DateTimePicker/DateTimePicker.tsx",
+    "apps/wavemap-front-end/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+    "apps/wavemap-front-end/src/components/NumberInput/NumberInput.tsx",
+    "apps/wavemap-front-end/src/components/Stepper/Stepper.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/labels.ts",
+    "apps/wavemap-front-end/src/components/Filtering/i18n.ts",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-space-1",
+        "--aui-radius-1",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-transition-border-color",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-placeholder",
+        "--aui-control-selected-background",
+        "--aui-state-danger",
+        "--aui-state-warning",
+        "--aui-state-success"
+      ],
+      "notes": [
+        "TimePicker CSS rewrites stable Wavemap aliases directly to the existing package default theme contract.",
+        "Validation border colors use the default state tokens instead of adding theme/time-picker-compatibility."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border\" packages/react/src/components/TimePicker/TimePicker.tsx packages/react/src/components/TimePicker/helpers.tsx packages/react/src/components/TimePicker/labels.ts packages/react/src/components/TimePicker/DefaultClockIcon.tsx packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved import and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static TimePicker proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/TimePicker/__tests__/TimePicker.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "TimePicker runtime source has been received into packages/react with geometry treated as installed token support and Text treated as an installed registry dependency for typography classes.",
+    "Preserve the client component boundary, React Aria TimeField root, DateInput, DateSegment, Group wrapper, disabled/read-only mapping, leading-zero and hour-cycle defaults, granularity forwarding, size, geometry, focus, validation, labels, default clock icon, class/style render-prop merging, custom style behavior, and wrapper-only prop hygiene for the first TimePicker proof.",
+    "Keep calibrateComponent, size constants/types, label types, geometry/focus/validation helpers, default clock icon props, and class/style merge helpers private unless a later API review approves exporting helper internals.",
+    "Do not move TimePicker/i18n.ts, DateTimePicker, DateTimeRangePicker, ComboBox, Select, TagComboBox, typeahead/search wrappers, filtering adapters, forms, saved views, FormField, showcase code, or broader app consumers into the TimePicker runtime source graph.",
+    "This source-receipt pass does not activate a time-picker manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

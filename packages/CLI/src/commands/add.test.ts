@@ -32,6 +32,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["time-picker"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -313,6 +317,28 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "time-picker",
+  expectedItems: ["theme-css", "tokens/geometry", "theme/text-typography", "text", "time-picker"],
+  expectedResolvedPaths: [
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/TimePicker/DefaultClockIcon.tsx",
+    "src/components/TimePicker/TimePicker.tsx",
+    "src/components/TimePicker/TimePickerStyles.module.css",
+    "src/components/TimePicker/helpers.tsx",
+    "src/components/TimePicker/labels.ts",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+  ],
+  expectedThemeVariables: ["--aui-radius-1", "--aui-focus-ring", "--aui-state-danger"],
+  expectedPlannedCount: 13,
+})
+
+await verifyComponentAddPlanning({
   itemName: "toggle-button",
   expectedItems: [
     "theme-css",
@@ -544,5 +570,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
 )

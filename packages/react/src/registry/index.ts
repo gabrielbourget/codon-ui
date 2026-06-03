@@ -50,6 +50,7 @@ export { tagGroupIngestPacket } from "./tag-group-ingest-packet"
 export { tagIngestPacket } from "./tag-ingest-packet"
 export { textAreaIngestPacket } from "./text-area-ingest-packet"
 export { textIngestPacket } from "./text-ingest-packet"
+export { timePickerIngestPacket } from "./time-picker-ingest-packet"
 export { toggleButtonIngestPacket } from "./toggle-button-ingest-packet"
 export { reactRegistryManifest } from "./manifest"
 export type {
