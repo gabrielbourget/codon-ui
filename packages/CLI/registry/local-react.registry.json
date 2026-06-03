@@ -930,6 +930,37 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "form-field",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/FormField/FormField.tsx",
+          "targetRole": "components",
+          "targetPath": "FormField/FormField.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "FormField/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "FormField/FormFieldStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/a11y", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "radio-group",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
