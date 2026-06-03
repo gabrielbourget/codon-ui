@@ -1,5 +1,7 @@
 export { Checkbox } from "./components/Checkbox"
 export type { CheckboxProps } from "./components/Checkbox"
+export { CircularProgress } from "./components/CircularProgress"
+export type { CircularProgressProps } from "./components/CircularProgress"
 export { Radio } from "./components/Radio"
 export type { RadioProps } from "./components/Radio"
 export { RadioGroup } from "./components/RadioGroup"
