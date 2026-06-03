@@ -134,6 +134,19 @@
       ]
     },
     {
+      "name": "theme/circular-progress-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "circular-progress-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -143,6 +156,19 @@
           "targetRole": "theme",
           "targetPath": "text-typography.css",
           "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/svg",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/svg.ts",
+          "targetRole": "tokens",
+          "targetPath": "svg.ts",
+          "role": "support"
         }
       ]
     },
@@ -475,6 +501,55 @@
         "theme-css",
         "theme/tag-group-compatibility",
         "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "circular-progress",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/CircularProgress.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/CircularProgressStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/Path/Path.tsx",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/Path/Path.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/Path/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/Path/helpers.ts",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/circular-progress-compatibility",
+        "tokens/svg",
         "tokens/theme-order"
       ],
       "peerDependencies": {

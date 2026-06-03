@@ -134,6 +134,19 @@
       ]
     },
     {
+      "name": "theme/circular-progress-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "circular-progress-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -143,6 +156,19 @@
           "targetRole": "theme",
           "targetPath": "text-typography.css",
           "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/svg",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/svg.ts",
+          "targetRole": "tokens",
+          "targetPath": "svg.ts",
+          "role": "support"
         }
       ]
     },

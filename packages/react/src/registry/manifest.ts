@@ -145,6 +145,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/circular-progress-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "circular-progress-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "theme/text-typography",
     type: REGISTRY_ITEM_TYPE__THEME,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -154,6 +167,19 @@ export const reactRegistryManifest = [
         targetRole: REGISTRY_TARGET_ROLE__THEME,
         targetPath: "text-typography.css",
         role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
+    name: "tokens/svg",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/svg.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "svg.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
       },
     ],
   },
@@ -467,6 +493,52 @@ export const reactRegistryManifest = [
       },
     ],
     registryDependencies: ["theme-css", "theme/tag-group-compatibility", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "circular-progress",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/CircularProgress.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CircularProgress/CircularProgress.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CircularProgress/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CircularProgress/CircularProgressStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/Path/Path.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CircularProgress/Path/Path.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CircularProgress/Path/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CircularProgress/Path/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/circular-progress-compatibility", "tokens/svg", "tokens/theme-order"],
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-aria-components": "^1.17.0",

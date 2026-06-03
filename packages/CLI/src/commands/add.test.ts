@@ -252,6 +252,30 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 11,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "circular-progress",
+  expectedItems: [
+    "theme-css",
+    "theme/circular-progress-compatibility",
+    "tokens/svg",
+    "tokens/theme-order",
+    "circular-progress",
+  ],
+  expectedResolvedPaths: [
+    "src/components/CircularProgress/CircularProgress.tsx",
+    "src/components/CircularProgress/CircularProgressStyles.module.css",
+    "src/components/CircularProgress/Path/Path.tsx",
+    "src/components/CircularProgress/Path/helpers.ts",
+    "src/components/CircularProgress/helpers.ts",
+    "src/components/_registry/circular-progress-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/svg.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "CircularProgress/circular-progress-compatibility.css",
+  expectedPlannedCount: 9,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -276,5 +300,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, and dependency merge add planning verified",
+  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, and dependency merge add planning verified",
 )
