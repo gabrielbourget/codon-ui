@@ -20,6 +20,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "input",
   "text-area",
   "number-input",
+  "stepper",
   "toggle-button",
   "radio",
   "radio-group",

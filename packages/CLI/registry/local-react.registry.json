@@ -506,6 +506,50 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "stepper",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+          "targetRole": "components",
+          "targetPath": "Stepper/Stepper.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Stepper/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Stepper/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/StepperStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Stepper/StepperStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "input",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
