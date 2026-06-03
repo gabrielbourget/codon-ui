@@ -28,6 +28,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/action-colors",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/theme/action-colors.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "action-colors.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "tokens/geometry",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -237,6 +250,40 @@ export const reactRegistryManifest = [
     peerDependencies: {
       "@radix-ui/react-avatar": "^1.1.11",
       react: "^18.2.0 || ^19.0.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "button",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Button/Button.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Button/Button.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Button/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Button/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Button/ButtonStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Button/ButtonStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
       "react-dom": "^18.2.0 || ^19.0.0",
     },
     runtimeDependencies: {

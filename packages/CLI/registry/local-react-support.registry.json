@@ -17,6 +17,19 @@
       ]
     },
     {
+      "name": "theme/action-colors",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/geometry",
       "type": "support",
       "sourcePackage": "@amino-ui/react",

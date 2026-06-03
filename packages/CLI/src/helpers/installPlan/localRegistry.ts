@@ -13,6 +13,7 @@ export type TLocalRegistryReadResult = {
 
 const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "avatar",
+  "button",
   "switch",
   "checkbox",
   "toggle-button",
