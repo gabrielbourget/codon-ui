@@ -20,6 +20,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "text",
   "slider",
   "tag",
+  "tag-group",
 ])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>

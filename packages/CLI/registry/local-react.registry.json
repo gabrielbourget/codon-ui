@@ -121,6 +121,19 @@
       ]
     },
     {
+      "name": "theme/tag-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "theme/text-typography",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -406,6 +419,67 @@
       ],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "tag-group",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/TagGroup.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/TagGroup.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "TagGroup/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/TagGroupStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TagGroup/TagGroupStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/AdobeTag.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/AdobeTagStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/tag-group-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }

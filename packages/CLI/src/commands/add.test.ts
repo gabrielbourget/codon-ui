@@ -232,6 +232,26 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 6,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "tag-group",
+  expectedItems: ["theme-css", "theme/tag-group-compatibility", "tokens/geometry", "tokens/theme-order", "tag-group"],
+  expectedResolvedPaths: [
+    "src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+    "src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+    "src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+    "src/components/TagGroup/AdobeTag/helpers.tsx",
+    "src/components/TagGroup/TagGroup.tsx",
+    "src/components/TagGroup/TagGroupStyles.module.css",
+    "src/components/TagGroup/helpers.ts",
+    "src/components/_registry/tag-group-compatibility.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "TagGroup/tag-group-compatibility.css",
+  expectedPlannedCount: 11,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -256,5 +276,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, and dependency merge add planning verified",
+  "[aminoui-cli] checkbox, toggle-button, radio, text, radio-group, slider, tag, tag-group, and dependency merge add planning verified",
 )

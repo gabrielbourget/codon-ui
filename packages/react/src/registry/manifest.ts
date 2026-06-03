@@ -132,6 +132,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "theme/tag-group-compatibility",
+    type: REGISTRY_ITEM_TYPE__THEME,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/TagGroup/tag-group-compatibility.css",
+        targetRole: REGISTRY_TARGET_ROLE__THEME,
+        targetPath: "tag-group-compatibility.css",
+        role: REGISTRY_FILE_ROLE__THEME,
+      },
+    ],
+  },
+  {
     name: "theme/text-typography",
     type: REGISTRY_ITEM_TYPE__THEME,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -399,6 +412,64 @@ export const reactRegistryManifest = [
     registryDependencies: ["theme-css", "theme/tag-compatibility", "tokens/geometry"],
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "tag-group",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/TagGroup/TagGroup.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/TagGroup.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/TagGroupStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/TagGroupStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/AdobeTag/AdobeTag.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/AdobeTag/helpers.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/AdobeTag/AdobeTagStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/tag-group-compatibility", "tokens/geometry", "tokens/theme-order"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
       "react-dom": "^18.2.0 || ^19.0.0",
     },
     runtimeDependencies: {
