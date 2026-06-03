@@ -20,6 +20,10 @@ const registrySourcePath = resolveDefaultAddRegistrySourcePath({
 
 assert.equal(registrySourcePath, getDefaultLocalReactRegistrySourcePath())
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["input"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -178,6 +182,26 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--aui-space-2", "--aui-opacity-disabled"],
   expectedPlannedCount: 10,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "input",
+  expectedItems: ["theme-css", "tokens/geometry", "theme/text-typography", "text", "input"],
+  expectedResolvedPaths: [
+    "src/components/Input/Input.tsx",
+    "src/components/Input/InputStyles.module.css",
+    "src/components/Input/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-1", "--aui-state-danger", "--aui-state-success"],
+  expectedPlannedCount: 11,
 })
 
 await verifyComponentAddPlanning({
@@ -412,5 +436,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
 )
