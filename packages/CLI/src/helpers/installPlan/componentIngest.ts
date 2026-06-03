@@ -37,8 +37,6 @@ import {
   type TRegistryInstallPlan,
 } from "./schema"
 
-const SWITCH_ITEM_NAME = "switch"
-
 const ingestPublicExportSchema = z
   .object({
     exportedName: z.string().min(1),
@@ -107,20 +105,21 @@ export type TComponentPacketRegistrySourceResult = {
   registrySource: TLocalRegistrySource
 }
 
-const getSwitchPacketDataCandidatePaths = () => {
+const getPacketDataCandidatePaths = (itemName: string) => {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
+  const packetFileName = `${itemName}-ingest-packet.data.json`
 
   return [
-    path.resolve(moduleDirectory, "../../react/src/registry/switch-ingest-packet.data.json"),
-    path.resolve(moduleDirectory, "../../../../react/src/registry/switch-ingest-packet.data.json"),
+    path.resolve(moduleDirectory, `../../react/src/registry/${packetFileName}`),
+    path.resolve(moduleDirectory, `../../../../react/src/registry/${packetFileName}`),
   ]
 }
 
-const readSwitchIngestPacket = async () => {
-  const packetDataPath = getSwitchPacketDataCandidatePaths().find((candidatePath) => existsSync(candidatePath))
+const readIngestPacket = async (itemName: string) => {
+  const packetDataPath = getPacketDataCandidatePaths(itemName).find((candidatePath) => existsSync(candidatePath))
 
   if (!packetDataPath) {
-    throw new Error("Could not find @amino-ui/react Switch ingest packet data.")
+    throw new Error(`Could not find @amino-ui/react ingest packet data for ${itemName}.`)
   }
 
   return registryIngestPacketSchema.parse(JSON.parse(await readFile(packetDataPath, "utf8")))
@@ -147,38 +146,37 @@ export const readComponentPacketsForRegistrySource = async ({
   registrySource: TLocalRegistrySource
   requestedItems: readonly string[]
 }): Promise<TComponentPacketRegistrySourceResult> => {
-  if (!requestedItems.includes(SWITCH_ITEM_NAME)) {
-    return {
-      componentPackets: [],
-      findings: [],
-      registrySource,
+  const requestedComponentItems = requestedItems.filter((itemName) =>
+    registrySource.items.some((item) => item.name === itemName && item.type === "component"),
+  )
+
+  if (requestedComponentItems.length === 0) return { componentPackets: [], findings: [], registrySource }
+
+  const componentPackets: TAddAdvisoryComponentPacket[] = []
+  const findings: TInstallPlanFinding[] = []
+
+  for (const itemName of requestedComponentItems) {
+    try {
+      const packet = await readIngestPacket(itemName)
+      const hasRegistryItem = registrySource.items.some((item) => item.name === packet.name)
+
+      if (hasRegistryItem) componentPackets.push(createAdvisoryComponentPacketFromIngestPacket(packet))
+    } catch (error) {
+      const message = error instanceof Error ? error.message : `Could not load ${itemName} advisory packet.`
+
+      findings.push({
+        code: INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
+        itemName,
+        message,
+        severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
+      })
     }
   }
 
-  try {
-    const packet = await readSwitchIngestPacket()
-    const hasSwitchItem = registrySource.items.some((item) => item.name === packet.name)
-
-    return {
-      componentPackets: hasSwitchItem ? [createAdvisoryComponentPacketFromIngestPacket(packet)] : [],
-      findings: [],
-      registrySource: localRegistrySourceSchema.parse(registrySource),
-    }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Could not load Switch advisory packet."
-
-    return {
-      componentPackets: [],
-      findings: [
-        {
-          code: INSTALL_PLAN_FINDING__COMPONENT_PACKET_UNAVAILABLE,
-          itemName: SWITCH_ITEM_NAME,
-          message,
-          severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-        },
-      ],
-      registrySource,
-    }
+  return {
+    componentPackets,
+    findings,
+    registrySource: localRegistrySourceSchema.parse(registrySource),
   }
 }
 

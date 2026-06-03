@@ -1,0 +1,148 @@
+{
+  "name": "tag",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#tag-next-candidate-planning-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Tag/Tag.tsx",
+      "targetRole": "components",
+      "targetPath": "Tag/Tag.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tag/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Tag/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tag/TagStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Tag/TagStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tag/__tests__/Tag.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Tag/__tests__/Tag.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Tag",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Tag/Tag.tsx"
+    },
+    {
+      "exportedName": "TagProps",
+      "localName": "TTagProps",
+      "sourcePath": "packages/react/src/components/Tag/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Tag/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Geometry constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tag/__tests__/Tag.test.tsx",
+      "importSource": "@/src/components/Tag/Tag",
+      "replacementSource": "../Tag",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/TagGroup/TagGroup.tsx",
+    "apps/wavemap-front-end/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/tag-compatibility", "tokens/geometry"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-control-background", "--aui-control-selected-background", "--aui-border-muted"],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": [
+        "--distance_1",
+        "--bgColorTransition",
+        "--colorTransition",
+        "--borderColorTransition",
+        "--boxShadowTransition",
+        "--focus-ring-color",
+        "--border_radius_1",
+        "--shadow_1",
+        "--disabledOpacity"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first Tag proof; do not fold these aliases into prior component bridges casually.",
+        "The bridge keeps spacing, radius, shadow, focus, transition, and opacity aliases proof-local until a stable contract or bridge decommissioning pass is explicitly approved."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/Tag/Tag.tsx packages/react/src/components/Tag/helpers.ts packages/react/src/components/Tag/TagStyles.module.css packages/react/src/components/Tag/tag-compatibility.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after the approved token import rewrite."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Tag proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Tag/__tests__/Tag.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Tag runtime source has been received into packages/react with geometry treated as installed registry support rather than copied Wavemap source.",
+    "Preserve the client component boundary, static and pressable rendering paths, DOM-prop hygiene, class/style merge behavior, current geometry classes, and CSS-module source model for the first Tag proof.",
+    "Keep calibrateComponent, isPressable, geometry helpers, CSS variable helpers, and class/style merge details private unless a later API review approves exporting helper internals.",
+    "Do not move TagGroup, AdobeTag, TagComboBox, Button, Avatar, Counter, CircularProgress, component-showcase code, or broad app consumers with the Tag component.",
+    "This source-receipt pass does not activate a tag manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

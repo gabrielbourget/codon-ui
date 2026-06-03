@@ -1,0 +1,129 @@
+{
+  "name": "checkbox-group",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#checkboxgroup-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx",
+      "targetRole": "components",
+      "targetPath": "CheckboxGroup/CheckboxGroup.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "CheckboxGroup/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroupStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "CheckboxGroup/CheckboxGroupStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/__tests__/CheckboxGroup.test.tsx",
+      "targetRole": "components",
+      "targetPath": "CheckboxGroup/__tests__/CheckboxGroup.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "CheckboxGroup",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx"
+    },
+    {
+      "exportedName": "CheckboxGroupProps",
+      "localName": "TCheckboxGroupProps",
+      "sourcePath": "packages/react/src/components/CheckboxGroup/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/__tests__/CheckboxGroup.test.tsx",
+      "importSource": "@/src/components/CheckboxGroup/CheckboxGroup",
+      "replacementSource": "../CheckboxGroup",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CheckboxGroup/__tests__/CheckboxGroup.test.tsx",
+      "importSource": "@/src/components/Checkbox/Checkbox",
+      "registryDependencyName": "checkbox",
+      "replacementSource": "../../Checkbox/Checkbox",
+      "advisory": true,
+      "notes": [
+        "Focused test composition uses Checkbox as a registry component dependency, not as CheckboxGroup source."
+      ]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/Checkbox/Checkbox.tsx",
+    "apps/wavemap-front-end/src/components/Checkbox/helpers.ts",
+    "apps/wavemap-front-end/src/components/Checkbox/CheckboxStyles.module.css",
+    "apps/wavemap-front-end/src/components/Checkbox/__tests__/Checkbox.test.tsx"
+  ],
+  "registryDependencies": ["theme-css", "checkbox"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-space-2", "--aui-opacity-disabled"],
+      "notes": ["CheckboxGroup rewrites spacing and disabled opacity directly to the package default theme contract."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|--distance_2|--disabledOpacity\" packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx packages/react/src/components/CheckboxGroup/helpers.ts packages/react/src/components/CheckboxGroup/CheckboxGroupStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean because CheckboxGroup has no Wavemap-only runtime imports."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static CheckboxGroup proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/CheckboxGroup/__tests__/CheckboxGroup.test.tsx src/components/Checkbox/__tests__/Checkbox.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": [
+        "Focused Wavemap tests remain the behavioral source for later consumer rehydration with installed Checkbox children."
+      ]
+    }
+  ],
+  "notes": [
+    "CheckboxGroup runtime source has been received into packages/react with Checkbox treated as an installed registry dependency rather than moved source.",
+    "Preserve the client component boundary, React Aria CheckboxGroup wrapper, caller-owned children model, orientation classes, and CSS-module source model for the grouped Checkbox proof.",
+    "Keep calibrateComponent, orientation constants, and class/style merge helpers private unless a later API review approves exporting helper internals.",
+    "Do not move Checkbox source, Text source, component-showcase code, boolean filtering, table selection, upload/gallery adapters, or focused test composition into the CheckboxGroup runtime source graph.",
+    "This source-receipt pass does not activate a checkbox-group manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "name": "avatar",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#avatar-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx",
+      "targetRole": "components",
+      "targetPath": "Avatar/Avatar.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Avatar/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/AvatarStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Avatar/AvatarStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/__tests__/Avatar.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Avatar/__tests__/Avatar.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Avatar",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx"
+    },
+    {
+      "exportedName": "AvatarProps",
+      "localName": "TAvatarProps",
+      "sourcePath": "packages/react/src/components/Avatar/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx",
+      "importSource": "@radix-ui/react-avatar",
+      "replacementSource": "@radix-ui/react-avatar",
+      "notes": ["Avatar keeps Radix Avatar as an explicit package peer dependency for this proof."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/Text",
+      "notes": ["Avatar composes the installed Text registry item instead of copying typography source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Avatar corner geometry now imports from package-local geometry token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/helpers.ts",
+      "importSource": "../Text/helpers",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/helpers",
+      "notes": ["Avatar fallback text props depend on the installed Text registry item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/AvatarStyles.module.css",
+      "importSource": "--shadow_1 / --border_radius_1 aliases",
+      "replacementSource": "--aui-shadow-1 / --aui-radius-1",
+      "notes": ["Avatar CSS now reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Avatar/__tests__/Avatar.test.tsx",
+      "importSource": "@/src/components/Avatar/Avatar",
+      "replacementSource": "../Avatar",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/NavBar/NavBar.tsx",
+    "apps/wavemap-front-end/src/components/NavBar/InternalComponents/DropdownBaseComponent/DropdownBaseComponent.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/Tooltip/Tooltip.tsx",
+    "apps/wavemap-front-end/src/components/ClickPopover/ClickPopover.tsx",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+  "peerDependencies": {
+    "@radix-ui/react-avatar": "^1.1.11",
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-surface-foreground", "--aui-surface", "--aui-shadow-1", "--aui-radius-1"],
+      "notes": [
+        "Avatar source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    },
+    {
+      "strategy": "consumer-owned",
+      "cssVariables": ["--foreground", "--background", "--size"],
+      "notes": [
+        "Avatar custom style props emit component-scoped CSS variables that remain caller-owned override values."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|--shadow_1|--border_radius_1\" packages/react/src/components/Avatar/Avatar.tsx packages/react/src/components/Avatar/helpers.ts packages/react/src/components/Avatar/AvatarStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Avatar proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source, Radix peer/dev dependency, and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Avatar/__tests__/Avatar.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Avatar runtime source has been received into packages/react as a Radix-backed component that depends on installed Text source.",
+    "Preserve root/image/fallback behavior, optional clickable click handler, fallback delay, initials generation, label overrides, size conversion, geometry classes, custom style merge behavior, and fallback Text prop forwarding for the first Avatar proof.",
+    "Keep calibration, initials, label, and sizing helpers private unless a later API review approves exporting helper internals.",
+    "Do not move NavBar, tooltip/popover/dialog composition, Button, image optimization, app showcase code, account/profile data, or broad app consumers with Avatar.",
+    "This source-receipt pass does not activate an avatar manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -17,6 +17,19 @@
       ]
     },
     {
+      "name": "theme/action-colors",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/geometry",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
@@ -25,6 +38,19 @@
           "sourcePath": "packages/react/src/tokens/geometry.ts",
           "targetRole": "tokens",
           "targetPath": "geometry.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/a11y",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/a11y.ts",
+          "targetRole": "tokens",
+          "targetPath": "a11y.ts",
           "role": "support"
         }
       ]
@@ -43,6 +69,136 @@
       ]
     },
     {
+      "name": "theme/checkbox-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "checkbox-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/toggle-button-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "toggle-button-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/radio-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/radio-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/slider-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Slider/slider-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "slider-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/tag-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/tag-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/circular-progress-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "circular-progress-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/text-typography",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/text-typography.css",
+          "targetRole": "theme",
+          "targetPath": "text-typography.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/svg",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/svg.ts",
+          "targetRole": "tokens",
+          "targetPath": "svg.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "tokens/theme-order",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
@@ -54,6 +210,75 @@
           "role": "support"
         }
       ]
+    },
+    {
+      "name": "avatar",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx",
+          "targetRole": "components",
+          "targetPath": "Avatar/Avatar.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Avatar/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Avatar/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Avatar/AvatarStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Avatar/AvatarStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+      "peerDependencies": {
+        "@radix-ui/react-avatar": "^1.1.11",
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "button",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Button/Button.tsx",
+          "targetRole": "components",
+          "targetPath": "Button/Button.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Button/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Button/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Button/ButtonStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Button/ButtonStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
       "name": "switch",
@@ -79,15 +304,622 @@
           "role": "style"
         }
       ],
-      "registryDependencies": ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
+      "registryDependencies": [
+        "theme-css",
+        "theme/switch-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       },
-      "runtimeDependencies": {
-        "classnames": "^2.3.2"
-      }
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "checkbox",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/Checkbox.tsx",
+          "targetRole": "components",
+          "targetPath": "Checkbox/Checkbox.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Checkbox/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/CheckboxStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Checkbox/CheckboxStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/checkbox-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "checkbox-group",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/CheckboxGroup.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroupStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "CheckboxGroup/CheckboxGroupStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "checkbox"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "input",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Input/Input.tsx",
+          "targetRole": "components",
+          "targetPath": "Input/Input.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Input/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Input/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Input/InputStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Input/InputStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "text-area",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TextArea/TextArea.tsx",
+          "targetRole": "components",
+          "targetPath": "TextArea/TextArea.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TextArea/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "TextArea/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TextArea/TextAreaStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TextArea/TextAreaStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "number-input",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/NumberInput.tsx",
+          "targetRole": "components",
+          "targetPath": "NumberInput/NumberInput.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "NumberInput/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/labels.ts",
+          "targetRole": "components",
+          "targetPath": "NumberInput/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/DefaultIncrementIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "NumberInput/DefaultIncrementIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/DefaultDecrementIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "NumberInput/DefaultDecrementIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/NumberInput/NumberInputStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "NumberInput/NumberInputStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "input",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "stepper",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+          "targetRole": "components",
+          "targetPath": "Stepper/Stepper.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Stepper/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Stepper/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Stepper/StepperStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Stepper/StepperStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "input",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "toggle-button",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/ToggleButton.tsx",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/ToggleButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/ToggleButtonStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ToggleButton/ToggleButtonStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/toggle-button-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "radio",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Radio/Radio.tsx",
+          "targetRole": "components",
+          "targetPath": "Radio/Radio.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Radio/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Radio/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Radio/RadioStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Radio/RadioStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/radio-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "text",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/Text.tsx",
+          "targetRole": "components",
+          "targetPath": "Text/Text.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Text/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/constants.ts",
+          "targetRole": "components",
+          "targetPath": "Text/constants.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/types.ts",
+          "targetRole": "components",
+          "targetPath": "Text/types.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/TextStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Text/TextStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "theme/text-typography"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "slider",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Slider/Slider.tsx",
+          "targetRole": "components",
+          "targetPath": "Slider/Slider.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Slider/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Slider/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Slider/SliderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Slider/SliderStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/slider-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "tag",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/Tag.tsx",
+          "targetRole": "components",
+          "targetPath": "Tag/Tag.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tag/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Tag/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tag/TagStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Tag/TagStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/tag-compatibility",
+        "tokens/geometry"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "tag-group",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/TagGroup.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/TagGroup.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "TagGroup/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/TagGroupStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TagGroup/TagGroupStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/AdobeTag.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/AdobeTagStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/tag-group-compatibility",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "circular-progress",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/CircularProgress.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/CircularProgressStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/Path/Path.tsx",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/Path/Path.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/Path/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CircularProgress/Path/helpers.ts",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/circular-progress-compatibility",
+        "tokens/svg",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "counter",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
+          "targetRole": "components",
+          "targetPath": "Counter/Counter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Counter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Counter/CounterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Counter/CounterStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/a11y",
+        "text",
+        "circular-progress"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "radio-group",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/RadioGroup.tsx",
+          "targetRole": "components",
+          "targetPath": "RadioGroup/RadioGroup.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "RadioGroup/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/RadioGroupStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "RadioGroup/RadioGroupStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/radio-group-compatibility",
+        "radio"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
     }
   ]
 }

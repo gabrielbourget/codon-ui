@@ -17,6 +17,19 @@
       ]
     },
     {
+      "name": "theme/action-colors",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
       "name": "tokens/geometry",
       "type": "support",
       "sourcePackage": "@amino-ui/react",
@@ -25,6 +38,19 @@
           "sourcePath": "packages/react/src/tokens/geometry.ts",
           "targetRole": "tokens",
           "targetPath": "geometry.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/a11y",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/a11y.ts",
+          "targetRole": "tokens",
+          "targetPath": "a11y.ts",
           "role": "support"
         }
       ]
@@ -39,6 +65,136 @@
           "targetRole": "theme",
           "targetPath": "switch-compatibility.css",
           "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/checkbox-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "checkbox-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/toggle-button-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "toggle-button-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/radio-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/radio-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/slider-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Slider/slider-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "slider-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/tag-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/tag-group-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-group-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/circular-progress-compatibility",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "circular-progress-compatibility.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "theme/text-typography",
+      "type": "theme",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/text-typography.css",
+          "targetRole": "theme",
+          "targetPath": "text-typography.css",
+          "role": "theme"
+        }
+      ]
+    },
+    {
+      "name": "tokens/svg",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/svg.ts",
+          "targetRole": "tokens",
+          "targetPath": "svg.ts",
+          "role": "support"
         }
       ]
     },

@@ -1,0 +1,218 @@
+{
+  "name": "stepper",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#stepper-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+      "targetRole": "components",
+      "targetPath": "Stepper/Stepper.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Stepper/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Stepper/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/StepperStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Stepper/StepperStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/__tests__/Stepper.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Stepper/__tests__/Stepper.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Stepper",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx"
+    },
+    {
+      "exportedName": "StepperProps",
+      "localName": "TStepperProps",
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["Stepper composes the already registry-owned Button component instead of moving Button again."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+      "importSource": "@/src/components/Input/Input",
+      "registryDependencyName": "input",
+      "replacementSource": "../Input/Input",
+      "notes": ["Stepper composes the already registry-owned Input component instead of moving Input again."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
+      "importSource": "react-aria-components#NumberField,Group",
+      "replacementSource": "react-aria-components#NumberField,Group",
+      "notes": ["Stepper keeps React Aria NumberField and Group as explicit package peer dependency usage."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens#geometry",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Stepper corner geometry imports from package-local geometry token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens#theme-order",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Stepper action order imports from package-local theme-order token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "importSource": "@/src/components/Button/helpers#TAvailableColorModes",
+      "replacementSource": "local private TAvailableButtonColorModes",
+      "notes": ["Stepper localizes the Button fill/outline color-mode type instead of copying Button helper support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/helpers.tsx",
+      "importSource": "@/src/utils/color#determineReadableTextColor",
+      "replacementSource": "local private readable-color helpers",
+      "notes": [
+        "Stepper localizes the tiny readable foreground helper instead of promoting Wavemap's broader color utility module."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/StepperStyles.module.css",
+      "importSource": "legacy radius/focus/transition/validation aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": [
+        "Stepper CSS now reads default Amino radius, focus, transition, disabled opacity, control, action, color-family, and validation state variables directly.",
+        "The validation-state borders map to --aui-state-danger, --aui-state-warning, and --aui-state-success without a Stepper-local compatibility bridge."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Stepper/__tests__/Stepper.test.tsx",
+      "importSource": "@/src/components/Stepper/Stepper",
+      "replacementSource": "../Stepper",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Stepper/i18n.ts",
+    "apps/wavemap-front-end/src/utils/color.ts",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx",
+    "apps/wavemap-front-end/src/components/Button/helpers.ts",
+    "apps/wavemap-front-end/src/components/Button/ButtonStyles.module.css",
+    "apps/wavemap-front-end/src/components/Input/Input.tsx",
+    "apps/wavemap-front-end/src/components/Input/helpers.ts",
+    "apps/wavemap-front-end/src/components/Input/InputStyles.module.css",
+    "apps/wavemap-front-end/src/components/NumberInput/NumberInput.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/labels.ts",
+    "apps/wavemap-front-end/src/components/Filtering/i18n.ts",
+    "apps/wavemap-front-end/src/components/Pagination/helpers.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "tokens/theme-order", "input", "button"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-radius-1",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-transition-border-color",
+        "--aui-transition-color",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-placeholder",
+        "--aui-state-danger",
+        "--aui-state-warning",
+        "--aui-state-success",
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500",
+        "--aui-action-primary-background",
+        "--aui-action-primary-foreground",
+        "--aui-action-quintenary-background",
+        "--aui-action-quintenary-foreground"
+      ],
+      "notes": [
+        "Stepper CSS rewrites stable Wavemap aliases directly to the existing package default theme contract.",
+        "Action color variables are available through the installed Button graph and theme/action-colors support."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border\" packages/react/src/components/Stepper/Stepper.tsx packages/react/src/components/Stepper/helpers.tsx packages/react/src/components/Stepper/labels.ts packages/react/src/components/Stepper/StepperStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": [
+        "Source-receipt scan should remain clean after approved import, utility, helper-type, and CSS variable rewrites."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Stepper proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Stepper/__tests__/Stepper.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Stepper runtime source has been received into packages/react with geometry/theme-order treated as installed token support and Input/Button treated as installed registry dependencies.",
+    "Preserve the client component boundary, React Aria NumberField root, Group wrapper, disabled/read-only mapping, size, type, orientation, color-mode, order, geometry, focus, validation, labels, default icons, class/style render-prop merging, custom style behavior, readable foreground behavior, and wrapper-only prop hygiene for the first Stepper proof.",
+    "Keep useCalibrateComponent, useComputeButtonColorMode, size/type/orientation/color-mode constants/types, label types, default icon helpers, readable-color helpers, geometry/color/focus/validation helpers, and class/style merge helpers private unless a later API review approves exporting helper internals.",
+    "Do not move Stepper/i18n.ts, Wavemap color utilities, Button helper support, ComboBox, Select, TagComboBox, typeahead/search wrappers, filtering adapters, pagination adapters, forms, saved views, FormField, showcase code, or broader app consumers into the Stepper runtime source graph.",
+    "This source-receipt pass does not activate a stepper manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -1,0 +1,240 @@
+{
+  "name": "tag-group",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#taggroup-next-candidate-planning-checkpoint-2026-06-02",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/TagGroup.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/TagGroup.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "TagGroup/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/TagGroupStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "TagGroup/TagGroupStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/AdobeTag/AdobeTag.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/AdobeTag/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "TagGroup/AdobeTag/AdobeTagStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/__tests__/TagGroup.test.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/__tests__/TagGroup.test.tsx",
+      "role": "test",
+      "required": false
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/__tests__/AdobeTag.test.tsx",
+      "targetRole": "components",
+      "targetPath": "TagGroup/AdobeTag/__tests__/AdobeTag.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "TagGroup",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/TagGroup/TagGroup.tsx"
+    },
+    {
+      "exportedName": "Tag",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx"
+    },
+    {
+      "exportedName": "TagGroupProps",
+      "localName": "TTagGroupProps",
+      "sourcePath": "packages/react/src/components/TagGroup/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TagProps",
+      "localName": "TTagProps",
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ORIENTATION__HORIZONTAL",
+      "sourcePath": "packages/react/src/components/TagGroup/helpers.ts"
+    },
+    {
+      "exportedName": "ORIENTATION__VERTICAL",
+      "sourcePath": "packages/react/src/components/TagGroup/helpers.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../../tokens/geometry",
+      "notes": ["Geometry constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../../tokens/theme-order",
+      "notes": ["Theme-order constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "replacementSource": "react-aria-components#Button",
+      "notes": [
+        "The removable tag affordance uses React Aria Button plus a local reset class instead of pulling the full Wavemap Button graph into this proof."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/TagGroup/__tests__/TagGroup.test.tsx",
+      "importSource": "@/src/components/TagGroup/TagGroup",
+      "replacementSource": "../TagGroup",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Tag/Tag.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/tag-group-compatibility", "tokens/geometry", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-placeholder",
+        "--aui-control-hover-background",
+        "--aui-control-pressed-background",
+        "--aui-control-selected-background",
+        "--aui-control-selected-foreground",
+        "--aui-state-success",
+        "--aui-state-warning",
+        "--aui-state-danger"
+      ],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": [
+        "--distance_1",
+        "--bgColorTransition",
+        "--borderColorTransition",
+        "--colorTransition",
+        "--disabledOpacity",
+        "--focus-ring-color",
+        "--border_radius_1",
+        "--shadow_1",
+        "--aui-tag-primary-hover-background",
+        "--aui-tag-primary-pressed-background",
+        "--aui-tag-primary-selected-background",
+        "--aui-tag-primary-selected-border",
+        "--aui-tag-primary-selected-foreground",
+        "--aui-tag-primary-selected-hover-background",
+        "--aui-tag-primary-selected-pressed-background",
+        "--aui-tag-quintenary-hover-background",
+        "--aui-tag-quintenary-pressed-background",
+        "--aui-tag-quintenary-selected-background",
+        "--aui-tag-quintenary-selected-border",
+        "--aui-tag-quintenary-selected-foreground",
+        "--aui-tag-quintenary-selected-hover-background",
+        "--aui-tag-quintenary-selected-pressed-background"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "tag-group-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first TagGroup proof; do not fold these aliases into the standalone Tag bridge or prior component bridges casually.",
+        "The bridge keeps spacing, radius, shadow, focus, transition, opacity, and tag-palette aliases proof-local until a stable contract or bridge decommissioning pass is explicitly approved."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/TagGroup/TagGroup.tsx packages/react/src/components/TagGroup/helpers.ts packages/react/src/components/TagGroup/TagGroupStyles.module.css packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx packages/react/src/components/TagGroup/AdobeTag/helpers.tsx packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css packages/react/src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx packages/react/src/components/TagGroup/tag-group-compatibility.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token and remove-button rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side TagGroup proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and package export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/TagGroup/__tests__/TagGroup.test.tsx src/components/TagGroup/AdobeTag/__tests__/AdobeTag.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "TagGroup and nested AdobeTag runtime source have been received into packages/react with geometry and theme-order treated as installed registry support rather than copied Wavemap source.",
+    "Preserve the client component boundary, React Aria collection primitives, render-prop behavior, removable tag slot behavior, class/style merge behavior, current orientation constants, and CSS-module source model for the first TagGroup proof.",
+    "Keep calibrateComponent, class/style merge helpers, color and geometry helpers, and the default close icon private unless a later API review approves exporting helper internals.",
+    "The package root exports TagGroup only in this source receipt to avoid colliding with the standalone Tag root export; the TagGroup folder barrel records the nested AdobeTag export intent for registry consumers.",
+    "Do not move TagComboBox, Wavemap Button, standalone Wavemap Tag, active sort/filter panels, table/form/gallery consumers, app routes, or component-showcase code with TagGroup.",
+    "This source-receipt pass does not activate a tag-group manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -1,0 +1,138 @@
+{
+  "name": "radio-group",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#radiogroup-sequential-planning-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/RadioGroup.tsx",
+      "targetRole": "components",
+      "targetPath": "RadioGroup/RadioGroup.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "RadioGroup/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/RadioGroupStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "RadioGroup/RadioGroupStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/__tests__/RadioGroup.test.tsx",
+      "targetRole": "components",
+      "targetPath": "RadioGroup/__tests__/RadioGroup.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "RadioGroup",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/RadioGroup/RadioGroup.tsx"
+    },
+    {
+      "exportedName": "RadioGroupProps",
+      "localName": "TRadioGroupProps",
+      "sourcePath": "packages/react/src/components/RadioGroup/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/__tests__/RadioGroup.test.tsx",
+      "importSource": "@/src/components/RadioGroup/RadioGroup",
+      "replacementSource": "../RadioGroup",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/RadioGroup/__tests__/RadioGroup.test.tsx",
+      "importSource": "@/src/components/Radio/Radio",
+      "registryDependencyName": "radio",
+      "replacementSource": "../../Radio/Radio",
+      "advisory": true,
+      "notes": ["Focused test composition uses Radio as a registry component dependency, not as RadioGroup source."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/Radio/__tests__/Radio.test.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/radio-group-compatibility", "radio"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-space-2", "--aui-opacity-disabled"],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": ["--distance_2", "--disabledOpacity"],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "radio-group-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first RadioGroup proof; do not fold these aliases into the Radio, Switch, Checkbox, or ToggleButton compatibility bridges casually.",
+        "RadioGroup depends on the already-activated radio item for compile proofs with real registry-owned children, but Radio source is not part of the RadioGroup runtime graph."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/RadioGroup/RadioGroup.tsx packages/react/src/components/RadioGroup/helpers.ts packages/react/src/components/RadioGroup/RadioGroupStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean because RadioGroup has no Wavemap-only runtime imports."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static RadioGroup proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/RadioGroup/__tests__/RadioGroup.test.tsx src/components/Radio/__tests__/Radio.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "RadioGroup runtime source has been received into packages/react; this packet still feeds early CLI advisory planning until generated component registry artifacts exist.",
+    "Preserve the client component boundary, React Aria RadioGroup wrapper, caller-owned children model, and CSS-module source model for the sequential RadioGroup proof.",
+    "Keep calibrateComponent and orientation constants private unless a later API review approves exporting helper internals.",
+    "Do not move Radio, Text, component-showcase code, or focused test composition into the RadioGroup runtime source graph.",
+    "This source-receipt pass does not activate a radio-group manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

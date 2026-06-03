@@ -1,0 +1,25 @@
+.counter {
+  height: auto;
+  width: auto;
+  display: flex;
+  gap: var(--aui-space-1);
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  transition: var(--aui-transition-color);
+  text-align: center;
+}
+
+.counter__textRow {
+  height: 100%;
+  width: auto;
+  display: flex;
+  flex: initial;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+.counter > :empty {
+  display: none;
+}

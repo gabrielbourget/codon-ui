@@ -19,6 +19,7 @@ import {
 import {
   INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
   INSTALL_PLAN_FILE_STATUS__EXISTING,
+  INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
   INSTALL_PLAN_FINDING__CONSUMER_LOCKFILE_INVALID,
@@ -29,6 +30,7 @@ import {
   INSTALL_PLAN_FINDING__STRICT_ADD_SOURCE_BLOCKER,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_SOURCE_STATUS__MISSING,
+  INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
 } from "./constants"
 import {
@@ -37,6 +39,7 @@ import {
   type TRegistryInstallPlan,
   type TAddStrict,
   addStrictSchema,
+  registryInstallPlanSchema,
 } from "./schema"
 
 const TYPESCRIPT_EXTENSIONS = [".ts", ".tsx"] as const
@@ -44,6 +47,11 @@ const STRICT_ADD_BLOCKED_WARNING_CODES = new Set(["unsupported-layout-mode"])
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
+
+const REUSABLE_LOCKFILE_OWNERSHIP_STATES = new Set([
+  CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
+  CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
+])
 
 const normalizePosixPath = (filePath: string) => filePath.replace(/\\/gu, "/")
 
@@ -260,6 +268,93 @@ export const createStrictAddBlockerFindings = (installPlan: TRegistryInstallPlan
   return blockerFindings
 }
 
+const getStrictAddReusableLockfileFile = ({
+  file,
+  installPlan,
+  lockfileData,
+}: {
+  file: TInstallPlanFile
+  installPlan: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+}) => {
+  if (file.targetStatus !== INSTALL_PLAN_FILE_STATUS__EXISTING) return undefined
+  if (!file.contentHash || !file.targetContentHash) return undefined
+
+  const lockfileItem = lockfileData.items[file.itemName]
+  const lockfileFile = lockfileItem?.files.find((candidateFile) => candidateFile.path === file.resolvedPath)
+
+  if (lockfileItem?.sourceIdentity !== installPlan.sourceIdentity) return undefined
+  if (!lockfileFile) return undefined
+  if (lockfileFile.targetRole !== file.targetRole) return undefined
+  if (lockfileFile.sourceHash !== file.contentHash) return undefined
+  if (lockfileFile.installedHash !== file.targetContentHash) return undefined
+  if (!REUSABLE_LOCKFILE_OWNERSHIP_STATES.has(lockfileFile.ownershipState)) return undefined
+
+  return lockfileFile
+}
+
+const createLockfileDependencyKey = (dependency: Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">) =>
+  `${dependency.kind}:${dependency.name}`
+
+export const mergeStrictAddLockfileDependencies = ({
+  installPlan,
+  lockfileData,
+}: {
+  installPlan: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+}): TConsumerLockfile["dependencies"] => {
+  const dependencyEntriesByKey = new Map<string, TConsumerLockfile["dependencies"][number]>()
+
+  lockfileData.dependencies.forEach((dependency) => {
+    dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), dependency)
+  })
+
+  installPlan.dependencyPlan.forEach((dependency) => {
+    dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), {
+      ...dependency,
+      action: CONSUMER_DEPENDENCY_ACTION__NONE,
+    })
+  })
+
+  return [...dependencyEntriesByKey.values()]
+}
+
+export const createStrictAddLockfileReusePlan = ({
+  installPlan,
+  lockfileData,
+}: {
+  installPlan: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+}): TRegistryInstallPlan => {
+  const reusablePaths = new Set<string>()
+  const files = installPlan.files.map((file) => {
+    if (!getStrictAddReusableLockfileFile({ file, installPlan, lockfileData })) return file
+
+    reusablePaths.add(file.resolvedPath)
+
+    return {
+      ...file,
+      targetCompatibility: file.targetCompatibility ?? INSTALL_PLAN_TARGET_COMPATIBILITY__CONTENT_HASH_MATCH,
+      targetResolution: INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+    }
+  })
+
+  return registryInstallPlanSchema.parse({
+    ...installPlan,
+    files,
+    findings: installPlan.findings.filter(
+      (finding) =>
+        finding.code !== INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS ||
+        !finding.targetPath ||
+        !reusablePaths.has(finding.targetPath),
+    ),
+    items: installPlan.items.map((item) => ({
+      ...item,
+      files: files.filter((file) => file.itemName === item.name),
+    })),
+  })
+}
+
 export const writeStrictRegistryInstall = async ({
   consumerRoot,
   installPlan,
@@ -303,9 +398,10 @@ export const writeStrictRegistryInstall = async ({
         files: item.files.map((file) => ({
           installedHash: installedHashesByPath.get(file.resolvedPath),
           ownershipState:
-            file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
+            getStrictAddReusableLockfileFile({ file, installPlan, lockfileData })?.ownershipState ??
+            (file.targetResolution === INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING
               ? CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT
-              : CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
+              : CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED),
           path: file.resolvedPath,
           sourceHash: file.contentHash,
           targetRole: file.targetRole,
@@ -318,10 +414,7 @@ export const writeStrictRegistryInstall = async ({
   )
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
-    dependencies: installPlan.dependencyPlan.map((dependency) => ({
-      ...dependency,
-      action: CONSUMER_DEPENDENCY_ACTION__NONE,
-    })),
+    dependencies: mergeStrictAddLockfileDependencies({ installPlan, lockfileData }),
     items: {
       ...lockfileData.items,
       ...nextItems,

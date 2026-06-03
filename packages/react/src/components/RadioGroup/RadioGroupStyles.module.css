@@ -1,0 +1,18 @@
+.radioGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--distance_2);
+  flex-wrap: wrap;
+}
+
+.radioGroup--horizontal {
+  flex-direction: row;
+}
+
+.radioGroup--vertical {
+  flex-direction: column;
+}
+
+.radioGroup[data-disabled] {
+  opacity: var(--disabledOpacity);
+}

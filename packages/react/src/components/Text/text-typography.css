@@ -1,0 +1,81 @@
+:root {
+  --aui-font-family-system: system-ui, -apple-system, "BlinkMacSystemFont", "Segoe UI", sans-serif;
+  --aui-font-family-body: var(--aui-font-family-body-override, var(--aui-font-family-system));
+  --aui-font-family-heading: var(--aui-font-family-heading-override, var(--aui-font-family-body));
+  --aui-font-family-display: var(--aui-font-family-display-override, var(--aui-font-family-heading));
+
+  --aui-font-weight-light: 300;
+  --aui-font-weight-regular: 400;
+  --aui-font-weight-medium: 500;
+  --aui-font-weight-semibold: 600;
+  --aui-font-weight-bold: 700;
+  --aui-font-weight-extrabold: 800;
+
+  --aui-text-line-height-tight: 1;
+
+  --aui-text-d1-font-size: 42.5rem;
+  --aui-text-d2-font-size: 32rem;
+  --aui-text-d3-font-size: 24rem;
+  --aui-text-d4-font-size: 18rem;
+  --aui-text-d5-font-size: 13.4rem;
+  --aui-text-d6-font-size: 10rem;
+
+  --aui-text-h1-font-size: 3.8rem;
+  --aui-text-h1-sm-font-size: 2.4rem;
+  --aui-text-h2-font-size: 2.4rem;
+  --aui-text-h2-sm-font-size: 2rem;
+  --aui-text-h3-font-size: 2rem;
+  --aui-text-h3-sm-font-size: 1.8rem;
+  --aui-text-h4-font-size: 1.8rem;
+  --aui-text-h4-sm-font-size: 1.6rem;
+  --aui-text-h5-font-size: 1.6rem;
+  --aui-text-h5-sm-font-size: 1.4rem;
+  --aui-text-h6-font-size: 1.4rem;
+  --aui-text-h6-sm-font-size: 1.2rem;
+
+  --aui-text-b1-font-size: 7.6rem;
+  --aui-text-b2-font-size: 5.8rem;
+  --aui-text-b3-font-size: 4.2rem;
+  --aui-text-b4-font-size: 3.2rem;
+  --aui-text-b5-font-size: 2.4rem;
+  --aui-text-b6-font-size: 2.2rem;
+  --aui-text-b7-font-size: 2rem;
+  --aui-text-b8-font-size: 1.8rem;
+  --aui-text-b9-font-size: 1.6rem;
+  --aui-text-b10-font-size: 1.4rem;
+  --aui-text-b11-font-size: 1.2rem;
+  --aui-text-b12-font-size: 1.1rem;
+  --aui-text-b13-font-size: 1rem;
+
+  --aui-text-d1-line-height: var(--aui-text-line-height-tight);
+  --aui-text-d2-line-height: var(--aui-text-line-height-tight);
+  --aui-text-d3-line-height: var(--aui-text-line-height-tight);
+  --aui-text-d4-line-height: var(--aui-text-line-height-tight);
+  --aui-text-d5-line-height: var(--aui-text-line-height-tight);
+  --aui-text-d6-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h1-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h1-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h2-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h2-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h3-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h3-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h4-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h4-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h5-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h5-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h6-line-height: var(--aui-text-line-height-tight);
+  --aui-text-h6-sm-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b1-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b2-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b3-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b4-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b5-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b6-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b7-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b8-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b9-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b10-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b11-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b12-line-height: var(--aui-text-line-height-tight);
+  --aui-text-b13-line-height: var(--aui-text-line-height-tight);
+}

@@ -1,0 +1,36 @@
+.tagGroup {
+  height: auto;
+  width: auto;
+  display: flex;
+}
+
+.tagGroup__emptyList {
+  height: auto;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--distance_1);
+}
+
+.tagGroup__emptyList__text {
+  color: var(--aui-control-placeholder);
+}
+
+.tagGroup__iconColor {
+  stroke: var(--aui-control-foreground);
+}
+
+.tagList {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--distance_1);
+}
+
+.tagList--horizontal {
+  flex-direction: row;
+}
+
+.tagList--vertical {
+  flex-direction: column;
+}

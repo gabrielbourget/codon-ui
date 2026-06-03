@@ -1,0 +1,164 @@
+{
+  "name": "counter",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#counter-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
+      "targetRole": "components",
+      "targetPath": "Counter/Counter.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Counter/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/CounterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Counter/CounterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/__tests__/Counter.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Counter/__tests__/Counter.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Counter",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Counter/Counter.tsx"
+    },
+    {
+      "exportedName": "CounterProps",
+      "localName": "TCounterProps",
+      "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
+      "importSource": "@/src/components/CircularProgress/CircularProgress",
+      "registryDependencyName": "circular-progress",
+      "replacementSource": "../CircularProgress/CircularProgress",
+      "notes": ["Counter composes the installed CircularProgress registry item instead of copying progress source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/Text",
+      "notes": ["Counter composes the installed Text registry item instead of copying typography source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "../../tokens/a11y",
+      "notes": ["Aria alias props now import from a tiny package-local a11y token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/CounterStyles.module.css",
+      "importSource": "--distance_1 / --colorTransition aliases",
+      "replacementSource": "--aui-space-1 / --aui-transition-color",
+      "notes": ["Counter CSS now reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/helpers.ts",
+      "importSource": "--aui-status-warning / --aui-status-danger only",
+      "replacementSource": "status aliases with --aui-state-* fallback",
+      "notes": [
+        "Wavemap can keep existing status aliases while default Amino theme consumers resolve warning/danger state colors."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Counter/__tests__/Counter.test.tsx",
+      "importSource": "@/src/components/Counter/Counter",
+      "replacementSource": "../Counter",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/components/PageCounter/PageCounter.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/helpers.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/components/LinearProgress/LinearProgress.tsx",
+    "apps/wavemap-front-end/src/components/Meter/Meter.tsx",
+    "apps/wavemap-front-end/src/components/Avatar/Avatar.tsx",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/a11y", "text", "circular-progress"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-space-1", "--aui-transition-color", "--aui-state-warning", "--aui-state-danger"],
+      "notes": [
+        "Counter source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    },
+    {
+      "strategy": "consumer-owned",
+      "cssVariables": ["--aui-status-warning", "--aui-status-danger"],
+      "notes": [
+        "Wavemap already defines status aliases; Counter keeps those aliases as first-choice values with default state fallbacks for new consumers."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@radix-ui\" packages/react/src/components/Counter/Counter.tsx packages/react/src/components/Counter/helpers.ts packages/react/src/components/Counter/CounterStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Counter proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Counter/__tests__/Counter.test.tsx src/components/Carousel/components/CarouselCounter/__tests__/CarouselCounter.test.tsx src/components/Pagination/__tests__/Pagination.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration and wrappers."]
+    }
+  ],
+  "notes": [
+    "Counter runtime source has been received into packages/react as a composed component that depends on installed Text and CircularProgress source.",
+    "Preserve the root div behavior, aria alias bridge, optional max-value text, optional circular progress indicator, threshold status color behavior, native class/style merge behavior, and CSS-module source model for the first Counter proof.",
+    "Keep calibration and status-color helpers private unless a later API review approves exporting helper internals.",
+    "Do not move CarouselCounter, PageCounter, Pagination, app showcase code, LinearProgress, Meter, Avatar, Button, input controls, or broad app consumers with Counter.",
+    "This source-receipt pass does not activate a counter manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

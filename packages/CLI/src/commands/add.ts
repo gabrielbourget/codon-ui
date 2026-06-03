@@ -19,6 +19,7 @@ import {
   createAddStrictEffects,
   consumerConfigSchema,
   createStrictAddBlockerFindings,
+  createStrictAddLockfileReusePlan,
   createRegistryInstallPlanWithFindings,
   createRegistryInstallPlan,
   handleError,
@@ -26,6 +27,7 @@ import {
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
+  isLocalReactRegistryComponentItemRequest,
   logger,
   readLocalRegistrySource,
   readComponentPacketsForRegistrySource,
@@ -86,15 +88,13 @@ const addOptionsSchema = z
 const parseAddOptions = (components: string[] | undefined, CLIOptions: unknown) =>
   addOptionsSchema.parse({ components, ...(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}) })
 
-const SWITCH_REGISTRY_ITEM_NAME = "switch"
-
-const isStrictSwitchAddRequest = ({
+const isStrictLocalRegistryComponentAddRequest = ({
   allComponents,
   components,
 }: {
   allComponents: boolean
   components?: readonly string[]
-}) => !allComponents && components?.length === 1 && components[0] === SWITCH_REGISTRY_ITEM_NAME
+}) => !allComponents && components?.length === 1 && isLocalReactRegistryComponentItemRequest(components)
 
 const readConsumerConfigForDryRun = async (
   cwd: string,
@@ -312,7 +312,7 @@ export const add = new Command()
         return
       }
 
-      if (isStrictSwitchAddRequest(options)) {
+      if (isStrictLocalRegistryComponentAddRequest(options)) {
         const explicitRequestedItems = options.components ?? []
         const registrySourcePathOption =
           options.registrySource ??
@@ -348,11 +348,15 @@ export const add = new Command()
           ],
           installPlan,
         })
-        const strictBlockerFindings = createStrictAddBlockerFindings(planWithInitialFindings)
-        const findings = [...planWithInitialFindings.findings, ...strictBlockerFindings]
+        const reusableTargetPlan = createStrictAddLockfileReusePlan({
+          installPlan: planWithInitialFindings,
+          lockfileData: lockfilePlan.lockfileData,
+        })
+        const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
+        const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
         const installPlanWithFindings = createRegistryInstallPlanWithFindings({
           findings,
-          installPlan: planWithInitialFindings,
+          installPlan: reusableTargetPlan,
         })
 
         if (strictBlockerFindings.length > 0) {
@@ -415,7 +419,7 @@ export const add = new Command()
           return
         }
 
-        logger.info(`${chalk.green("[ Strict Add ]")} Switch installed.`)
+        logger.info(`${chalk.green("[ Strict Add ]")} ${explicitRequestedItems.join(", ")} installed.`)
         logger.info(`Registry source: ${result.registrySourcePath}`)
         logger.info(`Written files: ${result.effects.files.writtenCount}`)
         logger.info(`Reused existing support files: ${result.effects.files.reusedExistingTargetCount}`)

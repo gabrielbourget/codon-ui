@@ -1,0 +1,222 @@
+{
+  "name": "checkbox",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#checkbox-source-receipt-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/Checkbox.tsx",
+      "targetRole": "components",
+      "targetPath": "Checkbox/Checkbox.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Checkbox/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/CheckboxStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Checkbox/CheckboxStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/__tests__/Checkbox.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Checkbox/__tests__/Checkbox.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Checkbox",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Checkbox/Checkbox.tsx"
+    },
+    {
+      "exportedName": "CheckboxProps",
+      "localName": "TCheckboxProps",
+      "sourcePath": "packages/react/src/components/Checkbox/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Geometry constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theme-order constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Checkbox/__tests__/Checkbox.test.tsx",
+      "importSource": "@/src/components/Checkbox/Checkbox",
+      "replacementSource": "../Checkbox",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Table/components/TableHeader/TableHeader.tsx",
+    "apps/wavemap-front-end/src/components/Table/components/TableRow/TableRow.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/CheckboxGroup/__tests__/CheckboxGroup.test.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/FileUploadSheet/FileUploadSheet.tsx",
+    "apps/wavemap-front-end/src/components/Galleries/FileUploadGallery/InternalComponents/VideoPreviewItem/VideoPreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/Galleries/FileUploadGallery/InternalComponents/PersistedImagePreviewItem/PersistedImagePreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/Galleries/FileUploadGallery/InternalComponents/ImagePreviewItem/ImagePreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/Galleries/FileUploadGallery/InternalComponents/FilePreviewItem/FilePreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/Galleries/FileUploadGallery/InternalComponents/DirectoryPreviewItem/DirectoryPreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/InternalComponents/VideoPreviewItem/VideoPreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/InternalComponents/ImagePreviewItem/ImagePreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/InternalComponents/FilePreviewItem/FilePreviewItem.tsx",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/InternalComponents/DirectoryPreviewItem/DirectoryPreviewItem.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/checkbox-compatibility", "tokens/geometry", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-border",
+        "--aui-control-hover-background",
+        "--aui-control-pressed-background",
+        "--aui-control-selected-background",
+        "--aui-control-selected-background-hover",
+        "--aui-control-selected-background-pressed",
+        "--aui-control-selected-foreground"
+      ],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": [
+        "--distance_1",
+        "--text-color",
+        "--disabledOpacity",
+        "--border_radius_1",
+        "--focus-ring-color",
+        "--shadow_1",
+        "--aui-color-primary-100",
+        "--aui-color-primary-200",
+        "--aui-color-primary-500",
+        "--aui-color-primary-600",
+        "--aui-color-primary-700",
+        "--aui-color-secondary-100",
+        "--aui-color-secondary-200",
+        "--aui-color-secondary-500",
+        "--aui-color-secondary-600",
+        "--aui-color-secondary-700",
+        "--aui-color-tertiary-100",
+        "--aui-color-tertiary-200",
+        "--aui-color-tertiary-500",
+        "--aui-color-tertiary-600",
+        "--aui-color-tertiary-700",
+        "--aui-color-quaternary-100",
+        "--aui-color-quaternary-200",
+        "--aui-color-quaternary-500",
+        "--aui-color-quaternary-600",
+        "--aui-color-quaternary-700",
+        "--aui-color-quintenary-100",
+        "--aui-color-quintenary-200",
+        "--aui-color-quintenary-500",
+        "--aui-color-quintenary-600",
+        "--aui-color-quintenary-700",
+        "--aui-action-primary-background",
+        "--aui-action-primary-background-hover",
+        "--aui-action-primary-background-pressed",
+        "--aui-action-primary-border",
+        "--aui-action-primary-foreground",
+        "--aui-action-secondary-background",
+        "--aui-action-secondary-background-hover",
+        "--aui-action-secondary-background-pressed",
+        "--aui-action-secondary-border",
+        "--aui-action-secondary-foreground",
+        "--aui-action-tertiary-background",
+        "--aui-action-tertiary-background-hover",
+        "--aui-action-tertiary-background-pressed",
+        "--aui-action-tertiary-border",
+        "--aui-action-tertiary-foreground",
+        "--aui-action-quaternary-background",
+        "--aui-action-quaternary-background-hover",
+        "--aui-action-quaternary-background-pressed",
+        "--aui-action-quaternary-border",
+        "--aui-action-quaternary-foreground",
+        "--aui-action-quintenary-background",
+        "--aui-action-quintenary-background-hover",
+        "--aui-action-quintenary-background-pressed",
+        "--aui-action-quintenary-border",
+        "--aui-action-quintenary-foreground"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "checkbox-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first Checkbox proof; do not fold these aliases into theme/switch-compatibility or the default theme contract casually.",
+        "--checkbox-selected-foreground remains component-local CSS state and should be classified as public advanced CSS API or private fallback before publication."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/Checkbox/Checkbox.tsx packages/react/src/components/Checkbox/helpers.ts packages/react/src/components/Checkbox/CheckboxStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after the approved token import rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Checkbox proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Checkbox/__tests__/Checkbox.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap test remains the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Checkbox runtime source has been received into packages/react; this packet still feeds early CLI advisory planning until generated component registry artifacts exist.",
+    "Preserve the client component boundary and CSS-module source model for the second component proof.",
+    "Keep calibrateComponent private unless a later API review approves exporting helper internals.",
+    "Do not move boolean filtering, table selection, upload/gallery adapters, showcase code, or CheckboxGroup test composition with the component.",
+    "This source-receipt pass does not activate a checkbox manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

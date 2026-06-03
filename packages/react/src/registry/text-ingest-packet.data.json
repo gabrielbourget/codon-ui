@@ -1,0 +1,188 @@
+{
+  "name": "text",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#text-primitive-planning-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Text/Text.tsx",
+      "targetRole": "components",
+      "targetPath": "Text/Text.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Text/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/constants.ts",
+      "targetRole": "components",
+      "targetPath": "Text/constants.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/types.ts",
+      "targetRole": "components",
+      "targetPath": "Text/types.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/TextStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Text/TextStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/__tests__/Text.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Text/__tests__/Text.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Text",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Text/Text.tsx"
+    },
+    {
+      "exportedName": "TextProps",
+      "localName": "TTextProps",
+      "sourcePath": "packages/react/src/components/Text/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TextAvailableFontVariant",
+      "localName": "TAvailableFontVariants",
+      "sourcePath": "packages/react/src/components/Text/types.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TextAvailableFontWeight",
+      "localName": "TAvailableFontWeights",
+      "sourcePath": "packages/react/src/components/Text/types.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Text/helpers.ts",
+      "importSource": "@/src/components/Text/constants",
+      "replacementSource": "./constants",
+      "advisory": true,
+      "notes": ["Text helpers now use package-local constants instead of the Wavemap path alias."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/helpers.ts",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "replacementSource": "./TextStyles.module.css",
+      "advisory": true,
+      "notes": ["Text helpers now use package-local CSS-module source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/helpers.ts",
+      "importSource": "@/src/components/Text/types",
+      "replacementSource": "./types",
+      "advisory": true,
+      "notes": ["Text helpers now use package-local typography types."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/types.ts",
+      "importSource": "@/src/components/Text/constants",
+      "replacementSource": "./constants",
+      "advisory": true,
+      "notes": ["Text type unions now derive from package-local constants."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "apps/wavemap-front-end/src/components/Text/variants/PlaceholderText/helpers.ts",
+    "apps/wavemap-front-end/src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+    "apps/wavemap-front-end/src/app/fonts.ts"
+  ],
+  "registryDependencies": ["theme-css", "theme/text-typography"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-font-family-body",
+        "--aui-font-family-heading",
+        "--aui-font-family-display",
+        "--aui-font-family-system",
+        "--aui-font-family-body-override",
+        "--aui-font-family-heading-override",
+        "--aui-font-family-display-override",
+        "--aui-text-d1-font-size",
+        "--aui-text-h1-sm-font-size",
+        "--aui-text-b10-font-size",
+        "--aui-text-b13-line-height",
+        "--aui-font-weight-regular",
+        "--aui-font-weight-extrabold",
+        "--aui-transition-color"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/text-typography.css",
+          "targetRole": "theme",
+          "targetPath": "text-typography.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "The typography support file is a neutral example preset: consumers can override the CSS variables without taking Wavemap font files or font loading.",
+        "Wavemap should map its app-owned --fontface_primary / Switzer setup to the neutral --aui-font-family-*-override variables during consumer rehydration."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|--fontface_primary|Switzer\" packages/react/src/components/Text/Text.tsx packages/react/src/components/Text/helpers.ts packages/react/src/components/Text/constants.ts packages/react/src/components/Text/types.ts packages/react/src/components/Text/TextStyles.module.css packages/react/src/components/Text/text-typography.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": [
+        "Source-receipt scan should remain clean because Text does not ship Wavemap-only imports or font choices."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Text proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Text/__tests__/Text.test.tsx src/components/Text/variants/PlaceholderText/__tests__/PlaceholderText.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Text runtime source has been received into packages/react with neutral typography support variables rather than Wavemap font-file ownership.",
+    "Preserve the client component boundary, DOM-prop hygiene, class/style merge behavior, existing variant strings, and CSS-module source model for the first Text proof.",
+    "Keep calibrateComponent private unless a later API review approves exporting helper internals.",
+    "Do not move PlaceholderText, Wavemap app font loading, broad app consumers, or unrelated typography SCSS into the Text runtime source graph.",
+    "This source-receipt pass does not activate a text manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

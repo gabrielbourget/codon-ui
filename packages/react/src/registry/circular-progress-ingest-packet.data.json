@@ -1,0 +1,200 @@
+{
+  "name": "circular-progress",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#circularprogress-next-candidate-planning-checkpoint-2026-06-02",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/CircularProgress.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/CircularProgressStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/Path/Path.tsx",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/Path/Path.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/Path/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/Path/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/__tests__/CircularProgress.test.tsx",
+      "targetRole": "components",
+      "targetPath": "CircularProgress/__tests__/CircularProgress.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "CircularProgress",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx"
+    },
+    {
+      "exportedName": "CircularProgressProps",
+      "localName": "TCircularProgressProps",
+      "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/svg",
+      "replacementSource": "../../tokens/svg",
+      "notes": ["SVG viewBox constants now import from the package-local SVG token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/svg",
+      "replacementSource": "../../tokens/svg",
+      "notes": ["Stroke-linecap constants and types now import from the package-local SVG token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theme-order constants and types now import from the package-local theme-order token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/Path/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/svg",
+      "replacementSource": "../../../tokens/svg",
+      "notes": ["Nested path helpers use the same package-local SVG token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
+      "importSource": "Switzer font-family literal",
+      "replacementSource": "var(--aui-font-family-body, sans-serif)",
+      "notes": ["The package source keeps typography neutral and does not ship Wavemap font files."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircularProgress/__tests__/CircularProgress.test.tsx",
+      "importSource": "@/src/components/CircularProgress/CircularProgress",
+      "replacementSource": "../CircularProgress",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Counter/Counter.tsx",
+    "apps/wavemap-front-end/src/components/LinearProgress/LinearProgress.tsx",
+    "apps/wavemap-front-end/src/components/Meter/Meter.tsx",
+    "apps/wavemap-front-end/src/components/Cards/Card/Card.tsx",
+    "apps/wavemap-front-end/src/components/Avatar/Avatar.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/circular-progress-compatibility", "tokens/svg", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-selected-background",
+        "--aui-surface-muted",
+        "--aui-surface-foreground",
+        "--aui-surface"
+      ],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "proof-compatibility-bridge",
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+          "targetRole": "theme",
+          "targetPath": "circular-progress-compatibility.css",
+          "role": "theme"
+        }
+      ],
+      "notes": [
+        "Install this narrow bridge alongside theme.css for the first CircularProgress proof; do not rely on another component bridge for palette-order aliases.",
+        "The bridge keeps order palette aliases proof-local until a stable palette contract or bridge decommissioning pass is explicitly approved."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-font-family-body"],
+      "notes": [
+        "CircularProgress SVG text uses var(--aui-font-family-body, sans-serif) and does not require Wavemap font files."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|Switzer|motion/react\" packages/react/src/components/CircularProgress/CircularProgress.tsx packages/react/src/components/CircularProgress/helpers.ts packages/react/src/components/CircularProgress/CircularProgressStyles.module.css packages/react/src/components/CircularProgress/Path/Path.tsx packages/react/src/components/CircularProgress/Path/helpers.ts packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token and typography rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static CircularProgress proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/CircularProgress/__tests__/CircularProgress.test.tsx src/components/Counter/__tests__/Counter.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": [
+        "Focused Wavemap tests remain the behavioral source for later consumer rehydration and Counter composition."
+      ]
+    }
+  ],
+  "notes": [
+    "CircularProgress runtime source has been received into packages/react with SVG constants treated as installed registry support rather than copied ad hoc component internals.",
+    "Preserve the client component boundary, React Aria ProgressBar relationship, SVG path math, class/style merge behavior, current theming-order classes, and CSS-module source model for the first CircularProgress proof.",
+    "Keep Path, dash/path helpers, calibration helpers, viewBox constants, and stroke-linecap support private or support-level unless a later API review approves exporting helper internals.",
+    "Do not move Counter, LinearProgress, Meter, Card, Avatar, Button, input controls, component-showcase code, or broad app consumers with the CircularProgress component.",
+    "This source-receipt pass does not activate a circular-progress manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}
