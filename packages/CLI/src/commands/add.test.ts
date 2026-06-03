@@ -40,6 +40,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["linear-progress"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -571,6 +575,24 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 11,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "linear-progress",
+  expectedItems: ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order", "linear-progress"],
+  expectedResolvedPaths: [
+    "src/components/LinearProgress/LinearProgress.tsx",
+    "src/components/LinearProgress/LinearProgressStyles.module.css",
+    "src/components/LinearProgress/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "action-colors.css",
+  expectedThemeVariables: ["--aui-shadow-1", "--aui-radius-1", "--aui-color-primary-500"],
+  expectedMissingDependencyCount: 5,
+  expectedPlannedCount: 7,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -595,5 +617,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, and dependency merge add planning verified",
 )
