@@ -461,6 +461,58 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "number-input",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/NumberInput/NumberInput.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/NumberInput.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/NumberInput/helpers.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/helpers.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/NumberInput/labels.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/labels.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/NumberInput/DefaultIncrementIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/DefaultIncrementIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/NumberInput/DefaultDecrementIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/DefaultDecrementIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/NumberInput/NumberInputStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "NumberInput/NumberInputStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "tokens/geometry", "input", "button"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "toggle-button",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

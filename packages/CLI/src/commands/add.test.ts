@@ -24,6 +24,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["number-input"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -222,6 +226,47 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--aui-space-1", "--aui-state-danger", "--aui-state-success"],
   expectedPlannedCount: 11,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "number-input",
+  expectedItems: [
+    "theme-css",
+    "tokens/geometry",
+    "theme/text-typography",
+    "text",
+    "input",
+    "theme/action-colors",
+    "tokens/theme-order",
+    "button",
+    "number-input",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Input/Input.tsx",
+    "src/components/Input/InputStyles.module.css",
+    "src/components/Input/helpers.ts",
+    "src/components/NumberInput/DefaultDecrementIcon.tsx",
+    "src/components/NumberInput/DefaultIncrementIcon.tsx",
+    "src/components/NumberInput/NumberInput.tsx",
+    "src/components/NumberInput/NumberInputStyles.module.css",
+    "src/components/NumberInput/helpers.tsx",
+    "src/components/NumberInput/labels.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-radius-1", "--aui-transition-color", "--aui-state-danger"],
+  expectedPlannedCount: 22,
 })
 
 await verifyComponentAddPlanning({
@@ -456,5 +501,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, and dependency merge add planning verified",
 )
