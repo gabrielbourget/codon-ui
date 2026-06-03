@@ -1,0 +1,72 @@
+.textArea {
+  height: auto;
+  width: auto;
+  border: 1px solid var(--aui-control-border);
+  padding: var(--aui-space-1);
+  overflow: auto;
+  transition: var(--aui-transition-border-color);
+  background-color: var(--aui-control-background);
+  color: var(--aui-control-foreground);
+}
+
+.textArea--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.textArea--round {
+  border-radius: 50%;
+  padding: var(--aui-space-1) 7px;
+}
+
+.textArea--applyFocusStyle[data-focused],
+.textArea--applyFocusStyle:focus,
+.textArea--applyFocusStyle:focus-visible {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.textArea--noFocusStyle[data-focused],
+.textArea--noFocusStyle:focus,
+.textArea--noFocusStyle:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+.textArea--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.textArea[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}
+.textArea[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.textArea::placeholder {
+  color: var(--aui-control-placeholder);
+  font-style: italic;
+  font-size: 12px;
+  opacity: 1;
+}
+
+.textArea--resizeNone {
+  resize: none;
+}
+.textArea--resizeVertical {
+  resize: vertical;
+}
+.textArea--resizeHorizontal {
+  resize: horizontal;
+}
+.textArea--resizeBoth {
+  resize: both;
+}
+
+.textArea--errorState {
+  border-color: var(--aui-state-danger);
+}
+.textArea--warningState {
+  border-color: var(--aui-state-warning);
+}
+.textArea--successState {
+  border-color: var(--aui-state-success);
+}
