@@ -1,0 +1,18 @@
+.checkboxGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--aui-space-2);
+  flex-wrap: wrap;
+}
+
+.checkboxGroup--horizontal {
+  flex-direction: row;
+}
+
+.checkboxGroup--vertical {
+  flex-direction: column;
+}
+
+.checkboxGroup[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}

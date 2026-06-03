@@ -35,6 +35,7 @@ export type {
 } from "./ingest"
 export { avatarIngestPacket } from "./avatar-ingest-packet"
 export { buttonIngestPacket } from "./button-ingest-packet"
+export { checkboxGroupIngestPacket } from "./checkbox-group-ingest-packet"
 export { checkboxIngestPacket } from "./checkbox-ingest-packet"
 export { circularProgressIngestPacket } from "./circular-progress-ingest-packet"
 export { counterIngestPacket } from "./counter-ingest-packet"
