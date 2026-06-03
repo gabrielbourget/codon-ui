@@ -18,6 +18,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "checkbox",
   "checkbox-group",
   "input",
+  "text-area",
   "toggle-button",
   "radio",
   "radio-group",

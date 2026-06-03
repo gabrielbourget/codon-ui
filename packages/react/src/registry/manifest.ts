@@ -427,6 +427,40 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "text-area",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/TextArea/TextArea.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TextArea/TextArea.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TextArea/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TextArea/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/TextArea/TextAreaStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "TextArea/TextAreaStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "tokens/geometry", "text"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "toggle-button",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
