@@ -52,6 +52,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["list-box-item"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -639,6 +643,31 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 10,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "list-box-item",
+  expectedItems: ["theme-css", "theme/text-typography", "text", "list-box-item"],
+  expectedResolvedPaths: [
+    "src/components/ListBoxItem/ListBoxItem.tsx",
+    "src/components/ListBoxItem/ListBoxItemStyles.module.css",
+    "src/components/ListBoxItem/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+  ],
+  expectedThemeVariables: [
+    "--aui-space-1",
+    "--aui-radius-1",
+    "--aui-transition-background-color",
+    "--aui-control-hover-background",
+    "--aui-opacity-disabled",
+  ],
+  expectedPlannedCount: 10,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -663,5 +692,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
