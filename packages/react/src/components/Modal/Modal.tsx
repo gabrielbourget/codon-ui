@@ -1,5 +1,11 @@
 import classNames from "classnames"
-import { forwardRef, type PropsWithChildren } from "react"
+import {
+  forwardRef,
+  type ForwardRefExoticComponent,
+  type PropsWithChildren,
+  type PropsWithoutRef,
+  type RefAttributes,
+} from "react"
 import { Modal as AdobeModal, Dialog, Header, ModalOverlay } from "react-aria-components"
 
 import Button from "../Button/Button"
@@ -8,8 +14,12 @@ import textStyles from "../Text/TextStyles.module.css"
 
 import { calibrateComponent, type TModalProps } from "./helpers"
 
+type TModalComponent = ForwardRefExoticComponent<
+  PropsWithoutRef<PropsWithChildren<TModalProps>> & RefAttributes<HTMLDivElement>
+>
+
 // -> Starter primitive for app-specific modal compositions. AlertDialog is intentionally out of this source slice.
-const Modal = forwardRef<HTMLDivElement, PropsWithChildren<TModalProps>>((props, forwardedRef) => {
+const Modal: TModalComponent = forwardRef<HTMLDivElement, PropsWithChildren<TModalProps>>((props, forwardedRef) => {
   const {
     "aria-describedby": ariaDescribedByProp,
     "aria-details": ariaDetailsProp,
