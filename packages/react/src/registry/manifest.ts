@@ -914,6 +914,26 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "line-segment",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/LineSegment/LineSegment.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "VisualUtilities/LineSegment/LineSegment.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+    ],
+    registryDependencies: ["theme-css"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "tag-combo-box",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

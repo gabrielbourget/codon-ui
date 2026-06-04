@@ -920,6 +920,22 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "line-segment",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/LineSegment/LineSegment.tsx",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/LineSegment/LineSegment.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": ["theme-css"],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "tag-combo-box",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

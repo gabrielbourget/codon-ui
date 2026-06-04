@@ -72,6 +72,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["line-segment"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -245,6 +249,18 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-color-quintenary-500"],
+})
+
+await verifyComponentAddPlanning({
+  itemName: "line-segment",
+  expectedItems: ["theme-css", "line-segment"],
+  expectedResolvedPaths: [
+    "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
+    "src/components/_registry/theme.css",
+  ],
+  expectedThemeVariables: ["--aui-border"],
+  expectedMissingDependencyCount: 2,
+  expectedPlannedCount: 2,
 })
 
 await verifyComponentAddPlanning({
@@ -895,5 +911,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, line-segment, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
