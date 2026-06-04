@@ -1,0 +1,95 @@
+.comboBox {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  background: var(--aui-control-background);
+}
+
+.comboBox__emptyList {
+  height: auto;
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: var(--aui-space-1);
+}
+
+.comboBox__iconColor {
+  stroke: var(--aui-control-foreground);
+}
+
+.comboBox[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}
+
+.comboBox[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.inputButtonGroup {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--aui-control-border);
+  transition: var(--aui-transition-border-color);
+}
+
+.inputButtonGroup--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.inputButtonGroup--round {
+  border-radius: 50%;
+  padding: var(--aui-space-1) 7px;
+}
+
+.inputButtonGroup--applyFocusStyle[data-focus-within] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+.inputButtonGroup--noFocusStyle[data-focus-within] {
+  outline: none;
+}
+
+.inputButtonGroup--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.inputButtonGroup--errorState {
+  border-color: var(--aui-validation-error-border);
+}
+.inputButtonGroup--warningState {
+  border-color: var(--aui-validation-warning-border);
+}
+.inputButtonGroup--successState {
+  border-color: var(--aui-validation-success-border);
+}
+
+/* Target button icon color */
+.inputButtonGroup div button * {
+  color: var(--aui-control-foreground);
+}
+
+.popover {
+  max-width: 250px;
+}
+
+.popover[data-entering] {
+  animation: var(--aui-animation-fade-in);
+}
+.popover[data-exiting] {
+  animation: var(--aui-animation-fade-out);
+}
+
+.optionsList {
+  height: auto;
+  width: 100%;
+  background-color: var(--aui-surface);
+  padding: var(--aui-space-1);
+  border-radius: var(--aui-radius-1);
+  box-shadow: var(--aui-shadow-1);
+}
+
+.optionsList[data-focused] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}

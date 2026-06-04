@@ -1,0 +1,199 @@
+{
+  "name": "combo-box",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#combobox-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+      "targetRole": "components",
+      "targetPath": "ComboBox/ComboBox.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "ComboBox/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/labels.ts",
+      "targetRole": "components",
+      "targetPath": "ComboBox/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/DefaultChevronDownIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "ComboBox/DefaultChevronDownIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "ComboBox/ComboBoxStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/__tests__/ComboBox.test.tsx",
+      "targetRole": "components",
+      "targetPath": "ComboBox/__tests__/ComboBox.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "ComboBox",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx"
+    },
+    {
+      "exportedName": "ComboBoxProps",
+      "localName": "TComboBoxProps",
+      "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["ComboBox composes the installed Button registry item instead of copying Button source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+      "importSource": "@/src/components/Input/Input",
+      "registryDependencyName": "input",
+      "replacementSource": "../Input/Input",
+      "notes": ["ComboBox composes the installed Input registry item instead of copying Input source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+      "importSource": "@/src/components/Text/variants/PlaceholderText/PlaceholderText",
+      "registryDependencyName": "placeholder-text",
+      "replacementSource": "../Text/variants/PlaceholderText/PlaceholderText",
+      "notes": [
+        "Empty ComboBox lists render the installed PlaceholderText variant instead of copying Text variant source."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["Popover placement typing imports from the narrow placement token support item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
+      "importSource": "--distance_1 / --disabledOpacity / --borderColorTransition / --border_radius_1 / --focus-ring-color / --fadeInAnimation / --fadeOutAnimation / --shadow_1 aliases",
+      "replacementSource": "--aui-space-1 / --aui-opacity-disabled / --aui-transition-border-color / --aui-radius-1 / --aui-focus-ring / --aui-animation-fade-in / --aui-animation-fade-out / --aui-shadow-1",
+      "notes": ["ComboBox CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ComboBox/__tests__/ComboBox.test.tsx",
+      "importSource": "@/src/components/ListBoxItem/ListBoxItem",
+      "registryDependencyName": "list-box-item",
+      "replacementSource": "../ListBoxItem/ListBoxItem",
+      "advisory": true,
+      "notes": [
+        "Focused usage examples should render installed ListBoxItem children, but ComboBox source does not directly import ListBoxItem."
+      ]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/TagGroup/TagGroup.tsx",
+    "apps/wavemap-front-end/src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "tokens/placement", "button", "input", "placeholder-text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-surface",
+        "--aui-transition-border-color",
+        "--aui-validation-error-border",
+        "--aui-validation-warning-border",
+        "--aui-validation-success-border"
+      ],
+      "notes": [
+        "ComboBox source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--disabledOpacity|--shadow_1|--borderColorTransition|--focus-ring-color|--fadeInAnimation|--fadeOutAnimation|theme/combobox-compatibility\" packages/react/src/components/ComboBox/ComboBox.tsx packages/react/src/components/ComboBox/helpers.tsx packages/react/src/components/ComboBox/labels.ts packages/react/src/components/ComboBox/DefaultChevronDownIcon.tsx packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static ComboBox proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/ComboBox/__tests__/ComboBox.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "ComboBox runtime source has been received into packages/react as the searchable selection proof after Select.",
+    "Preserve the client component boundary, React Aria ComboBox root, Group wrapper, Input/Button composition, Motion chevron rotation, Popover/ListBox behavior, PlaceholderText empty state, validation border precedence, geometry classes, native className/style merging, custom style hooks, labels, and wrapper prop filtering for the first ComboBox proof.",
+    "Keep calibrateComponent, size constants/types, geometry helpers, placement typing, class/style merge helpers, validation state helpers, label helper internals, and the default chevron icon private to the package root unless a later API review approves exporting helper internals.",
+    "Do not move TagComboBox, TagGroup, AdobeTag, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, Input API changes, app forms, component showcase code, or broader app consumers with ComboBox.",
+    "This source-receipt pass does not activate a combo-box manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}
