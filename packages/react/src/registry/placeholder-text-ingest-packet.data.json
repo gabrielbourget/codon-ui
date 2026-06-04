@@ -1,0 +1,137 @@
+{
+  "name": "placeholder-text",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#placeholdertext-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+      "targetRole": "components",
+      "targetPath": "Text/variants/PlaceholderText/PlaceholderText.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Text/variants/PlaceholderText/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/__tests__/PlaceholderText.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Text/variants/PlaceholderText/__tests__/PlaceholderText.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "PlaceholderText",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx"
+    },
+    {
+      "exportedName": "PlaceholderTextProps",
+      "localName": "TPlaceholderTextProps",
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../../Text",
+      "notes": ["PlaceholderText composes the installed Text registry item instead of copying Text source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/helpers.ts",
+      "importSource": "@/src/components/Text/helpers",
+      "registryDependencyName": "text",
+      "replacementSource": "../../helpers",
+      "notes": ["PlaceholderText props reuse the installed Text prop type from the package-local Text source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/__tests__/PlaceholderText.test.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../../TextStyles.module.css",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Text/Text.tsx",
+    "apps/wavemap-front-end/src/components/ListBoxItem/ListBoxItem.tsx",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-control-placeholder"],
+      "notes": [
+        "PlaceholderText source reads the default theme placeholder color directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@radix-ui|@internationalized/date|theme/placeholder-text-compatibility\" packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx packages/react/src/components/Text/variants/PlaceholderText/helpers.ts packages/react/src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved Text import rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static PlaceholderText proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Text/variants/PlaceholderText/__tests__/PlaceholderText.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "PlaceholderText runtime source has been received into packages/react as a Text variant that depends on installed Text source and default theme placeholder color support.",
+    "Preserve the sealed b11 italic Text treatment, alignment prop, custom class/style forwarding, data-testid fallback, and Text prop forwarding behavior for the first PlaceholderText proof.",
+    "Keep calibrateComponent and alignment constants private unless a later API review approves exporting helper internals.",
+    "Do not move ListBoxItem, Select, ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, app empty states, app forms, component showcase code, or broader Text variant source with PlaceholderText.",
+    "This source-receipt pass does not activate a placeholder-text manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}
