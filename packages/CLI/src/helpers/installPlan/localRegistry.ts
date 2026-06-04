@@ -19,6 +19,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "checkbox-group",
   "click-popover",
   "line-segment",
+  "pagination",
   "input",
   "text-area",
   "number-input",
