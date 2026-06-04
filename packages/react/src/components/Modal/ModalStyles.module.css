@@ -1,0 +1,80 @@
+.modal {
+  height: fit-content;
+  width: fit-content;
+  min-height: 20px;
+  min-width: 20px;
+  padding: var(--aui-space-2);
+  background-color: var(--aui-surface);
+  color: var(--aui-surface-foreground);
+  forced-color-adjust: none;
+  outline: none;
+  transform: translate3d(0, 0, 0);
+}
+
+.modal[data-entering] {
+  animation: var(--aui-animation-fade-in);
+}
+
+.modal[data-exiting] {
+  animation: var(--aui-animation-fade-out);
+}
+
+.modal--raised {
+  box-shadow: var(--aui-shadow-1);
+}
+
+.modal--rounded {
+  border-radius: var(--aui-radius-1);
+}
+
+.modal--primary {
+  background-color: var(--aui-color-primary-500);
+}
+
+.modal--secondary {
+  background-color: var(--aui-color-secondary-500);
+}
+
+.modal--tertiary {
+  background-color: var(--aui-color-tertiary-500);
+}
+
+.modal--quaternary {
+  background-color: var(--aui-color-quaternary-500);
+}
+
+.modal--quintenary {
+  background-color: var(--aui-color-quintenary-500);
+}
+
+.modal__overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgb(0 0 0 / 30%);
+  display: grid;
+  place-items: center;
+}
+
+.modal__overlay--blur {
+  backdrop-filter: blur(10px);
+}
+
+.modal__overlay[data-entering] {
+  animation: var(--aui-animation-fade-in);
+}
+
+.modal__overlay[data-exiting] {
+  animation: var(--aui-animation-fade-out);
+}
+
+.modal__dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-3);
+  border-radius: 0.5px;
+  outline-offset: var(--aui-space-1);
+}
+
+.modal__dialog:focus {
+  outline: 1.5px solid var(--aui-focus-ring);
+}

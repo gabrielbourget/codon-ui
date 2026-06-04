@@ -1,0 +1,233 @@
+{
+  "name": "modal",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#modal-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
+      "targetRole": "components",
+      "targetPath": "Modal/Modal.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Modal/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Modal/ModalStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/__tests__/Modal.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Modal/__tests__/Modal.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Modal",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Modal/Modal.tsx"
+    },
+    {
+      "exportedName": "ModalProps",
+      "localName": "TModalProps",
+      "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/Text",
+      "notes": ["Default Modal content uses the registry-owned Text component rather than Wavemap-local source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["Default Modal header styling reuses the Text CSS module owned by the text registry item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
+      "importSource": "../Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["Default Modal close action uses the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "../../tokens/a11y",
+      "notes": ["Aria labeling aliases import from package-local a11y token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theme order imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "importSource": "--distance_1 / --distance_2 / --distance_3 aliases",
+      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-space-3",
+      "notes": ["Modal spacing uses the default Amino space scale instead of legacy distance aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
+      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "notes": ["Modal enter and exit animations read default Amino animation tokens."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "importSource": "--shadow_1 alias",
+      "replacementSource": "--aui-shadow-1",
+      "notes": ["Raised Modal styling uses the stable Amino shadow token."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "importSource": "--border_radius_1 alias",
+      "replacementSource": "--aui-radius-1",
+      "notes": ["Modal rounded geometry uses the default Amino radius contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+      "importSource": "--focus-ring-color alias",
+      "replacementSource": "--aui-focus-ring",
+      "notes": ["Modal dialog focus styling uses the default Amino focus-ring contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Modal/__tests__/Modal.test.tsx",
+      "importSource": "../Modal",
+      "replacementSource": "../Modal",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain consumer-side proof evidence for later rehydration."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/AlertDialog/AlertDialog.tsx",
+    "apps/wavemap-front-end/src/components/AlertDialog/DefaultAlertDialogIcons.tsx",
+    "apps/wavemap-front-end/src/components/AlertDialog/helpers.tsx",
+    "apps/wavemap-front-end/src/components/AlertDialog/labels.ts",
+    "apps/wavemap-front-end/src/components/AlertDialog/i18n.ts",
+    "apps/wavemap-front-end/src/components/Sheets/MediaSheet/MediaSheet.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/FileUploadSheet/FileUploadSheet.tsx",
+    "apps/wavemap-front-end/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+    "apps/wavemap-front-end/src/components/NavPanel/NavPanel.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/components/Link/Link.tsx",
+    "apps/wavemap-front-end/src/components/Tables/FileUploadTable/FileUploadTable.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/a11y",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "text"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-surface",
+        "--aui-surface-foreground",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-space-3",
+        "--aui-radius-1",
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-shadow-1",
+        "--aui-focus-ring",
+        "--aui-control-selected-foreground"
+      ],
+      "notes": ["Modal source reads the default theme contract directly and does not need a compatibility bridge."]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Modal theme-order classes use the established action-colors support layer."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|query|api-contract|shared-utils|window|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--fadeInAnimation|--fadeOutAnimation|--border_radius_|--shadow_1|--focus-ring-color|theme/modal-compatibility\" packages/react/src/components/Modal/Modal.tsx packages/react/src/components/Modal/helpers.ts packages/react/src/components/Modal/ModalStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token, component, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Modal proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Modal/__tests__/Modal.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Modal source receipt covers the React Aria ModalOverlay / Modal / Dialog primitive with default Button/Text placeholder content, aria labeling aliases, geometry, theme order colors, overlay blur, raised styling, and style hooks.",
+    "This receipt intentionally does not activate a modal manifest item; manifest and CLI local-registry activation happen in a separate verified commit.",
+    "AlertDialog, default alert icons, alert labels/i18n, sheets, SortAndFilterPanel, NavPanel, app/query modals, Breadcrumbs, Link, router/link policy, hosted registry behavior, and CLI update/diff/eject behavior remain out of scope."
+  ]
+}
