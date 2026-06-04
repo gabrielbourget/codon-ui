@@ -64,6 +64,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["tag-combo-box"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -779,6 +783,75 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 25,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "tag-combo-box",
+  expectedItems: [
+    "theme-css",
+    "tokens/geometry",
+    "tokens/placement",
+    "tokens/theme-order",
+    "theme/text-typography",
+    "text",
+    "theme/action-colors",
+    "button",
+    "input",
+    "placeholder-text",
+    "combo-box",
+    "theme/tag-group-compatibility",
+    "tag-group",
+    "tag-combo-box",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/ComboBox/ComboBox.tsx",
+    "src/components/ComboBox/ComboBoxStyles.module.css",
+    "src/components/ComboBox/DefaultChevronDownIcon.tsx",
+    "src/components/ComboBox/helpers.tsx",
+    "src/components/ComboBox/labels.ts",
+    "src/components/Input/Input.tsx",
+    "src/components/Input/InputStyles.module.css",
+    "src/components/Input/helpers.ts",
+    "src/components/TagComboBox/TagComboBox.tsx",
+    "src/components/TagComboBox/TagComboBoxStyles.module.css",
+    "src/components/TagComboBox/helpers.ts",
+    "src/components/TagComboBox/labels.ts",
+    "src/components/TagGroup/AdobeTag/AdobeTag.tsx",
+    "src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css",
+    "src/components/TagGroup/AdobeTag/DefaultCloseIcon.tsx",
+    "src/components/TagGroup/AdobeTag/helpers.tsx",
+    "src/components/TagGroup/TagGroup.tsx",
+    "src/components/TagGroup/TagGroupStyles.module.css",
+    "src/components/TagGroup/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+    "src/components/Text/variants/PlaceholderText/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/tag-group-compatibility.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/placement.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: [
+    "--aui-focus-ring",
+    "--aui-opacity-disabled",
+    "--aui-transition-border-color",
+    "--aui-validation-error-border",
+    "--aui-validation-warning-border",
+    "--aui-validation-success-border",
+  ],
+  expectedMissingDependencyCount: 5,
+  expectedPlannedCount: 37,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -803,5 +876,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
