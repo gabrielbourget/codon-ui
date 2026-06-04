@@ -40,6 +40,12 @@
   --aui-opacity-disabled: 0.4;
   --aui-opacity-backdrop: 0.6;
 
+  --aui-z-index-base: 0;
+  --aui-z-index-step: 100;
+  --aui-z-index-panel: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 2);
+  --aui-z-index-overlay-offset: 0;
+  --aui-z-index-content-offset: 1;
+
   --aui-surface: var(--aui-background);
   --aui-surface-foreground: var(--aui-foreground);
   --aui-surface-muted: var(--aui-neutral-100);

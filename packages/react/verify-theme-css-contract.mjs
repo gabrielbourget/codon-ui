@@ -91,6 +91,11 @@ const requiredVariables = [
   "--aui-validation-error-border",
   "--aui-validation-success-border",
   "--aui-validation-warning-border",
+  "--aui-z-index-base",
+  "--aui-z-index-content-offset",
+  "--aui-z-index-overlay-offset",
+  "--aui-z-index-panel",
+  "--aui-z-index-step",
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))
