@@ -88,6 +88,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["modal"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["line-segment"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -340,6 +344,43 @@ await verifyComponentAddPlanning({
     "--aui-z-index-overlay-offset",
   ],
   expectedMissingDependencyCount: 5,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "modal",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/a11y",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "theme/text-typography",
+    "text",
+    "modal",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Modal/Modal.tsx",
+    "src/components/Modal/ModalStyles.module.css",
+    "src/components/Modal/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "theme/action-colors.css",
+  expectedThemeVariables: ["--aui-space-1", "--aui-shadow-1", "--aui-focus-ring", "--aui-color-quintenary-500"],
+  expectedPlannedCount: 17,
 })
 
 await verifyComponentAddPlanning({
@@ -1098,5 +1139,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

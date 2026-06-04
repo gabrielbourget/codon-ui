@@ -22,6 +22,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "hover-popover",
   "menu",
   "panel",
+  "modal",
   "line-segment",
   "pagination",
   "input",
