@@ -56,6 +56,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["select"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -668,6 +672,55 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 10,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "select",
+  expectedItems: [
+    "theme-css",
+    "tokens/geometry",
+    "tokens/placement",
+    "theme/text-typography",
+    "text",
+    "theme/action-colors",
+    "tokens/theme-order",
+    "button",
+    "placeholder-text",
+    "select",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Select/DefaultChevronDownIcon.tsx",
+    "src/components/Select/Select.tsx",
+    "src/components/Select/SelectStyles.module.css",
+    "src/components/Select/helpers.tsx",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+    "src/components/Text/variants/PlaceholderText/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/placement.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: [
+    "--aui-animation-fade-in",
+    "--aui-animation-fade-out",
+    "--aui-validation-error-border",
+    "--aui-validation-warning-border",
+    "--aui-validation-success-border",
+    "--aui-control-placeholder",
+  ],
+  expectedMissingDependencyCount: 5,
+  expectedPlannedCount: 21,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -692,5 +745,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

@@ -56,6 +56,19 @@
       ]
     },
     {
+      "name": "tokens/placement",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/placement.ts",
+          "targetRole": "tokens",
+          "targetPath": "placement.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",

@@ -67,6 +67,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "tokens/placement",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/placement.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "placement.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
+      },
+    ],
+  },
+  {
     name: "theme/switch-compatibility",
     type: REGISTRY_ITEM_TYPE__THEME,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -776,6 +789,47 @@ export const reactRegistryManifest = [
     },
     runtimeDependencies: {
       classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "select",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Select/Select.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Select/Select.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Select/helpers.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Select/helpers.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Select/DefaultChevronDownIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Select/DefaultChevronDownIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Select/SelectStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Select/SelectStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "tokens/geometry", "tokens/placement", "text", "button", "placeholder-text"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+      motion: "^12.40.0",
     },
   },
   {
