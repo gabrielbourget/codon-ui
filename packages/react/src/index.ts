@@ -44,6 +44,8 @@ export { Switch } from "./components/Switch"
 export type { SwitchProps } from "./components/Switch"
 export { Tag } from "./components/Tag"
 export type { TagProps } from "./components/Tag"
+export { TagComboBox } from "./components/TagComboBox"
+export type { TagComboBoxChangeDetails, TagComboBoxProps } from "./components/TagComboBox"
 export { TagGroup } from "./components/TagGroup"
 export type { TagGroupOrientation, TagGroupProps } from "./components/TagGroup"
 export {

@@ -1,0 +1,50 @@
+.tagComboBox {
+  height: auto;
+  width: auto;
+  padding: var(--aui-space-1);
+  max-width: var(--max-width);
+  min-width: var(--min-width);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--aui-space-1);
+  flex-wrap: wrap;
+  border: 1px solid var(--aui-control-border);
+  transition: var(--aui-transition-border-color);
+}
+
+.tagComboBox[aria-disabled="true"] {
+  opacity: var(--aui-opacity-disabled);
+}
+.tagComboBox[aria-disabled="true"]:hover {
+  cursor: not-allowed;
+}
+
+.tagComboBox--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.tagComboBox--round {
+  border-radius: 50%;
+  padding: var(--aui-space-1) 7px;
+}
+
+.tagComboBox--applyFocusStyle[data-focus-within] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+.tagComboBox--noFocusStyle[data-focus-within] {
+  outline: none;
+}
+.tagComboBox--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.tagComboBox--errorState {
+  border-color: var(--aui-validation-error-border);
+}
+.tagComboBox--warningState {
+  border-color: var(--aui-validation-warning-border);
+}
+.tagComboBox--successState {
+  border-color: var(--aui-validation-success-border);
+}
