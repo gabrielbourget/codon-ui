@@ -48,6 +48,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["placeholder-text"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -615,6 +619,26 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 7,
 })
 
+await verifyComponentAddPlanning({
+  itemName: "placeholder-text",
+  expectedItems: ["theme-css", "theme/text-typography", "text", "placeholder-text"],
+  expectedResolvedPaths: [
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+    "src/components/Text/variants/PlaceholderText/helpers.ts",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+  ],
+  expectedThemeVariables: ["--aui-control-placeholder"],
+  expectedMissingDependencyCount: 3,
+  expectedPlannedCount: 10,
+})
+
 const sliderInstallPlan = await createComponentInstallPlan("slider")
 const tagInstallPlan = await createComponentInstallPlan("tag")
 const existingSliderLockfile = consumerLockfileSchema.parse({
@@ -639,5 +663,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

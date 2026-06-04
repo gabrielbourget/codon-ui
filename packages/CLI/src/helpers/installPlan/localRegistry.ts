@@ -26,6 +26,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "radio",
   "radio-group",
   "text",
+  "placeholder-text",
   "slider",
   "tag",
   "tag-group",

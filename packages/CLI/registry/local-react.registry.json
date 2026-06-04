@@ -711,6 +711,37 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "placeholder-text",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/PlaceholderText.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "slider",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
