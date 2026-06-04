@@ -33,6 +33,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "counter",
   "form-field",
   "linear-progress",
+  "meter",
 ])
 
 export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonly string[]) =>
