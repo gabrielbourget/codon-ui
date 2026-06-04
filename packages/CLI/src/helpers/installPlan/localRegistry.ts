@@ -29,6 +29,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "placeholder-text",
   "list-box-item",
   "select",
+  "combo-box",
   "slider",
   "tag",
   "tag-group",

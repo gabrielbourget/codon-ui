@@ -832,6 +832,57 @@
       "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
+      "name": "combo-box",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/ComboBox.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/labels.ts",
+          "targetRole": "components",
+          "targetPath": "ComboBox/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/DefaultChevronDownIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/DefaultChevronDownIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ComboBox/ComboBoxStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "button",
+        "input",
+        "placeholder-text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
       "name": "slider",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
