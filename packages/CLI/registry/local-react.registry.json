@@ -957,6 +957,43 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "hover-popover",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/HoverPopover.tsx",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/HoverPopover.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/HoverPopoverStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "line-segment",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
