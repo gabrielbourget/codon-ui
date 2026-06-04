@@ -84,6 +84,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["panel"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["line-segment"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -313,6 +317,29 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--aui-space-1", "--aui-shadow-1", "--aui-state-danger", "--aui-color-quintenary-500"],
   expectedPlannedCount: 9,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "panel",
+  expectedItems: ["theme-css", "tokens/geometry", "tokens/placement", "tokens/motion", "panel"],
+  expectedResolvedPaths: [
+    "src/components/Panel/Panel.tsx",
+    "src/components/Panel/PanelStyles.module.css",
+    "src/components/Panel/helpers.ts",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/motion.ts",
+    "src/components/_registry/tokens/placement.ts",
+  ],
+  expectedThemeVariables: [
+    "--aui-surface",
+    "--aui-radius-1",
+    "--aui-shadow-1",
+    "--aui-z-index-panel",
+    "--aui-z-index-content-offset",
+    "--aui-z-index-overlay-offset",
+  ],
+  expectedMissingDependencyCount: 5,
 })
 
 await verifyComponentAddPlanning({
@@ -1071,5 +1098,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

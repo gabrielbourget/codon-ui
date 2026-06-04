@@ -69,6 +69,19 @@
       ]
     },
     {
+      "name": "tokens/motion",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/motion.ts",
+          "targetRole": "tokens",
+          "targetPath": "motion.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -1041,6 +1054,43 @@
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "panel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Panel/Panel.tsx",
+          "targetRole": "components",
+          "targetPath": "Panel/Panel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panel/PanelStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "tokens/motion"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
       "name": "line-segment",

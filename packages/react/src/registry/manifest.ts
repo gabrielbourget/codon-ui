@@ -80,6 +80,19 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "tokens/motion",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/motion.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "motion.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
+      },
+    ],
+  },
+  {
     name: "theme/switch-compatibility",
     type: REGISTRY_ITEM_TYPE__THEME,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -1025,6 +1038,41 @@ export const reactRegistryManifest = [
     },
     runtimeDependencies: {
       classnames: "^2.3.2",
+    },
+  },
+  {
+    name: "panel",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Panel/Panel.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panel/Panel.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Panel/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panel/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Panel/PanelStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panel/PanelStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "tokens/geometry", "tokens/placement", "tokens/motion"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+      motion: "^12.40.0",
     },
   },
   {

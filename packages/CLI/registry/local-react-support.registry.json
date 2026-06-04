@@ -69,6 +69,19 @@
       ]
     },
     {
+      "name": "tokens/motion",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/motion.ts",
+          "targetRole": "tokens",
+          "targetPath": "motion.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
