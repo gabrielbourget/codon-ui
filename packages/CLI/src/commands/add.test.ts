@@ -72,6 +72,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["tooltip"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["line-segment"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -253,6 +257,21 @@ await verifyComponentAddPlanning({
     "src/components/_registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-color-quintenary-500"],
+})
+
+await verifyComponentAddPlanning({
+  itemName: "tooltip",
+  expectedItems: ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order", "tooltip"],
+  expectedResolvedPaths: [
+    "src/components/Tooltip/Tooltip.tsx",
+    "src/components/Tooltip/TooltipStyles.module.css",
+    "src/components/Tooltip/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-1", "--aui-drop-shadow-1", "--aui-color-quintenary-500"],
 })
 
 await verifyComponentAddPlanning({
@@ -1011,5 +1030,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
