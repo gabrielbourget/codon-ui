@@ -389,15 +389,15 @@ const buildColumnsKey = <TRow extends object>(columns: TTableColumnMetadata<TRow
     .visibleColumns.map((c) => c.id)
     .join("|")
 
-export function useStableColumns<TRow extends object, TColumn extends TTableColumnMetadata<TRow>>(
+export function useStableColumns<TRow extends object>(
   breakpoint: TAvailableBreakpointNames,
-  getColumns: GetColumnsFn<TColumn>,
+  getColumns: GetColumnsFn<TTableColumnMetadata<TRow>>,
 ) {
   // -> Last committed columns used by both header and rows.
-  const [columns, setColumns] = useState<TColumn[]>(() => getColumns(breakpoint))
+  const [columns, setColumns] = useState<TTableColumnMetadata<TRow>[]>(() => getColumns(breakpoint))
   const rafRef = useRef<number | null>(null)
 
-  const visibleColumns = useMemo(() => normalizeTableColumns(columns).visibleColumns as TColumn[], [columns])
+  const visibleColumns = useMemo(() => normalizeTableColumns(columns).visibleColumns, [columns])
   const columnsKey = useMemo(() => buildColumnsKey(columns), [columns])
 
   // -> When the breakpoint flips, schedule one atomic columns update.

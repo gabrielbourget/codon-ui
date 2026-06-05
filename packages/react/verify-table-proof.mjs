@@ -34,6 +34,7 @@ const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const tableIndexSource = readRequiredText(tableIndexPath)
 const tableSource = readRequiredText(path.join(packageRoot, "src/components/Table/Table.tsx"))
+const tableHelpersSource = readRequiredText(path.join(packageRoot, "src/components/Table/helpers.ts"))
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 const themeCSS = readRequiredText(themeCSSPath)
 
@@ -203,6 +204,18 @@ assert(
   "Table component must preserve consumer row generics",
 )
 assert(!tableSource.includes("FC<TTableProps>"), "Table component must not collapse props to the default row type")
+assert(
+  tableHelpersSource.includes("export function useStableColumns<TRow extends object>"),
+  "useStableColumns must infer consumer row generics from the column factory",
+)
+assert(
+  tableHelpersSource.includes("getColumns: GetColumnsFn<TTableColumnMetadata<TRow>>"),
+  "useStableColumns must accept row-typed column factories directly",
+)
+assert(
+  !tableHelpersSource.includes("TColumn extends TTableColumnMetadata<TRow>"),
+  "useStableColumns must not leave row inference only in a secondary column constraint",
+)
 
 expectedDefaultThemeVariables.forEach((cssVariable) => {
   assert(themeCSS.includes(`${cssVariable}:`), `theme.css must declare ${cssVariable}`)
