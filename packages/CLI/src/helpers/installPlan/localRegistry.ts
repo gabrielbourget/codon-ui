@@ -15,6 +15,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "avatar",
   "button",
   "card",
+  "carousel",
   "switch",
   "checkbox",
   "checkbox-group",

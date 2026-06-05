@@ -338,6 +338,131 @@
       "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
+      "name": "carousel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/Carousel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Carousel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/CarouselStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/CarouselStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDots.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/CarouselDots.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/CarouselCounter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": ["theme-css", "button", "counter", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": {
+        "classnames": "^2.3.2",
+        "embla-carousel": "^8.6.0",
+        "embla-carousel-react": "^8.6.0"
+      }
+    },
+    {
       "name": "switch",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

@@ -52,6 +52,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["carousel"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["placeholder-text"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -238,6 +242,72 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--aui-space-3", "--aui-shadow-1"],
   expectedPlannedCount: 4,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "carousel",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "tokens/a11y",
+    "theme/text-typography",
+    "text",
+    "theme/circular-progress-compatibility",
+    "tokens/svg",
+    "circular-progress",
+    "counter",
+    "carousel",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Carousel/Carousel.tsx",
+    "src/components/Carousel/CarouselStyles.module.css",
+    "src/components/Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+    "src/components/Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+    "src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+    "src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx",
+    "src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+    "src/components/Carousel/components/CarouselCounter/helpers.ts",
+    "src/components/Carousel/components/CarouselDots/CarouselDots.tsx",
+    "src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+    "src/components/Carousel/components/CarouselDots/helpers.tsx",
+    "src/components/Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+    "src/components/Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+    "src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+    "src/components/Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+    "src/components/Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+    "src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+    "src/components/Carousel/helpers.ts",
+    "src/components/CircularProgress/CircularProgress.tsx",
+    "src/components/CircularProgress/CircularProgressStyles.module.css",
+    "src/components/CircularProgress/Path/Path.tsx",
+    "src/components/CircularProgress/Path/helpers.ts",
+    "src/components/CircularProgress/helpers.ts",
+    "src/components/Counter/Counter.tsx",
+    "src/components/Counter/CounterStyles.module.css",
+    "src/components/Counter/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/circular-progress-compatibility.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/svg.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-control-selected-background"],
+  expectedMissingDependencyCount: 6,
+  expectedPlannedCount: 42,
 })
 
 await verifyComponentAddPlanning({
@@ -1205,5 +1275,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
