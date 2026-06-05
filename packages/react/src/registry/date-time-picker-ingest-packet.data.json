@@ -1,0 +1,218 @@
+{
+  "name": "date-time-picker",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "docs/roadmaps/date-time-picker-receipt-plan.md",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/DateTimePicker.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/DefaultDateTimePickerIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/DefaultDateTimePickerIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/DateTimePickerStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/CalendarStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "DateTimePicker/CalendarStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "DateTimePicker",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx"
+    },
+    {
+      "exportedName": "DateTimePickerProps",
+      "localName": "TDateTimePickerProps",
+      "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DateTimePickerLabels",
+      "localName": "TDateTimePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialDateTimePickerLabels",
+      "localName": "TPartialDateTimePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DEFAULT_DATE_TIME_PICKER_LABELS",
+      "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts"
+    },
+    {
+      "exportedName": "resolveDateTimePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["DateTimePicker trigger and calendar navigation use the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["Popover placement imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["DateTimePicker reuses installed Text CSS-module typography classes."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css packages/react/src/components/DateTimePicker/CalendarStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition/shadow/animation/z-index aliases and Wavemap dark-theme selector",
+      "replacementSource": "default --aui-* theme variables and reviewed package theme selector/token support",
+      "notes": ["Source receipt must rewrite legacy Wavemap CSS aliases directly or stop for a narrow token review."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/DateTimePicker/i18n.ts",
+    "apps/wavemap-front-end/src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+    "apps/wavemap-front-end/src/components/DateTimeRangePicker/**",
+    "apps/wavemap-front-end/src/components/Filtering/**",
+    "apps/wavemap-front-end/src/components/Table/**",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/placement", "text", "button"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-hover-background",
+        "--aui-control-placeholder",
+        "--aui-control-pressed-background",
+        "--aui-control-selected-background",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-state-danger",
+        "--aui-state-success",
+        "--aui-state-warning",
+        "--aui-surface",
+        "--aui-transition-background-color",
+        "--aui-transition-border-color",
+        "--aui-transition-box-shadow",
+        "--aui-transition-color"
+      ],
+      "notes": [
+        "DateTimePicker should use the default Amino theme contract directly after CSS alias rewrites.",
+        "Dark-theme calendar selection styling and z-index pressure need source-receipt review before activation."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-100",
+        "--aui-color-primary-200",
+        "--aui-color-primary-400",
+        "--aui-color-primary-500"
+      ],
+      "notes": ["Calendar selected-day states read the established action-color support layer."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--focus-ring-color|--shadow_1|--fade|--Z_INDEX_MODAL\" packages/react/src/components/DateTimePicker",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; metadata-only packet proof keeps these package source paths absent for now."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static DateTimePicker proof harness."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the typed packet wrapper without moving DateTimePicker source or exporting it publicly."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/DateTimePicker/__tests__/DateTimePicker.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain behavioral source evidence for source receipt and consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "DateTimePicker metadata is added as a prerequisite for Table date/date-time filter argument support.",
+    "This metadata-only pass intentionally does not move Wavemap DateTimePicker source into Amino UI, activate a date-time-picker manifest item, regenerate local registry snapshots, change CLI behavior, add package dependencies, or export DateTimePicker from the public package index.",
+    "Preserve the client component boundary, React Aria DatePicker/Calendar composition, Button trigger/navigation composition, text-size styling, geometry and placement props, focus and validation states, labels, default icons, multi-month behavior, and wrapper-only prop hygiene during source receipt.",
+    "Do not move DateTimePicker/i18n.ts, DateTimeRangePicker, Table/filter consumers, app showcase source, route state, or Wavemap adapters with the component."
+  ]
+}
