@@ -112,6 +112,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["indicator"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["link"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -584,6 +588,18 @@ await verifyComponentAddPlanning({
   expectedThemeVariables: ["--aui-border"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 2,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "indicator",
+  expectedItems: ["indicator"],
+  expectedResolvedPaths: [
+    "src/components/VisualUtilities/Indicator/Indicator.tsx",
+    "src/components/VisualUtilities/Indicator/IndicatorStyles.module.css",
+    "src/components/VisualUtilities/Indicator/helpers.ts",
+  ],
+  expectedMissingDependencyCount: 2,
+  expectedPlannedCount: 3,
 })
 
 await verifyComponentAddPlanning({
@@ -1515,5 +1531,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
