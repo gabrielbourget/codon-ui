@@ -33,6 +33,7 @@ const registryIndexSource = readRequiredText(registryIndexPath)
 const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const tableIndexSource = readRequiredText(tableIndexPath)
+const tableSource = readRequiredText(path.join(packageRoot, "src/components/Table/Table.tsx"))
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 const themeCSS = readRequiredText(themeCSSPath)
 
@@ -197,6 +198,11 @@ assert(
 )
 assert(receivedSourceText.includes('from "react-aria"'), "SortParameterList drag/drop must import React Aria")
 assert(receivedSourceText.includes("MotionDiv"), "SortParameterList must keep the typed Motion bridge")
+assert(
+  tableSource.includes("<TRow extends object = Record<string, unknown>>(props: TTableProps<TRow>)"),
+  "Table component must preserve consumer row generics",
+)
+assert(!tableSource.includes("FC<TTableProps>"), "Table component must not collapse props to the default row type")
 
 expectedDefaultThemeVariables.forEach((cssVariable) => {
   assert(themeCSS.includes(`${cssVariable}:`), `theme.css must declare ${cssVariable}`)

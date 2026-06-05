@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, type FC } from "react"
+import { useMemo } from "react"
 import { Table as AdobeTable } from "react-aria-components"
 
 import { resolveTableFilteringLabels } from "../Filtering/labels"
@@ -15,7 +15,7 @@ import { resolveTableLabels } from "./labels"
 import { TableContext } from "./TableContext"
 import styles from "./TableStyles.module.css"
 
-const Table: FC<TTableProps> = (props) => {
+const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps<TRow>) => {
   const {
     className: _className,
     customClassName: _customClassName,

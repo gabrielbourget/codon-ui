@@ -457,7 +457,7 @@ export const computeColumnSizingConstraintsForBreakpoint = <K extends string>(
   return columnSizingConstraints
 }
 
-export const calibrateComponent = (props: TTableProps) => {
+export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>) => {
   const { className, customClassName, customStyles, hoverColor, style, zebra, zebraColor } = props
 
   const zebraStyle = zebra ? styles["table--zebra"] : undefined
