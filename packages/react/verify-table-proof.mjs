@@ -9,6 +9,9 @@ const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
 const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
+const alignmentTokenPath = path.join(packageRoot, "src/tokens/alignment.ts")
+const dragTokenPath = path.join(packageRoot, "src/tokens/drag.ts")
+const responsiveTokenPath = path.join(packageRoot, "src/tokens/responsive.ts")
 
 const fail = (message) => {
   console.error(`[table-proof] ${message}`)
@@ -31,6 +34,9 @@ const registryIndexSource = readRequiredText(registryIndexPath)
 const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
+const alignmentTokenSource = readRequiredText(alignmentTokenPath)
+const dragTokenSource = readRequiredText(dragTokenPath)
+const responsiveTokenSource = readRequiredText(responsiveTokenPath)
 
 const requiredPlannedSourcePaths = [
   "packages/react/src/components/Table/Table.tsx",
@@ -212,6 +218,15 @@ assert(
   packet.importResolutions.some((resolution) => resolution.registryDependencyName === "tokens/responsive"),
   "Table packet must record responsive token support pressure",
 )
+assert(manifestSource.includes('name: "tokens/alignment"'), "Table token prerequisite must activate alignment tokens")
+assert(manifestSource.includes('name: "tokens/drag"'), "Table token prerequisite must activate drag tokens")
+assert(manifestSource.includes('name: "tokens/responsive"'), "Table token prerequisite must activate responsive tokens")
+assert(alignmentTokenSource.includes("ALIGNMENT__LEFT"), "Alignment tokens must expose left alignment")
+assert(alignmentTokenSource.includes("TAvailableAlignments"), "Alignment tokens must expose alignment type")
+assert(dragTokenSource.includes("DROP_OPERATION__MOVE"), "Drag tokens must expose move drop operation")
+assert(dragTokenSource.includes("TAvailableDropOperations"), "Drag tokens must expose drop operation type")
+assert(responsiveTokenSource.includes("SCREEN_SIZE__SMALL"), "Responsive tokens must expose screen size constants")
+assert(responsiveTokenSource.includes("TScreenSizeType"), "Responsive tokens must expose screen size type")
 assert(
   packet.importResolutions.some(
     (resolution) =>
@@ -248,6 +263,10 @@ assert(
   packet.notes.some((note) => note.includes("does not move Wavemap Table source")) &&
     packet.notes.some((note) => note.includes("activate a table manifest item")),
   "Table packet must keep manifest activation separate",
+)
+assert(
+  packet.notes.some((note) => note.includes("DateTimePicker remains explicit source-receipt pressure")),
+  "Table packet must leave DateTimePicker source pressure unresolved",
 )
 assert(
   packet.notes.some((note) => note.includes("delete/reinstall proof")),

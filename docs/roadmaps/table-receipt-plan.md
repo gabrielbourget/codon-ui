@@ -29,7 +29,7 @@ The public registry item should be `table`.
 | Filter support       | `TableFilterPopover`, `FilterClauseRow`, `DynamicFilterArgumentInput`, internal filter argument renderers, default icons, table filtering labels, draft helpers, and metadata.                                                                                        |
 | Sort support         | Top-level `SortParameterList`, `SortParameterListItem`, default drag icon, helpers, and CSS modules.                                                                                                                                                                  |
 | Child dependencies   | Existing and planned registry components used by the graph, including Button, Card, Checkbox, ClickPopover, ComboBox, DateTimePicker, FormField, Input, ListBoxItem, NumberInput, Pagination, Select, Switch, Tag, TagComboBox, Text, TimePicker, and ToggleSwitcher. |
-| Support dependencies | Default theme CSS, action/control colors, a11y, geometry, theme order, motion, text typography, spacing, radius, focus, state, surface, shadow, transition, and opacity contracts already proven by earlier components where possible.                                |
+| Support dependencies | Default theme CSS, action/control colors, a11y, alignment, drag, geometry, responsive, theme order, motion, text typography, spacing, radius, focus, state, surface, shadow, transition, and opacity contracts already proven by earlier components where possible.   |
 
 Internal registry planning may split those areas into sub-items such as `table-core`, `table-filtering-support`,
 `table-filter-draft`, `table-sort-parameter-list`, or equivalent names, but those names should not leak into the happy-path

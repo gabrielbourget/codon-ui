@@ -706,7 +706,7 @@
     "This metadata-only pass intentionally does not move Wavemap Table source into Amino UI, activate a table manifest item, regenerate local registry snapshots, change CLI behavior, add package dependencies, or export Table from the public package index.",
     "The runtime graph includes Table core, table-owned filter draft/metadata/query vocabulary, TableFilterPopover, FilterClauseRow, DynamicFilterArgumentInput, SortParameterList, and their CSS modules/default icons.",
     "EventTable, RecentEventsTable, FileUploadTable, SortAndFilterPanel, backend query execution, upload/media workflows, saved views, route state, component showcase source, and Wavemap i18n adapters stay consumer-owned.",
-    "DateTimePicker, alignment tokens, drag tokens, and responsive tokens are explicit source-receipt pressure; introduce them only in the later implementation commit that proves the package graph needs them.",
+    "Alignment, drag, and responsive token support is received as prerequisite support; DateTimePicker remains explicit source-receipt pressure for a later implementation commit that proves the package graph needs it.",
     "After activation, fixture and Wavemap delete/reinstall proof must use the public add table path and re-run focused Table/query-control verification."
   ]
 }

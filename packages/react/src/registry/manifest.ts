@@ -67,6 +67,32 @@ export const reactRegistryManifest = [
     ],
   },
   {
+    name: "tokens/alignment",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/alignment.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "alignment.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
+      },
+    ],
+  },
+  {
+    name: "tokens/drag",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/drag.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "drag.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
+      },
+    ],
+  },
+  {
     name: "tokens/placement",
     type: REGISTRY_ITEM_TYPE__SUPPORT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
@@ -75,6 +101,19 @@ export const reactRegistryManifest = [
         sourcePath: "packages/react/src/tokens/placement.ts",
         targetRole: REGISTRY_TARGET_ROLE__TOKENS,
         targetPath: "placement.ts",
+        role: REGISTRY_FILE_ROLE__SUPPORT,
+      },
+    ],
+  },
+  {
+    name: "tokens/responsive",
+    type: REGISTRY_ITEM_TYPE__SUPPORT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/tokens/responsive.ts",
+        targetRole: REGISTRY_TARGET_ROLE__TOKENS,
+        targetPath: "responsive.ts",
         role: REGISTRY_FILE_ROLE__SUPPORT,
       },
     ],
