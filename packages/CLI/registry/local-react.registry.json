@@ -813,6 +813,40 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "toggle-switcher",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/ToggleSwitcher.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/ToggleSwitcherStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "tokens/motion"
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
       "name": "radio",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

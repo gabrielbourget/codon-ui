@@ -819,6 +819,45 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "toggle-switcher",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleSwitcher/ToggleSwitcher.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ToggleSwitcher/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleSwitcher/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ToggleSwitcher/ToggleSwitcherStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: [
+      "theme-css",
+      "theme/action-colors",
+      "tokens/geometry",
+      "tokens/theme-order",
+      "tokens/motion",
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+      motion: "^12.40.0",
+    },
+  },
+  {
     name: "radio",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

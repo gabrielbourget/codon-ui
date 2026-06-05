@@ -120,6 +120,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["toggle-switcher"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -823,6 +827,32 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "toggle-switcher",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "tokens/motion",
+    "toggle-switcher",
+  ],
+  expectedResolvedPaths: [
+    "src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+    "src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+    "src/components/ToggleSwitcher/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/motion.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "theme/action-colors.css",
+  expectedThemeVariables: ["--aui-surface-muted", "--aui-transition-box-shadow", "--aui-color-quintenary-500"],
+  expectedMissingDependencyCount: 3,
+  expectedPlannedCount: 8,
+})
+
+await verifyComponentAddPlanning({
   itemName: "radio",
   expectedItems: ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order", "radio"],
   expectedResolvedPaths: [
@@ -1352,5 +1382,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, toggle-switcher, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
