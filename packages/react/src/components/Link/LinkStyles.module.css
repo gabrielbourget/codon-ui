@@ -1,0 +1,114 @@
+.link {
+  border-radius: var(--aui-radius-1);
+  transition: color 125ms ease-out;
+  display: flex;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
+
+.link--underline {
+  text-decoration: underline;
+}
+
+.link--applyFocusStyle:focus {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+.link--offsetFocusRing {
+  outline-offset: 2px;
+}
+.link--noFocusStyle:focus {
+  outline: none;
+}
+
+.link[data-disabled="true"] {
+  pointer-events: none;
+  opacity: var(--aui-opacity-disabled);
+}
+.link[data-disabled="true"]:hover {
+  cursor: not-allowed;
+}
+
+.link:link:hover {
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.link:link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.link:visited {
+  color: inherit;
+  text-decoration: none;
+  cursor: auto;
+}
+
+.link:active {
+  color: inherit;
+}
+
+.link--primary:link {
+  color: var(--aui-color-primary-500);
+}
+.link--primary:visited {
+  color: var(--aui-color-primary-400);
+}
+.link--primary:hover {
+  color: var(--aui-color-primary-600);
+}
+.link--primary:active {
+  color: var(--aui-color-primary-700);
+}
+
+.link--secondary:link {
+  color: var(--aui-color-secondary-500);
+}
+.link--secondary:visited {
+  color: var(--aui-color-secondary-400);
+}
+.link--secondary:hover {
+  color: var(--aui-color-secondary-600);
+}
+.link--secondary:active {
+  color: var(--aui-color-secondary-700);
+}
+
+.link--tertiary:link {
+  color: var(--aui-color-tertiary-500);
+}
+.link--tertiary:visited {
+  color: var(--aui-color-tertiary-400);
+}
+.link--tertiary:hover {
+  color: var(--aui-color-tertiary-600);
+}
+.link--tertiary:active {
+  color: var(--aui-color-tertiary-700);
+}
+
+.link--quaternary:link {
+  color: var(--aui-color-quaternary-500);
+}
+.link--quaternary:visited {
+  color: var(--aui-color-quaternary-400);
+}
+.link--quaternary:hover {
+  color: var(--aui-color-quaternary-600);
+}
+.link--quaternary:active {
+  color: var(--aui-color-quaternary-700);
+}
+
+.link--quintenary:link {
+  color: var(--aui-color-quintenary-500);
+}
+.link--quintenary:visited {
+  color: var(--aui-color-quintenary-400);
+}
+.link--quintenary:hover {
+  color: var(--aui-color-quintenary-600);
+}
+.link--quintenary:active {
+  color: var(--aui-color-quintenary-700);
+}
