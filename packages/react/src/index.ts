@@ -66,6 +66,14 @@ export { FormField } from "./components/FormField"
 export type { FormFieldProps } from "./components/FormField"
 export { HoverPopover } from "./components/HoverPopover"
 export type { HoverPopoverProps } from "./components/HoverPopover"
+export {
+  AVAILABLE_INDICATOR_SHAPES,
+  Indicator,
+  INDICATOR_SHAPE__CIRCLE,
+  INDICATOR_SHAPE__ROUNDED,
+  INDICATOR_SHAPE__SQUARE,
+} from "./components/Indicator"
+export type { AvailableIndicatorShape, IndicatorProps } from "./components/Indicator"
 export { Input } from "./components/Input"
 export type { InputProps } from "./components/Input"
 export { LinearProgress } from "./components/LinearProgress"

@@ -1,0 +1,21 @@
+.indicator {
+  display: inline-block;
+  flex: 0 0 auto;
+  box-sizing: border-box;
+  width: var(--indicator-size);
+  height: var(--indicator-size);
+  background: var(--indicator-color);
+  border: var(--indicator-border-width) solid var(--indicator-border-color);
+}
+
+.indicator--circle {
+  border-radius: 10000px;
+}
+
+.indicator--rounded {
+  border-radius: 5px;
+}
+
+.indicator--square {
+  border-radius: 0;
+}
