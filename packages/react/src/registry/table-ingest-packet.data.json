@@ -565,7 +565,7 @@
       "importSource": "Checkbox, ComboBox, DateTimePicker, FormField, Input, ListBoxItem, NumberInput, Select, Switch, TagComboBox, Text, and TimePicker imports",
       "replacementSource": "relative package-local component imports",
       "notes": [
-        "Dynamic filter arguments pull the widest child-control graph; DateTimePicker is planned support and is not received in Amino UI yet."
+        "Dynamic filter arguments pull the widest child-control graph; DateTimePicker is now an active registry prerequisite."
       ]
     },
     {
@@ -706,7 +706,7 @@
     "This metadata-only pass intentionally does not move Wavemap Table source into Amino UI, activate a table manifest item, regenerate local registry snapshots, change CLI behavior, add package dependencies, or export Table from the public package index.",
     "The runtime graph includes Table core, table-owned filter draft/metadata/query vocabulary, TableFilterPopover, FilterClauseRow, DynamicFilterArgumentInput, SortParameterList, and their CSS modules/default icons.",
     "EventTable, RecentEventsTable, FileUploadTable, SortAndFilterPanel, backend query execution, upload/media workflows, saved views, route state, component showcase source, and Wavemap i18n adapters stay consumer-owned.",
-    "Alignment, drag, and responsive token support is received as prerequisite support; DateTimePicker remains explicit source-receipt pressure for a later implementation commit that proves the package graph needs it.",
+    "Alignment, drag, and responsive token support plus DateTimePicker source receipt are active prerequisites before Table source movement.",
     "After activation, fixture and Wavemap delete/reinstall proof must use the public add table path and re-run focused Table/query-control verification."
   ]
 }

@@ -265,9 +265,10 @@ assert(
   "Table packet must keep manifest activation separate",
 )
 assert(
-  packet.notes.some((note) => note.includes("DateTimePicker remains explicit source-receipt pressure")),
-  "Table packet must leave DateTimePicker source pressure unresolved",
+  packet.notes.some((note) => note.includes("DateTimePicker source receipt") && note.includes("active prerequisites")),
+  "Table packet must record DateTimePicker as an active prerequisite",
 )
+assert(manifestSource.includes('name: "date-time-picker"'), "Table DateTimePicker prerequisite must be active")
 assert(
   packet.notes.some((note) => note.includes("delete/reinstall proof")),
   "Table packet must record later Wavemap reinstall proof",
