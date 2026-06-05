@@ -815,6 +815,63 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "date-time-picker",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DateTimePicker.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DefaultDateTimePickerIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DefaultDateTimePickerIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DateTimePickerStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/CalendarStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/CalendarStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/placement",
+        "text",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

@@ -211,7 +211,7 @@
   ],
   "notes": [
     "DateTimePicker metadata is added as a prerequisite for Table date/date-time filter argument support.",
-    "This metadata-only pass intentionally does not move Wavemap DateTimePicker source into Amino UI, activate a date-time-picker manifest item, regenerate local registry snapshots, change CLI behavior, add package dependencies, or export DateTimePicker from the public package index.",
+    "The initial metadata-only pass intentionally avoided moving Wavemap DateTimePicker source, activating a date-time-picker manifest item, regenerating local registry snapshots, changing CLI behavior, adding package dependencies, or exporting DateTimePicker from the public package index. The source receipt now activates the package-owned date-time-picker registry item without changing CLI behavior or adding dependencies.",
     "Preserve the client component boundary, React Aria DatePicker/Calendar composition, Button trigger/navigation composition, text-size styling, geometry and placement props, focus and validation states, labels, default icons, multi-month behavior, and wrapper-only prop hygiene during source receipt.",
     "Do not move DateTimePicker/i18n.ts, DateTimeRangePicker, Table/filter consumers, app showcase source, route state, or Wavemap adapters with the component."
   ]
