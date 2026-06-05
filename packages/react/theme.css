@@ -43,6 +43,7 @@
   --aui-z-index-base: 0;
   --aui-z-index-step: 100;
   --aui-z-index-panel: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 2);
+  --aui-z-index-modal: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 3);
   --aui-z-index-overlay-offset: 0;
   --aui-z-index-content-offset: 1;
 
@@ -68,6 +69,11 @@
   --aui-control-selected-background-pressed: color-mix(in srgb, var(--aui-focus-ring) 80%, var(--aui-foreground) 20%);
   --aui-control-selected-foreground: #fff;
   --aui-control-disabled-opacity: var(--aui-opacity-disabled);
+
+  --aui-status-info: var(--aui-control-selected-background);
+  --aui-status-danger: var(--aui-state-danger);
+  --aui-status-warning: var(--aui-state-warning);
+  --aui-status-success: var(--aui-state-success);
 
   --aui-validation-error-border: var(--aui-state-danger);
   --aui-validation-warning-border: var(--aui-state-warning);

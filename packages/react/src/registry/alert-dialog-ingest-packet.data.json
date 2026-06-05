@@ -1,0 +1,241 @@
+{
+  "name": "alert-dialog",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#alertdialog-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/AlertDialog.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/DefaultAlertDialogIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/DefaultAlertDialogIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/labels.ts",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/AlertDialogStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/__tests__/AlertDialog.test.tsx",
+      "targetRole": "components",
+      "targetPath": "AlertDialog/__tests__/AlertDialog.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "AlertDialog",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx"
+    },
+    {
+      "exportedName": "AlertDialogProps",
+      "localName": "TAlertDialogProps",
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableAlertDialogTypes",
+      "localName": "TAvailableAlertDialogTypes",
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AlertDialogLabels",
+      "localName": "TAlertDialogLabels",
+      "sourcePath": "packages/react/src/components/AlertDialog/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialAlertDialogLabels",
+      "localName": "TPartialAlertDialogLabels",
+      "sourcePath": "packages/react/src/components/AlertDialog/labels.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["AlertDialog actions use the registry-owned Button component rather than Wavemap-local source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/Text",
+      "notes": ["AlertDialog title, body, and action labels use the registry-owned Text component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "../../tokens/a11y",
+      "notes": ["Aria labeling aliases import from package-local a11y token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["AlertDialog header styling reuses the Text CSS module owned by the text registry item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--distance_1 / --distance_2 / --distance_3 / --distance_4 aliases",
+      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-space-3 / --aui-space-4",
+      "notes": ["AlertDialog spacing uses the default Amino space scale instead of legacy distance aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
+      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "notes": ["AlertDialog enter and exit animations read default Amino animation tokens."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--shadow_1 / --shadow_2 aliases",
+      "replacementSource": "--aui-shadow-1 / --aui-shadow-2",
+      "notes": ["AlertDialog raised and icon-circle styling use stable Amino shadow tokens."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--border_radius_2 alias",
+      "replacementSource": "--aui-radius-2",
+      "notes": ["AlertDialog rounded geometry uses the default Amino radius contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--focus-ring-color alias",
+      "replacementSource": "--aui-focus-ring",
+      "notes": ["AlertDialog dialog focus styling uses the default Amino focus-ring contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+      "importSource": "--Z_INDEX_MODAL alias",
+      "replacementSource": "--aui-z-index-modal",
+      "notes": ["AlertDialog overlay stacking uses the default Amino modal z-index contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/AlertDialog/__tests__/AlertDialog.test.tsx",
+      "importSource": "../AlertDialog",
+      "replacementSource": "../AlertDialog",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain consumer-side proof evidence for later rehydration."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/AlertDialog/i18n.ts",
+    "apps/wavemap-front-end/src/components/Sheets/MediaSheet/MediaSheet.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/FileUploadSheet/FileUploadSheet.tsx",
+    "apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+    "apps/wavemap-front-end/src/components/Panels/NavPanel/NavPanel.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/components/Link/Link.tsx",
+    "apps/wavemap-front-end/src/components/Tables/FileUploadTable/FileUploadTable.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/(artists)/artist/[artistID]/InternalComponents/ArtistDetails/ArtistDetails.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/a11y", "tokens/geometry", "button", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-surface",
+        "--aui-surface-foreground",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-space-3",
+        "--aui-space-4",
+        "--aui-radius-2",
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-shadow-1",
+        "--aui-shadow-2",
+        "--aui-focus-ring",
+        "--aui-z-index-modal",
+        "--aui-control-selected-background",
+        "--aui-control-selected-foreground",
+        "--aui-status-warning",
+        "--aui-status-danger",
+        "--aui-status-success"
+      ],
+      "notes": [
+        "AlertDialog source reads the default theme contract directly and does not need a compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|query|api-contract|shared-utils|window|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--fadeInAnimation|--fadeOutAnimation|--border_radius_|--shadow_|--focus-ring-color|--Z_INDEX_|theme/alert-dialog-compatibility\" packages/react/src/components/AlertDialog/AlertDialog.tsx packages/react/src/components/AlertDialog/helpers.tsx packages/react/src/components/AlertDialog/AlertDialogStyles.module.css packages/react/src/components/AlertDialog/DefaultAlertDialogIcons.tsx packages/react/src/components/AlertDialog/labels.ts",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token, component, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static AlertDialog proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/AlertDialog/__tests__/AlertDialog.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "AlertDialog source receipt covers the React Aria ModalOverlay / Modal / Dialog alert-dialog composition with default status icons, action labels, cancel/confirm actions, aria labeling aliases, geometry, overlay blur, raised styling, and style hooks.",
+    "This receipt intentionally does not activate an alert-dialog manifest item; manifest and CLI local-registry activation happen in a separate verified commit.",
+    "AlertDialog i18n adapters, sheets, SortAndFilterPanel, NavPanel, app/query modals, Breadcrumbs, Link, router/link policy, hosted registry behavior, and CLI update/diff/eject behavior remain out of scope."
+  ]
+}

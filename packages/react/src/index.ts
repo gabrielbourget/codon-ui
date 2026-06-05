@@ -1,5 +1,12 @@
 export { Avatar } from "./components/Avatar"
 export type { AvatarProps } from "./components/Avatar"
+export { AlertDialog } from "./components/AlertDialog"
+export type {
+  AlertDialogLabels,
+  AlertDialogProps,
+  AvailableAlertDialogTypes,
+  PartialAlertDialogLabels,
+} from "./components/AlertDialog"
 export { Button } from "./components/Button"
 export type { ButtonProps } from "./components/Button"
 export { Checkbox } from "./components/Checkbox"

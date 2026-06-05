@@ -33,6 +33,7 @@ export type {
   TRegistryIngestVerificationKind,
   TRegistryIngestVerificationStep,
 } from "./ingest"
+export { alertDialogIngestPacket } from "./alert-dialog-ingest-packet"
 export { avatarIngestPacket } from "./avatar-ingest-packet"
 export { buttonIngestPacket } from "./button-ingest-packet"
 export { checkboxGroupIngestPacket } from "./checkbox-group-ingest-packet"
