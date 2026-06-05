@@ -1,0 +1,18 @@
+.carouselCounter {
+  padding: var(--aui-space-1);
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10000px;
+  position: relative;
+}
+
+.carouselCounter::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--aui-surface);
+  opacity: 0.75;
+  z-index: -1;
+}

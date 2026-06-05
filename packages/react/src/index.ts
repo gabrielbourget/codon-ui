@@ -11,6 +11,26 @@ export { Button } from "./components/Button"
 export type { ButtonProps } from "./components/Button"
 export { Card } from "./components/Card"
 export type { CardProps } from "./components/Card"
+export {
+  Carousel,
+  CarouselCloseButton,
+  CarouselCounter,
+  CarouselDots,
+  CarouselNextButton,
+  CarouselPrevButton,
+} from "./components/Carousel"
+export type {
+  BaseCarouselItem,
+  CarouselCloseButtonProps,
+  CarouselControlComponent,
+  CarouselControlComponentProps,
+  CarouselCounterProps,
+  CarouselDotsProps,
+  CarouselLabels,
+  CarouselNextButtonProps,
+  CarouselPrevButtonProps,
+  CarouselProps,
+} from "./components/Carousel"
 export { Checkbox } from "./components/Checkbox"
 export type { CheckboxProps } from "./components/Checkbox"
 export { CheckboxGroup } from "./components/CheckboxGroup"
