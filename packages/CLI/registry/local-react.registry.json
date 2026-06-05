@@ -1133,6 +1133,56 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "alert-dialog",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/AlertDialog.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/DefaultAlertDialogIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/DefaultAlertDialogIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/labels.ts",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/AlertDialogStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/a11y",
+        "tokens/geometry",
+        "button",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "line-segment",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

@@ -23,6 +23,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "menu",
   "panel",
   "modal",
+  "alert-dialog",
   "line-segment",
   "pagination",
   "input",
