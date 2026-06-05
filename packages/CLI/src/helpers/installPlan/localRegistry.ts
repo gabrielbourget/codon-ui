@@ -39,6 +39,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "toggle-button",
   "toggle-switcher",
   "table",
+  "toaster",
   "radio",
   "radio-group",
   "text",

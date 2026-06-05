@@ -132,6 +132,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["toaster"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -939,6 +943,49 @@ await verifyComponentAddPlanning({
 await verifyTableAddPlanning()
 
 await verifyComponentAddPlanning({
+  itemName: "toaster",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/a11y",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "theme/text-typography",
+    "text",
+    "toaster",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/Toaster/Toast/DefaultToastIcons.tsx",
+    "src/components/Toaster/Toast/Toast.tsx",
+    "src/components/Toaster/Toast/ToastStyles.module.css",
+    "src/components/Toaster/Toast/helpers.tsx",
+    "src/components/Toaster/Toast/labels.ts",
+    "src/components/Toaster/Toaster.tsx",
+    "src/components/Toaster/ToasterStyles.module.css",
+    "src/components/Toaster/helpers.ts",
+    "src/components/Toaster/stateManagement.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-z-index-toast", "--aui-status-success", "--aui-control-selected-background"],
+  expectedMissingDependencyCount: 5,
+  expectedPlannedCount: 23,
+})
+
+await verifyComponentAddPlanning({
   itemName: "radio",
   expectedItems: ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order", "radio"],
   expectedResolvedPaths: [
@@ -1468,5 +1515,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

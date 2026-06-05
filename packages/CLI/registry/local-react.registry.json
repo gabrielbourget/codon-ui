@@ -1225,6 +1225,81 @@
       }
     },
     {
+      "name": "toaster",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toaster.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/stateManagement.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/stateManagement.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/ToasterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Toaster/ToasterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/Toast.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/Toast.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/DefaultToastIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/DefaultToastIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/ToastStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/geometry",
+        "button",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "date-fns": "^4.1.0" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

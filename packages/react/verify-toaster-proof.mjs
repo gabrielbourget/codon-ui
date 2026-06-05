@@ -17,6 +17,7 @@ const themeCSSPath = path.join(packageRoot, "theme.css")
 const packetSourcePath = path.join(packageRoot, "src/registry/toaster-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/toaster-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
+const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 
@@ -54,6 +55,7 @@ const themeCSSSource = readRequiredText(themeCSSPath)
 const packet = JSON.parse(readRequiredText(packetSourcePath))
 const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
+const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
@@ -192,6 +194,7 @@ requiredPackageFileSources.forEach((sourcePath) => {
     packet.files.some((file) => file.sourcePath === sourcePath),
     `Toaster packet must include ${sourcePath}`,
   )
+  assert(manifestSource.includes(`sourcePath: "${sourcePath}"`), `Toaster manifest must include ${sourcePath}`)
 })
 assert(
   packet.files.every((file) => file.role !== "test"),
@@ -208,11 +211,14 @@ expectedRegistryDependencies.forEach((registryDependency) => {
     packet.registryDependencies.includes(registryDependency),
     `Toaster packet must depend on ${registryDependency}`,
   )
+  assert(manifestSource.includes(`"${registryDependency}"`), `Toaster manifest must depend on ${registryDependency}`)
 })
 assert(!packet.registryDependencies.includes("theme/toaster-compatibility"), "Toaster must not need a bridge item")
 assert(packet.peerDependencies["react-aria-components"] === "^1.17.0", "Toaster packet must declare React Aria peer")
 assert(packet.runtimeDependencies.classnames === "^2.3.2", "Toaster packet must declare classnames")
 assert(packet.runtimeDependencies["date-fns"] === "^4.1.0", "Toaster packet must declare date-fns")
+assert(manifestSource.includes('name: "toaster"'), "Toaster manifest item must be active")
+assert(manifestSource.includes('"date-fns": "^4.1.0"'), "Toaster manifest must declare date-fns")
 const defaultContractRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract" && !requirement.files,
 )
@@ -245,5 +251,9 @@ assert(
   registryIndexSource.includes('export { toasterIngestPacket } from "./toaster-ingest-packet"'),
   "Registry index must export Toaster ingest packet",
 )
+
+if (process.exitCode) {
+  process.exit(process.exitCode)
+}
 
 console.log("[toaster-proof] verified Toaster source receipt packet")
