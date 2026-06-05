@@ -1,0 +1,206 @@
+{
+  "name": "breadcrumbs",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#breadcrumbs-next-candidate-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+      "targetRole": "components",
+      "targetPath": "Breadcrumbs/Breadcrumbs.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Breadcrumbs/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Breadcrumbs/BreadcrumbsStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Breadcrumbs/labels.ts",
+      "role": "source"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Breadcrumbs",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx"
+    },
+    {
+      "exportedName": "BreadcrumbsProps",
+      "localName": "TBreadcrumbsProps",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "BreadcrumbItemData",
+      "localName": "TBreadcrumbItemData",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "BreadcrumbNavigateDetails",
+      "localName": "TBreadcrumbNavigateDetails",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "BreadcrumbsLabels",
+      "localName": "TBreadcrumbsLabels",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialBreadcrumbsLabels",
+      "localName": "TPartialBreadcrumbsLabels",
+      "sourcePath": "packages/react/src/components/Breadcrumbs/labels.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Default overflow button geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+      "importSource": "@/src/components/Button/Button / ClickPopover / Link / ListBoxItem / Text",
+      "replacementSource": "package-local relative component imports",
+      "notes": ["Breadcrumbs composes installed child components through package-local source paths."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y / tokens/geometry / tokens/theme-order",
+      "replacementSource": "../../tokens/a11y / ../../tokens/geometry / ../../tokens/theme-order plus local range type",
+      "notes": [
+        "Breadcrumbs splits Wavemap's token barrel into package-local token support and a local-only range helper."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+      "importSource": "@/src/components/ClickPopover/helpers / Link/helpers",
+      "replacementSource": "package-local child component helper imports",
+      "notes": ["Slot prop types point at installed child component helpers instead of Wavemap aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+      "importSource": "--distance_1 / --disabledOpacity / --fadeInAnimation / --fadeOutAnimation / --border_radius_1 / --shadow_1 / --focus-ring-color aliases",
+      "replacementSource": "--aui-space-1 / --aui-opacity-disabled / --aui-animation-fade-in / --aui-animation-fade-out / --aui-radius-1 / --aui-shadow-1 / --aui-focus-ring",
+      "notes": ["Breadcrumbs CSS reads the default Amino theme contract directly instead of a compatibility bridge."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Breadcrumbs/i18n.ts",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/__tests__/Breadcrumbs.test.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/Providers",
+    "apps/wavemap-front-end/src/utils/navigation.ts",
+    "apps/wavemap-front-end/src/components/Table",
+    "apps/wavemap-front-end/src/components/Filtering",
+    "apps/wavemap-front-end/src/components/Toaster",
+    "apps/wavemap-front-end/src/components/Carousels",
+    "apps/wavemap-front-end/src/components/Media"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/a11y",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "click-popover",
+    "link",
+    "list-box-item",
+    "text"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-surface"
+      ],
+      "notes": [
+        "Breadcrumbs spacing, disabled, animation, surface, radius, shadow, and focus styles read the default theme contract directly."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Breadcrumbs order-color resolution reads the existing action-colors support item directly."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|useRouter|router|route|media|query|api-contract|shared-utils|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--shadow_1|--fadeInAnimation|--fadeOutAnimation|--focus-ring-color|--disabledOpacity|theme/breadcrumbs-compatibility\" packages/react/src/components/Breadcrumbs",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": [
+        "Source-receipt scan should remain clean after approved import and CSS variable rewrites. Browser-native window.open fallback is intentionally allowed."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": [
+        "Runs the static source receipt proof, including Breadcrumbs-specific assertions once wired into package scripts."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "notes": ["Checks the received package source and public export type surface."]
+    }
+  ],
+  "notes": [
+    "Breadcrumbs runtime source has been received into packages/react as a portable navigation composition proof.",
+    "Preserve overflow consolidation, localized labels, disabled styling, custom child props, aria labeling aliases, onNavigate delegation, and browser-native overflow fallback behavior for the Breadcrumbs proof.",
+    "Keep route behavior consumer-owned through onNavigate; do not reintroduce next/navigation, next/link, locale routing, or a router abstraction package.",
+    "Keep Breadcrumbs/i18n.ts, focused Wavemap tests, component showcase usage, app providers, Table, filtering/query adapters, Toast/Toaster, media surfaces, and broader app consumers out of the source slice.",
+    "This source-receipt pass does not activate a breadcrumbs manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -35,6 +35,7 @@ export type {
 } from "./ingest"
 export { alertDialogIngestPacket } from "./alert-dialog-ingest-packet"
 export { avatarIngestPacket } from "./avatar-ingest-packet"
+export { breadcrumbsIngestPacket } from "./breadcrumbs-ingest-packet"
 export { buttonIngestPacket } from "./button-ingest-packet"
 export { cardIngestPacket } from "./card-ingest-packet"
 export { carouselIngestPacket } from "./carousel-ingest-packet"

@@ -9,6 +9,15 @@ export type {
 } from "./components/AlertDialog"
 export { Button } from "./components/Button"
 export type { ButtonProps } from "./components/Button"
+export { Breadcrumbs } from "./components/Breadcrumbs"
+export type {
+  BreadcrumbItemData,
+  BreadcrumbNavigateDetails,
+  BreadcrumbsConsolidationPlacementSide,
+  BreadcrumbsLabels,
+  BreadcrumbsProps,
+  PartialBreadcrumbsLabels,
+} from "./components/Breadcrumbs"
 export { Card } from "./components/Card"
 export type { CardProps } from "./components/Card"
 export {
