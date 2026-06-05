@@ -317,6 +317,40 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "card",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Card/Card.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Cards/Card/Card.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Card/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Cards/Card/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Card/CardStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Cards/Card/CardStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+      motion: "^12.40.0",
+    },
+  },
+  {
     name: "switch",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

@@ -48,6 +48,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["card"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["placeholder-text"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -221,6 +225,19 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
   expectedThemeVariables: ["--aui-action-primary-background", "--aui-action-quintenary-foreground"],
+})
+
+await verifyComponentAddPlanning({
+  itemName: "card",
+  expectedItems: ["theme-css", "card"],
+  expectedResolvedPaths: [
+    "src/components/Cards/Card/Card.tsx",
+    "src/components/Cards/Card/CardStyles.module.css",
+    "src/components/Cards/Card/helpers.ts",
+    "src/components/_registry/theme.css",
+  ],
+  expectedThemeVariables: ["--aui-space-3", "--aui-shadow-1"],
+  expectedPlannedCount: 4,
 })
 
 await verifyComponentAddPlanning({
@@ -1188,5 +1205,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
