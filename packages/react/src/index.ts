@@ -170,3 +170,5 @@ export type {
 } from "./components/Text"
 export { ToggleButton } from "./components/ToggleButton"
 export type { ToggleButtonProps } from "./components/ToggleButton"
+export { ToggleSwitcher } from "./components/ToggleSwitcher"
+export type { ToggleSwitcherItem, ToggleSwitcherProps } from "./components/ToggleSwitcher"
