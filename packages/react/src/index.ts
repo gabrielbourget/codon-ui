@@ -9,6 +9,8 @@ export type {
 } from "./components/AlertDialog"
 export { Button } from "./components/Button"
 export type { ButtonProps } from "./components/Button"
+export { Card } from "./components/Card"
+export type { CardProps } from "./components/Card"
 export { Checkbox } from "./components/Checkbox"
 export type { CheckboxProps } from "./components/Checkbox"
 export { CheckboxGroup } from "./components/CheckboxGroup"

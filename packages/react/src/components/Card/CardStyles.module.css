@@ -1,0 +1,14 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  width: var(--width, auto);
+  height: var(--height, auto);
+  gap: var(--aui-space-3);
+  border-radius: var(--borderRadius, 10px);
+  padding: var(--aui-space-3);
+}
+
+.card--raised {
+  box-shadow: var(--aui-shadow-1);
+}
