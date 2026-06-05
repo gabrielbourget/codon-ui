@@ -96,6 +96,7 @@ const requiredVariables = [
   "--aui-z-index-overlay-offset",
   "--aui-z-index-panel",
   "--aui-z-index-step",
+  "--aui-z-index-toast",
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))

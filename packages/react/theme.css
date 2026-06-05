@@ -44,6 +44,7 @@
   --aui-z-index-step: 100;
   --aui-z-index-panel: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 2);
   --aui-z-index-modal: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 3);
+  --aui-z-index-toast: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 4);
   --aui-z-index-overlay-offset: 0;
   --aui-z-index-content-offset: 1;
 
