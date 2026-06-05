@@ -1,0 +1,63 @@
+.tableCell {
+  text-align: start;
+  vertical-align: middle;
+  padding: var(--aui-space-1);
+  overflow: visible;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: break-word;
+}
+
+.tableCell :where(p, span, div, a, label, strong, em) {
+  white-space: inherit;
+  overflow-wrap: inherit;
+  word-break: inherit;
+  min-width: 0; /* ensure child content can shrink in grid */
+  max-width: 100%; /* keep it inside */
+}
+
+.tableCell[data-focused] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.tableCell:focus-visible {
+  outline: 2px solid var(--aui-focus-ring);
+}
+
+.tableCell__clamp {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-width: 0; /* important in CSS grid */
+  max-width: 100%;
+
+  /* line count set inline via WebkitLineClamp */
+}
+
+.tableCell--alignCenter {
+  text-align: center;
+}
+
+.tableCell--alignCenter > .tableCell__content {
+  width: 100%;
+  height: 100%; /* keeps the cell height from collapsing */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tableCell--alignEnd {
+  text-align: end;
+}
+
+.tableCell--alignEnd > .tableCell__content {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.tableCell--truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

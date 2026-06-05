@@ -9,9 +9,8 @@ const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
 const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
-const alignmentTokenPath = path.join(packageRoot, "src/tokens/alignment.ts")
-const dragTokenPath = path.join(packageRoot, "src/tokens/drag.ts")
-const responsiveTokenPath = path.join(packageRoot, "src/tokens/responsive.ts")
+const tableIndexPath = path.join(packageRoot, "src/components/Table/index.ts")
+const themeCSSPath = path.join(packageRoot, "theme.css")
 
 const fail = (message) => {
   console.error(`[table-proof] ${message}`)
@@ -33,12 +32,16 @@ const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
 const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
+const tableIndexSource = readRequiredText(tableIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
-const alignmentTokenSource = readRequiredText(alignmentTokenPath)
-const dragTokenSource = readRequiredText(dragTokenPath)
-const responsiveTokenSource = readRequiredText(responsiveTokenPath)
+const themeCSS = readRequiredText(themeCSSPath)
 
-const requiredPlannedSourcePaths = [
+const forbiddenConsumerImportsPattern =
+  /@wavemap|i18n|next\/|router|route|api-contract|media|upload|saved|localStorage|@\/src\//u
+const forbiddenLegacyCssPattern =
+  /--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--aui-validation/u
+
+const requiredPackageFileSources = [
   "packages/react/src/components/Table/Table.tsx",
   "packages/react/src/components/Table/helpers.ts",
   "packages/react/src/components/Table/TableContext.tsx",
@@ -90,18 +93,6 @@ const expectedRegistryDependencies = [
   "time-picker",
   "toggle-switcher",
 ]
-const expectedDefaultThemeVariables = [
-  "--aui-control-foreground",
-  "--aui-control-selected-background",
-  "--aui-focus-ring",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-surface-muted",
-  "--aui-transition-background-color",
-  "--aui-transition-color",
-]
 const expectedPublicExports = [
   "Table",
   "TableBody",
@@ -122,6 +113,18 @@ const expectedPublicExports = [
   "DynamicFilterArgumentInputProps",
   "SortParameterListProps",
 ]
+const expectedDefaultThemeVariables = [
+  "--aui-control-foreground",
+  "--aui-control-selected-background",
+  "--aui-focus-ring",
+  "--aui-radius-1",
+  "--aui-shadow-1",
+  "--aui-space-1",
+  "--aui-space-2",
+  "--aui-surface-muted",
+  "--aui-transition-background-color",
+  "--aui-transition-color",
+]
 
 assert(packet.name === "table", "Table packet must describe the public table registry item")
 assert(packet.type === "component", "Table packet must remain a component packet")
@@ -132,7 +135,7 @@ assert(
   "Table packet must point at the Wavemap Table planning checkpoint",
 )
 
-requiredPlannedSourcePaths.forEach((sourcePath) => {
+requiredPackageFileSources.forEach((sourcePath) => {
   assert(
     packet.files.some((file) => file.sourcePath === sourcePath),
     `Table packet must include ${sourcePath}`,
@@ -152,11 +155,52 @@ assert(
   "Table packet must include internal dynamic filter argument renderers",
 )
 
-requiredPlannedSourcePaths.forEach((sourcePath) => {
-  assert(
-    !existsSync(path.join(packageRoot, sourcePath.replace("packages/react/", ""))),
-    `metadata-only boundary must not move ${sourcePath}`,
-  )
+const receivedSources = packet.files.map((file) => {
+  const packagePath = path.join(packageRoot, file.sourcePath.replace("packages/react/", ""))
+  const source = readRequiredText(packagePath)
+
+  if (file.role === "source") {
+    assert(!forbiddenConsumerImportsPattern.test(source), `${file.sourcePath} must not import consumer-only modules`)
+  }
+  if (file.role === "style") {
+    assert(!forbiddenLegacyCssPattern.test(source), `${file.sourcePath} must not read legacy Wavemap CSS aliases`)
+  }
+
+  return { file, source }
+})
+const receivedSourceText = receivedSources.map(({ source }) => source).join("\n")
+const receivedStyleText = receivedSources
+  .filter(({ file }) => file.role === "style")
+  .map(({ source }) => source)
+  .join("\n")
+
+assert(
+  receivedSourceText.includes('from "../../tokens/alignment"'),
+  "Table helpers must use package-local alignment tokens",
+)
+assert(
+  receivedSourceText.includes('from "../../tokens/responsive"'),
+  "Table helpers must use package-local responsive tokens",
+)
+assert(receivedSourceText.includes('from "../../tokens/drag"'), "SortParameterList must use package-local drag tokens")
+assert(
+  receivedSourceText.includes('from "../../../tokens/a11y"'),
+  "Filtering helpers must use package-local a11y tokens",
+)
+assert(
+  receivedSourceText.includes('from "../../../../../tokens/theme-order"'),
+  "Filter arguments must use theme-order tokens",
+)
+assert(
+  receivedSourceText.includes('from "@internationalized/date"'),
+  "Table date filters must import date parsing runtime",
+)
+assert(receivedSourceText.includes('from "react-aria"'), "SortParameterList drag/drop must import React Aria")
+assert(receivedSourceText.includes("MotionDiv"), "SortParameterList must keep the typed Motion bridge")
+
+expectedDefaultThemeVariables.forEach((cssVariable) => {
+  assert(themeCSS.includes(`${cssVariable}:`), `theme.css must declare ${cssVariable}`)
+  assert(receivedStyleText.includes(`var(${cssVariable})`), `Table source CSS must read ${cssVariable}`)
 })
 
 expectedPublicExports.forEach((exportedName) => {
@@ -164,6 +208,8 @@ expectedPublicExports.forEach((exportedName) => {
     packet.publicExports.some((publicExport) => publicExport.exportedName === exportedName),
     `Table packet must record public export intent for ${exportedName}`,
   )
+  assert(tableIndexSource.includes(exportedName), `Table index must export ${exportedName}`)
+  assert(publicIndexSource.includes(exportedName), `Package index must export ${exportedName}`)
 })
 assert(
   packet.publicExports.some(
@@ -174,20 +220,19 @@ assert(
   ),
   "Table packet must record TableCellProps alias intent",
 )
+assert(publicIndexSource.includes('from "./components/Table"'), "Package index must export the Table kit")
 
 expectedRegistryDependencies.forEach((registryDependency) => {
   assert(
     packet.registryDependencies.includes(registryDependency),
     `Table packet must record registry dependency ${registryDependency}`,
   )
+  assert(manifestSource.includes(`"${registryDependency}"`), `Table manifest must include ${registryDependency}`)
 })
 assert(packet.peerDependencies.react, "Table packet must declare React peer dependency")
 assert(packet.peerDependencies["react-dom"], "Table packet must declare React DOM peer dependency")
-assert(
-  packet.peerDependencies["react-aria-components"] === "^1.17.0",
-  "Table packet must declare React Aria Components peer dependency",
-)
-assert(packet.peerDependencies["react-aria"] === "^3.48.0", "Table packet must declare React Aria peer dependency")
+assert(packet.peerDependencies["react-aria-components"] === "^1.17.0", "Table packet must declare RAC peer")
+assert(packet.peerDependencies["react-aria"] === "^3.48.0", "Table packet must declare React Aria peer")
 assert(packet.runtimeDependencies.classnames === "^2.3.2", "Table packet must declare classnames")
 assert(packet.runtimeDependencies.motion === "^12.40.0", "Table packet must declare motion")
 assert(
@@ -195,10 +240,14 @@ assert(
   "Table packet must declare @internationalized/date pressure",
 )
 assert(
-  !packageJson.dependencies["@internationalized/date"],
-  "metadata-only boundary must not add @internationalized/date yet",
+  packageJson.dependencies["@internationalized/date"] === "^3.12.1",
+  "Table source receipt must add @internationalized/date",
 )
-assert(!packageJson.peerDependencies["react-aria"], "metadata-only boundary must not add react-aria yet")
+assert(packageJson.peerDependencies["react-aria"] === "^3.48.0", "Table source receipt must add react-aria peer")
+assert(
+  packageJson.devDependencies["react-aria"] === "^3.48.0",
+  "Table source receipt must add react-aria dev dependency",
+)
 
 assert(
   packet.themeRequirements.some((requirement) =>
@@ -206,27 +255,6 @@ assert(
   ),
   "Table packet must record default theme variable pressure",
 )
-assert(
-  packet.importResolutions.some((resolution) => resolution.registryDependencyName === "tokens/alignment"),
-  "Table packet must record alignment token support pressure",
-)
-assert(
-  packet.importResolutions.some((resolution) => resolution.registryDependencyName === "tokens/drag"),
-  "Table packet must record drag token support pressure",
-)
-assert(
-  packet.importResolutions.some((resolution) => resolution.registryDependencyName === "tokens/responsive"),
-  "Table packet must record responsive token support pressure",
-)
-assert(manifestSource.includes('name: "tokens/alignment"'), "Table token prerequisite must activate alignment tokens")
-assert(manifestSource.includes('name: "tokens/drag"'), "Table token prerequisite must activate drag tokens")
-assert(manifestSource.includes('name: "tokens/responsive"'), "Table token prerequisite must activate responsive tokens")
-assert(alignmentTokenSource.includes("ALIGNMENT__LEFT"), "Alignment tokens must expose left alignment")
-assert(alignmentTokenSource.includes("TAvailableAlignments"), "Alignment tokens must expose alignment type")
-assert(dragTokenSource.includes("DROP_OPERATION__MOVE"), "Drag tokens must expose move drop operation")
-assert(dragTokenSource.includes("TAvailableDropOperations"), "Drag tokens must expose drop operation type")
-assert(responsiveTokenSource.includes("SCREEN_SIZE__SMALL"), "Responsive tokens must expose screen size constants")
-assert(responsiveTokenSource.includes("TScreenSizeType"), "Responsive tokens must expose screen size type")
 assert(
   packet.importResolutions.some(
     (resolution) =>
@@ -250,25 +278,10 @@ assert(
   packet.excludedSourcePaths.includes("apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/**"),
   "Table packet must exclude SortAndFilterPanel workflow source",
 )
-
 assert(
   packet.notes.some((note) => note.includes("add table")),
-  "Table packet must keep the public add table command shape explicit",
+  "Table packet must keep public add table explicit",
 )
-assert(
-  packet.notes.some((note) => note.includes("does not move Wavemap Table source")),
-  "Table packet must document metadata-only source movement boundary",
-)
-assert(
-  packet.notes.some((note) => note.includes("does not move Wavemap Table source")) &&
-    packet.notes.some((note) => note.includes("activate a table manifest item")),
-  "Table packet must keep manifest activation separate",
-)
-assert(
-  packet.notes.some((note) => note.includes("DateTimePicker source receipt") && note.includes("active prerequisites")),
-  "Table packet must record DateTimePicker as an active prerequisite",
-)
-assert(manifestSource.includes('name: "date-time-picker"'), "Table DateTimePicker prerequisite must be active")
 assert(
   packet.notes.some((note) => note.includes("delete/reinstall proof")),
   "Table packet must record later Wavemap reinstall proof",
@@ -276,21 +289,18 @@ assert(
 
 assert(
   packetWrapperSource.includes("tableIngestPacketData as TRegistryIngestPacket"),
-  "Table packet wrapper must type the JSON packet",
+  "Table packet wrapper must type JSON",
 )
 assert(
   registryIndexSource.includes('export { tableIngestPacket } from "./table-ingest-packet"'),
   "Registry index must export Table ingest packet",
 )
-assert(!manifestSource.includes('name: "table"'), "metadata-only boundary must not activate a table manifest item")
-assert(
-  !publicIndexSource.includes('export { Table } from "./components/Table"'),
-  "metadata-only boundary must not export Table publicly yet",
-)
-assert(packageJson.scripts.test.includes("verify-table-proof.mjs"), "Package test script must run Table metadata proof")
+assert(manifestSource.includes('name: "table"'), "Table manifest item must be active")
+assert(publicIndexSource.includes("export {"), "Package index must expose Table exports")
+assert(packageJson.scripts.test.includes("verify-table-proof.mjs"), "Package test script must run Table source proof")
 
 if (process.exitCode) {
   process.exit(process.exitCode)
 }
 
-console.log("[table-proof] verified Table metadata-only receipt packet")
+console.log("[table-proof] verified Table source receipt packet")

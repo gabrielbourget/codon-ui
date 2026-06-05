@@ -1,0 +1,84 @@
+.tableHeader__cell {
+  text-align: start;
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+  vertical-align: middle;
+  padding: var(--aui-space-1);
+}
+
+.tableHeader__cell:focus-visible {
+  outline: 2px solid var(--aui-focus-ring);
+
+  /* outline-offset: 2px; */
+}
+
+.tableHeader__cell--alignCenter {
+  text-align: center;
+}
+
+.tableHeader__cell--alignCenter > * {
+  display: block;
+  width: 100%;
+}
+
+.tableHeader__cell--alignEnd {
+  text-align: end;
+}
+
+.tableHeader__cell[data-allows-sorting] {
+  cursor: pointer;
+}
+
+.tableHeader__cellInner {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
+
+.tableHeader__sortIndicator {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  color: var(--aui-control-foreground);
+}
+
+.tableHeader__filterButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 3px;
+  color: var(--aui-control-foreground);
+  flex-shrink: 0;
+  line-height: 0;
+  transition: color 150ms ease;
+}
+
+.tableHeader__filterButton :global(.filterIcon__fill) {
+  fill: none;
+  transition: fill 150ms ease;
+}
+
+.tableHeader__filterButton :global(.filterIcon__stroke) {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+}
+
+.tableHeader__filterButton:focus-visible {
+  outline: 2px solid var(--aui-focus-ring);
+  outline-offset: 1px;
+}
+
+.tableHeader__filterButton--active {
+  color: var(--aui-control-selected-background);
+}
+
+.tableHeader__filterButton--active :global(.filterIcon__fill) {
+  fill: currentcolor;
+}

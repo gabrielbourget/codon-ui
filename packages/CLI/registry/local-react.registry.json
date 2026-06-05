@@ -872,6 +872,359 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "table",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Table/Table.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/Table.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/TableContext.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/TableContext.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Table/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/queryTypes.ts",
+          "targetRole": "components",
+          "targetPath": "Table/queryTypes.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/filterMetadata.ts",
+          "targetRole": "components",
+          "targetPath": "Table/filterMetadata.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/filterDraft.ts",
+          "targetRole": "components",
+          "targetPath": "Table/filterDraft.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/TableStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/TableStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeader.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/TableHeader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/TableHeaderStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableBody/TableBody.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableBody/TableBody.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableBody/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableBody/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRow.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/TableRow.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRowStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/TableRowStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCell.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/TableCell.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCellStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/TableCellStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableColumn/TableColumn.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableColumn/TableColumn.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/TableFilterPopover.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Filtering/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/FilterClauseRow.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterList.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterList.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "theme/text-typography",
+        "tokens/a11y",
+        "tokens/alignment",
+        "tokens/drag",
+        "tokens/geometry",
+        "tokens/responsive",
+        "tokens/theme-order",
+        "button",
+        "card",
+        "checkbox",
+        "click-popover",
+        "combo-box",
+        "date-time-picker",
+        "form-field",
+        "input",
+        "list-box-item",
+        "number-input",
+        "pagination",
+        "select",
+        "switch",
+        "tag",
+        "tag-combo-box",
+        "text",
+        "time-picker",
+        "toggle-switcher"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria": "^3.48.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": {
+        "@internationalized/date": "^3.12.1",
+        "classnames": "^2.3.2",
+        "motion": "^12.40.0"
+      }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

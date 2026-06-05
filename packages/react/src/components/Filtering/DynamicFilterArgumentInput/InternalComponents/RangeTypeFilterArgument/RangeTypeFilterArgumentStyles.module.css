@@ -1,0 +1,13 @@
+.rangeTypeFilterArgument {
+  display: flex;
+  gap: var(--aui-space-1);
+}
+
+.rangeTypeFilterArgument__row {
+  flex-direction: row;
+  align-items: center;
+}
+
+.rangeTypeFilterArgument__column {
+  flex-direction: column;
+}

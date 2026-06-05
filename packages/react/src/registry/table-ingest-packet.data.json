@@ -672,10 +672,10 @@
   "verification": [
     {
       "kind": "scan",
-      "command": "rg --pcre2 -n \"@wavemap|next/|router|route|api-contract|media|upload|saved|localStorage|@/src/|--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition\" packages/react/src/components/Table packages/react/src/components/Filtering packages/react/src/components/SortParameterList",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|api-contract|media|upload|saved|localStorage|@/src/|--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--aui-validation\" packages/react/src/components/Table packages/react/src/components/Filtering packages/react/src/components/SortParameterList",
       "workingDirectory": ".",
       "advisory": true,
-      "notes": ["Run after source receipt; metadata-only packet proof keeps these package source paths absent for now."]
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
     },
     {
       "kind": "command",
@@ -691,7 +691,7 @@
       "command": "pnpm -F @amino-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
-      "notes": ["Checks the typed packet wrapper without moving Table source or exporting Table publicly."]
+      "notes": ["Checks the copied Table graph, typed packet wrapper, and public Table exports."]
     },
     {
       "kind": "command",
@@ -703,10 +703,10 @@
   ],
   "notes": [
     "Table metadata models the public add table command as a rich table-builder kit rather than exposing internal registry subgraph names.",
-    "This metadata-only pass intentionally does not move Wavemap Table source into Amino UI, activate a table manifest item, regenerate local registry snapshots, change CLI behavior, add package dependencies, or export Table from the public package index.",
+    "The source receipt moves the reusable Table, Filtering, and SortParameterList runtime graph into Amino UI, activates the public table manifest item, adds Table-owned runtime dependency pressure, and exports the Table kit without changing CLI behavior.",
     "The runtime graph includes Table core, table-owned filter draft/metadata/query vocabulary, TableFilterPopover, FilterClauseRow, DynamicFilterArgumentInput, SortParameterList, and their CSS modules/default icons.",
     "EventTable, RecentEventsTable, FileUploadTable, SortAndFilterPanel, backend query execution, upload/media workflows, saved views, route state, component showcase source, and Wavemap i18n adapters stay consumer-owned.",
-    "Alignment, drag, and responsive token support plus DateTimePicker source receipt are active prerequisites before Table source movement.",
+    "Alignment, drag, and responsive token support plus DateTimePicker source receipt remain active prerequisites for the received Table graph.",
     "After activation, fixture and Wavemap delete/reinstall proof must use the public add table path and re-run focused Table/query-control verification."
   ]
 }

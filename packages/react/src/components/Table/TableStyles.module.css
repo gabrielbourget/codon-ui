@@ -1,0 +1,41 @@
+.tableShell {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.tablePaginationFooter {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 5px;
+}
+
+.table {
+  width: 100%;
+  table-layout: fixed; /* ensure widths are respected */
+  border-collapse: separate;
+  border-spacing: 0;
+  flex: 0 0 auto;
+}
+
+.table--zebra .tableRow:nth-child(even) {
+  background-color: var(--zebraColor, transparent);
+}
+
+.screenReaderOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  white-space: nowrap;
+  border: 0;
+
+  /* stylelint-disable-next-line property-no-deprecated */
+  clip: rect(0 0 0 0); /* fallback for older browsers */
+  clip-path: inset(50%);
+}

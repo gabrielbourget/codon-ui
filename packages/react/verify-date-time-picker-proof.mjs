@@ -305,10 +305,6 @@ assert(
   "DateTimePicker RAC peer range must match plan",
 )
 assert(packageJson.dependencies.classnames === "^2.3.2", "DateTimePicker package must keep classnames")
-assert(
-  !packageJson.dependencies["@internationalized/date"],
-  "DateTimePicker source receipt must not add @internationalized/date",
-)
 
 assert(packet.name === "date-time-picker", "DateTimePicker packet must describe the date-time-picker item")
 assert(packet.type === "component", "DateTimePicker packet must remain a component packet")

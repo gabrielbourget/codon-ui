@@ -36,6 +36,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["date-time-picker"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["form-field"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -124,6 +128,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["table"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["legacy-hosted-component"] }),
   getDefaultLocalSupportRegistrySourcePath(),
 )
@@ -204,6 +212,82 @@ const verifyComponentAddPlanning = async ({
   assert.equal(dryRunEffects.files.plannedCount, expectedPlannedCount)
   assert.equal(dryRunEffects.files.wouldWriteCount, expectedPlannedCount)
   assert.equal(dryRunEffects.dependencies.missingCount, expectedMissingDependencyCount)
+}
+
+const verifyTableAddPlanning = async () => {
+  const installPlan = await createComponentInstallPlan("table")
+  const dryRunEffects = createAddDryRunEffects(installPlan)
+  const plannedItems = installPlan.items.map((item) => item.name)
+  const resolvedPaths = installPlan.files.map((file) => file.resolvedPath)
+
+  for (const expectedItem of [
+    "theme-css",
+    "theme/action-colors",
+    "theme/text-typography",
+    "tokens/a11y",
+    "tokens/alignment",
+    "tokens/drag",
+    "tokens/geometry",
+    "tokens/responsive",
+    "tokens/theme-order",
+    "button",
+    "card",
+    "checkbox",
+    "click-popover",
+    "combo-box",
+    "date-time-picker",
+    "form-field",
+    "input",
+    "list-box-item",
+    "number-input",
+    "pagination",
+    "select",
+    "switch",
+    "tag",
+    "tag-group",
+    "tag-combo-box",
+    "time-picker",
+    "toggle-switcher",
+    "table",
+  ]) {
+    assert.ok(plannedItems.includes(expectedItem), `${expectedItem} should be planned for add table`)
+  }
+
+  for (const internalItemName of ["filtering", "sort-parameter-list", "table-filter-popover"]) {
+    assert.equal(plannedItems.includes(internalItemName), false)
+  }
+
+  for (const expectedPath of [
+    "src/components/Table/Table.tsx",
+    "src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+    "src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+    "src/components/SortParameterList/SortParameterList.tsx",
+    "src/components/DateTimePicker/DateTimePicker.tsx",
+    "src/components/_registry/tokens/drag.ts",
+    "src/components/_registry/tokens/responsive.ts",
+    "src/components/_registry/action-colors.css",
+  ]) {
+    assert.ok(resolvedPaths.includes(expectedPath), `${expectedPath} should be planned for add table`)
+  }
+
+  for (const consumerOwnedPathFragment of [
+    "EventTable",
+    "RecentEventsTable",
+    "FileUploadTable",
+    "SortAndFilterPanel",
+    "i18n",
+  ]) {
+    assert.equal(
+      resolvedPaths.some((resolvedPath) => resolvedPath.includes(consumerOwnedPathFragment)),
+      false,
+    )
+  }
+
+  assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
+  assert.equal(dryRunEffects.files.plannedCount, 164)
+  assert.equal(dryRunEffects.files.wouldWriteCount, 164)
+  assert.equal(dryRunEffects.dependencies.missingCount, 7)
 }
 
 await verifyComponentAddPlanning({
@@ -852,6 +936,8 @@ await verifyComponentAddPlanning({
   expectedPlannedCount: 8,
 })
 
+await verifyTableAddPlanning()
+
 await verifyComponentAddPlanning({
   itemName: "radio",
   expectedItems: ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order", "radio"],
@@ -1382,5 +1468,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, toggle-switcher, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

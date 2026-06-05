@@ -185,7 +185,7 @@
       "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--focus-ring-color|--shadow_1|--fade|--Z_INDEX_MODAL\" packages/react/src/components/DateTimePicker",
       "workingDirectory": ".",
       "advisory": true,
-      "notes": ["Run after source receipt; metadata-only packet proof keeps these package source paths absent for now."]
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
     },
     {
       "kind": "command",
@@ -199,7 +199,7 @@
       "command": "pnpm -F @amino-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
-      "notes": ["Checks the typed packet wrapper without moving DateTimePicker source or exporting it publicly."]
+      "notes": ["Checks the copied DateTimePicker graph, typed packet wrapper, and public DateTimePicker exports."]
     },
     {
       "kind": "command",
@@ -211,7 +211,7 @@
   ],
   "notes": [
     "DateTimePicker metadata is added as a prerequisite for Table date/date-time filter argument support.",
-    "The initial metadata-only pass intentionally avoided moving Wavemap DateTimePicker source, activating a date-time-picker manifest item, regenerating local registry snapshots, changing CLI behavior, adding package dependencies, or exporting DateTimePicker from the public package index. The source receipt now activates the package-owned date-time-picker registry item without changing CLI behavior or adding dependencies.",
+    "The initial metadata-only pass intentionally avoided moving Wavemap DateTimePicker source, activating a date-time-picker manifest item, regenerating local registry snapshots, changing CLI behavior, adding package dependencies, or exporting DateTimePicker from the public package index. The source receipt now activates the package-owned date-time-picker registry item without changing CLI behavior or adding DateTimePicker-owned dependencies.",
     "Preserve the client component boundary, React Aria DatePicker/Calendar composition, Button trigger/navigation composition, text-size styling, geometry and placement props, focus and validation states, labels, default icons, multi-month behavior, and wrapper-only prop hygiene during source receipt.",
     "Do not move DateTimePicker/i18n.ts, DateTimeRangePicker, Table/filter consumers, app showcase source, route state, or Wavemap adapters with the component."
   ]

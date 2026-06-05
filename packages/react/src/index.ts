@@ -94,6 +94,41 @@ export { Select } from "./components/Select"
 export type { SelectProps } from "./components/Select"
 export { Stepper } from "./components/Stepper"
 export type { StepperProps } from "./components/Stepper"
+export {
+  DynamicFilterArgumentInput,
+  FilterClauseRow,
+  SortParameterList,
+  Table,
+  TableBody,
+  TableCell,
+  TableColumn,
+  TableFilterPopover,
+  TableHeader,
+  TableRow,
+} from "./components/Table"
+export type {
+  AvailableFilterCriteria,
+  AvailableListItem,
+  DynamicFilterArgumentInputProps,
+  FilterClauseRowProps,
+  PartialTableFilteringLabels,
+  PartialTableLabels,
+  QueryFilterGroupDraft,
+  SortParameter,
+  SortParameterListProps,
+  TableBodyProps,
+  TableCellProps,
+  TableColumnMetadata,
+  TableFilterGroup,
+  TableFilteringLabels,
+  TableFilterPopoverProps,
+  TableHeaderProps,
+  TableLabels,
+  TableProps,
+  TableQueryControls,
+  TableRowProps,
+  TableSortInstruction,
+} from "./components/Table"
 export { TextArea } from "./components/TextArea"
 export type { TextAreaProps } from "./components/TextArea"
 export { TimePicker } from "./components/TimePicker"
