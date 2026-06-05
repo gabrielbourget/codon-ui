@@ -14,6 +14,9 @@ generic filter draft helpers and filter metadata into `src/components/Table`. Th
 graph no longer needs app-wide `src/types`, app-wide `src/utils/filterDraft`, `listItemsGen`, `serverSideStyles` spacing
 constants, or the `useBreakpoints` type import.
 
+Date/time filter argument support depends on the separate `date-time-picker` receipt plan in
+`docs/roadmaps/date-time-picker-receipt-plan.md`.
+
 The source of truth for extraction boundaries remains Wavemap's
 `apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md`.
 
