@@ -169,6 +169,24 @@
       "localName": "TCarouselCounterProps",
       "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/helpers.ts",
       "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselPrevButtonProps",
+      "localName": "TCarouselPrevButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselNextButtonProps",
+      "localName": "TCarouselNextButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselCloseButtonProps",
+      "localName": "TCarouselCloseButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+      "typeOnly": true
     }
   ],
   "importResolutions": [

@@ -121,7 +121,17 @@ assert(
     assert(publicIndexSource.includes(exportedName), `Package index must export ${exportedName}`)
   },
 )
-assert(publicIndexSource.includes("CarouselProps"), "Package index must export CarouselProps")
+;[
+  "CarouselProps",
+  "CarouselDotsProps",
+  "CarouselCounterProps",
+  "CarouselPrevButtonProps",
+  "CarouselNextButtonProps",
+  "CarouselCloseButtonProps",
+].forEach((exportedName) => {
+  assert(packageIndexSource.includes(exportedName), `Carousel index must export ${exportedName}`)
+  assert(publicIndexSource.includes(exportedName), `Package index must export ${exportedName}`)
+})
 assert(!publicIndexSource.includes("TCarouselProps"), "Package index must not export Carousel internals directly")
 
 assert(packageJson.dependencies.classnames, "Carousel package must keep classnames runtime dependency")
@@ -146,6 +156,28 @@ runtimeFilePaths.forEach((relativePath) => {
     packet.files.some((file) => file.sourcePath === sourcePath),
     `Carousel packet must include ${sourcePath}`,
   )
+})
+const packetPublicExports = new Map(packet.publicExports.map((entry) => [entry.exportedName, entry]))
+;[
+  "Carousel",
+  "CarouselDots",
+  "CarouselCounter",
+  "CarouselPrevButton",
+  "CarouselNextButton",
+  "CarouselCloseButton",
+].forEach((exportedName) => {
+  assert(packetPublicExports.has(exportedName), `Carousel packet must export ${exportedName}`)
+  assert(!packetPublicExports.get(exportedName).typeOnly, `${exportedName} packet export must be runtime-visible`)
+})
+;[
+  "CarouselProps",
+  "CarouselDotsProps",
+  "CarouselCounterProps",
+  "CarouselPrevButtonProps",
+  "CarouselNextButtonProps",
+  "CarouselCloseButtonProps",
+].forEach((exportedName) => {
+  assert(packetPublicExports.get(exportedName)?.typeOnly === true, `Carousel packet must type-export ${exportedName}`)
 })
 assert(packet.registryDependencies.includes("theme-css"), "Carousel packet must depend on default theme")
 ;["button", "counter", "text"].forEach((dependencyName) => {
