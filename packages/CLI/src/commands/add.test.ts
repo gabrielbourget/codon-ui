@@ -112,6 +112,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["breadcrumbs"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["pagination"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -506,6 +510,57 @@ await verifyComponentAddPlanning({
   expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-color-primary-400"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 7,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "breadcrumbs",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/a11y",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "click-popover",
+    "link",
+    "theme/text-typography",
+    "text",
+    "list-box-item",
+    "breadcrumbs",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+    "src/components/Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+    "src/components/Breadcrumbs/helpers.ts",
+    "src/components/Breadcrumbs/labels.ts",
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/ClickPopover/ClickPopover.tsx",
+    "src/components/ClickPopover/ClickPopoverStyles.module.css",
+    "src/components/ClickPopover/helpers.ts",
+    "src/components/Link/Link.tsx",
+    "src/components/Link/LinkStyles.module.css",
+    "src/components/Link/helpers.ts",
+    "src/components/ListBoxItem/ListBoxItem.tsx",
+    "src/components/ListBoxItem/ListBoxItemStyles.module.css",
+    "src/components/ListBoxItem/helpers.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-1", "--aui-color-primary-500", "--aui-animation-fade-in"],
+  expectedMissingDependencyCount: 4,
+  expectedPlannedCount: 28,
 })
 
 await verifyComponentAddPlanning({
@@ -1297,5 +1352,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

@@ -1376,6 +1376,63 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "breadcrumbs",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Breadcrumbs/Breadcrumbs.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Breadcrumbs/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Breadcrumbs/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Breadcrumbs/BreadcrumbsStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Breadcrumbs/labels.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Breadcrumbs/labels.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+    ],
+    registryDependencies: [
+      "theme-css",
+      "theme/action-colors",
+      "tokens/a11y",
+      "tokens/geometry",
+      "tokens/theme-order",
+      "button",
+      "click-popover",
+      "link",
+      "list-box-item",
+      "text",
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "pagination",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

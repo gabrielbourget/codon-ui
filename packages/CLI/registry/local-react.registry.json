@@ -1388,6 +1388,61 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "breadcrumbs",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/Breadcrumbs.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/BreadcrumbsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/labels.ts",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "button",
+        "click-popover",
+        "link",
+        "list-box-item",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "pagination",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
