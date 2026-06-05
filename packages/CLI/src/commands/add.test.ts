@@ -108,6 +108,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["link"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["pagination"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -484,6 +488,24 @@ await verifyComponentAddPlanning({
   expectedThemeVariables: ["--aui-border"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 2,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "link",
+  expectedItems: ["theme-css", "theme/action-colors", "tokens/a11y", "tokens/theme-order", "link"],
+  expectedResolvedPaths: [
+    "src/components/Link/Link.tsx",
+    "src/components/Link/LinkStyles.module.css",
+    "src/components/Link/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/a11y.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "theme/action-colors.css",
+  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-color-primary-400"],
+  expectedMissingDependencyCount: 2,
+  expectedPlannedCount: 7,
 })
 
 await verifyComponentAddPlanning({
@@ -1275,5 +1297,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, link, pagination, input, text-area, number-input, stepper, time-picker, toggle-button, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

@@ -1355,6 +1355,39 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "link",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Link/Link.tsx",
+          "targetRole": "components",
+          "targetPath": "Link/Link.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Link/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Link/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Link/LinkStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "pagination",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
