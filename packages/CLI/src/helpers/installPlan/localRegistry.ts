@@ -50,6 +50,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "placeholder-text",
   "list-box-item",
   "select",
+  "sort-and-filter-panel",
   "combo-box",
   "tag-combo-box",
   "typeahead-search",
