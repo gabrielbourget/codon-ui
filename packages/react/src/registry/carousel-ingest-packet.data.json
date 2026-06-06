@@ -1,0 +1,285 @@
+{
+  "name": "carousel",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#carousel-next-candidate-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/Carousel.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Carousel/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/CarouselStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Carousel/CarouselStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDots.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselDots/CarouselDots.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselDots/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCounter/CarouselCounter.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCounter/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselPrevButton/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselNextButton/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCloseButton/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/__tests__/Carousel.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Carousel/__tests__/Carousel.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Carousel",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx"
+    },
+    {
+      "exportedName": "CarouselDots",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDots.tsx"
+    },
+    {
+      "exportedName": "CarouselCounter",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx"
+    },
+    {
+      "exportedName": "CarouselPrevButton",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx"
+    },
+    {
+      "exportedName": "CarouselNextButton",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/CarouselNextButton.tsx"
+    },
+    {
+      "exportedName": "CarouselCloseButton",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx"
+    },
+    {
+      "exportedName": "CarouselProps",
+      "localName": "TCarouselProps",
+      "sourcePath": "packages/react/src/components/Carousel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselDotsProps",
+      "localName": "TCarouselDotsProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselCounterProps",
+      "localName": "TCarouselCounterProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselPrevButtonProps",
+      "localName": "TCarouselPrevButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselNextButtonProps",
+      "localName": "TCarouselNextButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CarouselCloseButtonProps",
+      "localName": "TCarouselCloseButtonProps",
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx",
+      "importSource": "@/src/components/_registry/utils",
+      "replacementSource": "./helpers clamp export",
+      "notes": ["Carousel source localizes the tiny clamp helper instead of promoting Wavemap registry utilities."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/helpers.tsx",
+      "importSource": "@/src/components/_registry/utils",
+      "replacementSource": "../../helpers clamp export",
+      "notes": ["CarouselDots reuses the Carousel-local clamp helper."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+      "importSource": "legacy Carousel dot CSS aliases",
+      "replacementSource": "default --aui-* theme variables and direct opacity transition",
+      "notes": ["Carousel dots read default theme spacing, focus, shadow, control, and surface contracts directly."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+      "importSource": "--distance_1 alias",
+      "replacementSource": "--aui-space-1",
+      "notes": ["CarouselCounter spacing reads the default Amino space scale."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Carousel/__tests__/Carousel.test.tsx",
+    "apps/wavemap-front-end/src/components/Carousel/testUtils/emblaTestHarness.tsx",
+    "apps/wavemap-front-end/src/components/Carousels/MediaCarousel/MediaCarousel.tsx",
+    "apps/wavemap-front-end/src/components/Carousels/MediaCarousel/helpers.ts",
+    "apps/wavemap-front-end/src/components/Carousels/MediaCarousel/i18n.ts",
+    "apps/wavemap-front-end/src/components/Carousels/MediaCarousel/MediaCarouselStyles.module.scss",
+    "apps/wavemap-front-end/src/components/Table/Table.tsx",
+    "apps/wavemap-front-end/src/components/Table/queryTypes.ts",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "button", "counter", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "embla-carousel": "^8.6.0",
+    "embla-carousel-react": "^8.6.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-space-1",
+        "--aui-focus-ring",
+        "--aui-shadow-1",
+        "--aui-control-border",
+        "--aui-control-selected-background",
+        "--aui-surface"
+      ],
+      "notes": [
+        "Carousel source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|@/src/|@radix-ui|theme/carousel-compatibility|--distance_|--focus-ring-color|--shadow_|--opacityTransition\" packages/react/src/components/Carousel",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved import and CSS rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Carousel proof harness."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Carousel/__tests__/Carousel.test.tsx src/components/Carousel/components/CarouselDots/__tests__/CarouselDots.test.tsx src/components/Carousel/components/CarouselCounter/__tests__/CarouselCounter.test.tsx src/components/Carousels/MediaCarousel/__tests__/MediaCarousel.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Carousel runtime source has been received into packages/react as an Embla-backed nested component-family proof.",
+    "Preserve Embla option routing, context behavior, keyboard navigation, grouped labels, companion controls, dots, counter, default icons, slot style hooks, and CSS-module source model for the Carousel proof.",
+    "Keep dot-window internals, calibration helpers, Embla option helpers, default icon internals, and CSS module internals private unless a later API review approves widening helper internals.",
+    "Do not move MediaCarousel, media helpers, media i18n, Radix dialog wrappers, Next image usage, table/query adapters, app pages, test utilities, reduced-motion abstractions, or broader app consumers with Carousel.",
+    "This source-receipt pass does not activate a carousel manifest item, regenerate local registry snapshots, create fixture evidence, or delete/reinstall Wavemap source."
+  ]
+}

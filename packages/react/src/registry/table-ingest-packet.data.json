@@ -1,0 +1,712 @@
+{
+  "name": "table",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#table-extraction-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Table/Table.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/Table.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Table/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/TableContext.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/TableContext.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Table/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/queryTypes.ts",
+      "targetRole": "components",
+      "targetPath": "Table/queryTypes.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/filterMetadata.ts",
+      "targetRole": "components",
+      "targetPath": "Table/filterMetadata.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/filterDraft.ts",
+      "targetRole": "components",
+      "targetPath": "Table/filterDraft.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/TableStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Table/TableStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeader.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableHeader/TableHeader.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableHeader/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeaderStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableHeader/TableHeaderStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableBody/TableBody.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableBody/TableBody.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableBody/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableBody/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRow.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableRow/TableRow.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableRow/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRowStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableRow/TableRowStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCell.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableCell/TableCell.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableCell/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableCell/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCellStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableCell/TableCellStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableColumn/TableColumn.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableColumn/TableColumn.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableFilterPopover/TableFilterPopover.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Filtering/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/FilterClauseRow/FilterClauseRow.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Filtering/FilterClauseRow/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterList.tsx",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterList.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterListStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterListItem/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Table",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/Table.tsx"
+    },
+    {
+      "exportedName": "TableBody",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableBody/TableBody.tsx"
+    },
+    {
+      "exportedName": "TableCell",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCell.tsx"
+    },
+    {
+      "exportedName": "TableColumn",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableColumn/TableColumn.tsx"
+    },
+    {
+      "exportedName": "TableHeader",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeader.tsx"
+    },
+    {
+      "exportedName": "TableRow",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRow.tsx"
+    },
+    {
+      "exportedName": "TableFilterPopover",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx"
+    },
+    {
+      "exportedName": "FilterClauseRow",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx"
+    },
+    {
+      "exportedName": "DynamicFilterArgumentInput",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx"
+    },
+    {
+      "exportedName": "SortParameterList",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterList.tsx"
+    },
+    {
+      "exportedName": "TableProps",
+      "localName": "TTableProps",
+      "sourcePath": "packages/react/src/components/Table/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableColumnMetadata",
+      "localName": "TTableColumnMetadata",
+      "sourcePath": "packages/react/src/components/Table/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableQueryControls",
+      "localName": "TTableQueryControls",
+      "sourcePath": "packages/react/src/components/Table/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableSortInstruction",
+      "localName": "TTableSortInstruction",
+      "sourcePath": "packages/react/src/components/Table/queryTypes.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableFilterGroup",
+      "localName": "TTableFilterGroup",
+      "sourcePath": "packages/react/src/components/Table/queryTypes.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableLabels",
+      "localName": "TTableLabels",
+      "sourcePath": "packages/react/src/components/Table/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialTableLabels",
+      "localName": "TPartialTableLabels",
+      "sourcePath": "packages/react/src/components/Table/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableFilteringLabels",
+      "localName": "TTableFilteringLabels",
+      "sourcePath": "packages/react/src/components/Filtering/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialTableFilteringLabels",
+      "localName": "TPartialTableFilteringLabels",
+      "sourcePath": "packages/react/src/components/Filtering/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableBodyProps",
+      "localName": "TTableBodyProps",
+      "sourcePath": "packages/react/src/components/Table/components/TableBody/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableCellProps",
+      "localName": "TCellProps",
+      "sourcePath": "packages/react/src/components/Table/components/TableCell/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableHeaderProps",
+      "localName": "TTableHeaderProps",
+      "sourcePath": "packages/react/src/components/Table/components/TableHeader/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableRowProps",
+      "localName": "TTableRowProps",
+      "sourcePath": "packages/react/src/components/Table/components/TableRow/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TableFilterPopoverProps",
+      "localName": "TTableFilterPopoverProps",
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "FilterClauseRowProps",
+      "localName": "TFilterClauseRowProps",
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DynamicFilterArgumentInputProps",
+      "localName": "TDynamicFilterArgumentInputProps",
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SortParameterListProps",
+      "localName": "TSortParameterListProps",
+      "sourcePath": "packages/react/src/components/SortParameterList/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SortParameter",
+      "localName": "TSortParameter",
+      "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableFilterCriteria",
+      "localName": "TAvailableFilterCriteria",
+      "sourcePath": "packages/react/src/components/Table/filterMetadata.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableListItem",
+      "localName": "TAvailableListItem",
+      "sourcePath": "packages/react/src/components/Table/filterMetadata.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "QueryFilterGroupDraft",
+      "localName": "TQueryFilterGroupDraft",
+      "sourcePath": "packages/react/src/components/Table/filterDraft.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Table/**",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "package-local geometry token imports",
+      "notes": ["Geometry constants and types should import from the package-local geometry token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/**",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/alignment",
+      "replacementSource": "package-local alignment token support",
+      "notes": ["Table header, cell, and row alignment constants need a narrow package-local alignment token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/responsive",
+      "replacementSource": "package-local responsive token support",
+      "notes": ["Column hiding uses the screen-size type from Wavemap's responsive token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/** packages/react/src/components/SortParameterList/**",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "package-local a11y token imports",
+      "notes": ["Filtering and sort-list props use shared aria-labeling aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/**",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "package-local theme-order token imports",
+      "notes": ["Filter argument controls use primary theme-order constants for default actions."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortParameterList/**",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/drag",
+      "replacementSource": "package-local drag token support",
+      "notes": ["SortParameterList uses the move drop-operation constant from Wavemap's drag token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/** packages/react/src/components/Filtering/** packages/react/src/components/SortParameterList/**",
+      "importSource": "@/src/components/Table/* and @/src/components/Filtering/*",
+      "replacementSource": "relative package-local table and filtering imports",
+      "notes": ["The receipt should not add Wavemap path alias support to Amino UI."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/Table.tsx",
+      "importSource": "@/src/components/Pagination/Pagination",
+      "registryDependencyName": "pagination",
+      "replacementSource": "../Pagination/Pagination",
+      "notes": ["Table pagination composition uses the registry-owned Pagination component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+      "importSource": "Button, ClickPopover, Tag, Text, ToggleSwitcher, and FilterClauseRow imports",
+      "replacementSource": "relative package-local component imports",
+      "notes": ["The popover should compose existing registry children and table-owned filtering support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+      "importSource": "Button, Card, FormField, ListBoxItem, and Select imports",
+      "replacementSource": "relative package-local component imports",
+      "notes": [
+        "FilterClauseRow composes registry form and card primitives; the Wavemap Cards/Card path should map to package Card."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/**",
+      "importSource": "Checkbox, ComboBox, DateTimePicker, FormField, Input, ListBoxItem, NumberInput, Select, Switch, TagComboBox, Text, and TimePicker imports",
+      "replacementSource": "relative package-local component imports",
+      "notes": [
+        "Dynamic filter arguments pull the widest child-control graph; DateTimePicker is now an active registry prerequisite."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Table/**/*.css packages/react/src/components/Filtering/**/*.css packages/react/src/components/SortParameterList/**/*.css",
+      "importSource": "--distance_1 / --distance_2 / --border_radius_1 / --shadow_1 / --bgColorTransition / --colorTransition aliases",
+      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-radius-1 / --aui-shadow-1 / --aui-transition-background-color / --aui-transition-color",
+      "notes": ["Legacy Wavemap CSS aliases should be rewritten directly to the default Amino theme contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Table/.DS_Store",
+    "apps/wavemap-front-end/src/components/Table/components/.DS_Store",
+    "apps/wavemap-front-end/src/components/Table/__tests__/**",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/__tests__/**",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/__tests__/**",
+    "apps/wavemap-front-end/src/components/Filtering/i18n.ts",
+    "apps/wavemap-front-end/src/components/SortParameterList/__tests__/**",
+    "apps/wavemap-front-end/src/components/Tables/EventTable/**",
+    "apps/wavemap-front-end/src/components/Tables/RecentEventsTable/**",
+    "apps/wavemap-front-end/src/components/Tables/FileUploadTable/**",
+    "apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/**",
+    "apps/wavemap-front-end/src/utils/queryControls.ts",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "theme/text-typography",
+    "tokens/a11y",
+    "tokens/alignment",
+    "tokens/drag",
+    "tokens/geometry",
+    "tokens/responsive",
+    "tokens/theme-order",
+    "button",
+    "card",
+    "checkbox",
+    "click-popover",
+    "combo-box",
+    "date-time-picker",
+    "form-field",
+    "input",
+    "list-box-item",
+    "number-input",
+    "pagination",
+    "select",
+    "switch",
+    "tag",
+    "tag-combo-box",
+    "text",
+    "time-picker",
+    "toggle-switcher"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria": "^3.48.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "@internationalized/date": "^3.12.1",
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-foreground",
+        "--aui-control-selected-background",
+        "--aui-focus-ring",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-surface-muted",
+        "--aui-transition-background-color",
+        "--aui-transition-color"
+      ],
+      "notes": [
+        "Table, Filtering, and SortParameterList source should read the default Amino theme contract directly after CSS alias rewrites."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Child action components and theme-order defaults rely on the established action-color support layer."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|api-contract|media|upload|saved|localStorage|@/src/|--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--aui-validation\" packages/react/src/components/Table packages/react/src/components/Filtering packages/react/src/components/SortParameterList",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": [
+        "Runs the package-side static Table receipt proof after this metadata packet is added to the proof suite."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the copied Table graph, typed packet wrapper, and public Table exports."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/Table/__tests__/Table.test.tsx src/components/Table/__tests__/helpers.test.ts src/components/Table/__tests__/filterDraft.test.ts src/components/Filtering/FilterClauseRow/__tests__/FilterClauseRow.test.tsx src/components/Filtering/FilterClauseRow/__tests__/helpers.test.ts src/components/Filtering/DynamicFilterArgumentInput/__tests__/DynamicFilterArgumentInput.test.tsx src/components/SortParameterList/__tests__/SortParameterList.test.tsx src/components/SortParameterList/__tests__/helpers.test.ts src/utils/__tests__/queryControls.test.ts",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for source receipt and later reinstall proof."]
+    }
+  ],
+  "notes": [
+    "Table metadata models the public add table command as a rich table-builder kit rather than exposing internal registry subgraph names.",
+    "The source receipt moves the reusable Table, Filtering, and SortParameterList runtime graph into Amino UI, activates the public table manifest item, adds Table-owned runtime dependency pressure, and exports the Table kit without changing CLI behavior.",
+    "The runtime graph includes Table core, table-owned filter draft/metadata/query vocabulary, TableFilterPopover, FilterClauseRow, DynamicFilterArgumentInput, SortParameterList, and their CSS modules/default icons.",
+    "EventTable, RecentEventsTable, FileUploadTable, SortAndFilterPanel, backend query execution, upload/media workflows, saved views, route state, component showcase source, and Wavemap i18n adapters stay consumer-owned.",
+    "Alignment, drag, and responsive token support plus DateTimePicker source receipt remain active prerequisites for the received Table graph.",
+    "After activation, fixture and Wavemap delete/reinstall proof must use the public add table path and re-run focused Table/query-control verification."
+  ]
+}

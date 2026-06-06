@@ -1,0 +1,15 @@
+.panelFooter {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panelFooter__rightContent {
+  display: flex;
+  flex-direction: row;
+  gap: var(--aui-space-2);
+  align-items: center;
+}

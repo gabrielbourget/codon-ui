@@ -1,0 +1,179 @@
+{
+  "name": "panel",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#panel-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Panel/Panel.tsx",
+      "targetRole": "components",
+      "targetPath": "Panel/Panel.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panel/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panel/PanelStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/__tests__/Panel.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Panel/__tests__/Panel.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Panel",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Panel/Panel.tsx"
+    },
+    {
+      "exportedName": "PanelProps",
+      "localName": "TPanelProps",
+      "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Panel/Panel.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/motion",
+      "replacementSource": "../../tokens/motion",
+      "notes": ["Panel animation duration imports from package-local motion token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["Left and right placement constants resolve through existing package-local placement token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "importSource": "--Z_INDEX_PANEL alias",
+      "replacementSource": "--aui-z-index-panel",
+      "notes": ["Panel stacking reads the default Amino z-index contract instead of a compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "importSource": "--z-index-content-offset alias",
+      "replacementSource": "--aui-z-index-content-offset",
+      "notes": ["Panel content stacking reads the default Amino z-index offset contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "importSource": "--z-index-overlay-offset alias",
+      "replacementSource": "--aui-z-index-overlay-offset",
+      "notes": ["Panel overlay stacking reads the default Amino z-index offset contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "importSource": "--shadow_1 alias",
+      "replacementSource": "--aui-shadow-1",
+      "notes": ["Raised Panel styling uses the stable Amino shadow token."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+      "importSource": "--border_radius_1 alias",
+      "replacementSource": "--aui-radius-1",
+      "notes": ["Panel rounded geometry uses the default Amino radius contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Panel/__tests__/Panel.test.tsx",
+      "importSource": "../Panel",
+      "replacementSource": "../Panel",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain consumer-side proof evidence for later rehydration."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Modal/Modal.tsx",
+    "apps/wavemap-front-end/src/components/AlertDialog/AlertDialog.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/MediaSheet/MediaSheet.tsx",
+    "apps/wavemap-front-end/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+    "apps/wavemap-front-end/src/components/NavPanel/NavPanel.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/components/Link/Link.tsx",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx",
+    "apps/wavemap-front-end/src/components/Text/Text.tsx",
+    "apps/wavemap-front-end/src/components/Tables/FileUploadTable/FileUploadTable.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "tokens/placement", "tokens/motion"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-surface",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-z-index-panel",
+        "--aui-z-index-content-offset",
+        "--aui-z-index-overlay-offset"
+      ],
+      "notes": ["Panel source reads the default theme contract directly and does not need a compatibility bridge."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|query|api-contract|shared-utils|window|localStorage|@/src/|@radix-ui|@internationalized/date|--Z_INDEX_PANEL|--z-index-content-offset|--z-index-overlay-offset|--border_radius_|--shadow_1|theme/panel-compatibility\" packages/react/src/components/Panel/Panel.tsx packages/react/src/components/Panel/helpers.ts packages/react/src/components/Panel/PanelStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Panel proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Panel/__tests__/Panel.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Panel source receipt covers the React Aria modal-overlay primitive with Motion enter/exit animation, pointer dismissal, Escape dismissal, geometry, placement, overlay blur, and raised styling.",
+    "This receipt intentionally does not activate a panel manifest item; manifest and CLI local-registry activation happen in a separate verified commit.",
+    "Modal, AlertDialog, sheets, SortAndFilterPanel, NavPanel, app/query panels, Breadcrumbs, Link, router/link policy, hosted registry behavior, and CLI update/diff/eject behavior remain out of scope."
+  ]
+}

@@ -1,0 +1,230 @@
+{
+  "name": "pagination",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#pagination-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/Pagination.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/PaginationStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Pagination/PaginationStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PrimaryPaginationControls/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/DefaultPaginationIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PrimaryPaginationControls/DefaultPaginationIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PageCounter/PageCounter.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PageCounter/PageCounter.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PageCounter/PageCounterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PageCounter/PageCounterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PageInput/PageInput.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PageInput/PageInput.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/PageInput/PageInputStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/PageInput/PageInputStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/ItemsPerPage/ItemsPerPage.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/components/ItemsPerPage/ItemsPerPage.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/__tests__/Pagination.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Pagination/__tests__/Pagination.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Pagination",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx"
+    },
+    {
+      "exportedName": "PaginationProps",
+      "localName": "TPaginationProps",
+      "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Default geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx",
+      "importSource": "@/src/components/VisualUtilities/LineSegment/LineSegment",
+      "registryDependencyName": "line-segment",
+      "replacementSource": "../LineSegment/LineSegment",
+      "notes": ["Pagination composes installed LineSegment while preserving Wavemap target paths at install time."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry / tokens/theme-order",
+      "replacementSource": "../../tokens/geometry / ../../tokens/theme-order plus local aria-labeling/range types",
+      "notes": [
+        "Pagination splits Wavemap's token barrel into package-local token support and local-only type helpers."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
+      "importSource": "@/src/utils/data",
+      "replacementSource": "Pagination-local buildItemsPerPageOptions helper",
+      "notes": ["The tiny item option mapper stays local instead of promoting Wavemap app utility modules."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/components/**/*.tsx",
+      "importSource": "@/src/components/*",
+      "replacementSource": "package-local relative component imports",
+      "notes": ["Pagination subcomponents compose installed child components through package-local source paths."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Pagination/**/*.css",
+      "importSource": "--distance_1 / --distance_2 / --fadeInAnimation / --fadeOutAnimation / --shadow_1 / --border_radius_1 / --focus-ring-color aliases",
+      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-animation-fade-in / --aui-animation-fade-out / --aui-shadow-1 / --aui-radius-1 / --aui-focus-ring",
+      "notes": [
+        "Pagination CSS reads the default Amino theme contract and action-colors support item instead of a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Pagination/i18n.ts",
+    "apps/wavemap-front-end/src/components/Pagination/__tests__/Pagination.test.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/__tests__/helpers.ts",
+    "apps/wavemap-front-end/src/utils/data.ts",
+    "apps/wavemap-front-end/src/components/Table",
+    "apps/wavemap-front-end/src/components/Filtering",
+    "apps/wavemap-front-end/src/components/Breadcrumbs",
+    "apps/wavemap-front-end/src/components/Forms",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "button",
+    "click-popover",
+    "counter",
+    "form-field",
+    "line-segment",
+    "list-box-item",
+    "number-input",
+    "select",
+    "text"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-border",
+        "--aui-control-foreground",
+        "--aui-control-selected-foreground",
+        "--aui-focus-ring",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-surface"
+      ],
+      "notes": [
+        "Pagination spacing, divider, focus, animation, surface, and shadow styles read the default theme contract directly."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Pagination order-color resolution reads the existing action-colors support item directly."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--shadow_1|--fadeInAnimation|--fadeOutAnimation|--focus-ring-color|theme/pagination-compatibility\" packages/react/src/components/Pagination",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved import and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": [
+        "Runs the static source receipt proof, including Pagination-specific assertions once wired into package scripts."
+      ]
+    }
+  ]
+}

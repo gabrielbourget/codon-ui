@@ -1,0 +1,6 @@
+.pageCounter {
+  height: 30px;
+  display: flex;
+  align-self: flex-end;
+  align-items: center;
+}

@@ -1,0 +1,175 @@
+{
+  "name": "meter",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#meter-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Meter/Meter.tsx",
+      "targetRole": "components",
+      "targetPath": "Meter/Meter.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Meter/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/MeterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Meter/MeterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/__tests__/Meter.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Meter/__tests__/Meter.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Meter",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Meter/Meter.tsx"
+    },
+    {
+      "exportedName": "MeterProps",
+      "localName": "TMeterProps",
+      "sourcePath": "packages/react/src/components/Meter/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Meter/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theming order imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/MeterStyles.module.css",
+      "importSource": "--shadow_1 / --border_radius_1 aliases",
+      "replacementSource": "--aui-shadow-1 / --aui-radius-1",
+      "notes": ["Meter CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/MeterStyles.module.css",
+      "importSource": "--aui-color-*-500 action palette variables",
+      "registryDependencyName": "theme/action-colors",
+      "replacementSource": "theme/action-colors.css",
+      "notes": ["Order-based bar colors use the existing action color theme support item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Meter/__tests__/Meter.test.tsx",
+      "importSource": "@/src/components/Meter/Meter",
+      "replacementSource": "../Meter",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/LinearProgress/LinearProgress.tsx",
+    "apps/wavemap-front-end/src/components/LinearProgress/helpers.ts",
+    "apps/wavemap-front-end/src/components/LinearProgress/LinearProgressStyles.module.css",
+    "apps/wavemap-front-end/src/components/Cards/Card/Card.tsx",
+    "apps/wavemap-front-end/src/components/Cards/Card/helpers.ts",
+    "apps/wavemap-front-end/src/components/Cards/Card/CardStyles.module.css",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/ListBoxItem/ListBoxItem.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Table/Table.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-control-border", "--aui-control-selected-background", "--aui-radius-1", "--aui-shadow-1"],
+      "notes": [
+        "Meter source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Order-based bar colors depend on the existing action color theme support item."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--shadow_1|--border_radius_1\" packages/react/src/components/Meter/Meter.tsx packages/react/src/components/Meter/helpers.ts packages/react/src/components/Meter/MeterStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Meter proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Meter/__tests__/Meter.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Meter runtime source has been received into packages/react as the second Motion-backed progress component proof.",
+    "Preserve the React Aria Meter root, Motion bar animation, root class/style merge behavior, orientation and direction handling, geometry classes, raised track styling, order-based bar color classes, custom track/bar/root styling, and CSS-module source model for the Meter proof.",
+    "Keep calibrateComponent, orientation/direction constants, geometry helpers, class/style merge helpers, and Motion transition details private unless a later API review approves exporting helper internals.",
+    "Do not move LinearProgress, Card, Select, ComboBox, ListBoxItem, TagComboBox, Table, Filtering, Pagination, app forms, component showcase code, animation-token support, reduced-motion abstractions, or broader app consumers with Meter.",
+    "This source-receipt pass does not activate a meter manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

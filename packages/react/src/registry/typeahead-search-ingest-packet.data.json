@@ -1,0 +1,231 @@
+{
+  "name": "typeahead-search",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#typeaheadsearch-extraction-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/status.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "TypeaheadSearch",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx"
+    },
+    {
+      "exportedName": "TypeaheadSearchProps",
+      "localName": "TTypeaheadSearchProps",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TypeaheadSearchLabels",
+      "localName": "TTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialTypeaheadSearchLabels",
+      "localName": "TPartialTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "TypeaheadSearchStatus",
+      "localName": "TTypeaheadSearchStatus",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AVAILABLE_TYPEAHEAD_SEARCH_STATUSES",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__IDLE",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__LOADING",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__ERROR",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__EMPTY",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "TYPEAHEAD_SEARCH_STATUS__RESULTS",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts"
+    },
+    {
+      "exportedName": "DEFAULT_TYPEAHEAD_SEARCH_LABELS",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts"
+    },
+    {
+      "exportedName": "resolveTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../../Button/Button",
+      "notes": ["TypeaheadSearch query submission uses the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "importSource": "@/src/components/Input/Input",
+      "registryDependencyName": "input",
+      "replacementSource": "../../Input/Input",
+      "notes": ["TypeaheadSearch query entry uses the registry-owned Input component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "importSource": "@/src/components/ListBoxItem/ListBoxItem",
+      "registryDependencyName": "list-box-item",
+      "replacementSource": "../../ListBoxItem/ListBoxItem",
+      "notes": ["TypeaheadSearch default result rows use installed ListBoxItem."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "importSource": "@/src/components/Text/variants/PlaceholderText/PlaceholderText",
+      "registryDependencyName": "placeholder-text",
+      "replacementSource": "../../Text/variants/PlaceholderText/PlaceholderText",
+      "notes": ["TypeaheadSearch status states compose installed PlaceholderText."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../../tokens/geometry",
+      "notes": ["TypeaheadSearch input row geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/__tests__/TypeaheadSearch.test.tsx",
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/TypeaheadSearch.md",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/**",
+    "apps/wavemap-front-end/src/utils/typeahead/useTypeaheadSearchController.ts",
+    "apps/wavemap-front-end/src/utils/useDebouncedValue.ts",
+    "apps/wavemap-front-end/src/app/[locale]/(artists)/artists/InternalComponents/Artists/components/ArtistTypeaheadSearch/**",
+    "apps/wavemap-front-end/src/components/Forms/AddOrEditArtistForm/Components/ArtistEventTypeAhead/**",
+    "apps/wavemap-front-end/src/components/FormUtilities/TypeAheadSearchResults/**",
+    "apps/wavemap-front-end/src/components/MediaThumbnailImage/**"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "input", "button", "list-box-item", "placeholder-text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-transition-border-color",
+        "--aui-transition-box-shadow"
+      ],
+      "notes": ["TypeaheadSearch should use existing default Amino theme variables without a compatibility bridge."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|api-contract|shared-utils|window|document|localStorage|@/src/|@/src/utils/typeahead|--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--boxShadowTransition|--focus-ring-color|theme/typeahead-search-compatibility\" packages/react/src/components/Search/TypeaheadSearch",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": ["Runs the package-side static TypeaheadSearch proof harness once wired into package scripts."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/Search/TypeaheadSearch/__tests__/TypeaheadSearch.test.tsx src/utils/typeahead/__tests__/useTypeaheadSearchController.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain behavioral evidence for source receipt and consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "TypeaheadSearch source receipt covers the framework-neutral composed typeahead primitive after the prepared Wavemap status boundary pass.",
+    "This source receipt intentionally keeps CompactTypeaheadSearch, useTypeaheadSearchController, useDebouncedValue, artist/event wrappers, search-result row renderers, media thumbnails, app forms, route/query/data adapters, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope."
+  ]
+}

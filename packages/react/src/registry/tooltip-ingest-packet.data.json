@@ -1,0 +1,204 @@
+{
+  "name": "tooltip",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#tooltip-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/Tooltip.tsx",
+      "targetRole": "components",
+      "targetPath": "Tooltip/Tooltip.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Tooltip/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Tooltip/TooltipStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/__tests__/Tooltip.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Tooltip/__tests__/Tooltip.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Tooltip",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Tooltip/Tooltip.tsx"
+    },
+    {
+      "exportedName": "TooltipProps",
+      "localName": "TTooltipProps",
+      "sourcePath": "packages/react/src/components/Tooltip/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theming order imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "importSource": "--distance_1 / --distance_2 aliases",
+      "replacementSource": "--aui-space-1 / --aui-space-2",
+      "notes": ["Tooltip CSS reads the default Amino spacing contract instead of Wavemap aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "importSource": "--border_radius_1 alias",
+      "replacementSource": "--aui-radius-1",
+      "notes": ["Tooltip CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
+      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "notes": ["Tooltip CSS reads the default Amino animation contract instead of Wavemap aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "importSource": "--drop_shadow_1 alias",
+      "replacementSource": "--aui-drop-shadow-1",
+      "notes": ["Tooltip CSS uses a stable Amino drop-shadow token instead of a Tooltip compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "importSource": "--aui-color-*-500 action palette variables",
+      "registryDependencyName": "theme/action-colors",
+      "replacementSource": "theme/action-colors.css",
+      "notes": ["Order-based tooltip colors use the existing action color theme support item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Tooltip/__tests__/Tooltip.test.tsx",
+      "importSource": "@/src/components/Tooltip/Tooltip",
+      "replacementSource": "../Tooltip",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/helpers.ts",
+    "apps/wavemap-front-end/src/components/Link/Link.tsx",
+    "apps/wavemap-front-end/src/components/Link/helpers.ts",
+    "apps/wavemap-front-end/src/components/HoverPopover/HoverPopover.tsx",
+    "apps/wavemap-front-end/src/components/HoverPopoverRadix/HoverPopoverRadix.tsx",
+    "apps/wavemap-front-end/src/components/Modal/Modal.tsx",
+    "apps/wavemap-front-end/src/components/AlertDialog/AlertDialog.tsx",
+    "apps/wavemap-front-end/src/components/Menu/Menu.tsx",
+    "apps/wavemap-front-end/src/components/Panel/Panel.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/MediaSheet/MediaSheet.tsx",
+    "apps/wavemap-front-end/src/components/Sheets/FileUploadSheet/FileUploadSheet.tsx",
+    "apps/wavemap-front-end/src/components/Toaster/Toaster.tsx",
+    "apps/wavemap-front-end/src/components/Button/Button.tsx",
+    "apps/wavemap-front-end/src/components/Text/Text.tsx",
+    "apps/wavemap-front-end/src/components/icons/GarbageBinIcon.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-surface",
+        "--aui-surface-foreground",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-radius-1",
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-drop-shadow-1"
+      ],
+      "notes": [
+        "Tooltip source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "notes": ["Order-based tooltip colors depend on the existing action color theme support item."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--fadeInAnimation|--fadeOutAnimation|--drop_shadow_1|theme/tooltip-compatibility\" packages/react/src/components/Tooltip/Tooltip.tsx packages/react/src/components/Tooltip/helpers.ts packages/react/src/components/Tooltip/TooltipStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Tooltip proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Tooltip/__tests__/Tooltip.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Tooltip runtime source has been received into packages/react as a small React Aria overlay primitive proof after Pagination.",
+    "Preserve the React Aria Tooltip root, OverlayArrow rendering, root class/style merge behavior, geometry classes, raised drop-shadow styling, order-based background classes, custom root and overlay-arrow styling, and CSS-module source model for the Tooltip proof.",
+    "Keep calibrateComponent, geometry/color helpers, overlay-arrow classes, class/style merge helpers, and default arrow SVG private unless a later API review approves exporting helper internals.",
+    "Do not move Breadcrumbs, Link, router/link adapter policy, HoverPopover, HoverPopoverRadix, Modal, AlertDialog, Menu, Panel, sheets, toast/toaster, app forms, media surfaces, table/query surfaces, Button, Text, TooltipTrigger, icons, component showcase code, or broader app consumers with Tooltip.",
+    "This source-receipt pass does not activate a tooltip manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

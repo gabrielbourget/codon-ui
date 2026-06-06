@@ -52,6 +52,8 @@ const requiredVariables = [
   "--aui-background",
   "--aui-border",
   "--aui-border-muted",
+  "--aui-animation-fade-in",
+  "--aui-animation-fade-out",
   "--aui-control-background",
   "--aui-control-border",
   "--aui-control-disabled-opacity",
@@ -86,6 +88,15 @@ const requiredVariables = [
   "--aui-transition-color",
   "--aui-transition-opacity",
   "--aui-transition-outline",
+  "--aui-validation-error-border",
+  "--aui-validation-success-border",
+  "--aui-validation-warning-border",
+  "--aui-z-index-base",
+  "--aui-z-index-content-offset",
+  "--aui-z-index-overlay-offset",
+  "--aui-z-index-panel",
+  "--aui-z-index-step",
+  "--aui-z-index-toast",
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))
@@ -114,6 +125,14 @@ requireVariableFamily(variables, "--aui-space-", [
 ])
 requireVariableFamily(variables, "--aui-radius-", ["1", "2", "3", "4", "5"])
 requireVariableFamily(variables, "--aui-shadow-", ["1", "2", "3", "4", "5"])
+
+if (!themeCSS.includes("@keyframes fade-in")) {
+  fail("Expected theme.css to define fade-in keyframes.")
+}
+
+if (!themeCSS.includes("@keyframes fade-out")) {
+  fail("Expected theme.css to define fade-out keyframes.")
+}
 
 const forbiddenVariablePatterns = [
   /^--aui-color-/u,

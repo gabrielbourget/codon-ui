@@ -1,0 +1,53 @@
+.tableFilterPopover {
+  padding: var(--aui-space-1);
+  min-width: 240px;
+  max-width: min(320px, calc(100vw - 32px));
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+}
+
+.tableFilterPopover__titleRow {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-1);
+}
+
+.tableFilterPopover__titleGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--aui-space-1);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.tableFilterPopover__title {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.tableFilterPopover__criteriaTag {
+  height: 22px;
+  max-width: 100%;
+  padding: 0 var(--aui-space-1);
+}
+
+.tableFilterPopover__form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+}
+
+.tableFilterPopover__clauseList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+}
+
+.tableFilterPopover__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--aui-space-1);
+}

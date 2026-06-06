@@ -1,0 +1,138 @@
+{
+  "name": "card",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#card-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Card/Card.tsx",
+      "targetRole": "components",
+      "targetPath": "Cards/Card/Card.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Card/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Cards/Card/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Cards/Card/CardStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Card/__tests__/Card.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Cards/Card/__tests__/Card.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Card",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Card/Card.tsx"
+    },
+    {
+      "exportedName": "CardProps",
+      "localName": "TCardProps",
+      "sourcePath": "packages/react/src/components/Card/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
+      "importSource": "--distance_3 alias",
+      "replacementSource": "--aui-space-3",
+      "notes": ["Card spacing reads the default Amino space scale instead of the legacy distance alias."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
+      "importSource": "--shadow_1 alias",
+      "replacementSource": "--aui-shadow-1",
+      "notes": ["Card raised styling reads the default Amino shadow contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Card/__tests__/Card.test.tsx",
+      "importSource": "@/src/components/Cards/Card/Card",
+      "replacementSource": "../Card",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain consumer-side proof evidence for later rehydration."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Cards/ArtistCard/ArtistCard.tsx",
+    "apps/wavemap-front-end/src/components/Cards/ArtistCard/helpers.ts",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Table/queryTypes.ts",
+    "apps/wavemap-front-end/src/components/MediaThumbnailImage/MediaThumbnailImage.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/(auth)/login/InternalComponents/LoginCard/LoginCard.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/(auth)/registration/InternalComponents/RegistrationCard/RegistrationCard.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/(users)/settings/InternalComponents/SettingsCard/SettingsCard.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx",
+    "apps/wavemap-front-end/src/components/VisualUtilities/Indicator/Indicator.tsx",
+    "apps/wavemap-front-end/src/components/VisualUtilities/StatusMessage/StatusMessage.tsx",
+    "apps/wavemap-front-end/src/components/SortParameterList/SortParameterList.tsx"
+  ],
+  "registryDependencies": ["theme-css"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": ["--aui-space-3", "--aui-shadow-1"],
+      "notes": [
+        "Card source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--shadow_|theme/card-compatibility\" packages/react/src/components/Card/Card.tsx packages/react/src/components/Card/helpers.ts packages/react/src/components/Card/CardStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Card proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Cards/Card/__tests__/Card.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Card runtime source has been received into packages/react as a small Motion-backed layout primitive proof.",
+    "Preserve Motion layout forwarding, raised default styling, class/style merge behavior, numeric dimension normalization, CSS-string dimensions, wrapper-prop hygiene, and CSS-module source model for the Card proof.",
+    "Keep calibrateComponent, normalizeDimension, CSS-module internals, and Motion helper details private unless a later API review approves exporting helper internals.",
+    "Do not move ArtistCard, auth/settings card wrappers, FilterClauseRow, table/query filtering source, media thumbnail helpers, VisualUtilities, SortParameterList, app pages, component showcase code, reduced-motion abstractions, or broader app consumers with Card.",
+    "This source-receipt pass does not activate a card manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

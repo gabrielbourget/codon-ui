@@ -1,0 +1,18 @@
+.multiInputTypeFilterArgument {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+}
+
+.multiInputTypeFilterArgument__iconColor {
+  fill: var(--aui-control-foreground);
+}
+
+.multiInputTypeFilterArgument__inputRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--aui-space-1);
+}

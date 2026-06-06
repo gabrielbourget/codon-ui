@@ -1,0 +1,10 @@
+.sortParameterList {
+  width: 250px;
+  height: 200px;
+  padding: var(--aui-space-2);
+  gap: var(--aui-space-1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--aui-shadow-1);
+  border-radius: var(--aui-radius-1);
+}

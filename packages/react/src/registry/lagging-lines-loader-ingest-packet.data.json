@@ -1,0 +1,79 @@
+{
+  "name": "lagging-lines-loader",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#loader-components-next-candidate-planning-checkpoint-2026-06-06",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoader.tsx",
+      "targetRole": "components",
+      "targetPath": "Loaders/LaggingLinesLoader/LaggingLinesLoader.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Loaders/LaggingLinesLoader/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoaderStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Loaders/LaggingLinesLoader/LaggingLinesLoaderStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/__tests__/LaggingLinesLoader.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Loaders/LaggingLinesLoader/__tests__/LaggingLinesLoader.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "LaggingLinesLoader",
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoader.tsx",
+      "localName": "default"
+    },
+    {
+      "exportedName": "LaggingLinesLoaderProps",
+      "sourcePath": "packages/react/src/components/LaggingLinesLoader/helpers.ts",
+      "localName": "TLaggingLinesLoaderProps",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Loaders/LoaderWrapper/**",
+    "apps/wavemap-front-end/src/components/Loaders/CircleLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/CircleBubblesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/CircleSpokesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/HorizontalBubblesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/ShiftingVerticalBarsLoader/**",
+    "apps/wavemap-front-end/src/components/SuspenseErrorBoundaryWrapper/**",
+    "apps/wavemap-front-end/src/app/**/page.tsx"
+  ],
+  "registryDependencies": [],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|@/src/|next/|router|route|i18n|media|api-contract|shared-utils|react-aria|motion|UIContext|theme/lagging-lines-loader-compatibility\" packages/react/src/components/LaggingLinesLoader",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["LaggingLinesLoader source should remain a self-contained React/CSS-module primitive."]
+    }
+  ],
+  "notes": [
+    "LaggingLinesLoader source receipt covers only the active three-line loading primitive.",
+    "This packet intentionally excludes CircleLoader, LoaderWrapper, broad legacy loader experiments, app loading-page wrappers, suspense/error-boundary wrappers, theme compatibility CSS, hosted registry behavior, and package publication."
+  ]
+}

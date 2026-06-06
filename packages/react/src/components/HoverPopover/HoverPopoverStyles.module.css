@@ -1,0 +1,92 @@
+.hoverPopover {
+  height: auto;
+  width: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-3);
+  padding: var(--aui-space-2);
+  background-color: var(--aui-surface);
+  color: var(--aui-surface-foreground);
+  forced-color-adjust: none;
+  outline: none;
+  transform: translate3d(0, 0, 0);
+}
+
+.hoverPopover[data-entering] {
+  animation: var(--aui-animation-fade-in);
+}
+.hoverPopover[data-exiting] {
+  animation: var(--aui-animation-fade-out);
+}
+
+.hoverPopover--raised {
+  box-shadow: var(--aui-shadow-1);
+}
+.hoverPopover--rounded {
+  border-radius: var(--aui-radius-1);
+}
+
+.hoverPopover--primary {
+  background-color: var(--aui-color-primary-500);
+}
+.hoverPopover--secondary {
+  background-color: var(--aui-color-secondary-500);
+}
+.hoverPopover--tertiary {
+  background-color: var(--aui-color-tertiary-500);
+}
+.hoverPopover--quaternary {
+  background-color: var(--aui-color-quaternary-500);
+}
+.hoverPopover--quintenary {
+  background-color: var(--aui-color-quintenary-500);
+}
+
+.hoverPopover__overlayArrow svg {
+  display: block;
+  fill: var(--aui-surface);
+}
+
+.hoverPopover__overlayArrow--primary svg {
+  fill: var(--aui-color-primary-500);
+}
+.hoverPopover__overlayArrow--secondary svg {
+  fill: var(--aui-color-secondary-500);
+}
+.hoverPopover__overlayArrow--tertiary svg {
+  fill: var(--aui-color-tertiary-500);
+}
+.hoverPopover__overlayArrow--quaternary svg {
+  fill: var(--aui-color-quaternary-500);
+}
+.hoverPopover__overlayArrow--quintenary svg {
+  fill: var(--aui-color-quintenary-500);
+}
+
+.hoverPopover[data-placement="top"] {
+  margin-bottom: var(--aui-space-2);
+}
+
+.hoverPopover[data-placement="bottom"] {
+  margin-top: var(--aui-space-2);
+}
+
+.hoverPopover[data-placement="bottom"] .hoverPopover__overlayArrow svg {
+  transform: rotate(180deg);
+}
+
+.hoverPopover[data-placement="right"] {
+  margin-left: var(--aui-space-2);
+}
+
+.hoverPopover[data-placement="right"] .hoverPopover__overlayArrow svg {
+  transform: rotate(90deg);
+}
+
+.hoverPopover[data-placement="left"] {
+  margin-right: var(--aui-space-2);
+}
+
+.hoverPopover[data-placement="left"] .hoverPopover__overlayArrow svg {
+  transform: rotate(270deg);
+}

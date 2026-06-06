@@ -1,0 +1,53 @@
+.breadcrumbs {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--aui-space-1);
+}
+
+.breadcrumb {
+  height: auto;
+  width: auto;
+  list-style: none;
+}
+
+.breadcrumb a[data-disabled="true"],
+.breadcrumb [role="link"][data-disabled="true"],
+.breadcrumb button[data-disabled="true"] {
+  opacity: var(--aui-opacity-disabled);
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+.breadcrumb [data-current="true"] {
+  font-weight: bold;
+  opacity: 1;
+  cursor: default;
+}
+
+.popover {
+  max-width: 250px;
+
+  &[data-entering] {
+    animation: var(--aui-animation-fade-in);
+  }
+  &[data-exiting] {
+    animation: var(--aui-animation-fade-out);
+  }
+}
+
+.breadcrumbsList {
+  height: auto;
+  width: 100%;
+  background-color: var(--aui-surface);
+  padding: var(--aui-space-1);
+  border-radius: var(--aui-radius-1);
+  box-shadow: var(--aui-shadow-1);
+
+  &[data-focused] {
+    outline: 1.5px solid var(--aui-focus-ring);
+    outline-offset: 1.5px;
+  }
+}

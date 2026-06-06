@@ -1,0 +1,11 @@
+.dynamicFilterArgumentInput {
+  height: auto;
+  width: 100%;
+}
+
+.dynamicFilterArgumentInput--range {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
