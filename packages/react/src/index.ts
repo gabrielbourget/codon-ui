@@ -167,6 +167,13 @@ export type {
 } from "./components/Table"
 export { TextArea } from "./components/TextArea"
 export type { TextAreaProps } from "./components/TextArea"
+export { ThumbnailImage } from "./components/ThumbnailImage"
+export type {
+  ThumbnailImageErrorHandler,
+  ThumbnailImageProps,
+  ThumbnailImageRenderImageArgs,
+  ThumbnailImageRenderImageProps,
+} from "./components/ThumbnailImage"
 export { TimePicker } from "./components/TimePicker"
 export type { TimePickerProps } from "./components/TimePicker"
 export { Tooltip } from "./components/Tooltip"

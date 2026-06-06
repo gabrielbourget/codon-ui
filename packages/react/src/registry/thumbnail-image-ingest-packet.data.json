@@ -1,0 +1,94 @@
+{
+  "name": "thumbnail-image",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#thumbnailimage-extraction-planning-checkpoint-2026-06-06",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+      "targetRole": "components",
+      "targetPath": "ThumbnailImage/ThumbnailImage.tsx",
+      "role": "source"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "ThumbnailImage",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx"
+    },
+    {
+      "exportedName": "ThumbnailImageProps",
+      "localName": "TThumbnailImageProps",
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ThumbnailImageErrorHandler",
+      "localName": "TThumbnailImageErrorHandler",
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ThumbnailImageRenderImageArgs",
+      "localName": "TThumbnailImageRenderImageArgs",
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ThumbnailImageRenderImageProps",
+      "localName": "TThumbnailImageRenderImageProps",
+      "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+      "typeOnly": true
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/ThumbnailImage/__tests__/ThumbnailImage.test.tsx",
+    "apps/wavemap-front-end/src/components/MediaThumbnailImage/**",
+    "apps/wavemap-front-end/src/utils/media/**",
+    "apps/wavemap-front-end/src/components/FormUtilities/TypeAheadSearchResults/SearchResultRowThumbnail/**",
+    "apps/wavemap-front-end/src/components/Galleries/**",
+    "apps/wavemap-front-end/src/components/MediaTable/**"
+  ],
+  "registryDependencies": [],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {},
+  "themeRequirements": [],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|next/|router|route|media|api-contract|shared-utils|@/src/|theme/thumbnail-image-compatibility|\\.module\\.css\" packages/react/src/components/ThumbnailImage",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": [
+        "Source receipt should stay framework-neutral and avoid Wavemap media adapters, CSS, and theme dependencies."
+      ]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the generic component source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/ThumbnailImage/__tests__/ThumbnailImage.test.tsx src/components/MediaThumbnailImage/__tests__/MediaThumbnailImage.test.tsx src/components/MediaThumbnailImage/variants/TableRowThumbnail/__tests__/TableRowThumbnail.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": [
+        "Focused Wavemap tests remain the behavioral source for generic fallback behavior and the local Next-image adapter."
+      ]
+    }
+  ],
+  "notes": [
+    "ThumbnailImage receives only the generic source-candidate fallback primitive into packages/react.",
+    "The default renderer uses a native img element while renderImage lets consumers inject framework-specific image components.",
+    "Keep MediaThumbnailImage, TableRowThumbnail, next/image, Wavemap media item shapes, media helpers, galleries, and table integrations consumer-owned.",
+    "This source-receipt pass does not activate a thumbnail-image manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence."
+  ]
+}
