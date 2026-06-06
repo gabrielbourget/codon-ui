@@ -40,6 +40,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["date-time-range-picker"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["form-field"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -910,6 +914,47 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "date-time-range-picker",
+  expectedItems: [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/geometry",
+    "tokens/placement",
+    "theme/text-typography",
+    "text",
+    "tokens/theme-order",
+    "button",
+    "date-time-range-picker",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/DateTimeRangePicker/CalendarStyles.module.css",
+    "src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+    "src/components/DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+    "src/components/DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+    "src/components/DateTimeRangePicker/helpers.tsx",
+    "src/components/DateTimeRangePicker/labels.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/placement.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeSourcePath: "theme/action-colors.css",
+  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-color-primary-500"],
+  expectedMissingDependencyCount: 4,
+  expectedPlannedCount: 20,
+})
+
+await verifyComponentAddPlanning({
   itemName: "toggle-button",
   expectedItems: [
     "theme-css",
@@ -1531,5 +1576,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

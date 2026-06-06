@@ -876,6 +876,58 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "date-time-range-picker",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/DateTimeRangePicker.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/helpers.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/labels.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/labels.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/DateTimeRangePicker/CalendarStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "DateTimeRangePicker/CalendarStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/placement", "text", "button"],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "table",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

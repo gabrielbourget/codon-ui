@@ -16,6 +16,7 @@ const actionColorsPath = path.join(packageRoot, "src/theme/action-colors.css")
 const packetSourcePath = path.join(packageRoot, "src/registry/date-time-range-picker-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/date-time-range-picker-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
+const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 
@@ -51,6 +52,7 @@ const actionColorsCSS = readRequiredText(actionColorsPath)
 const packet = JSON.parse(readRequiredText(packetSourcePath))
 const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
+const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
@@ -429,8 +431,8 @@ assert(
   "DateTimeRangePicker packet must exclude upload/media source",
 )
 assert(
-  packet.notes.some((note) => note.includes("does not activate a date-time-range-picker manifest item")),
-  "DateTimeRangePicker packet must keep manifest activation separate from source receipt",
+  packet.notes.some((note) => note.includes("source receipt now activates")),
+  "DateTimeRangePicker packet must document source receipt activation",
 )
 
 assert(
@@ -443,6 +445,7 @@ assert(
   ),
   "Registry index must export DateTimeRangePicker ingest packet",
 )
+assert(manifestSource.includes('name: "date-time-range-picker"'), "DateTimeRangePicker manifest item must be active")
 
 if (process.exitCode) {
   process.exit(process.exitCode)

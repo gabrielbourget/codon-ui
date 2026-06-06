@@ -210,7 +210,7 @@
   ],
   "notes": [
     "DateTimeRangePicker source receipt covers the portable range-picker sibling of the existing DateTimePicker registry item.",
-    "This source receipt intentionally keeps DateTimeRangePicker/i18n.ts, focused tests, component showcase source, DateTimePicker source, search/typeahead, upload/media, sheets, table/filtering/query source, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope.",
-    "This packet does not activate a date-time-range-picker manifest item; public CLI activation is a separate proof boundary."
+    "The source receipt now activates the package-owned date-time-range-picker registry item and public CLI add path without changing package publication, hosted registry behavior, generated token writers, or CLI update/diff/eject behavior.",
+    "This source receipt intentionally keeps DateTimeRangePicker/i18n.ts, focused tests, component showcase source, DateTimePicker source, search/typeahead, upload/media, sheets, table/filtering/query source, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope."
   ]
 }

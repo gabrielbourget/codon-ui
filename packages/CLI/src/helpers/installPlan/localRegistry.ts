@@ -37,6 +37,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "stepper",
   "time-picker",
   "date-time-picker",
+  "date-time-range-picker",
   "toggle-button",
   "toggle-switcher",
   "table",
