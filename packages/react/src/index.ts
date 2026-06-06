@@ -132,6 +132,34 @@ export { PlaceholderText } from "./components/Text/variants/PlaceholderText"
 export type { PlaceholderTextProps } from "./components/Text/variants/PlaceholderText"
 export { Select } from "./components/Select"
 export type { SelectProps } from "./components/Select"
+export {
+  AVAILABLE_SORT_AND_FILTER_PANEL_FOCUS_TARGETS,
+  DEFAULT_SORT_AND_FILTER_PANEL_LABELS,
+  resolveSortAndFilterPanelLabels,
+  SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER,
+  SORT_AND_FILTER_PANEL_FOCUS_TARGET__SORT,
+  SortAndFilterPanel,
+} from "./components/SortAndFilterPanel"
+export type {
+  ApplySortAndFilterParametersArgs,
+  AvailableBooleanArgumentComponents as SortAndFilterPanelAvailableBooleanArgumentComponents,
+  AvailableFilterCriteria as SortAndFilterPanelAvailableFilterCriteria,
+  AvailableSortAndFilterPanelListItem,
+  AvailableSortCriteria as SortAndFilterPanelAvailableSortCriteria,
+  PartialSortAndFilterPanelLabels,
+  SortAndFilterPanelActiveFiltersLabels,
+  SortAndFilterPanelActiveSortsLabels,
+  SortAndFilterPanelFilterGroup,
+  SortAndFilterPanelFocusTarget,
+  SortAndFilterPanelFooterLabels,
+  SortAndFilterPanelFormLabels,
+  SortAndFilterPanelHeaderLabels,
+  SortAndFilterPanelLabels,
+  SortAndFilterPanelProps,
+  SortAndFilterPanelSortEntryLabels,
+  SortAndFilterPanelSortInstruction,
+  SortAndFilterPanelSortParameterListLabels,
+} from "./components/SortAndFilterPanel"
 export { Stepper } from "./components/Stepper"
 export type { StepperProps } from "./components/Stepper"
 export {

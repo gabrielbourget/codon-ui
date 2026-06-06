@@ -2434,6 +2434,213 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "sort-and-filter-panel",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/labels.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/labels.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath:
+          "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath:
+          "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: [
+      "theme-css",
+      "theme/action-colors",
+      "table",
+      "panel",
+      "form-field",
+      "select",
+      "list-box-item",
+      "line-segment",
+      "tag-group",
+      "text",
+      "placeholder-text",
+      "toggle-switcher",
+      "tooltip",
+      "button",
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "thumbnail-image",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

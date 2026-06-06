@@ -1,0 +1,15 @@
+.activeSorts {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+}
+
+.activeSorts__topBar {
+  height: auto;
+  width: 100%;
+  display: flex;
+  gap: var(--aui-space-1);
+  flex-wrap: wrap;
+}

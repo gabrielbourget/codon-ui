@@ -2411,6 +2411,191 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "sort-and-filter-panel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "table",
+        "panel",
+        "form-field",
+        "select",
+        "list-box-item",
+        "line-segment",
+        "tag-group",
+        "text",
+        "placeholder-text",
+        "toggle-switcher",
+        "tooltip",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "thumbnail-image",
       "type": "component",
       "sourcePackage": "@amino-ui/react",

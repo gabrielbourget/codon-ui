@@ -1,0 +1,94 @@
+.activeFilters {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+  flex: 1;
+  overflow-y: scroll;
+}
+
+.activeFilters__topBar {
+  height: auto;
+  width: 100%;
+  display: flex;
+  gap: var(--aui-space-1);
+  flex-wrap: wrap;
+}
+
+.activeFilters__parameterList {
+  height: 100%;
+  width: 100%;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+  overflow-y: scroll;
+}
+
+.activeFilters__filterGroup {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-1);
+  background: var(--aui-background);
+  border: 1px solid var(--aui-border-muted);
+  border-radius: var(--aui-radius-1);
+}
+
+.activeFilters__filterGroupHeader {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+  align-items: stretch;
+}
+
+.activeFilters__filterGroupPrimaryRow {
+  height: auto;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--aui-space-1);
+}
+
+.activeFilters__filterGroupTitle {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--aui-space-1);
+  flex-wrap: wrap;
+}
+
+.activeFilters__filterGroupCriteriaTag {
+  height: 22px;
+  max-width: 100%;
+  padding: 0 var(--aui-space-1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--aui-color-primary-500);
+  color: var(--aui-control-selected-foreground);
+  border-radius: 10000px;
+}
+
+.activeFilters__filterGroupAddButton {
+  flex-shrink: 0;
+}
+
+.activeFilters__filterGroupParameterList {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+}
+
+.activeFilters__joinOperatorSwitcher {
+  width: 100%;
+  flex-shrink: 0;
+}
