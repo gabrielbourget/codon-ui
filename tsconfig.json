@@ -2,8 +2,12 @@
   "extends": "./packages/shared-utils/tsconfig/base.json",
   "compilerOptions": {
     "composite": false,
+    "incremental": false,
+    "declarationMap": false,
+    "noEmit": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false
   },
-  "exclude": ["node_modules"]
+  "include": ["eslint.config.js", "prettier.config.mjs"],
+  "exclude": ["apps", "packages", "node_modules"]
 }
