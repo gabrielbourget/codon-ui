@@ -62,6 +62,16 @@ export type {
   DateTimePickerProps,
   PartialDateTimePickerLabels,
 } from "./components/DateTimePicker"
+export {
+  DateTimeRangePicker,
+  DEFAULT_DATE_TIME_RANGE_PICKER_LABELS,
+  resolveDateTimeRangePickerLabels,
+} from "./components/DateTimeRangePicker"
+export type {
+  DateTimeRangePickerLabels,
+  DateTimeRangePickerProps,
+  PartialDateTimeRangePickerLabels,
+} from "./components/DateTimeRangePicker"
 export { FormField } from "./components/FormField"
 export type { FormFieldProps } from "./components/FormField"
 export { HoverPopover } from "./components/HoverPopover"

@@ -1,0 +1,216 @@
+{
+  "name": "date-time-range-picker",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#datetimerangepicker-extraction-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/DateTimeRangePicker.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/CalendarStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "DateTimeRangePicker/CalendarStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "DateTimeRangePicker",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx"
+    },
+    {
+      "exportedName": "DateTimeRangePickerProps",
+      "localName": "TDateTimeRangePickerProps",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DateTimeRangePickerLabels",
+      "localName": "TDateTimeRangePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialDateTimeRangePickerLabels",
+      "localName": "TPartialDateTimeRangePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DEFAULT_DATE_TIME_RANGE_PICKER_LABELS",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts"
+    },
+    {
+      "exportedName": "resolveDateTimeRangePickerLabels",
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["DateTimeRangePicker trigger and calendar navigation use the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["Popover placement imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["DateTimeRangePicker reuses installed Text CSS-module typography classes."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePickerStyles.module.css packages/react/src/components/DateTimeRangePicker/CalendarStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition/shadow/animation/z-index aliases and Wavemap dark-theme selector",
+      "replacementSource": "default --aui-* theme variables and reviewed package theme selector/token support",
+      "notes": [
+        "Source receipt rewrites legacy Wavemap CSS aliases directly to match the existing DateTimePicker theme model."
+      ]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/DateTimeRangePicker/i18n.ts",
+    "apps/wavemap-front-end/src/components/DateTimeRangePicker/__tests__/DateTimeRangePicker.test.tsx",
+    "apps/wavemap-front-end/src/components/DateTimePicker/**",
+    "apps/wavemap-front-end/src/components/Search/**",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/**",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/**",
+    "apps/wavemap-front-end/src/components/Sheets/**",
+    "apps/wavemap-front-end/src/components/Filtering/**",
+    "apps/wavemap-front-end/src/components/Table/**",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/placement", "text", "button"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-hover-background",
+        "--aui-control-placeholder",
+        "--aui-control-pressed-background",
+        "--aui-control-selected-background",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-state-danger",
+        "--aui-state-success",
+        "--aui-state-warning",
+        "--aui-surface",
+        "--aui-transition-background-color",
+        "--aui-transition-border-color",
+        "--aui-transition-box-shadow",
+        "--aui-transition-color",
+        "--aui-z-index-modal"
+      ],
+      "notes": [
+        "DateTimeRangePicker should use the default Amino theme contract directly after CSS alias rewrites.",
+        "Range calendar styling follows the existing DateTimePicker theme and dark-theme selector model."
+      ]
+    },
+    {
+      "strategy": "default-contract",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "cssVariables": [
+        "--aui-color-primary-100",
+        "--aui-color-primary-200",
+        "--aui-color-primary-400",
+        "--aui-color-primary-500"
+      ],
+      "notes": ["Range calendar selected-day states read the established action-color support layer."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--bgColorTransition|--boxShadowTransition|--colorTransition|--focus-ring-color|--shadow_1|--fade|--Z_INDEX_MODAL\" packages/react/src/components/DateTimeRangePicker",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": ["Runs the package-side static DateTimeRangePicker proof harness once wired into package scripts."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/DateTimeRangePicker/__tests__/DateTimeRangePicker.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain behavioral source evidence for source receipt and consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "DateTimeRangePicker source receipt covers the portable range-picker sibling of the existing DateTimePicker registry item.",
+    "This source receipt intentionally keeps DateTimeRangePicker/i18n.ts, focused tests, component showcase source, DateTimePicker source, search/typeahead, upload/media, sheets, table/filtering/query source, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope.",
+    "This packet does not activate a date-time-range-picker manifest item; public CLI activation is a separate proof boundary."
+  ]
+}

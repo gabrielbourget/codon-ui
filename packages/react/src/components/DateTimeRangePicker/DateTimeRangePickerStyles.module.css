@@ -1,0 +1,136 @@
+.dateTimePicker {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  transition: color 350ms ease-in-out;
+}
+
+.dateTimePicker[data-disabled] {
+  opacity: var(--aui-opacity-disabled);
+}
+.dateTimePicker[data-disabled]:hover {
+  cursor: not-allowed;
+}
+
+.dateTimePicker::placeholder {
+  color: var(--aui-control-placeholder);
+  font-style: italic;
+  font-size: 12px;
+  opacity: 1;
+}
+
+.dateTimePicker div button * {
+  color: var(--aui-control-foreground);
+}
+
+.dateTimePicker[data-focus-within] div button * {
+  color: var(--aui-control-selected-background);
+}
+
+.dateTimePicker[data-open] div button * {
+  color: var(--aui-control-selected-background);
+}
+
+.dateTimePicker__calendarRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: var(--aui-space-1);
+}
+
+.dateTimeInput {
+  display: flex;
+  flex-direction: row;
+  padding: 3.5px;
+}
+
+.dateTimeSegment {
+  display: grid;
+  place-items: center;
+  border-radius: 3px;
+  padding: 1.5px;
+}
+
+.dateTimeSegment[data-focused] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.calendarIcon {
+  color: var(--aui-control-foreground);
+  transition: var(--aui-transition-color);
+}
+
+.calendarIcon--active {
+  color: var(--aui-control-selected-background);
+}
+
+.inputButtonGroup {
+  height: auto;
+  width: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--aui-control-border);
+  background-color: var(--aui-control-background);
+  transition: var(--aui-transition-border-color);
+}
+
+.inputButtonGroup--rounded {
+  border-radius: var(--aui-radius-1);
+}
+.inputButtonGroup--round {
+  border-radius: 50%;
+  padding: var(--aui-space-1) 7px;
+}
+
+.inputButtonGroup--applyFocusStyle[data-focus-within] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+.inputButtonGroup--noFocusStyle[data-focus-within] {
+  outline: none;
+}
+
+.inputButtonGroup--offsetFocusRing {
+  outline-offset: 1.5px;
+}
+
+.inputButtonGroup--errorState {
+  border-color: var(--aui-state-danger);
+}
+.inputButtonGroup--warningState {
+  border-color: var(--aui-state-warning);
+}
+.inputButtonGroup--successState {
+  border-color: var(--aui-state-success);
+}
+
+.popover[data-entering] {
+  animation: var(--aui-animation-fade-in);
+}
+.popover[data-exiting] {
+  animation: var(--aui-animation-fade-out);
+}
+
+.popover--rounded {
+  border-radius: var(--aui-radius-1);
+}
+
+.dialog {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--aui-surface);
+  padding: var(--aui-space-1);
+  box-shadow: var(--aui-shadow-1);
+}
+
+.dialog--rounded {
+  border-radius: var(--aui-radius-1);
+}
+
+.dialog[data-focused] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
