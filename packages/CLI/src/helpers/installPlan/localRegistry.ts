@@ -28,6 +28,8 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "alert-dialog",
   "line-segment",
   "indicator",
+  "circle-loader",
+  "lagging-lines-loader",
   "link",
   "breadcrumbs",
   "pagination",

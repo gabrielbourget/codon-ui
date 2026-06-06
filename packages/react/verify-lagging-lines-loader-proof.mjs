@@ -11,6 +11,7 @@ const laggingLinesLoaderIndexPath = path.join(laggingLinesLoaderRoot, "index.ts"
 const packetSourcePath = path.join(packageRoot, "src/registry/lagging-lines-loader-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/lagging-lines-loader-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
+const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 
@@ -49,6 +50,7 @@ const laggingLinesLoaderIndexSource = readRequiredText(laggingLinesLoaderIndexPa
 const packet = JSON.parse(readRequiredText(packetSourcePath))
 const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
+const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
@@ -147,6 +149,19 @@ assert(
   registryIndexSource.includes('export { laggingLinesLoaderIngestPacket } from "./lagging-lines-loader-ingest-packet"'),
   "Registry index must export LaggingLinesLoader packet",
 )
+assert(manifestSource.includes('name: "lagging-lines-loader"'), "LaggingLinesLoader manifest item must be active")
+requiredPackageFileSources.forEach((sourcePath) => {
+  assert(
+    manifestSource.includes(`sourcePath: "${sourcePath}"`),
+    `LaggingLinesLoader manifest must include ${sourcePath}`,
+  )
+})
+requiredTargetPaths.forEach((targetPath) => {
+  assert(
+    manifestSource.includes(`targetPath: "${targetPath}"`),
+    `LaggingLinesLoader manifest must target ${targetPath}`,
+  )
+})
 assert(packageJson.dependencies.classnames, "Package must keep classnames runtime dependency")
 assert(packageJson.peerDependencies.react, "Package must declare React peer dependency")
 assert(

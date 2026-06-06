@@ -132,6 +132,14 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["circle-loader"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["lagging-lines-loader"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["link"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -613,6 +621,29 @@ await verifyComponentAddPlanning({
     "src/components/VisualUtilities/Indicator/Indicator.tsx",
     "src/components/VisualUtilities/Indicator/IndicatorStyles.module.css",
     "src/components/VisualUtilities/Indicator/helpers.ts",
+  ],
+  expectedMissingDependencyCount: 2,
+  expectedPlannedCount: 3,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "circle-loader",
+  expectedItems: ["circle-loader"],
+  expectedResolvedPaths: [
+    "src/components/Loaders/CircleLoader/CircleLoader.tsx",
+    "src/components/Loaders/CircleLoader/CircleLoaderStyles.module.css",
+  ],
+  expectedMissingDependencyCount: 1,
+  expectedPlannedCount: 2,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "lagging-lines-loader",
+  expectedItems: ["lagging-lines-loader"],
+  expectedResolvedPaths: [
+    "src/components/Loaders/LaggingLinesLoader/LaggingLinesLoader.tsx",
+    "src/components/Loaders/LaggingLinesLoader/LaggingLinesLoaderStyles.module.css",
+    "src/components/Loaders/LaggingLinesLoader/helpers.ts",
   ],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 3,
@@ -1708,5 +1739,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, circle-loader, lagging-lines-loader, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

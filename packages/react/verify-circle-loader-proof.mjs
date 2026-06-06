@@ -10,6 +10,7 @@ const circleLoaderIndexPath = path.join(circleLoaderRoot, "index.ts")
 const packetSourcePath = path.join(packageRoot, "src/registry/circle-loader-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/circle-loader-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
+const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 
@@ -45,6 +46,7 @@ const circleLoaderIndexSource = readRequiredText(circleLoaderIndexPath)
 const packet = JSON.parse(readRequiredText(packetSourcePath))
 const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
+const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
@@ -135,6 +137,13 @@ assert(
   registryIndexSource.includes('export { circleLoaderIngestPacket } from "./circle-loader-ingest-packet"'),
   "Registry index must export CircleLoader packet",
 )
+assert(manifestSource.includes('name: "circle-loader"'), "CircleLoader manifest item must be active")
+requiredPackageFileSources.forEach((sourcePath) => {
+  assert(manifestSource.includes(`sourcePath: "${sourcePath}"`), `CircleLoader manifest must include ${sourcePath}`)
+})
+requiredTargetPaths.forEach((targetPath) => {
+  assert(manifestSource.includes(`targetPath: "${targetPath}"`), `CircleLoader manifest must target ${targetPath}`)
+})
 assert(packageJson.peerDependencies.react, "Package must declare React peer dependency")
 assert(
   packageJson.scripts.test.includes("verify-circle-loader-proof.mjs"),
