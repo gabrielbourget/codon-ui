@@ -2315,6 +2315,72 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "compact-typeahead-search",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/labels.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+      {
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    registryDependencies: [
+      "theme-css",
+      "tokens/geometry",
+      "tokens/placement",
+      "input",
+      "button",
+      "list-box-item",
+      "placeholder-text",
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-aria-components": "^1.17.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
+    },
+  },
+  {
     name: "slider",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
