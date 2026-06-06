@@ -154,6 +154,24 @@ export type { TimePickerProps } from "./components/TimePicker"
 export { Tooltip } from "./components/Tooltip"
 export type { TooltipProps } from "./components/Tooltip"
 export {
+  AVAILABLE_TYPEAHEAD_SEARCH_STATUSES,
+  DEFAULT_TYPEAHEAD_SEARCH_LABELS,
+  resolveTypeaheadSearchLabels,
+  TypeaheadSearch,
+  TYPEAHEAD_SEARCH_STATUS__EMPTY,
+  TYPEAHEAD_SEARCH_STATUS__ERROR,
+  TYPEAHEAD_SEARCH_STATUS__IDLE,
+  TYPEAHEAD_SEARCH_STATUS__LOADING,
+  TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY,
+  TYPEAHEAD_SEARCH_STATUS__RESULTS,
+} from "./components/Search/TypeaheadSearch"
+export type {
+  PartialTypeaheadSearchLabels,
+  TypeaheadSearchLabels,
+  TypeaheadSearchProps,
+  TypeaheadSearchStatus,
+} from "./components/Search/TypeaheadSearch"
+export {
   AVAILABLE_TOAST_POSITIONS,
   AVAILABLE_TOAST_TYPES,
   DEFAULT_MAX_VISIBLE_TOASTS,

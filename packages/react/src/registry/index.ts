@@ -79,6 +79,7 @@ export { timePickerIngestPacket } from "./time-picker-ingest-packet"
 export { toasterIngestPacket } from "./toaster-ingest-packet"
 export { toggleButtonIngestPacket } from "./toggle-button-ingest-packet"
 export { toggleSwitcherIngestPacket } from "./toggle-switcher-ingest-packet"
+export { typeaheadSearchIngestPacket } from "./typeahead-search-ingest-packet"
 export { reactRegistryManifest } from "./manifest"
 export type {
   TRegistryDependencyMap,
