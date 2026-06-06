@@ -2381,6 +2381,23 @@ export const reactRegistryManifest = [
     },
   },
   {
+    name: "thumbnail-image",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ThumbnailImage/ThumbnailImage.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+  },
+  {
     name: "slider",
     type: REGISTRY_ITEM_TYPE__COMPONENT,
     sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,

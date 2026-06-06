@@ -52,6 +52,7 @@ const LOCAL_REACT_REGISTRY_COMPONENT_ITEM_NAMES = new Set([
   "tag-combo-box",
   "typeahead-search",
   "compact-typeahead-search",
+  "thumbnail-image",
   "slider",
   "tag",
   "tag-group",

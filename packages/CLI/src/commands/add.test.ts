@@ -92,6 +92,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["thumbnail-image"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["click-popover"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -1628,6 +1632,14 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "thumbnail-image",
+  expectedItems: ["thumbnail-image"],
+  expectedResolvedPaths: ["src/components/ThumbnailImage/ThumbnailImage.tsx"],
+  expectedMissingDependencyCount: 2,
+  expectedPlannedCount: 1,
+})
+
+await verifyComponentAddPlanning({
   itemName: "alert-dialog",
   expectedItems: [
     "theme-css",
@@ -1696,5 +1708,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )
