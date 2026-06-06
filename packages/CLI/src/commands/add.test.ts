@@ -84,6 +84,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["typeahead-search"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["click-popover"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -1508,6 +1512,58 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "typeahead-search",
+  expectedItems: [
+    "theme-css",
+    "tokens/geometry",
+    "theme/text-typography",
+    "text",
+    "input",
+    "theme/action-colors",
+    "tokens/theme-order",
+    "button",
+    "list-box-item",
+    "placeholder-text",
+    "typeahead-search",
+  ],
+  expectedResolvedPaths: [
+    "src/components/Button/Button.tsx",
+    "src/components/Button/ButtonStyles.module.css",
+    "src/components/Button/helpers.ts",
+    "src/components/Input/Input.tsx",
+    "src/components/Input/InputStyles.module.css",
+    "src/components/Input/helpers.ts",
+    "src/components/ListBoxItem/ListBoxItem.tsx",
+    "src/components/ListBoxItem/ListBoxItemStyles.module.css",
+    "src/components/ListBoxItem/helpers.ts",
+    "src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+    "src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+    "src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+    "src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+    "src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+    "src/components/Search/TypeaheadSearch/helpers.ts",
+    "src/components/Search/TypeaheadSearch/labels.ts",
+    "src/components/Search/TypeaheadSearch/status.ts",
+    "src/components/Text/Text.tsx",
+    "src/components/Text/TextStyles.module.css",
+    "src/components/Text/constants.ts",
+    "src/components/Text/helpers.ts",
+    "src/components/Text/types.ts",
+    "src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+    "src/components/Text/variants/PlaceholderText/helpers.ts",
+    "src/components/_registry/action-colors.css",
+    "src/components/_registry/text-typography.css",
+    "src/components/_registry/theme.css",
+    "src/components/_registry/tokens/geometry.ts",
+    "src/components/_registry/tokens/theme-order.ts",
+  ],
+  expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-transition-box-shadow"],
+  expectedMissingDependencyCount: 4,
+  expectedPlannedCount: 30,
+})
+
+await verifyComponentAddPlanning({
   itemName: "alert-dialog",
   expectedItems: [
     "theme-css",
@@ -1576,5 +1632,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[aminoui-cli] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

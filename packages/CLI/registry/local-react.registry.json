@@ -332,12 +332,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -525,12 +520,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/switch-compatibility",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/switch-compatibility", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -562,12 +552,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/checkbox-compatibility",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/checkbox-compatibility", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -713,12 +698,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "tokens/geometry",
-        "input",
-        "button"
-      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "input", "button"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -756,13 +736,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "tokens/geometry",
-        "tokens/theme-order",
-        "input",
-        "button"
-      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "tokens/theme-order", "input", "button"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1341,14 +1315,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/a11y",
-        "tokens/geometry",
-        "button",
-        "text"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/a11y", "tokens/geometry", "button", "text"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1451,12 +1418,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/radio-compatibility",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/radio-compatibility", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1690,12 +1652,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1727,12 +1684,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1764,12 +1716,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1813,12 +1760,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1850,12 +1792,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "tokens/geometry",
-        "tokens/placement",
-        "tokens/motion"
-      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "tokens/placement", "tokens/motion"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -1939,13 +1876,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "tokens/a11y",
-        "tokens/geometry",
-        "button",
-        "text"
-      ],
+      "registryDependencies": ["theme-css", "tokens/a11y", "tokens/geometry", "button", "text"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -2020,12 +1951,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/a11y",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/a11y", "tokens/theme-order"],
       "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
@@ -2231,6 +2157,68 @@
       "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
+      "name": "typeahead-search",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/TypeaheadSearch.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/status.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "input", "button", "list-box-item", "placeholder-text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "slider",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
@@ -2292,11 +2280,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/tag-compatibility",
-        "tokens/geometry"
-      ],
+      "registryDependencies": ["theme-css", "theme/tag-compatibility", "tokens/geometry"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0"
@@ -2351,12 +2335,7 @@
           "role": "source"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/tag-group-compatibility",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/tag-group-compatibility", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -2437,12 +2416,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "tokens/a11y",
-        "text",
-        "circular-progress"
-      ],
+      "registryDependencies": ["theme-css", "tokens/a11y", "text", "circular-progress"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0"
@@ -2504,12 +2478,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -2541,12 +2510,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/action-colors",
-        "tokens/geometry",
-        "tokens/theme-order"
-      ],
+      "registryDependencies": ["theme-css", "theme/action-colors", "tokens/geometry", "tokens/theme-order"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",
@@ -2578,11 +2542,7 @@
           "role": "style"
         }
       ],
-      "registryDependencies": [
-        "theme-css",
-        "theme/radio-group-compatibility",
-        "radio"
-      ],
+      "registryDependencies": ["theme-css", "theme/radio-group-compatibility", "radio"],
       "peerDependencies": {
         "react": "^18.2.0 || ^19.0.0",
         "react-aria-components": "^1.17.0",

@@ -17,6 +17,7 @@ const themeCSSPath = path.join(packageRoot, "theme.css")
 const packetSourcePath = path.join(packageRoot, "src/registry/typeahead-search-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/typeahead-search-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
+const manifestPath = path.join(packageRoot, "src/registry/manifest.ts")
 const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 
@@ -53,6 +54,7 @@ const themeCSS = readRequiredText(themeCSSPath)
 const packet = JSON.parse(readRequiredText(packetSourcePath))
 const packetWrapperSource = readRequiredText(packetWrapperPath)
 const registryIndexSource = readRequiredText(registryIndexPath)
+const manifestSource = readRequiredText(manifestPath)
 const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
@@ -285,6 +287,13 @@ assert(
   registryIndexSource.includes('export { typeaheadSearchIngestPacket } from "./typeahead-search-ingest-packet"'),
   "registry index must export TypeaheadSearch packet",
 )
+assert(manifestSource.includes('name: "typeahead-search"'), "TypeaheadSearch manifest item must be active")
+for (const requiredSourcePath of requiredPackageFileSources) {
+  assert(
+    manifestSource.includes(`sourcePath: "${requiredSourcePath}"`),
+    `TypeaheadSearch manifest must list ${requiredSourcePath}`,
+  )
+}
 
 if (process.exitCode) process.exit(process.exitCode)
 
