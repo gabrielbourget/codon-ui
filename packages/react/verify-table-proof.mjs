@@ -11,6 +11,10 @@ const publicIndexPath = path.join(packageRoot, "src/index.ts")
 const packageJsonPath = path.join(packageRoot, "package.json")
 const tableIndexPath = path.join(packageRoot, "src/components/Table/index.ts")
 const themeCSSPath = path.join(packageRoot, "theme.css")
+const tableFilterPopoverPath = path.join(
+  packageRoot,
+  "src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+)
 
 const fail = (message) => {
   console.error(`[table-proof] ${message}`)
@@ -35,6 +39,7 @@ const publicIndexSource = readRequiredText(publicIndexPath)
 const tableIndexSource = readRequiredText(tableIndexPath)
 const tableSource = readRequiredText(path.join(packageRoot, "src/components/Table/Table.tsx"))
 const tableHelpersSource = readRequiredText(path.join(packageRoot, "src/components/Table/helpers.ts"))
+const tableFilterPopoverSource = readRequiredText(tableFilterPopoverPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 const themeCSS = readRequiredText(themeCSSPath)
 
@@ -175,6 +180,10 @@ const receivedStyleText = receivedSources
   .filter(({ file }) => file.role === "style")
   .map(({ source }) => source)
   .join("\n")
+const tableFilterPopoverTypeAheadFieldCount =
+  tableFilterPopoverSource.match(/usesTypeAheadInput: column\.filter\?\.usesTypeAheadInput/gu)?.length ?? 0
+const tableFilterPopoverTypeAheadChangeFieldCount =
+  tableFilterPopoverSource.match(/typeAheadInputOnChange: column\.filter\?\.typeAheadInputOnChange/gu)?.length ?? 0
 
 assert(
   receivedSourceText.includes('from "../../tokens/alignment"'),
@@ -215,6 +224,15 @@ assert(
 assert(
   !tableHelpersSource.includes("TColumn extends TTableColumnMetadata<TRow>"),
   "useStableColumns must not leave row inference only in a secondary column constraint",
+)
+assert(
+  tableHelpersSource.includes("usesTypeAheadInput?: boolean") &&
+    tableHelpersSource.includes("typeAheadInputOnChange?: (value: string) => void"),
+  "Table filter metadata must expose the same typeahead flags as generic filter criteria",
+)
+assert(
+  tableFilterPopoverTypeAheadFieldCount === 3 && tableFilterPopoverTypeAheadChangeFieldCount === 3,
+  "TableFilterPopover drafts and criteria metadata must preserve typeahead metadata from column filters",
 )
 
 expectedDefaultThemeVariables.forEach((cssVariable) => {

@@ -61,6 +61,8 @@ export type TTableColumnFilterMetadata = {
   queryKey?: string
   dataType?: TTableFilterArgumentDataType
   allowedOperationCodes?: readonly TTableFilterOperationCode[]
+  usesTypeAheadInput?: boolean
+  typeAheadInputOnChange?: (value: string) => void
   usesSelectInput?: boolean
   usesComboBoxInput?: boolean
   availableCriteriaArguments?: TAvailableListItem[]
