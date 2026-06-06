@@ -1,0 +1,17 @@
+.spinner {
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: var(--track-width) solid var(--track-color);
+  border-top-color: var(--spinner-color);
+  border-right-color: var(--spinner-color);
+  animation: compact-typeahead-search-default-loading-spin var(--duration) linear infinite;
+  will-change: transform;
+}
+
+@keyframes compact-typeahead-search-default-loading-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}

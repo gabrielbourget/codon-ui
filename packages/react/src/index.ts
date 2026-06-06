@@ -48,6 +48,24 @@ export { ClickPopover } from "./components/ClickPopover"
 export type { ClickPopoverProps } from "./components/ClickPopover"
 export { ComboBox } from "./components/ComboBox"
 export type { ComboBoxProps } from "./components/ComboBox"
+export {
+  AVAILABLE_TYPE_AHEAD_SEARCH_SIZES,
+  CompactTypeaheadSearch,
+  DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS,
+  resolveCompactTypeaheadSearchLabels,
+  TYPE_AHEAD_SEARCH_SIZE__LG,
+  TYPE_AHEAD_SEARCH_SIZE__MD,
+  TYPE_AHEAD_SEARCH_SIZE__SM,
+} from "./components/CompactTypeaheadSearch"
+export type {
+  AvailableCompactTypeaheadSearchSizes,
+  CompactTypeaheadSearchLabels,
+  CompactTypeaheadSearchProps,
+  CompactTypeaheadSearchRenderItemArgs,
+  CompactTypeaheadSearchStatusLabels,
+  PartialCompactTypeaheadSearchLabels,
+  PartialCompactTypeaheadSearchStatusLabels,
+} from "./components/CompactTypeaheadSearch"
 export { CircularProgress } from "./components/CircularProgress"
 export type { CircularProgressProps } from "./components/CircularProgress"
 export { Counter } from "./components/Counter"
