@@ -1,18 +1,32 @@
 ---
 title: Component Ingest
-description: Type-only packet shape for receiving component source.
+description: Source-receipt packet shape for reusable components.
 ---
 
 Component ingest is the source-receipt contract before a component becomes an active registry item. It makes the source
 graph, support files, public exports, theme requirements, dependency policy, and proof checks explicit before files move.
 
-`packages/react/src/registry/ingest.ts` defines the current type-only packet. It does not copy files, generate registry
-artifacts, install dependencies, or mutate consumer projects.
+`packages/react/src/registry/ingest.ts` defines the packet shape. It does not copy files, generate registry artifacts,
+install dependencies, or mutate consumer projects.
 
-`packages/react/src/registry/switch-ingest-packet.data.json` is the first concrete packet data source, and
-`packages/react/src/registry/switch-ingest-packet.ts` exposes it as a typed packet. `Switch` runtime source has now been
-received into `packages/react` and activated in the producer manifest. The full local React registry source now owns
-advisory install-plan files; the packet remains advisory metadata until generated component registry artifacts exist.
+Received components use `*-ingest-packet.data.json` as stable source-receipt metadata and a small TypeScript wrapper to
+expose typed packet data. The active manifest owns install planning; packets preserve provenance, public export intent,
+import rewrites, exclusions, theme requirements, and verification notes.
+
+## Packet Lifecycle
+
+The packet is the acceptance proposal for a component graph:
+
+1. Record the Wavemap source repository/ref and the source files under review.
+2. Classify files by role: runtime source, style, support, theme, asset, or optional test material.
+3. List excluded Wavemap paths so consumers and app adapters do not become package source.
+4. Record import resolutions that must be handled before or during installation.
+5. Declare dependency posture and theme requirements.
+6. Name verification commands or scans that prove the receipt.
+7. After source exists in `packages/react`, normalize the installable subset into `manifest.ts`.
+
+The packet can be richer than the manifest. For example, it may preserve source provenance, public export intent, or
+notes about deferred focused tests, while the manifest stays focused on installable files and dependency maps.
 
 ## Packet Areas
 
@@ -38,19 +52,32 @@ The initial strategies are:
 | `proof-compatibility-bridge` | The proof needs a narrow bridge outside the package default CSS.                         |
 | `consumer-owned`             | The component assumes a consumer-owned theme integration that the CLI must validate/add. |
 
-## First Proof Boundary
+## Manifest Boundary
 
-`Switch` remains the first packet target. It records source files, optional focused
-test material, excluded Wavemap consumers, import rewrites, support dependencies, theme bridge requirements, dependency
-posture, and verification commands. Its first-proof package posture now treats React Aria Components as a `^1.17.0` peer
-requirement and `classnames` as a `^2.3.2` runtime requirement. It has been normalized into the active producer manifest;
-strict consumer install behavior remains separate.
+An ingest packet is not the registry authority after activation. The manifest decides active installable items, files,
+registry dependencies, and dependency maps. Packets remain useful for review and CLI metadata that is not part of the
+manifest shape.
 
-The CLI can now read `packages/CLI/registry/local-react.registry.json` plus the packet for `add switch --advisory --json`.
-That output is planning evidence only: it reports support files, received component files, dependency posture, theme
-requirements, and not-written lockfile effects without writing files. Runtime `Switch` files report available source; the
-optional focused test remains metadata-only until the testing work area.
+The CLI can read `packages/CLI/registry/local-react.registry.json` plus packet metadata for local registry items. Advisory
+output reports support files, component files, dependency posture, theme requirements, and not-written lockfile effects
+without writing files.
 
-`add switch --dry-run --json` now reuses the same local React registry source and packet metadata to preview the first
-write shape. It remains non-mutating, but reports would-write file counts, existing target blockers, dependency decision
-counts, and `would-write` lockfile effects.
+Dry-run output reuses the same source and packet metadata to preview write shape. It remains non-mutating, but reports
+would-write file counts, existing target blockers, dependency decision counts, and `would-write` lockfile effects.
+
+## Acceptance Versus Distribution
+
+Acceptance happens in the library monorepo:
+
+- source is present under `packages/react`;
+- package exports are explicit;
+- package typecheck/build requirements are declared;
+- manifest entries describe installable files and dependency edges;
+- local snapshots match the manifest.
+
+Distribution happens in the consumer CLI:
+
+- snapshots are read as registry sources;
+- install plans resolve paths and dependencies for the target consumer;
+- advisory and dry-run output explain the result;
+- strict add writes source only when blockers are absent and updates `amino-ui.lock.json`.

@@ -8,6 +8,17 @@ The CLI is still legacy scaffold. It can stay useful as reference material, but 
 policy, source ownership, component update behavior, package publication, or generated artifact shape before the first
 component proof is ready.
 
+## Graduated Reference
+
+Stable CLI guidance has moved into the docs site:
+
+- `apps/docs/src/content/docs/cli/baseline-contract.md`
+- `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
+- `apps/docs/src/content/docs/registry/local-snapshots.md`
+
+Keep this roadmap focused on remaining lifecycle behavior such as update, dry-run update, safe remove/delete, focused
+diff, and eject.
+
 ## Current Status
 
 Current command surface:

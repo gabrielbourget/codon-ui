@@ -8,6 +8,16 @@ token ownership and theme compatibility strategy.
 It does not move Wavemap component source, activate a `Switch` manifest item, install runtime dependencies, rewrite the
 registry builder, or add CLI behavior.
 
+## Graduated Reference
+
+Stable support and theme guidance has moved into the docs site:
+
+- `apps/docs/src/content/docs/component-library/source-graph.md`
+- `apps/docs/src/content/docs/registry/contracts.md`
+- `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
+
+Keep this roadmap as historical context for the first receiver-support decisions.
+
 ## Support Token Path
 
 `@amino-ui/react` now owns the first internal support token modules:

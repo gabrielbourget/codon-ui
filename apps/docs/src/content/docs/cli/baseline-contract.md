@@ -3,20 +3,20 @@ title: CLI Baseline Contract
 description: Current CLI renovation boundaries and advisory-mode policy.
 ---
 
-The CLI is still legacy scaffold. It should be renovated as a separate lane before command behavior is trusted for
-component extraction.
+The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
+planning, strict init, and strict single-component installs against the React registry snapshot.
 
 ## Current Surface
 
-| Command | Current state                                                                                                                                                                                  |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                        |
-| `add`   | Legacy normal mode remains for other inputs. `add --advisory --json` and `add switch --dry-run --json` plan the local-registry graph; strict `add switch --json` writes the first proof graph. |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                |
+| Command | Current state                                                                                                                                                                                                                   |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                 |
+| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                         |
+| `add`   | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent. |
+| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                                 |
 
-None of these commands should become the first `Switch` proof mechanism until registry artifact policy, install metadata,
-dependency policy, and tests are settled.
+These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
+output, update behavior, or ejection behavior.
 
 ## Command Names
 
@@ -25,7 +25,7 @@ point at `dist/index.js`; package distribution policy remains separate from this
 
 ## Advisory Mode
 
-Future command work should add a shared `--advisory` mode.
+Renovated command paths use `--advisory` as the shared non-mutating diagnostics mode.
 
 Advisory mode should:
 
@@ -44,8 +44,8 @@ Current `init --advisory --json` reports the proposed consumer config, package m
 dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
 under `src/components/_registry`.
 
-Current `init --defaults --json` is the first strict new-contract seed path. It writes only `amino-ui.config.json` and an
-empty `amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
+Current `init --defaults --json` is the strict new-contract seed path. It writes only `amino-ui.config.json` and an empty
+`amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
 overwritten.
 
@@ -57,52 +57,70 @@ files include `sha256:<hex>` content hashes; missing source files produce `sourc
 files use `missing` or `existing` target status, and existing targets produce `target-file-exists` warning findings while
 the command remains read-only and non-blocking.
 
-When `switch` is explicitly requested, advisory mode reads `packages/CLI/registry/local-react.registry.json` for the
-install plan and reads the `Switch` ingest packet for metadata. The output reports component files, support graph files,
+When an explicit local React component is requested, advisory mode reads `packages/CLI/registry/local-react.registry.json`
+for the install plan and packet metadata for review context. The output reports component files, support graph files,
 public export intent, import rewrites, theme requirements, dependency posture, and planned-but-not-written lockfile
-effects. React Aria Components is currently a `^1.17.0` peer requirement and `classnames` is a `^2.3.2` runtime
-requirement; compatible declarations in the target package are reported as `satisfied`. Runtime `Switch` source files
-report available source; the optional focused test is metadata-only until the component-library testing work area. This
-is not strict `add switch`.
+effects. Compatible declarations in the target package are reported as `satisfied`.
 
-Current `add switch --dry-run --json` uses the same local React registry source and packet metadata, but reports
+Current `add <component> --dry-run --json` uses the same local React registry source and packet metadata, but reports
 would-apply effects instead of advisory-only effects. It still writes no files, config, lockfile, directories, or package
 metadata. Missing `amino-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
-paths so the first fixture can preview the exact write set before strict `init` exists. Existing targets are counted as
-blockers, dependency decisions are summarized, and the lockfile effect reports `would-write`.
+paths so fixtures can preview the exact write set before strict init. Existing targets are counted as blockers,
+dependency decisions are summarized, and the lockfile effect reports `would-write`.
 
-Current strict `add switch --json` reads the same local React registry source after strict init has created
+Current strict `add <component> --json` reads the same local React registry source after strict init has created
 `amino-ui.config.json` and `amino-ui.lock.json`. It requires already-satisfied dependencies, rejects missing source files
-and existing target files, writes the seven planned support/theme/component files, rewrites package-local token imports to
-the installed registry token paths, and records hash-based lockfile item/file ownership plus satisfied dependency
-decisions. It does not install packages, overwrite files, generate hosted registry artifacts, or implement update/eject
-behavior.
+and unsafe existing target files, writes the planned support/theme/component graph, rewrites package-local imports to the
+installed registry paths, and records hash-based lockfile item/file ownership plus satisfied dependency decisions. It can
+reuse compatible support files when the lockfile proves they are reusable. It does not install packages, overwrite
+unknown files, generate hosted registry artifacts, or implement update/eject behavior.
 
-## Renovation Order
+## Command Data Flow
+
+The semi-developed command lane is intentionally linear:
+
+```text
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add
+```
+
+`init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
+by `init`.
+
+| Stage             | Reads                                                | Writes                                   |
+| ----------------- | ---------------------------------------------------- | ---------------------------------------- |
+| `init --advisory` | Project shape and package metadata.                  | Nothing.                                 |
+| `init --defaults` | Project shape and existing Amino config/lockfile.    | Config and empty lockfile only.          |
+| `add --advisory`  | Local snapshot, packet metadata, target package.     | Nothing.                                 |
+| `add --dry-run`   | Local snapshot, packet metadata, config if present.  | Nothing.                                 |
+| Strict `add`      | Snapshot, packet metadata, config, lockfile, source. | Source/support/theme files and lockfile. |
+
+This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
+
+## Completed Renovation Sequence
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
 3. Seed strict init with config and empty Amino lockfile only.
 4. Add dry-run previews before strict component writes.
-5. Add the first strict `Switch` install path for the satisfied-dependency, no-conflict proof.
-6. Defer `status`, `update`, and ejection behavior until installed metadata has proof evidence.
+5. Add strict single-component local registry install paths for satisfied-dependency, no-conflict proofs.
 
-## Design Packet
+## Next Lifecycle Targets
 
-The next CLI discussion should use the Wavemap extraction and polish roadmaps as inputs. Those roadmaps frame the CLI as
-declarative, metadata-driven source distribution, with `Switch` still the first likely proof only after theme delivery,
-package-safe imports, dependency policy, and focused tests are settled.
+The next CLI discussion should use the consumer fixture evidence and Wavemap reinstall checkpoints as inputs. The CLI
+should remain declarative and metadata-driven: registry metadata should tell the CLI what to install, track, diff, update,
+remove, and eject.
 
-Discussion targets before strict `init` or `add` behavior expands:
+Discussion targets before lifecycle behavior expands:
 
-- theme tiers: package default CSS, narrow `Switch` compatibility bridge, consumer-owned mapping, later generated output;
+- theme tiers: package default CSS, narrow compatibility bridges, consumer-owned mapping, later generated output;
 - install metadata: file hashes, registry ids, versions, dependencies, and chosen theme tier;
 - ownership states: registry-owned, locally modified, ejected, consumer-owned support, and unknown;
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
-- first proof mode: prefer advisory `init`/`add` reports until the metadata ledger and registry authority are approved.
+- lifecycle proof mode: prefer advisory and dry-run reports until update, remove/delete, focused diff, and eject metadata
+  behavior is approved.
 
 ## Boundaries
 
-Do not expand CLI install/update/diff behavior, registry artifact shape, component movement, generated token writers, or
+Do not expand update, remove/delete, focused diff, eject, registry artifact hosting, generated token writers, or
 publication policy as incidental cleanup.
