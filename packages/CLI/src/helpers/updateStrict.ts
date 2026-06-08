@@ -23,6 +23,16 @@ import {
   type TInstallPlanFile,
   type TRegistryInstallPlan,
 } from "./installPlan"
+import {
+  CLI_PROJECT_RESOURCE_STATUS__PRESENT,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_STRICT_WRITE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+  CLI_WRITE_STATUS__WRITTEN,
+} from "./reportConstants"
 import { createUpdateDryRunReport, type TUpdateDryRunFile, type TUpdateDryRunReport } from "./updateDryRun"
 
 const UPDATE_STRICT_SCHEMA_VERSION = 1
@@ -113,7 +123,7 @@ export const updateStrictReportSchema = z
       .object({
         dependencies: z
           .object({
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
             updatedCount: z.literal(0),
           })
           .strict(),
@@ -132,7 +142,7 @@ export const updateStrictReportSchema = z
         lockfile: z
           .object({
             plannedItem: z.string().min(1).optional(),
-            status: z.enum(["written", "blocked", "not-written"]),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
             updatedFileRecordCount: z.number().int().nonnegative(),
             updatedItem: z.boolean(),
           })
@@ -151,14 +161,14 @@ export const updateStrictReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(UPDATE_STRICT_SCHEMA_VERSION).default(UPDATE_STRICT_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
   })
@@ -238,7 +248,7 @@ const createDryRunBlockers = (dryRunReport: TUpdateDryRunReport) =>
 const createProjectStateBlockers = (dryRunReport: TUpdateDryRunReport) => {
   const blockers: TUpdateStrictBlocker[] = []
 
-  if (dryRunReport.status.config !== "present") {
+  if (dryRunReport.status.config !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createUpdateStrictBlocker({
         code: "strict-update-config-blocker",
@@ -249,7 +259,7 @@ const createProjectStateBlockers = (dryRunReport: TUpdateDryRunReport) => {
     )
   }
 
-  if (dryRunReport.status.lockfile !== "present") {
+  if (dryRunReport.status.lockfile !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createUpdateStrictBlocker({
         code: "strict-update-lockfile-status-blocker",
@@ -280,7 +290,10 @@ const createProjectStateBlockers = (dryRunReport: TUpdateDryRunReport) => {
     )
   }
 
-  if (dryRunReport.itemUpdateState === "would-update" && dryRunReport.wouldEffects.lockfile.status !== "would-write") {
+  if (
+    dryRunReport.itemUpdateState === "would-update" &&
+    dryRunReport.wouldEffects.lockfile.status !== CLI_WRITE_STATUS__WOULD_WRITE
+  ) {
     blockers.push(
       createUpdateStrictBlocker({
         code: "strict-update-lockfile-effect-blocker",
@@ -291,7 +304,10 @@ const createProjectStateBlockers = (dryRunReport: TUpdateDryRunReport) => {
     )
   }
 
-  if (dryRunReport.itemUpdateState === "up-to-date" && dryRunReport.wouldEffects.lockfile.status !== "not-written") {
+  if (
+    dryRunReport.itemUpdateState === "up-to-date" &&
+    dryRunReport.wouldEffects.lockfile.status !== CLI_WRITE_STATUS__NOT_WRITTEN
+  ) {
     blockers.push(
       createUpdateStrictBlocker({
         code: "strict-update-up-to-date-effect-blocker",
@@ -879,7 +895,7 @@ const createUpdateStrictEffects = ({
 
   return {
     dependencies: {
-      status: "not-written",
+      status: CLI_WRITE_STATUS__NOT_WRITTEN,
       updatedCount: 0,
     },
     files: {
@@ -894,7 +910,7 @@ const createUpdateStrictEffects = ({
     installsDependencies: false,
     lockfile: {
       plannedItem: dryRunReport.files.length > 0 ? dryRunReport.itemName : undefined,
-      status: applied ? "written" : blocked ? "blocked" : "not-written",
+      status: applied ? CLI_WRITE_STATUS__WRITTEN : blocked ? CLI_WRITE_STATUS__BLOCKED : CLI_WRITE_STATUS__NOT_WRITTEN,
       updatedFileRecordCount: lockfileRecordUpdatedCount,
       updatedItem: applied,
     },

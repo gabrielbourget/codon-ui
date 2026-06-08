@@ -2,7 +2,16 @@ import { z } from "zod"
 
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
 import { createEjectAdvisoryReport, type TEjectAdvisoryReport } from "./ejectAdvisory"
+import { EJECT_TARGETS } from "./ejectConstants"
 import { INSTALL_PLAN_FINDING_SEVERITY__ERROR, INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import {
+  CLI_DRY_RUN_WRITE_STATUSES,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+} from "./reportConstants"
 
 const EJECT_DRY_RUN_SCHEMA_VERSION = 1
 
@@ -67,7 +76,7 @@ const ejectDryRunFileSchema = z
     currentHash: z.string().min(1).optional(),
     currentSourceHash: z.string().min(1).optional(),
     dryRunAction: z.enum(EJECT_DRY_RUN_ACTIONS),
-    ejectionTarget: z.enum(["lockfile-ownership", "none"]),
+    ejectionTarget: z.enum(EJECT_TARGETS),
     installedHash: z.string().min(1),
     itemName: z.string().min(1),
     path: z.string().min(1),
@@ -105,14 +114,14 @@ export const ejectDryRunReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(EJECT_DRY_RUN_SCHEMA_VERSION).default(EJECT_DRY_RUN_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -138,7 +147,7 @@ export const ejectDryRunReportSchema = z
         dependencies: z
           .object({
             plannedMutationCount: z.literal(0),
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
           })
           .strict(),
         files: z
@@ -153,7 +162,7 @@ export const ejectDryRunReportSchema = z
           .object({
             plannedFileCount: z.number().int().nonnegative(),
             plannedItem: z.string().min(1).optional(),
-            status: z.enum(["would-write", "blocked", "not-written"]),
+            status: z.enum(CLI_DRY_RUN_WRITE_STATUSES),
             wouldEjectFileRecordCount: z.number().int().nonnegative(),
             wouldEjectItem: z.boolean(),
           })
@@ -363,7 +372,11 @@ export const createEjectDryRunReport = async ({
   const skippedFileCount = files.filter((file) => file.dryRunAction.startsWith("skip-")).length
   const wouldEjectLockfileRecordCount = files.filter((file) => file.wouldEjectLockfileOwnership).length
   const lockfileStatus =
-    blockers.length > 0 ? "blocked" : wouldEjectLockfileRecordCount > 0 ? "would-write" : ("not-written" as const)
+    blockers.length > 0
+      ? CLI_WRITE_STATUS__BLOCKED
+      : wouldEjectLockfileRecordCount > 0
+        ? CLI_WRITE_STATUS__WOULD_WRITE
+        : CLI_WRITE_STATUS__NOT_WRITTEN
 
   return ejectDryRunReportSchema.parse({
     blockers,
@@ -404,7 +417,7 @@ export const createEjectDryRunReport = async ({
     wouldEffects: {
       dependencies: {
         plannedMutationCount: 0,
-        status: "not-written",
+        status: CLI_WRITE_STATUS__NOT_WRITTEN,
       },
       files: {
         alreadyEjectedCount,
@@ -417,7 +430,7 @@ export const createEjectDryRunReport = async ({
         plannedItem: files.length > 0 ? itemName : undefined,
         status: lockfileStatus,
         wouldEjectFileRecordCount: wouldEjectLockfileRecordCount,
-        wouldEjectItem: lockfileStatus === "would-write",
+        wouldEjectItem: lockfileStatus === CLI_WRITE_STATUS__WOULD_WRITE,
       },
     },
   })

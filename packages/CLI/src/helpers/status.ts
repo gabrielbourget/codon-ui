@@ -37,6 +37,18 @@ import {
   getDefaultLocalSupportRegistrySourcePath,
   isLocalReactRegistryComponentItemRequest,
 } from "./installPlan/localRegistry"
+import {
+  CLI_PROJECT_RESOURCE_STATUS__INVALID,
+  CLI_PROJECT_RESOURCE_STATUS__MISSING,
+  CLI_PROJECT_RESOURCE_STATUS__PRESENT,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUS__LOADED,
+  CLI_REGISTRY_SOURCE_STATUS__NOT_REQUESTED,
+  CLI_REGISTRY_SOURCE_STATUS__UNAVAILABLE,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  type TCliProjectResourceStatus,
+  type TCliRegistrySourceStatus,
+} from "./reportConstants"
 
 const STATUS_SCHEMA_VERSION = 1
 const STATUS_FILE_STATE__MISSING = "missing"
@@ -145,7 +157,7 @@ const statusReportSchema = z
     config: z
       .object({
         path: z.string().min(1),
-        status: z.enum(["present", "missing", "invalid"]),
+        status: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     cwd: z.string().min(1),
@@ -157,14 +169,14 @@ const statusReportSchema = z
       .object({
         itemCount: z.number().int().nonnegative(),
         path: z.string().min(1),
-        status: z.enum(["present", "missing", "invalid"]),
+        status: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     registrySource: z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     requestedItems: z.array(z.string().min(1)).default([]),
@@ -233,7 +245,7 @@ const readStatusRegistrySource = async (registrySourcePath: string): Promise<TSt
 
 const readConsumerConfigForStatus = async (
   cwd: string,
-): Promise<{ config: TConsumerConfig; findings: TStatusFinding[]; status: "present" | "missing" | "invalid" }> => {
+): Promise<{ config: TConsumerConfig; findings: TStatusFinding[]; status: TCliProjectResourceStatus }> => {
   const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
@@ -248,7 +260,7 @@ const readConsumerConfigForStatus = async (
           targetPath: AMINO_UI_CONFIG_FILE_NAME,
         },
       ],
-      status: "missing",
+      status: CLI_PROJECT_RESOURCE_STATUS__MISSING,
     }
   }
 
@@ -256,7 +268,7 @@ const readConsumerConfigForStatus = async (
     return {
       config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
       findings: [],
-      status: "present",
+      status: CLI_PROJECT_RESOURCE_STATUS__PRESENT,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown config parse error."
@@ -271,7 +283,7 @@ const readConsumerConfigForStatus = async (
           targetPath: AMINO_UI_CONFIG_FILE_NAME,
         },
       ],
-      status: "invalid",
+      status: CLI_PROJECT_RESOURCE_STATUS__INVALID,
     }
   }
 }
@@ -281,7 +293,7 @@ const readConsumerLockfileForStatus = async (
 ): Promise<{
   findings: TStatusFinding[]
   lockfileData: TConsumerLockfile
-  status: "present" | "missing" | "invalid"
+  status: TCliProjectResourceStatus
 }> => {
   const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
   const fallbackLockfile = consumerLockfileSchema.parse({})
@@ -297,7 +309,7 @@ const readConsumerLockfileForStatus = async (
         },
       ],
       lockfileData: fallbackLockfile,
-      status: "missing",
+      status: CLI_PROJECT_RESOURCE_STATUS__MISSING,
     }
   }
 
@@ -305,7 +317,7 @@ const readConsumerLockfileForStatus = async (
     return {
       findings: [],
       lockfileData: consumerLockfileSchema.parse(JSON.parse(await fs.readFile(lockfilePath, "utf8"))),
-      status: "present",
+      status: CLI_PROJECT_RESOURCE_STATUS__PRESENT,
     }
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown lockfile parse error."
@@ -320,7 +332,7 @@ const readConsumerLockfileForStatus = async (
         },
       ],
       lockfileData: fallbackLockfile,
-      status: "invalid",
+      status: CLI_PROJECT_RESOURCE_STATUS__INVALID,
     }
   }
 }
@@ -466,8 +478,8 @@ export const createStatusReport = async ({
   const allLockfileItemNames = Object.keys(lockfilePlan.lockfileData.items)
   const requestedItems = itemName ? [itemName] : allLockfileItemNames
   const findings: TStatusFinding[] = [...configPlan.findings, ...lockfilePlan.findings]
-  let registrySourceStatus: "loaded" | "unavailable" | "not-requested" =
-    requestedItems.length > 0 ? "unavailable" : "not-requested"
+  let registrySourceStatus: TCliRegistrySourceStatus =
+    requestedItems.length > 0 ? CLI_REGISTRY_SOURCE_STATUS__UNAVAILABLE : CLI_REGISTRY_SOURCE_STATUS__NOT_REQUESTED
   let resolvedRegistrySourcePath = registrySourcePath ? path.resolve(registrySourcePath) : undefined
   let registrySourceIdentity: string | undefined
   let sourceFileMap = new Map<string, TStatusSourceFile>()
@@ -485,7 +497,7 @@ export const createStatusReport = async ({
         registrySource: registryReadResult.registrySource,
         sourceRoot: registryReadResult.sourceRoot,
       })
-      registrySourceStatus = "loaded"
+      registrySourceStatus = CLI_REGISTRY_SOURCE_STATUS__LOADED
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown registry source error."
 

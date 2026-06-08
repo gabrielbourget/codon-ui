@@ -12,7 +12,18 @@ import {
   type TConsumerLockfile,
 } from "./consumerContract"
 import { INSTALL_PLAN_FINDING_SEVERITY__ERROR, INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import { REMOVE_TARGET__FILE_AND_LOCKFILE, REMOVE_TARGET__LOCKFILE_ONLY, REMOVE_TARGETS } from "./removeConstants"
 import { createRemoveDryRunReport, type TRemoveDryRunFile, type TRemoveDryRunReport } from "./removeDryRun"
+import {
+  CLI_PROJECT_RESOURCE_STATUS__PRESENT,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_STRICT_WRITE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+  CLI_WRITE_STATUS__WRITTEN,
+} from "./reportConstants"
 
 const REMOVE_STRICT_SCHEMA_VERSION = 1
 
@@ -74,7 +85,7 @@ const removeStrictFileSchema = z
     installedHash: z.string().min(1),
     itemName: z.string().min(1),
     path: z.string().min(1),
-    removalTarget: z.enum(["file-and-lockfile", "lockfile-only", "none"]),
+    removalTarget: z.enum(REMOVE_TARGETS),
     removedFile: z.boolean(),
     removedLockfileRecord: z.boolean(),
     strictAction: z.enum(REMOVE_STRICT_FILE_ACTIONS),
@@ -119,7 +130,7 @@ export const removeStrictReportSchema = z
         dependencies: z
           .object({
             removedCount: z.literal(0),
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
           })
           .strict(),
         files: z
@@ -136,7 +147,7 @@ export const removeStrictReportSchema = z
             plannedItem: z.string().min(1).optional(),
             removedFileRecordCount: z.number().int().nonnegative(),
             removedItem: z.boolean(),
-            status: z.enum(["written", "blocked", "not-written"]),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
           })
           .strict(),
         orphanCleanup: z
@@ -147,7 +158,7 @@ export const removeStrictReportSchema = z
             plannedItemCount: z.number().int().nonnegative(),
             removedFileRecordCount: z.number().int().nonnegative(),
             removedItemCount: z.number().int().nonnegative(),
-            status: z.enum(["written", "blocked", "not-written"]),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
           })
           .strict(),
         writesConfig: z.literal(false),
@@ -165,14 +176,14 @@ export const removeStrictReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(REMOVE_STRICT_SCHEMA_VERSION).default(REMOVE_STRICT_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
   })
@@ -289,7 +300,7 @@ const createDryRunBlockers = (dryRunReport: TRemoveDryRunReport) =>
 const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
   const blockers: TRemoveStrictBlocker[] = []
 
-  if (dryRunReport.status.config !== "present") {
+  if (dryRunReport.status.config !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createRemoveStrictBlocker({
         code: "strict-remove-config-blocker",
@@ -300,7 +311,7 @@ const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
     )
   }
 
-  if (dryRunReport.status.lockfile !== "present") {
+  if (dryRunReport.status.lockfile !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createRemoveStrictBlocker({
         code: "strict-remove-lockfile-status-blocker",
@@ -331,7 +342,7 @@ const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
     )
   }
 
-  if (dryRunReport.wouldEffects.lockfile.status !== "would-write") {
+  if (dryRunReport.wouldEffects.lockfile.status !== CLI_WRITE_STATUS__WOULD_WRITE) {
     blockers.push(
       createRemoveStrictBlocker({
         code: "strict-remove-lockfile-effect-blocker",
@@ -345,7 +356,7 @@ const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
   if (
     dryRunReport.orphanCleanup.enabled &&
     dryRunReport.orphanCleanup.itemCount > 0 &&
-    dryRunReport.wouldEffects.orphanCleanup.status !== "would-write"
+    dryRunReport.wouldEffects.orphanCleanup.status !== CLI_WRITE_STATUS__WOULD_WRITE
   ) {
     blockers.push(
       createRemoveStrictBlocker({
@@ -491,10 +502,10 @@ const createFileBlockersForFiles = async ({
 }) => {
   const blockerLists = await Promise.all(
     dryRunFiles.map(async (dryRunFile) => {
-      if (dryRunFile.dryRunAction === "would-remove-file-and-lockfile") {
+      if (dryRunFile.removalTarget === REMOVE_TARGET__FILE_AND_LOCKFILE) {
         return createFilePreflightBlockers({ cwd, dryRunFile })
       }
-      if (dryRunFile.dryRunAction === "would-remove-lockfile-record") {
+      if (dryRunFile.removalTarget === REMOVE_TARGET__LOCKFILE_ONLY) {
         return createFilePreflightBlockers({ cwd, dryRunFile })
       }
 
@@ -734,15 +745,15 @@ const createRemoveStrictEffects = ({
   const removedFileRecordCount = files.filter((file) => file.removedLockfileRecord).length
   const orphanCleanupStatus =
     !orphanCleanup.enabled || orphanCleanup.plannedItemCount === 0
-      ? "not-written"
+      ? CLI_WRITE_STATUS__NOT_WRITTEN
       : applied
-        ? "written"
-        : ("blocked" as const)
+        ? CLI_WRITE_STATUS__WRITTEN
+        : CLI_WRITE_STATUS__BLOCKED
 
   return {
     dependencies: {
       removedCount: 0,
-      status: "not-written",
+      status: CLI_WRITE_STATUS__NOT_WRITTEN,
     },
     files: {
       deletedCount,
@@ -755,7 +766,11 @@ const createRemoveStrictEffects = ({
       plannedItem: dryRunReport.files.length > 0 ? dryRunReport.itemName : undefined,
       removedFileRecordCount,
       removedItem: applied,
-      status: applied ? "written" : dryRunReport.files.length > 0 ? "blocked" : "not-written",
+      status: applied
+        ? CLI_WRITE_STATUS__WRITTEN
+        : dryRunReport.files.length > 0
+          ? CLI_WRITE_STATUS__BLOCKED
+          : CLI_WRITE_STATUS__NOT_WRITTEN,
     },
     orphanCleanup: {
       deletedCount: orphanCleanup.deletedFileCount,

@@ -12,8 +12,19 @@ import {
   consumerTargetRoleSchema,
   type TConsumerLockfile,
 } from "./consumerContract"
+import { EJECT_TARGETS } from "./ejectConstants"
 import { createEjectDryRunReport, type TEjectDryRunFile, type TEjectDryRunReport } from "./ejectDryRun"
 import { INSTALL_PLAN_FINDING_SEVERITY__ERROR, INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import {
+  CLI_PROJECT_RESOURCE_STATUS__PRESENT,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_STRICT_WRITE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+  CLI_WRITE_STATUS__WRITTEN,
+} from "./reportConstants"
 
 const EJECT_STRICT_SCHEMA_VERSION = 1
 
@@ -75,7 +86,7 @@ const ejectStrictFileSchema = z
   .object({
     dryRunAction: z.string().min(1),
     ejectedLockfileOwnership: z.boolean(),
-    ejectionTarget: z.enum(["lockfile-ownership", "none"]),
+    ejectionTarget: z.enum(EJECT_TARGETS),
     installedHash: z.string().min(1),
     itemName: z.string().min(1),
     path: z.string().min(1),
@@ -95,7 +106,7 @@ export const ejectStrictReportSchema = z
       .object({
         dependencies: z
           .object({
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
             updatedCount: z.literal(0),
           })
           .strict(),
@@ -114,7 +125,7 @@ export const ejectStrictReportSchema = z
             ejectedFileRecordCount: z.number().int().nonnegative(),
             ejectedItem: z.boolean(),
             plannedItem: z.string().min(1).optional(),
-            status: z.enum(["written", "blocked", "not-written"]),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
           })
           .strict(),
         writesConfig: z.literal(false),
@@ -131,14 +142,14 @@ export const ejectStrictReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(EJECT_STRICT_SCHEMA_VERSION).default(EJECT_STRICT_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
   })
@@ -241,7 +252,7 @@ const createDryRunBlockers = (dryRunReport: TEjectDryRunReport) =>
 const createProjectStateBlockers = (dryRunReport: TEjectDryRunReport) => {
   const blockers: TEjectStrictBlocker[] = []
 
-  if (dryRunReport.status.config !== "present") {
+  if (dryRunReport.status.config !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createEjectStrictBlocker({
         code: "strict-eject-config-blocker",
@@ -252,7 +263,7 @@ const createProjectStateBlockers = (dryRunReport: TEjectDryRunReport) => {
     )
   }
 
-  if (dryRunReport.status.lockfile !== "present") {
+  if (dryRunReport.status.lockfile !== CLI_PROJECT_RESOURCE_STATUS__PRESENT) {
     blockers.push(
       createEjectStrictBlocker({
         code: "strict-eject-lockfile-status-blocker",
@@ -283,7 +294,10 @@ const createProjectStateBlockers = (dryRunReport: TEjectDryRunReport) => {
     )
   }
 
-  if (dryRunReport.itemEjectState === "would-eject" && dryRunReport.wouldEffects.lockfile.status !== "would-write") {
+  if (
+    dryRunReport.itemEjectState === "would-eject" &&
+    dryRunReport.wouldEffects.lockfile.status !== CLI_WRITE_STATUS__WOULD_WRITE
+  ) {
     blockers.push(
       createEjectStrictBlocker({
         code: "strict-eject-lockfile-effect-blocker",
@@ -296,7 +310,7 @@ const createProjectStateBlockers = (dryRunReport: TEjectDryRunReport) => {
 
   if (
     dryRunReport.itemEjectState === "already-ejected" &&
-    dryRunReport.wouldEffects.lockfile.status !== "not-written"
+    dryRunReport.wouldEffects.lockfile.status !== CLI_WRITE_STATUS__NOT_WRITTEN
   ) {
     blockers.push(
       createEjectStrictBlocker({
@@ -523,7 +537,7 @@ const createEjectStrictEffects = ({
 
   return {
     dependencies: {
-      status: "not-written",
+      status: CLI_WRITE_STATUS__NOT_WRITTEN,
       updatedCount: 0,
     },
     files: {
@@ -538,7 +552,7 @@ const createEjectStrictEffects = ({
       ejectedFileRecordCount: ejectedLockfileRecordCount,
       ejectedItem: applied,
       plannedItem: dryRunReport.files.length > 0 ? dryRunReport.itemName : undefined,
-      status: applied ? "written" : blocked ? "blocked" : "not-written",
+      status: applied ? CLI_WRITE_STATUS__WRITTEN : blocked ? CLI_WRITE_STATUS__BLOCKED : CLI_WRITE_STATUS__NOT_WRITTEN,
     },
     writesConfig: false,
     writesFiles: false,

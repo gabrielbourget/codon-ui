@@ -1,11 +1,15 @@
 import { z } from "zod"
 
+import { PACKAGE_MANIFEST_DEPENDENCY_FIELDS } from "../packageManifestConstants"
+import { CLI_DRY_RUN_WRITE_STATUSES, CLI_WRITE_STATUS__NOT_WRITTEN } from "../reportConstants"
+
 import {
   AMINO_UI_CONFIG_FILE_NAME,
   AMINO_UI_LOCK_FILE_NAME,
   CONSUMER_ADVISORY_SEVERITIES,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_DEPENDENCY_ACTIONS,
+  CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
   CONSUMER_DEPENDENCY_POLICIES,
   CONSUMER_LAYOUT_MODE__REGISTRY_CONTAINED,
   CONSUMER_LAYOUT_MODES,
@@ -55,7 +59,7 @@ export const consumerConfigSchema = z
       .default({}),
     dependencies: z
       .object({
-        policy: z.enum(CONSUMER_DEPENDENCY_POLICIES).default("report-only"),
+        policy: z.enum(CONSUMER_DEPENDENCY_POLICIES).default(CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY),
       })
       .default({}),
   })
@@ -85,7 +89,7 @@ export const consumerLockfileItemSchema = z
 export const consumerLockfileDependencySchema = z
   .object({
     action: z.enum(CONSUMER_DEPENDENCY_ACTIONS).default(CONSUMER_DEPENDENCY_ACTION__NONE),
-    declaredIn: z.enum(["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]).optional(),
+    declaredIn: z.enum(PACKAGE_MANIFEST_DEPENDENCY_FIELDS).optional(),
     declaredRange: z.string().min(1).optional(),
     kind: z.string().min(1),
     name: z.string().min(1),
@@ -170,7 +174,7 @@ export const consumerInitSeedResultSchema = z
 
 export type TConsumerInitSeedResult = z.infer<typeof consumerInitSeedResultSchema>
 
-const consumerInitDryRunEffectStatusSchema = z.enum(["would-write", "blocked", "not-written"])
+const consumerInitDryRunEffectStatusSchema = z.enum(CLI_DRY_RUN_WRITE_STATUSES)
 
 export const consumerInitDryRunResultSchema = z
   .object({
@@ -205,13 +209,13 @@ export const consumerInitDryRunResultSchema = z
         dependencies: z
           .object({
             plannedInstallCount: z.literal(0),
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
           })
           .strict(),
         directories: z
           .object({
             plannedCount: z.literal(0),
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
           })
           .strict(),
         lockfile: z

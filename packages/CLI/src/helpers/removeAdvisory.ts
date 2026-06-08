@@ -12,6 +12,13 @@ import {
   type TConsumerLockfile,
 } from "./consumerContract"
 import { INSTALL_PLAN_FINDING_SEVERITIES, localRegistrySourceSchema, type TLocalRegistryItem } from "./installPlan"
+import {
+  REMOVE_TARGET__FILE_AND_LOCKFILE,
+  REMOVE_TARGET__LOCKFILE_ONLY,
+  REMOVE_TARGET__NONE,
+  REMOVE_TARGETS,
+} from "./removeConstants"
+import { CLI_PROJECT_RESOURCE_STATUSES, CLI_REGISTRY_SOURCE_STATUSES } from "./reportConstants"
 import { createStatusReport, type TStatusReport } from "./status"
 
 const REMOVE_ADVISORY_SCHEMA_VERSION = 1
@@ -79,7 +86,7 @@ const removeAdvisoryFileSchema = z
     itemName: z.string().min(1),
     path: z.string().min(1),
     preservationRequired: z.boolean(),
-    removalTarget: z.enum(["file-and-lockfile", "lockfile-only", "none"]),
+    removalTarget: z.enum(REMOVE_TARGETS),
     reviewRequired: z.boolean(),
     sharedReferenceCount: z.number().int().nonnegative(),
     sourceHash: z.string().min(1),
@@ -168,14 +175,14 @@ export const removeAdvisoryReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(REMOVE_ADVISORY_SCHEMA_VERSION).default(REMOVE_ADVISORY_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -304,10 +311,10 @@ const resolveOrphanAction = ({
 }
 
 const resolveRemovalTarget = (action: (typeof REMOVE_ADVISORY_ACTIONS)[number]) => {
-  if (action === REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE) return "file-and-lockfile"
-  if (action === REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE) return "lockfile-only"
+  if (action === REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE) return REMOVE_TARGET__FILE_AND_LOCKFILE
+  if (action === REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE) return REMOVE_TARGET__LOCKFILE_ONLY
 
-  return "none"
+  return REMOVE_TARGET__NONE
 }
 
 const resolvePreservationRequired = (action: (typeof REMOVE_ADVISORY_ACTIONS)[number]) =>

@@ -2,6 +2,11 @@ import { existsSync, readFileSync } from "fs"
 import path from "path"
 
 import {
+  PACKAGE_MANIFEST_DEPENDENCY_FIELDS,
+  type TPackageManifestDependencyField,
+} from "@/src/helpers/packageManifestConstants"
+
+import {
   INSTALL_PLAN_DEPENDENCY_KIND__DEV,
   INSTALL_PLAN_DEPENDENCY_KIND__PEER,
   INSTALL_PLAN_DEPENDENCY_KIND__RUNTIME,
@@ -24,10 +29,8 @@ import {
   type TInstallPlanFinding,
 } from "./schema"
 
-type TPackageDependencySection = "dependencies" | "devDependencies" | "peerDependencies" | "optionalDependencies"
-
 type TDeclaredDependency = {
-  declaredIn: TPackageDependencySection
+  declaredIn: TPackageManifestDependencyField
   declaredRange: string
 }
 
@@ -47,12 +50,7 @@ type TRangeInterval = {
   min?: TRangeBoundary
 }
 
-const PACKAGE_DEPENDENCY_SECTIONS: readonly TPackageDependencySection[] = [
-  "dependencies",
-  "devDependencies",
-  "peerDependencies",
-  "optionalDependencies",
-]
+const PACKAGE_DEPENDENCY_SECTIONS = PACKAGE_MANIFEST_DEPENDENCY_FIELDS
 
 const UNRESOLVED_REQUIRED_RANGE = "TO_DECIDE"
 

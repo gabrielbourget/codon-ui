@@ -23,6 +23,15 @@ import {
   type TInstallPlanFinding,
   type TRegistryInstallPlan,
 } from "./installPlan"
+import {
+  CLI_DRY_RUN_WRITE_STATUSES,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUS__LOADED,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+} from "./reportConstants"
 import { createUpdateAdvisoryReport, type TUpdateAdvisoryReport } from "./updateAdvisory"
 
 const UPDATE_DRY_RUN_SCHEMA_VERSION = 1
@@ -129,14 +138,14 @@ export const updateDryRunReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(UPDATE_DRY_RUN_SCHEMA_VERSION).default(UPDATE_DRY_RUN_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -179,7 +188,7 @@ export const updateDryRunReportSchema = z
           .object({
             plannedFileCount: z.number().int().nonnegative(),
             plannedItem: z.string().min(1).optional(),
-            status: z.enum(["would-write", "blocked", "not-written"]),
+            status: z.enum(CLI_DRY_RUN_WRITE_STATUSES),
             wouldWriteFileCount: z.number().int().nonnegative(),
           })
           .strict(),
@@ -271,7 +280,10 @@ const readUpdateDryRunPlan = async ({
   cwd: string
   itemName: string
 }): Promise<TUpdateDryRunPlan> => {
-  if (advisoryReport.registrySource.status !== "loaded" || !advisoryReport.registrySource.path) {
+  if (
+    advisoryReport.registrySource.status !== CLI_REGISTRY_SOURCE_STATUS__LOADED ||
+    !advisoryReport.registrySource.path
+  ) {
     return {
       dependencyBlockers: [],
       dependencies: [],
@@ -668,7 +680,11 @@ export const createUpdateDryRunReport = async ({
   const blockedFileCount = files.filter((file) => file.dryRunAction === UPDATE_DRY_RUN_FILE_ACTION__BLOCKED).length
   const skippedFileCount = files.filter((file) => file.dryRunAction === UPDATE_DRY_RUN_FILE_ACTION__WOULD_SKIP).length
   const lockfileStatus =
-    blockers.length > 0 ? "blocked" : wouldUpdateLockfileFileCount > 0 ? "would-write" : ("not-written" as const)
+    blockers.length > 0
+      ? CLI_WRITE_STATUS__BLOCKED
+      : wouldUpdateLockfileFileCount > 0
+        ? CLI_WRITE_STATUS__WOULD_WRITE
+        : CLI_WRITE_STATUS__NOT_WRITTEN
 
   return updateDryRunReportSchema.parse({
     blockers,

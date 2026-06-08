@@ -5,6 +5,11 @@ import { diffLines } from "diff"
 import { z } from "zod"
 
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
+import {
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUS__LOADED,
+  CLI_REGISTRY_SOURCE_STATUSES,
+} from "./reportConstants"
 import { createStatusReport, type TStatusFinding, type TStatusReport } from "./status"
 
 const DIFF_SCHEMA_VERSION = 1
@@ -157,14 +162,14 @@ export const diffReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(DIFF_SCHEMA_VERSION).default(DIFF_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -355,7 +360,7 @@ export const createDiffReport = async ({
     registrySourcePath,
   })
   const sourceRoot =
-    statusReport.registrySource.status === "loaded"
+    statusReport.registrySource.status === CLI_REGISTRY_SOURCE_STATUS__LOADED
       ? await readRegistrySourceRoot(statusReport.registrySource.path)
       : undefined
   const files = await Promise.all(

@@ -9,7 +9,9 @@ import {
   consumerLockfileSchema,
   consumerTargetRoleSchema,
 } from "./consumerContract"
+import { EJECT_TARGET__LOCKFILE_OWNERSHIP, EJECT_TARGET__NONE, EJECT_TARGETS } from "./ejectConstants"
 import { INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import { CLI_PROJECT_RESOURCE_STATUSES, CLI_REGISTRY_SOURCE_STATUSES } from "./reportConstants"
 import { createStatusReport, type TStatusReport } from "./status"
 
 const EJECT_ADVISORY_SCHEMA_VERSION = 1
@@ -63,7 +65,7 @@ const ejectAdvisoryFileSchema = z
     blocksAutomaticEject: z.boolean(),
     currentHash: z.string().min(1).optional(),
     currentSourceHash: z.string().min(1).optional(),
-    ejectionTarget: z.enum(["lockfile-ownership", "none"]),
+    ejectionTarget: z.enum(EJECT_TARGETS),
     installedHash: z.string().min(1),
     itemName: z.string().min(1),
     path: z.string().min(1),
@@ -109,14 +111,14 @@ export const ejectAdvisoryReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(EJECT_ADVISORY_SCHEMA_VERSION).default(EJECT_ADVISORY_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -206,9 +208,9 @@ const resolveAction = ({
 }
 
 const resolveEjectionTarget = (action: (typeof EJECT_ADVISORY_ACTIONS)[number]) => {
-  if (action === EJECT_ADVISORY_ACTION__EJECT_CANDIDATE) return "lockfile-ownership"
+  if (action === EJECT_ADVISORY_ACTION__EJECT_CANDIDATE) return EJECT_TARGET__LOCKFILE_OWNERSHIP
 
-  return "none"
+  return EJECT_TARGET__NONE
 }
 
 const resolvePreservationRequired = (action: (typeof EJECT_ADVISORY_ACTIONS)[number]) =>

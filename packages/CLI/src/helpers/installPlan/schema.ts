@@ -17,6 +17,11 @@ import {
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
   PACKAGE_MANAGER_UNKNOWN,
 } from "@/src/helpers/packageManagerHelpers"
+import {
+  PACKAGE_MANIFEST_DEPENDENCY_FIELDS,
+  PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS,
+} from "@/src/helpers/packageManifestConstants"
+import { CLI_APPLIED_WRITE_STATUSES, CLI_WRITE_STATUS__NOT_WRITTEN } from "@/src/helpers/reportConstants"
 
 import {
   INSTALL_PLAN_DEPENDENCY_KINDS,
@@ -145,7 +150,7 @@ export const installPlanDependencySchema = z
     requiredRange: z.string().min(1),
     status: z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES),
     declaredRange: z.string().min(1).optional(),
-    declaredIn: z.enum(["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]).optional(),
+    declaredIn: z.enum(PACKAGE_MANIFEST_DEPENDENCY_FIELDS).optional(),
   })
   .strict()
 
@@ -188,7 +193,7 @@ export const dependencyInstallCommandSchema = z
     args: z.array(z.string().min(1)).default([]),
     command: z.string().min(1),
     dependencies: z.array(dependencyInstallRecommendationSchema).default([]),
-    dependencyTarget: z.enum(["dependencies", "devDependencies"]),
+    dependencyTarget: z.enum(PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS),
     packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
     targetManifestPath: z.string().min(1).optional(),
     workingDirectory: z.string().min(1).optional(),
@@ -323,7 +328,7 @@ export const addAdvisoryEffectsSchema = z
       .object({
         plannedFileCount: z.number().int().nonnegative(),
         plannedItems: z.array(z.string().min(1)).default([]),
-        status: z.literal("not-written"),
+        status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
       })
       .strict(),
   })
@@ -425,7 +430,7 @@ export const addStrictEffectsSchema = z
       .object({
         plannedFileCount: z.number().int().nonnegative(),
         plannedItems: z.array(z.string().min(1)).default([]),
-        status: z.enum(["blocked", "written"]),
+        status: z.enum(CLI_APPLIED_WRITE_STATUSES),
         writtenFileCount: z.number().int().nonnegative(),
       })
       .strict(),

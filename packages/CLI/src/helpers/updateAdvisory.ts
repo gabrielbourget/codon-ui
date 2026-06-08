@@ -2,6 +2,7 @@ import { z } from "zod"
 
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
 import { createDiffReport, type TDiffReport } from "./diff"
+import { CLI_PROJECT_RESOURCE_STATUSES, CLI_REGISTRY_SOURCE_STATUSES } from "./reportConstants"
 
 const UPDATE_ADVISORY_SCHEMA_VERSION = 1
 
@@ -102,14 +103,14 @@ export const updateAdvisoryReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(UPDATE_ADVISORY_SCHEMA_VERSION).default(UPDATE_ADVISORY_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z

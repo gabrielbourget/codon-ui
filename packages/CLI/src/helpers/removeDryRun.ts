@@ -8,6 +8,15 @@ import {
   type TRemoveAdvisoryFile,
   type TRemoveAdvisoryReport,
 } from "./removeAdvisory"
+import { REMOVE_TARGETS } from "./removeConstants"
+import {
+  CLI_DRY_RUN_WRITE_STATUSES,
+  CLI_PROJECT_RESOURCE_STATUSES,
+  CLI_REGISTRY_SOURCE_STATUSES,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+  CLI_WRITE_STATUS__WOULD_WRITE,
+} from "./reportConstants"
 
 const REMOVE_DRY_RUN_SCHEMA_VERSION = 1
 
@@ -76,7 +85,7 @@ const removeDryRunFileSchema = z
     itemName: z.string().min(1),
     path: z.string().min(1),
     preservationRequired: z.boolean(),
-    removalTarget: z.enum(["file-and-lockfile", "lockfile-only", "none"]),
+    removalTarget: z.enum(REMOVE_TARGETS),
     reviewRequired: z.boolean(),
     sharedReferenceCount: z.number().int().nonnegative(),
     sourceHash: z.string().min(1),
@@ -138,14 +147,14 @@ export const removeDryRunReportSchema = z
       .object({
         path: z.string().min(1).optional(),
         sourceIdentity: z.string().min(1).optional(),
-        status: z.enum(["loaded", "unavailable", "not-requested"]),
+        status: z.enum(CLI_REGISTRY_SOURCE_STATUSES),
       })
       .strict(),
     schemaVersion: z.literal(REMOVE_DRY_RUN_SCHEMA_VERSION).default(REMOVE_DRY_RUN_SCHEMA_VERSION),
     status: z
       .object({
-        config: z.enum(["present", "missing", "invalid"]),
-        lockfile: z.enum(["present", "missing", "invalid"]),
+        config: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
+        lockfile: z.enum(CLI_PROJECT_RESOURCE_STATUSES),
       })
       .strict(),
     summary: z
@@ -171,7 +180,7 @@ export const removeDryRunReportSchema = z
         dependencies: z
           .object({
             plannedRemovalCount: z.number().int().nonnegative(),
-            status: z.literal("not-written"),
+            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
           })
           .strict(),
         files: z
@@ -185,7 +194,7 @@ export const removeDryRunReportSchema = z
           .object({
             plannedFileCount: z.number().int().nonnegative(),
             plannedItem: z.string().min(1).optional(),
-            status: z.enum(["would-write", "blocked", "not-written"]),
+            status: z.enum(CLI_DRY_RUN_WRITE_STATUSES),
             wouldRemoveFileRecordCount: z.number().int().nonnegative(),
             wouldRemoveItem: z.boolean(),
           })
@@ -195,7 +204,7 @@ export const removeDryRunReportSchema = z
             enabled: z.boolean(),
             plannedFileCount: z.number().int().nonnegative(),
             plannedItemCount: z.number().int().nonnegative(),
-            status: z.enum(["would-write", "blocked", "not-written"]),
+            status: z.enum(CLI_DRY_RUN_WRITE_STATUSES),
             wouldRemoveFileCount: z.number().int().nonnegative(),
             wouldRemoveLockfileRecordCount: z.number().int().nonnegative(),
           })
@@ -476,19 +485,23 @@ export const createRemoveDryRunReport = async ({
   const wouldRemoveLockfileRecordCount = files.filter((file) => file.wouldRemoveLockfileRecord).length
   const itemRemoveState = resolveItemRemoveState({ blockers, files })
   const lockfileStatus =
-    blockers.length > 0 ? "blocked" : wouldRemoveLockfileRecordCount > 0 ? "would-write" : ("not-written" as const)
+    blockers.length > 0
+      ? CLI_WRITE_STATUS__BLOCKED
+      : wouldRemoveLockfileRecordCount > 0
+        ? CLI_WRITE_STATUS__WOULD_WRITE
+        : CLI_WRITE_STATUS__NOT_WRITTEN
   const orphanCleanup = createRemoveDryRunOrphanCleanup({
     advisoryReport,
     primaryBlockerCount: blockers.length,
   })
   const orphanCleanupStatus =
     !orphanCleanup.enabled || orphanCleanup.itemCount === 0
-      ? "not-written"
+      ? CLI_WRITE_STATUS__NOT_WRITTEN
       : orphanCleanup.blockedItemCount > 0
-        ? "blocked"
+        ? CLI_WRITE_STATUS__BLOCKED
         : orphanCleanup.wouldRemoveLockfileRecordCount > 0
-          ? "would-write"
-          : ("not-written" as const)
+          ? CLI_WRITE_STATUS__WOULD_WRITE
+          : CLI_WRITE_STATUS__NOT_WRITTEN
   const plannedDependencyRemovalCount =
     advisoryReport.dependencyCleanup.enabled &&
     itemRemoveState === REMOVE_DRY_RUN_ITEM_STATE__WOULD_REMOVE &&
@@ -535,7 +548,7 @@ export const createRemoveDryRunReport = async ({
     wouldEffects: {
       dependencies: {
         plannedRemovalCount: plannedDependencyRemovalCount,
-        status: "not-written",
+        status: CLI_WRITE_STATUS__NOT_WRITTEN,
       },
       files: {
         blockedCount: blockedFileCount,
@@ -547,7 +560,7 @@ export const createRemoveDryRunReport = async ({
         plannedItem: files.length > 0 ? itemName : undefined,
         status: lockfileStatus,
         wouldRemoveFileRecordCount: wouldRemoveLockfileRecordCount,
-        wouldRemoveItem: lockfileStatus === "would-write",
+        wouldRemoveItem: lockfileStatus === CLI_WRITE_STATUS__WOULD_WRITE,
       },
       orphanCleanup: {
         enabled: orphanCleanup.enabled,

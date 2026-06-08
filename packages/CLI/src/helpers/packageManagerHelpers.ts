@@ -8,6 +8,12 @@ import {
   type TConsumerDependencyPolicy,
 } from "@/src/helpers/consumerContract"
 import type { TRegistryInstallPlan } from "@/src/helpers/installPlan/schema"
+import {
+  PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEPENDENCIES,
+  PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES,
+  PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS,
+  type TPackageManifestInstallTargetField,
+} from "@/src/helpers/packageManifestConstants"
 
 export const PACKAGE_MANAGER_NPM = "npm"
 export const PACKAGE_MANAGER_PNPM = "pnpm"
@@ -46,6 +52,8 @@ export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES = [
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__UNKNOWN,
 ] as const
 
+export type TDependencyInstallPackageManagerSource = (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES)[number]
+
 export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__PACKAGE_JSON_OPTION = "package-json-option"
 export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON = "nearest-package-json"
 export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING = "missing"
@@ -55,6 +63,8 @@ export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES = [
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING,
 ] as const
+
+export type TDependencyInstallTargetManifestSource = (typeof DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES)[number]
 
 export const DEPENDENCY_INSTALL_POLICY_SOURCE__CLI_OPTION = "cli-option"
 export const DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG = "config"
@@ -78,6 +88,8 @@ export const DEPENDENCY_INSTALL_EXECUTION_MODES = [
   DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
 ] as const
 
+export type TDependencyInstallExecutionMode = (typeof DEPENDENCY_INSTALL_EXECUTION_MODES)[number]
+
 export const DEPENDENCY_INSTALL_APPROVAL_SOURCE__NONE = "none"
 export const DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION = "cli-option"
 
@@ -85,6 +97,8 @@ export const DEPENDENCY_INSTALL_APPROVAL_SOURCES = [
   DEPENDENCY_INSTALL_APPROVAL_SOURCE__NONE,
   DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION,
 ] as const
+
+export type TDependencyInstallApprovalSource = (typeof DEPENDENCY_INSTALL_APPROVAL_SOURCES)[number]
 
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN = "not-run"
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED = "completed"
@@ -94,6 +108,8 @@ export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS = [
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
 ] as const
 
+export type TDependencyInstallPackageManagerExecution = (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+
 export const DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN = "not-written"
 export const DEPENDENCY_INSTALL_STATUS__WRITTEN = "written"
 
@@ -101,6 +117,8 @@ export const DEPENDENCY_INSTALL_STATUSES = [
   DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
   DEPENDENCY_INSTALL_STATUS__WRITTEN,
 ] as const
+
+export type TDependencyInstallStatus = (typeof DEPENDENCY_INSTALL_STATUSES)[number]
 
 export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL = "dependency-install-policy-not-install"
 export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN =
@@ -110,6 +128,8 @@ export const DEPENDENCY_INSTALL_EXECUTION_BLOCKERS = [
   DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL,
   DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN,
 ] as const
+
+export type TDependencyInstallExecutionBlockerCode = (typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKERS)[number]
 
 type TPackageManagerDetection =
   | {
@@ -136,7 +156,7 @@ type TDependencyInstallTargetManifest = {
   packageManagerField?: string
   packageName?: string
   path?: string
-  source: (typeof DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES)[number]
+  source: TDependencyInstallTargetManifestSource
 }
 
 export type TResolvedDependencyInstallTarget = {
@@ -156,7 +176,7 @@ type TDependencyInstallRecommendation = {
 type TDependencyInstallCommand = {
   args: string[]
   command: string
-  dependencyTarget: "dependencies" | "devDependencies"
+  dependencyTarget: TPackageManifestInstallTargetField
   dependencies: TDependencyInstallRecommendation[]
   packageManager: TDependencyInstallPackageManager
   targetManifestPath?: string
@@ -170,7 +190,7 @@ type TDependencyInstallPlan = {
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
   recommendations: TDependencyInstallRecommendation[]
-  status: (typeof DEPENDENCY_INSTALL_STATUSES)[number]
+  status: TDependencyInstallStatus
   targetManifest: TDependencyInstallTargetManifest
 }
 
@@ -183,7 +203,7 @@ export type TDependencyInstallPolicySource = (typeof DEPENDENCY_INSTALL_POLICY_S
 
 type TDependencyInstallPolicyPlan = {
   configPolicy?: TConsumerDependencyPolicy
-  packageManagerExecution: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerExecution: TDependencyInstallPackageManagerExecution
   packageManagerWrites: boolean
   policy: TConsumerDependencyPolicy
   policyOverride?: TConsumerDependencyPolicy
@@ -191,20 +211,18 @@ type TDependencyInstallPolicyPlan = {
 }
 
 type TDependencyInstallExecutionBlocker = {
-  code:
-    | typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL
-    | typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN
+  code: TDependencyInstallExecutionBlockerCode
   message: string
 }
 
 type TDependencyInstallExecutionPlan = {
-  approvalSource: (typeof DEPENDENCY_INSTALL_APPROVAL_SOURCES)[number]
+  approvalSource: TDependencyInstallApprovalSource
   blockers: TDependencyInstallExecutionBlocker[]
   executedCommands: TDependencyInstallCommand[]
   installRequested: boolean
-  mode: (typeof DEPENDENCY_INSTALL_EXECUTION_MODES)[number]
+  mode: TDependencyInstallExecutionMode
   nonInteractive: boolean
-  packageManagerExecution: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerExecution: TDependencyInstallPackageManagerExecution
   packageManagerWrites: boolean
   requiresExplicitApproval: true
 }
@@ -422,7 +440,7 @@ const createDependencySpecifier = ({ name, requiredRange }: { name: string; requ
   requiredRange === "TO_DECIDE" ? name : `${name}@${requiredRange}`
 
 const getDependencyTarget = ({ kind }: Pick<TDependencyInstallRecommendation, "kind">) =>
-  kind === "dev" ? "devDependencies" : "dependencies"
+  kind === "dev" ? PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES : PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEPENDENCIES
 
 export const isKnownDependencyInstallPolicy = (policy: string): policy is TConsumerDependencyPolicy =>
   CONSUMER_DEPENDENCY_POLICIES.some((knownPolicy) => knownPolicy === policy)
@@ -436,7 +454,7 @@ export const createDependencyInstallPolicyPlan = ({
 }: {
   configPolicy?: TConsumerDependencyPolicy
   configSource?: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
-  packageManagerExecution?: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerExecution?: TDependencyInstallPackageManagerExecution
   packageManagerWrites?: boolean
   policyOverride?: TConsumerDependencyPolicy
 } = {}): TDependencyInstallPolicyPlan => ({
@@ -455,14 +473,14 @@ const createDependencyInstallCommand = ({
   targetManifest,
 }: {
   dependencies: TDependencyInstallRecommendation[]
-  dependencyTarget: "dependencies" | "devDependencies"
+  dependencyTarget: TPackageManifestInstallTargetField
   packageManager: TDependencyInstallPackageManager
   targetManifest: TDependencyInstallTargetManifest
 }): TDependencyInstallCommand => {
   const addCommand = computePackageManagerAddCommand(packageManager)
   const dependencySpecifiers = dependencies.map((dependency) => dependency.specifier)
   const args =
-    dependencyTarget === "devDependencies"
+    dependencyTarget === PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES
       ? [addCommand, computePackageManagerDevDependencyFlag(packageManager), ...dependencySpecifiers]
       : [addCommand, ...dependencySpecifiers]
 
@@ -601,12 +619,12 @@ export const createDependencyInstallPlan = ({
       return accumulator
     },
     {
-      dependencies: [] as TDependencyInstallRecommendation[],
-      devDependencies: [] as TDependencyInstallRecommendation[],
+      [PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEPENDENCIES]: [] as TDependencyInstallRecommendation[],
+      [PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES]: [] as TDependencyInstallRecommendation[],
     },
   )
   const commands = DEPENDENCY_INSTALL_PACKAGE_MANAGERS.flatMap((dependencyPackageManager) =>
-    (["dependencies", "devDependencies"] as const).flatMap((dependencyTarget) => {
+    PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS.flatMap((dependencyTarget) => {
       const dependencies = recommendationsByCommandKind[dependencyTarget]
 
       if (dependencies.length === 0) return []
