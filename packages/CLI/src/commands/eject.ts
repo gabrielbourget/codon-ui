@@ -5,11 +5,12 @@ import chalk from "chalk"
 import { Command } from "commander"
 import { z } from "zod"
 
-import { createEjectAdvisoryReport, handleError, logger } from "@/src/helpers"
+import { createEjectAdvisoryReport, createEjectDryRunReport, handleError, logger } from "@/src/helpers"
 
 const ejectOptionsSchema = z.object({
   advisory: z.boolean().default(false),
   cwd: z.string().default(process.cwd()),
+  dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
   registrySource: z.string().optional(),
 })
@@ -25,6 +26,7 @@ export const eject = new Command()
   .argument("<item>", "The installed registry item you'd like to inspect for eject posture.")
   .option("--advisory", "Report eject posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
+  .option("--dry-run", "Preview an item-scoped eject without writing files or lockfile data.", false)
   .option("--json", "Print machine-readable eject output.", false)
   .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
   .action(async (itemName, CLIOptions) => {
@@ -32,14 +34,56 @@ export const eject = new Command()
       const options = parseEjectOptions(itemName, CLIOptions)
       const cwd = path.resolve(options.cwd)
 
-      if (!options.advisory) {
-        logger.error("Please choose --advisory. Eject dry-run and strict eject remain deferred.")
+      if (options.advisory && options.dryRun) {
+        logger.error("Please choose either --advisory or --dry-run, not both.")
+        process.exit(1)
+      }
+
+      if (!options.advisory && !options.dryRun) {
+        logger.error("Please choose --advisory or --dry-run. Strict eject remains deferred.")
         process.exit(1)
       }
 
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
         process.exit(1)
+      }
+
+      if (options.dryRun) {
+        const ejectDryRunReport = await createEjectDryRunReport({
+          cwd,
+          itemName: options.itemName,
+          registrySourcePath: options.registrySource,
+        })
+
+        if (options.json) {
+          console.log(JSON.stringify(ejectDryRunReport, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Eject Dry Run ]")} No files or lockfile records were written.`)
+        logger.info(`Item: ${ejectDryRunReport.itemName}`)
+        logger.info(`Item eject state: ${ejectDryRunReport.itemEjectState}`)
+        logger.info(`Registry source: ${ejectDryRunReport.registrySource.status}`)
+        if (ejectDryRunReport.registrySource.path) {
+          logger.info(`Registry source path: ${ejectDryRunReport.registrySource.path}`)
+        }
+        logger.info(`Files inspected: ${ejectDryRunReport.summary.fileCount}`)
+        logger.info(`Eject candidates: ${ejectDryRunReport.summary.ejectCandidateCount}`)
+        logger.info(
+          `Would eject lockfile ownership records: ${ejectDryRunReport.summary.wouldEjectLockfileRecordCount}`,
+        )
+        logger.info(`Already ejected files: ${ejectDryRunReport.summary.alreadyEjectedCount}`)
+        logger.info(`Skipped files: ${ejectDryRunReport.summary.skippedFileCount}`)
+        logger.info(`Blocked files: ${ejectDryRunReport.summary.blockedFileCount}`)
+        logger.info(`Blockers: ${ejectDryRunReport.summary.blockerCount}`)
+        logger.info(`Lockfile effect: ${ejectDryRunReport.wouldEffects.lockfile.status}`)
+
+        for (const file of ejectDryRunReport.files) {
+          logger.info(`- ${file.path}: ${file.dryRunAction}`)
+        }
+
+        return
       }
 
       const ejectAdvisoryReport = await createEjectAdvisoryReport({

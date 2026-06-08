@@ -411,6 +411,52 @@ Current fixture evidence proves clean installed eject advisory, locally modified
 unknown ownership preservation, consumer-owned support preservation, already-ejected reporting, missing dependency
 posture, and stale source-hash classification.
 
+## Eject Dry Run
+
+`eject --dry-run --json` previews an item-scoped eject without writing:
+
+```sh
+aui eject <item> --dry-run --json --cwd <consumer-project>
+```
+
+It starts from `eject --advisory` classification and converts advisory actions into no-write lockfile ownership previews.
+It does not modify source files, write config, write lockfile data, change package metadata, remove dependencies, or
+touch package-manager lockfiles.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                                           |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `itemEjectState` | Aggregate state: `would-eject`, `already-ejected`, `blocked`, or `unavailable`.                                   |
+| `files`          | Per-file advisory action, dry-run action, ejection target, blocker codes, preservation posture, and source state. |
+| `dependencies`   | Recorded lockfile dependency decisions; no package-manager mutation is run.                                       |
+| `effects`        | Always reports no config, lockfile, source-file, or dependency writes for this mode.                              |
+| `wouldEffects`   | Planned eject preview: lockfile ownership-transfer count, skipped files, blocked files, and status.               |
+| `blockers`       | File and item blockers that would prevent strict eject.                                                           |
+| `summary`        | Counts for eject candidates, already-ejected files, skipped files, blockers, and would-eject lockfile records.    |
+
+Per-file `dryRunAction` values are:
+
+| Action                           | Meaning                                                                                       |
+| -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `would-eject-lockfile-ownership` | A future strict eject would change the lockfile record from registry-owned to consumer-owned. |
+| `already-ejected`                | The file is already ejected and needs no further lockfile mutation.                           |
+| `skip-review-required`           | Missing, shared, or non-component support state needs review before ownership transfer.       |
+| `skip-preserved-local-change`    | A local edit would be preserved.                                                              |
+| `skip-consumer-owned-support`    | Consumer-owned support is already outside automatic ownership transfer.                       |
+| `skip-unknown`                   | Unknown ownership is preserved.                                                               |
+| `blocked`                        | The file is otherwise eligible, but another file in the item requires review or preservation. |
+
+Dry-run is item-atomic for now. If any file in the requested item is locally modified, unknown, consumer-owned support,
+missing, shared, or a support-file review target, the item state is `blocked`; otherwise-clean eject candidates stay
+visible but `wouldEjectLockfileOwnership` stays false until blockers are resolved. Already ejected files are no-op
+records and do not block. Missing dependency posture is still reported, but eject dry-run does not run package-manager
+writes or dependency cleanup.
+
+Current fixture evidence proves clean installed eject dry-run, locally modified item blocking, missing local file review,
+unknown ownership preservation, consumer-owned support preservation, already-ejected no-op reporting, missing dependency
+posture, and stale source-hash classification.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                                                      |
@@ -423,9 +469,8 @@ posture, and stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add eject dry-run or strict-remove planning without weakening the preservation defaults
-above. Strict update, strict remove, and strict eject remain deferred until dry-run evidence is broader and intentionally
-approved.
+The next lifecycle work should add strict-remove planning without weakening the preservation defaults above. Strict
+update, strict remove, and strict eject remain deferred until dry-run evidence is broader and intentionally approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.
