@@ -1,6 +1,11 @@
 import { z } from "zod"
 
 import { consumerLockfileSchema, consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
+import {
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  PACKAGE_MANAGER_UNKNOWN,
+} from "@/src/helpers/packageManagerHelpers"
 
 import {
   INSTALL_PLAN_DEPENDENCY_KINDS,
@@ -135,6 +140,48 @@ export const installPlanDependencySchema = z
 
 export type TInstallPlanDependency = z.infer<typeof installPlanDependencySchema>
 
+export const dependencyInstallPackageManagerDetectionSchema = z
+  .object({
+    name: z.union([z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS), z.literal(PACKAGE_MANAGER_UNKNOWN)]),
+    source: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES),
+    lockfilePath: z.string().min(1).optional(),
+    packageManagerField: z.string().min(1).optional(),
+    packageManifestPath: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallRecommendationSchema = z
+  .object({
+    kind: z.enum(INSTALL_PLAN_DEPENDENCY_KINDS),
+    name: z.string().min(1),
+    requiredRange: z.string().min(1),
+    specifier: z.string().min(1),
+    status: z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES),
+  })
+  .strict()
+
+export const dependencyInstallCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    dependencies: z.array(dependencyInstallRecommendationSchema).default([]),
+    dependencyTarget: z.enum(["dependencies", "devDependencies"]),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+  })
+  .strict()
+
+export const dependencyInstallPlanSchema = z
+  .object({
+    commands: z.array(dependencyInstallCommandSchema).default([]),
+    packageManager: dependencyInstallPackageManagerDetectionSchema,
+    recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
+    recommendations: z.array(dependencyInstallRecommendationSchema).default([]),
+    status: z.literal("not-written"),
+  })
+  .strict()
+
+export type TDependencyInstallPlan = z.infer<typeof dependencyInstallPlanSchema>
+
 export const registryInstallPlanSchema = z
   .object({
     schemaVersion: z.literal(REGISTRY_INSTALL_PLAN_SCHEMA_VERSION).default(REGISTRY_INSTALL_PLAN_SCHEMA_VERSION),
@@ -229,6 +276,7 @@ export const addAdvisorySchema = z
     advisory: z.literal(true),
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     effects: addAdvisoryEffectsSchema,
     registrySourcePath: z.string().min(1),
     installPlan: registryInstallPlanSchema,
@@ -278,6 +326,7 @@ export const addDryRunSchema = z
   .object({
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     dryRun: z.literal(true),
     effects: addDryRunEffectsSchema,
     registrySourcePath: z.string().min(1),
@@ -330,6 +379,7 @@ export const addStrictSchema = z
     applied: z.boolean(),
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     effects: addStrictEffectsSchema,
     registrySourcePath: z.string().min(1),
     installPlan: registryInstallPlanSchema,

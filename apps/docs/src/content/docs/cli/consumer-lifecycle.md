@@ -105,6 +105,12 @@ ranges against manifest requirements.
 Strict add does not install, update, or remove packages. It blocks when required dependency decisions are not satisfied.
 When strict add succeeds, the lockfile records satisfied dependency decisions with action `none`.
 
+For `add` reports, the CLI also emits a read-only `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
+consumer `packageManager` field or known lockfile/workspace marker files, lists proposed install commands for missing or
+incompatible dependencies, and selects a `recommendedCommands` entry only when the package manager is known. Unknown
+package-manager state still reports all command options but runs nothing. The plan is advisory data only: `package.json`,
+package-manager lockfiles, and installed packages are not modified.
+
 Current fixture evidence proves the clean `circle-loader` add lifecycle in a temporary `vite-registry-contained` copy:
 strict init creates only config and lockfile, advisory and dry-run report the same install graph without writes, strict
 add writes only the two CircleLoader source files plus lockfile metadata, and post-add `status --json`/`diff --json`
@@ -122,6 +128,8 @@ The missing-dependency fixture proves strict add stops before writes when requir
 temporary initialized `vite-registry-contained-missing-dependencies` copy reports React and React DOM as satisfied, reports
 `react-aria-components` and `classnames` as missing in advisory and dry-run output, and strict `add switch --json` blocks
 without writing source files, lockfile records, dependency records, package manifests, or package-manager lockfiles.
+The companion dependency-install-plan fixture gate proves the proposed npm, pnpm, yarn, and bun commands stay read-only
+across unknown package-manager state, `packageManager` metadata detection, and lockfile fallback detection.
 
 `remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
 the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in

@@ -42,6 +42,7 @@ import { getConfig } from "@/src/helpers/config"
 import {
   computePackageManagerAddCommand,
   computePackageManagerDevDependencyFlag,
+  createDependencyInstallPlan,
 } from "@/src/helpers/packageManagerHelpers"
 import {
   fetchComponentTree,
@@ -250,11 +251,16 @@ export const add = new Command()
           findings,
           installPlan,
         })
+        const dependencyInstallPlan = createDependencyInstallPlan({
+          consumerRoot: cwd,
+          dependencyPlan: installPlanWithFindings.dependencyPlan,
+        })
 
         if (options.dryRun) {
           const dryRun = addDryRunSchema.parse({
             componentPackets,
             cwd,
+            dependencyInstallPlan,
             dryRun: true,
             effects: createAddDryRunEffects(installPlanWithFindings),
             findings,
@@ -285,6 +291,7 @@ export const add = new Command()
           advisory: true,
           componentPackets,
           cwd,
+          dependencyInstallPlan,
           effects: createAddAdvisoryEffects(installPlanWithFindings),
           findings,
           installPlan: installPlanWithFindings,
@@ -358,12 +365,17 @@ export const add = new Command()
           findings,
           installPlan: reusableTargetPlan,
         })
+        const dependencyInstallPlan = createDependencyInstallPlan({
+          consumerRoot: cwd,
+          dependencyPlan: installPlanWithFindings.dependencyPlan,
+        })
 
         if (strictBlockerFindings.length > 0) {
           const blockedResult = addStrictSchema.parse({
             applied: false,
             componentPackets,
             cwd,
+            dependencyInstallPlan,
             effects: createAddStrictEffects({
               applied: false,
               installPlan: installPlanWithFindings,
@@ -403,6 +415,7 @@ export const add = new Command()
           applied: true,
           componentPackets,
           cwd,
+          dependencyInstallPlan,
           effects: createAddStrictEffects({
             applied: true,
             installPlan: installPlanWithFindings,

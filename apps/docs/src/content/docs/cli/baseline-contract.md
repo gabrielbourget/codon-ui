@@ -105,6 +105,11 @@ React and React DOM as satisfied while reporting missing `react-aria-components`
 dependency blockers before writing source files, lockfile records, package manifests, package-manager lockfiles, or
 dependencies.
 
+The same missing-dependency path now includes a read-only `dependencyInstallPlan`. It reports npm, pnpm, yarn, and bun
+command options for missing dependencies, detects package-manager intent from `packageManager` metadata or known lockfile
+markers, and leaves `recommendedCommands` empty when the package manager is unknown. This is reporting only; the CLI does
+not run package-manager installs or edit dependency manifests.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
