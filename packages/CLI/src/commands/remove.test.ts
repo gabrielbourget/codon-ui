@@ -6,6 +6,7 @@ import path from "node:path"
 
 import { createRemoveAdvisoryReport } from "../helpers/removeAdvisory"
 import { createRemoveDryRunReport } from "../helpers/removeDryRun"
+import { createRemoveStrictReport } from "../helpers/removeStrict"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -19,6 +20,8 @@ const writeText = (filePath: string, value: string) => {
   mkdirSync(path.dirname(filePath), { recursive: true })
   writeFileSync(filePath, value, "utf8")
 }
+
+const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
 
 const readFixtureSnapshot = (fixturePath: string) =>
   [
@@ -477,8 +480,74 @@ try {
   assert.equal(missingDryRunReport.effects.writesFiles, false)
   assert.equal(missingDryRunReport.effects.writesLockfile, false)
   assert.equal(missingDryRunReport.wouldEffects.lockfile.status, "not-written")
+
+  const strictBlockedReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    itemName: "switch",
+    registrySourcePath,
+  })
+
+  assert.equal(strictBlockedReport.applied, false)
+  assert.equal(strictBlockedReport.itemRemoveState, "blocked")
+  assert.equal(strictBlockedReport.effects.writesFiles, false)
+  assert.equal(strictBlockedReport.effects.writesLockfile, false)
+  assert.equal(strictBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(strictBlockedReport.effects.files.deletedCount, 0)
+  assert.equal(strictBlockedReport.effects.lockfile.removedFileRecordCount, 0)
+  assert(
+    strictBlockedReport.blockers.some((blocker) => blocker.code === "strict-remove-dry-run-blocker"),
+    "expected strict remove dry-run blocker",
+  )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] remove advisory and dry-run reports verified")
+
+  const strictSourceOnlyReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictSourceOnlyReport.applied, true)
+  assert.equal(strictSourceOnlyReport.itemRemoveState, "removed")
+  assert.equal(strictSourceOnlyReport.effects.writesFiles, true)
+  assert.equal(strictSourceOnlyReport.effects.writesLockfile, true)
+  assert.equal(strictSourceOnlyReport.effects.files.deletedCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.files.plannedDeleteCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.removedFileRecordCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.removedItem, true)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.status, "written")
+  assert.equal(strictSourceOnlyReport.dependencies[0].status, "missing")
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/Diff/source-only.ts")),
+    false,
+    "expected source-only file to be removed",
+  )
+  assert.equal(
+    existsSync(path.join(temporaryRoot, "source/source-only.ts")),
+    true,
+    "expected registry source to remain untouched",
+  )
+  assert.equal(strictSourceOnlyReport.lockfileData.items["source-only"], undefined)
+  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"], undefined)
+
+  const strictMissingOnlyReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    itemName: "missing-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictMissingOnlyReport.applied, true)
+  assert.equal(strictMissingOnlyReport.itemRemoveState, "removed")
+  assert.equal(strictMissingOnlyReport.effects.writesFiles, false)
+  assert.equal(strictMissingOnlyReport.effects.writesLockfile, true)
+  assert.equal(strictMissingOnlyReport.effects.files.deletedCount, 0)
+  assert.equal(strictMissingOnlyReport.effects.files.plannedDeleteCount, 0)
+  assert.equal(strictMissingOnlyReport.effects.lockfile.removedFileRecordCount, 1)
+  assert.equal(strictMissingOnlyReport.effects.lockfile.status, "written")
+  assert.equal(strictMissingOnlyReport.files[0].strictAction, "removed-lockfile-record")
+  assert.equal(strictMissingOnlyReport.lockfileData.items["missing-only"], undefined)
+  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["missing-only"], undefined)
+
+  console.log("[aminoui-cli] remove advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

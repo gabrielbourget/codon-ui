@@ -5,7 +5,13 @@ import chalk from "chalk"
 import { Command } from "commander"
 import { z } from "zod"
 
-import { createRemoveAdvisoryReport, createRemoveDryRunReport, handleError, logger } from "@/src/helpers"
+import {
+  createRemoveAdvisoryReport,
+  createRemoveDryRunReport,
+  createRemoveStrictReport,
+  handleError,
+  logger,
+} from "@/src/helpers"
 
 const removeOptionsSchema = z.object({
   advisory: z.boolean().default(false),
@@ -22,8 +28,8 @@ const parseRemoveOptions = (itemName: string, CLIOptions: unknown) => ({
 
 export const remove = new Command()
   .name("remove")
-  .description("Inspect remove posture for one installed Amino UI registry item without writing changes.")
-  .argument("<item>", "The installed registry item you'd like to inspect for remove posture.")
+  .description("Remove one installed Amino UI registry item when strict provenance checks pass.")
+  .argument("<item>", "The installed registry item you'd like to inspect or remove.")
   .option("--advisory", "Report remove posture without deleting files or writing lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--dry-run", "Preview an item-scoped remove without deleting files or writing lockfile data.", false)
@@ -36,11 +42,6 @@ export const remove = new Command()
 
       if (options.advisory && options.dryRun) {
         logger.error("Please choose either --advisory or --dry-run, not both.")
-        process.exit(1)
-      }
-
-      if (!options.advisory && !options.dryRun) {
-        logger.error("Please choose --advisory or --dry-run. Strict remove remains deferred.")
         process.exit(1)
       }
 
@@ -80,6 +81,42 @@ export const remove = new Command()
         for (const file of removeDryRunReport.files) {
           logger.info(`- ${file.path}: ${file.dryRunAction}`)
         }
+
+        return
+      }
+
+      if (!options.advisory) {
+        const removeStrictReport = await createRemoveStrictReport({
+          cwd,
+          itemName: options.itemName,
+          registrySourcePath: options.registrySource,
+        })
+
+        if (!removeStrictReport.applied) {
+          if (options.json) {
+            console.log(JSON.stringify(removeStrictReport, null, 2))
+          } else {
+            logger.error(`${chalk.red("[ Strict Remove ]")} No files or lockfile records were removed.`)
+            logger.error(`Item: ${removeStrictReport.itemName}`)
+            logger.error(`Item remove state: ${removeStrictReport.itemRemoveState}`)
+            logger.error(`Blockers: ${removeStrictReport.blockers.length}`)
+            logger.error(`Findings: ${removeStrictReport.findings.length}`)
+          }
+
+          process.exitCode = 1
+          return
+        }
+
+        if (options.json) {
+          console.log(JSON.stringify(removeStrictReport, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Strict Remove ]")} ${removeStrictReport.itemName} removed.`)
+        logger.info(`Deleted files: ${removeStrictReport.effects.files.deletedCount}`)
+        logger.info(`Removed lockfile records: ${removeStrictReport.effects.lockfile.removedFileRecordCount}`)
+        logger.info(`Lockfile effect: ${removeStrictReport.effects.lockfile.status}`)
+        logger.info(`Findings: ${removeStrictReport.findings.length}`)
 
         return
       }

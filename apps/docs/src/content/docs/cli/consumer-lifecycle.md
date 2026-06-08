@@ -366,6 +366,42 @@ Current fixture evidence proves clean installed remove dry-run, locally modified
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
 missing dependency posture, and stale source-hash classification.
 
+## Strict Remove
+
+`remove <item> --json` applies an item-scoped remove only after the dry-run gate proves the item is safe:
+
+```sh
+aui remove <item> --json --cwd <consumer-project>
+```
+
+Strict remove starts by creating the same `remove --dry-run --json` report. It applies only when the item state is
+`would-remove`, no dry-run blockers exist, and a final preflight confirms every file path still resolves inside the
+consumer root and every planned source-file deletion still matches the dry-run hash.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `applied`         | `true` when files or lockfile records were removed; `false` when blockers prevented mutation.                |
+| `itemRemoveState` | Aggregate strict state: `removed`, `blocked`, or `unavailable`.                                              |
+| `files`           | Per-file dry-run action, strict action, and booleans for source-file deletion and lockfile-record removal.   |
+| `effects`         | Actual source-file deletion count, lockfile-record removal count, dependency non-mutation, and write status. |
+| `blockers`        | Project, item, or file blockers that prevented strict removal.                                               |
+| `lockfileData`    | The post-remove lockfile data when applied, or the current parsed lockfile data when blocked.                |
+
+Strict remove can delete registry-owned component files and can clean lockfile records for registry-owned component
+files that are already missing. It removes the requested item from `amino-ui.lock.json` after all preflight checks pass.
+It does not remove dependencies from package manifests, change package-manager lockfiles, delete shared/support files,
+delete locally modified files, delete unknown files, delete consumer-owned support, or delete ejected files.
+
+The command is item-atomic. If one file in the item needs review or preservation, otherwise-removable files remain in
+place and the lockfile is not written. Missing dependency posture remains visible in the report, but strict remove does
+not run package-manager cleanup.
+
+Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
+modified item blocking, unknown ownership blocking, consumer-owned support blocking, ejected blocking, and missing
+dependency non-mutation.
+
 ## Eject Advisory
 
 `eject --advisory --json` is the first eject command, and it is intentionally read-only:
