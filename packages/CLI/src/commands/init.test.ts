@@ -1,12 +1,18 @@
 import assert from "node:assert/strict"
+import { spawnSync } from "node:child_process"
 import crypto from "node:crypto"
 import { existsSync, mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
+import { fileURLToPath } from "node:url"
 
 import { createConsumerInitDryRun, writeConsumerInitSeed } from "../helpers"
 
 const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-init-"))
+const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
+const monorepoRoot = path.resolve(packageRoot, "../..")
+const tsxCliPath = path.join(monorepoRoot, "node_modules/tsx/dist/cli.mjs")
+const cliEntryPath = path.join(packageRoot, "src/index.ts")
 
 const writeJson = (filePath: string, value: unknown) => {
   mkdirSync(path.dirname(filePath), { recursive: true })
@@ -59,6 +65,22 @@ const assertDefaultDryRunNoWriteEffects = (report: ReturnType<typeof createConsu
   assert.equal(report.wouldEffects.dependencies.status, "not-written")
   assert.equal(report.wouldEffects.directories.plannedCount, 0)
   assert.equal(report.wouldEffects.dependencies.plannedInstallCount, 0)
+}
+
+const assertPlanningModeConflict = ({ args, cwd }: { args: string[]; cwd: string }) => {
+  const beforeSnapshot = snapshotFiles(cwd)
+  const result = spawnSync(process.execPath, [tsxCliPath, cliEntryPath, "init", ...args, "--cwd", cwd], {
+    cwd: packageRoot,
+    encoding: "utf8",
+  })
+  const afterSnapshot = snapshotFiles(cwd)
+
+  assert.equal(result.status, 1)
+  assert.match(
+    `${result.stdout}\n${result.stderr}`,
+    /Please choose only one of --advisory, --dry-run, or --defaults\./u,
+  )
+  assert.deepEqual(afterSnapshot, beforeSnapshot)
 }
 
 try {
@@ -124,6 +146,19 @@ try {
   assert.equal(lockfileOnlyDryRun.wouldEffects.config.status, "not-written")
   assert.equal(lockfileOnlyDryRun.wouldEffects.lockfile.status, "blocked")
   assert.equal(existsSync(path.join(lockfileOnlyFixturePath, "amino-ui.config.json")), false)
+
+  assertPlanningModeConflict({
+    args: ["--advisory", "--dry-run"],
+    cwd: createFixture("advisory-dry-run-conflict"),
+  })
+  assertPlanningModeConflict({
+    args: ["--advisory", "--defaults"],
+    cwd: createFixture("advisory-defaults-conflict"),
+  })
+  assertPlanningModeConflict({
+    args: ["--dry-run", "--defaults"],
+    cwd: createFixture("dry-run-defaults-conflict"),
+  })
 
   console.log("[aminoui-cli] init dry-run and strict seed reports verified")
 } finally {

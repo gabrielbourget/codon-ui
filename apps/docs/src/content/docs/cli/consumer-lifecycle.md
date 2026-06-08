@@ -151,9 +151,9 @@ The JSON report includes:
 | `summary`        | Counts by file state, source state, dependency status, item count, and file count.     |
 | `findings`       | Missing or invalid config/lockfile and registry-source warnings.                       |
 
-Current fixture evidence proves greenfield/uninitialized status, clean installed `circle-loader` status, locally modified
-installed-file status, `consumer-owned-support`, `unknown`, `missing`, `ejected`, missing dependency posture, and stale
-source-hash/source-drift classification.
+Current fixture evidence proves greenfield/uninitialized status, initialized-empty status after strict init, clean
+installed `circle-loader` status, locally modified installed-file status, `consumer-owned-support`, `unknown`, `missing`,
+`ejected`, missing dependency posture, and stale source-hash/source-drift classification.
 
 ## Diff Inspection
 

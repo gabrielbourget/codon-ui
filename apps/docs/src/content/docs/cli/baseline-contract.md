@@ -92,8 +92,8 @@ unknown files, generate hosted registry artifacts, or implement update/eject beh
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
-currently proves greenfield, clean installed, locally modified, unknown, consumer-owned-support, missing, ejected,
-dependency issue, and stale source-hash cases.
+currently proves greenfield uninitialized, greenfield initialized-empty, clean installed, locally modified, unknown,
+consumer-owned-support, missing, ejected, dependency issue, and stale source-hash cases.
 
 Current `diff <item> --json` is read-only and item-scoped. It builds on the status model, emits per-file comparisons,
 review recommendations, optional source-to-local line diff segments, dependency posture, and explicit no-write effects.
