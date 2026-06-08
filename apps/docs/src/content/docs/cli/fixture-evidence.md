@@ -67,6 +67,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                              |
 | `update --dry-run --json`  | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                |
 | `remove --advisory --json` | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.    |
+| `remove --dry-run --json`  | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.             |
 | Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
 
 ## Fixture Matrix

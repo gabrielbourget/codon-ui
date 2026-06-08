@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createRemoveAdvisoryReport } from "../helpers/removeAdvisory"
+import { createRemoveDryRunReport } from "../helpers/removeDryRun"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -362,6 +363,96 @@ try {
   assert.equal(missingOnlyReport.summary.removableFileCount, 0)
   assert.equal(missingOnlyReport.files[0].action, "lockfile-cleanup-candidate")
 
+  const mixedDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    itemName: "switch",
+    registrySourcePath,
+  })
+
+  assert.equal(mixedDryRunReport.schemaVersion, 1)
+  assert.equal(mixedDryRunReport.dryRun, true)
+  assert.deepEqual(mixedDryRunReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(mixedDryRunReport.itemRemoveState, "blocked")
+  assert.equal(mixedDryRunReport.summary.fileCount, 8)
+  assert.equal(mixedDryRunReport.summary.removeCandidateCount, 1)
+  assert.equal(mixedDryRunReport.summary.lockfileCleanupCandidateCount, 1)
+  assert.equal(mixedDryRunReport.summary.blockedFileCount, 2)
+  assert.equal(mixedDryRunReport.summary.skippedFileCount, 6)
+  assert.equal(mixedDryRunReport.summary.wouldRemoveFileCount, 0)
+  assert.equal(mixedDryRunReport.summary.wouldRemoveLockfileRecordCount, 0)
+  assert.equal(mixedDryRunReport.summary.blockerCount, 8)
+  assert.equal(mixedDryRunReport.summary.reviewBlockerCount, 6)
+  assert.equal(mixedDryRunReport.summary.preservationBlockerCount, 4)
+  assert.equal(mixedDryRunReport.summary.sharedReferenceBlockerCount, 1)
+  assert.equal(mixedDryRunReport.summary.supportReviewBlockerCount, 1)
+  assert.equal(mixedDryRunReport.summary.dependencyStates.missing, 1)
+  assert.equal(mixedDryRunReport.summary.fileActions.blocked, 2)
+  assert.equal(mixedDryRunReport.summary.fileActions["skip-review-required"], 2)
+  assert.equal(mixedDryRunReport.summary.fileActions["skip-preserved-local-change"], 1)
+  assert.equal(mixedDryRunReport.summary.fileActions["skip-consumer-owned-support"], 1)
+  assert.equal(mixedDryRunReport.summary.fileActions["skip-unknown"], 1)
+  assert.equal(mixedDryRunReport.summary.fileActions["skip-ejected"], 1)
+  assert.equal(mixedDryRunReport.wouldEffects.lockfile.status, "blocked")
+  assert.equal(mixedDryRunReport.wouldEffects.files.wouldRemoveCount, 0)
+  assert.equal(mixedDryRunReport.wouldEffects.lockfile.wouldRemoveFileRecordCount, 0)
+  assert.equal(mixedDryRunReport.wouldEffects.dependencies.status, "not-written")
+
+  const mixedDryRunFiles = new Map(mixedDryRunReport.files.map((file) => [file.path, file]))
+
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/clean.ts")?.dryRunAction, "blocked")
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/clean.ts")?.wouldRemoveFile, false)
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/missing.ts")?.dryRunAction, "blocked")
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/missing.ts")?.wouldRemoveLockfileRecord, false)
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/support.ts")?.dryRunAction, "skip-review-required")
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/shared.ts")?.dryRunAction, "skip-review-required")
+  assert.equal(
+    mixedDryRunFiles.get("src/components/Diff/local-modified.ts")?.dryRunAction,
+    "skip-preserved-local-change",
+  )
+  assert.equal(mixedDryRunFiles.get("src/components/Diff/unknown.ts")?.dryRunAction, "skip-unknown")
+  assert.equal(
+    mixedDryRunFiles.get("src/components/_registry/tokens/consumer-support.ts")?.dryRunAction,
+    "skip-consumer-owned-support",
+  )
+  assert.equal(mixedDryRunFiles.get("src/components/_registry/utils/ejected.ts")?.dryRunAction, "skip-ejected")
+
+  const sourceOnlyDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(sourceOnlyDryRunReport.itemRemoveState, "would-remove")
+  assert.equal(sourceOnlyDryRunReport.summary.removeCandidateCount, 1)
+  assert.equal(sourceOnlyDryRunReport.summary.blockerCount, 0)
+  assert.equal(sourceOnlyDryRunReport.summary.wouldRemoveFileCount, 1)
+  assert.equal(sourceOnlyDryRunReport.summary.wouldRemoveLockfileRecordCount, 1)
+  assert.equal(sourceOnlyDryRunReport.files[0].dryRunAction, "would-remove-file-and-lockfile")
+  assert.equal(sourceOnlyDryRunReport.files[0].wouldRemoveFile, true)
+  assert.equal(sourceOnlyDryRunReport.files[0].wouldRemoveLockfileRecord, true)
+  assert.equal(sourceOnlyDryRunReport.wouldEffects.lockfile.status, "would-write")
+  assert.equal(sourceOnlyDryRunReport.wouldEffects.lockfile.wouldRemoveItem, true)
+
+  const missingOnlyDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    itemName: "missing-only",
+    registrySourcePath,
+  })
+
+  assert.equal(missingOnlyDryRunReport.itemRemoveState, "would-remove")
+  assert.equal(missingOnlyDryRunReport.summary.lockfileCleanupCandidateCount, 1)
+  assert.equal(missingOnlyDryRunReport.summary.wouldRemoveFileCount, 0)
+  assert.equal(missingOnlyDryRunReport.summary.wouldRemoveLockfileRecordCount, 1)
+  assert.equal(missingOnlyDryRunReport.files[0].dryRunAction, "would-remove-lockfile-record")
+  assert.equal(missingOnlyDryRunReport.files[0].wouldRemoveFile, false)
+  assert.equal(missingOnlyDryRunReport.files[0].wouldRemoveLockfileRecord, true)
+  assert.equal(missingOnlyDryRunReport.wouldEffects.lockfile.status, "would-write")
+
   const missingReport = await createRemoveAdvisoryReport({
     cwd: consumerRoot,
     itemName: "missing-item",
@@ -374,8 +465,20 @@ try {
     missingReport.findings.some((finding) => finding.code === "status-lockfile-item-missing"),
     "expected missing item finding",
   )
+
+  const missingDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    itemName: "missing-item",
+    registrySourcePath,
+  })
+
+  assert.equal(missingDryRunReport.itemRemoveState, "unavailable")
+  assert.equal(missingDryRunReport.files.length, 0)
+  assert.equal(missingDryRunReport.effects.writesFiles, false)
+  assert.equal(missingDryRunReport.effects.writesLockfile, false)
+  assert.equal(missingDryRunReport.wouldEffects.lockfile.status, "not-written")
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] remove advisory report verified")
+  console.log("[aminoui-cli] remove advisory and dry-run reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

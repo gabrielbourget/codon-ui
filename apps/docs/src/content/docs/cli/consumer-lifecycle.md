@@ -313,11 +313,57 @@ Per-file `action` values are:
 | `preserve-ejected`                | Ejected file is preserved and blocks automatic removal.                                  |
 
 Remove advisory is conservative around support files. It does not decide package dependency removal, support orphan
-deletion, source-file deletion, lockfile writes, or aliases such as `delete`. Those belong to later dry-run/strict slices
-after fixture evidence proves the preservation rules.
+deletion, source-file deletion, lockfile writes, or aliases such as `delete`. Remove dry-run now previews file and
+lockfile-record removal without writing; strict deletion and aliases remain deferred.
 
 Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
 lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
+missing dependency posture, and stale source-hash classification.
+
+## Remove Dry Run
+
+`remove --dry-run --json` previews an item-scoped remove without writing:
+
+```sh
+aui remove <item> --dry-run --json --cwd <consumer-project>
+```
+
+It starts from `remove --advisory` classification and converts advisory actions into no-write deletion previews. It does
+not delete source files, write config, write lockfile data, change package metadata, remove dependencies, or touch
+package-manager lockfiles.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                            |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `itemRemoveState` | Aggregate state: `would-remove`, `blocked`, or `unavailable`.                                                      |
+| `files`           | Per-file advisory action, dry-run action, removal booleans, blocker codes, preservation posture, and source state. |
+| `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                        |
+| `effects`         | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                        |
+| `wouldEffects`    | Planned remove preview: source-file deletion count, lockfile-record removal count, skips, blocks, and status.      |
+| `blockers`        | File and item blockers that would prevent strict remove.                                                           |
+| `summary`         | Counts for candidates, lockfile cleanup records, skipped files, blocked files, blockers, and dependency states.    |
+
+Per-file `dryRunAction` values are:
+
+| Dry-run action                   | Meaning                                                                                              |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `would-remove-file-and-lockfile` | A future strict remove would delete the local file and remove its lockfile record.                   |
+| `would-remove-lockfile-record`   | The local file is already missing; a future strict remove would remove only the lockfile record.     |
+| `skip-review-required`           | The file needs shared/support ownership review and would be skipped.                                 |
+| `skip-preserved-local-change`    | The file has local edits and would be preserved.                                                     |
+| `skip-consumer-owned-support`    | The file is consumer-owned support and would be preserved.                                           |
+| `skip-unknown`                   | The file has unknown ownership and would be preserved.                                               |
+| `skip-ejected`                   | The file is ejected and would be preserved.                                                          |
+| `blocked`                        | The file is otherwise removable, but another file in the item requires review or preservation first. |
+
+Dry-run is item-atomic for now. If any file in the requested item is locally modified, unknown, consumer-owned support,
+ejected, shared, or a support-file review target, the item state is `blocked`; otherwise-removable files stay visible as
+candidates, but `wouldRemoveFile` and `wouldRemoveLockfileRecord` stay false until blockers are resolved. Missing
+dependency posture is still reported, but remove dry-run does not run package-manager writes or dependency cleanup.
+
+Current fixture evidence proves clean installed remove dry-run, locally modified item blocking, missing local file
+lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
 missing dependency posture, and stale source-hash classification.
 
 ## Ownership States
@@ -332,8 +378,8 @@ missing dependency posture, and stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add remove dry-run and eject advisory behavior without weakening the preservation defaults
-above. Strict update and strict remove remain deferred until dry-run evidence is broader and intentionally approved.
+The next lifecycle work should add eject advisory behavior without weakening the preservation defaults above. Strict
+update and strict remove remain deferred until dry-run evidence is broader and intentionally approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.
