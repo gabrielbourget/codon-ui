@@ -100,6 +100,11 @@ existing `tokens/geometry` target as `reuse-existing` with `targetCompatibility:
 add writes only the missing `Switch` graph files plus `amino-ui.lock.json`, and the lockfile adopts the existing support
 file as `consumer-owned-support` without overwriting it.
 
+Focused fixture evidence also proves the missing dependency boundary for `add switch`. Advisory and dry-run classify
+React and React DOM as satisfied while reporting missing `react-aria-components` and `classnames`; strict add exits with
+dependency blockers before writing source files, lockfile records, package manifests, package-manager lockfiles, or
+dependencies.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
@@ -250,6 +255,7 @@ This lane is designed so fixture evidence can capture each transition before str
 18. Add opt-in strict `remove/delete --with-orphans` for Wavemap-like dependency orphan cleanup in temporary fixture
     copies.
 19. Add focused compatible support reuse coverage for `add switch` advisory, dry-run, and strict adoption.
+20. Add focused missing dependency boundary coverage for `add switch` advisory, dry-run, and strict blocking.
 
 ## Next Lifecycle Targets
 
