@@ -313,8 +313,8 @@ Per-file `action` values are:
 | `preserve-ejected`                | Ejected file is preserved and blocks automatic removal.                                  |
 
 Remove advisory is conservative around support files. It does not decide package dependency removal, support orphan
-deletion, source-file deletion, lockfile writes, or aliases such as `delete`. Remove dry-run now previews file and
-lockfile-record removal without writing; strict deletion and aliases remain deferred.
+deletion, source-file deletion, or lockfile writes. Remove dry-run now previews file and lockfile-record removal without
+writing; strict deletion is limited to the fixture-proven remove boundary.
 
 Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
 lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
@@ -401,6 +401,24 @@ not run package-manager cleanup.
 Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
 modified item blocking, unknown ownership blocking, consumer-owned support blocking, ejected blocking, and missing
 dependency non-mutation.
+
+## Delete Sibling
+
+`delete <item>` is a visible sibling command for the same remove lifecycle:
+
+```sh
+aui delete <item> --advisory --json --cwd <consumer-project>
+aui delete <item> --dry-run --json --cwd <consumer-project>
+aui delete <item> --json --cwd <consumer-project>
+```
+
+The command delegates to the remove implementation. Advisory and dry-run modes remain non-mutating, and strict mode uses
+the same dry-run gate, preflight checks, item-atomic blocking, lockfile write, and file deletion boundaries as
+`remove <item> --json`.
+
+The JSON report remains the remove report schema. `delete` does not introduce support/orphan cleanup, dependency removal,
+package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or ejected-file
+deletion.
 
 ## Eject Advisory
 
@@ -505,8 +523,9 @@ posture, and stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add strict-remove planning without weakening the preservation defaults above. Strict
-update, strict remove, and strict eject remain deferred until dry-run evidence is broader and intentionally approved.
+Strict remove now exists only inside the dry-run-approved registry-owned component boundary above. Strict update, strict
+eject, dependency cleanup, support/orphan cleanup, and any broader deletion policy remain deferred until dry-run evidence
+is broader and intentionally approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.

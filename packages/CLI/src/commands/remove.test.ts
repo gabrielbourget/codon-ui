@@ -8,6 +8,9 @@ import { createRemoveAdvisoryReport } from "../helpers/removeAdvisory"
 import { createRemoveDryRunReport } from "../helpers/removeDryRun"
 import { createRemoveStrictReport } from "../helpers/removeStrict"
 
+import { deleteCommand } from "./delete"
+import { remove } from "./remove"
+
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
 
@@ -22,6 +25,16 @@ const writeText = (filePath: string, value: string) => {
 }
 
 const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
+
+assert.equal(deleteCommand.name(), "delete")
+assert.equal(
+  deleteCommand.description(),
+  "Delete one installed Amino UI registry item using the same safety checks as remove.",
+)
+assert.deepEqual(
+  deleteCommand.options.map((option) => option.flags),
+  remove.options.map((option) => option.flags),
+)
 
 const readFixtureSnapshot = (fixturePath: string) =>
   [

@@ -5,6 +5,7 @@ import path from "path"
 import { Command } from "commander"
 
 import { add } from "./commands/add"
+import { deleteCommand } from "./commands/delete"
 import { diff } from "./commands/diff"
 import { eject } from "./commands/eject"
 import { info } from "./commands/info"
@@ -34,6 +35,7 @@ const main = async () => {
     .addCommand(status)
     .addCommand(update)
     .addCommand(remove)
+    .addCommand(deleteCommand)
     .addCommand(eject)
 
   program.parse()

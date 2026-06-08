@@ -7,7 +7,8 @@ The CLI still contains legacy scaffold paths, but the local-registry lane now su
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
 item-scoped update advisory, item-scoped update dry-run, item-scoped remove advisory, and item-scoped remove dry-run
 against the React registry snapshot, strict item-scoped remove for fixture-proven cases, plus item-scoped eject advisory
-and item-scoped eject dry-run.
+and item-scoped eject dry-run. The visible `delete` command is an alias-style sibling for the current remove lifecycle
+surface.
 
 ## Current Surface
 
@@ -16,6 +17,7 @@ and item-scoped eject dry-run.
 | `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                   |
 | `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                           |
 | `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                                                                   |
+| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, and `delete <item> --json` use the same remove reports, blockers, effects, and mutation boundaries.                                                                                                                            |
 | `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                 |
 | `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict eject remains deferred.                                                    |
 | `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers. |
@@ -125,8 +127,12 @@ Current strict `remove <item> --json` reuses the dry-run report as its gate. It 
 `would-remove`, no dry-run blockers exist, and the preflight still proves every planned source-file deletion or
 lockfile-only cleanup is current. It deletes registry-owned component files, removes the item from `amino-ui.lock.json`,
 and preserves dependency records. It does not remove package dependencies, package-manager lockfiles, shared/support
-files, unknown files, locally modified files, consumer-owned support, or ejected files. Delete aliases and broader
-orphan-support cleanup remain deferred.
+files, unknown files, locally modified files, consumer-owned support, or ejected files. Broader orphan-support cleanup
+remains deferred.
+
+Current `delete <item>` is a visible sibling command for the same lifecycle surface. It supports `--advisory`, `--dry-run`,
+and strict JSON modes by delegating to the remove implementation. The JSON schema remains the remove report schema; the
+command does not add dependency cleanup, support/orphan cleanup, or any broader deletion policy.
 
 Current `eject <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 eject advisory actions, item eject state, dependency posture, shared lockfile reference counts, and explicit no-write
@@ -147,7 +153,7 @@ not preview partial lockfile ownership transfer for mixed safe/unsafe items.
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> strict remove -> eject advisory -> eject dry-run
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> eject advisory -> eject dry-run
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -167,6 +173,7 @@ by `init`.
 | `remove --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `remove --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | Strict `remove`            | Config, lockfile, local snapshot, installed files.   | Source-file deletes and lockfile.        |
+| `delete` sibling           | Same as matching `remove` mode.                      | Same as matching `remove` mode.          |
 | `eject --advisory --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `eject --dry-run --json`   | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 
@@ -195,6 +202,8 @@ This lane is designed so fixture evidence can capture each transition before str
     proofs.
 14. Add strict item-scoped `remove <item> --json` for clean installed, missing-file cleanup, locally modified, and
     classification fixture proofs.
+15. Add visible sibling `delete <item>` command coverage for advisory, dry-run, and strict remove-equivalent fixture
+    proofs.
 
 ## Next Lifecycle Targets
 
@@ -216,5 +225,5 @@ Discussion targets before lifecycle behavior expands:
 
 ## Boundaries
 
-Do not expand strict update writes, strict delete aliases, strict eject, registry artifact hosting, generated token
-writers, dependency cleanup, orphan-support cleanup, or publication policy as incidental cleanup.
+Do not expand strict update writes, `delete` beyond a remove-equivalent sibling, strict eject, registry artifact hosting,
+generated token writers, dependency cleanup, orphan-support cleanup, or publication policy as incidental cleanup.

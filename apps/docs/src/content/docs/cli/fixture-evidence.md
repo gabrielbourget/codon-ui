@@ -69,6 +69,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `remove --advisory --json`    | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.         |
 | `remove --dry-run --json`     | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                  |
 | Strict `remove <item> --json` | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                        |
+| `delete <item>` sibling       | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.               |
 | `eject --advisory --json`     | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
 | `eject --dry-run --json`      | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                             |
 | Future remove/delete/eject    | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
