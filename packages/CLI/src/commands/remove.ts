@@ -19,6 +19,7 @@ const removeOptionsSchema = z.object({
   dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
   registrySource: z.string().optional(),
+  withOrphans: z.boolean().default(false),
 })
 
 const parseRemoveOptions = (itemName: string, CLIOptions: unknown) => ({
@@ -48,6 +49,11 @@ export const createRemoveCommand = ({
     .option("--dry-run", "Preview an item-scoped remove without deleting files or writing lockfile data.", false)
     .option("--json", jsonDescription, false)
     .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
+    .option(
+      "--with-orphans",
+      "Include orphaned registry-owned dependencies in advisory and dry-run cleanup planning.",
+      false,
+    )
     .action(async (itemName, CLIOptions) => {
       try {
         const options = parseRemoveOptions(itemName, CLIOptions)
@@ -55,6 +61,11 @@ export const createRemoveCommand = ({
 
         if (options.advisory && options.dryRun) {
           logger.error("Please choose either --advisory or --dry-run, not both.")
+          process.exit(1)
+        }
+
+        if (options.withOrphans && !options.advisory && !options.dryRun) {
+          logger.error("Please use --with-orphans with --advisory or --dry-run.")
           process.exit(1)
         }
 
@@ -66,6 +77,7 @@ export const createRemoveCommand = ({
         if (options.dryRun) {
           const removeDryRunReport = await createRemoveDryRunReport({
             cwd,
+            includeOrphans: options.withOrphans,
             itemName: options.itemName,
             registrySourcePath: options.registrySource,
           })
@@ -90,9 +102,17 @@ export const createRemoveCommand = ({
           logger.info(`Blocked files: ${removeDryRunReport.summary.blockedFileCount}`)
           logger.info(`Blockers: ${removeDryRunReport.summary.blockerCount}`)
           logger.info(`Lockfile effect: ${removeDryRunReport.wouldEffects.lockfile.status}`)
+          if (removeDryRunReport.orphanCleanup.enabled) {
+            logger.info(`Orphan cleanup items: ${removeDryRunReport.orphanCleanup.itemCount}`)
+            logger.info(`Orphan cleanup would remove files: ${removeDryRunReport.orphanCleanup.wouldRemoveFileCount}`)
+            logger.info(`Orphan cleanup effect: ${removeDryRunReport.wouldEffects.orphanCleanup.status}`)
+          }
 
           for (const file of removeDryRunReport.files) {
             logger.info(`- ${file.path}: ${file.dryRunAction}`)
+          }
+          for (const item of removeDryRunReport.orphanCleanup.items) {
+            logger.info(`- orphan item ${item.name}: ${item.itemRemoveState}`)
           }
 
           return
@@ -136,6 +156,7 @@ export const createRemoveCommand = ({
 
         const removeAdvisoryReport = await createRemoveAdvisoryReport({
           cwd,
+          includeOrphans: options.withOrphans,
           itemName: options.itemName,
           registrySourcePath: options.registrySource,
         })
@@ -158,10 +179,18 @@ export const createRemoveCommand = ({
         logger.info(`Review-required files: ${removeAdvisoryReport.summary.reviewRequiredCount}`)
         logger.info(`Preserved files: ${removeAdvisoryReport.summary.preservationRequiredCount}`)
         logger.info(`Automatic remove blockers: ${removeAdvisoryReport.summary.automaticBlockerCount}`)
+        if (removeAdvisoryReport.orphanCleanup.enabled) {
+          logger.info(`Orphan cleanup items: ${removeAdvisoryReport.orphanCleanup.itemCount}`)
+          logger.info(`Orphan cleanup future removable files: ${removeAdvisoryReport.orphanCleanup.candidateFileCount}`)
+          logger.info(`Orphan cleanup blockers: ${removeAdvisoryReport.orphanCleanup.automaticBlockerCount}`)
+        }
         logger.info(`Findings: ${removeAdvisoryReport.findings.length}`)
 
         for (const file of removeAdvisoryReport.files) {
           logger.info(`- ${file.path}: ${file.action}`)
+        }
+        for (const item of removeAdvisoryReport.orphanCleanup.items) {
+          logger.info(`- orphan item ${item.name}: ${item.itemRemoveState}`)
         }
       } catch (error) {
         handleError(error)

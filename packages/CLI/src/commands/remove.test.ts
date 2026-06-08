@@ -49,6 +49,11 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/ejected.ts",
     "source/source-only.ts",
     "source/missing-only.ts",
+    "source/orphan-primary.ts",
+    "source/orphan-component.ts",
+    "source/orphan-support.ts",
+    "source/shared-support.ts",
+    "source/other-dependent.ts",
     "consumer/amino-ui.config.json",
     "consumer/amino-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
@@ -57,7 +62,12 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "consumer/src/components/Diff/shared.ts",
     "consumer/src/components/Diff/unknown.ts",
     "consumer/src/components/Diff/source-only.ts",
+    "consumer/src/components/Graph/orphan-primary.ts",
+    "consumer/src/components/Graph/orphan-component.ts",
+    "consumer/src/components/Graph/other-dependent.ts",
     "consumer/src/components/_registry/tokens/consumer-support.ts",
+    "consumer/src/components/_registry/tokens/orphan-support.ts",
+    "consumer/src/components/_registry/tokens/shared-support.ts",
     "consumer/src/components/_registry/utils/ejected.ts",
   ]
     .filter((filePath) => existsSync(path.join(fixturePath, filePath)))
@@ -80,6 +90,11 @@ try {
   const ejectedSource = "export const ejected = true\n"
   const sourceOnlySource = "export const sourceOnly = true\n"
   const missingOnlySource = "export const missingOnly = true\n"
+  const orphanPrimarySource = "export const orphanPrimary = true\n"
+  const orphanComponentSource = "export const orphanComponent = true\n"
+  const orphanSupportSource = "export const orphanSupport = true\n"
+  const sharedSupportSource = "export const sharedSupport = true\n"
+  const otherDependentSource = "export const otherDependent = true\n"
 
   writeText(path.join(temporaryRoot, "source/clean.ts"), cleanSource)
   writeText(path.join(temporaryRoot, "source/local-modified.ts"), localModifiedInstalled)
@@ -91,13 +106,23 @@ try {
   writeText(path.join(temporaryRoot, "source/ejected.ts"), ejectedSource)
   writeText(path.join(temporaryRoot, "source/source-only.ts"), sourceOnlySource)
   writeText(path.join(temporaryRoot, "source/missing-only.ts"), missingOnlySource)
+  writeText(path.join(temporaryRoot, "source/orphan-primary.ts"), orphanPrimarySource)
+  writeText(path.join(temporaryRoot, "source/orphan-component.ts"), orphanComponentSource)
+  writeText(path.join(temporaryRoot, "source/orphan-support.ts"), orphanSupportSource)
+  writeText(path.join(temporaryRoot, "source/shared-support.ts"), sharedSupportSource)
+  writeText(path.join(temporaryRoot, "source/other-dependent.ts"), otherDependentSource)
   writeText(path.join(consumerRoot, "src/components/Diff/clean.ts"), cleanSource)
   writeText(path.join(consumerRoot, "src/components/Diff/local-modified.ts"), localModifiedCurrent)
   writeText(path.join(consumerRoot, "src/components/Diff/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/Diff/shared.ts"), sharedSource)
   writeText(path.join(consumerRoot, "src/components/Diff/unknown.ts"), unknownSource)
   writeText(path.join(consumerRoot, "src/components/Diff/source-only.ts"), sourceOnlySource)
+  writeText(path.join(consumerRoot, "src/components/Graph/orphan-primary.ts"), orphanPrimarySource)
+  writeText(path.join(consumerRoot, "src/components/Graph/orphan-component.ts"), orphanComponentSource)
+  writeText(path.join(consumerRoot, "src/components/Graph/other-dependent.ts"), otherDependentSource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/consumer-support.ts"), consumerSupportSource)
+  writeText(path.join(consumerRoot, "src/components/_registry/tokens/orphan-support.ts"), orphanSupportSource)
+  writeText(path.join(consumerRoot, "src/components/_registry/tokens/shared-support.ts"), sharedSupportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
   writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
   writeJson(registrySourcePath, {
@@ -183,6 +208,74 @@ try {
         sourcePackage: "@amino-ui/react",
         type: "component",
       },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/orphan-primary.ts",
+            targetPath: "Graph/orphan-primary.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-primary",
+        registryDependencies: ["orphan-component", "shared-support"],
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/orphan-component.ts",
+            targetPath: "Graph/orphan-component.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-component",
+        registryDependencies: ["orphan-support"],
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+      {
+        files: [
+          {
+            role: "support",
+            sourcePath: "source/orphan-support.ts",
+            targetPath: "orphan-support.ts",
+            targetRole: "tokens",
+          },
+        ],
+        name: "orphan-support",
+        sourcePackage: "@amino-ui/react",
+        type: "support",
+      },
+      {
+        files: [
+          {
+            role: "support",
+            sourcePath: "source/shared-support.ts",
+            targetPath: "shared-support.ts",
+            targetRole: "tokens",
+          },
+        ],
+        name: "shared-support",
+        sourcePackage: "@amino-ui/react",
+        type: "support",
+      },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/other-dependent.ts",
+            targetPath: "Graph/other-dependent.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "other-dependent",
+        registryDependencies: ["shared-support"],
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
     ],
     schemaVersion: 1,
     sourceIdentity: "@amino-ui/test-registry",
@@ -237,6 +330,74 @@ try {
           },
         ],
         name: "source-only",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "orphan-primary": {
+        files: [
+          {
+            installedHash: createContentHash(orphanPrimarySource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/orphan-primary.ts",
+            sourceHash: createContentHash(orphanPrimarySource),
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-primary",
+        registryDependencies: ["orphan-component", "shared-support"],
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "orphan-component": {
+        files: [
+          {
+            installedHash: createContentHash(orphanComponentSource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/orphan-component.ts",
+            sourceHash: createContentHash(orphanComponentSource),
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-component",
+        registryDependencies: ["orphan-support"],
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "orphan-support": {
+        files: [
+          {
+            installedHash: createContentHash(orphanSupportSource),
+            ownershipState: "registry-owned",
+            path: "src/components/_registry/tokens/orphan-support.ts",
+            sourceHash: createContentHash(orphanSupportSource),
+            targetRole: "tokens",
+          },
+        ],
+        name: "orphan-support",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "shared-support": {
+        files: [
+          {
+            installedHash: createContentHash(sharedSupportSource),
+            ownershipState: "registry-owned",
+            path: "src/components/_registry/tokens/shared-support.ts",
+            sourceHash: createContentHash(sharedSupportSource),
+            targetRole: "tokens",
+          },
+        ],
+        name: "shared-support",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "other-dependent": {
+        files: [
+          {
+            installedHash: createContentHash(otherDependentSource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/other-dependent.ts",
+            sourceHash: createContentHash(otherDependentSource),
+            targetRole: "components",
+          },
+        ],
+        name: "other-dependent",
+        registryDependencies: ["shared-support"],
         sourceIdentity: "@amino-ui/test-registry",
       },
       switch: {
@@ -330,6 +491,8 @@ try {
   assert.equal(report.summary.sharedReferenceCount, 1)
   assert.equal(report.summary.supportReviewCount, 1)
   assert.equal(report.summary.dependencyStates.missing, 1)
+  assert.equal(report.orphanCleanup.enabled, false)
+  assert.equal(report.orphanCleanup.itemCount, 0)
   assert.equal(report.summary.actionStates["remove-candidate"], 1)
   assert.equal(report.summary.actionStates["lockfile-cleanup-candidate"], 1)
   assert.equal(report.summary.actionStates["review-support-file"], 1)
@@ -379,6 +542,59 @@ try {
   assert.equal(missingOnlyReport.summary.removableFileCount, 0)
   assert.equal(missingOnlyReport.files[0].action, "lockfile-cleanup-candidate")
 
+  const orphanAdvisoryReport = await createRemoveAdvisoryReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(orphanAdvisoryReport.itemRemoveState, "remove-candidate")
+  assert.equal(orphanAdvisoryReport.summary.removableFileCount, 1)
+  assert.equal(orphanAdvisoryReport.orphanCleanup.enabled, true)
+  assert.equal(orphanAdvisoryReport.orphanCleanup.itemCount, 2)
+  assert.equal(orphanAdvisoryReport.orphanCleanup.candidateItemCount, 2)
+  assert.equal(orphanAdvisoryReport.orphanCleanup.candidateFileCount, 2)
+  assert.equal(orphanAdvisoryReport.orphanCleanup.automaticBlockerCount, 0)
+  assert.deepEqual(
+    orphanAdvisoryReport.orphanCleanup.items.map((item) => item.name),
+    ["orphan-component", "orphan-support"],
+  )
+  assert.equal(
+    orphanAdvisoryReport.orphanCleanup.items
+      .find((item) => item.name === "orphan-support")
+      ?.files.find((file) => file.path === "src/components/_registry/tokens/orphan-support.ts")?.action,
+    "remove-candidate",
+  )
+  assert.equal(
+    orphanAdvisoryReport.orphanCleanup.items.some((item) => item.name === "shared-support"),
+    false,
+  )
+
+  const orphanDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(orphanDryRunReport.itemRemoveState, "would-remove")
+  assert.equal(orphanDryRunReport.summary.wouldRemoveFileCount, 1)
+  assert.equal(orphanDryRunReport.orphanCleanup.enabled, true)
+  assert.equal(orphanDryRunReport.orphanCleanup.itemCount, 2)
+  assert.equal(orphanDryRunReport.orphanCleanup.wouldRemoveItemCount, 2)
+  assert.equal(orphanDryRunReport.orphanCleanup.wouldRemoveFileCount, 2)
+  assert.equal(orphanDryRunReport.orphanCleanup.wouldRemoveLockfileRecordCount, 2)
+  assert.equal(orphanDryRunReport.orphanCleanup.blockedItemCount, 0)
+  assert.equal(orphanDryRunReport.wouldEffects.lockfile.status, "would-write")
+  assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.status, "would-write")
+  assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.plannedItemCount, 2)
+  assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.wouldRemoveFileCount, 2)
+  assert.deepEqual(
+    orphanDryRunReport.orphanCleanup.items.map((item) => item.name),
+    ["orphan-component", "orphan-support"],
+  )
+
   const mixedDryRunReport = await createRemoveDryRunReport({
     cwd: consumerRoot,
     itemName: "switch",
@@ -393,6 +609,7 @@ try {
     writesFiles: false,
     writesLockfile: false,
   })
+  assert.equal(mixedDryRunReport.orphanCleanup.enabled, false)
   assert.equal(mixedDryRunReport.itemRemoveState, "blocked")
   assert.equal(mixedDryRunReport.summary.fileCount, 8)
   assert.equal(mixedDryRunReport.summary.removeCandidateCount, 1)

@@ -1,3 +1,4 @@
+import crypto from "crypto"
 import { existsSync, promises as fs } from "fs"
 import path from "path"
 
@@ -8,6 +9,7 @@ import {
   consumerLockfileDependencySchema,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
+  type TConsumerLockfile,
 } from "./consumerContract"
 import { INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
 import { createStatusReport, type TStatusReport } from "./status"
@@ -78,6 +80,32 @@ const removeAdvisoryFileSchema = z
   })
   .strict()
 
+const removeAdvisoryOrphanItemSchema = z
+  .object({
+    dependencyDepth: z.number().int().positive(),
+    dependedOnBy: z.array(z.string().min(1)).default([]),
+    files: z.array(removeAdvisoryFileSchema).default([]),
+    itemRemoveState: z.enum(REMOVE_ADVISORY_ITEM_STATES),
+    name: z.string().min(1),
+    registryDependencies: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+const removeAdvisoryOrphanCleanupSchema = z
+  .object({
+    automaticBlockerCount: z.number().int().nonnegative(),
+    candidateFileCount: z.number().int().nonnegative(),
+    candidateItemCount: z.number().int().nonnegative(),
+    enabled: z.boolean(),
+    itemCount: z.number().int().nonnegative(),
+    items: z.array(removeAdvisoryOrphanItemSchema).default([]),
+    lockfileCleanupCandidateCount: z.number().int().nonnegative(),
+    preservationRequiredCount: z.number().int().nonnegative(),
+    reviewRequiredCount: z.number().int().nonnegative(),
+    sharedReferenceCount: z.number().int().nonnegative(),
+  })
+  .strict()
+
 export const removeAdvisoryReportSchema = z
   .object({
     advisory: z.literal(true),
@@ -105,6 +133,7 @@ export const removeAdvisoryReportSchema = z
       .optional(),
     itemName: z.string().min(1),
     itemRemoveState: z.enum(REMOVE_ADVISORY_ITEM_STATES),
+    orphanCleanup: removeAdvisoryOrphanCleanupSchema,
     registrySource: z
       .object({
         path: z.string().min(1).optional(),
@@ -141,6 +170,7 @@ export type TRemoveAdvisoryReport = z.infer<typeof removeAdvisoryReportSchema>
 
 export type TCreateRemoveAdvisoryReportOptions = {
   cwd: string
+  includeOrphans?: boolean
   itemName: string
   registrySourcePath?: string
 }
@@ -148,42 +178,54 @@ export type TCreateRemoveAdvisoryReportOptions = {
 const createEmptyRecord = <TKey extends string>(keys: readonly TKey[]): Record<TKey, number> =>
   Object.fromEntries(keys.map((key) => [key, 0])) as Record<TKey, number>
 
-const readLockfilePathReferences = async (cwd: string) => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
-  const pathReferences = new Map<string, Set<string>>()
+const createContentHash = (content: string | Buffer) =>
+  `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
 
-  if (!existsSync(lockfilePath)) return pathReferences
+const createEmptyLockfileData = () => consumerLockfileSchema.parse({})
+
+const readConsumerLockfileForRemoveAdvisory = async (cwd: string): Promise<TConsumerLockfile> => {
+  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+
+  if (!existsSync(lockfilePath)) return createEmptyLockfileData()
 
   try {
-    const lockfileData = consumerLockfileSchema.parse(JSON.parse(await fs.readFile(lockfilePath, "utf8")))
-
-    Object.values(lockfileData.items).forEach((item) => {
-      item.files.forEach((file) => {
-        const itemReferences = pathReferences.get(file.path) ?? new Set<string>()
-
-        itemReferences.add(item.name)
-        pathReferences.set(file.path, itemReferences)
-      })
-    })
+    return consumerLockfileSchema.parse(JSON.parse(await fs.readFile(lockfilePath, "utf8")))
   } catch {
-    return pathReferences
+    return createEmptyLockfileData()
   }
+}
+
+const createLockfilePathReferences = (lockfileData: TConsumerLockfile) => {
+  const pathReferences = new Map<string, Set<string>>()
+
+  Object.values(lockfileData.items).forEach((item) => {
+    item.files.forEach((file) => {
+      const itemReferences = pathReferences.get(file.path) ?? new Set<string>()
+
+      itemReferences.add(item.name)
+      pathReferences.set(file.path, itemReferences)
+    })
+  })
 
   return pathReferences
 }
 
 const getSharedReferenceCount = ({
   file,
+  ignoredItemNames,
   pathReferences,
 }: {
-  file: TStatusReport["files"][number]
+  file: Pick<TRemoveAdvisoryFile, "itemName" | "path"> | Pick<TStatusReport["files"][number], "itemName" | "path">
+  ignoredItemNames?: ReadonlySet<string>
   pathReferences: ReadonlyMap<string, ReadonlySet<string>>
 }) => {
   const itemReferences = pathReferences.get(file.path)
 
   if (!itemReferences) return 0
 
-  return [...itemReferences].filter((itemName) => itemName !== file.itemName).length
+  const ignoredNames = ignoredItemNames ?? new Set([file.itemName])
+
+  return [...itemReferences].filter((itemName) => !ignoredNames.has(itemName)).length
 }
 
 const resolveAction = ({
@@ -199,6 +241,23 @@ const resolveAction = ({
   if (file.state === "ejected") return REMOVE_ADVISORY_ACTION__PRESERVE_EJECTED
   if (sharedReferenceCount > 0) return REMOVE_ADVISORY_ACTION__REVIEW_SHARED_FILE
   if (file.targetRole !== "components") return REMOVE_ADVISORY_ACTION__REVIEW_SUPPORT_FILE
+  if (file.state === "missing") return REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE
+
+  return REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE
+}
+
+const resolveOrphanAction = ({
+  file,
+  sharedReferenceCount,
+}: {
+  file: Pick<TRemoveAdvisoryFile, "state">
+  sharedReferenceCount: number
+}): (typeof REMOVE_ADVISORY_ACTIONS)[number] => {
+  if (file.state === "locally-modified") return REMOVE_ADVISORY_ACTION__PRESERVE_LOCAL_CHANGE
+  if (file.state === "consumer-owned-support") return REMOVE_ADVISORY_ACTION__PRESERVE_CONSUMER_OWNED_SUPPORT
+  if (file.state === "unknown") return REMOVE_ADVISORY_ACTION__PRESERVE_UNKNOWN
+  if (file.state === "ejected") return REMOVE_ADVISORY_ACTION__PRESERVE_EJECTED
+  if (sharedReferenceCount > 0) return REMOVE_ADVISORY_ACTION__REVIEW_SHARED_FILE
   if (file.state === "missing") return REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE
 
   return REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE
@@ -252,6 +311,79 @@ const createRemoveAdvisoryFile = ({
   })
 }
 
+const deriveOrphanFileState = ({
+  currentHash,
+  installedHash,
+  ownershipState,
+}: {
+  currentHash?: string
+  installedHash: string
+  ownershipState: TConsumerLockfile["items"][string]["files"][number]["ownershipState"]
+}) => {
+  if (!currentHash) return "missing"
+  if (ownershipState === "ejected") return "ejected"
+  if (currentHash !== installedHash) return "locally-modified"
+  if (ownershipState === "consumer-owned-support") return "consumer-owned-support"
+  if (ownershipState === "registry-owned") return "registry-owned"
+
+  return "unknown"
+}
+
+const createRemoveAdvisoryOrphanFile = async ({
+  cleanupItemNames,
+  cwd,
+  file,
+  itemName,
+  pathReferences,
+}: {
+  cleanupItemNames: ReadonlySet<string>
+  cwd: string
+  file: TConsumerLockfile["items"][string]["files"][number]
+  itemName: string
+  pathReferences: ReadonlyMap<string, ReadonlySet<string>>
+}) => {
+  const absoluteTargetPath = path.resolve(cwd, file.path)
+  const currentHash = existsSync(absoluteTargetPath)
+    ? createContentHash(await fs.readFile(absoluteTargetPath))
+    : undefined
+  const state = deriveOrphanFileState({
+    currentHash,
+    installedHash: file.installedHash,
+    ownershipState: file.ownershipState,
+  })
+  const sharedReferenceCount = getSharedReferenceCount({
+    file: {
+      itemName,
+      path: file.path,
+    },
+    ignoredItemNames: cleanupItemNames,
+    pathReferences,
+  })
+  const action = resolveOrphanAction({
+    file: { state },
+    sharedReferenceCount,
+  })
+  const reviewRequired = resolveReviewRequired(action)
+  const preservationRequired = resolvePreservationRequired(action)
+
+  return removeAdvisoryFileSchema.parse({
+    action,
+    blocksAutomaticRemove: reviewRequired,
+    currentHash,
+    installedHash: file.installedHash,
+    itemName,
+    path: file.path,
+    preservationRequired,
+    removalTarget: resolveRemovalTarget(action),
+    reviewRequired,
+    sharedReferenceCount,
+    sourceHash: file.sourceHash,
+    sourceState: "unknown",
+    state,
+    targetRole: file.targetRole,
+  })
+}
+
 const resolveItemRemoveState = (files: readonly TRemoveAdvisoryFile[]) => {
   if (files.length === 0) return REMOVE_ADVISORY_ITEM_STATE__UNAVAILABLE
   if (files.some((file) => file.blocksAutomaticRemove)) return REMOVE_ADVISORY_ITEM_STATE__REVIEW_REQUIRED
@@ -265,8 +397,194 @@ const resolveItemRemoveState = (files: readonly TRemoveAdvisoryFile[]) => {
   return REMOVE_ADVISORY_ITEM_STATE__REVIEW_REQUIRED
 }
 
+const createDependentsByName = (lockfileData: TConsumerLockfile) => {
+  const dependentsByName = new Map<string, Set<string>>()
+
+  Object.values(lockfileData.items).forEach((item) => {
+    item.registryDependencies.forEach((dependencyName) => {
+      const dependents = dependentsByName.get(dependencyName) ?? new Set<string>()
+
+      dependents.add(item.name)
+      dependentsByName.set(dependencyName, dependents)
+    })
+  })
+
+  return dependentsByName
+}
+
+const collectDependencyClosure = ({
+  itemName,
+  lockfileData,
+}: {
+  itemName: string
+  lockfileData: TConsumerLockfile
+}) => {
+  const dependencyDepths = new Map<string, number>()
+  const visited = new Set<string>()
+  const stack = (lockfileData.items[itemName]?.registryDependencies ?? []).map((dependencyName) => ({
+    depth: 1,
+    name: dependencyName,
+  }))
+
+  while (stack.length > 0) {
+    const next = stack.shift()
+
+    if (!next) continue
+
+    const existingDepth = dependencyDepths.get(next.name)
+
+    if (!existingDepth || next.depth < existingDepth) {
+      dependencyDepths.set(next.name, next.depth)
+    }
+
+    if (visited.has(next.name)) continue
+
+    visited.add(next.name)
+
+    const dependencyItem = lockfileData.items[next.name]
+
+    if (!dependencyItem) continue
+
+    dependencyItem.registryDependencies.forEach((dependencyName) => {
+      stack.push({
+        depth: next.depth + 1,
+        name: dependencyName,
+      })
+    })
+  }
+
+  return dependencyDepths
+}
+
+const collectOrphanItemNames = ({ itemName, lockfileData }: { itemName: string; lockfileData: TConsumerLockfile }) => {
+  const dependencyDepths = collectDependencyClosure({ itemName, lockfileData })
+  const reachableDependencyNames = [...dependencyDepths.keys()].sort((left, right) => {
+    const leftDepth = dependencyDepths.get(left) ?? 0
+    const rightDepth = dependencyDepths.get(right) ?? 0
+
+    if (leftDepth !== rightDepth) return leftDepth - rightDepth
+
+    return left.localeCompare(right)
+  })
+  const dependentsByName = createDependentsByName(lockfileData)
+  const plannedRemovedItemNames = new Set([itemName])
+  const orphanItemNames: string[] = []
+  let changed = true
+
+  while (changed) {
+    changed = false
+
+    reachableDependencyNames.forEach((dependencyName) => {
+      if (plannedRemovedItemNames.has(dependencyName) || !lockfileData.items[dependencyName]) return
+
+      const activeDependents = [...(dependentsByName.get(dependencyName) ?? new Set<string>())].filter(
+        (dependentName) => !plannedRemovedItemNames.has(dependentName),
+      )
+
+      if (activeDependents.length > 0) return
+
+      plannedRemovedItemNames.add(dependencyName)
+      orphanItemNames.push(dependencyName)
+      changed = true
+    })
+  }
+
+  return {
+    dependencyDepths,
+    orphanItemNames,
+  }
+}
+
+const createDisabledOrphanCleanup = () =>
+  removeAdvisoryOrphanCleanupSchema.parse({
+    automaticBlockerCount: 0,
+    candidateFileCount: 0,
+    candidateItemCount: 0,
+    enabled: false,
+    itemCount: 0,
+    items: [],
+    lockfileCleanupCandidateCount: 0,
+    preservationRequiredCount: 0,
+    reviewRequiredCount: 0,
+    sharedReferenceCount: 0,
+  })
+
+const createRemoveAdvisoryOrphanCleanup = async ({
+  cwd,
+  includeOrphans,
+  itemName,
+  lockfileData,
+  pathReferences,
+  requestedItemRemoveState,
+}: {
+  cwd: string
+  includeOrphans: boolean
+  itemName: string
+  lockfileData: TConsumerLockfile
+  pathReferences: ReadonlyMap<string, ReadonlySet<string>>
+  requestedItemRemoveState: (typeof REMOVE_ADVISORY_ITEM_STATES)[number]
+}) => {
+  if (!includeOrphans) return createDisabledOrphanCleanup()
+
+  const { dependencyDepths, orphanItemNames } = collectOrphanItemNames({
+    itemName,
+    lockfileData,
+  })
+  const cleanupItemNames = new Set([itemName, ...orphanItemNames])
+  const dependentsByName = createDependentsByName(lockfileData)
+  const items = await Promise.all(
+    orphanItemNames.map(async (orphanItemName) => {
+      const orphanItem = lockfileData.items[orphanItemName]
+      const files = await Promise.all(
+        orphanItem.files.map((file) =>
+          createRemoveAdvisoryOrphanFile({
+            cleanupItemNames,
+            cwd,
+            file,
+            itemName: orphanItem.name,
+            pathReferences,
+          }),
+        ),
+      )
+
+      return removeAdvisoryOrphanItemSchema.parse({
+        dependencyDepth: dependencyDepths.get(orphanItemName) ?? 1,
+        dependedOnBy: [...(dependentsByName.get(orphanItemName) ?? new Set<string>())].sort(),
+        files,
+        itemRemoveState:
+          requestedItemRemoveState === REMOVE_ADVISORY_ITEM_STATE__REVIEW_REQUIRED
+            ? REMOVE_ADVISORY_ITEM_STATE__REVIEW_REQUIRED
+            : resolveItemRemoveState(files),
+        name: orphanItem.name,
+        registryDependencies: orphanItem.registryDependencies,
+      })
+    }),
+  )
+  const files = items.flatMap((item) => item.files)
+
+  return removeAdvisoryOrphanCleanupSchema.parse({
+    automaticBlockerCount: files.filter((file) => file.blocksAutomaticRemove).length,
+    candidateFileCount: files.filter((file) => file.action === REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE).length,
+    candidateItemCount: items.filter(
+      (item) =>
+        item.itemRemoveState === REMOVE_ADVISORY_ITEM_STATE__REMOVE_CANDIDATE ||
+        item.itemRemoveState === REMOVE_ADVISORY_ITEM_STATE__LOCKFILE_CLEANUP_CANDIDATE,
+    ).length,
+    enabled: true,
+    itemCount: items.length,
+    items,
+    lockfileCleanupCandidateCount: files.filter(
+      (file) => file.action === REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE,
+    ).length,
+    preservationRequiredCount: files.filter((file) => file.preservationRequired).length,
+    reviewRequiredCount: files.filter((file) => file.reviewRequired).length,
+    sharedReferenceCount: files.filter((file) => file.sharedReferenceCount > 0).length,
+  })
+}
+
 export const createRemoveAdvisoryReport = async ({
   cwd,
+  includeOrphans = false,
   itemName,
   registrySourcePath,
 }: TCreateRemoveAdvisoryReportOptions): Promise<TRemoveAdvisoryReport> => {
@@ -275,7 +593,8 @@ export const createRemoveAdvisoryReport = async ({
     itemName,
     registrySourcePath,
   })
-  const pathReferences = await readLockfilePathReferences(cwd)
+  const lockfileData = await readConsumerLockfileForRemoveAdvisory(cwd)
+  const pathReferences = createLockfilePathReferences(lockfileData)
   const files = statusReport.files.map((file) =>
     createRemoveAdvisoryFile({
       file,
@@ -294,6 +613,15 @@ export const createRemoveAdvisoryReport = async ({
         state: statusItem.state,
       }
     : undefined
+  const itemRemoveState = resolveItemRemoveState(files)
+  const orphanCleanup = await createRemoveAdvisoryOrphanCleanup({
+    cwd,
+    includeOrphans,
+    itemName,
+    lockfileData,
+    pathReferences,
+    requestedItemRemoveState: itemRemoveState,
+  })
 
   files.forEach((file) => {
     actionStates[file.action] += 1
@@ -316,7 +644,8 @@ export const createRemoveAdvisoryReport = async ({
     findings: statusReport.findings,
     item,
     itemName,
-    itemRemoveState: resolveItemRemoveState(files),
+    itemRemoveState,
+    orphanCleanup,
     registrySource: statusReport.registrySource,
     status: {
       config: statusReport.config.status,

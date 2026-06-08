@@ -323,6 +323,7 @@ consumer-owned support blocking, ejected blocking, and missing dependency blocki
 
 ```sh
 aui remove <item> --advisory --json --cwd <consumer-project>
+aui remove <item> --advisory --with-orphans --json --cwd <consumer-project>
 ```
 
 It starts from `status --json` classification and reports what a future remove flow would need to consider. It does not
@@ -335,6 +336,7 @@ The JSON report includes:
 | ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `itemRemoveState` | Aggregate state: `remove-candidate`, `lockfile-cleanup-candidate`, `review-required`, or `unavailable`.                 |
 | `files`           | Per-file ownership/source state, advisory action, removal target, preservation posture, and shared references.          |
+| `orphanCleanup`   | Disabled by default. With `--with-orphans`, reports dependency items that would become orphan cleanup candidates.       |
 | `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                             |
 | `effects`         | Always reports no config, lockfile, source-file, or dependency writes for this mode.                                    |
 | `summary`         | Counts for removable files, lockfile cleanup candidates, blockers, preservation, support review, and shared references. |
@@ -353,13 +355,17 @@ Per-file `action` values are:
 | `preserve-unknown`                | Unknown ownership is preserved and blocks automatic removal.                             |
 | `preserve-ejected`                | Ejected file is preserved and blocks automatic removal.                                  |
 
-Remove advisory is conservative around support files. It does not decide package dependency removal, support orphan
-deletion, source-file deletion, or lockfile writes. Remove dry-run now previews file and lockfile-record removal without
-writing; strict deletion is limited to the fixture-proven remove boundary.
+Remove advisory is conservative around support files for the requested item. It does not decide package dependency
+removal, source-file deletion, or lockfile writes. `--with-orphans` is an explicit no-write planning option: it walks the
+requested item's `registryDependencies` graph and reports dependency items that have no remaining dependents outside the
+planned cleanup set. Registry-owned support, theme, and token files may appear as orphan cleanup candidates only in that
+separate `orphanCleanup` block. Locally modified, consumer-owned-support, unknown, ejected, and shared files still block
+automatic cleanup by default.
 
 Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
 lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
-missing dependency posture, and stale source-hash classification.
+missing dependency posture, stale source-hash classification, and Wavemap-like orphan cleanup advisory planning behind
+`--with-orphans`.
 
 ## Remove Dry Run
 
@@ -367,6 +373,7 @@ missing dependency posture, and stale source-hash classification.
 
 ```sh
 aui remove <item> --dry-run --json --cwd <consumer-project>
+aui remove <item> --dry-run --with-orphans --json --cwd <consumer-project>
 ```
 
 It starts from `remove --advisory` classification and converts advisory actions into no-write deletion previews. It does
@@ -379,6 +386,7 @@ The JSON report includes:
 | ----------------- | ------------------------------------------------------------------------------------------------------------------ |
 | `itemRemoveState` | Aggregate state: `would-remove`, `blocked`, or `unavailable`.                                                      |
 | `files`           | Per-file advisory action, dry-run action, removal booleans, blocker codes, preservation posture, and source state. |
+| `orphanCleanup`   | Disabled by default. With `--with-orphans`, previews orphaned dependency items and files without writes.           |
 | `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                        |
 | `effects`         | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                        |
 | `wouldEffects`    | Planned remove preview: source-file deletion count, lockfile-record removal count, skips, blocks, and status.      |
@@ -403,9 +411,14 @@ ejected, shared, or a support-file review target, the item state is `blocked`; o
 candidates, but `wouldRemoveFile` and `wouldRemoveLockfileRecord` stay false until blockers are resolved. Missing
 dependency posture is still reported, but remove dry-run does not run package-manager writes or dependency cleanup.
 
+With `--with-orphans`, dry-run also reports `wouldEffects.orphanCleanup`. This remains advisory/dry-run planning only.
+Strict `remove` and `delete` do not accept orphan cleanup writes yet; passing `--with-orphans` without `--advisory` or
+`--dry-run` is rejected.
+
 Current fixture evidence proves clean installed remove dry-run, locally modified item blocking, missing local file
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
-missing dependency posture, and stale source-hash classification.
+missing dependency posture, stale source-hash classification, and Wavemap-like orphan cleanup dry-run planning behind
+`--with-orphans`.
 
 ## Strict Remove
 
@@ -449,7 +462,9 @@ dependency non-mutation.
 
 ```sh
 aui delete <item> --advisory --json --cwd <consumer-project>
+aui delete <item> --advisory --with-orphans --json --cwd <consumer-project>
 aui delete <item> --dry-run --json --cwd <consumer-project>
+aui delete <item> --dry-run --with-orphans --json --cwd <consumer-project>
 aui delete <item> --json --cwd <consumer-project>
 ```
 
@@ -457,9 +472,12 @@ The command delegates to the remove implementation. Advisory and dry-run modes r
 the same dry-run gate, preflight checks, item-atomic blocking, lockfile write, and file deletion boundaries as
 `remove <item> --json`.
 
-The JSON report remains the remove report schema. `delete` does not introduce support/orphan cleanup, dependency removal,
-package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or ejected-file
-deletion.
+The JSON report remains the remove report schema. Strict `delete` does not introduce support/orphan cleanup, dependency
+removal, package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or
+ejected-file deletion.
+
+`delete --with-orphans` has the same no-write advisory and dry-run orphan cleanup planning as `remove --with-orphans`.
+Strict `delete` stays remove-equivalent and item-scoped.
 
 ## Eject Advisory
 

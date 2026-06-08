@@ -16,8 +16,8 @@ Stable CLI guidance has moved into the docs site:
 - `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
 - `apps/docs/src/content/docs/registry/local-snapshots.md`
 
-Keep this roadmap focused on remaining lifecycle behavior such as update, dry-run update, safe remove/delete, focused
-diff, and eject.
+Keep this roadmap focused on remaining lifecycle behavior such as strict orphan cleanup writes, dependency cleanup, broad
+update/merge behavior, broader eject policy, public registry hosting, and package publication.
 
 ## Current Status
 
@@ -275,6 +275,12 @@ rejects existing target files rather than overwriting, writes the seven planned 
 package-local token imports to the installed consumer registry token paths, and updates `amino-ui.lock.json` with
 hash-based item/file ownership metadata plus satisfied dependency decisions. It does not install or update packages,
 generate hosted registry artifacts, run component tests, or implement status/update/eject behavior.
+
+Later lifecycle slices added item-scoped `status`, `diff`, `update`, `remove`, `delete`, and `eject` behavior behind
+fixture evidence. `remove` and `delete` now also accept `--with-orphans` with `--advisory` or `--dry-run` to report
+dependency items that would become orphan cleanup candidates. That plan is no-write and lives in a separate
+`orphanCleanup` report block; strict remove/delete remain item-scoped and reject `--with-orphans` until strict orphan
+cleanup policy is approved.
 
 ## Design Discussion Packet
 
