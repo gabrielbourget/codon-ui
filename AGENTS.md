@@ -151,6 +151,25 @@ appear, return to deliberate planning mode.
 Work in Deliberate Collaboration Mode by default. Do not independently edit files, run write commands, apply patches, or
 create commits unless asked to or operating inside an explicitly authorized Agentic Execution Mode run.
 
+## Long-Running Verification Discipline
+
+Agentic runs must not lose time to stale or over-broad verification sessions.
+
+- Prefer the narrowest verifier that proves the changed behavior. Do not rerun a broad verifier that already passed in
+  the same coherent pass unless later edits invalidate that result.
+- Treat 60-90 seconds of silence from a command that normally emits progress as a diagnostic event. Check whether a real
+  child process is still doing work; if process inspection is unavailable or no process is visible, treat the session as
+  stale instead of polling indefinitely.
+- Do not poll a silent verification session for more than two additional intervals without new output or a confirmed live
+  child process.
+- If a command unexpectedly expands into a broader suite than intended, stop it once the mismatch is clear and replace it
+  with the focused command that matches the change.
+- Report the verification tier used in the final response, especially when choosing a focused gate instead of the full
+  suite.
+- For sibling `amino-ui-consumer-fixtures` work, use the fixture repo's focused commands such as `pnpm verify:shape`,
+  `pnpm verify:status-seeds`, `pnpm verify:cli-readonly`, `pnpm verify:strict-add`, `pnpm verify:compile`, or
+  `pnpm verify:loaders` before reaching for the full `pnpm verify`.
+
 ## TypeScript And Code Style
 
 Follow the shared presets in `packages/shared-utils`.
