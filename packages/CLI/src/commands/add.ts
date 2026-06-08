@@ -26,6 +26,7 @@ import {
   handleError,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
+  INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   isLocalReactRegistryComponentItemRequest,
@@ -45,6 +46,8 @@ import {
   computePackageManagerDevDependencyFlag,
   createDependencyInstallPlan,
   createDependencyInstallPolicyPlan,
+  DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
   DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
   DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
@@ -159,6 +162,10 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
     }
   }
 }
+
+const hasOnlyDependencyStrictAddBlockers = (findings: readonly TInstallPlanFinding[]) =>
+  findings.length > 0 &&
+  findings.every((finding) => finding.code === INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER)
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
   if (config.tsx) return filePath
@@ -387,51 +394,93 @@ export const add = new Command()
         })
         const configPlan = await readConsumerConfigForStrictAdd(cwd)
         const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
-        const dependencyPolicy = createDependencyInstallPolicyPlan({
+        let dependencyPolicy = createDependencyInstallPolicyPlan({
           configPolicy: configPlan.config.dependencies.policy,
           configSource: configPlan.configSource,
           policyOverride: options.dependencyPolicy,
         })
-        const dependencyInstallTarget = resolveDependencyInstallTarget({
-          consumerRoot: cwd,
-          packageJsonPath: options.packageJson,
-        })
-        const installPlan = createRegistryInstallPlan({
-          config: configPlan.config,
-          consumerRoot: cwd,
-          dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
-          registrySource: advisoryRegistrySource,
-          requestedItems: explicitRequestedItems,
-          sourceRoot,
-        })
-        const planWithInitialFindings = createRegistryInstallPlanWithFindings({
-          findings: [
-            ...configPlan.findings,
-            ...lockfilePlan.findings,
-            ...componentPacketFindings,
-            ...installPlan.findings,
-          ],
-          installPlan,
-        })
-        const reusableTargetPlan = createStrictAddLockfileReusePlan({
-          installPlan: planWithInitialFindings,
-          lockfileData: lockfilePlan.lockfileData,
-        })
-        const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
-        const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
-        const installPlanWithFindings = createRegistryInstallPlanWithFindings({
-          findings,
-          installPlan: reusableTargetPlan,
-        })
-        const dependencyInstallPlan = createDependencyInstallPlan({
-          consumerRoot: cwd,
-          dependencyPlan: installPlanWithFindings.dependencyPlan,
-          dependencyPolicy,
-          installDependencies: options.installDependencies,
-          nonInteractive: options.json,
-          packageManager: options.packageManager,
-          targetManifest: dependencyInstallTarget,
-        })
+        const createStrictLocalRegistryAddPlan = ({
+          executedDependencyCommands = [],
+        }: {
+          executedDependencyCommands?: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"]
+        } = {}) => {
+          const dependencyInstallTarget = resolveDependencyInstallTarget({
+            consumerRoot: cwd,
+            packageJsonPath: options.packageJson,
+          })
+          const installPlan = createRegistryInstallPlan({
+            config: configPlan.config,
+            consumerRoot: cwd,
+            dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
+            registrySource: advisoryRegistrySource,
+            requestedItems: explicitRequestedItems,
+            sourceRoot,
+          })
+          const planWithInitialFindings = createRegistryInstallPlanWithFindings({
+            findings: [
+              ...configPlan.findings,
+              ...lockfilePlan.findings,
+              ...componentPacketFindings,
+              ...installPlan.findings,
+            ],
+            installPlan,
+          })
+          const reusableTargetPlan = createStrictAddLockfileReusePlan({
+            installPlan: planWithInitialFindings,
+            lockfileData: lockfilePlan.lockfileData,
+          })
+          const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
+          const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
+          const installPlanWithFindings = createRegistryInstallPlanWithFindings({
+            findings,
+            installPlan: reusableTargetPlan,
+          })
+          const dependencyInstallPlan = createDependencyInstallPlan({
+            consumerRoot: cwd,
+            dependencyPlan: installPlanWithFindings.dependencyPlan,
+            dependencyPolicy,
+            executedCommands: executedDependencyCommands,
+            installDependencies: options.installDependencies,
+            nonInteractive: options.json,
+            packageManager: options.packageManager,
+            targetManifest: dependencyInstallTarget,
+          })
+
+          return {
+            dependencyInstallPlan,
+            findings,
+            installPlanWithFindings,
+            strictBlockerFindings,
+          }
+        }
+        let executedDependencyCommands: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"] = []
+        let { dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
+          createStrictLocalRegistryAddPlan()
+
+        if (
+          hasOnlyDependencyStrictAddBlockers(strictBlockerFindings) &&
+          dependencyInstallPlan.executionPlan.mode === DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE
+        ) {
+          executedDependencyCommands = dependencyInstallPlan.recommendedCommands
+
+          for (const command of executedDependencyCommands) {
+            await execa(command.packageManager, command.args, {
+              cwd: path.resolve(cwd, command.workingDirectory ?? "."),
+            })
+          }
+
+          dependencyPolicy = createDependencyInstallPolicyPlan({
+            configPolicy: configPlan.config.dependencies.policy,
+            configSource: configPlan.configSource,
+            packageManagerExecution: DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+            packageManagerWrites: executedDependencyCommands.length > 0,
+            policyOverride: options.dependencyPolicy,
+          })
+          ;({ dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
+            createStrictLocalRegistryAddPlan({
+              executedDependencyCommands,
+            }))
+        }
 
         if (strictBlockerFindings.length > 0) {
           const blockedResult = addStrictSchema.parse({
@@ -441,6 +490,7 @@ export const add = new Command()
             dependencyInstallPlan,
             effects: createAddStrictEffects({
               applied: false,
+              installsDependencies: executedDependencyCommands.length > 0,
               installPlan: installPlanWithFindings,
             }),
             findings,
@@ -466,6 +516,7 @@ export const add = new Command()
 
         const lockfileData = await writeStrictRegistryInstall({
           consumerRoot: cwd,
+          installedDependencies: executedDependencyCommands.flatMap((command) => command.dependencies),
           installPlan: installPlanWithFindings,
           lockfileData: lockfilePlan.lockfileData,
           sourceRoot,
@@ -481,6 +532,7 @@ export const add = new Command()
           dependencyInstallPlan,
           effects: createAddStrictEffects({
             applied: true,
+            installsDependencies: executedDependencyCommands.length > 0,
             installPlan: installPlanWithFindings,
             writtenFileCount,
           }),

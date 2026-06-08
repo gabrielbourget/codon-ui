@@ -7,6 +7,7 @@ import { Project, ScriptKind } from "ts-morph"
 import {
   AMINO_UI_CONFIG_FILE_NAME,
   AMINO_UI_LOCK_FILE_NAME,
+  CONSUMER_DEPENDENCY_ACTION__INSTALLED,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
@@ -310,22 +311,29 @@ const createLockfileDependencyKey = (dependency: Pick<TConsumerLockfile["depende
   `${dependency.kind}:${dependency.name}`
 
 export const mergeStrictAddLockfileDependencies = ({
+  installedDependencies = [],
   installPlan,
   lockfileData,
 }: {
+  installedDependencies?: readonly Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">[]
   installPlan: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
 }): TConsumerLockfile["dependencies"] => {
   const dependencyEntriesByKey = new Map<string, TConsumerLockfile["dependencies"][number]>()
+  const installedDependencyKeys = new Set(installedDependencies.map(createLockfileDependencyKey))
 
   lockfileData.dependencies.forEach((dependency) => {
     dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), dependency)
   })
 
   installPlan.dependencyPlan.forEach((dependency) => {
+    const dependencyKey = createLockfileDependencyKey(dependency)
+
     dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), {
       ...dependency,
-      action: CONSUMER_DEPENDENCY_ACTION__NONE,
+      action: installedDependencyKeys.has(dependencyKey)
+        ? CONSUMER_DEPENDENCY_ACTION__INSTALLED
+        : CONSUMER_DEPENDENCY_ACTION__NONE,
     })
   })
 
@@ -370,12 +378,14 @@ export const createStrictAddLockfileReusePlan = ({
 
 export const writeStrictRegistryInstall = async ({
   consumerRoot,
+  installedDependencies = [],
   installPlan,
   lockfileData,
   sourceRoot,
   themeTier,
 }: {
   consumerRoot: string
+  installedDependencies?: readonly Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">[]
   installPlan: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
   sourceRoot: string
@@ -427,7 +437,7 @@ export const writeStrictRegistryInstall = async ({
   )
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
-    dependencies: mergeStrictAddLockfileDependencies({ installPlan, lockfileData }),
+    dependencies: mergeStrictAddLockfileDependencies({ installedDependencies, installPlan, lockfileData }),
     items: {
       ...lockfileData.items,
       ...nextItems,

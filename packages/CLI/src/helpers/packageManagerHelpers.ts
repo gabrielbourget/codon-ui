@@ -86,6 +86,22 @@ export const DEPENDENCY_INSTALL_APPROVAL_SOURCES = [
   DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION,
 ] as const
 
+export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN = "not-run"
+export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED = "completed"
+
+export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS = [
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+] as const
+
+export const DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN = "not-written"
+export const DEPENDENCY_INSTALL_STATUS__WRITTEN = "written"
+
+export const DEPENDENCY_INSTALL_STATUSES = [
+  DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
+  DEPENDENCY_INSTALL_STATUS__WRITTEN,
+] as const
+
 export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL = "dependency-install-policy-not-install"
 export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN =
   "dependency-install-package-manager-unknown"
@@ -154,7 +170,7 @@ type TDependencyInstallPlan = {
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
   recommendations: TDependencyInstallRecommendation[]
-  status: "not-written"
+  status: (typeof DEPENDENCY_INSTALL_STATUSES)[number]
   targetManifest: TDependencyInstallTargetManifest
 }
 
@@ -167,8 +183,8 @@ export type TDependencyInstallPolicySource = (typeof DEPENDENCY_INSTALL_POLICY_S
 
 type TDependencyInstallPolicyPlan = {
   configPolicy?: TConsumerDependencyPolicy
-  packageManagerExecution: "not-run"
-  packageManagerWrites: false
+  packageManagerExecution: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerWrites: boolean
   policy: TConsumerDependencyPolicy
   policyOverride?: TConsumerDependencyPolicy
   source: TDependencyInstallPolicySource
@@ -184,11 +200,12 @@ type TDependencyInstallExecutionBlocker = {
 type TDependencyInstallExecutionPlan = {
   approvalSource: (typeof DEPENDENCY_INSTALL_APPROVAL_SOURCES)[number]
   blockers: TDependencyInstallExecutionBlocker[]
+  executedCommands: TDependencyInstallCommand[]
   installRequested: boolean
   mode: (typeof DEPENDENCY_INSTALL_EXECUTION_MODES)[number]
   nonInteractive: boolean
-  packageManagerExecution: "not-run"
-  packageManagerWrites: false
+  packageManagerExecution: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerWrites: boolean
   requiresExplicitApproval: true
 }
 
@@ -413,15 +430,19 @@ export const isKnownDependencyInstallPolicy = (policy: string): policy is TConsu
 export const createDependencyInstallPolicyPlan = ({
   configPolicy = CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
   configSource = DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+  packageManagerExecution = DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN,
+  packageManagerWrites = false,
   policyOverride,
 }: {
   configPolicy?: TConsumerDependencyPolicy
   configSource?: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+  packageManagerExecution?: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerWrites?: boolean
   policyOverride?: TConsumerDependencyPolicy
 } = {}): TDependencyInstallPolicyPlan => ({
   configPolicy,
-  packageManagerExecution: "not-run",
-  packageManagerWrites: false,
+  packageManagerExecution,
+  packageManagerWrites,
   policy: policyOverride ?? configPolicy,
   policyOverride,
   source: policyOverride ? DEPENDENCY_INSTALL_POLICY_SOURCE__CLI_OPTION : configSource,
@@ -463,6 +484,7 @@ const createDependencyInstallExecutionPlan = ({
   nonInteractive,
   packageManager,
   recommendedCommands,
+  executedCommands = [],
 }: {
   dependencyPolicy: TDependencyInstallPolicyPlan
   commands: TDependencyInstallCommand[]
@@ -470,6 +492,7 @@ const createDependencyInstallExecutionPlan = ({
   nonInteractive: boolean
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
+  executedCommands?: TDependencyInstallCommand[]
 }): TDependencyInstallExecutionPlan => {
   const approvalSource = installRequested
     ? DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION
@@ -479,11 +502,12 @@ const createDependencyInstallExecutionPlan = ({
     return {
       approvalSource,
       blockers: [],
+      executedCommands,
       installRequested,
       mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_REQUESTED,
       nonInteractive,
-      packageManagerExecution: "not-run",
-      packageManagerWrites: false,
+      packageManagerExecution: dependencyPolicy.packageManagerExecution,
+      packageManagerWrites: dependencyPolicy.packageManagerWrites,
       requiresExplicitApproval: true,
     }
   }
@@ -492,11 +516,12 @@ const createDependencyInstallExecutionPlan = ({
     return {
       approvalSource,
       blockers: [],
+      executedCommands,
       installRequested,
       mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_NEEDED,
       nonInteractive,
-      packageManagerExecution: "not-run",
-      packageManagerWrites: false,
+      packageManagerExecution: dependencyPolicy.packageManagerExecution,
+      packageManagerWrites: dependencyPolicy.packageManagerWrites,
       requiresExplicitApproval: true,
     }
   }
@@ -520,12 +545,13 @@ const createDependencyInstallExecutionPlan = ({
   return {
     approvalSource,
     blockers,
+    executedCommands,
     installRequested,
     mode:
       blockers.length === 0 ? DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE : DEPENDENCY_INSTALL_EXECUTION_MODE__BLOCKED,
     nonInteractive,
-    packageManagerExecution: "not-run",
-    packageManagerWrites: false,
+    packageManagerExecution: dependencyPolicy.packageManagerExecution,
+    packageManagerWrites: dependencyPolicy.packageManagerWrites,
     requiresExplicitApproval: true,
   }
 }
@@ -534,6 +560,7 @@ export const createDependencyInstallPlan = ({
   consumerRoot,
   dependencyPlan,
   dependencyPolicy = createDependencyInstallPolicyPlan(),
+  executedCommands = [],
   installDependencies = false,
   nonInteractive = false,
   packageJsonPath,
@@ -546,6 +573,7 @@ export const createDependencyInstallPlan = ({
   consumerRoot: string
   dependencyPlan: TRegistryInstallPlan["dependencyPlan"]
   dependencyPolicy?: TDependencyInstallPolicyPlan
+  executedCommands?: TDependencyInstallCommand[]
   installDependencies?: boolean
   nonInteractive?: boolean
   packageJsonPath?: string
@@ -608,11 +636,14 @@ export const createDependencyInstallPlan = ({
       nonInteractive,
       packageManager: detectedPackageManager,
       recommendedCommands,
+      executedCommands,
     }),
     packageManager: detectedPackageManager,
     recommendedCommands,
     recommendations,
-    status: "not-written",
+    status: dependencyPolicy.packageManagerWrites
+      ? DEPENDENCY_INSTALL_STATUS__WRITTEN
+      : DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
     targetManifest: targetManifest.manifest,
   }
 }

@@ -9,9 +9,11 @@ import {
   DEPENDENCY_INSTALL_APPROVAL_SOURCES,
   DEPENDENCY_INSTALL_EXECUTION_BLOCKERS,
   DEPENDENCY_INSTALL_EXECUTION_MODES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS,
   DEPENDENCY_INSTALL_POLICY_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  DEPENDENCY_INSTALL_STATUSES,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
   PACKAGE_MANAGER_UNKNOWN,
 } from "@/src/helpers/packageManagerHelpers"
@@ -196,8 +198,8 @@ export const dependencyInstallCommandSchema = z
 export const dependencyInstallPolicyPlanSchema = z
   .object({
     configPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
-    packageManagerExecution: z.literal("not-run"),
-    packageManagerWrites: z.literal(false),
+    packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+    packageManagerWrites: z.boolean(),
     policy: z.enum(CONSUMER_DEPENDENCY_POLICIES),
     policyOverride: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
     source: z.enum(DEPENDENCY_INSTALL_POLICY_SOURCES),
@@ -215,11 +217,12 @@ export const dependencyInstallExecutionPlanSchema = z
   .object({
     approvalSource: z.enum(DEPENDENCY_INSTALL_APPROVAL_SOURCES),
     blockers: z.array(dependencyInstallExecutionBlockerSchema).default([]),
+    executedCommands: z.array(dependencyInstallCommandSchema).default([]),
     installRequested: z.boolean(),
     mode: z.enum(DEPENDENCY_INSTALL_EXECUTION_MODES),
     nonInteractive: z.boolean(),
-    packageManagerExecution: z.literal("not-run"),
-    packageManagerWrites: z.literal(false),
+    packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+    packageManagerWrites: z.boolean(),
     requiresExplicitApproval: z.literal(true),
   })
   .strict()
@@ -232,7 +235,7 @@ export const dependencyInstallPlanSchema = z
     packageManager: dependencyInstallPackageManagerDetectionSchema,
     recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
     recommendations: z.array(dependencyInstallRecommendationSchema).default([]),
-    status: z.literal("not-written"),
+    status: z.enum(DEPENDENCY_INSTALL_STATUSES),
     targetManifest: dependencyInstallTargetManifestSchema,
   })
   .strict()
@@ -414,7 +417,7 @@ export const addStrictEffectsSchema = z
         writtenCount: z.number().int().nonnegative(),
       })
       .strict(),
-    installsDependencies: z.literal(false),
+    installsDependencies: z.boolean(),
     writesConfig: z.literal(false),
     writesFiles: z.boolean(),
     writesLockfile: z.boolean(),

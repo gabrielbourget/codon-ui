@@ -102,8 +102,10 @@ ranges against manifest requirements.
 | `incompatible` | Consumer declares the dependency, but the declared range does not satisfy the requirement. |
 | `unresolved`   | The CLI could not make a confident range decision.                                         |
 
-Strict add does not install, update, or remove packages. It blocks when required dependency decisions are not satisfied.
-When strict add succeeds, the lockfile records satisfied dependency decisions with action `none`.
+Strict add blocks when required dependency decisions are not satisfied, unless the command has explicit dependency-install
+approval. Without package-manager execution, a successful strict add records satisfied dependency decisions with action
+`none`. When strict add installs dependencies first, the lockfile records those dependency decisions with action
+`installed`.
 
 Dependency install policy is now explicit in `dependencyInstallPlan.dependencyPolicy`.
 
@@ -112,25 +114,31 @@ Dependency install policy is now explicit in `dependencyInstallPlan.dependencyPo
 | `report-only` | Default. Report dependency posture and proposed commands without package-manager execution.             |
 | `manual`      | Report that the consumer intends to resolve dependencies outside the CLI; no package-manager execution. |
 | `prompt`      | Parsed and reported as future policy intent; no prompting or package-manager execution yet.             |
-| `install`     | Allows explicit install intent to become eligible in reports; no package-manager execution yet.         |
+| `install`     | Allows strict add to execute dependencies only with explicit `--install-dependencies` command intent.   |
 
 Policy source is also reported. `source: "default"` means the planner used the default `report-only` fallback,
 `source: "config"` means it read `amino-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
-the config/default value. Every current policy report includes `packageManagerExecution: "not-run"` and
-`packageManagerWrites: false`.
+the config/default value. Advisory and dry-run reports keep `packageManagerExecution: "not-run"` and
+`packageManagerWrites: false`; strict add can report `packageManagerExecution: "completed"` and
+`packageManagerWrites: true` only after an approved package-manager command completes.
 
 Dependency execution eligibility is reported separately in `dependencyInstallPlan.executionPlan`. `--install-dependencies`
 records explicit command intent, but `--yes` is not treated as dependency-install approval. The current planner reports
 `mode: "eligible"` only when explicit install intent combines with effective policy `install` and a known package-manager
-recommendation. Otherwise it reports `not-requested` or `blocked` with blocker codes. Even eligible plans still report
-`packageManagerExecution: "not-run"` and `packageManagerWrites: false`. When install intent is explicit but all
-dependency decisions are already satisfied, it reports `mode: "not-needed"`.
+recommendation. Otherwise it reports `not-requested` or `blocked` with blocker codes. When install intent is explicit but
+all dependency decisions are already satisfied, it reports `mode: "not-needed"`.
 
 For `add` reports, the CLI also emits a read-only `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
 consumer `packageManager` field or known lockfile/workspace marker files, lists proposed install commands for missing or
 incompatible dependencies, and selects a `recommendedCommands` entry only when the package manager is known. Unknown
 package-manager state still reports all command options but runs nothing. The plan is advisory data only: `package.json`,
 package-manager lockfiles, and installed packages are not modified.
+
+Strict local-registry `add` can execute the selected `recommendedCommands` entry when all current strict blockers are
+dependency blockers, `--install-dependencies` is present, the effective dependency policy is `install`, and package-manager
+detection is known. After the command completes, Amino rebuilds the install plan from the target package manifest before
+writing component files or `amino-ui.lock.json`. If dependency decisions remain unsatisfied, strict add still blocks
+component writes.
 
 Enterprise consumers can keep this planning explicit with `--package-json <path>` and `--package-manager <name>`.
 `--package-json` selects the manifest used for dependency classification and command targeting; `--package-manager`

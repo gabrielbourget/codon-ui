@@ -37,6 +37,7 @@ pnpm verify:add-dependency-boundary
 pnpm verify:dependency-install-plan
 pnpm verify:dependency-policy
 pnpm verify:dependency-execution-eligibility
+pnpm verify:dependency-execution
 pnpm verify:dependency-target-resolution
 pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
@@ -119,6 +120,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
 | Dependency policy        | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                               |
 | Dependency execution     | `add` reports explicit install intent and eligibility without running package-manager writes.                                                |
+| Dependency strict run    | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                       |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
@@ -155,9 +157,13 @@ config policy values, `--dependency-policy` overrides, `report-only`, `manual`, 
 strict missing-dependency blocking while every policy mode keeps package-manager execution disabled.
 
 The `pnpm verify:dependency-execution-eligibility` gate proves install intent stays separate from policy. It checks
-`--install-dependencies`, JSON/noninteractive prompt blocking, install-policy-plus-approval eligibility, and strict
-missing-dependency blocking while every case keeps package-manager execution disabled. It also proves explicit install
-intent reports `not-needed` when dependencies are already satisfied.
+`--install-dependencies`, JSON/noninteractive prompt blocking, install-policy-plus-approval eligibility in dry-run output,
+and explicit `not-needed` output when dependencies are already satisfied while every case keeps package-manager execution
+disabled.
+
+The `pnpm verify:dependency-execution` gate proves the approved strict path. It uses temporary fake npm, pnpm, yarn, and
+bun binaries, proves advisory/dry-run and mixed-blocker cases do not execute, runs strict add with explicit install
+approval, replans from the mutated temp package manifest, and records installed dependency actions.
 
 The `pnpm verify:dependency-install-plan` gate proves the companion read-only package-manager plan. It checks unknown
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command
