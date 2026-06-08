@@ -777,7 +777,70 @@ try {
   assert.equal(strictMissingOnlyReport.lockfileData.items["missing-only"], undefined)
   assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["missing-only"], undefined)
 
-  console.log("[aminoui-cli] remove advisory, dry-run, and strict reports verified")
+  const strictOrphanReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(strictOrphanReport.applied, true)
+  assert.equal(strictOrphanReport.itemRemoveState, "removed")
+  assert.equal(strictOrphanReport.effects.writesFiles, true)
+  assert.equal(strictOrphanReport.effects.writesLockfile, true)
+  assert.equal(strictOrphanReport.effects.files.deletedCount, 1)
+  assert.equal(strictOrphanReport.effects.lockfile.removedFileRecordCount, 1)
+  assert.equal(strictOrphanReport.orphanCleanup.enabled, true)
+  assert.equal(strictOrphanReport.orphanCleanup.itemCount, 2)
+  assert.equal(strictOrphanReport.orphanCleanup.removedItemCount, 2)
+  assert.equal(strictOrphanReport.orphanCleanup.deletedFileCount, 2)
+  assert.equal(strictOrphanReport.orphanCleanup.removedLockfileRecordCount, 2)
+  assert.equal(strictOrphanReport.orphanCleanup.blockedItemCount, 0)
+  assert.equal(strictOrphanReport.effects.orphanCleanup.status, "written")
+  assert.equal(strictOrphanReport.effects.orphanCleanup.removedItemCount, 2)
+  assert.equal(strictOrphanReport.effects.orphanCleanup.removedFileRecordCount, 2)
+  assert.deepEqual(
+    strictOrphanReport.orphanCleanup.items.map((item) => item.name),
+    ["orphan-component", "orphan-support"],
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/Graph/orphan-primary.ts")),
+    false,
+    "expected primary registry file to be removed",
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/Graph/orphan-component.ts")),
+    false,
+    "expected orphan component file to be removed",
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/_registry/tokens/orphan-support.ts")),
+    false,
+    "expected orphan support file to be removed",
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/_registry/tokens/shared-support.ts")),
+    true,
+    "expected shared support file to be preserved",
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/Graph/other-dependent.ts")),
+    true,
+    "expected outside dependent file to be preserved",
+  )
+  assert.equal(strictOrphanReport.lockfileData.items["orphan-primary"], undefined)
+  assert.equal(strictOrphanReport.lockfileData.items["orphan-component"], undefined)
+  assert.equal(strictOrphanReport.lockfileData.items["orphan-support"], undefined)
+  assert.equal(strictOrphanReport.lockfileData.items["shared-support"]?.name, "shared-support")
+  assert.equal(strictOrphanReport.lockfileData.items["other-dependent"]?.name, "other-dependent")
+  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["orphan-primary"], undefined)
+  assert.equal(
+    existsSync(path.join(temporaryRoot, "source/orphan-component.ts")),
+    true,
+    "expected registry source to remain untouched",
+  )
+
+  console.log("[aminoui-cli] remove advisory, dry-run, strict, and orphan cleanup reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

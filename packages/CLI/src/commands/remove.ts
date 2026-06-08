@@ -51,7 +51,7 @@ export const createRemoveCommand = ({
     .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
     .option(
       "--with-orphans",
-      "Include orphaned registry-owned dependencies in advisory and dry-run cleanup planning.",
+      "Include orphaned registry-owned dependencies in cleanup planning or strict cleanup.",
       false,
     )
     .action(async (itemName, CLIOptions) => {
@@ -61,11 +61,6 @@ export const createRemoveCommand = ({
 
         if (options.advisory && options.dryRun) {
           logger.error("Please choose either --advisory or --dry-run, not both.")
-          process.exit(1)
-        }
-
-        if (options.withOrphans && !options.advisory && !options.dryRun) {
-          logger.error("Please use --with-orphans with --advisory or --dry-run.")
           process.exit(1)
         }
 
@@ -121,6 +116,7 @@ export const createRemoveCommand = ({
         if (!options.advisory) {
           const removeStrictReport = await createRemoveStrictReport({
             cwd,
+            includeOrphans: options.withOrphans,
             itemName: options.itemName,
             registrySourcePath: options.registrySource,
           })
@@ -148,6 +144,13 @@ export const createRemoveCommand = ({
           logger.info(`${chalk.green("[ Strict Remove ]")} ${removeStrictReport.itemName} removed.`)
           logger.info(`Deleted files: ${removeStrictReport.effects.files.deletedCount}`)
           logger.info(`Removed lockfile records: ${removeStrictReport.effects.lockfile.removedFileRecordCount}`)
+          if (removeStrictReport.orphanCleanup.enabled) {
+            logger.info(`Orphan cleanup items removed: ${removeStrictReport.orphanCleanup.removedItemCount}`)
+            logger.info(`Orphan cleanup files deleted: ${removeStrictReport.orphanCleanup.deletedFileCount}`)
+            logger.info(
+              `Orphan cleanup lockfile records removed: ${removeStrictReport.orphanCleanup.removedLockfileRecordCount}`,
+            )
+          }
           logger.info(`Lockfile effect: ${removeStrictReport.effects.lockfile.status}`)
           logger.info(`Findings: ${removeStrictReport.findings.length}`)
 

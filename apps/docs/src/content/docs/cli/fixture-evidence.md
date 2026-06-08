@@ -79,7 +79,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `remove --advisory --json`     | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.         |
 | `remove --dry-run --json`      | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                  |
 | Strict `remove <item> --json`  | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                        |
-| `remove/delete --with-orphans` | Reports no-write orphan cleanup candidates for dependency items that would have no remaining dependents.                           |
+| `remove/delete --with-orphans` | Reports no-write orphan cleanup candidates and proves strict temp-copy cleanup for eligible dependency items.                      |
 | `delete <item>` sibling        | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.               |
 | `eject --advisory --json`      | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
 | `eject --dry-run --json`       | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                             |
@@ -108,10 +108,10 @@ The current mature-consumer fixture is `wavemap-like-typeahead-lifecycle`. It in
 labels, and focused test files outside `amino-ui.lock.json`. Its focused gate proves status, diff, update, remove/delete,
 eject, and temp-copy typecheck/build behavior against that mixed graph.
 
-The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory and
-dry-run planning. It verifies that the requested `typeahead-search` item remains item-scoped, that orphaned registry
-dependency items appear in a separate `orphanCleanup` block, that registry-owned support files can be planned there, and
-that app-owned adapters remain outside both the lockfile and orphan cleanup report.
+The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
+dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that
+orphaned registry dependency items appear in a separate `orphanCleanup` block, that registry-owned support files can be
+planned and removed there, and that app-owned adapters remain outside both the lockfile and orphan cleanup report.
 
 ## Non-Mutation Rule
 
@@ -126,5 +126,5 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
 publication, generated token writers, package-manager dependency writes, broad update/merge behavior, strict eject
-behavior beyond lockfile-only ownership transfer, strict orphan cleanup writes, and Waveguide validation remain separate
-approval-gated lanes.
+behavior beyond lockfile-only ownership transfer, strict orphan cleanup beyond the opt-in dry-run-approved dependency
+cleanup path, and Waveguide validation remain separate approval-gated lanes.

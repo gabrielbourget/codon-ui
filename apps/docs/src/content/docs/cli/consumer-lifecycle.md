@@ -411,9 +411,8 @@ ejected, shared, or a support-file review target, the item state is `blocked`; o
 candidates, but `wouldRemoveFile` and `wouldRemoveLockfileRecord` stay false until blockers are resolved. Missing
 dependency posture is still reported, but remove dry-run does not run package-manager writes or dependency cleanup.
 
-With `--with-orphans`, dry-run also reports `wouldEffects.orphanCleanup`. This remains advisory/dry-run planning only.
-Strict `remove` and `delete` do not accept orphan cleanup writes yet; passing `--with-orphans` without `--advisory` or
-`--dry-run` is rejected.
+With `--with-orphans`, dry-run also reports `wouldEffects.orphanCleanup`. That block is the strict cleanup gate: strict
+`remove` and `delete` only remove orphan dependency items that dry-run reported as unblocked cleanup candidates.
 
 Current fixture evidence proves clean installed remove dry-run, locally modified item blocking, missing local file
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
@@ -426,6 +425,7 @@ missing dependency posture, stale source-hash classification, and Wavemap-like o
 
 ```sh
 aui remove <item> --json --cwd <consumer-project>
+aui remove <item> --with-orphans --json --cwd <consumer-project>
 ```
 
 Strict remove starts by creating the same `remove --dry-run --json` report. It applies only when the item state is
@@ -439,6 +439,7 @@ The JSON report includes:
 | `applied`         | `true` when files or lockfile records were removed; `false` when blockers prevented mutation.                |
 | `itemRemoveState` | Aggregate strict state: `removed`, `blocked`, or `unavailable`.                                              |
 | `files`           | Per-file dry-run action, strict action, and booleans for source-file deletion and lockfile-record removal.   |
+| `orphanCleanup`   | Disabled by default. With `--with-orphans`, reports strict orphan item/file cleanup effects.                 |
 | `effects`         | Actual source-file deletion count, lockfile-record removal count, dependency non-mutation, and write status. |
 | `blockers`        | Project, item, or file blockers that prevented strict removal.                                               |
 | `lockfileData`    | The post-remove lockfile data when applied, or the current parsed lockfile data when blocked.                |
@@ -448,13 +449,21 @@ files that are already missing. It removes the requested item from `amino-ui.loc
 It does not remove dependencies from package manifests, change package-manager lockfiles, delete shared/support files,
 delete locally modified files, delete unknown files, delete consumer-owned support, or delete ejected files.
 
+With `--with-orphans`, strict remove also walks the requested item's registry dependency closure and removes dependency
+items that have no remaining dependents outside the cleanup set. Orphan cleanup stays opt-in and separate from the
+primary item report. It can remove registry-owned support, theme, and token files only when the orphan dry-run classified
+them as cleanup candidates, their current hashes still match, and no outside lockfile item shares the path. If any primary
+or orphan file becomes locally modified, unknown, consumer-owned support, ejected, shared outside the cleanup set, missing
+unexpectedly, or path-unsafe, the whole strict operation is blocked and no source or lockfile writes are applied.
+
 The command is item-atomic. If one file in the item needs review or preservation, otherwise-removable files remain in
 place and the lockfile is not written. Missing dependency posture remains visible in the report, but strict remove does
 not run package-manager cleanup.
 
 Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
 modified item blocking, unknown ownership blocking, consumer-owned support blocking, ejected blocking, and missing
-dependency non-mutation.
+dependency non-mutation. The Wavemap-like fixture also proves strict `remove --with-orphans` deletes only the requested
+typeahead item, eligible orphan dependency items, and their lockfile records while preserving app-owned adapters.
 
 ## Delete Sibling
 
@@ -466,18 +475,20 @@ aui delete <item> --advisory --with-orphans --json --cwd <consumer-project>
 aui delete <item> --dry-run --json --cwd <consumer-project>
 aui delete <item> --dry-run --with-orphans --json --cwd <consumer-project>
 aui delete <item> --json --cwd <consumer-project>
+aui delete <item> --with-orphans --json --cwd <consumer-project>
 ```
 
 The command delegates to the remove implementation. Advisory and dry-run modes remain non-mutating, and strict mode uses
 the same dry-run gate, preflight checks, item-atomic blocking, lockfile write, and file deletion boundaries as
 `remove <item> --json`.
 
-The JSON report remains the remove report schema. Strict `delete` does not introduce support/orphan cleanup, dependency
-removal, package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or
-ejected-file deletion.
+The JSON report remains the remove report schema. Strict `delete` does not introduce dependency removal,
+package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or ejected-file
+deletion.
 
 `delete --with-orphans` has the same no-write advisory and dry-run orphan cleanup planning as `remove --with-orphans`.
-Strict `delete` stays remove-equivalent and item-scoped.
+Strict `delete --with-orphans` has the same opt-in orphan cleanup behavior and blockers as strict
+`remove --with-orphans`.
 
 ## Eject Advisory
 
@@ -618,8 +629,8 @@ dependency non-mutation.
 
 ## Deferred Lifecycle Commands
 
-Strict update, strict remove, and strict eject now exist only inside the dry-run-approved registry-owned component
-boundaries above. Dependency cleanup, support/orphan cleanup, strict update beyond item-scoped source writes and
+Strict update, strict remove, strict remove/delete orphan cleanup, and strict eject now exist only inside the
+dry-run-approved registry-owned boundaries above. Dependency cleanup, strict update beyond item-scoped source writes and
 lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and any broader deletion policy remain deferred
 until dry-run evidence is broader and intentionally approved.
 

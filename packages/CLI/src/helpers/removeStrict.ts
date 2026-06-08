@@ -82,6 +82,32 @@ const removeStrictFileSchema = z
   })
   .strict()
 
+const removeStrictOrphanItemSchema = z
+  .object({
+    dependencyDepth: z.number().int().positive(),
+    dependedOnBy: z.array(z.string().min(1)).default([]),
+    files: z.array(removeStrictFileSchema).default([]),
+    itemRemoveState: z.enum(REMOVE_STRICT_ITEM_STATES),
+    name: z.string().min(1),
+    registryDependencies: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+const removeStrictOrphanCleanupSchema = z
+  .object({
+    blockedItemCount: z.number().int().nonnegative(),
+    deletedFileCount: z.number().int().nonnegative(),
+    enabled: z.boolean(),
+    itemCount: z.number().int().nonnegative(),
+    items: z.array(removeStrictOrphanItemSchema).default([]),
+    plannedFileCount: z.number().int().nonnegative(),
+    plannedItemCount: z.number().int().nonnegative(),
+    preservedFileCount: z.number().int().nonnegative(),
+    removedItemCount: z.number().int().nonnegative(),
+    removedLockfileRecordCount: z.number().int().nonnegative(),
+  })
+  .strict()
+
 export const removeStrictReportSchema = z
   .object({
     applied: z.boolean(),
@@ -113,6 +139,17 @@ export const removeStrictReportSchema = z
             status: z.enum(["written", "blocked", "not-written"]),
           })
           .strict(),
+        orphanCleanup: z
+          .object({
+            deletedCount: z.number().int().nonnegative(),
+            enabled: z.boolean(),
+            plannedFileCount: z.number().int().nonnegative(),
+            plannedItemCount: z.number().int().nonnegative(),
+            removedFileRecordCount: z.number().int().nonnegative(),
+            removedItemCount: z.number().int().nonnegative(),
+            status: z.enum(["written", "blocked", "not-written"]),
+          })
+          .strict(),
         writesConfig: z.literal(false),
         writesFiles: z.boolean(),
         writesLockfile: z.boolean(),
@@ -123,6 +160,7 @@ export const removeStrictReportSchema = z
     itemName: z.string().min(1),
     itemRemoveState: z.enum(REMOVE_STRICT_ITEM_STATES),
     lockfileData: consumerLockfileSchema,
+    orphanCleanup: removeStrictOrphanCleanupSchema,
     registrySource: z
       .object({
         path: z.string().min(1).optional(),
@@ -144,12 +182,14 @@ export type TRemoveStrictReport = z.infer<typeof removeStrictReportSchema>
 
 export type TCreateRemoveStrictReportOptions = {
   cwd: string
+  includeOrphans?: boolean
   itemName: string
   registrySourcePath?: string
 }
 
 type TRemoveStrictBlocker = z.infer<typeof removeStrictBlockerSchema>
 type TRemoveStrictFile = z.infer<typeof removeStrictFileSchema>
+type TRemoveStrictOrphanItem = z.infer<typeof removeStrictOrphanItemSchema>
 type TCreateRemoveStrictBlockerOptions = Omit<TRemoveStrictBlocker, "severity"> & {
   severity?: TRemoveStrictBlocker["severity"]
 }
@@ -302,6 +342,21 @@ const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
     )
   }
 
+  if (
+    dryRunReport.orphanCleanup.enabled &&
+    dryRunReport.orphanCleanup.itemCount > 0 &&
+    dryRunReport.wouldEffects.orphanCleanup.status !== "would-write"
+  ) {
+    blockers.push(
+      createRemoveStrictBlocker({
+        code: "strict-remove-orphan-cleanup-effect-blocker",
+        itemName: dryRunReport.itemName,
+        kind: REMOVE_STRICT_BLOCKER_KIND__ITEM,
+        message: `Strict orphan cleanup requires a would-write orphan cleanup dry-run effect; received "${dryRunReport.wouldEffects.orphanCleanup.status}".`,
+      }),
+    )
+  }
+
   return blockers
 }
 
@@ -322,6 +377,27 @@ const createLockfileBlockers = ({
       message: `Strict remove cannot continue because "${dryRunReport.itemName}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
     }),
   ]
+}
+
+const createOrphanLockfileBlockers = ({
+  dryRunReport,
+  lockfileData,
+}: {
+  dryRunReport: TRemoveDryRunReport
+  lockfileData: TConsumerLockfile
+}) => {
+  if (!dryRunReport.orphanCleanup.enabled) return []
+
+  return dryRunReport.orphanCleanup.items
+    .filter((item) => !lockfileData.items[item.name])
+    .map((item) =>
+      createRemoveStrictBlocker({
+        code: "strict-remove-orphan-lockfile-item-missing",
+        itemName: item.name,
+        kind: REMOVE_STRICT_BLOCKER_KIND__ITEM,
+        message: `Strict orphan cleanup cannot continue because "${item.name}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
+      }),
+    )
 }
 
 const createFilePreflightBlockers = async ({ cwd, dryRunFile }: { cwd: string; dryRunFile: TRemoveDryRunFile }) => {
@@ -406,9 +482,15 @@ const createFilePreflightBlockers = async ({ cwd, dryRunFile }: { cwd: string; d
   return blockers
 }
 
-const createFileBlockers = async ({ cwd, dryRunReport }: { cwd: string; dryRunReport: TRemoveDryRunReport }) => {
+const createFileBlockersForFiles = async ({
+  cwd,
+  dryRunFiles,
+}: {
+  cwd: string
+  dryRunFiles: readonly TRemoveDryRunFile[]
+}) => {
   const blockerLists = await Promise.all(
-    dryRunReport.files.map(async (dryRunFile) => {
+    dryRunFiles.map(async (dryRunFile) => {
       if (dryRunFile.dryRunAction === "would-remove-file-and-lockfile") {
         return createFilePreflightBlockers({ cwd, dryRunFile })
       }
@@ -431,6 +513,18 @@ const createFileBlockers = async ({ cwd, dryRunReport }: { cwd: string; dryRunRe
 
   return blockerLists.flat()
 }
+
+const createFileBlockers = async ({ cwd, dryRunReport }: { cwd: string; dryRunReport: TRemoveDryRunReport }) =>
+  createFileBlockersForFiles({
+    cwd,
+    dryRunFiles: dryRunReport.files,
+  })
+
+const createOrphanFileBlockers = async ({ cwd, dryRunReport }: { cwd: string; dryRunReport: TRemoveDryRunReport }) =>
+  createFileBlockersForFiles({
+    cwd,
+    dryRunFiles: dryRunReport.orphanCleanup.items.flatMap((item) => item.files),
+  })
 
 const dedupeBlockers = (blockers: readonly TRemoveStrictBlocker[]) => {
   const dedupedBlockers = new Map<string, TRemoveStrictBlocker>()
@@ -461,18 +555,77 @@ const resolveBlockedFiles = (files: readonly TRemoveDryRunFile[]) =>
     }),
   )
 
-const writeStrictRemove = async ({
-  cwd,
-  dryRunReport,
-  lockfileData,
+const resolveStrictOrphanItemState = ({
+  applied,
+  itemRemoveState,
 }: {
-  cwd: string
-  dryRunReport: TRemoveDryRunReport
-  lockfileData: TConsumerLockfile
+  applied: boolean
+  itemRemoveState: TRemoveDryRunReport["orphanCleanup"]["items"][number]["itemRemoveState"]
 }) => {
+  if (applied) return REMOVE_STRICT_ITEM_STATE__REMOVED
+  if (itemRemoveState === "unavailable") return REMOVE_STRICT_ITEM_STATE__UNAVAILABLE
+
+  return REMOVE_STRICT_ITEM_STATE__BLOCKED
+}
+
+const resolveBlockedOrphanItems = (dryRunReport: TRemoveDryRunReport) =>
+  dryRunReport.orphanCleanup.items.map((item) =>
+    removeStrictOrphanItemSchema.parse({
+      dependencyDepth: item.dependencyDepth,
+      dependedOnBy: item.dependedOnBy,
+      files: resolveBlockedFiles(item.files),
+      itemRemoveState: resolveStrictOrphanItemState({
+        applied: false,
+        itemRemoveState: item.itemRemoveState,
+      }),
+      name: item.name,
+      registryDependencies: item.registryDependencies,
+    }),
+  )
+
+const createDisabledOrphanCleanup = () =>
+  removeStrictOrphanCleanupSchema.parse({
+    blockedItemCount: 0,
+    deletedFileCount: 0,
+    enabled: false,
+    itemCount: 0,
+    items: [],
+    plannedFileCount: 0,
+    plannedItemCount: 0,
+    preservedFileCount: 0,
+    removedItemCount: 0,
+    removedLockfileRecordCount: 0,
+  })
+
+const createStrictOrphanCleanup = ({
+  dryRunReport,
+  items,
+}: {
+  dryRunReport: TRemoveDryRunReport
+  items: readonly TRemoveStrictOrphanItem[]
+}) => {
+  if (!dryRunReport.orphanCleanup.enabled) return createDisabledOrphanCleanup()
+
+  const files = items.flatMap((item) => item.files)
+
+  return removeStrictOrphanCleanupSchema.parse({
+    blockedItemCount: items.filter((item) => item.itemRemoveState === REMOVE_STRICT_ITEM_STATE__BLOCKED).length,
+    deletedFileCount: files.filter((file) => file.removedFile).length,
+    enabled: true,
+    itemCount: items.length,
+    items,
+    plannedFileCount: dryRunReport.orphanCleanup.items.reduce((count, item) => count + item.files.length, 0),
+    plannedItemCount: dryRunReport.orphanCleanup.itemCount,
+    preservedFileCount: files.filter((file) => !file.removedLockfileRecord).length,
+    removedItemCount: items.filter((item) => item.itemRemoveState === REMOVE_STRICT_ITEM_STATE__REMOVED).length,
+    removedLockfileRecordCount: files.filter((file) => file.removedLockfileRecord).length,
+  })
+}
+
+const writeStrictFiles = async ({ cwd, dryRunFiles }: { cwd: string; dryRunFiles: readonly TRemoveDryRunFile[] }) => {
   const files: TRemoveStrictFile[] = []
 
-  for (const file of dryRunReport.files) {
+  for (const file of dryRunFiles) {
     if (file.wouldRemoveFile) {
       await fs.rm(getAbsoluteTargetPath({ cwd, targetPath: file.path }))
       files.push(
@@ -506,9 +659,48 @@ const writeStrictRemove = async ({
     )
   }
 
+  return files
+}
+
+const writeStrictRemove = async ({
+  cwd,
+  dryRunReport,
+  lockfileData,
+}: {
+  cwd: string
+  dryRunReport: TRemoveDryRunReport
+  lockfileData: TConsumerLockfile
+}) => {
+  const files = await writeStrictFiles({
+    cwd,
+    dryRunFiles: dryRunReport.files,
+  })
+  const orphanItems: TRemoveStrictOrphanItem[] = []
+
+  for (const item of dryRunReport.orphanCleanup.items) {
+    const orphanFiles = await writeStrictFiles({
+      cwd,
+      dryRunFiles: item.files,
+    })
+
+    orphanItems.push(
+      removeStrictOrphanItemSchema.parse({
+        dependencyDepth: item.dependencyDepth,
+        dependedOnBy: item.dependedOnBy,
+        files: orphanFiles,
+        itemRemoveState: REMOVE_STRICT_ITEM_STATE__REMOVED,
+        name: item.name,
+        registryDependencies: item.registryDependencies,
+      }),
+    )
+  }
+
   const nextItems = { ...lockfileData.items }
 
   delete nextItems[dryRunReport.itemName]
+  orphanItems.forEach((item) => {
+    delete nextItems[item.name]
+  })
 
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
@@ -520,6 +712,10 @@ const writeStrictRemove = async ({
   return {
     files,
     lockfileData: nextLockfileData,
+    orphanCleanup: createStrictOrphanCleanup({
+      dryRunReport,
+      items: orphanItems,
+    }),
   }
 }
 
@@ -527,13 +723,21 @@ const createRemoveStrictEffects = ({
   applied,
   dryRunReport,
   files,
+  orphanCleanup,
 }: {
   applied: boolean
   dryRunReport: TRemoveDryRunReport
   files: readonly TRemoveStrictFile[]
+  orphanCleanup: z.infer<typeof removeStrictOrphanCleanupSchema>
 }) => {
   const deletedCount = files.filter((file) => file.removedFile).length
   const removedFileRecordCount = files.filter((file) => file.removedLockfileRecord).length
+  const orphanCleanupStatus =
+    !orphanCleanup.enabled || orphanCleanup.plannedItemCount === 0
+      ? "not-written"
+      : applied
+        ? "written"
+        : ("blocked" as const)
 
   return {
     dependencies: {
@@ -553,8 +757,17 @@ const createRemoveStrictEffects = ({
       removedItem: applied,
       status: applied ? "written" : dryRunReport.files.length > 0 ? "blocked" : "not-written",
     },
+    orphanCleanup: {
+      deletedCount: orphanCleanup.deletedFileCount,
+      enabled: orphanCleanup.enabled,
+      plannedFileCount: orphanCleanup.plannedFileCount,
+      plannedItemCount: orphanCleanup.plannedItemCount,
+      removedFileRecordCount: orphanCleanup.removedLockfileRecordCount,
+      removedItemCount: orphanCleanup.removedItemCount,
+      status: orphanCleanupStatus,
+    },
     writesConfig: false,
-    writesFiles: deletedCount > 0,
+    writesFiles: deletedCount > 0 || orphanCleanup.deletedFileCount > 0,
     writesLockfile: applied,
   } as const
 }
@@ -568,11 +781,13 @@ const resolveItemRemoveState = ({ applied, dryRunReport }: { applied: boolean; d
 
 export const createRemoveStrictReport = async ({
   cwd,
+  includeOrphans = false,
   itemName,
   registrySourcePath,
 }: TCreateRemoveStrictReportOptions): Promise<TRemoveStrictReport> => {
   const dryRunReport = await createRemoveDryRunReport({
     cwd,
+    includeOrphans,
     itemName,
     registrySourcePath,
   })
@@ -585,7 +800,15 @@ export const createRemoveStrictReport = async ({
       dryRunReport,
       lockfileData: lockfilePlan.lockfileData,
     }),
+    ...createOrphanLockfileBlockers({
+      dryRunReport,
+      lockfileData: lockfilePlan.lockfileData,
+    }),
     ...(await createFileBlockers({
+      cwd,
+      dryRunReport,
+    })),
+    ...(await createOrphanFileBlockers({
       cwd,
       dryRunReport,
     })),
@@ -593,6 +816,10 @@ export const createRemoveStrictReport = async ({
 
   if (blockers.length > 0) {
     const files = resolveBlockedFiles(dryRunReport.files)
+    const orphanCleanup = createStrictOrphanCleanup({
+      dryRunReport,
+      items: resolveBlockedOrphanItems(dryRunReport),
+    })
 
     return removeStrictReportSchema.parse({
       applied: false,
@@ -603,6 +830,7 @@ export const createRemoveStrictReport = async ({
         applied: false,
         dryRunReport,
         files,
+        orphanCleanup,
       }),
       files,
       findings: [...dryRunReport.findings, ...blockers],
@@ -612,6 +840,7 @@ export const createRemoveStrictReport = async ({
         dryRunReport,
       }),
       lockfileData: lockfilePlan.lockfileData,
+      orphanCleanup,
       registrySource: dryRunReport.registrySource,
       status: dryRunReport.status,
     })
@@ -632,6 +861,7 @@ export const createRemoveStrictReport = async ({
       applied: true,
       dryRunReport,
       files: result.files,
+      orphanCleanup: result.orphanCleanup,
     }),
     files: result.files,
     findings: dryRunReport.findings,
@@ -641,6 +871,7 @@ export const createRemoveStrictReport = async ({
       dryRunReport,
     }),
     lockfileData: result.lockfileData,
+    orphanCleanup: result.orphanCleanup,
     registrySource: dryRunReport.registrySource,
     status: dryRunReport.status,
   })
