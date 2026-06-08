@@ -59,6 +59,10 @@ Current `init --defaults --json` is the strict new-contract seed path. It writes
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
 overwritten.
 
+Current `init --dry-run --json` previews the same strict default seed without writing files. It reports actual effects as
+no-write and reports config/lockfile `wouldEffects` as `would-write`, `blocked`, or `not-written` depending on whether the
+consumer is greenfield, already initialized, or partially initialized.
+
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
 Current `add --advisory --json` reads the local support registry snapshot and reports planned support files, source
@@ -173,7 +177,7 @@ block the strict write.
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
+init advisory -> init dry-run -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -182,6 +186,7 @@ by `init`.
 | Stage                          | Reads                                                | Writes                                   |
 | ------------------------------ | ---------------------------------------------------- | ---------------------------------------- |
 | `init --advisory`              | Project shape and package metadata.                  | Nothing.                                 |
+| `init --dry-run`               | Project shape and existing Amino config/lockfile.    | Nothing.                                 |
 | `init --defaults`              | Project shape and existing Amino config/lockfile.    | Config and empty lockfile only.          |
 | `add --advisory`               | Local snapshot, packet metadata, target package.     | Nothing.                                 |
 | `add --dry-run`                | Local snapshot, packet metadata, config if present.  | Nothing.                                 |

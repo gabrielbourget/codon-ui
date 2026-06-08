@@ -28,6 +28,7 @@ pnpm verify
 Use focused gates for narrow lifecycle slices:
 
 ```sh
+pnpm verify:init-dry-run
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
@@ -67,6 +68,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | Command mode                   | Fixture expectation                                                                                                                                            |
 | ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `init --advisory --json`       | Reports project shape, default config, theme tier, role paths, and policy without writes.                                                                      |
+| `init --dry-run --json`        | Reports no actual writes plus config and lockfile would-effects for greenfield and existing-file blocker cases.                                                |
 | `init --defaults --json`       | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                                                     |
 | `add --advisory --json`        | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                                             |
 | `add --dry-run --json`         | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                                            |
@@ -90,18 +92,18 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 
 Grow fixture coverage by scenario, not by one-off command notes.
 
-| Scenario                 | What it proves                                                                                     |
-| ------------------------ | -------------------------------------------------------------------------------------------------- |
-| Greenfield default       | `init` advisory/default behavior, config/lockfile-only writes, and uninitialized `status --json`.  |
-| Clean registry-contained | `add` advisory, dry-run, strict writes, lockfile metadata, and compile behavior.                   |
-| Existing unknown targets | Strict writes block rather than overwrite unknown local files.                                     |
-| Compatible support reuse | Existing support is reused only when metadata and content are safe.                                |
-| Locally modified files   | `status` and `diff` report local edits; future lifecycle commands must preserve them by default.   |
-| Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                  |
-| Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                    |
-| Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing. |
-| Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                   |
-| Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.   |
+| Scenario                 | What it proves                                                                                            |
+| ------------------------ | --------------------------------------------------------------------------------------------------------- |
+| Greenfield default       | `init` advisory/dry-run/default behavior, config/lockfile-only writes, and uninitialized `status --json`. |
+| Clean registry-contained | `add` advisory, dry-run, strict writes, lockfile metadata, and compile behavior.                          |
+| Existing unknown targets | Strict writes block rather than overwrite unknown local files.                                            |
+| Compatible support reuse | Existing support is reused only when metadata and content are safe.                                       |
+| Locally modified files   | `status` and `diff` report local edits; future lifecycle commands must preserve them by default.          |
+| Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                         |
+| Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                           |
+| Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.        |
+| Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                          |
+| Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.          |
 
 The current mature-consumer fixture is `wavemap-like-typeahead-lifecycle`. It installs the registry-owned
 `typeahead-search` graph and keeps app-owned artist wrapper, API query, route/query state, typeahead controller, local

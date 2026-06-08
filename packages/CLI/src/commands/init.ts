@@ -9,7 +9,7 @@ import ora from "ora"
 import prompts from "prompts"
 import { z } from "zod"
 
-import { createConsumerInitAdvisory, writeConsumerInitSeed } from "@/src/helpers"
+import { createConsumerInitAdvisory, createConsumerInitDryRun, writeConsumerInitSeed } from "@/src/helpers"
 import { getConfig, resolveConfigPaths } from "@/src/helpers/config"
 import { coreConfigSchema, type TConfig } from "@/src/helpers/config/schema"
 import {
@@ -38,6 +38,7 @@ const initOptionsSchema = z.object({
   yes: z.boolean().default(true),
   defaults: z.boolean().default(false),
   advisory: z.boolean().default(false),
+  dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
 })
 
@@ -48,6 +49,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
     cwd: options.cwd,
     advisory: options.advisory,
     defaults: options.defaults,
+    dryRun: options.dryRun,
     json: options.json,
     skipConfirmationPrompt: options.yes,
   }
@@ -60,6 +62,7 @@ export const init = new Command()
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-d, --defaults", "Use the default component library configuration.", false)
   .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
+  .option("--dry-run", "Preview the default consumer config and lockfile seed without writing files.", false)
   .option("--json", "Print machine-readable output.", false)
   .action(async (CLIOptions) => {
     try {
@@ -68,6 +71,13 @@ export const init = new Command()
 
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
+        process.exit(1)
+      }
+
+      const selectedPlanningModes = [options.advisory, options.defaults, options.dryRun].filter(Boolean).length
+
+      if (selectedPlanningModes > 1) {
+        logger.error("Please choose only one of --advisory, --dry-run, or --defaults.")
         process.exit(1)
       }
 
@@ -86,6 +96,28 @@ export const init = new Command()
         logger.info(`Layout mode: ${advisory.proposedConfig.layoutMode}`)
         logger.info(`Theme tier: ${advisory.proposedConfig.theme.tier}`)
         logger.info(`Dependency policy: ${advisory.proposedConfig.dependencies.policy}`)
+
+        return
+      }
+
+      if (options.dryRun) {
+        const result = createConsumerInitDryRun(cwd)
+
+        if (options.json) {
+          console.log(JSON.stringify(result, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Init Dry Run ]")} No files were written.`)
+        logger.info(`Package manager: ${result.packageManager}`)
+        logger.info(`Config file: ${result.configFile}`)
+        logger.info(`Lockfile: ${result.lockfile}`)
+        logger.info(`Layout mode: ${result.proposedConfig.layoutMode}`)
+        logger.info(`Theme tier: ${result.proposedConfig.theme.tier}`)
+        logger.info(`Dependency policy: ${result.proposedConfig.dependencies.policy}`)
+        logger.info(`Config effect: ${result.wouldEffects.config.status}`)
+        logger.info(`Lockfile effect: ${result.wouldEffects.lockfile.status}`)
+        logger.info(`Findings: ${result.findings.length}`)
 
         return
       }

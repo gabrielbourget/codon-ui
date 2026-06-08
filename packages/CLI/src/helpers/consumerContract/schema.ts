@@ -169,3 +169,61 @@ export const consumerInitSeedResultSchema = z
   .strict()
 
 export type TConsumerInitSeedResult = z.infer<typeof consumerInitSeedResultSchema>
+
+const consumerInitDryRunEffectStatusSchema = z.enum(["would-write", "blocked", "not-written"])
+
+export const consumerInitDryRunResultSchema = z
+  .object({
+    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    cwd: z.string().min(1),
+    dryRun: z.literal(true),
+    effects: z
+      .object({
+        createsDirectories: z.literal(false),
+        installsDependencies: z.literal(false),
+        writesConfig: z.literal(false),
+        writesLockfile: z.literal(false),
+      })
+      .strict(),
+    findings: z.array(consumerAdvisoryFindingSchema).default([]),
+    initialized: z.boolean(),
+    lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
+    lockfileData: consumerLockfileSchema,
+    packageManager: z.enum(CONSUMER_PACKAGE_MANAGERS),
+    project: consumerProjectContextSchema,
+    proposedConfig: consumerConfigSchema,
+    targetPaths: z.record(consumerTargetRoleSchema, z.string().min(1)),
+    wouldEffects: z
+      .object({
+        config: z
+          .object({
+            path: z.literal(AMINO_UI_CONFIG_FILE_NAME),
+            status: consumerInitDryRunEffectStatusSchema,
+            wouldWrite: z.boolean(),
+          })
+          .strict(),
+        dependencies: z
+          .object({
+            plannedInstallCount: z.literal(0),
+            status: z.literal("not-written"),
+          })
+          .strict(),
+        directories: z
+          .object({
+            plannedCount: z.literal(0),
+            status: z.literal("not-written"),
+          })
+          .strict(),
+        lockfile: z
+          .object({
+            path: z.literal(AMINO_UI_LOCK_FILE_NAME),
+            status: consumerInitDryRunEffectStatusSchema,
+            wouldWrite: z.boolean(),
+          })
+          .strict(),
+      })
+      .strict(),
+  })
+  .strict()
+
+export type TConsumerInitDryRunResult = z.infer<typeof consumerInitDryRunResultSchema>

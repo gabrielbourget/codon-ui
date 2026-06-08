@@ -23,12 +23,12 @@ broader eject policy, non-orphan support cleanup, public registry hosting, and p
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                                                              |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract. |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                               |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.             |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                     |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                                                         |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, `init --dry-run` previews the default seed without writes, and `init --defaults` seeds only the new config/lockfile contract. |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                                                          |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.                                                                        |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                                                                |
 
 Current helper surface:
 
@@ -145,6 +145,7 @@ Current read-only command behavior:
 
 ```sh
 aminoui-cli init --advisory --json --cwd <consumer-project>
+aminoui-cli init --dry-run --json --cwd <consumer-project>
 aminoui-cli info --json --cwd <consumer-project>
 ```
 
@@ -161,6 +162,10 @@ aui init --defaults --json --cwd <consumer-project>
 This path writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when neither file exists. It does not
 create directories, install dependencies, write helper files, install support files, or touch package-manager lockfiles.
 If either file already exists, it reports warnings and writes nothing; overwrite policy is deferred.
+
+`init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
+config, lockfile, directory, or dependency writes. Its `wouldEffects` report `would-write` for greenfield config and
+lockfile creation, `blocked` for existing files, and `not-written` for the counterpart in partial existing-file states.
 
 Against the `vite-registry-contained` fixture, both commands report:
 

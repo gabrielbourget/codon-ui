@@ -22,11 +22,16 @@ write support files, or touch package-manager lockfiles.
 
 ```sh
 aui init --advisory --json --cwd <consumer-project>
+aui init --dry-run --json --cwd <consumer-project>
 aui init --defaults --json --cwd <consumer-project>
 ```
 
 `init --advisory` reads project shape and reports the proposed config without writing. It classifies the package manager,
 project kind, config presence, lockfile presence, default role paths, theme tier, and dependency policy.
+
+`init --dry-run` previews the strict default seed without writing. It reports actual no-write effects plus separate
+`wouldEffects` for config and lockfile creation. Greenfield consumers report `would-write` for both files; existing config
+or lockfile files report blockers and prevent partial seed previews.
 
 `init --defaults` is the strict seed path. It writes `amino-ui.config.json` and an empty `amino-ui.lock.json` only when
 both are absent. Existing config or lockfile files are warnings and block writes for that seed operation.
