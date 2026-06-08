@@ -33,6 +33,12 @@ pnpm verify:diff
 pnpm verify:update-advisory
 pnpm verify:update-dry-run
 pnpm verify:remove-advisory
+pnpm verify:remove-dry-run
+pnpm verify:strict-remove
+pnpm verify:delete
+pnpm verify:eject-advisory
+pnpm verify:eject-dry-run
+pnpm verify:strict-eject
 ```
 
 ## Proof Packet
@@ -72,6 +78,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `delete <item>` sibling       | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.               |
 | `eject --advisory --json`     | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
 | `eject --dry-run --json`      | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                             |
+| Strict `eject <item> --json`  | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.            |
 | Future remove/delete/eject    | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
 
 ## Fixture Matrix
@@ -103,5 +110,5 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 ## Deferred Behaviors
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
-publication, generated token writers, package-manager dependency writes, strict update behavior, strict ejection, and
-Waveguide validation remain separate approval-gated lanes.
+publication, generated token writers, package-manager dependency writes, strict update behavior, strict eject behavior
+beyond lockfile-only ownership transfer, and Waveguide validation remain separate approval-gated lanes.

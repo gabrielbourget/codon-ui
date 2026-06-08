@@ -49,11 +49,13 @@ Default `registry-contained` paths are:
 
 ## Planning Modes
 
-| Mode         | Mutates files | Purpose                                                                                  |
-| ------------ | ------------- | ---------------------------------------------------------------------------------------- |
-| `--advisory` | No            | Non-blocking diagnostics and install planning. Expected findings do not fail the run.    |
-| `--dry-run`  | No            | Preview an intended mutation, including blockers, dependency counts, and lockfile shape. |
-| Strict add   | Yes           | Write a single local React registry component graph when blockers are absent.            |
+| Mode          | Mutates files | Purpose                                                                                  |
+| ------------- | ------------- | ---------------------------------------------------------------------------------------- |
+| `--advisory`  | No            | Non-blocking diagnostics and install planning. Expected findings do not fail the run.    |
+| `--dry-run`   | No            | Preview an intended mutation, including blockers, dependency counts, and lockfile shape. |
+| Strict add    | Yes           | Write a single local React registry component graph when blockers are absent.            |
+| Strict remove | Yes           | Delete only dry-run-approved registry-owned component files and lockfile records.        |
+| Strict eject  | Yes           | Write only dry-run-approved lockfile ownership records; source files stay untouched.     |
 
 Strict add requires config and lockfile files, satisfied dependency declarations, available source files, and no unsafe
 target collisions. It may reuse existing support files only when lockfile metadata proves the target is compatible.
@@ -447,7 +449,7 @@ Per-file `action` values are:
 
 | Action                            | Meaning                                                                                      |
 | --------------------------------- | -------------------------------------------------------------------------------------------- |
-| `eject-candidate`                 | Present registry-owned component file could later become consumer-owned in the lockfile.     |
+| `eject-candidate`                 | Present registry-owned component file could later become `ejected` in the lockfile.          |
 | `review-missing-file`             | The local file is missing, so there is no checked-in source file to hand over automatically. |
 | `review-support-file`             | Non-component support target needs orphan/shared ownership review before ejection.           |
 | `review-shared-file`              | Another lockfile item references the same path, so automatic ownership transfer is blocked.  |
@@ -493,7 +495,7 @@ Per-file `dryRunAction` values are:
 
 | Action                           | Meaning                                                                                       |
 | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `would-eject-lockfile-ownership` | A future strict eject would change the lockfile record from registry-owned to consumer-owned. |
+| `would-eject-lockfile-ownership` | A future strict eject would change the lockfile record from registry-owned to ejected.        |
 | `already-ejected`                | The file is already ejected and needs no further lockfile mutation.                           |
 | `skip-review-required`           | Missing, shared, or non-component support state needs review before ownership transfer.       |
 | `skip-preserved-local-change`    | A local edit would be preserved.                                                              |
@@ -511,6 +513,42 @@ Current fixture evidence proves clean installed eject dry-run, locally modified 
 unknown ownership preservation, consumer-owned support preservation, already-ejected no-op reporting, missing dependency
 posture, and stale source-hash classification.
 
+## Strict Eject
+
+`eject <item> --json` applies an item-scoped lockfile ownership transfer only after the dry-run gate proves the item is
+safe:
+
+```sh
+aui eject <item> --json --cwd <consumer-project>
+```
+
+Strict eject starts by creating the same `eject --dry-run --json` report. It applies only when the item state is
+`would-eject`, no dry-run blockers exist, and the parsed lockfile still records every planned file as registry-owned.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                                         |
+| ---------------- | --------------------------------------------------------------------------------------------------------------- |
+| `applied`        | `true` when lockfile ownership records were written; `false` when blocked or already ejected.                   |
+| `itemEjectState` | Aggregate strict state: `ejected`, `already-ejected`, `blocked`, or `unavailable`.                              |
+| `files`          | Per-file dry-run action, strict action, and booleans proving lockfile-only ownership transfer.                  |
+| `effects`        | Actual lockfile write count, source-file non-mutation, dependency non-mutation, and package-manager boundary.   |
+| `blockers`       | Project, item, or file blockers that prevented strict ejection.                                                 |
+| `lockfileData`   | The post-eject lockfile data when applied, or the current parsed lockfile data when blocked or already ejected. |
+
+Strict eject writes only `amino-ui.lock.json`. Eligible registry-owned component file records are updated to
+`ownershipState: "ejected"`, while the source files remain exactly where they are for the consumer to own. Dependency
+records stay visible but are not installed, updated, removed, or rewritten. Config files, package manifests, and
+package-manager lockfiles are also untouched.
+
+Already ejected items return a no-op report with exit `0`; the lockfile is not rewritten. Missing files, shared files,
+support-file review targets, locally modified files, unknown ownership, consumer-owned support, and mixed safe/unsafe
+items block the strict write so the command does not partially eject a graph.
+
+Current fixture evidence proves temp-copy clean installed strict eject, locally modified blocking, missing local file
+blocking, unknown ownership blocking, consumer-owned support blocking, already-ejected no-op behavior, and missing
+dependency non-mutation.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                                                      |
@@ -523,9 +561,9 @@ posture, and stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-Strict remove now exists only inside the dry-run-approved registry-owned component boundary above. Strict update, strict
-eject, dependency cleanup, support/orphan cleanup, and any broader deletion policy remain deferred until dry-run evidence
-is broader and intentionally approved.
+Strict remove and strict eject now exist only inside the dry-run-approved registry-owned component boundaries above.
+Strict update, dependency cleanup, support/orphan cleanup, strict eject beyond lockfile-only ownership transfer, and any
+broader deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
 
-Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
-validation remain deferred until explicitly approved.
+Generated token writers, strict update mutation, broader ejection policy, public registry hosting, package publication,
+and Waveguide validation remain deferred until explicitly approved.

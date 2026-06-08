@@ -5,7 +5,13 @@ import chalk from "chalk"
 import { Command } from "commander"
 import { z } from "zod"
 
-import { createEjectAdvisoryReport, createEjectDryRunReport, handleError, logger } from "@/src/helpers"
+import {
+  createEjectAdvisoryReport,
+  createEjectDryRunReport,
+  createEjectStrictReport,
+  handleError,
+  logger,
+} from "@/src/helpers"
 
 const ejectOptionsSchema = z.object({
   advisory: z.boolean().default(false),
@@ -22,8 +28,8 @@ const parseEjectOptions = (itemName: string, CLIOptions: unknown) => ({
 
 export const eject = new Command()
   .name("eject")
-  .description("Inspect eject posture for one installed Amino UI registry item without writing changes.")
-  .argument("<item>", "The installed registry item you'd like to inspect for eject posture.")
+  .description("Eject one installed Amino UI registry item when strict provenance checks pass.")
+  .argument("<item>", "The installed registry item you'd like to inspect or eject.")
   .option("--advisory", "Report eject posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--dry-run", "Preview an item-scoped eject without writing files or lockfile data.", false)
@@ -36,11 +42,6 @@ export const eject = new Command()
 
       if (options.advisory && options.dryRun) {
         logger.error("Please choose either --advisory or --dry-run, not both.")
-        process.exit(1)
-      }
-
-      if (!options.advisory && !options.dryRun) {
-        logger.error("Please choose --advisory or --dry-run. Strict eject remains deferred.")
         process.exit(1)
       }
 
@@ -82,6 +83,53 @@ export const eject = new Command()
         for (const file of ejectDryRunReport.files) {
           logger.info(`- ${file.path}: ${file.dryRunAction}`)
         }
+
+        return
+      }
+
+      if (!options.advisory) {
+        const ejectStrictReport = await createEjectStrictReport({
+          cwd,
+          itemName: options.itemName,
+          registrySourcePath: options.registrySource,
+        })
+
+        const isBlocked =
+          ejectStrictReport.blockers.length > 0 ||
+          ejectStrictReport.itemEjectState === "blocked" ||
+          ejectStrictReport.itemEjectState === "unavailable"
+
+        if (isBlocked) {
+          if (options.json) {
+            console.log(JSON.stringify(ejectStrictReport, null, 2))
+          } else {
+            logger.error(`${chalk.red("[ Strict Eject ]")} No lockfile records were written.`)
+            logger.error(`Item: ${ejectStrictReport.itemName}`)
+            logger.error(`Item eject state: ${ejectStrictReport.itemEjectState}`)
+            logger.error(`Blockers: ${ejectStrictReport.blockers.length}`)
+            logger.error(`Findings: ${ejectStrictReport.findings.length}`)
+          }
+
+          process.exitCode = 1
+          return
+        }
+
+        if (options.json) {
+          console.log(JSON.stringify(ejectStrictReport, null, 2))
+          return
+        }
+
+        if (ejectStrictReport.itemEjectState === "already-ejected") {
+          logger.info(`${chalk.green("[ Strict Eject ]")} ${ejectStrictReport.itemName} is already ejected.`)
+          logger.info(`Lockfile effect: ${ejectStrictReport.effects.lockfile.status}`)
+          logger.info(`Findings: ${ejectStrictReport.findings.length}`)
+          return
+        }
+
+        logger.info(`${chalk.green("[ Strict Eject ]")} ${ejectStrictReport.itemName} ejected.`)
+        logger.info(`Ejected lockfile records: ${ejectStrictReport.effects.lockfile.ejectedFileRecordCount}`)
+        logger.info(`Lockfile effect: ${ejectStrictReport.effects.lockfile.status}`)
+        logger.info(`Findings: ${ejectStrictReport.findings.length}`)
 
         return
       }

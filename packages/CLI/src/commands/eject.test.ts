@@ -6,6 +6,7 @@ import path from "node:path"
 
 import { createEjectAdvisoryReport } from "../helpers/ejectAdvisory"
 import { createEjectDryRunReport } from "../helpers/ejectDryRun"
+import { createEjectStrictReport } from "../helpers/ejectStrict"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -19,6 +20,8 @@ const writeText = (filePath: string, value: string) => {
   mkdirSync(path.dirname(filePath), { recursive: true })
   writeFileSync(filePath, value, "utf8")
 }
+
+const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
 
 const readFixtureSnapshot = (fixturePath: string) =>
   [
@@ -461,6 +464,70 @@ try {
   assert.equal(ejectedOnlyDryRunReport.files[0].dryRunAction, "already-ejected")
   assert.equal(ejectedOnlyDryRunReport.wouldEffects.lockfile.status, "not-written")
 
+  const strictBlockedReport = await createEjectStrictReport({
+    cwd: consumerRoot,
+    itemName: "switch",
+    registrySourcePath,
+  })
+
+  assert.equal(strictBlockedReport.applied, false)
+  assert.equal(strictBlockedReport.itemEjectState, "blocked")
+  assert.equal(strictBlockedReport.effects.writesFiles, false)
+  assert.equal(strictBlockedReport.effects.writesLockfile, false)
+  assert.equal(strictBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(strictBlockedReport.effects.lockfile.ejectedFileRecordCount, 0)
+  assert(
+    strictBlockedReport.blockers.some((blocker) => blocker.code === "strict-eject-dry-run-blocker"),
+    "expected strict eject dry-run blocker",
+  )
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const strictSourceOnlyReport = await createEjectStrictReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictSourceOnlyReport.applied, true)
+  assert.equal(strictSourceOnlyReport.itemEjectState, "ejected")
+  assert.equal(strictSourceOnlyReport.effects.writesFiles, false)
+  assert.equal(strictSourceOnlyReport.effects.writesLockfile, true)
+  assert.equal(strictSourceOnlyReport.effects.files.sourceFileTouchedCount, 0)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.ejectedFileRecordCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.ejectedItem, true)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.status, "written")
+  assert.equal(strictSourceOnlyReport.dependencies[0].status, "missing")
+  assert.equal(strictSourceOnlyReport.files[0].strictAction, "ejected-lockfile-ownership")
+  assert.equal(strictSourceOnlyReport.files[0].ejectedLockfileOwnership, true)
+  assert.equal(strictSourceOnlyReport.lockfileData.items["source-only"]?.files[0].ownershipState, "ejected")
+  assert.equal(
+    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].ownershipState,
+    "ejected",
+  )
+  assert.equal(
+    existsSync(path.join(consumerRoot, "src/components/Diff/source-only.ts")),
+    true,
+    "expected source-only file to remain in place",
+  )
+
+  const ejectedNoOpSnapshot = readFixtureSnapshot(temporaryRoot)
+  const strictEjectedOnlyReport = await createEjectStrictReport({
+    cwd: consumerRoot,
+    itemName: "ejected-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictEjectedOnlyReport.applied, false)
+  assert.equal(strictEjectedOnlyReport.itemEjectState, "already-ejected")
+  assert.equal(strictEjectedOnlyReport.effects.writesFiles, false)
+  assert.equal(strictEjectedOnlyReport.effects.writesLockfile, false)
+  assert.equal(strictEjectedOnlyReport.effects.lockfile.status, "not-written")
+  assert.equal(strictEjectedOnlyReport.effects.files.alreadyEjectedCount, 1)
+  assert.equal(strictEjectedOnlyReport.blockers.length, 0)
+  assert.equal(strictEjectedOnlyReport.files[0].strictAction, "already-ejected")
+  assert.equal(strictEjectedOnlyReport.files[0].ejectedLockfileOwnership, false)
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), ejectedNoOpSnapshot)
+
   const missingReport = await createEjectAdvisoryReport({
     cwd: consumerRoot,
     itemName: "missing-item",
@@ -486,8 +553,8 @@ try {
     missingDryRunReport.findings.some((finding) => finding.code === "status-lockfile-item-missing"),
     "expected missing item dry-run finding",
   )
-  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] eject advisory and dry-run reports verified")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), ejectedNoOpSnapshot)
+  console.log("[aminoui-cli] eject advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

@@ -6,26 +6,26 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
 item-scoped update advisory, item-scoped update dry-run, item-scoped remove advisory, and item-scoped remove dry-run
-against the React registry snapshot, strict item-scoped remove for fixture-proven cases, plus item-scoped eject advisory
-and item-scoped eject dry-run. The visible `delete` command is an alias-style sibling for the current remove lifecycle
-surface.
+against the React registry snapshot, strict item-scoped remove for fixture-proven cases, item-scoped eject advisory,
+item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockfile ownership transfer. The visible
+`delete` command is an alias-style sibling for the current remove lifecycle surface.
 
 ## Current Surface
 
-| Command  | Current state                                                                                                                                                                                                                                                                                                                     |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                   |
-| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                           |
-| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                                                                   |
-| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, and `delete <item> --json` use the same remove reports, blockers, effects, and mutation boundaries.                                                                                                                            |
-| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                 |
-| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict eject remains deferred.                                                    |
-| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers. |
-| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                          |
-| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict update remains deferred.                                                |
+| Command  | Current state                                                                                                                                                                                                                                                                                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                                                         |
+| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                 |
+| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                                                                                                         |
+| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, and `delete <item> --json` use the same remove reports, blockers, effects, and mutation boundaries.                                                                                                                                                                  |
+| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                                                       |
+| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched. |
+| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers.                                       |
+| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                |
+| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict update remains deferred.                                                                                      |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
-output, strict update behavior, or strict ejection behavior.
+output, strict update behavior, broader ejection policy, dependency cleanup, or support/orphan cleanup.
 
 ## Command Names
 
@@ -136,10 +136,10 @@ command does not add dependency cleanup, support/orphan cleanup, or any broader 
 
 Current `eject <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 eject advisory actions, item eject state, dependency posture, shared lockfile reference counts, and explicit no-write
-effects. It reports `eject-candidate` only for present registry-owned component files that can later become
-consumer-owned through lockfile ownership changes. Missing files, shared files, support files, local edits, unknown
-ownership, and consumer-owned support require review or preservation. Already ejected files report `already-ejected`
-without requiring additional mutation.
+effects. It reports `eject-candidate` only for present registry-owned component files that can later become `ejected`
+through lockfile ownership changes. Missing files, shared files, support files, local edits, unknown ownership, and
+consumer-owned support require review or preservation. Already ejected files report `already-ejected` without requiring
+additional mutation.
 
 Current `eject <item> --dry-run --json` is also non-mutating and item-scoped. It reuses eject advisory classification
 and reports `wouldEffects` separately from actual effects. Actual effects always report no source-file writes, config
@@ -148,12 +148,18 @@ lockfile ownership to the consumer, skip preservation-sensitive files, block on 
 The command marks the item `blocked` when any file in that installed item requires review or preservation, so it does
 not preview partial lockfile ownership transfer for mixed safe/unsafe items.
 
+Current strict `eject <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
+`would-eject`, no dry-run blockers exist, and the lockfile still records the planned component files as registry-owned.
+It writes only `amino-ui.lock.json`, changing eligible file records to `ejected`, and it leaves source files,
+package-manager files, config, and dependency records untouched. Already ejected items return a no-op report with exit 0. Missing files, shared/support files, local edits, unknown ownership, consumer-owned support, and mixed unsafe items
+block the strict write.
+
 ## Command Data Flow
 
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> eject advisory -> eject dry-run
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> eject advisory -> eject dry-run -> strict eject
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -176,6 +182,7 @@ by `init`.
 | `delete` sibling           | Same as matching `remove` mode.                      | Same as matching `remove` mode.          |
 | `eject --advisory --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `eject --dry-run --json`   | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| Strict `eject`             | Config, lockfile, local snapshot, installed files.   | Lockfile only.                           |
 
 This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
 
@@ -204,6 +211,8 @@ This lane is designed so fixture evidence can capture each transition before str
     classification fixture proofs.
 15. Add visible sibling `delete <item>` command coverage for advisory, dry-run, and strict remove-equivalent fixture
     proofs.
+16. Add strict item-scoped `eject <item> --json` for clean installed lockfile ownership transfer, already-ejected no-op,
+    locally modified blocking, and classification fixture proofs.
 
 ## Next Lifecycle Targets
 
@@ -221,9 +230,10 @@ Discussion targets before lifecycle behavior expands:
 - lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
   classification base, then use `update --dry-run --json` to prove write previews before strict update behavior is
   approved, `remove --dry-run --json` to gate strict remove behavior, and
-  `eject --dry-run --json` to prove lockfile ownership-transfer previews before strict eject exists.
+  `eject --dry-run --json` to gate strict lockfile-only ownership transfer.
 
 ## Boundaries
 
-Do not expand strict update writes, `delete` beyond a remove-equivalent sibling, strict eject, registry artifact hosting,
-generated token writers, dependency cleanup, orphan-support cleanup, or publication policy as incidental cleanup.
+Do not expand strict update writes, `delete` beyond a remove-equivalent sibling, strict eject beyond lockfile-only
+ownership transfer, registry artifact hosting, generated token writers, dependency cleanup, orphan-support cleanup, or
+publication policy as incidental cleanup.
