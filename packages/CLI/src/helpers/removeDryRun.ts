@@ -2,7 +2,12 @@ import { z } from "zod"
 
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
 import { INSTALL_PLAN_FINDING_SEVERITY__ERROR, INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
-import { createRemoveAdvisoryReport, type TRemoveAdvisoryFile, type TRemoveAdvisoryReport } from "./removeAdvisory"
+import {
+  createRemoveAdvisoryReport,
+  removeAdvisoryDependencyCleanupSchema,
+  type TRemoveAdvisoryFile,
+  type TRemoveAdvisoryReport,
+} from "./removeAdvisory"
 
 const REMOVE_DRY_RUN_SCHEMA_VERSION = 1
 
@@ -113,6 +118,7 @@ export const removeDryRunReportSchema = z
   .object({
     blockers: z.array(removeDryRunBlockerSchema).default([]),
     cwd: z.string().min(1),
+    dependencyCleanup: removeAdvisoryDependencyCleanupSchema,
     dependencies: z.array(consumerLockfileDependencySchema).default([]),
     dryRun: z.literal(true),
     effects: z
@@ -164,7 +170,7 @@ export const removeDryRunReportSchema = z
       .object({
         dependencies: z
           .object({
-            plannedRemovalCount: z.literal(0),
+            plannedRemovalCount: z.number().int().nonnegative(),
             status: z.literal("not-written"),
           })
           .strict(),
@@ -468,6 +474,7 @@ export const createRemoveDryRunReport = async ({
   const skippedFileCount = files.filter((file) => file.dryRunAction.startsWith("skip-")).length
   const wouldRemoveFileCount = files.filter((file) => file.wouldRemoveFile).length
   const wouldRemoveLockfileRecordCount = files.filter((file) => file.wouldRemoveLockfileRecord).length
+  const itemRemoveState = resolveItemRemoveState({ blockers, files })
   const lockfileStatus =
     blockers.length > 0 ? "blocked" : wouldRemoveLockfileRecordCount > 0 ? "would-write" : ("not-written" as const)
   const orphanCleanup = createRemoveDryRunOrphanCleanup({
@@ -482,10 +489,17 @@ export const createRemoveDryRunReport = async ({
         : orphanCleanup.wouldRemoveLockfileRecordCount > 0
           ? "would-write"
           : ("not-written" as const)
+  const plannedDependencyRemovalCount =
+    advisoryReport.dependencyCleanup.enabled &&
+    itemRemoveState === REMOVE_DRY_RUN_ITEM_STATE__WOULD_REMOVE &&
+    orphanCleanup.blockedItemCount === 0
+      ? advisoryReport.dependencyCleanup.candidateCount
+      : 0
 
   return removeDryRunReportSchema.parse({
     blockers,
     cwd,
+    dependencyCleanup: advisoryReport.dependencyCleanup,
     dependencies: advisoryReport.dependencies,
     dryRun: true,
     effects: {
@@ -497,7 +511,7 @@ export const createRemoveDryRunReport = async ({
     files,
     findings: advisoryReport.findings,
     itemName,
-    itemRemoveState: resolveItemRemoveState({ blockers, files }),
+    itemRemoveState,
     orphanCleanup,
     registrySource: advisoryReport.registrySource,
     status: advisoryReport.status,
@@ -520,7 +534,7 @@ export const createRemoveDryRunReport = async ({
     },
     wouldEffects: {
       dependencies: {
-        plannedRemovalCount: 0,
+        plannedRemovalCount: plannedDependencyRemovalCount,
         status: "not-written",
       },
       files: {

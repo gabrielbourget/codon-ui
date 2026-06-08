@@ -102,6 +102,13 @@ export const createRemoveCommand = ({
             logger.info(`Orphan cleanup would remove files: ${removeDryRunReport.orphanCleanup.wouldRemoveFileCount}`)
             logger.info(`Orphan cleanup effect: ${removeDryRunReport.wouldEffects.orphanCleanup.status}`)
           }
+          if (removeDryRunReport.dependencyCleanup.enabled) {
+            logger.info(`Dependency cleanup candidates: ${removeDryRunReport.dependencyCleanup.candidateCount}`)
+            logger.info(`Dependency cleanup still required: ${removeDryRunReport.dependencyCleanup.stillRequiredCount}`)
+            logger.info(
+              `Dependency cleanup planned removals: ${removeDryRunReport.wouldEffects.dependencies.plannedRemovalCount}`,
+            )
+          }
 
           for (const file of removeDryRunReport.files) {
             logger.info(`- ${file.path}: ${file.dryRunAction}`)
@@ -186,6 +193,10 @@ export const createRemoveCommand = ({
           logger.info(`Orphan cleanup items: ${removeAdvisoryReport.orphanCleanup.itemCount}`)
           logger.info(`Orphan cleanup future removable files: ${removeAdvisoryReport.orphanCleanup.candidateFileCount}`)
           logger.info(`Orphan cleanup blockers: ${removeAdvisoryReport.orphanCleanup.automaticBlockerCount}`)
+        }
+        if (removeAdvisoryReport.dependencyCleanup.enabled) {
+          logger.info(`Dependency cleanup candidates: ${removeAdvisoryReport.dependencyCleanup.candidateCount}`)
+          logger.info(`Dependency cleanup still required: ${removeAdvisoryReport.dependencyCleanup.stillRequiredCount}`)
         }
         logger.info(`Findings: ${removeAdvisoryReport.findings.length}`)
 

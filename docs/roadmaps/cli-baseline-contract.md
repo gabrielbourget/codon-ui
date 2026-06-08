@@ -16,7 +16,7 @@ Stable CLI guidance has moved into the docs site:
 - `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
 - `apps/docs/src/content/docs/registry/local-snapshots.md`
 
-Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup, broad update/merge behavior,
+Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes, broad update/merge behavior,
 broader eject policy, non-orphan support cleanup, public registry hosting, and package publication.
 
 ## Current Status
@@ -279,8 +279,10 @@ generate hosted registry artifacts, run component tests, or implement status/upd
 Later lifecycle slices added item-scoped `status`, `diff`, `update`, `remove`, `delete`, and `eject` behavior behind
 fixture evidence. `remove` and `delete` now also accept `--with-orphans` to report dependency items that would become
 orphan cleanup candidates in advisory and dry-run modes, then remove dry-run-approved orphan dependency items in strict
-temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup` report block. Strict orphan cleanup
-remains opt-in and does not add package dependency cleanup, non-orphan support cleanup, or broad deletion policy.
+temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup` report block. Advisory and dry-run
+also report a separate no-write `dependencyCleanup` block that classifies package dependency cleanup candidates and
+dependencies still required by remaining installed items. Strict orphan cleanup remains opt-in and does not add
+package-manifest edits, package-manager lockfile edits, non-orphan support cleanup, or broad deletion policy.
 
 ## Design Discussion Packet
 

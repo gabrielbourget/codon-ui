@@ -100,6 +100,11 @@ ranges against manifest requirements.
 Strict add does not install, update, or remove packages. It blocks when required dependency decisions are not satisfied.
 When strict add succeeds, the lockfile records satisfied dependency decisions with action `none`.
 
+`remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
+the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in
+`dependencyCleanup` during advisory and dry-run modes only. The CLI still does not edit `package.json`, package-manager
+lockfiles, or installed packages.
+
 ## Source Write Flow
 
 Strict add applies the same plan only after blockers are cleared:
@@ -332,15 +337,16 @@ package-manager lockfiles.
 
 The JSON report includes:
 
-| Field             | Meaning                                                                                                                 |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `itemRemoveState` | Aggregate state: `remove-candidate`, `lockfile-cleanup-candidate`, `review-required`, or `unavailable`.                 |
-| `files`           | Per-file ownership/source state, advisory action, removal target, preservation posture, and shared references.          |
-| `orphanCleanup`   | Disabled by default. With `--with-orphans`, reports dependency items that would become orphan cleanup candidates.       |
-| `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                             |
-| `effects`         | Always reports no config, lockfile, source-file, or dependency writes for this mode.                                    |
-| `summary`         | Counts for removable files, lockfile cleanup candidates, blockers, preservation, support review, and shared references. |
-| `findings`        | Missing item/config/lockfile/registry-source warnings from the status model.                                            |
+| Field               | Meaning                                                                                                                 |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `itemRemoveState`   | Aggregate state: `remove-candidate`, `lockfile-cleanup-candidate`, `review-required`, or `unavailable`.                 |
+| `files`             | Per-file ownership/source state, advisory action, removal target, preservation posture, and shared references.          |
+| `orphanCleanup`     | Disabled by default. With `--with-orphans`, reports dependency items that would become orphan cleanup candidates.       |
+| `dependencyCleanup` | Disabled by default. With `--with-orphans`, classifies package dependencies as cleanup candidates or still required.    |
+| `dependencies`      | Recorded lockfile dependency decisions; no package-manager mutation is run.                                             |
+| `effects`           | Always reports no config, lockfile, source-file, or dependency writes for this mode.                                    |
+| `summary`           | Counts for removable files, lockfile cleanup candidates, blockers, preservation, support review, and shared references. |
+| `findings`          | Missing item/config/lockfile/registry-source warnings from the status model.                                            |
 
 Per-file `action` values are:
 
@@ -355,17 +361,19 @@ Per-file `action` values are:
 | `preserve-unknown`                | Unknown ownership is preserved and blocks automatic removal.                             |
 | `preserve-ejected`                | Ejected file is preserved and blocks automatic removal.                                  |
 
-Remove advisory is conservative around support files for the requested item. It does not decide package dependency
-removal, source-file deletion, or lockfile writes. `--with-orphans` is an explicit no-write planning option: it walks the
+Remove advisory is conservative around support files for the requested item. It does not decide source-file deletion,
+lockfile writes, or package-manager mutation. `--with-orphans` is an explicit no-write planning option: it walks the
 requested item's `registryDependencies` graph and reports dependency items that have no remaining dependents outside the
 planned cleanup set. Registry-owned support, theme, and token files may appear as orphan cleanup candidates only in that
-separate `orphanCleanup` block. Locally modified, consumer-owned-support, unknown, ejected, and shared files still block
-automatic cleanup by default.
+separate `orphanCleanup` block. The advisory report also adds `dependencyCleanup`, which maps lockfile dependency records
+back to registry items in the planned cleanup set. Dependencies required only by removed items are
+`cleanup-candidate`; dependencies still required by another installed item are `still-required`. Locally modified,
+consumer-owned-support, unknown, ejected, and shared files still block automatic cleanup by default.
 
 Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
 lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
-missing dependency posture, stale source-hash classification, and Wavemap-like orphan cleanup advisory planning behind
-`--with-orphans`.
+missing dependency posture, stale source-hash classification, and Wavemap-like orphan plus dependency cleanup advisory
+planning behind `--with-orphans`.
 
 ## Remove Dry Run
 
@@ -382,16 +390,17 @@ package-manager lockfiles.
 
 The JSON report includes:
 
-| Field             | Meaning                                                                                                            |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `itemRemoveState` | Aggregate state: `would-remove`, `blocked`, or `unavailable`.                                                      |
-| `files`           | Per-file advisory action, dry-run action, removal booleans, blocker codes, preservation posture, and source state. |
-| `orphanCleanup`   | Disabled by default. With `--with-orphans`, previews orphaned dependency items and files without writes.           |
-| `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                        |
-| `effects`         | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                        |
-| `wouldEffects`    | Planned remove preview: source-file deletion count, lockfile-record removal count, skips, blocks, and status.      |
-| `blockers`        | File and item blockers that would prevent strict remove.                                                           |
-| `summary`         | Counts for candidates, lockfile cleanup records, skipped files, blocked files, blockers, and dependency states.    |
+| Field               | Meaning                                                                                                                                 |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `itemRemoveState`   | Aggregate state: `would-remove`, `blocked`, or `unavailable`.                                                                           |
+| `files`             | Per-file advisory action, dry-run action, removal booleans, blocker codes, preservation posture, and source state.                      |
+| `orphanCleanup`     | Disabled by default. With `--with-orphans`, previews orphaned dependency items and files without writes.                                |
+| `dependencyCleanup` | Disabled by default. With `--with-orphans`, previews package dependency cleanup candidates without writes.                              |
+| `dependencies`      | Recorded lockfile dependency decisions; no package-manager mutation is run.                                                             |
+| `effects`           | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                                             |
+| `wouldEffects`      | Planned remove preview: source-file deletion count, lockfile-record removal count, dependency cleanup count, skips, blocks, and status. |
+| `blockers`          | File and item blockers that would prevent strict remove.                                                                                |
+| `summary`           | Counts for candidates, lockfile cleanup records, skipped files, blocked files, blockers, and dependency states.                         |
 
 Per-file `dryRunAction` values are:
 
@@ -409,15 +418,17 @@ Per-file `dryRunAction` values are:
 Dry-run is item-atomic for now. If any file in the requested item is locally modified, unknown, consumer-owned support,
 ejected, shared, or a support-file review target, the item state is `blocked`; otherwise-removable files stay visible as
 candidates, but `wouldRemoveFile` and `wouldRemoveLockfileRecord` stay false until blockers are resolved. Missing
-dependency posture is still reported, but remove dry-run does not run package-manager writes or dependency cleanup.
+dependency posture is still reported. With `--with-orphans`, `dependencyCleanup` and
+`wouldEffects.dependencies.plannedRemovalCount` preview package dependency cleanup candidates, but
+`wouldEffects.dependencies.status` remains `not-written` and no package-manager cleanup is run.
 
 With `--with-orphans`, dry-run also reports `wouldEffects.orphanCleanup`. That block is the strict cleanup gate: strict
 `remove` and `delete` only remove orphan dependency items that dry-run reported as unblocked cleanup candidates.
 
 Current fixture evidence proves clean installed remove dry-run, locally modified item blocking, missing local file
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
-missing dependency posture, stale source-hash classification, and Wavemap-like orphan cleanup dry-run planning behind
-`--with-orphans`.
+missing dependency posture, stale source-hash classification, and Wavemap-like orphan plus dependency cleanup dry-run
+planning behind `--with-orphans`.
 
 ## Strict Remove
 
@@ -458,7 +469,8 @@ unexpectedly, or path-unsafe, the whole strict operation is blocked and no sourc
 
 The command is item-atomic. If one file in the item needs review or preservation, otherwise-removable files remain in
 place and the lockfile is not written. Missing dependency posture remains visible in the report, but strict remove does
-not run package-manager cleanup.
+not run package-manager cleanup or remove package dependency declarations, even when dry-run reported dependency cleanup
+candidates.
 
 Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
 modified item blocking, unknown ownership blocking, consumer-owned support blocking, ejected blocking, and missing
@@ -486,9 +498,9 @@ The JSON report remains the remove report schema. Strict `delete` does not intro
 package-manager writes, unknown-file deletion, local-edit deletion, consumer-owned support deletion, or ejected-file
 deletion.
 
-`delete --with-orphans` has the same no-write advisory and dry-run orphan cleanup planning as `remove --with-orphans`.
-Strict `delete --with-orphans` has the same opt-in orphan cleanup behavior and blockers as strict
-`remove --with-orphans`.
+`delete --with-orphans` has the same no-write advisory and dry-run orphan cleanup plus dependency cleanup planning as
+`remove --with-orphans`. Strict `delete --with-orphans` has the same opt-in orphan cleanup behavior and blockers as
+strict `remove --with-orphans`, and it still does not mutate package dependencies.
 
 ## Eject Advisory
 

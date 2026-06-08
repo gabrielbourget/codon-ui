@@ -11,7 +11,7 @@ import {
   consumerTargetRoleSchema,
   type TConsumerLockfile,
 } from "./consumerContract"
-import { INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import { INSTALL_PLAN_FINDING_SEVERITIES, localRegistrySourceSchema, type TLocalRegistryItem } from "./installPlan"
 import { createStatusReport, type TStatusReport } from "./status"
 
 const REMOVE_ADVISORY_SCHEMA_VERSION = 1
@@ -30,6 +30,10 @@ const REMOVE_ADVISORY_ACTION__PRESERVE_CONSUMER_OWNED_SUPPORT = "preserve-consum
 const REMOVE_ADVISORY_ACTION__PRESERVE_UNKNOWN = "preserve-unknown"
 const REMOVE_ADVISORY_ACTION__PRESERVE_EJECTED = "preserve-ejected"
 
+const REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE = "cleanup-candidate"
+const REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__STILL_REQUIRED = "still-required"
+const REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__UNKNOWN = "unknown"
+
 const REMOVE_ADVISORY_ITEM_STATES = [
   REMOVE_ADVISORY_ITEM_STATE__REMOVE_CANDIDATE,
   REMOVE_ADVISORY_ITEM_STATE__LOCKFILE_CLEANUP_CANDIDATE,
@@ -46,6 +50,12 @@ const REMOVE_ADVISORY_ACTIONS = [
   REMOVE_ADVISORY_ACTION__PRESERVE_CONSUMER_OWNED_SUPPORT,
   REMOVE_ADVISORY_ACTION__PRESERVE_UNKNOWN,
   REMOVE_ADVISORY_ACTION__PRESERVE_EJECTED,
+] as const
+
+const REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTIONS = [
+  REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE,
+  REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__STILL_REQUIRED,
+  REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__UNKNOWN,
 ] as const
 
 const removeAdvisoryFindingSchema = z
@@ -106,10 +116,30 @@ const removeAdvisoryOrphanCleanupSchema = z
   })
   .strict()
 
+const removeAdvisoryDependencyCleanupDependencySchema = consumerLockfileDependencySchema
+  .omit({ action: true })
+  .extend({
+    action: z.enum(REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTIONS),
+    cleanupItemNames: z.array(z.string().min(1)).default([]),
+    remainingItemNames: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+export const removeAdvisoryDependencyCleanupSchema = z
+  .object({
+    candidateCount: z.number().int().nonnegative(),
+    dependencies: z.array(removeAdvisoryDependencyCleanupDependencySchema).default([]),
+    enabled: z.boolean(),
+    stillRequiredCount: z.number().int().nonnegative(),
+    unknownCount: z.number().int().nonnegative(),
+  })
+  .strict()
+
 export const removeAdvisoryReportSchema = z
   .object({
     advisory: z.literal(true),
     cwd: z.string().min(1),
+    dependencyCleanup: removeAdvisoryDependencyCleanupSchema,
     dependencies: z.array(consumerLockfileDependencySchema).default([]),
     effects: z
       .object({
@@ -192,6 +222,16 @@ const readConsumerLockfileForRemoveAdvisory = async (cwd: string): Promise<TCons
     return consumerLockfileSchema.parse(JSON.parse(await fs.readFile(lockfilePath, "utf8")))
   } catch {
     return createEmptyLockfileData()
+  }
+}
+
+const readRegistrySourceForDependencyCleanup = async (registrySourcePath?: string) => {
+  if (!registrySourcePath) return undefined
+
+  try {
+    return localRegistrySourceSchema.parse(JSON.parse(await fs.readFile(registrySourcePath, "utf8")))
+  } catch {
+    return undefined
   }
 }
 
@@ -278,6 +318,10 @@ const resolvePreservationRequired = (action: (typeof REMOVE_ADVISORY_ACTIONS)[nu
 
 const resolveReviewRequired = (action: (typeof REMOVE_ADVISORY_ACTIONS)[number]) =>
   action !== REMOVE_ADVISORY_ACTION__REMOVE_CANDIDATE && action !== REMOVE_ADVISORY_ACTION__LOCKFILE_CLEANUP_CANDIDATE
+
+const isCleanupCandidateItemState = (itemRemoveState: (typeof REMOVE_ADVISORY_ITEM_STATES)[number]) =>
+  itemRemoveState === REMOVE_ADVISORY_ITEM_STATE__REMOVE_CANDIDATE ||
+  itemRemoveState === REMOVE_ADVISORY_ITEM_STATE__LOCKFILE_CLEANUP_CANDIDATE
 
 const createRemoveAdvisoryFile = ({
   file,
@@ -582,6 +626,126 @@ const createRemoveAdvisoryOrphanCleanup = async ({
   })
 }
 
+type TRegistryDependencyReference = {
+  itemNames: Set<string>
+}
+
+const createDependencyKey = ({ kind, name }: { kind: string; name: string }) => `${kind}:${name}`
+
+const getRegistryItemDependencies = (item: TLocalRegistryItem) => [
+  ...Object.keys(item.peerDependencies).map((name) => ({ kind: "peer", name })),
+  ...Object.keys(item.runtimeDependencies).map((name) => ({ kind: "runtime", name })),
+  ...Object.keys(item.devDependencies).map((name) => ({ kind: "dev", name })),
+]
+
+const collectDependencyReferencesByKey = ({
+  itemNames,
+  registryItemsByName,
+}: {
+  itemNames: readonly string[]
+  registryItemsByName: ReadonlyMap<string, TLocalRegistryItem>
+}) => {
+  const referencesByKey = new Map<string, TRegistryDependencyReference>()
+
+  itemNames.forEach((itemName) => {
+    const registryItem = registryItemsByName.get(itemName)
+
+    if (!registryItem) return
+
+    getRegistryItemDependencies(registryItem).forEach((dependency) => {
+      const key = createDependencyKey(dependency)
+      const references = referencesByKey.get(key) ?? { itemNames: new Set<string>() }
+
+      references.itemNames.add(itemName)
+      referencesByKey.set(key, references)
+    })
+  })
+
+  return referencesByKey
+}
+
+const createDisabledDependencyCleanup = () =>
+  removeAdvisoryDependencyCleanupSchema.parse({
+    candidateCount: 0,
+    dependencies: [],
+    enabled: false,
+    stillRequiredCount: 0,
+    unknownCount: 0,
+  })
+
+const createRemoveAdvisoryDependencyCleanup = async ({
+  includeOrphans,
+  itemName,
+  itemRemoveState,
+  lockfileData,
+  orphanCleanup,
+  registrySourcePath,
+}: {
+  includeOrphans: boolean
+  itemName: string
+  itemRemoveState: (typeof REMOVE_ADVISORY_ITEM_STATES)[number]
+  lockfileData: TConsumerLockfile
+  orphanCleanup: z.infer<typeof removeAdvisoryOrphanCleanupSchema>
+  registrySourcePath?: string
+}) => {
+  if (!includeOrphans) return createDisabledDependencyCleanup()
+
+  const registrySource = await readRegistrySourceForDependencyCleanup(registrySourcePath)
+
+  if (!registrySource) return createDisabledDependencyCleanup()
+
+  const cleanupItemNames = [
+    ...(isCleanupCandidateItemState(itemRemoveState) ? [itemName] : []),
+    ...orphanCleanup.items.filter((item) => isCleanupCandidateItemState(item.itemRemoveState)).map((item) => item.name),
+  ]
+
+  if (cleanupItemNames.length === 0) return createDisabledDependencyCleanup()
+
+  const cleanupItemNamesSet = new Set(cleanupItemNames)
+  const registryItemsByName = new Map(registrySource.items.map((item) => [item.name, item]))
+  const remainingItemNames = Object.keys(lockfileData.items).filter((name) => !cleanupItemNamesSet.has(name))
+  const cleanupReferencesByKey = collectDependencyReferencesByKey({
+    itemNames: cleanupItemNames,
+    registryItemsByName,
+  })
+  const remainingReferencesByKey = collectDependencyReferencesByKey({
+    itemNames: remainingItemNames,
+    registryItemsByName,
+  })
+  const dependencies = lockfileData.dependencies
+    .filter((dependency) => cleanupReferencesByKey.has(createDependencyKey(dependency)))
+    .map((dependency) => {
+      const key = createDependencyKey(dependency)
+      const cleanupReferences = cleanupReferencesByKey.get(key)
+      const remainingReferences = remainingReferencesByKey.get(key)
+      const action =
+        remainingReferences && remainingReferences.itemNames.size > 0
+          ? REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__STILL_REQUIRED
+          : REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE
+
+      return removeAdvisoryDependencyCleanupDependencySchema.parse({
+        ...dependency,
+        action,
+        cleanupItemNames: [...(cleanupReferences?.itemNames ?? new Set<string>())].sort(),
+        remainingItemNames: [...(remainingReferences?.itemNames ?? new Set<string>())].sort(),
+      })
+    })
+
+  return removeAdvisoryDependencyCleanupSchema.parse({
+    candidateCount: dependencies.filter(
+      (dependency) => dependency.action === REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE,
+    ).length,
+    dependencies,
+    enabled: true,
+    stillRequiredCount: dependencies.filter(
+      (dependency) => dependency.action === REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__STILL_REQUIRED,
+    ).length,
+    unknownCount: dependencies.filter(
+      (dependency) => dependency.action === REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__UNKNOWN,
+    ).length,
+  })
+}
+
 export const createRemoveAdvisoryReport = async ({
   cwd,
   includeOrphans = false,
@@ -622,6 +786,14 @@ export const createRemoveAdvisoryReport = async ({
     pathReferences,
     requestedItemRemoveState: itemRemoveState,
   })
+  const dependencyCleanup = await createRemoveAdvisoryDependencyCleanup({
+    includeOrphans,
+    itemName,
+    itemRemoveState,
+    lockfileData,
+    orphanCleanup,
+    registrySourcePath: statusReport.registrySource.path,
+  })
 
   files.forEach((file) => {
     actionStates[file.action] += 1
@@ -633,6 +805,7 @@ export const createRemoveAdvisoryReport = async ({
   return removeAdvisoryReportSchema.parse({
     advisory: true,
     cwd,
+    dependencyCleanup,
     dependencies: statusReport.dependencies,
     effects: {
       installsDependencies: false,

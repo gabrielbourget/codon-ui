@@ -218,7 +218,13 @@ try {
           },
         ],
         name: "orphan-primary",
+        peerDependencies: {
+          react: "^18.2.0 || ^19.0.0",
+        },
         registryDependencies: ["orphan-component", "shared-support"],
+        runtimeDependencies: {
+          "primary-only": "^1.0.0",
+        },
         sourcePackage: "@amino-ui/react",
         type: "component",
       },
@@ -233,6 +239,9 @@ try {
         ],
         name: "orphan-component",
         registryDependencies: ["orphan-support"],
+        runtimeDependencies: {
+          "shared-runtime": "^1.0.0",
+        },
         sourcePackage: "@amino-ui/react",
         type: "component",
       },
@@ -273,6 +282,9 @@ try {
         ],
         name: "other-dependent",
         registryDependencies: ["shared-support"],
+        runtimeDependencies: {
+          "shared-runtime": "^1.0.0",
+        },
         sourcePackage: "@amino-ui/react",
         type: "component",
       },
@@ -290,6 +302,24 @@ try {
         name: "react",
         requiredRange: "^18.2.0 || ^19.0.0",
         status: "missing",
+      },
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^1.0.0",
+        kind: "runtime",
+        name: "primary-only",
+        requiredRange: "^1.0.0",
+        status: "satisfied",
+      },
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^1.0.0",
+        kind: "runtime",
+        name: "shared-runtime",
+        requiredRange: "^1.0.0",
+        status: "satisfied",
       },
     ],
     items: {
@@ -556,10 +586,25 @@ try {
   assert.equal(orphanAdvisoryReport.orphanCleanup.candidateItemCount, 2)
   assert.equal(orphanAdvisoryReport.orphanCleanup.candidateFileCount, 2)
   assert.equal(orphanAdvisoryReport.orphanCleanup.automaticBlockerCount, 0)
+  assert.equal(orphanAdvisoryReport.dependencyCleanup.enabled, true)
+  assert.equal(orphanAdvisoryReport.dependencyCleanup.candidateCount, 2)
+  assert.equal(orphanAdvisoryReport.dependencyCleanup.stillRequiredCount, 1)
+  assert.equal(orphanAdvisoryReport.dependencyCleanup.unknownCount, 0)
   assert.deepEqual(
     orphanAdvisoryReport.orphanCleanup.items.map((item) => item.name),
     ["orphan-component", "orphan-support"],
   )
+  const orphanAdvisoryDependencies = new Map(
+    orphanAdvisoryReport.dependencyCleanup.dependencies.map((dependency) => [dependency.name, dependency]),
+  )
+
+  assert.equal(orphanAdvisoryDependencies.get("react")?.action, "cleanup-candidate")
+  assert.deepEqual(orphanAdvisoryDependencies.get("react")?.cleanupItemNames, ["orphan-primary"])
+  assert.equal(orphanAdvisoryDependencies.get("primary-only")?.action, "cleanup-candidate")
+  assert.deepEqual(orphanAdvisoryDependencies.get("primary-only")?.cleanupItemNames, ["orphan-primary"])
+  assert.equal(orphanAdvisoryDependencies.get("shared-runtime")?.action, "still-required")
+  assert.deepEqual(orphanAdvisoryDependencies.get("shared-runtime")?.cleanupItemNames, ["orphan-component"])
+  assert.deepEqual(orphanAdvisoryDependencies.get("shared-runtime")?.remainingItemNames, ["other-dependent"])
   assert.equal(
     orphanAdvisoryReport.orphanCleanup.items
       .find((item) => item.name === "orphan-support")
@@ -586,7 +631,12 @@ try {
   assert.equal(orphanDryRunReport.orphanCleanup.wouldRemoveFileCount, 2)
   assert.equal(orphanDryRunReport.orphanCleanup.wouldRemoveLockfileRecordCount, 2)
   assert.equal(orphanDryRunReport.orphanCleanup.blockedItemCount, 0)
+  assert.equal(orphanDryRunReport.dependencyCleanup.enabled, true)
+  assert.equal(orphanDryRunReport.dependencyCleanup.candidateCount, 2)
+  assert.equal(orphanDryRunReport.dependencyCleanup.stillRequiredCount, 1)
   assert.equal(orphanDryRunReport.wouldEffects.lockfile.status, "would-write")
+  assert.equal(orphanDryRunReport.wouldEffects.dependencies.status, "not-written")
+  assert.equal(orphanDryRunReport.wouldEffects.dependencies.plannedRemovalCount, 2)
   assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.status, "would-write")
   assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.plannedItemCount, 2)
   assert.equal(orphanDryRunReport.wouldEffects.orphanCleanup.wouldRemoveFileCount, 2)

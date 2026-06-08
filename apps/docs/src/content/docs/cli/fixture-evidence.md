@@ -64,27 +64,27 @@ logs.
 
 Use the same evidence shape across the current and planned CLI lifecycle.
 
-| Command mode                   | Fixture expectation                                                                                                                |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `init --advisory --json`       | Reports project shape, default config, theme tier, role paths, and policy without writes.                                          |
-| `init --defaults --json`       | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                         |
-| `add --advisory --json`        | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                 |
-| `add --dry-run --json`         | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                |
-| Strict `add <item> --json`     | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                                   |
-| `status --json`                | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.      |
-| `diff --json`                  | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                 |
-| `update --advisory --json`     | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                   |
-| `update --dry-run --json`      | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                     |
-| Strict `update <item> --json`  | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and package-manager state.                  |
-| `remove --advisory --json`     | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.         |
-| `remove --dry-run --json`      | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                  |
-| Strict `remove <item> --json`  | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                        |
-| `remove/delete --with-orphans` | Reports no-write orphan cleanup candidates and proves strict temp-copy cleanup for eligible dependency items.                      |
-| `delete <item>` sibling        | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.               |
-| `eject --advisory --json`      | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
-| `eject --dry-run --json`       | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                             |
-| Strict `eject <item> --json`   | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.            |
-| Future lifecycle expansion     | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
+| Command mode                   | Fixture expectation                                                                                                                                            |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init --advisory --json`       | Reports project shape, default config, theme tier, role paths, and policy without writes.                                                                      |
+| `init --defaults --json`       | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                                                     |
+| `add --advisory --json`        | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                                             |
+| `add --dry-run --json`         | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                                            |
+| Strict `add <item> --json`     | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                                                               |
+| `status --json`                | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.                                  |
+| `diff --json`                  | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                                             |
+| `update --advisory --json`     | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                                               |
+| `update --dry-run --json`      | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                                                 |
+| Strict `update <item> --json`  | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and package-manager state.                                              |
+| `remove --advisory --json`     | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.                                     |
+| `remove --dry-run --json`      | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                                              |
+| Strict `remove <item> --json`  | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                                                    |
+| `remove/delete --with-orphans` | Reports no-write orphan and dependency cleanup candidates, then proves strict temp-copy cleanup for eligible registry dependency items without package writes. |
+| `delete <item>` sibling        | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.                                           |
+| `eject --advisory --json`      | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects.                             |
+| `eject --dry-run --json`       | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                                                         |
+| Strict `eject <item> --json`   | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.                                        |
+| Future lifecycle expansion     | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                                                         |
 
 ## Fixture Matrix
 
@@ -111,7 +111,8 @@ eject, and temp-copy typecheck/build behavior against that mixed graph.
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that
 orphaned registry dependency items appear in a separate `orphanCleanup` block, that registry-owned support files can be
-planned and removed there, and that app-owned adapters remain outside both the lockfile and orphan cleanup report.
+planned and removed there, that package dependency cleanup candidates appear in a no-write `dependencyCleanup` block, and
+that app-owned adapters remain outside both the lockfile and orphan cleanup report.
 
 ## Non-Mutation Rule
 
@@ -126,5 +127,6 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
 publication, generated token writers, package-manager dependency writes, broad update/merge behavior, strict eject
-behavior beyond lockfile-only ownership transfer, strict orphan cleanup beyond the opt-in dry-run-approved dependency
-cleanup path, and Waveguide validation remain separate approval-gated lanes.
+behavior beyond lockfile-only ownership transfer, strict dependency cleanup or package-manager removal, strict orphan
+cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation remain separate
+approval-gated lanes.

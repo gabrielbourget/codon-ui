@@ -61,23 +61,26 @@ registry data.
 
 ## CLI Use
 
-`add --advisory`, `add --dry-run`, and strict local-registry `add <component>` can read the full snapshot when an explicit
-local React component is requested. The plan resolver adds source availability, target status, dependency classification,
-and lockfile effects around that snapshot data.
+`add --advisory`, `add --dry-run`, and strict local-registry `add <component>` can read the full snapshot when an
+explicit local React component is requested. `remove` and `delete --with-orphans` advisory/dry-run reports also read the
+full snapshot so dependency cleanup planning can map installed lockfile dependency records back to the registry items
+that require them. The plan resolver adds source availability, target status, dependency classification, cleanup
+classification, and lockfile effects around that snapshot data.
 
 The CLI adds target-specific information that should not live in the canonical manifest:
 
-| Install-plan data    | Computed from                                                                 |
-| -------------------- | ----------------------------------------------------------------------------- |
-| `resolvedPath`       | Consumer `amino-ui.config.json` layout and role paths.                        |
-| `sourceStatus`       | Whether the manifest `sourcePath` exists under the snapshot source root.      |
-| `contentHash`        | The current source file bytes.                                                |
-| `targetStatus`       | Whether the resolved consumer target already exists.                          |
-| `targetContentHash`  | The current consumer target bytes when a target exists.                       |
-| `targetResolution`   | Whether the command would write, reuse existing support, or block the target. |
-| `dependencyPlan`     | Consumer `package.json` dependency classification.                            |
-| `effects.lockfile.*` | Advisory, dry-run, or strict lockfile write status.                           |
-| `componentPackets`   | Optional review metadata from ingest packets.                                 |
+| Install-plan data    | Computed from                                                                                        |
+| -------------------- | ---------------------------------------------------------------------------------------------------- |
+| `resolvedPath`       | Consumer `amino-ui.config.json` layout and role paths.                                               |
+| `sourceStatus`       | Whether the manifest `sourcePath` exists under the snapshot source root.                             |
+| `contentHash`        | The current source file bytes.                                                                       |
+| `targetStatus`       | Whether the resolved consumer target already exists.                                                 |
+| `targetContentHash`  | The current consumer target bytes when a target exists.                                              |
+| `targetResolution`   | Whether the command would write, reuse existing support, or block the target.                        |
+| `dependencyPlan`     | Consumer `package.json` dependency classification.                                                   |
+| `dependencyCleanup`  | Remove/delete-only cleanup candidates derived from installed items and registry dependency metadata. |
+| `effects.lockfile.*` | Advisory, dry-run, or strict lockfile write status.                                                  |
+| `componentPackets`   | Optional review metadata from ingest packets.                                                        |
 
 The snapshots deliberately do not decide public hosting, generated artifact shape, package publication, or remote
 registry URL behavior.
