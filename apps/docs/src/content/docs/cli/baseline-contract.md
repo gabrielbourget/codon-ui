@@ -6,7 +6,7 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
 item-scoped update advisory, item-scoped update dry-run, item-scoped remove advisory, and item-scoped remove dry-run
-against the React registry snapshot.
+against the React registry snapshot, plus item-scoped eject advisory.
 
 ## Current Surface
 
@@ -16,12 +16,13 @@ against the React registry snapshot.
 | `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                              |
 | `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                      |
 | `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                    |
+| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. Eject dry-run and strict eject remain deferred.                                                                                        |
 | `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict remove remains deferred. |
 | `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                             |
 | `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict update remains deferred.   |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
-output, update behavior, or ejection behavior.
+output, strict update behavior, or strict ejection behavior.
 
 ## Command Names
 
@@ -119,12 +120,19 @@ files, remove lockfile records for present or already-missing files, skip preser
 review-required files, or do nothing. The command marks the item `blocked` when any file in that installed item requires
 review or preservation, so it does not preview partial deletion for mixed safe/unsafe items.
 
+Current `eject <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
+eject advisory actions, item eject state, dependency posture, shared lockfile reference counts, and explicit no-write
+effects. It reports `eject-candidate` only for present registry-owned component files that can later become
+consumer-owned through lockfile ownership changes. Missing files, shared files, support files, local edits, unknown
+ownership, and consumer-owned support require review or preservation. Already ejected files report `already-ejected`
+without requiring additional mutation. Eject dry-run and strict eject remain deferred.
+
 ## Command Data Flow
 
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> eject advisory
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -143,6 +151,7 @@ by `init`.
 | `update --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `remove --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `remove --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| `eject --advisory --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 
 This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
 
@@ -163,6 +172,8 @@ This lane is designed so fixture evidence can capture each transition before str
     fixture proofs.
 11. Add item-scoped no-write `remove --dry-run --json` for clean installed, locally modified, and classification fixture
     proofs.
+12. Add item-scoped read-only `eject --advisory --json` for clean installed, locally modified, and classification
+    fixture proofs.
 
 ## Next Lifecycle Targets
 
@@ -179,9 +190,10 @@ Discussion targets before lifecycle behavior expands:
   ejected files;
 - lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
   classification base, then use `update --dry-run --json` to prove write previews before strict update behavior is
-  approved, and `remove --dry-run --json` to prove deletion previews before strict remove exists.
+  approved, `remove --dry-run --json` to prove deletion previews before strict remove exists, and
+  `eject --advisory --json` to prove ownership-transfer posture before eject dry-run exists.
 
 ## Boundaries
 
-Do not expand strict update writes, strict remove/delete, eject, registry artifact hosting, generated token writers, or
-publication policy as incidental cleanup.
+Do not expand strict update writes, strict remove/delete, eject dry-run, strict eject, registry artifact hosting,
+generated token writers, or publication policy as incidental cleanup.

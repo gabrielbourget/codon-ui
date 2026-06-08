@@ -55,20 +55,21 @@ logs.
 
 Use the same evidence shape across the current and planned CLI lifecycle.
 
-| Command mode               | Fixture expectation                                                                                                           |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `init --advisory --json`   | Reports project shape, default config, theme tier, role paths, and policy without writes.                                     |
-| `init --defaults --json`   | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                    |
-| `add --advisory --json`    | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                            |
-| `add --dry-run --json`     | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                           |
-| Strict `add <item> --json` | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                              |
-| `status --json`            | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases. |
-| `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.            |
-| `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                              |
-| `update --dry-run --json`  | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                |
-| `remove --advisory --json` | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.    |
-| `remove --dry-run --json`  | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.             |
-| Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
+| Command mode               | Fixture expectation                                                                                                                |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `init --advisory --json`   | Reports project shape, default config, theme tier, role paths, and policy without writes.                                          |
+| `init --defaults --json`   | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                         |
+| `add --advisory --json`    | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                 |
+| `add --dry-run --json`     | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                |
+| Strict `add <item> --json` | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                                   |
+| `status --json`            | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.      |
+| `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                 |
+| `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                   |
+| `update --dry-run --json`  | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                     |
+| `remove --advisory --json` | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.         |
+| `remove --dry-run --json`  | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                  |
+| `eject --advisory --json`  | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
+| Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
 
 ## Fixture Matrix
 

@@ -6,6 +6,7 @@ import { Command } from "commander"
 
 import { add } from "./commands/add"
 import { diff } from "./commands/diff"
+import { eject } from "./commands/eject"
 import { info } from "./commands/info"
 import { init } from "./commands/init"
 import { remove } from "./commands/remove"
@@ -33,6 +34,7 @@ const main = async () => {
     .addCommand(status)
     .addCommand(update)
     .addCommand(remove)
+    .addCommand(eject)
 
   program.parse()
 }

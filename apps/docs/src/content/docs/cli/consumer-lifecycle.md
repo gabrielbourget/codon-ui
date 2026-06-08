@@ -366,6 +366,51 @@ Current fixture evidence proves clean installed remove dry-run, locally modified
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
 missing dependency posture, and stale source-hash classification.
 
+## Eject Advisory
+
+`eject --advisory --json` is the first eject command, and it is intentionally read-only:
+
+```sh
+aui eject <item> --advisory --json --cwd <consumer-project>
+```
+
+It starts from `status --json` classification and reports how a future eject flow would transfer ownership from Amino UI
+registry provenance to the consumer. It does not modify source files, write config, write lockfile data, change package
+metadata, remove dependencies, or touch package-manager lockfiles.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                                              |
+| ---------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `itemEjectState` | Aggregate state: `eject-candidate`, `already-ejected`, `review-required`, or `unavailable`.                          |
+| `files`          | Per-file ownership/source state, advisory action, ejection target, preservation posture, and shared references.      |
+| `dependencies`   | Recorded lockfile dependency decisions; no package-manager mutation is run.                                          |
+| `effects`        | Always reports no config, lockfile, source-file, or dependency writes for this mode.                                 |
+| `summary`        | Counts for eject candidates, already-ejected files, review blockers, preservation, support review, and shared paths. |
+| `findings`       | Missing item/config/lockfile/registry-source warnings from the status model.                                         |
+
+Per-file `action` values are:
+
+| Action                            | Meaning                                                                                      |
+| --------------------------------- | -------------------------------------------------------------------------------------------- |
+| `eject-candidate`                 | Present registry-owned component file could later become consumer-owned in the lockfile.     |
+| `review-missing-file`             | The local file is missing, so there is no checked-in source file to hand over automatically. |
+| `review-support-file`             | Non-component support target needs orphan/shared ownership review before ejection.           |
+| `review-shared-file`              | Another lockfile item references the same path, so automatic ownership transfer is blocked.  |
+| `preserve-local-change`           | Consumer local edit must be reviewed before ownership transfer.                              |
+| `preserve-consumer-owned-support` | Consumer-owned support is already outside automatic ownership transfer.                      |
+| `preserve-unknown`                | Unknown ownership is preserved and blocks automatic ejection.                                |
+| `already-ejected`                 | The file is already recorded as ejected and needs no further advisory action.                |
+
+Eject advisory treats ejection as a future lockfile ownership change, not a source-file mutation. Clean registry-owned
+component files report `ejectionTarget: "lockfile-ownership"`. Support files, shared files, missing files, local edits,
+unknown targets, and consumer-owned support require review. Already ejected files stay visible as `already-ejected` so
+consumers can distinguish no-op ownership state from missing provenance.
+
+Current fixture evidence proves clean installed eject advisory, locally modified preservation, missing local file review,
+unknown ownership preservation, consumer-owned support preservation, already-ejected reporting, missing dependency
+posture, and stale source-hash classification.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                                                      |
@@ -378,8 +423,9 @@ missing dependency posture, and stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add eject advisory behavior without weakening the preservation defaults above. Strict
-update and strict remove remain deferred until dry-run evidence is broader and intentionally approved.
+The next lifecycle work should add eject dry-run or strict-remove planning without weakening the preservation defaults
+above. Strict update, strict remove, and strict eject remain deferred until dry-run evidence is broader and intentionally
+approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.
