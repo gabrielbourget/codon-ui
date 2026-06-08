@@ -40,6 +40,7 @@ pnpm verify:delete
 pnpm verify:eject-advisory
 pnpm verify:eject-dry-run
 pnpm verify:strict-eject
+pnpm verify:wavemap-like-lifecycle
 ```
 
 ## Proof Packet
@@ -99,6 +100,11 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing. |
 | Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                   |
 | Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.   |
+
+The current mature-consumer fixture is `wavemap-like-typeahead-lifecycle`. It installs the registry-owned
+`typeahead-search` graph and keeps app-owned artist wrapper, API query, route/query state, typeahead controller, local
+labels, and focused test files outside `amino-ui.lock.json`. Its focused gate proves status, diff, update, remove/delete,
+eject, and temp-copy typecheck/build behavior against that mixed graph.
 
 ## Non-Mutation Rule
 
