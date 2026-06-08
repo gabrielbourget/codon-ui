@@ -30,21 +30,35 @@ export const DEV_DEPENDENCY_FLAG__BUN = "-d"
 
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__PACKAGE_MANAGER_FIELD = "packageManager-field"
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__LOCKFILE = "lockfile"
+export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__CLI_OPTION = "cli-option"
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__UNKNOWN = "unknown"
 
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES = [
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__CLI_OPTION,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__PACKAGE_MANAGER_FIELD,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__LOCKFILE,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__UNKNOWN,
+] as const
+
+export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__PACKAGE_JSON_OPTION = "package-json-option"
+export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON = "nearest-package-json"
+export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING = "missing"
+
+export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES = [
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__PACKAGE_JSON_OPTION,
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON,
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING,
 ] as const
 
 type TPackageManagerDetection =
   | {
       name: TDependencyInstallPackageManager
       source:
+        | typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__CLI_OPTION
         | typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__PACKAGE_MANAGER_FIELD
         | typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__LOCKFILE
       lockfilePath?: string
+      packageManagerOverride?: TDependencyInstallPackageManager
       packageManagerField?: string
       packageManifestPath?: string
     }
@@ -54,6 +68,21 @@ type TPackageManagerDetection =
       packageManagerField?: string
       packageManifestPath?: string
     }
+
+type TDependencyInstallTargetManifest = {
+  directory?: string
+  exists: boolean
+  packageManagerField?: string
+  packageName?: string
+  path?: string
+  source: (typeof DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES)[number]
+}
+
+export type TResolvedDependencyInstallTarget = {
+  absolutePath?: string
+  directoryPath?: string
+  manifest: TDependencyInstallTargetManifest
+}
 
 type TDependencyInstallRecommendation = {
   kind: TRegistryInstallPlan["dependencyPlan"][number]["kind"]
@@ -69,6 +98,8 @@ type TDependencyInstallCommand = {
   dependencyTarget: "dependencies" | "devDependencies"
   dependencies: TDependencyInstallRecommendation[]
   packageManager: TDependencyInstallPackageManager
+  targetManifestPath?: string
+  workingDirectory?: string
 }
 
 type TDependencyInstallPlan = {
@@ -77,9 +108,11 @@ type TDependencyInstallPlan = {
   recommendedCommands: TDependencyInstallCommand[]
   recommendations: TDependencyInstallRecommendation[]
   status: "not-written"
+  targetManifest: TDependencyInstallTargetManifest
 }
 
 type TPackageJsonWithPackageManager = {
+  name?: string
   packageManager?: string
 }
 
@@ -121,37 +154,143 @@ const getPackageManagerNameFromManifestField = (
   return undefined
 }
 
-const detectDependencyInstallPackageManager = (cwd: string): TPackageManagerDetection => {
-  const packageJsonPath = path.join(cwd, "package.json")
-  const relativePackageJsonPath = "package.json"
-  const packageJson = existsSync(packageJsonPath) ? readPackageManagerManifest(packageJsonPath) : undefined
-  const packageManagerFromManifest = getPackageManagerNameFromManifestField(packageJson?.packageManager)
+const formatReportedPath = ({ consumerRoot, targetPath }: { consumerRoot: string; targetPath: string }) => {
+  const relativePath = path.relative(consumerRoot, targetPath).replace(/\\/gu, "/")
+
+  if (!relativePath) return "."
+  if (relativePath.startsWith("../") || path.isAbsolute(relativePath)) return targetPath
+
+  return relativePath
+}
+
+const findUp = ({ fileNames, startDirectory }: { fileNames: readonly string[]; startDirectory: string }) => {
+  let currentDirectory = startDirectory
+
+  while (true) {
+    const matchedFileName = fileNames.find((fileName) => existsSync(path.join(currentDirectory, fileName)))
+
+    if (matchedFileName) return path.join(currentDirectory, matchedFileName)
+
+    const parentDirectory = path.dirname(currentDirectory)
+    if (parentDirectory === currentDirectory) return undefined
+
+    currentDirectory = parentDirectory
+  }
+}
+
+const createTargetManifest = ({
+  absolutePath,
+  consumerRoot,
+  source,
+}: {
+  absolutePath?: string
+  consumerRoot: string
+  source: TDependencyInstallTargetManifest["source"]
+}): TResolvedDependencyInstallTarget => {
+  const packageJson = absolutePath && existsSync(absolutePath) ? readPackageManagerManifest(absolutePath) : undefined
+  const directoryPath = absolutePath ? path.dirname(absolutePath) : undefined
+
+  return {
+    absolutePath,
+    directoryPath,
+    manifest: {
+      directory: directoryPath ? formatReportedPath({ consumerRoot, targetPath: directoryPath }) : undefined,
+      exists: Boolean(absolutePath && existsSync(absolutePath)),
+      packageManagerField: packageJson?.packageManager,
+      packageName: packageJson?.name,
+      path: absolutePath ? formatReportedPath({ consumerRoot, targetPath: absolutePath }) : undefined,
+      source,
+    },
+  }
+}
+
+export const resolveDependencyInstallTarget = ({
+  consumerRoot,
+  packageJsonPath,
+}: {
+  consumerRoot: string
+  packageJsonPath?: string
+}): TResolvedDependencyInstallTarget => {
+  if (packageJsonPath) {
+    return createTargetManifest({
+      absolutePath: path.resolve(consumerRoot, packageJsonPath),
+      consumerRoot,
+      source: DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__PACKAGE_JSON_OPTION,
+    })
+  }
+
+  const nearestPackageJsonPath = findUp({
+    fileNames: ["package.json"],
+    startDirectory: consumerRoot,
+  })
+
+  if (nearestPackageJsonPath) {
+    return createTargetManifest({
+      absolutePath: nearestPackageJsonPath,
+      consumerRoot,
+      source: DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON,
+    })
+  }
+
+  return createTargetManifest({
+    consumerRoot,
+    source: DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING,
+  })
+}
+
+const detectDependencyInstallPackageManager = ({
+  consumerRoot,
+  packageManager,
+  targetManifest,
+}: {
+  consumerRoot: string
+  packageManager?: TDependencyInstallPackageManager
+  targetManifest: TResolvedDependencyInstallTarget
+}): TPackageManagerDetection => {
+  if (packageManager) {
+    return {
+      name: packageManager,
+      packageManagerField: targetManifest.manifest.packageManagerField,
+      packageManagerOverride: packageManager,
+      packageManifestPath: targetManifest.manifest.path,
+      source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__CLI_OPTION,
+    }
+  }
+
+  const packageManagerFromManifest = getPackageManagerNameFromManifestField(targetManifest.manifest.packageManagerField)
 
   if (packageManagerFromManifest) {
     return {
       name: packageManagerFromManifest,
-      packageManagerField: packageJson?.packageManager,
-      packageManifestPath: relativePackageJsonPath,
+      packageManagerField: targetManifest.manifest.packageManagerField,
+      packageManifestPath: targetManifest.manifest.path,
       source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__PACKAGE_MANAGER_FIELD,
     }
   }
 
-  const lockfile = packageManagerLockfiles.find(({ fileName }) => existsSync(path.join(cwd, fileName)))
+  const lockfileSearchStartDirectory = targetManifest.directoryPath ?? consumerRoot
+  const lockfilePath = findUp({
+    fileNames: packageManagerLockfiles.map(({ fileName }) => fileName),
+    startDirectory: lockfileSearchStartDirectory,
+  })
+  const lockfile = lockfilePath
+    ? packageManagerLockfiles.find(({ fileName }) => path.basename(lockfilePath) === fileName)
+    : undefined
 
-  if (lockfile) {
+  if (lockfile && lockfilePath) {
     return {
-      lockfilePath: lockfile.fileName,
+      lockfilePath: formatReportedPath({ consumerRoot, targetPath: lockfilePath }),
       name: lockfile.packageManager,
-      packageManagerField: packageJson?.packageManager,
-      packageManifestPath: existsSync(packageJsonPath) ? relativePackageJsonPath : undefined,
+      packageManagerField: targetManifest.manifest.packageManagerField,
+      packageManifestPath: targetManifest.manifest.path,
       source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__LOCKFILE,
     }
   }
 
   return {
     name: PACKAGE_MANAGER_UNKNOWN,
-    packageManagerField: packageJson?.packageManager,
-    packageManifestPath: existsSync(packageJsonPath) ? relativePackageJsonPath : undefined,
+    packageManagerField: targetManifest.manifest.packageManagerField,
+    packageManifestPath: targetManifest.manifest.path,
     source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__UNKNOWN,
   }
 }
@@ -196,10 +335,12 @@ const createDependencyInstallCommand = ({
   dependencies,
   dependencyTarget,
   packageManager,
+  targetManifest,
 }: {
   dependencies: TDependencyInstallRecommendation[]
   dependencyTarget: "dependencies" | "devDependencies"
   packageManager: TDependencyInstallPackageManager
+  targetManifest: TDependencyInstallTargetManifest
 }): TDependencyInstallCommand => {
   const addCommand = computePackageManagerAddCommand(packageManager)
   const dependencySpecifiers = dependencies.map((dependency) => dependency.specifier)
@@ -214,15 +355,26 @@ const createDependencyInstallCommand = ({
     dependencies,
     dependencyTarget,
     packageManager,
+    targetManifestPath: targetManifest.path,
+    workingDirectory: targetManifest.directory,
   }
 }
 
 export const createDependencyInstallPlan = ({
   consumerRoot,
   dependencyPlan,
+  packageJsonPath,
+  packageManager,
+  targetManifest = resolveDependencyInstallTarget({
+    consumerRoot,
+    packageJsonPath,
+  }),
 }: {
   consumerRoot: string
   dependencyPlan: TRegistryInstallPlan["dependencyPlan"]
+  packageJsonPath?: string
+  packageManager?: TDependencyInstallPackageManager
+  targetManifest?: TResolvedDependencyInstallTarget
 }): TDependencyInstallPlan => {
   const recommendations = dependencyPlan
     .filter((dependency) => dependency.status !== "satisfied")
@@ -233,7 +385,11 @@ export const createDependencyInstallPlan = ({
       specifier: createDependencySpecifier(dependency),
       status: dependency.status,
     }))
-  const packageManager = detectDependencyInstallPackageManager(consumerRoot)
+  const detectedPackageManager = detectDependencyInstallPackageManager({
+    consumerRoot,
+    packageManager,
+    targetManifest,
+  })
   const recommendationsByCommandKind = recommendations.reduce(
     (accumulator, recommendation) => {
       accumulator[getDependencyTarget(recommendation)].push(recommendation)
@@ -256,6 +412,7 @@ export const createDependencyInstallPlan = ({
           dependencies,
           dependencyTarget,
           packageManager: dependencyPackageManager,
+          targetManifest: targetManifest.manifest,
         }),
       ]
     }),
@@ -263,12 +420,13 @@ export const createDependencyInstallPlan = ({
 
   return {
     commands,
-    packageManager,
+    packageManager: detectedPackageManager,
     recommendedCommands:
-      packageManager.name === PACKAGE_MANAGER_UNKNOWN
+      detectedPackageManager.name === PACKAGE_MANAGER_UNKNOWN
         ? []
-        : commands.filter((command) => command.packageManager === packageManager.name),
+        : commands.filter((command) => command.packageManager === detectedPackageManager.name),
     recommendations,
     status: "not-written",
+    targetManifest: targetManifest.manifest,
   }
 }

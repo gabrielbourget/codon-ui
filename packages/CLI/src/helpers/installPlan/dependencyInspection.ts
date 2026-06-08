@@ -293,8 +293,15 @@ const rangeIntervalsOverlap = (leftIntervals: readonly TRangeInterval[], rightIn
     rightIntervals.some((rightInterval) => Boolean(intersectIntervals(leftInterval, rightInterval))),
   )
 
-const readTargetDependencyDeclarations = (consumerRoot?: string) => {
-  const packageJsonPath = consumerRoot ? path.resolve(consumerRoot, "package.json") : undefined
+const readTargetDependencyDeclarations = ({
+  consumerRoot,
+  dependencyPackageJsonPath,
+}: {
+  consumerRoot?: string
+  dependencyPackageJsonPath?: string
+}) => {
+  const packageJsonPath =
+    dependencyPackageJsonPath ?? (consumerRoot ? path.resolve(consumerRoot, "package.json") : undefined)
   const declarations = new Map<string, TDeclaredDependency>()
 
   if (!packageJsonPath || !existsSync(packageJsonPath)) return declarations
@@ -416,15 +423,20 @@ export const createInstallPlanDependencyInspection = ({
   consumerRoot,
   dependencies,
   dependencyOwners = new Map<string, string>(),
+  dependencyPackageJsonPath,
 }: {
   consumerRoot?: string
   dependencies: TInstallPlanDependencies
   dependencyOwners?: ReadonlyMap<string, string>
+  dependencyPackageJsonPath?: string
 }): {
   dependencyPlan: readonly TInstallPlanDependency[]
   findings: readonly TInstallPlanFinding[]
 } => {
-  const targetDeclarations = readTargetDependencyDeclarations(consumerRoot)
+  const targetDeclarations = readTargetDependencyDeclarations({
+    consumerRoot,
+    dependencyPackageJsonPath,
+  })
   const dependencyPlan = [
     ...createDependencyPlanEntries({
       dependencies: dependencies.peerDependencies,

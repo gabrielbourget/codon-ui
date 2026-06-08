@@ -35,6 +35,7 @@ pnpm verify:strict-add-blockers
 pnpm verify:compatible-support-reuse
 pnpm verify:add-dependency-boundary
 pnpm verify:dependency-install-plan
+pnpm verify:dependency-target-resolution
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
@@ -66,6 +67,7 @@ logs.
 | Lockfile mutation boundary | Whether the lockfile is not written, would be written, or was written with expected item/file metadata. |
 | Dependency boundary        | Proof that package-manager lockfiles are not changed and dependency decisions are classification-only.  |
 | Dependency install plan    | Read-only package-manager detection and proposed install commands when required packages are missing.   |
+| Dependency target          | Target package manifest, working directory, package-manager override, and no-write override provenance. |
 | Verification after install | Compile, typecheck, or smoke command when the fixture receives source.                                  |
 
 ## Command Expectations
@@ -110,6 +112,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                                                              |
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
+| Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                                                             |
 | Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                             |
 
@@ -142,6 +145,11 @@ The `pnpm verify:dependency-install-plan` gate proves the companion read-only pa
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command
 recommendations, and empty `recommendedCommands` when the package manager is unknown. The gate uses temporary fixture
 copies and executes no package-manager installs.
+
+The `pnpm verify:dependency-target-resolution` gate proves read-only target manifest selection. It checks
+`--package-json`, `--package-manager`, nested target manifests, upward lockfile detection, command `targetManifestPath`
+and `workingDirectory`, satisfied target manifests, and override precedence. It uses temporary fixture copies and executes
+no package-manager installs.
 
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that

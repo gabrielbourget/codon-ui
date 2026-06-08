@@ -43,6 +43,8 @@ import {
   computePackageManagerAddCommand,
   computePackageManagerDevDependencyFlag,
   createDependencyInstallPlan,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  resolveDependencyInstallTarget,
 } from "@/src/helpers/packageManagerHelpers"
 import {
   fetchComponentTree,
@@ -77,6 +79,8 @@ const addOptionsSchema = z
     advisory: z.boolean().default(false),
     dryRun: z.boolean().default(false),
     json: z.boolean().default(false),
+    packageJson: z.string().optional(),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
     registrySource: z.string().optional(),
   })
   .transform(({ all, components, yes, ...options }) => ({
@@ -191,6 +195,8 @@ export const add = new Command()
   .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
   .option("--json", "Print machine-readable output.", false)
+  .option("--package-json <path>", "Read dependency declarations from a specific package.json for planning.")
+  .option("--package-manager <packageManager>", "Override package-manager detection for dependency install planning.")
   .option("--registry-source <path>", "Path to a local registry source JSON file for planning.")
   .option(
     "-p, --path <path>",
@@ -239,9 +245,14 @@ export const add = new Command()
               config: consumerConfigSchema.parse({}),
               findings: [],
             }
+        const dependencyInstallTarget = resolveDependencyInstallTarget({
+          consumerRoot: cwd,
+          packageJsonPath: options.packageJson,
+        })
         const installPlan = createRegistryInstallPlan({
           config: configPlan.config,
           consumerRoot: cwd,
+          dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
           registrySource: advisoryRegistrySource,
           requestedItems,
           sourceRoot,
@@ -254,6 +265,8 @@ export const add = new Command()
         const dependencyInstallPlan = createDependencyInstallPlan({
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
+          packageManager: options.packageManager,
+          targetManifest: dependencyInstallTarget,
         })
 
         if (options.dryRun) {
@@ -339,9 +352,14 @@ export const add = new Command()
         })
         const configPlan = await readConsumerConfigForStrictAdd(cwd)
         const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+        const dependencyInstallTarget = resolveDependencyInstallTarget({
+          consumerRoot: cwd,
+          packageJsonPath: options.packageJson,
+        })
         const installPlan = createRegistryInstallPlan({
           config: configPlan.config,
           consumerRoot: cwd,
+          dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
           registrySource: advisoryRegistrySource,
           requestedItems: explicitRequestedItems,
           sourceRoot,
@@ -368,6 +386,8 @@ export const add = new Command()
         const dependencyInstallPlan = createDependencyInstallPlan({
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
+          packageManager: options.packageManager,
+          targetManifest: dependencyInstallTarget,
         })
 
         if (strictBlockerFindings.length > 0) {

@@ -111,6 +111,12 @@ incompatible dependencies, and selects a `recommendedCommands` entry only when t
 package-manager state still reports all command options but runs nothing. The plan is advisory data only: `package.json`,
 package-manager lockfiles, and installed packages are not modified.
 
+Enterprise consumers can keep this planning explicit with `--package-json <path>` and `--package-manager <name>`.
+`--package-json` selects the manifest used for dependency classification and command targeting; `--package-manager`
+overrides automatic package-manager detection. Reports include `targetManifest`, per-command `targetManifestPath`, and
+per-command `workingDirectory` so consumers can review where the proposed command belongs. These flags still do not write
+manifests, lockfiles, or installed packages.
+
 Current fixture evidence proves the clean `circle-loader` add lifecycle in a temporary `vite-registry-contained` copy:
 strict init creates only config and lockfile, advisory and dry-run report the same install graph without writes, strict
 add writes only the two CircleLoader source files plus lockfile metadata, and post-add `status --json`/`diff --json`
@@ -130,6 +136,8 @@ temporary initialized `vite-registry-contained-missing-dependencies` copy report
 without writing source files, lockfile records, dependency records, package manifests, or package-manager lockfiles.
 The companion dependency-install-plan fixture gate proves the proposed npm, pnpm, yarn, and bun commands stay read-only
 across unknown package-manager state, `packageManager` metadata detection, and lockfile fallback detection.
+The dependency-target-resolution fixture gate proves `--package-json`, `--package-manager`, nested target manifests,
+upward lockfile detection, target-manifest command metadata, and override precedence without package-manager writes.
 
 `remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
 the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in

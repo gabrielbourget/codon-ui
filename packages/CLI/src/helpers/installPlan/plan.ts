@@ -163,12 +163,14 @@ const createSupportTargetCompatibility = ({
 export const createRegistryInstallPlan = ({
   consumerRoot,
   config,
+  dependencyPackageJsonPath,
   registrySource,
   requestedItems,
   sourceRoot,
 }: {
   consumerRoot?: string
   config: TConsumerConfig
+  dependencyPackageJsonPath?: string
   registrySource: TLocalRegistrySource
   requestedItems: readonly string[]
   sourceRoot?: string
@@ -359,6 +361,7 @@ export const createRegistryInstallPlan = ({
   const dependencyInspection = createInstallPlanDependencyInspection({
     consumerRoot,
     dependencies,
+    dependencyPackageJsonPath,
     dependencyOwners: createDependencyOwnerMap(resolvedItems),
   })
 

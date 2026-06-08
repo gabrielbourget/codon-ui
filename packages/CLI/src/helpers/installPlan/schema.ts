@@ -4,6 +4,7 @@ import { consumerLockfileSchema, consumerTargetRoleSchema } from "@/src/helpers/
 import {
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
   PACKAGE_MANAGER_UNKNOWN,
 } from "@/src/helpers/packageManagerHelpers"
 
@@ -145,8 +146,20 @@ export const dependencyInstallPackageManagerDetectionSchema = z
     name: z.union([z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS), z.literal(PACKAGE_MANAGER_UNKNOWN)]),
     source: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES),
     lockfilePath: z.string().min(1).optional(),
+    packageManagerOverride: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
     packageManagerField: z.string().min(1).optional(),
     packageManifestPath: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallTargetManifestSchema = z
+  .object({
+    directory: z.string().min(1).optional(),
+    exists: z.boolean(),
+    packageManagerField: z.string().min(1).optional(),
+    packageName: z.string().min(1).optional(),
+    path: z.string().min(1).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES),
   })
   .strict()
 
@@ -167,6 +180,8 @@ export const dependencyInstallCommandSchema = z
     dependencies: z.array(dependencyInstallRecommendationSchema).default([]),
     dependencyTarget: z.enum(["dependencies", "devDependencies"]),
     packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    targetManifestPath: z.string().min(1).optional(),
+    workingDirectory: z.string().min(1).optional(),
   })
   .strict()
 
@@ -177,6 +192,7 @@ export const dependencyInstallPlanSchema = z
     recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
     recommendations: z.array(dependencyInstallRecommendationSchema).default([]),
     status: z.literal("not-written"),
+    targetManifest: dependencyInstallTargetManifestSchema,
   })
   .strict()
 

@@ -110,6 +110,11 @@ command options for missing dependencies, detects package-manager intent from `p
 markers, and leaves `recommendedCommands` empty when the package manager is unknown. This is reporting only; the CLI does
 not run package-manager installs or edit dependency manifests.
 
+`add` can also take read-only dependency target overrides. `--package-json <path>` selects the manifest used for
+dependency classification and command targeting; `--package-manager <name>` overrides package-manager detection. The JSON
+plan reports `targetManifest`, command `targetManifestPath`, command `workingDirectory`, and override provenance without
+writing manifests, lockfiles, or installed packages.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
