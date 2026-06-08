@@ -6,6 +6,9 @@ import {
   consumerTargetRoleSchema,
 } from "@/src/helpers/consumerContract"
 import {
+  DEPENDENCY_INSTALL_APPROVAL_SOURCES,
+  DEPENDENCY_INSTALL_EXECUTION_BLOCKERS,
+  DEPENDENCY_INSTALL_EXECUTION_MODES,
   DEPENDENCY_INSTALL_POLICY_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
@@ -201,10 +204,31 @@ export const dependencyInstallPolicyPlanSchema = z
   })
   .strict()
 
+export const dependencyInstallExecutionBlockerSchema = z
+  .object({
+    code: z.enum(DEPENDENCY_INSTALL_EXECUTION_BLOCKERS),
+    message: z.string().min(1),
+  })
+  .strict()
+
+export const dependencyInstallExecutionPlanSchema = z
+  .object({
+    approvalSource: z.enum(DEPENDENCY_INSTALL_APPROVAL_SOURCES),
+    blockers: z.array(dependencyInstallExecutionBlockerSchema).default([]),
+    installRequested: z.boolean(),
+    mode: z.enum(DEPENDENCY_INSTALL_EXECUTION_MODES),
+    nonInteractive: z.boolean(),
+    packageManagerExecution: z.literal("not-run"),
+    packageManagerWrites: z.literal(false),
+    requiresExplicitApproval: z.literal(true),
+  })
+  .strict()
+
 export const dependencyInstallPlanSchema = z
   .object({
     commands: z.array(dependencyInstallCommandSchema).default([]),
     dependencyPolicy: dependencyInstallPolicyPlanSchema,
+    executionPlan: dependencyInstallExecutionPlanSchema,
     packageManager: dependencyInstallPackageManagerDetectionSchema,
     recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
     recommendations: z.array(dependencyInstallRecommendationSchema).default([]),

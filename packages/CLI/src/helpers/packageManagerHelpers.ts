@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "fs"
 import path from "path"
 
 import {
+  CONSUMER_DEPENDENCY_POLICY__INSTALL,
   CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
   CONSUMER_DEPENDENCY_POLICIES,
   type TConsumerDependencyPolicy,
@@ -65,6 +66,35 @@ export const DEPENDENCY_INSTALL_POLICY_SOURCES = [
   DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
 ] as const
 
+export const DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_REQUESTED = "not-requested"
+export const DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_NEEDED = "not-needed"
+export const DEPENDENCY_INSTALL_EXECUTION_MODE__BLOCKED = "blocked"
+export const DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE = "eligible"
+
+export const DEPENDENCY_INSTALL_EXECUTION_MODES = [
+  DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_REQUESTED,
+  DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_NEEDED,
+  DEPENDENCY_INSTALL_EXECUTION_MODE__BLOCKED,
+  DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
+] as const
+
+export const DEPENDENCY_INSTALL_APPROVAL_SOURCE__NONE = "none"
+export const DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION = "cli-option"
+
+export const DEPENDENCY_INSTALL_APPROVAL_SOURCES = [
+  DEPENDENCY_INSTALL_APPROVAL_SOURCE__NONE,
+  DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION,
+] as const
+
+export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL = "dependency-install-policy-not-install"
+export const DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN =
+  "dependency-install-package-manager-unknown"
+
+export const DEPENDENCY_INSTALL_EXECUTION_BLOCKERS = [
+  DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL,
+  DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN,
+] as const
+
 type TPackageManagerDetection =
   | {
       name: TDependencyInstallPackageManager
@@ -120,6 +150,7 @@ type TDependencyInstallCommand = {
 type TDependencyInstallPlan = {
   commands: TDependencyInstallCommand[]
   dependencyPolicy: TDependencyInstallPolicyPlan
+  executionPlan: TDependencyInstallExecutionPlan
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
   recommendations: TDependencyInstallRecommendation[]
@@ -141,6 +172,24 @@ type TDependencyInstallPolicyPlan = {
   policy: TConsumerDependencyPolicy
   policyOverride?: TConsumerDependencyPolicy
   source: TDependencyInstallPolicySource
+}
+
+type TDependencyInstallExecutionBlocker = {
+  code:
+    | typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL
+    | typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN
+  message: string
+}
+
+type TDependencyInstallExecutionPlan = {
+  approvalSource: (typeof DEPENDENCY_INSTALL_APPROVAL_SOURCES)[number]
+  blockers: TDependencyInstallExecutionBlocker[]
+  installRequested: boolean
+  mode: (typeof DEPENDENCY_INSTALL_EXECUTION_MODES)[number]
+  nonInteractive: boolean
+  packageManagerExecution: "not-run"
+  packageManagerWrites: false
+  requiresExplicitApproval: true
 }
 
 const packageManagerLockfiles: ReadonlyArray<{
@@ -407,10 +456,86 @@ const createDependencyInstallCommand = ({
   }
 }
 
+const createDependencyInstallExecutionPlan = ({
+  dependencyPolicy,
+  commands,
+  installRequested,
+  nonInteractive,
+  packageManager,
+  recommendedCommands,
+}: {
+  dependencyPolicy: TDependencyInstallPolicyPlan
+  commands: TDependencyInstallCommand[]
+  installRequested: boolean
+  nonInteractive: boolean
+  packageManager: TPackageManagerDetection
+  recommendedCommands: TDependencyInstallCommand[]
+}): TDependencyInstallExecutionPlan => {
+  const approvalSource = installRequested
+    ? DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION
+    : DEPENDENCY_INSTALL_APPROVAL_SOURCE__NONE
+
+  if (!installRequested) {
+    return {
+      approvalSource,
+      blockers: [],
+      installRequested,
+      mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_REQUESTED,
+      nonInteractive,
+      packageManagerExecution: "not-run",
+      packageManagerWrites: false,
+      requiresExplicitApproval: true,
+    }
+  }
+
+  if (commands.length === 0) {
+    return {
+      approvalSource,
+      blockers: [],
+      installRequested,
+      mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_NEEDED,
+      nonInteractive,
+      packageManagerExecution: "not-run",
+      packageManagerWrites: false,
+      requiresExplicitApproval: true,
+    }
+  }
+
+  const blockers: TDependencyInstallExecutionBlocker[] = []
+
+  if (dependencyPolicy.policy !== CONSUMER_DEPENDENCY_POLICY__INSTALL) {
+    blockers.push({
+      code: DEPENDENCY_INSTALL_EXECUTION_BLOCKER__POLICY_NOT_INSTALL,
+      message: "Dependency installation was requested, but the effective dependency policy is not install.",
+    })
+  }
+
+  if (packageManager.name === PACKAGE_MANAGER_UNKNOWN || recommendedCommands.length === 0) {
+    blockers.push({
+      code: DEPENDENCY_INSTALL_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN,
+      message: "Dependency installation was requested, but no known package manager command can be recommended.",
+    })
+  }
+
+  return {
+    approvalSource,
+    blockers,
+    installRequested,
+    mode:
+      blockers.length === 0 ? DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE : DEPENDENCY_INSTALL_EXECUTION_MODE__BLOCKED,
+    nonInteractive,
+    packageManagerExecution: "not-run",
+    packageManagerWrites: false,
+    requiresExplicitApproval: true,
+  }
+}
+
 export const createDependencyInstallPlan = ({
   consumerRoot,
   dependencyPlan,
   dependencyPolicy = createDependencyInstallPolicyPlan(),
+  installDependencies = false,
+  nonInteractive = false,
   packageJsonPath,
   packageManager,
   targetManifest = resolveDependencyInstallTarget({
@@ -421,6 +546,8 @@ export const createDependencyInstallPlan = ({
   consumerRoot: string
   dependencyPlan: TRegistryInstallPlan["dependencyPlan"]
   dependencyPolicy?: TDependencyInstallPolicyPlan
+  installDependencies?: boolean
+  nonInteractive?: boolean
   packageJsonPath?: string
   packageManager?: TDependencyInstallPackageManager
   targetManifest?: TResolvedDependencyInstallTarget
@@ -466,15 +593,24 @@ export const createDependencyInstallPlan = ({
       ]
     }),
   )
+  const recommendedCommands =
+    detectedPackageManager.name === PACKAGE_MANAGER_UNKNOWN
+      ? []
+      : commands.filter((command) => command.packageManager === detectedPackageManager.name)
 
   return {
     commands,
     dependencyPolicy,
+    executionPlan: createDependencyInstallExecutionPlan({
+      dependencyPolicy,
+      commands,
+      installRequested: installDependencies,
+      nonInteractive,
+      packageManager: detectedPackageManager,
+      recommendedCommands,
+    }),
     packageManager: detectedPackageManager,
-    recommendedCommands:
-      detectedPackageManager.name === PACKAGE_MANAGER_UNKNOWN
-        ? []
-        : commands.filter((command) => command.packageManager === detectedPackageManager.name),
+    recommendedCommands,
     recommendations,
     status: "not-written",
     targetManifest: targetManifest.manifest,

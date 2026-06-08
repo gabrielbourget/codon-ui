@@ -83,6 +83,7 @@ const addOptionsSchema = z
     advisory: z.boolean().default(false),
     dryRun: z.boolean().default(false),
     dependencyPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    installDependencies: z.boolean().default(false),
     json: z.boolean().default(false),
     packageJson: z.string().optional(),
     packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
@@ -214,6 +215,11 @@ export const add = new Command()
     "--dependency-policy <policy>",
     "Override dependency install policy for planning. Supported values: report-only, manual, prompt, install.",
   )
+  .option(
+    "--install-dependencies",
+    "Explicitly request dependency installation eligibility planning without running package-manager commands.",
+    false,
+  )
   .option("--json", "Print machine-readable output.", false)
   .option("--package-json <path>", "Read dependency declarations from a specific package.json for planning.")
   .option("--package-manager <packageManager>", "Override package-manager detection for dependency install planning.")
@@ -292,6 +298,8 @@ export const add = new Command()
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
           dependencyPolicy,
+          installDependencies: options.installDependencies,
+          nonInteractive: options.json,
           packageManager: options.packageManager,
           targetManifest: dependencyInstallTarget,
         })
@@ -419,6 +427,8 @@ export const add = new Command()
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
           dependencyPolicy,
+          installDependencies: options.installDependencies,
+          nonInteractive: options.json,
           packageManager: options.packageManager,
           targetManifest: dependencyInstallTarget,
         })

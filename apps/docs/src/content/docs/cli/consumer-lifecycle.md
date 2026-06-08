@@ -112,12 +112,19 @@ Dependency install policy is now explicit in `dependencyInstallPlan.dependencyPo
 | `report-only` | Default. Report dependency posture and proposed commands without package-manager execution.             |
 | `manual`      | Report that the consumer intends to resolve dependencies outside the CLI; no package-manager execution. |
 | `prompt`      | Parsed and reported as future policy intent; no prompting or package-manager execution yet.             |
-| `install`     | Parsed and reported as future policy intent; no package-manager execution yet.                          |
+| `install`     | Allows explicit install intent to become eligible in reports; no package-manager execution yet.         |
 
 Policy source is also reported. `source: "default"` means the planner used the default `report-only` fallback,
 `source: "config"` means it read `amino-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
 the config/default value. Every current policy report includes `packageManagerExecution: "not-run"` and
 `packageManagerWrites: false`.
+
+Dependency execution eligibility is reported separately in `dependencyInstallPlan.executionPlan`. `--install-dependencies`
+records explicit command intent, but `--yes` is not treated as dependency-install approval. The current planner reports
+`mode: "eligible"` only when explicit install intent combines with effective policy `install` and a known package-manager
+recommendation. Otherwise it reports `not-requested` or `blocked` with blocker codes. Even eligible plans still report
+`packageManagerExecution: "not-run"` and `packageManagerWrites: false`. When install intent is explicit but all
+dependency decisions are already satisfied, it reports `mode: "not-needed"`.
 
 For `add` reports, the CLI also emits a read-only `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
 consumer `packageManager` field or known lockfile/workspace marker files, lists proposed install commands for missing or

@@ -115,6 +115,13 @@ planning values are `report-only`, `manual`, `prompt`, and `install`; `--depende
 for the current command. This is still reporting only: all current policy modes report `packageManagerExecution:
 "not-run"` and `packageManagerWrites: false`.
 
+`dependencyInstallPlan.executionPlan` reports whether dependency installation was explicitly requested for the current
+command. `--install-dependencies` records CLI approval intent, but the planner still does not execute package-manager
+commands. Install policy alone reports `not-requested`; prompt policy in JSON output reports `blocked`; install policy
+plus explicit intent and a known package manager reports `eligible` while keeping `packageManagerExecution: "not-run"` and
+`packageManagerWrites: false`. If all dependency decisions are already satisfied, explicit install intent reports
+`not-needed`.
+
 `add` can also take read-only dependency target overrides. `--package-json <path>` selects the manifest used for
 dependency classification and command targeting; `--package-manager <name>` overrides package-manager detection. The JSON
 plan reports `targetManifest`, command `targetManifestPath`, command `workingDirectory`, and override provenance without
