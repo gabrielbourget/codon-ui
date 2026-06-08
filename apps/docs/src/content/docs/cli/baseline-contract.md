@@ -92,6 +92,8 @@ unknown files, generate hosted registry artifacts, or implement update/eject beh
 Focused fixture evidence now proves the clean `circle-loader` add lifecycle from strict init through advisory, dry-run,
 strict add, post-add `status --json`, and post-add `diff --json` in one temporary consumer copy. The strict phase writes
 only the two CircleLoader source files and the lockfile metadata; all planning and inspection phases remain read-only.
+Fixture evidence also proves strict `add switch --json` exits with structured blocker JSON and no temp-copy mutation when
+an unsafe existing component target or incompatible support token target is present.
 
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
