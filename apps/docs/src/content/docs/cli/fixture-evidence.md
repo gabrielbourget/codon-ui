@@ -30,6 +30,7 @@ Use focused gates for narrow lifecycle slices:
 ```sh
 pnpm verify:status
 pnpm verify:diff
+pnpm verify:update-advisory
 ```
 
 ## Proof Packet
@@ -61,7 +62,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | Strict `add <item> --json` | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                              |
 | `status --json`            | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases. |
 | `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.            |
-| Future `update --advisory` | Must report available changes, blockers, ownership states, dependency changes, and expected effects.                          |
+| `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                              |
 | Future `update --dry-run`  | Must preview exact writes, reuses, skips, blocks, and lockfile effects without writing.                                       |
 | Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
 

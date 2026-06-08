@@ -189,6 +189,49 @@ or merge plan.
 Current fixture evidence proves clean installed diff, locally modified diff, missing local file diff, unknown ownership
 diff, consumer-owned support diff, ejected diff, missing dependency posture, and stale source-hash classification.
 
+## Update Advisory
+
+`update --advisory --json` is the first update command, and it is intentionally read-only:
+
+```sh
+aui update <item> --advisory --json --cwd <consumer-project>
+```
+
+It uses the focused `diff --json` report as input and translates each file into an update advisory action. It does not
+write source files, config, lockfile, package metadata, or package-manager lockfiles.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `itemName`        | Requested lockfile item.                                                                                     |
+| `itemUpdateState` | Aggregate state: `up-to-date`, `update-candidate`, `review-required`, or `unavailable`.                      |
+| `files`           | Per-file ownership/source state, diff comparison, advisory action, and preservation posture.                 |
+| `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                  |
+| `effects`         | Always reports no config, lockfile, source-file, or dependency writes for this mode.                         |
+| `summary`         | Counts by advisory action, candidates, blockers, preservation, review, source change, and dependency status. |
+| `findings`        | Missing item/config/lockfile/registry-source warnings from the status/diff model.                            |
+
+Per-file `action` values are:
+
+| Action                            | Meaning                                                             |
+| --------------------------------- | ------------------------------------------------------------------- |
+| `none`                            | File is up to date or has no advisory update action.                |
+| `update-candidate`                | Pristine registry-owned file has a current registry source change.  |
+| `preserve-local-change`           | Consumer local edit must be preserved.                              |
+| `review-local-and-source-change`  | Consumer local edit and registry source both changed.               |
+| `preserve-missing-file`           | Missing local file is preserved until dry-run/strict policy exists. |
+| `preserve-unknown`                | Unknown ownership is preserved and blocks automatic update.         |
+| `preserve-consumer-owned-support` | Consumer-owned support is preserved and blocks automatic update.    |
+| `preserve-ejected`                | Ejected file is preserved and blocks automatic update.              |
+| `inspect-source`                  | Registry source freshness is unavailable.                           |
+
+`update-candidate` is advisory only. Exact file and lockfile writes belong to the future `update --dry-run --json` slice.
+
+Current fixture evidence proves clean installed update advisory, locally modified update advisory, missing local file
+advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
+stale source-hash classification.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                             |
@@ -201,8 +244,8 @@ diff, consumer-owned support diff, ejected diff, missing dependency posture, and
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add `update --advisory`, `update --dry-run`, safe remove/delete, and eject behavior without
-weakening the preservation defaults above.
+The next lifecycle work should add `update --dry-run`, safe remove/delete, and eject behavior without weakening the
+preservation defaults above.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.

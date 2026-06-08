@@ -4,8 +4,8 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 ---
 
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
-planning, strict init, strict single-component installs, read-only status inspection, and focused read-only diff
-inspection against the React registry snapshot.
+planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
+and item-scoped update advisory against the React registry snapshot.
 
 ## Current Surface
 
@@ -16,6 +16,7 @@ inspection against the React registry snapshot.
 | `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent. |
 | `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                               |
 | `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                        |
+| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. Dry-run and strict update remain deferred.                                                                            |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
 output, update behavior, or ejection behavior.
@@ -88,26 +89,33 @@ review recommendations, optional source-to-local line diff segments, dependency 
 Fixture evidence currently proves clean installed, locally modified, unknown, consumer-owned-support, missing, ejected,
 dependency issue, and stale source-hash cases.
 
+Current `update <item> --advisory --json` is read-only and item-scoped. It builds on the diff model, emits per-file
+advisory actions, item update state, dependency posture, automatic-update blocker counts, and explicit no-write effects.
+It reports `update-candidate` only for pristine registry-owned files with source changes. It preserves locally modified,
+missing, unknown, consumer-owned-support, and ejected files by default. Fixture evidence currently proves clean installed,
+locally modified, unknown, consumer-owned-support, missing, ejected, dependency issue, and stale source-hash cases.
+
 ## Command Data Flow
 
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
 by `init`.
 
-| Stage             | Reads                                                | Writes                                   |
-| ----------------- | ---------------------------------------------------- | ---------------------------------------- |
-| `init --advisory` | Project shape and package metadata.                  | Nothing.                                 |
-| `init --defaults` | Project shape and existing Amino config/lockfile.    | Config and empty lockfile only.          |
-| `add --advisory`  | Local snapshot, packet metadata, target package.     | Nothing.                                 |
-| `add --dry-run`   | Local snapshot, packet metadata, config if present.  | Nothing.                                 |
-| Strict `add`      | Snapshot, packet metadata, config, lockfile, source. | Source/support/theme files and lockfile. |
-| `status --json`   | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `diff --json`     | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| Stage                      | Reads                                                | Writes                                   |
+| -------------------------- | ---------------------------------------------------- | ---------------------------------------- |
+| `init --advisory`          | Project shape and package metadata.                  | Nothing.                                 |
+| `init --defaults`          | Project shape and existing Amino config/lockfile.    | Config and empty lockfile only.          |
+| `add --advisory`           | Local snapshot, packet metadata, target package.     | Nothing.                                 |
+| `add --dry-run`            | Local snapshot, packet metadata, config if present.  | Nothing.                                 |
+| Strict `add`               | Snapshot, packet metadata, config, lockfile, source. | Source/support/theme files and lockfile. |
+| `status --json`            | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| `diff --json`              | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| `update --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 
 This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
 
@@ -120,6 +128,8 @@ This lane is designed so fixture evidence can capture each transition before str
 5. Add strict single-component local registry install paths for satisfied-dependency, no-conflict proofs.
 6. Add read-only `status --json` for greenfield, clean installed, locally modified, and classification fixture proofs.
 7. Add focused read-only `diff --json` for clean installed, locally modified, and classification fixture proofs.
+8. Add item-scoped read-only `update --advisory --json` for clean installed, locally modified, and classification fixture
+   proofs.
 
 ## Next Lifecycle Targets
 
@@ -134,10 +144,10 @@ Discussion targets before lifecycle behavior expands:
 - ownership states: registry-owned, locally modified, ejected, consumer-owned support, and unknown;
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
-- lifecycle proof mode: use `status --json` and `diff --json` as the read-only classification base, then prefer advisory
-  and dry-run reports until update, remove/delete, and eject metadata behavior is approved.
+- lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
+  classification base, then prefer dry-run reports until update, remove/delete, and eject metadata behavior is approved.
 
 ## Boundaries
 
-Do not expand update, remove/delete, eject, registry artifact hosting, generated token writers, or publication policy as
-incidental cleanup.
+Do not expand update dry-run/strict writes, remove/delete, eject, registry artifact hosting, generated token writers, or
+publication policy as incidental cleanup.
