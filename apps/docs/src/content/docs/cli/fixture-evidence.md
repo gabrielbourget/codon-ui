@@ -31,6 +31,7 @@ Use focused gates for narrow lifecycle slices:
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
+pnpm verify:update-dry-run
 ```
 
 ## Proof Packet
@@ -63,7 +64,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `status --json`            | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases. |
 | `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.            |
 | `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                              |
-| Future `update --dry-run`  | Must preview exact writes, reuses, skips, blocks, and lockfile effects without writing.                                       |
+| `update --dry-run --json`  | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                |
 | Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
 
 ## Fixture Matrix

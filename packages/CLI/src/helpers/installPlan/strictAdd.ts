@@ -127,6 +127,8 @@ const rewriteInstallPlanImportSpecifiers = ({
   return sourceFile.getFullText()
 }
 
+export const createStrictInstalledFileContent = rewriteInstallPlanImportSpecifiers
+
 export const readConsumerConfigForStrictAdd = async (
   cwd: string,
 ): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {

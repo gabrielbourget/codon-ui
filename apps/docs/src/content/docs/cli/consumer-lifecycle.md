@@ -232,6 +232,49 @@ Current fixture evidence proves clean installed update advisory, locally modifie
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
 stale source-hash classification.
 
+## Update Dry Run
+
+`update --dry-run --json` previews an item-scoped update without writing:
+
+```sh
+aui update <item> --dry-run --json --cwd <consumer-project>
+```
+
+It starts from the `update --advisory` classification, then recomputes the current local-registry install plan for the
+requested item. For update candidates, it reads the current source file, applies the same relative-import rewrite logic as
+strict add, and reports the planned `nextSourceHash` and `nextInstalledHash`. This lets fixtures distinguish source-file
+writes from lockfile-only hash refreshes.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                           |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `itemUpdateState` | Aggregate state: `up-to-date`, `would-update`, `blocked`, or `unavailable`.                                       |
+| `files`           | Per-file advisory action, dry-run action, planned hashes, blocker codes, and write/lockfile booleans.             |
+| `dependencies`    | Current registry dependency plan from the consumer `package.json`; no package-manager mutation is run.            |
+| `effects`         | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                       |
+| `wouldEffects`    | Planned write preview: source-file count, lockfile status, skipped files, blocked files, and dependency blockers. |
+| `blockers`        | Item, file, source, project, and dependency blockers that would prevent strict update.                            |
+| `summary`         | Counts for candidates, would-write files, lockfile file updates, skipped files, blockers, and dependency states.  |
+
+Per-file `dryRunAction` values are:
+
+| Dry-run action          | Meaning                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------------------- |
+| `none`                  | No update is needed for the file.                                                                     |
+| `would-write`           | A future strict update would write the source file and lockfile record.                               |
+| `would-update-lockfile` | File content already matches the current planned install hash; only the lockfile record would change. |
+| `would-skip`            | The file is preservation-sensitive and would be skipped.                                              |
+| `blocked`               | The file is a candidate, but item, project, source, or dependency blockers prevent strict update.     |
+
+Dry-run preserves the same defaults as advisory mode. If any file in the requested item is locally modified, missing,
+unknown, consumer-owned support, or ejected, the item state is `blocked`; update candidates remain visible with planned
+hashes when possible, but `wouldWriteFile` and `wouldWriteLockfile` stay false until blockers are resolved.
+
+Current fixture evidence proves clean installed update dry-run, eligible source update preview, locally modified
+preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
+dependency blocking.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                             |
@@ -244,8 +287,8 @@ stale source-hash classification.
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add `update --dry-run`, safe remove/delete, and eject behavior without weakening the
-preservation defaults above.
+The next lifecycle work should add safe remove/delete and eject behavior without weakening the preservation defaults
+above. Strict update remains deferred until dry-run evidence is broader and intentionally approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.

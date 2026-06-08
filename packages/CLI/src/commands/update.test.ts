@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createUpdateAdvisoryReport } from "../helpers/updateAdvisory"
+import { createUpdateDryRunReport } from "../helpers/updateDryRun"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -30,6 +31,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/support.ts",
     "source/ejected.ts",
     "source/source-only.ts",
+    "source/source-equals-local.ts",
+    "source/dependency-blocked.ts",
     "consumer/amino-ui.config.json",
     "consumer/amino-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
@@ -37,6 +40,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "consumer/src/components/Diff/local-modified.ts",
     "consumer/src/components/Diff/unknown.ts",
     "consumer/src/components/Diff/source-only.ts",
+    "consumer/src/components/Diff/source-equals-local.ts",
+    "consumer/src/components/Diff/dependency-blocked.ts",
     "consumer/src/components/_registry/tokens/support.ts",
     "consumer/src/components/_registry/utils/ejected.ts",
   ]
@@ -60,6 +65,10 @@ try {
   const ejectedSource = "export const ejected = true\n"
   const sourceOnlyInstalled = "export const sourceOnly = 'installed'\n"
   const sourceOnlyCurrent = "export const sourceOnly = 'registry'\n"
+  const sourceEqualsLocalPrevious = "export const sourceEqualsLocal = 'previous'\n"
+  const sourceEqualsLocalCurrent = "export const sourceEqualsLocal = 'registry'\n"
+  const dependencyBlockedInstalled = "export const dependencyBlocked = 'installed'\n"
+  const dependencyBlockedCurrent = "export const dependencyBlocked = 'registry'\n"
 
   writeText(path.join(temporaryRoot, "source/clean.ts"), cleanSource)
   writeText(path.join(temporaryRoot, "source/source-changed.ts"), sourceChangedCurrent)
@@ -69,11 +78,15 @@ try {
   writeText(path.join(temporaryRoot, "source/support.ts"), supportSource)
   writeText(path.join(temporaryRoot, "source/ejected.ts"), ejectedSource)
   writeText(path.join(temporaryRoot, "source/source-only.ts"), sourceOnlyCurrent)
+  writeText(path.join(temporaryRoot, "source/source-equals-local.ts"), sourceEqualsLocalCurrent)
+  writeText(path.join(temporaryRoot, "source/dependency-blocked.ts"), dependencyBlockedCurrent)
   writeText(path.join(consumerRoot, "src/components/Diff/clean.ts"), cleanSource)
   writeText(path.join(consumerRoot, "src/components/Diff/source-changed.ts"), sourceChangedInstalled)
   writeText(path.join(consumerRoot, "src/components/Diff/local-modified.ts"), localModifiedCurrent)
   writeText(path.join(consumerRoot, "src/components/Diff/unknown.ts"), unknownSource)
   writeText(path.join(consumerRoot, "src/components/Diff/source-only.ts"), sourceOnlyInstalled)
+  writeText(path.join(consumerRoot, "src/components/Diff/source-equals-local.ts"), sourceEqualsLocalCurrent)
+  writeText(path.join(consumerRoot, "src/components/Diff/dependency-blocked.ts"), dependencyBlockedInstalled)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
   writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
@@ -141,6 +154,35 @@ try {
         sourcePackage: "@amino-ui/react",
         type: "component",
       },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/source-equals-local.ts",
+            targetPath: "Diff/source-equals-local.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/dependency-blocked.ts",
+            targetPath: "Diff/dependency-blocked.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "dependency-blocked",
+        peerDependencies: {
+          react: "^18.2.0 || ^19.0.0",
+        },
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
     ],
     schemaVersion: 1,
     sourceIdentity: "@amino-ui/test-registry",
@@ -169,6 +211,32 @@ try {
           },
         ],
         name: "source-only",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "source-equals-local": {
+        files: [
+          {
+            installedHash: createContentHash(sourceEqualsLocalCurrent),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/source-equals-local.ts",
+            sourceHash: createContentHash(sourceEqualsLocalPrevious),
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "dependency-blocked": {
+        files: [
+          {
+            installedHash: createContentHash(dependencyBlockedInstalled),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/dependency-blocked.ts",
+            sourceHash: createContentHash(dependencyBlockedInstalled),
+            targetRole: "components",
+          },
+        ],
+        name: "dependency-blocked",
         sourceIdentity: "@amino-ui/test-registry",
       },
       switch: {
@@ -293,8 +361,93 @@ try {
     missingReport.findings.some((finding) => finding.code === "status-lockfile-item-missing"),
     "expected missing item finding",
   )
+
+  const mixedDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "switch",
+    registrySourcePath,
+  })
+
+  assert.equal(mixedDryRunReport.schemaVersion, 1)
+  assert.equal(mixedDryRunReport.dryRun, true)
+  assert.deepEqual(mixedDryRunReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(mixedDryRunReport.itemUpdateState, "blocked")
+  assert.equal(mixedDryRunReport.summary.candidateFileCount, 1)
+  assert.equal(mixedDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(mixedDryRunReport.summary.wouldUpdateLockfileFileCount, 0)
+  assert.equal(mixedDryRunReport.summary.skippedFileCount, 5)
+  assert.equal(mixedDryRunReport.summary.blockedFileCount, 1)
+  assert.equal(mixedDryRunReport.summary.preservationBlockerCount, 5)
+  assert.equal(mixedDryRunReport.wouldEffects.lockfile.status, "blocked")
+
+  const mixedDryRunFiles = new Map(mixedDryRunReport.files.map((file) => [file.path, file]))
+  const mixedDryRunCandidate = mixedDryRunFiles.get("src/components/Diff/source-changed.ts")
+
+  assert.equal(mixedDryRunCandidate?.advisoryAction, "update-candidate")
+  assert.equal(mixedDryRunCandidate?.dryRunAction, "blocked")
+  assert.equal(mixedDryRunCandidate?.wouldWriteFile, false)
+  assert.equal(mixedDryRunCandidate?.nextInstalledHash, createContentHash(sourceChangedCurrent))
+
+  const sourceOnlyDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(sourceOnlyDryRunReport.itemUpdateState, "would-update")
+  assert.equal(sourceOnlyDryRunReport.summary.candidateFileCount, 1)
+  assert.equal(sourceOnlyDryRunReport.summary.blockerCount, 0)
+  assert.equal(sourceOnlyDryRunReport.summary.wouldWriteFileCount, 1)
+  assert.equal(sourceOnlyDryRunReport.summary.wouldUpdateLockfileFileCount, 1)
+  assert.equal(sourceOnlyDryRunReport.wouldEffects.lockfile.status, "would-write")
+  assert.equal(sourceOnlyDryRunReport.files[0].dryRunAction, "would-write")
+  assert.equal(sourceOnlyDryRunReport.files[0].nextInstalledHash, createContentHash(sourceOnlyCurrent))
+  assert.equal(sourceOnlyDryRunReport.files[0].nextSourceHash, createContentHash(sourceOnlyCurrent))
+
+  const sourceEqualsLocalDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "source-equals-local",
+    registrySourcePath,
+  })
+
+  assert.equal(sourceEqualsLocalDryRunReport.itemUpdateState, "would-update")
+  assert.equal(sourceEqualsLocalDryRunReport.summary.candidateFileCount, 1)
+  assert.equal(sourceEqualsLocalDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(sourceEqualsLocalDryRunReport.summary.wouldUpdateLockfileFileCount, 1)
+  assert.equal(sourceEqualsLocalDryRunReport.files[0].dryRunAction, "would-update-lockfile")
+  assert.equal(sourceEqualsLocalDryRunReport.files[0].nextInstalledHash, createContentHash(sourceEqualsLocalCurrent))
+
+  const dependencyBlockedDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "dependency-blocked",
+    registrySourcePath,
+  })
+
+  assert.equal(dependencyBlockedDryRunReport.itemUpdateState, "blocked")
+  assert.equal(dependencyBlockedDryRunReport.summary.dependencyBlockerCount, 1)
+  assert.equal(dependencyBlockedDryRunReport.summary.dependencyStates.missing, 1)
+  assert.equal(dependencyBlockedDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(dependencyBlockedDryRunReport.summary.wouldUpdateLockfileFileCount, 0)
+  assert.equal(dependencyBlockedDryRunReport.files[0].dryRunAction, "blocked")
+  assert.equal(dependencyBlockedDryRunReport.wouldEffects.lockfile.status, "blocked")
+
+  const missingDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "missing-item",
+    registrySourcePath,
+  })
+
+  assert.equal(missingDryRunReport.itemUpdateState, "unavailable")
+  assert.equal(missingDryRunReport.files.length, 0)
+  assert.equal(missingDryRunReport.effects.writesFiles, false)
+  assert.equal(missingDryRunReport.effects.writesLockfile, false)
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] update advisory report verified")
+  console.log("[aminoui-cli] update advisory and dry-run reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }
