@@ -15,6 +15,10 @@ import {
   type TConsumerConfig,
   type TConsumerLockfile,
 } from "@/src/helpers/consumerContract"
+import {
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+} from "@/src/helpers/packageManagerHelpers"
 
 import {
   INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
@@ -131,13 +135,18 @@ export const createStrictInstalledFileContent = rewriteInstallPlanImportSpecifie
 
 export const readConsumerConfigForStrictAdd = async (
   cwd: string,
-): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {
+): Promise<{
+  config: TConsumerConfig
+  configSource: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+  findings: TInstallPlanFinding[]
+}> => {
   const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
@@ -152,6 +161,7 @@ export const readConsumerConfigForStrictAdd = async (
   try {
     return {
       config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
       findings: [],
     }
   } catch (error) {
@@ -159,6 +169,7 @@ export const readConsumerConfigForStrictAdd = async (
 
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,

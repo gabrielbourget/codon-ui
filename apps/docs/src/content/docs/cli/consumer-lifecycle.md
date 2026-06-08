@@ -105,6 +105,20 @@ ranges against manifest requirements.
 Strict add does not install, update, or remove packages. It blocks when required dependency decisions are not satisfied.
 When strict add succeeds, the lockfile records satisfied dependency decisions with action `none`.
 
+Dependency install policy is now explicit in `dependencyInstallPlan.dependencyPolicy`.
+
+| Policy        | Current behavior                                                                                        |
+| ------------- | ------------------------------------------------------------------------------------------------------- |
+| `report-only` | Default. Report dependency posture and proposed commands without package-manager execution.             |
+| `manual`      | Report that the consumer intends to resolve dependencies outside the CLI; no package-manager execution. |
+| `prompt`      | Parsed and reported as future policy intent; no prompting or package-manager execution yet.             |
+| `install`     | Parsed and reported as future policy intent; no package-manager execution yet.                          |
+
+Policy source is also reported. `source: "default"` means the planner used the default `report-only` fallback,
+`source: "config"` means it read `amino-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
+the config/default value. Every current policy report includes `packageManagerExecution: "not-run"` and
+`packageManagerWrites: false`.
+
 For `add` reports, the CLI also emits a read-only `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
 consumer `packageManager` field or known lockfile/workspace marker files, lists proposed install commands for missing or
 incompatible dependencies, and selects a `recommendedCommands` entry only when the package manager is known. Unknown
@@ -134,6 +148,8 @@ The missing-dependency fixture proves strict add stops before writes when requir
 temporary initialized `vite-registry-contained-missing-dependencies` copy reports React and React DOM as satisfied, reports
 `react-aria-components` and `classnames` as missing in advisory and dry-run output, and strict `add switch --json` blocks
 without writing source files, lockfile records, dependency records, package manifests, or package-manager lockfiles.
+The dependency-policy fixture gate proves `report-only`, `manual`, `prompt`, and `install` policy reporting from default,
+config, and CLI override sources while preserving package-manager non-execution.
 The companion dependency-install-plan fixture gate proves the proposed npm, pnpm, yarn, and bun commands stay read-only
 across unknown package-manager state, `packageManager` metadata detection, and lockfile fallback detection.
 The dependency-target-resolution fixture gate proves `--package-json`, `--package-manager`, nested target manifests,

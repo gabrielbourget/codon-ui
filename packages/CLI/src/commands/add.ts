@@ -14,6 +14,7 @@ import {
   addAdvisorySchema,
   addStrictSchema,
   AMINO_UI_CONFIG_FILE_NAME,
+  CONSUMER_DEPENDENCY_POLICIES,
   createAddAdvisoryEffects,
   createAddDryRunEffects,
   createAddStrictEffects,
@@ -43,6 +44,9 @@ import {
   computePackageManagerAddCommand,
   computePackageManagerDevDependencyFlag,
   createDependencyInstallPlan,
+  createDependencyInstallPolicyPlan,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
   resolveDependencyInstallTarget,
 } from "@/src/helpers/packageManagerHelpers"
@@ -78,6 +82,7 @@ const addOptionsSchema = z
     path: z.string().optional(),
     advisory: z.boolean().default(false),
     dryRun: z.boolean().default(false),
+    dependencyPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
     json: z.boolean().default(false),
     packageJson: z.string().optional(),
     packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
@@ -101,15 +106,24 @@ const isStrictLocalRegistryComponentAddRequest = ({
   components?: readonly string[]
 }) => !allComponents && components?.length === 1 && isLocalReactRegistryComponentItemRequest(components)
 
-const readConsumerConfigForDryRun = async (
-  cwd: string,
-): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {
+type TConsumerConfigPlanSource =
+  | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG
+  | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+
+type TConsumerConfigPlan = {
+  config: TConsumerConfig
+  configSource: TConsumerConfigPlanSource
+  findings: TInstallPlanFinding[]
+}
+
+const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfigPlan> => {
   const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
@@ -124,6 +138,7 @@ const readConsumerConfigForDryRun = async (
   try {
     return {
       config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
       findings: [],
     }
   } catch (error) {
@@ -131,6 +146,7 @@ const readConsumerConfigForDryRun = async (
 
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
@@ -194,6 +210,10 @@ export const add = new Command()
   .option("-a, --all", "Add all available components to your project.", false)
   .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
+  .option(
+    "--dependency-policy <policy>",
+    "Override dependency install policy for planning. Supported values: report-only, manual, prompt, install.",
+  )
   .option("--json", "Print machine-readable output.", false)
   .option("--package-json <path>", "Read dependency declarations from a specific package.json for planning.")
   .option("--package-manager <packageManager>", "Override package-manager detection for dependency install planning.")
@@ -239,12 +259,18 @@ export const add = new Command()
           registrySource,
           requestedItems,
         })
-        const configPlan = options.dryRun
+        const configPlan: TConsumerConfigPlan = options.dryRun
           ? await readConsumerConfigForDryRun(cwd)
           : {
               config: consumerConfigSchema.parse({}),
+              configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
               findings: [],
             }
+        const dependencyPolicy = createDependencyInstallPolicyPlan({
+          configPolicy: configPlan.config.dependencies.policy,
+          configSource: configPlan.configSource,
+          policyOverride: options.dependencyPolicy,
+        })
         const dependencyInstallTarget = resolveDependencyInstallTarget({
           consumerRoot: cwd,
           packageJsonPath: options.packageJson,
@@ -265,6 +291,7 @@ export const add = new Command()
         const dependencyInstallPlan = createDependencyInstallPlan({
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
+          dependencyPolicy,
           packageManager: options.packageManager,
           targetManifest: dependencyInstallTarget,
         })
@@ -352,6 +379,11 @@ export const add = new Command()
         })
         const configPlan = await readConsumerConfigForStrictAdd(cwd)
         const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+        const dependencyPolicy = createDependencyInstallPolicyPlan({
+          configPolicy: configPlan.config.dependencies.policy,
+          configSource: configPlan.configSource,
+          policyOverride: options.dependencyPolicy,
+        })
         const dependencyInstallTarget = resolveDependencyInstallTarget({
           consumerRoot: cwd,
           packageJsonPath: options.packageJson,
@@ -386,6 +418,7 @@ export const add = new Command()
         const dependencyInstallPlan = createDependencyInstallPlan({
           consumerRoot: cwd,
           dependencyPlan: installPlanWithFindings.dependencyPlan,
+          dependencyPolicy,
           packageManager: options.packageManager,
           targetManifest: dependencyInstallTarget,
         })

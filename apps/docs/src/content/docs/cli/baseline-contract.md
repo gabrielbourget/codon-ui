@@ -110,6 +110,11 @@ command options for missing dependencies, detects package-manager intent from `p
 markers, and leaves `recommendedCommands` empty when the package manager is unknown. This is reporting only; the CLI does
 not run package-manager installs or edit dependency manifests.
 
+`dependencyInstallPlan.dependencyPolicy` now reports the effective dependency policy and where it came from. The supported
+planning values are `report-only`, `manual`, `prompt`, and `install`; `--dependency-policy <policy>` can override config
+for the current command. This is still reporting only: all current policy modes report `packageManagerExecution:
+"not-run"` and `packageManagerWrites: false`.
+
 `add` can also take read-only dependency target overrides. `--package-json <path>` selects the manifest used for
 dependency classification and command targeting; `--package-manager <name>` overrides package-manager detection. The JSON
 plan reports `targetManifest`, command `targetManifestPath`, command `workingDirectory`, and override provenance without

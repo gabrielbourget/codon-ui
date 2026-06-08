@@ -1,6 +1,11 @@
 import { existsSync, readFileSync } from "fs"
 import path from "path"
 
+import {
+  CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
+  CONSUMER_DEPENDENCY_POLICIES,
+  type TConsumerDependencyPolicy,
+} from "@/src/helpers/consumerContract"
 import type { TRegistryInstallPlan } from "@/src/helpers/installPlan/schema"
 
 export const PACKAGE_MANAGER_NPM = "npm"
@@ -48,6 +53,16 @@ export const DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES = [
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__PACKAGE_JSON_OPTION,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__NEAREST_PACKAGE_JSON,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCE__MISSING,
+] as const
+
+export const DEPENDENCY_INSTALL_POLICY_SOURCE__CLI_OPTION = "cli-option"
+export const DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG = "config"
+export const DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT = "default"
+
+export const DEPENDENCY_INSTALL_POLICY_SOURCES = [
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CLI_OPTION,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
 ] as const
 
 type TPackageManagerDetection =
@@ -104,6 +119,7 @@ type TDependencyInstallCommand = {
 
 type TDependencyInstallPlan = {
   commands: TDependencyInstallCommand[]
+  dependencyPolicy: TDependencyInstallPolicyPlan
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
   recommendations: TDependencyInstallRecommendation[]
@@ -114,6 +130,17 @@ type TDependencyInstallPlan = {
 type TPackageJsonWithPackageManager = {
   name?: string
   packageManager?: string
+}
+
+export type TDependencyInstallPolicySource = (typeof DEPENDENCY_INSTALL_POLICY_SOURCES)[number]
+
+type TDependencyInstallPolicyPlan = {
+  configPolicy?: TConsumerDependencyPolicy
+  packageManagerExecution: "not-run"
+  packageManagerWrites: false
+  policy: TConsumerDependencyPolicy
+  policyOverride?: TConsumerDependencyPolicy
+  source: TDependencyInstallPolicySource
 }
 
 const packageManagerLockfiles: ReadonlyArray<{
@@ -331,6 +358,26 @@ const createDependencySpecifier = ({ name, requiredRange }: { name: string; requ
 const getDependencyTarget = ({ kind }: Pick<TDependencyInstallRecommendation, "kind">) =>
   kind === "dev" ? "devDependencies" : "dependencies"
 
+export const isKnownDependencyInstallPolicy = (policy: string): policy is TConsumerDependencyPolicy =>
+  CONSUMER_DEPENDENCY_POLICIES.some((knownPolicy) => knownPolicy === policy)
+
+export const createDependencyInstallPolicyPlan = ({
+  configPolicy = CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
+  configSource = DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+  policyOverride,
+}: {
+  configPolicy?: TConsumerDependencyPolicy
+  configSource?: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+  policyOverride?: TConsumerDependencyPolicy
+} = {}): TDependencyInstallPolicyPlan => ({
+  configPolicy,
+  packageManagerExecution: "not-run",
+  packageManagerWrites: false,
+  policy: policyOverride ?? configPolicy,
+  policyOverride,
+  source: policyOverride ? DEPENDENCY_INSTALL_POLICY_SOURCE__CLI_OPTION : configSource,
+})
+
 const createDependencyInstallCommand = ({
   dependencies,
   dependencyTarget,
@@ -363,6 +410,7 @@ const createDependencyInstallCommand = ({
 export const createDependencyInstallPlan = ({
   consumerRoot,
   dependencyPlan,
+  dependencyPolicy = createDependencyInstallPolicyPlan(),
   packageJsonPath,
   packageManager,
   targetManifest = resolveDependencyInstallTarget({
@@ -372,6 +420,7 @@ export const createDependencyInstallPlan = ({
 }: {
   consumerRoot: string
   dependencyPlan: TRegistryInstallPlan["dependencyPlan"]
+  dependencyPolicy?: TDependencyInstallPolicyPlan
   packageJsonPath?: string
   packageManager?: TDependencyInstallPackageManager
   targetManifest?: TResolvedDependencyInstallTarget
@@ -420,6 +469,7 @@ export const createDependencyInstallPlan = ({
 
   return {
     commands,
+    dependencyPolicy,
     packageManager: detectedPackageManager,
     recommendedCommands:
       detectedPackageManager.name === PACKAGE_MANAGER_UNKNOWN

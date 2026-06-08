@@ -1,7 +1,12 @@
 import { z } from "zod"
 
-import { consumerLockfileSchema, consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
 import {
+  CONSUMER_DEPENDENCY_POLICIES,
+  consumerLockfileSchema,
+  consumerTargetRoleSchema,
+} from "@/src/helpers/consumerContract"
+import {
+  DEPENDENCY_INSTALL_POLICY_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
@@ -185,9 +190,21 @@ export const dependencyInstallCommandSchema = z
   })
   .strict()
 
+export const dependencyInstallPolicyPlanSchema = z
+  .object({
+    configPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    packageManagerExecution: z.literal("not-run"),
+    packageManagerWrites: z.literal(false),
+    policy: z.enum(CONSUMER_DEPENDENCY_POLICIES),
+    policyOverride: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_POLICY_SOURCES),
+  })
+  .strict()
+
 export const dependencyInstallPlanSchema = z
   .object({
     commands: z.array(dependencyInstallCommandSchema).default([]),
+    dependencyPolicy: dependencyInstallPolicyPlanSchema,
     packageManager: dependencyInstallPackageManagerDetectionSchema,
     recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
     recommendations: z.array(dependencyInstallRecommendationSchema).default([]),

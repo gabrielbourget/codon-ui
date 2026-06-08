@@ -35,6 +35,7 @@ pnpm verify:strict-add-blockers
 pnpm verify:compatible-support-reuse
 pnpm verify:add-dependency-boundary
 pnpm verify:dependency-install-plan
+pnpm verify:dependency-policy
 pnpm verify:dependency-target-resolution
 pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
@@ -67,6 +68,7 @@ logs.
 | File mutation boundary     | Which files must remain unchanged, which files may be written, and which existing targets must block.   |
 | Lockfile mutation boundary | Whether the lockfile is not written, would be written, or was written with expected item/file metadata. |
 | Dependency boundary        | Proof that package-manager lockfiles are not changed and dependency decisions are classification-only.  |
+| Dependency policy          | Effective dependency policy, source, override, and explicit no-execution posture.                       |
 | Dependency install plan    | Read-only package-manager detection and proposed install commands when required packages are missing.   |
 | Dependency target          | Target package manifest, working directory, package-manager override, and no-write override provenance. |
 | Dependency resolution      | Consumer-owned package manifest resolution outside the CLI before a later strict add succeeds.          |
@@ -113,6 +115,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                                                            |
 | Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                                                              |
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
+| Dependency policy        | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                               |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
@@ -143,6 +146,10 @@ The `pnpm verify:add-dependency-boundary` gate proves dependency handling stays 
 a temporary `vite-registry-contained-missing-dependencies` copy, reports missing `react-aria-components` and `classnames`
 dependencies in advisory and dry-run output without mutation, and proves strict `add switch --json` blocks before source,
 lockfile, package manifest, package-manager lockfile, or dependency writes.
+
+The `pnpm verify:dependency-policy` gate proves the policy reporting scaffold. It checks default `report-only` policy,
+config policy values, `--dependency-policy` overrides, `report-only`, `manual`, `prompt`, and `install` mode parsing, and
+strict missing-dependency blocking while every policy mode keeps package-manager execution disabled.
 
 The `pnpm verify:dependency-install-plan` gate proves the companion read-only package-manager plan. It checks unknown
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command
