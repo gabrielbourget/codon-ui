@@ -115,6 +115,12 @@ dependency classification and command targeting; `--package-manager <name>` over
 plan reports `targetManifest`, command `targetManifestPath`, command `workingDirectory`, and override provenance without
 writing manifests, lockfiles, or installed packages.
 
+Fixture evidence now proves the report-only lifecycle can become a successful strict add after consumer-owned dependency
+resolution. A temporary missing-dependency fixture first reports missing `react-aria-components` and `classnames`, then
+updates only the selected temp `package.json` outside the CLI, reruns advisory/dry-run with no install recommendations,
+and strictly adds `switch` without package-manager writes. The same proof covers the default nearest package manifest and
+`--package-json apps/web/package.json`.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence

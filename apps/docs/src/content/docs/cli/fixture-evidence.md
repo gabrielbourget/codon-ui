@@ -36,6 +36,7 @@ pnpm verify:compatible-support-reuse
 pnpm verify:add-dependency-boundary
 pnpm verify:dependency-install-plan
 pnpm verify:dependency-target-resolution
+pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
@@ -68,6 +69,7 @@ logs.
 | Dependency boundary        | Proof that package-manager lockfiles are not changed and dependency decisions are classification-only.  |
 | Dependency install plan    | Read-only package-manager detection and proposed install commands when required packages are missing.   |
 | Dependency target          | Target package manifest, working directory, package-manager override, and no-write override provenance. |
+| Dependency resolution      | Consumer-owned package manifest resolution outside the CLI before a later strict add succeeds.          |
 | Verification after install | Compile, typecheck, or smoke command when the fixture receives source.                                  |
 
 ## Command Expectations
@@ -113,6 +115,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
+| Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
 | Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                                                             |
 | Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                             |
 
@@ -150,6 +153,12 @@ The `pnpm verify:dependency-target-resolution` gate proves read-only target mani
 `--package-json`, `--package-manager`, nested target manifests, upward lockfile detection, command `targetManifestPath`
 and `workingDirectory`, satisfied target manifests, and override precedence. It uses temporary fixture copies and executes
 no package-manager installs.
+
+The `pnpm verify:dependency-out-of-band-resolution` gate proves the current consumer-owned dependency install path. It
+starts from the missing-dependency fixture, updates only the temporary target `package.json` to simulate a consumer
+installing `react-aria-components` and `classnames` outside the CLI, then proves advisory and dry-run reports are
+satisfied and strict `add switch --json` succeeds without package-manager writes. The gate covers both the nearest
+package manifest and `--package-json apps/web/package.json`.
 
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that

@@ -138,6 +138,11 @@ The companion dependency-install-plan fixture gate proves the proposed npm, pnpm
 across unknown package-manager state, `packageManager` metadata detection, and lockfile fallback detection.
 The dependency-target-resolution fixture gate proves `--package-json`, `--package-manager`, nested target manifests,
 upward lockfile detection, target-manifest command metadata, and override precedence without package-manager writes.
+The out-of-band dependency-resolution fixture gate proves the current consumer-owned install path: `add switch` first
+reports missing `react-aria-components` and `classnames`, the consumer resolves those dependencies outside the CLI in
+the selected package manifest, advisory and dry-run reruns report no install recommendations, and strict
+`add switch --json` succeeds without rewriting `package.json`, package-manager lockfiles, or installed packages. The same
+proof covers the nearest package manifest and `--package-json apps/web/package.json`.
 
 `remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
 the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in
