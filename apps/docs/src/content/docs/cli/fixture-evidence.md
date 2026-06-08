@@ -112,7 +112,9 @@ The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`d
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that
 orphaned registry dependency items appear in a separate `orphanCleanup` block, that registry-owned support files can be
 planned and removed there, that package dependency cleanup candidates appear in a no-write `dependencyCleanup` block, and
-that app-owned adapters remain outside both the lockfile and orphan cleanup report.
+that app-owned adapters remain outside both the lockfile and orphan cleanup report. The same gate mutates a temporary
+orphan file to prove modified orphan items remain installed, keep their package dependencies `still-required`, suppress
+dry-run dependency removals, and block strict cleanup atomically.
 
 ## Non-Mutation Rule
 

@@ -645,6 +645,115 @@ try {
     ["orphan-component", "orphan-support"],
   )
 
+  writeText(path.join(consumerRoot, "src/components/Graph/orphan-primary.ts"), "export const orphanPrimary = 'local'\n")
+
+  const primaryBlockedOrphanAdvisoryReport = await createRemoveAdvisoryReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(primaryBlockedOrphanAdvisoryReport.itemRemoveState, "review-required")
+  assert.equal(primaryBlockedOrphanAdvisoryReport.orphanCleanup.enabled, true)
+  assert.equal(primaryBlockedOrphanAdvisoryReport.orphanCleanup.itemCount, 2)
+  assert.equal(primaryBlockedOrphanAdvisoryReport.orphanCleanup.candidateItemCount, 0)
+  assert.equal(primaryBlockedOrphanAdvisoryReport.dependencyCleanup.enabled, false)
+
+  const primaryBlockedOrphanDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(primaryBlockedOrphanDryRunReport.itemRemoveState, "blocked")
+  assert.equal(primaryBlockedOrphanDryRunReport.orphanCleanup.enabled, true)
+  assert.equal(primaryBlockedOrphanDryRunReport.orphanCleanup.blockedItemCount, 2)
+  assert.equal(primaryBlockedOrphanDryRunReport.orphanCleanup.wouldRemoveItemCount, 0)
+  assert.equal(primaryBlockedOrphanDryRunReport.wouldEffects.orphanCleanup.status, "blocked")
+  assert.equal(primaryBlockedOrphanDryRunReport.wouldEffects.dependencies.plannedRemovalCount, 0)
+
+  const primaryBlockedSnapshot = readFixtureSnapshot(temporaryRoot)
+  const primaryBlockedStrictReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(primaryBlockedStrictReport.applied, false)
+  assert.equal(primaryBlockedStrictReport.itemRemoveState, "blocked")
+  assert.equal(primaryBlockedStrictReport.effects.writesFiles, false)
+  assert.equal(primaryBlockedStrictReport.effects.writesLockfile, false)
+  assert.equal(primaryBlockedStrictReport.effects.orphanCleanup.status, "blocked")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), primaryBlockedSnapshot)
+  writeText(path.join(consumerRoot, "src/components/Graph/orphan-primary.ts"), orphanPrimarySource)
+
+  writeText(
+    path.join(consumerRoot, "src/components/Graph/orphan-component.ts"),
+    "export const orphanComponent = 'local'\n",
+  )
+
+  const orphanBlockedAdvisoryReport = await createRemoveAdvisoryReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+  const orphanBlockedAdvisoryDependencies = new Map(
+    orphanBlockedAdvisoryReport.dependencyCleanup.dependencies.map((dependency) => [dependency.name, dependency]),
+  )
+
+  assert.equal(orphanBlockedAdvisoryReport.itemRemoveState, "remove-candidate")
+  assert.equal(orphanBlockedAdvisoryReport.orphanCleanup.enabled, true)
+  assert.equal(orphanBlockedAdvisoryReport.orphanCleanup.candidateItemCount, 1)
+  assert.equal(orphanBlockedAdvisoryReport.orphanCleanup.automaticBlockerCount, 1)
+  assert.equal(
+    orphanBlockedAdvisoryReport.orphanCleanup.items.find((item) => item.name === "orphan-component")?.itemRemoveState,
+    "review-required",
+  )
+  assert.equal(
+    orphanBlockedAdvisoryReport.orphanCleanup.items.find((item) => item.name === "orphan-support")?.itemRemoveState,
+    "remove-candidate",
+  )
+  assert.equal(orphanBlockedAdvisoryReport.dependencyCleanup.enabled, true)
+  assert.equal(orphanBlockedAdvisoryReport.dependencyCleanup.candidateCount, 2)
+  assert.equal(orphanBlockedAdvisoryReport.dependencyCleanup.stillRequiredCount, 0)
+  assert.equal(orphanBlockedAdvisoryDependencies.has("shared-runtime"), false)
+
+  const orphanBlockedDryRunReport = await createRemoveDryRunReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(orphanBlockedDryRunReport.itemRemoveState, "would-remove")
+  assert.equal(orphanBlockedDryRunReport.orphanCleanup.enabled, true)
+  assert.equal(orphanBlockedDryRunReport.orphanCleanup.blockedItemCount, 1)
+  assert.equal(orphanBlockedDryRunReport.orphanCleanup.wouldRemoveItemCount, 1)
+  assert.equal(orphanBlockedDryRunReport.wouldEffects.orphanCleanup.status, "blocked")
+  assert.equal(orphanBlockedDryRunReport.wouldEffects.dependencies.status, "not-written")
+  assert.equal(orphanBlockedDryRunReport.wouldEffects.dependencies.plannedRemovalCount, 0)
+
+  const orphanBlockedSnapshot = readFixtureSnapshot(temporaryRoot)
+  const orphanBlockedStrictReport = await createRemoveStrictReport({
+    cwd: consumerRoot,
+    includeOrphans: true,
+    itemName: "orphan-primary",
+    registrySourcePath,
+  })
+
+  assert.equal(orphanBlockedStrictReport.applied, false)
+  assert.equal(orphanBlockedStrictReport.itemRemoveState, "blocked")
+  assert.equal(orphanBlockedStrictReport.effects.writesFiles, false)
+  assert.equal(orphanBlockedStrictReport.effects.writesLockfile, false)
+  assert.equal(orphanBlockedStrictReport.effects.orphanCleanup.status, "blocked")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), orphanBlockedSnapshot)
+  writeText(path.join(consumerRoot, "src/components/Graph/orphan-component.ts"), orphanComponentSource)
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
   const mixedDryRunReport = await createRemoveDryRunReport({
     cwd: consumerRoot,
     itemName: "switch",

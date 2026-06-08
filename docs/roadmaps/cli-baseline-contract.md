@@ -281,8 +281,10 @@ fixture evidence. `remove` and `delete` now also accept `--with-orphans` to repo
 orphan cleanup candidates in advisory and dry-run modes, then remove dry-run-approved orphan dependency items in strict
 temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup` report block. Advisory and dry-run
 also report a separate no-write `dependencyCleanup` block that classifies package dependency cleanup candidates and
-dependencies still required by remaining installed items. Strict orphan cleanup remains opt-in and does not add
-package-manifest edits, package-manager lockfile edits, non-orphan support cleanup, or broad deletion policy.
+dependencies still required by remaining installed items. Fixture evidence now covers the blocked path where a modified
+orphan item keeps dependencies still-required, suppresses dry-run dependency removals, and blocks strict cleanup
+atomically. Strict orphan cleanup remains opt-in and does not add package-manifest edits, package-manager lockfile edits,
+non-orphan support cleanup, or broad deletion policy.
 
 ## Design Discussion Packet
 

@@ -373,7 +373,8 @@ consumer-owned-support, unknown, ejected, and shared files still block automatic
 Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
 lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
 missing dependency posture, stale source-hash classification, and Wavemap-like orphan plus dependency cleanup advisory
-planning behind `--with-orphans`.
+planning behind `--with-orphans`. It also proves a modified orphan item is preserved, keeps its package dependencies
+`still-required`, and blocks automatic cleanup.
 
 ## Remove Dry Run
 
@@ -428,7 +429,8 @@ With `--with-orphans`, dry-run also reports `wouldEffects.orphanCleanup`. That b
 Current fixture evidence proves clean installed remove dry-run, locally modified item blocking, missing local file
 lockfile-cleanup preview, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
 missing dependency posture, stale source-hash classification, and Wavemap-like orphan plus dependency cleanup dry-run
-planning behind `--with-orphans`.
+planning behind `--with-orphans`. It also proves a modified orphan item suppresses dependency removal planning by keeping
+the dependency effect `not-written` with zero planned removals.
 
 ## Strict Remove
 
@@ -475,7 +477,9 @@ candidates.
 Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
 modified item blocking, unknown ownership blocking, consumer-owned support blocking, ejected blocking, and missing
 dependency non-mutation. The Wavemap-like fixture also proves strict `remove --with-orphans` deletes only the requested
-typeahead item, eligible orphan dependency items, and their lockfile records while preserving app-owned adapters.
+typeahead item, eligible orphan dependency items, and their lockfile records while preserving app-owned adapters. A
+modified orphan file blocks strict orphan cleanup atomically and preserves otherwise clean orphan files and lockfile
+records.
 
 ## Delete Sibling
 
