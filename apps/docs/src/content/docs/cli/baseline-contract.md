@@ -6,9 +6,10 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
 item-scoped update advisory, item-scoped update dry-run, item-scoped remove advisory, and item-scoped remove dry-run
-against the React registry snapshot, strict item-scoped remove for fixture-proven cases, item-scoped eject advisory,
-item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockfile ownership transfer. The visible
-`delete` command is an alias-style sibling for the current remove lifecycle surface.
+against the React registry snapshot, strict item-scoped update for fixture-proven cases, strict item-scoped remove for
+fixture-proven cases, item-scoped eject advisory, item-scoped eject dry-run, and strict item-scoped eject for
+fixture-proven lockfile ownership transfer. The visible `delete` command is an alias-style sibling for the current remove
+lifecycle surface.
 
 ## Current Surface
 
@@ -22,10 +23,10 @@ item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockf
 | `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched. |
 | `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers.                                       |
 | `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                |
-| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict update remains deferred.                                                                                      |
+| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict `update <item> --json` applies only dry-run-approved source-file writes and lockfile-record updates.          |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
-output, strict update behavior, broader ejection policy, dependency cleanup, or support/orphan cleanup.
+output, broad update/merge behavior, broader ejection policy, dependency cleanup, or support/orphan cleanup.
 
 ## Command Names
 
@@ -109,6 +110,14 @@ update would write source files, update only lockfile hashes, skip preservation-
 project state, or do nothing. The command marks the item `blocked` when any file in that installed item requires
 preservation, even if another file remains visible as an update candidate.
 
+Current strict `update <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
+`would-update`, no dry-run blockers exist, and a final preflight proves the local file hashes and current registry source
+still match the dry-run plan. It writes dry-run-approved registry-owned component source files, updates matching lockfile
+file records, and supports lockfile-only hash refresh when the local file already matches the planned installed content.
+Up-to-date items return a no-op report with exit 0. It does not merge local edits, update unknown files, update
+consumer-owned support, update ejected files, install dependencies, mutate package manifests, or touch package-manager
+lockfiles.
+
 Current `remove <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 remove advisory actions, item remove state, dependency posture, shared lockfile reference counts, and explicit no-write
 effects. It reports `remove-candidate` only for registry-owned component files that are present locally and not shared
@@ -159,7 +168,7 @@ block the strict write.
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> eject advisory -> eject dry-run -> strict eject
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> eject advisory -> eject dry-run -> strict eject
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -176,6 +185,7 @@ by `init`.
 | `diff --json`              | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `update --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `update --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| Strict `update`            | Config, lockfile, local snapshot, installed files.   | Source files and lockfile.               |
 | `remove --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `remove --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | Strict `remove`            | Config, lockfile, local snapshot, installed files.   | Source-file deletes and lockfile.        |
@@ -199,19 +209,21 @@ This lane is designed so fixture evidence can capture each transition before str
    proofs.
 9. Add item-scoped no-write `update --dry-run --json` for clean installed, update-candidate, locally modified, and
    classification fixture proofs.
-10. Add item-scoped read-only `remove --advisory --json` for clean installed, locally modified, and classification
+10. Add strict item-scoped `update <item> --json` for clean installed no-op, update-candidate source writes,
+    lockfile-only refresh, locally modified blocking, and classification fixture proofs.
+11. Add item-scoped read-only `remove --advisory --json` for clean installed, locally modified, and classification
     fixture proofs.
-11. Add item-scoped no-write `remove --dry-run --json` for clean installed, locally modified, and classification fixture
+12. Add item-scoped no-write `remove --dry-run --json` for clean installed, locally modified, and classification fixture
     proofs.
-12. Add item-scoped read-only `eject --advisory --json` for clean installed, locally modified, and classification
+13. Add item-scoped read-only `eject --advisory --json` for clean installed, locally modified, and classification
     fixture proofs.
-13. Add item-scoped no-write `eject --dry-run --json` for clean installed, locally modified, and classification fixture
+14. Add item-scoped no-write `eject --dry-run --json` for clean installed, locally modified, and classification fixture
     proofs.
-14. Add strict item-scoped `remove <item> --json` for clean installed, missing-file cleanup, locally modified, and
+15. Add strict item-scoped `remove <item> --json` for clean installed, missing-file cleanup, locally modified, and
     classification fixture proofs.
-15. Add visible sibling `delete <item>` command coverage for advisory, dry-run, and strict remove-equivalent fixture
+16. Add visible sibling `delete <item>` command coverage for advisory, dry-run, and strict remove-equivalent fixture
     proofs.
-16. Add strict item-scoped `eject <item> --json` for clean installed lockfile ownership transfer, already-ejected no-op,
+17. Add strict item-scoped `eject <item> --json` for clean installed lockfile ownership transfer, already-ejected no-op,
     locally modified blocking, and classification fixture proofs.
 
 ## Next Lifecycle Targets
@@ -228,12 +240,12 @@ Discussion targets before lifecycle behavior expands:
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
 - lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
-  classification base, then use `update --dry-run --json` to prove write previews before strict update behavior is
-  approved, `remove --dry-run --json` to gate strict remove behavior, and
-  `eject --dry-run --json` to gate strict lockfile-only ownership transfer.
+  classification base, then use `update --dry-run --json` to gate strict item-scoped update writes,
+  `remove --dry-run --json` to gate strict remove behavior, and `eject --dry-run --json` to gate strict lockfile-only
+  ownership transfer.
 
 ## Boundaries
 
-Do not expand strict update writes, `delete` beyond a remove-equivalent sibling, strict eject beyond lockfile-only
-ownership transfer, registry artifact hosting, generated token writers, dependency cleanup, orphan-support cleanup, or
-publication policy as incidental cleanup.
+Do not expand strict update beyond dry-run-approved item-scoped source writes and lockfile refreshes, `delete` beyond a
+remove-equivalent sibling, strict eject beyond lockfile-only ownership transfer, registry artifact hosting, generated
+token writers, dependency cleanup, orphan-support cleanup, or publication policy as incidental cleanup.

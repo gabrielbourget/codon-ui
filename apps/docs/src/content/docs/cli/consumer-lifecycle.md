@@ -54,6 +54,7 @@ Default `registry-contained` paths are:
 | `--advisory`  | No            | Non-blocking diagnostics and install planning. Expected findings do not fail the run.    |
 | `--dry-run`   | No            | Preview an intended mutation, including blockers, dependency counts, and lockfile shape. |
 | Strict add    | Yes           | Write a single local React registry component graph when blockers are absent.            |
+| Strict update | Yes           | Write only dry-run-approved source files and lockfile records.                           |
 | Strict remove | Yes           | Delete only dry-run-approved registry-owned component files and lockfile records.        |
 | Strict eject  | Yes           | Write only dry-run-approved lockfile ownership records; source files stay untouched.     |
 
@@ -229,7 +230,7 @@ Per-file `action` values are:
 | `inspect-source`                  | Registry source freshness is unavailable.                           |
 
 `update-candidate` is advisory only. Exact file and lockfile previews belong to `update --dry-run --json`; strict update
-writes remain deferred.
+uses that dry-run output as its write gate.
 
 Current fixture evidence proves clean installed update advisory, locally modified update advisory, missing local file
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
@@ -277,6 +278,44 @@ hashes when possible, but `wouldWriteFile` and `wouldWriteLockfile` stay false u
 Current fixture evidence proves clean installed update dry-run, eligible source update preview, locally modified
 preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
 dependency blocking.
+
+## Strict Update
+
+`update <item> --json` applies an item-scoped update only after the dry-run gate proves the item is safe:
+
+```sh
+aui update <item> --json --cwd <consumer-project>
+```
+
+Strict update starts by creating the same `update --dry-run --json` report. It applies only when the item state is
+`would-update`, no dry-run blockers exist, and a final preflight confirms the installed file hashes, current registry
+source hashes, and planned installed hashes still match the dry-run output.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                      |
+| ----------------- | ------------------------------------------------------------------------------------------------------------ |
+| `applied`         | `true` when source files or lockfile records were updated; `false` when blocked or already up to date.       |
+| `itemUpdateState` | Aggregate strict state: `updated`, `up-to-date`, `blocked`, or `unavailable`.                                |
+| `files`           | Per-file dry-run action, strict action, and booleans for source-file writes and lockfile-record updates.     |
+| `effects`         | Actual source-file write count, lockfile-record update count, dependency non-mutation, and package boundary. |
+| `blockers`        | Project, item, source, dependency, or file blockers that prevented strict update.                            |
+| `lockfileData`    | The post-update lockfile data when applied, or the current parsed lockfile data when blocked or up to date.  |
+
+Strict update can write registry-owned component source files when dry-run says `would-write`. It can also perform a
+lockfile-only hash refresh when dry-run says `would-update-lockfile`, meaning the local file already matches the current
+planned installed content but the lockfile record is stale. In both cases, the lockfile file record receives the planned
+`sourceHash` and `installedHash`.
+
+The command is item-atomic. If any file in the item is locally modified, missing, unknown, consumer-owned support,
+ejected, dependency-blocked, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates
+remain untouched and the lockfile is not written. Up-to-date items return an exit-0 no-op report. Strict update does not
+merge local edits, install or update dependencies, mutate package manifests, touch package-manager lockfiles, update
+support/orphan policy, or run `update --all`.
+
+Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
+lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
+consumer-owned support blocking, ejected blocking, and missing dependency blocking.
 
 ## Remove Advisory
 
@@ -561,9 +600,10 @@ dependency non-mutation.
 
 ## Deferred Lifecycle Commands
 
-Strict remove and strict eject now exist only inside the dry-run-approved registry-owned component boundaries above.
-Strict update, dependency cleanup, support/orphan cleanup, strict eject beyond lockfile-only ownership transfer, and any
-broader deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
+Strict update, strict remove, and strict eject now exist only inside the dry-run-approved registry-owned component
+boundaries above. Dependency cleanup, support/orphan cleanup, strict update beyond item-scoped source writes and
+lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and any broader deletion policy remain deferred
+until dry-run evidence is broader and intentionally approved.
 
-Generated token writers, strict update mutation, broader ejection policy, public registry hosting, package publication,
-and Waveguide validation remain deferred until explicitly approved.
+Generated token writers, broad update/merge behavior, broader ejection policy, public registry hosting, package
+publication, and Waveguide validation remain deferred until explicitly approved.

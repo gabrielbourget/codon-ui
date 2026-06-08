@@ -6,6 +6,7 @@ import path from "node:path"
 
 import { createUpdateAdvisoryReport } from "../helpers/updateAdvisory"
 import { createUpdateDryRunReport } from "../helpers/updateDryRun"
+import { createUpdateStrictReport } from "../helpers/updateStrict"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -19,6 +20,8 @@ const writeText = (filePath: string, value: string) => {
   mkdirSync(path.dirname(filePath), { recursive: true })
   writeFileSync(filePath, value, "utf8")
 }
+
+const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
 
 const readFixtureSnapshot = (fixturePath: string) =>
   [
@@ -436,6 +439,113 @@ try {
   assert.equal(dependencyBlockedDryRunReport.files[0].dryRunAction, "blocked")
   assert.equal(dependencyBlockedDryRunReport.wouldEffects.lockfile.status, "blocked")
 
+  const strictBlockedReport = await createUpdateStrictReport({
+    cwd: consumerRoot,
+    itemName: "switch",
+    registrySourcePath,
+  })
+
+  assert.equal(strictBlockedReport.applied, false)
+  assert.equal(strictBlockedReport.itemUpdateState, "blocked")
+  assert.equal(strictBlockedReport.effects.writesFiles, false)
+  assert.equal(strictBlockedReport.effects.writesLockfile, false)
+  assert.equal(strictBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(strictBlockedReport.effects.lockfile.updatedFileRecordCount, 0)
+  assert(
+    strictBlockedReport.blockers.some((blocker) => blocker.code === "strict-update-dry-run-blocker"),
+    "expected strict update dry-run blocker",
+  )
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const strictSourceOnlyReport = await createUpdateStrictReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictSourceOnlyReport.applied, true)
+  assert.equal(strictSourceOnlyReport.itemUpdateState, "updated")
+  assert.equal(strictSourceOnlyReport.effects.writesFiles, true)
+  assert.equal(strictSourceOnlyReport.effects.writesLockfile, true)
+  assert.equal(strictSourceOnlyReport.effects.files.writtenCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.files.lockfileRecordUpdatedCount, 1)
+  assert.equal(strictSourceOnlyReport.effects.lockfile.status, "written")
+  assert.equal(strictSourceOnlyReport.files[0].strictAction, "wrote-file-and-lockfile")
+  assert.equal(strictSourceOnlyReport.files[0].sourceFileWritten, true)
+  assert.equal(strictSourceOnlyReport.files[0].lockfileRecordUpdated, true)
+  assert.equal(readFileSync(path.join(consumerRoot, "src/components/Diff/source-only.ts"), "utf8"), sourceOnlyCurrent)
+  assert.equal(
+    strictSourceOnlyReport.lockfileData.items["source-only"]?.files[0].sourceHash,
+    createContentHash(sourceOnlyCurrent),
+  )
+  assert.equal(
+    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].installedHash,
+    createContentHash(sourceOnlyCurrent),
+  )
+
+  const sourceOnlyNoOpSnapshot = readFixtureSnapshot(temporaryRoot)
+  const strictSourceOnlyNoOpReport = await createUpdateStrictReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictSourceOnlyNoOpReport.applied, false)
+  assert.equal(strictSourceOnlyNoOpReport.itemUpdateState, "up-to-date")
+  assert.equal(strictSourceOnlyNoOpReport.effects.writesFiles, false)
+  assert.equal(strictSourceOnlyNoOpReport.effects.writesLockfile, false)
+  assert.equal(strictSourceOnlyNoOpReport.effects.lockfile.status, "not-written")
+  assert.equal(strictSourceOnlyNoOpReport.effects.files.unchangedCount, 1)
+  assert.equal(strictSourceOnlyNoOpReport.files[0].strictAction, "none")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), sourceOnlyNoOpSnapshot)
+
+  const sourceEqualsLocalBefore = readFileSync(
+    path.join(consumerRoot, "src/components/Diff/source-equals-local.ts"),
+    "utf8",
+  )
+  const strictSourceEqualsLocalReport = await createUpdateStrictReport({
+    cwd: consumerRoot,
+    itemName: "source-equals-local",
+    registrySourcePath,
+  })
+
+  assert.equal(strictSourceEqualsLocalReport.applied, true)
+  assert.equal(strictSourceEqualsLocalReport.itemUpdateState, "updated")
+  assert.equal(strictSourceEqualsLocalReport.effects.writesFiles, false)
+  assert.equal(strictSourceEqualsLocalReport.effects.writesLockfile, true)
+  assert.equal(strictSourceEqualsLocalReport.effects.files.writtenCount, 0)
+  assert.equal(strictSourceEqualsLocalReport.effects.files.lockfileRecordUpdatedCount, 1)
+  assert.equal(strictSourceEqualsLocalReport.files[0].strictAction, "updated-lockfile-record")
+  assert.equal(strictSourceEqualsLocalReport.files[0].sourceFileWritten, false)
+  assert.equal(strictSourceEqualsLocalReport.files[0].lockfileRecordUpdated, true)
+  assert.equal(
+    readFileSync(path.join(consumerRoot, "src/components/Diff/source-equals-local.ts"), "utf8"),
+    sourceEqualsLocalBefore,
+  )
+  assert.equal(
+    strictSourceEqualsLocalReport.lockfileData.items["source-equals-local"]?.files[0].sourceHash,
+    createContentHash(sourceEqualsLocalCurrent),
+  )
+
+  const dependencyBlockedSnapshot = readFixtureSnapshot(temporaryRoot)
+  const strictDependencyBlockedReport = await createUpdateStrictReport({
+    cwd: consumerRoot,
+    itemName: "dependency-blocked",
+    registrySourcePath,
+  })
+
+  assert.equal(strictDependencyBlockedReport.applied, false)
+  assert.equal(strictDependencyBlockedReport.itemUpdateState, "blocked")
+  assert.equal(strictDependencyBlockedReport.effects.writesFiles, false)
+  assert.equal(strictDependencyBlockedReport.effects.writesLockfile, false)
+  assert.equal(strictDependencyBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(strictDependencyBlockedReport.dependencies[0].status, "missing")
+  assert(
+    strictDependencyBlockedReport.blockers.some((blocker) => blocker.code === "strict-update-dry-run-blocker"),
+    "expected strict update dependency dry-run blocker",
+  )
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
+
   const missingDryRunReport = await createUpdateDryRunReport({
     cwd: consumerRoot,
     itemName: "missing-item",
@@ -446,8 +556,8 @@ try {
   assert.equal(missingDryRunReport.files.length, 0)
   assert.equal(missingDryRunReport.effects.writesFiles, false)
   assert.equal(missingDryRunReport.effects.writesLockfile, false)
-  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] update advisory and dry-run reports verified")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
+  console.log("[aminoui-cli] update advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

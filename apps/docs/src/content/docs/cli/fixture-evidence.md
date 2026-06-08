@@ -32,6 +32,7 @@ pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
 pnpm verify:update-dry-run
+pnpm verify:strict-update
 pnpm verify:remove-advisory
 pnpm verify:remove-dry-run
 pnpm verify:strict-remove
@@ -72,6 +73,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `diff --json`                 | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                 |
 | `update --advisory --json`    | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                   |
 | `update --dry-run --json`     | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                     |
+| Strict `update <item> --json` | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and package-manager state.                  |
 | `remove --advisory --json`    | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.         |
 | `remove --dry-run --json`     | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                  |
 | Strict `remove <item> --json` | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                        |
@@ -79,7 +81,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `eject --advisory --json`     | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects. |
 | `eject --dry-run --json`      | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                             |
 | Strict `eject <item> --json`  | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.            |
-| Future remove/delete/eject    | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
+| Future lifecycle expansion    | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                             |
 
 ## Fixture Matrix
 
@@ -110,5 +112,5 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 ## Deferred Behaviors
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
-publication, generated token writers, package-manager dependency writes, strict update behavior, strict eject behavior
-beyond lockfile-only ownership transfer, and Waveguide validation remain separate approval-gated lanes.
+publication, generated token writers, package-manager dependency writes, broad update/merge behavior, strict eject
+behavior beyond lockfile-only ownership transfer, and Waveguide validation remain separate approval-gated lanes.

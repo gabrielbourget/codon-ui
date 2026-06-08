@@ -5,7 +5,13 @@ import chalk from "chalk"
 import { Command } from "commander"
 import { z } from "zod"
 
-import { createUpdateAdvisoryReport, createUpdateDryRunReport, handleError, logger } from "@/src/helpers"
+import {
+  createUpdateAdvisoryReport,
+  createUpdateDryRunReport,
+  createUpdateStrictReport,
+  handleError,
+  logger,
+} from "@/src/helpers"
 
 const updateOptionsSchema = z.object({
   advisory: z.boolean().default(false),
@@ -22,8 +28,8 @@ const parseUpdateOptions = (itemName: string, CLIOptions: unknown) => ({
 
 export const update = new Command()
   .name("update")
-  .description("Inspect update posture for one installed Amino UI registry item without writing changes.")
-  .argument("<item>", "The installed registry item you'd like to inspect for update posture.")
+  .description("Update one installed Amino UI registry item when strict provenance checks pass.")
+  .argument("<item>", "The installed registry item you'd like to inspect or update.")
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
@@ -36,11 +42,6 @@ export const update = new Command()
 
       if (options.advisory && options.dryRun) {
         logger.error("Please choose either --advisory or --dry-run, not both.")
-        process.exit(1)
-      }
-
-      if (!options.advisory && !options.dryRun) {
-        logger.error("Please choose --advisory or --dry-run. Strict update remains deferred.")
         process.exit(1)
       }
 
@@ -83,6 +84,54 @@ export const update = new Command()
 
           logger.info(`- ${file.path}: ${file.dryRunAction}`)
         }
+
+        return
+      }
+
+      if (!options.advisory) {
+        const updateStrictReport = await createUpdateStrictReport({
+          cwd,
+          itemName: options.itemName,
+          registrySourcePath: options.registrySource,
+        })
+
+        const isBlocked =
+          updateStrictReport.blockers.length > 0 ||
+          updateStrictReport.itemUpdateState === "blocked" ||
+          updateStrictReport.itemUpdateState === "unavailable"
+
+        if (isBlocked) {
+          if (options.json) {
+            console.log(JSON.stringify(updateStrictReport, null, 2))
+          } else {
+            logger.error(`${chalk.red("[ Strict Update ]")} No files or lockfile records were written.`)
+            logger.error(`Item: ${updateStrictReport.itemName}`)
+            logger.error(`Item update state: ${updateStrictReport.itemUpdateState}`)
+            logger.error(`Blockers: ${updateStrictReport.blockers.length}`)
+            logger.error(`Findings: ${updateStrictReport.findings.length}`)
+          }
+
+          process.exitCode = 1
+          return
+        }
+
+        if (options.json) {
+          console.log(JSON.stringify(updateStrictReport, null, 2))
+          return
+        }
+
+        if (updateStrictReport.itemUpdateState === "up-to-date") {
+          logger.info(`${chalk.green("[ Strict Update ]")} ${updateStrictReport.itemName} is already up to date.`)
+          logger.info(`Lockfile effect: ${updateStrictReport.effects.lockfile.status}`)
+          logger.info(`Findings: ${updateStrictReport.findings.length}`)
+          return
+        }
+
+        logger.info(`${chalk.green("[ Strict Update ]")} ${updateStrictReport.itemName} updated.`)
+        logger.info(`Files written: ${updateStrictReport.effects.files.writtenCount}`)
+        logger.info(`Lockfile records updated: ${updateStrictReport.effects.lockfile.updatedFileRecordCount}`)
+        logger.info(`Lockfile effect: ${updateStrictReport.effects.lockfile.status}`)
+        logger.info(`Findings: ${updateStrictReport.findings.length}`)
 
         return
       }
