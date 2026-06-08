@@ -113,6 +113,11 @@ report a clean installed item without mutation.
 Current fixture evidence also proves strict `add switch --json` blocks without mutation when an unknown existing component
 target or incompatible support token target would otherwise be overwritten.
 
+The compatible-support fixture proves the other branch of that policy. A temporary initialized
+`vite-registry-contained-compatible-token` copy keeps its existing `tokens/geometry` file in place, advisory and dry-run
+report `reuse-existing` with TypeScript export-superset compatibility, and strict `add switch --json` writes only the
+missing `Switch` graph files plus lockfile metadata while recording the reused file as `consumer-owned-support`.
+
 `remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
 the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in
 `dependencyCleanup` during advisory and dry-run modes only. The CLI still does not edit `package.json`, package-manager

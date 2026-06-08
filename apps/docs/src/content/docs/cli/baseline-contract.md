@@ -95,6 +95,11 @@ only the two CircleLoader source files and the lockfile metadata; all planning a
 Fixture evidence also proves strict `add switch --json` exits with structured blocker JSON and no temp-copy mutation when
 an unsafe existing component target or incompatible support token target is present.
 
+Focused fixture evidence also proves the compatible support reuse path for `add switch`. Advisory and dry-run classify an
+existing `tokens/geometry` target as `reuse-existing` with `targetCompatibility: "typescript-export-superset"`, strict
+add writes only the missing `Switch` graph files plus `amino-ui.lock.json`, and the lockfile adopts the existing support
+file as `consumer-owned-support` without overwriting it.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
@@ -244,6 +249,7 @@ This lane is designed so fixture evidence can capture each transition before str
     locally modified blocking, and classification fixture proofs.
 18. Add opt-in strict `remove/delete --with-orphans` for Wavemap-like dependency orphan cleanup in temporary fixture
     copies.
+19. Add focused compatible support reuse coverage for `add switch` advisory, dry-run, and strict adoption.
 
 ## Next Lifecycle Targets
 
