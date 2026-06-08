@@ -5,7 +5,8 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
-item-scoped update advisory, and item-scoped update dry-run against the React registry snapshot.
+item-scoped update advisory, item-scoped update dry-run, and item-scoped remove advisory against the React registry
+snapshot.
 
 ## Current Surface
 
@@ -15,6 +16,7 @@ item-scoped update advisory, and item-scoped update dry-run against the React re
 | `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                            |
 | `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                    |
 | `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                  |
+| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. Remove dry-run and strict remove remain deferred.                                                                                      |
 | `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                           |
 | `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict update remains deferred. |
 
@@ -103,12 +105,19 @@ update would write source files, update only lockfile hashes, skip preservation-
 project state, or do nothing. The command marks the item `blocked` when any file in that installed item requires
 preservation, even if another file remains visible as an update candidate.
 
+Current `remove <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
+remove advisory actions, item remove state, dependency posture, shared lockfile reference counts, and explicit no-write
+effects. It reports `remove-candidate` only for registry-owned component files that are present locally and not shared
+with another lockfile item. Missing registry-owned component files are lockfile-cleanup candidates only. Locally modified,
+unknown, consumer-owned-support, ejected, shared, and non-component support files block automatic removal and require
+review. Remove dry-run, strict removal, package dependency removal, and delete aliases remain deferred.
+
 ## Command Data Flow
 
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> remove advisory
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -125,6 +134,7 @@ by `init`.
 | `diff --json`              | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `update --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 | `update --dry-run --json`  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
+| `remove --advisory --json` | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 
 This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
 
@@ -141,6 +151,8 @@ This lane is designed so fixture evidence can capture each transition before str
    proofs.
 9. Add item-scoped no-write `update --dry-run --json` for clean installed, update-candidate, locally modified, and
    classification fixture proofs.
+10. Add item-scoped read-only `remove --advisory --json` for clean installed, locally modified, and classification
+    fixture proofs.
 
 ## Next Lifecycle Targets
 
@@ -157,9 +169,9 @@ Discussion targets before lifecycle behavior expands:
   ejected files;
 - lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
   classification base, then use `update --dry-run --json` to prove write previews before strict update behavior is
-  approved.
+  approved, and `remove --advisory --json` to prove conservative deletion posture before remove dry-run exists.
 
 ## Boundaries
 
-Do not expand strict update writes, remove/delete, eject, registry artifact hosting, generated token writers, or
-publication policy as incidental cleanup.
+Do not expand strict update writes, remove dry-run, strict remove/delete, eject, registry artifact hosting, generated
+token writers, or publication policy as incidental cleanup.

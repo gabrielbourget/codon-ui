@@ -32,6 +32,7 @@ pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
 pnpm verify:update-dry-run
+pnpm verify:remove-advisory
 ```
 
 ## Proof Packet
@@ -65,6 +66,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.            |
 | `update --advisory --json` | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                              |
 | `update --dry-run --json`  | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                |
+| `remove --advisory --json` | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.    |
 | Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
 
 ## Fixture Matrix

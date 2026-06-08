@@ -226,7 +226,8 @@ Per-file `action` values are:
 | `preserve-ejected`                | Ejected file is preserved and blocks automatic update.              |
 | `inspect-source`                  | Registry source freshness is unavailable.                           |
 
-`update-candidate` is advisory only. Exact file and lockfile writes belong to the future `update --dry-run --json` slice.
+`update-candidate` is advisory only. Exact file and lockfile previews belong to `update --dry-run --json`; strict update
+writes remain deferred.
 
 Current fixture evidence proves clean installed update advisory, locally modified update advisory, missing local file
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
@@ -275,20 +276,64 @@ Current fixture evidence proves clean installed update dry-run, eligible source 
 preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
 dependency blocking.
 
+## Remove Advisory
+
+`remove --advisory --json` is the first remove command, and it is intentionally read-only:
+
+```sh
+aui remove <item> --advisory --json --cwd <consumer-project>
+```
+
+It starts from `status --json` classification and reports what a future remove flow would need to consider. It does not
+delete source files, write config, write lockfile data, change package metadata, remove dependencies, or touch
+package-manager lockfiles.
+
+The JSON report includes:
+
+| Field             | Meaning                                                                                                                 |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `itemRemoveState` | Aggregate state: `remove-candidate`, `lockfile-cleanup-candidate`, `review-required`, or `unavailable`.                 |
+| `files`           | Per-file ownership/source state, advisory action, removal target, preservation posture, and shared references.          |
+| `dependencies`    | Recorded lockfile dependency decisions; no package-manager mutation is run.                                             |
+| `effects`         | Always reports no config, lockfile, source-file, or dependency writes for this mode.                                    |
+| `summary`         | Counts for removable files, lockfile cleanup candidates, blockers, preservation, support review, and shared references. |
+| `findings`        | Missing item/config/lockfile/registry-source warnings from the status model.                                            |
+
+Per-file `action` values are:
+
+| Action                            | Meaning                                                                                  |
+| --------------------------------- | ---------------------------------------------------------------------------------------- |
+| `remove-candidate`                | Registry-owned component file is present locally and not shared with another item.       |
+| `lockfile-cleanup-candidate`      | Registry-owned component file is already missing; future remove may only clean metadata. |
+| `review-support-file`             | Non-component support target needs orphan/shared ownership review before removal.        |
+| `review-shared-file`              | Another lockfile item references the same path, so automatic file deletion is blocked.   |
+| `preserve-local-change`           | Consumer local edit must be preserved.                                                   |
+| `preserve-consumer-owned-support` | Consumer-owned support is preserved and blocks automatic removal.                        |
+| `preserve-unknown`                | Unknown ownership is preserved and blocks automatic removal.                             |
+| `preserve-ejected`                | Ejected file is preserved and blocks automatic removal.                                  |
+
+Remove advisory is conservative around support files. It does not decide package dependency removal, support orphan
+deletion, source-file deletion, lockfile writes, or aliases such as `delete`. Those belong to later dry-run/strict slices
+after fixture evidence proves the preservation rules.
+
+Current fixture evidence proves clean installed remove advisory, locally modified preservation, missing local file
+lockfile-cleanup posture, unknown ownership preservation, consumer-owned support preservation, ejected preservation,
+missing dependency posture, and stale source-hash classification.
+
 ## Ownership States
 
-| State                    | Meaning                                                                    | Default CLI stance                                             |
-| ------------------------ | -------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| `registry-owned`         | Installed file still belongs to the registry graph.                        | Eligible for future automated update only after update exists. |
-| `locally-modified`       | Installed file differs from recorded provenance.                           | Preserve by default; report for manual review.                 |
-| `consumer-owned-support` | Consumer intentionally owns compatible support at the planned target path. | Reuse or validate; do not overwrite by default.                |
-| `ejected`                | Consumer intentionally took ownership of the file or component slice.      | Preserve by default; never auto-update.                        |
-| `unknown`                | A target exists without trusted Amino provenance.                          | Treat as a blocker for strict writes.                          |
+| State                    | Meaning                                                                    | Default CLI stance                                                                      |
+| ------------------------ | -------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `registry-owned`         | Installed file still belongs to the registry graph.                        | Eligible for future automated update/remove only after proven lifecycle commands exist. |
+| `locally-modified`       | Installed file differs from recorded provenance.                           | Preserve by default; report for manual review.                                          |
+| `consumer-owned-support` | Consumer intentionally owns compatible support at the planned target path. | Reuse or validate; do not overwrite by default.                                         |
+| `ejected`                | Consumer intentionally took ownership of the file or component slice.      | Preserve by default; never auto-update.                                                 |
+| `unknown`                | A target exists without trusted Amino provenance.                          | Treat as a blocker for strict writes.                                                   |
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add safe remove/delete and eject behavior without weakening the preservation defaults
-above. Strict update remains deferred until dry-run evidence is broader and intentionally approved.
+The next lifecycle work should add remove dry-run and eject advisory behavior without weakening the preservation defaults
+above. Strict update and strict remove remain deferred until dry-run evidence is broader and intentionally approved.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.
