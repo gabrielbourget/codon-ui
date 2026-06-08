@@ -105,6 +105,11 @@ ranges against manifest requirements.
 Strict add does not install, update, or remove packages. It blocks when required dependency decisions are not satisfied.
 When strict add succeeds, the lockfile records satisfied dependency decisions with action `none`.
 
+Current fixture evidence proves the clean `circle-loader` add lifecycle in a temporary `vite-registry-contained` copy:
+strict init creates only config and lockfile, advisory and dry-run report the same install graph without writes, strict
+add writes only the two CircleLoader source files plus lockfile metadata, and post-add `status --json`/`diff --json`
+report a clean installed item without mutation.
+
 `remove` and `delete --with-orphans` can also classify dependency cleanup candidates. That classification is derived from
 the installed item set, the planned orphan cleanup set, and local registry dependency metadata. It is reported in
 `dependencyCleanup` during advisory and dry-run modes only. The CLI still does not edit `package.json`, package-manager

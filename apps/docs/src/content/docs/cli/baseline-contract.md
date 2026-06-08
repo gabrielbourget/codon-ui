@@ -89,6 +89,10 @@ installed registry paths, and records hash-based lockfile item/file ownership pl
 reuse compatible support files when the lockfile proves they are reusable. It does not install packages, overwrite
 unknown files, generate hosted registry artifacts, or implement update/eject behavior.
 
+Focused fixture evidence now proves the clean `circle-loader` add lifecycle from strict init through advisory, dry-run,
+strict add, post-add `status --json`, and post-add `diff --json` in one temporary consumer copy. The strict phase writes
+only the two CircleLoader source files and the lockfile metadata; all planning and inspection phases remain read-only.
+
 Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
