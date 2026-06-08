@@ -138,9 +138,56 @@ The JSON report includes:
 | `summary`        | Counts by file state, source state, dependency status, item count, and file count.     |
 | `findings`       | Missing or invalid config/lockfile and registry-source warnings.                       |
 
-Current fixture evidence proves greenfield/uninitialized status, clean installed `circle-loader` status, and locally
-modified installed-file status. Additional fixtures should prove `consumer-owned-support`, `unknown`, `missing`,
-`ejected`, dependency issue, and source-drift states before downstream lifecycle commands depend on those branches.
+Current fixture evidence proves greenfield/uninitialized status, clean installed `circle-loader` status, locally modified
+installed-file status, `consumer-owned-support`, `unknown`, `missing`, `ejected`, missing dependency posture, and stale
+source-hash/source-drift classification.
+
+## Diff Inspection
+
+`diff --json` is the focused read-only comparison command:
+
+```sh
+aui diff <item> --json --cwd <consumer-project>
+```
+
+It uses the same config, lockfile, installed-file, and registry-source classification model as `status --json`, then
+returns one item-scoped report. It does not write source files, config, lockfile, package metadata, or package-manager
+lockfiles.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                       |
+| ---------------- | --------------------------------------------------------------------------------------------- |
+| `itemName`       | Requested lockfile item.                                                                      |
+| `item`           | Aggregate item state when the item exists in the lockfile.                                    |
+| `registrySource` | Loaded local registry source used for current source comparison.                              |
+| `files`          | Per-file hash state, ownership state, source freshness, comparison, recommendation, and diff. |
+| `dependencies`   | Recorded lockfile dependency decisions; no package-manager mutation is run.                   |
+| `effects`        | Always reports no config, lockfile, source-file, or dependency writes for this mode.          |
+| `summary`        | Counts by comparison state, recommendation, review need, source changes, and local changes.   |
+| `findings`       | Missing item/config/lockfile/registry-source warnings from the status model.                  |
+
+Per-file `comparison` values are preservation oriented:
+
+| Comparison                              | Default stance                                      |
+| --------------------------------------- | --------------------------------------------------- |
+| `no-change`                             | No review required.                                 |
+| `source-changed`                        | Review registry source change.                      |
+| `local-modification`                    | Preserve the consumer edit by default.              |
+| `local-and-source-changed`              | Review both consumer edit and registry change.      |
+| `missing-local-file`                    | Preserve the absence until a strict command exists. |
+| `unknown-ownership`                     | Preserve and require explicit review.               |
+| `consumer-owned-support`                | Preserve consumer ownership by default.             |
+| `consumer-owned-support-source-changed` | Preserve and review upstream support change.        |
+| `ejected`                               | Preserve and never auto-update.                     |
+| `source-unavailable`                    | Inspect registry source before planning writes.     |
+
+When both the current registry source file and local consumer file exist and differ, `sourceToLocalDiff` contains
+line-oriented `registry-source`, `consumer-local`, and `context` segments. This is a review aid only; it is not an update
+or merge plan.
+
+Current fixture evidence proves clean installed diff, locally modified diff, missing local file diff, unknown ownership
+diff, consumer-owned support diff, ejected diff, missing dependency posture, and stale source-hash classification.
 
 ## Ownership States
 
@@ -154,8 +201,8 @@ modified installed-file status. Additional fixtures should prove `consumer-owned
 
 ## Deferred Lifecycle Commands
 
-The next lifecycle work should add `update --advisory`, `update --dry-run`, safe remove/delete, focused diff, and eject
-behavior without weakening the preservation defaults above.
+The next lifecycle work should add `update --advisory`, `update --dry-run`, safe remove/delete, and eject behavior without
+weakening the preservation defaults above.
 
 Generated token writers, strict update/eject mutation, public registry hosting, package publication, and Waveguide
 validation remain deferred until explicitly approved.

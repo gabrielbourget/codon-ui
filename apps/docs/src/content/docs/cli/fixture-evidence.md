@@ -29,6 +29,7 @@ Use focused gates for narrow lifecycle slices:
 
 ```sh
 pnpm verify:status
+pnpm verify:diff
 ```
 
 ## Proof Packet
@@ -59,7 +60,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `add --dry-run --json`     | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                           |
 | Strict `add <item> --json` | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent.                              |
 | `status --json`            | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases. |
-| Future `diff --json`       | Must compare one registry item against installed files without mutating source or lockfile state.                             |
+| `diff --json`              | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.            |
 | Future `update --advisory` | Must report available changes, blockers, ownership states, dependency changes, and expected effects.                          |
 | Future `update --dry-run`  | Must preview exact writes, reuses, skips, blocks, and lockfile effects without writing.                                       |
 | Future remove/delete/eject | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                        |
@@ -74,7 +75,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Clean registry-contained | `add` advisory, dry-run, strict writes, lockfile metadata, and compile behavior.                   |
 | Existing unknown targets | Strict writes block rather than overwrite unknown local files.                                     |
 | Compatible support reuse | Existing support is reused only when metadata and content are safe.                                |
-| Locally modified files   | `status --json` reports local edits; future lifecycle commands must preserve them by default.      |
+| Locally modified files   | `status` and `diff` report local edits; future lifecycle commands must preserve them by default.   |
 | Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                  |
 | Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                    |
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing. |
