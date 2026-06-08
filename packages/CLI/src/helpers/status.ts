@@ -1,7 +1,6 @@
 import crypto from "crypto"
 import { existsSync, promises as fs } from "fs"
 import path from "path"
-import { fileURLToPath } from "url"
 
 import { z } from "zod"
 
@@ -14,6 +13,7 @@ import {
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
   CONSUMER_OWNERSHIP_STATE__UNKNOWN,
   consumerConfigSchema,
+  consumerLockfileDependencySchema,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
   resolveConsumerLayout,
@@ -32,6 +32,11 @@ import {
   INSTALL_PLAN_FINDING_SEVERITIES,
   REGISTRY_FILE_ROLES,
 } from "./installPlan/constants"
+import {
+  getDefaultLocalReactRegistrySourcePath,
+  getDefaultLocalSupportRegistrySourcePath,
+  isLocalReactRegistryComponentItemRequest,
+} from "./installPlan/localRegistry"
 
 const STATUS_SCHEMA_VERSION = 1
 const STATUS_FILE_STATE__MISSING = "missing"
@@ -40,7 +45,6 @@ const STATUS_SOURCE_STATE__SOURCE_CHANGED = "source-changed"
 const STATUS_SOURCE_STATE__UNKNOWN = "unknown"
 const STATUS_FINDING__REGISTRY_SOURCE_UNAVAILABLE = "status-registry-source-unavailable"
 const STATUS_FINDING__LOCKFILE_ITEM_MISSING = "status-lockfile-item-missing"
-const SWITCH_REGISTRY_ITEM_NAME = "switch"
 
 const STATUS_FILE_STATES = [
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
@@ -145,6 +149,7 @@ const statusReportSchema = z
       })
       .strict(),
     cwd: z.string().min(1),
+    dependencies: z.array(consumerLockfileDependencySchema).default([]),
     files: z.array(statusFileSchema).default([]),
     findings: z.array(statusFindingSchema).default([]),
     items: z.array(statusItemSchema).default([]),
@@ -168,6 +173,7 @@ const statusReportSchema = z
       .object({
         fileCount: z.number().int().nonnegative(),
         fileStates: z.record(z.enum(STATUS_FILE_STATES), z.number().int().nonnegative()),
+        dependencyStates: z.record(z.string().min(1), z.number().int().nonnegative()),
         itemCount: z.number().int().nonnegative(),
         sourceStates: z.record(z.enum(STATUS_SOURCE_STATES), z.number().int().nonnegative()),
       })
@@ -200,28 +206,8 @@ const createContentHash = (content: string | Buffer) =>
 const createEmptyRecord = <TKey extends string>(keys: readonly TKey[]): Record<TKey, number> =>
   Object.fromEntries(keys.map((key) => [key, 0])) as Record<TKey, number>
 
-const getDefaultLocalSupportRegistrySourcePath = () => {
-  const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
-  const candidatePaths = [
-    path.resolve(moduleDirectory, "../registry/local-react-support.registry.json"),
-    path.resolve(moduleDirectory, "../../registry/local-react-support.registry.json"),
-  ]
-
-  return candidatePaths.find((candidatePath) => existsSync(candidatePath)) ?? candidatePaths[0]
-}
-
-const getDefaultLocalReactRegistrySourcePath = () => {
-  const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
-  const candidatePaths = [
-    path.resolve(moduleDirectory, "../registry/local-react.registry.json"),
-    path.resolve(moduleDirectory, "../../registry/local-react.registry.json"),
-  ]
-
-  return candidatePaths.find((candidatePath) => existsSync(candidatePath)) ?? candidatePaths[0]
-}
-
 const resolveDefaultStatusRegistrySourcePath = (requestedItems: readonly string[]) => {
-  if (requestedItems.includes(SWITCH_REGISTRY_ITEM_NAME)) return getDefaultLocalReactRegistrySourcePath()
+  if (isLocalReactRegistryComponentItemRequest(requestedItems)) return getDefaultLocalReactRegistrySourcePath()
 
   return getDefaultLocalSupportRegistrySourcePath()
 }
@@ -554,10 +540,14 @@ export const createStatusReport = async ({
   const files = items.flatMap((item) => item.files)
   const fileStates = createEmptyRecord(STATUS_FILE_STATES)
   const sourceStates = createEmptyRecord(STATUS_SOURCE_STATES)
+  const dependencyStates: Record<string, number> = {}
 
   files.forEach((file) => {
     fileStates[file.state] += 1
     sourceStates[file.sourceState] += 1
+  })
+  lockfilePlan.lockfileData.dependencies.forEach((dependency) => {
+    dependencyStates[dependency.status] = (dependencyStates[dependency.status] ?? 0) + 1
   })
 
   return statusReportSchema.parse({
@@ -566,6 +556,7 @@ export const createStatusReport = async ({
       status: configPlan.status,
     },
     cwd,
+    dependencies: lockfilePlan.lockfileData.dependencies,
     files,
     findings,
     items,
@@ -581,6 +572,7 @@ export const createStatusReport = async ({
     },
     requestedItems,
     summary: {
+      dependencyStates,
       fileCount: files.length,
       fileStates,
       itemCount: items.length,

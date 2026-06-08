@@ -149,7 +149,24 @@ try {
   })
   writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
     configFile: "amino-ui.config.json",
+    dependencies: [
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^19.1.0",
+        kind: "peer",
+        name: "react",
+        requiredRange: "^18.2.0 || ^19.0.0",
+        status: "satisfied",
+      },
+    ],
     items: {
+      "circle-loader": {
+        files: [],
+        name: "circle-loader",
+        registryDependencies: [],
+        sourceIdentity: "@amino-ui/react-local",
+      },
       switch: {
         files: [
           {
@@ -220,6 +237,8 @@ try {
   assert.equal(cleanReport.summary.fileStates.ejected, 1)
   assert.equal(cleanReport.summary.fileStates.unknown, 1)
   assert.equal(cleanReport.summary.sourceStates["up-to-date"], 4)
+  assert.equal(cleanReport.dependencies.length, 1)
+  assert.equal(cleanReport.summary.dependencyStates.satisfied, 1)
 
   await assertStatusFile({
     consumerRoot,
@@ -244,6 +263,14 @@ try {
   })
 
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const defaultComponentSourceReport = await createStatusReport({ cwd: consumerRoot, itemName: "circle-loader" })
+
+  assert.equal(defaultComponentSourceReport.registrySource.status, "loaded")
+  assert.equal(path.basename(defaultComponentSourceReport.registrySource.path ?? ""), "local-react.registry.json")
+  assert.equal(defaultComponentSourceReport.registrySource.sourceIdentity, "@amino-ui/react-local")
+  assert.equal(defaultComponentSourceReport.dependencies.length, 1)
+  assert.equal(defaultComponentSourceReport.summary.dependencyStates.satisfied, 1)
 
   writeText(ejectedTargetPath, "export const EjectedLocalChange = true\n")
   await assertStatusFile({

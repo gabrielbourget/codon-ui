@@ -4,16 +4,18 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 ---
 
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
-planning, strict init, and strict single-component installs against the React registry snapshot.
+planning, strict init, strict single-component installs, and read-only status inspection against the React registry
+snapshot.
 
 ## Current Surface
 
-| Command | Current state                                                                                                                                                                                                                   |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`  | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                 |
-| `info`  | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                         |
-| `add`   | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent. |
-| `diff`  | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                                 |
+| Command  | Current state                                                                                                                                                                                                                   |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                 |
+| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                         |
+| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent. |
+| `diff`   | Reads local files and registry payloads. `diff --advisory` now reports expected missing inputs without failing.                                                                                                                 |
+| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                        |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
 output, update behavior, or ejection behavior.
@@ -75,12 +77,17 @@ installed registry paths, and records hash-based lockfile item/file ownership pl
 reuse compatible support files when the lockfile proves they are reusable. It does not install packages, overwrite
 unknown files, generate hosted registry artifacts, or implement update/eject behavior.
 
+Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
+React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
+source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
+currently proves greenfield, clean installed, and locally modified installed-file cases.
+
 ## Command Data Flow
 
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init defaults -> add advisory -> add dry-run -> strict add
+init advisory -> init defaults -> add advisory -> add dry-run -> strict add -> status
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -93,6 +100,7 @@ by `init`.
 | `add --advisory`  | Local snapshot, packet metadata, target package.     | Nothing.                                 |
 | `add --dry-run`   | Local snapshot, packet metadata, config if present.  | Nothing.                                 |
 | Strict `add`      | Snapshot, packet metadata, config, lockfile, source. | Source/support/theme files and lockfile. |
+| `status --json`   | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
 
 This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
 
@@ -103,6 +111,7 @@ This lane is designed so fixture evidence can capture each transition before str
 3. Seed strict init with config and empty Amino lockfile only.
 4. Add dry-run previews before strict component writes.
 5. Add strict single-component local registry install paths for satisfied-dependency, no-conflict proofs.
+6. Add read-only `status --json` for greenfield, clean installed, and locally modified fixture proofs.
 
 ## Next Lifecycle Targets
 
@@ -117,8 +126,8 @@ Discussion targets before lifecycle behavior expands:
 - ownership states: registry-owned, locally modified, ejected, consumer-owned support, and unknown;
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
-- lifecycle proof mode: prefer advisory and dry-run reports until update, remove/delete, focused diff, and eject metadata
-  behavior is approved.
+- lifecycle proof mode: use `status --json` as the read-only classification base, then prefer advisory and dry-run
+  reports until update, remove/delete, focused diff, and eject metadata behavior is approved.
 
 ## Boundaries
 

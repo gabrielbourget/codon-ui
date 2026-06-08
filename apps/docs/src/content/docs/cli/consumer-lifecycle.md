@@ -113,6 +113,35 @@ Strict add applies the same plan only after blockers are cleared:
 Unknown existing targets are blockers by default. Locally modified, consumer-owned-support, and ejected ownership states
 are preservation signals for future lifecycle commands.
 
+## Status Inspection
+
+`status --json` is the first read-only lifecycle inspection command:
+
+```sh
+aui status --json --cwd <consumer-project>
+aui status <item> --json --cwd <consumer-project>
+```
+
+It reads config, lockfile provenance, installed files, and local registry source. It does not write source files, config,
+lockfile, package metadata, or package-manager lockfiles.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                |
+| ---------------- | -------------------------------------------------------------------------------------- |
+| `config`         | Config path and whether it is `present`, `missing`, or `invalid`.                      |
+| `lockfile`       | Lockfile path, parse status, and recorded item count.                                  |
+| `registrySource` | Loaded local registry source used for source freshness checks, or why none was loaded. |
+| `items`          | Installed lockfile items with aggregate file state and source freshness.               |
+| `files`          | Per-file current hash, installed hash, source hash, ownership state, and source state. |
+| `dependencies`   | Recorded dependency decisions from the lockfile; no package-manager mutation is run.   |
+| `summary`        | Counts by file state, source state, dependency status, item count, and file count.     |
+| `findings`       | Missing or invalid config/lockfile and registry-source warnings.                       |
+
+Current fixture evidence proves greenfield/uninitialized status, clean installed `circle-loader` status, and locally
+modified installed-file status. Additional fixtures should prove `consumer-owned-support`, `unknown`, `missing`,
+`ejected`, dependency issue, and source-drift states before downstream lifecycle commands depend on those branches.
+
 ## Ownership States
 
 | State                    | Meaning                                                                    | Default CLI stance                                             |
