@@ -7,6 +7,16 @@ The fixture repo records command behavior evidence for Amino UI consumers. It is
 not a replacement for Wavemap mature-consumer proof. Its job is to make CLI behavior systematic, repeatable, and
 assertable.
 
+The fixture system has three tiers:
+
+- seed fixtures: checked-in consumer projects that represent known starting or classification states;
+- replay proofs: focused verifier gates that replay CLI workflows against temporary fixture copies;
+- evidence ledger: Markdown evidence plus the structured `evidence/proof-ledger.mjs` index, validated by
+  `pnpm verify:evidence-ledger`.
+
+Checked-in workflow fixtures demonstrate state. Replay proofs demonstrate current CLI compliance on demand. Markdown
+evidence explains the results, but verifier assertions are the proof.
+
 ## Evidence Repository
 
 Consumer fixture projects live in the sibling `amino-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
@@ -28,6 +38,7 @@ pnpm verify
 Use focused gates for narrow lifecycle slices:
 
 ```sh
+pnpm verify:evidence-ledger
 pnpm verify:init-dry-run
 pnpm verify:init-lifecycle
 pnpm verify:add-lifecycle
@@ -64,21 +75,21 @@ pnpm verify:wavemap-like-lifecycle
 Each command proof should record the same fields so future lifecycle commands can be compared without reading long run
 logs.
 
-| Field                      | Expected evidence                                                                                       |
-| -------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Fixture name               | Stable fixture or scenario name, such as `vite-registry-contained` or a locally modified variant.       |
-| Starting state             | Config, lockfile, package metadata, existing target files, and known ownership states.                  |
-| Command invocation         | Exact command, flags, cwd, and registry source.                                                         |
-| JSON assertion             | Checked fields in stdout JSON, including findings, effects, file counts, and dependency decisions.      |
-| File mutation boundary     | Which files must remain unchanged, which files may be written, and which existing targets must block.   |
-| Lockfile mutation boundary | Whether the lockfile is not written, would be written, or was written with expected item/file metadata. |
-| Dependency boundary        | Proof that package-manager lockfiles are not changed and dependency decisions are classification-only.  |
-| Dependency policy          | Effective dependency policy, source, override, and explicit no-execution posture.                       |
-| Dependency execution       | Explicit install intent, approval source, noninteractive eligibility, blockers, and no execution.       |
-| Dependency install plan    | Read-only package-manager detection and proposed install commands when required packages are missing.   |
-| Dependency target          | Target package manifest, working directory, package-manager override, and no-write override provenance. |
-| Dependency resolution      | Consumer-owned package manifest resolution outside the CLI before a later strict add succeeds.          |
-| Verification after install | Compile, typecheck, or smoke command when the fixture receives source.                                  |
+| Field                      | Expected evidence                                                                                                                        |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Fixture name               | Stable fixture or scenario name, such as `vite-registry-contained` or a locally modified variant.                                        |
+| Starting state             | Config, lockfile, package metadata, existing target files, and known ownership states.                                                   |
+| Command invocation         | Exact command, flags, cwd, and registry source.                                                                                          |
+| JSON assertion             | Checked fields in stdout JSON, including findings, effects, file counts, and dependency decisions.                                       |
+| File mutation boundary     | Which files must remain unchanged, which files may be written, and which existing targets must block.                                    |
+| Lockfile mutation boundary | Whether the lockfile is not written, would be written, or was written with expected item/file metadata.                                  |
+| Dependency boundary        | Proof that package manifests and package-manager lockfiles are preserved or intentionally changed only by approved dependency execution. |
+| Dependency policy          | Effective dependency policy, source, override, and explicit no-execution posture.                                                        |
+| Dependency execution       | Explicit install intent, approval source, noninteractive eligibility, blockers, and no execution.                                        |
+| Dependency install plan    | Read-only package-manager detection and proposed install commands when required packages are missing.                                    |
+| Dependency target          | Target package manifest, working directory, package-manager override, and no-write override provenance.                                  |
+| Dependency resolution      | Consumer-owned package manifest resolution outside the CLI before a later strict add succeeds.                                           |
+| Verification after install | Compile, typecheck, or smoke command when the fixture receives source.                                                                   |
 
 ## Command Expectations
 
