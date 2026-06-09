@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import crypto from "node:crypto"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -770,6 +770,159 @@ try {
     "expected strict update dependency dry-run blocker",
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
+
+  const dependencyInstallRoot = path.join(temporaryRoot, "dependency-install")
+  const dependencyInstallConsumerRoot = path.join(dependencyInstallRoot, "consumer")
+  const dependencyInstallRegistrySourcePath = path.join(dependencyInstallRoot, "registry.json")
+  const dependencyInstallPrevious = "export const motionUpdate = 'installed'\n"
+  const dependencyInstallCurrent = "export const motionUpdate = 'registry'\n"
+
+  writeText(path.join(dependencyInstallRoot, "source/motion-update.ts"), dependencyInstallCurrent)
+  writeText(path.join(dependencyInstallConsumerRoot, "src/components/Diff/motion-update.ts"), dependencyInstallPrevious)
+  writeJson(path.join(dependencyInstallConsumerRoot, "package.json"), {
+    dependencies: {},
+    name: "dependency-install-consumer",
+    packageManager: "npm@10.0.0",
+  })
+  writeJson(path.join(dependencyInstallConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(dependencyInstallRegistrySourcePath, {
+    items: [
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/motion-update.ts",
+            targetPath: "Diff/motion-update.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "motion-update",
+        runtimeDependencies: {
+          motion: "^11.0.0",
+        },
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+    ],
+    schemaVersion: 1,
+    sourceIdentity: "@amino-ui/test-registry",
+    sourceRoot: ".",
+  })
+  writeJson(path.join(dependencyInstallConsumerRoot, "amino-ui.lock.json"), {
+    configFile: "amino-ui.config.json",
+    items: {
+      "motion-update": {
+        files: [
+          {
+            installedHash: createContentHash(dependencyInstallPrevious),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/motion-update.ts",
+            sourceHash: createContentHash(dependencyInstallPrevious),
+            targetRole: "components",
+          },
+        ],
+        name: "motion-update",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+    },
+    lockfileVersion: 1,
+  })
+
+  const dependencyInstallDryRunReport = await createUpdateDryRunReport({
+    cwd: dependencyInstallConsumerRoot,
+    dependencyPolicyOverride: "install",
+    installDependencies: true,
+    itemName: "motion-update",
+    registrySourcePath: dependencyInstallRegistrySourcePath,
+  })
+
+  assert.equal(dependencyInstallDryRunReport.itemUpdateState, "blocked")
+  assert.equal(dependencyInstallDryRunReport.summary.dependencyBlockerCount, 1)
+  assert.equal(dependencyInstallDryRunReport.dependencyInstallPlan?.executionPlan.mode, "eligible")
+  assert.equal(
+    dependencyInstallDryRunReport.dependencyInstallPlan?.recommendedCommands[0]?.command,
+    "npm i motion@^11.0.0",
+  )
+
+  const dependencyInstallBlockedReport = await createUpdateStrictReport({
+    cwd: dependencyInstallConsumerRoot,
+    installDependencies: true,
+    itemName: "motion-update",
+    registrySourcePath: dependencyInstallRegistrySourcePath,
+  })
+
+  assert.equal(dependencyInstallBlockedReport.applied, false)
+  assert.equal(dependencyInstallBlockedReport.itemUpdateState, "blocked")
+  assert.equal(dependencyInstallBlockedReport.dependencyInstallPlan?.executionPlan.mode, "blocked")
+  assert.equal(readJson(path.join(dependencyInstallConsumerRoot, "package.json")).dependencies.motion, undefined)
+
+  const fakeBinPath = path.join(dependencyInstallRoot, "bin")
+  const fakeNpmPath = path.join(fakeBinPath, "npm")
+  const originalPath = process.env.PATH
+
+  writeText(
+    fakeNpmPath,
+    `#!/usr/bin/env node
+const fs = require("fs")
+const path = require("path")
+const packageJsonPath = path.join(process.cwd(), "package.json")
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
+const dependency = process.argv.slice(2).find((argument) => argument.startsWith("motion@"))
+if (!dependency) {
+  process.exitCode = 1
+} else {
+  packageJson.dependencies = {
+    ...(packageJson.dependencies ?? {}),
+    motion: dependency.slice("motion@".length),
+  }
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\\n")
+  fs.writeFileSync(path.join(process.cwd(), "package-lock.json"), JSON.stringify({ args: process.argv.slice(2) }, null, 2) + "\\n")
+}
+`,
+  )
+  chmodSync(fakeNpmPath, 0o755)
+
+  try {
+    process.env.PATH = `${fakeBinPath}${path.delimiter}${originalPath ?? ""}`
+
+    const dependencyInstallStrictReport = await createUpdateStrictReport({
+      cwd: dependencyInstallConsumerRoot,
+      dependencyPolicyOverride: "install",
+      installDependencies: true,
+      itemName: "motion-update",
+      registrySourcePath: dependencyInstallRegistrySourcePath,
+    })
+
+    assert.equal(dependencyInstallStrictReport.applied, true)
+    assert.equal(dependencyInstallStrictReport.itemUpdateState, "updated")
+    assert.equal(dependencyInstallStrictReport.effects.installsDependencies, true)
+    assert.equal(dependencyInstallStrictReport.effects.dependencies.status, "written")
+    assert.equal(dependencyInstallStrictReport.effects.dependencies.updatedCount, 1)
+    assert.equal(
+      dependencyInstallStrictReport.dependencyInstallPlan?.executionPlan.packageManagerExecution,
+      "completed",
+    )
+    assert.equal(dependencyInstallStrictReport.dependencyInstallPlan?.executionPlan.executedCommands.length, 1)
+    assert.equal(
+      readFileSync(path.join(dependencyInstallConsumerRoot, "src/components/Diff/motion-update.ts"), "utf8"),
+      dependencyInstallCurrent,
+    )
+    assert.equal(readJson(path.join(dependencyInstallConsumerRoot, "package.json")).dependencies.motion, "^11.0.0")
+
+    const dependencyInstallLockfile = readJson(path.join(dependencyInstallConsumerRoot, "amino-ui.lock.json"))
+    const motionDependency = dependencyInstallLockfile.dependencies.find(
+      (dependency: { name: string }) => dependency.name === "motion",
+    )
+
+    assert.equal(motionDependency.action, "installed")
+    assert.equal(motionDependency.status, "satisfied")
+    assert.equal(
+      dependencyInstallLockfile.items["motion-update"].files[0].sourceHash,
+      createContentHash(dependencyInstallCurrent),
+    )
+  } finally {
+    process.env.PATH = originalPath
+  }
 
   const missingDryRunReport = await createUpdateDryRunReport({
     cwd: consumerRoot,

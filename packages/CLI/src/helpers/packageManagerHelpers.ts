@@ -1,5 +1,7 @@
-import { existsSync, readFileSync } from "fs"
+import { existsSync, promises as fs, readFileSync } from "fs"
 import path from "path"
+
+import { execa } from "execa"
 
 import {
   CONSUMER_DEPENDENCY_POLICY__INSTALL,
@@ -237,7 +239,7 @@ type TDependencyInstallWorkspaceRootCandidate = {
   source: TDependencyInstallWorkspaceSource
 }
 
-type TDependencyInstallCommand = {
+export type TDependencyInstallCommand = {
   args: string[]
   command: string
   dependencyTarget: TPackageManifestInstallTargetField
@@ -248,7 +250,7 @@ type TDependencyInstallCommand = {
   workspaceCommand?: TDependencyInstallWorkspaceCommand
 }
 
-type TDependencyInstallCommandFailure = {
+export type TDependencyInstallCommandFailure = {
   args: string[]
   command: string
   exitCode?: number
@@ -980,5 +982,182 @@ export const createDependencyInstallPlan = ({
           : DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
     targetManifest: targetManifest.manifest,
     workspace,
+  }
+}
+
+export const PACKAGE_MANAGER_MUTATION_BOUNDARY_FILE_NAMES = [
+  "package.json",
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "yarn.lock",
+  "bun.lock",
+  "bun.lockb",
+] as const
+
+const DEPENDENCY_COMMAND_OUTPUT_MAX_LENGTH = 4000
+
+const readPackageManagerBoundaryFile = async (filePath: string) => {
+  try {
+    return await fs.readFile(filePath, "utf8")
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return undefined
+
+    throw error
+  }
+}
+
+const formatPackageManagerBoundaryPath = ({ consumerRoot, filePath }: { consumerRoot: string; filePath: string }) => {
+  const relativePath = path.relative(consumerRoot, filePath).replace(/\\/gu, "/")
+
+  if (!relativePath) return "."
+  if (relativePath.startsWith("../") || path.isAbsolute(relativePath)) return filePath
+
+  return relativePath
+}
+
+const resolvePackageManagerBoundaryDirectories = ({
+  consumerRoot,
+  targetManifestPath,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  targetManifestPath?: string
+  workingDirectory: string
+}) => {
+  const directories = [workingDirectory]
+
+  if (targetManifestPath) {
+    directories.push(path.resolve(consumerRoot, path.dirname(targetManifestPath)))
+  }
+
+  return [...new Set(directories.map((directory) => path.resolve(directory)))]
+}
+
+const snapshotPackageManagerMutationBoundary = async ({
+  consumerRoot,
+  targetManifestPath,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  targetManifestPath?: string
+  workingDirectory: string
+}) =>
+  new Map(
+    await Promise.all(
+      resolvePackageManagerBoundaryDirectories({
+        consumerRoot,
+        targetManifestPath,
+        workingDirectory,
+      }).flatMap((boundaryDirectory) =>
+        PACKAGE_MANAGER_MUTATION_BOUNDARY_FILE_NAMES.map(async (fileName) => {
+          const filePath = path.join(boundaryDirectory, fileName)
+
+          return [
+            formatPackageManagerBoundaryPath({
+              consumerRoot,
+              filePath,
+            }),
+            await readPackageManagerBoundaryFile(filePath),
+          ] as const
+        }),
+      ),
+    ),
+  )
+
+const getMutatedPackageManagerBoundaryPaths = ({
+  afterSnapshot,
+  beforeSnapshot,
+}: {
+  afterSnapshot: ReadonlyMap<string, string | undefined>
+  beforeSnapshot: ReadonlyMap<string, string | undefined>
+}) =>
+  [...new Set([...beforeSnapshot.keys(), ...afterSnapshot.keys()])]
+    .filter((filePath) => beforeSnapshot.get(filePath) !== afterSnapshot.get(filePath))
+    .sort()
+
+const limitDependencyCommandOutput = (value: unknown) => {
+  if (typeof value !== "string") return undefined
+  if (value.length <= DEPENDENCY_COMMAND_OUTPUT_MAX_LENGTH) return value
+
+  return value.slice(0, DEPENDENCY_COMMAND_OUTPUT_MAX_LENGTH)
+}
+
+const getDependencyExecutionCommand = (command: TDependencyInstallCommand): TDependencyInstallCommand => {
+  if (!command.workspaceCommand) return command
+
+  return {
+    ...command,
+    args: command.workspaceCommand.args,
+    command: command.workspaceCommand.command,
+    packageManager: command.workspaceCommand.packageManager,
+    workingDirectory: command.workspaceCommand.workingDirectory,
+  }
+}
+
+export const executeDependencyInstallCommands = async ({
+  commands,
+  consumerRoot,
+}: {
+  commands: readonly TDependencyInstallCommand[]
+  consumerRoot: string
+}): Promise<{
+  executedCommands: TDependencyInstallCommand[]
+  failedCommands: TDependencyInstallCommandFailure[]
+}> => {
+  const executedCommands: TDependencyInstallCommand[] = []
+  let failedCommands: TDependencyInstallCommandFailure[] = []
+
+  for (const command of commands) {
+    const executionCommand = getDependencyExecutionCommand(command)
+    const workingDirectory = path.resolve(consumerRoot, executionCommand.workingDirectory ?? ".")
+    const beforePackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+      consumerRoot,
+      targetManifestPath: executionCommand.targetManifestPath,
+      workingDirectory,
+    })
+
+    try {
+      await execa(executionCommand.packageManager, executionCommand.args, {
+        cwd: workingDirectory,
+      })
+      executedCommands.push(executionCommand)
+    } catch (error) {
+      const afterPackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+        consumerRoot,
+        targetManifestPath: executionCommand.targetManifestPath,
+        workingDirectory,
+      })
+      const mutatedPaths = getMutatedPackageManagerBoundaryPaths({
+        afterSnapshot: afterPackageManagerBoundary,
+        beforeSnapshot: beforePackageManagerBoundary,
+      })
+      const errorRecord = error && typeof error === "object" ? error : {}
+      const message = error instanceof Error ? error.message : "Package-manager dependency install failed."
+
+      failedCommands = [
+        {
+          args: executionCommand.args,
+          command: executionCommand.command,
+          exitCode:
+            "exitCode" in errorRecord && typeof errorRecord.exitCode === "number" ? errorRecord.exitCode : undefined,
+          message,
+          mutatedPaths,
+          packageManager: executionCommand.packageManager,
+          packageManagerWrites: mutatedPaths.length > 0,
+          signal: "signal" in errorRecord && typeof errorRecord.signal === "string" ? errorRecord.signal : undefined,
+          stderr: "stderr" in errorRecord ? limitDependencyCommandOutput(errorRecord.stderr) : undefined,
+          stdout: "stdout" in errorRecord ? limitDependencyCommandOutput(errorRecord.stdout) : undefined,
+          workingDirectory: executionCommand.workingDirectory,
+        },
+      ]
+      break
+    }
+  }
+
+  return {
+    executedCommands,
+    failedCommands,
   }
 }

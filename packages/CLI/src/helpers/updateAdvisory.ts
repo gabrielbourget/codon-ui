@@ -2,8 +2,10 @@ import { z } from "zod"
 
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
 import { createDiffReport, type TDiffReport } from "./diff"
+import { dependencyInstallPlanSchema } from "./installPlan"
 import { CLI_PROJECT_RESOURCE_STATUSES, CLI_REGISTRY_SOURCE_STATUSES } from "./reportConstants"
 import { createStatusReport } from "./status"
+import { createUpdateDependencyPlan, type TUpdateDependencyPlanningOptions } from "./updateDependencyPlanning"
 
 const UPDATE_ADVISORY_SCHEMA_VERSION = 1
 
@@ -78,6 +80,7 @@ export const updateAdvisoryReportSchema = z
     advisory: z.literal(true),
     cwd: z.string().min(1),
     dependencies: z.array(consumerLockfileDependencySchema).default([]),
+    dependencyInstallPlan: dependencyInstallPlanSchema.optional(),
     effects: z
       .object({
         installsDependencies: z.literal(false),
@@ -185,7 +188,12 @@ export type TUpdateAllAdvisoryReport = z.infer<typeof updateAllAdvisoryReportSch
 
 export type TCreateUpdateAdvisoryReportOptions = {
   cwd: string
+  dependencyPolicyOverride?: TUpdateDependencyPlanningOptions["dependencyPolicyOverride"]
+  installDependencies?: boolean
   itemName: string
+  nonInteractive?: boolean
+  packageJsonPath?: string
+  packageManager?: TUpdateDependencyPlanningOptions["packageManager"]
   registrySourcePath?: string
 }
 
@@ -264,13 +272,28 @@ const resolveItemUpdateState = (files: readonly TUpdateAdvisoryFile[]) => {
 
 export const createUpdateAdvisoryReport = async ({
   cwd,
+  dependencyPolicyOverride,
+  installDependencies,
   itemName,
+  nonInteractive,
+  packageJsonPath,
+  packageManager,
   registrySourcePath,
 }: TCreateUpdateAdvisoryReportOptions): Promise<TUpdateAdvisoryReport> => {
   const diffReport = await createDiffReport({
     cwd,
     itemName,
     registrySourcePath,
+  })
+  const dependencyPlan = await createUpdateDependencyPlan({
+    cwd,
+    dependencyPolicyOverride,
+    installDependencies,
+    itemName,
+    nonInteractive,
+    packageJsonPath,
+    packageManager,
+    registrySourcePath: diffReport.registrySource.path,
   })
   const files = diffReport.files.map(createUpdateAdvisoryFile)
   const actionStates = createEmptyRecord(UPDATE_ADVISORY_ACTIONS)
@@ -287,6 +310,7 @@ export const createUpdateAdvisoryReport = async ({
     advisory: true,
     cwd,
     dependencies: diffReport.dependencies,
+    dependencyInstallPlan: dependencyPlan.dependencyInstallPlan,
     effects: {
       installsDependencies: false,
       writesConfig: false,

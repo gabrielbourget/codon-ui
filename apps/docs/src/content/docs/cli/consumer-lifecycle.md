@@ -404,6 +404,7 @@ source-file and lockfile writes for an update candidate, and preservation of loc
 
 ```sh
 aui update <item> --dry-run --json --cwd <consumer-project>
+aui update <item> --dry-run --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
 It starts from the `update --advisory` classification, then recomputes the current local-registry install plan for the
@@ -413,15 +414,16 @@ writes from lockfile-only hash refreshes.
 
 The JSON report includes:
 
-| Field             | Meaning                                                                                                           |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
-| `itemUpdateState` | Aggregate state: `up-to-date`, `would-update`, `blocked`, or `unavailable`.                                       |
-| `files`           | Per-file advisory action, dry-run action, planned hashes, blocker codes, and write/lockfile booleans.             |
-| `dependencies`    | Current registry dependency plan from the consumer `package.json`; no package-manager mutation is run.            |
-| `effects`         | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                       |
-| `wouldEffects`    | Planned write preview: source-file count, lockfile status, skipped files, blocked files, and dependency blockers. |
-| `blockers`        | Item, file, source, project, and dependency blockers that would prevent strict update.                            |
-| `summary`         | Counts for candidates, would-write files, lockfile file updates, skipped files, blockers, and dependency states.  |
+| Field                   | Meaning                                                                                                           |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `itemUpdateState`       | Aggregate state: `up-to-date`, `would-update`, `blocked`, or `unavailable`.                                       |
+| `files`                 | Per-file advisory action, dry-run action, planned hashes, blocker codes, and write/lockfile booleans.             |
+| `dependencies`          | Current registry dependency plan from the selected consumer `package.json`; no package-manager mutation is run.   |
+| `dependencyInstallPlan` | Policy, target manifest, package-manager detection, proposed install commands, and explicit no-execution posture. |
+| `effects`               | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                       |
+| `wouldEffects`          | Planned write preview: source-file count, lockfile status, skipped files, blocked files, and dependency blockers. |
+| `blockers`              | Item, file, source, project, and dependency blockers that would prevent strict update.                            |
+| `summary`               | Counts for candidates, would-write files, lockfile file updates, skipped files, blockers, and dependency states.  |
 
 Per-file `dryRunAction` values are:
 
@@ -439,7 +441,9 @@ hashes when possible, but `wouldWriteFile` and `wouldWriteLockfile` stay false u
 
 Current fixture evidence proves clean installed update dry-run, eligible source update preview, locally modified
 preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
-dependency blocking.
+dependency blocking. Item-scoped update also accepts `--package-json <path>`, `--package-manager <name>`,
+`--dependency-policy <policy>`, and `--install-dependencies` for dependency planning; advisory and dry-run modes still
+write nothing.
 
 ## Strict Update
 
@@ -447,6 +451,7 @@ dependency blocking.
 
 ```sh
 aui update <item> --json --cwd <consumer-project>
+aui update <item> --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
 Strict update starts by creating the same `update --dry-run --json` report. It applies only when the item state is
@@ -455,14 +460,15 @@ source hashes, and planned installed hashes still match the dry-run output.
 
 The JSON report includes:
 
-| Field             | Meaning                                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------------------ |
-| `applied`         | `true` when source files or lockfile records were updated; `false` when blocked or already up to date.       |
-| `itemUpdateState` | Aggregate strict state: `updated`, `up-to-date`, `blocked`, or `unavailable`.                                |
-| `files`           | Per-file dry-run action, strict action, and booleans for source-file writes and lockfile-record updates.     |
-| `effects`         | Actual source-file write count, lockfile-record update count, dependency non-mutation, and package boundary. |
-| `blockers`        | Project, item, source, dependency, or file blockers that prevented strict update.                            |
-| `lockfileData`    | The post-update lockfile data when applied, or the current parsed lockfile data when blocked or up to date.  |
+| Field                   | Meaning                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------- |
+| `applied`               | `true` when source files or lockfile records were updated; `false` when blocked or already up to date.          |
+| `itemUpdateState`       | Aggregate strict state: `updated`, `up-to-date`, `blocked`, or `unavailable`.                                   |
+| `files`                 | Per-file dry-run action, strict action, and booleans for source-file writes and lockfile-record updates.        |
+| `dependencyInstallPlan` | Dependency policy, package-manager execution, executed commands, failed commands, and target manifest.          |
+| `effects`               | Actual source-file writes, lockfile-record updates, dependency install count, and package-manager write status. |
+| `blockers`              | Project, item, source, dependency, or file blockers that prevented strict update.                               |
+| `lockfileData`          | The post-update lockfile data when applied, or the current parsed lockfile data when blocked or up to date.     |
 
 Strict update can write registry-owned component source files when dry-run says `would-write`. It can also perform a
 lockfile-only hash refresh when dry-run says `would-update-lockfile`, meaning the local file already matches the current
@@ -470,10 +476,18 @@ planned installed content but the lockfile record is stale. In both cases, the l
 `sourceHash` and `installedHash`.
 
 The command is item-atomic. If any file in the item is locally modified, missing, unknown, consumer-owned support,
-ejected, dependency-blocked, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates
-remain untouched and the lockfile is not written. Up-to-date items return an exit-0 no-op report. Strict update does not
-merge local edits, install or update dependencies, mutate package manifests, touch package-manager lockfiles, update
-support/orphan policy, or roll back runtime write failures.
+ejected, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates remain untouched and
+the lockfile is not written. Up-to-date items return an exit-0 no-op report.
+
+Strict update can resolve dependency-only blockers before source writes when `--install-dependencies` is present, the
+effective dependency policy is `install`, the item still has an update candidate, and package-manager detection selects a
+known npm, pnpm, yarn, or bun command. Amino executes the planned command, records package-manager execution metadata,
+replans from the selected target manifest, and only then writes dry-run-approved source files plus lockfile records. If
+the package-manager command fails, Amino reports structured `failedCommands` output and writes no source files or
+`amino-ui.lock.json`.
+
+Strict update does not merge local edits, mutate dependencies for broad `update --all`, update support/orphan policy, or
+roll back runtime write failures.
 
 Strict `update --all --json` extends the same gate across every installed lockfile item. It is all-or-blocked at the
 planned safety boundary: a blocker on any item prevents source and lockfile writes for the whole run, while an all-safe
@@ -481,8 +495,8 @@ run can apply source-file writes and lockfile-only refreshes across multiple ins
 
 Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
 lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
-consumer-owned support blocking, ejected blocking, missing dependency blocking, broad strict-all blocking, broad
-strict-all no-op behavior, and broad strict-all update-candidate writes.
+consumer-owned support blocking, ejected blocking, missing dependency blocking, item-scoped dependency install execution,
+broad strict-all blocking, broad strict-all no-op behavior, and broad strict-all update-candidate writes.
 
 ## Remove Advisory
 

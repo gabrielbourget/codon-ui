@@ -6,6 +6,7 @@ import { Command } from "commander"
 import { z } from "zod"
 
 import {
+  CONSUMER_DEPENDENCY_POLICIES,
   createUpdateAllAdvisoryReport,
   createUpdateAllDryRunReport,
   createUpdateAllStrictReport,
@@ -15,13 +16,18 @@ import {
   handleError,
   logger,
 } from "@/src/helpers"
+import { DEPENDENCY_INSTALL_PACKAGE_MANAGERS } from "@/src/helpers/packageManagerHelpers"
 
 const updateOptionsSchema = z.object({
   all: z.boolean().default(false),
   advisory: z.boolean().default(false),
   cwd: z.string().default(process.cwd()),
+  dependencyPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
   dryRun: z.boolean().default(false),
+  installDependencies: z.boolean().default(false),
   json: z.boolean().default(false),
+  packageJson: z.string().optional(),
+  packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
   registrySource: z.string().optional(),
 })
 
@@ -37,8 +43,25 @@ export const update = new Command()
   .option("--all", "Report update posture for every installed registry item.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
+  .option(
+    "--dependency-policy <policy>",
+    "Override dependency install policy for item-scoped update planning. Supported values: report-only, manual, prompt, install.",
+  )
   .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
+  .option(
+    "--install-dependencies",
+    "Explicitly allow item-scoped strict update to install missing dependencies when policy also permits it.",
+    false,
+  )
   .option("--json", "Print machine-readable update output.", false)
+  .option(
+    "--package-json <path>",
+    "Read dependency declarations from a specific package.json for item-scoped planning.",
+  )
+  .option(
+    "--package-manager <packageManager>",
+    "Override package-manager detection for item-scoped dependency planning.",
+  )
   .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
   .action(async (itemName, CLIOptions) => {
     try {
@@ -52,6 +75,14 @@ export const update = new Command()
 
       if (options.all && options.itemName) {
         logger.error("Please choose either a single item or --all, not both.")
+        process.exit(1)
+      }
+
+      if (
+        options.all &&
+        (options.dependencyPolicy || options.installDependencies || options.packageJson || options.packageManager)
+      ) {
+        logger.error("Dependency install options are only supported for item-scoped update.")
         process.exit(1)
       }
 
@@ -186,7 +217,12 @@ export const update = new Command()
       if (options.dryRun) {
         const updateDryRunReport = await createUpdateDryRunReport({
           cwd,
+          dependencyPolicyOverride: options.dependencyPolicy,
+          installDependencies: options.installDependencies,
           itemName: selectedItemName,
+          nonInteractive: options.json,
+          packageJsonPath: options.packageJson,
+          packageManager: options.packageManager,
           registrySourcePath: options.registrySource,
         })
 
@@ -224,7 +260,12 @@ export const update = new Command()
       if (!options.advisory) {
         const updateStrictReport = await createUpdateStrictReport({
           cwd,
+          dependencyPolicyOverride: options.dependencyPolicy,
+          installDependencies: options.installDependencies,
           itemName: selectedItemName,
+          nonInteractive: options.json,
+          packageJsonPath: options.packageJson,
+          packageManager: options.packageManager,
           registrySourcePath: options.registrySource,
         })
 
@@ -271,7 +312,12 @@ export const update = new Command()
 
       const updateAdvisoryReport = await createUpdateAdvisoryReport({
         cwd,
+        dependencyPolicyOverride: options.dependencyPolicy,
+        installDependencies: options.installDependencies,
         itemName: selectedItemName,
+        nonInteractive: options.json,
+        packageJsonPath: options.packageJson,
+        packageManager: options.packageManager,
         registrySourcePath: options.registrySource,
       })
 

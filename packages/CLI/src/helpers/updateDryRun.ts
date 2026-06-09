@@ -6,19 +6,19 @@ import { z } from "zod"
 
 import { consumerTargetRoleSchema } from "./consumerContract"
 import {
-  createRegistryInstallPlan,
   createStrictInstalledFileContent,
   INSTALL_PLAN_DEPENDENCY_STATUSES,
   INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
+  INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
+  INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
   INSTALL_PLAN_FINDING__SUPPORT_TARGET_REUSED,
   INSTALL_PLAN_FINDING__TARGET_FILE_EXISTS,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_FINDING_SEVERITIES,
   INSTALL_PLAN_SOURCE_STATUS__AVAILABLE,
+  dependencyInstallPlanSchema,
   installPlanDependencySchema,
-  readConsumerConfigForStrictAdd,
   readConsumerLockfileForStrictAdd,
-  readLocalRegistrySource,
   type TInstallPlanFile,
   type TInstallPlanFinding,
   type TRegistryInstallPlan,
@@ -34,6 +34,11 @@ import {
 } from "./reportConstants"
 import { createStatusReport } from "./status"
 import { createUpdateAdvisoryReport, type TUpdateAdvisoryReport } from "./updateAdvisory"
+import {
+  createUpdateDependencyPlan,
+  type TUpdateDependencyPlan,
+  type TUpdateDependencyPlanningOptions,
+} from "./updateDependencyPlanning"
 
 const UPDATE_DRY_RUN_SCHEMA_VERSION = 1
 
@@ -122,6 +127,7 @@ export const updateDryRunReportSchema = z
   .object({
     cwd: z.string().min(1),
     dependencies: z.array(installPlanDependencySchema).default([]),
+    dependencyInstallPlan: dependencyInstallPlanSchema.optional(),
     dryRun: z.literal(true),
     effects: z
       .object({
@@ -266,7 +272,16 @@ export type TUpdateAllDryRunReport = z.infer<typeof updateAllDryRunReportSchema>
 
 export type TCreateUpdateDryRunReportOptions = {
   cwd: string
+  dependencyPolicyOverride?: TUpdateDependencyPlanningOptions["dependencyPolicyOverride"]
+  executedDependencyCommands?: TUpdateDependencyPlanningOptions["executedDependencyCommands"]
+  failedDependencyCommands?: TUpdateDependencyPlanningOptions["failedDependencyCommands"]
+  installDependencies?: boolean
   itemName: string
+  nonInteractive?: boolean
+  packageJsonPath?: string
+  packageManager?: TUpdateDependencyPlanningOptions["packageManager"]
+  packageManagerExecution?: TUpdateDependencyPlanningOptions["packageManagerExecution"]
+  packageManagerWrites?: boolean
   registrySourcePath?: string
 }
 
@@ -277,6 +292,7 @@ export type TCreateUpdateAllDryRunReportOptions = {
 
 type TUpdateDryRunPlan = {
   dependencyBlockers: z.infer<typeof updateDryRunBlockerSchema>[]
+  dependencyInstallPlan: TUpdateDependencyPlan["dependencyInstallPlan"]
   dependencies: TRegistryInstallPlan["dependencyPlan"]
   findings: TInstallPlanFinding[]
   installPlan?: TRegistryInstallPlan
@@ -342,20 +358,54 @@ const createDependencyBlockers = (
 const readUpdateDryRunPlan = async ({
   advisoryReport,
   cwd,
+  dependencyPolicyOverride,
+  executedDependencyCommands,
+  failedDependencyCommands,
+  installDependencies,
   itemName,
+  nonInteractive,
+  packageJsonPath,
+  packageManager,
+  packageManagerExecution,
+  packageManagerWrites,
 }: {
   advisoryReport: TUpdateAdvisoryReport
   cwd: string
+  dependencyPolicyOverride?: TUpdateDependencyPlanningOptions["dependencyPolicyOverride"]
+  executedDependencyCommands?: TUpdateDependencyPlanningOptions["executedDependencyCommands"]
+  failedDependencyCommands?: TUpdateDependencyPlanningOptions["failedDependencyCommands"]
+  installDependencies?: boolean
   itemName: string
+  nonInteractive?: boolean
+  packageJsonPath?: string
+  packageManager?: TUpdateDependencyPlanningOptions["packageManager"]
+  packageManagerExecution?: TUpdateDependencyPlanningOptions["packageManagerExecution"]
+  packageManagerWrites?: boolean
 }): Promise<TUpdateDryRunPlan> => {
+  const dependencyPlan = await createUpdateDependencyPlan({
+    cwd,
+    dependencyPolicyOverride,
+    executedDependencyCommands,
+    failedDependencyCommands,
+    installDependencies,
+    itemName,
+    nonInteractive,
+    packageJsonPath,
+    packageManager,
+    packageManagerExecution,
+    packageManagerWrites,
+    registrySourcePath: advisoryReport.registrySource.path,
+  })
+
   if (
     advisoryReport.registrySource.status !== CLI_REGISTRY_SOURCE_STATUS__LOADED ||
     !advisoryReport.registrySource.path
   ) {
     return {
       dependencyBlockers: [],
+      dependencyInstallPlan: dependencyPlan.dependencyInstallPlan,
       dependencies: [],
-      findings: [],
+      findings: dependencyPlan.findings,
       projectBlockers: [
         createUpdateDryRunBlocker({
           code: "update-dry-run-registry-source-unavailable",
@@ -368,33 +418,30 @@ const readUpdateDryRunPlan = async ({
     }
   }
 
-  const configPlan = await readConsumerConfigForStrictAdd(cwd)
   const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
-  const { registrySource, sourceRoot } = await readLocalRegistrySource(advisoryReport.registrySource.path)
-  const installPlan = createRegistryInstallPlan({
-    config: configPlan.config,
-    consumerRoot: cwd,
-    registrySource,
-    requestedItems: [itemName],
-    sourceRoot,
-  })
   const projectBlockers = [
-    ...configPlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_DRY_RUN_BLOCKER_KIND__PROJECT)),
+    ...dependencyPlan.findings
+      .filter(
+        (finding) =>
+          finding.code === INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING ||
+          finding.code === INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
+      )
+      .map((finding) => convertFindingToBlocker(finding, UPDATE_DRY_RUN_BLOCKER_KIND__PROJECT)),
     ...lockfilePlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_DRY_RUN_BLOCKER_KIND__PROJECT)),
   ]
-  const dependencyBlockers = createDependencyBlockers(installPlan.dependencyPlan)
+  const dependencyBlockers = createDependencyBlockers(dependencyPlan.installPlan?.dependencyPlan ?? [])
 
   return {
+    dependencyInstallPlan: dependencyPlan.dependencyInstallPlan,
     dependencyBlockers,
-    dependencies: installPlan.dependencyPlan,
+    dependencies: dependencyPlan.installPlan?.dependencyPlan ?? [],
     findings: [
-      ...configPlan.findings,
       ...lockfilePlan.findings,
-      ...installPlan.findings.filter((finding) => !PLAN_FINDINGS_EXCLUDED_FROM_UPDATE_DRY_RUN.has(finding.code)),
+      ...dependencyPlan.findings.filter((finding) => !PLAN_FINDINGS_EXCLUDED_FROM_UPDATE_DRY_RUN.has(finding.code)),
     ],
-    installPlan,
+    installPlan: dependencyPlan.installPlan,
     projectBlockers,
-    sourceRoot,
+    sourceRoot: dependencyPlan.sourceRoot,
   }
 }
 
@@ -727,15 +774,42 @@ const dedupeBlockers = (blockers: readonly z.infer<typeof updateDryRunBlockerSch
 
 export const createUpdateDryRunReport = async ({
   cwd,
+  dependencyPolicyOverride,
+  executedDependencyCommands,
+  failedDependencyCommands,
+  installDependencies,
   itemName,
+  nonInteractive,
+  packageJsonPath,
+  packageManager,
+  packageManagerExecution,
+  packageManagerWrites,
   registrySourcePath,
 }: TCreateUpdateDryRunReportOptions): Promise<TUpdateDryRunReport> => {
   const advisoryReport = await createUpdateAdvisoryReport({
     cwd,
+    dependencyPolicyOverride,
+    installDependencies,
     itemName,
+    nonInteractive,
+    packageJsonPath,
+    packageManager,
     registrySourcePath,
   })
-  const plan = await readUpdateDryRunPlan({ advisoryReport, cwd, itemName })
+  const plan = await readUpdateDryRunPlan({
+    advisoryReport,
+    cwd,
+    dependencyPolicyOverride,
+    executedDependencyCommands,
+    failedDependencyCommands,
+    installDependencies,
+    itemName,
+    nonInteractive,
+    packageJsonPath,
+    packageManager,
+    packageManagerExecution,
+    packageManagerWrites,
+  })
   const fileSetDriftBlockers = createFileSetDriftBlockers({
     advisoryReport,
     installPlan: plan.installPlan,
@@ -791,6 +865,7 @@ export const createUpdateDryRunReport = async ({
     blockers,
     cwd,
     dependencies: plan.dependencies,
+    dependencyInstallPlan: plan.dependencyInstallPlan,
     dryRun: true,
     effects: {
       installsDependencies: false,

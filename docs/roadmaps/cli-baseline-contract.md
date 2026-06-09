@@ -287,17 +287,19 @@ fixture evidence. `update --all --advisory --json` now enumerates every installe
 posture, `update --all --dry-run --json` now aggregates item-scoped dry-run previews, and strict
 `update --all --json` now applies broad updates only when every installed item passes the dry-run and strict preflight
 gate. Blocked strict-all runs write nothing; all-safe runs write approved source updates and lockfile refreshes before a
-single final lockfile write. Runtime rollback, merge behavior, dependency writes, and package-manager mutation remain
-outside that boundary. `remove` and `delete` now also accept `--with-orphans` to
-report dependency items that would become orphan cleanup candidates in advisory and dry-run modes, then remove
-dry-run-approved orphan dependency items in strict temporary-copy proofs. The orphan plan and effects live in a separate
-`orphanCleanup` report block. Advisory and dry-run also report a separate no-write `dependencyCleanup` block that
-classifies package dependency cleanup candidates and dependencies still required by remaining installed items. Fixture
-evidence now covers the blocked path where a modified orphan item keeps dependencies still-required, suppresses dry-run
-dependency removals, and blocks strict cleanup atomically. Strict orphan cleanup remains opt-in. `--remove-dependencies`
-adds a second explicit strict gate that can remove no-longer-required package dependencies through the detected npm,
-pnpm, yarn, or bun command and clean stale Amino dependency records. Cleanup outside that explicit path, non-orphan
-support cleanup, and broad deletion policy remain deferred.
+single final lockfile write. Item-scoped strict update can now resolve dependency-only blockers by running an explicitly
+approved npm, pnpm, yarn, or bun install, replanning from the selected target manifest, and then applying the approved
+source plus lockfile update. Runtime rollback, merge behavior, broad update dependency writes, and broad update
+package-manager mutation remain outside that boundary. `remove` and `delete` now also accept `--with-orphans` to report
+dependency items that would become orphan cleanup candidates in advisory and dry-run modes, then remove dry-run-approved
+orphan dependency items in strict temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup`
+report block. Advisory and dry-run also report a separate no-write `dependencyCleanup` block that classifies package
+dependency cleanup candidates and dependencies still required by remaining installed items. Fixture evidence now covers
+the blocked path where a modified orphan item keeps dependencies still-required, suppresses dry-run dependency removals,
+and blocks strict cleanup atomically. Strict orphan cleanup remains opt-in. `--remove-dependencies` adds a second
+explicit strict gate that can remove no-longer-required package dependencies through the detected npm, pnpm, yarn, or bun
+command and clean stale Amino dependency records. Cleanup outside that explicit path, non-orphan support cleanup, and
+broad deletion policy remain deferred.
 
 ## Design Discussion Packet
 

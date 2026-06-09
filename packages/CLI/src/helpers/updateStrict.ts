@@ -14,15 +14,26 @@ import {
 import {
   createRegistryInstallPlan,
   createStrictInstalledFileContent,
+  dependencyInstallPlanSchema,
   INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_FINDING_SEVERITIES,
+  INSTALL_PLAN_FINDING__STRICT_UPDATE_DEPENDENCY_EXECUTION_FAILED,
   installPlanDependencySchema,
+  mergeStrictAddLockfileDependencies,
   readConsumerConfigForStrictAdd,
   readConsumerLockfileForStrictAdd,
   readLocalRegistrySource,
   type TInstallPlanFile,
   type TRegistryInstallPlan,
 } from "./installPlan"
+import {
+  DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED,
+  executeDependencyInstallCommands,
+  resolveDependencyInstallTarget,
+  type TDependencyInstallCommand,
+} from "./packageManagerHelpers"
 import {
   CLI_PROJECT_RESOURCE_STATUS__PRESENT,
   CLI_PROJECT_RESOURCE_STATUSES,
@@ -36,6 +47,7 @@ import {
 import {
   createUpdateAllDryRunReport,
   createUpdateDryRunReport,
+  type TCreateUpdateDryRunReportOptions,
   updateDryRunReportSchema,
   type TUpdateAllDryRunReport,
   type TUpdateDryRunFile,
@@ -126,12 +138,13 @@ export const updateStrictReportSchema = z
     blockers: z.array(updateStrictBlockerSchema).default([]),
     cwd: z.string().min(1),
     dependencies: z.array(installPlanDependencySchema).default([]),
+    dependencyInstallPlan: dependencyInstallPlanSchema.optional(),
     effects: z
       .object({
         dependencies: z
           .object({
-            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
-            updatedCount: z.literal(0),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
+            updatedCount: z.number().int().nonnegative(),
           })
           .strict(),
         files: z
@@ -145,7 +158,7 @@ export const updateStrictReportSchema = z
             writtenCount: z.number().int().nonnegative(),
           })
           .strict(),
-        installsDependencies: z.literal(false),
+        installsDependencies: z.boolean(),
         lockfile: z
           .object({
             plannedItem: z.string().min(1).optional(),
@@ -186,6 +199,7 @@ const updateAllStrictItemSchema = updateStrictReportSchema
     applied: true,
     blockers: true,
     dependencies: true,
+    dependencyInstallPlan: true,
     effects: true,
     files: true,
     findings: true,
@@ -248,7 +262,12 @@ export type TUpdateAllStrictReport = z.infer<typeof updateAllStrictReportSchema>
 
 export type TCreateUpdateStrictReportOptions = {
   cwd: string
+  dependencyPolicyOverride?: TCreateUpdateDryRunReportOptions["dependencyPolicyOverride"]
+  installDependencies?: boolean
   itemName: string
+  nonInteractive?: boolean
+  packageJsonPath?: string
+  packageManager?: TCreateUpdateDryRunReportOptions["packageManager"]
   registrySourcePath?: string
 }
 
@@ -260,6 +279,9 @@ export type TCreateUpdateAllStrictReportOptions = {
 type TUpdateStrictBlocker = z.infer<typeof updateStrictBlockerSchema>
 type TUpdateStrictFile = z.infer<typeof updateStrictFileSchema>
 type TUpdateAllStrictItem = z.infer<typeof updateAllStrictItemSchema>
+type TDependencyInstallFailedCommands = NonNullable<
+  TUpdateDryRunReport["dependencyInstallPlan"]
+>["executionPlan"]["failedCommands"]
 type TCreateUpdateStrictBlockerOptions = Omit<TUpdateStrictBlocker, "severity"> & {
   severity?: TUpdateStrictBlocker["severity"]
 }
@@ -506,9 +528,11 @@ const createFileActionBlockers = (dryRunReport: TUpdateDryRunReport) =>
 const createCurrentInstallPlan = async ({
   cwd,
   dryRunReport,
+  packageJsonPath,
 }: {
   cwd: string
   dryRunReport: TUpdateDryRunReport
+  packageJsonPath?: string
 }): Promise<{
   blockers: TUpdateStrictBlocker[]
   installPlan?: TRegistryInstallPlan
@@ -529,10 +553,15 @@ const createCurrentInstallPlan = async ({
 
   const configPlan = await readConsumerConfigForStrictAdd(cwd)
   const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+  const dependencyInstallTarget = resolveDependencyInstallTarget({
+    consumerRoot: cwd,
+    packageJsonPath,
+  })
   const { registrySource, sourceRoot } = await readLocalRegistrySource(dryRunReport.registrySource.path)
   const installPlan = createRegistryInstallPlan({
     config: configPlan.config,
     consumerRoot: cwd,
+    dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
     registrySource,
     requestedItems: [dryRunReport.itemName],
     sourceRoot,
@@ -829,10 +858,12 @@ const createStrictUpdatePreflight = async ({
   cwd,
   dryRunReport,
   lockfileData,
+  packageJsonPath,
 }: {
   cwd: string
   dryRunReport: TUpdateDryRunReport
   lockfileData: TConsumerLockfile
+  packageJsonPath?: string
 }): Promise<{
   blockers: TUpdateStrictBlocker[]
   currentPlan: TCurrentInstallPlan
@@ -840,6 +871,7 @@ const createStrictUpdatePreflight = async ({
   const currentPlan = await createCurrentInstallPlan({
     cwd,
     dryRunReport,
+    packageJsonPath,
   })
   const blockers = dedupeBlockers([
     ...createDryRunBlockers(dryRunReport),
@@ -932,12 +964,14 @@ const resolveUpToDateFiles = (files: readonly TUpdateDryRunFile[]) =>
 const writeStrictUpdateFilesAndLockfileData = async ({
   cwd,
   dryRunReport,
+  installedDependencies = [],
   installPlan,
   lockfileData,
   sourceRoot,
 }: {
   cwd: string
   dryRunReport: TUpdateDryRunReport
+  installedDependencies?: readonly TDependencyInstallCommand["dependencies"][number][]
   installPlan?: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
   sourceRoot?: string
@@ -1034,6 +1068,13 @@ const writeStrictUpdateFilesAndLockfileData = async ({
 
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
+    dependencies: installPlan
+      ? mergeStrictAddLockfileDependencies({
+          installedDependencies,
+          installPlan,
+          lockfileData,
+        })
+      : lockfileData.dependencies,
     items: {
       ...lockfileData.items,
       [dryRunReport.itemName]: {
@@ -1062,12 +1103,14 @@ const writeStrictUpdateFilesAndLockfileData = async ({
 const writeStrictUpdate = async ({
   cwd,
   dryRunReport,
+  installedDependencies,
   installPlan,
   lockfileData,
   sourceRoot,
 }: {
   cwd: string
   dryRunReport: TUpdateDryRunReport
+  installedDependencies?: readonly TDependencyInstallCommand["dependencies"][number][]
   installPlan?: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
   sourceRoot?: string
@@ -1075,6 +1118,7 @@ const writeStrictUpdate = async ({
   const result = await writeStrictUpdateFilesAndLockfileData({
     cwd,
     dryRunReport,
+    installedDependencies,
     installPlan,
     lockfileData,
     sourceRoot,
@@ -1094,11 +1138,15 @@ const createUpdateStrictEffects = ({
   blocked,
   dryRunReport,
   files,
+  installedDependencyCount = 0,
+  packageManagerWrites = false,
 }: {
   applied: boolean
   blocked: boolean
   dryRunReport: TUpdateDryRunReport
   files: readonly TUpdateStrictFile[]
+  installedDependencyCount?: number
+  packageManagerWrites?: boolean
 }) => {
   const writtenCount = files.filter((file) => file.sourceFileWritten).length
   const lockfileRecordUpdatedCount = files.filter((file) => file.lockfileRecordUpdated).length
@@ -1108,8 +1156,8 @@ const createUpdateStrictEffects = ({
 
   return {
     dependencies: {
-      status: CLI_WRITE_STATUS__NOT_WRITTEN,
-      updatedCount: 0,
+      status: packageManagerWrites ? CLI_WRITE_STATUS__WRITTEN : CLI_WRITE_STATUS__NOT_WRITTEN,
+      updatedCount: installedDependencyCount,
     },
     files: {
       blockedCount,
@@ -1120,7 +1168,7 @@ const createUpdateStrictEffects = ({
       unchangedCount,
       writtenCount,
     },
-    installsDependencies: false,
+    installsDependencies: packageManagerWrites,
     lockfile: {
       plannedItem: dryRunReport.files.length > 0 ? dryRunReport.itemName : undefined,
       status: applied ? CLI_WRITE_STATUS__WRITTEN : blocked ? CLI_WRITE_STATUS__BLOCKED : CLI_WRITE_STATUS__NOT_WRITTEN,
@@ -1288,26 +1336,160 @@ const createUpdateAllStrictReportFromItems = ({
     }),
   })
 
+const isDependencyResolutionBlocker = ({
+  blocker,
+  dryRunReport,
+}: {
+  blocker: TUpdateStrictBlocker
+  dryRunReport: TUpdateDryRunReport
+}) => {
+  if (blocker.kind === UPDATE_STRICT_BLOCKER_KIND__DEPENDENCY) return true
+  if (blocker.code === "strict-update-item-state-blocker" && dryRunReport.itemUpdateState === "blocked") {
+    return (
+      dryRunReport.blockers.length > 0 &&
+      dryRunReport.blockers.every((dryRunBlocker) => dryRunBlocker.kind === UPDATE_STRICT_BLOCKER_KIND__DEPENDENCY)
+    )
+  }
+  if (blocker.code !== "strict-update-file-action-blocker" || !blocker.path) return false
+
+  const dryRunFile = dryRunReport.files.find((file) => file.path === blocker.path)
+
+  return Boolean(
+    dryRunFile?.blockerCodes.length &&
+    dryRunFile.blockerCodes.every((blockerCode) => blockerCode === "update-dry-run-dependency-blocker"),
+  )
+}
+
+const hasOnlyDependencyStrictUpdateBlockers = ({
+  blockers,
+  dryRunReport,
+}: {
+  blockers: readonly TUpdateStrictBlocker[]
+  dryRunReport: TUpdateDryRunReport
+}) =>
+  blockers.length > 0 &&
+  blockers.every((blocker) =>
+    isDependencyResolutionBlocker({
+      blocker,
+      dryRunReport,
+    }),
+  )
+
+const getInstalledDependencies = (executedDependencyCommands: readonly TDependencyInstallCommand[]) =>
+  executedDependencyCommands.flatMap((command) => command.dependencies)
+
+const getDependencyPackageManagerWrites = ({
+  executedDependencyCommands,
+  failedDependencyCommands,
+}: {
+  executedDependencyCommands: readonly TDependencyInstallCommand[]
+  failedDependencyCommands: readonly TDependencyInstallFailedCommands[number][]
+}) => executedDependencyCommands.length > 0 || failedDependencyCommands.some((command) => command.packageManagerWrites)
+
+const createDependencyExecutionFailureBlocker = (failedCommand: TDependencyInstallFailedCommands[number]) =>
+  createUpdateStrictBlocker({
+    code: INSTALL_PLAN_FINDING__STRICT_UPDATE_DEPENDENCY_EXECUTION_FAILED,
+    kind: UPDATE_STRICT_BLOCKER_KIND__DEPENDENCY,
+    message: `Package-manager dependency install failed while running "${failedCommand.command}". No Amino source files or lockfile records were written.`,
+  })
+
 export const createUpdateStrictReport = async ({
   cwd,
+  dependencyPolicyOverride,
+  installDependencies,
   itemName,
+  nonInteractive,
+  packageJsonPath,
+  packageManager,
   registrySourcePath,
 }: TCreateUpdateStrictReportOptions): Promise<TUpdateStrictReport> => {
-  const dryRunReport = await createUpdateDryRunReport({
-    cwd,
-    itemName,
-    registrySourcePath,
+  const createStrictUpdatePlan = async ({
+    executedDependencyCommands = [],
+    failedDependencyCommands = [],
+    packageManagerExecution,
+    packageManagerWrites,
+  }: {
+    executedDependencyCommands?: readonly TDependencyInstallCommand[]
+    failedDependencyCommands?: TDependencyInstallFailedCommands
+    packageManagerExecution?: TCreateUpdateDryRunReportOptions["packageManagerExecution"]
+    packageManagerWrites?: boolean
+  } = {}) => {
+    const dryRunReport = await createUpdateDryRunReport({
+      cwd,
+      dependencyPolicyOverride,
+      executedDependencyCommands,
+      failedDependencyCommands,
+      installDependencies,
+      itemName,
+      nonInteractive,
+      packageJsonPath,
+      packageManager,
+      packageManagerExecution,
+      packageManagerWrites,
+      registrySourcePath,
+    })
+    const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+    const preflight = await createStrictUpdatePreflight({
+      cwd,
+      dryRunReport,
+      lockfileData: lockfilePlan.lockfileData,
+      packageJsonPath,
+    })
+    const blockers = dedupeBlockers([
+      ...lockfilePlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_STRICT_BLOCKER_KIND__PROJECT)),
+      ...preflight.blockers,
+    ])
+
+    return {
+      blockers,
+      dryRunReport,
+      lockfilePlan,
+      preflight,
+    }
+  }
+  let executedDependencyCommands: TDependencyInstallCommand[] = []
+  let failedDependencyCommands: TDependencyInstallFailedCommands = []
+  let { blockers, dryRunReport, lockfilePlan, preflight } = await createStrictUpdatePlan()
+
+  if (
+    hasOnlyDependencyStrictUpdateBlockers({
+      blockers,
+      dryRunReport,
+    }) &&
+    dryRunReport.summary.candidateFileCount > 0 &&
+    dryRunReport.dependencyInstallPlan?.executionPlan.mode === DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE
+  ) {
+    const dependencyExecutionResult = await executeDependencyInstallCommands({
+      commands: dryRunReport.dependencyInstallPlan.recommendedCommands,
+      consumerRoot: cwd,
+    })
+
+    executedDependencyCommands = dependencyExecutionResult.executedCommands
+    failedDependencyCommands = dependencyExecutionResult.failedCommands
+
+    const packageManagerWrites = getDependencyPackageManagerWrites({
+      executedDependencyCommands,
+      failedDependencyCommands,
+    })
+    ;({ blockers, dryRunReport, lockfilePlan, preflight } = await createStrictUpdatePlan({
+      executedDependencyCommands,
+      failedDependencyCommands,
+      packageManagerExecution:
+        failedDependencyCommands.length > 0
+          ? DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+          : DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+      packageManagerWrites,
+    }))
+
+    if (failedDependencyCommands.length > 0) {
+      blockers = dedupeBlockers([...blockers, createDependencyExecutionFailureBlocker(failedDependencyCommands[0])])
+    }
+  }
+  const packageManagerWrites = getDependencyPackageManagerWrites({
+    executedDependencyCommands,
+    failedDependencyCommands,
   })
-  const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
-  const preflight = await createStrictUpdatePreflight({
-    cwd,
-    dryRunReport,
-    lockfileData: lockfilePlan.lockfileData,
-  })
-  const blockers = dedupeBlockers([
-    ...lockfilePlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_STRICT_BLOCKER_KIND__PROJECT)),
-    ...preflight.blockers,
-  ])
+  const installedDependencies = getInstalledDependencies(executedDependencyCommands)
 
   if (blockers.length > 0) {
     const files = resolveBlockedFiles(dryRunReport.files)
@@ -1317,11 +1499,14 @@ export const createUpdateStrictReport = async ({
       blockers,
       cwd,
       dependencies: dryRunReport.dependencies,
+      dependencyInstallPlan: dryRunReport.dependencyInstallPlan,
       effects: createUpdateStrictEffects({
         applied: false,
         blocked: true,
         dryRunReport,
         files,
+        installedDependencyCount: installedDependencies.length,
+        packageManagerWrites,
       }),
       files,
       findings: [...dryRunReport.findings, ...blockers],
@@ -1344,11 +1529,14 @@ export const createUpdateStrictReport = async ({
       blockers: [],
       cwd,
       dependencies: dryRunReport.dependencies,
+      dependencyInstallPlan: dryRunReport.dependencyInstallPlan,
       effects: createUpdateStrictEffects({
         applied: false,
         blocked: false,
         dryRunReport,
         files,
+        installedDependencyCount: installedDependencies.length,
+        packageManagerWrites,
       }),
       files,
       findings: dryRunReport.findings,
@@ -1363,6 +1551,7 @@ export const createUpdateStrictReport = async ({
   const result = await writeStrictUpdate({
     cwd,
     dryRunReport,
+    installedDependencies,
     installPlan: preflight.currentPlan.installPlan,
     lockfileData: lockfilePlan.lockfileData,
     sourceRoot: preflight.currentPlan.sourceRoot,
@@ -1373,11 +1562,14 @@ export const createUpdateStrictReport = async ({
     blockers: [],
     cwd,
     dependencies: dryRunReport.dependencies,
+    dependencyInstallPlan: dryRunReport.dependencyInstallPlan,
     effects: createUpdateStrictEffects({
       applied: true,
       blocked: false,
       dryRunReport,
       files: result.files,
+      installedDependencyCount: installedDependencies.length,
+      packageManagerWrites,
     }),
     files: result.files,
     findings: dryRunReport.findings,
