@@ -152,7 +152,7 @@ const statusItemSchema = z
 type TStatusFile = z.infer<typeof statusFileSchema>
 type TStatusItem = z.infer<typeof statusItemSchema>
 
-const statusReportSchema = z
+export const statusReportSchema = z
   .object({
     config: z
       .object({
