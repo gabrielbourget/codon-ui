@@ -6,7 +6,7 @@ import path from "node:path"
 
 import { createUpdateAdvisoryReport, createUpdateAllAdvisoryReport } from "../helpers/updateAdvisory"
 import { createUpdateAllDryRunReport, createUpdateDryRunReport } from "../helpers/updateDryRun"
-import { createUpdateStrictReport } from "../helpers/updateStrict"
+import { createUpdateAllStrictReport, createUpdateStrictReport } from "../helpers/updateStrict"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -434,6 +434,148 @@ try {
   assert.equal(allDryRunItems.get("source-equals-local")?.summary.wouldUpdateLockfileFileCount, 1)
   assert.equal(allDryRunItems.get("dependency-blocked")?.summary.dependencyBlockerCount, 1)
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const allStrictBlockedReport = await createUpdateAllStrictReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+
+  assert.equal(allStrictBlockedReport.schemaVersion, 1)
+  assert.equal(allStrictBlockedReport.all, true)
+  assert.equal(allStrictBlockedReport.applied, false)
+  assert.equal(allStrictBlockedReport.summary.itemCount, 4)
+  assert.equal(allStrictBlockedReport.summary.itemStates.updated, 0)
+  assert.equal(allStrictBlockedReport.summary.itemStates.blocked, 4)
+  assert.equal(allStrictBlockedReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allStrictBlockedReport.summary.itemStates.unavailable, 0)
+  assert.equal(allStrictBlockedReport.effects.writesFiles, false)
+  assert.equal(allStrictBlockedReport.effects.writesLockfile, false)
+  assert.equal(allStrictBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(allStrictBlockedReport.effects.lockfile.updatedFileRecordCount, 0)
+  assert.equal(allStrictBlockedReport.effects.lockfile.updatedItemCount, 0)
+  assert.equal(allStrictBlockedReport.effects.files.writtenCount, 0)
+  assert.equal(allStrictBlockedReport.effects.files.lockfileRecordUpdatedCount, 0)
+  assert(
+    allStrictBlockedReport.blockers.some((blocker) => blocker.code === "strict-update-dry-run-blocker"),
+    "expected strict update all dry-run blocker",
+  )
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const strictAllSuccessRoot = path.join(temporaryRoot, "strict-all-success")
+  const strictAllSuccessConsumerRoot = path.join(strictAllSuccessRoot, "consumer")
+  const strictAllSuccessRegistrySourcePath = path.join(strictAllSuccessRoot, "registry.json")
+  const strictAllSourceOnlyInstalled = "export const allSourceOnly = 'installed'\n"
+  const strictAllSourceOnlyCurrent = "export const allSourceOnly = 'registry'\n"
+  const strictAllSourceEqualsLocalPrevious = "export const allSourceEqualsLocal = 'previous'\n"
+  const strictAllSourceEqualsLocalCurrent = "export const allSourceEqualsLocal = 'registry'\n"
+
+  writeText(path.join(strictAllSuccessRoot, "source/source-only.ts"), strictAllSourceOnlyCurrent)
+  writeText(path.join(strictAllSuccessRoot, "source/source-equals-local.ts"), strictAllSourceEqualsLocalCurrent)
+  writeText(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-only.ts"), strictAllSourceOnlyInstalled)
+  writeText(
+    path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-equals-local.ts"),
+    strictAllSourceEqualsLocalCurrent,
+  )
+  writeJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(strictAllSuccessRegistrySourcePath, {
+    items: [
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/source-only.ts",
+            targetPath: "Diff/source-only.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "source-only",
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/source-equals-local.ts",
+            targetPath: "Diff/source-equals-local.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourcePackage: "@amino-ui/react",
+        type: "component",
+      },
+    ],
+    schemaVersion: 1,
+    sourceIdentity: "@amino-ui/test-registry",
+    sourceRoot: ".",
+  })
+  writeJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json"), {
+    configFile: "amino-ui.config.json",
+    items: {
+      "source-only": {
+        files: [
+          {
+            installedHash: createContentHash(strictAllSourceOnlyInstalled),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/source-only.ts",
+            sourceHash: createContentHash(strictAllSourceOnlyInstalled),
+            targetRole: "components",
+          },
+        ],
+        name: "source-only",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "source-equals-local": {
+        files: [
+          {
+            installedHash: createContentHash(strictAllSourceEqualsLocalCurrent),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/source-equals-local.ts",
+            sourceHash: createContentHash(strictAllSourceEqualsLocalPrevious),
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+    },
+    lockfileVersion: 1,
+  })
+
+  const allStrictSuccessReport = await createUpdateAllStrictReport({
+    cwd: strictAllSuccessConsumerRoot,
+    registrySourcePath: strictAllSuccessRegistrySourcePath,
+  })
+
+  assert.equal(allStrictSuccessReport.applied, true)
+  assert.equal(allStrictSuccessReport.summary.itemCount, 2)
+  assert.equal(allStrictSuccessReport.summary.itemStates.updated, 2)
+  assert.equal(allStrictSuccessReport.summary.itemStates.blocked, 0)
+  assert.equal(allStrictSuccessReport.effects.writesFiles, true)
+  assert.equal(allStrictSuccessReport.effects.writesLockfile, true)
+  assert.equal(allStrictSuccessReport.effects.files.writtenCount, 1)
+  assert.equal(allStrictSuccessReport.effects.files.lockfileRecordUpdatedCount, 2)
+  assert.equal(allStrictSuccessReport.effects.lockfile.status, "written")
+  assert.equal(allStrictSuccessReport.effects.lockfile.updatedFileRecordCount, 2)
+  assert.equal(allStrictSuccessReport.effects.lockfile.updatedItemCount, 2)
+  assert.equal(
+    readFileSync(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-only.ts"), "utf8"),
+    strictAllSourceOnlyCurrent,
+  )
+  assert.equal(
+    readFileSync(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-equals-local.ts"), "utf8"),
+    strictAllSourceEqualsLocalCurrent,
+  )
+  assert.equal(
+    readJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].sourceHash,
+    createContentHash(strictAllSourceOnlyCurrent),
+  )
+  assert.equal(
+    readJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json")).items["source-equals-local"].files[0]
+      .sourceHash,
+    createContentHash(strictAllSourceEqualsLocalCurrent),
+  )
 
   const missingReport = await createUpdateAdvisoryReport({
     cwd: consumerRoot,

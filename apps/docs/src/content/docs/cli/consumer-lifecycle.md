@@ -59,7 +59,7 @@ Default `registry-contained` paths are:
 | `--advisory`  | No            | Non-blocking diagnostics and install planning. Expected findings do not fail the run.                                                                    |
 | `--dry-run`   | No            | Preview an intended mutation, including blockers, dependency counts, and lockfile shape.                                                                 |
 | Strict add    | Yes           | Write a single local React registry component graph when blockers are absent or approved dependency installs succeed.                                    |
-| Strict update | Yes           | Write only dry-run-approved source files and lockfile records.                                                                                           |
+| Strict update | Yes           | Write only dry-run-approved source files and lockfile records for an item or an all-safe broad update.                                                   |
 | Strict remove | Yes           | Delete only dry-run-approved registry-owned component files and lockfile records; explicit orphan cleanup can also remove eligible package dependencies. |
 | Strict eject  | Yes           | Write only dry-run-approved lockfile ownership records; source files stay untouched.                                                                     |
 
@@ -337,7 +337,7 @@ Current fixture evidence proves clean installed update advisory, locally modifie
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
 stale source-hash classification.
 
-## Update All Advisory And Dry Run
+## Update All Advisory, Dry Run, And Strict
 
 `update --all --advisory --json` summarizes update posture for every installed item without writing:
 
@@ -351,16 +351,23 @@ aui update --all --advisory --json --cwd <consumer-project>
 aui update --all --dry-run --json --cwd <consumer-project>
 ```
 
+`update --all --json` applies broad strict updates only when every installed item passes the same dry-run and final
+preflight gate:
+
+```sh
+aui update --all --json --cwd <consumer-project>
+```
+
 It starts from `status --json` to enumerate the installed lockfile item set, then runs the same item-scoped
 `update <item> --advisory --json` or `update <item> --dry-run --json` classification for each item. These broad reports
-do not compute strict write ordering, merge strategy, package-manager changes, or partial-failure behavior.
+do not compute merge strategy, package-manager changes, or runtime rollback behavior.
 
 The JSON report includes:
 
 | Field            | Meaning                                                                                                                       |
 | ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `all`            | Always `true` for the broad advisory report.                                                                                  |
-| `items`          | Per-installed-item advisory reports with `itemName`, `itemUpdateState`, files, findings, dependencies, and summary counts.    |
+| `all`            | Always `true` for broad advisory, dry-run, and strict reports.                                                                |
+| `items`          | Per-installed-item reports with `itemName`, `itemUpdateState`, files, findings, dependencies, and summary counts.             |
 | `dependencies`   | Current lockfile dependency decisions counted once at the top level.                                                          |
 | `effects`        | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                                   |
 | `summary`        | Aggregate item states, candidate files, automatic blockers, preservation requirements, source changes, and dependency states. |
@@ -373,11 +380,23 @@ selection set.
 
 The dry-run report uses `summary.itemStates` values from item-scoped dry-run: `up-to-date`, `would-update`, `blocked`, and
 `unavailable`. It also aggregates file `wouldEffects`, lockfile `wouldEffects`, blockers, dependency posture, skipped
-files, blocked files, source-file write previews, and lockfile-only refresh previews. Strict `update --all` remains
-unsupported.
+files, blocked files, source-file write previews, and lockfile-only refresh previews.
+
+Strict `update --all --json` starts by building the same broad dry-run report. If any installed item is blocked,
+unavailable, dependency-blocked, source-blocked, preservation-sensitive, locally stale, missing from the lockfile, or
+planning a duplicate actionable target path with another item, the whole command exits nonzero and writes nothing. Safe
+`would-update` items do not partially apply when another item blocks the run.
+
+When no blockers exist, strict `update --all --json` applies every `would-write` source update and every
+`would-update-lockfile` hash refresh, then writes `amino-ui.lock.json` once after the item write pass. If every installed
+item is already up to date, it returns an exit-0 no-op report. It does not install dependencies, merge local edits,
+update unknown/support/ejected ownership, mutate package manifests, touch package-manager lockfiles, or roll back runtime
+write failures.
 
 Current fixture evidence proves Wavemap-like broad update advisory output, complete installed-item enumeration, aggregate
-candidate/blocker counts, no source/config/lockfile/package-manager mutation, and preservation of local adapter files.
+candidate/blocker counts, no source/config/lockfile/package-manager mutation in advisory and dry-run modes, atomic
+blocked strict-all output for mixed unsafe items, strict-all no-op output for mature Wavemap-like installs, strict-all
+source-file and lockfile writes for an update candidate, and preservation of local adapter files.
 
 ## Update Dry Run
 
@@ -454,11 +473,16 @@ The command is item-atomic. If any file in the item is locally modified, missing
 ejected, dependency-blocked, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates
 remain untouched and the lockfile is not written. Up-to-date items return an exit-0 no-op report. Strict update does not
 merge local edits, install or update dependencies, mutate package manifests, touch package-manager lockfiles, update
-support/orphan policy, or run strict `update --all`.
+support/orphan policy, or roll back runtime write failures.
+
+Strict `update --all --json` extends the same gate across every installed lockfile item. It is all-or-blocked at the
+planned safety boundary: a blocker on any item prevents source and lockfile writes for the whole run, while an all-safe
+run can apply source-file writes and lockfile-only refreshes across multiple installed items.
 
 Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
 lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
-consumer-owned support blocking, ejected blocking, and missing dependency blocking.
+consumer-owned support blocking, ejected blocking, missing dependency blocking, broad strict-all blocking, broad
+strict-all no-op behavior, and broad strict-all update-candidate writes.
 
 ## Remove Advisory
 
@@ -796,11 +820,11 @@ dependency non-mutation.
 
 ## Deferred Lifecycle Commands
 
-Strict update, strict remove, strict remove/delete orphan cleanup, and strict eject now exist only inside the
-dry-run-approved registry-owned boundaries above. Dependency cleanup outside explicit strict
-`remove`/`delete --with-orphans --remove-dependencies`, update-all beyond read-only advisory/dry-run reporting, strict
-update beyond item-scoped source writes and lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and
-any broader deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
+Strict update, strict update-all, strict remove, strict remove/delete orphan cleanup, and strict eject now exist only
+inside the dry-run-approved registry-owned boundaries above. Dependency cleanup outside explicit strict
+`remove`/`delete --with-orphans --remove-dependencies`, update rollback or merge behavior, strict eject beyond
+lockfile-only ownership transfer, and any broader deletion policy remain deferred until dry-run evidence is broader and
+intentionally approved.
 
-Generated token writers, broad strict update execution, merge behavior, broader ejection policy, public registry
-hosting, package publication, and Waveguide validation remain deferred until explicitly approved.
+Generated token writers, broad update rollback, merge behavior, broader ejection policy, public registry hosting, package
+publication, and Waveguide validation remain deferred until explicitly approved.

@@ -33,7 +33,14 @@ import {
   CLI_WRITE_STATUS__WOULD_WRITE,
   CLI_WRITE_STATUS__WRITTEN,
 } from "./reportConstants"
-import { createUpdateDryRunReport, type TUpdateDryRunFile, type TUpdateDryRunReport } from "./updateDryRun"
+import {
+  createUpdateAllDryRunReport,
+  createUpdateDryRunReport,
+  updateDryRunReportSchema,
+  type TUpdateAllDryRunReport,
+  type TUpdateDryRunFile,
+  type TUpdateDryRunReport,
+} from "./updateDryRun"
 
 const UPDATE_STRICT_SCHEMA_VERSION = 1
 
@@ -174,7 +181,70 @@ export const updateStrictReportSchema = z
   })
   .strict()
 
+const updateAllStrictItemSchema = updateStrictReportSchema
+  .pick({
+    applied: true,
+    blockers: true,
+    dependencies: true,
+    effects: true,
+    files: true,
+    findings: true,
+    itemName: true,
+    itemUpdateState: true,
+  })
+  .strict()
+
+export const updateAllStrictReportSchema = z
+  .object({
+    all: z.literal(true),
+    applied: z.boolean(),
+    blockers: z.array(updateStrictBlockerSchema).default([]),
+    cwd: z.string().min(1),
+    dependencies: z.array(installPlanDependencySchema).default([]),
+    effects: z
+      .object({
+        dependencies: updateStrictReportSchema.shape.effects.shape.dependencies,
+        files: updateStrictReportSchema.shape.effects.shape.files,
+        installsDependencies: z.literal(false),
+        lockfile: z
+          .object({
+            plannedItemCount: z.number().int().nonnegative(),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
+            updatedFileRecordCount: z.number().int().nonnegative(),
+            updatedItemCount: z.number().int().nonnegative(),
+          })
+          .strict(),
+        writesConfig: z.literal(false),
+        writesFiles: z.boolean(),
+        writesLockfile: z.boolean(),
+      })
+      .strict(),
+    findings: z.array(updateStrictFindingSchema).default([]),
+    items: z.array(updateAllStrictItemSchema).default([]),
+    lockfileData: consumerLockfileSchema,
+    registrySource: updateStrictReportSchema.shape.registrySource,
+    schemaVersion: z.literal(UPDATE_STRICT_SCHEMA_VERSION).default(UPDATE_STRICT_SCHEMA_VERSION),
+    status: updateStrictReportSchema.shape.status,
+    summary: z
+      .object({
+        blockedFileCount: z.number().int().nonnegative(),
+        blockerCount: z.number().int().nonnegative(),
+        fileCount: z.number().int().nonnegative(),
+        itemCount: z.number().int().nonnegative(),
+        itemStates: z.record(z.enum(UPDATE_STRICT_ITEM_STATES), z.number().int().nonnegative()),
+        lockfileRecordUpdatedCount: z.number().int().nonnegative(),
+        plannedLockfileRecordUpdateCount: z.number().int().nonnegative(),
+        plannedWriteCount: z.number().int().nonnegative(),
+        skippedFileCount: z.number().int().nonnegative(),
+        unchangedFileCount: z.number().int().nonnegative(),
+        writtenFileCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict()
+
 export type TUpdateStrictReport = z.infer<typeof updateStrictReportSchema>
+export type TUpdateAllStrictReport = z.infer<typeof updateAllStrictReportSchema>
 
 export type TCreateUpdateStrictReportOptions = {
   cwd: string
@@ -182,14 +252,24 @@ export type TCreateUpdateStrictReportOptions = {
   registrySourcePath?: string
 }
 
+export type TCreateUpdateAllStrictReportOptions = {
+  cwd: string
+  registrySourcePath?: string
+}
+
 type TUpdateStrictBlocker = z.infer<typeof updateStrictBlockerSchema>
 type TUpdateStrictFile = z.infer<typeof updateStrictFileSchema>
+type TUpdateAllStrictItem = z.infer<typeof updateAllStrictItemSchema>
 type TCreateUpdateStrictBlockerOptions = Omit<TUpdateStrictBlocker, "severity"> & {
   severity?: TUpdateStrictBlocker["severity"]
 }
+type TCurrentInstallPlan = Awaited<ReturnType<typeof createCurrentInstallPlan>>
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
+
+const createEmptyRecord = <TKey extends string>(keys: readonly TKey[]): Record<TKey, number> =>
+  Object.fromEntries(keys.map((key) => [key, 0])) as Record<TKey, number>
 
 const createUpdateStrictBlocker = ({
   code,
@@ -709,6 +789,111 @@ const dedupeBlockers = (blockers: readonly TUpdateStrictBlocker[]) => {
   return [...dedupedBlockers.values()]
 }
 
+const dedupeStrictFindings = (findings: readonly z.infer<typeof updateStrictFindingSchema>[]) => {
+  const dedupedFindings = new Map<string, z.infer<typeof updateStrictFindingSchema>>()
+
+  findings.forEach((finding) => {
+    dedupedFindings.set(
+      [finding.code, finding.itemName, finding.path, finding.sourcePath, finding.targetPath].join(":"),
+      finding,
+    )
+  })
+
+  return [...dedupedFindings.values()]
+}
+
+const createItemDryRunReportFromUpdateAll = ({
+  allDryRunReport,
+  itemReport,
+}: {
+  allDryRunReport: TUpdateAllDryRunReport
+  itemReport: TUpdateAllDryRunReport["items"][number]
+}) =>
+  updateDryRunReportSchema.parse({
+    blockers: itemReport.blockers,
+    cwd: allDryRunReport.cwd,
+    dependencies: itemReport.dependencies,
+    dryRun: true,
+    effects: allDryRunReport.effects,
+    files: itemReport.files,
+    findings: itemReport.findings,
+    itemName: itemReport.itemName,
+    itemUpdateState: itemReport.itemUpdateState,
+    registrySource: allDryRunReport.registrySource,
+    status: allDryRunReport.status,
+    summary: itemReport.summary,
+    wouldEffects: itemReport.wouldEffects,
+  })
+
+const createStrictUpdatePreflight = async ({
+  cwd,
+  dryRunReport,
+  lockfileData,
+}: {
+  cwd: string
+  dryRunReport: TUpdateDryRunReport
+  lockfileData: TConsumerLockfile
+}): Promise<{
+  blockers: TUpdateStrictBlocker[]
+  currentPlan: TCurrentInstallPlan
+}> => {
+  const currentPlan = await createCurrentInstallPlan({
+    cwd,
+    dryRunReport,
+  })
+  const blockers = dedupeBlockers([
+    ...createDryRunBlockers(dryRunReport),
+    ...createProjectStateBlockers(dryRunReport),
+    ...createLockfileBlockers({
+      dryRunReport,
+      lockfileData,
+    }),
+    ...createFileActionBlockers(dryRunReport),
+    ...currentPlan.blockers,
+    ...(await createFileBlockers({
+      cwd,
+      dryRunReport,
+      installPlan: currentPlan.installPlan,
+      sourceRoot: currentPlan.sourceRoot,
+    })),
+  ])
+
+  return {
+    blockers,
+    currentPlan,
+  }
+}
+
+const createDuplicateActionablePathBlockers = (dryRunReports: readonly TUpdateDryRunReport[]) => {
+  const filesByPath = new Map<string, TUpdateDryRunFile[]>()
+
+  dryRunReports.forEach((dryRunReport) => {
+    dryRunReport.files.forEach((file) => {
+      if (file.dryRunAction !== "would-write" && file.dryRunAction !== "would-update-lockfile") return
+
+      filesByPath.set(file.path, [...(filesByPath.get(file.path) ?? []), file])
+    })
+  })
+
+  return [...filesByPath.entries()].flatMap(([filePath, files]) => {
+    const itemNames = [...new Set(files.map((file) => file.itemName))]
+
+    if (itemNames.length <= 1) return []
+
+    return files.map((file) =>
+      createUpdateStrictBlocker({
+        code: "strict-update-all-duplicate-file-path",
+        itemName: file.itemName,
+        kind: UPDATE_STRICT_BLOCKER_KIND__FILE,
+        message: `Strict update --all cannot apply ${filePath} because multiple items plan to update the same target path: ${itemNames.join(", ")}.`,
+        path: file.path,
+        sourcePath: file.sourcePath,
+        targetPath: file.path,
+      }),
+    )
+  })
+}
+
 const resolveBlockedFiles = (files: readonly TUpdateDryRunFile[]) =>
   files.map((file) =>
     updateStrictFileSchema.parse({
@@ -744,7 +929,7 @@ const resolveUpToDateFiles = (files: readonly TUpdateDryRunFile[]) =>
     }),
   )
 
-const writeStrictUpdate = async ({
+const writeStrictUpdateFilesAndLockfileData = async ({
   cwd,
   dryRunReport,
   installPlan,
@@ -868,12 +1053,40 @@ const writeStrictUpdate = async ({
     },
   })
 
-  await fs.writeFile(path.join(cwd, AMINO_UI_LOCK_FILE_NAME), `${JSON.stringify(nextLockfileData, null, 2)}\n`, "utf8")
-
   return {
     files,
     lockfileData: nextLockfileData,
   }
+}
+
+const writeStrictUpdate = async ({
+  cwd,
+  dryRunReport,
+  installPlan,
+  lockfileData,
+  sourceRoot,
+}: {
+  cwd: string
+  dryRunReport: TUpdateDryRunReport
+  installPlan?: TRegistryInstallPlan
+  lockfileData: TConsumerLockfile
+  sourceRoot?: string
+}) => {
+  const result = await writeStrictUpdateFilesAndLockfileData({
+    cwd,
+    dryRunReport,
+    installPlan,
+    lockfileData,
+    sourceRoot,
+  })
+
+  await fs.writeFile(
+    path.join(cwd, AMINO_UI_LOCK_FILE_NAME),
+    `${JSON.stringify(result.lockfileData, null, 2)}\n`,
+    "utf8",
+  )
+
+  return result
 }
 
 const createUpdateStrictEffects = ({
@@ -928,6 +1141,153 @@ const resolveItemUpdateState = ({ applied, dryRunReport }: { applied: boolean; d
   return UPDATE_STRICT_ITEM_STATE__BLOCKED
 }
 
+const createUpdateAllStrictItemReport = ({
+  applied,
+  blocked,
+  blockers,
+  dryRunReport,
+  files,
+}: {
+  applied: boolean
+  blocked: boolean
+  blockers: readonly TUpdateStrictBlocker[]
+  dryRunReport: TUpdateDryRunReport
+  files: readonly TUpdateStrictFile[]
+}) =>
+  updateAllStrictItemSchema.parse({
+    applied,
+    blockers,
+    dependencies: dryRunReport.dependencies,
+    effects: createUpdateStrictEffects({
+      applied,
+      blocked,
+      dryRunReport,
+      files,
+    }),
+    files,
+    findings: dedupeStrictFindings([...dryRunReport.findings, ...blockers]),
+    itemName: dryRunReport.itemName,
+    itemUpdateState: resolveItemUpdateState({
+      applied,
+      dryRunReport,
+    }),
+  })
+
+const createUpdateAllStrictEffects = ({
+  applied,
+  blocked,
+  dryRunReport,
+  items,
+}: {
+  applied: boolean
+  blocked: boolean
+  dryRunReport: TUpdateAllDryRunReport
+  items: readonly TUpdateAllStrictItem[]
+}) => {
+  const files = items.flatMap((item) => item.files)
+  const blockedCount = files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__BLOCKED).length
+  const lockfileRecordUpdatedCount = files.filter((file) => file.lockfileRecordUpdated).length
+  const skippedCount = files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__SKIPPED).length
+  const unchangedCount = files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__NONE).length
+  const writtenCount = files.filter((file) => file.sourceFileWritten).length
+
+  return {
+    dependencies: {
+      status: CLI_WRITE_STATUS__NOT_WRITTEN,
+      updatedCount: 0,
+    },
+    files: {
+      blockedCount,
+      lockfileRecordUpdatedCount,
+      plannedLockfileRecordUpdateCount: dryRunReport.summary.wouldUpdateLockfileFileCount,
+      plannedWriteCount: dryRunReport.summary.wouldWriteFileCount,
+      skippedCount,
+      unchangedCount,
+      writtenCount,
+    },
+    installsDependencies: false,
+    lockfile: {
+      plannedItemCount: dryRunReport.items.filter((item) => item.itemUpdateState === "would-update").length,
+      status: applied ? CLI_WRITE_STATUS__WRITTEN : blocked ? CLI_WRITE_STATUS__BLOCKED : CLI_WRITE_STATUS__NOT_WRITTEN,
+      updatedFileRecordCount: lockfileRecordUpdatedCount,
+      updatedItemCount: items.filter((item) => item.applied).length,
+    },
+    writesConfig: false,
+    writesFiles: writtenCount > 0,
+    writesLockfile: applied,
+  } as const
+}
+
+const createUpdateAllStrictSummary = ({
+  blockers,
+  items,
+}: {
+  blockers: readonly TUpdateStrictBlocker[]
+  items: readonly TUpdateAllStrictItem[]
+}) => {
+  const files = items.flatMap((item) => item.files)
+  const itemStates = createEmptyRecord(UPDATE_STRICT_ITEM_STATES)
+
+  items.forEach((item) => {
+    itemStates[item.itemUpdateState] += 1
+  })
+
+  return {
+    blockedFileCount: files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__BLOCKED).length,
+    blockerCount: blockers.length,
+    fileCount: files.length,
+    itemCount: items.length,
+    itemStates,
+    lockfileRecordUpdatedCount: files.filter((file) => file.lockfileRecordUpdated).length,
+    plannedLockfileRecordUpdateCount: items.reduce(
+      (total, item) => total + item.effects.files.plannedLockfileRecordUpdateCount,
+      0,
+    ),
+    plannedWriteCount: items.reduce((total, item) => total + item.effects.files.plannedWriteCount, 0),
+    skippedFileCount: files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__SKIPPED).length,
+    unchangedFileCount: files.filter((file) => file.strictAction === UPDATE_STRICT_FILE_ACTION__NONE).length,
+    writtenFileCount: files.filter((file) => file.sourceFileWritten).length,
+  }
+}
+
+const createUpdateAllStrictReportFromItems = ({
+  allDryRunReport,
+  applied,
+  blocked,
+  blockers,
+  items,
+  lockfileData,
+}: {
+  allDryRunReport: TUpdateAllDryRunReport
+  applied: boolean
+  blocked: boolean
+  blockers: readonly TUpdateStrictBlocker[]
+  items: readonly TUpdateAllStrictItem[]
+  lockfileData: TConsumerLockfile
+}) =>
+  updateAllStrictReportSchema.parse({
+    all: true,
+    applied,
+    blockers,
+    cwd: allDryRunReport.cwd,
+    dependencies: allDryRunReport.dependencies,
+    effects: createUpdateAllStrictEffects({
+      applied,
+      blocked,
+      dryRunReport: allDryRunReport,
+      items,
+    }),
+    findings: dedupeStrictFindings([...allDryRunReport.findings, ...blockers]),
+    items,
+    lockfileData,
+    registrySource: allDryRunReport.registrySource,
+    status: allDryRunReport.status,
+    summary: createUpdateAllStrictSummary({
+      blockers,
+      items,
+    }),
+  })
+
 export const createUpdateStrictReport = async ({
   cwd,
   itemName,
@@ -939,26 +1299,14 @@ export const createUpdateStrictReport = async ({
     registrySourcePath,
   })
   const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
-  const currentPlan = await createCurrentInstallPlan({
+  const preflight = await createStrictUpdatePreflight({
     cwd,
     dryRunReport,
+    lockfileData: lockfilePlan.lockfileData,
   })
   const blockers = dedupeBlockers([
     ...lockfilePlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_STRICT_BLOCKER_KIND__PROJECT)),
-    ...createDryRunBlockers(dryRunReport),
-    ...createProjectStateBlockers(dryRunReport),
-    ...createLockfileBlockers({
-      dryRunReport,
-      lockfileData: lockfilePlan.lockfileData,
-    }),
-    ...createFileActionBlockers(dryRunReport),
-    ...currentPlan.blockers,
-    ...(await createFileBlockers({
-      cwd,
-      dryRunReport,
-      installPlan: currentPlan.installPlan,
-      sourceRoot: currentPlan.sourceRoot,
-    })),
+    ...preflight.blockers,
   ])
 
   if (blockers.length > 0) {
@@ -1015,9 +1363,9 @@ export const createUpdateStrictReport = async ({
   const result = await writeStrictUpdate({
     cwd,
     dryRunReport,
-    installPlan: currentPlan.installPlan,
+    installPlan: preflight.currentPlan.installPlan,
     lockfileData: lockfilePlan.lockfileData,
-    sourceRoot: currentPlan.sourceRoot,
+    sourceRoot: preflight.currentPlan.sourceRoot,
   })
 
   return updateStrictReportSchema.parse({
@@ -1041,5 +1389,134 @@ export const createUpdateStrictReport = async ({
     lockfileData: result.lockfileData,
     registrySource: dryRunReport.registrySource,
     status: dryRunReport.status,
+  })
+}
+
+export const createUpdateAllStrictReport = async ({
+  cwd,
+  registrySourcePath,
+}: TCreateUpdateAllStrictReportOptions): Promise<TUpdateAllStrictReport> => {
+  const allDryRunReport = await createUpdateAllDryRunReport({
+    cwd,
+    registrySourcePath,
+  })
+  const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
+  const dryRunReports = allDryRunReport.items.map((itemReport) =>
+    createItemDryRunReportFromUpdateAll({
+      allDryRunReport,
+      itemReport,
+    }),
+  )
+  const preflights = await Promise.all(
+    dryRunReports.map((dryRunReport) =>
+      createStrictUpdatePreflight({
+        cwd,
+        dryRunReport,
+        lockfileData: lockfilePlan.lockfileData,
+      }),
+    ),
+  )
+  const duplicatePathBlockers = createDuplicateActionablePathBlockers(dryRunReports)
+  const duplicatePathBlockersByItemName = new Map<string, TUpdateStrictBlocker[]>()
+
+  duplicatePathBlockers.forEach((blocker) => {
+    if (!blocker.itemName) return
+
+    duplicatePathBlockersByItemName.set(blocker.itemName, [
+      ...(duplicatePathBlockersByItemName.get(blocker.itemName) ?? []),
+      blocker,
+    ])
+  })
+
+  const blockers = dedupeBlockers([
+    ...lockfilePlan.findings.map((finding) => convertFindingToBlocker(finding, UPDATE_STRICT_BLOCKER_KIND__PROJECT)),
+    ...preflights.flatMap((preflight) => preflight.blockers),
+    ...duplicatePathBlockers,
+  ])
+
+  if (blockers.length > 0) {
+    const items = dryRunReports.map((dryRunReport, index) => {
+      const itemBlockers = dedupeBlockers([
+        ...preflights[index].blockers,
+        ...(duplicatePathBlockersByItemName.get(dryRunReport.itemName) ?? []),
+      ])
+      const files =
+        dryRunReport.itemUpdateState === "up-to-date"
+          ? resolveUpToDateFiles(dryRunReport.files)
+          : resolveBlockedFiles(dryRunReport.files)
+
+      return createUpdateAllStrictItemReport({
+        applied: false,
+        blocked: dryRunReport.itemUpdateState !== "up-to-date",
+        blockers: itemBlockers,
+        dryRunReport,
+        files,
+      })
+    })
+
+    return createUpdateAllStrictReportFromItems({
+      allDryRunReport,
+      applied: false,
+      blocked: true,
+      blockers,
+      items,
+      lockfileData: lockfilePlan.lockfileData,
+    })
+  }
+
+  let nextLockfileData = lockfilePlan.lockfileData
+  const items: TUpdateAllStrictItem[] = []
+
+  for (const [index, dryRunReport] of dryRunReports.entries()) {
+    if (dryRunReport.itemUpdateState === "up-to-date") {
+      items.push(
+        createUpdateAllStrictItemReport({
+          applied: false,
+          blocked: false,
+          blockers: [],
+          dryRunReport,
+          files: resolveUpToDateFiles(dryRunReport.files),
+        }),
+      )
+      continue
+    }
+
+    const result = await writeStrictUpdateFilesAndLockfileData({
+      cwd,
+      dryRunReport,
+      installPlan: preflights[index].currentPlan.installPlan,
+      lockfileData: nextLockfileData,
+      sourceRoot: preflights[index].currentPlan.sourceRoot,
+    })
+
+    nextLockfileData = result.lockfileData
+    items.push(
+      createUpdateAllStrictItemReport({
+        applied: true,
+        blocked: false,
+        blockers: [],
+        dryRunReport,
+        files: result.files,
+      }),
+    )
+  }
+
+  const applied = items.some((item) => item.applied)
+
+  if (applied) {
+    await fs.writeFile(
+      path.join(cwd, AMINO_UI_LOCK_FILE_NAME),
+      `${JSON.stringify(nextLockfileData, null, 2)}\n`,
+      "utf8",
+    )
+  }
+
+  return createUpdateAllStrictReportFromItems({
+    allDryRunReport,
+    applied,
+    blocked: false,
+    blockers: [],
+    items,
+    lockfileData: nextLockfileData,
   })
 }

@@ -8,6 +8,7 @@ import { z } from "zod"
 import {
   createUpdateAllAdvisoryReport,
   createUpdateAllDryRunReport,
+  createUpdateAllStrictReport,
   createUpdateAdvisoryReport,
   createUpdateDryRunReport,
   createUpdateStrictReport,
@@ -55,12 +56,7 @@ export const update = new Command()
       }
 
       if (!options.all && !options.itemName) {
-        logger.error("Please provide an item to update, or use --all with --advisory or --dry-run.")
-        process.exit(1)
-      }
-
-      if (options.all && !options.advisory && !options.dryRun) {
-        logger.error("update --all currently supports --advisory or --dry-run only.")
+        logger.error("Please provide an item to update, or use --all.")
         process.exit(1)
       }
 
@@ -102,6 +98,57 @@ export const update = new Command()
           return
         }
 
+        if (!options.advisory) {
+          const updateAllStrictReport = await createUpdateAllStrictReport({
+            cwd,
+            registrySourcePath: options.registrySource,
+          })
+          const blockedItemCount = updateAllStrictReport.summary.itemStates.blocked ?? 0
+          const unavailableItemCount = updateAllStrictReport.summary.itemStates.unavailable ?? 0
+          const isBlocked =
+            updateAllStrictReport.blockers.length > 0 || blockedItemCount > 0 || unavailableItemCount > 0
+
+          if (isBlocked) {
+            if (options.json) {
+              console.log(JSON.stringify(updateAllStrictReport, null, 2))
+            } else {
+              logger.error(`${chalk.red("[ Strict Update All ]")} No files or lockfile records were written.`)
+              logger.error(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+              logger.error(`Blocked items: ${blockedItemCount}`)
+              logger.error(`Unavailable items: ${unavailableItemCount}`)
+              logger.error(`Blockers: ${updateAllStrictReport.summary.blockerCount}`)
+              logger.error(`Findings: ${updateAllStrictReport.findings.length}`)
+            }
+
+            process.exitCode = 1
+            return
+          }
+
+          if (options.json) {
+            console.log(JSON.stringify(updateAllStrictReport, null, 2))
+            return
+          }
+
+          if (!updateAllStrictReport.applied) {
+            logger.info(`${chalk.green("[ Strict Update All ]")} All installed items are already up to date.`)
+            logger.info(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+            logger.info(`Lockfile effect: ${updateAllStrictReport.effects.lockfile.status}`)
+            logger.info(`Findings: ${updateAllStrictReport.findings.length}`)
+            return
+          }
+
+          logger.info(`${chalk.green("[ Strict Update All ]")} Installed items updated.`)
+          logger.info(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+          logger.info(`Updated items: ${updateAllStrictReport.summary.itemStates.updated}`)
+          logger.info(`Up-to-date items: ${updateAllStrictReport.summary.itemStates["up-to-date"]}`)
+          logger.info(`Files written: ${updateAllStrictReport.effects.files.writtenCount}`)
+          logger.info(`Lockfile records updated: ${updateAllStrictReport.effects.lockfile.updatedFileRecordCount}`)
+          logger.info(`Lockfile effect: ${updateAllStrictReport.effects.lockfile.status}`)
+          logger.info(`Findings: ${updateAllStrictReport.findings.length}`)
+
+          return
+        }
+
         const updateAllAdvisoryReport = await createUpdateAllAdvisoryReport({
           cwd,
           registrySourcePath: options.registrySource,
@@ -132,7 +179,7 @@ export const update = new Command()
       const selectedItemName = options.itemName
 
       if (!selectedItemName) {
-        logger.error("Please provide an item to update, or use --all with --advisory or --dry-run.")
+        logger.error("Please provide an item to update, or use --all.")
         process.exit(1)
       }
 

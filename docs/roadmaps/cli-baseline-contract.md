@@ -17,8 +17,8 @@ Stable CLI guidance has moved into the docs site:
 - `apps/docs/src/content/docs/registry/local-snapshots.md`
 
 Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes outside explicit strict
-`remove`/`delete --with-orphans --remove-dependencies`, broad strict update behavior, merge behavior, broader
-eject policy, non-orphan support cleanup, public registry hosting, and package publication.
+`remove`/`delete --with-orphans --remove-dependencies`, broad update rollback behavior, merge behavior, broader eject
+policy, non-orphan support cleanup, public registry hosting, and package publication.
 
 ## Current Status
 
@@ -284,8 +284,11 @@ generate hosted registry artifacts, run component tests, or implement status/upd
 
 Later lifecycle slices added item-scoped `status`, `diff`, `update`, `remove`, `delete`, and `eject` behavior behind
 fixture evidence. `update --all --advisory --json` now enumerates every installed item and aggregates item-scoped update
-posture, and `update --all --dry-run --json` now aggregates item-scoped dry-run previews without opening broad strict
-update writes. `remove` and `delete` now also accept `--with-orphans` to
+posture, `update --all --dry-run --json` now aggregates item-scoped dry-run previews, and strict
+`update --all --json` now applies broad updates only when every installed item passes the dry-run and strict preflight
+gate. Blocked strict-all runs write nothing; all-safe runs write approved source updates and lockfile refreshes before a
+single final lockfile write. Runtime rollback, merge behavior, dependency writes, and package-manager mutation remain
+outside that boundary. `remove` and `delete` now also accept `--with-orphans` to
 report dependency items that would become orphan cleanup candidates in advisory and dry-run modes, then remove
 dry-run-approved orphan dependency items in strict temporary-copy proofs. The orphan plan and effects live in a separate
 `orphanCleanup` report block. Advisory and dry-run also report a separate no-write `dependencyCleanup` block that

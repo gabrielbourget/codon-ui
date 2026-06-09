@@ -226,11 +226,17 @@ The `pnpm verify:update-all-advisory` gate proves broad update advisory without 
 item-scoped update state, checks aggregate candidate and blocker counts, and verifies source files, lockfile data,
 package manifests, package-manager lockfiles, and local adapter files remain unchanged.
 
-The `pnpm verify:update-all-dry-run` gate proves broad update dry-run without broad strict write authority. It runs
+The `pnpm verify:update-all-dry-run` gate proves broad update dry-run as the strict-all planning gate. It runs
 `update --all --dry-run --json` against the Wavemap-like fixture, asserts every installed item is represented with an
 item-scoped dry-run state, checks aggregate would-write, lockfile-only, skipped, blocked, dependency, and blocker counts,
 and verifies source files, lockfile data, package manifests, package-manager lockfiles, and local adapter files remain
 unchanged.
+
+The `pnpm verify:update-all-strict` gate proves atomic broad strict update behavior. It runs `update --all --json` in
+temporary fixture copies, asserts mixed unsafe items block the whole run without mutation, asserts mature Wavemap-like
+installs return a no-op report, and asserts an all-safe update candidate writes only the approved source file plus
+`amino-ui.lock.json`. Runtime rollback, merge behavior, dependency writes, and package-manager mutation remain outside
+this proof.
 
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that
@@ -259,6 +265,7 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
 publication, generated token writers, package-manager dependency writes outside approved strict add and explicit strict
-remove/delete orphan dependency cleanup, broad strict update/merge behavior, strict eject behavior beyond lockfile-only
-ownership transfer, dependency cleanup outside `--with-orphans --remove-dependencies`, strict orphan cleanup beyond the
-opt-in dry-run-approved registry item cleanup path, and Waveguide validation remain separate approval-gated lanes.
+remove/delete orphan dependency cleanup, broad update rollback and merge behavior, strict eject behavior beyond
+lockfile-only ownership transfer, dependency cleanup outside `--with-orphans --remove-dependencies`, strict orphan
+cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation remain separate
+approval-gated lanes.
