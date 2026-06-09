@@ -6,6 +6,7 @@ import { Command } from "commander"
 import { z } from "zod"
 
 import {
+  createUpdateAllAdvisoryReport,
   createUpdateAdvisoryReport,
   createUpdateDryRunReport,
   createUpdateStrictReport,
@@ -14,6 +15,7 @@ import {
 } from "@/src/helpers"
 
 const updateOptionsSchema = z.object({
+  all: z.boolean().default(false),
   advisory: z.boolean().default(false),
   cwd: z.string().default(process.cwd()),
   dryRun: z.boolean().default(false),
@@ -21,7 +23,7 @@ const updateOptionsSchema = z.object({
   registrySource: z.string().optional(),
 })
 
-const parseUpdateOptions = (itemName: string, CLIOptions: unknown) => ({
+const parseUpdateOptions = (itemName: string | undefined, CLIOptions: unknown) => ({
   itemName,
   ...updateOptionsSchema.parse(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}),
 })
@@ -29,7 +31,8 @@ const parseUpdateOptions = (itemName: string, CLIOptions: unknown) => ({
 export const update = new Command()
   .name("update")
   .description("Update one installed Amino UI registry item when strict provenance checks pass.")
-  .argument("<item>", "The installed registry item you'd like to inspect or update.")
+  .argument("[item]", "The installed registry item you'd like to inspect or update.")
+  .option("--all", "Report update advisory posture for every installed registry item.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
@@ -45,15 +48,65 @@ export const update = new Command()
         process.exit(1)
       }
 
+      if (options.all && options.itemName) {
+        logger.error("Please choose either a single item or --all, not both.")
+        process.exit(1)
+      }
+
+      if (!options.all && !options.itemName) {
+        logger.error("Please provide an item to update, or use --all with --advisory.")
+        process.exit(1)
+      }
+
+      if (options.all && !options.advisory) {
+        logger.error("update --all currently supports --advisory only.")
+        process.exit(1)
+      }
+
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
+        process.exit(1)
+      }
+
+      if (options.all) {
+        const updateAllAdvisoryReport = await createUpdateAllAdvisoryReport({
+          cwd,
+          registrySourcePath: options.registrySource,
+        })
+
+        if (options.json) {
+          console.log(JSON.stringify(updateAllAdvisoryReport, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Update All Advisory ]")} No files were written.`)
+        logger.info(`Items inspected: ${updateAllAdvisoryReport.summary.itemCount}`)
+        logger.info(`Update candidate items: ${updateAllAdvisoryReport.summary.itemStates["update-candidate"]}`)
+        logger.info(`Review-required items: ${updateAllAdvisoryReport.summary.itemStates["review-required"]}`)
+        logger.info(`Up-to-date items: ${updateAllAdvisoryReport.summary.itemStates["up-to-date"]}`)
+        logger.info(`Unavailable items: ${updateAllAdvisoryReport.summary.itemStates.unavailable}`)
+        logger.info(`Update candidate files: ${updateAllAdvisoryReport.summary.candidateFileCount}`)
+        logger.info(`Automatic update blockers: ${updateAllAdvisoryReport.summary.automaticBlockerCount}`)
+        logger.info(`Findings: ${updateAllAdvisoryReport.findings.length}`)
+
+        for (const item of updateAllAdvisoryReport.items) {
+          logger.info(`- ${item.itemName}: ${item.itemUpdateState}`)
+        }
+
+        return
+      }
+
+      const selectedItemName = options.itemName
+
+      if (!selectedItemName) {
+        logger.error("Please provide an item to update, or use --all with --advisory.")
         process.exit(1)
       }
 
       if (options.dryRun) {
         const updateDryRunReport = await createUpdateDryRunReport({
           cwd,
-          itemName: options.itemName,
+          itemName: selectedItemName,
           registrySourcePath: options.registrySource,
         })
 
@@ -91,7 +144,7 @@ export const update = new Command()
       if (!options.advisory) {
         const updateStrictReport = await createUpdateStrictReport({
           cwd,
-          itemName: options.itemName,
+          itemName: selectedItemName,
           registrySourcePath: options.registrySource,
         })
 
@@ -138,7 +191,7 @@ export const update = new Command()
 
       const updateAdvisoryReport = await createUpdateAdvisoryReport({
         cwd,
-        itemName: options.itemName,
+        itemName: selectedItemName,
         registrySourcePath: options.registrySource,
       })
 

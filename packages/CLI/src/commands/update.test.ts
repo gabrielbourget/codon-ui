@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-import { createUpdateAdvisoryReport } from "../helpers/updateAdvisory"
+import { createUpdateAdvisoryReport, createUpdateAllAdvisoryReport } from "../helpers/updateAdvisory"
 import { createUpdateDryRunReport } from "../helpers/updateDryRun"
 import { createUpdateStrictReport } from "../helpers/updateStrict"
 
@@ -351,6 +351,37 @@ try {
   assert.equal(sourceOnlyReport.summary.candidateFileCount, 1)
   assert.equal(sourceOnlyReport.summary.automaticBlockerCount, 0)
   assert.equal(sourceOnlyReport.files[0].action, "update-candidate")
+
+  const allAdvisoryReport = await createUpdateAllAdvisoryReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+  const allAdvisoryItems = new Map(allAdvisoryReport.items.map((item) => [item.itemName, item]))
+
+  assert.equal(allAdvisoryReport.schemaVersion, 1)
+  assert.equal(allAdvisoryReport.advisory, true)
+  assert.equal(allAdvisoryReport.all, true)
+  assert.deepEqual(allAdvisoryReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(allAdvisoryReport.summary.itemCount, 4)
+  assert.equal(allAdvisoryReport.summary.itemStates["update-candidate"], 3)
+  assert.equal(allAdvisoryReport.summary.itemStates["review-required"], 1)
+  assert.equal(allAdvisoryReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allAdvisoryReport.summary.itemStates.unavailable, 0)
+  assert.equal(allAdvisoryReport.summary.fileCount, 10)
+  assert.equal(allAdvisoryReport.summary.candidateFileCount, 4)
+  assert.equal(allAdvisoryReport.summary.automaticBlockerCount, 5)
+  assert.equal(allAdvisoryReport.summary.preservationRequiredCount, 5)
+  assert.equal(allAdvisoryReport.summary.dependencyStates.missing, 1)
+  assert.equal(allAdvisoryItems.get("switch")?.itemUpdateState, "review-required")
+  assert.equal(allAdvisoryItems.get("source-only")?.itemUpdateState, "update-candidate")
+  assert.equal(allAdvisoryItems.get("source-equals-local")?.itemUpdateState, "update-candidate")
+  assert.equal(allAdvisoryItems.get("dependency-blocked")?.itemUpdateState, "update-candidate")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
 
   const missingReport = await createUpdateAdvisoryReport({
     cwd: consumerRoot,

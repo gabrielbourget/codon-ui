@@ -3,6 +3,7 @@ import { z } from "zod"
 import { consumerLockfileDependencySchema, consumerTargetRoleSchema } from "./consumerContract"
 import { createDiffReport, type TDiffReport } from "./diff"
 import { CLI_PROJECT_RESOURCE_STATUSES, CLI_REGISTRY_SOURCE_STATUSES } from "./reportConstants"
+import { createStatusReport } from "./status"
 
 const UPDATE_ADVISORY_SCHEMA_VERSION = 1
 
@@ -129,12 +130,67 @@ export const updateAdvisoryReportSchema = z
   })
   .strict()
 
+const updateAllAdvisoryItemSchema = z
+  .object({
+    dependencies: z.array(consumerLockfileDependencySchema).default([]),
+    files: z.array(updateAdvisoryFileSchema).default([]),
+    findings: z.array(updateAdvisoryFindingSchema).default([]),
+    item: updateAdvisoryReportSchema.shape.item,
+    itemName: z.string().min(1),
+    itemUpdateState: z.enum(UPDATE_ADVISORY_ITEM_STATES),
+    summary: updateAdvisoryReportSchema.shape.summary,
+  })
+  .strict()
+
+export const updateAllAdvisoryReportSchema = z
+  .object({
+    advisory: z.literal(true),
+    all: z.literal(true),
+    cwd: z.string().min(1),
+    dependencies: z.array(consumerLockfileDependencySchema).default([]),
+    effects: z
+      .object({
+        installsDependencies: z.literal(false),
+        writesConfig: z.literal(false),
+        writesFiles: z.literal(false),
+        writesLockfile: z.literal(false),
+      })
+      .strict(),
+    findings: z.array(updateAdvisoryFindingSchema).default([]),
+    items: z.array(updateAllAdvisoryItemSchema).default([]),
+    registrySource: updateAdvisoryReportSchema.shape.registrySource,
+    schemaVersion: z.literal(UPDATE_ADVISORY_SCHEMA_VERSION).default(UPDATE_ADVISORY_SCHEMA_VERSION),
+    status: updateAdvisoryReportSchema.shape.status,
+    summary: z
+      .object({
+        actionStates: z.record(z.enum(UPDATE_ADVISORY_ACTIONS), z.number().int().nonnegative()),
+        automaticBlockerCount: z.number().int().nonnegative(),
+        candidateFileCount: z.number().int().nonnegative(),
+        dependencyStates: z.record(z.string().min(1), z.number().int().nonnegative()),
+        fileCount: z.number().int().nonnegative(),
+        itemCount: z.number().int().nonnegative(),
+        itemStates: z.record(z.enum(UPDATE_ADVISORY_ITEM_STATES), z.number().int().nonnegative()),
+        localChangeCount: z.number().int().nonnegative(),
+        preservationRequiredCount: z.number().int().nonnegative(),
+        reviewRequiredCount: z.number().int().nonnegative(),
+        sourceChangedCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+  })
+  .strict()
+
 export type TUpdateAdvisoryFile = z.infer<typeof updateAdvisoryFileSchema>
 export type TUpdateAdvisoryReport = z.infer<typeof updateAdvisoryReportSchema>
+export type TUpdateAllAdvisoryReport = z.infer<typeof updateAllAdvisoryReportSchema>
 
 export type TCreateUpdateAdvisoryReportOptions = {
   cwd: string
   itemName: string
+  registrySourcePath?: string
+}
+
+export type TCreateUpdateAllAdvisoryReportOptions = {
+  cwd: string
   registrySourcePath?: string
 }
 
@@ -254,6 +310,86 @@ export const createUpdateAdvisoryReport = async ({
       preservationRequiredCount: files.filter((file) => file.preservationRequired).length,
       reviewRequiredCount: files.filter((file) => file.reviewRequired).length,
       sourceChangedCount: diffReport.summary.sourceChangedCount,
+    },
+  })
+}
+
+export const createUpdateAllAdvisoryReport = async ({
+  cwd,
+  registrySourcePath,
+}: TCreateUpdateAllAdvisoryReportOptions): Promise<TUpdateAllAdvisoryReport> => {
+  const statusReport = await createStatusReport({
+    cwd,
+    registrySourcePath,
+  })
+  const actionStates = createEmptyRecord(UPDATE_ADVISORY_ACTIONS)
+  const itemStates = createEmptyRecord(UPDATE_ADVISORY_ITEM_STATES)
+  const dependencyStates: Record<string, number> = {}
+  const itemReports = await Promise.all(
+    statusReport.items.map((item) =>
+      createUpdateAdvisoryReport({
+        cwd,
+        itemName: item.name,
+        registrySourcePath,
+      }),
+    ),
+  )
+
+  statusReport.dependencies.forEach((dependency) => {
+    dependencyStates[dependency.status] = (dependencyStates[dependency.status] ?? 0) + 1
+  })
+  itemReports.forEach((itemReport) => {
+    itemStates[itemReport.itemUpdateState] += 1
+
+    UPDATE_ADVISORY_ACTIONS.forEach((action) => {
+      actionStates[action] += itemReport.summary.actionStates[action] ?? 0
+    })
+  })
+
+  return updateAllAdvisoryReportSchema.parse({
+    advisory: true,
+    all: true,
+    cwd,
+    dependencies: statusReport.dependencies,
+    effects: {
+      installsDependencies: false,
+      writesConfig: false,
+      writesFiles: false,
+      writesLockfile: false,
+    },
+    findings: statusReport.findings,
+    items: itemReports.map((itemReport) => ({
+      dependencies: itemReport.dependencies,
+      files: itemReport.files,
+      findings: itemReport.findings,
+      item: itemReport.item,
+      itemName: itemReport.itemName,
+      itemUpdateState: itemReport.itemUpdateState,
+      summary: itemReport.summary,
+    })),
+    registrySource: statusReport.registrySource,
+    status: {
+      config: statusReport.config.status,
+      lockfile: statusReport.lockfile.status,
+    },
+    summary: {
+      actionStates,
+      automaticBlockerCount: itemReports.reduce(
+        (total, itemReport) => total + itemReport.summary.automaticBlockerCount,
+        0,
+      ),
+      candidateFileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.candidateFileCount, 0),
+      dependencyStates,
+      fileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.fileCount, 0),
+      itemCount: itemReports.length,
+      itemStates,
+      localChangeCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.localChangeCount, 0),
+      preservationRequiredCount: itemReports.reduce(
+        (total, itemReport) => total + itemReport.summary.preservationRequiredCount,
+        0,
+      ),
+      reviewRequiredCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.reviewRequiredCount, 0),
+      sourceChangedCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.sourceChangedCount, 0),
     },
   })
 }

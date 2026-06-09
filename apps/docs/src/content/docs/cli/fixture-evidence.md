@@ -60,6 +60,7 @@ pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
+pnpm verify:update-all-advisory
 pnpm verify:update-dry-run
 pnpm verify:strict-update
 pnpm verify:remove-advisory
@@ -110,6 +111,7 @@ Use the same evidence shape across the current and planned CLI lifecycle.
 | `status --json`                                      | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.                                                                                                                                                                               |
 | `diff --json`                                        | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                                                                                                                                                                                          |
 | `update --advisory --json`                           | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                                                                                                                                                                                            |
+| `update --all --advisory --json`                     | Enumerates every installed item, aggregates item-scoped advisory states, and preserves source, lockfile, config, and dependency state.                                                                                                                                                                      |
 | `update --dry-run --json`                            | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                                                                                                                                                                                              |
 | Strict `update <item> --json`                        | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and package-manager state.                                                                                                                                                                                           |
 | `remove --advisory --json`                           | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.                                                                                                                                                                                  |
@@ -137,6 +139,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                                                            |
 | Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                                                              |
 | Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
+| Broad update advisory    | `update --all --advisory --json` enumerates installed items and aggregates update posture without writes.                                    |
 | Dependency policy        | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                               |
 | Dependency execution     | `add` reports explicit install intent and eligibility without running package-manager writes.                                                |
 | Dependency strict run    | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                       |
@@ -215,6 +218,11 @@ starts from the missing-dependency fixture, updates only the temporary target `p
 installing `react-aria-components` and `classnames` outside the CLI, then proves advisory and dry-run reports are
 satisfied and strict `add switch --json` succeeds without package-manager writes. The gate covers both the nearest
 package manifest and `--package-json apps/web/package.json`.
+
+The `pnpm verify:update-all-advisory` gate proves broad update advisory without broad write authority. It runs
+`update --all --advisory --json` against the Wavemap-like fixture, asserts every installed item is represented with an
+item-scoped update state, checks aggregate candidate and blocker counts, and verifies source files, lockfile data,
+package manifests, package-manager lockfiles, and local adapter files remain unchanged.
 
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that

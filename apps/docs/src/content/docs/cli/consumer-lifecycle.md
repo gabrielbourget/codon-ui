@@ -337,6 +337,37 @@ Current fixture evidence proves clean installed update advisory, locally modifie
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
 stale source-hash classification.
 
+## Update All Advisory
+
+`update --all --advisory --json` summarizes update posture for every installed item without writing:
+
+```sh
+aui update --all --advisory --json --cwd <consumer-project>
+```
+
+It starts from `status --json` to enumerate the installed lockfile item set, then runs the same item-scoped
+`update <item> --advisory --json` classification for each item. The command does not compute broad write ordering, merge
+strategy, package-manager changes, or partial-failure behavior.
+
+The JSON report includes:
+
+| Field            | Meaning                                                                                                                       |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `all`            | Always `true` for the broad advisory report.                                                                                  |
+| `items`          | Per-installed-item advisory reports with `itemName`, `itemUpdateState`, files, findings, dependencies, and summary counts.    |
+| `dependencies`   | Current lockfile dependency decisions counted once at the top level.                                                          |
+| `effects`        | Actual effects. These always report no config, source-file, lockfile, or dependency writes.                                   |
+| `summary`        | Aggregate item states, candidate files, automatic blockers, preservation requirements, source changes, and dependency states. |
+| `registrySource` | Local registry source used for source freshness checks, or why it could not be loaded.                                        |
+| `status`         | Config and lockfile status.                                                                                                   |
+
+`summary.itemStates` separates `up-to-date`, `update-candidate`, `review-required`, and `unavailable` items. The report
+includes every installed item rather than only items with findings so reviewers and fixture assertions can see the full
+selection set. `update --all --dry-run` and strict `update --all` remain unsupported.
+
+Current fixture evidence proves Wavemap-like broad update advisory output, complete installed-item enumeration, aggregate
+candidate/blocker counts, no source/config/lockfile/package-manager mutation, and preservation of local adapter files.
+
 ## Update Dry Run
 
 `update --dry-run --json` previews an item-scoped update without writing:
@@ -756,9 +787,9 @@ dependency non-mutation.
 
 Strict update, strict remove, strict remove/delete orphan cleanup, and strict eject now exist only inside the
 dry-run-approved registry-owned boundaries above. Dependency cleanup outside explicit strict
-`remove`/`delete --with-orphans --remove-dependencies`, strict update beyond item-scoped source writes and lockfile
-refreshes, strict eject beyond lockfile-only ownership transfer, and any broader deletion policy remain deferred until
-dry-run evidence is broader and intentionally approved.
+`remove`/`delete --with-orphans --remove-dependencies`, update-all beyond advisory reporting, strict update beyond
+item-scoped source writes and lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and any broader
+deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
 
-Generated token writers, broad update/merge behavior, broader ejection policy, public registry hosting, package
-publication, and Waveguide validation remain deferred until explicitly approved.
+Generated token writers, broad update dry-run/strict execution, merge behavior, broader ejection policy, public registry
+hosting, package publication, and Waveguide validation remain deferred until explicitly approved.
