@@ -32,6 +32,28 @@ These commands are local proof tooling. They do not decide public registry hosti
 output, broad update rollback or merge behavior, broader ejection policy, dependency cleanup outside
 explicit strict `remove`/`delete --with-orphans --remove-dependencies`, or non-orphan support cleanup.
 
+## Private-Use Closeout Read
+
+The current lifecycle surface is close to private-use complete before the Amino UI to Codon UI rename. The useful finish
+line is not public ecosystem behavior; it is a trustworthy source-distribution CLI for projects controlled by the same
+maintainer.
+
+For private distribution, update behavior should have enough authority to be useful without becoming a custom merge
+engine:
+
+- clean registry-owned files can update through item-scoped strict update or all-safe strict update;
+- stale lockfile metadata can refresh when local source already matches planned installed content;
+- dependency-only item update blockers can resolve through explicit package-manager approval and then replan;
+- locally modified, missing, unknown, consumer-owned-support, and ejected files are reported and preserved by default.
+
+The main closeout caveats before rename are:
+
+- plain `init` still points at the legacy interactive path; the proven new-contract seed remains `init --defaults`;
+- `pub:*` package scripts still reflect unapproved publication scaffolding and must not be used as private npm release
+  policy;
+- custom update transforms, AST-aware merges, rollback after unexpected write failures, and public registry hosting remain
+  outside the private-use finish line.
+
 ## Command Names
 
 The package still publishes the existing `aminoui-cli` bin and now also exposes `aui` as the shorter command alias. Both

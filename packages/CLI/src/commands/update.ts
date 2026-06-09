@@ -40,14 +40,14 @@ export const update = new Command()
   .name("update")
   .description("Update one installed Amino UI registry item when strict provenance checks pass.")
   .argument("[item]", "The installed registry item you'd like to inspect or update.")
-  .option("--all", "Report update posture for every installed registry item.", false)
+  .option("--all", "Target every installed registry item for advisory, dry-run, or all-safe strict update.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option(
     "--dependency-policy <policy>",
     "Override dependency install policy for item-scoped update planning. Supported values: report-only, manual, prompt, install.",
   )
-  .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
+  .option("--dry-run", "Preview item-scoped or --all update effects without writing files or lockfile data.", false)
   .option(
     "--install-dependencies",
     "Explicitly allow item-scoped strict update to install missing dependencies when policy also permits it.",

@@ -24,7 +24,7 @@ const main = async () => {
 
   const program = new Command()
     .name(commandName)
-    .description("Add components and their dependencies directly into your project as needed.")
+    .description("Install, inspect, update, remove, and eject registry source in consumer projects.")
     .version(packageInfo.version!, "-v, --version", "Display the version number.")
 
   program

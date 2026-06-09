@@ -214,7 +214,7 @@ const processComponentFilesFromRegistry = async (
 
 export const add = new Command()
   .name("add")
-  .description("Add one or more components to your project.")
+  .description("Add registry component source to your project.")
   .argument("[components...]", "The components you'd like to add.")
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-o, --overwrite", "Overwrite existing files.", false)
@@ -224,11 +224,11 @@ export const add = new Command()
   .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
   .option(
     "--dependency-policy <policy>",
-    "Override dependency install policy for planning. Supported values: report-only, manual, prompt, install.",
+    "Override dependency install policy for planning and approved strict installs. Supported values: report-only, manual, prompt, install.",
   )
   .option(
     "--install-dependencies",
-    "Explicitly request dependency installation eligibility planning without running package-manager commands.",
+    "Explicitly allow strict add to install missing dependencies when policy also permits it.",
     false,
   )
   .option("--json", "Print machine-readable output.", false)

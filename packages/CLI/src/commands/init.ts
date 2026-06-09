@@ -57,10 +57,10 @@ const parseInitOptions = (CLIOptions: unknown) => {
 
 export const init = new Command()
   .name("init")
-  .description("Initialize and configure your repository to use components from this library.")
+  .description("Initialize Amino UI consumer config and lockfile state.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-y, --yes", "Skip the confirmation prompt.", true)
-  .option("-d, --defaults", "Use the default component library configuration.", false)
+  .option("-d, --defaults", "Strictly write default config and an empty lockfile when both are absent.", false)
   .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the default consumer config and lockfile seed without writing files.", false)
   .option("--json", "Print machine-readable output.", false)
