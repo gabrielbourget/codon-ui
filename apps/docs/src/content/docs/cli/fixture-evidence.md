@@ -157,7 +157,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Dependency cleanup run    | Strict `remove`/`delete --with-orphans --remove-dependencies` executes npm/pnpm/yarn/bun removal commands for eligible cleanup candidates.                                                                        |
 | Update dependency run     | Item-scoped strict `update` executes npm/pnpm/yarn/bun install commands only for dependency-only blockers after explicit approval, then replans before source and lockfile writes.                                |
 | Update dependency failure | Item-scoped strict `update` returns structured package-manager failure output and blocks Amino source/lockfile writes before and after package boundary mutations.                                                |
-| JSON contract validation  | Representative lifecycle reports parse through compiled Amino CLI canonical Zod schemas, including shared dependency install plans, failed dependency commands, and lockfile output when present.                |
+| JSON contract validation  | Representative lifecycle reports parse through compiled Amino CLI canonical Zod schemas, including shared dependency install plans, failed dependency commands, and lockfile output when present.                 |
 | Snapshot/source drift     | Planner output reports stale or missing registry source clearly.                                                                                                                                                  |
 | Mature-consumer shape     | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                                                                                                  |
 
@@ -178,6 +178,25 @@ canonical schema exports when those structures are present. It covers init dry-r
 strict add lockfile output, broad update dry-run aggregation, strict update dependency failure output, remove dry-run, and
 eject dry-run. This gate hardens output shape for already proven lifecycle behavior; it does not grant new write
 authority.
+
+## JSON Contract Maintenance
+
+`packages/CLI/src/contracts.ts` is the canonical source for internal CLI JSON report schemas. Keep command output,
+fixture assertions, and source-side tests pointed at that schema map instead of re-declaring report shapes in each proof.
+
+When a lifecycle report shape changes:
+
+1. Update the canonical schema and exported type surface in `packages/CLI/src/contracts.ts`.
+2. Add or update representative Amino CLI command-test coverage with `assertCliJsonReportContract` from
+   `packages/CLI/src/testUtils/cliJsonContracts.ts`.
+3. Rebuild the CLI package before fixture contract proofs that import `packages/CLI/dist/contracts.js`.
+4. Update the fixture repo's `pnpm verify:json-contracts` coverage when the externally observed report shape changes.
+5. Keep behavioral assertions alongside schema assertions so a report can be both structurally valid and semantically
+   checked.
+
+The source-side command tests catch drift before the package is compiled. The fixture gate catches drift in the compiled
+consumer-facing contract surface. Both checks are required for report shapes that future lifecycle automation or
+consumer tooling will rely on.
 
 The `pnpm verify:add-lifecycle` gate proves the clean `circle-loader` path in one temporary `vite-registry-contained`
 copy. It strict-initializes config and lockfile, runs add advisory and dry-run without mutation, performs the strict add
