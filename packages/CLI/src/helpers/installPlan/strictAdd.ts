@@ -7,6 +7,7 @@ import { Project, ScriptKind } from "ts-morph"
 import {
   AMINO_UI_CONFIG_FILE_NAME,
   AMINO_UI_LOCK_FILE_NAME,
+  CONSUMER_DEPENDENCY_ACTION__INSTALLED,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
@@ -15,6 +16,10 @@ import {
   type TConsumerConfig,
   type TConsumerLockfile,
 } from "@/src/helpers/consumerContract"
+import {
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+} from "@/src/helpers/packageManagerHelpers"
 
 import {
   INSTALL_PLAN_DEPENDENCY_STATUS__SATISFIED,
@@ -127,15 +132,22 @@ const rewriteInstallPlanImportSpecifiers = ({
   return sourceFile.getFullText()
 }
 
+export const createStrictInstalledFileContent = rewriteInstallPlanImportSpecifiers
+
 export const readConsumerConfigForStrictAdd = async (
   cwd: string,
-): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {
+): Promise<{
+  config: TConsumerConfig
+  configSource: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+  findings: TInstallPlanFinding[]
+}> => {
   const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
@@ -150,6 +162,7 @@ export const readConsumerConfigForStrictAdd = async (
   try {
     return {
       config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
       findings: [],
     }
   } catch (error) {
@@ -157,6 +170,7 @@ export const readConsumerConfigForStrictAdd = async (
 
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
@@ -297,22 +311,29 @@ const createLockfileDependencyKey = (dependency: Pick<TConsumerLockfile["depende
   `${dependency.kind}:${dependency.name}`
 
 export const mergeStrictAddLockfileDependencies = ({
+  installedDependencies = [],
   installPlan,
   lockfileData,
 }: {
+  installedDependencies?: readonly Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">[]
   installPlan: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
 }): TConsumerLockfile["dependencies"] => {
   const dependencyEntriesByKey = new Map<string, TConsumerLockfile["dependencies"][number]>()
+  const installedDependencyKeys = new Set(installedDependencies.map(createLockfileDependencyKey))
 
   lockfileData.dependencies.forEach((dependency) => {
     dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), dependency)
   })
 
   installPlan.dependencyPlan.forEach((dependency) => {
+    const dependencyKey = createLockfileDependencyKey(dependency)
+
     dependencyEntriesByKey.set(createLockfileDependencyKey(dependency), {
       ...dependency,
-      action: CONSUMER_DEPENDENCY_ACTION__NONE,
+      action: installedDependencyKeys.has(dependencyKey)
+        ? CONSUMER_DEPENDENCY_ACTION__INSTALLED
+        : CONSUMER_DEPENDENCY_ACTION__NONE,
     })
   })
 
@@ -357,12 +378,14 @@ export const createStrictAddLockfileReusePlan = ({
 
 export const writeStrictRegistryInstall = async ({
   consumerRoot,
+  installedDependencies = [],
   installPlan,
   lockfileData,
   sourceRoot,
   themeTier,
 }: {
   consumerRoot: string
+  installedDependencies?: readonly Pick<TConsumerLockfile["dependencies"][number], "kind" | "name">[]
   installPlan: TRegistryInstallPlan
   lockfileData: TConsumerLockfile
   sourceRoot: string
@@ -414,7 +437,7 @@ export const writeStrictRegistryInstall = async ({
   )
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
-    dependencies: mergeStrictAddLockfileDependencies({ installPlan, lockfileData }),
+    dependencies: mergeStrictAddLockfileDependencies({ installedDependencies, installPlan, lockfileData }),
     items: {
       ...lockfileData.items,
       ...nextItems,

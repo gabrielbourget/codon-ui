@@ -1,0 +1,71 @@
+{
+  "name": "circle-loader",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#loader-components-next-candidate-planning-checkpoint-2026-06-06",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/CircleLoader/CircleLoader.tsx",
+      "targetRole": "components",
+      "targetPath": "Loaders/CircleLoader/CircleLoader.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircleLoader/CircleLoaderStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Loaders/CircleLoader/CircleLoaderStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CircleLoader/__tests__/CircleLoader.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Loaders/CircleLoader/__tests__/CircleLoader.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "CircleLoader",
+      "sourcePath": "packages/react/src/components/CircleLoader/CircleLoader.tsx",
+      "localName": "default"
+    },
+    {
+      "exportedName": "CircleLoaderProps",
+      "sourcePath": "packages/react/src/components/CircleLoader/CircleLoader.tsx",
+      "localName": "TCircleLoaderProps",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Loaders/LoaderWrapper/**",
+    "apps/wavemap-front-end/src/components/Loaders/LaggingLinesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/CircleBubblesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/CircleSpokesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/HorizontalBubblesLoader/**",
+    "apps/wavemap-front-end/src/components/Loaders/ShiftingVerticalBarsLoader/**",
+    "apps/wavemap-front-end/src/components/Popovers/SavedViewsPopover/**",
+    "apps/wavemap-front-end/src/components/SuspenseErrorBoundaryWrapper/**"
+  ],
+  "registryDependencies": [],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {},
+  "themeRequirements": [],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|@/src/|next/|router|route|i18n|media|api-contract|shared-utils|react-aria|motion|UIContext|theme/circle-loader-compatibility\" packages/react/src/components/CircleLoader",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["CircleLoader source should remain a self-contained React/CSS-module primitive."]
+    }
+  ],
+  "notes": [
+    "CircleLoader source receipt covers only the active circular status loader primitive.",
+    "This packet intentionally excludes LaggingLinesLoader, LoaderWrapper, broad legacy loader experiments, SavedViewsPopover, app loading pages, theme compatibility CSS, hosted registry behavior, and package publication."
+  ]
+}

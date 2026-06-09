@@ -1,0 +1,11 @@
+.placeholderText {
+  color: var(--aui-control-placeholder);
+}
+
+.placeholderText--alignCenter {
+  text-align: center;
+}
+
+.placeholderText--alignLeft {
+  text-align: left;
+}

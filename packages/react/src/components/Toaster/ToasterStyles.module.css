@@ -1,0 +1,97 @@
+.toasterRoot {
+  outline: none;
+}
+
+.toaster {
+  position: fixed;
+  width: var(--width);
+  min-height: 0;
+
+  /* min-height: var(--toastStackHeight, 0px); */
+  padding: 0;
+  margin: 0;
+  outline: none;
+  z-index: var(--aui-z-index-toast);
+  list-style: none;
+}
+
+.toaster[data-expanded="true"] {
+  min-height: var(--toastStackHeight, 0);
+  transition: min-height 250ms;
+}
+
+.toaster[data-x-position="right"] {
+  right: max(var(--offset), env(safe-area-inset-right));
+}
+
+.toaster[data-x-position="left"] {
+  left: max(var(--offset), env(safe-area-inset-left));
+}
+
+.toaster[data-x-position="center"] {
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.toaster[data-y-position="top"] {
+  top: max(var(--offset), env(safe-area-inset-top));
+  --lift: 1;
+}
+
+.toaster[data-y-position="bottom"] {
+  bottom: max(var(--offset), env(safe-area-inset-bottom));
+  --lift: -1;
+}
+
+@media (width <= 500px) {
+  .toaster {
+    position: fixed;
+    --mobile-offset: 16px;
+    right: var(--mobile-offset);
+    left: var(--mobile-offset);
+    width: 100%;
+  }
+  .toaster[data-x-position="left"] {
+    left: var(--mobile-offset);
+  }
+
+  .toaster[data-y-position="top"] {
+    top: var(--aui-space-3);
+    --lift: 1;
+  }
+
+  .toaster[data-y-position="bottom"] {
+    bottom: var(--aui-space-3);
+    --lift: -1;
+  }
+
+  .toaster[data-x-position="center"] {
+    left: var(--mobile-offset);
+    right: var(--mobile-offset);
+    transform: none;
+  }
+}
+
+.toaster__toastBridgeDiv {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: calc(var(--toastGap) + 1px);
+  transform: translateY(calc(var(--lift) * var(--bridgeOffset)));
+  pointer-events: auto;
+  z-index: 0;
+}
+
+.toaster[data-expanded="true"] .toaster__toastBridgeDiv {
+  pointer-events: auto;
+}
+
+.toaster[data-y-position="top"] .toaster__toastBridgeDiv {
+  top: 0;
+  transform: translateY(var(--bridgeOffset));
+}
+
+.toaster[data-y-position="bottom"] .toaster__toastBridgeDiv {
+  bottom: 0;
+  transform: translateY(calc(-1 * var(--bridgeOffset)));
+}

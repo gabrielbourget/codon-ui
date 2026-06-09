@@ -1,0 +1,144 @@
+{
+  "name": "list-box-item",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#listboxitem-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItem.tsx",
+      "targetRole": "components",
+      "targetPath": "ListBoxItem/ListBoxItem.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "ListBoxItem/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "ListBoxItem/ListBoxItemStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/__tests__/ListBoxItem.test.tsx",
+      "targetRole": "components",
+      "targetPath": "ListBoxItem/__tests__/ListBoxItem.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "ListBoxItem",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItem.tsx"
+    },
+    {
+      "exportedName": "ListBoxItemProps",
+      "localName": "TListBoxItemProps",
+      "sourcePath": "packages/react/src/components/ListBoxItem/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/helpers.ts",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": ["ListBoxItem text-size classes reuse the installed Text registry item instead of copying Text source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
+      "importSource": "--distance_1 / --border_radius_1 / --bgColorTransition / --disabledOpacity aliases",
+      "replacementSource": "--aui-space-1 / --aui-radius-1 / --aui-transition-background-color / --aui-opacity-disabled",
+      "notes": ["ListBoxItem CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ListBoxItem/__tests__/ListBoxItem.test.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+    "apps/wavemap-front-end/src/components/Select/Select.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-space-1",
+        "--aui-radius-1",
+        "--aui-transition-background-color",
+        "--aui-control-hover-background",
+        "--aui-opacity-disabled"
+      ],
+      "notes": [
+        "ListBoxItem source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@radix-ui|@internationalized/date|--distance_|--border_radius_|--bgColorTransition|--disabledOpacity|theme/list-box-item-compatibility\" packages/react/src/components/ListBoxItem/ListBoxItem.tsx packages/react/src/components/ListBoxItem/helpers.ts packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved Text import and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static ListBoxItem proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/ListBoxItem/__tests__/ListBoxItem.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "ListBoxItem runtime source has been received into packages/react as the small React Aria list item proof that depends on installed Text source and default theme support.",
+    "Preserve the React Aria ListBoxItem root, id/textValue typing, textSize variants, data-testid fallback, native className/style render-prop merging, customStyles merging, and wrapper prop filtering for the first ListBoxItem proof.",
+    "Keep RequiresID, calibrateComponent, size constants, text-size helpers, and class/style merge helpers private to the package root unless a later API review approves exporting helper internals.",
+    "Do not move Select, ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, app forms, component showcase code, or broader app consumers with ListBoxItem.",
+    "This source-receipt pass does not activate a list-box-item manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

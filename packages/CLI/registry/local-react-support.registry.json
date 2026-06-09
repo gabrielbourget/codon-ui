@@ -56,6 +56,71 @@
       ]
     },
     {
+      "name": "tokens/alignment",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/alignment.ts",
+          "targetRole": "tokens",
+          "targetPath": "alignment.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/drag",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/drag.ts",
+          "targetRole": "tokens",
+          "targetPath": "drag.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/placement",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/placement.ts",
+          "targetRole": "tokens",
+          "targetPath": "placement.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/responsive",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/responsive.ts",
+          "targetRole": "tokens",
+          "targetPath": "responsive.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/motion",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/motion.ts",
+          "targetRole": "tokens",
+          "targetPath": "motion.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",

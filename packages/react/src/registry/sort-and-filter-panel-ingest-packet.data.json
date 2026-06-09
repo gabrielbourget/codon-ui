@@ -1,0 +1,356 @@
+{
+  "name": "sort-and-filter-panel",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#sortandfilterpanel-extraction-planning-checkpoint-2026-06-06",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "SortAndFilterPanel",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx"
+    },
+    {
+      "exportedName": "SortAndFilterPanelProps",
+      "localName": "TSortAndFilterPanelProps",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ApplySortAndFilterParametersArgs",
+      "localName": "TApplySortAndFilterParametersArgs",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SortAndFilterPanelFilterGroup",
+      "localName": "TSortAndFilterPanelFilterGroup",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SortAndFilterPanelSortInstruction",
+      "localName": "TSortAndFilterPanelSortInstruction",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SortAndFilterPanelFocusTarget",
+      "localName": "TSortAndFilterPanelFocusTarget",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "SORT_AND_FILTER_PANEL_FOCUS_TARGET__SORT",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts"
+    },
+    {
+      "exportedName": "SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts"
+    },
+    {
+      "exportedName": "AVAILABLE_SORT_AND_FILTER_PANEL_FOCUS_TARGETS",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts"
+    },
+    {
+      "exportedName": "SortAndFilterPanelLabels",
+      "localName": "TSortAndFilterPanelLabels",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialSortAndFilterPanelLabels",
+      "localName": "TPartialSortAndFilterPanelLabels",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DEFAULT_SORT_AND_FILTER_PANEL_LABELS",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts"
+    },
+    {
+      "exportedName": "resolveSortAndFilterPanelLabels",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "importSource": "../FormField/FormField",
+      "registryDependencyName": "form-field",
+      "replacementSource": "../../FormField/FormField",
+      "notes": [
+        "Installed under Panels/SortAndFilterPanel, the panel composes installed FormField via the rewritten relative path."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "importSource": "../Table/filterDraft",
+      "registryDependencyName": "table",
+      "replacementSource": "../../Table/filterDraft",
+      "notes": ["Filter draft state stays generic and comes from the registry-owned Table support graph."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+      "importSource": "../Table/queryTypes",
+      "registryDependencyName": "table",
+      "replacementSource": "../../Table/queryTypes",
+      "notes": ["Sort/filter query output uses generic Table query types, not Wavemap API contracts."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+      "importSource": "../../../Filtering/FilterClauseRow/FilterClauseRow",
+      "registryDependencyName": "table",
+      "replacementSource": "../../../../Filtering/FilterClauseRow/FilterClauseRow",
+      "notes": ["Filter clause rendering comes from the Table/Filtering registry graph."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+      "importSource": "legacy Wavemap CSS aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/i18n.ts",
+    "apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/__tests__/**",
+    "apps/wavemap-front-end/src/components/Tables/EventTable/**",
+    "apps/wavemap-front-end/src/components/Tables/ArtistTable/**",
+    "apps/wavemap-front-end/src/components/SavedViewsPopover/**",
+    "apps/wavemap-front-end/src/utils/query/**",
+    "apps/wavemap-front-end/src/api/**",
+    "packages/api-contracts/**",
+    "packages/i18n/**"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "table",
+    "panel",
+    "form-field",
+    "select",
+    "list-box-item",
+    "line-segment",
+    "tag-group",
+    "text",
+    "placeholder-text",
+    "toggle-switcher",
+    "tooltip",
+    "button"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-background",
+        "--aui-border",
+        "--aui-border-muted",
+        "--aui-color-primary-500",
+        "--aui-control-hover-background",
+        "--aui-control-selected-foreground",
+        "--aui-foreground",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-surface-muted",
+        "--aui-transition-background-color"
+      ],
+      "notes": [
+        "SortAndFilterPanel should use existing default Amino theme and action color variables without a compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|@/src/|next/|router|route|api-contract|shared-utils|UIContext|serverSideStyles|module\\.scss|--distance_|--neutral_|--border_radius_|--disabledOpacity|--bgColorTransition|motion/react\" packages/react/src/components/SortAndFilterPanel",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": ["Runs the package-side static SortAndFilterPanel proof harness once wired into package scripts."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Panels/SortAndFilterPanel/__tests__/SortAndFilterPanel.integration.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain behavioral evidence for source receipt and consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "SortAndFilterPanel source receipt covers the reusable generic sort/filter query-builder panel after the prepared Wavemap boundary pass.",
+    "This source receipt intentionally keeps Wavemap i18n adapters, API contracts, endpoint DTOs, route/query state, saved views, app providers, media/upload/gallery flows, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope."
+  ]
+}

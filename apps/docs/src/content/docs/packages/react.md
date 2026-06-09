@@ -8,29 +8,36 @@ support tokens, and registry manifests.
 
 ## Current Surface
 
-- `src/index.ts` exports `Switch` and the package-facing `SwitchProps` alias.
-- `src/components/Switch` contains the received `Switch` runtime source, helper source, CSS module, and proof-local
-  compatibility bridge.
+- `src/index.ts` exports the package-facing component surface.
+- `src/components` contains received reusable component source, helpers, labels, icons, and CSS modules.
 - `theme.css` is exported as `@amino-ui/react/theme.css`.
-- `src/tokens/geometry.ts` owns corner geometry support.
-- `src/tokens/theme-order.ts` owns theme-order support.
+- `src/theme` owns narrow theme support files that stay outside the default CSS contract.
+- `src/tokens` owns registry-owned support tokens.
 - `src/registry/manifest.ts` owns the internal registry manifest.
 - `src/registry/ingest.ts` owns the type-only component receipt packet shape.
-- `src/registry/switch-ingest-packet.data.json` owns the packet data that still feeds early `add switch --advisory` and
-  `add switch --dry-run` planning until generated component registry artifacts exist.
-- `src/registry/switch-ingest-packet.ts` exposes that data as the typed packet.
+- `src/registry/*-ingest-packet.data.json` records source-receipt metadata for received components.
+- Verification scripts such as `verify-table-proof.mjs` and `verify-sort-and-filter-panel-proof.mjs` prove focused
+  source receipt boundaries.
+
+## Registry Surface
+
+The active React manifest currently contains 73 items: 52 components, 9 support items, and 12 theme items.
+
+`@amino-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
+not drift from the manifest.
 
 ## Peer Policy
 
-React, React DOM, and React Aria Components are current package peers.
+React, React DOM, React Aria, React Aria Components, and Radix Avatar are current package peers. Runtime dependencies
+cover implementation packages such as `classnames`, `date-fns`, `embla-carousel`, `@internationalized/date`, and
+`motion`.
 
-`Switch` treats React Aria Components as a first-proof peer requirement at `^1.17.0` and `classnames` as implementation
-runtime surface at `^2.3.2`. React Aria Components is also a dev dependency so the private package can typecheck and
-build the received source.
+Manifest entries classify peer, runtime, and dev dependencies per registry item so the CLI can report dependency status
+without installing packages by default.
 
 ## Current Non-Goals
 
 - Public token exports.
 - Published package artifacts.
-- Component test harness.
+- Hosted registry artifacts.
 - Runtime provider or generated theme machinery.

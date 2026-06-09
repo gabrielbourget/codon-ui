@@ -20,16 +20,24 @@ export default defineConfig({
           items: ["foundation/monorepo", "foundation/verification", "foundation/extraction-boundaries"],
         },
         {
+          label: "Component Library",
+          items: [
+            "component-library/source-graph",
+            "component-library/adapter-boundaries",
+            "component-library/consumer-proofs",
+          ],
+        },
+        {
           label: "Packages",
           items: ["packages/react"],
         },
         {
           label: "Registry",
-          items: ["registry/contracts", "registry/ingest"],
+          items: ["registry/contracts", "registry/ingest", "registry/local-snapshots"],
         },
         {
           label: "CLI",
-          items: ["cli/baseline-contract"],
+          items: ["cli/baseline-contract", "cli/consumer-lifecycle", "cli/fixture-evidence"],
         },
       ],
     }),

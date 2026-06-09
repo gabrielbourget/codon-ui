@@ -1,12 +1,21 @@
 import { existsSync, promises as fs } from "fs"
 import path from "path"
 
-import { AMINO_UI_CONFIG_FILE_NAME, AMINO_UI_LOCK_FILE_NAME, CONSUMER_ADVISORY_SEVERITY__WARNING } from "./constants"
+import {
+  AMINO_UI_CONFIG_FILE_NAME,
+  AMINO_UI_LOCK_FILE_NAME,
+  CONSUMER_ADVISORY_SEVERITY__WARNING,
+  CONSUMER_PACKAGE_MANAGER__UNKNOWN,
+} from "./constants"
+import { resolveConsumerLayout } from "./layout"
+import { getConsumerProjectContext } from "./projectContext"
 import {
   consumerConfigSchema,
+  consumerInitDryRunResultSchema,
   consumerInitSeedResultSchema,
   consumerLockfileSchema,
   type TConsumerConfig,
+  type TConsumerInitDryRunResult,
   type TConsumerInitSeedResult,
   type TConsumerLockfile,
 } from "./schema"
@@ -18,28 +27,112 @@ export const createDefaultConsumerConfig = (): TConsumerConfig =>
 
 export const createEmptyConsumerLockfile = (): TConsumerLockfile => consumerLockfileSchema.parse({})
 
+const createConsumerInitSeedFindings = ({
+  configExists,
+  configMessage,
+  lockfileExists,
+  lockfileMessage,
+}: {
+  configExists: boolean
+  configMessage: string
+  lockfileExists: boolean
+  lockfileMessage: string
+}): TConsumerInitSeedResult["findings"] => {
+  const findings: TConsumerInitSeedResult["findings"] = []
+
+  if (configExists) {
+    findings.push({
+      code: "existing-config",
+      message: configMessage,
+      severity: CONSUMER_ADVISORY_SEVERITY__WARNING,
+    })
+  }
+
+  if (lockfileExists) {
+    findings.push({
+      code: "existing-lockfile",
+      message: lockfileMessage,
+      severity: CONSUMER_ADVISORY_SEVERITY__WARNING,
+    })
+  }
+
+  return findings
+}
+
+export const createConsumerInitDryRun = (cwd: string): TConsumerInitDryRunResult => {
+  const project = getConsumerProjectContext(cwd)
+  const proposedConfig = createDefaultConsumerConfig()
+  const lockfileData = createEmptyConsumerLockfile()
+  const layout = resolveConsumerLayout(proposedConfig)
+  const initialized = !project.hasConfigFile && !project.hasLockfile
+  const findings: TConsumerInitDryRunResult["findings"] = [
+    ...layout.findings,
+    ...createConsumerInitSeedFindings({
+      configExists: project.hasConfigFile,
+      configMessage: `${AMINO_UI_CONFIG_FILE_NAME} already exists. Init dry-run will not preview overwriting it.`,
+      lockfileExists: project.hasLockfile,
+      lockfileMessage: `${AMINO_UI_LOCK_FILE_NAME} already exists. Init dry-run will not preview overwriting it.`,
+    }),
+  ]
+
+  if (project.packageManager === CONSUMER_PACKAGE_MANAGER__UNKNOWN) {
+    findings.push({
+      code: "unknown-package-manager",
+      message: "Could not infer a package manager from packageManager metadata or a known lockfile.",
+      severity: CONSUMER_ADVISORY_SEVERITY__WARNING,
+    })
+  }
+
+  return consumerInitDryRunResultSchema.parse({
+    cwd,
+    dryRun: true,
+    effects: {
+      createsDirectories: false,
+      installsDependencies: false,
+      writesConfig: false,
+      writesLockfile: false,
+    },
+    findings,
+    initialized,
+    lockfileData,
+    packageManager: project.packageManager,
+    project,
+    proposedConfig,
+    targetPaths: layout.targetPaths,
+    wouldEffects: {
+      config: {
+        path: AMINO_UI_CONFIG_FILE_NAME,
+        status: initialized ? "would-write" : project.hasConfigFile ? "blocked" : "not-written",
+        wouldWrite: initialized,
+      },
+      dependencies: {
+        plannedInstallCount: 0,
+        status: "not-written",
+      },
+      directories: {
+        plannedCount: 0,
+        status: "not-written",
+      },
+      lockfile: {
+        path: AMINO_UI_LOCK_FILE_NAME,
+        status: initialized ? "would-write" : project.hasLockfile ? "blocked" : "not-written",
+        wouldWrite: initialized,
+      },
+    },
+  })
+}
+
 export const writeConsumerInitSeed = async (cwd: string): Promise<TConsumerInitSeedResult> => {
   const config = createDefaultConsumerConfig()
   const lockfileData = createEmptyConsumerLockfile()
   const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
   const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
-  const findings: TConsumerInitSeedResult["findings"] = []
-
-  if (existsSync(configPath)) {
-    findings.push({
-      code: "existing-config",
-      message: `${AMINO_UI_CONFIG_FILE_NAME} already exists. Strict init seed will not overwrite it.`,
-      severity: CONSUMER_ADVISORY_SEVERITY__WARNING,
-    })
-  }
-
-  if (existsSync(lockfilePath)) {
-    findings.push({
-      code: "existing-lockfile",
-      message: `${AMINO_UI_LOCK_FILE_NAME} already exists. Strict init seed will not overwrite it.`,
-      severity: CONSUMER_ADVISORY_SEVERITY__WARNING,
-    })
-  }
+  const findings = createConsumerInitSeedFindings({
+    configExists: existsSync(configPath),
+    configMessage: `${AMINO_UI_CONFIG_FILE_NAME} already exists. Strict init seed will not overwrite it.`,
+    lockfileExists: existsSync(lockfilePath),
+    lockfileMessage: `${AMINO_UI_LOCK_FILE_NAME} already exists. Strict init seed will not overwrite it.`,
+  })
 
   if (findings.length > 0) {
     return consumerInitSeedResultSchema.parse({

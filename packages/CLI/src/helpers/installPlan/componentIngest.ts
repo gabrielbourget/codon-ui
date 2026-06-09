@@ -242,10 +242,12 @@ export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddD
 
 export const createAddStrictEffects = ({
   applied,
+  installsDependencies = false,
   installPlan,
   writtenFileCount = 0,
 }: {
   applied: boolean
+  installsDependencies?: boolean
   installPlan: TRegistryInstallPlan
   writtenFileCount?: number
 }): TAddStrictEffects => {
@@ -260,7 +262,7 @@ export const createAddStrictEffects = ({
       reusedExistingTargetCount: dryRunEffects.files.reusedExistingTargetCount,
       writtenCount: applied ? writtenFileCount : 0,
     },
-    installsDependencies: false,
+    installsDependencies,
     lockfile: {
       plannedFileCount: installPlan.files.length,
       plannedItems: installPlan.items.map((item) => item.name),

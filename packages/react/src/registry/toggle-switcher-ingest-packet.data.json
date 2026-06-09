@@ -1,0 +1,180 @@
+{
+  "name": "toggle-switcher",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#toggleswitcher-next-candidate-planning-checkpoint",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+      "targetRole": "components",
+      "targetPath": "ToggleSwitcher/ToggleSwitcher.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "ToggleSwitcher/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "ToggleSwitcher/ToggleSwitcherStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "ToggleSwitcher",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx"
+    },
+    {
+      "exportedName": "ToggleSwitcherProps",
+      "localName": "TToggleSwitcherProps",
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ToggleSwitcherItem",
+      "localName": "TToggleSwitcherItem",
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/motion",
+      "replacementSource": "../../tokens/motion",
+      "notes": ["Motion duration support now imports from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Geometry constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/theme-order",
+      "replacementSource": "../../tokens/theme-order",
+      "notes": ["Theme-order constants and types now import from the package-local token module."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+      "importSource": "@/src/components/Text/types",
+      "replacementSource": "local TToggleSwitcherFontWeight",
+      "notes": ["The narrow font-weight union is localized so ToggleSwitcher does not depend on Text only for a type."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+      "importSource": "--distance_1, --disabledOpacity, --border_radius_1, --shadow_1, --focus-ring-color, --bgColorTransition, --borderColorTransition, --boxShadowTransition, --colorTransition",
+      "replacementSource": "--aui-space-1, --aui-opacity-disabled, --aui-radius-1, --aui-shadow-1, --aui-focus-ring, --aui-transition-background-color, --aui-transition-border-color, --aui-transition-box-shadow, --aui-transition-color",
+      "notes": ["Legacy Wavemap CSS aliases are rewritten directly to the default Amino theme contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/ToggleSwitcher/__tests__/ToggleSwitcher.test.tsx",
+    "apps/wavemap-front-end/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+    "apps/wavemap-front-end/src/components/Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "theme/action-colors",
+    "tokens/geometry",
+    "tokens/theme-order",
+    "tokens/motion"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-border-muted",
+        "--aui-control-background",
+        "--aui-control-foreground",
+        "--aui-control-hover-background",
+        "--aui-control-selected-background",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-surface-muted",
+        "--aui-transition-background-color",
+        "--aui-transition-border-color",
+        "--aui-transition-box-shadow",
+        "--aui-transition-color"
+      ],
+      "notes": ["These variables are already part of the package default theme contract."]
+    },
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-color-primary-500",
+        "--aui-color-secondary-500",
+        "--aui-color-tertiary-500",
+        "--aui-color-quaternary-500",
+        "--aui-color-quintenary-500"
+      ],
+      "files": [
+        {
+          "sourcePath": "packages/react/src/theme/action-colors.css",
+          "targetRole": "theme",
+          "targetPath": "action-colors.css",
+          "role": "theme"
+        }
+      ],
+      "notes": ["The selected-order palette uses the existing action-color theme support file."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"palette|getTheme|@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/\" packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx packages/react/src/components/ToggleSwitcher/helpers.ts packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after the approved token and font-weight rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static ToggleSwitcher proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/ToggleSwitcher/__tests__/ToggleSwitcher.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap test remains the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "ToggleSwitcher runtime source has been received into packages/react; this packet feeds CLI advisory planning until local registry activation.",
+    "Preserve the client component boundary, CSS-module source model, controlled/uncontrolled selection behavior, item-level disabled state, root disabled/readonly state, and Motion selected-surface animation.",
+    "Keep calibrateComponent and the localized font-weight union private unless a later API review approves exporting helper internals.",
+    "Do not move Wavemap focused tests, filtering consumers, table/query adapters, component showcase source, Toaster, or media source with the component.",
+    "This source-receipt pass does not activate a toggle-switcher manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence."
+  ]
+}

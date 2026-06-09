@@ -8,16 +8,27 @@ The CLI is still legacy scaffold. It can stay useful as reference material, but 
 policy, source ownership, component update behavior, package publication, or generated artifact shape before the first
 component proof is ready.
 
+## Graduated Reference
+
+Stable CLI guidance has moved into the docs site:
+
+- `apps/docs/src/content/docs/cli/baseline-contract.md`
+- `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
+- `apps/docs/src/content/docs/registry/local-snapshots.md`
+
+Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes, broad update/merge behavior,
+broader eject policy, non-orphan support cleanup, public registry hosting, and package publication.
+
 ## Current Status
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                                                              |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract. |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                               |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.             |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                     |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                                                         |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, `init --dry-run` previews the default seed without writes, and `init --defaults` seeds only the new config/lockfile contract. |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                                                          |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.                                                                        |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                                                                |
 
 Current helper surface:
 
@@ -134,6 +145,7 @@ Current read-only command behavior:
 
 ```sh
 aminoui-cli init --advisory --json --cwd <consumer-project>
+aminoui-cli init --dry-run --json --cwd <consumer-project>
 aminoui-cli info --json --cwd <consumer-project>
 ```
 
@@ -150,6 +162,10 @@ aui init --defaults --json --cwd <consumer-project>
 This path writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when neither file exists. It does not
 create directories, install dependencies, write helper files, install support files, or touch package-manager lockfiles.
 If either file already exists, it reports warnings and writes nothing; overwrite policy is deferred.
+
+`init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
+config, lockfile, directory, or dependency writes. Its `wouldEffects` report `would-write` for greenfield config and
+lockfile creation, `blocked` for existing files, and `not-written` for the counterpart in partial existing-file states.
 
 Against the `vite-registry-contained` fixture, both commands report:
 
@@ -264,6 +280,16 @@ rejects existing target files rather than overwriting, writes the seven planned 
 package-local token imports to the installed consumer registry token paths, and updates `amino-ui.lock.json` with
 hash-based item/file ownership metadata plus satisfied dependency decisions. It does not install or update packages,
 generate hosted registry artifacts, run component tests, or implement status/update/eject behavior.
+
+Later lifecycle slices added item-scoped `status`, `diff`, `update`, `remove`, `delete`, and `eject` behavior behind
+fixture evidence. `remove` and `delete` now also accept `--with-orphans` to report dependency items that would become
+orphan cleanup candidates in advisory and dry-run modes, then remove dry-run-approved orphan dependency items in strict
+temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup` report block. Advisory and dry-run
+also report a separate no-write `dependencyCleanup` block that classifies package dependency cleanup candidates and
+dependencies still required by remaining installed items. Fixture evidence now covers the blocked path where a modified
+orphan item keeps dependencies still-required, suppresses dry-run dependency removals, and blocks strict cleanup
+atomically. Strict orphan cleanup remains opt-in and does not add package-manifest edits, package-manager lockfile edits,
+non-orphan support cleanup, or broad deletion policy.
 
 ## Design Discussion Packet
 

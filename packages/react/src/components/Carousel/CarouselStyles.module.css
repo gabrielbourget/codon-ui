@@ -1,0 +1,49 @@
+.carousel {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  touch-action: pan-y pinch-zoom;
+}
+
+.carousel__container {
+  display: flex;
+  height: 100%;
+}
+
+.carousel__viewport {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  outline: none;
+}
+
+.carousel__viewport:focus-visible {
+  outline: none;
+}
+
+.carousel__item {
+  flex: 0 0 100%;
+  min-width: 0;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel__chrome {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.carousel .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,0 +1,202 @@
+{
+  "name": "select",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#select-next-candidate-planning-checkpoint-2026-06-04",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Select/Select.tsx",
+      "targetRole": "components",
+      "targetPath": "Select/Select.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Select/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/DefaultChevronDownIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "Select/DefaultChevronDownIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/SelectStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Select/SelectStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/__tests__/Select.test.tsx",
+      "targetRole": "components",
+      "targetPath": "Select/__tests__/Select.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Select",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Select/Select.tsx"
+    },
+    {
+      "exportedName": "SelectProps",
+      "localName": "TSelectProps",
+      "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Select/Select.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["Select composes the installed Button registry item instead of copying Button source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/Select.tsx",
+      "importSource": "@/src/components/Text/variants/PlaceholderText/PlaceholderText",
+      "registryDependencyName": "placeholder-text",
+      "replacementSource": "../Text/variants/PlaceholderText/PlaceholderText",
+      "notes": [
+        "Empty Select lists render the installed PlaceholderText variant instead of copying Text variant source."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["Corner geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["Popover placement typing imports from the narrow placement token support item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/TextStyles.module.css",
+      "notes": [
+        "Selected item text-size classes reuse the installed Text registry item instead of copying Text source."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/SelectStyles.module.css",
+      "importSource": "--border_radius_1 / --distance_1 / --disabledOpacity / --shadow_1 / --focus-ring-color / --fadeInAnimation / --fadeOutAnimation aliases",
+      "replacementSource": "--aui-radius-1 / --aui-space-1 / --aui-opacity-disabled / --aui-shadow-1 / --aui-focus-ring / --aui-animation-fade-in / --aui-animation-fade-out",
+      "notes": ["Select CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/theme.css",
+      "importSource": "Select validation and fade animation theme usage",
+      "registryDependencyName": "theme-css",
+      "replacementSource": "--aui-validation-*-border, --aui-animation-fade-in, --aui-animation-fade-out, and fade keyframes",
+      "notes": ["Select adds only the default theme variables and keyframes needed by the received runtime source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Select/__tests__/Select.test.tsx",
+      "importSource": "@/src/components/ListBoxItem/ListBoxItem",
+      "registryDependencyName": "list-box-item",
+      "replacementSource": "../ListBoxItem/ListBoxItem",
+      "advisory": true,
+      "notes": [
+        "Focused usage examples should render installed ListBoxItem children, but Select source does not directly import ListBoxItem."
+      ]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/helpers.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/components/Breadcrumbs/Breadcrumbs.tsx",
+    "apps/wavemap-front-end/src/components/Input/Input.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/geometry", "tokens/placement", "text", "button", "placeholder-text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "motion": "^12.40.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-control-placeholder",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-surface",
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-validation-error-border",
+        "--aui-validation-warning-border",
+        "--aui-validation-success-border"
+      ],
+      "notes": [
+        "Select source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--disabledOpacity|--shadow_1|--focus-ring-color|--fadeInAnimation|--fadeOutAnimation|theme/select-compatibility\" packages/react/src/components/Select/Select.tsx packages/react/src/components/Select/helpers.tsx packages/react/src/components/Select/DefaultChevronDownIcon.tsx packages/react/src/components/Select/SelectStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Select proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/Select/__tests__/Select.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Select runtime source has been received into packages/react as the small selection popover composition proof after ListBoxItem.",
+    "Preserve the React Aria Select root, Button trigger composition, SelectValue rendering, Motion chevron rotation, Popover/ListBox behavior, PlaceholderText empty state, validation border precedence, geometry classes, selected text-size classes, native className/style merging, custom style hooks, and wrapper prop filtering for the first Select proof.",
+    "Keep TSelectComponent, calibrateComponent, size constants, text-size helpers, geometry helpers, border-style helpers, class/style merge helpers, and the default chevron icon private to the package root unless a later API review approves exporting helper internals.",
+    "Do not move ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, Input, label/i18n support, app forms, component showcase code, or broader app consumers with Select.",
+    "This source-receipt pass does not activate a select manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -1,0 +1,257 @@
+.toast {
+  height: auto;
+  width: var(--width);
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+  overflow: hidden;
+  position: absolute;
+  color: var(--aui-surface-foreground);
+  background: var(--aui-surface);
+  border-radius: var(--aui-radius-1);
+  box-shadow: var(--aui-shadow-1);
+  outline: none;
+  overflow-wrap: anywhere;
+  --y: translateY(0);
+  --lift-amount: calc(var(--lift) * var(--toastGap));
+  z-index: calc(var(--aui-z-index-toast) + var(--z-index));
+  opacity: 1;
+  transform: var(--y);
+  touch-action: none; /* - Rationale -> https://stackoverflow.com/questions/48124372/pointermove-event-not-working-with-touch-why-not */
+  will-change: transform, opacity, height;
+  transition:
+    transform 400ms,
+    opacity 400ms,
+    height 400ms,
+    box-shadow 250ms;
+}
+
+.toast__icon--white {
+  fill: var(--aui-control-selected-foreground);
+}
+
+@media (prefers-reduced-motion) {
+  .toast {
+    transition: none !important;
+    animation: none !important;
+  }
+
+  .toast > * {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+.toast--raised {
+  box-shadow: var(--aui-shadow-1);
+}
+.toast--rounded {
+  border-radius: var(--aui-radius-2);
+}
+
+.toast[data-y-position="top"] {
+  top: 0;
+
+  /* --y: translateY(-100%); */
+  --lift: 1;
+  --lift-amount: calc(1 * var(--toastGap));
+}
+
+.toast[data-y-position="bottom"] {
+  bottom: 0;
+
+  /* --y: translateY(100%); */
+  --lift: -1;
+  --lift-amount: calc(var(--lift) * var(--toastGap));
+}
+
+/* Leave a ghost div to avoid setting hover to false when dragging out */
+.toast[data-dragging="true"]::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 100%;
+  z-index: -1;
+}
+
+.toast[data-y-position="top"][data-dragging="true"]::before {
+  /* y 50% needed to distribute height additional height evenly */
+  bottom: 50%;
+  transform: scaleY(3) translateY(50%);
+}
+
+.toast[data-y-position="bottom"][data-dragging="true"]::before {
+  /* y -50% needed to distribute height additional height evenly */
+  top: 50%;
+  transform: scaleY(3) translateY(-50%);
+}
+
+/* Leave a ghost div to avoid setting hover to false when transitioning out */
+.toast[data-dragging="false"][data-removed="true"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: scaleY(2);
+}
+
+.toast[data-mounted="true"] {
+  --y: translateY(0);
+  opacity: 1;
+}
+
+.toast[data-front="true"][data-mounted="false"] {
+  opacity: 0;
+}
+.toast[data-y-position="top"][data-front="true"][data-mounted="false"] {
+  --y: translateY(-100%);
+}
+.toast[data-y-position="bottom"][data-front="true"][data-mounted="false"] {
+  --y: translateY(100%);
+}
+
+.toast[data-expanded="false"][data-front="false"] {
+  --scale: var(--toastsBefore) * 0.05 + 1;
+  --y: translateY(calc(var(--lift-amount) * var(--toastsBefore))) scale(calc(-1 * var(--scale)));
+  height: var(--firstToastHeight);
+}
+
+.toast > * {
+  transition: opacity 300ms;
+}
+
+.toast[data-visible="false"] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.toast[data-mounted="true"][data-expanded="true"] {
+  --y: translateY(calc(var(--lift) * var(--offset)));
+  height: var(--initial-height);
+}
+
+.toast[data-removed="true"][data-front="true"][data-dragging-out="false"] {
+  --y: translateY(calc(var(--lift) * -100%));
+  opacity: 0;
+}
+
+.toast[data-removed="true"][data-front="false"][data-dragging-out="false"][data-expanded="true"] {
+  --y: translateY(calc(var(--lift) * var(--offset) + var(--lift) * -100%));
+  opacity: 0;
+}
+
+.toast[data-removed="true"][data-front="false"][data-dragging-out="false"][data-expanded="false"] {
+  --y: translateY(40%);
+  opacity: 0;
+  transition:
+    transform 500ms,
+    opacity 250ms;
+}
+
+/* Bump up the height to make sure hover state doesn"t get set to false */
+.toast[data-removed="true"][data-front="false"]::before {
+  height: calc(var(--initial-height) + 20%);
+}
+
+.toast[data-dragging="true"] {
+  transform: var(--y) translateY(var(--dragAmount, 0));
+  transition: none;
+}
+
+.toast[data-dragging-out="true"][data-y-position="bottom"] {
+  animation: swipe-out 250ms ease-out forwards;
+}
+
+.toast[data-dragging-out="true"][data-y-position="top"] {
+  animation: swipe-out 250ms ease-out forwards;
+}
+
+.toast__topRibbon {
+  height: 30px;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: var(--aui-space-2);
+  padding-right: var(--aui-space-1);
+}
+
+.toast__topRibbon--info {
+  background-color: var(--aui-control-selected-background);
+}
+.toast__topRibbon--warning {
+  background-color: var(--aui-status-warning);
+}
+.toast__topRibbon--errorOrDanger {
+  background-color: var(--aui-status-danger);
+}
+.toast__topRibbon--success {
+  background-color: var(--aui-status-success);
+}
+
+.toast__topRibbon__leftContent {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--aui-space-1);
+}
+
+.toast__bodyContent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-2);
+  padding: var(--aui-space-2);
+  border-radius: 0.5px;
+}
+
+.toast__content:focus {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.toast__bottomRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.toast__buttonRow {
+  width: fit-content;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--aui-space-1);
+}
+
+@keyframes swipe-out {
+  from {
+    transform: translateY(calc(var(--lift) * var(--offset) + var(--dragAmount)));
+    opacity: 1;
+  }
+
+  to {
+    transform: translateY(calc(var(--lift) * var(--offset) + var(--dragAmount) + var(--lift) * -100%));
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes fade-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+}

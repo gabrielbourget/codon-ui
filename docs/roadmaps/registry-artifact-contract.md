@@ -7,6 +7,16 @@ output directories or broad directory copies.
 
 This contract defines the target shape before `Switch` or any other Wavemap component source moves into the monorepo.
 
+## Graduated Reference
+
+Stable registry guidance has moved into the docs site:
+
+- `apps/docs/src/content/docs/registry/contracts.md`
+- `apps/docs/src/content/docs/registry/local-snapshots.md`
+- `apps/docs/src/content/docs/component-library/source-graph.md`
+
+Keep this roadmap focused on public artifact hosting, generator, and publication decisions that remain deferred.
+
 ## Current Status
 
 `packages/react` now owns the starter registry contract:

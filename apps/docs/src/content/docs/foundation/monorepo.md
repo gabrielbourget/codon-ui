@@ -15,13 +15,13 @@ Amino UI uses `pnpm` workspaces. Treat each workspace as an ownership boundary, 
 
 ## Current Branch Purpose
 
-The renovation branch establishes structure and verification before component extraction starts. It should be reviewable
-as monorepo foundation work, not as a component migration.
+The renovation branch establishes Amino UI as the local source receiver and registry planner for extracted reusable
+components. `packages/react` owns reusable source; `packages/CLI` owns consumer planning and install behavior; `apps/docs`
+owns durable reference material.
 
 ## Deliberately Deferred
 
-- Component source movement.
-- Registry artifact builder rewrites.
-- CLI install, update, diff, status, or ejection behavior.
+- Registry artifact builder rewrites and public hosting.
+- CLI update, remove/delete, focused diff, and ejection behavior.
 - Generated token writers or palette generation.
 - Publication, release, or deployment automation.

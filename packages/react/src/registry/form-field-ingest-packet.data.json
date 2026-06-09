@@ -1,0 +1,170 @@
+{
+  "name": "form-field",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#formfield-next-candidate-planning-checkpoint-2026-06-03",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/FormField/FormField.tsx",
+      "targetRole": "components",
+      "targetPath": "FormField/FormField.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "FormField/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "FormField/FormFieldStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/__tests__/FormField.test.tsx",
+      "targetRole": "components",
+      "targetPath": "FormField/__tests__/FormField.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "FormField",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/FormField/FormField.tsx"
+    },
+    {
+      "exportedName": "FormFieldProps",
+      "localName": "TFormFieldProps",
+      "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/FormField/FormField.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../Text/Text",
+      "notes": ["FormField composes the installed Text registry item instead of copying typography source."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "../../tokens/a11y",
+      "notes": ["Aria alias props import from package-local a11y token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
+      "importSource": "--distance_1 / --shadow_1 aliases",
+      "replacementSource": "--aui-space-1 / --aui-shadow-1",
+      "notes": ["FormField CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+      "importSource": "--aui-validation-*-foreground only",
+      "replacementSource": "validation foreground aliases with --aui-state-* fallbacks",
+      "notes": [
+        "Wavemap can keep existing validation aliases while default Amino theme consumers resolve state colors."
+      ]
+    },
+    {
+      "sourcePath": "packages/react/src/components/FormField/__tests__/FormField.test.tsx",
+      "importSource": "@/src/components/FormField/FormField",
+      "replacementSource": "../FormField",
+      "advisory": true,
+      "notes": ["Focused test import path depends on the approved package-side proof harness."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+    "apps/wavemap-front-end/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/Pagination.tsx",
+    "apps/wavemap-front-end/src/components/Pagination/helpers.tsx",
+    "apps/wavemap-front-end/src/components/ComboBox/ComboBox.tsx",
+    "apps/wavemap-front-end/src/components/ListBoxItem/ListBoxItem.tsx",
+    "apps/wavemap-front-end/src/components/TagComboBox/TagComboBox.tsx",
+    "apps/wavemap-front-end/src/components/DateTimePicker/DateTimePicker.tsx",
+    "apps/wavemap-front-end/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+    "apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx"
+  ],
+  "registryDependencies": ["theme-css", "tokens/a11y", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-space-1",
+        "--aui-shadow-1",
+        "--aui-state-danger",
+        "--aui-state-warning",
+        "--aui-state-success"
+      ],
+      "notes": [
+        "FormField source reads the default theme contract directly and does not need a component-specific compatibility bridge."
+      ]
+    },
+    {
+      "strategy": "consumer-owned",
+      "cssVariables": [
+        "--aui-validation-error-foreground",
+        "--aui-validation-warning-foreground",
+        "--aui-validation-success-foreground"
+      ],
+      "notes": [
+        "Wavemap already defines validation foreground aliases; FormField keeps those aliases as first-choice values with default state fallbacks for new consumers."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@radix-ui|@internationalized/date|--distance_1|--shadow_1\" packages/react/src/components/FormField/FormField.tsx packages/react/src/components/FormField/helpers.ts packages/react/src/components/FormField/FormFieldStyles.module.css",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static FormField proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test:ci src/components/FormField/__tests__/FormField.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "FormField runtime source has been received into packages/react as a composed form layout component that depends on installed Text source and a11y token support.",
+    "Preserve the root div behavior, aria alias bridge, label/required marker, top and bottom content slots, validation message groups, description copy, native class/style merge behavior, custom slot styling, and CSS-module source model for the first FormField proof.",
+    "Keep calibrateComponent, validation-color constants, slot class/style helpers, and native prop alias handling private unless a later API review approves exporting helper internals.",
+    "Do not move Filtering, Pagination, app forms, component showcase code, ComboBox, ListBoxItem, TagComboBox, DateTimePicker, DateTimeRangePicker, query/typeahead wrappers, or broader app consumers with FormField.",
+    "This source-receipt pass does not activate a form-field manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
+    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+  ]
+}

@@ -1,0 +1,52 @@
+.loader {
+  margin: 0 auto;
+  width: var(--width);
+  height: 50px;
+  text-align: center;
+  display: table-cell;
+  vertical-align: middle;
+}
+
+.loadingSlide {
+  position: relative;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.slide {
+  position: absolute;
+  width: 20%;
+  height: 5px;
+  background: currentcolor;
+  animation-name: lagging-lines-loader-slide;
+  animation-duration: 3s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+}
+
+.slide:nth-of-type(0n + 1) {
+  opacity: 0.4;
+  transform: scale(1.2, 1);
+  animation-delay: 0.2s;
+}
+
+.slide:nth-of-type(0n + 2) {
+  opacity: 0.6;
+  transform: scale(1.1, 1);
+  animation-delay: 0.1s;
+}
+
+.slide:nth-of-type(0n + 3) {
+  opacity: 0.9;
+}
+
+@keyframes lagging-lines-loader-slide {
+  0%,
+  100% {
+    left: 0;
+  }
+
+  50% {
+    left: 100%;
+  }
+}

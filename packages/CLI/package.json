@@ -22,7 +22,7 @@
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
     "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/add.test.ts",
+    "test": "pnpm exec tsx src/commands/init.test.ts && pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/diff.test.ts && pnpm exec tsx src/commands/update.test.ts && pnpm exec tsx src/commands/remove.test.ts && pnpm exec tsx src/commands/eject.test.ts && pnpm exec tsx src/commands/add.test.ts",
     "pub:beta": "npm build && npm publish --access public --tag beta",
     "pub:next": "npm build && npm publish --access public --tag next",
     "pub:release": "npm build && npm publish --access public"

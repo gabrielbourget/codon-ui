@@ -9,6 +9,16 @@ publication, or generated-token work expands around it.
 small, representative, and free of app-domain runtime imports. This document names the approval packet and source-receipt
 constraints needed before strict consumer install proof work.
 
+## Graduated Reference
+
+The first-proof source-receipt and registry boundaries have graduated into the docs site:
+
+- `apps/docs/src/content/docs/component-library/source-graph.md`
+- `apps/docs/src/content/docs/component-library/adapter-boundaries.md`
+- `apps/docs/src/content/docs/foundation/extraction-boundaries.md`
+
+Keep this roadmap focused on proof history and remaining open decisions.
+
 ## Source Roadmaps
 
 Use these Wavemap notes as the current source of truth for candidate readiness:

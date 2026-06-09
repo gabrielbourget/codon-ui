@@ -1,0 +1,62 @@
+.tableRow {
+  position: relative;
+  isolation: isolate; /* Its z-indexes won’t leak out */
+  overflow: visible;
+  background: transparent;
+  transition: var(--aui-transition-background-color), var(--aui-transition-color);
+}
+
+.tableRow > td,
+.tableRow > [role="cell"] {
+  position: relative;
+  z-index: 1;
+  background: transparent; /* ensure the overlay is visible */
+}
+
+.tableRow--rounded > td:first-child,
+.tableRow--rounded > [role="cell"]:first-child {
+  border-top-left-radius: var(--aui-radius-1);
+  border-bottom-left-radius: var(--aui-radius-1);
+}
+
+.tableRow--rounded > td:last-child,
+.tableRow--rounded > [role="cell"]:last-child {
+  border-top-right-radius: var(--aui-radius-1);
+  border-bottom-right-radius: var(--aui-radius-1);
+}
+
+.tableRow--round > td:first-child,
+.tableRow--round > [role="cell"]:first-child {
+  border-top-left-radius: 10000px;
+  border-bottom-left-radius: 10000px;
+}
+
+.tableRow--round > td:last-child,
+.tableRow--round > [role="cell"]:last-child {
+  border-top-right-radius: 10000px;
+  border-bottom-right-radius: 10000px;
+}
+
+/* -> Grabbing cursor while this row is the active drag source. */
+
+/* -> RAC uses role="gridcell" (not role="cell") for table body cells, so target both td and [role="gridcell"]. */
+.tableRow[data-dragging] > td:first-child,
+.tableRow[data-dragging] > [role="gridcell"]:first-child {
+  cursor: grabbing;
+}
+
+.tableRow:hover {
+  background-color: var(--hoverColor, transparent);
+}
+
+.tableRow[data-focused] {
+  outline: 1.5px solid var(--aui-focus-ring);
+}
+
+.tableRow:focus-visible {
+  outline: 2px solid var(--aui-focus-ring);
+}
+
+[data-clickable-rows="true"] .tableRow:hover {
+  cursor: pointer;
+}

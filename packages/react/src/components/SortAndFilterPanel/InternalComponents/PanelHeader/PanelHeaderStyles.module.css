@@ -1,0 +1,18 @@
+.panelHeader {
+  height: auto;
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.titleWrapper {
+  display: grid;
+  place-items: center;
+  height: auto;
+  width: auto;
+  padding: var(--aui-space-1);
+  border-radius: var(--aui-radius-1);
+  background: var(--aui-surface-muted);
+}

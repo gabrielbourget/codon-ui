@@ -56,6 +56,71 @@
       ]
     },
     {
+      "name": "tokens/alignment",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/alignment.ts",
+          "targetRole": "tokens",
+          "targetPath": "alignment.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/drag",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/drag.ts",
+          "targetRole": "tokens",
+          "targetPath": "drag.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/placement",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/placement.ts",
+          "targetRole": "tokens",
+          "targetPath": "placement.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/responsive",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/responsive.ts",
+          "targetRole": "tokens",
+          "targetPath": "responsive.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
+      "name": "tokens/motion",
+      "type": "support",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/tokens/motion.ts",
+          "targetRole": "tokens",
+          "targetPath": "motion.ts",
+          "role": "support"
+        }
+      ]
+    },
+    {
       "name": "theme/switch-compatibility",
       "type": "theme",
       "sourcePackage": "@amino-ui/react",
@@ -279,6 +344,162 @@
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "card",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Card/Card.tsx",
+          "targetRole": "components",
+          "targetPath": "Cards/Card/Card.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Card/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Cards/Card/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Cards/Card/CardStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "carousel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/Carousel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Carousel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/CarouselStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/CarouselStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDots.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/CarouselDots.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounter.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/CarouselCounter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/CarouselPrevButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselPrevButton/DefaultPrevIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/CarouselNextButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselNextButton/DefaultNextIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/CarouselCloseButton.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Carousel/components/CarouselCloseButton/DefaultCloseIcon.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": ["theme-css", "button", "counter", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": {
+        "classnames": "^2.3.2",
+        "embla-carousel": "^8.6.0",
+        "embla-carousel-react": "^8.6.0"
+      }
     },
     {
       "name": "switch",
@@ -550,6 +771,592 @@
       "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
+      "name": "time-picker",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/TimePicker.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/labels.ts",
+          "targetRole": "components",
+          "targetPath": "TimePicker/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/DefaultClockIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "TimePicker/DefaultClockIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TimePicker/TimePickerStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/geometry", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "date-time-picker",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DateTimePicker.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/labels.ts",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DefaultDateTimePickerIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DefaultDateTimePickerIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/DateTimePickerStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimePicker/CalendarStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimePicker/CalendarStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/placement",
+        "text",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "date-time-range-picker",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/DateTimeRangePicker.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/labels.ts",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/DefaultDateTimeRangePickerIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/DateTimeRangePickerStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/DateTimeRangePicker/CalendarStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "DateTimeRangePicker/CalendarStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/placement",
+        "text",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "table",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Table/Table.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/Table.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/TableContext.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/TableContext.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Table/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/queryTypes.ts",
+          "targetRole": "components",
+          "targetPath": "Table/queryTypes.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/filterMetadata.ts",
+          "targetRole": "components",
+          "targetPath": "Table/filterMetadata.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/filterDraft.ts",
+          "targetRole": "components",
+          "targetPath": "Table/filterDraft.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/TableStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/TableStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeader.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/TableHeader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/DefaultTableHeaderIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableHeader/TableHeaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableHeader/TableHeaderStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableBody/TableBody.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableBody/TableBody.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableBody/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableBody/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRow.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/TableRow.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/DefaultDragIndicatorIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableRow/TableRowStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableRow/TableRowStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCell.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/TableCell.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableCell/TableCellStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableCell/TableCellStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableColumn/TableColumn.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableColumn/TableColumn.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopover.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/TableFilterPopover.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/DefaultAddConditionIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Table/components/TableFilterPopover/TableFilterPopoverStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Filtering/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRow.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/FilterClauseRow.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/DefaultDeleteIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/FilterClauseRow/FilterClauseRowStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInput.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/DynamicFilterArgumentInputStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/RangeTypeFilterArgument/RangeTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/MultiInputTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiInputTypeFilterArgument/DefaultMultiInputTypeFilterArgumentIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/MultiSelectTypeFilterArgument/MultiSelectTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Filtering/DynamicFilterArgumentInput/InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgumentStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterList.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterList.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/DefaultDragIndicatorIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "SortParameterList/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "theme/text-typography",
+        "tokens/a11y",
+        "tokens/alignment",
+        "tokens/drag",
+        "tokens/geometry",
+        "tokens/responsive",
+        "tokens/theme-order",
+        "button",
+        "card",
+        "checkbox",
+        "click-popover",
+        "combo-box",
+        "date-time-picker",
+        "form-field",
+        "input",
+        "list-box-item",
+        "number-input",
+        "pagination",
+        "select",
+        "switch",
+        "tag",
+        "tag-combo-box",
+        "text",
+        "time-picker",
+        "toggle-switcher"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria": "^3.48.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": {
+        "@internationalized/date": "^3.12.1",
+        "classnames": "^2.3.2",
+        "motion": "^12.40.0"
+      }
+    },
+    {
+      "name": "toaster",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toaster.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/stateManagement.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/stateManagement.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/ToasterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Toaster/ToasterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/Toast.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/Toast.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/DefaultToastIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/DefaultToastIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Toaster/Toast/ToastStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/geometry",
+        "button",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "date-fns": "^4.1.0" }
+    },
+    {
       "name": "toggle-button",
       "type": "component",
       "sourcePackage": "@amino-ui/react",
@@ -585,6 +1392,40 @@
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "toggle-switcher",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/ToggleSwitcher.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ToggleSwitcher/ToggleSwitcherStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "tokens/motion"
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
       "name": "radio",
@@ -665,6 +1506,1111 @@
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "placeholder-text",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/PlaceholderText.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "list-box-item",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItem.tsx",
+          "targetRole": "components",
+          "targetPath": "ListBoxItem/ListBoxItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ListBoxItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ListBoxItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ListBoxItem/ListBoxItemStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "select",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Select/Select.tsx",
+          "targetRole": "components",
+          "targetPath": "Select/Select.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Select/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Select/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Select/DefaultChevronDownIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Select/DefaultChevronDownIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Select/SelectStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Select/SelectStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "text",
+        "button",
+        "placeholder-text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "combo-box",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/ComboBox.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/labels.ts",
+          "targetRole": "components",
+          "targetPath": "ComboBox/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/DefaultChevronDownIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "ComboBox/DefaultChevronDownIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ComboBox/ComboBoxStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "button",
+        "input",
+        "placeholder-text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "click-popover",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ClickPopover/ClickPopover.tsx",
+          "targetRole": "components",
+          "targetPath": "ClickPopover/ClickPopover.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ClickPopover/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ClickPopover/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ClickPopover/ClickPopoverStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ClickPopover/ClickPopoverStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "tooltip",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Tooltip/Tooltip.tsx",
+          "targetRole": "components",
+          "targetPath": "Tooltip/Tooltip.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tooltip/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Tooltip/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Tooltip/TooltipStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "hover-popover",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/HoverPopover.tsx",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/HoverPopover.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "HoverPopover/HoverPopoverStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "menu",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Menu/Menu.tsx",
+          "targetRole": "components",
+          "targetPath": "Menu/Menu.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Menu/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Menu/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Menu/components/MenuItem.tsx",
+          "targetRole": "components",
+          "targetPath": "Menu/components/MenuItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Menu/components/MenuSeparator.tsx",
+          "targetRole": "components",
+          "targetPath": "Menu/components/MenuSeparator.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Menu/MenuStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "panel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Panel/Panel.tsx",
+          "targetRole": "components",
+          "targetPath": "Panel/Panel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Panel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panel/PanelStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "tokens/motion"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "modal",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
+          "targetRole": "components",
+          "targetPath": "Modal/Modal.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Modal/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Modal/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Modal/ModalStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "button",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "alert-dialog",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/AlertDialog.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/DefaultAlertDialogIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/DefaultAlertDialogIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/labels.ts",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "AlertDialog/AlertDialogStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/a11y",
+        "tokens/geometry",
+        "button",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "line-segment",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/LineSegment/LineSegment.tsx",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/LineSegment/LineSegment.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": ["theme-css"],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "indicator",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Indicator/Indicator.tsx",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/Indicator/Indicator.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/Indicator/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Indicator/IndicatorStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/Indicator/IndicatorStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "circle-loader",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CircleLoader/CircleLoader.tsx",
+          "targetRole": "components",
+          "targetPath": "Loaders/CircleLoader/CircleLoader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CircleLoader/CircleLoaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Loaders/CircleLoader/CircleLoaderStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" }
+    },
+    {
+      "name": "lagging-lines-loader",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoader.tsx",
+          "targetRole": "components",
+          "targetPath": "Loaders/LaggingLinesLoader/LaggingLinesLoader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/LaggingLinesLoader/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Loaders/LaggingLinesLoader/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Loaders/LaggingLinesLoader/LaggingLinesLoaderStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "link",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Link/Link.tsx",
+          "targetRole": "components",
+          "targetPath": "Link/Link.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Link/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Link/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Link/LinkStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": { "react": "^18.2.0 || ^19.0.0" },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "breadcrumbs",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/Breadcrumbs.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/BreadcrumbsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/DefaultBreadcrumbIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Breadcrumbs/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Breadcrumbs/labels.ts",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/a11y",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "button",
+        "click-popover",
+        "link",
+        "list-box-item",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "pagination",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/Pagination.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/PaginationStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Pagination/PaginationStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/helpers.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PrimaryPaginationControls/helpers.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/DefaultPaginationIcons.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PrimaryPaginationControls/DefaultPaginationIcons.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PageCounter/PageCounter.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PageCounter/PageCounter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PageCounter/PageCounterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PageCounter/PageCounterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PageInput/PageInput.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PageInput/PageInput.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/PageInput/PageInputStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/PageInput/PageInputStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Pagination/components/ItemsPerPage/ItemsPerPage.tsx",
+          "targetRole": "components",
+          "targetPath": "Pagination/components/ItemsPerPage/ItemsPerPage.tsx",
+          "role": "source"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order",
+        "button",
+        "click-popover",
+        "counter",
+        "form-field",
+        "line-segment",
+        "list-box-item",
+        "number-input",
+        "select",
+        "text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "tag-combo-box",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/TagComboBox/TagComboBox.tsx",
+          "targetRole": "components",
+          "targetPath": "TagComboBox/TagComboBox.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagComboBox/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "TagComboBox/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagComboBox/labels.ts",
+          "targetRole": "components",
+          "targetPath": "TagComboBox/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/TagComboBox/TagComboBoxStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "TagComboBox/TagComboBoxStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "tokens/theme-order",
+        "text",
+        "combo-box",
+        "tag-group"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "typeahead-search",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/TypeaheadSearch.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/status.ts",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/status.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultSearchIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "input",
+        "button",
+        "list-box-item",
+        "placeholder-text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "compact-typeahead-search",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "tokens/geometry",
+        "tokens/placement",
+        "input",
+        "button",
+        "list-box-item",
+        "placeholder-text"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "sort-and-filter-panel",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/labels.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/labels.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFilters.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveFilters/ActiveFiltersStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSorts.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/ActiveSorts/ActiveSortsStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelFooter/PanelFooterStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeader.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/DefaultCloseIcon.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/PanelHeader/PanelHeaderStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterList.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/SortParameterListStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/AnimatedListBoxItem/AnimatedListBoxItemStyles.module.css",
+          "role": "style"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItem.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/InternalComponents/SortParameterList/InternalComponents/SortParameterListItem/SortParameterListItemStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "table",
+        "panel",
+        "form-field",
+        "select",
+        "list-box-item",
+        "line-segment",
+        "tag-group",
+        "text",
+        "placeholder-text",
+        "toggle-switcher",
+        "tooltip",
+        "button"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "thumbnail-image",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
+          "targetRole": "components",
+          "targetPath": "ThumbnailImage/ThumbnailImage.tsx",
+          "role": "source"
+        }
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      }
     },
     {
       "name": "slider",
@@ -884,6 +2830,111 @@
         "react-dom": "^18.2.0 || ^19.0.0"
       },
       "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "form-field",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/FormField/FormField.tsx",
+          "targetRole": "components",
+          "targetPath": "FormField/FormField.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/FormField/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "FormField/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "FormField/FormFieldStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": ["theme-css", "tokens/a11y", "text"],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
+      "name": "linear-progress",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/LinearProgress/LinearProgress.tsx",
+          "targetRole": "components",
+          "targetPath": "LinearProgress/LinearProgress.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/LinearProgress/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "LinearProgress/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/LinearProgress/LinearProgressStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "LinearProgress/LinearProgressStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
+    },
+    {
+      "name": "meter",
+      "type": "component",
+      "sourcePackage": "@amino-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/Meter/Meter.tsx",
+          "targetRole": "components",
+          "targetPath": "Meter/Meter.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Meter/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "Meter/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/Meter/MeterStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "Meter/MeterStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "registryDependencies": [
+        "theme-css",
+        "theme/action-colors",
+        "tokens/geometry",
+        "tokens/theme-order"
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-aria-components": "^1.17.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2", "motion": "^12.40.0" }
     },
     {
       "name": "radio-group",

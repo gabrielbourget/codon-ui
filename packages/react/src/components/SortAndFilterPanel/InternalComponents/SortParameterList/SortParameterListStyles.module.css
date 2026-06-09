@@ -1,0 +1,15 @@
+.sortParameterList {
+  width: 100%;
+  height: auto;
+  gap: var(--aui-space-1);
+  display: flex;
+  flex-direction: column;
+}
+
+.react-aria-DropIndicator[data-drop-target] {
+  outline: 2px solid var(--aui-color-primary-500);
+}
+
+.dropIndicator.active {
+  outline: 2px solid var(--aui-border);
+}

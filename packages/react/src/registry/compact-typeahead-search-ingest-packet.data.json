@@ -1,0 +1,260 @@
+{
+  "name": "compact-typeahead-search",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#compacttypeaheadsearch-extraction-planning-checkpoint-2026-06-06",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/DefaultSearchIcon.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "CompactTypeaheadSearch",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx"
+    },
+    {
+      "exportedName": "CompactTypeaheadSearchProps",
+      "localName": "TCompactTypeaheadSearchProps",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CompactTypeaheadSearchRenderItemArgs",
+      "localName": "TCompactTypeaheadSearchRenderItemArgs",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableCompactTypeaheadSearchSizes",
+      "localName": "TAvailableCompactTypeaheadSearchSizes",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AVAILABLE_TYPE_AHEAD_SEARCH_SIZES",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts"
+    },
+    {
+      "exportedName": "TYPE_AHEAD_SEARCH_SIZE__SM",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts"
+    },
+    {
+      "exportedName": "TYPE_AHEAD_SEARCH_SIZE__MD",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts"
+    },
+    {
+      "exportedName": "TYPE_AHEAD_SEARCH_SIZE__LG",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts"
+    },
+    {
+      "exportedName": "CompactTypeaheadSearchLabels",
+      "localName": "TCompactTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialCompactTypeaheadSearchLabels",
+      "localName": "TPartialCompactTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "CompactTypeaheadSearchStatusLabels",
+      "localName": "TCompactTypeaheadSearchStatusLabels",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialCompactTypeaheadSearchStatusLabels",
+      "localName": "TPartialCompactTypeaheadSearchStatusLabels",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts"
+    },
+    {
+      "exportedName": "resolveCompactTypeaheadSearchLabels",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/labels.ts"
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../Button/Button",
+      "notes": ["CompactTypeaheadSearch search affordance composes the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "importSource": "@/src/components/Input/Input",
+      "registryDependencyName": "input",
+      "replacementSource": "../Input/Input",
+      "notes": ["CompactTypeaheadSearch query entry composes the registry-owned Input component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "importSource": "@/src/components/ListBoxItem/ListBoxItem",
+      "registryDependencyName": "list-box-item",
+      "replacementSource": "../ListBoxItem/ListBoxItem",
+      "notes": ["CompactTypeaheadSearch result options use installed ListBoxItem."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "importSource": "@/src/components/Text/variants/PlaceholderText/PlaceholderText",
+      "registryDependencyName": "placeholder-text",
+      "replacementSource": "../Text/variants/PlaceholderText/PlaceholderText",
+      "notes": ["CompactTypeaheadSearch status states compose installed PlaceholderText."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["CompactTypeaheadSearch popover placement imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../tokens/geometry",
+      "notes": ["CompactTypeaheadSearch input group geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/placement",
+      "replacementSource": "../../tokens/placement",
+      "notes": ["CompactTypeaheadSearch placement type imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
+      "importSource": "legacy spacing/radius/focus/transition aliases",
+      "replacementSource": "default --aui-* theme variables",
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/__tests__/CompactTypeaheadSearch.test.tsx",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.md",
+    "apps/wavemap-front-end/src/components/Forms/AddOrEditArtistForm/Components/ArtistEventTypeAhead/**",
+    "apps/wavemap-front-end/src/components/FormUtilities/TypeAheadSearchResults/**",
+    "apps/wavemap-front-end/src/utils/typeahead/useTypeaheadSearchController.ts",
+    "apps/wavemap-front-end/src/utils/useDebouncedValue.ts",
+    "apps/wavemap-front-end/src/api/queries/**",
+    "apps/wavemap-front-end/src/components/MediaThumbnailImage/**"
+  ],
+  "registryDependencies": [
+    "theme-css",
+    "tokens/geometry",
+    "tokens/placement",
+    "input",
+    "button",
+    "list-box-item",
+    "placeholder-text"
+  ],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-animation-fade-in",
+        "--aui-animation-fade-out",
+        "--aui-control-background",
+        "--aui-control-border",
+        "--aui-control-foreground",
+        "--aui-focus-ring",
+        "--aui-opacity-disabled",
+        "--aui-radius-1",
+        "--aui-shadow-1",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-surface",
+        "--aui-transition-border-color",
+        "--aui-validation-error-border",
+        "--aui-validation-success-border",
+        "--aui-validation-warning-border"
+      ],
+      "notes": [
+        "CompactTypeaheadSearch should use existing default Amino theme variables without a compatibility bridge."
+      ]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|api-contract|shared-utils|localStorage|@/src/|--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--focus-ring-color|--fadeInAnimation|--fadeOutAnimation|theme/compact-typeahead-search-compatibility\" packages/react/src/components/CompactTypeaheadSearch",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": ["Runs the package-side static CompactTypeaheadSearch proof harness once wired into package scripts."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/CompactTypeaheadSearch/__tests__/CompactTypeaheadSearch.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain behavioral evidence for source receipt and consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "CompactTypeaheadSearch source receipt covers the framework-neutral compact combobox presentation after the prepared Wavemap theme-variable pass.",
+    "This source receipt intentionally keeps ArtistEventTypeAhead, useTypeaheadSearchController, useDebouncedValue, event queries, product result rows, media thumbnails, app forms, route/query/data adapters, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope."
+  ]
+}

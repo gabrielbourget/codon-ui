@@ -1,0 +1,46 @@
+.formField {
+  width: 100%;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+}
+
+.formField--raised {
+  box-shadow: var(--aui-shadow-1);
+}
+
+.formField__topRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.formField__topRow--noLeftContent {
+  justify-content: flex-end;
+}
+
+.formField__bottomRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.formField__bottomRow--noLeftContent {
+  justify-content: flex-end;
+}
+
+.formField__validationMessages {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--aui-space-1);
+}
+
+.formField__labelContainer {
+  display: flex;
+  gap: 2px;
+}
+
+.formfield__requiredIndicator {
+  color: var(--aui-validation-error-foreground, var(--aui-state-danger));
+}

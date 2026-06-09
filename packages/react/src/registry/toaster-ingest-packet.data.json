@@ -1,0 +1,270 @@
+{
+  "name": "toaster",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#toaster-extraction-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toaster.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "Toaster/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/stateManagement.ts",
+      "targetRole": "components",
+      "targetPath": "Toaster/stateManagement.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/ToasterStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Toaster/ToasterStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/Toast.tsx",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/Toast.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/helpers.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/labels.ts",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/labels.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/DefaultToastIcons.tsx",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/DefaultToastIcons.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/ToastStyles.module.css",
+      "role": "style"
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Toaster",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx"
+    },
+    {
+      "exportedName": "toast",
+      "localName": "toast",
+      "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx"
+    },
+    {
+      "exportedName": "ToasterProps",
+      "localName": "TToasterProps",
+      "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ExternalToast",
+      "localName": "TExternalToast",
+      "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ToastPayload",
+      "localName": "TToast",
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ToastProps",
+      "localName": "TToastProps",
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableToastPositions",
+      "localName": "TAvailableToastPositions",
+      "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableToastTypes",
+      "localName": "TAvailableToastTypes",
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ToastLabels",
+      "localName": "TToastLabels",
+      "sourcePath": "packages/react/src/components/Toaster/Toast/labels.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "PartialToastLabels",
+      "localName": "TPartialToastLabels",
+      "sourcePath": "packages/react/src/components/Toaster/Toast/labels.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [
+    {
+      "sourcePath": "packages/react/src/components/Toaster/helpers.ts",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/a11y",
+      "replacementSource": "../../tokens/a11y",
+      "notes": ["Toaster aria labeling aliases import from package-local a11y token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "importSource": "@/src/components/_registry/tokens",
+      "registryDependencyName": "tokens/geometry",
+      "replacementSource": "../../../tokens/geometry",
+      "notes": ["Toast geometry imports from package-local token support."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/Toast.tsx",
+      "importSource": "@/src/components/Button/Button",
+      "registryDependencyName": "button",
+      "replacementSource": "../../Button/Button",
+      "notes": ["Toast action buttons use the registry-owned Button component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/Toast.tsx",
+      "importSource": "@/src/components/Text/Text",
+      "registryDependencyName": "text",
+      "replacementSource": "../../Text/Text",
+      "notes": ["Toast title, body, and timestamp copy uses the registry-owned Text component."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
+      "importSource": "@/src/components/Text/TextStyles.module.css",
+      "registryDependencyName": "text",
+      "replacementSource": "../../Text/TextStyles.module.css",
+      "notes": ["Toast header styling reuses the Text CSS module owned by the text registry item."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/**/*.css",
+      "importSource": "--distance_* aliases",
+      "replacementSource": "--aui-space-*",
+      "notes": ["Toaster spacing reads the default Amino space scale instead of legacy distance aliases."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+      "importSource": "--border_radius_* aliases",
+      "replacementSource": "--aui-radius-*",
+      "notes": ["Toast rounded geometry reads the default Amino radius contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+      "importSource": "--shadow_1 alias",
+      "replacementSource": "--aui-shadow-1",
+      "notes": ["Toast raised styling uses the stable Amino shadow token."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+      "importSource": "--focus-ring-color alias",
+      "replacementSource": "--aui-focus-ring",
+      "notes": ["Toast focus styling uses the default Amino focus-ring contract."]
+    },
+    {
+      "sourcePath": "packages/react/src/components/Toaster/**/*.css",
+      "importSource": "--Z_INDEX_TOAST alias",
+      "replacementSource": "--aui-z-index-toast",
+      "notes": ["Toaster stacking reads the default Amino toast z-index contract."]
+    }
+  ],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/Toaster/Toast/i18n.ts",
+    "apps/wavemap-front-end/src/components/App/App.tsx",
+    "apps/wavemap-front-end/src/components/FileUploadSurface/**",
+    "apps/wavemap-front-end/src/utils/pageQueryPresets/**",
+    "apps/wavemap-front-end/src/api/mutations/**",
+    "apps/wavemap-front-end/src/app/[locale]/**",
+    "apps/wavemap-front-end/src/components/Sheets/**",
+    "apps/wavemap-front-end/src/components/Search/**",
+    "apps/wavemap-front-end/src/components/CompactTypeaheadSearch/**"
+  ],
+  "registryDependencies": ["theme-css", "theme/action-colors", "tokens/a11y", "tokens/geometry", "button", "text"],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-aria-components": "^1.17.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2",
+    "date-fns": "^4.1.0"
+  },
+  "themeRequirements": [
+    {
+      "strategy": "default-contract",
+      "cssVariables": [
+        "--aui-surface",
+        "--aui-surface-foreground",
+        "--aui-space-1",
+        "--aui-space-2",
+        "--aui-space-3",
+        "--aui-radius-1",
+        "--aui-radius-2",
+        "--aui-shadow-1",
+        "--aui-focus-ring",
+        "--aui-z-index-toast",
+        "--aui-control-placeholder",
+        "--aui-control-selected-background",
+        "--aui-control-selected-foreground",
+        "--aui-status-warning",
+        "--aui-status-danger",
+        "--aui-status-success"
+      ],
+      "notes": ["Toaster source reads the default theme contract directly and does not need a compatibility bridge."]
+    }
+  ],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|api-contract|shared-utils|localStorage|@/src/|@internationalized/date|--distance_|--border_radius_|--shadow_1|--focus-ring-color|--Z_INDEX|theme/toaster-compatibility\" packages/react/src/components/Toaster",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean after approved token, component, and CSS variable rewrites."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Runs the package-side static Toaster proof harness without adding DOM test dependencies."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react typecheck",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Checks the received package source and public export type surface."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -C apps/wavemap-front-end test --run src/components/Toaster/__tests__/Toaster.test.tsx src/components/Toaster/Toast/__tests__/Toast.test.tsx",
+      "workingDirectory": "../wavemap",
+      "advisory": true,
+      "notes": ["Focused Wavemap tests remain the behavioral source for later consumer rehydration."]
+    }
+  ],
+  "notes": [
+    "Toaster source receipt covers the stateful notification root, toast publication function, stack positioning, focus management, auto-dismiss behavior, gesture dismissal, action buttons, status colors, default icons, labels, and timestamp rendering.",
+    "This receipt intentionally does not activate a toaster manifest item; manifest and CLI local-registry activation happen in a separate verified commit.",
+    "Toast i18n adapters, app mounting, product toast copy, FileUploadSurface, media/upload helpers, page-query preset workflows, route actions, typeahead/search wrappers, hosted registry behavior, and CLI update/diff/eject behavior remain out of scope."
+  ]
+}

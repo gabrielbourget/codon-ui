@@ -1,0 +1,112 @@
+{
+  "name": "indicator",
+  "type": "component",
+  "sourcePackage": "@amino-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#indicator-extraction-planning-checkpoint-2026-06-05",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/Indicator/Indicator.tsx",
+      "targetRole": "components",
+      "targetPath": "VisualUtilities/Indicator/Indicator.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "VisualUtilities/Indicator/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Indicator/IndicatorStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "VisualUtilities/Indicator/IndicatorStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/Indicator/__tests__/Indicator.test.tsx",
+      "targetRole": "components",
+      "targetPath": "VisualUtilities/Indicator/__tests__/Indicator.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "Indicator",
+      "sourcePath": "packages/react/src/components/Indicator/Indicator.tsx",
+      "localName": "default"
+    },
+    {
+      "exportedName": "IndicatorProps",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "TIndicatorProps",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AvailableIndicatorShape",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "TAvailableIndicatorShape",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "AVAILABLE_INDICATOR_SHAPES",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "AVAILABLE_INDICATOR_SHAPES"
+    },
+    {
+      "exportedName": "INDICATOR_SHAPE__CIRCLE",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "INDICATOR_SHAPE__CIRCLE"
+    },
+    {
+      "exportedName": "INDICATOR_SHAPE__ROUNDED",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "INDICATOR_SHAPE__ROUNDED"
+    },
+    {
+      "exportedName": "INDICATOR_SHAPE__SQUARE",
+      "sourcePath": "packages/react/src/components/Indicator/helpers.ts",
+      "localName": "INDICATOR_SHAPE__SQUARE"
+    }
+  ],
+  "importResolutions": [],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/VisualUtilities/LineSegment/**",
+    "apps/wavemap-front-end/src/components/StatusMessage/**",
+    "apps/wavemap-front-end/src/components/VisualUtilities/GalleryDragItemDropIndicator/**",
+    "apps/wavemap-front-end/src/components/FloatingCircularLogo/**",
+    "apps/wavemap-front-end/src/components/icons/**",
+    "apps/wavemap-front-end/src/components/Loaders/**"
+  ],
+  "registryDependencies": [],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [],
+  "verification": [
+    {
+      "kind": "scan",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|theme/indicator-compatibility\" packages/react/src/components/Indicator",
+      "workingDirectory": ".",
+      "advisory": true,
+      "notes": ["Source-receipt scan should remain clean because Indicator has no consumer-only imports."]
+    },
+    {
+      "kind": "command",
+      "command": "pnpm -F @amino-ui/react test",
+      "workingDirectory": ".",
+      "notes": [
+        "Runs the static source receipt proof, including Indicator-specific assertions once wired into package scripts."
+      ]
+    }
+  ],
+  "notes": [
+    "Indicator source receipt covers the small presentational visual utility only: active/inactive state, shape selection, root styling hooks, CSS string sizing, local CSS variables, and wrapper-only prop hygiene.",
+    "This source receipt intentionally keeps broad icons, loaders, StatusMessage, FloatingCircularLogo, GalleryDragItemDropIndicator, media/upload source, DateTimeRangePicker, package publication, hosted registry behavior, generated token writers, and CLI update/diff/eject behavior out of scope.",
+    "This packet does not activate an indicator manifest item; public CLI activation is a separate proof boundary."
+  ]
+}

@@ -34,8 +34,19 @@
   --aui-transition-opacity: opacity 0.25s ease-in-out;
   --aui-transition-outline: outline 0.25s ease-in-out;
 
+  --aui-animation-fade-in: fade-in 0.25s ease-in-out;
+  --aui-animation-fade-out: fade-out 0.25s ease-in-out;
+
   --aui-opacity-disabled: 0.4;
   --aui-opacity-backdrop: 0.6;
+
+  --aui-z-index-base: 0;
+  --aui-z-index-step: 100;
+  --aui-z-index-panel: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 2);
+  --aui-z-index-modal: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 3);
+  --aui-z-index-toast: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 4);
+  --aui-z-index-overlay-offset: 0;
+  --aui-z-index-content-offset: 1;
 
   --aui-surface: var(--aui-background);
   --aui-surface-foreground: var(--aui-foreground);
@@ -59,6 +70,15 @@
   --aui-control-selected-background-pressed: color-mix(in srgb, var(--aui-focus-ring) 80%, var(--aui-foreground) 20%);
   --aui-control-selected-foreground: #fff;
   --aui-control-disabled-opacity: var(--aui-opacity-disabled);
+
+  --aui-status-info: var(--aui-control-selected-background);
+  --aui-status-danger: var(--aui-state-danger);
+  --aui-status-warning: var(--aui-state-warning);
+  --aui-status-success: var(--aui-state-success);
+
+  --aui-validation-error-border: var(--aui-state-danger);
+  --aui-validation-warning-border: var(--aui-state-warning);
+  --aui-validation-success-border: var(--aui-state-success);
 }
 
 :root,
@@ -86,6 +106,7 @@
   --aui-shadow-3: 0 10px 20px rgb(0 0 0 / 19%), 0 6px 6px rgb(0 0 0 / 23%);
   --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 25%), 0 10px 10px rgb(0 0 0 / 22%);
   --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 30%), 0 15px 12px rgb(0 0 0 / 22%);
+  --aui-drop-shadow-1: drop-shadow(0 2px 3px rgb(0 0 0 / 12%));
 }
 
 [data-theme="dark"] {
@@ -112,4 +133,23 @@
   --aui-shadow-3: 0 10px 20px rgb(0 0 0 / 45%), 0 6px 6px rgb(0 0 0 / 34%);
   --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 50%), 0 10px 10px rgb(0 0 0 / 36%);
   --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 55%), 0 15px 12px rgb(0 0 0 / 38%);
+  --aui-drop-shadow-1: drop-shadow(0 2px 3.5px rgb(255 255 255 / 40%));
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
 }

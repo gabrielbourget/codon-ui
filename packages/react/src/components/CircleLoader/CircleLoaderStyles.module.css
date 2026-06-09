@@ -1,0 +1,24 @@
+.loader {
+  width: fit-content;
+  height: fit-content;
+  display: grid;
+  place-items: center;
+}
+
+.spinner {
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: var(--track-width) solid var(--track-color);
+  border-top-color: var(--spinner-color);
+  border-right-color: var(--spinner-color);
+  animation: circle-loader-spin var(--duration) linear infinite;
+  will-change: transform;
+}
+
+@keyframes circle-loader-spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
