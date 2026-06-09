@@ -18,11 +18,12 @@ write support files, or touch package-manager lockfiles.
 
 ## `init` Flow
 
-`init` has two new-contract paths:
+`init` has one strict default seed path plus advisory and dry-run planning modes:
 
 ```sh
 aui init --advisory --json --cwd <consumer-project>
 aui init --dry-run --json --cwd <consumer-project>
+aui init --json --cwd <consumer-project>
 aui init --defaults --json --cwd <consumer-project>
 ```
 
@@ -33,8 +34,9 @@ project kind, config presence, lockfile presence, default role paths, theme tier
 `wouldEffects` for config and lockfile creation. Greenfield consumers report `would-write` for both files; existing config
 or lockfile files report blockers and prevent partial seed previews.
 
-`init --defaults` is the strict seed path. It writes `amino-ui.config.json` and an empty `amino-ui.lock.json` only when
-both are absent. Existing config or lockfile files are warnings and block writes for that seed operation.
+Plain `init` is the strict seed path. It writes `amino-ui.config.json` and an empty `amino-ui.lock.json` only when both
+are absent. Existing config or lockfile files are warnings and block writes for that seed operation. `init --defaults`
+remains an explicit alias for the same behavior.
 
 ## Layout And Roles
 

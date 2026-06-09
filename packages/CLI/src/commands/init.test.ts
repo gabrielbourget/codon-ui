@@ -44,6 +44,8 @@ const snapshotFiles = (fixturePath: string) => {
   return entries.sort()
 }
 
+const snapshotFilePaths = (fixturePath: string) => snapshotFiles(fixturePath).map((entry) => entry.split(":")[0])
+
 const createFixture = (fixtureName: string) => {
   const fixturePath = path.join(temporaryRoot, fixtureName)
 
@@ -84,6 +86,23 @@ const assertPlanningModeConflict = ({ args, cwd }: { args: string[]; cwd: string
   assert.deepEqual(afterSnapshot, beforeSnapshot)
 }
 
+const runInitCommandJson = ({
+  args = [],
+  cwd,
+}: {
+  args?: string[]
+  cwd: string
+}): Awaited<ReturnType<typeof writeConsumerInitSeed>> => {
+  const result = spawnSync(process.execPath, [tsxCliPath, cliEntryPath, "init", ...args, "--json", "--cwd", cwd], {
+    cwd: packageRoot,
+    encoding: "utf8",
+  })
+
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`)
+
+  return JSON.parse(result.stdout) as Awaited<ReturnType<typeof writeConsumerInitSeed>>
+}
+
 try {
   const greenfieldFixturePath = createFixture("greenfield")
   const beforeDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
@@ -114,6 +133,33 @@ try {
   assert.equal(strictInit.initialized, true)
   assert.equal(strictInit.effects.writesConfig, true)
   assert.equal(strictInit.effects.writesLockfile, true)
+
+  const plainInitFixturePath = createFixture("plain-default-init")
+  const beforePlainInitSnapshot = snapshotFilePaths(plainInitFixturePath)
+  const plainInit = runInitCommandJson({ cwd: plainInitFixturePath })
+  const afterPlainInitSnapshot = snapshotFilePaths(plainInitFixturePath)
+
+  assertCliJsonReportContract({ report: plainInit, schemaName: "initStrict" })
+  assert.deepEqual(beforePlainInitSnapshot, ["package.json"])
+  assert.deepEqual(afterPlainInitSnapshot, ["amino-ui.config.json", "amino-ui.lock.json", "package.json"])
+  assert.equal(plainInit.initialized, true)
+  assert.equal(plainInit.effects.writesConfig, true)
+  assert.equal(plainInit.effects.writesLockfile, true)
+  assert.equal(plainInit.effects.createsDirectories, false)
+  assert.equal(plainInit.effects.installsDependencies, false)
+  assert.equal(existsSync(path.join(plainInitFixturePath, "src")), false)
+
+  const secondPlainInitSnapshotBefore = snapshotFiles(plainInitFixturePath)
+  const secondPlainInit = runInitCommandJson({ cwd: plainInitFixturePath })
+  const secondPlainInitSnapshotAfter = snapshotFiles(plainInitFixturePath)
+
+  assertCliJsonReportContract({ report: secondPlainInit, schemaName: "initStrict" })
+  assert.deepEqual(secondPlainInitSnapshotAfter, secondPlainInitSnapshotBefore)
+  assert.equal(secondPlainInit.initialized, false)
+  assert.equal(secondPlainInit.effects.writesConfig, false)
+  assert.equal(secondPlainInit.effects.writesLockfile, false)
+  assert(secondPlainInit.findings.some((finding) => finding.code === "existing-config"))
+  assert(secondPlainInit.findings.some((finding) => finding.code === "existing-lockfile"))
 
   const afterStrictDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
   const blockedDryRun = createConsumerInitDryRun(greenfieldFixturePath)
