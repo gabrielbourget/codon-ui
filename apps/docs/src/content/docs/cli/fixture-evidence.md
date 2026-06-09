@@ -157,7 +157,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Dependency cleanup run    | Strict `remove`/`delete --with-orphans --remove-dependencies` executes npm/pnpm/yarn/bun removal commands for eligible cleanup candidates.                                                                        |
 | Update dependency run     | Item-scoped strict `update` executes npm/pnpm/yarn/bun install commands only for dependency-only blockers after explicit approval, then replans before source and lockfile writes.                                |
 | Update dependency failure | Item-scoped strict `update` returns structured package-manager failure output and blocks Amino source/lockfile writes before and after package boundary mutations.                                                |
-| JSON contract validation  | Representative lifecycle reports parse through shared Zod schemas for findings, blockers, effects, dependency install plans, failed commands, files, dependencies, lockfile output, and broad item arrays.        |
+| JSON contract validation  | Representative lifecycle reports parse through compiled Amino CLI canonical Zod schemas, including shared dependency install plans, failed dependency commands, and lockfile output when present.                |
 | Snapshot/source drift     | Planner output reports stale or missing registry source clearly.                                                                                                                                                  |
 | Mature-consumer shape     | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                                                                                                  |
 
@@ -166,8 +166,15 @@ The current mature-consumer fixture is `wavemap-like-typeahead-lifecycle`. It in
 labels, and focused test files outside `amino-ui.lock.json`. Its focused gate proves status, diff, update, remove/delete,
 eject, and temp-copy typecheck/build behavior against that mixed graph.
 
-The `pnpm verify:json-contracts` gate validates representative CLI JSON output through shared Zod schemas before
-command-specific behavioral assertions inspect fields. It covers init dry-run, status, diff, add dependency planning,
+The `pnpm verify:json-contracts` gate validates representative CLI JSON output through the compiled
+`packages/CLI/dist/contracts.js` schemas before command-specific behavioral assertions inspect fields. The source contract
+surface lives in `packages/CLI/src/contracts.ts` and re-exports stable report schemas for init, add, status, diff,
+update, remove/delete, and eject command families without invoking the CLI executable entrypoint. The fixture gate imports
+that compiled contract surface and validates the representative cases by canonical schema key: `initDryRun`, `status`,
+`diff`, `addDryRun`, `initStrict`, `addStrict`, `updateAllDryRun`, `updateStrict`, `removeDryRun`, and `ejectDryRun`.
+
+The same gate also validates shared dependency install plans, failed dependency commands, and lockfile output through
+canonical schema exports when those structures are present. It covers init dry-run, status, diff, add dependency planning,
 strict add lockfile output, broad update dry-run aggregation, strict update dependency failure output, remove dry-run, and
 eject dry-run. This gate hardens output shape for already proven lifecycle behavior; it does not grant new write
 authority.
