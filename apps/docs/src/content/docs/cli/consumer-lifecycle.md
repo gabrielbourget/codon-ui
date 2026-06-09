@@ -496,7 +496,8 @@ run can apply source-file writes and lockfile-only refreshes across multiple ins
 Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
 lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
 consumer-owned support blocking, ejected blocking, missing dependency blocking, item-scoped dependency install execution,
-broad strict-all blocking, broad strict-all no-op behavior, and broad strict-all update-candidate writes.
+item-scoped dependency install failure, broad strict-all blocking, broad strict-all no-op behavior, and broad strict-all
+update-candidate writes.
 
 ## Remove Advisory
 
