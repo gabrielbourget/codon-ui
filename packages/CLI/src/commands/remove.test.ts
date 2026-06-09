@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import crypto from "node:crypto"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
@@ -25,6 +25,54 @@ const writeText = (filePath: string, value: string) => {
 }
 
 const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
+
+const createFakePnpmRemoveEnv = ({ binPath, lockfilePath }: { binPath: string; lockfilePath: string }) => {
+  mkdirSync(binPath, { recursive: true })
+  writeText(
+    path.join(binPath, "pnpm"),
+    `#!/usr/bin/env node
+const fs = require("node:fs")
+const path = require("node:path")
+
+const args = process.argv.slice(2)
+const command = args[0]
+
+if (command !== "remove") {
+  console.error("expected fake pnpm remove command")
+  process.exit(2)
+}
+
+const dependencyNames = args.slice(1).filter((arg) => !arg.startsWith("-"))
+const packageJsonPath = path.join(process.cwd(), "package.json")
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
+
+for (const field of ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]) {
+  if (!packageJson[field]) continue
+
+  for (const dependencyName of dependencyNames) {
+    delete packageJson[field][dependencyName]
+  }
+
+  if (Object.keys(packageJson[field]).length === 0) delete packageJson[field]
+}
+
+fs.writeFileSync(packageJsonPath, \`\${JSON.stringify(packageJson, null, 2)}\\n\`)
+fs.writeFileSync(
+  ${JSON.stringify(lockfilePath)},
+  \`\${JSON.stringify(
+    {
+      args,
+      dependencyNames,
+      packageManager: "pnpm",
+    },
+    null,
+    2,
+  )}\\n\`,
+)
+`,
+  )
+  chmodSync(path.join(binPath, "pnpm"), 0o755)
+}
 
 assert.equal(deleteCommand.name(), "delete")
 assert.equal(
@@ -998,6 +1046,186 @@ try {
     true,
     "expected registry source to remain untouched",
   )
+
+  const cleanupConsumerRoot = path.join(temporaryRoot, "consumer-cleanup")
+
+  writeText(path.join(cleanupConsumerRoot, "src/components/Graph/orphan-primary.ts"), orphanPrimarySource)
+  writeText(path.join(cleanupConsumerRoot, "src/components/Graph/orphan-component.ts"), orphanComponentSource)
+  writeText(path.join(cleanupConsumerRoot, "src/components/Graph/other-dependent.ts"), otherDependentSource)
+  writeText(path.join(cleanupConsumerRoot, "src/components/_registry/tokens/orphan-support.ts"), orphanSupportSource)
+  writeText(path.join(cleanupConsumerRoot, "src/components/_registry/tokens/shared-support.ts"), sharedSupportSource)
+  writeJson(path.join(cleanupConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(cleanupConsumerRoot, "package.json"), {
+    dependencies: {
+      "primary-only": "^1.0.0",
+      "shared-runtime": "^1.0.0",
+    },
+    name: "cleanup-consumer",
+    packageManager: "pnpm@9.15.0",
+  })
+  writeJson(path.join(cleanupConsumerRoot, "amino-ui.lock.json"), {
+    configFile: "amino-ui.config.json",
+    dependencies: [
+      {
+        action: "none",
+        kind: "peer",
+        name: "react",
+        requiredRange: "^18.2.0 || ^19.0.0",
+        status: "missing",
+      },
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^1.0.0",
+        kind: "runtime",
+        name: "primary-only",
+        requiredRange: "^1.0.0",
+        status: "satisfied",
+      },
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^1.0.0",
+        kind: "runtime",
+        name: "shared-runtime",
+        requiredRange: "^1.0.0",
+        status: "satisfied",
+      },
+    ],
+    items: {
+      "orphan-component": {
+        files: [
+          {
+            installedHash: createContentHash(orphanComponentSource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/orphan-component.ts",
+            sourceHash: createContentHash(orphanComponentSource),
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-component",
+        registryDependencies: ["orphan-support"],
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "orphan-primary": {
+        files: [
+          {
+            installedHash: createContentHash(orphanPrimarySource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/orphan-primary.ts",
+            sourceHash: createContentHash(orphanPrimarySource),
+            targetRole: "components",
+          },
+        ],
+        name: "orphan-primary",
+        registryDependencies: ["orphan-component", "shared-support"],
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "orphan-support": {
+        files: [
+          {
+            installedHash: createContentHash(orphanSupportSource),
+            ownershipState: "registry-owned",
+            path: "src/components/_registry/tokens/orphan-support.ts",
+            sourceHash: createContentHash(orphanSupportSource),
+            targetRole: "tokens",
+          },
+        ],
+        name: "orphan-support",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "other-dependent": {
+        files: [
+          {
+            installedHash: createContentHash(otherDependentSource),
+            ownershipState: "registry-owned",
+            path: "src/components/Graph/other-dependent.ts",
+            sourceHash: createContentHash(otherDependentSource),
+            targetRole: "components",
+          },
+        ],
+        name: "other-dependent",
+        registryDependencies: ["shared-support"],
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+      "shared-support": {
+        files: [
+          {
+            installedHash: createContentHash(sharedSupportSource),
+            ownershipState: "registry-owned",
+            path: "src/components/_registry/tokens/shared-support.ts",
+            sourceHash: createContentHash(sharedSupportSource),
+            targetRole: "tokens",
+          },
+        ],
+        name: "shared-support",
+        sourceIdentity: "@amino-ui/test-registry",
+      },
+    },
+    lockfileVersion: 1,
+  })
+
+  const fakePnpmBinPath = path.join(temporaryRoot, "fake-pnpm-bin")
+  const fakePnpmLockfilePath = path.join(cleanupConsumerRoot, "pnpm-lock.yaml")
+  const originalPath = process.env.PATH
+
+  createFakePnpmRemoveEnv({
+    binPath: fakePnpmBinPath,
+    lockfilePath: fakePnpmLockfilePath,
+  })
+  process.env.PATH = `${fakePnpmBinPath}${path.delimiter}${originalPath ?? ""}`
+
+  try {
+    const strictDependencyCleanupReport = await createRemoveStrictReport({
+      cwd: cleanupConsumerRoot,
+      includeOrphans: true,
+      itemName: "orphan-primary",
+      registrySourcePath,
+      removeDependencies: true,
+    })
+
+    assert.equal(strictDependencyCleanupReport.applied, true)
+    assert.equal(strictDependencyCleanupReport.dependencyCleanup.candidateCount, 2)
+    assert.equal(strictDependencyCleanupReport.dependencyCleanup.stillRequiredCount, 1)
+    assert.equal(strictDependencyCleanupReport.dependencyCleanupExecution.mode, "eligible")
+    assert.equal(strictDependencyCleanupReport.dependencyCleanupExecution.removeDependenciesRequested, true)
+    assert.equal(strictDependencyCleanupReport.dependencyCleanupExecution.packageManager.name, "pnpm")
+    assert.equal(strictDependencyCleanupReport.dependencyCleanupExecution.packageManager.source, "packageManager-field")
+    assert.equal(strictDependencyCleanupReport.dependencyCleanupExecution.recommendedCommands.length, 1)
+    assert.deepEqual(strictDependencyCleanupReport.dependencyCleanupExecution.recommendedCommands[0].args, [
+      "remove",
+      "primary-only",
+    ])
+    assert.deepEqual(strictDependencyCleanupReport.dependencyCleanupExecution.executedCommands[0].args, [
+      "remove",
+      "primary-only",
+    ])
+    assert.equal(strictDependencyCleanupReport.effects.dependencies.plannedRemovalCount, 2)
+    assert.equal(strictDependencyCleanupReport.effects.dependencies.removedCount, 2)
+    assert.equal(strictDependencyCleanupReport.effects.dependencies.status, "written")
+    assert.equal(strictDependencyCleanupReport.effects.dependencies.packageManagerExecution, "completed")
+    assert.equal(strictDependencyCleanupReport.effects.dependencies.packageManagerWrites, true)
+    assert.equal(strictDependencyCleanupReport.effects.removesDependencies, true)
+    assert.deepEqual(
+      strictDependencyCleanupReport.lockfileData.dependencies.map((dependency) => dependency.name),
+      ["shared-runtime"],
+    )
+    assert.deepEqual(
+      strictDependencyCleanupReport.dependencies.map((dependency) => dependency.name),
+      ["shared-runtime"],
+    )
+    assert.deepEqual(readJson(fakePnpmLockfilePath).args, ["remove", "primary-only"])
+    assert.equal(readJson(path.join(cleanupConsumerRoot, "package.json")).dependencies["primary-only"], undefined)
+    assert.equal(readJson(path.join(cleanupConsumerRoot, "package.json")).dependencies["shared-runtime"], "^1.0.0")
+    assert.deepEqual(
+      readJson(path.join(cleanupConsumerRoot, "amino-ui.lock.json")).dependencies.map(
+        (dependency: { name: string }) => dependency.name,
+      ),
+      ["shared-runtime"],
+    )
+  } finally {
+    process.env.PATH = originalPath
+  }
 
   console.log("[aminoui-cli] remove advisory, dry-run, strict, and orphan cleanup reports verified")
 } finally {

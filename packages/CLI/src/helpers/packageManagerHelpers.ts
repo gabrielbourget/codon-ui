@@ -35,6 +35,11 @@ export const ADD_COMMAND__PNPM = "add"
 export const ADD_COMMAND__YARN = "add"
 export const ADD_COMMAND__BUN = "add"
 
+export const REMOVE_COMMAND__NPM = "uninstall"
+export const REMOVE_COMMAND__PNPM = "remove"
+export const REMOVE_COMMAND__YARN = "remove"
+export const REMOVE_COMMAND__BUN = "remove"
+
 export const DEV_DEPENDENCY_FLAG__NPM = "-D"
 export const DEV_DEPENDENCY_FLAG__PNPM = "-D"
 export const DEV_DEPENDENCY_FLAG__YARN = "--dev"
@@ -540,6 +545,21 @@ export const computePackageManagerAddCommand = (packageManager: string) => {
       return ADD_COMMAND__BUN
     default:
       return ADD_COMMAND__NPM
+  }
+}
+
+export const computePackageManagerRemoveCommand = (packageManager: string) => {
+  switch (packageManager) {
+    case PACKAGE_MANAGER_NPM:
+      return REMOVE_COMMAND__NPM
+    case PACKAGE_MANAGER_PNPM:
+      return REMOVE_COMMAND__PNPM
+    case PACKAGE_MANAGER_YARN:
+      return REMOVE_COMMAND__YARN
+    case PACKAGE_MANAGER_BUN:
+      return REMOVE_COMMAND__BUN
+    default:
+      return REMOVE_COMMAND__NPM
   }
 }
 

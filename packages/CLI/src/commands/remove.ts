@@ -19,6 +19,7 @@ const removeOptionsSchema = z.object({
   dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
   registrySource: z.string().optional(),
+  removeDependencies: z.boolean().default(false),
   withOrphans: z.boolean().default(false),
 })
 
@@ -49,6 +50,11 @@ export const createRemoveCommand = ({
     .option("--dry-run", "Preview an item-scoped remove without deleting files or writing lockfile data.", false)
     .option("--json", jsonDescription, false)
     .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
+    .option(
+      "--remove-dependencies",
+      "Strictly remove eligible orphaned package dependencies after explicit cleanup approval.",
+      false,
+    )
     .option(
       "--with-orphans",
       "Include orphaned registry-owned dependencies in cleanup planning or strict cleanup.",
@@ -125,6 +131,7 @@ export const createRemoveCommand = ({
             cwd,
             includeOrphans: options.withOrphans,
             itemName: options.itemName,
+            removeDependencies: options.removeDependencies,
             registrySourcePath: options.registrySource,
           })
 
@@ -156,6 +163,12 @@ export const createRemoveCommand = ({
             logger.info(`Orphan cleanup files deleted: ${removeStrictReport.orphanCleanup.deletedFileCount}`)
             logger.info(
               `Orphan cleanup lockfile records removed: ${removeStrictReport.orphanCleanup.removedLockfileRecordCount}`,
+            )
+          }
+          if (removeStrictReport.effects.dependencies.removedCount > 0) {
+            logger.info(`Dependency cleanup records removed: ${removeStrictReport.effects.dependencies.removedCount}`)
+            logger.info(
+              `Dependency cleanup package-manager execution: ${removeStrictReport.effects.dependencies.packageManagerExecution}`,
             )
           }
           logger.info(`Lockfile effect: ${removeStrictReport.effects.lockfile.status}`)

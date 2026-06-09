@@ -2,6 +2,7 @@ import crypto from "crypto"
 import { existsSync, promises as fs } from "fs"
 import path from "path"
 
+import { execa } from "execa"
 import { z } from "zod"
 
 import {
@@ -12,6 +13,32 @@ import {
   type TConsumerLockfile,
 } from "./consumerContract"
 import { INSTALL_PLAN_FINDING_SEVERITY__ERROR, INSTALL_PLAN_FINDING_SEVERITIES } from "./installPlan"
+import {
+  computePackageManagerRemoveCommand,
+  createDependencyInstallPlan,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__BUN_CWD_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__NPM_WORKSPACE_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__PNPM_FILTER_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__YARN_WORKSPACE_SUBCOMMAND,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES,
+  PACKAGE_MANAGER_BUN,
+  PACKAGE_MANAGER_NPM,
+  PACKAGE_MANAGER_PNPM,
+  PACKAGE_MANAGER_UNKNOWN,
+  PACKAGE_MANAGER_YARN,
+  type TDependencyInstallPackageManager,
+} from "./packageManagerHelpers"
+import {
+  REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE,
+  removeAdvisoryDependencyCleanupSchema,
+} from "./removeAdvisory"
 import { REMOVE_TARGET__FILE_AND_LOCKFILE, REMOVE_TARGET__LOCKFILE_ONLY, REMOVE_TARGETS } from "./removeConstants"
 import { createRemoveDryRunReport, type TRemoveDryRunFile, type TRemoveDryRunReport } from "./removeDryRun"
 import {
@@ -40,6 +67,19 @@ const REMOVE_STRICT_BLOCKER_KIND__FILE = "file"
 const REMOVE_STRICT_BLOCKER_KIND__ITEM = "item"
 const REMOVE_STRICT_BLOCKER_KIND__PROJECT = "project"
 
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__NONE = "none"
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__CLI_OPTION = "cli-option"
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_REQUESTED = "not-requested"
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_NEEDED = "not-needed"
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__BLOCKED = "blocked"
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__ELIGIBLE = "eligible"
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN =
+  "dependency-cleanup-package-manager-unknown"
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__TARGET_MANIFEST_MISSING =
+  "dependency-cleanup-target-manifest-missing"
+
 const REMOVE_STRICT_ITEM_STATES = [
   REMOVE_STRICT_ITEM_STATE__REMOVED,
   REMOVE_STRICT_ITEM_STATE__BLOCKED,
@@ -58,6 +98,41 @@ const REMOVE_STRICT_BLOCKER_KINDS = [
   REMOVE_STRICT_BLOCKER_KIND__ITEM,
   REMOVE_STRICT_BLOCKER_KIND__PROJECT,
 ] as const
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCES = [
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__NONE,
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__CLI_OPTION,
+] as const
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODES = [
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_REQUESTED,
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_NEEDED,
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__BLOCKED,
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__ELIGIBLE,
+] as const
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKERS = [
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN,
+  REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__TARGET_MANIFEST_MISSING,
+] as const
+
+const REMOVE_STRICT_DEPENDENCY_CLEANUP_DETECTED_PACKAGE_MANAGERS = [
+  ...DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  PACKAGE_MANAGER_UNKNOWN,
+] as const
+
+const packageManagerMutationBoundaryFileNames = [
+  "package.json",
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "yarn.lock",
+  "bun.lock",
+  "bun.lockb",
+] as const
+
+const dependencyCommandOutputMaxLength = 4000
 
 const removeStrictFindingSchema = z
   .object({
@@ -119,18 +194,120 @@ const removeStrictOrphanCleanupSchema = z
   })
   .strict()
 
+const removeStrictDependencyCleanupCommandDependencySchema = consumerLockfileDependencySchema
+  .omit({ action: true })
+  .extend({
+    action: z.literal(REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE),
+    cleanupItemNames: z.array(z.string().min(1)).default([]),
+    remainingItemNames: z.array(z.string().min(1)).default([]),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupWorkspaceCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)),
+    command: z.string().min(1),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    strategy: z.enum(DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES),
+    targetPackageName: z.string().min(1),
+    targetPackagePath: z.string().min(1),
+    workingDirectory: z.string().min(1),
+    workspaceRootPath: z.string().min(1),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)),
+    command: z.string().min(1),
+    dependencies: z.array(removeStrictDependencyCleanupCommandDependencySchema).default([]),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    targetManifestPath: z.string().min(1).optional(),
+    workingDirectory: z.string().min(1).optional(),
+    workspaceCommand: removeStrictDependencyCleanupWorkspaceCommandSchema.optional(),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupCommandFailureSchema = z
+  .object({
+    args: z.array(z.string().min(1)),
+    command: z.string().min(1),
+    exitCode: z.number().int().optional(),
+    message: z.string().min(1),
+    mutatedPaths: z.array(z.string().min(1)).default([]),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    packageManagerWrites: z.boolean(),
+    signal: z.string().min(1).optional(),
+    stderr: z.string().optional(),
+    stdout: z.string().optional(),
+    workingDirectory: z.string().min(1).optional(),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupExecutionBlockerSchema = z
+  .object({
+    code: z.enum(REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKERS),
+    message: z.string().min(1),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupPackageManagerSchema = z
+  .object({
+    lockfilePath: z.string().min(1).optional(),
+    name: z.enum(REMOVE_STRICT_DEPENDENCY_CLEANUP_DETECTED_PACKAGE_MANAGERS),
+    packageManagerField: z.string().min(1).optional(),
+    packageManagerOverride: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
+    packageManifestPath: z.string().min(1).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupTargetManifestSchema = z
+  .object({
+    directory: z.string().min(1).optional(),
+    exists: z.boolean(),
+    packageManagerField: z.string().min(1).optional(),
+    packageName: z.string().min(1).optional(),
+    path: z.string().min(1).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES),
+  })
+  .strict()
+
+const removeStrictDependencyCleanupExecutionSchema = z
+  .object({
+    approvalSource: z.enum(REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCES),
+    blockers: z.array(removeStrictDependencyCleanupExecutionBlockerSchema).default([]),
+    commands: z.array(removeStrictDependencyCleanupCommandSchema).default([]),
+    executedCommands: z.array(removeStrictDependencyCleanupCommandSchema).default([]),
+    failedCommands: z.array(removeStrictDependencyCleanupCommandFailureSchema).default([]),
+    mode: z.enum(REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODES),
+    packageManager: removeStrictDependencyCleanupPackageManagerSchema,
+    packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+    packageManagerWrites: z.boolean(),
+    recommendedCommands: z.array(removeStrictDependencyCleanupCommandSchema).default([]),
+    removeDependenciesRequested: z.boolean(),
+    requiresExplicitApproval: z.literal(true),
+    targetManifest: removeStrictDependencyCleanupTargetManifestSchema,
+  })
+  .strict()
+
 export const removeStrictReportSchema = z
   .object({
     applied: z.boolean(),
     blockers: z.array(removeStrictBlockerSchema).default([]),
     cwd: z.string().min(1),
+    dependencyCleanup: removeAdvisoryDependencyCleanupSchema,
+    dependencyCleanupExecution: removeStrictDependencyCleanupExecutionSchema,
     dependencies: z.array(consumerLockfileDependencySchema).default([]),
     effects: z
       .object({
         dependencies: z
           .object({
-            removedCount: z.literal(0),
-            status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
+            packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+            packageManagerWrites: z.boolean(),
+            plannedRemovalCount: z.number().int().nonnegative(),
+            removedCount: z.number().int().nonnegative(),
+            status: z.enum(CLI_STRICT_WRITE_STATUSES),
           })
           .strict(),
         files: z
@@ -142,6 +319,7 @@ export const removeStrictReportSchema = z
           })
           .strict(),
         installsDependencies: z.literal(false),
+        removesDependencies: z.boolean(),
         lockfile: z
           .object({
             plannedItem: z.string().min(1).optional(),
@@ -195,12 +373,17 @@ export type TCreateRemoveStrictReportOptions = {
   cwd: string
   includeOrphans?: boolean
   itemName: string
+  removeDependencies?: boolean
   registrySourcePath?: string
 }
 
 type TRemoveStrictBlocker = z.infer<typeof removeStrictBlockerSchema>
 type TRemoveStrictFile = z.infer<typeof removeStrictFileSchema>
 type TRemoveStrictOrphanItem = z.infer<typeof removeStrictOrphanItemSchema>
+type TRemoveStrictDependencyCleanupCommand = z.infer<typeof removeStrictDependencyCleanupCommandSchema>
+type TRemoveStrictDependencyCleanupCommandFailure = z.infer<typeof removeStrictDependencyCleanupCommandFailureSchema>
+type TRemoveStrictDependencyCleanupExecution = z.infer<typeof removeStrictDependencyCleanupExecutionSchema>
+type TRemoveStrictDependencyCleanupDependency = z.infer<typeof removeStrictDependencyCleanupCommandDependencySchema>
 type TCreateRemoveStrictBlockerOptions = Omit<TRemoveStrictBlocker, "severity"> & {
   severity?: TRemoveStrictBlocker["severity"]
 }
@@ -283,6 +466,318 @@ const isInsideDirectory = ({ directoryPath, filePath }: { directoryPath: string;
 
 const getAbsoluteTargetPath = ({ cwd, targetPath }: { cwd: string; targetPath: string }) =>
   path.resolve(cwd, targetPath)
+
+const readPackageManagerBoundaryFile = async (filePath: string) => {
+  try {
+    return await fs.readFile(filePath, "utf8")
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return undefined
+
+    throw error
+  }
+}
+
+const formatPackageManagerBoundaryPath = ({ consumerRoot, filePath }: { consumerRoot: string; filePath: string }) => {
+  const relativePath = path.relative(consumerRoot, filePath).replace(/\\/gu, "/")
+
+  if (!relativePath) return "."
+  if (relativePath.startsWith("../") || path.isAbsolute(relativePath)) return filePath
+
+  return relativePath
+}
+
+const resolvePackageManagerBoundaryDirectories = ({
+  consumerRoot,
+  targetManifestPath,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  targetManifestPath?: string
+  workingDirectory: string
+}) => {
+  const directories = [workingDirectory]
+
+  if (targetManifestPath) {
+    directories.push(path.resolve(consumerRoot, path.dirname(targetManifestPath)))
+  }
+
+  return [...new Set(directories.map((directory) => path.resolve(directory)))]
+}
+
+const snapshotPackageManagerMutationBoundary = async ({
+  consumerRoot,
+  targetManifestPath,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  targetManifestPath?: string
+  workingDirectory: string
+}) =>
+  new Map(
+    await Promise.all(
+      resolvePackageManagerBoundaryDirectories({
+        consumerRoot,
+        targetManifestPath,
+        workingDirectory,
+      }).flatMap((boundaryDirectory) =>
+        packageManagerMutationBoundaryFileNames.map(async (fileName) => {
+          const filePath = path.join(boundaryDirectory, fileName)
+
+          return [
+            formatPackageManagerBoundaryPath({
+              consumerRoot,
+              filePath,
+            }),
+            await readPackageManagerBoundaryFile(filePath),
+          ] as const
+        }),
+      ),
+    ),
+  )
+
+const getMutatedPackageManagerBoundaryPaths = ({
+  afterSnapshot,
+  beforeSnapshot,
+}: {
+  afterSnapshot: ReadonlyMap<string, string | undefined>
+  beforeSnapshot: ReadonlyMap<string, string | undefined>
+}) =>
+  [...new Set([...beforeSnapshot.keys(), ...afterSnapshot.keys()])]
+    .filter((filePath) => beforeSnapshot.get(filePath) !== afterSnapshot.get(filePath))
+    .sort()
+
+const limitDependencyCommandOutput = (value: unknown) => {
+  if (typeof value !== "string") return undefined
+  if (value.length <= dependencyCommandOutputMaxLength) return value
+
+  return value.slice(0, dependencyCommandOutputMaxLength)
+}
+
+type TDependencyCleanupPlan = ReturnType<typeof createDependencyInstallPlan>
+type TDependencyCleanupWorkspaceContext = TDependencyCleanupPlan["workspace"]
+type TDependencyCleanupTargetManifest = TDependencyCleanupPlan["targetManifest"]
+
+const createDependencyCleanupKey = ({
+  kind,
+  name,
+  requiredRange,
+}: Pick<TRemoveStrictDependencyCleanupDependency, "kind" | "name" | "requiredRange">) =>
+  [kind, name, requiredRange].join(":")
+
+const getDependencyCleanupCandidates = (dryRunReport: TRemoveDryRunReport) =>
+  dryRunReport.dependencyCleanup.dependencies
+    .filter((dependency) => dependency.action === REMOVE_ADVISORY_DEPENDENCY_CLEANUP_ACTION__CLEANUP_CANDIDATE)
+    .map((dependency) => removeStrictDependencyCleanupCommandDependencySchema.parse(dependency))
+
+const getPackageManagerCleanupDependencies = (dependencies: readonly TRemoveStrictDependencyCleanupDependency[]) =>
+  dependencies.filter((dependency) => dependency.declaredIn)
+
+const createDependencyCleanupWorkspaceCommand = ({
+  dependencies,
+  packageManager,
+  removeCommand,
+  workspace,
+}: {
+  dependencies: readonly TRemoveStrictDependencyCleanupDependency[]
+  packageManager: TDependencyInstallPackageManager
+  removeCommand: string
+  workspace: TDependencyCleanupWorkspaceContext
+}): TRemoveStrictDependencyCleanupCommand["workspaceCommand"] => {
+  const { rootPath, targetPackageName, targetPackagePath } = workspace
+
+  if (!workspace.detected || !rootPath || !targetPackageName || !targetPackagePath || targetPackagePath === ".") {
+    return undefined
+  }
+
+  const dependencyNames = dependencies.map((dependency) => dependency.name)
+  const dependencyArgs = [removeCommand, ...dependencyNames]
+  const createCommand = ({
+    args,
+    strategy,
+  }: {
+    args: string[]
+    strategy: (typeof DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES)[number]
+  }) =>
+    removeStrictDependencyCleanupWorkspaceCommandSchema.parse({
+      args,
+      command: [packageManager, ...args].join(" "),
+      packageManager,
+      strategy,
+      targetPackageName,
+      targetPackagePath,
+      workingDirectory: rootPath,
+      workspaceRootPath: rootPath,
+    })
+
+  switch (packageManager) {
+    case PACKAGE_MANAGER_NPM:
+      return createCommand({
+        args: [...dependencyArgs, "--workspace", targetPackageName],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__NPM_WORKSPACE_OPTION,
+      })
+    case PACKAGE_MANAGER_PNPM:
+      return createCommand({
+        args: [...dependencyArgs, "--filter", targetPackageName],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__PNPM_FILTER_OPTION,
+      })
+    case PACKAGE_MANAGER_YARN:
+      return createCommand({
+        args: ["workspace", targetPackageName, ...dependencyArgs],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__YARN_WORKSPACE_SUBCOMMAND,
+      })
+    case PACKAGE_MANAGER_BUN:
+      return createCommand({
+        args: [...dependencyArgs, "--cwd", targetPackagePath],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__BUN_CWD_OPTION,
+      })
+  }
+}
+
+const createDependencyCleanupCommand = ({
+  dependencies,
+  packageManager,
+  targetManifest,
+  workspace,
+}: {
+  dependencies: readonly TRemoveStrictDependencyCleanupDependency[]
+  packageManager: TDependencyInstallPackageManager
+  targetManifest: TDependencyCleanupTargetManifest
+  workspace: TDependencyCleanupWorkspaceContext
+}) => {
+  const removeCommand = computePackageManagerRemoveCommand(packageManager)
+  const dependencyNames = dependencies.map((dependency) => dependency.name)
+  const args = [removeCommand, ...dependencyNames]
+  const workspaceCommand = createDependencyCleanupWorkspaceCommand({
+    dependencies,
+    packageManager,
+    removeCommand,
+    workspace,
+  })
+
+  return removeStrictDependencyCleanupCommandSchema.parse({
+    args,
+    command: [packageManager, ...args].join(" "),
+    dependencies,
+    packageManager,
+    targetManifestPath: targetManifest.path,
+    workingDirectory: targetManifest.directory,
+    workspaceCommand,
+  })
+}
+
+const createDependencyCleanupExecution = ({
+  cwd,
+  dryRunReport,
+  executedCommands = [],
+  failedCommands = [],
+  packageManagerExecution = DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN,
+  packageManagerWrites = false,
+  removeDependencies,
+}: {
+  cwd: string
+  dryRunReport: TRemoveDryRunReport
+  executedCommands?: TRemoveStrictDependencyCleanupCommand[]
+  failedCommands?: TRemoveStrictDependencyCleanupCommandFailure[]
+  packageManagerExecution?: (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
+  packageManagerWrites?: boolean
+  removeDependencies: boolean
+}): TRemoveStrictDependencyCleanupExecution => {
+  const detectionPlan = createDependencyInstallPlan({
+    consumerRoot: cwd,
+    dependencyPlan: [],
+  })
+  const dependencyCleanupCandidates = getDependencyCleanupCandidates(dryRunReport)
+  const packageManagerDependencies = getPackageManagerCleanupDependencies(dependencyCleanupCandidates)
+  const commands =
+    packageManagerDependencies.length === 0
+      ? []
+      : DEPENDENCY_INSTALL_PACKAGE_MANAGERS.map((packageManager) =>
+          createDependencyCleanupCommand({
+            dependencies: packageManagerDependencies,
+            packageManager,
+            targetManifest: detectionPlan.targetManifest,
+            workspace: detectionPlan.workspace,
+          }),
+        )
+  const recommendedCommands =
+    detectionPlan.packageManager.name === PACKAGE_MANAGER_UNKNOWN
+      ? []
+      : commands.filter((command) => command.packageManager === detectionPlan.packageManager.name)
+  const approvalSource = removeDependencies
+    ? REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__CLI_OPTION
+    : REMOVE_STRICT_DEPENDENCY_CLEANUP_APPROVAL_SOURCE__NONE
+  const blockers: z.infer<typeof removeStrictDependencyCleanupExecutionBlockerSchema>[] = []
+
+  if (removeDependencies && packageManagerDependencies.length > 0) {
+    if (!detectionPlan.targetManifest.exists) {
+      blockers.push({
+        code: REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__TARGET_MANIFEST_MISSING,
+        message: "Dependency cleanup was requested, but no package.json target manifest could be found.",
+      })
+    }
+
+    if (detectionPlan.packageManager.name === PACKAGE_MANAGER_UNKNOWN || recommendedCommands.length === 0) {
+      blockers.push({
+        code: REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_BLOCKER__PACKAGE_MANAGER_UNKNOWN,
+        message: "Dependency cleanup was requested, but no known package manager command can be recommended.",
+      })
+    }
+  }
+
+  const mode = !removeDependencies
+    ? REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_REQUESTED
+    : dependencyCleanupCandidates.length === 0
+      ? REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__NOT_NEEDED
+      : blockers.length > 0
+        ? REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__BLOCKED
+        : REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__ELIGIBLE
+
+  return removeStrictDependencyCleanupExecutionSchema.parse({
+    approvalSource,
+    blockers,
+    commands,
+    executedCommands,
+    failedCommands,
+    mode,
+    packageManager: detectionPlan.packageManager,
+    packageManagerExecution,
+    packageManagerWrites,
+    recommendedCommands,
+    removeDependenciesRequested: removeDependencies,
+    requiresExplicitApproval: true,
+    targetManifest: detectionPlan.targetManifest,
+  })
+}
+
+const createDependencyCleanupStrictBlockers = ({
+  dependencyCleanupExecution,
+  itemName,
+}: {
+  dependencyCleanupExecution: TRemoveStrictDependencyCleanupExecution
+  itemName: string
+}) =>
+  dependencyCleanupExecution.blockers.map((blocker) =>
+    createRemoveStrictBlocker({
+      code: `strict-remove-${blocker.code}`,
+      itemName,
+      kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
+      message: `Strict remove dependency cleanup is blocked: ${blocker.message}`,
+    }),
+  )
+
+const getDependencyCleanupExecutionCommand = (
+  command: TRemoveStrictDependencyCleanupCommand,
+): TRemoveStrictDependencyCleanupCommand => {
+  if (!command.workspaceCommand) return command
+
+  return {
+    ...command,
+    args: command.workspaceCommand.args,
+    command: command.workspaceCommand.command,
+    packageManager: command.workspaceCommand.packageManager,
+    workingDirectory: command.workspaceCommand.workingDirectory,
+  }
+}
 
 const createDryRunBlockers = (dryRunReport: TRemoveDryRunReport) =>
   dryRunReport.blockers.map((blocker) =>
@@ -677,10 +1172,12 @@ const writeStrictRemove = async ({
   cwd,
   dryRunReport,
   lockfileData,
+  removedDependencies = [],
 }: {
   cwd: string
   dryRunReport: TRemoveDryRunReport
   lockfileData: TConsumerLockfile
+  removedDependencies?: readonly TRemoveStrictDependencyCleanupDependency[]
 }) => {
   const files = await writeStrictFiles({
     cwd,
@@ -713,8 +1210,12 @@ const writeStrictRemove = async ({
     delete nextItems[item.name]
   })
 
+  const removedDependencyKeys = new Set(removedDependencies.map(createDependencyCleanupKey))
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
+    dependencies: lockfileData.dependencies.filter(
+      (dependency) => !removedDependencyKeys.has(createDependencyCleanupKey(dependency)),
+    ),
     items: nextItems,
   })
 
@@ -732,14 +1233,18 @@ const writeStrictRemove = async ({
 
 const createRemoveStrictEffects = ({
   applied,
+  dependencyCleanupExecution,
   dryRunReport,
   files,
   orphanCleanup,
+  removedDependencyCount,
 }: {
   applied: boolean
+  dependencyCleanupExecution: TRemoveStrictDependencyCleanupExecution
   dryRunReport: TRemoveDryRunReport
   files: readonly TRemoveStrictFile[]
   orphanCleanup: z.infer<typeof removeStrictOrphanCleanupSchema>
+  removedDependencyCount: number
 }) => {
   const deletedCount = files.filter((file) => file.removedFile).length
   const removedFileRecordCount = files.filter((file) => file.removedLockfileRecord).length
@@ -749,11 +1254,21 @@ const createRemoveStrictEffects = ({
       : applied
         ? CLI_WRITE_STATUS__WRITTEN
         : CLI_WRITE_STATUS__BLOCKED
+  const dependencyStatus =
+    removedDependencyCount > 0
+      ? CLI_WRITE_STATUS__WRITTEN
+      : dependencyCleanupExecution.mode === REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__BLOCKED ||
+          dependencyCleanupExecution.packageManagerExecution === DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+        ? CLI_WRITE_STATUS__BLOCKED
+        : CLI_WRITE_STATUS__NOT_WRITTEN
 
   return {
     dependencies: {
-      removedCount: 0,
-      status: CLI_WRITE_STATUS__NOT_WRITTEN,
+      packageManagerExecution: dependencyCleanupExecution.packageManagerExecution,
+      packageManagerWrites: dependencyCleanupExecution.packageManagerWrites,
+      plannedRemovalCount: dryRunReport.wouldEffects.dependencies.plannedRemovalCount,
+      removedCount: removedDependencyCount,
+      status: dependencyStatus,
     },
     files: {
       deletedCount,
@@ -762,6 +1277,7 @@ const createRemoveStrictEffects = ({
       preservedCount: dryRunReport.summary.skippedFileCount + dryRunReport.summary.blockedFileCount,
     },
     installsDependencies: false,
+    removesDependencies: dependencyCleanupExecution.packageManagerWrites,
     lockfile: {
       plannedItem: dryRunReport.files.length > 0 ? dryRunReport.itemName : undefined,
       removedFileRecordCount,
@@ -798,6 +1314,7 @@ export const createRemoveStrictReport = async ({
   cwd,
   includeOrphans = false,
   itemName,
+  removeDependencies = false,
   registrySourcePath,
 }: TCreateRemoveStrictReportOptions): Promise<TRemoveStrictReport> => {
   const dryRunReport = await createRemoveDryRunReport({
@@ -807,10 +1324,19 @@ export const createRemoveStrictReport = async ({
     registrySourcePath,
   })
   const lockfilePlan = await readConsumerLockfileForStrictRemove(cwd)
+  let dependencyCleanupExecution = createDependencyCleanupExecution({
+    cwd,
+    dryRunReport,
+    removeDependencies,
+  })
   const blockers = dedupeBlockers([
     ...lockfilePlan.findings,
     ...createDryRunBlockers(dryRunReport),
     ...createProjectStateBlockers(dryRunReport),
+    ...createDependencyCleanupStrictBlockers({
+      dependencyCleanupExecution,
+      itemName,
+    }),
     ...createLockfileBlockers({
       dryRunReport,
       lockfileData: lockfilePlan.lockfileData,
@@ -840,12 +1366,16 @@ export const createRemoveStrictReport = async ({
       applied: false,
       blockers,
       cwd,
+      dependencyCleanup: dryRunReport.dependencyCleanup,
+      dependencyCleanupExecution,
       dependencies: dryRunReport.dependencies,
       effects: createRemoveStrictEffects({
         applied: false,
+        dependencyCleanupExecution,
         dryRunReport,
         files,
         orphanCleanup,
+        removedDependencyCount: 0,
       }),
       files,
       findings: [...dryRunReport.findings, ...blockers],
@@ -861,22 +1391,144 @@ export const createRemoveStrictReport = async ({
     })
   }
 
+  if (
+    dependencyCleanupExecution.mode === REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__ELIGIBLE &&
+    dependencyCleanupExecution.recommendedCommands.length > 0
+  ) {
+    const executedDependencyCleanupCommands: TRemoveStrictDependencyCleanupCommand[] = []
+    let failedDependencyCleanupCommands: TRemoveStrictDependencyCleanupCommandFailure[] = []
+
+    for (const command of dependencyCleanupExecution.recommendedCommands) {
+      const executionCommand = getDependencyCleanupExecutionCommand(command)
+      const workingDirectory = path.resolve(cwd, executionCommand.workingDirectory ?? ".")
+      const beforePackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+        consumerRoot: cwd,
+        targetManifestPath: executionCommand.targetManifestPath,
+        workingDirectory,
+      })
+
+      try {
+        await execa(executionCommand.packageManager, executionCommand.args, {
+          cwd: workingDirectory,
+        })
+        executedDependencyCleanupCommands.push(executionCommand)
+      } catch (error) {
+        const afterPackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+          consumerRoot: cwd,
+          targetManifestPath: executionCommand.targetManifestPath,
+          workingDirectory,
+        })
+        const mutatedPaths = getMutatedPackageManagerBoundaryPaths({
+          afterSnapshot: afterPackageManagerBoundary,
+          beforeSnapshot: beforePackageManagerBoundary,
+        })
+        const errorRecord = error && typeof error === "object" ? error : {}
+        const message = error instanceof Error ? error.message : "Package-manager dependency cleanup failed."
+
+        failedDependencyCleanupCommands = [
+          removeStrictDependencyCleanupCommandFailureSchema.parse({
+            args: executionCommand.args,
+            command: executionCommand.command,
+            exitCode:
+              "exitCode" in errorRecord && typeof errorRecord.exitCode === "number" ? errorRecord.exitCode : undefined,
+            message,
+            mutatedPaths,
+            packageManager: executionCommand.packageManager,
+            packageManagerWrites: mutatedPaths.length > 0,
+            signal: "signal" in errorRecord && typeof errorRecord.signal === "string" ? errorRecord.signal : undefined,
+            stderr: "stderr" in errorRecord ? limitDependencyCommandOutput(errorRecord.stderr) : undefined,
+            stdout: "stdout" in errorRecord ? limitDependencyCommandOutput(errorRecord.stdout) : undefined,
+            workingDirectory: executionCommand.workingDirectory,
+          }),
+        ]
+        break
+      }
+    }
+
+    dependencyCleanupExecution = createDependencyCleanupExecution({
+      cwd,
+      dryRunReport,
+      executedCommands: executedDependencyCleanupCommands,
+      failedCommands: failedDependencyCleanupCommands,
+      packageManagerExecution:
+        failedDependencyCleanupCommands.length > 0
+          ? DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+          : DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+      packageManagerWrites:
+        executedDependencyCleanupCommands.length > 0 ||
+        failedDependencyCleanupCommands.some((command) => command.packageManagerWrites),
+      removeDependencies,
+    })
+
+    if (failedDependencyCleanupCommands.length > 0) {
+      const failedCommand = failedDependencyCleanupCommands[0]
+      const dependencyCleanupFailureBlocker = createRemoveStrictBlocker({
+        code: "strict-remove-dependency-cleanup-execution-failed",
+        itemName,
+        kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
+        message: `Package-manager dependency cleanup failed while running "${failedCommand.command}". No Amino source files or lockfile records were removed.`,
+      })
+      const files = resolveBlockedFiles(dryRunReport.files)
+      const orphanCleanup = createStrictOrphanCleanup({
+        dryRunReport,
+        items: resolveBlockedOrphanItems(dryRunReport),
+      })
+
+      return removeStrictReportSchema.parse({
+        applied: false,
+        blockers: [dependencyCleanupFailureBlocker],
+        cwd,
+        dependencyCleanup: dryRunReport.dependencyCleanup,
+        dependencyCleanupExecution,
+        dependencies: dryRunReport.dependencies,
+        effects: createRemoveStrictEffects({
+          applied: false,
+          dependencyCleanupExecution,
+          dryRunReport,
+          files,
+          orphanCleanup,
+          removedDependencyCount: 0,
+        }),
+        files,
+        findings: [...dryRunReport.findings, dependencyCleanupFailureBlocker],
+        itemName,
+        itemRemoveState: resolveItemRemoveState({
+          applied: false,
+          dryRunReport,
+        }),
+        lockfileData: lockfilePlan.lockfileData,
+        orphanCleanup,
+        registrySource: dryRunReport.registrySource,
+        status: dryRunReport.status,
+      })
+    }
+  }
+
+  const removedDependencies =
+    removeDependencies && dependencyCleanupExecution.mode === REMOVE_STRICT_DEPENDENCY_CLEANUP_EXECUTION_MODE__ELIGIBLE
+      ? getDependencyCleanupCandidates(dryRunReport)
+      : []
   const result = await writeStrictRemove({
     cwd,
     dryRunReport,
     lockfileData: lockfilePlan.lockfileData,
+    removedDependencies,
   })
 
   return removeStrictReportSchema.parse({
     applied: true,
     blockers: [],
     cwd,
-    dependencies: dryRunReport.dependencies,
+    dependencyCleanup: dryRunReport.dependencyCleanup,
+    dependencyCleanupExecution,
+    dependencies: result.lockfileData.dependencies,
     effects: createRemoveStrictEffects({
       applied: true,
+      dependencyCleanupExecution,
       dryRunReport,
       files: result.files,
       orphanCleanup: result.orphanCleanup,
+      removedDependencyCount: removedDependencies.length,
     }),
     files: result.files,
     findings: dryRunReport.findings,
