@@ -16,8 +16,9 @@ Stable CLI guidance has moved into the docs site:
 - `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
 - `apps/docs/src/content/docs/registry/local-snapshots.md`
 
-Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes, broad update/merge behavior,
-broader eject policy, non-orphan support cleanup, public registry hosting, and package publication.
+Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes outside explicit strict
+`remove`/`delete --with-orphans --remove-dependencies`, broad update/merge behavior, broader eject policy, non-orphan
+support cleanup, public registry hosting, and package publication.
 
 ## Current Status
 
@@ -288,8 +289,10 @@ temporary-copy proofs. The orphan plan and effects live in a separate `orphanCle
 also report a separate no-write `dependencyCleanup` block that classifies package dependency cleanup candidates and
 dependencies still required by remaining installed items. Fixture evidence now covers the blocked path where a modified
 orphan item keeps dependencies still-required, suppresses dry-run dependency removals, and blocks strict cleanup
-atomically. Strict orphan cleanup remains opt-in and does not add package-manifest edits, package-manager lockfile edits,
-non-orphan support cleanup, or broad deletion policy.
+atomically. Strict orphan cleanup remains opt-in. `--remove-dependencies` adds a second explicit strict gate that can
+remove no-longer-required package dependencies through the detected npm, pnpm, yarn, or bun command and clean stale Amino
+dependency records. Cleanup outside that explicit path, non-orphan support cleanup, and broad deletion policy remain
+deferred.
 
 ## Design Discussion Packet
 
