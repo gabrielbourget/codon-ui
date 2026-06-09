@@ -40,6 +40,7 @@ pnpm verify:dependency-execution-eligibility
 pnpm verify:dependency-execution
 pnpm verify:dependency-execution-failure
 pnpm verify:dependency-workspace-commands
+pnpm verify:dependency-workspace-execution
 pnpm verify:dependency-target-resolution
 pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
@@ -126,6 +127,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Dependency failure       | Strict `add` returns structured package-manager failure output and blocks Amino source/lockfile writes.                                      |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
 | Dependency workspace     | Nested workspace targets report workspace context and npm/pnpm/yarn/bun command details without package-manager writes.                      |
+| Dependency workspace run | Strict `add` executes npm/pnpm/yarn/bun workspace commands and replans from the nested target manifest.                                      |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
 | Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                                                             |
@@ -182,6 +184,10 @@ The `pnpm verify:dependency-workspace-commands` gate proves read-only workspace 
 workspace root, targets a nested package manifest with `--package-json`, reports root package-manager provenance, and
 records npm/pnpm/yarn/bun `workspaceCommand` details without package-manager execution or fixture mutation.
 
+The `pnpm verify:dependency-workspace-execution` gate proves the approved strict workspace path. It executes fake npm,
+pnpm, yarn, and bun workspace commands from the temporary workspace root, mutates the nested target `package.json`, writes
+the package-manager lockfile at the workspace root, replans, and records installed dependency actions.
+
 The `pnpm verify:dependency-target-resolution` gate proves read-only target manifest selection. It checks
 `--package-json`, `--package-manager`, nested target manifests, upward lockfile detection, command `targetManifestPath`
 and `workingDirectory`, satisfied target manifests, and override precedence. It uses temporary fixture copies and executes
@@ -213,7 +219,7 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 ## Deferred Behaviors
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
-publication, generated token writers, package-manager dependency writes, broad update/merge behavior, strict eject
-behavior beyond lockfile-only ownership transfer, strict dependency cleanup or package-manager removal, strict orphan
-cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation remain separate
-approval-gated lanes.
+publication, generated token writers, package-manager dependency writes outside approved strict add, package-manager
+removals, broad update/merge behavior, strict eject behavior beyond lockfile-only ownership transfer, strict dependency
+cleanup, strict orphan cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation
+remain separate approval-gated lanes.

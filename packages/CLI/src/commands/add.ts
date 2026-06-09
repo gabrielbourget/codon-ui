@@ -202,26 +202,52 @@ const formatPackageManagerBoundaryPath = ({ consumerRoot, filePath }: { consumer
   return relativePath
 }
 
-const snapshotPackageManagerMutationBoundary = async ({
+const resolvePackageManagerBoundaryDirectories = ({
   consumerRoot,
+  targetManifestPath,
   workingDirectory,
 }: {
   consumerRoot: string
+  targetManifestPath?: string
+  workingDirectory: string
+}) => {
+  const directories = [workingDirectory]
+
+  if (targetManifestPath) {
+    directories.push(path.resolve(consumerRoot, path.dirname(targetManifestPath)))
+  }
+
+  return [...new Set(directories.map((directory) => path.resolve(directory)))]
+}
+
+const snapshotPackageManagerMutationBoundary = async ({
+  consumerRoot,
+  targetManifestPath,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  targetManifestPath?: string
   workingDirectory: string
 }) =>
   new Map(
     await Promise.all(
-      packageManagerMutationBoundaryFileNames.map(async (fileName) => {
-        const filePath = path.join(workingDirectory, fileName)
+      resolvePackageManagerBoundaryDirectories({
+        consumerRoot,
+        targetManifestPath,
+        workingDirectory,
+      }).flatMap((boundaryDirectory) =>
+        packageManagerMutationBoundaryFileNames.map(async (fileName) => {
+          const filePath = path.join(boundaryDirectory, fileName)
 
-        return [
-          formatPackageManagerBoundaryPath({
-            consumerRoot,
-            filePath,
-          }),
-          await readPackageManagerBoundaryFile(filePath),
-        ] as const
-      }),
+          return [
+            formatPackageManagerBoundaryPath({
+              consumerRoot,
+              filePath,
+            }),
+            await readPackageManagerBoundaryFile(filePath),
+          ] as const
+        }),
+      ),
     ),
   )
 
@@ -241,6 +267,20 @@ const limitDependencyCommandOutput = (value: unknown) => {
   if (value.length <= dependencyCommandOutputMaxLength) return value
 
   return value.slice(0, dependencyCommandOutputMaxLength)
+}
+
+type TDependencyExecutionCommand = ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"][number]
+
+const getDependencyExecutionCommand = (command: TDependencyExecutionCommand): TDependencyExecutionCommand => {
+  if (!command.workspaceCommand) return command
+
+  return {
+    ...command,
+    args: command.workspaceCommand.args,
+    command: command.workspaceCommand.command,
+    packageManager: command.workspaceCommand.packageManager,
+    workingDirectory: command.workspaceCommand.workingDirectory,
+  }
 }
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
@@ -546,20 +586,23 @@ export const add = new Command()
           const plannedDependencyCommands = dependencyInstallPlan.recommendedCommands
 
           for (const command of plannedDependencyCommands) {
-            const workingDirectory = path.resolve(cwd, command.workingDirectory ?? ".")
+            const executionCommand = getDependencyExecutionCommand(command)
+            const workingDirectory = path.resolve(cwd, executionCommand.workingDirectory ?? ".")
             const beforePackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
               consumerRoot: cwd,
+              targetManifestPath: executionCommand.targetManifestPath,
               workingDirectory,
             })
 
             try {
-              await execa(command.packageManager, command.args, {
+              await execa(executionCommand.packageManager, executionCommand.args, {
                 cwd: workingDirectory,
               })
-              executedDependencyCommands.push(command)
+              executedDependencyCommands.push(executionCommand)
             } catch (error) {
               const afterPackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
                 consumerRoot: cwd,
+                targetManifestPath: executionCommand.targetManifestPath,
                 workingDirectory,
               })
               const mutatedPaths = getMutatedPackageManagerBoundaryPaths({
@@ -571,21 +614,21 @@ export const add = new Command()
 
               failedDependencyCommands = [
                 {
-                  args: command.args,
-                  command: command.command,
+                  args: executionCommand.args,
+                  command: executionCommand.command,
                   exitCode:
                     "exitCode" in errorRecord && typeof errorRecord.exitCode === "number"
                       ? errorRecord.exitCode
                       : undefined,
                   message,
                   mutatedPaths,
-                  packageManager: command.packageManager,
+                  packageManager: executionCommand.packageManager,
                   packageManagerWrites: mutatedPaths.length > 0,
                   signal:
                     "signal" in errorRecord && typeof errorRecord.signal === "string" ? errorRecord.signal : undefined,
                   stderr: "stderr" in errorRecord ? limitDependencyCommandOutput(errorRecord.stderr) : undefined,
                   stdout: "stdout" in errorRecord ? limitDependencyCommandOutput(errorRecord.stdout) : undefined,
-                  workingDirectory: command.workingDirectory,
+                  workingDirectory: executionCommand.workingDirectory,
                 },
               ]
               break

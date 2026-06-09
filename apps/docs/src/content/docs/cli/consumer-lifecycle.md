@@ -130,21 +130,22 @@ records explicit command intent, but `--yes` is not treated as dependency-instal
 recommendation. Otherwise it reports `not-requested` or `blocked` with blocker codes. When install intent is explicit but
 all dependency decisions are already satisfied, it reports `mode: "not-needed"`.
 
-For `add` reports, the CLI also emits a read-only `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
+For `add` reports, the CLI also emits `dependencyInstallPlan`. It detects npm, pnpm, yarn, and bun from the
 consumer `packageManager` field or known lockfile/workspace marker files, lists proposed install commands for missing or
 incompatible dependencies, and selects a `recommendedCommands` entry only when the package manager is known. Unknown
-package-manager state still reports all command options but runs nothing. The plan is advisory data only: `package.json`,
-package-manager lockfiles, and installed packages are not modified.
+package-manager state still reports all command options but runs nothing. Advisory and dry-run modes keep this plan
+read-only: `package.json`, package-manager lockfiles, and installed packages are not modified.
 
-Workspace consumers get additional read-only detail. When a target package manifest lives under a detected workspace
-root, reports include `dependencyInstallPlan.workspace` with root marker provenance, root package-manager metadata, target
+Workspace consumers get additional command detail. When a target package manifest lives under a detected workspace root,
+reports include `dependencyInstallPlan.workspace` with root marker provenance, root package-manager metadata, target
 package name, and target package path. Each package-manager command can also include `workspaceCommand` with root-scoped
-npm, pnpm, yarn, or bun command details. `workspaceCommand` is review output only in this slice; strict execution still
-uses the existing selected `recommendedCommands` entry until workspace execution policy is explicitly approved.
+npm, pnpm, yarn, or bun command details. Strict execution uses `workspaceCommand` when present so package-manager writes
+run from the workspace root while mutating the targeted nested package manifest.
 
-Strict local-registry `add` can execute the selected `recommendedCommands` entry when all current strict blockers are
-dependency blockers, `--install-dependencies` is present, the effective dependency policy is `install`, and package-manager
-detection is known. After the command completes, Amino rebuilds the install plan from the target package manifest before
+Strict local-registry `add` can execute the selected dependency command when all current strict blockers are dependency
+blockers, `--install-dependencies` is present, the effective dependency policy is `install`, and package-manager detection
+is known. The executed command is the planned `workspaceCommand` for workspace targets and the regular selected command
+for root targets. After the command completes, Amino rebuilds the install plan from the target package manifest before
 writing component files or `amino-ui.lock.json`. If dependency decisions remain unsatisfied, strict add still blocks
 component writes.
 
@@ -157,7 +158,7 @@ Enterprise consumers can keep this planning explicit with `--package-json <path>
 `--package-json` selects the manifest used for dependency classification and command targeting; `--package-manager`
 overrides automatic package-manager detection. Reports include `targetManifest`, per-command `targetManifestPath`, and
 per-command `workingDirectory` so consumers can review where the proposed command belongs. These flags still do not write
-manifests, lockfiles, or installed packages.
+manifests, lockfiles, or installed packages unless strict `add` is also explicitly approved to install dependencies.
 
 Current fixture evidence proves the clean `circle-loader` add lifecycle in a temporary `vite-registry-contained` copy:
 strict init creates only config and lockfile, advisory and dry-run report the same install graph without writes, strict
@@ -182,6 +183,10 @@ The companion dependency-install-plan fixture gate proves the proposed npm, pnpm
 across unknown package-manager state, `packageManager` metadata detection, and lockfile fallback detection.
 The dependency-target-resolution fixture gate proves `--package-json`, `--package-manager`, nested target manifests,
 upward lockfile detection, target-manifest command metadata, and override precedence without package-manager writes.
+The dependency-workspace-commands fixture gate proves workspace root detection and npm/pnpm/yarn/bun workspace command
+planning without writes. The dependency-workspace-execution fixture gate proves strict add executes those workspace
+commands, mutates the nested package manifest, writes the package-manager lockfile at the workspace root, and replans
+before Amino source and lockfile writes.
 The out-of-band dependency-resolution fixture gate proves the current consumer-owned install path: `add switch` first
 reports missing `react-aria-components` and `classnames`, the consumer resolves those dependencies outside the CLI in
 the selected package manifest, advisory and dry-run reruns report no install recommendations, and strict
