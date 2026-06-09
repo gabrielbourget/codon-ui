@@ -5,7 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createUpdateAdvisoryReport, createUpdateAllAdvisoryReport } from "../helpers/updateAdvisory"
-import { createUpdateDryRunReport } from "../helpers/updateDryRun"
+import { createUpdateAllDryRunReport, createUpdateDryRunReport } from "../helpers/updateDryRun"
 import { createUpdateStrictReport } from "../helpers/updateStrict"
 
 const createContentHash = (content: string | Buffer) =>
@@ -381,6 +381,58 @@ try {
   assert.equal(allAdvisoryItems.get("source-only")?.itemUpdateState, "update-candidate")
   assert.equal(allAdvisoryItems.get("source-equals-local")?.itemUpdateState, "update-candidate")
   assert.equal(allAdvisoryItems.get("dependency-blocked")?.itemUpdateState, "update-candidate")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const allDryRunReport = await createUpdateAllDryRunReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+  const allDryRunItems = new Map(allDryRunReport.items.map((item) => [item.itemName, item]))
+
+  assert.equal(allDryRunReport.schemaVersion, 1)
+  assert.equal(allDryRunReport.dryRun, true)
+  assert.equal(allDryRunReport.all, true)
+  assert.deepEqual(allDryRunReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(allDryRunReport.summary.itemCount, 4)
+  assert.equal(allDryRunReport.summary.itemStates["would-update"], 2)
+  assert.equal(allDryRunReport.summary.itemStates.blocked, 2)
+  assert.equal(allDryRunReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allDryRunReport.summary.itemStates.unavailable, 0)
+  assert.equal(allDryRunReport.summary.fileCount, 10)
+  assert.equal(allDryRunReport.summary.candidateFileCount, 4)
+  assert.equal(allDryRunReport.summary.wouldWriteFileCount, 1)
+  assert.equal(allDryRunReport.summary.wouldUpdateLockfileFileCount, 2)
+  assert.equal(allDryRunReport.summary.skippedFileCount, 5)
+  assert.equal(allDryRunReport.summary.blockedFileCount, 2)
+  assert.equal(allDryRunReport.summary.preservationBlockerCount, 5)
+  assert.equal(allDryRunReport.summary.dependencyBlockerCount, 1)
+  assert.equal(allDryRunReport.summary.sourceBlockerCount, 0)
+  assert.equal(allDryRunReport.summary.fileActions.none, 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-write"], 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-update-lockfile"], 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-skip"], 5)
+  assert.equal(allDryRunReport.summary.fileActions.blocked, 2)
+  assert.equal(allDryRunReport.summary.dependencyStates.missing, 1)
+  assert.equal(allDryRunReport.wouldEffects.files.candidateCount, 4)
+  assert.equal(allDryRunReport.wouldEffects.files.wouldWriteCount, 1)
+  assert.equal(allDryRunReport.wouldEffects.files.wouldUpdateLockfileCount, 2)
+  assert.equal(allDryRunReport.wouldEffects.files.skippedCount, 5)
+  assert.equal(allDryRunReport.wouldEffects.files.blockedCount, 2)
+  assert.equal(allDryRunReport.wouldEffects.lockfile.status, "blocked")
+  assert.equal(allDryRunReport.wouldEffects.lockfile.plannedFileCount, 10)
+  assert.equal(allDryRunReport.wouldEffects.lockfile.wouldWriteFileCount, 2)
+  assert.equal(allDryRunItems.get("switch")?.itemUpdateState, "blocked")
+  assert.equal(allDryRunItems.get("source-only")?.itemUpdateState, "would-update")
+  assert.equal(allDryRunItems.get("source-equals-local")?.itemUpdateState, "would-update")
+  assert.equal(allDryRunItems.get("dependency-blocked")?.itemUpdateState, "blocked")
+  assert.equal(allDryRunItems.get("source-only")?.summary.wouldWriteFileCount, 1)
+  assert.equal(allDryRunItems.get("source-equals-local")?.summary.wouldUpdateLockfileFileCount, 1)
+  assert.equal(allDryRunItems.get("dependency-blocked")?.summary.dependencyBlockerCount, 1)
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
 
   const missingReport = await createUpdateAdvisoryReport({

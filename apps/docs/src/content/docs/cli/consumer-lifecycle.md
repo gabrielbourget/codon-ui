@@ -337,7 +337,7 @@ Current fixture evidence proves clean installed update advisory, locally modifie
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
 stale source-hash classification.
 
-## Update All Advisory
+## Update All Advisory And Dry Run
 
 `update --all --advisory --json` summarizes update posture for every installed item without writing:
 
@@ -345,9 +345,15 @@ stale source-hash classification.
 aui update --all --advisory --json --cwd <consumer-project>
 ```
 
+`update --all --dry-run --json` summarizes item-scoped dry-run previews for every installed item without writing:
+
+```sh
+aui update --all --dry-run --json --cwd <consumer-project>
+```
+
 It starts from `status --json` to enumerate the installed lockfile item set, then runs the same item-scoped
-`update <item> --advisory --json` classification for each item. The command does not compute broad write ordering, merge
-strategy, package-manager changes, or partial-failure behavior.
+`update <item> --advisory --json` or `update <item> --dry-run --json` classification for each item. These broad reports
+do not compute strict write ordering, merge strategy, package-manager changes, or partial-failure behavior.
 
 The JSON report includes:
 
@@ -363,7 +369,12 @@ The JSON report includes:
 
 `summary.itemStates` separates `up-to-date`, `update-candidate`, `review-required`, and `unavailable` items. The report
 includes every installed item rather than only items with findings so reviewers and fixture assertions can see the full
-selection set. `update --all --dry-run` and strict `update --all` remain unsupported.
+selection set.
+
+The dry-run report uses `summary.itemStates` values from item-scoped dry-run: `up-to-date`, `would-update`, `blocked`, and
+`unavailable`. It also aggregates file `wouldEffects`, lockfile `wouldEffects`, blockers, dependency posture, skipped
+files, blocked files, source-file write previews, and lockfile-only refresh previews. Strict `update --all` remains
+unsupported.
 
 Current fixture evidence proves Wavemap-like broad update advisory output, complete installed-item enumeration, aggregate
 candidate/blocker counts, no source/config/lockfile/package-manager mutation, and preservation of local adapter files.
@@ -443,7 +454,7 @@ The command is item-atomic. If any file in the item is locally modified, missing
 ejected, dependency-blocked, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates
 remain untouched and the lockfile is not written. Up-to-date items return an exit-0 no-op report. Strict update does not
 merge local edits, install or update dependencies, mutate package manifests, touch package-manager lockfiles, update
-support/orphan policy, or run `update --all`.
+support/orphan policy, or run strict `update --all`.
 
 Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
 lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
@@ -787,9 +798,9 @@ dependency non-mutation.
 
 Strict update, strict remove, strict remove/delete orphan cleanup, and strict eject now exist only inside the
 dry-run-approved registry-owned boundaries above. Dependency cleanup outside explicit strict
-`remove`/`delete --with-orphans --remove-dependencies`, update-all beyond advisory reporting, strict update beyond
-item-scoped source writes and lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and any broader
-deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
+`remove`/`delete --with-orphans --remove-dependencies`, update-all beyond read-only advisory/dry-run reporting, strict
+update beyond item-scoped source writes and lockfile refreshes, strict eject beyond lockfile-only ownership transfer, and
+any broader deletion policy remain deferred until dry-run evidence is broader and intentionally approved.
 
-Generated token writers, broad update dry-run/strict execution, merge behavior, broader ejection policy, public registry
+Generated token writers, broad strict update execution, merge behavior, broader ejection policy, public registry
 hosting, package publication, and Waveguide validation remain deferred until explicitly approved.

@@ -5,8 +5,9 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
-item-scoped update advisory, broad update advisory, item-scoped update dry-run, item-scoped remove advisory, and
-item-scoped remove dry-run against the React registry snapshot, strict item-scoped update for fixture-proven cases,
+item-scoped update advisory, broad update advisory, item-scoped update dry-run, broad update dry-run, item-scoped remove
+advisory, and item-scoped remove dry-run against the React registry snapshot, strict item-scoped update for
+fixture-proven cases,
 strict item-scoped remove for fixture-proven cases, opt-in strict remove/delete orphan cleanup for fixture-proven cases,
 explicit strict remove/delete package dependency cleanup for fixture-proven orphan cleanup cases, item-scoped eject
 advisory, item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockfile ownership transfer. The
@@ -14,20 +15,20 @@ visible `delete` command is an alias-style sibling for the current remove lifecy
 
 ## Current Surface
 
-| Command  | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
-| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                                                                                                                                                                             |
-| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent or approved dependency installs resolve dependency-only blockers.                                                                                                                                                                                            |
-| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, `delete <item> --json`, and their `--with-orphans` variants use the same remove reports, blockers, effects, and mutation boundaries. `--remove-dependencies` follows the same explicit strict cleanup boundary as `remove`.                                                                                                                                                              |
-| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                                                                                                                                                                           |
-| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched.                                                                                                                     |
-| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers; `--with-orphans` opts into orphan item cleanup, and `--remove-dependencies` opts into eligible package dependency cleanup.                                |
-| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                                                                                                                                    |
-| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update --all --advisory --json` enumerates every installed item and aggregates item-scoped advisory states without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict `update <item> --json` applies only dry-run-approved source-file writes and lockfile-record updates. |
+| Command  | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent or approved dependency installs resolve dependency-only blockers.                                                                                                                                                                                                                                                                                   |
+| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, `delete <item> --json`, and their `--with-orphans` variants use the same remove reports, blockers, effects, and mutation boundaries. `--remove-dependencies` follows the same explicit strict cleanup boundary as `remove`.                                                                                                                                                                                                                                                     |
+| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched.                                                                                                                                                                                                            |
+| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers; `--with-orphans` opts into orphan item cleanup, and `--remove-dependencies` opts into eligible package dependency cleanup.                                                                                                                       |
+| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update --all --advisory --json` enumerates every installed item and aggregates item-scoped advisory states without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing; `update --all --dry-run --json` aggregates those item-scoped previews without writing. Strict `update <item> --json` applies only dry-run-approved source-file writes and lockfile-record updates. |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
-output, broad update dry-run, broad strict update, merge behavior, broader ejection policy, dependency cleanup outside
+output, broad strict update, merge behavior, broader ejection policy, dependency cleanup outside
 explicit strict `remove`/`delete --with-orphans --remove-dependencies`, or non-orphan support cleanup.
 
 ## Command Names
@@ -158,8 +159,15 @@ locally modified, unknown, consumer-owned-support, missing, ejected, dependency 
 Current `update --all --advisory --json` is also read-only. It starts from the installed lockfile item set, runs the
 same item-scoped advisory classification for each installed item, and returns per-item `itemUpdateState`, file actions,
 findings, dependency posture, and summary counts. The top-level summary aggregates item states, update-candidate files,
-automatic blockers, preservation requirements, source changes, and dependency states. It does not provide broad dry-run
-or strict update authority.
+automatic blockers, preservation requirements, source changes, and dependency states. It does not provide strict update
+authority.
+
+Current `update --all --dry-run --json` is non-mutating broad dry-run planning. It starts from the installed lockfile item
+set, runs the same item-scoped dry-run report for each installed item, and returns per-item `itemUpdateState`,
+`wouldEffects`, blockers, files, dependencies, findings, and summary counts. The top-level summary aggregates
+`would-update`, `blocked`, `up-to-date`, and `unavailable` item states plus candidate files, skipped files, blocked files,
+would-write files, would-update lockfile records, dependency blockers, and aggregate lockfile `wouldEffects`. It still
+writes no source files, config, lockfile, package manifests, package-manager lockfiles, or dependencies.
 
 Current `update <item> --dry-run --json` is also non-mutating and item-scoped. It reuses the update advisory
 classification, recomputes the current registry install plan for the item, applies the same relative-import rewrite logic
@@ -239,7 +247,7 @@ block the strict write.
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init dry-run -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update all advisory -> update dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
+init advisory -> init dry-run -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update all advisory -> update dry-run -> update all dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
@@ -258,6 +266,7 @@ by `init`.
 | `update --advisory --json`                           | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | `update --all --advisory --json`                     | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | `update --dry-run --json`                            | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `update --all --dry-run --json`                      | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | Strict `update`                                      | Config, lockfile, local snapshot, installed files.                                                 | Source files and lockfile.                                                             |
 | `remove --advisory --json`                           | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | `remove --dry-run --json`                            | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
@@ -307,7 +316,9 @@ This lane is designed so fixture evidence captures each transition before broade
 21. Add explicit strict `remove/delete --with-orphans --remove-dependencies` package dependency cleanup execution for
     fixture-proven orphan cleanup cases across fake npm, pnpm, yarn, and bun.
 22. Add broad read-only `update --all --advisory --json` coverage that enumerates installed items and aggregates
-    item-scoped advisory states without opening broad dry-run or strict update writes.
+    item-scoped advisory states without opening strict update writes.
+23. Add broad no-write `update --all --dry-run --json` coverage that aggregates item-scoped dry-run previews without
+    opening broad strict update writes.
 
 ## Next Lifecycle Targets
 
@@ -323,14 +334,14 @@ Discussion targets before lifecycle behavior expands:
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
 - lifecycle proof mode: use `status --json`, `diff --json`, `update --advisory --json`, and
-  `update --all --advisory --json` as the read-only classification base, then use `update --dry-run --json` to gate
-  strict item-scoped update writes, `remove --dry-run --json` to gate strict remove behavior, and
-  `eject --dry-run --json` to gate strict lockfile-only ownership transfer.
+  `update --all --advisory --json` as the read-only classification base, then use `update --dry-run --json` and
+  `update --all --dry-run --json` to preview update writes without mutation, `remove --dry-run --json` to gate strict
+  remove behavior, and `eject --dry-run --json` to gate strict lockfile-only ownership transfer.
 
 ## Boundaries
 
-Do not expand update-all beyond advisory reporting, strict update beyond dry-run-approved item-scoped source writes and
-lockfile refreshes, strict remove/delete cleanup beyond opt-in orphan dependency cleanup and explicit no-longer-required
-package dependency cleanup, strict eject beyond lockfile-only ownership transfer, registry artifact hosting, generated
-token writers, dependency cleanup outside strict `--with-orphans --remove-dependencies`, non-orphan support cleanup, or
-publication policy as incidental cleanup.
+Do not expand update-all beyond read-only advisory and dry-run reporting, strict update beyond dry-run-approved
+item-scoped source writes and lockfile refreshes, strict remove/delete cleanup beyond opt-in orphan dependency cleanup and
+explicit no-longer-required package dependency cleanup, strict eject beyond lockfile-only ownership transfer, registry
+artifact hosting, generated token writers, dependency cleanup outside strict `--with-orphans --remove-dependencies`,
+non-orphan support cleanup, or publication policy as incidental cleanup.

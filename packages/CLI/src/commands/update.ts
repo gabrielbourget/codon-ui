@@ -7,6 +7,7 @@ import { z } from "zod"
 
 import {
   createUpdateAllAdvisoryReport,
+  createUpdateAllDryRunReport,
   createUpdateAdvisoryReport,
   createUpdateDryRunReport,
   createUpdateStrictReport,
@@ -32,7 +33,7 @@ export const update = new Command()
   .name("update")
   .description("Update one installed Amino UI registry item when strict provenance checks pass.")
   .argument("[item]", "The installed registry item you'd like to inspect or update.")
-  .option("--all", "Report update advisory posture for every installed registry item.", false)
+  .option("--all", "Report update posture for every installed registry item.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
@@ -54,12 +55,12 @@ export const update = new Command()
       }
 
       if (!options.all && !options.itemName) {
-        logger.error("Please provide an item to update, or use --all with --advisory.")
+        logger.error("Please provide an item to update, or use --all with --advisory or --dry-run.")
         process.exit(1)
       }
 
-      if (options.all && !options.advisory) {
-        logger.error("update --all currently supports --advisory only.")
+      if (options.all && !options.advisory && !options.dryRun) {
+        logger.error("update --all currently supports --advisory or --dry-run only.")
         process.exit(1)
       }
 
@@ -69,6 +70,38 @@ export const update = new Command()
       }
 
       if (options.all) {
+        if (options.dryRun) {
+          const updateAllDryRunReport = await createUpdateAllDryRunReport({
+            cwd,
+            registrySourcePath: options.registrySource,
+          })
+
+          if (options.json) {
+            console.log(JSON.stringify(updateAllDryRunReport, null, 2))
+            return
+          }
+
+          logger.info(`${chalk.green("[ Update All Dry Run ]")} No files were written.`)
+          logger.info(`Items inspected: ${updateAllDryRunReport.summary.itemCount}`)
+          logger.info(`Would-update items: ${updateAllDryRunReport.summary.itemStates["would-update"]}`)
+          logger.info(`Blocked items: ${updateAllDryRunReport.summary.itemStates.blocked}`)
+          logger.info(`Up-to-date items: ${updateAllDryRunReport.summary.itemStates["up-to-date"]}`)
+          logger.info(`Unavailable items: ${updateAllDryRunReport.summary.itemStates.unavailable}`)
+          logger.info(`Update candidate files: ${updateAllDryRunReport.summary.candidateFileCount}`)
+          logger.info(`Would write files: ${updateAllDryRunReport.summary.wouldWriteFileCount}`)
+          logger.info(`Would update lockfile records: ${updateAllDryRunReport.summary.wouldUpdateLockfileFileCount}`)
+          logger.info(`Skipped files: ${updateAllDryRunReport.summary.skippedFileCount}`)
+          logger.info(`Blocked files: ${updateAllDryRunReport.summary.blockedFileCount}`)
+          logger.info(`Blockers: ${updateAllDryRunReport.summary.blockerCount}`)
+          logger.info(`Findings: ${updateAllDryRunReport.findings.length}`)
+
+          for (const item of updateAllDryRunReport.items) {
+            logger.info(`- ${item.itemName}: ${item.itemUpdateState}`)
+          }
+
+          return
+        }
+
         const updateAllAdvisoryReport = await createUpdateAllAdvisoryReport({
           cwd,
           registrySourcePath: options.registrySource,
@@ -99,7 +132,7 @@ export const update = new Command()
       const selectedItemName = options.itemName
 
       if (!selectedItemName) {
-        logger.error("Please provide an item to update, or use --all with --advisory.")
+        logger.error("Please provide an item to update, or use --all with --advisory or --dry-run.")
         process.exit(1)
       }
 

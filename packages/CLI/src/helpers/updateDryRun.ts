@@ -32,6 +32,7 @@ import {
   CLI_WRITE_STATUS__NOT_WRITTEN,
   CLI_WRITE_STATUS__WOULD_WRITE,
 } from "./reportConstants"
+import { createStatusReport } from "./status"
 import { createUpdateAdvisoryReport, type TUpdateAdvisoryReport } from "./updateAdvisory"
 
 const UPDATE_DRY_RUN_SCHEMA_VERSION = 1
@@ -198,12 +199,79 @@ export const updateDryRunReportSchema = z
   })
   .strict()
 
+const updateAllDryRunItemSchema = z
+  .object({
+    blockers: z.array(updateDryRunBlockerSchema).default([]),
+    dependencies: z.array(installPlanDependencySchema).default([]),
+    files: z.array(updateDryRunFileSchema).default([]),
+    findings: z.array(updateDryRunFindingSchema).default([]),
+    itemName: z.string().min(1),
+    itemUpdateState: z.enum(UPDATE_DRY_RUN_ITEM_STATES),
+    summary: updateDryRunReportSchema.shape.summary,
+    wouldEffects: updateDryRunReportSchema.shape.wouldEffects,
+  })
+  .strict()
+
+export const updateAllDryRunReportSchema = z
+  .object({
+    all: z.literal(true),
+    blockers: z.array(updateDryRunBlockerSchema).default([]),
+    cwd: z.string().min(1),
+    dependencies: z.array(installPlanDependencySchema).default([]),
+    dryRun: z.literal(true),
+    effects: z
+      .object({
+        installsDependencies: z.literal(false),
+        writesConfig: z.literal(false),
+        writesFiles: z.literal(false),
+        writesLockfile: z.literal(false),
+      })
+      .strict(),
+    findings: z.array(updateDryRunFindingSchema).default([]),
+    items: z.array(updateAllDryRunItemSchema).default([]),
+    registrySource: updateDryRunReportSchema.shape.registrySource,
+    schemaVersion: z.literal(UPDATE_DRY_RUN_SCHEMA_VERSION).default(UPDATE_DRY_RUN_SCHEMA_VERSION),
+    status: updateDryRunReportSchema.shape.status,
+    summary: z
+      .object({
+        blockedFileCount: z.number().int().nonnegative(),
+        blockerCount: z.number().int().nonnegative(),
+        candidateFileCount: z.number().int().nonnegative(),
+        dependencyBlockerCount: z.number().int().nonnegative(),
+        dependencyStates: z.record(z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES), z.number().int().nonnegative()),
+        fileActions: z.record(z.enum(UPDATE_DRY_RUN_FILE_ACTIONS), z.number().int().nonnegative()),
+        fileCount: z.number().int().nonnegative(),
+        itemCount: z.number().int().nonnegative(),
+        itemStates: z.record(z.enum(UPDATE_DRY_RUN_ITEM_STATES), z.number().int().nonnegative()),
+        preservationBlockerCount: z.number().int().nonnegative(),
+        skippedFileCount: z.number().int().nonnegative(),
+        sourceBlockerCount: z.number().int().nonnegative(),
+        wouldUpdateLockfileFileCount: z.number().int().nonnegative(),
+        wouldWriteFileCount: z.number().int().nonnegative(),
+      })
+      .strict(),
+    wouldEffects: z
+      .object({
+        dependencies: updateDryRunReportSchema.shape.wouldEffects.shape.dependencies,
+        files: updateDryRunReportSchema.shape.wouldEffects.shape.files,
+        lockfile: updateDryRunReportSchema.shape.wouldEffects.shape.lockfile.omit({ plannedItem: true }),
+      })
+      .strict(),
+  })
+  .strict()
+
 export type TUpdateDryRunFile = z.infer<typeof updateDryRunFileSchema>
 export type TUpdateDryRunReport = z.infer<typeof updateDryRunReportSchema>
+export type TUpdateAllDryRunReport = z.infer<typeof updateAllDryRunReportSchema>
 
 export type TCreateUpdateDryRunReportOptions = {
   cwd: string
   itemName: string
+  registrySourcePath?: string
+}
+
+export type TCreateUpdateAllDryRunReportOptions = {
+  cwd: string
   registrySourcePath?: string
 }
 
@@ -595,6 +663,39 @@ const createDependencyStateCounts = (dependencies: TRegistryInstallPlan["depende
   return dependencyStates
 }
 
+const createDependencyKey = (dependency: TRegistryInstallPlan["dependencyPlan"][number]) =>
+  [
+    dependency.kind,
+    dependency.name,
+    dependency.requiredRange,
+    dependency.status,
+    dependency.declaredIn ?? "",
+    dependency.declaredRange ?? "",
+  ].join(":")
+
+const dedupeDependencies = (dependencies: readonly TRegistryInstallPlan["dependencyPlan"][number][]) => {
+  const dedupedDependencies = new Map<string, TRegistryInstallPlan["dependencyPlan"][number]>()
+
+  dependencies.forEach((dependency) => {
+    dedupedDependencies.set(createDependencyKey(dependency), dependency)
+  })
+
+  return [...dedupedDependencies.values()]
+}
+
+const createFindingKey = (finding: z.infer<typeof updateDryRunFindingSchema>) =>
+  [finding.code, finding.itemName ?? "", finding.sourcePath ?? "", finding.targetPath ?? "", finding.message].join(":")
+
+const dedupeFindings = (findings: readonly z.infer<typeof updateDryRunFindingSchema>[]) => {
+  const dedupedFindings = new Map<string, z.infer<typeof updateDryRunFindingSchema>>()
+
+  findings.forEach((finding) => {
+    dedupedFindings.set(createFindingKey(finding), finding)
+  })
+
+  return [...dedupedFindings.values()]
+}
+
 const resolveItemUpdateState = ({
   blockers,
   files,
@@ -736,6 +837,135 @@ export const createUpdateDryRunReport = async ({
       lockfile: {
         plannedFileCount: files.length,
         plannedItem: files.length > 0 ? itemName : undefined,
+        status: lockfileStatus,
+        wouldWriteFileCount: wouldUpdateLockfileFileCount,
+      },
+    },
+  })
+}
+
+export const createUpdateAllDryRunReport = async ({
+  cwd,
+  registrySourcePath,
+}: TCreateUpdateAllDryRunReportOptions): Promise<TUpdateAllDryRunReport> => {
+  const statusReport = await createStatusReport({
+    cwd,
+    registrySourcePath,
+  })
+  const fileActions = createEmptyRecord(UPDATE_DRY_RUN_FILE_ACTIONS)
+  const itemStates = createEmptyRecord(UPDATE_DRY_RUN_ITEM_STATES)
+  const itemReports = await Promise.all(
+    statusReport.items.map((item) =>
+      createUpdateDryRunReport({
+        cwd,
+        itemName: item.name,
+        registrySourcePath,
+      }),
+    ),
+  )
+  const dependencies = dedupeDependencies(itemReports.flatMap((itemReport) => itemReport.dependencies))
+  const dependencyStates = createDependencyStateCounts(dependencies)
+  const blockers = dedupeBlockers(itemReports.flatMap((itemReport) => itemReport.blockers))
+  const findings = dedupeFindings(itemReports.flatMap((itemReport) => itemReport.findings))
+
+  itemReports.forEach((itemReport) => {
+    itemStates[itemReport.itemUpdateState] += 1
+
+    UPDATE_DRY_RUN_FILE_ACTIONS.forEach((action) => {
+      fileActions[action] += itemReport.summary.fileActions[action] ?? 0
+    })
+  })
+
+  const wouldUpdateLockfileFileCount = itemReports.reduce(
+    (total, itemReport) => total + itemReport.summary.wouldUpdateLockfileFileCount,
+    0,
+  )
+  const blockerCount = blockers.length
+  const dependencyBlockerCount = itemReports.reduce(
+    (total, itemReport) => total + itemReport.summary.dependencyBlockerCount,
+    0,
+  )
+  const sourceBlockerCount = itemReports.reduce((total, itemReport) => total + itemReport.summary.sourceBlockerCount, 0)
+  const lockfileStatus =
+    blockerCount > 0
+      ? CLI_WRITE_STATUS__BLOCKED
+      : wouldUpdateLockfileFileCount > 0
+        ? CLI_WRITE_STATUS__WOULD_WRITE
+        : CLI_WRITE_STATUS__NOT_WRITTEN
+
+  return updateAllDryRunReportSchema.parse({
+    all: true,
+    blockers,
+    cwd,
+    dependencies,
+    dryRun: true,
+    effects: {
+      installsDependencies: false,
+      writesConfig: false,
+      writesFiles: false,
+      writesLockfile: false,
+    },
+    findings,
+    items: itemReports.map((itemReport) => ({
+      blockers: itemReport.blockers,
+      dependencies: itemReport.dependencies,
+      files: itemReport.files,
+      findings: itemReport.findings,
+      itemName: itemReport.itemName,
+      itemUpdateState: itemReport.itemUpdateState,
+      summary: itemReport.summary,
+      wouldEffects: itemReport.wouldEffects,
+    })),
+    registrySource: statusReport.registrySource,
+    status: {
+      config: statusReport.config.status,
+      lockfile: statusReport.lockfile.status,
+    },
+    summary: {
+      blockedFileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.blockedFileCount, 0),
+      blockerCount,
+      candidateFileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.candidateFileCount, 0),
+      dependencyBlockerCount,
+      dependencyStates,
+      fileActions,
+      fileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.fileCount, 0),
+      itemCount: itemReports.length,
+      itemStates,
+      preservationBlockerCount: itemReports.reduce(
+        (total, itemReport) => total + itemReport.summary.preservationBlockerCount,
+        0,
+      ),
+      skippedFileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.skippedFileCount, 0),
+      sourceBlockerCount,
+      wouldUpdateLockfileFileCount,
+      wouldWriteFileCount: itemReports.reduce((total, itemReport) => total + itemReport.summary.wouldWriteFileCount, 0),
+    },
+    wouldEffects: {
+      dependencies: {
+        blockerCount: dependencyBlockerCount,
+        incompatibleCount: dependencyStates.incompatible,
+        missingCount: dependencyStates.missing,
+        satisfiedCount: dependencyStates.satisfied,
+        unresolvedCount: dependencyStates.unresolved,
+      },
+      files: {
+        blockedCount: itemReports.reduce((total, itemReport) => total + itemReport.wouldEffects.files.blockedCount, 0),
+        candidateCount: itemReports.reduce(
+          (total, itemReport) => total + itemReport.wouldEffects.files.candidateCount,
+          0,
+        ),
+        skippedCount: itemReports.reduce((total, itemReport) => total + itemReport.wouldEffects.files.skippedCount, 0),
+        wouldUpdateLockfileCount: wouldUpdateLockfileFileCount,
+        wouldWriteCount: itemReports.reduce(
+          (total, itemReport) => total + itemReport.wouldEffects.files.wouldWriteCount,
+          0,
+        ),
+      },
+      lockfile: {
+        plannedFileCount: itemReports.reduce(
+          (total, itemReport) => total + itemReport.wouldEffects.lockfile.plannedFileCount,
+          0,
+        ),
         status: lockfileStatus,
         wouldWriteFileCount: wouldUpdateLockfileFileCount,
       },
