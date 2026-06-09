@@ -38,6 +38,7 @@ pnpm verify:dependency-install-plan
 pnpm verify:dependency-policy
 pnpm verify:dependency-execution-eligibility
 pnpm verify:dependency-execution
+pnpm verify:dependency-execution-failure
 pnpm verify:dependency-target-resolution
 pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
@@ -121,6 +122,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Dependency policy        | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                               |
 | Dependency execution     | `add` reports explicit install intent and eligibility without running package-manager writes.                                                |
 | Dependency strict run    | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                       |
+| Dependency failure       | Strict `add` returns structured package-manager failure output and blocks Amino source/lockfile writes.                                      |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
@@ -164,6 +166,10 @@ disabled.
 The `pnpm verify:dependency-execution` gate proves the approved strict path. It uses temporary fake npm, pnpm, yarn, and
 bun binaries, proves advisory/dry-run and mixed-blocker cases do not execute, runs strict add with explicit install
 approval, replans from the mutated temp package manifest, and records installed dependency actions.
+
+The `pnpm verify:dependency-execution-failure` gate proves the failed strict path. It uses a temporary fake pnpm binary
+that can fail before package writes or after mutating `package.json` plus `pnpm-lock.yaml`. Both cases return structured
+`failedCommands` output, report `dependencyInstallPlan.status: "failed"`, and block Amino source and lockfile writes.
 
 The `pnpm verify:dependency-install-plan` gate proves the companion read-only package-manager plan. It checks unknown
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command

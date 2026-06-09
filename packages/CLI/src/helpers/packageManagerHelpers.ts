@@ -102,20 +102,24 @@ export type TDependencyInstallApprovalSource = (typeof DEPENDENCY_INSTALL_APPROV
 
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN = "not-run"
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED = "completed"
+export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED = "failed"
 
 export const DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS = [
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__NOT_RUN,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED,
 ] as const
 
 export type TDependencyInstallPackageManagerExecution = (typeof DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS)[number]
 
 export const DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN = "not-written"
 export const DEPENDENCY_INSTALL_STATUS__WRITTEN = "written"
+export const DEPENDENCY_INSTALL_STATUS__FAILED = "failed"
 
 export const DEPENDENCY_INSTALL_STATUSES = [
   DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
   DEPENDENCY_INSTALL_STATUS__WRITTEN,
+  DEPENDENCY_INSTALL_STATUS__FAILED,
 ] as const
 
 export type TDependencyInstallStatus = (typeof DEPENDENCY_INSTALL_STATUSES)[number]
@@ -183,6 +187,20 @@ type TDependencyInstallCommand = {
   workingDirectory?: string
 }
 
+type TDependencyInstallCommandFailure = {
+  args: string[]
+  command: string
+  exitCode?: number
+  message: string
+  mutatedPaths: string[]
+  packageManager: TDependencyInstallPackageManager
+  packageManagerWrites: boolean
+  signal?: string
+  stderr?: string
+  stdout?: string
+  workingDirectory?: string
+}
+
 type TDependencyInstallPlan = {
   commands: TDependencyInstallCommand[]
   dependencyPolicy: TDependencyInstallPolicyPlan
@@ -219,6 +237,7 @@ type TDependencyInstallExecutionPlan = {
   approvalSource: TDependencyInstallApprovalSource
   blockers: TDependencyInstallExecutionBlocker[]
   executedCommands: TDependencyInstallCommand[]
+  failedCommands: TDependencyInstallCommandFailure[]
   installRequested: boolean
   mode: TDependencyInstallExecutionMode
   nonInteractive: boolean
@@ -503,6 +522,7 @@ const createDependencyInstallExecutionPlan = ({
   packageManager,
   recommendedCommands,
   executedCommands = [],
+  failedCommands = [],
 }: {
   dependencyPolicy: TDependencyInstallPolicyPlan
   commands: TDependencyInstallCommand[]
@@ -511,6 +531,7 @@ const createDependencyInstallExecutionPlan = ({
   packageManager: TPackageManagerDetection
   recommendedCommands: TDependencyInstallCommand[]
   executedCommands?: TDependencyInstallCommand[]
+  failedCommands?: TDependencyInstallCommandFailure[]
 }): TDependencyInstallExecutionPlan => {
   const approvalSource = installRequested
     ? DEPENDENCY_INSTALL_APPROVAL_SOURCE__CLI_OPTION
@@ -521,6 +542,7 @@ const createDependencyInstallExecutionPlan = ({
       approvalSource,
       blockers: [],
       executedCommands,
+      failedCommands,
       installRequested,
       mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_REQUESTED,
       nonInteractive,
@@ -535,6 +557,7 @@ const createDependencyInstallExecutionPlan = ({
       approvalSource,
       blockers: [],
       executedCommands,
+      failedCommands,
       installRequested,
       mode: DEPENDENCY_INSTALL_EXECUTION_MODE__NOT_NEEDED,
       nonInteractive,
@@ -564,6 +587,7 @@ const createDependencyInstallExecutionPlan = ({
     approvalSource,
     blockers,
     executedCommands,
+    failedCommands,
     installRequested,
     mode:
       blockers.length === 0 ? DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE : DEPENDENCY_INSTALL_EXECUTION_MODE__BLOCKED,
@@ -579,6 +603,7 @@ export const createDependencyInstallPlan = ({
   dependencyPlan,
   dependencyPolicy = createDependencyInstallPolicyPlan(),
   executedCommands = [],
+  failedCommands = [],
   installDependencies = false,
   nonInteractive = false,
   packageJsonPath,
@@ -592,6 +617,7 @@ export const createDependencyInstallPlan = ({
   dependencyPlan: TRegistryInstallPlan["dependencyPlan"]
   dependencyPolicy?: TDependencyInstallPolicyPlan
   executedCommands?: TDependencyInstallCommand[]
+  failedCommands?: TDependencyInstallCommandFailure[]
   installDependencies?: boolean
   nonInteractive?: boolean
   packageJsonPath?: string
@@ -655,13 +681,18 @@ export const createDependencyInstallPlan = ({
       packageManager: detectedPackageManager,
       recommendedCommands,
       executedCommands,
+      failedCommands,
     }),
     packageManager: detectedPackageManager,
     recommendedCommands,
     recommendations,
-    status: dependencyPolicy.packageManagerWrites
-      ? DEPENDENCY_INSTALL_STATUS__WRITTEN
-      : DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
+    status:
+      failedCommands.length > 0 ||
+      dependencyPolicy.packageManagerExecution === DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+        ? DEPENDENCY_INSTALL_STATUS__FAILED
+        : dependencyPolicy.packageManagerWrites
+          ? DEPENDENCY_INSTALL_STATUS__WRITTEN
+          : DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
     targetManifest: targetManifest.manifest,
   }
 }

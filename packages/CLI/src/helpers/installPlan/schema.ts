@@ -200,6 +200,22 @@ export const dependencyInstallCommandSchema = z
   })
   .strict()
 
+export const dependencyInstallCommandFailureSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    exitCode: z.number().int().optional(),
+    message: z.string().min(1),
+    mutatedPaths: z.array(z.string().min(1)).default([]),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    packageManagerWrites: z.boolean(),
+    signal: z.string().min(1).optional(),
+    stderr: z.string().optional(),
+    stdout: z.string().optional(),
+    workingDirectory: z.string().min(1).optional(),
+  })
+  .strict()
+
 export const dependencyInstallPolicyPlanSchema = z
   .object({
     configPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
@@ -223,6 +239,7 @@ export const dependencyInstallExecutionPlanSchema = z
     approvalSource: z.enum(DEPENDENCY_INSTALL_APPROVAL_SOURCES),
     blockers: z.array(dependencyInstallExecutionBlockerSchema).default([]),
     executedCommands: z.array(dependencyInstallCommandSchema).default([]),
+    failedCommands: z.array(dependencyInstallCommandFailureSchema).default([]),
     installRequested: z.boolean(),
     mode: z.enum(DEPENDENCY_INSTALL_EXECUTION_MODES),
     nonInteractive: z.boolean(),

@@ -27,6 +27,8 @@ import {
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
   INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER,
+  INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
+  INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   isLocalReactRegistryComponentItemRequest,
@@ -48,6 +50,7 @@ import {
   createDependencyInstallPolicyPlan,
   DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
   DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED,
   DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
   DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
@@ -166,6 +169,79 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
 const hasOnlyDependencyStrictAddBlockers = (findings: readonly TInstallPlanFinding[]) =>
   findings.length > 0 &&
   findings.every((finding) => finding.code === INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER)
+
+const packageManagerMutationBoundaryFileNames = [
+  "package.json",
+  "package-lock.json",
+  "npm-shrinkwrap.json",
+  "pnpm-lock.yaml",
+  "pnpm-workspace.yaml",
+  "yarn.lock",
+  "bun.lock",
+  "bun.lockb",
+] as const
+
+const dependencyCommandOutputMaxLength = 4000
+
+const readPackageManagerBoundaryFile = async (filePath: string) => {
+  try {
+    return await fs.readFile(filePath, "utf8")
+  } catch (error) {
+    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return undefined
+
+    throw error
+  }
+}
+
+const formatPackageManagerBoundaryPath = ({ consumerRoot, filePath }: { consumerRoot: string; filePath: string }) => {
+  const relativePath = path.relative(consumerRoot, filePath).replace(/\\/gu, "/")
+
+  if (!relativePath) return "."
+  if (relativePath.startsWith("../") || path.isAbsolute(relativePath)) return filePath
+
+  return relativePath
+}
+
+const snapshotPackageManagerMutationBoundary = async ({
+  consumerRoot,
+  workingDirectory,
+}: {
+  consumerRoot: string
+  workingDirectory: string
+}) =>
+  new Map(
+    await Promise.all(
+      packageManagerMutationBoundaryFileNames.map(async (fileName) => {
+        const filePath = path.join(workingDirectory, fileName)
+
+        return [
+          formatPackageManagerBoundaryPath({
+            consumerRoot,
+            filePath,
+          }),
+          await readPackageManagerBoundaryFile(filePath),
+        ] as const
+      }),
+    ),
+  )
+
+const getMutatedPackageManagerBoundaryPaths = ({
+  afterSnapshot,
+  beforeSnapshot,
+}: {
+  afterSnapshot: ReadonlyMap<string, string | undefined>
+  beforeSnapshot: ReadonlyMap<string, string | undefined>
+}) =>
+  [...new Set([...beforeSnapshot.keys(), ...afterSnapshot.keys()])]
+    .filter((filePath) => beforeSnapshot.get(filePath) !== afterSnapshot.get(filePath))
+    .sort()
+
+const limitDependencyCommandOutput = (value: unknown) => {
+  if (typeof value !== "string") return undefined
+  if (value.length <= dependencyCommandOutputMaxLength) return value
+
+  return value.slice(0, dependencyCommandOutputMaxLength)
+}
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
   if (config.tsx) return filePath
@@ -401,8 +477,10 @@ export const add = new Command()
         })
         const createStrictLocalRegistryAddPlan = ({
           executedDependencyCommands = [],
+          failedDependencyCommands = [],
         }: {
           executedDependencyCommands?: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"]
+          failedDependencyCommands?: ReturnType<typeof createDependencyInstallPlan>["executionPlan"]["failedCommands"]
         } = {}) => {
           const dependencyInstallTarget = resolveDependencyInstallTarget({
             consumerRoot: cwd,
@@ -440,6 +518,7 @@ export const add = new Command()
             dependencyPlan: installPlanWithFindings.dependencyPlan,
             dependencyPolicy,
             executedCommands: executedDependencyCommands,
+            failedCommands: failedDependencyCommands,
             installDependencies: options.installDependencies,
             nonInteractive: options.json,
             packageManager: options.packageManager,
@@ -453,7 +532,10 @@ export const add = new Command()
             strictBlockerFindings,
           }
         }
-        let executedDependencyCommands: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"] = []
+        const executedDependencyCommands: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"] = []
+        let failedDependencyCommands: ReturnType<
+          typeof createDependencyInstallPlan
+        >["executionPlan"]["failedCommands"] = []
         let { dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
           createStrictLocalRegistryAddPlan()
 
@@ -461,28 +543,94 @@ export const add = new Command()
           hasOnlyDependencyStrictAddBlockers(strictBlockerFindings) &&
           dependencyInstallPlan.executionPlan.mode === DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE
         ) {
-          executedDependencyCommands = dependencyInstallPlan.recommendedCommands
+          const plannedDependencyCommands = dependencyInstallPlan.recommendedCommands
 
-          for (const command of executedDependencyCommands) {
-            await execa(command.packageManager, command.args, {
-              cwd: path.resolve(cwd, command.workingDirectory ?? "."),
+          for (const command of plannedDependencyCommands) {
+            const workingDirectory = path.resolve(cwd, command.workingDirectory ?? ".")
+            const beforePackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+              consumerRoot: cwd,
+              workingDirectory,
             })
+
+            try {
+              await execa(command.packageManager, command.args, {
+                cwd: workingDirectory,
+              })
+              executedDependencyCommands.push(command)
+            } catch (error) {
+              const afterPackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
+                consumerRoot: cwd,
+                workingDirectory,
+              })
+              const mutatedPaths = getMutatedPackageManagerBoundaryPaths({
+                afterSnapshot: afterPackageManagerBoundary,
+                beforeSnapshot: beforePackageManagerBoundary,
+              })
+              const errorRecord = error && typeof error === "object" ? error : {}
+              const message = error instanceof Error ? error.message : "Package-manager dependency install failed."
+
+              failedDependencyCommands = [
+                {
+                  args: command.args,
+                  command: command.command,
+                  exitCode:
+                    "exitCode" in errorRecord && typeof errorRecord.exitCode === "number"
+                      ? errorRecord.exitCode
+                      : undefined,
+                  message,
+                  mutatedPaths,
+                  packageManager: command.packageManager,
+                  packageManagerWrites: mutatedPaths.length > 0,
+                  signal:
+                    "signal" in errorRecord && typeof errorRecord.signal === "string" ? errorRecord.signal : undefined,
+                  stderr: "stderr" in errorRecord ? limitDependencyCommandOutput(errorRecord.stderr) : undefined,
+                  stdout: "stdout" in errorRecord ? limitDependencyCommandOutput(errorRecord.stdout) : undefined,
+                  workingDirectory: command.workingDirectory,
+                },
+              ]
+              break
+            }
           }
 
           dependencyPolicy = createDependencyInstallPolicyPlan({
             configPolicy: configPlan.config.dependencies.policy,
             configSource: configPlan.configSource,
-            packageManagerExecution: DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
-            packageManagerWrites: executedDependencyCommands.length > 0,
+            packageManagerExecution:
+              failedDependencyCommands.length > 0
+                ? DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+                : DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+            packageManagerWrites:
+              executedDependencyCommands.length > 0 ||
+              failedDependencyCommands.some((command) => command.packageManagerWrites),
             policyOverride: options.dependencyPolicy,
           })
           ;({ dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
             createStrictLocalRegistryAddPlan({
               executedDependencyCommands,
+              failedDependencyCommands,
             }))
+
+          if (failedDependencyCommands.length > 0) {
+            const failedCommand = failedDependencyCommands[0]
+            const failureFinding: TInstallPlanFinding = {
+              code: INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
+              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Amino source files or lockfile records were written.`,
+              severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+            }
+
+            findings = [...findings, failureFinding]
+            strictBlockerFindings = [...strictBlockerFindings, failureFinding]
+            installPlanWithFindings = createRegistryInstallPlanWithFindings({
+              findings,
+              installPlan: installPlanWithFindings,
+            })
+          }
         }
 
         if (strictBlockerFindings.length > 0) {
+          const packageManagerWrites =
+            executedDependencyCommands.length > 0 ||
+            failedDependencyCommands.some((command) => command.packageManagerWrites)
           const blockedResult = addStrictSchema.parse({
             applied: false,
             componentPackets,
@@ -490,7 +638,7 @@ export const add = new Command()
             dependencyInstallPlan,
             effects: createAddStrictEffects({
               applied: false,
-              installsDependencies: executedDependencyCommands.length > 0,
+              installsDependencies: packageManagerWrites,
               installPlan: installPlanWithFindings,
             }),
             findings,

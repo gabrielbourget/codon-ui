@@ -120,7 +120,9 @@ Policy source is also reported. `source: "default"` means the planner used the d
 `source: "config"` means it read `amino-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
 the config/default value. Advisory and dry-run reports keep `packageManagerExecution: "not-run"` and
 `packageManagerWrites: false`; strict add can report `packageManagerExecution: "completed"` and
-`packageManagerWrites: true` only after an approved package-manager command completes.
+`packageManagerWrites: true` only after an approved package-manager command completes. If an approved command fails,
+strict add reports `packageManagerExecution: "failed"` and `dependencyInstallPlan.status: "failed"` with a
+`failedCommands` record instead of falling through to an unstructured process error.
 
 Dependency execution eligibility is reported separately in `dependencyInstallPlan.executionPlan`. `--install-dependencies`
 records explicit command intent, but `--yes` is not treated as dependency-install approval. The current planner reports
@@ -139,6 +141,11 @@ dependency blockers, `--install-dependencies` is present, the effective dependen
 detection is known. After the command completes, Amino rebuilds the install plan from the target package manifest before
 writing component files or `amino-ui.lock.json`. If dependency decisions remain unsatisfied, strict add still blocks
 component writes.
+
+Package-manager failure is also a blocker. The failed-command record includes command, args, working directory, exit
+code or signal, bounded stdout/stderr, `packageManagerWrites`, and any detected package manifest or package-manager
+lockfile mutations. Amino source files and `amino-ui.lock.json` are not written after a package-manager failure, even
+when the failed package-manager command already changed `package.json`.
 
 Enterprise consumers can keep this planning explicit with `--package-json <path>` and `--package-manager <name>`.
 `--package-json` selects the manifest used for dependency classification and command targeting; `--package-manager`
