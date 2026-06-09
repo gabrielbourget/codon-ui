@@ -777,6 +777,67 @@ try {
   const dependencyInstallPrevious = "export const motionUpdate = 'installed'\n"
   const dependencyInstallCurrent = "export const motionUpdate = 'registry'\n"
 
+  const writeDependencyInstallFixture = ({
+    consumerRoot: fixtureConsumerRoot,
+    registrySourcePath: fixtureRegistrySourcePath,
+    root,
+  }: {
+    consumerRoot: string
+    registrySourcePath: string
+    root: string
+  }) => {
+    writeText(path.join(root, "source/motion-update.ts"), dependencyInstallCurrent)
+    writeText(path.join(fixtureConsumerRoot, "src/components/Diff/motion-update.ts"), dependencyInstallPrevious)
+    writeJson(path.join(fixtureConsumerRoot, "package.json"), {
+      dependencies: {},
+      name: "dependency-install-consumer",
+      packageManager: "npm@10.0.0",
+    })
+    writeJson(path.join(fixtureConsumerRoot, "amino-ui.config.json"), {})
+    writeJson(fixtureRegistrySourcePath, {
+      items: [
+        {
+          files: [
+            {
+              role: "source",
+              sourcePath: "source/motion-update.ts",
+              targetPath: "Diff/motion-update.ts",
+              targetRole: "components",
+            },
+          ],
+          name: "motion-update",
+          runtimeDependencies: {
+            motion: "^11.0.0",
+          },
+          sourcePackage: "@amino-ui/react",
+          type: "component",
+        },
+      ],
+      schemaVersion: 1,
+      sourceIdentity: "@amino-ui/test-registry",
+      sourceRoot: ".",
+    })
+    writeJson(path.join(fixtureConsumerRoot, "amino-ui.lock.json"), {
+      configFile: "amino-ui.config.json",
+      items: {
+        "motion-update": {
+          files: [
+            {
+              installedHash: createContentHash(dependencyInstallPrevious),
+              ownershipState: "registry-owned",
+              path: "src/components/Diff/motion-update.ts",
+              sourceHash: createContentHash(dependencyInstallPrevious),
+              targetRole: "components",
+            },
+          ],
+          name: "motion-update",
+          sourceIdentity: "@amino-ui/test-registry",
+        },
+      },
+      lockfileVersion: 1,
+    })
+  }
+
   writeText(path.join(dependencyInstallRoot, "source/motion-update.ts"), dependencyInstallCurrent)
   writeText(path.join(dependencyInstallConsumerRoot, "src/components/Diff/motion-update.ts"), dependencyInstallPrevious)
   writeJson(path.join(dependencyInstallConsumerRoot, "package.json"), {
@@ -865,9 +926,15 @@ try {
     `#!/usr/bin/env node
 const fs = require("fs")
 const path = require("path")
+const failureMode = process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
 const packageJsonPath = path.join(process.cwd(), "package.json")
 const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
 const dependency = process.argv.slice(2).find((argument) => argument.startsWith("motion@"))
+if (failureMode === "before-write") {
+  console.log("fake npm failing before package writes")
+  console.error("fake npm dependency install failed before write")
+  process.exit(73)
+}
 if (!dependency) {
   process.exitCode = 1
 } else {
@@ -877,6 +944,11 @@ if (!dependency) {
   }
   fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\\n")
   fs.writeFileSync(path.join(process.cwd(), "package-lock.json"), JSON.stringify({ args: process.argv.slice(2) }, null, 2) + "\\n")
+  if (failureMode === "after-write") {
+    console.log("fake npm wrote package boundary before failure")
+    console.error("fake npm dependency install failed after write")
+    process.exit(74)
+  }
 }
 `,
   )
@@ -884,6 +956,111 @@ if (!dependency) {
 
   try {
     process.env.PATH = `${fakeBinPath}${path.delimiter}${originalPath ?? ""}`
+
+    const assertDependencyInstallFailure = async ({
+      expectedExitCode,
+      expectedMode,
+      expectedPackageManagerWrites,
+      failureMode,
+    }: {
+      expectedExitCode: number
+      expectedMode: string
+      expectedPackageManagerWrites: boolean
+      failureMode: "after-write" | "before-write"
+    }) => {
+      const failureRoot = path.join(dependencyInstallRoot, failureMode)
+      const failureConsumerRoot = path.join(failureRoot, "consumer")
+      const failureRegistrySourcePath = path.join(failureRoot, "registry.json")
+      const originalFailureMode = process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
+
+      writeDependencyInstallFixture({
+        consumerRoot: failureConsumerRoot,
+        registrySourcePath: failureRegistrySourcePath,
+        root: failureRoot,
+      })
+
+      const originalSourceContent = readFileSync(
+        path.join(failureConsumerRoot, "src/components/Diff/motion-update.ts"),
+        "utf8",
+      )
+      const originalAminoLockfileContent = readFileSync(path.join(failureConsumerRoot, "amino-ui.lock.json"), "utf8")
+
+      try {
+        process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE = failureMode
+
+        const failedReport = await createUpdateStrictReport({
+          cwd: failureConsumerRoot,
+          dependencyPolicyOverride: "install",
+          installDependencies: true,
+          itemName: "motion-update",
+          registrySourcePath: failureRegistrySourcePath,
+        })
+        const failedCommand = failedReport.dependencyInstallPlan?.executionPlan.failedCommands[0]
+
+        assert.equal(failedReport.applied, false)
+        assert.equal(failedReport.itemUpdateState, "blocked")
+        assert.equal(failedReport.effects.writesFiles, false)
+        assert.equal(failedReport.effects.writesLockfile, false)
+        assert.equal(failedReport.effects.installsDependencies, expectedPackageManagerWrites)
+        assert.equal(failedReport.effects.dependencies.status, expectedPackageManagerWrites ? "written" : "not-written")
+        assert.equal(failedReport.dependencyInstallPlan?.status, "failed")
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.mode, expectedMode)
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.packageManagerExecution, "failed")
+        assert.equal(
+          failedReport.dependencyInstallPlan?.executionPlan.packageManagerWrites,
+          expectedPackageManagerWrites,
+        )
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.failedCommands.length, 1)
+        assert.equal(failedCommand?.exitCode, expectedExitCode)
+        assert.equal(failedCommand?.packageManagerWrites, expectedPackageManagerWrites)
+        assert.equal(failedCommand?.command, "npm i motion@^11.0.0")
+        assert(
+          failedReport.blockers.some((blocker) => blocker.code === "strict-update-dependency-execution-failed"),
+          `expected ${failureMode} strict update dependency execution failure blocker`,
+        )
+        assert(
+          failedReport.findings.some((finding) => finding.code === "strict-update-dependency-execution-failed"),
+          `expected ${failureMode} strict update dependency execution failure finding`,
+        )
+        assert.equal(
+          readFileSync(path.join(failureConsumerRoot, "src/components/Diff/motion-update.ts"), "utf8"),
+          originalSourceContent,
+        )
+        assert.equal(
+          readFileSync(path.join(failureConsumerRoot, "amino-ui.lock.json"), "utf8"),
+          originalAminoLockfileContent,
+        )
+
+        if (failureMode === "before-write") {
+          assert.equal(readJson(path.join(failureConsumerRoot, "package.json")).dependencies.motion, undefined)
+          assert.equal(existsSync(path.join(failureConsumerRoot, "package-lock.json")), false)
+          assert.deepEqual(failedCommand?.mutatedPaths, [])
+        } else {
+          assert.equal(readJson(path.join(failureConsumerRoot, "package.json")).dependencies.motion, "^11.0.0")
+          assert.equal(existsSync(path.join(failureConsumerRoot, "package-lock.json")), true)
+          assert.deepEqual(failedCommand?.mutatedPaths, ["package-lock.json", "package.json"])
+        }
+      } finally {
+        if (originalFailureMode === undefined) {
+          delete process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
+        } else {
+          process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE = originalFailureMode
+        }
+      }
+    }
+
+    await assertDependencyInstallFailure({
+      expectedExitCode: 73,
+      expectedMode: "eligible",
+      expectedPackageManagerWrites: false,
+      failureMode: "before-write",
+    })
+    await assertDependencyInstallFailure({
+      expectedExitCode: 74,
+      expectedMode: "not-needed",
+      expectedPackageManagerWrites: true,
+      failureMode: "after-write",
+    })
 
     const dependencyInstallStrictReport = await createUpdateStrictReport({
       cwd: dependencyInstallConsumerRoot,
