@@ -135,6 +135,31 @@ export const DEPENDENCY_INSTALL_EXECUTION_BLOCKERS = [
 
 export type TDependencyInstallExecutionBlockerCode = (typeof DEPENDENCY_INSTALL_EXECUTION_BLOCKERS)[number]
 
+export const DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PACKAGE_JSON_WORKSPACES = "package-json-workspaces"
+export const DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PNPM_WORKSPACE = "pnpm-workspace"
+
+export const DEPENDENCY_INSTALL_WORKSPACE_SOURCES = [
+  DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PACKAGE_JSON_WORKSPACES,
+  DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PNPM_WORKSPACE,
+] as const
+
+export type TDependencyInstallWorkspaceSource = (typeof DEPENDENCY_INSTALL_WORKSPACE_SOURCES)[number]
+
+export const DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__BUN_CWD_OPTION = "bun-cwd-option"
+export const DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__NPM_WORKSPACE_OPTION = "npm-workspace-option"
+export const DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__PNPM_FILTER_OPTION = "pnpm-filter-option"
+export const DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__YARN_WORKSPACE_SUBCOMMAND = "yarn-workspace-subcommand"
+
+export const DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES = [
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__BUN_CWD_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__NPM_WORKSPACE_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__PNPM_FILTER_OPTION,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__YARN_WORKSPACE_SUBCOMMAND,
+] as const
+
+export type TDependencyInstallWorkspaceCommandStrategy =
+  (typeof DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES)[number]
+
 type TPackageManagerDetection =
   | {
       name: TDependencyInstallPackageManager
@@ -177,6 +202,36 @@ type TDependencyInstallRecommendation = {
   status: TRegistryInstallPlan["dependencyPlan"][number]["status"]
 }
 
+type TDependencyInstallWorkspaceContext = {
+  detected: boolean
+  packageJsonPath?: string
+  pnpmWorkspacePath?: string
+  rootPackageManagerField?: string
+  rootPackageName?: string
+  rootPath?: string
+  sources: TDependencyInstallWorkspaceSource[]
+  targetPackageName?: string
+  targetPackagePath?: string
+}
+
+type TDependencyInstallWorkspaceCommand = {
+  args: string[]
+  command: string
+  packageManager: TDependencyInstallPackageManager
+  strategy: TDependencyInstallWorkspaceCommandStrategy
+  targetPackageName: string
+  targetPackagePath: string
+  workingDirectory: string
+  workspaceRootPath: string
+}
+
+type TDependencyInstallWorkspaceRootCandidate = {
+  directoryPath: string
+  markerPath: string
+  packageJson?: TPackageJsonWithPackageManager
+  source: TDependencyInstallWorkspaceSource
+}
+
 type TDependencyInstallCommand = {
   args: string[]
   command: string
@@ -185,6 +240,7 @@ type TDependencyInstallCommand = {
   packageManager: TDependencyInstallPackageManager
   targetManifestPath?: string
   workingDirectory?: string
+  workspaceCommand?: TDependencyInstallWorkspaceCommand
 }
 
 type TDependencyInstallCommandFailure = {
@@ -210,11 +266,13 @@ type TDependencyInstallPlan = {
   recommendations: TDependencyInstallRecommendation[]
   status: TDependencyInstallStatus
   targetManifest: TDependencyInstallTargetManifest
+  workspace: TDependencyInstallWorkspaceContext
 }
 
 type TPackageJsonWithPackageManager = {
   name?: string
   packageManager?: string
+  workspaces?: unknown
 }
 
 export type TDependencyInstallPolicySource = (typeof DEPENDENCY_INSTALL_POLICY_SOURCES)[number]
@@ -272,6 +330,23 @@ const readPackageManagerManifest = (packageJsonPath: string): TPackageJsonWithPa
   }
 }
 
+const getPackageJsonWorkspacePatterns = (workspaces: unknown) => {
+  if (Array.isArray(workspaces))
+    return workspaces.filter((workspace): workspace is string => typeof workspace === "string")
+
+  if (workspaces && typeof workspaces === "object" && "packages" in workspaces) {
+    const packages = workspaces.packages
+
+    if (Array.isArray(packages))
+      return packages.filter((workspace): workspace is string => typeof workspace === "string")
+  }
+
+  return []
+}
+
+const packageJsonDeclaresWorkspaces = (packageJson?: TPackageJsonWithPackageManager) =>
+  getPackageJsonWorkspacePatterns(packageJson?.workspaces).length > 0
+
 const getPackageManagerNameFromManifestField = (
   packageManagerField?: string,
 ): TDependencyInstallPackageManager | undefined => {
@@ -300,6 +375,28 @@ const findUp = ({ fileNames, startDirectory }: { fileNames: readonly string[]; s
     const matchedFileName = fileNames.find((fileName) => existsSync(path.join(currentDirectory, fileName)))
 
     if (matchedFileName) return path.join(currentDirectory, matchedFileName)
+
+    const parentDirectory = path.dirname(currentDirectory)
+    if (parentDirectory === currentDirectory) return undefined
+
+    currentDirectory = parentDirectory
+  }
+}
+
+const findPackageJsonWorkspaceRoot = ({ startDirectory }: { startDirectory: string }) => {
+  let currentDirectory = startDirectory
+
+  while (true) {
+    const packageJsonPath = path.join(currentDirectory, "package.json")
+    const packageJson = existsSync(packageJsonPath) ? readPackageManagerManifest(packageJsonPath) : undefined
+
+    if (packageJsonDeclaresWorkspaces(packageJson)) {
+      return {
+        directoryPath: currentDirectory,
+        packageJson,
+        packageJsonPath,
+      }
+    }
 
     const parentDirectory = path.dirname(currentDirectory)
     if (parentDirectory === currentDirectory) return undefined
@@ -372,10 +469,12 @@ const detectDependencyInstallPackageManager = ({
   consumerRoot,
   packageManager,
   targetManifest,
+  workspace,
 }: {
   consumerRoot: string
   packageManager?: TDependencyInstallPackageManager
   targetManifest: TResolvedDependencyInstallTarget
+  workspace: TDependencyInstallWorkspaceContext
 }): TPackageManagerDetection => {
   if (packageManager) {
     return {
@@ -387,13 +486,17 @@ const detectDependencyInstallPackageManager = ({
     }
   }
 
-  const packageManagerFromManifest = getPackageManagerNameFromManifestField(targetManifest.manifest.packageManagerField)
+  const packageManagerField = targetManifest.manifest.packageManagerField ?? workspace.rootPackageManagerField
+  const packageManagerManifestPath = targetManifest.manifest.packageManagerField
+    ? targetManifest.manifest.path
+    : workspace.packageJsonPath
+  const packageManagerFromManifest = getPackageManagerNameFromManifestField(packageManagerField)
 
   if (packageManagerFromManifest) {
     return {
       name: packageManagerFromManifest,
-      packageManagerField: targetManifest.manifest.packageManagerField,
-      packageManifestPath: targetManifest.manifest.path,
+      packageManagerField,
+      packageManifestPath: packageManagerManifestPath,
       source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__PACKAGE_MANAGER_FIELD,
     }
   }
@@ -411,7 +514,7 @@ const detectDependencyInstallPackageManager = ({
     return {
       lockfilePath: formatReportedPath({ consumerRoot, targetPath: lockfilePath }),
       name: lockfile.packageManager,
-      packageManagerField: targetManifest.manifest.packageManagerField,
+      packageManagerField,
       packageManifestPath: targetManifest.manifest.path,
       source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__LOCKFILE,
     }
@@ -419,7 +522,7 @@ const detectDependencyInstallPackageManager = ({
 
   return {
     name: PACKAGE_MANAGER_UNKNOWN,
-    packageManagerField: targetManifest.manifest.packageManagerField,
+    packageManagerField,
     packageManifestPath: targetManifest.manifest.path,
     source: DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCE__UNKNOWN,
   }
@@ -461,6 +564,87 @@ const createDependencySpecifier = ({ name, requiredRange }: { name: string; requ
 const getDependencyTarget = ({ kind }: Pick<TDependencyInstallRecommendation, "kind">) =>
   kind === "dev" ? PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES : PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEPENDENCIES
 
+const isSameOrNestedPath = ({ childPath, parentPath }: { childPath: string; parentPath: string }) => {
+  const relativePath = path.relative(parentPath, childPath)
+
+  return !relativePath.startsWith("..") && !path.isAbsolute(relativePath)
+}
+
+const sortWorkspaceRootCandidates = (candidates: ReadonlyArray<TDependencyInstallWorkspaceRootCandidate>) =>
+  [...candidates].sort((candidateA, candidateB) => candidateB.directoryPath.length - candidateA.directoryPath.length)
+
+const resolveDependencyInstallWorkspaceContext = ({
+  consumerRoot,
+  targetManifest,
+}: {
+  consumerRoot: string
+  targetManifest: TResolvedDependencyInstallTarget
+}): TDependencyInstallWorkspaceContext => {
+  const startDirectory = targetManifest.directoryPath ?? consumerRoot
+  const packageJsonWorkspaceRoot = findPackageJsonWorkspaceRoot({ startDirectory })
+  const pnpmWorkspacePath = findUp({
+    fileNames: ["pnpm-workspace.yaml"],
+    startDirectory,
+  })
+  const workspaceRootCandidates: TDependencyInstallWorkspaceRootCandidate[] = []
+
+  if (packageJsonWorkspaceRoot) {
+    workspaceRootCandidates.push({
+      directoryPath: packageJsonWorkspaceRoot.directoryPath,
+      markerPath: packageJsonWorkspaceRoot.packageJsonPath,
+      packageJson: packageJsonWorkspaceRoot.packageJson,
+      source: DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PACKAGE_JSON_WORKSPACES,
+    })
+  }
+
+  if (pnpmWorkspacePath) {
+    workspaceRootCandidates.push({
+      directoryPath: path.dirname(pnpmWorkspacePath),
+      markerPath: pnpmWorkspacePath,
+      source: DEPENDENCY_INSTALL_WORKSPACE_SOURCE__PNPM_WORKSPACE,
+    })
+  }
+
+  const candidates = sortWorkspaceRootCandidates(workspaceRootCandidates)
+  const rootCandidate = candidates[0]
+
+  if (!rootCandidate) {
+    return {
+      detected: false,
+      sources: [],
+      targetPackageName: targetManifest.manifest.packageName,
+    }
+  }
+
+  const rootPath = formatReportedPath({
+    consumerRoot,
+    targetPath: rootCandidate.directoryPath,
+  })
+  const targetPackagePath =
+    targetManifest.directoryPath &&
+    isSameOrNestedPath({ childPath: targetManifest.directoryPath, parentPath: rootCandidate.directoryPath })
+      ? path.relative(rootCandidate.directoryPath, targetManifest.directoryPath).replace(/\\/gu, "/") || "."
+      : undefined
+
+  return {
+    detected: true,
+    packageJsonPath: packageJsonWorkspaceRoot?.packageJsonPath
+      ? formatReportedPath({ consumerRoot, targetPath: packageJsonWorkspaceRoot.packageJsonPath })
+      : undefined,
+    pnpmWorkspacePath: pnpmWorkspacePath
+      ? formatReportedPath({ consumerRoot, targetPath: pnpmWorkspacePath })
+      : undefined,
+    rootPackageManagerField: packageJsonWorkspaceRoot?.packageJson?.packageManager,
+    rootPackageName: packageJsonWorkspaceRoot?.packageJson?.name,
+    rootPath,
+    sources: candidates
+      .filter((candidate) => candidate.directoryPath === rootCandidate.directoryPath)
+      .map((candidate) => candidate.source),
+    targetPackageName: targetManifest.manifest.packageName,
+    targetPackagePath,
+  }
+}
+
 export const isKnownDependencyInstallPolicy = (policy: string): policy is TConsumerDependencyPolicy =>
   CONSUMER_DEPENDENCY_POLICIES.some((knownPolicy) => knownPolicy === policy)
 
@@ -490,11 +674,13 @@ const createDependencyInstallCommand = ({
   dependencyTarget,
   packageManager,
   targetManifest,
+  workspace,
 }: {
   dependencies: TDependencyInstallRecommendation[]
   dependencyTarget: TPackageManifestInstallTargetField
   packageManager: TDependencyInstallPackageManager
   targetManifest: TDependencyInstallTargetManifest
+  workspace: TDependencyInstallWorkspaceContext
 }): TDependencyInstallCommand => {
   const addCommand = computePackageManagerAddCommand(packageManager)
   const dependencySpecifiers = dependencies.map((dependency) => dependency.specifier)
@@ -502,6 +688,13 @@ const createDependencyInstallCommand = ({
     dependencyTarget === PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES
       ? [addCommand, computePackageManagerDevDependencyFlag(packageManager), ...dependencySpecifiers]
       : [addCommand, ...dependencySpecifiers]
+  const workspaceCommand = createDependencyInstallWorkspaceCommand({
+    addCommand,
+    dependencySpecifiers,
+    dependencyTarget,
+    packageManager,
+    workspace,
+  })
 
   return {
     args,
@@ -511,6 +704,72 @@ const createDependencyInstallCommand = ({
     packageManager,
     targetManifestPath: targetManifest.path,
     workingDirectory: targetManifest.directory,
+    workspaceCommand,
+  }
+}
+
+const createDependencyInstallWorkspaceCommand = ({
+  addCommand,
+  dependencySpecifiers,
+  dependencyTarget,
+  packageManager,
+  workspace,
+}: {
+  addCommand: string
+  dependencySpecifiers: string[]
+  dependencyTarget: TPackageManifestInstallTargetField
+  packageManager: TDependencyInstallPackageManager
+  workspace: TDependencyInstallWorkspaceContext
+}): TDependencyInstallWorkspaceCommand | undefined => {
+  const { rootPath, targetPackageName, targetPackagePath } = workspace
+
+  if (!workspace.detected || !rootPath || !targetPackageName || !targetPackagePath || targetPackagePath === ".") {
+    return undefined
+  }
+
+  const devDependencyFlag = computePackageManagerDevDependencyFlag(packageManager)
+  const dependencyArgs =
+    dependencyTarget === PACKAGE_MANIFEST_DEPENDENCY_FIELD__DEV_DEPENDENCIES
+      ? [addCommand, devDependencyFlag, ...dependencySpecifiers]
+      : [addCommand, ...dependencySpecifiers]
+  const createCommand = ({
+    args,
+    strategy,
+  }: {
+    args: string[]
+    strategy: TDependencyInstallWorkspaceCommandStrategy
+  }): TDependencyInstallWorkspaceCommand => ({
+    args,
+    command: [packageManager, ...args].join(" "),
+    packageManager,
+    strategy,
+    targetPackageName,
+    targetPackagePath,
+    workingDirectory: rootPath,
+    workspaceRootPath: rootPath,
+  })
+
+  switch (packageManager) {
+    case PACKAGE_MANAGER_NPM:
+      return createCommand({
+        args: [...dependencyArgs, "--workspace", targetPackageName],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__NPM_WORKSPACE_OPTION,
+      })
+    case PACKAGE_MANAGER_PNPM:
+      return createCommand({
+        args: [...dependencyArgs, "--filter", targetPackageName],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__PNPM_FILTER_OPTION,
+      })
+    case PACKAGE_MANAGER_YARN:
+      return createCommand({
+        args: ["workspace", targetPackageName, ...dependencyArgs],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__YARN_WORKSPACE_SUBCOMMAND,
+      })
+    case PACKAGE_MANAGER_BUN:
+      return createCommand({
+        args: [...dependencyArgs, "--cwd", targetPackagePath],
+        strategy: DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGY__BUN_CWD_OPTION,
+      })
   }
 }
 
@@ -633,10 +892,15 @@ export const createDependencyInstallPlan = ({
       specifier: createDependencySpecifier(dependency),
       status: dependency.status,
     }))
+  const workspace = resolveDependencyInstallWorkspaceContext({
+    consumerRoot,
+    targetManifest,
+  })
   const detectedPackageManager = detectDependencyInstallPackageManager({
     consumerRoot,
     packageManager,
     targetManifest,
+    workspace,
   })
   const recommendationsByCommandKind = recommendations.reduce(
     (accumulator, recommendation) => {
@@ -661,6 +925,7 @@ export const createDependencyInstallPlan = ({
           dependencyTarget,
           packageManager: dependencyPackageManager,
           targetManifest: targetManifest.manifest,
+          workspace,
         }),
       ]
     }),
@@ -694,5 +959,6 @@ export const createDependencyInstallPlan = ({
           ? DEPENDENCY_INSTALL_STATUS__WRITTEN
           : DEPENDENCY_INSTALL_STATUS__NOT_WRITTEN,
     targetManifest: targetManifest.manifest,
+    workspace,
   }
 }

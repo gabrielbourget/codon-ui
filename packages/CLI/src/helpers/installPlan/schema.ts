@@ -15,6 +15,8 @@ import {
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
   DEPENDENCY_INSTALL_STATUSES,
   DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES,
+  DEPENDENCY_INSTALL_WORKSPACE_SOURCES,
   PACKAGE_MANAGER_UNKNOWN,
 } from "@/src/helpers/packageManagerHelpers"
 import {
@@ -188,6 +190,33 @@ export const dependencyInstallRecommendationSchema = z
   })
   .strict()
 
+export const dependencyInstallWorkspaceContextSchema = z
+  .object({
+    detected: z.boolean(),
+    packageJsonPath: z.string().min(1).optional(),
+    pnpmWorkspacePath: z.string().min(1).optional(),
+    rootPackageManagerField: z.string().min(1).optional(),
+    rootPackageName: z.string().min(1).optional(),
+    rootPath: z.string().min(1).optional(),
+    sources: z.array(z.enum(DEPENDENCY_INSTALL_WORKSPACE_SOURCES)).default([]),
+    targetPackageName: z.string().min(1).optional(),
+    targetPackagePath: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallWorkspaceCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    strategy: z.enum(DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES),
+    targetPackageName: z.string().min(1),
+    targetPackagePath: z.string().min(1),
+    workingDirectory: z.string().min(1),
+    workspaceRootPath: z.string().min(1),
+  })
+  .strict()
+
 export const dependencyInstallCommandSchema = z
   .object({
     args: z.array(z.string().min(1)).default([]),
@@ -197,6 +226,7 @@ export const dependencyInstallCommandSchema = z
     packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
     targetManifestPath: z.string().min(1).optional(),
     workingDirectory: z.string().min(1).optional(),
+    workspaceCommand: dependencyInstallWorkspaceCommandSchema.optional(),
   })
   .strict()
 
@@ -259,6 +289,7 @@ export const dependencyInstallPlanSchema = z
     recommendations: z.array(dependencyInstallRecommendationSchema).default([]),
     status: z.enum(DEPENDENCY_INSTALL_STATUSES),
     targetManifest: dependencyInstallTargetManifestSchema,
+    workspace: dependencyInstallWorkspaceContextSchema,
   })
   .strict()
 

@@ -136,6 +136,12 @@ incompatible dependencies, and selects a `recommendedCommands` entry only when t
 package-manager state still reports all command options but runs nothing. The plan is advisory data only: `package.json`,
 package-manager lockfiles, and installed packages are not modified.
 
+Workspace consumers get additional read-only detail. When a target package manifest lives under a detected workspace
+root, reports include `dependencyInstallPlan.workspace` with root marker provenance, root package-manager metadata, target
+package name, and target package path. Each package-manager command can also include `workspaceCommand` with root-scoped
+npm, pnpm, yarn, or bun command details. `workspaceCommand` is review output only in this slice; strict execution still
+uses the existing selected `recommendedCommands` entry until workspace execution policy is explicitly approved.
+
 Strict local-registry `add` can execute the selected `recommendedCommands` entry when all current strict blockers are
 dependency blockers, `--install-dependencies` is present, the effective dependency policy is `install`, and package-manager
 detection is known. After the command completes, Amino rebuilds the install plan from the target package manifest before

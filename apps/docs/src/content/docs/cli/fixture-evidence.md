@@ -39,6 +39,7 @@ pnpm verify:dependency-policy
 pnpm verify:dependency-execution-eligibility
 pnpm verify:dependency-execution
 pnpm verify:dependency-execution-failure
+pnpm verify:dependency-workspace-commands
 pnpm verify:dependency-target-resolution
 pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
@@ -124,6 +125,7 @@ Grow fixture coverage by scenario, not by one-off command notes.
 | Dependency strict run    | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                       |
 | Dependency failure       | Strict `add` returns structured package-manager failure output and blocks Amino source/lockfile writes.                                      |
 | Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
+| Dependency workspace     | Nested workspace targets report workspace context and npm/pnpm/yarn/bun command details without package-manager writes.                      |
 | Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
 | Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
 | Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                                                             |
@@ -175,6 +177,10 @@ The `pnpm verify:dependency-install-plan` gate proves the companion read-only pa
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command
 recommendations, and empty `recommendedCommands` when the package manager is unknown. The gate uses temporary fixture
 copies and executes no package-manager installs.
+
+The `pnpm verify:dependency-workspace-commands` gate proves read-only workspace command planning. It creates a temporary
+workspace root, targets a nested package manifest with `--package-json`, reports root package-manager provenance, and
+records npm/pnpm/yarn/bun `workspaceCommand` details without package-manager execution or fixture mutation.
 
 The `pnpm verify:dependency-target-resolution` gate proves read-only target manifest selection. It checks
 `--package-json`, `--package-manager`, nested target manifests, upward lockfile detection, command `targetManifestPath`
