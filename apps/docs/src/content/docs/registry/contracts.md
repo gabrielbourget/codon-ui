@@ -47,9 +47,20 @@ Each file entry declares:
 | `targetPath` | Path relative to the consumer's chosen root for that target role.                       |
 | `role`       | File role, such as `source`, `style`, `test`, `theme`, `support`, or `asset`.           |
 
-The role-based target shape lets a later CLI support more than one consumer layout. A default layout can place support
-files in a contained registry directory, while a more integrated layout can map tokens, utilities, types, and components
-into existing project conventions.
+The manifest does not hard-code the consumer's concrete registry directory. It declares semantic roles and per-role
+relative paths; the CLI combines those entries with the consumer config to produce resolved target paths.
+
+`paths.registry` is the default contained-root knob. In the current Amino phase, the default contained root is
+`src/components/_registry`. During the Codon UI rename, new greenfield consumers should default to the more explicit
+`src/components/_codon-ui-registry`.
+
+`paths.roles` is the advanced override map. It can route resource classes to different repo-relative locations, such as
+tokens under `src/design-system/tokens` or theme CSS under `src/styles/codon-ui`, while component source continues to use
+`paths.components`.
+
+Resolved target paths become install-plan and lockfile data. After a strict write, the consumer lockfile records each
+file's concrete path, target role, source hash, installed hash, and ownership state. Lifecycle commands should use those
+records as the authority instead of assuming `_registry`, `_codon-ui-registry`, or any other directory name.
 
 ## Activation Flow
 

@@ -77,7 +77,9 @@ hosted-registry advisory path.
 
 Current `init --advisory --json` reports the proposed consumer config, package manager, project context, theme tier,
 dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
-under `src/components/_registry`.
+under `src/components/_registry` during the Amino phase. The Codon UI rename should move the greenfield default to
+`src/components/_codon-ui-registry`; existing consumers can keep historical paths until a deliberate config/import/lockfile
+migration is approved.
 
 Current `init --json` is the strict new-contract seed path. It writes only `amino-ui.config.json` and an empty
 `amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install

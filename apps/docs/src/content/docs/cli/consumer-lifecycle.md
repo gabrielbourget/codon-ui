@@ -40,10 +40,11 @@ remains an explicit alias for the same behavior.
 
 ## Layout And Roles
 
-The modeled layout modes are `registry-contained`, `integrated`, and `custom`. Only `registry-contained` currently has
-path resolution behavior.
+The modeled layout modes are `registry-contained`, `integrated`, and `custom`. Strict writes are currently approved only
+for `registry-contained`. The non-default mode labels are reserved for later policy; read-only planning can still resolve
+configured role paths so future layout work has fixture evidence before strict writes are enabled.
 
-Default `registry-contained` paths are:
+Current Amino UI default `registry-contained` paths are:
 
 | Role         | Default path                      |
 | ------------ | --------------------------------- |
@@ -53,6 +54,49 @@ Default `registry-contained` paths are:
 | `utils`      | `src/components/_registry/utils`  |
 | `types`      | `src/components/_registry/types`  |
 | `assets`     | `src/components/_registry/assets` |
+
+The Codon UI rename should change the default contained registry root for new consumers to
+`src/components/_codon-ui-registry`. Existing Amino/Wavemap consumers may keep the historical
+`src/components/_registry` path until a deliberate migration pass updates config, imports, and lockfile records.
+
+`paths.registry` is the normal customization knob for consumers that want a contained registry directory with a different
+name or location. For example:
+
+```json
+{
+  "paths": {
+    "components": "src/components",
+    "registry": "src/components/_codon-ui-registry",
+    "roles": {}
+  }
+}
+```
+
+With no role overrides, the CLI derives support roots from `paths.registry`: theme files at the registry root, tokens
+under `<registry>/tokens`, utilities under `<registry>/utils`, types under `<registry>/types`, and assets under
+`<registry>/assets`.
+
+`paths.roles` is the advanced escape hatch for consumers that want specific resource classes somewhere else. A consumer
+can map tokens, theme CSS, utilities, types, or assets into project-owned conventions while leaving component source in
+`paths.components`.
+
+```json
+{
+  "paths": {
+    "components": "src/ui",
+    "registry": "src/components/_codon-ui-registry",
+    "roles": {
+      "theme": "src/styles/codon-ui",
+      "tokens": "src/design-system/tokens",
+      "utils": "src/lib/codon-ui"
+    }
+  }
+}
+```
+
+The lockfile is the authority after installation. Whatever concrete paths planning resolves are recorded in
+`amino-ui.lock.json` with target role, source hash, installed hash, and ownership state. Status, diff, update, remove,
+delete, and eject should follow those lockfile records rather than assuming a hard-coded registry directory.
 
 ## Planning Modes
 
