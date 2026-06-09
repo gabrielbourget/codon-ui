@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createDiffReport } from "../helpers/diff"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -197,6 +198,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "diff" })
   assert.equal(report.schemaVersion, 1)
   assert.deepEqual(report.effects, {
     installsDependencies: false,
@@ -243,6 +245,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: missingReport, schemaName: "diff" })
   assert.equal(missingReport.files.length, 0)
   assert(
     missingReport.findings.some((finding) => finding.code === "status-lockfile-item-missing"),

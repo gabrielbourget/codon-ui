@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 
 import {
+  addDryRunSchema,
   consumerConfigSchema,
   consumerLockfileSchema,
   createAddDryRunEffects,
@@ -12,6 +13,8 @@ import {
   readLocalRegistrySource,
   resolveDefaultAddRegistrySourcePath,
 } from "../helpers"
+import { createDependencyInstallPlan } from "../helpers/packageManagerHelpers"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const registrySourcePath = resolveDefaultAddRegistrySourcePath({
   allComponents: false,
@@ -238,7 +241,21 @@ const verifyComponentAddPlanning = async ({
     sourceRoot,
   })
   const dryRunEffects = createAddDryRunEffects(installPlan)
+  const dryRunReport = addDryRunSchema.parse({
+    componentPackets: packetResult.componentPackets,
+    cwd: process.cwd(),
+    dependencyInstallPlan: createDependencyInstallPlan({
+      consumerRoot: process.cwd(),
+      dependencyPlan: installPlan.dependencyPlan,
+    }),
+    dryRun: true,
+    effects: dryRunEffects,
+    findings: installPlan.findings,
+    installPlan,
+    registrySourcePath,
+  })
 
+  assertCliJsonReportContract({ report: dryRunReport, schemaName: "addDryRun" })
   assert.deepEqual(
     installPlan.items.map((item) => item.name),
     expectedItems,

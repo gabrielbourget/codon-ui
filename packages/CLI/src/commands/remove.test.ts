@@ -7,6 +7,7 @@ import path from "node:path"
 import { createRemoveAdvisoryReport } from "../helpers/removeAdvisory"
 import { createRemoveDryRunReport } from "../helpers/removeDryRun"
 import { createRemoveStrictReport } from "../helpers/removeStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 import { deleteCommand } from "./delete"
 import { remove } from "./remove"
@@ -551,6 +552,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "removeAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -671,6 +673,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: orphanDryRunReport, schemaName: "removeDryRun" })
   assert.equal(orphanDryRunReport.itemRemoveState, "would-remove")
   assert.equal(orphanDryRunReport.summary.wouldRemoveFileCount, 1)
   assert.equal(orphanDryRunReport.orphanCleanup.enabled, true)
@@ -730,6 +733,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: primaryBlockedStrictReport, schemaName: "removeStrict" })
   assert.equal(primaryBlockedStrictReport.applied, false)
   assert.equal(primaryBlockedStrictReport.itemRemoveState, "blocked")
   assert.equal(primaryBlockedStrictReport.effects.writesFiles, false)
@@ -808,6 +812,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: mixedDryRunReport, schemaName: "removeDryRun" })
   assert.equal(mixedDryRunReport.schemaVersion, 1)
   assert.equal(mixedDryRunReport.dryRun, true)
   assert.deepEqual(mixedDryRunReport.effects, {
@@ -924,6 +929,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "removeStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemRemoveState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -943,6 +949,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictSourceOnlyReport, schemaName: "removeStrict" })
   assert.equal(strictSourceOnlyReport.applied, true)
   assert.equal(strictSourceOnlyReport.itemRemoveState, "removed")
   assert.equal(strictSourceOnlyReport.effects.writesFiles, true)

@@ -7,6 +7,7 @@ import path from "node:path"
 import { createUpdateAdvisoryReport, createUpdateAllAdvisoryReport } from "../helpers/updateAdvisory"
 import { createUpdateAllDryRunReport, createUpdateDryRunReport } from "../helpers/updateDryRun"
 import { createUpdateAllStrictReport, createUpdateStrictReport } from "../helpers/updateStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -308,6 +309,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "updateAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -358,6 +360,7 @@ try {
   })
   const allAdvisoryItems = new Map(allAdvisoryReport.items.map((item) => [item.itemName, item]))
 
+  assertCliJsonReportContract({ report: allAdvisoryReport, schemaName: "updateAllAdvisory" })
   assert.equal(allAdvisoryReport.schemaVersion, 1)
   assert.equal(allAdvisoryReport.advisory, true)
   assert.equal(allAdvisoryReport.all, true)
@@ -389,6 +392,7 @@ try {
   })
   const allDryRunItems = new Map(allDryRunReport.items.map((item) => [item.itemName, item]))
 
+  assertCliJsonReportContract({ report: allDryRunReport, schemaName: "updateAllDryRun" })
   assert.equal(allDryRunReport.schemaVersion, 1)
   assert.equal(allDryRunReport.dryRun, true)
   assert.equal(allDryRunReport.all, true)
@@ -440,6 +444,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: allStrictBlockedReport, schemaName: "updateAllStrict" })
   assert.equal(allStrictBlockedReport.schemaVersion, 1)
   assert.equal(allStrictBlockedReport.all, true)
   assert.equal(allStrictBlockedReport.applied, false)
@@ -548,6 +553,7 @@ try {
     registrySourcePath: strictAllSuccessRegistrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: allStrictSuccessReport, schemaName: "updateAllStrict" })
   assert.equal(allStrictSuccessReport.applied, true)
   assert.equal(allStrictSuccessReport.summary.itemCount, 2)
   assert.equal(allStrictSuccessReport.summary.itemStates.updated, 2)
@@ -596,6 +602,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: mixedDryRunReport, schemaName: "updateDryRun" })
   assert.equal(mixedDryRunReport.schemaVersion, 1)
   assert.equal(mixedDryRunReport.dryRun, true)
   assert.deepEqual(mixedDryRunReport.effects, {
@@ -670,6 +677,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "updateStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemUpdateState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -897,6 +905,7 @@ try {
     registrySourcePath: dependencyInstallRegistrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: dependencyInstallDryRunReport, schemaName: "updateDryRun" })
   assert.equal(dependencyInstallDryRunReport.itemUpdateState, "blocked")
   assert.equal(dependencyInstallDryRunReport.summary.dependencyBlockerCount, 1)
   assert.equal(dependencyInstallDryRunReport.dependencyInstallPlan?.executionPlan.mode, "eligible")
@@ -912,6 +921,7 @@ try {
     registrySourcePath: dependencyInstallRegistrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: dependencyInstallBlockedReport, schemaName: "updateStrict" })
   assert.equal(dependencyInstallBlockedReport.applied, false)
   assert.equal(dependencyInstallBlockedReport.itemUpdateState, "blocked")
   assert.equal(dependencyInstallBlockedReport.dependencyInstallPlan?.executionPlan.mode, "blocked")
@@ -997,6 +1007,7 @@ if (!dependency) {
         })
         const failedCommand = failedReport.dependencyInstallPlan?.executionPlan.failedCommands[0]
 
+        assertCliJsonReportContract({ report: failedReport, schemaName: "updateStrict" })
         assert.equal(failedReport.applied, false)
         assert.equal(failedReport.itemUpdateState, "blocked")
         assert.equal(failedReport.effects.writesFiles, false)
@@ -1070,6 +1081,7 @@ if (!dependency) {
       registrySourcePath: dependencyInstallRegistrySourcePath,
     })
 
+    assertCliJsonReportContract({ report: dependencyInstallStrictReport, schemaName: "updateStrict" })
     assert.equal(dependencyInstallStrictReport.applied, true)
     assert.equal(dependencyInstallStrictReport.itemUpdateState, "updated")
     assert.equal(dependencyInstallStrictReport.effects.installsDependencies, true)

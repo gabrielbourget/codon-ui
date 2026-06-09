@@ -7,6 +7,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { createConsumerInitDryRun, writeConsumerInitSeed } from "../helpers"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-init-"))
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
@@ -89,6 +90,7 @@ try {
   const greenfieldDryRun = createConsumerInitDryRun(greenfieldFixturePath)
   const afterDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
 
+  assertCliJsonReportContract({ report: greenfieldDryRun, schemaName: "initDryRun" })
   assert.deepEqual(afterDryRunSnapshot, beforeDryRunSnapshot)
   assertDefaultDryRunNoWriteEffects(greenfieldDryRun)
   assert.equal(greenfieldDryRun.initialized, true)
@@ -108,6 +110,7 @@ try {
 
   const strictInit = await writeConsumerInitSeed(greenfieldFixturePath)
 
+  assertCliJsonReportContract({ report: strictInit, schemaName: "initStrict" })
   assert.equal(strictInit.initialized, true)
   assert.equal(strictInit.effects.writesConfig, true)
   assert.equal(strictInit.effects.writesLockfile, true)
@@ -115,6 +118,7 @@ try {
   const afterStrictDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
   const blockedDryRun = createConsumerInitDryRun(greenfieldFixturePath)
 
+  assertCliJsonReportContract({ report: blockedDryRun, schemaName: "initDryRun" })
   assert.deepEqual(snapshotFiles(greenfieldFixturePath), afterStrictDryRunSnapshot)
   assertDefaultDryRunNoWriteEffects(blockedDryRun)
   assert.equal(blockedDryRun.initialized, false)
@@ -130,6 +134,7 @@ try {
 
   const configOnlyDryRun = createConsumerInitDryRun(configOnlyFixturePath)
 
+  assertCliJsonReportContract({ report: configOnlyDryRun, schemaName: "initDryRun" })
   assertDefaultDryRunNoWriteEffects(configOnlyDryRun)
   assert.equal(configOnlyDryRun.initialized, false)
   assert.equal(configOnlyDryRun.wouldEffects.config.status, "blocked")
@@ -141,6 +146,7 @@ try {
 
   const lockfileOnlyDryRun = createConsumerInitDryRun(lockfileOnlyFixturePath)
 
+  assertCliJsonReportContract({ report: lockfileOnlyDryRun, schemaName: "initDryRun" })
   assertDefaultDryRunNoWriteEffects(lockfileOnlyDryRun)
   assert.equal(lockfileOnlyDryRun.initialized, false)
   assert.equal(lockfileOnlyDryRun.wouldEffects.config.status, "not-written")

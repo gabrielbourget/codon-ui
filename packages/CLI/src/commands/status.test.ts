@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createStatusReport } from "../helpers/status"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -232,6 +233,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: cleanReport, schemaName: "status" })
   assert.equal(cleanReport.summary.fileStates["registry-owned"], 1)
   assert.equal(cleanReport.summary.fileStates["consumer-owned-support"], 1)
   assert.equal(cleanReport.summary.fileStates.ejected, 1)
@@ -266,6 +268,7 @@ try {
 
   const defaultComponentSourceReport = await createStatusReport({ cwd: consumerRoot, itemName: "circle-loader" })
 
+  assertCliJsonReportContract({ report: defaultComponentSourceReport, schemaName: "status" })
   assert.equal(defaultComponentSourceReport.registrySource.status, "loaded")
   assert.equal(path.basename(defaultComponentSourceReport.registrySource.path ?? ""), "local-react.registry.json")
   assert.equal(defaultComponentSourceReport.registrySource.sourceIdentity, "@amino-ui/react-local")
@@ -315,6 +318,7 @@ try {
     (statusFile) => statusFile.path === "src/components/_registry/utils/unknown.ts",
   )
 
+  assertCliJsonReportContract({ report: unknownSourceReport, schemaName: "status" })
   assert.equal(unknownSourceReport.registrySource.status, "loaded")
   assert.equal(unknownFileWithDefaultRegistry?.sourceState, "unknown")
   assert.equal(unknownFileWithDefaultRegistry?.state, "unknown")

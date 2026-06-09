@@ -7,6 +7,7 @@ import path from "node:path"
 import { createEjectAdvisoryReport } from "../helpers/ejectAdvisory"
 import { createEjectDryRunReport } from "../helpers/ejectDryRun"
 import { createEjectStrictReport } from "../helpers/ejectStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -301,6 +302,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "ejectAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -378,6 +380,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: dryRunReport, schemaName: "ejectDryRun" })
   assert.equal(dryRunReport.schemaVersion, 1)
   assert.equal(dryRunReport.dryRun, true)
   assert.deepEqual(dryRunReport.effects, {
@@ -470,6 +473,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "ejectStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemEjectState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -488,6 +492,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictSourceOnlyReport, schemaName: "ejectStrict" })
   assert.equal(strictSourceOnlyReport.applied, true)
   assert.equal(strictSourceOnlyReport.itemEjectState, "ejected")
   assert.equal(strictSourceOnlyReport.effects.writesFiles, false)
