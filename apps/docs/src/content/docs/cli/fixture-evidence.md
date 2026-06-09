@@ -17,6 +17,9 @@ The fixture system has three tiers:
 Checked-in workflow fixtures demonstrate state. Replay proofs demonstrate current CLI compliance on demand. Markdown
 evidence explains the results, but verifier assertions are the proof.
 
+The structured ledger validates canonical command and scenario names, rejects unsupported coverage claims, permits only
+explicitly justified duplicate coverage, and reports known gaps without failing because gaps remain open.
+
 ## Evidence Repository
 
 Consumer fixture projects live in the sibling `amino-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
