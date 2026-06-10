@@ -149,6 +149,7 @@ Current read-only command behavior:
 ```sh
 codon-ui init --advisory --json --cwd <consumer-project>
 codon-ui init --dry-run --json --cwd <consumer-project>
+codon-ui init --dry-run --registry-root src/components/_codon-ui-registry --json --cwd <consumer-project>
 codon-ui info --json --cwd <consumer-project>
 ```
 
@@ -160,11 +161,14 @@ The first strict init seed slice added a new-contract default path:
 
 ```sh
 codon-ui init --defaults --json --cwd <consumer-project>
+codon-ui init --defaults --registry-root src/components/_codon-ui-registry --json --cwd <consumer-project>
 ```
 
 This path writes only `codon-ui.config.json` and an empty `codon-ui.lock.json` when neither file exists. It does not
 create directories, install dependencies, write helper files, install support files, or touch package-manager lockfiles.
 If either file already exists, it reports warnings and writes nothing; overwrite policy is deferred.
+The optional `--registry-root` flag chooses the contained registry root recorded in the generated config. It must be a
+non-empty consumer-relative path without parent-directory traversal, and it does not create the directory during init.
 
 `init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
 config, lockfile, directory, or dependency writes. Its `wouldEffects` report `would-write` for greenfield config and

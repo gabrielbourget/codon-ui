@@ -103,6 +103,38 @@ const runInitCommandJson = ({
   return JSON.parse(result.stdout) as Awaited<ReturnType<typeof writeConsumerInitSeed>>
 }
 
+const runInitCommandJsonReport = <TReport>({ args = [], cwd }: { args?: string[]; cwd: string }): TReport => {
+  const result = spawnSync(process.execPath, [tsxCliPath, cliEntryPath, "init", ...args, "--json", "--cwd", cwd], {
+    cwd: packageRoot,
+    encoding: "utf8",
+  })
+
+  assert.equal(result.status, 0, `${result.stdout}\n${result.stderr}`)
+
+  return JSON.parse(result.stdout) as TReport
+}
+
+const assertInitCommandError = ({
+  args,
+  cwd,
+  expectedMessage,
+}: {
+  args: string[]
+  cwd: string
+  expectedMessage: RegExp
+}) => {
+  const beforeSnapshot = snapshotFiles(cwd)
+  const result = spawnSync(process.execPath, [tsxCliPath, cliEntryPath, "init", ...args, "--cwd", cwd], {
+    cwd: packageRoot,
+    encoding: "utf8",
+  })
+  const afterSnapshot = snapshotFiles(cwd)
+
+  assert.equal(result.status, 1)
+  assert.match(`${result.stdout}\n${result.stderr}`, expectedMessage)
+  assert.deepEqual(afterSnapshot, beforeSnapshot)
+}
+
 try {
   const greenfieldFixturePath = createFixture("greenfield")
   const beforeDryRunSnapshot = snapshotFiles(greenfieldFixturePath)
@@ -126,6 +158,55 @@ try {
   assert.equal(greenfieldDryRun.findings.length, 0)
   assert.equal(existsSync(path.join(greenfieldFixturePath, "codon-ui.config.json")), false)
   assert.equal(existsSync(path.join(greenfieldFixturePath, "codon-ui.lock.json")), false)
+
+  const customRootFixturePath = createFixture("custom-registry-root")
+  const customRegistryRoot = "src/ui/_codon-ui"
+  const customRootDryRun = createConsumerInitDryRun(customRootFixturePath, { registryRoot: customRegistryRoot })
+
+  assertCliJsonReportContract({ report: customRootDryRun, schemaName: "initDryRun" })
+  assertDefaultDryRunNoWriteEffects(customRootDryRun)
+  assert.equal(customRootDryRun.proposedConfig.paths.registry, customRegistryRoot)
+  assert.equal(customRootDryRun.targetPaths.theme, customRegistryRoot)
+  assert.equal(customRootDryRun.targetPaths.tokens, `${customRegistryRoot}/tokens`)
+  assert.equal(existsSync(path.join(customRootFixturePath, "codon-ui.config.json")), false)
+
+  const customRootCliDryRun = runInitCommandJsonReport<ReturnType<typeof createConsumerInitDryRun>>({
+    args: ["--dry-run", "--registry-root", customRegistryRoot],
+    cwd: customRootFixturePath,
+  })
+
+  assertCliJsonReportContract({ report: customRootCliDryRun, schemaName: "initDryRun" })
+  assert.equal(customRootCliDryRun.proposedConfig.paths.registry, customRegistryRoot)
+  assert.equal(customRootCliDryRun.targetPaths.theme, customRegistryRoot)
+  assert.equal(customRootCliDryRun.targetPaths.tokens, `${customRegistryRoot}/tokens`)
+  assert.equal(existsSync(path.join(customRootFixturePath, "codon-ui.config.json")), false)
+
+  const customRootStrictFixturePath = createFixture("custom-registry-root-strict")
+  const customRootStrict = runInitCommandJson({
+    args: ["--registry-root", customRegistryRoot],
+    cwd: customRootStrictFixturePath,
+  })
+
+  assertCliJsonReportContract({ report: customRootStrict, schemaName: "initStrict" })
+  assert.equal(customRootStrict.initialized, true)
+  assert.equal(customRootStrict.config.paths.registry, customRegistryRoot)
+  assert.equal(existsSync(path.join(customRootStrictFixturePath, customRegistryRoot)), false)
+  assert.deepEqual(snapshotFilePaths(customRootStrictFixturePath), [
+    "codon-ui.config.json",
+    "codon-ui.lock.json",
+    "package.json",
+  ])
+
+  assertInitCommandError({
+    args: ["--registry-root", "/tmp/codon-ui"],
+    cwd: createFixture("absolute-registry-root"),
+    expectedMessage: /--registry-root must be a consumer-relative path\./u,
+  })
+  assertInitCommandError({
+    args: ["--registry-root", "../codon-ui"],
+    cwd: createFixture("parent-registry-root"),
+    expectedMessage: /--registry-root cannot include parent directory segments\./u,
+  })
 
   const strictInit = await writeConsumerInitSeed(greenfieldFixturePath)
 

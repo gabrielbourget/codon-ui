@@ -7,7 +7,7 @@ import {
   CONSUMER_ADVISORY_SEVERITY__WARNING,
   CONSUMER_PACKAGE_MANAGER__UNKNOWN,
 } from "./constants"
-import { resolveConsumerLayout } from "./layout"
+import { normalizeConsumerRelativePath, resolveConsumerLayout } from "./layout"
 import { getConsumerProjectContext } from "./projectContext"
 import {
   consumerConfigSchema,
@@ -20,7 +20,35 @@ import {
   type TConsumerLockfile,
 } from "./schema"
 
-export const createDefaultConsumerConfig = (): TConsumerConfig => consumerConfigSchema.parse({})
+export type TConsumerInitOptions = {
+  registryRoot?: string
+}
+
+const normalizeConsumerRegistryRootOption = (registryRoot?: string) => {
+  if (!registryRoot) return undefined
+
+  if (path.isAbsolute(registryRoot)) {
+    throw new Error("--registry-root must be a consumer-relative path.")
+  }
+
+  const normalizedRegistryRoot = normalizeConsumerRelativePath(registryRoot)
+
+  if (!normalizedRegistryRoot || normalizedRegistryRoot === ".") {
+    throw new Error("--registry-root must be a non-empty consumer-relative path.")
+  }
+
+  if (normalizedRegistryRoot.split("/").includes("..")) {
+    throw new Error("--registry-root cannot include parent directory segments.")
+  }
+
+  return normalizedRegistryRoot
+}
+
+export const createDefaultConsumerConfig = (options: TConsumerInitOptions = {}): TConsumerConfig => {
+  const registryRoot = normalizeConsumerRegistryRootOption(options.registryRoot)
+
+  return consumerConfigSchema.parse(registryRoot ? { paths: { registry: registryRoot } } : {})
+}
 
 export const createEmptyConsumerLockfile = (): TConsumerLockfile => consumerLockfileSchema.parse({})
 
@@ -56,9 +84,12 @@ const createConsumerInitSeedFindings = ({
   return findings
 }
 
-export const createConsumerInitDryRun = (cwd: string): TConsumerInitDryRunResult => {
+export const createConsumerInitDryRun = (
+  cwd: string,
+  options: TConsumerInitOptions = {},
+): TConsumerInitDryRunResult => {
   const project = getConsumerProjectContext(cwd)
-  const proposedConfig = createDefaultConsumerConfig()
+  const proposedConfig = createDefaultConsumerConfig(options)
   const lockfileData = createEmptyConsumerLockfile()
   const layout = resolveConsumerLayout(proposedConfig)
   const initialized = !project.hasConfigFile && !project.hasLockfile
@@ -119,8 +150,11 @@ export const createConsumerInitDryRun = (cwd: string): TConsumerInitDryRunResult
   })
 }
 
-export const writeConsumerInitSeed = async (cwd: string): Promise<TConsumerInitSeedResult> => {
-  const config = createDefaultConsumerConfig()
+export const writeConsumerInitSeed = async (
+  cwd: string,
+  options: TConsumerInitOptions = {},
+): Promise<TConsumerInitSeedResult> => {
+  const config = createDefaultConsumerConfig(options)
   const lockfileData = createEmptyConsumerLockfile()
   const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)

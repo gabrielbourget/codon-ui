@@ -15,6 +15,7 @@ const initOptionsSchema = z.object({
   advisory: z.boolean().default(false),
   dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
+  registryRoot: z.string().optional(),
 })
 
 const parseInitOptions = (CLIOptions: unknown) => {
@@ -26,6 +27,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
     defaults: options.defaults,
     dryRun: options.dryRun,
     json: options.json,
+    registryRoot: options.registryRoot,
   }
 }
 
@@ -35,6 +37,7 @@ export const init = new Command()
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-y, --yes", "Accepted for compatibility; init is non-interactive.", true)
   .option("-d, --defaults", "Alias for the default strict config and lockfile seed path.", false)
+  .option("--registry-root <path>", "Consumer-relative contained registry root for generated config.")
   .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the default consumer config and lockfile seed without writing files.", false)
   .option("--json", "Print machine-readable output.", false)
@@ -55,8 +58,10 @@ export const init = new Command()
         process.exit(1)
       }
 
+      const initOptions = options.registryRoot ? { registryRoot: options.registryRoot } : {}
+
       if (options.advisory) {
-        const advisory = createConsumerInitAdvisory(cwd)
+        const advisory = createConsumerInitAdvisory(cwd, initOptions)
 
         if (options.json) {
           console.log(JSON.stringify(advisory, null, 2))
@@ -68,6 +73,7 @@ export const init = new Command()
         logger.info(`Config file: ${advisory.configFile}`)
         logger.info(`Lockfile: ${advisory.lockfile}`)
         logger.info(`Layout mode: ${advisory.proposedConfig.layoutMode}`)
+        logger.info(`Registry root: ${advisory.proposedConfig.paths.registry}`)
         logger.info(`Theme tier: ${advisory.proposedConfig.theme.tier}`)
         logger.info(`Dependency policy: ${advisory.proposedConfig.dependencies.policy}`)
 
@@ -75,7 +81,7 @@ export const init = new Command()
       }
 
       if (options.dryRun) {
-        const result = createConsumerInitDryRun(cwd)
+        const result = createConsumerInitDryRun(cwd, initOptions)
 
         if (options.json) {
           console.log(JSON.stringify(result, null, 2))
@@ -87,6 +93,7 @@ export const init = new Command()
         logger.info(`Config file: ${result.configFile}`)
         logger.info(`Lockfile: ${result.lockfile}`)
         logger.info(`Layout mode: ${result.proposedConfig.layoutMode}`)
+        logger.info(`Registry root: ${result.proposedConfig.paths.registry}`)
         logger.info(`Theme tier: ${result.proposedConfig.theme.tier}`)
         logger.info(`Dependency policy: ${result.proposedConfig.dependencies.policy}`)
         logger.info(`Config effect: ${result.wouldEffects.config.status}`)
@@ -96,7 +103,7 @@ export const init = new Command()
         return
       }
 
-      const result = await writeConsumerInitSeed(cwd)
+      const result = await writeConsumerInitSeed(cwd, initOptions)
 
       if (options.json) {
         console.log(JSON.stringify(result, null, 2))
@@ -107,6 +114,7 @@ export const init = new Command()
       logger.info(`Config file: ${result.configFile}`)
       logger.info(`Lockfile: ${result.lockfile}`)
       logger.info(`Layout mode: ${result.config.layoutMode}`)
+      logger.info(`Registry root: ${result.config.paths.registry}`)
       logger.info(`Theme tier: ${result.config.theme.tier}`)
       logger.info(`Dependency policy: ${result.config.dependencies.policy}`)
       logger.info(`Findings: ${result.findings.length}`)

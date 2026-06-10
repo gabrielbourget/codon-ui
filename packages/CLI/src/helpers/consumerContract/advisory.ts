@@ -5,14 +5,14 @@ import {
   CONSUMER_ADVISORY_SEVERITY__WARNING,
   CONSUMER_PACKAGE_MANAGER__UNKNOWN,
 } from "./constants"
-import { createDefaultConsumerConfig } from "./initSeed"
+import { createDefaultConsumerConfig, type TConsumerInitOptions } from "./initSeed"
 import { resolveConsumerLayout } from "./layout"
 import { getConsumerProjectContext } from "./projectContext"
 import { consumerInitAdvisorySchema, type TConsumerInitAdvisory } from "./schema"
 
-export const createConsumerInitAdvisory = (cwd: string): TConsumerInitAdvisory => {
+export const createConsumerInitAdvisory = (cwd: string, options: TConsumerInitOptions = {}): TConsumerInitAdvisory => {
   const project = getConsumerProjectContext(cwd)
-  const proposedConfig = createDefaultConsumerConfig()
+  const proposedConfig = createDefaultConsumerConfig(options)
   const layout = resolveConsumerLayout(proposedConfig)
   const findings = [...layout.findings]
 
