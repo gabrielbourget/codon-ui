@@ -93,14 +93,14 @@
     {
       "sourcePath": "packages/react/src/components/Select/SelectStyles.module.css",
       "importSource": "--border_radius_1 / --distance_1 / --disabledOpacity / --shadow_1 / --focus-ring-color / --fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-radius-1 / --aui-space-1 / --aui-opacity-disabled / --aui-shadow-1 / --aui-focus-ring / --aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-radius-1 / --cui-space-1 / --cui-opacity-disabled / --cui-shadow-1 / --cui-focus-ring / --cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["Select CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/theme.css",
       "importSource": "Select validation and fade animation theme usage",
       "registryDependencyName": "theme-css",
-      "replacementSource": "--aui-validation-*-border, --aui-animation-fade-in, --aui-animation-fade-out, and fade keyframes",
+      "replacementSource": "--cui-validation-*-border, --cui-animation-fade-in, --cui-animation-fade-out, and fade keyframes",
       "notes": ["Select adds only the default theme variables and keyframes needed by the received runtime source."]
     },
     {
@@ -140,21 +140,21 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-control-background",
-        "--aui-control-border",
-        "--aui-control-foreground",
-        "--aui-control-placeholder",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-surface",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-validation-error-border",
-        "--aui-validation-warning-border",
-        "--aui-validation-success-border"
+        "--cui-control-background",
+        "--cui-control-border",
+        "--cui-control-foreground",
+        "--cui-control-placeholder",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-surface",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-validation-error-border",
+        "--cui-validation-warning-border",
+        "--cui-validation-success-border"
       ],
       "notes": [
         "Select source reads the default theme contract directly and does not need a component-specific compatibility bridge."

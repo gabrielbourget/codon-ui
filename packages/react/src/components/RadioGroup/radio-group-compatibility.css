@@ -1,5 +1,5 @@
 /* Proof bridge only: keep received RadioGroup source renderable before the broader spacing and disabled-state theme contract is settled. */
 :root {
-  --distance_2: var(--aui-space-2);
-  --disabledOpacity: var(--aui-opacity-disabled);
+  --distance_2: var(--cui-space-2);
+  --disabledOpacity: var(--cui-opacity-disabled);
 }

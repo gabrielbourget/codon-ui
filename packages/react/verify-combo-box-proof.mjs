@@ -66,21 +66,21 @@ const requiredStyleSelectors = [
   ".optionsList[data-focused]",
 ]
 const requiredDefaultVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-surface",
-  "--aui-transition-border-color",
-  "--aui-validation-error-border",
-  "--aui-validation-warning-border",
-  "--aui-validation-success-border",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-surface",
+  "--cui-transition-border-color",
+  "--cui-validation-error-border",
+  "--cui-validation-warning-border",
+  "--cui-validation-success-border",
 ]
 
 const comboBoxSource = readRequiredText(comboBoxSourcePath)
@@ -148,7 +148,7 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `ComboBox CSS module must include ${selector}`)
 })
 requiredDefaultVariables
-  .filter((cssVariable) => !cssVariable.startsWith("--aui-validation"))
+  .filter((cssVariable) => !cssVariable.startsWith("--cui-validation"))
   .forEach((cssVariable) => {
     assert(stylesSource.includes(`var(${cssVariable})`), `ComboBox CSS must read ${cssVariable}`)
   })
@@ -286,7 +286,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "ComboBox packet must record legacy CSS variable rewrite",
 )

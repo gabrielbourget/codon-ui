@@ -77,7 +77,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-space-2", "--aui-opacity-disabled"],
+      "cssVariables": ["--cui-space-2", "--cui-opacity-disabled"],
       "notes": ["These variables are already part of the package default theme contract."]
     },
     {

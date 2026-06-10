@@ -75,11 +75,11 @@ assert(helpersSource.includes('from "../../tokens/a11y"'), "Counter helpers must
 assert(helpersSource.includes("export type TCounterProps"), "Counter helpers must export local props")
 assert(helpersSource.includes("export const calibrateComponent"), "Counter calibration helper must remain local")
 assert(
-  helpersSource.includes("var(--aui-status-warning, var(--aui-state-warning))"),
+  helpersSource.includes("var(--cui-status-warning, var(--cui-state-warning))"),
   "Counter warning status must keep Wavemap alias with default theme fallback",
 )
 assert(
-  helpersSource.includes("var(--aui-status-danger, var(--aui-state-danger))"),
+  helpersSource.includes("var(--cui-status-danger, var(--cui-state-danger))"),
   "Counter danger status must keep Wavemap alias with default theme fallback",
 )
 assert(!helpersSource.includes("--warningState"), "Counter helpers must not read legacy warning aliases")
@@ -91,8 +91,8 @@ assert(!helpersSource.includes("--errorOrDangerState"), "Counter helpers must no
 requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `Counter CSS module must include ${selector}`)
 })
-assert(stylesSource.includes("var(--aui-space-1)"), "Counter CSS must read default spacing token")
-assert(stylesSource.includes("var(--aui-transition-color)"), "Counter CSS must read default transition token")
+assert(stylesSource.includes("var(--cui-space-1)"), "Counter CSS must read default spacing token")
+assert(stylesSource.includes("var(--cui-transition-color)"), "Counter CSS must read default transition token")
 assert(!stylesSource.includes("--distance_1"), "Counter CSS must not read legacy distance alias")
 assert(!stylesSource.includes("--colorTransition"), "Counter CSS must not read legacy transition alias")
 
@@ -177,7 +177,7 @@ const defaultContractRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract",
 )
 assert(defaultContractRequirement, "Counter packet must record default-contract theme pressure")
-;["--aui-space-1", "--aui-transition-color", "--aui-state-warning", "--aui-state-danger"].forEach((cssVariable) => {
+;["--cui-space-1", "--cui-transition-color", "--cui-state-warning", "--cui-state-danger"].forEach((cssVariable) => {
   assert(defaultContractRequirement.cssVariables.includes(cssVariable), `Counter packet must record ${cssVariable}`)
 })
 

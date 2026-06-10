@@ -40,28 +40,28 @@ const requiredPackageFileSources = [
   "packages/react/src/components/Link/LinkStyles.module.css",
 ]
 const requiredTargetPaths = ["Link/Link.tsx", "Link/helpers.ts", "Link/LinkStyles.module.css"]
-const requiredDefaultThemeVariables = ["--aui-space-1", "--aui-radius-1", "--aui-focus-ring", "--aui-opacity-disabled"]
+const requiredDefaultThemeVariables = ["--cui-space-1", "--cui-radius-1", "--cui-focus-ring", "--cui-opacity-disabled"]
 const requiredActionColorVariables = [
-  "--aui-color-primary-400",
-  "--aui-color-primary-500",
-  "--aui-color-primary-600",
-  "--aui-color-primary-700",
-  "--aui-color-secondary-400",
-  "--aui-color-secondary-500",
-  "--aui-color-secondary-600",
-  "--aui-color-secondary-700",
-  "--aui-color-tertiary-400",
-  "--aui-color-tertiary-500",
-  "--aui-color-tertiary-600",
-  "--aui-color-tertiary-700",
-  "--aui-color-quaternary-400",
-  "--aui-color-quaternary-500",
-  "--aui-color-quaternary-600",
-  "--aui-color-quaternary-700",
-  "--aui-color-quintenary-400",
-  "--aui-color-quintenary-500",
-  "--aui-color-quintenary-600",
-  "--aui-color-quintenary-700",
+  "--cui-color-primary-400",
+  "--cui-color-primary-500",
+  "--cui-color-primary-600",
+  "--cui-color-primary-700",
+  "--cui-color-secondary-400",
+  "--cui-color-secondary-500",
+  "--cui-color-secondary-600",
+  "--cui-color-secondary-700",
+  "--cui-color-tertiary-400",
+  "--cui-color-tertiary-500",
+  "--cui-color-tertiary-600",
+  "--cui-color-tertiary-700",
+  "--cui-color-quaternary-400",
+  "--cui-color-quaternary-500",
+  "--cui-color-quaternary-600",
+  "--cui-color-quaternary-700",
+  "--cui-color-quintenary-400",
+  "--cui-color-quintenary-500",
+  "--cui-color-quintenary-600",
+  "--cui-color-quintenary-700",
 ]
 
 const linkSource = readRequiredText(linkSourcePath)
@@ -101,14 +101,14 @@ assert(helpersSource.includes("export const calibrateComponent"), "Link calibrat
   assert(stylesSource.includes(selector), `Link CSS module must include ${selector}`)
 })
 ;[
-  "var(--aui-radius-1)",
-  "var(--aui-space-1)",
-  "var(--aui-focus-ring)",
-  "var(--aui-opacity-disabled)",
-  "var(--aui-color-primary-400)",
-  "var(--aui-color-primary-500)",
-  "var(--aui-color-primary-600)",
-  "var(--aui-color-primary-700)",
+  "var(--cui-radius-1)",
+  "var(--cui-space-1)",
+  "var(--cui-focus-ring)",
+  "var(--cui-opacity-disabled)",
+  "var(--cui-color-primary-400)",
+  "var(--cui-color-primary-500)",
+  "var(--cui-color-primary-600)",
+  "var(--cui-color-primary-700)",
 ].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `Link CSS must read ${cssValue}`)
 })
@@ -217,21 +217,21 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource === "--aui-space-1",
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource === "--cui-space-1",
   ),
   "Link packet must record distance alias rewrite",
 )
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--border_radius_1") && resolution.replacementSource === "--aui-radius-1",
+      resolution.importSource.includes("--border_radius_1") && resolution.replacementSource === "--cui-radius-1",
   ),
   "Link packet must record radius alias rewrite",
 )
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--focus-ring-color") && resolution.replacementSource === "--aui-focus-ring",
+      resolution.importSource.includes("--focus-ring-color") && resolution.replacementSource === "--cui-focus-ring",
   ),
   "Link packet must record focus alias rewrite",
 )
@@ -239,7 +239,7 @@ assert(
   packet.importResolutions.some(
     (resolution) =>
       resolution.importSource.includes("--disabledOpacity") &&
-      resolution.replacementSource === "--aui-opacity-disabled",
+      resolution.replacementSource === "--cui-opacity-disabled",
   ),
   "Link packet must record disabled opacity alias rewrite",
 )

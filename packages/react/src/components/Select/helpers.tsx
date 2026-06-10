@@ -116,20 +116,20 @@ const computeButtonTextSizeStyle = <T extends object>(props: TSelectProps<T>) =>
 
 const computeButtonBorderStyle = <T extends object>(props: TSelectProps<T>) => {
   const { errorState, warningState, successState } = props
-  let borderStyle = "1px solid var(--aui-control-border)"
+  let borderStyle = "1px solid var(--cui-control-border)"
 
   if (errorState) {
-    borderStyle = "1px solid var(--aui-validation-error-border)"
+    borderStyle = "1px solid var(--cui-validation-error-border)"
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = "1px solid var(--aui-validation-warning-border)"
+    borderStyle = "1px solid var(--cui-validation-warning-border)"
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = "1px solid var(--aui-validation-success-border)"
+    borderStyle = "1px solid var(--cui-validation-success-border)"
     return borderStyle
   }
 

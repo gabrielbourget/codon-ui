@@ -13,9 +13,9 @@ import styles from "./PanelHeaderStyles.module.css"
 
 const { panelHeader, titleWrapper } = styles
 const SORT_AND_FILTER_PANEL_GEOMETRY__ROUND = "round"
-const SORT_AND_FILTER_PANEL_BACKGROUND_COLOR = "var(--aui-background)"
-const SORT_AND_FILTER_PANEL_FOREGROUND_COLOR = "var(--aui-foreground)"
-const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--aui-color-primary-500)"
+const SORT_AND_FILTER_PANEL_BACKGROUND_COLOR = "var(--cui-background)"
+const SORT_AND_FILTER_PANEL_FOREGROUND_COLOR = "var(--cui-foreground)"
+const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--cui-color-primary-500)"
 const SORT_AND_FILTER_PANEL_TOOLTIP_OPEN_DELAY = 1000
 
 const PanelHeader: FC<TPanelHeaderProps> = (props) => {

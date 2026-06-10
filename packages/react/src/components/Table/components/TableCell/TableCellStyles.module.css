@@ -1,7 +1,7 @@
 .tableCell {
   text-align: start;
   vertical-align: middle;
-  padding: var(--aui-space-1);
+  padding: var(--cui-space-1);
   overflow: visible;
   min-width: 0;
   white-space: normal;
@@ -17,11 +17,11 @@
 }
 
 .tableCell[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .tableCell:focus-visible {
-  outline: 2px solid var(--aui-focus-ring);
+  outline: 2px solid var(--cui-focus-ring);
 }
 
 .tableCell__clamp {

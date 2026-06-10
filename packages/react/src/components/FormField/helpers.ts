@@ -56,9 +56,9 @@ type TFormFieldCalibration = {
   successColor: string
 }
 
-const VALIDATION_COLOR_ERROR = "var(--aui-validation-error-foreground, var(--aui-state-danger))"
-const VALIDATION_COLOR_WARNING = "var(--aui-validation-warning-foreground, var(--aui-state-warning))"
-const VALIDATION_COLOR_SUCCESS = "var(--aui-validation-success-foreground, var(--aui-state-success))"
+const VALIDATION_COLOR_ERROR = "var(--cui-validation-error-foreground, var(--cui-state-danger))"
+const VALIDATION_COLOR_WARNING = "var(--cui-validation-warning-foreground, var(--cui-state-warning))"
+const VALIDATION_COLOR_SUCCESS = "var(--cui-validation-success-foreground, var(--cui-state-success))"
 
 export const calibrateComponent = (props: TFormFieldProps): TFormFieldCalibration => {
   const {

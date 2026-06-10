@@ -76,11 +76,11 @@ const requiredStyleSelectors = [
   ".circularProgress__path--quintenary",
 ]
 const requiredCompatibilityAliases = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 assert(
@@ -144,12 +144,12 @@ requiredCompatibilityAliases.forEach((cssVariable) => {
   )
 })
 assert(
-  stylesSource.includes("var(--aui-font-family-body, sans-serif)"),
+  stylesSource.includes("var(--cui-font-family-body, sans-serif)"),
   "CircularProgress text must use neutral typography fallback",
 )
-assert(stylesSource.includes("var(--aui-surface-muted)"), "CircularProgress styles must read surface-muted role")
+assert(stylesSource.includes("var(--cui-surface-muted)"), "CircularProgress styles must read surface-muted role")
 assert(
-  stylesSource.includes("var(--aui-control-selected-background)"),
+  stylesSource.includes("var(--cui-control-selected-background)"),
   "CircularProgress styles must read selected control role",
 )
 
@@ -261,7 +261,7 @@ assert(
 )
 assert(
   packet.importResolutions.some(
-    (resolution) => resolution.replacementSource === "var(--aui-font-family-body, sans-serif)",
+    (resolution) => resolution.replacementSource === "var(--cui-font-family-body, sans-serif)",
   ),
   "CircularProgress packet must record typography neutralization",
 )

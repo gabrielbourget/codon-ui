@@ -62,25 +62,25 @@
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--distance_2 / --distance_3 aliases",
-      "replacementSource": "--aui-space-2 / --aui-space-3",
+      "replacementSource": "--cui-space-2 / --cui-space-3",
       "notes": ["HoverPopover CSS reads the default Amino spacing contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["HoverPopover CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["HoverPopover CSS reads the default Amino animation contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--shadow_1 alias",
-      "replacementSource": "--aui-shadow-1",
+      "replacementSource": "--cui-shadow-1",
       "notes": ["HoverPopover CSS uses the stable Amino shadow token instead of a component compatibility bridge."]
     },
     {
@@ -91,7 +91,7 @@
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
-      "importSource": "--aui-color-*-500 action palette variables",
+      "importSource": "--cui-color-*-500 action palette variables",
       "registryDependencyName": "theme/action-colors",
       "replacementSource": "theme/action-colors.css",
       "notes": ["Order-based hover popover colors use the existing action color theme support item."]
@@ -134,14 +134,14 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-surface-foreground",
-        "--aui-space-2",
-        "--aui-space-3",
-        "--aui-radius-1",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-shadow-1"
+        "--cui-surface",
+        "--cui-surface-foreground",
+        "--cui-space-2",
+        "--cui-space-3",
+        "--cui-radius-1",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-shadow-1"
       ],
       "notes": [
         "HoverPopover source reads the default theme contract directly and does not need a component-specific compatibility bridge."
@@ -158,11 +158,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Order-based hover popover colors depend on the existing action color theme support item."]
     }

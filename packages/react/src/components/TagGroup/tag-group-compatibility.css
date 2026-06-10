@@ -1,95 +1,131 @@
 /* Proof bridge only: keep received TagGroup source renderable before the broader tag palette contract is settled. */
 :root {
-  --distance_1: var(--aui-space-1);
-  --border_radius_1: var(--aui-radius-1);
-  --shadow_1: var(--aui-shadow-1);
-  --focus-ring-color: var(--aui-focus-ring);
-  --disabledOpacity: var(--aui-opacity-disabled);
-  --bgColorTransition: var(--aui-transition-background-color);
-  --borderColorTransition: var(--aui-transition-border-color);
-  --colorTransition: var(--aui-transition-color);
+  --distance_1: var(--cui-space-1);
+  --border_radius_1: var(--cui-radius-1);
+  --shadow_1: var(--cui-shadow-1);
+  --focus-ring-color: var(--cui-focus-ring);
+  --disabledOpacity: var(--cui-opacity-disabled);
+  --bgColorTransition: var(--cui-transition-background-color);
+  --borderColorTransition: var(--cui-transition-border-color);
+  --colorTransition: var(--cui-transition-color);
 
   --aui-tag-primary-hover-background: color-mix(
     in srgb,
-    var(--aui-control-selected-background) 15%,
-    var(--aui-background) 85%
+    var(--cui-control-selected-background) 15%,
+    var(--cui-background) 85%
   );
   --aui-tag-primary-pressed-background: color-mix(
     in srgb,
-    var(--aui-control-selected-background) 25%,
-    var(--aui-background) 75%
+    var(--cui-control-selected-background) 25%,
+    var(--cui-background) 75%
   );
-  --aui-tag-primary-selected-background: var(--aui-control-selected-background);
-  --aui-tag-primary-selected-border: var(--aui-control-selected-background);
-  --aui-tag-primary-selected-foreground: var(--aui-control-selected-foreground);
-  --aui-tag-primary-selected-hover-background: var(--aui-control-selected-background-hover);
-  --aui-tag-primary-selected-pressed-background: var(--aui-control-selected-background-pressed);
+  --aui-tag-primary-selected-background: var(--cui-control-selected-background);
+  --aui-tag-primary-selected-border: var(--cui-control-selected-background);
+  --aui-tag-primary-selected-foreground: var(--cui-control-selected-foreground);
+  --aui-tag-primary-selected-hover-background: var(--cui-control-selected-background-hover);
+  --aui-tag-primary-selected-pressed-background: var(--cui-control-selected-background-pressed);
 
   --aui-tag-secondary-hover-background: color-mix(
     in srgb,
-    var(--aui-control-pressed-background) 40%,
-    var(--aui-background) 60%
+    var(--cui-control-pressed-background) 40%,
+    var(--cui-background) 60%
   );
-  --aui-tag-secondary-pressed-background: var(--aui-control-pressed-background);
-  --aui-tag-secondary-selected-background: var(--aui-control-pressed-background);
-  --aui-tag-secondary-selected-border: var(--aui-control-pressed-background);
-  --aui-tag-secondary-selected-foreground: var(--aui-control-foreground);
+  --aui-tag-secondary-pressed-background: var(--cui-control-pressed-background);
+  --aui-tag-secondary-selected-background: var(--cui-control-pressed-background);
+  --aui-tag-secondary-selected-border: var(--cui-control-pressed-background);
+  --aui-tag-secondary-selected-foreground: var(--cui-control-foreground);
   --aui-tag-secondary-selected-hover-background: color-mix(
     in srgb,
-    var(--aui-control-pressed-background) 85%,
-    var(--aui-foreground) 15%
+    var(--cui-control-pressed-background) 85%,
+    var(--cui-foreground) 15%
   );
   --aui-tag-secondary-selected-pressed-background: color-mix(
     in srgb,
-    var(--aui-control-pressed-background) 75%,
-    var(--aui-foreground) 25%
+    var(--cui-control-pressed-background) 75%,
+    var(--cui-foreground) 25%
   );
 
-  --aui-tag-tertiary-hover-background: color-mix(in srgb, var(--aui-state-success) 15%, var(--aui-background) 85%);
-  --aui-tag-tertiary-pressed-background: color-mix(in srgb, var(--aui-state-success) 25%, var(--aui-background) 75%);
-  --aui-tag-tertiary-selected-background: var(--aui-state-success);
-  --aui-tag-tertiary-selected-border: var(--aui-state-success);
-  --aui-tag-tertiary-selected-foreground: var(--aui-background);
+  --aui-tag-tertiary-hover-background: color-mix(in srgb, var(--cui-state-success) 15%, var(--cui-background) 85%);
+  --aui-tag-tertiary-pressed-background: color-mix(in srgb, var(--cui-state-success) 25%, var(--cui-background) 75%);
+  --aui-tag-tertiary-selected-background: var(--cui-state-success);
+  --aui-tag-tertiary-selected-border: var(--cui-state-success);
+  --aui-tag-tertiary-selected-foreground: var(--cui-background);
   --aui-tag-tertiary-selected-hover-background: color-mix(
     in srgb,
-    var(--aui-state-success) 85%,
-    var(--aui-foreground) 15%
+    var(--cui-state-success) 85%,
+    var(--cui-foreground) 15%
   );
   --aui-tag-tertiary-selected-pressed-background: color-mix(
     in srgb,
-    var(--aui-state-success) 75%,
-    var(--aui-foreground) 25%
+    var(--cui-state-success) 75%,
+    var(--cui-foreground) 25%
   );
 
-  --aui-tag-quaternary-hover-background: color-mix(in srgb, var(--aui-state-warning) 15%, var(--aui-background) 85%);
-  --aui-tag-quaternary-pressed-background: color-mix(in srgb, var(--aui-state-warning) 25%, var(--aui-background) 75%);
-  --aui-tag-quaternary-selected-background: var(--aui-state-warning);
-  --aui-tag-quaternary-selected-border: var(--aui-state-warning);
-  --aui-tag-quaternary-selected-foreground: var(--aui-background);
+  --aui-tag-quaternary-hover-background: color-mix(in srgb, var(--cui-state-warning) 15%, var(--cui-background) 85%);
+  --aui-tag-quaternary-pressed-background: color-mix(in srgb, var(--cui-state-warning) 25%, var(--cui-background) 75%);
+  --aui-tag-quaternary-selected-background: var(--cui-state-warning);
+  --aui-tag-quaternary-selected-border: var(--cui-state-warning);
+  --aui-tag-quaternary-selected-foreground: var(--cui-background);
   --aui-tag-quaternary-selected-hover-background: color-mix(
     in srgb,
-    var(--aui-state-warning) 85%,
-    var(--aui-foreground) 15%
+    var(--cui-state-warning) 85%,
+    var(--cui-foreground) 15%
   );
   --aui-tag-quaternary-selected-pressed-background: color-mix(
     in srgb,
-    var(--aui-state-warning) 75%,
-    var(--aui-foreground) 25%
+    var(--cui-state-warning) 75%,
+    var(--cui-foreground) 25%
   );
 
-  --aui-tag-quintenary-hover-background: color-mix(in srgb, var(--aui-state-danger) 15%, var(--aui-background) 85%);
-  --aui-tag-quintenary-pressed-background: color-mix(in srgb, var(--aui-state-danger) 25%, var(--aui-background) 75%);
-  --aui-tag-quintenary-selected-background: var(--aui-state-danger);
-  --aui-tag-quintenary-selected-border: var(--aui-state-danger);
-  --aui-tag-quintenary-selected-foreground: var(--aui-background);
+  --aui-tag-quintenary-hover-background: color-mix(in srgb, var(--cui-state-danger) 15%, var(--cui-background) 85%);
+  --aui-tag-quintenary-pressed-background: color-mix(in srgb, var(--cui-state-danger) 25%, var(--cui-background) 75%);
+  --aui-tag-quintenary-selected-background: var(--cui-state-danger);
+  --aui-tag-quintenary-selected-border: var(--cui-state-danger);
+  --aui-tag-quintenary-selected-foreground: var(--cui-background);
   --aui-tag-quintenary-selected-hover-background: color-mix(
     in srgb,
-    var(--aui-state-danger) 85%,
-    var(--aui-foreground) 15%
+    var(--cui-state-danger) 85%,
+    var(--cui-foreground) 15%
   );
   --aui-tag-quintenary-selected-pressed-background: color-mix(
     in srgb,
-    var(--aui-state-danger) 75%,
-    var(--aui-foreground) 25%
+    var(--cui-state-danger) 75%,
+    var(--cui-foreground) 25%
   );
+
+  --cui-tag-primary-hover-background: var(--aui-tag-primary-hover-background);
+  --cui-tag-primary-pressed-background: var(--aui-tag-primary-pressed-background);
+  --cui-tag-primary-selected-background: var(--aui-tag-primary-selected-background);
+  --cui-tag-primary-selected-border: var(--aui-tag-primary-selected-border);
+  --cui-tag-primary-selected-foreground: var(--aui-tag-primary-selected-foreground);
+  --cui-tag-primary-selected-hover-background: var(--aui-tag-primary-selected-hover-background);
+  --cui-tag-primary-selected-pressed-background: var(--aui-tag-primary-selected-pressed-background);
+  --cui-tag-secondary-hover-background: var(--aui-tag-secondary-hover-background);
+  --cui-tag-secondary-pressed-background: var(--aui-tag-secondary-pressed-background);
+  --cui-tag-secondary-selected-background: var(--aui-tag-secondary-selected-background);
+  --cui-tag-secondary-selected-border: var(--aui-tag-secondary-selected-border);
+  --cui-tag-secondary-selected-foreground: var(--aui-tag-secondary-selected-foreground);
+  --cui-tag-secondary-selected-hover-background: var(--aui-tag-secondary-selected-hover-background);
+  --cui-tag-secondary-selected-pressed-background: var(--aui-tag-secondary-selected-pressed-background);
+  --cui-tag-tertiary-hover-background: var(--aui-tag-tertiary-hover-background);
+  --cui-tag-tertiary-pressed-background: var(--aui-tag-tertiary-pressed-background);
+  --cui-tag-tertiary-selected-background: var(--aui-tag-tertiary-selected-background);
+  --cui-tag-tertiary-selected-border: var(--aui-tag-tertiary-selected-border);
+  --cui-tag-tertiary-selected-foreground: var(--aui-tag-tertiary-selected-foreground);
+  --cui-tag-tertiary-selected-hover-background: var(--aui-tag-tertiary-selected-hover-background);
+  --cui-tag-tertiary-selected-pressed-background: var(--aui-tag-tertiary-selected-pressed-background);
+  --cui-tag-quaternary-hover-background: var(--aui-tag-quaternary-hover-background);
+  --cui-tag-quaternary-pressed-background: var(--aui-tag-quaternary-pressed-background);
+  --cui-tag-quaternary-selected-background: var(--aui-tag-quaternary-selected-background);
+  --cui-tag-quaternary-selected-border: var(--aui-tag-quaternary-selected-border);
+  --cui-tag-quaternary-selected-foreground: var(--aui-tag-quaternary-selected-foreground);
+  --cui-tag-quaternary-selected-hover-background: var(--aui-tag-quaternary-selected-hover-background);
+  --cui-tag-quaternary-selected-pressed-background: var(--aui-tag-quaternary-selected-pressed-background);
+  --cui-tag-quintenary-hover-background: var(--aui-tag-quintenary-hover-background);
+  --cui-tag-quintenary-pressed-background: var(--aui-tag-quintenary-pressed-background);
+  --cui-tag-quintenary-selected-background: var(--aui-tag-quintenary-selected-background);
+  --cui-tag-quintenary-selected-border: var(--aui-tag-quintenary-selected-border);
+  --cui-tag-quintenary-selected-foreground: var(--aui-tag-quintenary-selected-foreground);
+  --cui-tag-quintenary-selected-hover-background: var(--aui-tag-quintenary-selected-hover-background);
+  --cui-tag-quintenary-selected-pressed-background: var(--aui-tag-quintenary-selected-pressed-background);
 }

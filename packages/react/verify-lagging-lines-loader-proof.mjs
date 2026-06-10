@@ -80,7 +80,7 @@ assert(
   "LaggingLinesLoader CSS must not read Wavemap foreground alias",
 )
 assert(
-  !laggingLinesLoaderStylesSource.includes("--aui-"),
+  !laggingLinesLoaderStylesSource.includes("--cui-"),
   "LaggingLinesLoader CSS must not require global theme variables",
 )
 assert(

@@ -17,8 +17,8 @@ import type { TSortParameterProps } from "./helpers"
 import styles from "./SortParameterListItemStyles.module.css"
 
 const { sortParameterListItem, sortParameterListItem__middleContent, sortParameterListItem__rightContent } = styles
-const SORT_AND_FILTER_PANEL_FOREGROUND_COLOR = "var(--aui-foreground)"
-const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--aui-color-primary-500)"
+const SORT_AND_FILTER_PANEL_FOREGROUND_COLOR = "var(--cui-foreground)"
+const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--cui-color-primary-500)"
 
 const SortParameterListItem: FC<TSortParameterProps> = (props) => {
   const {

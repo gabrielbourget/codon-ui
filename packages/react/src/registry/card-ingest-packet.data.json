@@ -48,13 +48,13 @@
     {
       "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
       "importSource": "--distance_3 alias",
-      "replacementSource": "--aui-space-3",
+      "replacementSource": "--cui-space-3",
       "notes": ["Card spacing reads the default Amino space scale instead of the legacy distance alias."]
     },
     {
       "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
       "importSource": "--shadow_1 alias",
-      "replacementSource": "--aui-shadow-1",
+      "replacementSource": "--cui-shadow-1",
       "notes": ["Card raised styling reads the default Amino shadow contract instead of a proof compatibility bridge."]
     },
     {
@@ -91,7 +91,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-space-3", "--aui-shadow-1"],
+      "cssVariables": ["--cui-space-3", "--cui-shadow-1"],
       "notes": [
         "Card source reads the default theme contract directly and does not need a component-specific compatibility bridge."
       ]

@@ -73,21 +73,21 @@ const requiredStyleSelectors = [
   '.hoverPopover[data-placement="bottom"] .hoverPopover__overlayArrow svg',
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-radius-1",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-shadow-1",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-radius-1",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-shadow-1",
 ]
 
 assert(hoverPopoverSource.startsWith('"use client"'), "HoverPopover must preserve the client component boundary")
@@ -263,7 +263,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--aui-shadow-1"),
+      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--cui-shadow-1"),
   ),
   "HoverPopover packet must record shadow CSS variable rewrite",
 )

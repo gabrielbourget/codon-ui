@@ -6,7 +6,7 @@
   align-items: flex-end;
   align-content: center;
   position: relative;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
 }
 
 .pagination--rtl {

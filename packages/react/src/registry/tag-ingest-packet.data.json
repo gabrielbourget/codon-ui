@@ -77,7 +77,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-control-background", "--aui-control-selected-background", "--aui-border-muted"],
+      "cssVariables": ["--cui-control-background", "--cui-control-selected-background", "--cui-border-muted"],
       "notes": ["These variables are already part of the package default theme contract."]
     },
     {

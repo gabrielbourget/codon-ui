@@ -1,7 +1,7 @@
 .checkboxGroup {
   display: flex;
   align-items: center;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
   flex-wrap: wrap;
 }
 
@@ -14,5 +14,5 @@
 }
 
 .checkboxGroup[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }

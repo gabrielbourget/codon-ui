@@ -135,7 +135,7 @@ const AlertDialog: TAlertDialogComponent = forwardRef<HTMLDivElement, PropsWithC
                       closeModal()
                     }}
                   >
-                    <Text fontWeight="bold" color="var(--aui-control-selected-foreground)">
+                    <Text fontWeight="bold" color="var(--cui-control-selected-foreground)">
                       {resolvedLabels.confirmActionButton}
                     </Text>
                   </Button>

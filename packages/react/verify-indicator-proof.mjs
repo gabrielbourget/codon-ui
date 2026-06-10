@@ -138,7 +138,7 @@ assert(
     indicatorStylesSource.includes(".indicator--square"),
   "Indicator styles must define all shape classes",
 )
-assert(!indicatorStylesSource.includes("--aui-"), "Indicator styles must not require global Amino theme variables")
+assert(!indicatorStylesSource.includes("--cui-"), "Indicator styles must not require global Amino theme variables")
 
 assert(publicIndexSource.includes("export {"), "Package index must expose component values")
 assert(

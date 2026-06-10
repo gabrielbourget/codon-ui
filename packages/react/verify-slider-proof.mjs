@@ -61,15 +61,15 @@ const requiredStyleSelectors = [
   ".slider__thumb--applyFocusStyle",
 ]
 const requiredCompatibilityAliases = [
-  "--border_radius_1: var(--aui-radius-1)",
-  "--shadow_1: var(--aui-shadow-1)",
-  "--neutral_6: var(--aui-neutral-600)",
-  "--focus-ring-color: var(--aui-focus-ring)",
-  "--bgColorTransition: var(--aui-transition-background-color)",
-  "--aui-color-primary-500",
-  "--aui-color-primary-600",
-  "--aui-color-quintenary-500",
-  "--aui-color-quintenary-600",
+  "--border_radius_1: var(--cui-radius-1)",
+  "--shadow_1: var(--cui-shadow-1)",
+  "--neutral_6: var(--cui-neutral-600)",
+  "--focus-ring-color: var(--cui-focus-ring)",
+  "--bgColorTransition: var(--cui-transition-background-color)",
+  "--cui-color-primary-500",
+  "--cui-color-primary-600",
+  "--cui-color-quintenary-500",
+  "--cui-color-quintenary-600",
 ]
 
 assert(sliderSource.startsWith('"use client"'), "Slider must preserve the client component boundary")
@@ -111,9 +111,9 @@ requiredStyleSelectors.forEach((selector) => {
 requiredCompatibilityAliases.forEach((cssVariable) => {
   assert(compatibilityBridgeSource.includes(cssVariable), `Slider compatibility bridge must define ${cssVariable}`)
 })
-assert(stylesSource.includes("var(--aui-control-border)"), "Slider styles must read the default control border role")
+assert(stylesSource.includes("var(--cui-control-border)"), "Slider styles must read the default control border role")
 assert(
-  stylesSource.includes("var(--aui-control-foreground)"),
+  stylesSource.includes("var(--cui-control-foreground)"),
   "Slider styles must read the default control foreground role",
 )
 
@@ -194,8 +194,8 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "Slider packet must record default theme contract pressure")
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-border") &&
-    defaultContractRequirement.cssVariables.includes("--aui-control-foreground"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-border") &&
+    defaultContractRequirement.cssVariables.includes("--cui-control-foreground"),
   "Slider packet must record default control role pressure",
 )
 

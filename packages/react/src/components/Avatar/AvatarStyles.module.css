@@ -5,8 +5,8 @@
   place-items: center;
   overflow: hidden;
   user-select: none;
-  background: var(--background, var(--aui-surface-foreground));
-  color: var(--foreground, var(--aui-surface));
+  background: var(--background, var(--cui-surface-foreground));
+  color: var(--foreground, var(--cui-surface));
 }
 
 .avatar--clickable:hover {
@@ -14,11 +14,11 @@
 }
 
 .avatar--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .avatar--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .avatar--round {

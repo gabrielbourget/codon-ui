@@ -71,22 +71,22 @@ const requiredPackageFileSources = [
   "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-radius-1",
-  "--aui-radius-2",
-  "--aui-shadow-1",
-  "--aui-focus-ring",
-  "--aui-z-index-toast",
-  "--aui-control-placeholder",
-  "--aui-control-selected-background",
-  "--aui-control-selected-foreground",
-  "--aui-status-warning",
-  "--aui-status-danger",
-  "--aui-status-success",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-radius-1",
+  "--cui-radius-2",
+  "--cui-shadow-1",
+  "--cui-focus-ring",
+  "--cui-z-index-toast",
+  "--cui-control-placeholder",
+  "--cui-control-selected-background",
+  "--cui-control-selected-foreground",
+  "--cui-status-warning",
+  "--cui-status-danger",
+  "--cui-status-success",
 ]
 const expectedPublicExports = [
   "Toaster",
@@ -227,7 +227,7 @@ requiredDefaultThemeVariables.forEach((cssVariable) => {
   assert(defaultContractRequirement.cssVariables.includes(cssVariable), `Toaster packet must record ${cssVariable}`)
 })
 assert(
-  packet.importResolutions.some((resolution) => resolution.replacementSource === "--aui-z-index-toast"),
+  packet.importResolutions.some((resolution) => resolution.replacementSource === "--cui-z-index-toast"),
   "Toaster packet must record toast z-index rewrite",
 )
 assert(

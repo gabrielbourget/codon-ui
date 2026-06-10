@@ -69,21 +69,21 @@ const requiredStyleSelectors = [
   ".button--raised",
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-100",
-  "--aui-color-primary-200",
-  "--aui-color-primary-500",
-  "--aui-color-primary-600",
-  "--aui-color-primary-700",
-  "--aui-action-primary-background",
-  "--aui-action-primary-background-hover",
-  "--aui-action-primary-background-pressed",
-  "--aui-action-primary-border",
-  "--aui-action-primary-foreground",
-  "--aui-action-quintenary-background",
-  "--aui-action-quintenary-background-hover",
-  "--aui-action-quintenary-background-pressed",
-  "--aui-action-quintenary-border",
-  "--aui-action-quintenary-foreground",
+  "--cui-color-primary-100",
+  "--cui-color-primary-200",
+  "--cui-color-primary-500",
+  "--cui-color-primary-600",
+  "--cui-color-primary-700",
+  "--cui-action-primary-background",
+  "--cui-action-primary-background-hover",
+  "--cui-action-primary-background-pressed",
+  "--cui-action-primary-border",
+  "--cui-action-primary-foreground",
+  "--cui-action-quintenary-background",
+  "--cui-action-quintenary-background-hover",
+  "--cui-action-quintenary-background-pressed",
+  "--cui-action-quintenary-border",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(buttonSource.includes('from "react-aria-components"'), "Button must import React Aria Button")
@@ -117,18 +117,18 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `Button CSS module must include ${selector}`)
 })
 ;[
-  "var(--aui-space-1)",
-  "var(--aui-opacity-disabled)",
-  "var(--aui-focus-ring)",
-  "var(--aui-radius-1)",
-  "var(--aui-shadow-1)",
-  "var(--aui-transition-background-color)",
-  "var(--aui-transition-border-color)",
-  "var(--aui-transition-box-shadow)",
-  "var(--aui-background)",
-  "var(--aui-action-primary-background)",
-  "var(--aui-action-primary-background-hover)",
-  "var(--aui-action-primary-background-pressed)",
+  "var(--cui-space-1)",
+  "var(--cui-opacity-disabled)",
+  "var(--cui-focus-ring)",
+  "var(--cui-radius-1)",
+  "var(--cui-shadow-1)",
+  "var(--cui-transition-background-color)",
+  "var(--cui-transition-border-color)",
+  "var(--cui-transition-box-shadow)",
+  "var(--cui-background)",
+  "var(--cui-action-primary-background)",
+  "var(--cui-action-primary-background-hover)",
+  "var(--cui-action-primary-background-pressed)",
 ].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `Button CSS must read ${cssValue}`)
 })

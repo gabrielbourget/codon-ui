@@ -3,7 +3,7 @@
   isolation: isolate; /* Its z-indexes won’t leak out */
   overflow: visible;
   background: transparent;
-  transition: var(--aui-transition-background-color), var(--aui-transition-color);
+  transition: var(--cui-transition-background-color), var(--cui-transition-color);
 }
 
 .tableRow > td,
@@ -15,14 +15,14 @@
 
 .tableRow--rounded > td:first-child,
 .tableRow--rounded > [role="cell"]:first-child {
-  border-top-left-radius: var(--aui-radius-1);
-  border-bottom-left-radius: var(--aui-radius-1);
+  border-top-left-radius: var(--cui-radius-1);
+  border-bottom-left-radius: var(--cui-radius-1);
 }
 
 .tableRow--rounded > td:last-child,
 .tableRow--rounded > [role="cell"]:last-child {
-  border-top-right-radius: var(--aui-radius-1);
-  border-bottom-right-radius: var(--aui-radius-1);
+  border-top-right-radius: var(--cui-radius-1);
+  border-bottom-right-radius: var(--cui-radius-1);
 }
 
 .tableRow--round > td:first-child,
@@ -50,11 +50,11 @@
 }
 
 .tableRow[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .tableRow:focus-visible {
-  outline: 2px solid var(--aui-focus-ring);
+  outline: 2px solid var(--cui-focus-ring);
 }
 
 [data-clickable-rows="true"] .tableRow:hover {

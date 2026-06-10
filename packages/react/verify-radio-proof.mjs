@@ -58,18 +58,18 @@ const requiredThemePressure = [
   "--disabledOpacity",
   "--focus-ring-color",
   "--border_radius_1",
-  "--aui-color-primary-100",
-  "--aui-color-primary-700",
-  "--aui-color-quintenary-700",
+  "--cui-color-primary-100",
+  "--cui-color-primary-700",
+  "--cui-color-quintenary-700",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--text-color: var(--aui-foreground)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--border_radius_1: var(--aui-radius-1)",
-  "--focus-ring-color: var(--aui-focus-ring)",
-  "--aui-color-primary-100",
-  "--aui-color-quintenary-700",
+  "--distance_1: var(--cui-space-1)",
+  "--text-color: var(--cui-foreground)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--border_radius_1: var(--cui-radius-1)",
+  "--focus-ring-color: var(--cui-focus-ring)",
+  "--cui-color-primary-100",
+  "--cui-color-quintenary-700",
 ]
 
 assert(radioSource.startsWith('"use client"'), "Radio must preserve the client component boundary")

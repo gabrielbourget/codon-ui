@@ -104,15 +104,15 @@ assert(helpersSource.includes("export type TFormFieldProps"), "FormField helpers
 assert(helpersSource.includes("PropsWithChildren"), "FormField public props must include children")
 assert(helpersSource.includes("export const calibrateComponent"), "FormField calibration helper must remain local")
 assert(
-  helpersSource.includes("var(--aui-validation-error-foreground, var(--aui-state-danger))"),
+  helpersSource.includes("var(--cui-validation-error-foreground, var(--cui-state-danger))"),
   "FormField error color must keep Wavemap alias with default theme fallback",
 )
 assert(
-  helpersSource.includes("var(--aui-validation-warning-foreground, var(--aui-state-warning))"),
+  helpersSource.includes("var(--cui-validation-warning-foreground, var(--cui-state-warning))"),
   "FormField warning color must keep Wavemap alias with default theme fallback",
 )
 assert(
-  helpersSource.includes("var(--aui-validation-success-foreground, var(--aui-state-success))"),
+  helpersSource.includes("var(--cui-validation-success-foreground, var(--cui-state-success))"),
   "FormField success color must keep Wavemap alias with default theme fallback",
 )
 ;[formFieldSource, helpersSource, stylesSource].forEach((source) => {
@@ -125,9 +125,9 @@ assert(
 requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `FormField CSS module must include ${selector}`)
 })
-assert(stylesSource.includes("var(--aui-space-1)"), "FormField CSS must read default spacing token")
-assert(stylesSource.includes("var(--aui-shadow-1)"), "FormField CSS must read default shadow token")
-assert(stylesSource.includes("var(--aui-state-danger)"), "FormField CSS must provide state danger fallback")
+assert(stylesSource.includes("var(--cui-space-1)"), "FormField CSS must read default spacing token")
+assert(stylesSource.includes("var(--cui-shadow-1)"), "FormField CSS must read default shadow token")
+assert(stylesSource.includes("var(--cui-state-danger)"), "FormField CSS must provide state danger fallback")
 assert(!stylesSource.includes("--distance_1"), "FormField CSS must not read legacy distance alias")
 assert(!stylesSource.includes("--shadow_1"), "FormField CSS must not read legacy shadow alias")
 
@@ -211,7 +211,7 @@ const defaultContractRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract",
 )
 assert(defaultContractRequirement, "FormField packet must record default-contract theme pressure")
-;["--aui-space-1", "--aui-shadow-1", "--aui-state-danger", "--aui-state-warning", "--aui-state-success"].forEach(
+;["--cui-space-1", "--cui-shadow-1", "--cui-state-danger", "--cui-state-warning", "--cui-state-success"].forEach(
   (cssVariable) => {
     assert(defaultContractRequirement.cssVariables.includes(cssVariable), `FormField packet must record ${cssVariable}`)
   },
@@ -221,9 +221,9 @@ const consumerOwnedRequirement = packet.themeRequirements.find(
 )
 assert(consumerOwnedRequirement, "FormField packet must record consumer-owned validation aliases")
 ;[
-  "--aui-validation-error-foreground",
-  "--aui-validation-warning-foreground",
-  "--aui-validation-success-foreground",
+  "--cui-validation-error-foreground",
+  "--cui-validation-warning-foreground",
+  "--cui-validation-success-foreground",
 ].forEach((cssVariable) => {
   assert(consumerOwnedRequirement.cssVariables.includes(cssVariable), `FormField packet must record ${cssVariable}`)
 })

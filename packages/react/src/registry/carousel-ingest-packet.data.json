@@ -205,13 +205,13 @@
     {
       "sourcePath": "packages/react/src/components/Carousel/components/CarouselDots/CarouselDotsStyles.module.css",
       "importSource": "legacy Carousel dot CSS aliases",
-      "replacementSource": "default --aui-* theme variables and direct opacity transition",
+      "replacementSource": "default --cui-* theme variables and direct opacity transition",
       "notes": ["Carousel dots read default theme spacing, focus, shadow, control, and surface contracts directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
       "importSource": "--distance_1 alias",
-      "replacementSource": "--aui-space-1",
+      "replacementSource": "--cui-space-1",
       "notes": ["CarouselCounter spacing reads the default Amino space scale."]
     }
   ],
@@ -240,12 +240,12 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-space-1",
-        "--aui-focus-ring",
-        "--aui-shadow-1",
-        "--aui-control-border",
-        "--aui-control-selected-background",
-        "--aui-surface"
+        "--cui-space-1",
+        "--cui-focus-ring",
+        "--cui-shadow-1",
+        "--cui-control-border",
+        "--cui-control-selected-background",
+        "--cui-surface"
       ],
       "notes": [
         "Carousel source reads the default theme contract directly and does not need a component-specific compatibility bridge."

@@ -90,7 +90,7 @@ assert(stylesSource.includes(".placeholderText"), "PlaceholderText CSS module mu
 assert(stylesSource.includes(".placeholderText--alignCenter"), "PlaceholderText CSS must include center alignment")
 assert(stylesSource.includes(".placeholderText--alignLeft"), "PlaceholderText CSS must include left alignment")
 assert(
-  stylesSource.includes("var(--aui-control-placeholder)"),
+  stylesSource.includes("var(--cui-control-placeholder)"),
   "PlaceholderText CSS must read default placeholder color",
 )
 assert(!stylesSource.includes("--distance_"), "PlaceholderText CSS must not read legacy distance aliases")
@@ -179,7 +179,7 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "PlaceholderText packet must record default-contract theme pressure")
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-placeholder"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-placeholder"),
   "PlaceholderText packet must record placeholder color pressure",
 )
 

@@ -57,19 +57,19 @@ const requiredThemePressure = [
   "--bgColorTransition",
   "--borderColorTransition",
   "--colorTransition",
-  "--aui-color-primary-100",
-  "--aui-color-primary-700",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--cui-color-primary-100",
+  "--cui-color-primary-700",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--bgColorTransition: var(--aui-transition-background-color)",
-  "--borderColorTransition: var(--aui-transition-border-color)",
-  "--colorTransition: var(--aui-transition-color)",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--distance_1: var(--cui-space-1)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--bgColorTransition: var(--cui-transition-background-color)",
+  "--borderColorTransition: var(--cui-transition-border-color)",
+  "--colorTransition: var(--cui-transition-color)",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(toggleButtonSource.startsWith('"use client"'), "ToggleButton must preserve the client component boundary")

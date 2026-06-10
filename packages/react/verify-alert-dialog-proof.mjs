@@ -90,24 +90,24 @@ const requiredStyleSelectors = [
   ".alertDialog__dialog__buttonRow",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-space-4",
-  "--aui-radius-2",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-shadow-1",
-  "--aui-shadow-2",
-  "--aui-focus-ring",
-  "--aui-z-index-modal",
-  "--aui-control-selected-background",
-  "--aui-control-selected-foreground",
-  "--aui-status-warning",
-  "--aui-status-danger",
-  "--aui-status-success",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-space-4",
+  "--cui-radius-2",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-shadow-1",
+  "--cui-shadow-2",
+  "--cui-focus-ring",
+  "--cui-z-index-modal",
+  "--cui-control-selected-background",
+  "--cui-control-selected-foreground",
+  "--cui-status-warning",
+  "--cui-status-danger",
+  "--cui-status-success",
 ]
 const requiredDefaultIconExports = [
   "AlertDialogDefaultCheckmarkIcon",
@@ -303,7 +303,7 @@ assert(
   "AlertDialog packet must record geometry token import rewrite",
 )
 assert(
-  packet.importResolutions.some((resolution) => resolution.replacementSource === "--aui-z-index-modal"),
+  packet.importResolutions.some((resolution) => resolution.replacementSource === "--cui-z-index-modal"),
   "AlertDialog packet must record modal z-index rewrite",
 )
 

@@ -81,24 +81,24 @@ const expectedRegistryDependencies = [
   "text",
 ]
 const expectedDefaultVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-border",
-  "--aui-control-foreground",
-  "--aui-control-selected-foreground",
-  "--aui-focus-ring",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-surface",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-border",
+  "--cui-control-foreground",
+  "--cui-control-selected-foreground",
+  "--cui-focus-ring",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-surface",
 ]
 const expectedActionVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 const paginationSource = readRequiredText(paginationSourcePath)
@@ -188,15 +188,15 @@ expectedActionVariables.forEach((cssVariable) => {
   assert(actionColorsCSS.includes(`${cssVariable}:`), `action-colors.css must declare ${cssVariable}`)
 })
 assert(
-  cssSources.some((source) => source.includes("var(--aui-space-2)")),
+  cssSources.some((source) => source.includes("var(--cui-space-2)")),
   "Pagination CSS must use space-2",
 )
 assert(
-  cssSources.some((source) => source.includes("var(--aui-animation-fade-in)")),
+  cssSources.some((source) => source.includes("var(--cui-animation-fade-in)")),
   "Pagination CSS must use fade-in",
 )
 assert(
-  cssSources.some((source) => source.includes("var(--aui-focus-ring)")),
+  cssSources.some((source) => source.includes("var(--cui-focus-ring)")),
   "Pagination CSS must use focus-ring",
 )
 
@@ -299,14 +299,14 @@ assert(packet.runtimeDependencies.classnames === "^2.3.2", "Pagination packet mu
 assert(packet.runtimeDependencies.motion === "^12.40.0", "Pagination packet must declare motion through Select")
 assert(
   packet.themeRequirements.some((requirement) =>
-    ["--aui-space-1", "--aui-space-2", "--aui-focus-ring", "--aui-shadow-1", "--aui-border"].every((cssVariable) =>
+    ["--cui-space-1", "--cui-space-2", "--cui-focus-ring", "--cui-shadow-1", "--cui-border"].every((cssVariable) =>
       requirement.cssVariables.includes(cssVariable),
     ),
   ),
   "Pagination packet must record default theme variables",
 )
 assert(
-  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--aui-color-quintenary-500")),
+  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--cui-color-quintenary-500")),
   "Pagination packet must record action color variables",
 )
 assert(

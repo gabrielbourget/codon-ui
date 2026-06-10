@@ -1,91 +1,91 @@
 .tooltip {
   height: fit-content;
   width: fit-content;
-  padding: var(--aui-space-1);
-  background-color: var(--aui-surface-foreground);
-  color: var(--aui-surface);
+  padding: var(--cui-space-1);
+  background-color: var(--cui-surface-foreground);
+  color: var(--cui-surface);
   forced-color-adjust: none;
   outline: none;
   transform: translate3d(0, 0, 0);
 }
 
 .tooltip[data-entering] {
-  animation: var(--aui-animation-fade-in);
+  animation: var(--cui-animation-fade-in);
 }
 .tooltip[data-exiting] {
-  animation: var(--aui-animation-fade-out);
+  animation: var(--cui-animation-fade-out);
 }
 
 .tooltip--raised {
-  filter: var(--aui-drop-shadow-1);
+  filter: var(--cui-drop-shadow-1);
 }
 .tooltip--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .tooltip--primary {
-  background-color: var(--aui-color-primary-500);
+  background-color: var(--cui-color-primary-500);
 }
 .tooltip--secondary {
-  background-color: var(--aui-color-secondary-500);
+  background-color: var(--cui-color-secondary-500);
 }
 .tooltip--tertiary {
-  background-color: var(--aui-color-tertiary-500);
+  background-color: var(--cui-color-tertiary-500);
 }
 .tooltip--quaternary {
-  background-color: var(--aui-color-quaternary-500);
+  background-color: var(--cui-color-quaternary-500);
 }
 .tooltip--quintenary {
-  background-color: var(--aui-color-quintenary-500);
+  background-color: var(--cui-color-quintenary-500);
 }
 
 .tooltip__overlayArrow svg {
   display: block;
-  fill: var(--aui-surface-foreground);
+  fill: var(--cui-surface-foreground);
   box-shadow: none;
-  filter: var(--aui-drop-shadow-1);
+  filter: var(--cui-drop-shadow-1);
 }
 
 .tooltip__overlayArrow--primary svg {
-  fill: var(--aui-color-primary-500);
+  fill: var(--cui-color-primary-500);
 }
 
 .tooltip__overlayArrow--secondary svg {
-  fill: var(--aui-color-secondary-500);
+  fill: var(--cui-color-secondary-500);
 }
 
 .tooltip__overlayArrow--tertiary svg {
-  fill: var(--aui-color-tertiary-500);
+  fill: var(--cui-color-tertiary-500);
 }
 
 .tooltip__overlayArrow--quaternary svg {
-  fill: var(--aui-color-quaternary-500);
+  fill: var(--cui-color-quaternary-500);
 }
 
 .tooltip__overlayArrow--quintenary svg {
-  fill: var(--aui-color-quintenary-500);
+  fill: var(--cui-color-quintenary-500);
 }
 
 .tooltip[data-placement="top"] {
-  margin-bottom: var(--aui-space-2);
+  margin-bottom: var(--cui-space-2);
 }
 
 .tooltip[data-placement="bottom"] {
-  margin-top: var(--aui-space-2);
+  margin-top: var(--cui-space-2);
 }
 .tooltip[data-placement="bottom"] .tooltip__overlayArrow svg {
   transform: rotate(180deg);
 }
 
 .tooltip[data-placement="right"] {
-  margin-left: var(--aui-space-2);
+  margin-left: var(--cui-space-2);
 }
 .tooltip[data-placement="right"] .tooltip__overlayArrow svg {
   transform: rotate(90deg);
 }
 
 .tooltip[data-placement="left"] {
-  margin-right: var(--aui-space-2);
+  margin-right: var(--cui-space-2);
 }
 .tooltip[data-placement="left"] .tooltip__overlayArrow svg {
   transform: rotate(270deg);

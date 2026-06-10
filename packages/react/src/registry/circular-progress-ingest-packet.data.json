@@ -88,7 +88,7 @@
     {
       "sourcePath": "packages/react/src/components/CircularProgress/CircularProgressStyles.module.css",
       "importSource": "Switzer font-family literal",
-      "replacementSource": "var(--aui-font-family-body, sans-serif)",
+      "replacementSource": "var(--cui-font-family-body, sans-serif)",
       "notes": ["The package source keeps typography neutral and does not ship Wavemap font files."]
     },
     {
@@ -120,21 +120,21 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-control-selected-background",
-        "--aui-surface-muted",
-        "--aui-surface-foreground",
-        "--aui-surface"
+        "--cui-control-selected-background",
+        "--cui-surface-muted",
+        "--cui-surface-foreground",
+        "--cui-surface"
       ],
       "notes": ["These variables are already part of the package default theme contract."]
     },
     {
       "strategy": "proof-compatibility-bridge",
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "files": [
         {
@@ -151,9 +151,9 @@
     },
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-font-family-body"],
+      "cssVariables": ["--cui-font-family-body"],
       "notes": [
-        "CircularProgress SVG text uses var(--aui-font-family-body, sans-serif) and does not require Wavemap font files."
+        "CircularProgress SVG text uses var(--cui-font-family-body, sans-serif) and does not require Wavemap font files."
       ]
     }
   ],

@@ -1,38 +1,64 @@
 /* Proof bridge only: keep received Slider source renderable before the broader control palette contract is settled. */
 :root {
-  --border_radius_1: var(--aui-radius-1);
-  --shadow_1: var(--aui-shadow-1);
-  --neutral_6: var(--aui-neutral-600);
-  --focus-ring-color: var(--aui-focus-ring);
-  --bgColorTransition: var(--aui-transition-background-color);
+  --border_radius_1: var(--cui-radius-1);
+  --shadow_1: var(--cui-shadow-1);
+  --neutral_6: var(--cui-neutral-600);
+  --focus-ring-color: var(--cui-focus-ring);
+  --bgColorTransition: var(--cui-transition-background-color);
 
-  --aui-color-primary-100: color-mix(in srgb, var(--aui-control-selected-background) 15%, var(--aui-background) 85%);
-  --aui-color-primary-200: color-mix(in srgb, var(--aui-control-selected-background) 30%, var(--aui-background) 70%);
-  --aui-color-primary-500: var(--aui-control-selected-background);
-  --aui-color-primary-600: color-mix(in srgb, var(--aui-control-selected-background) 85%, var(--aui-foreground) 15%);
-  --aui-color-primary-700: color-mix(in srgb, var(--aui-control-selected-background) 75%, var(--aui-foreground) 25%);
+  --aui-color-primary-100: color-mix(in srgb, var(--cui-control-selected-background) 15%, var(--cui-background) 85%);
+  --aui-color-primary-200: color-mix(in srgb, var(--cui-control-selected-background) 30%, var(--cui-background) 70%);
+  --aui-color-primary-500: var(--cui-control-selected-background);
+  --aui-color-primary-600: color-mix(in srgb, var(--cui-control-selected-background) 85%, var(--cui-foreground) 15%);
+  --aui-color-primary-700: color-mix(in srgb, var(--cui-control-selected-background) 75%, var(--cui-foreground) 25%);
 
-  --aui-color-secondary-100: color-mix(in srgb, var(--aui-control-pressed-background) 15%, var(--aui-background) 85%);
-  --aui-color-secondary-200: color-mix(in srgb, var(--aui-control-pressed-background) 30%, var(--aui-background) 70%);
-  --aui-color-secondary-500: var(--aui-control-pressed-background);
-  --aui-color-secondary-600: color-mix(in srgb, var(--aui-control-pressed-background) 85%, var(--aui-foreground) 15%);
-  --aui-color-secondary-700: color-mix(in srgb, var(--aui-control-pressed-background) 75%, var(--aui-foreground) 25%);
+  --aui-color-secondary-100: color-mix(in srgb, var(--cui-control-pressed-background) 15%, var(--cui-background) 85%);
+  --aui-color-secondary-200: color-mix(in srgb, var(--cui-control-pressed-background) 30%, var(--cui-background) 70%);
+  --aui-color-secondary-500: var(--cui-control-pressed-background);
+  --aui-color-secondary-600: color-mix(in srgb, var(--cui-control-pressed-background) 85%, var(--cui-foreground) 15%);
+  --aui-color-secondary-700: color-mix(in srgb, var(--cui-control-pressed-background) 75%, var(--cui-foreground) 25%);
 
-  --aui-color-tertiary-100: color-mix(in srgb, var(--aui-state-success) 15%, var(--aui-background) 85%);
-  --aui-color-tertiary-200: color-mix(in srgb, var(--aui-state-success) 30%, var(--aui-background) 70%);
-  --aui-color-tertiary-500: var(--aui-state-success);
-  --aui-color-tertiary-600: color-mix(in srgb, var(--aui-state-success) 85%, var(--aui-foreground) 15%);
-  --aui-color-tertiary-700: color-mix(in srgb, var(--aui-state-success) 75%, var(--aui-foreground) 25%);
+  --aui-color-tertiary-100: color-mix(in srgb, var(--cui-state-success) 15%, var(--cui-background) 85%);
+  --aui-color-tertiary-200: color-mix(in srgb, var(--cui-state-success) 30%, var(--cui-background) 70%);
+  --aui-color-tertiary-500: var(--cui-state-success);
+  --aui-color-tertiary-600: color-mix(in srgb, var(--cui-state-success) 85%, var(--cui-foreground) 15%);
+  --aui-color-tertiary-700: color-mix(in srgb, var(--cui-state-success) 75%, var(--cui-foreground) 25%);
 
-  --aui-color-quaternary-100: color-mix(in srgb, var(--aui-state-warning) 15%, var(--aui-background) 85%);
-  --aui-color-quaternary-200: color-mix(in srgb, var(--aui-state-warning) 30%, var(--aui-background) 70%);
-  --aui-color-quaternary-500: var(--aui-state-warning);
-  --aui-color-quaternary-600: color-mix(in srgb, var(--aui-state-warning) 85%, var(--aui-foreground) 15%);
-  --aui-color-quaternary-700: color-mix(in srgb, var(--aui-state-warning) 75%, var(--aui-foreground) 25%);
+  --aui-color-quaternary-100: color-mix(in srgb, var(--cui-state-warning) 15%, var(--cui-background) 85%);
+  --aui-color-quaternary-200: color-mix(in srgb, var(--cui-state-warning) 30%, var(--cui-background) 70%);
+  --aui-color-quaternary-500: var(--cui-state-warning);
+  --aui-color-quaternary-600: color-mix(in srgb, var(--cui-state-warning) 85%, var(--cui-foreground) 15%);
+  --aui-color-quaternary-700: color-mix(in srgb, var(--cui-state-warning) 75%, var(--cui-foreground) 25%);
 
-  --aui-color-quintenary-100: color-mix(in srgb, var(--aui-state-danger) 15%, var(--aui-background) 85%);
-  --aui-color-quintenary-200: color-mix(in srgb, var(--aui-state-danger) 30%, var(--aui-background) 70%);
-  --aui-color-quintenary-500: var(--aui-state-danger);
-  --aui-color-quintenary-600: color-mix(in srgb, var(--aui-state-danger) 85%, var(--aui-foreground) 15%);
-  --aui-color-quintenary-700: color-mix(in srgb, var(--aui-state-danger) 75%, var(--aui-foreground) 25%);
+  --aui-color-quintenary-100: color-mix(in srgb, var(--cui-state-danger) 15%, var(--cui-background) 85%);
+  --aui-color-quintenary-200: color-mix(in srgb, var(--cui-state-danger) 30%, var(--cui-background) 70%);
+  --aui-color-quintenary-500: var(--cui-state-danger);
+  --aui-color-quintenary-600: color-mix(in srgb, var(--cui-state-danger) 85%, var(--cui-foreground) 15%);
+  --aui-color-quintenary-700: color-mix(in srgb, var(--cui-state-danger) 75%, var(--cui-foreground) 25%);
+
+  --cui-color-primary-100: var(--aui-color-primary-100);
+  --cui-color-primary-200: var(--aui-color-primary-200);
+  --cui-color-primary-500: var(--aui-color-primary-500);
+  --cui-color-primary-600: var(--aui-color-primary-600);
+  --cui-color-primary-700: var(--aui-color-primary-700);
+  --cui-color-secondary-100: var(--aui-color-secondary-100);
+  --cui-color-secondary-200: var(--aui-color-secondary-200);
+  --cui-color-secondary-500: var(--aui-color-secondary-500);
+  --cui-color-secondary-600: var(--aui-color-secondary-600);
+  --cui-color-secondary-700: var(--aui-color-secondary-700);
+  --cui-color-tertiary-100: var(--aui-color-tertiary-100);
+  --cui-color-tertiary-200: var(--aui-color-tertiary-200);
+  --cui-color-tertiary-500: var(--aui-color-tertiary-500);
+  --cui-color-tertiary-600: var(--aui-color-tertiary-600);
+  --cui-color-tertiary-700: var(--aui-color-tertiary-700);
+  --cui-color-quaternary-100: var(--aui-color-quaternary-100);
+  --cui-color-quaternary-200: var(--aui-color-quaternary-200);
+  --cui-color-quaternary-500: var(--aui-color-quaternary-500);
+  --cui-color-quaternary-600: var(--aui-color-quaternary-600);
+  --cui-color-quaternary-700: var(--aui-color-quaternary-700);
+  --cui-color-quintenary-100: var(--aui-color-quintenary-100);
+  --cui-color-quintenary-200: var(--aui-color-quintenary-200);
+  --cui-color-quintenary-500: var(--aui-color-quintenary-500);
+  --cui-color-quintenary-600: var(--aui-color-quintenary-600);
+  --cui-color-quintenary-700: var(--aui-color-quintenary-700);
 }

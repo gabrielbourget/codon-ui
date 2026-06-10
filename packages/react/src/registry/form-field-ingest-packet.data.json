@@ -62,13 +62,13 @@
     {
       "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
       "importSource": "--distance_1 / --shadow_1 aliases",
-      "replacementSource": "--aui-space-1 / --aui-shadow-1",
+      "replacementSource": "--cui-space-1 / --cui-shadow-1",
       "notes": ["FormField CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/FormField/helpers.ts",
-      "importSource": "--aui-validation-*-foreground only",
-      "replacementSource": "validation foreground aliases with --aui-state-* fallbacks",
+      "importSource": "--cui-validation-*-foreground only",
+      "replacementSource": "validation foreground aliases with --cui-state-* fallbacks",
       "notes": [
         "Wavemap can keep existing validation aliases while default Amino theme consumers resolve state colors."
       ]
@@ -107,11 +107,11 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-space-1",
-        "--aui-shadow-1",
-        "--aui-state-danger",
-        "--aui-state-warning",
-        "--aui-state-success"
+        "--cui-space-1",
+        "--cui-shadow-1",
+        "--cui-state-danger",
+        "--cui-state-warning",
+        "--cui-state-success"
       ],
       "notes": [
         "FormField source reads the default theme contract directly and does not need a component-specific compatibility bridge."
@@ -120,9 +120,9 @@
     {
       "strategy": "consumer-owned",
       "cssVariables": [
-        "--aui-validation-error-foreground",
-        "--aui-validation-warning-foreground",
-        "--aui-validation-success-foreground"
+        "--cui-validation-error-foreground",
+        "--cui-validation-warning-foreground",
+        "--cui-validation-success-foreground"
       ],
       "notes": [
         "Wavemap already defines validation foreground aliases; FormField keeps those aliases as first-choice values with default state fallbacks for new consumers."

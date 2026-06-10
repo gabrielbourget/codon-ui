@@ -74,7 +74,7 @@
     {
       "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
       "importSource": "--distance_1, --disabledOpacity, --border_radius_1, --shadow_1, --focus-ring-color, --bgColorTransition, --borderColorTransition, --boxShadowTransition, --colorTransition",
-      "replacementSource": "--aui-space-1, --aui-opacity-disabled, --aui-radius-1, --aui-shadow-1, --aui-focus-ring, --aui-transition-background-color, --aui-transition-border-color, --aui-transition-box-shadow, --aui-transition-color",
+      "replacementSource": "--cui-space-1, --cui-opacity-disabled, --cui-radius-1, --cui-shadow-1, --cui-focus-ring, --cui-transition-background-color, --cui-transition-border-color, --cui-transition-box-shadow, --cui-transition-color",
       "notes": ["Legacy Wavemap CSS aliases are rewritten directly to the default Amino theme contract."]
     }
   ],
@@ -102,32 +102,32 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-border-muted",
-        "--aui-control-background",
-        "--aui-control-foreground",
-        "--aui-control-hover-background",
-        "--aui-control-selected-background",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-surface-muted",
-        "--aui-transition-background-color",
-        "--aui-transition-border-color",
-        "--aui-transition-box-shadow",
-        "--aui-transition-color"
+        "--cui-border-muted",
+        "--cui-control-background",
+        "--cui-control-foreground",
+        "--cui-control-hover-background",
+        "--cui-control-selected-background",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-surface-muted",
+        "--cui-transition-background-color",
+        "--cui-transition-border-color",
+        "--cui-transition-box-shadow",
+        "--cui-transition-color"
       ],
       "notes": ["These variables are already part of the package default theme contract."]
     },
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "files": [
         {

@@ -12,7 +12,7 @@
   place-items: center;
   height: auto;
   width: auto;
-  padding: var(--aui-space-1);
-  border-radius: var(--aui-radius-1);
-  background: var(--aui-surface-muted);
+  padding: var(--cui-space-1);
+  border-radius: var(--cui-radius-1);
+  background: var(--cui-surface-muted);
 }

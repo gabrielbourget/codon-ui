@@ -46,7 +46,7 @@ const themeCSS = readRequiredText(themeCSSPath)
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|api-contract|media|upload|saved|localStorage|@\/src\//u
 const forbiddenLegacyCssPattern =
-  /--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--aui-validation/u
+  /--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--cui-validation/u
 
 const requiredPackageFileSources = [
   "packages/react/src/components/Table/Table.tsx",
@@ -121,16 +121,16 @@ const expectedPublicExports = [
   "SortParameterListProps",
 ]
 const expectedDefaultThemeVariables = [
-  "--aui-control-foreground",
-  "--aui-control-selected-background",
-  "--aui-focus-ring",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-surface-muted",
-  "--aui-transition-background-color",
-  "--aui-transition-color",
+  "--cui-control-foreground",
+  "--cui-control-selected-background",
+  "--cui-focus-ring",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-surface-muted",
+  "--cui-transition-background-color",
+  "--cui-transition-color",
 ]
 
 assert(packet.name === "table", "Table packet must describe the public table registry item")
@@ -295,7 +295,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "Table packet must record spacing CSS variable rewrites",
 )

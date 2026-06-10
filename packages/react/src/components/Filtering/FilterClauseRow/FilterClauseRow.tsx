@@ -293,11 +293,11 @@ const FilterClauseRow: FC<TFilterClauseRowProps> = (props) => {
           customClassName={deleteButtonStyles}
           customStyles={{ padding: 0, ...customDeleteButtonStyles }}
           onPress={() => onDeleteFilterClause(clause.id)}
-          hoverColor="var(--aui-control-selected-background)"
+          hoverColor="var(--cui-control-selected-background)"
         >
           <FilterClauseRowDefaultDeleteIcon
             size={15}
-            color="var(--aui-control-foreground)"
+            color="var(--cui-control-foreground)"
             data-testid="filter-clause-row-default-delete-icon"
           />
         </Button>

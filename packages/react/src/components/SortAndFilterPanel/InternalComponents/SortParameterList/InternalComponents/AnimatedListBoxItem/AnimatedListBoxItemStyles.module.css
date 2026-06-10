@@ -2,31 +2,31 @@
   height: auto;
   min-height: 20px;
   width: 100%;
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
   display: flex;
   align-items: center;
-  transition: var(--aui-transition-background-color);
+  transition: var(--cui-transition-background-color);
 }
 
 .listBoxItem[data-hovered] {
   outline: none;
-  background-color: var(--aui-control-hover-background);
+  background-color: var(--cui-control-hover-background);
   cursor: pointer;
 }
 
 .listBoxItem[data-focused] {
   outline: none;
-  background-color: var(--aui-control-hover-background);
+  background-color: var(--cui-control-hover-background);
 }
 
 .listBoxItem[data-selected] {
   outline: none;
-  background-color: var(--aui-control-hover-background);
+  background-color: var(--cui-control-hover-background);
 }
 
 .listBoxItem[data-disabled="true"] {
   pointer-events: none;
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 
 .listBoxItem[data-disabled="true"]:hover {

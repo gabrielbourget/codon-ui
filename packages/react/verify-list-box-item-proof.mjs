@@ -53,11 +53,11 @@ const requiredStyleSelectors = [
   ".listBoxItem:visited",
 ]
 const requiredDefaultVariables = [
-  "--aui-space-1",
-  "--aui-radius-1",
-  "--aui-transition-background-color",
-  "--aui-control-hover-background",
-  "--aui-opacity-disabled",
+  "--cui-space-1",
+  "--cui-radius-1",
+  "--cui-transition-background-color",
+  "--cui-control-hover-background",
+  "--cui-opacity-disabled",
 ]
 
 const listBoxItemSource = readRequiredText(listBoxItemSourcePath)
@@ -207,7 +207,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "ListBoxItem packet must record legacy CSS variable rewrite",
 )

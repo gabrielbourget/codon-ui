@@ -24,16 +24,16 @@
 .linearProgress__track {
   width: 100%;
   height: 100%;
-  border: 1px solid var(--aui-control-border);
+  border: 1px solid var(--cui-control-border);
   background-color: inherit;
 }
 
 .linearProgress__track--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .linearProgress__track--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .linearProgress__track--round {
@@ -42,11 +42,11 @@
 
 .linearProgress__bar {
   height: 100%;
-  background-color: var(--aui-control-selected-background);
+  background-color: var(--cui-control-selected-background);
 }
 
 .linearProgress__bar--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .linearProgress__bar--round {
@@ -54,21 +54,21 @@
 }
 
 .linearProgress__bar--primary {
-  background-color: var(--aui-color-primary-500);
+  background-color: var(--cui-color-primary-500);
 }
 
 .linearProgress__bar--secondary {
-  background-color: var(--aui-color-secondary-500);
+  background-color: var(--cui-color-secondary-500);
 }
 
 .linearProgress__bar--tertiary {
-  background-color: var(--aui-color-tertiary-500);
+  background-color: var(--cui-color-tertiary-500);
 }
 
 .linearProgress__bar--quaternary {
-  background-color: var(--aui-color-quaternary-500);
+  background-color: var(--cui-color-quaternary-500);
 }
 
 .linearProgress__bar--quintenary {
-  background-color: var(--aui-color-quintenary-500);
+  background-color: var(--cui-color-quintenary-500);
 }

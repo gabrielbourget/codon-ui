@@ -89,24 +89,24 @@ assert(dotsSource.includes('styles["sr-only"]'), "CarouselDots must use CSS-modu
   assert(!forbiddenLegacyCssPattern.test(source), "Carousel CSS must not read legacy Wavemap aliases")
 })
 ;[
-  "var(--aui-space-1)",
-  "var(--aui-focus-ring)",
-  "var(--aui-shadow-1)",
-  "var(--aui-control-border)",
-  "var(--aui-control-selected-background)",
-  "var(--aui-surface)",
+  "var(--cui-space-1)",
+  "var(--cui-focus-ring)",
+  "var(--cui-shadow-1)",
+  "var(--cui-control-border)",
+  "var(--cui-control-selected-background)",
+  "var(--cui-surface)",
   "opacity 250ms ease",
 ].forEach((cssValue) => {
-  const source = cssValue === "var(--aui-surface)" ? counterStylesSource : dotsStylesSource + counterStylesSource
+  const source = cssValue === "var(--cui-surface)" ? counterStylesSource : dotsStylesSource + counterStylesSource
   assert(source.includes(cssValue), `Carousel CSS must read ${cssValue}`)
 })
 ;[
-  "--aui-space-1",
-  "--aui-focus-ring",
-  "--aui-shadow-1",
-  "--aui-control-border",
-  "--aui-control-selected-background",
-  "--aui-surface",
+  "--cui-space-1",
+  "--cui-focus-ring",
+  "--cui-shadow-1",
+  "--cui-control-border",
+  "--cui-control-selected-background",
+  "--cui-surface",
 ].forEach((cssVariable) => {
   assert(themeCSSSource.includes(`${cssVariable}:`), `theme.css must define ${cssVariable}`)
 })

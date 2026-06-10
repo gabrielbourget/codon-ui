@@ -52,7 +52,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-border"],
+      "cssVariables": ["--cui-border"],
       "notes": ["LineSegment's default color reads the default Amino theme border variable directly."]
     }
   ],

@@ -32,8 +32,8 @@ const {
 } = styles
 
 const SORT_AND_FILTER_PANEL_GEOMETRY__ROUND = "round"
-const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--aui-color-primary-500)"
-const SORT_AND_FILTER_PANEL_PRIMARY_FOREGROUND_COLOR = "var(--aui-control-selected-foreground)"
+const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--cui-color-primary-500)"
+const SORT_AND_FILTER_PANEL_PRIMARY_FOREGROUND_COLOR = "var(--cui-control-selected-foreground)"
 
 const joinOperatorOptions: { id: TTableFilterJoinOperator }[] = [
   {

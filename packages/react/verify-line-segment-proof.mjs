@@ -65,7 +65,7 @@ assert(
   "LineSegment must preserve its local direction vocabulary",
 )
 assert(lineSegmentSource.includes("export type TLineSegmentProps"), "LineSegment must export local props")
-assert(lineSegmentSource.includes('color = "var(--aui-border)"'), "LineSegment must use the Amino border default")
+assert(lineSegmentSource.includes('color = "var(--cui-border)"'), "LineSegment must use the Amino border default")
 assert(
   lineSegmentSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
   "LineSegment must default horizontal",
@@ -91,7 +91,7 @@ assert(
 assert(!forbiddenConsumerImportsPattern.test(lineSegmentSource), "LineSegment must not import consumer-only modules")
 assert(!lineSegmentSource.includes("theme/line-segment-compatibility"), "LineSegment must not need a bridge item")
 
-assert(themeCSS.includes("--aui-border:"), "theme.css must declare --aui-border")
+assert(themeCSS.includes("--cui-border:"), "theme.css must declare --cui-border")
 assert(
   publicIndexSource.includes('export { LineSegment } from "./components/LineSegment"'),
   "Package index must export LineSegment",
@@ -169,7 +169,7 @@ assert(
 assert(packet.peerDependencies.react, "LineSegment packet must declare React peer dependency")
 assert(packet.runtimeDependencies.classnames === "^2.3.2", "LineSegment packet must declare classnames")
 assert(
-  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--aui-border")),
+  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--cui-border")),
   "LineSegment packet must record the default border variable",
 )
 assert(packet.importResolutions.length === 0, "LineSegment packet must not need import rewrites")

@@ -55,7 +55,7 @@
     {
       "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
       "importSource": "--distance_1 / --border_radius_1 / --bgColorTransition / --disabledOpacity aliases",
-      "replacementSource": "--aui-space-1 / --aui-radius-1 / --aui-transition-background-color / --aui-opacity-disabled",
+      "replacementSource": "--cui-space-1 / --cui-radius-1 / --cui-transition-background-color / --cui-opacity-disabled",
       "notes": ["ListBoxItem CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
@@ -92,11 +92,11 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-space-1",
-        "--aui-radius-1",
-        "--aui-transition-background-color",
-        "--aui-control-hover-background",
-        "--aui-opacity-disabled"
+        "--cui-space-1",
+        "--cui-radius-1",
+        "--cui-transition-background-color",
+        "--cui-control-hover-background",
+        "--cui-opacity-disabled"
       ],
       "notes": [
         "ListBoxItem source reads the default theme contract directly and does not need a component-specific compatibility bridge."

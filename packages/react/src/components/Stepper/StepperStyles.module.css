@@ -3,19 +3,19 @@
   width: auto;
   display: flex;
   align-items: center;
-  transition: var(--aui-transition-border-color), var(--aui-transition-color);
-  border-radius: var(--aui-radius-1);
+  transition: var(--cui-transition-border-color), var(--cui-transition-color);
+  border-radius: var(--cui-radius-1);
 }
 
 .stepper::placeholder {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
   font-style: italic;
   font-size: 12px;
   opacity: 1;
 }
 
 .stepper[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 .stepper[data-disabled]:hover {
   cursor: not-allowed;
@@ -25,7 +25,7 @@
   outline: none;
 }
 .stepper--applyFocusStyle[data-focus-within] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 .stepper--noFocusStyle[data-focus-within] {
   outline: none;
@@ -35,13 +35,13 @@
 }
 
 .stepper--errorState {
-  border-color: var(--aui-state-danger);
+  border-color: var(--cui-state-danger);
 }
 .stepper--warningState {
-  border-color: var(--aui-state-warning);
+  border-color: var(--cui-state-warning);
 }
 .stepper--successState {
-  border-color: var(--aui-state-success);
+  border-color: var(--cui-state-success);
 }
 
 .stepper__group {
@@ -64,63 +64,63 @@
 }
 
 .stepper__group--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 .stepper__group--round {
   border-radius: 50%;
 }
 
 .stepper__group--cohesive--fill {
-  background-color: var(--aui-control-foreground);
-  color: var(--aui-control-background);
+  background-color: var(--cui-control-foreground);
+  color: var(--cui-control-background);
 }
 .stepper__group--cohesive--fill--primary {
-  background-color: var(--aui-action-primary-background);
-  color: var(--aui-action-primary-foreground);
+  background-color: var(--cui-action-primary-background);
+  color: var(--cui-action-primary-foreground);
 }
 .stepper__group--cohesive--fill--secondary {
-  background-color: var(--aui-action-secondary-background);
-  color: var(--aui-action-secondary-foreground);
+  background-color: var(--cui-action-secondary-background);
+  color: var(--cui-action-secondary-foreground);
 }
 .stepper__group--cohesive--fill--tertiary {
-  background-color: var(--aui-action-tertiary-background);
-  color: var(--aui-action-tertiary-foreground);
+  background-color: var(--cui-action-tertiary-background);
+  color: var(--cui-action-tertiary-foreground);
 }
 .stepper__group--cohesive--fill--quaternary {
-  background-color: var(--aui-action-quaternary-background);
-  color: var(--aui-action-quaternary-foreground);
+  background-color: var(--cui-action-quaternary-background);
+  color: var(--cui-action-quaternary-foreground);
 }
 .stepper__group--cohesive--fill--quintenary {
-  background-color: var(--aui-action-quintenary-background);
-  color: var(--aui-action-quintenary-foreground);
+  background-color: var(--cui-action-quintenary-background);
+  color: var(--cui-action-quintenary-foreground);
 }
 
 .stepper__group--cohesive--outline {
-  background-color: var(--aui-control-background);
-  border: 2px solid var(--aui-control-border);
+  background-color: var(--cui-control-background);
+  border: 2px solid var(--cui-control-border);
 }
 
 .stepper__group--cohesive--outline--primary {
   background-color: inherit;
-  border: 2px solid var(--aui-color-primary-500);
+  border: 2px solid var(--cui-color-primary-500);
 }
 
 .stepper__group--cohesive--outline--secondary {
   background-color: inherit;
-  border: 2px solid var(--aui-color-secondary-500);
+  border: 2px solid var(--cui-color-secondary-500);
 }
 
 .stepper__group--cohesive--outline--tertiary {
   background-color: inherit;
-  border: 2px solid var(--aui-color-tertiary-500);
+  border: 2px solid var(--cui-color-tertiary-500);
 }
 
 .stepper__group--cohesive--outline--quaternary {
   background-color: inherit;
-  border: 2px solid var(--aui-color-quaternary-500);
+  border: 2px solid var(--cui-color-quaternary-500);
 }
 
 .stepper__group--cohesive--outline--quintenary {
   background-color: inherit;
-  border: 2px solid var(--aui-color-quintenary-500);
+  border: 2px solid var(--cui-color-quintenary-500);
 }

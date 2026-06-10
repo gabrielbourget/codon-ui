@@ -75,21 +75,21 @@ const requiredStyleSelectors = [
   ".fs-italic",
 ]
 const requiredTypographyVariables = [
-  "--aui-font-family-body",
-  "--aui-font-family-heading",
-  "--aui-font-family-display",
-  "--aui-text-d1-font-size",
-  "--aui-text-h1-sm-font-size",
-  "--aui-text-b10-font-size",
-  "--aui-text-b13-line-height",
-  "--aui-font-weight-regular",
-  "--aui-font-weight-extrabold",
+  "--cui-font-family-body",
+  "--cui-font-family-heading",
+  "--cui-font-family-display",
+  "--cui-text-d1-font-size",
+  "--cui-text-h1-sm-font-size",
+  "--cui-text-b10-font-size",
+  "--cui-text-b13-line-height",
+  "--cui-font-weight-regular",
+  "--cui-font-weight-extrabold",
 ]
 const requiredTypographySupportVariables = [
-  "--aui-font-family-system",
-  "--aui-font-family-body-override",
-  "--aui-font-family-heading-override",
-  "--aui-font-family-display-override",
+  "--cui-font-family-system",
+  "--cui-font-family-body-override",
+  "--cui-font-family-heading-override",
+  "--cui-font-family-display-override",
 ]
 
 assert(textSource.startsWith('"use client"'), "Text must preserve the client component boundary")

@@ -282,48 +282,48 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
 
   const customStyles: CSSProperties = Object.assign({ height, width }, { ...customStyles__props }, { ...style })
 
-  const color__white = "var(--aui-control-selected-foreground)"
-  const color__neutral_4 = "var(--aui-control-placeholder)"
+  const color__white = "var(--cui-control-selected-foreground)"
+  const color__neutral_4 = "var(--cui-control-placeholder)"
   let toastColor = ""
   let defaultToastIcon: ReactNode
 
   switch (type) {
     case TOAST_TYPE__INFO:
-      toastColor = "var(--aui-control-selected-background)"
+      toastColor = "var(--cui-control-selected-background)"
       defaultToastIcon = (
         <ToastDefaultCircleInfoIcon size={15} color={color__white} data-testid="toast-default-info-icon" />
       )
       break
     case TOAST_TYPE__WARNING:
-      toastColor = "var(--aui-status-warning)"
+      toastColor = "var(--cui-status-warning)"
       defaultToastIcon = (
         <ToastDefaultTriangleExclamationIcon size={15} color={color__white} data-testid="toast-default-warning-icon" />
       )
       break
     case TOAST_TYPE__ERROR:
-      toastColor = "var(--aui-status-danger)"
+      toastColor = "var(--cui-status-danger)"
       defaultToastIcon = <ToastDefaultErrorIcon size={15} color={color__white} data-testid="toast-default-error-icon" />
       break
     case TOAST_TYPE__DANGER:
-      toastColor = "var(--aui-status-danger)"
+      toastColor = "var(--cui-status-danger)"
       defaultToastIcon = (
         <ToastDefaultOctagonExclamationIcon size={15} color={color__white} data-testid="toast-default-danger-icon" />
       )
       break
     case TOAST_TYPE__DELETE:
-      toastColor = "var(--aui-status-danger)"
+      toastColor = "var(--cui-status-danger)"
       defaultToastIcon = (
         <ToastDefaultDeleteIcon size={15} color={color__white} data-testid="toast-default-delete-icon" />
       )
       break
     case TOAST_TYPE__SUCCESS:
-      toastColor = "var(--aui-status-success)"
+      toastColor = "var(--cui-status-success)"
       defaultToastIcon = (
         <ToastDefaultCheckmarkIcon size={25} color={color__white} data-testid="toast-default-success-icon" />
       )
       break
     default:
-      toastColor = "var(--aui-control-selected-background)"
+      toastColor = "var(--cui-control-selected-background)"
       defaultToastIcon = (
         <ToastDefaultCircleInfoIcon size={15} color={color__white} data-testid="toast-default-info-icon" />
       )

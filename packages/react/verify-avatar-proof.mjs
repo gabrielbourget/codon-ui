@@ -94,12 +94,12 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `Avatar CSS module must include ${selector}`)
 })
 assert(
-  stylesSource.includes("var(--background, var(--aui-surface-foreground))"),
+  stylesSource.includes("var(--background, var(--cui-surface-foreground))"),
   "Avatar CSS must read background fallback",
 )
-assert(stylesSource.includes("var(--foreground, var(--aui-surface))"), "Avatar CSS must read foreground fallback")
-assert(stylesSource.includes("var(--aui-shadow-1)"), "Avatar CSS must read default shadow token")
-assert(stylesSource.includes("var(--aui-radius-1)"), "Avatar CSS must read default radius token")
+assert(stylesSource.includes("var(--foreground, var(--cui-surface))"), "Avatar CSS must read foreground fallback")
+assert(stylesSource.includes("var(--cui-shadow-1)"), "Avatar CSS must read default shadow token")
+assert(stylesSource.includes("var(--cui-radius-1)"), "Avatar CSS must read default radius token")
 assert(!stylesSource.includes("--shadow_1"), "Avatar CSS must not read legacy shadow alias")
 assert(!stylesSource.includes("--border_radius_1"), "Avatar CSS must not read legacy radius alias")
 
@@ -177,7 +177,7 @@ const defaultContractRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract",
 )
 assert(defaultContractRequirement, "Avatar packet must record default-contract theme pressure")
-;["--aui-surface-foreground", "--aui-surface", "--aui-shadow-1", "--aui-radius-1"].forEach((cssVariable) => {
+;["--cui-surface-foreground", "--cui-surface", "--cui-shadow-1", "--cui-radius-1"].forEach((cssVariable) => {
   assert(defaultContractRequirement.cssVariables.includes(cssVariable), `Avatar packet must record ${cssVariable}`)
 })
 

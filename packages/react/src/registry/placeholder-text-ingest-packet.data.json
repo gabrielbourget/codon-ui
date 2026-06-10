@@ -90,7 +90,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-control-placeholder"],
+      "cssVariables": ["--cui-control-placeholder"],
       "notes": [
         "PlaceholderText source reads the default theme placeholder color directly and does not need a component-specific compatibility bridge."
       ]

@@ -11,7 +11,7 @@
   padding: 0;
   margin: 0;
   outline: none;
-  z-index: var(--aui-z-index-toast);
+  z-index: var(--cui-z-index-toast);
   list-style: none;
 }
 
@@ -56,12 +56,12 @@
   }
 
   .toaster[data-y-position="top"] {
-    top: var(--aui-space-3);
+    top: var(--cui-space-3);
     --lift: 1;
   }
 
   .toaster[data-y-position="bottom"] {
-    bottom: var(--aui-space-3);
+    bottom: var(--cui-space-3);
     --lift: -1;
   }
 

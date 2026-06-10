@@ -82,7 +82,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-space-2", "--aui-opacity-disabled"],
+      "cssVariables": ["--cui-space-2", "--cui-opacity-disabled"],
       "notes": ["CheckboxGroup rewrites spacing and disabled opacity directly to the package default theme contract."]
     }
   ],

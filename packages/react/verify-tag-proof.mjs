@@ -59,15 +59,15 @@ const requiredStyleSelectors = [
   ".tag--inactive",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--border_radius_1: var(--aui-radius-1)",
-  "--shadow_1: var(--aui-shadow-1)",
-  "--focus-ring-color: var(--aui-focus-ring)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--bgColorTransition: var(--aui-transition-background-color)",
-  "--colorTransition: var(--aui-transition-color)",
-  "--borderColorTransition: var(--aui-transition-border-color)",
-  "--boxShadowTransition: var(--aui-transition-box-shadow)",
+  "--distance_1: var(--cui-space-1)",
+  "--border_radius_1: var(--cui-radius-1)",
+  "--shadow_1: var(--cui-shadow-1)",
+  "--focus-ring-color: var(--cui-focus-ring)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--bgColorTransition: var(--cui-transition-background-color)",
+  "--colorTransition: var(--cui-transition-color)",
+  "--borderColorTransition: var(--cui-transition-border-color)",
+  "--boxShadowTransition: var(--cui-transition-box-shadow)",
 ]
 
 assert(tagSource.startsWith('"use client"'), "Tag must preserve the client component boundary")
@@ -90,11 +90,11 @@ requiredCompatibilityAliases.forEach((cssVariable) => {
   assert(compatibilityBridgeSource.includes(cssVariable), `Tag compatibility bridge must define ${cssVariable}`)
 })
 assert(
-  stylesSource.includes("var(--aui-control-selected-background)"),
+  stylesSource.includes("var(--cui-control-selected-background)"),
   "Tag styles must read selected control defaults",
 )
-assert(stylesSource.includes("var(--aui-control-background)"), "Tag styles must read control background defaults")
-assert(stylesSource.includes("var(--aui-border-muted)"), "Tag styles must read muted border defaults")
+assert(stylesSource.includes("var(--cui-control-background)"), "Tag styles must read control background defaults")
+assert(stylesSource.includes("var(--cui-border-muted)"), "Tag styles must read muted border defaults")
 
 assert(publicIndexSource.includes('export { Tag } from "./components/Tag"'), "Package index must export Tag")
 assert(
@@ -165,9 +165,9 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "Tag packet must record default theme contract pressure")
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-selected-background") &&
-    defaultContractRequirement.cssVariables.includes("--aui-control-background") &&
-    defaultContractRequirement.cssVariables.includes("--aui-border-muted"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-selected-background") &&
+    defaultContractRequirement.cssVariables.includes("--cui-control-background") &&
+    defaultContractRequirement.cssVariables.includes("--cui-border-muted"),
   "Tag packet must record default control role pressure",
 )
 

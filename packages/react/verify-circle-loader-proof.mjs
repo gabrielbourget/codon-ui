@@ -71,7 +71,7 @@ assert(
   circleLoaderStylesSource.includes("var(--spinner-color)"),
   "CircleLoader CSS must consume local spinner color custom property",
 )
-assert(!circleLoaderStylesSource.includes("--aui-"), "CircleLoader CSS must not require global theme variables")
+assert(!circleLoaderStylesSource.includes("--cui-"), "CircleLoader CSS must not require global theme variables")
 assert(
   circleLoaderIndexSource.includes('export { default as CircleLoader } from "./CircleLoader"'),
   "CircleLoader index must export the component",

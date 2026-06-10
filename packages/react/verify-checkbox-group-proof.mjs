@@ -101,7 +101,7 @@ assert(!forbiddenConsumerImportsPattern.test(stylesSource), "CheckboxGroup style
 requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `CheckboxGroup CSS module must include ${selector}`)
 })
-;["var(--aui-space-2)", "var(--aui-opacity-disabled)"].forEach((cssValue) => {
+;["var(--cui-space-2)", "var(--cui-opacity-disabled)"].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `CheckboxGroup CSS must read ${cssValue}`)
 })
 assert(!forbiddenLegacyCssPattern.test(stylesSource), "CheckboxGroup CSS must not read legacy Wavemap aliases")
@@ -202,9 +202,9 @@ const defaultThemeRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract",
 )
 assert(defaultThemeRequirement, "CheckboxGroup packet must record default theme requirements")
-assert(defaultThemeRequirement.cssVariables.includes("--aui-space-2"), "CheckboxGroup packet must record spacing token")
+assert(defaultThemeRequirement.cssVariables.includes("--cui-space-2"), "CheckboxGroup packet must record spacing token")
 assert(
-  defaultThemeRequirement.cssVariables.includes("--aui-opacity-disabled"),
+  defaultThemeRequirement.cssVariables.includes("--cui-opacity-disabled"),
   "CheckboxGroup packet must record disabled opacity token",
 )
 assert(

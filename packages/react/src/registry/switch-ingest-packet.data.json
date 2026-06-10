@@ -84,23 +84,23 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-border-muted",
-        "--aui-control-border",
-        "--aui-control-pressed-background",
-        "--aui-control-selected-background",
-        "--aui-control-selected-foreground"
+        "--cui-border-muted",
+        "--cui-control-border",
+        "--cui-control-pressed-background",
+        "--cui-control-selected-background",
+        "--cui-control-selected-foreground"
       ],
       "notes": ["These variables are already part of the package default theme contract."]
     },
     {
       "strategy": "proof-compatibility-bridge",
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500",
-        "--aui-neutral-8",
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500",
+        "--cui-neutral-8",
         "--disabledOpacity",
         "--colorTransition",
         "--bgColorTransition",

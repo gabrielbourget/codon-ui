@@ -53,8 +53,8 @@ const requiredTargetPaths = [
   "RadioGroup/__tests__/RadioGroup.test.tsx",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_2: var(--aui-space-2)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
+  "--distance_2: var(--cui-space-2)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
 ]
 
 assert(radioGroupSource.startsWith('"use client"'), "RadioGroup must preserve the client component boundary")

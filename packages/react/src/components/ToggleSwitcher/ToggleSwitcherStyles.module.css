@@ -6,19 +6,19 @@
   grid-auto-flow: column;
   gap: 2px;
   padding: 2px;
-  background: var(--aui-surface-muted);
-  border: 1px solid var(--aui-border-muted);
+  background: var(--cui-surface-muted);
+  border: 1px solid var(--cui-border-muted);
   transition:
-    var(--aui-transition-background-color), var(--aui-transition-border-color), var(--aui-transition-box-shadow);
+    var(--cui-transition-background-color), var(--cui-transition-border-color), var(--cui-transition-box-shadow);
 }
 
 .toggleSwitcher[data-disabled="true"],
 .toggleSwitcher[data-readonly="true"] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 
 .toggleSwitcher--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .toggleSwitcher--round {
@@ -26,29 +26,29 @@
 }
 
 .toggleSwitcher--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .toggleSwitcher__option {
   min-height: 24px;
   min-width: 0;
   position: relative;
-  padding: 2px var(--aui-space-1);
+  padding: 2px var(--cui-space-1);
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  color: var(--aui-control-foreground);
+  color: var(--cui-control-foreground);
   font-weight: var(--toggle-switcher-option-font-weight, inherit);
   isolation: isolate;
   overflow: hidden;
-  transition: var(--aui-transition-background-color), var(--aui-transition-color);
+  transition: var(--cui-transition-background-color), var(--cui-transition-color);
 }
 
 .toggleSwitcher__option:hover:not(:disabled) {
   cursor: pointer;
-  background: var(--aui-control-hover-background);
+  background: var(--cui-control-hover-background);
 }
 
 .toggleSwitcher__option:disabled {
@@ -56,7 +56,7 @@
 }
 
 .toggleSwitcher__option--applyFocusStyle:focus-visible {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .toggleSwitcher__option--offsetFocusRing {
@@ -68,7 +68,7 @@
 }
 
 .toggleSwitcher__option--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .toggleSwitcher__option--round {
@@ -85,12 +85,12 @@
 }
 
 .toggleSwitcher__option--selected {
-  background: var(--aui-control-background);
+  background: var(--cui-control-background);
   font-weight: var(--toggle-switcher-selected-option-font-weight, 600);
 }
 
 .toggleSwitcher__option--selected:hover:not(:disabled) {
-  background: var(--aui-control-background);
+  background: var(--cui-control-background);
 }
 
 .toggleSwitcher__selectedSurface {
@@ -108,25 +108,25 @@
 }
 
 .toggleSwitcher__option--default.toggleSwitcher__option--selected {
-  color: var(--aui-control-selected-background);
+  color: var(--cui-control-selected-background);
 }
 
 .toggleSwitcher__option--primary.toggleSwitcher__option--selected {
-  color: var(--aui-color-primary-500);
+  color: var(--cui-color-primary-500);
 }
 
 .toggleSwitcher__option--secondary.toggleSwitcher__option--selected {
-  color: var(--aui-color-secondary-500);
+  color: var(--cui-color-secondary-500);
 }
 
 .toggleSwitcher__option--tertiary.toggleSwitcher__option--selected {
-  color: var(--aui-color-tertiary-500);
+  color: var(--cui-color-tertiary-500);
 }
 
 .toggleSwitcher__option--quaternary.toggleSwitcher__option--selected {
-  color: var(--aui-color-quaternary-500);
+  color: var(--cui-color-quaternary-500);
 }
 
 .toggleSwitcher__option--quintenary.toggleSwitcher__option--selected {
-  color: var(--aui-color-quintenary-500);
+  color: var(--cui-color-quintenary-500);
 }

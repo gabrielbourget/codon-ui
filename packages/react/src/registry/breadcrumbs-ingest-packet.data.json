@@ -105,7 +105,7 @@
     {
       "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
       "importSource": "--distance_1 / --disabledOpacity / --fadeInAnimation / --fadeOutAnimation / --border_radius_1 / --shadow_1 / --focus-ring-color aliases",
-      "replacementSource": "--aui-space-1 / --aui-opacity-disabled / --aui-animation-fade-in / --aui-animation-fade-out / --aui-radius-1 / --aui-shadow-1 / --aui-focus-ring",
+      "replacementSource": "--cui-space-1 / --cui-opacity-disabled / --cui-animation-fade-in / --cui-animation-fade-out / --cui-radius-1 / --cui-shadow-1 / --cui-focus-ring",
       "notes": ["Breadcrumbs CSS reads the default Amino theme contract directly instead of a compatibility bridge."]
     }
   ],
@@ -145,14 +145,14 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-surface"
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-surface"
       ],
       "notes": [
         "Breadcrumbs spacing, disabled, animation, surface, radius, shadow, and focus styles read the default theme contract directly."
@@ -161,11 +161,11 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Breadcrumbs order-color resolution reads the existing action-colors support item directly."]
     }

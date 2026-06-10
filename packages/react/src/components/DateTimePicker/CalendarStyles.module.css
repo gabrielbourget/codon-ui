@@ -10,7 +10,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .calendar__header {
@@ -67,56 +67,56 @@
   width: 100%;
   display: grid;
   place-items: center;
-  padding: var(--aui-space-1);
+  padding: var(--cui-space-1);
   border-radius: 3px;
-  transition: var(--aui-transition-background-color), var(--aui-transition-box-shadow);
+  transition: var(--cui-transition-background-color), var(--cui-transition-box-shadow);
 }
 
 .calendar__grid__body__cell[data-hovered] {
-  background-color: var(--aui-control-hover-background);
-  box-shadow: var(--aui-shadow-1);
+  background-color: var(--cui-control-hover-background);
+  box-shadow: var(--cui-shadow-1);
   cursor: pointer;
 }
 
 .calendar__grid__body__cell[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
-  z-index: var(--aui-z-index-modal);
+  outline: 1.5px solid var(--cui-focus-ring);
+  z-index: var(--cui-z-index-modal);
 }
 
 .calendar__grid__body__cell[data-outside-month] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 
 .calendar__grid__body__cell[data-selected] {
-  background-color: var(--aui-color-primary-100);
+  background-color: var(--cui-color-primary-100);
   border-radius: 0;
 }
 
 .calendar__grid__body__cell[data-selection-start] {
-  background-color: var(--aui-color-primary-200);
+  background-color: var(--cui-color-primary-200);
   border-radius: 3px;
 }
 
 .calendar__grid__body__cell[data-selection-end] {
-  background-color: var(--aui-color-primary-200);
+  background-color: var(--cui-color-primary-200);
   border-radius: 3px;
 }
 
 [data-theme="dark"] .calendar__grid__body__cell[data-hovered] {
-  background-color: var(--aui-control-pressed-background);
+  background-color: var(--cui-control-pressed-background);
 }
 
 [data-theme="dark"] .calendar__grid__body__cell[data-selected] {
-  background-color: var(--aui-color-primary-400);
+  background-color: var(--cui-color-primary-400);
   border-radius: 0;
 }
 
 [data-theme="dark"] .calendar__grid__body__cell[data-selection-start] {
-  background-color: var(--aui-color-primary-500);
+  background-color: var(--cui-color-primary-500);
   border-radius: 3px;
 }
 
 [data-theme="dark"] .calendar__grid__body__cell[data-selection-end] {
-  background-color: var(--aui-color-primary-500);
+  background-color: var(--cui-color-primary-500);
   border-radius: 3px;
 }

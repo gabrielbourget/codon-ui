@@ -32,7 +32,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|motion\/react/u
 const forbiddenLegacyCssPattern =
-  /--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border/u
+  /--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--cui-validation-error-border|--cui-validation-warning-border|--cui-validation-success-border/u
 
 const stepperSource = readRequiredText(stepperSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
@@ -88,24 +88,24 @@ const requiredStyleSelectors = [
   ".stepper__group--cohesive--outline",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-radius-1",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-transition-border-color",
-  "--aui-transition-color",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-placeholder",
-  "--aui-state-danger",
-  "--aui-state-warning",
-  "--aui-state-success",
-  "--aui-color-primary-500",
-  "--aui-color-quintenary-500",
-  "--aui-action-primary-background",
-  "--aui-action-primary-foreground",
-  "--aui-action-quintenary-background",
-  "--aui-action-quintenary-foreground",
+  "--cui-radius-1",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-transition-border-color",
+  "--cui-transition-color",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-placeholder",
+  "--cui-state-danger",
+  "--cui-state-warning",
+  "--cui-state-success",
+  "--cui-color-primary-500",
+  "--cui-color-quintenary-500",
+  "--cui-action-primary-background",
+  "--cui-action-primary-foreground",
+  "--cui-action-quintenary-background",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(stepperSource.startsWith('"use client"'), "Stepper must preserve the client component boundary")

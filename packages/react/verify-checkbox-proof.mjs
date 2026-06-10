@@ -61,17 +61,17 @@ const requiredExcludedConsumers = [
 const requiredThemePressure = [
   "--distance_1",
   "--text-color",
-  "--aui-color-primary-100",
-  "--aui-color-primary-700",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--cui-color-primary-100",
+  "--cui-color-primary-700",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--text-color: var(--aui-foreground)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--distance_1: var(--cui-space-1)",
+  "--text-color: var(--cui-foreground)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(checkboxSource.startsWith('"use client"'), "Checkbox must preserve the client component boundary")

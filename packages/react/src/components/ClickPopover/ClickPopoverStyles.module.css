@@ -1,87 +1,87 @@
 .clickPopover {
   height: fit-content;
   width: fit-content;
-  padding: var(--aui-space-2);
-  background-color: var(--aui-surface);
-  color: var(--aui-surface-foreground);
+  padding: var(--cui-space-2);
+  background-color: var(--cui-surface);
+  color: var(--cui-surface-foreground);
   forced-color-adjust: none;
   outline: none;
   transform: translate3d(0, 0, 0);
 }
 
 .clickPopover[data-entering] {
-  animation: var(--aui-animation-fade-in);
+  animation: var(--cui-animation-fade-in);
 }
 .clickPopover[data-exiting] {
-  animation: var(--aui-animation-fade-out);
+  animation: var(--cui-animation-fade-out);
 }
 
 .clickPopover--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 .clickPopover--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .clickPopover--primary {
-  background-color: var(--aui-color-primary-500);
+  background-color: var(--cui-color-primary-500);
 }
 .clickPopover--secondary {
-  background-color: var(--aui-color-secondary-500);
+  background-color: var(--cui-color-secondary-500);
 }
 .clickPopover--tertiary {
-  background-color: var(--aui-color-tertiary-500);
+  background-color: var(--cui-color-tertiary-500);
 }
 .clickPopover--quaternary {
-  background-color: var(--aui-color-quaternary-500);
+  background-color: var(--cui-color-quaternary-500);
 }
 .clickPopover--quintenary {
-  background-color: var(--aui-color-quintenary-500);
+  background-color: var(--cui-color-quintenary-500);
 }
 
 .clickPopover__overlayArrow svg {
   display: block;
-  fill: var(--aui-surface);
+  fill: var(--cui-surface);
 }
 
 .clickPopover__overlayArrow--primary svg {
-  fill: var(--aui-color-primary-500);
+  fill: var(--cui-color-primary-500);
 }
 
 .clickPopover__overlayArrow--secondary svg {
-  fill: var(--aui-color-secondary-500);
+  fill: var(--cui-color-secondary-500);
 }
 
 .clickPopover__overlayArrow--tertiary svg {
-  fill: var(--aui-color-tertiary-500);
+  fill: var(--cui-color-tertiary-500);
 }
 
 .clickPopover__overlayArrow--quaternary svg {
-  fill: var(--aui-color-quaternary-500);
+  fill: var(--cui-color-quaternary-500);
 }
 
 .clickPopover__overlayArrow--quintenary svg {
-  fill: var(--aui-color-quintenary-500);
+  fill: var(--cui-color-quintenary-500);
 }
 
 .clickPopover__dialog {
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-3);
+  gap: var(--cui-space-3);
   border-radius: 0.5px;
-  outline-offset: var(--aui-space-1);
+  outline-offset: var(--cui-space-1);
 }
 
 .clickPopover__dialog:focus {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .clickPopover[data-placement="top"] {
-  margin-bottom: var(--aui-space-2);
+  margin-bottom: var(--cui-space-2);
 }
 
 .clickPopover[data-placement="bottom"] {
-  margin-top: var(--aui-space-2);
+  margin-top: var(--cui-space-2);
 }
 
 .clickPopover[data-placement="bottom"] .clickPopover__overlayArrow svg {
@@ -89,7 +89,7 @@
 }
 
 .clickPopover[data-placement="right"] {
-  margin-left: var(--aui-space-2);
+  margin-left: var(--cui-space-2);
 }
 
 .clickPopover[data-placement="right"] .clickPopover__overlayArrow svg {
@@ -97,7 +97,7 @@
 }
 
 .clickPopover[data-placement="left"] {
-  margin-right: var(--aui-space-2);
+  margin-right: var(--cui-space-2);
 }
 
 .clickPopover[data-placement="left"] .clickPopover__overlayArrow svg {

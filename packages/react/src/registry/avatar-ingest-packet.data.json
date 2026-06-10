@@ -75,7 +75,7 @@
     {
       "sourcePath": "packages/react/src/components/Avatar/AvatarStyles.module.css",
       "importSource": "--shadow_1 / --border_radius_1 aliases",
-      "replacementSource": "--aui-shadow-1 / --aui-radius-1",
+      "replacementSource": "--cui-shadow-1 / --cui-radius-1",
       "notes": ["Avatar CSS now reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
@@ -106,7 +106,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-surface-foreground", "--aui-surface", "--aui-shadow-1", "--aui-radius-1"],
+      "cssVariables": ["--cui-surface-foreground", "--cui-surface", "--cui-shadow-1", "--cui-radius-1"],
       "notes": [
         "Avatar source reads the default theme contract directly and does not need a component-specific compatibility bridge."
       ]

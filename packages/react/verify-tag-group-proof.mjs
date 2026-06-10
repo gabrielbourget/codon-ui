@@ -82,18 +82,18 @@ const requiredStyleSelectors = [
   ".tag--quintenary[data-selected]",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--border_radius_1: var(--aui-radius-1)",
-  "--shadow_1: var(--aui-shadow-1)",
-  "--focus-ring-color: var(--aui-focus-ring)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--bgColorTransition: var(--aui-transition-background-color)",
-  "--borderColorTransition: var(--aui-transition-border-color)",
-  "--colorTransition: var(--aui-transition-color)",
-  "--aui-tag-primary-selected-background",
-  "--aui-tag-primary-selected-foreground",
-  "--aui-tag-quintenary-selected-background",
-  "--aui-tag-quintenary-selected-foreground",
+  "--distance_1: var(--cui-space-1)",
+  "--border_radius_1: var(--cui-radius-1)",
+  "--shadow_1: var(--cui-shadow-1)",
+  "--focus-ring-color: var(--cui-focus-ring)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--bgColorTransition: var(--cui-transition-background-color)",
+  "--borderColorTransition: var(--cui-transition-border-color)",
+  "--colorTransition: var(--cui-transition-color)",
+  "--cui-tag-primary-selected-background",
+  "--cui-tag-primary-selected-foreground",
+  "--cui-tag-quintenary-selected-background",
+  "--cui-tag-quintenary-selected-foreground",
 ]
 
 assert(tagGroupSource.startsWith('"use client"'), "TagGroup must preserve the client component boundary")
@@ -158,10 +158,10 @@ requiredStyleSelectors.forEach((selector) => {
 requiredCompatibilityAliases.forEach((cssVariable) => {
   assert(compatibilityBridgeSource.includes(cssVariable), `TagGroup compatibility bridge must define ${cssVariable}`)
 })
-assert(tagGroupStylesSource.includes("var(--aui-control-placeholder)"), "TagGroup styles must read placeholder roles")
-assert(adobeTagStylesSource.includes("var(--aui-control-border)"), "AdobeTag styles must read control border roles")
+assert(tagGroupStylesSource.includes("var(--cui-control-placeholder)"), "TagGroup styles must read placeholder roles")
+assert(adobeTagStylesSource.includes("var(--cui-control-border)"), "AdobeTag styles must read control border roles")
 assert(
-  adobeTagStylesSource.includes("var(--aui-tag-primary-selected-background)"),
+  adobeTagStylesSource.includes("var(--cui-tag-primary-selected-background)"),
   "AdobeTag styles must read tag roles",
 )
 
@@ -248,9 +248,9 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "TagGroup packet must record default theme contract pressure")
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-placeholder") &&
-    defaultContractRequirement.cssVariables.includes("--aui-control-selected-background") &&
-    defaultContractRequirement.cssVariables.includes("--aui-state-danger"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-placeholder") &&
+    defaultContractRequirement.cssVariables.includes("--cui-control-selected-background") &&
+    defaultContractRequirement.cssVariables.includes("--cui-state-danger"),
   "TagGroup packet must record control and status role pressure",
 )
 

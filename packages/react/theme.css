@@ -1,25 +1,25 @@
 :root {
   --aui-space-unit: 5px;
-  --aui-space-1: calc(1 * var(--aui-space-unit));
-  --aui-space-2: calc(2 * var(--aui-space-unit));
-  --aui-space-3: calc(3 * var(--aui-space-unit));
-  --aui-space-4: calc(4 * var(--aui-space-unit));
-  --aui-space-5: calc(5 * var(--aui-space-unit));
-  --aui-space-6: calc(6 * var(--aui-space-unit));
-  --aui-space-7: calc(7 * var(--aui-space-unit));
-  --aui-space-8: calc(8 * var(--aui-space-unit));
-  --aui-space-9: calc(9 * var(--aui-space-unit));
-  --aui-space-10: calc(10 * var(--aui-space-unit));
-  --aui-space-11: calc(11 * var(--aui-space-unit));
-  --aui-space-12: calc(12 * var(--aui-space-unit));
-  --aui-space-13: calc(13 * var(--aui-space-unit));
-  --aui-space-14: calc(14 * var(--aui-space-unit));
-  --aui-space-15: calc(15 * var(--aui-space-unit));
-  --aui-space-16: calc(16 * var(--aui-space-unit));
-  --aui-space-17: calc(17 * var(--aui-space-unit));
-  --aui-space-18: calc(18 * var(--aui-space-unit));
-  --aui-space-19: calc(19 * var(--aui-space-unit));
-  --aui-space-20: calc(20 * var(--aui-space-unit));
+  --aui-space-1: calc(1 * var(--cui-space-unit));
+  --aui-space-2: calc(2 * var(--cui-space-unit));
+  --aui-space-3: calc(3 * var(--cui-space-unit));
+  --aui-space-4: calc(4 * var(--cui-space-unit));
+  --aui-space-5: calc(5 * var(--cui-space-unit));
+  --aui-space-6: calc(6 * var(--cui-space-unit));
+  --aui-space-7: calc(7 * var(--cui-space-unit));
+  --aui-space-8: calc(8 * var(--cui-space-unit));
+  --aui-space-9: calc(9 * var(--cui-space-unit));
+  --aui-space-10: calc(10 * var(--cui-space-unit));
+  --aui-space-11: calc(11 * var(--cui-space-unit));
+  --aui-space-12: calc(12 * var(--cui-space-unit));
+  --aui-space-13: calc(13 * var(--cui-space-unit));
+  --aui-space-14: calc(14 * var(--cui-space-unit));
+  --aui-space-15: calc(15 * var(--cui-space-unit));
+  --aui-space-16: calc(16 * var(--cui-space-unit));
+  --aui-space-17: calc(17 * var(--cui-space-unit));
+  --aui-space-18: calc(18 * var(--cui-space-unit));
+  --aui-space-19: calc(19 * var(--cui-space-unit));
+  --aui-space-20: calc(20 * var(--cui-space-unit));
 
   --aui-radius-1: 5px;
   --aui-radius-2: 10px;
@@ -42,43 +42,43 @@
 
   --aui-z-index-base: 0;
   --aui-z-index-step: 100;
-  --aui-z-index-panel: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 2);
-  --aui-z-index-modal: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 3);
-  --aui-z-index-toast: calc(var(--aui-z-index-base) + var(--aui-z-index-step) * 4);
+  --aui-z-index-panel: calc(var(--cui-z-index-base) + var(--cui-z-index-step) * 2);
+  --aui-z-index-modal: calc(var(--cui-z-index-base) + var(--cui-z-index-step) * 3);
+  --aui-z-index-toast: calc(var(--cui-z-index-base) + var(--cui-z-index-step) * 4);
   --aui-z-index-overlay-offset: 0;
   --aui-z-index-content-offset: 1;
 
-  --aui-surface: var(--aui-background);
-  --aui-surface-foreground: var(--aui-foreground);
-  --aui-surface-muted: var(--aui-neutral-100);
-  --aui-surface-raised: var(--aui-neutral-100);
-  --aui-surface-raised-foreground: var(--aui-foreground);
-  --aui-border: var(--aui-neutral-300);
-  --aui-border-muted: var(--aui-neutral-200);
+  --aui-surface: var(--cui-background);
+  --aui-surface-foreground: var(--cui-foreground);
+  --aui-surface-muted: var(--cui-neutral-100);
+  --aui-surface-raised: var(--cui-neutral-100);
+  --aui-surface-raised-foreground: var(--cui-foreground);
+  --aui-border: var(--cui-neutral-300);
+  --aui-border-muted: var(--cui-neutral-200);
 
   --aui-focus-ring: #2563eb;
   --aui-focus-ring-offset: 2px;
 
-  --aui-control-background: var(--aui-background);
-  --aui-control-foreground: var(--aui-foreground);
-  --aui-control-border: var(--aui-border);
-  --aui-control-placeholder: var(--aui-neutral-500);
-  --aui-control-hover-background: var(--aui-neutral-100);
-  --aui-control-pressed-background: var(--aui-neutral-200);
-  --aui-control-selected-background: var(--aui-focus-ring);
-  --aui-control-selected-background-hover: color-mix(in srgb, var(--aui-focus-ring) 90%, var(--aui-foreground) 10%);
-  --aui-control-selected-background-pressed: color-mix(in srgb, var(--aui-focus-ring) 80%, var(--aui-foreground) 20%);
+  --aui-control-background: var(--cui-background);
+  --aui-control-foreground: var(--cui-foreground);
+  --aui-control-border: var(--cui-border);
+  --aui-control-placeholder: var(--cui-neutral-500);
+  --aui-control-hover-background: var(--cui-neutral-100);
+  --aui-control-pressed-background: var(--cui-neutral-200);
+  --aui-control-selected-background: var(--cui-focus-ring);
+  --aui-control-selected-background-hover: color-mix(in srgb, var(--cui-focus-ring) 90%, var(--cui-foreground) 10%);
+  --aui-control-selected-background-pressed: color-mix(in srgb, var(--cui-focus-ring) 80%, var(--cui-foreground) 20%);
   --aui-control-selected-foreground: #fff;
-  --aui-control-disabled-opacity: var(--aui-opacity-disabled);
+  --aui-control-disabled-opacity: var(--cui-opacity-disabled);
 
-  --aui-status-info: var(--aui-control-selected-background);
-  --aui-status-danger: var(--aui-state-danger);
-  --aui-status-warning: var(--aui-state-warning);
-  --aui-status-success: var(--aui-state-success);
+  --aui-status-info: var(--cui-control-selected-background);
+  --aui-status-danger: var(--cui-state-danger);
+  --aui-status-warning: var(--cui-state-warning);
+  --aui-status-success: var(--cui-state-success);
 
-  --aui-validation-error-border: var(--aui-state-danger);
-  --aui-validation-warning-border: var(--aui-state-warning);
-  --aui-validation-success-border: var(--aui-state-success);
+  --aui-validation-error-border: var(--cui-state-danger);
+  --aui-validation-warning-border: var(--cui-state-warning);
+  --aui-validation-success-border: var(--cui-state-success);
 
   --cui-space-unit: var(--aui-space-unit);
   --cui-space-1: var(--aui-space-1);
