@@ -100,7 +100,8 @@ Do not broaden behavior before these risks are handled deliberately:
 - The current registry schema is legacy web-registry shape, not the approved `packages/react` manifest/artifact contract.
 - Transform helpers have no fixture tests.
 - `bin` aliases point to `dist/index.js`; fresh installs can warn or fail before build output exists.
-- `pub:*` scripts call `npm build` and publication behavior is not approved.
+- Package publication remains blocked by `prepublishOnly`; private npm release behavior is still deferred until the Codon
+  package rename and pack/install proof land.
 - Current command names and options are inherited scaffold surface, not settled public API.
 
 ## First Safe Implementation Sequence

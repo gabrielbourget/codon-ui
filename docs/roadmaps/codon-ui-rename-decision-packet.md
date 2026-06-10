@@ -22,8 +22,9 @@ The component-library and CLI proof work is far enough along for private-use dis
 - Wavemap remains the mature first consumer. Its local adapters and existing `_registry` path should not be migrated as
   incidental cleanup during the package rename.
 
-The remaining blocker before a real private npm proof is publication policy. `packages/CLI/package.json` still carries
-legacy public-oriented `pub:*` scripts and old package/bin names.
+The first publication-safety pass removed legacy public-oriented `pub:*` scripts from `packages/CLI/package.json` and
+added a `prepublishOnly` blocker plus `release:check` guard. The remaining blocker before a real private npm proof is
+the Codon package rename and private pack/install policy.
 
 ## Recommended Naming Decisions
 
@@ -86,7 +87,7 @@ Rename implementation must account for these surfaces.
 | Fixture repository         | fixture names, evidence Markdown, structured proof ledger, package scripts, expected output   | Rename only with replay proofs that establish equivalent Codon behavior.                                                        |
 | Wavemap consumer           | local `_registry` imports, config, lockfile, source provenance                                | Defer physical path migration until a Wavemap-specific pass updates imports, config, lockfile records, and tests together.      |
 | Docs labels                | Amino UI docs, CLI examples, registry contracts, fixture evidence docs                        | Rename staged docs labels without implying public hosting or open-source distribution.                                          |
-| Release scripts            | `pub:*`, public `npm publish --access public`                                                 | Replace or quarantine before any real publish path exists.                                                                      |
+| Release scripts            | retired `pub:*`, public `npm publish --access public`, current `prepublishOnly` blocker       | Keep publication blocked until the private pack/install proof is approved.                                                      |
 | Repository/directory names | `amino-ui`, `amino-ui-consumer-fixtures`                                                      | Rename after package/tarball and consumer proofs pass, so local evidence remains traceable during implementation.               |
 
 ## Theme Token Prefix
@@ -111,9 +112,11 @@ that prefix as the current theme contract rather than settled long-term branding
 
 ### Stage 1: Publication Safety
 
-- Remove, rename, or quarantine legacy `pub:*` scripts that publish with `--access public`.
-- Add explicit private-pack proof scripts only after their command names and package files are reviewed.
-- Verify no script can accidentally publish `aminoui-cli` or public Codon packages.
+- [x] Remove, rename, or quarantine legacy `pub:*` scripts that publish with `--access public`.
+- [x] Keep direct package publication blocked by `prepublishOnly` until Codon private release policy is approved.
+- [x] Add a `release:check` guard that fails if `pub:*`, `npm publish`, `pnpm publish`, `yarn npm publish`,
+      `--access public`, or public `publishConfig.access` return.
+- [ ] Add explicit private-pack proof scripts only after their command names and package files are reviewed.
 
 ### Stage 2: Package And Command Rename
 

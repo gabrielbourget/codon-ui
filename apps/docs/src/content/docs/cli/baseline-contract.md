@@ -48,8 +48,8 @@ engine:
 
 The main closeout caveats before rename are:
 
-- `pub:*` package scripts still reflect unapproved publication scaffolding and must not be used as private npm release
-  policy;
+- package publication remains blocked by `prepublishOnly`; the old public-oriented `pub:*` scripts have been removed, but
+  private npm release policy still needs a Codon-specific pack/install proof before any publish command is introduced;
 - custom update transforms, AST-aware merges, rollback after unexpected write failures, and public registry hosting remain
   outside the private-use finish line.
 
