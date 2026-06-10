@@ -8,6 +8,7 @@ import {
   statusReportSchema,
   type TCliJsonReportSchemaName,
 } from "./contracts"
+import { HELPER_FILE_MARKER_REGEX } from "./helpers/constants/cli"
 
 const expectedSchemaNames = [
   "initAdvisory",
@@ -41,3 +42,6 @@ assert.equal(typeof dependencyInstallPlanSchema.safeParse, "function")
 for (const schemaName of CLI_JSON_REPORT_SCHEMA_NAMES) {
   assert.equal(typeof cliJsonReportSchemas[schemaName].safeParse, "function")
 }
+
+assert.equal(HELPER_FILE_MARKER_REGEX.test("// codon-ui-helper-file-marker"), true)
+assert.equal(HELPER_FILE_MARKER_REGEX.test("// amino-ui-helper-file-marker"), true)

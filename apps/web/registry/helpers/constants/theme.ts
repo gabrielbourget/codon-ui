@@ -1,4 +1,4 @@
-// amino-ui-helper-file-marker
+// codon-ui-helper-file-marker
 
 export const THEME__PRIMARY = "primary"
 export const THEME__SECONDARY = "secondary"

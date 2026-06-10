@@ -1,4 +1,4 @@
-// amino-ui-helper-file-marker
+// codon-ui-helper-file-marker
 
 export const VIEWBOX_CENTER_X = 50
 export const VIEWBOX_CENTER_Y = 50
