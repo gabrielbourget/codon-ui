@@ -35,8 +35,6 @@ Use this loop after source receipt, manifest activation, local snapshot refresh,
    node ../codon-ui/packages/CLI/dist/index.js add sort-and-filter-panel --json --cwd apps/wavemap-front-end
    ```
 
-   During the local checkout transition, an unrenamed `../amino-ui` folder can stand in for `../codon-ui`.
-
 6. Inspect `apps/wavemap-front-end/codon-ui.lock.json` for installed items, registry dependencies, file hashes,
    dependency decisions, and reused support files.
 7. Run focused Wavemap tests for the reinstalled surface and its local adapters.

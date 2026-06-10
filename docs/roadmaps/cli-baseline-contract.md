@@ -33,15 +33,15 @@ Current command surface:
 
 Current helper surface:
 
-| Area                    | Current role                                                                                   | Renovation read                                                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Config                  | Loads `codon-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                     |
-| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use. |
-| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.         |
-| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.        | Proves support graph and `Switch` planning/install without public registry hosting or generated artifacts.             |
-| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Support and `Switch` planning now classify target package metadata for default `registry-contained` layout.            |
-| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                       |
-| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                    |
+| Area                    | Current role                                                                                                      | Renovation read                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Config                  | Loads `codon-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.                           | Keep, but convert failures into typed diagnostics before command behavior expands.                                                  |
+| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL`; no public fallback host is assumed before hosting policy is approved. | Defer public registry behavior until generated artifact policy and hosting are approved. Keep advisory timeouts before machine use. |
+| Registry schemas        | Parses component/helper registry indexes.                                                                         | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.                      |
+| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.                           | Proves support graph and `Switch` planning/install without public registry hosting or generated artifacts.                          |
+| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies.                    | Support and `Switch` planning now classify target package metadata for default `registry-contained` layout.                         |
+| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.                     | Needs fixture tests before any behavior changes.                                                                                    |
+| Package manager helpers | Computes add commands and dev-dependency flags.                                                                   | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                                 |
 
 ## Advisory Mode Requirement
 

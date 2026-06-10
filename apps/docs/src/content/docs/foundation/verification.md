@@ -59,8 +59,7 @@ changes that affect advisory output, dry-run planning, strict writes, or fixture
 pnpm verify
 ```
 
-Run that command from `../codon-ui-consumer-fixtures`. During the local checkout transition, the same verifier can still
-run from an unrenamed `../amino-ui-consumer-fixtures` folder.
+Run that command from `../codon-ui-consumer-fixtures`.
 
 Use [Fixture Evidence](/cli/fixture-evidence/) for the expected proof-packet fields, scenario matrix, and non-mutation
 assertions.
