@@ -18,7 +18,7 @@ visible `delete` command is an alias-style sibling for the current remove lifecy
 
 | Command  | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`   | Plain `init` now uses the strict new-contract seed path. It writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent, preserves existing config/lockfile files by default, and does not write helper files, directories, dependencies, or package-manager lockfiles. `init --advisory` is read-only; `init --dry-run` previews the same seed; `init --defaults` remains an explicit alias for the strict default seed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `init`   | Plain `init` now uses the strict new-contract seed path. It writes only `codon-ui.config.json` and an empty `codon-ui.lock.json` when both are absent, preserves existing config/lockfile files by default, and does not write helper files, directories, dependencies, or package-manager lockfiles. `init --advisory` is read-only; `init --dry-run` previews the same seed; `init --defaults` remains an explicit alias for the strict default seed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent or approved dependency installs resolve dependency-only blockers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 | `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, `delete <item> --json`, and their `--with-orphans` variants use the same remove reports, blockers, effects, and mutation boundaries. `--remove-dependencies` follows the same explicit strict cleanup boundary as `remove`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
@@ -34,7 +34,7 @@ explicit strict `remove`/`delete --with-orphans --remove-dependencies`, or non-o
 
 ## Private-Use Closeout Read
 
-The current lifecycle surface is close to private-use complete before the Amino UI to Codon UI rename. The useful finish
+The current lifecycle surface is close to private-use complete after the package and command rename. The useful finish
 line is not public ecosystem behavior; it is a trustworthy source-distribution CLI for projects controlled by the same
 maintainer.
 
@@ -53,10 +53,10 @@ The main closeout caveats before rename are:
 - custom update transforms, AST-aware merges, rollback after unexpected write failures, and public registry hosting remain
   outside the private-use finish line.
 
-## Command Names
+## Command Name
 
-The package still publishes the existing `aminoui-cli` bin and now also exposes `aui` as the shorter command alias. Both
-point at `dist/index.js`; package distribution policy remains separate from this alias.
+The CLI package is `@codon-ui/cli` and publishes a single `codon-ui` bin that points at `dist/index.js`. Compatibility
+aliases are intentionally not part of the package surface.
 
 ## Advisory Mode
 
@@ -77,12 +77,11 @@ hosted-registry advisory path.
 
 Current `init --advisory --json` reports the proposed consumer config, package manager, project context, theme tier,
 dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
-under `src/components/_registry` during the Amino phase. The Codon UI rename should move the greenfield default to
-`src/components/_codon-ui-registry`; existing consumers can keep historical paths until a deliberate config/import/lockfile
-migration is approved.
+under `src/components/_codon-ui-registry`; existing consumers can keep historical paths when config or lockfile records
+already make them explicit.
 
-Current `init --json` is the strict new-contract seed path. It writes only `amino-ui.config.json` and an empty
-`amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
+Current `init --json` is the strict new-contract seed path. It writes only `codon-ui.config.json` and an empty
+`codon-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
 overwritten. `init --defaults --json` remains an explicit alias for this same seed path.
 
@@ -105,12 +104,12 @@ effects. Compatible declarations in the target package are reported as `satisfie
 
 Current `add <component> --dry-run --json` uses the same local React registry source and packet metadata, but reports
 would-apply effects instead of advisory-only effects. It still writes no files, config, lockfile, directories, or package
-metadata. Missing `amino-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
+metadata. Missing `codon-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
 paths so fixtures can preview the exact write set before strict init. Existing targets are counted as blockers,
 dependency decisions are summarized, and the lockfile effect reports `would-write`.
 
 Current strict `add <component> --json` reads the same local React registry source after strict init has created
-`amino-ui.config.json` and `amino-ui.lock.json`. It requires satisfied dependency decisions before writing component
+`codon-ui.config.json` and `codon-ui.lock.json`. It requires satisfied dependency decisions before writing component
 source; consumers can satisfy them out of band, or strict add can run the approved dependency command only when
 `--install-dependencies` combines with effective install policy and a known package manager. It rejects missing source
 files and unsafe existing target files, writes the planned support/theme/component graph, rewrites package-local imports
@@ -126,7 +125,7 @@ an unsafe existing component target or incompatible support token target is pres
 
 Focused fixture evidence also proves the compatible support reuse path for `add switch`. Advisory and dry-run classify an
 existing `tokens/geometry` target as `reuse-existing` with `targetCompatibility: "typescript-export-superset"`, strict
-add writes only the missing `Switch` graph files plus `amino-ui.lock.json`, and the lockfile adopts the existing support
+add writes only the missing `Switch` graph files plus `codon-ui.lock.json`, and the lockfile adopts the existing support
 file as `consumer-owned-support` without overwriting it.
 
 Focused fixture evidence also proves the missing dependency boundary for `add switch`. Advisory and dry-run classify
@@ -163,7 +162,7 @@ updates only the selected temp `package.json` outside the CLI, reruns advisory/d
 and strictly adds `switch` without package-manager writes. The same proof covers the default nearest package manifest and
 `--package-json apps/web/package.json`.
 
-Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
+Current `status --json` is read-only. It loads `codon-ui.config.json` and `codon-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
 currently proves greenfield uninitialized, greenfield initialized-empty, clean installed, locally modified, unknown,
@@ -197,7 +196,7 @@ writes no source files, config, lockfile, package manifests, package-manager loc
 Current strict `update --all --json` is atomic broad update execution for dry-run-approved installed items. It starts with
 the same broad dry-run report, preflights every installed item, and writes only when no item reports dry-run blockers,
 project blockers, dependency blockers, file-action blockers, stale hashes, missing sources, unsafe ownership, or duplicate
-actionable target paths. When blocked, it exits nonzero, writes no source files, and leaves `amino-ui.lock.json`
+actionable target paths. When blocked, it exits nonzero, writes no source files, and leaves `codon-ui.lock.json`
 untouched. When every item is up to date, it exits zero with a no-op report. When safe update candidates exist, it writes
 approved source files and lockfile-only hash refreshes, then writes the lockfile once after the item write pass. It does
 not install dependencies, merge local edits, apply partial-success policy, roll back runtime write failures, mutate
@@ -221,7 +220,7 @@ Up-to-date items return a no-op report with exit 0. It does not merge local edit
 consumer-owned support, or update ejected files. When current strict blockers are dependency-only and the item still has
 an update candidate, strict update can run the detected npm, pnpm, yarn, or bun install command only when
 `--install-dependencies` combines with effective dependency policy `install`. It then replans from the selected target
-manifest before writing source files or `amino-ui.lock.json`; installed dependency decisions are recorded with action
+manifest before writing source files or `codon-ui.lock.json`; installed dependency decisions are recorded with action
 `installed`. Broad `update --all --json` still does not install dependencies, mutate package manifests, or touch
 package-manager lockfiles.
 
@@ -241,7 +240,7 @@ review or preservation, so it does not preview partial deletion for mixed safe/u
 
 Current strict `remove <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
 `would-remove`, no dry-run blockers exist, and the preflight still proves every planned source-file deletion or
-lockfile-only cleanup is current. It deletes registry-owned component files, removes the item from `amino-ui.lock.json`,
+lockfile-only cleanup is current. It deletes registry-owned component files, removes the item from `codon-ui.lock.json`,
 and preserves dependency records. It does not remove package dependencies, package-manager lockfiles, shared/support
 files, unknown files, locally modified files, consumer-owned support, or ejected files.
 
@@ -255,7 +254,7 @@ Current strict `remove <item> --with-orphans --remove-dependencies --json` and t
 explicit approval gate. They run the detected npm, pnpm, yarn, or bun removal command only for package dependency cleanup
 candidates that are no longer required by remaining installed items and are present in the selected target manifest. The
 strict report includes `dependencyCleanupExecution`, package-manager execution metadata, and dependency effects. It also
-removes stale no-longer-required Amino dependency records from `amino-ui.lock.json` while preserving dependencies that
+removes stale no-longer-required Codon dependency records from `codon-ui.lock.json` while preserving dependencies that
 remain required by another installed item.
 
 Current `delete <item>` is a visible sibling command for the same lifecycle surface. It supports `--advisory`, `--dry-run`,
@@ -278,7 +277,7 @@ not preview partial lockfile ownership transfer for mixed safe/unsafe items.
 
 Current strict `eject <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
 `would-eject`, no dry-run blockers exist, and the lockfile still records the planned component files as registry-owned.
-It writes only `amino-ui.lock.json`, changing eligible file records to `ejected`, and it leaves source files,
+It writes only `codon-ui.lock.json`, changing eligible file records to `ejected`, and it leaves source files,
 package-manager files, config, and dependency records untouched. Already ejected items return a no-op report with exit 0. Missing files, shared/support files, local edits, unknown ownership, consumer-owned support, and mixed unsafe items
 block the strict write.
 
@@ -296,8 +295,8 @@ by `init`.
 | Stage                                                | Reads                                                                                              | Writes                                                                                 |
 | ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | `init --advisory`                                    | Project shape and package metadata.                                                                | Nothing.                                                                               |
-| `init --dry-run`                                     | Project shape and existing Amino config/lockfile.                                                  | Nothing.                                                                               |
-| `init` / `init --defaults`                           | Project shape and existing Amino config/lockfile.                                                  | Config and empty lockfile only.                                                        |
+| `init --dry-run`                                     | Project shape and existing config/lockfile.                                                        | Nothing.                                                                               |
+| `init` / `init --defaults`                           | Project shape and existing config/lockfile.                                                        | Config and empty lockfile only.                                                        |
 | `add --advisory`                                     | Local snapshot, packet metadata, target package.                                                   | Nothing.                                                                               |
 | `add --dry-run`                                      | Local snapshot, packet metadata, config if present.                                                | Nothing.                                                                               |
 | Strict `add`                                         | Snapshot, packet metadata, config, lockfile, source, target manifest, and package-manager context. | Source/support/theme files, lockfile, and approved dependency installs.                |
@@ -314,7 +313,7 @@ by `init`.
 | Strict `remove`                                      | Config, lockfile, local snapshot, installed files.                                                 | Source-file deletes and lockfile.                                                      |
 | `delete` sibling                                     | Same as matching `remove` mode.                                                                    | Same as matching `remove` mode.                                                        |
 | `remove/delete --with-orphans`                       | Config, lockfile, local snapshot, installed files.                                                 | Source-file deletes and lockfile.                                                      |
-| `remove/delete --with-orphans --remove-dependencies` | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Source-file deletes, Amino lockfile, and approved package-manager dependency removals. |
+| `remove/delete --with-orphans --remove-dependencies` | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Source-file deletes, CLI lockfile, and approved package-manager dependency removals.   |
 | `eject --advisory --json`                            | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | `eject --dry-run --json`                             | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
 | Strict `eject`                                       | Config, lockfile, local snapshot, installed files.                                                 | Lockfile only.                                                                         |
@@ -325,7 +324,7 @@ This lane is designed so fixture evidence captures each transition before broade
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
-3. Seed strict init with config and empty Amino lockfile only.
+3. Seed strict init with config and empty CLI lockfile only.
 4. Add dry-run previews before strict component writes.
 5. Add strict single-component local registry install paths for satisfied-dependency, no-conflict proofs.
 6. Add read-only `status --json` for greenfield, clean installed, locally modified, and classification fixture proofs.

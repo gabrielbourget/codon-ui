@@ -93,8 +93,6 @@ export const getProjectConfig = async (cwd: string): Promise<TConfig | null> => 
   const isTypescriptProject = await isTypeScriptProject(cwd)
 
   const defaultCoreConfig: TCoreConfig = {
-    // - TODO: -> Replace with actual deployment link once dpeloyed.
-    $schema: "https://aminoui.com/schema.json",
     rsc: [PROJECT_TYPE__NEXT_APP_SRC, PROJECT_TYPE__NEXT_APP].includes(projectType),
     tsx: isTypescriptProject,
     aliases: {

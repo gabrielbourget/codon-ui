@@ -13,7 +13,7 @@ import {
   addDryRunSchema,
   addAdvisorySchema,
   addStrictSchema,
-  AMINO_UI_CONFIG_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
   CONSUMER_DEPENDENCY_POLICIES,
   createAddAdvisoryEffects,
   createAddDryRunEffects,
@@ -76,7 +76,7 @@ import type {
 } from "@/src/helpers/registry/schema"
 
 import type { TConfig } from "../helpers/config/schema"
-import { AMINO_HELPER_FILE_MARKER_REGEX, DEFAULT_COMPONENT_CONFIG_FILE } from "../helpers/constants/cli"
+import { DEFAULT_COMPONENT_CONFIG_FILE, HELPER_FILE_MARKER_REGEX } from "../helpers/constants/cli"
 import { transform } from "../helpers/transformers"
 
 const addOptionsSchema = z
@@ -125,7 +125,7 @@ type TConsumerConfigPlan = {
 }
 
 const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfigPlan> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
@@ -135,9 +135,9 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -158,9 +158,9 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -502,7 +502,7 @@ export const add = new Command()
             const failedCommand = failedDependencyCommands[0]
             const failureFinding: TInstallPlanFinding = {
               code: INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
-              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Amino source files or lockfile records were written.`,
+              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Codon source files or lockfile records were written.`,
               severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
             }
 
@@ -725,7 +725,7 @@ export const add = new Command()
             if (fileExists) {
               const fileContents = await fs.readFile(helperFilePath, "utf-8")
 
-              if (!AMINO_HELPER_FILE_MARKER_REGEX.test(fileContents)) {
+              if (!HELPER_FILE_MARKER_REGEX.test(fileContents)) {
                 await fs.appendFile(helperFilePath, `\n ${helper.file.content}`)
               }
             } else {

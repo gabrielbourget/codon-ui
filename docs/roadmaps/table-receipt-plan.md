@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This records the Amino UI-side plan for receiving Wavemap's reusable Table kit after the Wavemap-local support prep pass.
+This records the Codon UI-side plan for receiving Wavemap's reusable Table kit after the Wavemap-local support prep pass.
 
 The target consumer experience is `add table`. Internal registry items may stay granular, but the consumer command should
 install a coherent table-builder kit instead of exposing internal subgraph names.
@@ -90,7 +90,7 @@ The source receipt should rewrite Wavemap aliases to package-local paths:
 | `@/src/components/Filtering/*`              | Either preserve a package-local `Filtering` subdirectory as table support or relocate under `Table/filtering` with explicit import rewrites.  |
 | `@/src/components/SortParameterList/*`      | Either preserve a package-local top-level component or relocate under `Table/sort` with explicit import rewrites.                             |
 
-Do not add Wavemap alias support to Amino UI for this proof.
+Do not add Wavemap alias support to Codon UI for this proof.
 
 ## Dependency Draft
 
@@ -112,7 +112,7 @@ Before activating `table`, the source receipt should prove:
 | Step              | Expected command or evidence                                                                                                                                                                        |
 | ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Source build      | `pnpm build:react`                                                                                                                                                                                  |
-| Package checks    | `pnpm -F @amino-ui/react format:check`, `pnpm -F @amino-ui/react lint`, `pnpm -F @amino-ui/react stylelint`, `pnpm -F @amino-ui/react typecheck`, and registry contract checks if manifests change. |
+| Package checks    | `pnpm -F @codon-ui/react format:check`, `pnpm -F @codon-ui/react lint`, `pnpm -F @codon-ui/react stylelint`, `pnpm -F @codon-ui/react typecheck`, and registry contract checks if manifests change. |
 | Forbidden imports | Scan received Table, Filtering, and SortParameterList source for Wavemap path aliases, `@wavemap/*`, media/upload DTOs, saved-view code, route state, and app query execution helpers.              |
 | Public exports    | Typecheck package-facing exports for the approved components, labels, and types.                                                                                                                    |
 | Runtime graph     | Confirm no `EventTable`, `FileUploadTable`, `SortAndFilterPanel`, saved-view coordinator, upload/media workflow, app showcase, or Wavemap i18n adapter source is copied.                            |

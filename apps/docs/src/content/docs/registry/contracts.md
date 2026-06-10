@@ -50,8 +50,7 @@ Each file entry declares:
 The manifest does not hard-code the consumer's concrete registry directory. It declares semantic roles and per-role
 relative paths; the CLI combines those entries with the consumer config to produce resolved target paths.
 
-`paths.registry` is the default contained-root knob. In the current Amino phase, the default contained root is
-`src/components/_registry`. During the Codon UI rename, new greenfield consumers should default to the more explicit
+`paths.registry` is the default contained-root knob. The current Codon UI default contained root is
 `src/components/_codon-ui-registry`.
 
 `paths.roles` is the advanced override map. It can route resource classes to different repo-relative locations, such as
@@ -111,10 +110,10 @@ order and reports issues for:
 
 The planner does not generate artifacts, mutate consumer projects, install packages, or define update behavior.
 
-`pnpm -F @amino-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
+`pnpm -F @codon-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
 tracked source file that would feed a future generated artifact.
 
-`pnpm -F @amino-ui/react check:local-registry-snapshot` verifies that the support/theme subset and full local React
+`pnpm -F @codon-ui/react check:local-registry-snapshot` verifies that the support/theme subset and full local React
 snapshot still match the active React manifest. The JSON snapshots are tracked for local CLI planning only; public
 registry hosting remains a later artifact pass.
 

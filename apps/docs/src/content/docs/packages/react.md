@@ -1,16 +1,16 @@
 ---
-title: "@amino-ui/react"
+title: "@codon-ui/react"
 description: The private React source receiver package.
 ---
 
-`@amino-ui/react` is currently private. It is the canonical home for React component source, package default CSS,
+`@codon-ui/react` is currently private. It is the canonical home for React component source, package default CSS,
 support tokens, and registry manifests.
 
 ## Current Surface
 
 - `src/index.ts` exports the package-facing component surface.
 - `src/components` contains received reusable component source, helpers, labels, icons, and CSS modules.
-- `theme.css` is exported as `@amino-ui/react/theme.css`.
+- `theme.css` is exported as `@codon-ui/react/theme.css`.
 - `src/theme` owns narrow theme support files that stay outside the default CSS contract.
 - `src/tokens` owns registry-owned support tokens.
 - `src/registry/manifest.ts` owns the internal registry manifest.
@@ -23,7 +23,7 @@ support tokens, and registry manifests.
 
 The active React manifest currently contains 73 items: 52 components, 9 support items, and 12 theme items.
 
-`@amino-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
+`@codon-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
 not drift from the manifest.
 
 ## Peer Policy

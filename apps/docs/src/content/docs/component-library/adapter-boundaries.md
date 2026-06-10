@@ -37,7 +37,7 @@ Reusable source should:
 ## Consumer Proof Role
 
 Wavemap is the mature local consumer. Its delete/reinstall proofs verify that a registry item can be removed from local
-component source and rehydrated from Amino UI while Wavemap-owned adapters remain local.
+component source and rehydrated from Codon UI while Wavemap-owned adapters remain local.
 
-Those proofs do not make Wavemap adapters part of Amino UI. They prove the boundary between reusable source and consumer
+Those proofs do not make Wavemap adapters part of Codon UI. They prove the boundary between reusable source and consumer
 integration code.

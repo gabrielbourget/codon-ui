@@ -120,17 +120,17 @@ that prefix as the current theme contract rather than settled long-term branding
 
 ### Stage 2: Package And Command Rename
 
-- Rename package manifest identities and workspace filters.
-- Rename the CLI bin to `codon-ui`.
-- Update docs and examples that refer to `aminoui-cli` or `aui`.
-- Run focused CLI tests, typecheck, lint, build, docs format, and `git diff --check`.
+- [x] Rename package manifest identities and workspace filters.
+- [x] Rename the CLI bin to `codon-ui`.
+- [x] Update docs and examples that refer to `aminoui-cli` or `aui`.
+- [x] Run focused CLI tests, typecheck, lint, build, docs format, and `git diff --check`.
 
 ### Stage 3: Consumer Contract Rename
 
-- Rename config and lockfile constants to `codon-ui.config.json` and `codon-ui.lock.json`.
-- Update init output, loaders, schemas, JSON contract tests, and fixture expected reports.
-- Default greenfield `registry-contained` layout to `src/components/_codon-ui-registry`.
-- Keep explicit existing registry paths authoritative through config and lockfile records.
+- [x] Rename config and lockfile constants to `codon-ui.config.json` and `codon-ui.lock.json`.
+- [x] Update init output, loaders, schemas, JSON contract tests, and fixture expected reports.
+- [x] Default greenfield `registry-contained` layout to `src/components/_codon-ui-registry`.
+- [x] Keep explicit existing registry paths authoritative through config and lockfile records.
 
 ### Stage 4: Registry Identity Rename
 
@@ -161,19 +161,19 @@ that prefix as the current theme contract rather than settled long-term branding
 For this packet-only slice:
 
 ```sh
-pnpm -F @amino-ui/docs format:check
+pnpm -F @codon-ui/docs format:check
 git diff --check
 ```
 
 For later implementation slices, use the narrowest matching checks, then fixture replay gates. Expected gates include:
 
 ```sh
-pnpm -F aminoui-cli test
-pnpm -F aminoui-cli typecheck
-pnpm -F aminoui-cli lint
-pnpm -F aminoui-cli build
-pnpm -F @amino-ui/react check:contracts
-pnpm -F @amino-ui/react build
+pnpm -F @codon-ui/cli test
+pnpm -F @codon-ui/cli typecheck
+pnpm -F @codon-ui/cli lint
+pnpm -F @codon-ui/cli build
+pnpm -F @codon-ui/react check:contracts
+pnpm -F @codon-ui/react build
 pnpm verify:evidence-ledger
 pnpm verify:json-contracts
 pnpm verify:init-lifecycle
@@ -181,7 +181,7 @@ pnpm verify:add-lifecycle
 pnpm verify:wavemap-like-lifecycle
 ```
 
-Command names in this verification list should be updated as the package rename lands.
+Registry source identities and consumer file names remain deferred to their dedicated stages.
 
 ## Stop Conditions
 

@@ -20,7 +20,7 @@ const parseDiffOptions = (itemName: string, CLIOptions: unknown) => ({
 
 export const diff = new Command()
   .name("diff")
-  .description("Compare an installed Amino UI registry item with the current registry source without writing changes.")
+  .description("Compare an installed Codon UI registry item with the current registry source without writing changes.")
   .argument("<item>", "The installed registry item you'd like to compare.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--json", "Print machine-readable diff output.", false)

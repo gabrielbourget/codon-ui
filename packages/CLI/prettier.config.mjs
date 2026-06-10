@@ -1,3 +1,3 @@
-import base from "@amino-ui/shared-utils/prettier/index"
+import base from "@codon-ui/shared-utils/prettier/index"
 
 export default { ...base }

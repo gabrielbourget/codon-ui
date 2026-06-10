@@ -118,14 +118,14 @@ try {
   assert.equal(greenfieldDryRun.project.hasLockfile, false)
   assert.equal(greenfieldDryRun.proposedConfig.layoutMode, "registry-contained")
   assert.equal(greenfieldDryRun.targetPaths.components, "src/components")
-  assert.equal(greenfieldDryRun.targetPaths.tokens, "src/components/_registry/tokens")
+  assert.equal(greenfieldDryRun.targetPaths.tokens, "src/components/_codon-ui-registry/tokens")
   assert.equal(greenfieldDryRun.wouldEffects.config.status, "would-write")
   assert.equal(greenfieldDryRun.wouldEffects.config.wouldWrite, true)
   assert.equal(greenfieldDryRun.wouldEffects.lockfile.status, "would-write")
   assert.equal(greenfieldDryRun.wouldEffects.lockfile.wouldWrite, true)
   assert.equal(greenfieldDryRun.findings.length, 0)
-  assert.equal(existsSync(path.join(greenfieldFixturePath, "amino-ui.config.json")), false)
-  assert.equal(existsSync(path.join(greenfieldFixturePath, "amino-ui.lock.json")), false)
+  assert.equal(existsSync(path.join(greenfieldFixturePath, "codon-ui.config.json")), false)
+  assert.equal(existsSync(path.join(greenfieldFixturePath, "codon-ui.lock.json")), false)
 
   const strictInit = await writeConsumerInitSeed(greenfieldFixturePath)
 
@@ -141,7 +141,7 @@ try {
 
   assertCliJsonReportContract({ report: plainInit, schemaName: "initStrict" })
   assert.deepEqual(beforePlainInitSnapshot, ["package.json"])
-  assert.deepEqual(afterPlainInitSnapshot, ["amino-ui.config.json", "amino-ui.lock.json", "package.json"])
+  assert.deepEqual(afterPlainInitSnapshot, ["codon-ui.config.json", "codon-ui.lock.json", "package.json"])
   assert.equal(plainInit.initialized, true)
   assert.equal(plainInit.effects.writesConfig, true)
   assert.equal(plainInit.effects.writesLockfile, true)
@@ -176,7 +176,7 @@ try {
   assert(blockedDryRun.findings.some((finding) => finding.code === "existing-lockfile"))
 
   const configOnlyFixturePath = createFixture("config-only")
-  writeJson(path.join(configOnlyFixturePath, "amino-ui.config.json"), {})
+  writeJson(path.join(configOnlyFixturePath, "codon-ui.config.json"), {})
 
   const configOnlyDryRun = createConsumerInitDryRun(configOnlyFixturePath)
 
@@ -185,10 +185,10 @@ try {
   assert.equal(configOnlyDryRun.initialized, false)
   assert.equal(configOnlyDryRun.wouldEffects.config.status, "blocked")
   assert.equal(configOnlyDryRun.wouldEffects.lockfile.status, "not-written")
-  assert.equal(existsSync(path.join(configOnlyFixturePath, "amino-ui.lock.json")), false)
+  assert.equal(existsSync(path.join(configOnlyFixturePath, "codon-ui.lock.json")), false)
 
   const lockfileOnlyFixturePath = createFixture("lockfile-only")
-  writeJson(path.join(lockfileOnlyFixturePath, "amino-ui.lock.json"), {})
+  writeJson(path.join(lockfileOnlyFixturePath, "codon-ui.lock.json"), {})
 
   const lockfileOnlyDryRun = createConsumerInitDryRun(lockfileOnlyFixturePath)
 
@@ -197,7 +197,7 @@ try {
   assert.equal(lockfileOnlyDryRun.initialized, false)
   assert.equal(lockfileOnlyDryRun.wouldEffects.config.status, "not-written")
   assert.equal(lockfileOnlyDryRun.wouldEffects.lockfile.status, "blocked")
-  assert.equal(existsSync(path.join(lockfileOnlyFixturePath, "amino-ui.config.json")), false)
+  assert.equal(existsSync(path.join(lockfileOnlyFixturePath, "codon-ui.config.json")), false)
 
   assertPlanningModeConflict({
     args: ["--advisory", "--dry-run"],
@@ -212,7 +212,7 @@ try {
     cwd: createFixture("dry-run-defaults-conflict"),
   })
 
-  console.log("[aminoui-cli] init dry-run and strict seed reports verified")
+  console.log("[codon-ui] init dry-run and strict seed reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

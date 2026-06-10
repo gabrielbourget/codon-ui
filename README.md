@@ -1,6 +1,6 @@
-# Amino UI
+# Codon UI
 
-Amino UI is being renovated into the canonical component-library and registry source for reusable React UI. The current
+Codon UI is being renovated into the canonical component-library and registry source for reusable React UI. The current
 branch is foundation work: package-manager alignment, shared tooling, CI, a React source receiver, default theme CSS,
 registry manifest contracts, receiver support tokens, and documentation.
 
@@ -14,8 +14,8 @@ This repo is a `pnpm` monorepo.
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
 | `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                            |
 | `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                         |
-| `packages/CLI`          | Existing CLI package with `aminoui-cli` and `aui` bins. Strict install/update/diff behavior is not proof-ready yet.      |
-| `packages/react`        | Private `@amino-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests. |
+| `packages/CLI`          | Private `@codon-ui/cli` package with the `codon-ui` bin. Strict install/update/diff behavior is not proof-ready yet.     |
+| `packages/react`        | Private `@codon-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests. |
 | `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                              |
 
 ## Commands
@@ -32,15 +32,15 @@ pnpm dev:docs
 Focused checks:
 
 ```sh
-pnpm -F @amino-ui/react check:contracts
-pnpm -F @amino-ui/react build
-pnpm -F @amino-ui/docs build
+pnpm -F @codon-ui/react check:contracts
+pnpm -F @codon-ui/react build
+pnpm -F @codon-ui/docs build
 ```
 
 ## Current Boundaries
 
-- `@amino-ui/react/theme.css` is hand-authored and intentionally narrow.
-- React, React DOM, and React Aria Components are current `@amino-ui/react` peers.
+- `@codon-ui/react/theme.css` is hand-authored and intentionally narrow.
+- React, React DOM, and React Aria Components are current `@codon-ui/react` peers.
 - `Switch` is the first received component source slice under `packages/react/src/components/Switch`.
 - Registry manifests have real support entries and an active `switch` component entry.
 - `Switch` still waits on strict CLI install behavior, lockfile writes, focused test harness work, and the Wavemap

@@ -1,6 +1,6 @@
 import {
-  AMINO_UI_CONFIG_FILE_NAME,
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_ADVISORY_SEVERITY__INFO,
   CONSUMER_ADVISORY_SEVERITY__WARNING,
   CONSUMER_PACKAGE_MANAGER__UNKNOWN,
@@ -27,7 +27,7 @@ export const createConsumerInitAdvisory = (cwd: string): TConsumerInitAdvisory =
   if (project.hasConfigFile) {
     findings.push({
       code: "existing-config",
-      message: `${AMINO_UI_CONFIG_FILE_NAME} already exists. Advisory mode will not overwrite it.`,
+      message: `${CODON_UI_CONFIG_FILE_NAME} already exists. Advisory mode will not overwrite it.`,
       severity: CONSUMER_ADVISORY_SEVERITY__INFO,
     })
   }
@@ -35,7 +35,7 @@ export const createConsumerInitAdvisory = (cwd: string): TConsumerInitAdvisory =
   if (project.hasLockfile) {
     findings.push({
       code: "existing-lockfile",
-      message: `${AMINO_UI_LOCK_FILE_NAME} already exists. Advisory mode will not modify it.`,
+      message: `${CODON_UI_LOCK_FILE_NAME} already exists. Advisory mode will not modify it.`,
       severity: CONSUMER_ADVISORY_SEVERITY__INFO,
     })
   }

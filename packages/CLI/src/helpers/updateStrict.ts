@@ -5,7 +5,7 @@ import path from "path"
 import { z } from "zod"
 
 import {
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
@@ -367,7 +367,7 @@ const createProjectStateBlockers = (dryRunReport: TUpdateDryRunReport) => {
         code: "strict-update-lockfile-status-blocker",
         itemName: dryRunReport.itemName,
         kind: UPDATE_STRICT_BLOCKER_KIND__PROJECT,
-        message: `Strict update requires a present Amino lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
+        message: `Strict update requires a present Codon lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
       }),
     )
   }
@@ -438,7 +438,7 @@ const createLockfileBlockers = ({
         code: "strict-update-lockfile-item-missing",
         itemName: dryRunReport.itemName,
         kind: UPDATE_STRICT_BLOCKER_KIND__ITEM,
-        message: `Strict update cannot continue because "${dryRunReport.itemName}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
+        message: `Strict update cannot continue because "${dryRunReport.itemName}" is missing from ${CODON_UI_LOCK_FILE_NAME}.`,
       }),
     ]
   }
@@ -1125,7 +1125,7 @@ const writeStrictUpdate = async ({
   })
 
   await fs.writeFile(
-    path.join(cwd, AMINO_UI_LOCK_FILE_NAME),
+    path.join(cwd, CODON_UI_LOCK_FILE_NAME),
     `${JSON.stringify(result.lockfileData, null, 2)}\n`,
     "utf8",
   )
@@ -1390,7 +1390,7 @@ const createDependencyExecutionFailureBlocker = (failedCommand: TDependencyInsta
   createUpdateStrictBlocker({
     code: INSTALL_PLAN_FINDING__STRICT_UPDATE_DEPENDENCY_EXECUTION_FAILED,
     kind: UPDATE_STRICT_BLOCKER_KIND__DEPENDENCY,
-    message: `Package-manager dependency install failed while running "${failedCommand.command}". No Amino source files or lockfile records were written.`,
+    message: `Package-manager dependency install failed while running "${failedCommand.command}". No Codon source files or lockfile records were written.`,
   })
 
 export const createUpdateStrictReport = async ({
@@ -1697,7 +1697,7 @@ export const createUpdateAllStrictReport = async ({
 
   if (applied) {
     await fs.writeFile(
-      path.join(cwd, AMINO_UI_LOCK_FILE_NAME),
+      path.join(cwd, CODON_UI_LOCK_FILE_NAME),
       `${JSON.stringify(nextLockfileData, null, 2)}\n`,
       "utf8",
     )

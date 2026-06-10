@@ -37,8 +37,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/source-only.ts",
     "source/source-equals-local.ts",
     "source/dependency-blocked.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/source-changed.ts",
     "consumer/src/components/Diff/local-modified.ts",
@@ -93,7 +93,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/dependency-blocked.ts"), dependencyBlockedInstalled)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -192,8 +196,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -481,7 +485,7 @@ try {
     path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-equals-local.ts"),
     strictAllSourceEqualsLocalCurrent,
   )
-  writeJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.config.json"), {})
   writeJson(strictAllSuccessRegistrySourcePath, {
     items: [
       {
@@ -515,8 +519,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     items: {
       "source-only": {
         files: [
@@ -574,11 +578,11 @@ try {
     strictAllSourceEqualsLocalCurrent,
   )
   assert.equal(
-    readJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].sourceHash,
+    readJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].sourceHash,
     createContentHash(strictAllSourceOnlyCurrent),
   )
   assert.equal(
-    readJson(path.join(strictAllSuccessConsumerRoot, "amino-ui.lock.json")).items["source-equals-local"].files[0]
+    readJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json")).items["source-equals-local"].files[0]
       .sourceHash,
     createContentHash(strictAllSourceEqualsLocalCurrent),
   )
@@ -712,7 +716,7 @@ try {
     createContentHash(sourceOnlyCurrent),
   )
   assert.equal(
-    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].installedHash,
+    readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].installedHash,
     createContentHash(sourceOnlyCurrent),
   )
 
@@ -801,7 +805,7 @@ try {
       name: "dependency-install-consumer",
       packageManager: "npm@10.0.0",
     })
-    writeJson(path.join(fixtureConsumerRoot, "amino-ui.config.json"), {})
+    writeJson(path.join(fixtureConsumerRoot, "codon-ui.config.json"), {})
     writeJson(fixtureRegistrySourcePath, {
       items: [
         {
@@ -825,8 +829,8 @@ try {
       sourceIdentity: "@amino-ui/test-registry",
       sourceRoot: ".",
     })
-    writeJson(path.join(fixtureConsumerRoot, "amino-ui.lock.json"), {
-      configFile: "amino-ui.config.json",
+    writeJson(path.join(fixtureConsumerRoot, "codon-ui.lock.json"), {
+      configFile: "codon-ui.config.json",
       items: {
         "motion-update": {
           files: [
@@ -853,7 +857,7 @@ try {
     name: "dependency-install-consumer",
     packageManager: "npm@10.0.0",
   })
-  writeJson(path.join(dependencyInstallConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(dependencyInstallConsumerRoot, "codon-ui.config.json"), {})
   writeJson(dependencyInstallRegistrySourcePath, {
     items: [
       {
@@ -877,8 +881,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(dependencyInstallConsumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(dependencyInstallConsumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     items: {
       "motion-update": {
         files: [
@@ -993,7 +997,7 @@ if (!dependency) {
         path.join(failureConsumerRoot, "src/components/Diff/motion-update.ts"),
         "utf8",
       )
-      const originalAminoLockfileContent = readFileSync(path.join(failureConsumerRoot, "amino-ui.lock.json"), "utf8")
+      const originalCodonLockfileContent = readFileSync(path.join(failureConsumerRoot, "codon-ui.lock.json"), "utf8")
 
       try {
         process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE = failureMode
@@ -1038,8 +1042,8 @@ if (!dependency) {
           originalSourceContent,
         )
         assert.equal(
-          readFileSync(path.join(failureConsumerRoot, "amino-ui.lock.json"), "utf8"),
-          originalAminoLockfileContent,
+          readFileSync(path.join(failureConsumerRoot, "codon-ui.lock.json"), "utf8"),
+          originalCodonLockfileContent,
         )
 
         if (failureMode === "before-write") {
@@ -1098,7 +1102,7 @@ if (!dependency) {
     )
     assert.equal(readJson(path.join(dependencyInstallConsumerRoot, "package.json")).dependencies.motion, "^11.0.0")
 
-    const dependencyInstallLockfile = readJson(path.join(dependencyInstallConsumerRoot, "amino-ui.lock.json"))
+    const dependencyInstallLockfile = readJson(path.join(dependencyInstallConsumerRoot, "codon-ui.lock.json"))
     const motionDependency = dependencyInstallLockfile.dependencies.find(
       (dependency: { name: string }) => dependency.name === "motion",
     )
@@ -1124,7 +1128,7 @@ if (!dependency) {
   assert.equal(missingDryRunReport.effects.writesFiles, false)
   assert.equal(missingDryRunReport.effects.writesLockfile, false)
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
-  console.log("[aminoui-cli] update advisory, dry-run, and strict reports verified")
+  console.log("[codon-ui] update advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

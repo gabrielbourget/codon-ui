@@ -87,7 +87,7 @@ The `Switch` proof needs support beyond the three component files:
 
 | Support item                 | Current read                                                                                                   | Decision needed                                                                                                                           |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `theme-css`                  | `@amino-ui/react/theme.css` exists, is checked, and has an active support manifest entry.                      | Use a narrow proof-local compatibility bridge for the first proof; do not broaden the package default wholesale.                          |
+| `theme-css`                  | `@codon-ui/react/theme.css` exists, is checked, and has an active support manifest entry.                      | Use a narrow proof-local compatibility bridge for the first proof; do not broaden the package default wholesale.                          |
 | `theme/switch-compatibility` | `packages/react/src/components/Switch/switch-compatibility.css` exists and has an active theme manifest entry. | Install alongside `theme-css` for the first proof; remove later when `Switch` CSS no longer needs Wavemap compatibility aliases.          |
 | `tokens/geometry`            | `packages/react/src/tokens/geometry.ts` exists and has an active support manifest entry.                       | Future package source should import directly from `../../tokens/geometry`; do not make it a public package export yet.                    |
 | `tokens/theme-order`         | `packages/react/src/tokens/theme-order.ts` exists and has an active support manifest entry.                    | Keep the five current theme orders for the first proof; do not add accent ramps to the package default just because the type allows them. |
@@ -106,13 +106,13 @@ The first implementation path uses a narrow proof-local compatibility bridge at
 `packages/react/src/components/Switch/switch-compatibility.css`.
 
 That bridge maps only the names needed by the received `Switch` CSS and stays outside the package default. Do not
-broaden `@amino-ui/react/theme.css` with Wavemap aliases or accent ramps unless the owner explicitly approves that theme
+broaden `@codon-ui/react/theme.css` with Wavemap aliases or accent ramps unless the owner explicitly approves that theme
 policy.
 
 ## Test Plan Draft
 
 The focused Wavemap test should remain the behavioral source of truth for the first proof, but it needs package-safe
-imports before it can run in Amino UI.
+imports before it can run in Codon UI.
 
 Expected test adaptation:
 

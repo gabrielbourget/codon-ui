@@ -1,6 +1,6 @@
 ---
 title: Verification
-description: Local checks and CI parity commands for Amino UI.
+description: Local checks and CI parity commands for Codon UI.
 ---
 
 Local verification is script-owned so the GitHub Actions workflow can call the same commands that developers run.
@@ -35,11 +35,11 @@ artifact generation policy is still unresolved.
 ## React Package Contracts
 
 ```sh
-pnpm -F @amino-ui/react check:contracts
-pnpm -F @amino-ui/react check:theme-css
-pnpm -F @amino-ui/react check:registry-manifest
-pnpm -F @amino-ui/react check:registry-graph
-pnpm -F @amino-ui/react check:local-registry-snapshot
+pnpm -F @codon-ui/react check:contracts
+pnpm -F @codon-ui/react check:theme-css
+pnpm -F @codon-ui/react check:registry-manifest
+pnpm -F @codon-ui/react check:registry-graph
+pnpm -F @codon-ui/react check:local-registry-snapshot
 ```
 
 Use these focused commands when touching `packages/react/theme.css`, token support, or registry manifest files.
@@ -47,9 +47,9 @@ Use these focused commands when touching `packages/react/theme.css`, token suppo
 ## CLI And Consumer Evidence
 
 ```sh
-pnpm -F aminoui-cli typecheck
-pnpm -F aminoui-cli build
-pnpm -F aminoui-cli test
+pnpm -F @codon-ui/cli typecheck
+pnpm -F @codon-ui/cli build
+pnpm -F @codon-ui/cli test
 ```
 
 Consumer fixture evidence lives in the sibling `amino-ui-consumer-fixtures` repository. Run its root verifier after CLI
@@ -67,7 +67,7 @@ assertions.
 ## Documentation
 
 ```sh
-pnpm -F @amino-ui/docs format:check
+pnpm -F @codon-ui/docs format:check
 pnpm build:docs
 ```
 

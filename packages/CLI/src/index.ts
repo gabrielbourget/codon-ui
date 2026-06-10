@@ -20,7 +20,7 @@ process.on("SIGTERM", () => process.exit(0))
 
 const main = async () => {
   const packageInfo = getPackageInfo()
-  const commandName = path.basename(process.argv[1] ?? "aminoui-cli")
+  const commandName = path.basename(process.argv[1] ?? "codon-ui")
 
   const program = new Command()
     .name(commandName)

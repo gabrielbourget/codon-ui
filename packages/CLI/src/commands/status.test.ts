@@ -27,8 +27,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/geometry.ts",
     "source/ejected.ts",
     "source/unknown.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Switch/Switch.tsx",
     "consumer/src/components/_registry/tokens/geometry.ts",
     "consumer/src/components/_registry/utils/ejected.ts",
@@ -88,7 +88,11 @@ try {
   writeText(geometryTargetPath, geometrySource)
   writeText(ejectedTargetPath, ejectedSource)
   writeText(unknownTargetPath, unknownSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -148,8 +152,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -322,7 +326,7 @@ try {
   assert.equal(unknownSourceReport.registrySource.status, "loaded")
   assert.equal(unknownFileWithDefaultRegistry?.sourceState, "unknown")
   assert.equal(unknownFileWithDefaultRegistry?.state, "unknown")
-  console.log("[aminoui-cli] status report verified")
+  console.log("[codon-ui] status report verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

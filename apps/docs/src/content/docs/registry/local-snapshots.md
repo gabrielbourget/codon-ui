@@ -40,7 +40,7 @@ When the active manifest changes:
 - [ ] Generate or update `packages/CLI/registry/local-react.registry.json`.
 - [ ] Generate or update `packages/CLI/registry/local-react-support.registry.json` when support/theme entries change.
 - [ ] Keep `packages/react/local-registry-snapshot.ts` aligned with the generated JSON.
-- [ ] Run `pnpm -F @amino-ui/react check:local-registry-snapshot`.
+- [ ] Run `pnpm -F @codon-ui/react check:local-registry-snapshot`.
 - [ ] Run CLI tests that parse the local snapshots.
 - [ ] Add or refresh fixture evidence for the command paths that consume the changed snapshot data.
 
@@ -53,7 +53,7 @@ manifest or refresh path first.
 then checked with:
 
 ```sh
-pnpm -F @amino-ui/react check:local-registry-snapshot
+pnpm -F @codon-ui/react check:local-registry-snapshot
 ```
 
 That check verifies both the support subset and the full React snapshot. If it fails, the CLI may be planning from stale
@@ -71,7 +71,7 @@ The CLI adds target-specific information that should not live in the canonical m
 
 | Install-plan data    | Computed from                                                                                        |
 | -------------------- | ---------------------------------------------------------------------------------------------------- |
-| `resolvedPath`       | Consumer `amino-ui.config.json` layout and role paths.                                               |
+| `resolvedPath`       | Consumer `codon-ui.config.json` layout and role paths.                                               |
 | `sourceStatus`       | Whether the manifest `sourcePath` exists under the snapshot source root.                             |
 | `contentHash`        | The current source file bytes.                                                                       |
 | `targetStatus`       | Whether the resolved consumer target already exists.                                                 |

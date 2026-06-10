@@ -31,7 +31,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
 
 export const init = new Command()
   .name("init")
-  .description("Initialize Amino UI consumer config and lockfile state.")
+  .description("Initialize Codon UI consumer config and lockfile state.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("-y, --yes", "Accepted for compatibility; init is non-interactive.", true)
   .option("-d, --defaults", "Alias for the default strict config and lockfile seed path.", false)

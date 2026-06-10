@@ -37,8 +37,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/ejected.ts",
     "source/source-only.ts",
     "source/ejected-only.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/local-modified.ts",
     "consumer/src/components/Diff/support.ts",
@@ -89,7 +89,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/ejected-only.ts"), ejectedOnlySource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/consumer-support.ts"), consumerSupportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -178,8 +182,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -506,7 +510,7 @@ try {
   assert.equal(strictSourceOnlyReport.files[0].ejectedLockfileOwnership, true)
   assert.equal(strictSourceOnlyReport.lockfileData.items["source-only"]?.files[0].ownershipState, "ejected")
   assert.equal(
-    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].ownershipState,
+    readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].ownershipState,
     "ejected",
   )
   assert.equal(
@@ -559,7 +563,7 @@ try {
     "expected missing item dry-run finding",
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), ejectedNoOpSnapshot)
-  console.log("[aminoui-cli] eject advisory, dry-run, and strict reports verified")
+  console.log("[codon-ui] eject advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

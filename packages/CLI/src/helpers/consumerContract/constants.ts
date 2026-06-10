@@ -1,5 +1,5 @@
-export const AMINO_UI_CONFIG_FILE_NAME = "amino-ui.config.json"
-export const AMINO_UI_LOCK_FILE_NAME = "amino-ui.lock.json"
+export const CODON_UI_CONFIG_FILE_NAME = "codon-ui.config.json"
+export const CODON_UI_LOCK_FILE_NAME = "codon-ui.lock.json"
 
 export const CONSUMER_LAYOUT_MODE__REGISTRY_CONTAINED = "registry-contained"
 export const CONSUMER_LAYOUT_MODE__INTEGRATED = "integrated"
@@ -100,7 +100,7 @@ export const CONSUMER_ADVISORY_SEVERITIES = [
 ] as const
 
 export const DEFAULT_REGISTRY_CONTAINED_COMPONENTS_PATH = "src/components"
-export const DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH = "src/components/_registry"
+export const DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH = "src/components/_codon-ui-registry"
 export const DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS = {
   [CONSUMER_TARGET_ROLE__ASSETS]: `${DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH}/assets`,
   [CONSUMER_TARGET_ROLE__COMPONENTS]: DEFAULT_REGISTRY_CONTAINED_COMPONENTS_PATH,

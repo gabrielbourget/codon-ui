@@ -119,7 +119,7 @@ const readIngestPacket = async (itemName: string) => {
   const packetDataPath = getPacketDataCandidatePaths(itemName).find((candidatePath) => existsSync(candidatePath))
 
   if (!packetDataPath) {
-    throw new Error(`Could not find @amino-ui/react ingest packet data for ${itemName}.`)
+    throw new Error(`Could not find @codon-ui/react ingest packet data for ${itemName}.`)
   }
 
   return registryIngestPacketSchema.parse(JSON.parse(await readFile(packetDataPath, "utf8")))

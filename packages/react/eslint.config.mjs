@@ -1,4 +1,4 @@
-import base from "@amino-ui/shared-utils/eslint/base"
+import base from "@codon-ui/shared-utils/eslint/base"
 
 export default [
   ...base,

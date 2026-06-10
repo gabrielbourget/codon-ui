@@ -1,8 +1,8 @@
 {
-  "name": "@amino-ui/react",
+  "name": "@codon-ui/react",
   "version": "0.1.0",
   "private": true,
-  "description": "Canonical React source package for Amino UI components.",
+  "description": "Canonical React source package for Codon UI components.",
   "type": "module",
   "packageManager": "pnpm@10.18.3",
   "main": "./dist/index.js",
@@ -53,7 +53,7 @@
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@amino-ui/shared-utils": "workspace:*",
+    "@codon-ui/shared-utils": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.11",
     "eslint": "^9.0.0",
     "prettier": "^3.8.1",

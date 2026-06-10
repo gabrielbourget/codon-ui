@@ -2,8 +2,9 @@ import { existsSync, readFileSync } from "fs"
 import path from "path"
 
 import {
-  AMINO_UI_CONFIG_FILE_NAME,
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
+  DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH,
   CONSUMER_PACKAGE_MANAGER__BUN,
   CONSUMER_PACKAGE_MANAGER__NPM,
   CONSUMER_PACKAGE_MANAGER__PNPM,
@@ -85,10 +86,10 @@ export const getConsumerProjectContext = (cwd: string): TConsumerProjectContext 
   return consumerProjectContextSchema.parse({
     cwd,
     hasComponentsDirectory: existsSync(path.join(cwd, "src/components")),
-    hasConfigFile: existsSync(path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)),
-    hasLockfile: existsSync(path.join(cwd, AMINO_UI_LOCK_FILE_NAME)),
+    hasConfigFile: existsSync(path.join(cwd, CODON_UI_CONFIG_FILE_NAME)),
+    hasLockfile: existsSync(path.join(cwd, CODON_UI_LOCK_FILE_NAME)),
     hasPackageJson: existsSync(packageJsonPath),
-    hasRegistryDirectory: existsSync(path.join(cwd, "src/components/_registry")),
+    hasRegistryDirectory: existsSync(path.join(cwd, DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH)),
     hasSrcDirectory: existsSync(path.join(cwd, "src")),
     hasTsConfig: existsSync(path.join(cwd, "tsconfig.json")),
     packageManager: detectConsumerPackageManager(cwd),

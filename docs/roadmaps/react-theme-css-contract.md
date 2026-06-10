@@ -2,18 +2,18 @@
 
 ## Purpose
 
-`@amino-ui/react/theme.css` is the default CSS contract for React source distributed by Amino UI.
+`@codon-ui/react/theme.css` is the default CSS contract for React source distributed by Codon UI.
 
 The first contract should give received component source a stable, package-owned theme vocabulary without copying
 Wavemap's full application theme or introducing generated token machinery before the first component proof needs it.
 
 ## Current Status
 
-- `packages/react/theme.css` is exported as `@amino-ui/react/theme.css`.
+- `packages/react/theme.css` is exported as `@codon-ui/react/theme.css`.
 - The file is hand-authored and defines the first narrow default `--aui-` variable contract.
 - No Wavemap component source consumes this package yet.
 - No registry artifact generator reads from `packages/react` yet.
-- React and React DOM are the only declared peers for `@amino-ui/react`.
+- React and React DOM are the only declared peers for `@codon-ui/react`.
 
 ## Contract Principles
 
@@ -64,26 +64,26 @@ These are not part of the first default contract:
 Consumers should be able to import the package default once and override it later:
 
 ```ts
-import "@amino-ui/react/theme.css"
+import "@codon-ui/react/theme.css"
 ```
 
 The default file should declare values under `:root` and theme selector blocks. Consumer overrides should load after the
 package default and may override the same `--aui-` variables at `:root`, a theme selector, or an app-specific scope.
 
-The first package proof should avoid importing Wavemap's app theme into Amino UI. Wavemap can later add a local bridge
+The first package proof should avoid importing Wavemap's app theme into Codon UI. Wavemap can later add a local bridge
 that maps product-specific variables onto the package `--aui-` contract if the delete-and-reinstall proof needs it.
 
 ## Wavemap Reference Mapping
 
 Wavemap's current registry theme already points in the intended direction, but it includes compatibility and app-local
-surface that should not become Amino UI defaults automatically.
+surface that should not become Codon UI defaults automatically.
 
 Use these Wavemap reads as guidance:
 
-| Wavemap reference                                                                       | Amino UI posture                                                                                                |
+| Wavemap reference                                                                       | Codon UI posture                                                                                                |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `--aui-foreground`, `--aui-background`                                                  | Bring forward as core semantic roles.                                                                           |
-| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Amino UI. |
+| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Codon UI. |
 | `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively for primitive controls and containers.                                                |
 | `--aui-status-*` and validation aliases                                                 | Bring forward as state roles, using `state` naming for the package default if that remains clearer.             |
 | Compatibility shims such as `--foreground`, `--distance_1`, and `--border_radius_1`     | Keep out of the package default until a consumer install proof requires them.                                   |
@@ -111,7 +111,7 @@ For contract-only changes:
 
 For implementation changes to `packages/react/theme.css`:
 
-- `pnpm -F @amino-ui/react check:theme-css`
+- `pnpm -F @codon-ui/react check:theme-css`
 - `pnpm check`
 - `pnpm build:react`
 - `git diff --check`

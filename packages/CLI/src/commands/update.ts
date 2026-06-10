@@ -38,7 +38,7 @@ const parseUpdateOptions = (itemName: string | undefined, CLIOptions: unknown) =
 
 export const update = new Command()
   .name("update")
-  .description("Update one installed Amino UI registry item when strict provenance checks pass.")
+  .description("Update one installed Codon UI registry item when strict provenance checks pass.")
   .argument("[item]", "The installed registry item you'd like to inspect or update.")
   .option("--all", "Target every installed registry item for advisory, dry-run, or all-safe strict update.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)

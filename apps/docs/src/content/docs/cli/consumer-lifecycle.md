@@ -10,8 +10,8 @@ consumer project.
 
 | File                   | Owner     | Purpose                                                                                  |
 | ---------------------- | --------- | ---------------------------------------------------------------------------------------- |
-| `amino-ui.config.json` | Human     | Setup intent: layout mode, role paths, registry source, theme tier, dependency policy.   |
-| `amino-ui.lock.json`   | Generated | Install provenance: item graph, file hashes, ownership states, and dependency decisions. |
+| `codon-ui.config.json` | Human     | Setup intent: layout mode, role paths, registry source, theme tier, dependency policy.   |
+| `codon-ui.lock.json`   | Generated | Install provenance: item graph, file hashes, ownership states, and dependency decisions. |
 
 Strict init writes only these two files when they are absent. It does not install packages, create component directories,
 write support files, or touch package-manager lockfiles.
@@ -21,10 +21,10 @@ write support files, or touch package-manager lockfiles.
 `init` has one strict default seed path plus advisory and dry-run planning modes:
 
 ```sh
-aui init --advisory --json --cwd <consumer-project>
-aui init --dry-run --json --cwd <consumer-project>
-aui init --json --cwd <consumer-project>
-aui init --defaults --json --cwd <consumer-project>
+codon-ui init --advisory --json --cwd <consumer-project>
+codon-ui init --dry-run --json --cwd <consumer-project>
+codon-ui init --json --cwd <consumer-project>
+codon-ui init --defaults --json --cwd <consumer-project>
 ```
 
 `init --advisory` reads project shape and reports the proposed config without writing. It classifies the package manager,
@@ -34,7 +34,7 @@ project kind, config presence, lockfile presence, default role paths, theme tier
 `wouldEffects` for config and lockfile creation. Greenfield consumers report `would-write` for both files; existing config
 or lockfile files report blockers and prevent partial seed previews.
 
-Plain `init` is the strict seed path. It writes `amino-ui.config.json` and an empty `amino-ui.lock.json` only when both
+Plain `init` is the strict seed path. It writes `codon-ui.config.json` and an empty `codon-ui.lock.json` only when both
 are absent. Existing config or lockfile files are warnings and block writes for that seed operation. `init --defaults`
 remains an explicit alias for the same behavior.
 
@@ -44,20 +44,19 @@ The modeled layout modes are `registry-contained`, `integrated`, and `custom`. S
 for `registry-contained`. The non-default mode labels are reserved for later policy; read-only planning can still resolve
 configured role paths so future layout work has fixture evidence before strict writes are enabled.
 
-Current Amino UI default `registry-contained` paths are:
+Current Codon UI default `registry-contained` paths are:
 
-| Role         | Default path                      |
-| ------------ | --------------------------------- |
-| `components` | `src/components`                  |
-| `theme`      | `src/components/_registry`        |
-| `tokens`     | `src/components/_registry/tokens` |
-| `utils`      | `src/components/_registry/utils`  |
-| `types`      | `src/components/_registry/types`  |
-| `assets`     | `src/components/_registry/assets` |
+| Role         | Default path                               |
+| ------------ | ------------------------------------------ |
+| `components` | `src/components`                           |
+| `theme`      | `src/components/_codon-ui-registry`        |
+| `tokens`     | `src/components/_codon-ui-registry/tokens` |
+| `utils`      | `src/components/_codon-ui-registry/utils`  |
+| `types`      | `src/components/_codon-ui-registry/types`  |
+| `assets`     | `src/components/_codon-ui-registry/assets` |
 
-The Codon UI rename should change the default contained registry root for new consumers to
-`src/components/_codon-ui-registry`. Existing Amino/Wavemap consumers may keep the historical
-`src/components/_registry` path until a deliberate migration pass updates config, imports, and lockfile records.
+Existing Wavemap or pre-rename consumers may keep the historical `src/components/_registry` path when it is recorded in
+their config or lockfile. A deliberate migration pass can update config, imports, and lockfile records together later.
 
 `paths.registry` is the normal customization knob for consumers that want a contained registry directory with a different
 name or location. For example:
@@ -95,7 +94,7 @@ can map tokens, theme CSS, utilities, types, or assets into project-owned conven
 ```
 
 The lockfile is the authority after installation. Whatever concrete paths planning resolves are recorded in
-`amino-ui.lock.json` with target role, source hash, installed hash, and ownership state. Status, diff, update, remove,
+`codon-ui.lock.json` with target role, source hash, installed hash, and ownership state. Status, diff, update, remove,
 delete, and eject should follow those lockfile records rather than assuming a hard-coded registry directory.
 
 ## Planning Modes
@@ -118,9 +117,9 @@ proves the target is compatible.
 `add` resolves a registry graph before it thinks about writes:
 
 ```sh
-aui add <component> --advisory --json --cwd <consumer-project>
-aui add <component> --dry-run --json --cwd <consumer-project>
-aui add <component> --json --cwd <consumer-project>
+codon-ui add <component> --advisory --json --cwd <consumer-project>
+codon-ui add <component> --dry-run --json --cwd <consumer-project>
+codon-ui add <component> --json --cwd <consumer-project>
 ```
 
 The local-registry path currently handles explicit single-component strict adds. Advisory and dry-run can also report
@@ -164,7 +163,7 @@ Dependency install policy is now explicit in `dependencyInstallPlan.dependencyPo
 | `install`     | Allows strict add to execute dependencies only with explicit `--install-dependencies` command intent.   |
 
 Policy source is also reported. `source: "default"` means the planner used the default `report-only` fallback,
-`source: "config"` means it read `amino-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
+`source: "config"` means it read `codon-ui.config.json`, and `source: "cli-option"` means `--dependency-policy` overrode
 the config/default value. Advisory and dry-run reports keep `packageManagerExecution: "not-run"` and
 `packageManagerWrites: false`; strict add can report `packageManagerExecution: "completed"` and
 `packageManagerWrites: true` only after an approved package-manager command completes. If an approved command fails,
@@ -192,13 +191,13 @@ run from the workspace root while mutating the targeted nested package manifest.
 Strict local-registry `add` can execute the selected dependency command when all current strict blockers are dependency
 blockers, `--install-dependencies` is present, the effective dependency policy is `install`, and package-manager detection
 is known. The executed command is the planned `workspaceCommand` for workspace targets and the regular selected command
-for root targets. After the command completes, Amino rebuilds the install plan from the target package manifest before
-writing component files or `amino-ui.lock.json`. If dependency decisions remain unsatisfied, strict add still blocks
+for root targets. After the command completes, Codon rebuilds the install plan from the target package manifest before
+writing component files or `codon-ui.lock.json`. If dependency decisions remain unsatisfied, strict add still blocks
 component writes.
 
 Package-manager failure is also a blocker. The failed-command record includes command, args, working directory, exit
 code or signal, bounded stdout/stderr, `packageManagerWrites`, and any detected package manifest or package-manager
-lockfile mutations. Amino source files and `amino-ui.lock.json` are not written after a package-manager failure, even
+lockfile mutations. Codon source files and `codon-ui.lock.json` are not written after a package-manager failure, even
 when the failed package-manager command already changed `package.json`.
 
 Enterprise consumers can keep this planning explicit with `--package-json <path>` and `--package-manager <name>`.
@@ -233,7 +232,7 @@ upward lockfile detection, target-manifest command metadata, and override preced
 The dependency-workspace-commands fixture gate proves workspace root detection and npm/pnpm/yarn/bun workspace command
 planning without writes. The dependency-workspace-execution fixture gate proves strict add executes those workspace
 commands, mutates the nested package manifest, writes the package-manager lockfile at the workspace root, and replans
-before Amino source and lockfile writes.
+before Codon source and lockfile writes.
 The out-of-band dependency-resolution fixture gate proves the current consumer-owned install path: `add switch` first
 reports missing `react-aria-components` and `classnames`, the consumer resolves those dependencies outside the CLI in
 the selected package manifest, advisory and dry-run reruns report no install recommendations, and strict
@@ -250,8 +249,8 @@ manager command exists for the selected target manifest.
 
 Strict add applies the same plan only after blockers are cleared:
 
-1. Read and validate `amino-ui.config.json`.
-2. Read and validate `amino-ui.lock.json`.
+1. Read and validate `codon-ui.config.json`.
+2. Read and validate `codon-ui.lock.json`.
 3. Recompute the install plan from the current snapshot and consumer state.
 4. Reuse compatible existing support files only when lockfile metadata proves they are reusable.
 5. Block missing sources, missing/incompatible dependencies, unsafe existing targets, and invalid config/lockfile state.
@@ -268,8 +267,8 @@ are preservation signals for future lifecycle commands.
 `status --json` is the first read-only lifecycle inspection command:
 
 ```sh
-aui status --json --cwd <consumer-project>
-aui status <item> --json --cwd <consumer-project>
+codon-ui status --json --cwd <consumer-project>
+codon-ui status <item> --json --cwd <consumer-project>
 ```
 
 It reads config, lockfile provenance, installed files, and local registry source. It does not write source files, config,
@@ -297,7 +296,7 @@ installed `circle-loader` status, locally modified installed-file status, `consu
 `diff --json` is the focused read-only comparison command:
 
 ```sh
-aui diff <item> --json --cwd <consumer-project>
+codon-ui diff <item> --json --cwd <consumer-project>
 ```
 
 It uses the same config, lockfile, installed-file, and registry-source classification model as `status --json`, then
@@ -344,7 +343,7 @@ diff, consumer-owned support diff, ejected diff, missing dependency posture, and
 `update --advisory --json` is the first update command, and it is intentionally read-only:
 
 ```sh
-aui update <item> --advisory --json --cwd <consumer-project>
+codon-ui update <item> --advisory --json --cwd <consumer-project>
 ```
 
 It uses the focused `diff --json` report as input and translates each file into an update advisory action. It does not
@@ -388,20 +387,20 @@ stale source-hash classification.
 `update --all --advisory --json` summarizes update posture for every installed item without writing:
 
 ```sh
-aui update --all --advisory --json --cwd <consumer-project>
+codon-ui update --all --advisory --json --cwd <consumer-project>
 ```
 
 `update --all --dry-run --json` summarizes item-scoped dry-run previews for every installed item without writing:
 
 ```sh
-aui update --all --dry-run --json --cwd <consumer-project>
+codon-ui update --all --dry-run --json --cwd <consumer-project>
 ```
 
 `update --all --json` applies broad strict updates only when every installed item passes the same dry-run and final
 preflight gate:
 
 ```sh
-aui update --all --json --cwd <consumer-project>
+codon-ui update --all --json --cwd <consumer-project>
 ```
 
 It starts from `status --json` to enumerate the installed lockfile item set, then runs the same item-scoped
@@ -434,7 +433,7 @@ planning a duplicate actionable target path with another item, the whole command
 `would-update` items do not partially apply when another item blocks the run.
 
 When no blockers exist, strict `update --all --json` applies every `would-write` source update and every
-`would-update-lockfile` hash refresh, then writes `amino-ui.lock.json` once after the item write pass. If every installed
+`would-update-lockfile` hash refresh, then writes `codon-ui.lock.json` once after the item write pass. If every installed
 item is already up to date, it returns an exit-0 no-op report. It does not install dependencies, merge local edits,
 update unknown/support/ejected ownership, mutate package manifests, touch package-manager lockfiles, or roll back runtime
 write failures.
@@ -449,8 +448,8 @@ source-file and lockfile writes for an update candidate, and preservation of loc
 `update --dry-run --json` previews an item-scoped update without writing:
 
 ```sh
-aui update <item> --dry-run --json --cwd <consumer-project>
-aui update <item> --dry-run --json --install-dependencies --dependency-policy install --cwd <consumer-project>
+codon-ui update <item> --dry-run --json --cwd <consumer-project>
+codon-ui update <item> --dry-run --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
 It starts from the `update --advisory` classification, then recomputes the current local-registry install plan for the
@@ -496,8 +495,8 @@ write nothing.
 `update <item> --json` applies an item-scoped update only after the dry-run gate proves the item is safe:
 
 ```sh
-aui update <item> --json --cwd <consumer-project>
-aui update <item> --json --install-dependencies --dependency-policy install --cwd <consumer-project>
+codon-ui update <item> --json --cwd <consumer-project>
+codon-ui update <item> --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
 Strict update starts by creating the same `update --dry-run --json` report. It applies only when the item state is
@@ -527,10 +526,10 @@ the lockfile is not written. Up-to-date items return an exit-0 no-op report.
 
 Strict update can resolve dependency-only blockers before source writes when `--install-dependencies` is present, the
 effective dependency policy is `install`, the item still has an update candidate, and package-manager detection selects a
-known npm, pnpm, yarn, or bun command. Amino executes the planned command, records package-manager execution metadata,
+known npm, pnpm, yarn, or bun command. Codon executes the planned command, records package-manager execution metadata,
 replans from the selected target manifest, and only then writes dry-run-approved source files plus lockfile records. If
 the package-manager command fails, Amino reports structured `failedCommands` output and writes no source files or
-`amino-ui.lock.json`.
+`codon-ui.lock.json`.
 
 Strict update does not merge local edits, mutate dependencies for broad `update --all`, update support/orphan policy, or
 roll back runtime write failures.
@@ -550,8 +549,8 @@ update-candidate writes.
 `remove --advisory --json` is the first remove command, and it is intentionally read-only:
 
 ```sh
-aui remove <item> --advisory --json --cwd <consumer-project>
-aui remove <item> --advisory --with-orphans --json --cwd <consumer-project>
+codon-ui remove <item> --advisory --json --cwd <consumer-project>
+codon-ui remove <item> --advisory --with-orphans --json --cwd <consumer-project>
 ```
 
 It starts from `status --json` classification and reports what a future remove flow would need to consider. It does not
@@ -604,8 +603,8 @@ planning behind `--with-orphans`. It also proves a modified orphan item is prese
 `remove --dry-run --json` previews an item-scoped remove without writing:
 
 ```sh
-aui remove <item> --dry-run --json --cwd <consumer-project>
-aui remove <item> --dry-run --with-orphans --json --cwd <consumer-project>
+codon-ui remove <item> --dry-run --json --cwd <consumer-project>
+codon-ui remove <item> --dry-run --with-orphans --json --cwd <consumer-project>
 ```
 
 It starts from `remove --advisory` classification and converts advisory actions into no-write deletion previews. It does
@@ -660,9 +659,9 @@ the dependency effect `not-written` with zero planned removals.
 `remove <item> --json` applies an item-scoped remove only after the dry-run gate proves the item is safe:
 
 ```sh
-aui remove <item> --json --cwd <consumer-project>
-aui remove <item> --with-orphans --json --cwd <consumer-project>
-aui remove <item> --with-orphans --remove-dependencies --json --cwd <consumer-project>
+codon-ui remove <item> --json --cwd <consumer-project>
+codon-ui remove <item> --with-orphans --json --cwd <consumer-project>
+codon-ui remove <item> --with-orphans --remove-dependencies --json --cwd <consumer-project>
 ```
 
 Strict remove starts by creating the same `remove --dry-run --json` report. It applies only when the item state is
@@ -684,7 +683,7 @@ The JSON report includes:
 | `lockfileData`               | The post-remove lockfile data when applied, or the current parsed lockfile data when blocked.                                 |
 
 Strict remove can delete registry-owned component files and can clean lockfile records for registry-owned component
-files that are already missing. It removes the requested item from `amino-ui.lock.json` after all preflight checks pass.
+files that are already missing. It removes the requested item from `codon-ui.lock.json` after all preflight checks pass.
 It does not remove dependencies from package manifests, change package-manager lockfiles, delete shared/support files,
 delete locally modified files, delete unknown files, delete consumer-owned support, or delete ejected files.
 
@@ -702,7 +701,7 @@ Package dependency cleanup is a separate explicit gate. Without `--remove-depend
 dependency declarations and package-manager lockfiles even when dry-run reported cleanup candidates. With
 `--with-orphans --remove-dependencies`, strict remove can run the detected npm, pnpm, yarn, or bun removal command for
 cleanup candidates that are present in the selected target manifest and no longer required by remaining installed items.
-It then removes no-longer-required Amino dependency records from `amino-ui.lock.json`. Dependencies still required by
+It then removes no-longer-required Codon dependency records from `codon-ui.lock.json`. Dependencies still required by
 another installed item remain installed and recorded.
 
 Current fixture evidence proves temp-copy clean installed strict remove, missing local file lockfile cleanup, locally
@@ -712,7 +711,7 @@ typeahead item, eligible orphan dependency items, and their lockfile records whi
 modified orphan file blocks strict orphan cleanup atomically and preserves otherwise clean orphan files and lockfile
 records. The dependency cleanup execution fixture proves `remove` and `delete --with-orphans --remove-dependencies`
 execute fake npm, pnpm, yarn, and bun removal commands, mutate only the temporary target package manifest and fake
-package-manager lockfile, remove eligible Amino dependency records, preserve still-required dependencies, and keep
+package-manager lockfile, remove eligible Codon dependency records, preserve still-required dependencies, and keep
 Wavemap-like local adapters outside the cleanup set.
 
 ## Delete Sibling
@@ -720,13 +719,13 @@ Wavemap-like local adapters outside the cleanup set.
 `delete <item>` is a visible sibling command for the same remove lifecycle:
 
 ```sh
-aui delete <item> --advisory --json --cwd <consumer-project>
-aui delete <item> --advisory --with-orphans --json --cwd <consumer-project>
-aui delete <item> --dry-run --json --cwd <consumer-project>
-aui delete <item> --dry-run --with-orphans --json --cwd <consumer-project>
-aui delete <item> --json --cwd <consumer-project>
-aui delete <item> --with-orphans --json --cwd <consumer-project>
-aui delete <item> --with-orphans --remove-dependencies --json --cwd <consumer-project>
+codon-ui delete <item> --advisory --json --cwd <consumer-project>
+codon-ui delete <item> --advisory --with-orphans --json --cwd <consumer-project>
+codon-ui delete <item> --dry-run --json --cwd <consumer-project>
+codon-ui delete <item> --dry-run --with-orphans --json --cwd <consumer-project>
+codon-ui delete <item> --json --cwd <consumer-project>
+codon-ui delete <item> --with-orphans --json --cwd <consumer-project>
+codon-ui delete <item> --with-orphans --remove-dependencies --json --cwd <consumer-project>
 ```
 
 The command delegates to the remove implementation. Advisory and dry-run modes remain non-mutating, and strict mode uses
@@ -747,10 +746,10 @@ dependency cleanup execution behavior as strict `remove --with-orphans --remove-
 `eject --advisory --json` is the first eject command, and it is intentionally read-only:
 
 ```sh
-aui eject <item> --advisory --json --cwd <consumer-project>
+codon-ui eject <item> --advisory --json --cwd <consumer-project>
 ```
 
-It starts from `status --json` classification and reports how a future eject flow would transfer ownership from Amino UI
+It starts from `status --json` classification and reports how a future eject flow would transfer ownership from Codon UI
 registry provenance to the consumer. It does not modify source files, write config, write lockfile data, change package
 metadata, remove dependencies, or touch package-manager lockfiles.
 
@@ -792,7 +791,7 @@ posture, and stale source-hash classification.
 `eject --dry-run --json` previews an item-scoped eject without writing:
 
 ```sh
-aui eject <item> --dry-run --json --cwd <consumer-project>
+codon-ui eject <item> --dry-run --json --cwd <consumer-project>
 ```
 
 It starts from `eject --advisory` classification and converts advisory actions into no-write lockfile ownership previews.
@@ -839,7 +838,7 @@ posture, and stale source-hash classification.
 safe:
 
 ```sh
-aui eject <item> --json --cwd <consumer-project>
+codon-ui eject <item> --json --cwd <consumer-project>
 ```
 
 Strict eject starts by creating the same `eject --dry-run --json` report. It applies only when the item state is
@@ -856,7 +855,7 @@ The JSON report includes:
 | `blockers`       | Project, item, or file blockers that prevented strict ejection.                                                 |
 | `lockfileData`   | The post-eject lockfile data when applied, or the current parsed lockfile data when blocked or already ejected. |
 
-Strict eject writes only `amino-ui.lock.json`. Eligible registry-owned component file records are updated to
+Strict eject writes only `codon-ui.lock.json`. Eligible registry-owned component file records are updated to
 `ownershipState: "ejected"`, while the source files remain exactly where they are for the consumer to own. Dependency
 records stay visible but are not installed, updated, removed, or rewritten. Config files, package manifests, and
 package-manager lockfiles are also untouched.
@@ -877,7 +876,7 @@ dependency non-mutation.
 | `locally-modified`       | Installed file differs from recorded provenance.                           | Preserve by default; report for manual review.                                          |
 | `consumer-owned-support` | Consumer intentionally owns compatible support at the planned target path. | Reuse or validate; do not overwrite by default.                                         |
 | `ejected`                | Consumer intentionally took ownership of the file or component slice.      | Preserve by default; never auto-update.                                                 |
-| `unknown`                | A target exists without trusted Amino provenance.                          | Treat as a blocker for strict writes.                                                   |
+| `unknown`                | A target exists without trusted Codon provenance.                          | Treat as a blocker for strict writes.                                                   |
 
 ## Deferred Lifecycle Commands
 

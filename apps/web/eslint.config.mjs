@@ -1,5 +1,5 @@
 import nextPlugin from "@next/eslint-plugin-next"
-import base from "@amino-ui/shared-utils/eslint/base"
+import base from "@codon-ui/shared-utils/eslint/base"
 
 export default [
   ...base,
@@ -7,7 +7,7 @@ export default [
     ignores: ["node_modules/**", ".next/**", "dist/**", "coverage/**"],
   },
   {
-    name: "amino-ui:web-node-config-files",
+    name: "codon-ui:web-node-config-files",
     files: ["*.config.{js,cjs,mjs}", "next.config.{js,cjs,mjs}", "postcss.config.{js,cjs,mjs}"],
     languageOptions: {
       globals: {
@@ -20,7 +20,7 @@ export default [
     },
   },
   {
-    name: "amino-ui:web-next",
+    name: "codon-ui:web-next",
     files: ["src/**/*.{ts,tsx,js,jsx}"],
     plugins: {
       "@next/next": nextPlugin,

@@ -30,8 +30,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/unknown.ts",
     "source/support.ts",
     "source/ejected.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/source-changed.ts",
     "consumer/src/components/Diff/local-modified.ts",
@@ -72,7 +72,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/unknown.ts"), unknownSource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedCurrent)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -129,8 +133,8 @@ try {
     sourceIdentity: "@amino-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     items: {
       switch: {
         files: [
@@ -252,7 +256,7 @@ try {
     "expected missing item finding",
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] diff report verified")
+  console.log("[codon-ui] diff report verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }
