@@ -92,15 +92,14 @@ Rename implementation must account for these surfaces.
 
 ## Theme Token Prefix
 
-The current CSS custom property prefix is `--aui-`. It is a real theme contract, not just branding text.
+The current CSS custom property bridge keeps legacy `--aui-*` values and exposes matching canonical `--cui-*` aliases.
+`--aui-*` remains a real compatibility contract during the migration, not dead branding text.
 
-Do not fold a CSS token-prefix migration into the first package/config rename tranche. A future theme-contract pass should
-decide whether to keep `--aui-` as historical internal token vocabulary or migrate to a Codon prefix such as
-`--codon-ui-` / `--cui-`. That pass needs its own component CSS updates, fixture compile proofs, Wavemap theme migration,
-and visual review.
+Do not fold source-read flips, fixture override proofs, Wavemap theme migration, or compatibility alias removal into the
+first bridge tranche. Those later passes need their own compile proofs, consumer status checks, and visual review.
 
-For the first private npm proof, the package rename may ship with existing `--aui-` tokens only if the docs clearly mark
-that prefix as the current theme contract rather than settled long-term branding.
+For the first private npm proof, the package may ship in bridge mode only if docs clearly mark `--cui-*` as canonical and
+`--aui-*` as transitional compatibility.
 
 ## Implementation Sequence
 

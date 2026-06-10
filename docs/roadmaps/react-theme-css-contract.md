@@ -10,7 +10,9 @@ Wavemap's full application theme or introducing generated token machinery before
 ## Current Status
 
 - `packages/react/theme.css` is exported as `@codon-ui/react/theme.css`.
-- The file is hand-authored and defines the first narrow default `--aui-` variable contract.
+- The file is hand-authored and defines the first narrow default `--cui-*` variable contract.
+- Bridge mode keeps existing legacy `--aui-*` values and exposes matching canonical `--cui-*` aliases so existing source
+  reads and consumer overrides keep working until later source-flip and compatibility-cleanup tranches are approved.
 - No Wavemap component source consumes this package yet.
 - No registry artifact generator reads from `packages/react` yet.
 - React and React DOM are the only declared peers for `@codon-ui/react`.
@@ -18,7 +20,7 @@ Wavemap's full application theme or introducing generated token machinery before
 ## Contract Principles
 
 1. Keep the default CSS contract hand-authored until generated-token policy is explicitly approved.
-2. Use CSS custom properties with the `--aui-` prefix.
+2. Use CSS custom properties with the canonical `--cui-` prefix.
 3. Prefer semantic component-system roles before product-specific values.
 4. Treat Wavemap's registry theme as reference material, not as a source file to copy wholesale.
 5. Keep compatibility aliases for Wavemap-only variable names out of the package default until an install proof shows that
@@ -31,20 +33,21 @@ Wavemap's full application theme or introducing generated token machinery before
 The first package default should be narrow enough to review directly and broad enough for simple controls to render
 without hidden consumer assumptions.
 
-Initial token families:
+Initial token families use canonical `--cui-*` variables. During bridge mode, every canonical variable has a matching
+legacy `--aui-*` alias.
 
 | Family                    | Purpose                                                                   | First-contract examples                                                                 |
 | ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Foreground and background | Plain readable defaults for unopinionated components.                     | `--aui-foreground`, `--aui-background`                                                  |
-| Surface and border roles  | Shared neutral appearance for controls, panels, and component containers. | `--aui-surface`, `--aui-surface-raised`, `--aui-border`, `--aui-border-muted`           |
-| Neutral ramp              | Light/dark neutral steps that semantic roles can reference.               | `--aui-neutral-100` through `--aui-neutral-800`                                         |
-| Focus                     | Accessible focus affordances shared by controls.                          | `--aui-focus-ring`, `--aui-focus-ring-offset`                                           |
-| State                     | Cross-component status and validation colors.                             | `--aui-state-danger`, `--aui-state-warning`, `--aui-state-success`                      |
-| Control roles             | Defaults for primitive controls and selected states.                      | `--aui-control-background`, `--aui-control-border`, `--aui-control-selected-background` |
-| Spacing                   | Package-local rhythm for component internals.                             | `--aui-space-1` through `--aui-space-20`                                                |
-| Radius                    | Package-local corner geometry values.                                     | `--aui-radius-1` through `--aui-radius-5`                                               |
-| Shadow                    | Reusable elevation values.                                                | `--aui-shadow-1` through `--aui-shadow-5`                                               |
-| Motion and opacity        | Shared transitions and disabled/backdrop opacity.                         | `--aui-transition-color`, `--aui-opacity-disabled`                                      |
+| Foreground and background | Plain readable defaults for unopinionated components.                     | `--cui-foreground`, `--cui-background`                                                  |
+| Surface and border roles  | Shared neutral appearance for controls, panels, and component containers. | `--cui-surface`, `--cui-surface-raised`, `--cui-border`, `--cui-border-muted`           |
+| Neutral ramp              | Light/dark neutral steps that semantic roles can reference.               | `--cui-neutral-100` through `--cui-neutral-800`                                         |
+| Focus                     | Accessible focus affordances shared by controls.                          | `--cui-focus-ring`, `--cui-focus-ring-offset`                                           |
+| State                     | Cross-component status and validation colors.                             | `--cui-state-danger`, `--cui-state-warning`, `--cui-state-success`                      |
+| Control roles             | Defaults for primitive controls and selected states.                      | `--cui-control-background`, `--cui-control-border`, `--cui-control-selected-background` |
+| Spacing                   | Package-local rhythm for component internals.                             | `--cui-space-1` through `--cui-space-20`                                                |
+| Radius                    | Package-local corner geometry values.                                     | `--cui-radius-1` through `--cui-radius-5`                                               |
+| Shadow                    | Reusable elevation values.                                                | `--cui-shadow-1` through `--cui-shadow-5`                                               |
+| Motion and opacity        | Shared transitions and disabled/backdrop opacity.                         | `--cui-transition-color`, `--cui-opacity-disabled`                                      |
 
 ## Deferred Surface
 
@@ -68,10 +71,12 @@ import "@codon-ui/react/theme.css"
 ```
 
 The default file should declare values under `:root` and theme selector blocks. Consumer overrides should load after the
-package default and may override the same `--aui-` variables at `:root`, a theme selector, or an app-specific scope.
+package default and may override canonical `--cui-*` variables at `:root`, a theme selector, or an app-specific scope.
+During bridge mode, legacy `--aui-*` overrides remain supported because each `--cui-*` variable aliases the matching
+`--aui-*` variable.
 
 The first package proof should avoid importing Wavemap's app theme into Codon UI. Wavemap can later add a local bridge
-that maps product-specific variables onto the package `--aui-` contract if the delete-and-reinstall proof needs it.
+that maps product-specific variables onto the package `--cui-*` contract if the delete-and-reinstall proof needs it.
 
 ## Wavemap Reference Mapping
 
@@ -82,10 +87,10 @@ Use these Wavemap reads as guidance:
 
 | Wavemap reference                                                                       | Codon UI posture                                                                                                |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `--aui-foreground`, `--aui-background`                                                  | Bring forward as core semantic roles.                                                                           |
-| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Codon UI. |
-| `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively for primitive controls and containers.                                                |
-| `--aui-status-*` and validation aliases                                                 | Bring forward as state roles, using `state` naming for the package default if that remains clearer.             |
+| `--aui-foreground`, `--aui-background`                                                  | Bring forward as canonical `--cui-*` core semantic roles with bridge aliases while migration is active.         |
+| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--cui-neutral-100` through `--cui-neutral-800` if implemented in Codon UI. |
+| `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively as canonical `--cui-*` primitive control and container roles.                         |
+| `--aui-status-*` and validation aliases                                                 | Bring forward as canonical `--cui-*` state roles, using `state` naming for the package default if clearer.      |
 | Compatibility shims such as `--foreground`, `--distance_1`, and `--border_radius_1`     | Keep out of the package default until a consumer install proof requires them.                                   |
 | App chrome z-index aliases, font-face assumptions, gradients, maps, and platform colors | Keep Wavemap-local.                                                                                             |
 
@@ -101,6 +106,7 @@ Return to deliberate planning if implementation of this contract requires:
 - Package publication decisions.
 - Wavemap source movement.
 - Broad Wavemap theme rewrites.
+- Removing `--aui-*` compatibility aliases before source-flip, fixture, and Wavemap proofs pass.
 
 ## Verification Expectations
 

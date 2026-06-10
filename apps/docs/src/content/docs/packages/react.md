@@ -11,6 +11,8 @@ support tokens, and registry manifests.
 - `src/index.ts` exports the package-facing component surface.
 - `src/components` contains received reusable component source, helpers, labels, icons, and CSS modules.
 - `theme.css` is exported as `@codon-ui/react/theme.css`.
+- `theme.css` now keeps legacy `--aui-*` values and exposes matching canonical `--cui-*` custom properties during the
+  CSS token-prefix bridge migration.
 - `src/theme` owns narrow theme support files that stay outside the default CSS contract.
 - `src/tokens` owns registry-owned support tokens.
 - `src/registry/manifest.ts` owns the internal registry manifest.

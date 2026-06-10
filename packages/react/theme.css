@@ -79,6 +79,77 @@
   --aui-validation-error-border: var(--aui-state-danger);
   --aui-validation-warning-border: var(--aui-state-warning);
   --aui-validation-success-border: var(--aui-state-success);
+
+  --cui-space-unit: var(--aui-space-unit);
+  --cui-space-1: var(--aui-space-1);
+  --cui-space-2: var(--aui-space-2);
+  --cui-space-3: var(--aui-space-3);
+  --cui-space-4: var(--aui-space-4);
+  --cui-space-5: var(--aui-space-5);
+  --cui-space-6: var(--aui-space-6);
+  --cui-space-7: var(--aui-space-7);
+  --cui-space-8: var(--aui-space-8);
+  --cui-space-9: var(--aui-space-9);
+  --cui-space-10: var(--aui-space-10);
+  --cui-space-11: var(--aui-space-11);
+  --cui-space-12: var(--aui-space-12);
+  --cui-space-13: var(--aui-space-13);
+  --cui-space-14: var(--aui-space-14);
+  --cui-space-15: var(--aui-space-15);
+  --cui-space-16: var(--aui-space-16);
+  --cui-space-17: var(--aui-space-17);
+  --cui-space-18: var(--aui-space-18);
+  --cui-space-19: var(--aui-space-19);
+  --cui-space-20: var(--aui-space-20);
+  --cui-radius-1: var(--aui-radius-1);
+  --cui-radius-2: var(--aui-radius-2);
+  --cui-radius-3: var(--aui-radius-3);
+  --cui-radius-4: var(--aui-radius-4);
+  --cui-radius-5: var(--aui-radius-5);
+  --cui-transition-background-color: var(--aui-transition-background-color);
+  --cui-transition-border-color: var(--aui-transition-border-color);
+  --cui-transition-box-shadow: var(--aui-transition-box-shadow);
+  --cui-transition-color: var(--aui-transition-color);
+  --cui-transition-opacity: var(--aui-transition-opacity);
+  --cui-transition-outline: var(--aui-transition-outline);
+  --cui-animation-fade-in: var(--aui-animation-fade-in);
+  --cui-animation-fade-out: var(--aui-animation-fade-out);
+  --cui-opacity-disabled: var(--aui-opacity-disabled);
+  --cui-opacity-backdrop: var(--aui-opacity-backdrop);
+  --cui-z-index-base: var(--aui-z-index-base);
+  --cui-z-index-step: var(--aui-z-index-step);
+  --cui-z-index-panel: var(--aui-z-index-panel);
+  --cui-z-index-modal: var(--aui-z-index-modal);
+  --cui-z-index-toast: var(--aui-z-index-toast);
+  --cui-z-index-overlay-offset: var(--aui-z-index-overlay-offset);
+  --cui-z-index-content-offset: var(--aui-z-index-content-offset);
+  --cui-surface: var(--aui-surface);
+  --cui-surface-foreground: var(--aui-surface-foreground);
+  --cui-surface-muted: var(--aui-surface-muted);
+  --cui-surface-raised: var(--aui-surface-raised);
+  --cui-surface-raised-foreground: var(--aui-surface-raised-foreground);
+  --cui-border: var(--aui-border);
+  --cui-border-muted: var(--aui-border-muted);
+  --cui-focus-ring: var(--aui-focus-ring);
+  --cui-focus-ring-offset: var(--aui-focus-ring-offset);
+  --cui-control-background: var(--aui-control-background);
+  --cui-control-foreground: var(--aui-control-foreground);
+  --cui-control-border: var(--aui-control-border);
+  --cui-control-placeholder: var(--aui-control-placeholder);
+  --cui-control-hover-background: var(--aui-control-hover-background);
+  --cui-control-pressed-background: var(--aui-control-pressed-background);
+  --cui-control-selected-background: var(--aui-control-selected-background);
+  --cui-control-selected-background-hover: var(--aui-control-selected-background-hover);
+  --cui-control-selected-background-pressed: var(--aui-control-selected-background-pressed);
+  --cui-control-selected-foreground: var(--aui-control-selected-foreground);
+  --cui-control-disabled-opacity: var(--aui-control-disabled-opacity);
+  --cui-status-info: var(--aui-status-info);
+  --cui-status-danger: var(--aui-status-danger);
+  --cui-status-warning: var(--aui-status-warning);
+  --cui-status-success: var(--aui-status-success);
+  --cui-validation-error-border: var(--aui-validation-error-border);
+  --cui-validation-warning-border: var(--aui-validation-warning-border);
+  --cui-validation-success-border: var(--aui-validation-success-border);
 }
 
 :root,
@@ -107,6 +178,29 @@
   --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 25%), 0 10px 10px rgb(0 0 0 / 22%);
   --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 30%), 0 15px 12px rgb(0 0 0 / 22%);
   --aui-drop-shadow-1: drop-shadow(0 2px 3px rgb(0 0 0 / 12%));
+
+  --cui-foreground: var(--aui-foreground);
+  --cui-background: var(--aui-background);
+  --cui-neutral-100: var(--aui-neutral-100);
+  --cui-neutral-200: var(--aui-neutral-200);
+  --cui-neutral-300: var(--aui-neutral-300);
+  --cui-neutral-400: var(--aui-neutral-400);
+  --cui-neutral-500: var(--aui-neutral-500);
+  --cui-neutral-600: var(--aui-neutral-600);
+  --cui-neutral-700: var(--aui-neutral-700);
+  --cui-neutral-800: var(--aui-neutral-800);
+  --cui-state-danger: var(--aui-state-danger);
+  --cui-state-danger-surface: var(--aui-state-danger-surface);
+  --cui-state-warning: var(--aui-state-warning);
+  --cui-state-warning-surface: var(--aui-state-warning-surface);
+  --cui-state-success: var(--aui-state-success);
+  --cui-state-success-surface: var(--aui-state-success-surface);
+  --cui-shadow-1: var(--aui-shadow-1);
+  --cui-shadow-2: var(--aui-shadow-2);
+  --cui-shadow-3: var(--aui-shadow-3);
+  --cui-shadow-4: var(--aui-shadow-4);
+  --cui-shadow-5: var(--aui-shadow-5);
+  --cui-drop-shadow-1: var(--aui-drop-shadow-1);
 }
 
 [data-theme="dark"] {
@@ -134,6 +228,29 @@
   --aui-shadow-4: 0 14px 28px rgb(0 0 0 / 50%), 0 10px 10px rgb(0 0 0 / 36%);
   --aui-shadow-5: 0 19px 38px rgb(0 0 0 / 55%), 0 15px 12px rgb(0 0 0 / 38%);
   --aui-drop-shadow-1: drop-shadow(0 2px 3.5px rgb(255 255 255 / 40%));
+
+  --cui-foreground: var(--aui-foreground);
+  --cui-background: var(--aui-background);
+  --cui-neutral-100: var(--aui-neutral-100);
+  --cui-neutral-200: var(--aui-neutral-200);
+  --cui-neutral-300: var(--aui-neutral-300);
+  --cui-neutral-400: var(--aui-neutral-400);
+  --cui-neutral-500: var(--aui-neutral-500);
+  --cui-neutral-600: var(--aui-neutral-600);
+  --cui-neutral-700: var(--aui-neutral-700);
+  --cui-neutral-800: var(--aui-neutral-800);
+  --cui-state-danger: var(--aui-state-danger);
+  --cui-state-danger-surface: var(--aui-state-danger-surface);
+  --cui-state-warning: var(--aui-state-warning);
+  --cui-state-warning-surface: var(--aui-state-warning-surface);
+  --cui-state-success: var(--aui-state-success);
+  --cui-state-success-surface: var(--aui-state-success-surface);
+  --cui-shadow-1: var(--aui-shadow-1);
+  --cui-shadow-2: var(--aui-shadow-2);
+  --cui-shadow-3: var(--aui-shadow-3);
+  --cui-shadow-4: var(--aui-shadow-4);
+  --cui-shadow-5: var(--aui-shadow-5);
+  --cui-drop-shadow-1: var(--aui-drop-shadow-1);
 }
 
 @keyframes fade-in {

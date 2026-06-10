@@ -78,7 +78,7 @@ Reasoning:
 
 The bridge should be included only with the first proof slice or Wavemap consumer bridge, not folded into the package
 default. It should map only the variables needed by the received `Switch` CSS, and it should remain easy to delete once
-the component CSS is rewritten to the durable `--aui-` contract.
+the component CSS is rewritten to the durable `--cui-*` contract.
 
 The current proof bridge lives at `packages/react/src/components/Switch/switch-compatibility.css` and is exposed as the
 `theme/switch-compatibility` registry item. The default consumer layout resolves it under

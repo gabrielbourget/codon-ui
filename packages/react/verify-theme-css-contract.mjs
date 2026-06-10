@@ -24,6 +24,21 @@ const requireThemeVariable = (variables, name) => {
   }
 }
 
+const toCuiVariableName = (name) => name.replace(/^--aui-/u, "--cui-")
+
+const requireCuiAlias = (variables, auiVariableName) => {
+  const cuiVariableName = toCuiVariableName(auiVariableName)
+
+  requireThemeVariable(variables, cuiVariableName)
+
+  const expectedAliasValue = `var(${auiVariableName})`
+  const actualAliasValue = variables.get(cuiVariableName)
+
+  if (actualAliasValue !== expectedAliasValue) {
+    fail(`Expected ${cuiVariableName} to alias ${auiVariableName}; found ${actualAliasValue}.`)
+  }
+}
+
 const requireVariableFamily = (variables, prefix, steps) => {
   steps.forEach((step) => requireThemeVariable(variables, `${prefix}${step}`))
 }
@@ -43,8 +58,8 @@ if (!themeCSS.includes('[data-theme="dark"] {')) {
 }
 
 for (const name of variables.keys()) {
-  if (!name.startsWith("--aui-")) {
-    fail(`Expected ${name} to stay out of the package default; only --aui- variables are allowed.`)
+  if (!name.startsWith("--aui-") && !name.startsWith("--cui-")) {
+    fail(`Expected ${name} to stay out of the package default; only --cui- and legacy --aui- variables are allowed.`)
   }
 }
 
@@ -100,7 +115,9 @@ const requiredVariables = [
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))
+requiredVariables.forEach((name) => requireCuiAlias(variables, name))
 requireVariableFamily(variables, "--aui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800"])
+requireVariableFamily(variables, "--cui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800"])
 requireVariableFamily(variables, "--aui-space-", [
   "1",
   "2",
@@ -123,8 +140,38 @@ requireVariableFamily(variables, "--aui-space-", [
   "19",
   "20",
 ])
+requireVariableFamily(variables, "--cui-space-", [
+  "1",
+  "2",
+  "3",
+  "4",
+  "5",
+  "6",
+  "7",
+  "8",
+  "9",
+  "10",
+  "11",
+  "12",
+  "13",
+  "14",
+  "15",
+  "16",
+  "17",
+  "18",
+  "19",
+  "20",
+])
 requireVariableFamily(variables, "--aui-radius-", ["1", "2", "3", "4", "5"])
+requireVariableFamily(variables, "--cui-radius-", ["1", "2", "3", "4", "5"])
 requireVariableFamily(variables, "--aui-shadow-", ["1", "2", "3", "4", "5"])
+requireVariableFamily(variables, "--cui-shadow-", ["1", "2", "3", "4", "5"])
+
+for (const name of variables.keys()) {
+  if (name.startsWith("--aui-")) {
+    requireCuiAlias(variables, name)
+  }
+}
 
 if (!themeCSS.includes("@keyframes fade-in")) {
   fail("Expected theme.css to define fade-in keyframes.")
@@ -135,12 +182,12 @@ if (!themeCSS.includes("@keyframes fade-out")) {
 }
 
 const forbiddenVariablePatterns = [
-  /^--aui-color-/u,
-  /^--aui-(primary|secondary|tertiary|quaternary|quintenary|quinary)-/u,
-  /^--aui-gradient/u,
-  /^--aui-map/u,
-  /^--aui-navbar/u,
-  /^--aui-route/u,
+  /^--(?:aui|cui)-color-/u,
+  /^--(?:aui|cui)-(primary|secondary|tertiary|quaternary|quintenary|quinary)-/u,
+  /^--(?:aui|cui)-gradient/u,
+  /^--(?:aui|cui)-map/u,
+  /^--(?:aui|cui)-navbar/u,
+  /^--(?:aui|cui)-route/u,
 ]
 
 for (const name of variables.keys()) {

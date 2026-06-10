@@ -59,7 +59,7 @@ The initial type contract names three strategies:
 | `consumer-owned`             | The component assumes a consumer-owned theme integration that the CLI must validate/add. |
 
 `Switch` should start with `proof-compatibility-bridge` unless a later pass approves rewriting its CSS directly to the
-current `--aui-` theme contract.
+canonical `--cui-*` theme bridge contract.
 
 ## Dependency Graph Content
 
