@@ -10,6 +10,12 @@ import {
   type TCliJsonReportSchemaName,
 } from "./contracts"
 import { HELPER_FILE_MARKER_REGEX } from "./helpers/constants/cli"
+import {
+  CONSUMER_TARGET_ROLE__THEME,
+  CONSUMER_TARGET_ROLE__TOKENS,
+  DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH,
+  DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS,
+} from "./helpers/consumerContract"
 
 const cliPackageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
   bin: Record<string, string>
@@ -48,6 +54,15 @@ assert.deepEqual(CLI_JSON_REPORT_SCHEMA_NAMES, expectedSchemaNames)
 assert.equal(cliJsonReportSchemas.addDryRun, addDryRunSchema)
 assert.equal(cliJsonReportSchemas.status, statusReportSchema)
 assert.equal(typeof dependencyInstallPlanSchema.safeParse, "function")
+assert.equal(DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH, "src/components/_codon-ui-registry")
+assert.equal(
+  DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS[CONSUMER_TARGET_ROLE__THEME],
+  DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH,
+)
+assert.equal(
+  DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS[CONSUMER_TARGET_ROLE__TOKENS],
+  `${DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH}/tokens`,
+)
 
 for (const schemaName of CLI_JSON_REPORT_SCHEMA_NAMES) {
   assert.equal(typeof cliJsonReportSchemas[schemaName].safeParse, "function")

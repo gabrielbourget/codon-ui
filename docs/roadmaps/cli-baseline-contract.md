@@ -138,7 +138,8 @@ The consumer contract slice added the first new CLI-side contract for the `Switc
 - `codon-ui.lock.json` is reserved as the generated install provenance file.
 - `registry-contained`, `integrated`, and `custom` layout modes are modeled, but only `registry-contained` has path
   resolution behavior.
-- The default `registry-contained` layout resolves support roles under `src/components/_codon-ui-registry`.
+- The canonical default `registry-contained` root is `src/components/_codon-ui-registry`. Consumer-selected roots should
+  be recorded explicitly in config or CLI options rather than inferred from a hidden directory rename.
 - The default dependency policy is `report-only`.
 - Ownership states are modeled as `registry-owned`, `locally-modified`, `consumer-owned-support`, `ejected`, and
   `unknown`.
