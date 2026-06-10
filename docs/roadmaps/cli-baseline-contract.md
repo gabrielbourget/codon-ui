@@ -151,8 +151,9 @@ codon-ui init --dry-run --json --cwd <consumer-project>
 codon-ui info --json --cwd <consumer-project>
 ```
 
-The CLI package now exposes a single `codon-ui` bin. Existing local pnpm shims may need an install refresh before
-`pnpm exec codon-ui` resolves, but package metadata no longer carries the old `aminoui-cli` or `aui` aliases.
+The CLI package now exposes `codon-ui` as the canonical bin with `cui` and `codonui` as Codon-era aliases. Existing local
+pnpm shims may need an install refresh before `pnpm exec codon-ui`, `pnpm exec cui`, or `pnpm exec codonui` resolve, but
+package metadata no longer carries the old `aminoui-cli` or `aui` aliases.
 
 The first strict init seed slice added a new-contract default path:
 

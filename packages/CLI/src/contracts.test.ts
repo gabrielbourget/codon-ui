@@ -1,4 +1,5 @@
 import assert from "node:assert/strict"
+import { readFileSync } from "node:fs"
 
 import {
   addDryRunSchema,
@@ -9,6 +10,10 @@ import {
   type TCliJsonReportSchemaName,
 } from "./contracts"
 import { HELPER_FILE_MARKER_REGEX } from "./helpers/constants/cli"
+
+const cliPackageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+  bin: Record<string, string>
+}
 
 const expectedSchemaNames = [
   "initAdvisory",
@@ -34,6 +39,11 @@ const expectedSchemaNames = [
   "ejectStrict",
 ] satisfies TCliJsonReportSchemaName[]
 
+assert.deepEqual(cliPackageJson.bin, {
+  "codon-ui": "./dist/index.js",
+  cui: "./dist/index.js",
+  codonui: "./dist/index.js",
+})
 assert.deepEqual(CLI_JSON_REPORT_SCHEMA_NAMES, expectedSchemaNames)
 assert.equal(cliJsonReportSchemas.addDryRun, addDryRunSchema)
 assert.equal(cliJsonReportSchemas.status, statusReportSchema)

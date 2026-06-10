@@ -5,7 +5,9 @@
   "type": "module",
   "exports": "./dist/index.js",
   "bin": {
-    "codon-ui": "./dist/index.js"
+    "codon-ui": "./dist/index.js",
+    "cui": "./dist/index.js",
+    "codonui": "./dist/index.js"
   },
   "version": "0.0.1",
   "packageManager": "pnpm@10.18.3",

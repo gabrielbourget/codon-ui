@@ -9,7 +9,7 @@ Codon UI uses `pnpm` workspaces. Treat each workspace as an ownership boundary, 
 | ----------------------- | --------------------------------------------------------------------------------------------------------------- |
 | `apps/docs`             | Static documentation site for the monorepo and curated roadmap guidance.                                        |
 | `apps/web`              | Existing Next app and legacy registry web surface.                                                              |
-| `packages/CLI`          | Private `@codon-ui/cli` package with the `codon-ui` bin.                                                        |
+| `packages/CLI`          | Private `@codon-ui/cli` package with the canonical `codon-ui` bin plus `cui` and `codonui` aliases.             |
 | `packages/react`        | Private React source receiver package and current home for default CSS, support tokens, and registry manifests. |
 | `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                     |
 

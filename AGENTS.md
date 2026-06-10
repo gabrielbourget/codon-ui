@@ -25,7 +25,8 @@ Then propose a plan first instead of implementing immediately.
 Codon UI is a `pnpm` workspace with separate package ownership boundaries:
 
 - `apps/web` owns the web app and current registry artifact builder surface.
-- `packages/CLI` owns the current CLI package, published as `@codon-ui/cli` with the `codon-ui` bin.
+- `packages/CLI` owns the current CLI package, published as `@codon-ui/cli` with the canonical `codon-ui` bin and
+  Codon-era `cui` / `codonui` aliases.
 - `packages/shared-utils` owns shared ESLint, Prettier, Stylelint, and TypeScript presets.
 - `packages/react` owns the private `@codon-ui/react` React source receiver package and its package CSS entrypoint.
 

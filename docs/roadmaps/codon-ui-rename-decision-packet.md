@@ -35,7 +35,7 @@ These are the target decisions for the first implementation tranche unless a lat
 | Product name             | Amino UI                                                 | Codon UI                                                 | Rename user-facing product/docs labels during the rename tranche.                                                                           |
 | npm scope                | `@amino-ui` / unscoped CLI                               | `@codon-ui`                                              | Use the reserved private npm organization scope.                                                                                            |
 | CLI package              | `aminoui-cli`                                            | `@codon-ui/cli`                                          | Scope the CLI package before publication.                                                                                                   |
-| CLI command              | `aminoui-cli`, `aui`                                     | `codon-ui`                                               | Prefer one durable bin for the private proof; users can create local shell aliases.                                                         |
+| CLI command              | `aminoui-cli`, `aui`                                     | `codon-ui`, `cui`, `codonui`                             | Keep `codon-ui` canonical and ship `cui` / `codonui` as Codon-era convenience aliases.                                                      |
 | React source package     | `@amino-ui/react`                                        | `@codon-ui/react`                                        | Rename the workspace package identity, but do not publish it in the first proof unless split-package distribution is deliberately approved. |
 | Shared tooling package   | `@amino-ui/shared-utils`                                 | `@codon-ui/shared-utils`                                 | Rename as workspace-internal tooling when package manifests are updated. Keep it private.                                                   |
 | Docs package             | `@amino-ui/docs`                                         | `@codon-ui/docs`                                         | Rename as workspace-internal documentation tooling. Keep it private.                                                                        |
@@ -79,7 +79,7 @@ Rename implementation must account for these surfaces.
 | Area                       | Examples                                                                                      | Handling                                                                                                                                                              |
 | -------------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Package manifests          | root `amino-ui`, `aminoui-cli`, `@amino-ui/react`, `@amino-ui/docs`, `@amino-ui/shared-utils` | Rename in one package-manifest tranche with lockfile update and focused package checks.                                                                               |
-| CLI bins and help          | `aminoui-cli`, `aui`, root command names, command examples                                    | Move to `codon-ui`; avoid long-lived old aliases.                                                                                                                     |
+| CLI bins and help          | `aminoui-cli`, `aui`, root command names, command examples                                    | Move to canonical `codon-ui` with `cui` / `codonui` aliases; avoid long-lived old Amino aliases.                                                                      |
 | Consumer files             | `amino-ui.config.json`, `amino-ui.lock.json`                                                  | Rename schemas, constants, init output, status/diff/update/remove/eject loaders, tests, and fixtures together.                                                        |
 | Config schema URL          | `https://aminoui.com/schema.json`                                                             | Do not invent a public URL casually. Choose a private-proof schema URL or omit/update `$schema` in the implementation tranche.                                        |
 | Registry metadata          | `sourcePackage`, source identities, local registry snapshot files                             | Rename manifest data and regenerate/verify snapshots in the same tranche.                                                                                             |
@@ -120,7 +120,8 @@ For the first private npm proof, the package may ship in bridge mode only if doc
 ### Stage 2: Package And Command Rename
 
 - [x] Rename package manifest identities and workspace filters.
-- [x] Rename the CLI bin to `codon-ui`.
+- [x] Rename the CLI bin to canonical `codon-ui`.
+- [x] Add Codon-era `cui` and `codonui` bin aliases without restoring old Amino aliases.
 - [x] Update docs and examples that refer to `aminoui-cli` or `aui`.
 - [x] Run focused CLI tests, typecheck, lint, build, docs format, and `git diff --check`.
 

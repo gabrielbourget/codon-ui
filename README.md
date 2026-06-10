@@ -10,13 +10,13 @@ No Wavemap component source has moved into this repository yet.
 
 This repo is a `pnpm` monorepo.
 
-| Path                    | Purpose                                                                                                                  |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                            |
-| `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                         |
-| `packages/CLI`          | Private `@codon-ui/cli` package with the `codon-ui` bin. Strict install/update/diff behavior is not proof-ready yet.     |
-| `packages/react`        | Private `@codon-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests. |
-| `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                              |
+| Path                    | Purpose                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                                                                   |
+| `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                                                                |
+| `packages/CLI`          | Private `@codon-ui/cli` package with the canonical `codon-ui` bin plus `cui` and `codonui` aliases. Strict install/update/diff behavior is not proof-ready yet. |
+| `packages/react`        | Private `@codon-ui/react` source receiver package. It owns `theme.css`, internal support tokens, and registry manifests.                                        |
+| `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                                                                     |
 
 ## Commands
 
