@@ -22,7 +22,7 @@ explicitly justified duplicate coverage, and reports known gaps without failing 
 
 ## Evidence Repository
 
-Consumer fixture projects live in the sibling `amino-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
+Consumer fixture projects live in the sibling `codon-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
 
 - config or lockfile creation;
 - advisory or dry-run output;

@@ -166,7 +166,7 @@ Agentic runs must not lose time to stale or over-broad verification sessions.
   with the focused command that matches the change.
 - Report the verification tier used in the final response, especially when choosing a focused gate instead of the full
   suite.
-- For sibling `amino-ui-consumer-fixtures` work, use the fixture repo's focused commands such as `pnpm verify:shape`,
+- For sibling `codon-ui-consumer-fixtures` work, use the fixture repo's focused commands such as `pnpm verify:shape`,
   `pnpm verify:status-seeds`, `pnpm verify:cli-readonly`, `pnpm verify:strict-add`, `pnpm verify:remove-orphans`,
   `pnpm verify:compile`, or `pnpm verify:loaders` before reaching for the full `pnpm verify`.
 
