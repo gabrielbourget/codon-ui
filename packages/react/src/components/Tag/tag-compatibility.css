@@ -1,4 +1,4 @@
-/* Proof bridge only: keep received Tag source renderable before the broader spacing/radius/shadow contract is settled. */
+/* Compatibility support: keep received Tag source renderable while the broader spacing/radius/shadow contract is settled. */
 :root {
   --distance_1: var(--cui-space-1);
   --border_radius_1: var(--cui-radius-1);

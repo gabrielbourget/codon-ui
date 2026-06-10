@@ -92,14 +92,13 @@ Rename implementation must account for these surfaces.
 
 ## Theme Token Prefix
 
-The current CSS custom property bridge keeps legacy `--aui-*` values and exposes matching canonical `--cui-*` aliases.
-`--aui-*` remains a real compatibility contract during the migration, not dead branding text.
+The CSS custom property bridge has completed its cleanup pass: canonical `--cui-*` variables are the active contract, and
+legacy `--aui-*` compatibility aliases are no longer emitted by the package default or installed support CSS.
 
-Do not fold source-read flips, fixture override proofs, Wavemap theme migration, or compatibility alias removal into the
-first bridge tranche. Those later passes need their own compile proofs, consumer status checks, and visual review.
+Source-read flips, fixture override proofs, Wavemap theme migration, and compatibility alias removal were intentionally
+handled as separate tranches with compile proofs and consumer status checks.
 
-For the first private npm proof, the package may ship in bridge mode only if docs clearly mark `--cui-*` as canonical and
-`--aui-*` as transitional compatibility.
+For the first private npm proof, the package should ship with `--cui-*` as the canonical CSS variable prefix.
 
 ## Implementation Sequence
 

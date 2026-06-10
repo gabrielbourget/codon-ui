@@ -1,4 +1,4 @@
-/* Proof bridge only: keep received RadioGroup source renderable before the broader spacing and disabled-state theme contract is settled. */
+/* Compatibility support: keep received RadioGroup source renderable while the broader spacing and disabled-state theme contract is settled. */
 :root {
   --distance_2: var(--cui-space-2);
   --disabledOpacity: var(--cui-opacity-disabled);

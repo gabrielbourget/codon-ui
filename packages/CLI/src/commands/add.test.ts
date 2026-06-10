@@ -359,7 +359,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
     "src/components/_codon-ui-registry/tokens/geometry.ts",
   ],
-  expectedThemeVariables: ["--aui-surface-foreground", "--aui-surface", "--aui-shadow-1", "--aui-radius-1"],
+  expectedThemeVariables: ["--cui-surface-foreground", "--cui-surface", "--cui-shadow-1", "--cui-radius-1"],
   expectedMissingDependencyCount: 4,
   expectedPlannedCount: 11,
 })
@@ -377,7 +377,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
-  expectedThemeVariables: ["--aui-action-primary-background", "--aui-action-quintenary-foreground"],
+  expectedThemeVariables: ["--cui-action-primary-background", "--cui-action-quintenary-foreground"],
 })
 
 await verifyComponentAddPlanning({
@@ -389,7 +389,7 @@ await verifyComponentAddPlanning({
     "src/components/Cards/Card/helpers.ts",
     "src/components/_codon-ui-registry/theme.css",
   ],
-  expectedThemeVariables: ["--aui-space-3", "--aui-shadow-1"],
+  expectedThemeVariables: ["--cui-space-3", "--cui-shadow-1"],
   expectedPlannedCount: 4,
 })
 
@@ -454,7 +454,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/svg.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-control-selected-background"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-focus-ring", "--cui-control-selected-background"],
   expectedMissingDependencyCount: 6,
   expectedPlannedCount: 42,
 })
@@ -496,7 +496,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-2", "--aui-opacity-disabled"],
+  expectedThemeVariables: ["--cui-space-2", "--cui-opacity-disabled"],
   expectedPlannedCount: 10,
 })
 
@@ -512,7 +512,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-color-quintenary-500"],
 })
 
 await verifyComponentAddPlanning({
@@ -527,7 +527,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-drop-shadow-1", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-drop-shadow-1", "--cui-color-quintenary-500"],
 })
 
 await verifyComponentAddPlanning({
@@ -542,7 +542,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-2", "--aui-shadow-1", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-2", "--cui-shadow-1", "--cui-color-quintenary-500"],
 })
 
 await verifyComponentAddPlanning({
@@ -559,7 +559,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-shadow-1", "--aui-state-danger", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-shadow-1", "--cui-state-danger", "--cui-color-quintenary-500"],
   expectedPlannedCount: 9,
 })
 
@@ -576,12 +576,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/placement.ts",
   ],
   expectedThemeVariables: [
-    "--aui-surface",
-    "--aui-radius-1",
-    "--aui-shadow-1",
-    "--aui-z-index-panel",
-    "--aui-z-index-content-offset",
-    "--aui-z-index-overlay-offset",
+    "--cui-surface",
+    "--cui-radius-1",
+    "--cui-shadow-1",
+    "--cui-z-index-panel",
+    "--cui-z-index-content-offset",
+    "--cui-z-index-overlay-offset",
   ],
   expectedMissingDependencyCount: 5,
 })
@@ -619,7 +619,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
-  expectedThemeVariables: ["--aui-space-1", "--aui-shadow-1", "--aui-focus-ring", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-shadow-1", "--cui-focus-ring", "--cui-color-quintenary-500"],
   expectedPlannedCount: 17,
 })
 
@@ -630,7 +630,7 @@ await verifyComponentAddPlanning({
     "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
     "src/components/_codon-ui-registry/theme.css",
   ],
-  expectedThemeVariables: ["--aui-border"],
+  expectedThemeVariables: ["--cui-border"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 2,
 })
@@ -683,7 +683,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
-  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-color-primary-400"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-focus-ring", "--cui-color-primary-400"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 7,
 })
@@ -734,7 +734,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-color-primary-500", "--aui-animation-fade-in"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-color-primary-500", "--cui-animation-fade-in"],
   expectedMissingDependencyCount: 4,
   expectedPlannedCount: 28,
 })
@@ -830,7 +830,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/svg.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-border", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-border", "--cui-color-quintenary-500"],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 63,
 })
@@ -851,7 +851,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
     "src/components/_codon-ui-registry/tokens/geometry.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-state-danger", "--aui-state-success"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-state-danger", "--cui-state-success"],
   expectedPlannedCount: 11,
 })
 
@@ -871,7 +871,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
     "src/components/_codon-ui-registry/tokens/geometry.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-state-danger", "--aui-state-success"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-state-danger", "--cui-state-success"],
   expectedPlannedCount: 11,
 })
 
@@ -912,7 +912,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-radius-1", "--aui-transition-color", "--aui-state-danger"],
+  expectedThemeVariables: ["--cui-radius-1", "--cui-transition-color", "--cui-state-danger"],
   expectedPlannedCount: 22,
 })
 
@@ -951,7 +951,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-radius-1", "--aui-transition-color", "--aui-action-primary-background"],
+  expectedThemeVariables: ["--cui-radius-1", "--cui-transition-color", "--cui-action-primary-background"],
   expectedPlannedCount: 20,
 })
 
@@ -973,7 +973,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
     "src/components/_codon-ui-registry/tokens/geometry.ts",
   ],
-  expectedThemeVariables: ["--aui-radius-1", "--aui-focus-ring", "--aui-state-danger"],
+  expectedThemeVariables: ["--cui-radius-1", "--cui-focus-ring", "--cui-state-danger"],
   expectedPlannedCount: 13,
 })
 
@@ -1013,7 +1013,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
-  expectedThemeVariables: ["--aui-space-1", "--aui-focus-ring", "--aui-color-primary-500"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-focus-ring", "--cui-color-primary-500"],
   expectedMissingDependencyCount: 4,
   expectedPlannedCount: 20,
 })
@@ -1060,7 +1060,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "theme/action-colors.css",
-  expectedThemeVariables: ["--aui-surface-muted", "--aui-transition-box-shadow", "--aui-color-quintenary-500"],
+  expectedThemeVariables: ["--cui-surface-muted", "--cui-transition-box-shadow", "--cui-color-quintenary-500"],
   expectedMissingDependencyCount: 3,
   expectedPlannedCount: 8,
 })
@@ -1105,7 +1105,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-z-index-toast", "--aui-status-success", "--aui-control-selected-background"],
+  expectedThemeVariables: ["--cui-z-index-toast", "--cui-status-success", "--cui-control-selected-background"],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 23,
 })
@@ -1293,7 +1293,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/svg.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-transition-color", "--aui-state-warning", "--aui-state-danger"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-transition-color", "--cui-state-warning", "--cui-state-danger"],
   expectedPlannedCount: 19,
 })
 
@@ -1313,7 +1313,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
     "src/components/_codon-ui-registry/tokens/a11y.ts",
   ],
-  expectedThemeVariables: ["--aui-space-1", "--aui-shadow-1", "--aui-state-danger"],
+  expectedThemeVariables: ["--cui-space-1", "--cui-shadow-1", "--cui-state-danger"],
   expectedMissingDependencyCount: 3,
   expectedPlannedCount: 11,
 })
@@ -1331,7 +1331,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "action-colors.css",
-  expectedThemeVariables: ["--aui-shadow-1", "--aui-radius-1", "--aui-color-primary-500"],
+  expectedThemeVariables: ["--cui-shadow-1", "--cui-radius-1", "--cui-color-primary-500"],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 7,
 })
@@ -1349,7 +1349,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeSourcePath: "action-colors.css",
-  expectedThemeVariables: ["--aui-shadow-1", "--aui-radius-1", "--aui-color-primary-500"],
+  expectedThemeVariables: ["--cui-shadow-1", "--cui-radius-1", "--cui-color-primary-500"],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 7,
 })
@@ -1369,7 +1369,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/text-typography.css",
     "src/components/_codon-ui-registry/theme.css",
   ],
-  expectedThemeVariables: ["--aui-control-placeholder"],
+  expectedThemeVariables: ["--cui-control-placeholder"],
   expectedMissingDependencyCount: 3,
   expectedPlannedCount: 10,
 })
@@ -1390,11 +1390,11 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/theme.css",
   ],
   expectedThemeVariables: [
-    "--aui-space-1",
-    "--aui-radius-1",
-    "--aui-transition-background-color",
-    "--aui-control-hover-background",
-    "--aui-opacity-disabled",
+    "--cui-space-1",
+    "--cui-radius-1",
+    "--cui-transition-background-color",
+    "--cui-control-hover-background",
+    "--cui-opacity-disabled",
   ],
   expectedPlannedCount: 10,
 })
@@ -1437,12 +1437,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: [
-    "--aui-animation-fade-in",
-    "--aui-animation-fade-out",
-    "--aui-validation-error-border",
-    "--aui-validation-warning-border",
-    "--aui-validation-success-border",
-    "--aui-control-placeholder",
+    "--cui-animation-fade-in",
+    "--cui-animation-fade-out",
+    "--cui-validation-error-border",
+    "--cui-validation-warning-border",
+    "--cui-validation-success-border",
+    "--cui-control-placeholder",
   ],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 21,
@@ -1491,12 +1491,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: [
-    "--aui-animation-fade-in",
-    "--aui-animation-fade-out",
-    "--aui-transition-border-color",
-    "--aui-validation-error-border",
-    "--aui-validation-warning-border",
-    "--aui-validation-success-border",
+    "--cui-animation-fade-in",
+    "--cui-animation-fade-out",
+    "--cui-transition-border-color",
+    "--cui-validation-error-border",
+    "--cui-validation-warning-border",
+    "--cui-validation-success-border",
   ],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 25,
@@ -1560,12 +1560,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: [
-    "--aui-focus-ring",
-    "--aui-opacity-disabled",
-    "--aui-transition-border-color",
-    "--aui-validation-error-border",
-    "--aui-validation-warning-border",
-    "--aui-validation-success-border",
+    "--cui-focus-ring",
+    "--cui-opacity-disabled",
+    "--cui-transition-border-color",
+    "--cui-validation-error-border",
+    "--cui-validation-warning-border",
+    "--cui-validation-success-border",
   ],
   expectedMissingDependencyCount: 5,
   expectedPlannedCount: 37,
@@ -1618,7 +1618,7 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/geometry.ts",
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
-  expectedThemeVariables: ["--aui-space-2", "--aui-focus-ring", "--aui-transition-box-shadow"],
+  expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-transition-box-shadow"],
   expectedMissingDependencyCount: 4,
   expectedPlannedCount: 30,
 })
@@ -1672,12 +1672,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: [
-    "--aui-animation-fade-in",
-    "--aui-animation-fade-out",
-    "--aui-validation-error-border",
-    "--aui-validation-warning-border",
-    "--aui-validation-success-border",
-    "--aui-surface",
+    "--cui-animation-fade-in",
+    "--cui-animation-fade-out",
+    "--cui-validation-error-border",
+    "--cui-validation-warning-border",
+    "--cui-validation-success-border",
+    "--cui-surface",
   ],
   expectedMissingDependencyCount: 4,
   expectedPlannedCount: 30,
@@ -1726,12 +1726,12 @@ await verifyComponentAddPlanning({
     "src/components/_codon-ui-registry/tokens/theme-order.ts",
   ],
   expectedThemeVariables: [
-    "--aui-animation-fade-in",
-    "--aui-animation-fade-out",
-    "--aui-z-index-modal",
-    "--aui-status-warning",
-    "--aui-status-danger",
-    "--aui-status-success",
+    "--cui-animation-fade-in",
+    "--cui-animation-fade-out",
+    "--cui-z-index-modal",
+    "--cui-status-warning",
+    "--cui-status-danger",
+    "--cui-status-success",
   ],
   expectedPlannedCount: 19,
 })

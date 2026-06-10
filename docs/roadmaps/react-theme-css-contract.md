@@ -11,8 +11,8 @@ Wavemap's full application theme or introducing generated token machinery before
 
 - `packages/react/theme.css` is exported as `@codon-ui/react/theme.css`.
 - The file is hand-authored and defines the first narrow default `--cui-*` variable contract.
-- Bridge mode keeps existing legacy `--aui-*` values and exposes matching canonical `--cui-*` aliases so existing source
-  reads and consumer overrides keep working until later source-flip and compatibility-cleanup tranches are approved.
+- The CSS token-prefix bridge has been cleaned up: active package source and consumer proofs use canonical `--cui-*`
+  variables without legacy `--aui-*` compatibility aliases.
 - No Wavemap component source consumes this package yet.
 - No registry artifact generator reads from `packages/react` yet.
 - React and React DOM are the only declared peers for `@codon-ui/react`.
@@ -33,8 +33,8 @@ Wavemap's full application theme or introducing generated token machinery before
 The first package default should be narrow enough to review directly and broad enough for simple controls to render
 without hidden consumer assumptions.
 
-Initial token families use canonical `--cui-*` variables. During bridge mode, every canonical variable has a matching
-legacy `--aui-*` alias.
+Initial token families use canonical `--cui-*` variables. Legacy `--aui-*` aliases were removed after the source-flip,
+fixture, and Wavemap consumer proofs passed.
 
 | Family                    | Purpose                                                                   | First-contract examples                                                                 |
 | ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -72,8 +72,6 @@ import "@codon-ui/react/theme.css"
 
 The default file should declare values under `:root` and theme selector blocks. Consumer overrides should load after the
 package default and may override canonical `--cui-*` variables at `:root`, a theme selector, or an app-specific scope.
-During bridge mode, legacy `--aui-*` overrides remain supported because each `--cui-*` variable aliases the matching
-`--aui-*` variable.
 
 The first package proof should avoid importing Wavemap's app theme into Codon UI. Wavemap can later add a local bridge
 that maps product-specific variables onto the package `--cui-*` contract if the delete-and-reinstall proof needs it.
@@ -87,7 +85,7 @@ Use these Wavemap reads as guidance:
 
 | Wavemap reference                                                                       | Codon UI posture                                                                                                |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `--aui-foreground`, `--aui-background`                                                  | Bring forward as canonical `--cui-*` core semantic roles with bridge aliases while migration is active.         |
+| `--aui-foreground`, `--aui-background`                                                  | Brought forward as canonical `--cui-*` core semantic roles after source-read migration.                         |
 | `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--cui-neutral-100` through `--cui-neutral-800` if implemented in Codon UI. |
 | `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively as canonical `--cui-*` primitive control and container roles.                         |
 | `--aui-status-*` and validation aliases                                                 | Bring forward as canonical `--cui-*` state roles, using `state` naming for the package default if clearer.      |
@@ -106,7 +104,7 @@ Return to deliberate planning if implementation of this contract requires:
 - Package publication decisions.
 - Wavemap source movement.
 - Broad Wavemap theme rewrites.
-- Removing `--aui-*` compatibility aliases before source-flip, fixture, and Wavemap proofs pass.
+- Reintroducing legacy `--aui-*` compatibility aliases without an explicit rollback plan.
 
 ## Verification Expectations
 

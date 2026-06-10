@@ -188,9 +188,8 @@ General preferences:
 
 ## Styling Conventions
 
-- CSS custom properties owned by Codon UI should use the canonical `--cui-` prefix. During the bridge migration,
-  `@codon-ui/react/theme.css` must keep matching legacy `--aui-` compatibility variables until fixture and consumer
-  proofs approve their removal.
+- CSS custom properties owned by Codon UI should use the canonical `--cui-` prefix. `@codon-ui/react/theme.css` is
+  CUI-only after fixture and consumer proofs approved removal of the legacy `--aui-` compatibility variables.
 - Keep default theme variables narrow until real component source proves that more variables are needed.
 - Prefer semantic component-system roles such as foreground, background, surface, border, control, status, focus, spacing,
   radius, shadow, transition, and opacity before product-specific color decisions.

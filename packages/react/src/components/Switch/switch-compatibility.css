@@ -1,10 +1,10 @@
 :root {
-  --aui-color-primary-500: var(--cui-control-selected-background);
-  --aui-color-secondary-500: var(--cui-control-pressed-background);
-  --aui-color-tertiary-500: var(--cui-state-success);
-  --aui-color-quaternary-500: var(--cui-state-warning);
-  --aui-color-quintenary-500: var(--cui-state-danger);
-  --aui-neutral-8: var(--cui-neutral-800);
+  --cui-color-primary-500: var(--cui-control-selected-background);
+  --cui-color-secondary-500: var(--cui-control-pressed-background);
+  --cui-color-tertiary-500: var(--cui-state-success);
+  --cui-color-quaternary-500: var(--cui-state-warning);
+  --cui-color-quintenary-500: var(--cui-state-danger);
+  --cui-neutral-8: var(--cui-neutral-800);
   --disabledOpacity: var(--cui-opacity-disabled);
   --colorTransition: var(--cui-transition-color);
   --bgColorTransition: var(--cui-transition-background-color);
@@ -12,11 +12,4 @@
   --border_radius_1: var(--cui-radius-1);
   --focus-ring-color: var(--cui-focus-ring);
   --shadow_1: var(--cui-shadow-1);
-
-  --cui-color-primary-500: var(--aui-color-primary-500);
-  --cui-color-secondary-500: var(--aui-color-secondary-500);
-  --cui-color-tertiary-500: var(--aui-color-tertiary-500);
-  --cui-color-quaternary-500: var(--aui-color-quaternary-500);
-  --cui-color-quintenary-500: var(--aui-color-quintenary-500);
-  --cui-neutral-8: var(--aui-neutral-8);
 }
