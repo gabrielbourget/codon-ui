@@ -183,7 +183,7 @@ assert(
 
 assert(packet.name === "toggle-switcher", "ToggleSwitcher packet must describe the toggle-switcher item")
 assert(packet.type === "component", "ToggleSwitcher packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ToggleSwitcher packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ToggleSwitcher packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ToggleSwitcher packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#toggleswitcher-next-candidate-planning-checkpoint"),

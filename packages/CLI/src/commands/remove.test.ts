@@ -232,7 +232,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -245,7 +245,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -258,7 +258,7 @@ try {
           },
         ],
         name: "missing-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -278,7 +278,7 @@ try {
         runtimeDependencies: {
           "primary-only": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -295,7 +295,7 @@ try {
         runtimeDependencies: {
           "shared-runtime": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -308,7 +308,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -321,7 +321,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -338,12 +338,12 @@ try {
         runtimeDependencies: {
           "shared-runtime": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
@@ -387,7 +387,7 @@ try {
           },
         ],
         name: "missing-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-shared": {
         files: [
@@ -400,7 +400,7 @@ try {
           },
         ],
         name: "other-shared",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-only": {
         files: [
@@ -413,7 +413,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-primary": {
         files: [
@@ -427,7 +427,7 @@ try {
         ],
         name: "orphan-primary",
         registryDependencies: ["orphan-component", "shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-component": {
         files: [
@@ -441,7 +441,7 @@ try {
         ],
         name: "orphan-component",
         registryDependencies: ["orphan-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-support": {
         files: [
@@ -454,7 +454,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "shared-support": {
         files: [
@@ -467,7 +467,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-dependent": {
         files: [
@@ -481,7 +481,7 @@ try {
         ],
         name: "other-dependent",
         registryDependencies: ["shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -543,7 +543,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -1120,7 +1120,7 @@ try {
         ],
         name: "orphan-component",
         registryDependencies: ["orphan-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-primary": {
         files: [
@@ -1134,7 +1134,7 @@ try {
         ],
         name: "orphan-primary",
         registryDependencies: ["orphan-component", "shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-support": {
         files: [
@@ -1147,7 +1147,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-dependent": {
         files: [
@@ -1161,7 +1161,7 @@ try {
         ],
         name: "other-dependent",
         registryDependencies: ["shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "shared-support": {
         files: [
@@ -1174,7 +1174,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,

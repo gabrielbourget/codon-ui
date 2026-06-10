@@ -163,7 +163,7 @@ assert(
 
 assert(packet.name === "toggle-button", "ToggleButton packet must describe the toggle-button item")
 assert(packet.type === "component", "ToggleButton packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ToggleButton packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ToggleButton packet must target @codon-ui/react ownership")
 assert(
   packet.sourceRepository === "wavemap",
   "ToggleButton packet must record Wavemap as the analyzed source repository",

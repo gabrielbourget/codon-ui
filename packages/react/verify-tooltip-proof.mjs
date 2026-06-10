@@ -150,7 +150,7 @@ assert(packageJson.peerDependencies["react-dom"], "Tooltip package must keep Rea
 
 assert(packet.name === "tooltip", "Tooltip packet must describe the tooltip item")
 assert(packet.type === "component", "Tooltip packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Tooltip packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Tooltip packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Tooltip packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#tooltip-next-candidate-planning-checkpoint"),

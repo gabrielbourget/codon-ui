@@ -203,7 +203,7 @@ assert(packageJson.dependencies.classnames, "Stepper package must keep classname
 
 assert(packet.name === "stepper", "Stepper packet must describe the stepper item")
 assert(packet.type === "component", "Stepper packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Stepper packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Stepper packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Stepper packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#stepper-next-candidate-planning-checkpoint"),
@@ -316,7 +316,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `Stepper packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Stepper packet must point at the package-side proof harness",
 )
 assert(

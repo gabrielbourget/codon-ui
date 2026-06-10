@@ -210,7 +210,7 @@ assert(packageJson.peerDependencies["react-dom"], "AlertDialog package must keep
 
 assert(packet.name === "alert-dialog", "AlertDialog packet must describe the alert-dialog item")
 assert(packet.type === "component", "AlertDialog packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "AlertDialog packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "AlertDialog packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "AlertDialog packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#alertdialog-next-candidate-planning-checkpoint"),

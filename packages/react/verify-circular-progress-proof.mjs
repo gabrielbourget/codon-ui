@@ -174,7 +174,7 @@ assert(!circularProgressIndexSource.includes("calibrateComponent"), "CircularPro
 
 assert(packet.name === "circular-progress", "CircularProgress packet must describe the circular-progress item")
 assert(packet.type === "component", "CircularProgress packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "CircularProgress packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "CircularProgress packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "CircularProgress packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#circularprogress-next-candidate-planning-checkpoint"),
@@ -266,11 +266,11 @@ assert(
   "CircularProgress packet must record typography neutralization",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "CircularProgress packet must point at package proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "CircularProgress packet must point at package typecheck verification",
 )
 assert(

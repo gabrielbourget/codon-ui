@@ -124,7 +124,7 @@ assert(packageJson.peerDependencies["react-dom"], "PlaceholderText package must 
 
 assert(packet.name === "placeholder-text", "PlaceholderText packet must describe the placeholder-text item")
 assert(packet.type === "component", "PlaceholderText packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "PlaceholderText packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "PlaceholderText packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "PlaceholderText packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#placeholdertext-next-candidate-planning-checkpoint"),

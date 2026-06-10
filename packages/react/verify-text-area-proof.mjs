@@ -180,7 +180,7 @@ assert(packageJson.dependencies.classnames, "TextArea package must keep classnam
 
 assert(packet.name === "text-area", "TextArea packet must describe the text-area item")
 assert(packet.type === "component", "TextArea packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "TextArea packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "TextArea packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "TextArea packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#textarea-next-candidate-planning-checkpoint"),
@@ -265,7 +265,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `TextArea packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "TextArea packet must point at the package-side proof harness",
 )
 assert(

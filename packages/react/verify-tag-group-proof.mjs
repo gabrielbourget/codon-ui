@@ -188,7 +188,7 @@ assert(!tagGroupIndexSource.includes("calibrateComponent"), "TagGroup index must
 
 assert(packet.name === "tag-group", "TagGroup packet must describe the tag-group item")
 assert(packet.type === "component", "TagGroup packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "TagGroup packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "TagGroup packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "TagGroup packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#taggroup-next-candidate-planning-checkpoint"),
@@ -292,11 +292,11 @@ assert(
   "TagGroup packet must record the bounded remove-button rewrite",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "TagGroup packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "TagGroup packet must point at package typecheck verification",
 )
 assert(

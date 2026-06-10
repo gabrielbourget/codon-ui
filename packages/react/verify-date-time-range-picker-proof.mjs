@@ -345,7 +345,7 @@ assert(
 
 assert(packet.name === "date-time-range-picker", "DateTimeRangePicker packet must describe the public item")
 assert(packet.type === "component", "DateTimeRangePicker packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "DateTimeRangePicker packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "DateTimeRangePicker packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "DateTimeRangePicker packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#datetimerangepicker-extraction-planning-checkpoint"),

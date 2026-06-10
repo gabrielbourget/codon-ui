@@ -118,7 +118,7 @@ assert(!counterIndexSource.includes("calibrateComponent"), "Counter index must n
 
 assert(packet.name === "counter", "Counter packet must describe the counter item")
 assert(packet.type === "component", "Counter packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Counter packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Counter packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Counter packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#counter-next-candidate-planning-checkpoint"),

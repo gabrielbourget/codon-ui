@@ -157,7 +157,7 @@ assert(packageJson.peerDependencies["react-dom"], "Panel package must keep React
 
 assert(packet.name === "panel", "Panel packet must describe the panel item")
 assert(packet.type === "component", "Panel packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Panel packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Panel packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Panel packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#panel-next-candidate-planning-checkpoint"),

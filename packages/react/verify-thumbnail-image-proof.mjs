@@ -91,7 +91,7 @@ for (const exportName of expectedPublicExports.slice(1)) {
 
 assert(packet.name === "thumbnail-image", "ThumbnailImage packet must describe the public item")
 assert(packet.type === "component", "ThumbnailImage packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ThumbnailImage packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ThumbnailImage packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ThumbnailImage packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#thumbnailimage-extraction-planning-checkpoint"),

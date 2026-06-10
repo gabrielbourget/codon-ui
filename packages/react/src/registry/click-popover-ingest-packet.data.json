@@ -1,7 +1,7 @@
 {
   "name": "click-popover",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#clickpopover-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -128,7 +128,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": [
         "Runs the static source receipt proof, including ClickPopover-specific assertions once wired into package scripts."

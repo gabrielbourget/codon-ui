@@ -121,7 +121,7 @@ assert(
 
 assert(packet.name === "avatar", "Avatar packet must describe the avatar item")
 assert(packet.type === "component", "Avatar packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Avatar packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Avatar packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Avatar packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#avatar-next-candidate-planning-checkpoint"),

@@ -183,7 +183,7 @@ assert(!toasterIndexSource.includes("ToasterObserver"), "ToasterObserver must no
 
 assert(packet.name === "toaster", "Toaster packet must describe the toaster item")
 assert(packet.type === "component", "Toaster packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Toaster packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Toaster packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Toaster packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#toaster-extraction-planning-checkpoint"),

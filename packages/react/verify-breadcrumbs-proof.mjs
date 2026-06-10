@@ -178,7 +178,7 @@ assert(
 
 assert(packet.name === "breadcrumbs", "Breadcrumbs packet must describe the breadcrumbs item")
 assert(packet.type === "component", "Breadcrumbs packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Breadcrumbs packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Breadcrumbs packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Breadcrumbs packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#breadcrumbs-next-candidate-planning-checkpoint"),

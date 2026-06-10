@@ -177,7 +177,7 @@ assert(packageJson.peerDependencies["react-dom"], "Menu package must keep React 
 
 assert(packet.name === "menu", "Menu packet must describe the menu item")
 assert(packet.type === "component", "Menu packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Menu packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Menu packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Menu packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#menu-next-candidate-planning-checkpoint"),

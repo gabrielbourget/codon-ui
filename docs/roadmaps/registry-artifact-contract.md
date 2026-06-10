@@ -117,7 +117,7 @@ The first manifest shape should be small and explicit:
 | ---------------------- | --------------------------------------------------------------------------------------------- |
 | `name`                 | Stable registry item id, such as `switch`.                                                    |
 | `type`                 | Item category, currently `component`, `support`, `style`, `theme`, `asset`, or `test`.        |
-| `sourcePackage`        | Owning package, initially `@amino-ui/react`.                                                  |
+| `sourcePackage`        | Owning package, currently `@codon-ui/react`.                                                  |
 | `files`                | Explicit ordered source file entries.                                                         |
 | `registryDependencies` | Other registry items that must install before this item.                                      |
 | `peerDependencies`     | Consumer-owned peers required by installed source.                                            |

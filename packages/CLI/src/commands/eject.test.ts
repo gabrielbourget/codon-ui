@@ -148,7 +148,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -161,7 +161,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -174,12 +174,12 @@ try {
           },
         ],
         name: "ejected-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
@@ -205,7 +205,7 @@ try {
           },
         ],
         name: "ejected-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-shared": {
         files: [
@@ -218,7 +218,7 @@ try {
           },
         ],
         name: "other-shared",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-only": {
         files: [
@@ -231,7 +231,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -293,7 +293,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,

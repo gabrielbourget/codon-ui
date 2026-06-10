@@ -192,7 +192,7 @@ assert(
 
 assert(packet.name === "tag-combo-box", "TagComboBox packet must describe the tag-combo-box item")
 assert(packet.type === "component", "TagComboBox packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "TagComboBox packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "TagComboBox packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "TagComboBox packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#tagcombobox-next-candidate-planning-checkpoint"),

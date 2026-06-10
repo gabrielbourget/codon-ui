@@ -132,7 +132,7 @@ assert(textIndexSource.includes("FONT_VARIANT__BODY_10"), "Text index must expor
 
 assert(packet.name === "text", "Text packet must describe the text item")
 assert(packet.type === "component", "Text packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Text packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Text packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Text packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#text-primitive-planning-checkpoint"),
@@ -212,11 +212,11 @@ assert(
   "Text packet must record the neutral typography preset intent",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Text packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Text packet must point at package typecheck verification",
 )
 assert(

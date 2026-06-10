@@ -150,7 +150,7 @@ assert(packageJson.peerDependencies["react-dom"], "Meter package must keep React
 
 assert(packet.name === "meter", "Meter packet must describe the meter item")
 assert(packet.type === "component", "Meter packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Meter packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Meter packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Meter packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#meter-next-candidate-planning-checkpoint"),

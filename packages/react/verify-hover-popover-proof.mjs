@@ -166,7 +166,7 @@ assert(packageJson.peerDependencies["react-dom"], "HoverPopover package must kee
 
 assert(packet.name === "hover-popover", "HoverPopover packet must describe the hover-popover item")
 assert(packet.type === "component", "HoverPopover packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "HoverPopover packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "HoverPopover packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "HoverPopover packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#hoverpopover-next-candidate-planning-checkpoint"),

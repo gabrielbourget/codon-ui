@@ -49,7 +49,7 @@ export const consumerConfigSchema = z
     registry: z
       .object({
         source: z.string().min(1).default("local"),
-        sourcePackage: z.string().min(1).default("@amino-ui/react"),
+        sourcePackage: z.string().min(1).default("@codon-ui/react"),
       })
       .default({}),
     theme: z

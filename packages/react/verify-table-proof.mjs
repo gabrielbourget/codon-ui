@@ -135,7 +135,7 @@ const expectedDefaultThemeVariables = [
 
 assert(packet.name === "table", "Table packet must describe the public table registry item")
 assert(packet.type === "component", "Table packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Table packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Table packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Table packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#table-extraction-planning-checkpoint"),

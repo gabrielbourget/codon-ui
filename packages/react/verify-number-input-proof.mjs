@@ -232,7 +232,7 @@ assert(packageJson.dependencies.classnames, "NumberInput package must keep class
 
 assert(packet.name === "number-input", "NumberInput packet must describe the number-input item")
 assert(packet.type === "component", "NumberInput packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "NumberInput packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "NumberInput packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "NumberInput packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#numberinput-next-candidate-planning-checkpoint"),
@@ -328,7 +328,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `NumberInput packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "NumberInput packet must point at the package-side proof harness",
 )
 assert(

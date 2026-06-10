@@ -1,7 +1,7 @@
 {
   "name": "typeahead-search",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#typeaheadsearch-extraction-planning-checkpoint-2026-06-05",
   "files": [
@@ -212,7 +212,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": ["Runs the package-side static TypeaheadSearch proof harness once wired into package scripts."]
     },

@@ -125,12 +125,12 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
@@ -189,7 +189,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,

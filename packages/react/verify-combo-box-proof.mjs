@@ -190,7 +190,7 @@ assert(packageJson.scripts.test.includes("verify-combo-box-proof.mjs"), "Package
 
 assert(packet.name === "combo-box", "ComboBox packet must describe the combo-box item")
 assert(packet.type === "component", "ComboBox packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ComboBox packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ComboBox packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ComboBox packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#combobox-next-candidate-planning-checkpoint"),

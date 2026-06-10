@@ -181,7 +181,7 @@ assert(packageJson.peerDependencies["react-dom"], "Modal package must keep React
 
 assert(packet.name === "modal", "Modal packet must describe the modal item")
 assert(packet.type === "component", "Modal packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Modal packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Modal packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Modal packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#modal-next-candidate-planning-checkpoint"),

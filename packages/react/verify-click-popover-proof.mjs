@@ -175,7 +175,7 @@ assert(
 
 assert(packet.name === "click-popover", "ClickPopover packet must describe the click-popover item")
 assert(packet.type === "component", "ClickPopover packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ClickPopover packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ClickPopover packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ClickPopover packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#clickpopover-next-candidate-planning-checkpoint"),

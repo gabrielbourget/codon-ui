@@ -193,7 +193,7 @@ assert(packageJson.peerDependencies["react-dom"], "Select package must keep Reac
 
 assert(packet.name === "select", "Select packet must describe the select item")
 assert(packet.type === "component", "Select packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Select packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Select packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Select packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#select-next-candidate-planning-checkpoint"),

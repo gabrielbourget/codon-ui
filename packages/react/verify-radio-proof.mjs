@@ -126,7 +126,7 @@ assert(radioIndexSource.includes("TRadioProps as RadioProps"), "Radio index must
 
 assert(packet.name === "radio", "Radio packet must describe the radio item")
 assert(packet.type === "component", "Radio packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Radio packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Radio packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Radio packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#radio-next-candidate-planning-checkpoint"),
@@ -202,11 +202,11 @@ assert(
   "Radio packet must record the selected one-color exception",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Radio packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Radio packet must point at package typecheck verification",
 )
 assert(

@@ -113,7 +113,7 @@ assert(packageJson.peerDependencies["react-dom"], "Card package must keep React 
 
 assert(packet.name === "card", "Card packet must describe the card item")
 assert(packet.type === "component", "Card packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Card packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Card packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Card packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#card-next-candidate-planning-checkpoint"),

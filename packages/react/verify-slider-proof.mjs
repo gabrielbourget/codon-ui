@@ -133,7 +133,7 @@ assert(!sliderIndexSource.includes("toCSSSize"), "Slider index must not export l
 
 assert(packet.name === "slider", "Slider packet must describe the slider item")
 assert(packet.type === "component", "Slider packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Slider packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Slider packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Slider packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#slider-next-candidate-planning-checkpoint"),
@@ -230,11 +230,11 @@ assert(
   "Slider packet must record the Text component import rewrite",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Slider packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Slider packet must point at package typecheck verification",
 )
 assert(

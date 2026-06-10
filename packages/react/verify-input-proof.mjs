@@ -152,7 +152,7 @@ assert(packageJson.dependencies.classnames, "Input package must keep classnames 
 
 assert(packet.name === "input", "Input packet must describe the input item")
 assert(packet.type === "component", "Input packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Input packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Input packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Input packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#input-next-candidate-planning-checkpoint"),
@@ -234,7 +234,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `Input packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Input packet must point at the package-side proof harness",
 )
 assert(

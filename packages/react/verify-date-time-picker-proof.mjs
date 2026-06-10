@@ -308,7 +308,7 @@ assert(packageJson.dependencies.classnames === "^2.3.2", "DateTimePicker package
 
 assert(packet.name === "date-time-picker", "DateTimePicker packet must describe the date-time-picker item")
 assert(packet.type === "component", "DateTimePicker packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "DateTimePicker packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "DateTimePicker packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "DateTimePicker packet must record Wavemap as source repository")
 assert(
   packet.sourceRef === "docs/roadmaps/date-time-picker-receipt-plan.md",

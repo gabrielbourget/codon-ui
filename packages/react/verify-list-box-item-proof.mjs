@@ -137,7 +137,7 @@ assert(packageJson.peerDependencies["react-dom"], "ListBoxItem package must keep
 
 assert(packet.name === "list-box-item", "ListBoxItem packet must describe the list-box-item item")
 assert(packet.type === "component", "ListBoxItem packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ListBoxItem packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ListBoxItem packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ListBoxItem packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#listboxitem-next-candidate-planning-checkpoint"),

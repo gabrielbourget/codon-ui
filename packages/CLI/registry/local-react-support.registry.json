@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceIdentity": "@amino-ui/react-local-support",
+  "sourceIdentity": "@codon-ui/react-local-support",
   "sourceRoot": "../../..",
   "items": [
     {
       "name": "theme-css",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/theme.css",
@@ -19,7 +19,7 @@
     {
       "name": "theme/action-colors",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/theme/action-colors.css",
@@ -32,7 +32,7 @@
     {
       "name": "tokens/geometry",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/geometry.ts",
@@ -45,7 +45,7 @@
     {
       "name": "tokens/a11y",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/a11y.ts",
@@ -58,7 +58,7 @@
     {
       "name": "tokens/alignment",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/alignment.ts",
@@ -71,7 +71,7 @@
     {
       "name": "tokens/drag",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/drag.ts",
@@ -84,7 +84,7 @@
     {
       "name": "tokens/placement",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/placement.ts",
@@ -97,7 +97,7 @@
     {
       "name": "tokens/responsive",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/responsive.ts",
@@ -110,7 +110,7 @@
     {
       "name": "tokens/motion",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/motion.ts",
@@ -123,7 +123,7 @@
     {
       "name": "theme/switch-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Switch/switch-compatibility.css",
@@ -136,7 +136,7 @@
     {
       "name": "theme/checkbox-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
@@ -149,7 +149,7 @@
     {
       "name": "theme/toggle-button-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
@@ -162,7 +162,7 @@
     {
       "name": "theme/radio-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
@@ -175,7 +175,7 @@
     {
       "name": "theme/radio-group-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
@@ -188,7 +188,7 @@
     {
       "name": "theme/slider-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Slider/slider-compatibility.css",
@@ -201,7 +201,7 @@
     {
       "name": "theme/tag-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
@@ -214,7 +214,7 @@
     {
       "name": "theme/tag-group-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
@@ -227,7 +227,7 @@
     {
       "name": "theme/circular-progress-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
@@ -240,7 +240,7 @@
     {
       "name": "theme/text-typography",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Text/text-typography.css",
@@ -253,7 +253,7 @@
     {
       "name": "tokens/svg",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/svg.ts",
@@ -266,7 +266,7 @@
     {
       "name": "tokens/theme-order",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/theme-order.ts",

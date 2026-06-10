@@ -200,7 +200,7 @@ assert(packageJson.dependencies.classnames, "TimePicker package must keep classn
 
 assert(packet.name === "time-picker", "TimePicker packet must describe the time-picker item")
 assert(packet.type === "component", "TimePicker packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "TimePicker packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "TimePicker packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "TimePicker packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("WAVEMAP_COMPONENT_POLISH_AUDIT.md#timepicker"),
@@ -285,7 +285,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `TimePicker packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "TimePicker packet must point at the package-side proof harness",
 )
 assert(

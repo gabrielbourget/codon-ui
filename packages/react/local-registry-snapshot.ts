@@ -9,8 +9,8 @@ import {
 } from "./src/registry"
 
 export const LOCAL_REGISTRY_SOURCE_SCHEMA_VERSION = 1
-export const LOCAL_REACT_REGISTRY_SOURCE_IDENTITY = "@amino-ui/react-local"
-export const LOCAL_SUPPORT_REGISTRY_SOURCE_IDENTITY = "@amino-ui/react-local-support"
+export const LOCAL_REACT_REGISTRY_SOURCE_IDENTITY = "@codon-ui/react-local"
+export const LOCAL_SUPPORT_REGISTRY_SOURCE_IDENTITY = "@codon-ui/react-local-support"
 export const LOCAL_REGISTRY_SOURCE_ROOT = "../../.."
 
 const LOCAL_SUPPORT_REGISTRY_ITEM_TYPES = new Set([REGISTRY_ITEM_TYPE__SUPPORT, REGISTRY_ITEM_TYPE__THEME])

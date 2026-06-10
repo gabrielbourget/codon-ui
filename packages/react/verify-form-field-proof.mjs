@@ -153,7 +153,7 @@ assert(!formFieldIndexSource.includes("calibrateComponent"), "FormField index mu
 
 assert(packet.name === "form-field", "FormField packet must describe the form-field item")
 assert(packet.type === "component", "FormField packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "FormField packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "FormField packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "FormField packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#formfield-next-candidate-planning-checkpoint"),

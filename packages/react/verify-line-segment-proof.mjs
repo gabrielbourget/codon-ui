@@ -120,7 +120,7 @@ assert(
 
 assert(packet.name === "line-segment", "LineSegment packet must describe the line-segment item")
 assert(packet.type === "component", "LineSegment packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "LineSegment packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "LineSegment packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "LineSegment packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#linesegment-next-candidate-planning-checkpoint"),

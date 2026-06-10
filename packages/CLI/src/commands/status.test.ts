@@ -105,7 +105,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -118,7 +118,7 @@ try {
           },
         ],
         name: "tokens/geometry",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -131,7 +131,7 @@ try {
           },
         ],
         name: "utils/ejected",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -144,12 +144,12 @@ try {
           },
         ],
         name: "utils/unknown",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
@@ -170,7 +170,7 @@ try {
         files: [],
         name: "circle-loader",
         registryDependencies: [],
-        sourceIdentity: "@amino-ui/react-local",
+        sourceIdentity: "@codon-ui/react-local",
       },
       switch: {
         files: [
@@ -183,7 +183,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "tokens/geometry": {
         files: [
@@ -196,7 +196,7 @@ try {
           },
         ],
         name: "tokens/geometry",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "utils/ejected": {
         files: [
@@ -209,7 +209,7 @@ try {
           },
         ],
         name: "utils/ejected",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "utils/unknown": {
         files: [
@@ -222,7 +222,7 @@ try {
           },
         ],
         name: "utils/unknown",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -275,7 +275,7 @@ try {
   assertCliJsonReportContract({ report: defaultComponentSourceReport, schemaName: "status" })
   assert.equal(defaultComponentSourceReport.registrySource.status, "loaded")
   assert.equal(path.basename(defaultComponentSourceReport.registrySource.path ?? ""), "local-react.registry.json")
-  assert.equal(defaultComponentSourceReport.registrySource.sourceIdentity, "@amino-ui/react-local")
+  assert.equal(defaultComponentSourceReport.registrySource.sourceIdentity, "@codon-ui/react-local")
   assert.equal(defaultComponentSourceReport.dependencies.length, 1)
   assert.equal(defaultComponentSourceReport.summary.dependencyStates.satisfied, 1)
 

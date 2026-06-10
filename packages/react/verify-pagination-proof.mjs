@@ -233,7 +233,7 @@ assert(
 
 assert(packet.name === "pagination", "Pagination packet must describe the pagination item")
 assert(packet.type === "component", "Pagination packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Pagination packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Pagination packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Pagination packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#pagination-next-candidate-planning-checkpoint"),

@@ -109,7 +109,7 @@ assert(!tagIndexSource.includes("isPressable"), "Tag index must not export local
 
 assert(packet.name === "tag", "Tag packet must describe the tag item")
 assert(packet.type === "component", "Tag packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Tag packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Tag packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Tag packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#tag-next-candidate-planning-checkpoint"),
@@ -203,11 +203,11 @@ assert(
   "Tag packet must record the geometry import rewrite",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Tag packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Tag packet must point at package typecheck verification",
 )
 assert(

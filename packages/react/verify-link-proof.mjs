@@ -138,7 +138,7 @@ assert(packageJson.scripts.test.includes("verify-link-proof.mjs"), "Package test
 
 assert(packet.name === "link", "Link packet must describe the link item")
 assert(packet.type === "component", "Link packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Link packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Link packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Link packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#link-next-candidate-planning-checkpoint"),

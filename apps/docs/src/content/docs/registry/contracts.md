@@ -31,7 +31,7 @@ Each registry item declares:
 | ---------------------- | --------------------------------------------------------------------------------------- |
 | `name`                 | Stable registry item id.                                                                |
 | `type`                 | `component`, `support`, `style`, `theme`, `asset`, or `test`.                           |
-| `sourcePackage`        | Owning package, currently `@amino-ui/react`.                                            |
+| `sourcePackage`        | Owning package, currently `@codon-ui/react`.                                            |
 | `files`                | Explicit source file entries.                                                           |
 | `registryDependencies` | Other registry items that install before this item.                                     |
 | `peerDependencies`     | Consumer-owned peer packages.                                                           |

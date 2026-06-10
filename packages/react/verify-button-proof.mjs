@@ -159,7 +159,7 @@ assert(packageJson.dependencies.classnames, "Button package must keep classnames
 
 assert(packet.name === "button", "Button packet must describe the button item")
 assert(packet.type === "component", "Button packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Button packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Button packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Button packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#button-next-candidate-planning-checkpoint"),

@@ -196,7 +196,7 @@ assert(actionColors.includes("--aui-color-primary-500"), "action-colors.css must
 
 assert(packet.name === "sort-and-filter-panel", "SortAndFilterPanel packet must describe the public item")
 assert(packet.type === "component", "SortAndFilterPanel packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "SortAndFilterPanel packet must target @amino-ui/react")
+assert(packet.sourcePackage === "@codon-ui/react", "SortAndFilterPanel packet must target @codon-ui/react")
 assert(packet.sourceRepository === "wavemap", "SortAndFilterPanel packet must record Wavemap source")
 assert(packet.files.length === requiredPackageFileSources.length, "SortAndFilterPanel packet must list approved files")
 requiredPackageFileSources.forEach((sourcePath) => {

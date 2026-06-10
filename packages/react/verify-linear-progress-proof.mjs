@@ -178,7 +178,7 @@ assert(packageJson.peerDependencies["react-dom"], "LinearProgress package must k
 
 assert(packet.name === "linear-progress", "LinearProgress packet must describe the linear-progress item")
 assert(packet.type === "component", "LinearProgress packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "LinearProgress packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "LinearProgress packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "LinearProgress packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#linearprogress-next-candidate-planning-checkpoint"),

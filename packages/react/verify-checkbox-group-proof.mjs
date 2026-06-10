@@ -143,7 +143,7 @@ assert(packageJson.dependencies.classnames, "CheckboxGroup package must keep cla
 
 assert(packet.name === "checkbox-group", "CheckboxGroup packet must describe the checkbox-group item")
 assert(packet.type === "component", "CheckboxGroup packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "CheckboxGroup packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "CheckboxGroup packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "CheckboxGroup packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#checkboxgroup-next-candidate-planning-checkpoint"),
@@ -224,7 +224,7 @@ assert(
   "CheckboxGroup packet must record Checkbox child dependency boundary",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "CheckboxGroup packet must point at the package-side proof harness",
 )
 assert(

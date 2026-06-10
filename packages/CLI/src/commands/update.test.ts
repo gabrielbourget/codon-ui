@@ -146,7 +146,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -159,7 +159,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -172,7 +172,7 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -188,12 +188,12 @@ try {
         peerDependencies: {
           react: "^18.2.0 || ^19.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
@@ -219,7 +219,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-equals-local": {
         files: [
@@ -232,7 +232,7 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "dependency-blocked": {
         files: [
@@ -245,7 +245,7 @@ try {
           },
         ],
         name: "dependency-blocked",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -300,7 +300,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -498,7 +498,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -511,12 +511,12 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json"), {
@@ -533,7 +533,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-equals-local": {
         files: [
@@ -546,7 +546,7 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -821,12 +821,12 @@ try {
           runtimeDependencies: {
             motion: "^11.0.0",
           },
-          sourcePackage: "@amino-ui/react",
+          sourcePackage: "@codon-ui/react",
           type: "component",
         },
       ],
       schemaVersion: 1,
-      sourceIdentity: "@amino-ui/test-registry",
+      sourceIdentity: "@codon-ui/test-registry",
       sourceRoot: ".",
     })
     writeJson(path.join(fixtureConsumerRoot, "codon-ui.lock.json"), {
@@ -843,7 +843,7 @@ try {
             },
           ],
           name: "motion-update",
-          sourceIdentity: "@amino-ui/test-registry",
+          sourceIdentity: "@codon-ui/test-registry",
         },
       },
       lockfileVersion: 1,
@@ -873,12 +873,12 @@ try {
         runtimeDependencies: {
           motion: "^11.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
   writeJson(path.join(dependencyInstallConsumerRoot, "codon-ui.lock.json"), {
@@ -895,7 +895,7 @@ try {
           },
         ],
         name: "motion-update",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
