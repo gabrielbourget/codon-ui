@@ -8,11 +8,11 @@ import StarlightSearch from "@astrojs/starlight/components/Search.astro"
   import { pagefindUserConfig } from "virtual:starlight/pagefind-config"
 
   type TDocsSearchWindow = Window & {
-    __aminoDocsSearchInitRegistered?: boolean
-    __aminoDocsSearchSawInitialPageLoad?: boolean
+    __codonDocsSearchInitRegistered?: boolean
+    __codonDocsSearchSawInitialPageLoad?: boolean
   }
 
-  const PAGEFIND_MOUNTED_ATTRIBUTE = "data-amino-pagefind-mounted"
+  const PAGEFIND_MOUNTED_ATTRIBUTE = "data-codon-pagefind-mounted"
 
   const parseTranslations = (siteSearchElement: HTMLElement | null) => {
     try {
@@ -74,13 +74,13 @@ import StarlightSearch from "@astrojs/starlight/components/Search.astro"
 
   const docsSearchWindow = window as TDocsSearchWindow
 
-  if (!docsSearchWindow.__aminoDocsSearchInitRegistered) {
-    docsSearchWindow.__aminoDocsSearchInitRegistered = true
+  if (!docsSearchWindow.__codonDocsSearchInitRegistered) {
+    docsSearchWindow.__codonDocsSearchInitRegistered = true
 
     document.addEventListener("astro:after-swap", scheduleSearchInitialization)
     document.addEventListener("astro:page-load", () => {
-      if (!docsSearchWindow.__aminoDocsSearchSawInitialPageLoad) {
-        docsSearchWindow.__aminoDocsSearchSawInitialPageLoad = true
+      if (!docsSearchWindow.__codonDocsSearchSawInitialPageLoad) {
+        docsSearchWindow.__codonDocsSearchSawInitialPageLoad = true
         return
       }
 

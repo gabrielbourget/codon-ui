@@ -123,7 +123,7 @@ const readFixtureSnapshot = (fixturePath: string) =>
     .map((filePath) => `${filePath}:${createContentHash(readFileSync(path.join(fixturePath, filePath)))}`)
     .sort()
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-remove-advisory-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-remove-advisory-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")

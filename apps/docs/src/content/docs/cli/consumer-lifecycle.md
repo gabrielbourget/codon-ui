@@ -528,7 +528,7 @@ Strict update can resolve dependency-only blockers before source writes when `--
 effective dependency policy is `install`, the item still has an update candidate, and package-manager detection selects a
 known npm, pnpm, yarn, or bun command. Codon executes the planned command, records package-manager execution metadata,
 replans from the selected target manifest, and only then writes dry-run-approved source files plus lockfile records. If
-the package-manager command fails, Amino reports structured `failedCommands` output and writes no source files or
+the package-manager command fails, Codon reports structured `failedCommands` output and writes no source files or
 `codon-ui.lock.json`.
 
 Strict update does not merge local edits, mutate dependencies for broad `update --all`, update support/orphan policy, or

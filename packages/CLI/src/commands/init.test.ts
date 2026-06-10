@@ -9,7 +9,7 @@ import { fileURLToPath } from "node:url"
 import { createConsumerInitDryRun, writeConsumerInitSeed } from "../helpers"
 import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-init-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-init-"))
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..")
 const monorepoRoot = path.resolve(packageRoot, "../..")
 const tsxCliPath = path.join(monorepoRoot, "node_modules/tsx/dist/cli.mjs")
@@ -51,7 +51,7 @@ const createFixture = (fixtureName: string) => {
 
   mkdirSync(fixturePath, { recursive: true })
   writeJson(path.join(fixturePath, "package.json"), {
-    name: `@amino-ui-tests/${fixtureName}`,
+    name: `@codon-ui-tests/${fixtureName}`,
     packageManager: "pnpm@10.18.3",
   })
 

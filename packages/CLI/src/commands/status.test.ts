@@ -61,7 +61,7 @@ const assertStatusFile = async ({
   return report
 }
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-status-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-status-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
