@@ -28,6 +28,17 @@ The active React manifest currently contains 73 items: 52 components, 9 support 
 `@codon-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
 not drift from the manifest.
 
+## Distribution Contract
+
+For the first private npm proof, `@codon-ui/react` remains the canonical source identity but not the runtime source
+package that `npx` must resolve. The CLI package bundles a generated source snapshot at pack time so source-installed
+consumer workflows can be proven with one private npm package first.
+
+The mature distribution model is still a split package contract: `@codon-ui/cli` owns command behavior and
+`@codon-ui/react` owns the versioned registry/source artifact. Moving to that model requires `@codon-ui/react` to publish
+registry metadata and source files intentionally, not only `dist` and `theme.css`, and requires the CLI to resolve those
+assets from the installed React package.
+
 ## Peer Policy
 
 React, React DOM, React Aria, React Aria Components, and Radix Avatar are current package peers. Runtime dependencies
@@ -40,6 +51,6 @@ without installing packages by default.
 ## Current Non-Goals
 
 - Public token exports.
-- Published package artifacts.
+- Publishing `@codon-ui/react` as the source artifact for the first private CLI proof.
 - Hosted registry artifacts.
 - Runtime provider or generated theme machinery.

@@ -46,7 +46,7 @@ engine:
 - dependency-only item update blockers can resolve through explicit package-manager approval and then replan;
 - locally modified, missing, unknown, consumer-owned-support, and ejected files are reported and preserved by default.
 
-The main closeout caveats before rename are:
+The main closeout caveats before publishing are:
 
 - package publication remains blocked by `prepublishOnly`; the old public-oriented `pub:*` scripts have been removed, but
   private npm release policy still needs a Codon-specific pack/install proof before any publish command is introduced;
@@ -55,8 +55,27 @@ The main closeout caveats before rename are:
 
 ## Command Name
 
-The CLI package is `@codon-ui/cli` and publishes a single `codon-ui` bin that points at `dist/index.js`. Compatibility
-aliases are intentionally not part of the package surface.
+The CLI package is `@codon-ui/cli` and exposes `codon-ui`, `cui`, and `codonui` bins that all point at `dist/index.js`.
+`codon-ui` remains the canonical documentation spelling; `cui` is the short ergonomic alias.
+
+## Package Shape
+
+The first private npm proof keeps the CLI package self-contained. `@codon-ui/cli` packs only `dist`, and `prepack`
+generates package-local registry snapshots plus referenced React source files under `dist/registry` and
+`dist/registry-source`. That lets `npx`, `npm exec`, or `pnpm dlx` run the CLI from a temporary npm cache without
+reaching back into a local monorepo checkout.
+
+The checked-in registry snapshots under `packages/CLI/registry` remain monorepo-local development snapshots that point
+back to `packages/react`. The generated pack-time copies rewrite only `sourceRoot`; they do not change registry item ids,
+source identities, source paths, lockfile identity, or consumer target paths.
+
+`prepublishOnly` still blocks real npm publication until a private publish policy is approved. The pack preflight command
+builds the CLI, verifies the built command against the generated package-local registry source, and then runs npm's
+tarball dry-run:
+
+```sh
+pnpm -F @codon-ui/cli pack:check
+```
 
 ## Advisory Mode
 

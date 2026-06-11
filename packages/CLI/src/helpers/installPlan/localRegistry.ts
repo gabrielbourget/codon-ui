@@ -72,6 +72,7 @@ export const isLocalReactRegistryComponentItemRequest = (requestedItems: readonl
 export const getDefaultLocalSupportRegistrySourcePath = () => {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
   const candidatePaths = [
+    path.resolve(moduleDirectory, "registry/local-react-support.registry.json"),
     path.resolve(moduleDirectory, "../registry/local-react-support.registry.json"),
     path.resolve(moduleDirectory, "../../../registry/local-react-support.registry.json"),
   ]
@@ -82,6 +83,7 @@ export const getDefaultLocalSupportRegistrySourcePath = () => {
 export const getDefaultLocalReactRegistrySourcePath = () => {
   const moduleDirectory = path.dirname(fileURLToPath(import.meta.url))
   const candidatePaths = [
+    path.resolve(moduleDirectory, "registry/local-react.registry.json"),
     path.resolve(moduleDirectory, "../registry/local-react.registry.json"),
     path.resolve(moduleDirectory, "../../../registry/local-react.registry.json"),
   ]

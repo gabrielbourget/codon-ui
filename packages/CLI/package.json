@@ -9,6 +9,9 @@
     "cui": "./dist/index.js",
     "codonui": "./dist/index.js"
   },
+  "files": [
+    "dist"
+  ],
   "version": "0.0.1",
   "packageManager": "pnpm@10.18.3",
   "scripts": {
@@ -21,7 +24,11 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
     "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
+    "pack:check": "pnpm build && node scripts/verify-pack-source.mjs && npm pack --dry-run",
+    "pack:dry-run": "pnpm build && npm pack --dry-run",
+    "postpack": "node scripts/cleanup-pack-source.mjs",
     "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
+    "prepack": "node scripts/prepare-pack-source.mjs",
     "prepublishOnly": "node scripts/publication-safety.mjs block-publish",
     "release:check": "node scripts/publication-safety.mjs verify",
     "typecheck": "tsc --noEmit",

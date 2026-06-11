@@ -237,7 +237,7 @@ export const add = new Command()
   .option("--registry-source <path>", "Path to a local registry source JSON file for planning.")
   .option(
     "-p, --path <path>",
-    "A path to the directory where your chosen components should be added. Defaults to 'components'.",
+    "Legacy remote-registry target directory override. Local registry installs resolve through codon-ui.config.json paths.",
     "components",
   )
   .action(async (components, CLIOptions) => {

@@ -117,6 +117,16 @@ tracked source file that would feed a future generated artifact.
 snapshot still match the active React manifest. The JSON snapshots are tracked for local CLI planning only; public
 registry hosting remains a later artifact pass.
 
+For the first private npm proof, the CLI package turns those local snapshots into a package-local artifact at pack time.
+`@codon-ui/cli` `prepack` writes generated copies to `dist/registry`, rewrites their `sourceRoot` to
+`../registry-source`, and copies every referenced React source file to `dist/registry-source`. The source identity stays
+`@codon-ui/react-local` or `@codon-ui/react-local-support`, so consumer lockfiles preserve the same provenance semantics
+whether the CLI runs from a monorepo checkout or an npm cache.
+
+The mature split-package model remains separate: publish `@codon-ui/react` as the registry/source artifact and teach the
+CLI to resolve source assets from that installed package. That model needs its own package `files`, versioning, and
+resolver contract before it replaces the CLI-bundled proof shape.
+
 ## Artifact Policy
 
 `public/registry` should be treated as generated build output unless a later release or deployment policy deliberately
