@@ -52,8 +52,8 @@
   "devDependencies": {
     "@codon-ui/shared-utils": "workspace:*",
     "@types/node": "^20.12.5",
-    "@types/react": "^18.2.74",
-    "@types/react-dom": "^18.2.24",
+    "@types/react": "19.2.2",
+    "@types/react-dom": "19.2.2",
     "prettier": "^3.8.1",
     "typescript": "^5.4.4"
   }
