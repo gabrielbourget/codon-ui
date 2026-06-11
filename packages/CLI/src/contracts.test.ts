@@ -56,7 +56,7 @@ assert.deepEqual(cliPackageJson.bin, {
   cui: "./dist/index.js",
   codonui: "./dist/index.js",
 })
-assert.equal(cliPackageJson.version, "0.1.0")
+assert.equal(cliPackageJson.version, "0.1.1")
 assert.deepEqual(cliPackageJson.files, ["dist"])
 assert.deepEqual(cliPackageJson.publishConfig, { access: "restricted" })
 assert.equal(

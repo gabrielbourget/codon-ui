@@ -11,6 +11,7 @@ identity and is bundled into the CLI package as registry/source payload at pack 
 
 - The publish change is committed and the working tree is clean.
 - The intended version is set in `packages/CLI/package.json`.
+- `packages/CLI/CHANGELOG.md` has an entry for the intended version.
 - npm auth is available for the `@codon-ui` organization and restricted package publishing.
 - No npm token or registry credential is committed to the repo.
 
@@ -38,6 +39,15 @@ pnpm -F @codon-ui/cli version patch --no-git-tag-version
 
 Commit the version bump separately from unrelated work. Do not publish an uncommitted version change.
 
+## Release Notes
+
+Update `packages/CLI/CHANGELOG.md` in the same release-prep commit as the version bump. Each private release entry should
+include:
+
+- changed CLI behavior;
+- consumer-facing migration or bootstrap notes;
+- verification commands used for the release.
+
 ## Preflight
 
 Run the focused package gates before publishing:
@@ -48,11 +58,13 @@ pnpm -F @codon-ui/cli typecheck
 pnpm -F @codon-ui/cli lint
 pnpm -F @codon-ui/cli build
 pnpm -F @codon-ui/cli pack:check
+pnpm -F @codon-ui/cli release:check
 git diff --check
 ```
 
 `pack:check` builds the CLI, prepares the package-local registry/source payload, verifies the packed source shape, and
-runs `npm pack --dry-run`.
+runs `npm pack --dry-run`. `release:check` validates the package identity, version, restricted publish access, file
+allowlist, and publish-script safety.
 
 ## Publish
 

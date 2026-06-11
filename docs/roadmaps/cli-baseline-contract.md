@@ -100,9 +100,9 @@ Do not broaden behavior before these risks are handled deliberately:
 - The current registry schema is legacy web-registry shape, not the approved `packages/react` manifest/artifact contract.
 - Transform helpers have no fixture tests.
 - `bin` aliases point to `dist/index.js`; fresh installs can warn or fail before build output exists.
-- Package publication is now restricted to the guarded private path: `@codon-ui/cli@0.1.0`,
-  `publishConfig.access: "restricted"`, `files: ["dist"]`, and `prepublishOnly` running package preflight plus release
-  safety checks.
+- Package publication is now restricted to the guarded private path: `@codon-ui/cli`,
+  `publishConfig.access: "restricted"`, `files: ["dist"]`, version-paired changelog entries, and `prepublishOnly`
+  running package preflight plus release safety checks.
 - Current command names and options are inherited scaffold surface, not settled public API.
 
 ## First Safe Implementation Sequence
