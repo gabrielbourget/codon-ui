@@ -48,8 +48,8 @@ engine:
 
 The main closeout caveats before publishing are:
 
-- package publication remains blocked by `prepublishOnly`; the old public-oriented `pub:*` scripts have been removed, but
-  private npm release policy still needs a Codon-specific pack/install proof before any publish command is introduced;
+- package publication is gated by `prepublishOnly`, which runs the package preflight and release safety guard before a
+  real publish can proceed;
 - custom update transforms, AST-aware merges, rollback after unexpected write failures, and public registry hosting remain
   outside the private-use finish line.
 
@@ -69,12 +69,19 @@ The checked-in registry snapshots under `packages/CLI/registry` remain monorepo-
 back to `packages/react`. The generated pack-time copies rewrite only `sourceRoot`; they do not change registry item ids,
 source identities, source paths, lockfile identity, or consumer target paths.
 
-`prepublishOnly` still blocks real npm publication until a private publish policy is approved. The pack preflight command
-builds the CLI, verifies the built command against the generated package-local registry source, and then runs npm's
-tarball dry-run:
+`@codon-ui/cli` is versioned at `0.1.0` for the first private npm proof and declares
+`publishConfig.access: "restricted"`. `prepublishOnly` runs the package preflight and release guard before any real npm
+publish can proceed. The pack preflight command builds the CLI, verifies the built command against the generated
+package-local registry source, and then runs npm's tarball dry-run:
 
 ```sh
 pnpm -F @codon-ui/cli pack:check
+```
+
+Actual publish remains a manual final gate:
+
+```sh
+pnpm -F @codon-ui/cli publish --access restricted
 ```
 
 ## Advisory Mode

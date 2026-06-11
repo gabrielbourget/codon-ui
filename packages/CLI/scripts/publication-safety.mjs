@@ -1,6 +1,9 @@
 import { readFileSync } from "node:fs"
 
-const PUBLICATION_BLOCKER_SCRIPT = "node scripts/publication-safety.mjs block-publish"
+const REQUIRED_PACKAGE_NAME = "@codon-ui/cli"
+const REQUIRED_PACKAGE_VERSION = "0.1.0"
+const REQUIRED_PREPUBLISH_ONLY_SCRIPT = "pnpm pack:check && pnpm release:check"
+const REQUIRED_PUBLISH_ACCESS = "restricted"
 
 const packageJsonUrl = new URL("../package.json", import.meta.url)
 const packageJson = JSON.parse(readFileSync(packageJsonUrl, "utf8"))
@@ -12,15 +15,6 @@ const printFailure = (message, details = []) => {
   details.forEach((detail) => {
     console.error(`- ${detail}`)
   })
-}
-
-const blockPublish = () => {
-  printFailure("Publishing is blocked for this package.", [
-    "Finish the Codon UI package rename.",
-    "Prove the private package contents with a local npm pack/install run.",
-    "Approve the private npm publish policy before replacing this guard.",
-  ])
-  process.exit(1)
 }
 
 const verifyPublicationSafety = () => {
@@ -52,8 +46,28 @@ const verifyPublicationSafety = () => {
     unsafeFindings.push("publishConfig.access is public.")
   }
 
-  if (scripts.prepublishOnly !== PUBLICATION_BLOCKER_SCRIPT) {
-    unsafeFindings.push("prepublishOnly must keep npm publish blocked until the private Codon UI release policy lands.")
+  if (packageJson.name !== REQUIRED_PACKAGE_NAME) {
+    unsafeFindings.push(`package name must be ${REQUIRED_PACKAGE_NAME}.`)
+  }
+
+  if (packageJson.version !== REQUIRED_PACKAGE_VERSION) {
+    unsafeFindings.push(`package version must be ${REQUIRED_PACKAGE_VERSION} for the first private CLI proof.`)
+  }
+
+  if (packageJson.private === true) {
+    unsafeFindings.push("package private flag must not be true when publishing the CLI package.")
+  }
+
+  if (packageJson.publishConfig?.access !== REQUIRED_PUBLISH_ACCESS) {
+    unsafeFindings.push(`publishConfig.access must be ${REQUIRED_PUBLISH_ACCESS}.`)
+  }
+
+  if (JSON.stringify(packageJson.files) !== JSON.stringify(["dist"])) {
+    unsafeFindings.push('package files must be exactly ["dist"].')
+  }
+
+  if (scripts.prepublishOnly !== REQUIRED_PREPUBLISH_ONLY_SCRIPT) {
+    unsafeFindings.push(`prepublishOnly must be "${REQUIRED_PREPUBLISH_ONLY_SCRIPT}".`)
   }
 
   if (unsafeFindings.length > 0) {
@@ -66,9 +80,7 @@ const verifyPublicationSafety = () => {
 
 const command = process.argv[2] ?? "verify"
 
-if (command === "block-publish") {
-  blockPublish()
-} else if (command === "verify") {
+if (command === "verify") {
   verifyPublicationSafety()
 } else {
   printFailure(`Unknown publication safety command: ${command}`)

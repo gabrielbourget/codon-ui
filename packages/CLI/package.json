@@ -12,8 +12,11 @@
   "files": [
     "dist"
   ],
-  "version": "0.0.1",
+  "version": "0.1.0",
   "packageManager": "pnpm@10.18.3",
+  "publishConfig": {
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
@@ -29,7 +32,7 @@
     "postpack": "node scripts/cleanup-pack-source.mjs",
     "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
     "prepack": "node scripts/prepare-pack-source.mjs",
-    "prepublishOnly": "node scripts/publication-safety.mjs block-publish",
+    "prepublishOnly": "pnpm pack:check && pnpm release:check",
     "release:check": "node scripts/publication-safety.mjs verify",
     "typecheck": "tsc --noEmit",
     "test": "pnpm exec tsx src/contracts.test.ts && pnpm exec tsx src/commands/init.test.ts && pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/diff.test.ts && pnpm exec tsx src/commands/update.test.ts && pnpm exec tsx src/commands/remove.test.ts && pnpm exec tsx src/commands/eject.test.ts && pnpm exec tsx src/commands/add.test.ts"

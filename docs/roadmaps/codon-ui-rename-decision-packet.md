@@ -22,9 +22,9 @@ The component-library and CLI proof work is far enough along for private-use dis
 - Wavemap remains the mature first consumer. Its local adapters and existing `_registry` path should not be migrated as
   incidental cleanup during the package rename.
 
-The first publication-safety pass removed legacy public-oriented `pub:*` scripts from `packages/CLI/package.json` and
-added a `prepublishOnly` blocker plus `release:check` guard. The remaining blocker before a real private npm proof is
-the Codon package rename and private pack/install policy.
+The publication-safety pass removed legacy public-oriented `pub:*` scripts from `packages/CLI/package.json` and moved
+`prepublishOnly` from a hard blocker to a guarded private publish preflight. The first publishable CLI package is
+`@codon-ui/cli@0.1.0` with `publishConfig.access: "restricted"` and a CLI-bundled registry/source payload.
 
 ## Recommended Naming Decisions
 
@@ -87,7 +87,7 @@ Rename implementation must account for these surfaces.
 | Fixture repository         | fixture names, evidence Markdown, structured proof ledger, package scripts, expected output   | Rename only with replay proofs that establish equivalent Codon behavior.                                                                                              |
 | Wavemap consumer           | local `_registry` imports, config, lockfile, source provenance                                | Defer physical path migration until a Wavemap-specific pass updates imports, config, lockfile records, and tests together.                                            |
 | Docs labels                | Amino UI docs, CLI examples, registry contracts, fixture evidence docs                        | Rename staged docs labels without implying public hosting or open-source distribution.                                                                                |
-| Release scripts            | retired `pub:*`, public `npm publish --access public`, current `prepublishOnly` blocker       | Keep publication blocked until the private pack/install proof is approved.                                                                                            |
+| Release scripts            | retired `pub:*`, public `npm publish --access public`, guarded `prepublishOnly` preflight     | Permit only the private restricted CLI publish path after local tarball and npm publish dry-runs pass.                                                                |
 | Repository/directory names | `codon-ui`, `codon-ui-consumer-fixtures`                                                      | Physical repo/folder rename remains last, after package/tarball and consumer proofs pass; transitional tooling may still fall back to unrenamed local checkout paths. |
 
 ## Theme Token Prefix
@@ -111,10 +111,12 @@ For the first private npm proof, the package should ship with `--cui-*` as the c
 ### Stage 1: Publication Safety
 
 - [x] Remove, rename, or quarantine legacy `pub:*` scripts that publish with `--access public`.
-- [x] Keep direct package publication blocked by `prepublishOnly` until Codon private release policy is approved.
-- [x] Add a `release:check` guard that fails if `pub:*`, `npm publish`, `pnpm publish`, `yarn npm publish`,
-      `--access public`, or public `publishConfig.access` return.
-- [ ] Add explicit private-pack proof scripts only after their command names and package files are reviewed.
+- [x] Move `prepublishOnly` from a hard blocker to the guarded private publish preflight once the first CLI package
+      policy is approved.
+- [x] Add a `release:check` guard that fails if `pub:*`, script-level publish commands, `--access public`, public
+      `publishConfig.access`, an unexpected package name/version, missing restricted access, or an unexpected package
+      file allowlist return.
+- [x] Add explicit private-pack proof scripts after their command names and package files are reviewed.
 
 ### Stage 2: Package And Command Rename
 
@@ -139,10 +141,12 @@ For the first private npm proof, the package should ship with `--cui-*` as the c
 
 ### Stage 5: Private Pack Proof
 
-- Define `files` allowlists for the publishable CLI package.
-- Ensure built output, executable bin, bundled registry snapshots, and source payload are included.
-- Prove `npm pack` installs into a clean external fixture without local monorepo paths.
-- Run `pnpm dlx @codon-ui/cli init`, `add`, `status`, `diff`, and a compile proof from the installed package.
+- [x] Define `files` allowlists for the publishable CLI package.
+- [x] Ensure built output, executable bin, bundled registry snapshots, and source payload are included.
+- [x] Prove the local tarball installs into a clean external fixture without local monorepo paths.
+- [x] Run installed-tarball `codon-ui init`, `add switch`, `status switch`, `diff switch`, and a compile proof from the
+      external fixture.
+- [ ] After the first private publish, run registry-backed `pnpm dlx @codon-ui/cli@0.1.0` smoke checks.
 
 ### Stage 6: Private Publish
 

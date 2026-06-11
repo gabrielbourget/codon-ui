@@ -20,7 +20,11 @@ import {
 const cliPackageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
   bin: Record<string, string>
   files: string[]
+  publishConfig: {
+    access: string
+  }
   scripts: Record<string, string>
+  version: string
 }
 
 const expectedSchemaNames = [
@@ -52,7 +56,9 @@ assert.deepEqual(cliPackageJson.bin, {
   cui: "./dist/index.js",
   codonui: "./dist/index.js",
 })
+assert.equal(cliPackageJson.version, "0.1.0")
 assert.deepEqual(cliPackageJson.files, ["dist"])
+assert.deepEqual(cliPackageJson.publishConfig, { access: "restricted" })
 assert.equal(
   cliPackageJson.scripts["pack:check"],
   "pnpm build && node scripts/verify-pack-source.mjs && npm pack --dry-run",
@@ -60,6 +66,7 @@ assert.equal(
 assert.equal(cliPackageJson.scripts["pack:dry-run"], "pnpm build && npm pack --dry-run")
 assert.equal(cliPackageJson.scripts.prepack, "node scripts/prepare-pack-source.mjs")
 assert.equal(cliPackageJson.scripts.postpack, "node scripts/cleanup-pack-source.mjs")
+assert.equal(cliPackageJson.scripts.prepublishOnly, "pnpm pack:check && pnpm release:check")
 assert.deepEqual(CLI_JSON_REPORT_SCHEMA_NAMES, expectedSchemaNames)
 assert.equal(cliJsonReportSchemas.addDryRun, addDryRunSchema)
 assert.equal(cliJsonReportSchemas.status, statusReportSchema)
