@@ -178,10 +178,10 @@ adds `@codon-ui/cli` to `devDependencies` only when the package is not already d
 `devDependencies`. Existing compatible declarations are preserved, and conflicting `scripts.cui` values are reported
 without overwrite.
 
-Waveguide bootstrap caveat: this shortcut exists in the current source tree and local package build, but the already
-published `@codon-ui/cli@0.1.0` private package does not expose `--setup-cli`. Before a fresh Waveguide scaffold relies
-on `pnpm dlx @codon-ui/cli init --setup-cli`, publish a follow-up restricted CLI package and extend the private package
-smoke proof to assert the manifest edit plus the resulting local `pnpm cui ...` path.
+Waveguide bootstrap caveat: because the CLI package exposes multiple bins, pnpm's first verbose bootstrap call should use
+the explicit package form, such as `pnpm --package=@codon-ui/cli@0.1.2 dlx codon-ui init --setup-cli`. The
+`@codon-ui/cli@0.1.2` patch fixes package metadata lookup for that `dlx` path; extend the private package smoke proof to
+assert the manifest edit plus the resulting local `pnpm cui ...` path.
 
 `init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
 config, lockfile, package manifest, directory, or dependency writes. Its `wouldEffects` report `would-write` for

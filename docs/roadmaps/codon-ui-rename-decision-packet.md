@@ -146,7 +146,8 @@ For the first private npm proof, the package should ship with `--cui-*` as the c
 - [x] Prove the local tarball installs into a clean external fixture without local monorepo paths.
 - [x] Run installed-tarball `codon-ui init`, `add switch`, `status switch`, `diff switch`, and a compile proof from the
       external fixture.
-- [ ] After the first private publish, run registry-backed `pnpm dlx @codon-ui/cli@0.1.0` smoke checks.
+- [ ] After each private publish, run registry-backed smoke checks. For pnpm, use the explicit package form when invoking
+      the CLI from a temporary install, such as `pnpm --package=@codon-ui/cli@0.1.2 dlx codon-ui`.
 
 ### Stage 6: Private Publish
 

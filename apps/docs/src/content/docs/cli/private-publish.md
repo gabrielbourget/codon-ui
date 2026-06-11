@@ -87,18 +87,18 @@ npm view @codon-ui/cli version --registry=https://registry.npmjs.org
 pnpm view @codon-ui/cli versions --json
 ```
 
-Then run the private package smoke proof from the sibling fixture repo. Replace `0.1.1` with the version just published:
+Then run the private package smoke proof from the sibling fixture repo. Replace `0.1.2` with the version just published:
 
 ```sh
 cd ../codon-ui-consumer-fixtures
-CODON_UI_PUBLISHED_CLI_VERSION=0.1.1 pnpm verify:published-package-smoke
+CODON_UI_PUBLISHED_CLI_VERSION=0.1.2 pnpm verify:published-package-smoke
 ```
 
 For a version that introduces `init --setup-cli`, add or run a smoke proof that verifies this bootstrap path from the
 published package:
 
 ```sh
-pnpm dlx @codon-ui/cli@0.1.1 init --setup-cli --json
+pnpm --package=@codon-ui/cli@0.1.2 dlx codon-ui init --setup-cli --json
 pnpm install
 pnpm cui status
 ```

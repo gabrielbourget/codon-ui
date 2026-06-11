@@ -1,5 +1,7 @@
 import assert from "node:assert/strict"
-import { readFileSync } from "node:fs"
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { tmpdir } from "node:os"
+import path from "node:path"
 
 import {
   addDryRunSchema,
@@ -16,6 +18,7 @@ import {
   DEFAULT_REGISTRY_CONTAINED_REGISTRY_PATH,
   DEFAULT_REGISTRY_CONTAINED_TARGET_PATHS,
 } from "./helpers/consumerContract"
+import { getPackageInfo } from "./helpers/getPackageInfo"
 
 const cliPackageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
   bin: Record<string, string>
@@ -56,7 +59,7 @@ assert.deepEqual(cliPackageJson.bin, {
   cui: "./dist/index.js",
   codonui: "./dist/index.js",
 })
-assert.equal(cliPackageJson.version, "0.1.1")
+assert.equal(cliPackageJson.version, "0.1.2")
 assert.deepEqual(cliPackageJson.files, ["dist"])
 assert.deepEqual(cliPackageJson.publishConfig, { access: "restricted" })
 assert.equal(
@@ -87,3 +90,19 @@ for (const schemaName of CLI_JSON_REPORT_SCHEMA_NAMES) {
 
 assert.equal(HELPER_FILE_MARKER_REGEX.test("// codon-ui-helper-file-marker"), true)
 assert.equal(HELPER_FILE_MARKER_REGEX.test("// amino-ui-helper-file-marker"), false)
+
+const originalCwd = process.cwd()
+const temporaryConsumerRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-package-info-"))
+
+try {
+  writeFileSync(
+    path.join(temporaryConsumerRoot, "package.json"),
+    `${JSON.stringify({ name: "codon-ui-package-info-consumer", private: true }, null, 2)}\n`,
+    "utf8",
+  )
+  process.chdir(temporaryConsumerRoot)
+  assert.equal(getPackageInfo().version, cliPackageJson.version)
+} finally {
+  process.chdir(originalCwd)
+  rmSync(temporaryConsumerRoot, { force: true, recursive: true })
+}
