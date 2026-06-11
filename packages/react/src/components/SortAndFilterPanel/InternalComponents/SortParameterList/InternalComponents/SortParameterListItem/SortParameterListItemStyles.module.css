@@ -1,13 +1,13 @@
 .sortParameterListItem {
   width: 100%;
   height: auto;
-  padding: var(--aui-space-2);
+  padding: var(--cui-space-2);
   display: flex;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   cursor: grab;
-  background: var(--aui-surface-muted);
-  border-radius: var(--aui-radius-1);
+  background: var(--cui-surface-muted);
+  border-radius: var(--cui-radius-1);
 }
 
 .sortParameterListItem[data-dragging] {
@@ -20,7 +20,7 @@
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .sortParameterListItem__rightContent {
@@ -28,5 +28,5 @@
   height: 100%;
   display: flex;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }

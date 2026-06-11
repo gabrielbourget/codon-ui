@@ -1,7 +1,7 @@
 {
   "name": "line-segment",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#linesegment-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -52,7 +52,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-border"],
+      "cssVariables": ["--cui-border"],
       "notes": ["LineSegment's default color reads the default Amino theme border variable directly."]
     }
   ],
@@ -66,7 +66,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": [
         "Runs the static source receipt proof, including LineSegment-specific assertions once wired into package scripts."

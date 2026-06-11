@@ -232,8 +232,8 @@ const validateManifestItem = ({ constants, expression, index, validFileRoles, va
     fail(`Expected ${context}.type to be one of ${[...validItemTypes].join(", ")}, received ${type}.`)
   }
 
-  if (sourcePackage !== "@amino-ui/react") {
-    fail(`Expected ${context}.sourcePackage to be @amino-ui/react, received ${sourcePackage}.`)
+  if (sourcePackage !== "@codon-ui/react") {
+    fail(`Expected ${context}.sourcePackage to be @codon-ui/react, received ${sourcePackage}.`)
   }
 
   if (!files || files.elements.length === 0) {

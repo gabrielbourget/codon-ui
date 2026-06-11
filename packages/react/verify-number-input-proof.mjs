@@ -34,7 +34,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|motion\/react/u
 const forbiddenLegacyCssPattern =
-  /--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border/u
+  /--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--cui-validation-error-border|--cui-validation-warning-border|--cui-validation-success-border/u
 
 const numberInputSource = readRequiredText(numberInputSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
@@ -92,19 +92,19 @@ const requiredStyleSelectors = [
   ".numberInput__icon",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-space-1",
-  "--aui-radius-1",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-transition-border-color",
-  "--aui-transition-color",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-placeholder",
-  "--aui-state-danger",
-  "--aui-state-warning",
-  "--aui-state-success",
+  "--cui-space-1",
+  "--cui-radius-1",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-transition-border-color",
+  "--cui-transition-color",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-placeholder",
+  "--cui-state-danger",
+  "--cui-state-warning",
+  "--cui-state-success",
 ]
 
 assert(numberInputSource.startsWith('"use client"'), "NumberInput must preserve the client component boundary")
@@ -232,7 +232,7 @@ assert(packageJson.dependencies.classnames, "NumberInput package must keep class
 
 assert(packet.name === "number-input", "NumberInput packet must describe the number-input item")
 assert(packet.type === "component", "NumberInput packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "NumberInput packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "NumberInput packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "NumberInput packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#numberinput-next-candidate-planning-checkpoint"),
@@ -328,7 +328,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `NumberInput packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "NumberInput packet must point at the package-side proof harness",
 )
 assert(

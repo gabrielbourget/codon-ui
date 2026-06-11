@@ -1,7 +1,7 @@
 {
   "name": "date-time-picker",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "docs/roadmaps/date-time-picker-receipt-plan.md",
   "files": [
@@ -107,7 +107,7 @@
     {
       "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePickerStyles.module.css packages/react/src/components/DateTimePicker/CalendarStyles.module.css",
       "importSource": "legacy spacing/radius/focus/transition/shadow/animation/z-index aliases and Wavemap dark-theme selector",
-      "replacementSource": "default --aui-* theme variables and reviewed package theme selector/token support",
+      "replacementSource": "default --cui-* theme variables and reviewed package theme selector/token support",
       "notes": ["Source receipt must rewrite legacy Wavemap CSS aliases directly or stop for a narrow token review."]
     }
   ],
@@ -132,28 +132,28 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-control-background",
-        "--aui-control-border",
-        "--aui-control-foreground",
-        "--aui-control-hover-background",
-        "--aui-control-placeholder",
-        "--aui-control-pressed-background",
-        "--aui-control-selected-background",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-state-danger",
-        "--aui-state-success",
-        "--aui-state-warning",
-        "--aui-surface",
-        "--aui-transition-background-color",
-        "--aui-transition-border-color",
-        "--aui-transition-box-shadow",
-        "--aui-transition-color"
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-control-background",
+        "--cui-control-border",
+        "--cui-control-foreground",
+        "--cui-control-hover-background",
+        "--cui-control-placeholder",
+        "--cui-control-pressed-background",
+        "--cui-control-selected-background",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-state-danger",
+        "--cui-state-success",
+        "--cui-state-warning",
+        "--cui-surface",
+        "--cui-transition-background-color",
+        "--cui-transition-border-color",
+        "--cui-transition-box-shadow",
+        "--cui-transition-color"
       ],
       "notes": [
         "DateTimePicker should use the default Amino theme contract directly after CSS alias rewrites.",
@@ -171,10 +171,10 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-100",
-        "--aui-color-primary-200",
-        "--aui-color-primary-400",
-        "--aui-color-primary-500"
+        "--cui-color-primary-100",
+        "--cui-color-primary-200",
+        "--cui-color-primary-400",
+        "--cui-color-primary-500"
       ],
       "notes": ["Calendar selected-day states read the established action-color support layer."]
     }
@@ -189,14 +189,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static DateTimePicker proof harness."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the copied DateTimePicker graph, typed packet wrapper, and public DateTimePicker exports."]

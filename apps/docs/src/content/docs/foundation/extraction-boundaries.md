@@ -1,39 +1,48 @@
 ---
 title: Extraction Boundaries
-description: Guardrails before the first Wavemap component proof.
+description: Guardrails for source receipt, consumer proofs, and deferred lifecycle work.
 ---
 
-The first component proof is still blocked by decisions that should be made deliberately. `Switch` remains the likely
-first proof candidate, but it has not moved into Amino UI.
+The component extraction proof has moved from first-source planning into local registry receipt and consumer reinstall
+evidence. The boundary now protects the split between reusable source, consumer adapters, and deferred lifecycle tooling.
 
-## Closed Foundation
+## Closed Proof Areas
 
-- Workspace and shared tooling foundation.
-- React receiver package shell.
-- Default `theme.css` contract.
-- Registry manifest skeleton and contract checks.
-- CI verification foundation.
-- Geometry and theme-order support tokens.
-- Docs-only `Switch` planning.
-- Non-active typed `Switch` ingest packet.
-- Narrow `Switch` compatibility bridge registry item.
-- Advisory dependency classification for target package metadata.
+- Source receipt into `packages/react` for the current reusable component graph.
+- Registry activation through `packages/react/src/registry/manifest.ts`.
+- Local registry snapshots for support/theme and full React graph planning.
+- Consumer fixture evidence for default Vite installs and compile behavior.
+- Wavemap delete/reinstall checkpoints for recent registry items.
+- Default `registry-contained` consumer layout with `_registry` support paths.
+- Config and lockfile ownership through `codon-ui.config.json` and `codon-ui.lock.json`.
 
-## Remaining Before `Switch`
+## Consumer-Owned Boundaries
 
-- Exact proof location.
-- Source receipt into `packages/react/src/components/Switch`.
-- Strict dependency action policy after advisory classification.
-- Final package barrel shape for `Switch` and `SwitchProps`.
-- Focused test relocation.
+The following stay outside Codon UI by default:
+
+- API contracts, DTOs, route/query state, saved views, translations, and providers.
+- Media upload and gallery flows.
+- Product/domain tables and app-specific table adapters.
+- Broad app shell, maps, layout rails, and product navigation.
+
+See [Adapter Boundaries](/component-library/adapter-boundaries/) for the durable rule set.
+
+## Deferred Work
+
+- `update --advisory` and `update --dry-run`.
+- Safe remove/delete behavior.
+- Focused diff behavior.
+- Eject behavior and strict update/eject mutation.
+- Public registry hosting and package publication.
+- Generated token writers and Waveguide validation.
 
 ## Stop Conditions
 
-Do not proceed with source movement if the pass requires:
+Return to deliberate planning if a pass requires:
 
 - New dependencies without explicit dependency-policy approval.
-- Lockfile changes outside an approved setup pass.
-- Broad `theme.css` compatibility aliases or generated token writers.
-- Registry builder rewrites.
-- CLI install, update, diff, status, or ejection behavior.
+- Broad default-theme compatibility aliases.
+- Registry builder or hosting policy rewrites.
+- Strict update/eject behavior.
+- Generated token writers or palette generation.
 - Package publication or release automation.

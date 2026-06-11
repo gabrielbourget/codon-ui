@@ -119,7 +119,7 @@ const readIngestPacket = async (itemName: string) => {
   const packetDataPath = getPacketDataCandidatePaths(itemName).find((candidatePath) => existsSync(candidatePath))
 
   if (!packetDataPath) {
-    throw new Error(`Could not find @amino-ui/react ingest packet data for ${itemName}.`)
+    throw new Error(`Could not find @codon-ui/react ingest packet data for ${itemName}.`)
   }
 
   return registryIngestPacketSchema.parse(JSON.parse(await readFile(packetDataPath, "utf8")))
@@ -242,10 +242,12 @@ export const createAddDryRunEffects = (installPlan: TRegistryInstallPlan): TAddD
 
 export const createAddStrictEffects = ({
   applied,
+  installsDependencies = false,
   installPlan,
   writtenFileCount = 0,
 }: {
   applied: boolean
+  installsDependencies?: boolean
   installPlan: TRegistryInstallPlan
   writtenFileCount?: number
 }): TAddStrictEffects => {
@@ -260,7 +262,7 @@ export const createAddStrictEffects = ({
       reusedExistingTargetCount: dryRunEffects.files.reusedExistingTargetCount,
       writtenCount: applied ? writtenFileCount : 0,
     },
-    installsDependencies: false,
+    installsDependencies,
     lockfile: {
       plannedFileCount: installPlan.files.length,
       plannedItems: installPlan.items.map((item) => item.name),

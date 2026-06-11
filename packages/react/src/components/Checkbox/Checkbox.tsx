@@ -65,7 +65,7 @@ const Checkbox = forwardRef<HTMLLabelElement, TCheckboxProps>((props, forwardedR
                     y={7.5}
                     width={14}
                     height={3}
-                    fill="var(--checkbox-selected-foreground, var(--aui-control-selected-foreground))"
+                    fill="var(--checkbox-selected-foreground, var(--cui-control-selected-foreground))"
                   />
                 ) : // <polyline points="1 9 7 14 15 4" />
                 showIcon ? (

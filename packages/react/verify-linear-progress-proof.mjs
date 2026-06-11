@@ -73,11 +73,11 @@ const requiredStyleSelectors = [
   ".linearProgress__bar--quintenary",
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 assert(linearProgressSource.includes('from "motion/react"'), "LinearProgress must import Motion")
@@ -130,12 +130,12 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `LinearProgress CSS module must include ${selector}`)
 })
 ;[
-  "var(--aui-control-border)",
-  "var(--aui-control-selected-background)",
-  "var(--aui-shadow-1)",
-  "var(--aui-radius-1)",
-  "var(--aui-color-primary-500)",
-  "var(--aui-color-quintenary-500)",
+  "var(--cui-control-border)",
+  "var(--cui-control-selected-background)",
+  "var(--cui-shadow-1)",
+  "var(--cui-radius-1)",
+  "var(--cui-color-primary-500)",
+  "var(--cui-color-quintenary-500)",
 ].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `LinearProgress CSS must read ${cssValue}`)
 })
@@ -178,7 +178,7 @@ assert(packageJson.peerDependencies["react-dom"], "LinearProgress package must k
 
 assert(packet.name === "linear-progress", "LinearProgress packet must describe the linear-progress item")
 assert(packet.type === "component", "LinearProgress packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "LinearProgress packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "LinearProgress packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "LinearProgress packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#linearprogress-next-candidate-planning-checkpoint"),
@@ -252,7 +252,7 @@ const defaultContractRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract" && !requirement.files,
 )
 assert(defaultContractRequirement, "LinearProgress packet must record default-contract theme pressure")
-;["--aui-control-border", "--aui-control-selected-background", "--aui-radius-1", "--aui-shadow-1"].forEach(
+;["--cui-control-border", "--cui-control-selected-background", "--cui-radius-1", "--cui-shadow-1"].forEach(
   (cssVariable) => {
     assert(
       defaultContractRequirement.cssVariables.includes(cssVariable),
@@ -280,7 +280,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--aui-shadow-1"),
+      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--cui-shadow-1"),
   ),
   "LinearProgress packet must record legacy CSS variable rewrite",
 )

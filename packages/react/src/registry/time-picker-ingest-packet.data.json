@@ -1,7 +1,7 @@
 {
   "name": "time-picker",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/WAVEMAP_COMPONENT_POLISH_AUDIT.md#timepicker",
   "files": [
@@ -88,10 +88,10 @@
     {
       "sourcePath": "packages/react/src/components/TimePicker/TimePickerStyles.module.css",
       "importSource": "legacy spacing/radius/focus/transition/validation aliases",
-      "replacementSource": "default --aui-* theme variables",
+      "replacementSource": "default --cui-* theme variables",
       "notes": [
         "TimePicker CSS now reads default Amino spacing, radius, focus, transition, disabled opacity, control, and validation state variables directly.",
-        "The validation-state borders map to --aui-state-danger, --aui-state-warning, and --aui-state-success without a TimePicker-local compatibility bridge."
+        "The validation-state borders map to --cui-state-danger, --cui-state-warning, and --cui-state-success without a TimePicker-local compatibility bridge."
       ]
     },
     {
@@ -129,18 +129,18 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-space-1",
-        "--aui-radius-1",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-transition-border-color",
-        "--aui-control-border",
-        "--aui-control-foreground",
-        "--aui-control-placeholder",
-        "--aui-control-selected-background",
-        "--aui-state-danger",
-        "--aui-state-warning",
-        "--aui-state-success"
+        "--cui-space-1",
+        "--cui-radius-1",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-transition-border-color",
+        "--cui-control-border",
+        "--cui-control-foreground",
+        "--cui-control-placeholder",
+        "--cui-control-selected-background",
+        "--cui-state-danger",
+        "--cui-state-warning",
+        "--cui-state-success"
       ],
       "notes": [
         "TimePicker CSS rewrites stable Wavemap aliases directly to the existing package default theme contract.",
@@ -151,21 +151,21 @@
   "verification": [
     {
       "kind": "scan",
-      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border\" packages/react/src/components/TimePicker/TimePicker.tsx packages/react/src/components/TimePicker/helpers.tsx packages/react/src/components/TimePicker/labels.ts packages/react/src/components/TimePicker/DefaultClockIcon.tsx packages/react/src/components/TimePicker/TimePickerStyles.module.css",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|motion/react|@internationalized/date|--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--cui-validation-error-border|--cui-validation-warning-border|--cui-validation-success-border\" packages/react/src/components/TimePicker/TimePicker.tsx packages/react/src/components/TimePicker/helpers.tsx packages/react/src/components/TimePicker/labels.ts packages/react/src/components/TimePicker/DefaultClockIcon.tsx packages/react/src/components/TimePicker/TimePickerStyles.module.css",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Source-receipt scan should remain clean after approved import and CSS variable rewrites."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static TimePicker proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

@@ -1,7 +1,7 @@
 {
   "name": "menu",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#menu-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -102,54 +102,54 @@
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--distance_1 alias",
-      "replacementSource": "--aui-space-1",
+      "replacementSource": "--cui-space-1",
       "notes": ["Menu CSS reads the default Amino spacing contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["Menu CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["Menu CSS reads the default Amino animation contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--shadow_1 alias",
-      "replacementSource": "--aui-shadow-1",
+      "replacementSource": "--cui-shadow-1",
       "notes": ["Menu CSS uses the stable Amino shadow token instead of a component compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--bgColorTransition alias",
-      "replacementSource": "--aui-transition-background-color",
+      "replacementSource": "--cui-transition-background-color",
       "notes": ["Menu item hover transitions use the default Amino transition contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--focus-ring-color alias",
-      "replacementSource": "--aui-focus-ring",
+      "replacementSource": "--cui-focus-ring",
       "notes": ["Menu focus rings use the default Amino focus-ring contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--disabledOpacity alias",
-      "replacementSource": "--aui-control-disabled-opacity",
+      "replacementSource": "--cui-control-disabled-opacity",
       "notes": ["Disabled item opacity uses the default Amino control opacity contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
-      "importSource": "--aui-status-danger alias",
-      "replacementSource": "--aui-state-danger",
+      "importSource": "--cui-status-danger alias",
+      "replacementSource": "--cui-state-danger",
       "notes": ["Destructive item color uses the default Amino state-danger contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
-      "importSource": "--aui-color-*-500 action palette variables",
+      "importSource": "--cui-color-*-500 action palette variables",
       "registryDependencyName": "theme/action-colors",
       "replacementSource": "theme/action-colors.css",
       "notes": ["Order-based menu background colors use the existing action color theme support item."]
@@ -190,20 +190,20 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-surface-foreground",
-        "--aui-space-1",
-        "--aui-radius-1",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-shadow-1",
-        "--aui-transition-background-color",
-        "--aui-control-hover-background",
-        "--aui-control-pressed-background",
-        "--aui-control-disabled-opacity",
-        "--aui-border-muted",
-        "--aui-focus-ring",
-        "--aui-state-danger"
+        "--cui-surface",
+        "--cui-surface-foreground",
+        "--cui-space-1",
+        "--cui-radius-1",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-shadow-1",
+        "--cui-transition-background-color",
+        "--cui-control-hover-background",
+        "--cui-control-pressed-background",
+        "--cui-control-disabled-opacity",
+        "--cui-border-muted",
+        "--cui-focus-ring",
+        "--cui-state-danger"
       ],
       "notes": [
         "Menu source reads the default theme contract directly and does not need a component-specific compatibility bridge."
@@ -220,11 +220,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Order-based menu colors depend on the existing action color theme support item."]
     }
@@ -232,21 +232,21 @@
   "verification": [
     {
       "kind": "scan",
-      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--fadeInAnimation|--fadeOutAnimation|--shadow_1|--bgColorTransition|--focus-ring-color|--disabledOpacity|--aui-status-danger|theme/menu-compatibility\" packages/react/src/components/Menu/Menu.tsx packages/react/src/components/Menu/helpers.ts packages/react/src/components/Menu/components/MenuItem.tsx packages/react/src/components/Menu/components/MenuSeparator.tsx packages/react/src/components/Menu/MenuStyles.module.css",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@/src/|@radix-ui|@internationalized/date|--distance_|--border_radius_|--fadeInAnimation|--fadeOutAnimation|--shadow_1|--bgColorTransition|--focus-ring-color|--disabledOpacity|--cui-status-danger|theme/menu-compatibility\" packages/react/src/components/Menu/Menu.tsx packages/react/src/components/Menu/helpers.ts packages/react/src/components/Menu/components/MenuItem.tsx packages/react/src/components/Menu/components/MenuSeparator.tsx packages/react/src/components/Menu/MenuStyles.module.css",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Source-receipt scan should remain clean after approved component, token, and CSS variable rewrites."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Menu proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

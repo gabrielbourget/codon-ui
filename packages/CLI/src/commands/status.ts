@@ -20,7 +20,7 @@ const parseStatusOptions = (itemName: string | undefined, CLIOptions: unknown) =
 
 export const status = new Command()
   .name("status")
-  .description("Inspect installed Amino UI registry files without writing changes.")
+  .description("Inspect installed Codon UI registry files without writing changes.")
   .argument("[item]", "The installed registry item you'd like to inspect.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--json", "Print machine-readable status output.", false)
@@ -53,6 +53,7 @@ export const status = new Command()
       if (statusReport.registrySource.path) logger.info(`Registry source path: ${statusReport.registrySource.path}`)
       logger.info(`Items inspected: ${statusReport.summary.itemCount}`)
       logger.info(`Files inspected: ${statusReport.summary.fileCount}`)
+      logger.info(`Dependencies recorded: ${statusReport.dependencies.length}`)
       logger.info(`Registry-owned files: ${statusReport.summary.fileStates["registry-owned"]}`)
       logger.info(`Consumer-owned support files: ${statusReport.summary.fileStates["consumer-owned-support"]}`)
       logger.info(`Locally modified files: ${statusReport.summary.fileStates["locally-modified"]}`)
@@ -61,6 +62,13 @@ export const status = new Command()
       logger.info(`Unknown files: ${statusReport.summary.fileStates.unknown}`)
       logger.info(`Source changes available: ${statusReport.summary.sourceStates["source-changed"]}`)
       logger.info(`Unknown source freshness: ${statusReport.summary.sourceStates.unknown}`)
+      logger.info(
+        `Dependency statuses: ${
+          Object.entries(statusReport.summary.dependencyStates)
+            .map(([status, count]) => `${status}=${count}`)
+            .join(", ") || "(none)"
+        }`,
+      )
       logger.info(`Findings: ${statusReport.findings.length}`)
     } catch (error) {
       handleError(error)

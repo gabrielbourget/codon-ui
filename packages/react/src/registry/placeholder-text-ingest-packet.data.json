@@ -1,7 +1,7 @@
 {
   "name": "placeholder-text",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#placeholdertext-next-candidate-planning-checkpoint-2026-06-03",
   "files": [
@@ -90,7 +90,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-control-placeholder"],
+      "cssVariables": ["--cui-control-placeholder"],
       "notes": [
         "PlaceholderText source reads the default theme placeholder color directly and does not need a component-specific compatibility bridge."
       ]
@@ -106,14 +106,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static PlaceholderText proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

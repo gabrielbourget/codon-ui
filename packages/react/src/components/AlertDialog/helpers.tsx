@@ -172,35 +172,35 @@ export const calibrateComponent = (props: TAlertDialogProps): TAlertDialogCalibr
 
   switch (type) {
     case ALERT_DIALOG_TYPE__INFO:
-      alertColor = "var(--aui-control-selected-background)"
+      alertColor = "var(--cui-control-selected-background)"
       defaultAlertIcon = <AlertDialogDefaultInfoIcon size={50} data-testid="alert-dialog-default-info-icon" />
       break
     case ALERT_DIALOG_TYPE__WARNING:
-      alertColor = "var(--aui-status-warning)"
+      alertColor = "var(--cui-status-warning)"
       defaultAlertIcon = (
         <AlertDialogDefaultTriangleExclamationIcon size={40} data-testid="alert-dialog-default-warning-icon" />
       )
       break
     case ALERT_DIALOG_TYPE__ERROR:
-      alertColor = "var(--aui-status-danger)"
+      alertColor = "var(--cui-status-danger)"
       defaultAlertIcon = <AlertDialogDefaultErrorIcon size={50} data-testid="alert-dialog-default-error-icon" />
       break
     case ALERT_DIALOG_TYPE__DANGER:
-      alertColor = "var(--aui-status-danger)"
+      alertColor = "var(--cui-status-danger)"
       defaultAlertIcon = (
         <AlertDialogDefaultOctagonExclamationIcon size={45} data-testid="alert-dialog-default-danger-icon" />
       )
       break
     case ALERT_DIALOG_TYPE__DELETE:
-      alertColor = "var(--aui-status-danger)"
+      alertColor = "var(--cui-status-danger)"
       defaultAlertIcon = <AlertDialogDefaultDeleteIcon size={50} data-testid="alert-dialog-default-delete-icon" />
       break
     case ALERT_DIALOG_TYPE__SUCCESS:
-      alertColor = "var(--aui-status-success)"
+      alertColor = "var(--cui-status-success)"
       defaultAlertIcon = <AlertDialogDefaultCheckmarkIcon size={65} data-testid="alert-dialog-default-success-icon" />
       break
     default:
-      alertColor = "var(--aui-control-selected-background)"
+      alertColor = "var(--cui-control-selected-background)"
       defaultAlertIcon = <AlertDialogDefaultInfoIcon size={50} data-testid="alert-dialog-default-info-icon" />
       break
   }

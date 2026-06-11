@@ -1,7 +1,7 @@
 {
   "name": "panel",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#panel-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -69,31 +69,31 @@
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--Z_INDEX_PANEL alias",
-      "replacementSource": "--aui-z-index-panel",
+      "replacementSource": "--cui-z-index-panel",
       "notes": ["Panel stacking reads the default Amino z-index contract instead of a compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--z-index-content-offset alias",
-      "replacementSource": "--aui-z-index-content-offset",
+      "replacementSource": "--cui-z-index-content-offset",
       "notes": ["Panel content stacking reads the default Amino z-index offset contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--z-index-overlay-offset alias",
-      "replacementSource": "--aui-z-index-overlay-offset",
+      "replacementSource": "--cui-z-index-overlay-offset",
       "notes": ["Panel overlay stacking reads the default Amino z-index offset contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--shadow_1 alias",
-      "replacementSource": "--aui-shadow-1",
+      "replacementSource": "--cui-shadow-1",
       "notes": ["Raised Panel styling uses the stable Amino shadow token."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["Panel rounded geometry uses the default Amino radius contract."]
     },
     {
@@ -131,12 +131,12 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-z-index-panel",
-        "--aui-z-index-content-offset",
-        "--aui-z-index-overlay-offset"
+        "--cui-surface",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-z-index-panel",
+        "--cui-z-index-content-offset",
+        "--cui-z-index-overlay-offset"
       ],
       "notes": ["Panel source reads the default theme contract directly and does not need a compatibility bridge."]
     }
@@ -151,14 +151,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Panel proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

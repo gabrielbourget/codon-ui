@@ -77,12 +77,12 @@ const requiredStyleSelectors = [
   ".panel--open",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-z-index-panel",
-  "--aui-z-index-content-offset",
-  "--aui-z-index-overlay-offset",
+  "--cui-surface",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-z-index-panel",
+  "--cui-z-index-content-offset",
+  "--cui-z-index-overlay-offset",
 ]
 
 assert(panelSource.startsWith('"use client"'), "Panel must preserve the client component boundary")
@@ -157,7 +157,7 @@ assert(packageJson.peerDependencies["react-dom"], "Panel package must keep React
 
 assert(packet.name === "panel", "Panel packet must describe the panel item")
 assert(packet.type === "component", "Panel packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Panel packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Panel packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Panel packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#panel-next-candidate-planning-checkpoint"),
@@ -244,14 +244,14 @@ assert(
   packet.importResolutions.some(
     (resolution) =>
       resolution.importSource.includes("--Z_INDEX_PANEL") &&
-      resolution.replacementSource.includes("--aui-z-index-panel"),
+      resolution.replacementSource.includes("--cui-z-index-panel"),
   ),
   "Panel packet must record panel z-index CSS variable rewrite",
 )
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--aui-shadow-1"),
+      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--cui-shadow-1"),
   ),
   "Panel packet must record shadow CSS variable rewrite",
 )

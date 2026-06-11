@@ -1,4 +1,4 @@
-export const REGISTRY_SOURCE_PACKAGE__REACT = "@amino-ui/react"
+export const REGISTRY_SOURCE_PACKAGE__REACT = "@codon-ui/react"
 
 export const REGISTRY_ITEM_TYPE__COMPONENT = "component"
 export const REGISTRY_ITEM_TYPE__SUPPORT = "support"

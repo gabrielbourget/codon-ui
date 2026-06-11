@@ -30,7 +30,7 @@ importers:
         specifier: ^1.13.2
         version: 1.13.4
     devDependencies:
-      '@amino-ui/shared-utils':
+      '@codon-ui/shared-utils':
         specifier: workspace:*
         version: link:packages/shared-utils
       '@types/node':
@@ -61,7 +61,7 @@ importers:
         specifier: 6.2.2
         version: 6.2.2(@types/node@24.12.4)(rollup@4.60.4)(tsx@4.22.3)(yaml@2.9.0)
     devDependencies:
-      '@amino-ui/shared-utils':
+      '@codon-ui/shared-utils':
         specifier: workspace:*
         version: link:../../packages/shared-utils
       prettier:
@@ -89,7 +89,7 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
-      '@amino-ui/shared-utils':
+      '@codon-ui/shared-utils':
         specifier: workspace:*
         version: link:../../packages/shared-utils
       '@next/eslint-plugin-next':
@@ -189,7 +189,7 @@ importers:
         specifier: ^3.22.4
         version: 3.25.76
     devDependencies:
-      '@amino-ui/shared-utils':
+      '@codon-ui/shared-utils':
         specifier: workspace:*
         version: link:../shared-utils
       '@types/diff':
@@ -253,7 +253,7 @@ importers:
         specifier: ^18.2.0 || ^19.0.0
         version: 18.3.1(react@18.3.1)
     devDependencies:
-      '@amino-ui/shared-utils':
+      '@codon-ui/shared-utils':
         specifier: workspace:*
         version: link:../shared-utils
       '@radix-ui/react-avatar':

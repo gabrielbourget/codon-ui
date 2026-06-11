@@ -101,7 +101,7 @@ assert(!forbiddenConsumerImportsPattern.test(stylesSource), "CheckboxGroup style
 requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `CheckboxGroup CSS module must include ${selector}`)
 })
-;["var(--aui-space-2)", "var(--aui-opacity-disabled)"].forEach((cssValue) => {
+;["var(--cui-space-2)", "var(--cui-opacity-disabled)"].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `CheckboxGroup CSS must read ${cssValue}`)
 })
 assert(!forbiddenLegacyCssPattern.test(stylesSource), "CheckboxGroup CSS must not read legacy Wavemap aliases")
@@ -143,7 +143,7 @@ assert(packageJson.dependencies.classnames, "CheckboxGroup package must keep cla
 
 assert(packet.name === "checkbox-group", "CheckboxGroup packet must describe the checkbox-group item")
 assert(packet.type === "component", "CheckboxGroup packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "CheckboxGroup packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "CheckboxGroup packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "CheckboxGroup packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#checkboxgroup-next-candidate-planning-checkpoint"),
@@ -202,9 +202,9 @@ const defaultThemeRequirement = packet.themeRequirements.find(
   (requirement) => requirement.strategy === "default-contract",
 )
 assert(defaultThemeRequirement, "CheckboxGroup packet must record default theme requirements")
-assert(defaultThemeRequirement.cssVariables.includes("--aui-space-2"), "CheckboxGroup packet must record spacing token")
+assert(defaultThemeRequirement.cssVariables.includes("--cui-space-2"), "CheckboxGroup packet must record spacing token")
 assert(
-  defaultThemeRequirement.cssVariables.includes("--aui-opacity-disabled"),
+  defaultThemeRequirement.cssVariables.includes("--cui-opacity-disabled"),
   "CheckboxGroup packet must record disabled opacity token",
 )
 assert(
@@ -224,7 +224,7 @@ assert(
   "CheckboxGroup packet must record Checkbox child dependency boundary",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "CheckboxGroup packet must point at the package-side proof harness",
 )
 assert(

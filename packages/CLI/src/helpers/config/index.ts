@@ -37,7 +37,7 @@ export const resolveConfigPaths = async (cwd: string, config: TCoreConfig): Prom
 export const getCoreConfig = async (cwd: string): Promise<TCoreConfig | undefined> => {
   try {
     // - TODO: -> Consider supporting user-customized config file name and type.
-    const explorer = cosmiconfig("amino-ui", { searchPlaces: [DEFAULT_COMPONENT_CONFIG_FILE] })
+    const explorer = cosmiconfig("codon-ui", { searchPlaces: [DEFAULT_COMPONENT_CONFIG_FILE] })
     const configResult = await explorer.search(cwd)
 
     if (!configResult) return undefined

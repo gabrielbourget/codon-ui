@@ -1,7 +1,7 @@
 {
   "name": "link",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#link-next-candidate-planning-checkpoint-2026-06-05",
   "files": [
@@ -55,25 +55,25 @@
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--distance_1 alias",
-      "replacementSource": "--aui-space-1",
+      "replacementSource": "--cui-space-1",
       "notes": ["Link spacing reads the default Amino space scale directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["Link corner radius reads the default Amino radius scale directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--focus-ring-color alias",
-      "replacementSource": "--aui-focus-ring",
+      "replacementSource": "--cui-focus-ring",
       "notes": ["Link focus styling reads the default Amino focus-ring contract directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--disabledOpacity alias",
-      "replacementSource": "--aui-opacity-disabled",
+      "replacementSource": "--cui-opacity-disabled",
       "notes": ["Link disabled styling reads the default Amino disabled opacity contract directly."]
     }
   ],
@@ -99,7 +99,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-space-1", "--aui-radius-1", "--aui-focus-ring", "--aui-opacity-disabled"],
+      "cssVariables": ["--cui-space-1", "--cui-radius-1", "--cui-focus-ring", "--cui-opacity-disabled"],
       "notes": ["Link source reads default theme spacing, radius, focus, and disabled opacity directly."]
     },
     {
@@ -113,26 +113,26 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-400",
-        "--aui-color-primary-500",
-        "--aui-color-primary-600",
-        "--aui-color-primary-700",
-        "--aui-color-secondary-400",
-        "--aui-color-secondary-500",
-        "--aui-color-secondary-600",
-        "--aui-color-secondary-700",
-        "--aui-color-tertiary-400",
-        "--aui-color-tertiary-500",
-        "--aui-color-tertiary-600",
-        "--aui-color-tertiary-700",
-        "--aui-color-quaternary-400",
-        "--aui-color-quaternary-500",
-        "--aui-color-quaternary-600",
-        "--aui-color-quaternary-700",
-        "--aui-color-quintenary-400",
-        "--aui-color-quintenary-500",
-        "--aui-color-quintenary-600",
-        "--aui-color-quintenary-700"
+        "--cui-color-primary-400",
+        "--cui-color-primary-500",
+        "--cui-color-primary-600",
+        "--cui-color-primary-700",
+        "--cui-color-secondary-400",
+        "--cui-color-secondary-500",
+        "--cui-color-secondary-600",
+        "--cui-color-secondary-700",
+        "--cui-color-tertiary-400",
+        "--cui-color-tertiary-500",
+        "--cui-color-tertiary-600",
+        "--cui-color-tertiary-700",
+        "--cui-color-quaternary-400",
+        "--cui-color-quaternary-500",
+        "--cui-color-quaternary-600",
+        "--cui-color-quaternary-700",
+        "--cui-color-quintenary-400",
+        "--cui-color-quintenary-500",
+        "--cui-color-quintenary-600",
+        "--cui-color-quintenary-700"
       ],
       "notes": [
         "Link theme-order styles use the established action-colors support layer, including visited-state 400 stops."
@@ -151,14 +151,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Link proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

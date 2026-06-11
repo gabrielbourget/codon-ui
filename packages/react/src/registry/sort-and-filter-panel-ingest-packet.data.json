@@ -1,7 +1,7 @@
 {
   "name": "sort-and-filter-panel",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#sortandfilterpanel-extraction-planning-checkpoint-2026-06-06",
   "files": [
@@ -265,7 +265,7 @@
     {
       "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
       "importSource": "legacy Wavemap CSS aliases",
-      "replacementSource": "default --aui-* theme variables",
+      "replacementSource": "default --cui-* theme variables",
       "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
     }
   ],
@@ -308,19 +308,19 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-background",
-        "--aui-border",
-        "--aui-border-muted",
-        "--aui-color-primary-500",
-        "--aui-control-hover-background",
-        "--aui-control-selected-foreground",
-        "--aui-foreground",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-surface-muted",
-        "--aui-transition-background-color"
+        "--cui-background",
+        "--cui-border",
+        "--cui-border-muted",
+        "--cui-color-primary-500",
+        "--cui-control-hover-background",
+        "--cui-control-selected-foreground",
+        "--cui-foreground",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-surface-muted",
+        "--cui-transition-background-color"
       ],
       "notes": [
         "SortAndFilterPanel should use existing default Amino theme and action color variables without a compatibility bridge."
@@ -337,7 +337,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": ["Runs the package-side static SortAndFilterPanel proof harness once wired into package scripts."]
     },

@@ -10,6 +10,6 @@
 .panelFooter__rightContent {
   display: flex;
   flex-direction: row;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
   align-items: center;
 }

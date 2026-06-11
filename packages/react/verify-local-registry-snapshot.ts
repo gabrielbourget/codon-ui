@@ -25,12 +25,12 @@ if (actualSnapshotSignature !== expectedSnapshotSignature) {
   fail(
     "packages/CLI/registry/local-react-support.registry.json has drifted from the support/theme subset in packages/react/src/registry/manifest.ts.",
   )
-  fail("Run pnpm -F @amino-ui/react generate:local-registry-snapshot and review the generated artifact diff.")
+  fail("Run pnpm -F @codon-ui/react generate:local-registry-snapshot and review the generated artifact diff.")
 }
 
 if (actualFullSnapshotSignature !== expectedFullSnapshotSignature) {
   fail("packages/CLI/registry/local-react.registry.json has drifted from packages/react/src/registry/manifest.ts.")
-  fail("Run pnpm -F @amino-ui/react generate:local-registry-snapshot and review the generated artifact diff.")
+  fail("Run pnpm -F @codon-ui/react generate:local-registry-snapshot and review the generated artifact diff.")
 }
 
 if (process.exitCode) {

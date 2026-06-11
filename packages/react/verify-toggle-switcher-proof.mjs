@@ -51,28 +51,28 @@ const expectedRegistryDependencies = [
   "tokens/motion",
 ]
 const expectedDefaultVariables = [
-  "--aui-border-muted",
-  "--aui-control-background",
-  "--aui-control-foreground",
-  "--aui-control-hover-background",
-  "--aui-control-selected-background",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-surface-muted",
-  "--aui-transition-background-color",
-  "--aui-transition-border-color",
-  "--aui-transition-box-shadow",
-  "--aui-transition-color",
+  "--cui-border-muted",
+  "--cui-control-background",
+  "--cui-control-foreground",
+  "--cui-control-hover-background",
+  "--cui-control-selected-background",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-surface-muted",
+  "--cui-transition-background-color",
+  "--cui-transition-border-color",
+  "--cui-transition-box-shadow",
+  "--cui-transition-color",
 ]
 const expectedActionVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 const toggleSwitcherSource = readRequiredText(toggleSwitcherSourcePath)
@@ -183,7 +183,7 @@ assert(
 
 assert(packet.name === "toggle-switcher", "ToggleSwitcher packet must describe the toggle-switcher item")
 assert(packet.type === "component", "ToggleSwitcher packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ToggleSwitcher packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ToggleSwitcher packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ToggleSwitcher packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#toggleswitcher-next-candidate-planning-checkpoint"),

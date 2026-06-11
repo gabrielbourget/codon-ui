@@ -38,8 +38,8 @@ type TCounterCalibration = {
   statusColor: string | undefined
 }
 
-const STATUS_COLOR_WARNING = "var(--aui-status-warning, var(--aui-state-warning))"
-const STATUS_COLOR_DANGER = "var(--aui-status-danger, var(--aui-state-danger))"
+const STATUS_COLOR_WARNING = "var(--cui-status-warning, var(--cui-state-warning))"
+const STATUS_COLOR_DANGER = "var(--cui-status-danger, var(--cui-state-danger))"
 
 const computeStatusColor = (props: TCounterProps) => {
   const { value, maxValue, warningPercentageThreshold, errorOrDangerPercentageThreshold } = props

@@ -75,21 +75,21 @@ const requiredStyleSelectors = [
   ".fs-italic",
 ]
 const requiredTypographyVariables = [
-  "--aui-font-family-body",
-  "--aui-font-family-heading",
-  "--aui-font-family-display",
-  "--aui-text-d1-font-size",
-  "--aui-text-h1-sm-font-size",
-  "--aui-text-b10-font-size",
-  "--aui-text-b13-line-height",
-  "--aui-font-weight-regular",
-  "--aui-font-weight-extrabold",
+  "--cui-font-family-body",
+  "--cui-font-family-heading",
+  "--cui-font-family-display",
+  "--cui-text-d1-font-size",
+  "--cui-text-h1-sm-font-size",
+  "--cui-text-b10-font-size",
+  "--cui-text-b13-line-height",
+  "--cui-font-weight-regular",
+  "--cui-font-weight-extrabold",
 ]
 const requiredTypographySupportVariables = [
-  "--aui-font-family-system",
-  "--aui-font-family-body-override",
-  "--aui-font-family-heading-override",
-  "--aui-font-family-display-override",
+  "--cui-font-family-system",
+  "--cui-font-family-body-override",
+  "--cui-font-family-heading-override",
+  "--cui-font-family-display-override",
 ]
 
 assert(textSource.startsWith('"use client"'), "Text must preserve the client component boundary")
@@ -132,7 +132,7 @@ assert(textIndexSource.includes("FONT_VARIANT__BODY_10"), "Text index must expor
 
 assert(packet.name === "text", "Text packet must describe the text item")
 assert(packet.type === "component", "Text packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Text packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Text packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Text packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#text-primitive-planning-checkpoint"),
@@ -212,11 +212,11 @@ assert(
   "Text packet must record the neutral typography preset intent",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Text packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Text packet must point at package typecheck verification",
 )
 assert(

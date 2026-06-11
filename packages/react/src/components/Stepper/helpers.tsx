@@ -358,17 +358,17 @@ const computeStepperInputMargins = (props: TStepperProps) => {
 const resolveCohesiveStepperActionForeground = (order: TThemingOrderCode): string => {
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      return "var(--aui-action-primary-foreground)"
+      return "var(--cui-action-primary-foreground)"
     case THEME_ORDER_CODE__SECONDARY:
-      return "var(--aui-action-secondary-foreground)"
+      return "var(--cui-action-secondary-foreground)"
     case THEME_ORDER_CODE__TERTIARY:
-      return "var(--aui-action-tertiary-foreground)"
+      return "var(--cui-action-tertiary-foreground)"
     case THEME_ORDER_CODE__QUATERNARY:
-      return "var(--aui-action-quaternary-foreground)"
+      return "var(--cui-action-quaternary-foreground)"
     case THEME_ORDER_CODE__QUINTENARY:
-      return "var(--aui-action-quintenary-foreground)"
+      return "var(--cui-action-quintenary-foreground)"
     default:
-      return "var(--aui-action-primary-foreground)"
+      return "var(--cui-action-primary-foreground)"
   }
 }
 
@@ -389,9 +389,9 @@ const computeStepperInputColor = (props: TStepperProps): string | undefined => {
     return readableTextColor ?? DEFAULT_LIGHT_ACTION_FOREGROUND
   }
 
-  if (colorMode === COLOR_MODE__OUTLINE) return "var(--aui-control-foreground)"
+  if (colorMode === COLOR_MODE__OUTLINE) return "var(--cui-control-foreground)"
 
-  if (!order) return "var(--aui-control-background)"
+  if (!order) return "var(--cui-control-background)"
 
   return resolveCohesiveStepperActionForeground(order)
 }

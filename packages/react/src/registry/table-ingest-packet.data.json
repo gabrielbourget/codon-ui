@@ -1,7 +1,7 @@
 {
   "name": "table",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#table-extraction-planning-checkpoint-2026-06-05",
   "files": [
@@ -571,7 +571,7 @@
     {
       "sourcePath": "packages/react/src/components/Table/**/*.css packages/react/src/components/Filtering/**/*.css packages/react/src/components/SortParameterList/**/*.css",
       "importSource": "--distance_1 / --distance_2 / --border_radius_1 / --shadow_1 / --bgColorTransition / --colorTransition aliases",
-      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-radius-1 / --aui-shadow-1 / --aui-transition-background-color / --aui-transition-color",
+      "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-radius-1 / --cui-shadow-1 / --cui-transition-background-color / --cui-transition-color",
       "notes": ["Legacy Wavemap CSS aliases should be rewritten directly to the default Amino theme contract."]
     }
   ],
@@ -634,16 +634,16 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-control-foreground",
-        "--aui-control-selected-background",
-        "--aui-focus-ring",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-surface-muted",
-        "--aui-transition-background-color",
-        "--aui-transition-color"
+        "--cui-control-foreground",
+        "--cui-control-selected-background",
+        "--cui-focus-ring",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-surface-muted",
+        "--cui-transition-background-color",
+        "--cui-transition-color"
       ],
       "notes": [
         "Table, Filtering, and SortParameterList source should read the default Amino theme contract directly after CSS alias rewrites."
@@ -660,11 +660,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Child action components and theme-order defaults rely on the established action-color support layer."]
     }
@@ -672,14 +672,14 @@
   "verification": [
     {
       "kind": "scan",
-      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|api-contract|media|upload|saved|localStorage|@/src/|--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--aui-validation\" packages/react/src/components/Table packages/react/src/components/Filtering packages/react/src/components/SortParameterList",
+      "command": "rg --pcre2 -n \"@wavemap|i18n|next/|router|route|api-contract|media|upload|saved|localStorage|@/src/|--distance_|--border_radius_|--shadow_1|--bgColorTransition|--colorTransition|--borderColorTransition|--boxShadowTransition|--focus-ring-color|--disabledOpacity|--Z_INDEX|--cui-validation\" packages/react/src/components/Table packages/react/src/components/Filtering packages/react/src/components/SortParameterList",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Run after source receipt; the active package proof enforces this scan against copied source."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": [
@@ -688,7 +688,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the copied Table graph, typed packet wrapper, and public Table exports."]

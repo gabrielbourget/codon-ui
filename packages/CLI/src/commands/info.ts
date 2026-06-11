@@ -18,7 +18,7 @@ const parseInfoOptions = (CLIOptions: unknown) =>
 
 export const info = new Command()
   .name("info")
-  .description("Inspect the current Amino UI consumer project context.")
+  .description("Inspect the current Codon UI consumer project context.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--json", "Print machine-readable project context.", false)
   .action(async (CLIOptions) => {
@@ -41,8 +41,8 @@ export const info = new Command()
 
       logger.info(`Project kind: ${project.projectKind}`)
       logger.info(`Package manager: ${project.packageManager}`)
-      logger.info(`Amino config present: ${project.hasConfigFile ? "yes" : "no"}`)
-      logger.info(`Amino lockfile present: ${project.hasLockfile ? "yes" : "no"}`)
+      logger.info(`Codon config present: ${project.hasConfigFile ? "yes" : "no"}`)
+      logger.info(`Codon lockfile present: ${project.hasLockfile ? "yes" : "no"}`)
     } catch (error) {
       handleError(error)
     }

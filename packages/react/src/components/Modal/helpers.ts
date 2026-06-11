@@ -120,7 +120,7 @@ export const calibrateComponent = (props: TModalProps): TModalCalibration => {
   const modalStyles = classNames(styles.modal, geometryStyle, colorStyle, raisedStyle, customClassName, className)
   const dialogStyles = classNames(styles.modal__dialog, customDialogClassName)
 
-  const color_white = "var(--aui-control-selected-foreground)"
+  const color_white = "var(--cui-control-selected-foreground)"
 
   const customStyles = Object.assign(
     { backgroundColor: color, height, width },

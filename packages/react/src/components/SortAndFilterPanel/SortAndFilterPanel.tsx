@@ -47,7 +47,7 @@ import { resolveSortAndFilterPanelLabels } from "./labels"
 const DEFAULT_ACTIVE_SORTS: NonNullable<TSortAndFilterPanelProps["activeSorts"]> = []
 const DEFAULT_ACTIVE_FILTERS: NonNullable<TSortAndFilterPanelProps["activeFilters"]> = []
 const SORT_AND_FILTER_PANEL_POSITION__RIGHT = "right"
-const SORT_AND_FILTER_PANEL_DIVIDER_COLOR = "var(--aui-border-muted)"
+const SORT_AND_FILTER_PANEL_DIVIDER_COLOR = "var(--cui-border-muted)"
 
 const SortAndFilterPanel: FC<PropsWithChildren<TSortAndFilterPanelProps>> = (props) => {
   const {
@@ -366,7 +366,7 @@ const SortAndFilterPanel: FC<PropsWithChildren<TSortAndFilterPanelProps>> = (pro
 
   return (
     <Panel
-      backgroundColor="var(--aui-background)"
+      backgroundColor="var(--cui-background)"
       customOverlayStyles={customOverlayStyles}
       customStyles={customModalStyles}
       height={height}

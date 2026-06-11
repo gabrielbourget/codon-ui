@@ -1,0 +1,46 @@
+export const CLI_PROJECT_RESOURCE_STATUS__PRESENT = "present"
+export const CLI_PROJECT_RESOURCE_STATUS__MISSING = "missing"
+export const CLI_PROJECT_RESOURCE_STATUS__INVALID = "invalid"
+
+export const CLI_PROJECT_RESOURCE_STATUSES = [
+  CLI_PROJECT_RESOURCE_STATUS__PRESENT,
+  CLI_PROJECT_RESOURCE_STATUS__MISSING,
+  CLI_PROJECT_RESOURCE_STATUS__INVALID,
+] as const
+
+export type TCliProjectResourceStatus = (typeof CLI_PROJECT_RESOURCE_STATUSES)[number]
+
+export const CLI_REGISTRY_SOURCE_STATUS__LOADED = "loaded"
+export const CLI_REGISTRY_SOURCE_STATUS__UNAVAILABLE = "unavailable"
+export const CLI_REGISTRY_SOURCE_STATUS__NOT_REQUESTED = "not-requested"
+
+export const CLI_REGISTRY_SOURCE_STATUSES = [
+  CLI_REGISTRY_SOURCE_STATUS__LOADED,
+  CLI_REGISTRY_SOURCE_STATUS__UNAVAILABLE,
+  CLI_REGISTRY_SOURCE_STATUS__NOT_REQUESTED,
+] as const
+
+export type TCliRegistrySourceStatus = (typeof CLI_REGISTRY_SOURCE_STATUSES)[number]
+
+export const CLI_WRITE_STATUS__WOULD_WRITE = "would-write"
+export const CLI_WRITE_STATUS__WRITTEN = "written"
+export const CLI_WRITE_STATUS__BLOCKED = "blocked"
+export const CLI_WRITE_STATUS__NOT_WRITTEN = "not-written"
+
+export const CLI_DRY_RUN_WRITE_STATUSES = [
+  CLI_WRITE_STATUS__WOULD_WRITE,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+] as const
+
+export const CLI_STRICT_WRITE_STATUSES = [
+  CLI_WRITE_STATUS__WRITTEN,
+  CLI_WRITE_STATUS__BLOCKED,
+  CLI_WRITE_STATUS__NOT_WRITTEN,
+] as const
+
+export const CLI_APPLIED_WRITE_STATUSES = [CLI_WRITE_STATUS__WRITTEN, CLI_WRITE_STATUS__BLOCKED] as const
+
+export type TCliDryRunWriteStatus = (typeof CLI_DRY_RUN_WRITE_STATUSES)[number]
+export type TCliStrictWriteStatus = (typeof CLI_STRICT_WRITE_STATUSES)[number]
+export type TCliAppliedWriteStatus = (typeof CLI_APPLIED_WRITE_STATUSES)[number]

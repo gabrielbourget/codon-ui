@@ -310,11 +310,11 @@ const TableFilterPopover = <T extends object>({
                 {resolvedLabels.popover.title}
               </Text>
               <Tag
-                color="var(--aui-control-selected-background)"
+                color="var(--cui-control-selected-background)"
                 geometry={ROUND}
                 aria-label={resolvedLabels.popover.criteriaTagAriaLabel({ criteriaName })}
                 customClassName={styles.tableFilterPopover__criteriaTag}
-                customStyles={{ border: "none", color: "var(--aui-control-selected-foreground)" }}
+                customStyles={{ border: "none", color: "var(--cui-control-selected-foreground)" }}
               >
                 <Text elementType="span" variant="b11" fontWeight="semibold">
                   {criteriaName}
@@ -335,7 +335,7 @@ const TableFilterPopover = <T extends object>({
               >
                 <TableFilterPopoverDefaultAddConditionIcon
                   size={14}
-                  color="var(--aui-control-selected-foreground)"
+                  color="var(--cui-control-selected-foreground)"
                   data-testid="table-filter-popover-default-add-condition-icon"
                 />
               </Button>

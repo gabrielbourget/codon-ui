@@ -1,7 +1,7 @@
 {
   "name": "modal",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#modal-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -90,31 +90,31 @@
     {
       "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
       "importSource": "--distance_1 / --distance_2 / --distance_3 aliases",
-      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-space-3",
+      "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-space-3",
       "notes": ["Modal spacing uses the default Amino space scale instead of legacy distance aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["Modal enter and exit animations read default Amino animation tokens."]
     },
     {
       "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
       "importSource": "--shadow_1 alias",
-      "replacementSource": "--aui-shadow-1",
+      "replacementSource": "--cui-shadow-1",
       "notes": ["Raised Modal styling uses the stable Amino shadow token."]
     },
     {
       "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["Modal rounded geometry uses the default Amino radius contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Modal/ModalStyles.module.css",
       "importSource": "--focus-ring-color alias",
-      "replacementSource": "--aui-focus-ring",
+      "replacementSource": "--cui-focus-ring",
       "notes": ["Modal dialog focus styling uses the default Amino focus-ring contract."]
     },
     {
@@ -161,17 +161,17 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-surface-foreground",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-space-3",
-        "--aui-radius-1",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-shadow-1",
-        "--aui-focus-ring",
-        "--aui-control-selected-foreground"
+        "--cui-surface",
+        "--cui-surface-foreground",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-space-3",
+        "--cui-radius-1",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-shadow-1",
+        "--cui-focus-ring",
+        "--cui-control-selected-foreground"
       ],
       "notes": ["Modal source reads the default theme contract directly and does not need a compatibility bridge."]
     },
@@ -186,11 +186,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Modal theme-order classes use the established action-colors support layer."]
     }
@@ -205,14 +205,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Modal proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

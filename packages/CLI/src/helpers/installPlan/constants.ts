@@ -116,6 +116,9 @@ export const INSTALL_PLAN_FINDING__UNRESOLVED_DEPENDENCY_VERSION = "unresolved-d
 export const INSTALL_PLAN_FINDING__DEPENDENCY_MISSING = "dependency-missing"
 export const INSTALL_PLAN_FINDING__DEPENDENCY_INCOMPATIBLE = "dependency-incompatible"
 export const INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER = "strict-add-dependency-blocker"
+export const INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED = "strict-add-dependency-execution-failed"
+export const INSTALL_PLAN_FINDING__STRICT_UPDATE_DEPENDENCY_EXECUTION_FAILED =
+  "strict-update-dependency-execution-failed"
 export const INSTALL_PLAN_FINDING__STRICT_ADD_EXISTING_TARGET_BLOCKER = "strict-add-existing-target-blocker"
 export const INSTALL_PLAN_FINDING__STRICT_ADD_PLAN_BLOCKER = "strict-add-plan-blocker"
 export const INSTALL_PLAN_FINDING__STRICT_ADD_SOURCE_BLOCKER = "strict-add-source-blocker"

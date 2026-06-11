@@ -8,7 +8,7 @@ import styles from "./PanelFooterStyles.module.css"
 
 const { panelFooter, panelFooter__rightContent } = styles
 const SORT_AND_FILTER_PANEL_GEOMETRY__ROUNDED = "rounded"
-const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--aui-color-primary-500)"
+const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--cui-color-primary-500)"
 
 const PanelFooter: FC<TPanelFooterProps> = (props) => {
   const { labels, onClearAllSortAndFilterParameters, onCancelPendingChanges, onApplyPendingChanges } = props

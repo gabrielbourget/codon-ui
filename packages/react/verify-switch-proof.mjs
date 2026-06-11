@@ -104,7 +104,7 @@ assert(
 assert(switchIndexSource.includes("TSwitchProps as SwitchProps"), "Switch index must export the public prop alias")
 
 assert(packet.name === "switch", "Switch ingest packet must describe the switch item")
-assert(packet.sourcePackage === "@amino-ui/react", "Switch ingest packet must stay package-owned")
+assert(packet.sourcePackage === "@codon-ui/react", "Switch ingest packet must stay package-owned")
 assert(
   packet.files.some((file) => file.sourcePath === "packages/react/src/components/Switch/Switch.tsx"),
   "Switch packet must include component source",
@@ -129,7 +129,7 @@ assert(packet.peerDependencies["react-dom"], "Switch packet must declare the Rea
 assert(packet.peerDependencies["react-aria-components"], "Switch packet must declare the React Aria peer dependency")
 assert(packet.runtimeDependencies.classnames, "Switch packet must declare the classnames runtime dependency")
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Switch packet must point at the package-side proof harness",
 )
 

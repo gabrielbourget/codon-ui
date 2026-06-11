@@ -3,36 +3,36 @@
   width: auto;
   display: flex;
   align-items: center;
-  background: var(--aui-control-background);
-  border: 1px solid var(--aui-control-border);
-  border-radius: var(--aui-radius-1);
-  transition: var(--aui-transition-border-color), var(--aui-transition-color);
+  background: var(--cui-control-background);
+  border: 1px solid var(--cui-control-border);
+  border-radius: var(--cui-radius-1);
+  transition: var(--cui-transition-border-color), var(--cui-transition-color);
 }
 
 .numberInput::placeholder {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
   font-style: italic;
   font-size: 12px;
   opacity: 1;
 }
 
 .numberInput[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 .numberInput[data-disabled]:hover {
   cursor: not-allowed;
 }
 
 .numberInput--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 .numberInput--round {
   border-radius: 10000px;
-  padding: var(--aui-space-1) 7px;
+  padding: var(--cui-space-1) 7px;
 }
 
 .numberInput--applyFocusStyle[data-focus-within] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 .numberInput--noFocusStyle[data-focus-within] {
   outline: none;
@@ -43,13 +43,13 @@
 }
 
 .numberInput--errorState {
-  border-color: var(--aui-state-danger);
+  border-color: var(--cui-state-danger);
 }
 .numberInput--warningState {
-  border-color: var(--aui-state-warning);
+  border-color: var(--cui-state-warning);
 }
 .numberInput--successState {
-  border-color: var(--aui-state-success);
+  border-color: var(--cui-state-success);
 }
 
 .numberInput__group {
@@ -57,7 +57,7 @@
   width: 100%;
   display: flex;
   align-items: center;
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
   padding-right: 2px;
 }
 
@@ -72,8 +72,8 @@
 }
 
 .numberInput div div button * {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
 }
 .numberInput__icon {
-  stroke: var(--aui-control-foreground);
+  stroke: var(--cui-control-foreground);
 }

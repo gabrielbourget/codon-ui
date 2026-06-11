@@ -23,11 +23,15 @@ import {
 
 const { COMPONENT_REGISTRY_URL } = process.env
 
-const baseUrl = COMPONENT_REGISTRY_URL ?? "https://aminoui.com"
-
 type TRegistryRequestOptions = {
   reportErrors?: boolean
   timeoutMs?: number
+}
+
+const getRegistryBaseUrl = () => {
+  if (COMPONENT_REGISTRY_URL) return COMPONENT_REGISTRY_URL
+
+  throw new Error("COMPONENT_REGISTRY_URL must be configured before fetching a remote Codon UI registry.")
 }
 
 export const getRegistryIndex = async ({
@@ -90,6 +94,8 @@ export const fetchRegistry = async (
   paths: string[],
   { registryType, reportErrors = true, timeoutMs }: { registryType: TAvailableRegistryTypes } & TRegistryRequestOptions,
 ) => {
+  const baseUrl = getRegistryBaseUrl()
+
   try {
     const results = await Promise.all(
       paths.map(async (path) => {

@@ -2,23 +2,25 @@
 
 ## Purpose
 
-`@amino-ui/react/theme.css` is the default CSS contract for React source distributed by Amino UI.
+`@codon-ui/react/theme.css` is the default CSS contract for React source distributed by Codon UI.
 
 The first contract should give received component source a stable, package-owned theme vocabulary without copying
 Wavemap's full application theme or introducing generated token machinery before the first component proof needs it.
 
 ## Current Status
 
-- `packages/react/theme.css` is exported as `@amino-ui/react/theme.css`.
-- The file is hand-authored and defines the first narrow default `--aui-` variable contract.
+- `packages/react/theme.css` is exported as `@codon-ui/react/theme.css`.
+- The file is hand-authored and defines the first narrow default `--cui-*` variable contract.
+- The CSS token-prefix bridge has been cleaned up: active package source and consumer proofs use canonical `--cui-*`
+  variables without legacy `--aui-*` compatibility aliases.
 - No Wavemap component source consumes this package yet.
 - No registry artifact generator reads from `packages/react` yet.
-- React and React DOM are the only declared peers for `@amino-ui/react`.
+- React and React DOM are the only declared peers for `@codon-ui/react`.
 
 ## Contract Principles
 
 1. Keep the default CSS contract hand-authored until generated-token policy is explicitly approved.
-2. Use CSS custom properties with the `--aui-` prefix.
+2. Use CSS custom properties with the canonical `--cui-` prefix.
 3. Prefer semantic component-system roles before product-specific values.
 4. Treat Wavemap's registry theme as reference material, not as a source file to copy wholesale.
 5. Keep compatibility aliases for Wavemap-only variable names out of the package default until an install proof shows that
@@ -31,20 +33,21 @@ Wavemap's full application theme or introducing generated token machinery before
 The first package default should be narrow enough to review directly and broad enough for simple controls to render
 without hidden consumer assumptions.
 
-Initial token families:
+Initial token families use canonical `--cui-*` variables. Legacy `--aui-*` aliases were removed after the source-flip,
+fixture, and Wavemap consumer proofs passed.
 
 | Family                    | Purpose                                                                   | First-contract examples                                                                 |
 | ------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Foreground and background | Plain readable defaults for unopinionated components.                     | `--aui-foreground`, `--aui-background`                                                  |
-| Surface and border roles  | Shared neutral appearance for controls, panels, and component containers. | `--aui-surface`, `--aui-surface-raised`, `--aui-border`, `--aui-border-muted`           |
-| Neutral ramp              | Light/dark neutral steps that semantic roles can reference.               | `--aui-neutral-100` through `--aui-neutral-800`                                         |
-| Focus                     | Accessible focus affordances shared by controls.                          | `--aui-focus-ring`, `--aui-focus-ring-offset`                                           |
-| State                     | Cross-component status and validation colors.                             | `--aui-state-danger`, `--aui-state-warning`, `--aui-state-success`                      |
-| Control roles             | Defaults for primitive controls and selected states.                      | `--aui-control-background`, `--aui-control-border`, `--aui-control-selected-background` |
-| Spacing                   | Package-local rhythm for component internals.                             | `--aui-space-1` through `--aui-space-20`                                                |
-| Radius                    | Package-local corner geometry values.                                     | `--aui-radius-1` through `--aui-radius-5`                                               |
-| Shadow                    | Reusable elevation values.                                                | `--aui-shadow-1` through `--aui-shadow-5`                                               |
-| Motion and opacity        | Shared transitions and disabled/backdrop opacity.                         | `--aui-transition-color`, `--aui-opacity-disabled`                                      |
+| Foreground and background | Plain readable defaults for unopinionated components.                     | `--cui-foreground`, `--cui-background`                                                  |
+| Surface and border roles  | Shared neutral appearance for controls, panels, and component containers. | `--cui-surface`, `--cui-surface-raised`, `--cui-border`, `--cui-border-muted`           |
+| Neutral ramp              | Light/dark neutral steps that semantic roles can reference.               | `--cui-neutral-100` through `--cui-neutral-800`                                         |
+| Focus                     | Accessible focus affordances shared by controls.                          | `--cui-focus-ring`, `--cui-focus-ring-offset`                                           |
+| State                     | Cross-component status and validation colors.                             | `--cui-state-danger`, `--cui-state-warning`, `--cui-state-success`                      |
+| Control roles             | Defaults for primitive controls and selected states.                      | `--cui-control-background`, `--cui-control-border`, `--cui-control-selected-background` |
+| Spacing                   | Package-local rhythm for component internals.                             | `--cui-space-1` through `--cui-space-20`                                                |
+| Radius                    | Package-local corner geometry values.                                     | `--cui-radius-1` through `--cui-radius-5`                                               |
+| Shadow                    | Reusable elevation values.                                                | `--cui-shadow-1` through `--cui-shadow-5`                                               |
+| Motion and opacity        | Shared transitions and disabled/backdrop opacity.                         | `--cui-transition-color`, `--cui-opacity-disabled`                                      |
 
 ## Deferred Surface
 
@@ -64,28 +67,28 @@ These are not part of the first default contract:
 Consumers should be able to import the package default once and override it later:
 
 ```ts
-import "@amino-ui/react/theme.css"
+import "@codon-ui/react/theme.css"
 ```
 
 The default file should declare values under `:root` and theme selector blocks. Consumer overrides should load after the
-package default and may override the same `--aui-` variables at `:root`, a theme selector, or an app-specific scope.
+package default and may override canonical `--cui-*` variables at `:root`, a theme selector, or an app-specific scope.
 
-The first package proof should avoid importing Wavemap's app theme into Amino UI. Wavemap can later add a local bridge
-that maps product-specific variables onto the package `--aui-` contract if the delete-and-reinstall proof needs it.
+The first package proof should avoid importing Wavemap's app theme into Codon UI. Wavemap can later add a local bridge
+that maps product-specific variables onto the package `--cui-*` contract if the delete-and-reinstall proof needs it.
 
 ## Wavemap Reference Mapping
 
 Wavemap's current registry theme already points in the intended direction, but it includes compatibility and app-local
-surface that should not become Amino UI defaults automatically.
+surface that should not become Codon UI defaults automatically.
 
 Use these Wavemap reads as guidance:
 
-| Wavemap reference                                                                       | Amino UI posture                                                                                                |
+| Wavemap reference                                                                       | Codon UI posture                                                                                                |
 | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| `--aui-foreground`, `--aui-background`                                                  | Bring forward as core semantic roles.                                                                           |
-| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--aui-neutral-100` through `--aui-neutral-800` if implemented in Amino UI. |
-| `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively for primitive controls and containers.                                                |
-| `--aui-status-*` and validation aliases                                                 | Bring forward as state roles, using `state` naming for the package default if that remains clearer.             |
+| `--aui-foreground`, `--aui-background`                                                  | Brought forward as canonical `--cui-*` core semantic roles after source-read migration.                         |
+| `--aui-neutral-1` through `--aui-neutral-8`                                             | Rename to numeric CSS steps such as `--cui-neutral-100` through `--cui-neutral-800` if implemented in Codon UI. |
+| `--aui-control-*`, `--aui-surface-*`, `--aui-border*`                                   | Bring forward selectively as canonical `--cui-*` primitive control and container roles.                         |
+| `--aui-status-*` and validation aliases                                                 | Bring forward as canonical `--cui-*` state roles, using `state` naming for the package default if clearer.      |
 | Compatibility shims such as `--foreground`, `--distance_1`, and `--border_radius_1`     | Keep out of the package default until a consumer install proof requires them.                                   |
 | App chrome z-index aliases, font-face assumptions, gradients, maps, and platform colors | Keep Wavemap-local.                                                                                             |
 
@@ -101,6 +104,7 @@ Return to deliberate planning if implementation of this contract requires:
 - Package publication decisions.
 - Wavemap source movement.
 - Broad Wavemap theme rewrites.
+- Reintroducing legacy `--aui-*` compatibility aliases without an explicit rollback plan.
 
 ## Verification Expectations
 
@@ -111,7 +115,7 @@ For contract-only changes:
 
 For implementation changes to `packages/react/theme.css`:
 
-- `pnpm -F @amino-ui/react check:theme-css`
+- `pnpm -F @codon-ui/react check:theme-css`
 - `pnpm check`
 - `pnpm build:react`
 - `git diff --check`

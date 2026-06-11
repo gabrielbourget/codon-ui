@@ -31,7 +31,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|motion\/react/u
 const forbiddenLegacyCssPattern =
-  /--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border/u
+  /--distance_1|--disabledOpacity|--border_radius_1|--borderColorTransition|--focus-ring-color|--cui-validation-error-border|--cui-validation-warning-border|--cui-validation-success-border/u
 
 const inputSource = readRequiredText(inputSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
@@ -80,18 +80,18 @@ const requiredStyleSelectors = [
   ".input--successState",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-space-1",
-  "--aui-radius-1",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-transition-border-color",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-placeholder",
-  "--aui-state-danger",
-  "--aui-state-warning",
-  "--aui-state-success",
+  "--cui-space-1",
+  "--cui-radius-1",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-transition-border-color",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-placeholder",
+  "--cui-state-danger",
+  "--cui-state-warning",
+  "--cui-state-success",
 ]
 
 assert(inputSource.startsWith('"use client"'), "Input must preserve the client component boundary")
@@ -152,7 +152,7 @@ assert(packageJson.dependencies.classnames, "Input package must keep classnames 
 
 assert(packet.name === "input", "Input packet must describe the input item")
 assert(packet.type === "component", "Input packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Input packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Input packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Input packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#input-next-candidate-planning-checkpoint"),
@@ -234,7 +234,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `Input packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Input packet must point at the package-side proof harness",
 )
 assert(

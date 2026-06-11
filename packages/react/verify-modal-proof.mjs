@@ -81,23 +81,23 @@ const requiredStyleSelectors = [
   ".modal__dialog:focus",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-radius-1",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-shadow-1",
-  "--aui-focus-ring",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-radius-1",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-shadow-1",
+  "--cui-focus-ring",
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 assert(modalSource.includes('from "react-aria-components"'), "Modal must import React Aria")
@@ -148,11 +148,11 @@ requiredDefaultThemeVariables.forEach((cssVariable) => {
   assert(themeCSSSource.includes(`${cssVariable}:`), `theme.css must define ${cssVariable}`)
 })
 assert(
-  helpersSource.includes("var(--aui-control-selected-foreground)"),
+  helpersSource.includes("var(--cui-control-selected-foreground)"),
   "Modal helpers must read selected foreground for default close-button text",
 )
 assert(
-  themeCSSSource.includes("--aui-control-selected-foreground:"),
+  themeCSSSource.includes("--cui-control-selected-foreground:"),
   "theme.css must define selected foreground for default Modal close-button text",
 )
 requiredActionColorVariables.forEach((cssVariable) => {
@@ -181,7 +181,7 @@ assert(packageJson.peerDependencies["react-dom"], "Modal package must keep React
 
 assert(packet.name === "modal", "Modal packet must describe the modal item")
 assert(packet.type === "component", "Modal packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Modal packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Modal packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Modal packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#modal-next-candidate-planning-checkpoint"),
@@ -243,7 +243,7 @@ requiredDefaultThemeVariables.forEach((cssVariable) => {
   assert(defaultContractRequirement.cssVariables.includes(cssVariable), `Modal packet must record ${cssVariable}`)
 })
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-selected-foreground"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-selected-foreground"),
   "Modal packet must record selected foreground theme pressure",
 )
 const actionColorsRequirement = packet.themeRequirements.find((requirement) =>
@@ -281,7 +281,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_") && resolution.replacementSource.includes("--aui-space"),
+      resolution.importSource.includes("--distance_") && resolution.replacementSource.includes("--cui-space"),
   ),
   "Modal packet must record spacing CSS variable rewrite",
 )
@@ -289,7 +289,7 @@ assert(
   packet.importResolutions.some(
     (resolution) =>
       resolution.importSource.includes("--focus-ring-color") &&
-      resolution.replacementSource.includes("--aui-focus-ring"),
+      resolution.replacementSource.includes("--cui-focus-ring"),
   ),
   "Modal packet must record focus-ring CSS variable rewrite",
 )

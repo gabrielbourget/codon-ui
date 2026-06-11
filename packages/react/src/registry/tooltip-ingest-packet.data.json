@@ -1,7 +1,7 @@
 {
   "name": "tooltip",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#tooltip-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -62,30 +62,30 @@
     {
       "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
       "importSource": "--distance_1 / --distance_2 aliases",
-      "replacementSource": "--aui-space-1 / --aui-space-2",
+      "replacementSource": "--cui-space-1 / --cui-space-2",
       "notes": ["Tooltip CSS reads the default Amino spacing contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
       "importSource": "--border_radius_1 alias",
-      "replacementSource": "--aui-radius-1",
+      "replacementSource": "--cui-radius-1",
       "notes": ["Tooltip CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["Tooltip CSS reads the default Amino animation contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
       "importSource": "--drop_shadow_1 alias",
-      "replacementSource": "--aui-drop-shadow-1",
+      "replacementSource": "--cui-drop-shadow-1",
       "notes": ["Tooltip CSS uses a stable Amino drop-shadow token instead of a Tooltip compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Tooltip/TooltipStyles.module.css",
-      "importSource": "--aui-color-*-500 action palette variables",
+      "importSource": "--cui-color-*-500 action palette variables",
       "registryDependencyName": "theme/action-colors",
       "replacementSource": "theme/action-colors.css",
       "notes": ["Order-based tooltip colors use the existing action color theme support item."]
@@ -130,14 +130,14 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-surface-foreground",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-radius-1",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-drop-shadow-1"
+        "--cui-surface",
+        "--cui-surface-foreground",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-radius-1",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-drop-shadow-1"
       ],
       "notes": [
         "Tooltip source reads the default theme contract directly and does not need a component-specific compatibility bridge."
@@ -154,11 +154,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Order-based tooltip colors depend on the existing action color theme support item."]
     }
@@ -173,14 +173,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Tooltip proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

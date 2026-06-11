@@ -8,28 +8,40 @@ The CLI is still legacy scaffold. It can stay useful as reference material, but 
 policy, source ownership, component update behavior, package publication, or generated artifact shape before the first
 component proof is ready.
 
+## Graduated Reference
+
+Stable CLI guidance has moved into the docs site:
+
+- `apps/docs/src/content/docs/cli/baseline-contract.md`
+- `apps/docs/src/content/docs/cli/consumer-lifecycle.md`
+- `apps/docs/src/content/docs/registry/local-snapshots.md`
+
+Keep this roadmap focused on remaining lifecycle behavior such as dependency cleanup writes outside explicit strict
+`remove`/`delete --with-orphans --remove-dependencies`, broad update rollback behavior, merge behavior, broader eject
+policy, non-orphan support cleanup, public registry hosting, and package publication.
+
 ## Current Status
 
 Current command surface:
 
-| Command | Current role                                                                                                                       | Renovation read                                                                                                                                              |
-| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `init`  | Detects project shape, writes `amino-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, and `init --defaults` seeds only the new config/lockfile contract. |
-| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                               |
-| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.             |
-| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                     |
+| Command | Current role                                                                                                                       | Renovation read                                                                                                                                                                                                         |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`  | Detects project shape, writes `codon-ui.config.json`, creates target paths, writes helper support, and installs base dependencies. | Legacy normal mode remains mutating; `init --advisory` reports the new consumer contract, `init --dry-run` previews the default seed without writes, and `init --defaults` seeds only the new config/lockfile contract. |
+| `info`  | Reports consumer project context and the same init advisory packet.                                                                | Read-only JSON output is available for fixture checks and future agent passes.                                                                                                                                          |
+| `add`   | Fetches component/helper registry JSON, writes files, transforms imports/RSC markers, and installs dependencies.                   | Legacy normal mode remains mutating for other inputs; `add switch` now has a strict local-registry proof path after advisory and dry-run review.                                                                        |
+| `diff`  | Fetches registry files and prints local file differences.                                                                          | First advisory diagnostics slice is implemented, but normal mode still depends on legacy artifact shape.                                                                                                                |
 
 Current helper surface:
 
-| Area                    | Current role                                                                                   | Renovation read                                                                                                        |
-| ----------------------- | ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| Config                  | Loads `amino-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.        | Keep, but convert failures into typed diagnostics before command behavior expands.                                     |
-| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL` or `https://aminoui.com`.                           | Defer behavior changes until generated artifact policy is approved. Add timeouts/advisory behavior before machine use. |
-| Registry schemas        | Parses component/helper registry indexes.                                                      | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.         |
-| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.        | Proves support graph and `Switch` planning/install without public registry hosting or generated artifacts.             |
-| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies. | Support and `Switch` planning now classify target package metadata for default `registry-contained` layout.            |
-| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.  | Needs fixture tests before any behavior changes.                                                                       |
-| Package manager helpers | Computes add commands and dev-dependency flags.                                                | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                    |
+| Area                    | Current role                                                                                                      | Renovation read                                                                                                                     |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Config                  | Loads `codon-ui.config.json`, infers paths from `tsconfig-paths`, and resolves aliases.                           | Keep, but convert failures into typed diagnostics before command behavior expands.                                                  |
+| Registry client         | Fetches JSON from `COMPONENT_REGISTRY_URL`; no public fallback host is assumed before hosting policy is approved. | Defer public registry behavior until generated artifact policy and hosting are approved. Keep advisory timeouts before machine use. |
+| Registry schemas        | Parses component/helper registry indexes.                                                                         | Legacy web-registry schemas still exist; new install-plan schemas model support registry snapshots separately.                      |
+| Local registry snapshot | Stores support-only and full React manifest-shaped JSON sources for early CLI planning.                           | Proves support graph and `Switch` planning/install without public registry hosting or generated artifacts.                          |
+| Install plan resolver   | Resolves requested registry items, support graph dependencies, target paths, and dependencies.                    | Support and `Switch` planning now classify target package metadata for default `registry-contained` layout.                         |
+| File transforms         | Rewrites imports, removes `"use client"` for non-RSC projects, and converts TS/TSX to JS/JSX.                     | Needs fixture tests before any behavior changes.                                                                                    |
+| Package manager helpers | Computes add commands and dev-dependency flags.                                                                   | Keep as a small leaf, but do not execute package-manager commands in advisory mode.                                                 |
 
 ## Advisory Mode Requirement
 
@@ -88,7 +100,9 @@ Do not broaden behavior before these risks are handled deliberately:
 - The current registry schema is legacy web-registry shape, not the approved `packages/react` manifest/artifact contract.
 - Transform helpers have no fixture tests.
 - `bin` aliases point to `dist/index.js`; fresh installs can warn or fail before build output exists.
-- `pub:*` scripts call `npm build` and publication behavior is not approved.
+- Package publication is now restricted to the guarded private path: `@codon-ui/cli@0.1.0`,
+  `publishConfig.access: "restricted"`, `files: ["dist"]`, and `prepublishOnly` running package preflight plus release
+  safety checks.
 - Current command names and options are inherited scaffold surface, not settled public API.
 
 ## First Safe Implementation Sequence
@@ -121,11 +135,12 @@ it only removes accidental async behavior before the command contract is redesig
 
 The consumer contract slice added the first new CLI-side contract for the `Switch` proof path:
 
-- `amino-ui.config.json` remains the human-authored setup intent file.
-- `amino-ui.lock.json` is reserved as the generated install provenance file.
+- `codon-ui.config.json` remains the human-authored setup intent file.
+- `codon-ui.lock.json` is reserved as the generated install provenance file.
 - `registry-contained`, `integrated`, and `custom` layout modes are modeled, but only `registry-contained` has path
   resolution behavior.
-- The default `registry-contained` layout resolves support roles under `src/components/_registry`.
+- The canonical default `registry-contained` root is `src/components/_codon-ui-registry`. Consumer-selected roots should
+  be recorded explicitly in config or CLI options rather than inferred from a hidden directory rename.
 - The default dependency policy is `report-only`.
 - Ownership states are modeled as `registry-owned`, `locally-modified`, `consumer-owned-support`, `ejected`, and
   `unknown`.
@@ -133,23 +148,32 @@ The consumer contract slice added the first new CLI-side contract for the `Switc
 Current read-only command behavior:
 
 ```sh
-aminoui-cli init --advisory --json --cwd <consumer-project>
-aminoui-cli info --json --cwd <consumer-project>
+codon-ui init --advisory --json --cwd <consumer-project>
+codon-ui init --dry-run --json --cwd <consumer-project>
+codon-ui init --dry-run --registry-root src/components/_codon-ui-registry --json --cwd <consumer-project>
+codon-ui info --json --cwd <consumer-project>
 ```
 
-The package also exposes `aui` as a shorter bin alias for future command examples. Existing local pnpm shims may need an
-install refresh before `pnpm exec aui` resolves, but package metadata now points both `aminoui-cli` and `aui` at
-`dist/index.js`.
+The CLI package now exposes `codon-ui` as the canonical bin with `cui` and `codonui` as Codon-era aliases. Existing local
+pnpm shims may need an install refresh before `pnpm exec codon-ui`, `pnpm exec cui`, or `pnpm exec codonui` resolve, but
+package metadata no longer carries the old `aminoui-cli` or `aui` aliases.
 
 The first strict init seed slice added a new-contract default path:
 
 ```sh
-aui init --defaults --json --cwd <consumer-project>
+codon-ui init --defaults --json --cwd <consumer-project>
+codon-ui init --defaults --registry-root src/components/_codon-ui-registry --json --cwd <consumer-project>
 ```
 
-This path writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when neither file exists. It does not
+This path writes only `codon-ui.config.json` and an empty `codon-ui.lock.json` when neither file exists. It does not
 create directories, install dependencies, write helper files, install support files, or touch package-manager lockfiles.
 If either file already exists, it reports warnings and writes nothing; overwrite policy is deferred.
+The optional `--registry-root` flag chooses the contained registry root recorded in the generated config. It must be a
+non-empty consumer-relative path without parent-directory traversal, and it does not create the directory during init.
+
+`init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
+config, lockfile, directory, or dependency writes. Its `wouldEffects` report `would-write` for greenfield config and
+lockfile creation, `blocked` for existing files, and `not-written` for the counterpart in partial existing-file states.
 
 Against the `vite-registry-contained` fixture, both commands report:
 
@@ -158,7 +182,7 @@ Against the `vite-registry-contained` fixture, both commands report:
 - layout mode: `registry-contained`
 - theme tier: `default-contract`
 - dependency policy: `report-only`
-- role paths under `src/components/_registry`
+- role paths under `src/components/_codon-ui-registry`
 
 These commands do not write config, lockfiles, support files, directories, or dependencies.
 
@@ -184,13 +208,13 @@ The support-item add advisory slice added the first read-only registry planning 
 Current support advisory commands:
 
 ```sh
-aminoui-cli add tokens/geometry --advisory --json --cwd <consumer-project>
-aminoui-cli add --all --advisory --json --cwd <consumer-project>
+codon-ui add tokens/geometry --advisory --json --cwd <consumer-project>
+codon-ui add --all --advisory --json --cwd <consumer-project>
 ```
 
 The local support snapshot currently covers `theme-css`, `theme/switch-compatibility`, `tokens/geometry`, and
-`tokens/theme-order`. Against the `vite-registry-contained` fixture, planned files resolve under
-`src/components/_registry`. Fixture assertions now verify that `tokens/geometry` is reported as a missing target in the
+`tokens/theme-order`. Against a greenfield `registry-contained` consumer, planned files resolve under
+`src/components/_codon-ui-registry`. Fixture assertions now verify that `tokens/geometry` is reported as a missing target in the
 default fixture, `theme-css` is reported as an existing target in the `--all` support plan, the narrow
 `theme/switch-compatibility` bridge is available as a planned theme file, and an explicit existing-token fixture reports
 an existing `tokens/geometry` target. They also verify available source status, `sha256:<hex>` content hashes, missing
@@ -199,7 +223,7 @@ lockfile writing, dependency installation, generated registry artifact hosting, 
 package publication behavior.
 
 The snapshots are still tracked JSON, not generated output. Until a later generator pass exists,
-`pnpm -F @amino-ui/react check:local-registry-snapshot` fails if the support snapshot drifts from the support/theme subset
+`pnpm -F @codon-ui/react check:local-registry-snapshot` fails if the support snapshot drifts from the support/theme subset
 or if the full local React snapshot drifts from the canonical React manifest.
 
 The local `Switch` registry source slice removed the draft append path:
@@ -227,7 +251,7 @@ The local `Switch` registry source slice removed the draft append path:
 Current `Switch` advisory command:
 
 ```sh
-aui add switch --advisory --json --cwd <consumer-project>
+codon-ui add switch --advisory --json --cwd <consumer-project>
 ```
 
 The first `Switch` dry-run slice now uses the same local React registry source and packet metadata, but reports
@@ -235,10 +259,10 @@ would-apply effects instead of advisory-only effects:
 
 - `add switch --dry-run --json` stays non-mutating: no file writes, config writes, lockfile writes, dependency installs,
   prompts, or directory creation.
-- Missing `amino-ui.config.json` is a warning for now. The command uses the default `registry-contained` paths so the
+- Missing `codon-ui.config.json` is a warning for now. The command uses the default `registry-contained` paths so the
   first fixture can preview exact writes before strict `init` exists.
 - Existing target files are counted as blockers in `effects.files.blockedExistingTargetCount`; the current fixture has
-  one blocker for `src/components/_registry/theme.css`.
+  one blocker for `src/components/_codon-ui-registry/theme.css`.
 - `effects.files.wouldWriteCount` counts available-source files that do not already exist.
 - `effects.dependencies` summarizes satisfied, missing, incompatible, unresolved, and decision-required dependency
   entries without modifying package metadata.
@@ -247,23 +271,42 @@ would-apply effects instead of advisory-only effects:
 Current `Switch` dry-run command:
 
 ```sh
-aui add switch --dry-run --json --cwd <consumer-project>
+codon-ui add switch --dry-run --json --cwd <consumer-project>
 ```
 
 The first strict `Switch` install slice now consumes the same local React registry source after the consumer has run
 strict init:
 
 ```sh
-aui init --defaults --json --cwd <consumer-project>
-aui add switch --json --cwd <consumer-project>
+codon-ui init --defaults --json --cwd <consumer-project>
+codon-ui add switch --json --cwd <consumer-project>
 ```
 
-This strict path currently supports only the explicit `switch` request. It reads `amino-ui.config.json` and
-`amino-ui.lock.json`, requires the default dependency graph to be already satisfied, rejects missing source files,
+This strict path currently supports only the explicit `switch` request. It reads `codon-ui.config.json` and
+`codon-ui.lock.json`, requires the default dependency graph to be already satisfied, rejects missing source files,
 rejects existing target files rather than overwriting, writes the seven planned support/theme/component files, rewrites
-package-local token imports to the installed consumer registry token paths, and updates `amino-ui.lock.json` with
+package-local token imports to the installed consumer registry token paths, and updates `codon-ui.lock.json` with
 hash-based item/file ownership metadata plus satisfied dependency decisions. It does not install or update packages,
 generate hosted registry artifacts, run component tests, or implement status/update/eject behavior.
+
+Later lifecycle slices added item-scoped `status`, `diff`, `update`, `remove`, `delete`, and `eject` behavior behind
+fixture evidence. `update --all --advisory --json` now enumerates every installed item and aggregates item-scoped update
+posture, `update --all --dry-run --json` now aggregates item-scoped dry-run previews, and strict
+`update --all --json` now applies broad updates only when every installed item passes the dry-run and strict preflight
+gate. Blocked strict-all runs write nothing; all-safe runs write approved source updates and lockfile refreshes before a
+single final lockfile write. Item-scoped strict update can now resolve dependency-only blockers by running an explicitly
+approved npm, pnpm, yarn, or bun install, replanning from the selected target manifest, and then applying the approved
+source plus lockfile update. Runtime rollback, merge behavior, broad update dependency writes, and broad update
+package-manager mutation remain outside that boundary. `remove` and `delete` now also accept `--with-orphans` to report
+dependency items that would become orphan cleanup candidates in advisory and dry-run modes, then remove dry-run-approved
+orphan dependency items in strict temporary-copy proofs. The orphan plan and effects live in a separate `orphanCleanup`
+report block. Advisory and dry-run also report a separate no-write `dependencyCleanup` block that classifies package
+dependency cleanup candidates and dependencies still required by remaining installed items. Fixture evidence now covers
+the blocked path where a modified orphan item keeps dependencies still-required, suppresses dry-run dependency removals,
+and blocks strict cleanup atomically. Strict orphan cleanup remains opt-in. `--remove-dependencies` adds a second
+explicit strict gate that can remove no-longer-required package dependencies through the detected npm, pnpm, yarn, or bun
+command and clean stale Codon dependency records. Cleanup outside that explicit path, non-orphan support cleanup, and
+broad deletion policy remain deferred.
 
 ## Design Discussion Packet
 
@@ -285,7 +328,7 @@ Topics to settle before real `init` or `add` implementation expands:
 | Topic                       | Discussion target                                                                                                                                                             |
 | --------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Theme integration tiers     | Decide which tiers the CLI can report or install: package default CSS, narrow proof-local bridge, consumer-owned mapping, and later generated token output.                   |
-| Install metadata            | Decide whether the consumer ledger lives in `amino-ui.config.json`, a sidecar file, or both, and whether it records file hashes, registry item ids, versions, and theme tier. |
+| Install metadata            | Decide whether the consumer ledger lives in `codon-ui.config.json`, a sidecar file, or both, and whether it records file hashes, registry item ids, versions, and theme tier. |
 | Source ownership states     | Define `registry-owned`, `locally modified`, `ejected`, `consumer-owned support`, and `unknown` before update/status commands exist.                                          |
 | Update behavior             | Decide which states are eligible for automatic update, which require manual merge, and which should never be changed by the CLI.                                              |
 | Registry artifact authority | Decide whether `add` consumes generated JSON artifacts, package-local manifests, or an explicit proof file list for the first `Switch` case.                                  |
@@ -296,7 +339,7 @@ Recommended starting theme tiers for discussion:
 
 | Tier | Name                         | CLI posture before first proof                                                                                            |
 | ---- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| 0    | Package default CSS          | Report or install `@amino-ui/react/theme.css` as the baseline import. No generated tokens.                                |
+| 0    | Package default CSS          | Report or install `@codon-ui/react/theme.css` as the baseline import. No generated tokens.                                |
 | 1    | Narrow compatibility bridge  | For the first `Switch` proof only, install or report the small bridge that maps the current required compatibility names. |
 | 2    | Consumer-owned theme mapping | Detect and report that the consumer owns the mapping. Do not overwrite without explicit approval.                         |
 | 3    | Generated theme output       | Defer. The CLI may eventually generate palette/theme files, but that is not part of the first proof.                      |
@@ -349,8 +392,8 @@ For future CLI implementation:
 - Focused CLI typecheck/build:
 
 ```sh
-pnpm -F aminoui-cli typecheck
-pnpm -F aminoui-cli build
+pnpm -F @codon-ui/cli typecheck
+pnpm -F @codon-ui/cli build
 ```
 
 - Full CI mirror after behavior or package metadata changes:

@@ -32,7 +32,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|motion\/react/u
 const forbiddenLegacyCssPattern =
-  /--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--aui-validation-error-border|--aui-validation-warning-border|--aui-validation-success-border/u
+  /--disabledOpacity|--border_radius_1|--borderColorTransition|--colorTransition|--focus-ring-color|--cui-validation-error-border|--cui-validation-warning-border|--cui-validation-success-border/u
 
 const stepperSource = readRequiredText(stepperSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
@@ -88,24 +88,24 @@ const requiredStyleSelectors = [
   ".stepper__group--cohesive--outline",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-radius-1",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-transition-border-color",
-  "--aui-transition-color",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-placeholder",
-  "--aui-state-danger",
-  "--aui-state-warning",
-  "--aui-state-success",
-  "--aui-color-primary-500",
-  "--aui-color-quintenary-500",
-  "--aui-action-primary-background",
-  "--aui-action-primary-foreground",
-  "--aui-action-quintenary-background",
-  "--aui-action-quintenary-foreground",
+  "--cui-radius-1",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-transition-border-color",
+  "--cui-transition-color",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-placeholder",
+  "--cui-state-danger",
+  "--cui-state-warning",
+  "--cui-state-success",
+  "--cui-color-primary-500",
+  "--cui-color-quintenary-500",
+  "--cui-action-primary-background",
+  "--cui-action-primary-foreground",
+  "--cui-action-quintenary-background",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(stepperSource.startsWith('"use client"'), "Stepper must preserve the client component boundary")
@@ -203,7 +203,7 @@ assert(packageJson.dependencies.classnames, "Stepper package must keep classname
 
 assert(packet.name === "stepper", "Stepper packet must describe the stepper item")
 assert(packet.type === "component", "Stepper packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Stepper packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Stepper packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Stepper packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#stepper-next-candidate-planning-checkpoint"),
@@ -316,7 +316,7 @@ requiredExcludedSources.forEach((sourcePath) => {
   assert(packet.excludedSourcePaths.includes(sourcePath), `Stepper packet must exclude ${sourcePath}`)
 })
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Stepper packet must point at the package-side proof harness",
 )
 assert(

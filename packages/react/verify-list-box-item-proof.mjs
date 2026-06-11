@@ -53,11 +53,11 @@ const requiredStyleSelectors = [
   ".listBoxItem:visited",
 ]
 const requiredDefaultVariables = [
-  "--aui-space-1",
-  "--aui-radius-1",
-  "--aui-transition-background-color",
-  "--aui-control-hover-background",
-  "--aui-opacity-disabled",
+  "--cui-space-1",
+  "--cui-radius-1",
+  "--cui-transition-background-color",
+  "--cui-control-hover-background",
+  "--cui-opacity-disabled",
 ]
 
 const listBoxItemSource = readRequiredText(listBoxItemSourcePath)
@@ -137,7 +137,7 @@ assert(packageJson.peerDependencies["react-dom"], "ListBoxItem package must keep
 
 assert(packet.name === "list-box-item", "ListBoxItem packet must describe the list-box-item item")
 assert(packet.type === "component", "ListBoxItem packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ListBoxItem packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ListBoxItem packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ListBoxItem packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#listboxitem-next-candidate-planning-checkpoint"),
@@ -207,7 +207,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "ListBoxItem packet must record legacy CSS variable rewrite",
 )

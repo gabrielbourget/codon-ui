@@ -80,7 +80,7 @@ assert(
   "LaggingLinesLoader CSS must not read Wavemap foreground alias",
 )
 assert(
-  !laggingLinesLoaderStylesSource.includes("--aui-"),
+  !laggingLinesLoaderStylesSource.includes("--cui-"),
   "LaggingLinesLoader CSS must not require global theme variables",
 )
 assert(
@@ -100,7 +100,7 @@ assert(!publicIndexSource.includes("formatDimension"), "Package root must not ex
 
 assert(packet.name === "lagging-lines-loader", "LaggingLinesLoader packet must describe the lagging-lines-loader item")
 assert(packet.type === "component", "LaggingLinesLoader packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "LaggingLinesLoader packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "LaggingLinesLoader packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "LaggingLinesLoader packet must record Wavemap source")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#loader-components-next-candidate-planning-checkpoint"),

@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createStatusReport } from "../helpers/status"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -26,8 +27,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/geometry.ts",
     "source/ejected.ts",
     "source/unknown.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Switch/Switch.tsx",
     "consumer/src/components/_registry/tokens/geometry.ts",
     "consumer/src/components/_registry/utils/ejected.ts",
@@ -60,7 +61,7 @@ const assertStatusFile = async ({
   return report
 }
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-status-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-status-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
@@ -87,7 +88,11 @@ try {
   writeText(geometryTargetPath, geometrySource)
   writeText(ejectedTargetPath, ejectedSource)
   writeText(unknownTargetPath, unknownSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -100,7 +105,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -113,7 +118,7 @@ try {
           },
         ],
         name: "tokens/geometry",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -126,7 +131,7 @@ try {
           },
         ],
         name: "utils/ejected",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -139,17 +144,34 @@ try {
           },
         ],
         name: "utils/unknown",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
+    dependencies: [
+      {
+        action: "none",
+        declaredIn: "dependencies",
+        declaredRange: "^19.1.0",
+        kind: "peer",
+        name: "react",
+        requiredRange: "^18.2.0 || ^19.0.0",
+        status: "satisfied",
+      },
+    ],
     items: {
+      "circle-loader": {
+        files: [],
+        name: "circle-loader",
+        registryDependencies: [],
+        sourceIdentity: "@codon-ui/react-local",
+      },
       switch: {
         files: [
           {
@@ -161,7 +183,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "tokens/geometry": {
         files: [
@@ -174,7 +196,7 @@ try {
           },
         ],
         name: "tokens/geometry",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "utils/ejected": {
         files: [
@@ -187,7 +209,7 @@ try {
           },
         ],
         name: "utils/ejected",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "utils/unknown": {
         files: [
@@ -200,7 +222,7 @@ try {
           },
         ],
         name: "utils/unknown",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -215,11 +237,14 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: cleanReport, schemaName: "status" })
   assert.equal(cleanReport.summary.fileStates["registry-owned"], 1)
   assert.equal(cleanReport.summary.fileStates["consumer-owned-support"], 1)
   assert.equal(cleanReport.summary.fileStates.ejected, 1)
   assert.equal(cleanReport.summary.fileStates.unknown, 1)
   assert.equal(cleanReport.summary.sourceStates["up-to-date"], 4)
+  assert.equal(cleanReport.dependencies.length, 1)
+  assert.equal(cleanReport.summary.dependencyStates.satisfied, 1)
 
   await assertStatusFile({
     consumerRoot,
@@ -244,6 +269,15 @@ try {
   })
 
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const defaultComponentSourceReport = await createStatusReport({ cwd: consumerRoot, itemName: "circle-loader" })
+
+  assertCliJsonReportContract({ report: defaultComponentSourceReport, schemaName: "status" })
+  assert.equal(defaultComponentSourceReport.registrySource.status, "loaded")
+  assert.equal(path.basename(defaultComponentSourceReport.registrySource.path ?? ""), "local-react.registry.json")
+  assert.equal(defaultComponentSourceReport.registrySource.sourceIdentity, "@codon-ui/react-local")
+  assert.equal(defaultComponentSourceReport.dependencies.length, 1)
+  assert.equal(defaultComponentSourceReport.summary.dependencyStates.satisfied, 1)
 
   writeText(ejectedTargetPath, "export const EjectedLocalChange = true\n")
   await assertStatusFile({
@@ -288,10 +322,11 @@ try {
     (statusFile) => statusFile.path === "src/components/_registry/utils/unknown.ts",
   )
 
+  assertCliJsonReportContract({ report: unknownSourceReport, schemaName: "status" })
   assert.equal(unknownSourceReport.registrySource.status, "loaded")
   assert.equal(unknownFileWithDefaultRegistry?.sourceState, "unknown")
   assert.equal(unknownFileWithDefaultRegistry?.state, "unknown")
-  console.log("[aminoui-cli] status report verified")
+  console.log("[codon-ui] status report verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

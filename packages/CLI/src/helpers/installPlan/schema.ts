@@ -1,6 +1,29 @@
 import { z } from "zod"
 
-import { consumerLockfileSchema, consumerTargetRoleSchema } from "@/src/helpers/consumerContract"
+import {
+  CONSUMER_DEPENDENCY_POLICIES,
+  consumerLockfileSchema,
+  consumerTargetRoleSchema,
+} from "@/src/helpers/consumerContract"
+import {
+  DEPENDENCY_INSTALL_APPROVAL_SOURCES,
+  DEPENDENCY_INSTALL_EXECUTION_BLOCKERS,
+  DEPENDENCY_INSTALL_EXECUTION_MODES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS,
+  DEPENDENCY_INSTALL_POLICY_SOURCES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  DEPENDENCY_INSTALL_STATUSES,
+  DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES,
+  DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES,
+  DEPENDENCY_INSTALL_WORKSPACE_SOURCES,
+  PACKAGE_MANAGER_UNKNOWN,
+} from "@/src/helpers/packageManagerHelpers"
+import {
+  PACKAGE_MANIFEST_DEPENDENCY_FIELDS,
+  PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS,
+} from "@/src/helpers/packageManifestConstants"
+import { CLI_APPLIED_WRITE_STATUSES, CLI_WRITE_STATUS__NOT_WRITTEN } from "@/src/helpers/reportConstants"
 
 import {
   INSTALL_PLAN_DEPENDENCY_KINDS,
@@ -129,11 +152,148 @@ export const installPlanDependencySchema = z
     requiredRange: z.string().min(1),
     status: z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES),
     declaredRange: z.string().min(1).optional(),
-    declaredIn: z.enum(["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"]).optional(),
+    declaredIn: z.enum(PACKAGE_MANIFEST_DEPENDENCY_FIELDS).optional(),
   })
   .strict()
 
 export type TInstallPlanDependency = z.infer<typeof installPlanDependencySchema>
+
+export const dependencyInstallPackageManagerDetectionSchema = z
+  .object({
+    name: z.union([z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS), z.literal(PACKAGE_MANAGER_UNKNOWN)]),
+    source: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_SOURCES),
+    lockfilePath: z.string().min(1).optional(),
+    packageManagerOverride: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
+    packageManagerField: z.string().min(1).optional(),
+    packageManifestPath: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallTargetManifestSchema = z
+  .object({
+    directory: z.string().min(1).optional(),
+    exists: z.boolean(),
+    packageManagerField: z.string().min(1).optional(),
+    packageName: z.string().min(1).optional(),
+    path: z.string().min(1).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_TARGET_MANIFEST_SOURCES),
+  })
+  .strict()
+
+export const dependencyInstallRecommendationSchema = z
+  .object({
+    kind: z.enum(INSTALL_PLAN_DEPENDENCY_KINDS),
+    name: z.string().min(1),
+    requiredRange: z.string().min(1),
+    specifier: z.string().min(1),
+    status: z.enum(INSTALL_PLAN_DEPENDENCY_STATUSES),
+  })
+  .strict()
+
+export const dependencyInstallWorkspaceContextSchema = z
+  .object({
+    detected: z.boolean(),
+    packageJsonPath: z.string().min(1).optional(),
+    pnpmWorkspacePath: z.string().min(1).optional(),
+    rootPackageManagerField: z.string().min(1).optional(),
+    rootPackageName: z.string().min(1).optional(),
+    rootPath: z.string().min(1).optional(),
+    sources: z.array(z.enum(DEPENDENCY_INSTALL_WORKSPACE_SOURCES)).default([]),
+    targetPackageName: z.string().min(1).optional(),
+    targetPackagePath: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallWorkspaceCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    strategy: z.enum(DEPENDENCY_INSTALL_WORKSPACE_COMMAND_STRATEGIES),
+    targetPackageName: z.string().min(1),
+    targetPackagePath: z.string().min(1),
+    workingDirectory: z.string().min(1),
+    workspaceRootPath: z.string().min(1),
+  })
+  .strict()
+
+export const dependencyInstallCommandSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    dependencies: z.array(dependencyInstallRecommendationSchema).default([]),
+    dependencyTarget: z.enum(PACKAGE_MANIFEST_INSTALL_TARGET_FIELDS),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    targetManifestPath: z.string().min(1).optional(),
+    workingDirectory: z.string().min(1).optional(),
+    workspaceCommand: dependencyInstallWorkspaceCommandSchema.optional(),
+  })
+  .strict()
+
+export const dependencyInstallCommandFailureSchema = z
+  .object({
+    args: z.array(z.string().min(1)).default([]),
+    command: z.string().min(1),
+    exitCode: z.number().int().optional(),
+    message: z.string().min(1),
+    mutatedPaths: z.array(z.string().min(1)).default([]),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS),
+    packageManagerWrites: z.boolean(),
+    signal: z.string().min(1).optional(),
+    stderr: z.string().optional(),
+    stdout: z.string().optional(),
+    workingDirectory: z.string().min(1).optional(),
+  })
+  .strict()
+
+export const dependencyInstallPolicyPlanSchema = z
+  .object({
+    configPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+    packageManagerWrites: z.boolean(),
+    policy: z.enum(CONSUMER_DEPENDENCY_POLICIES),
+    policyOverride: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    source: z.enum(DEPENDENCY_INSTALL_POLICY_SOURCES),
+  })
+  .strict()
+
+export const dependencyInstallExecutionBlockerSchema = z
+  .object({
+    code: z.enum(DEPENDENCY_INSTALL_EXECUTION_BLOCKERS),
+    message: z.string().min(1),
+  })
+  .strict()
+
+export const dependencyInstallExecutionPlanSchema = z
+  .object({
+    approvalSource: z.enum(DEPENDENCY_INSTALL_APPROVAL_SOURCES),
+    blockers: z.array(dependencyInstallExecutionBlockerSchema).default([]),
+    executedCommands: z.array(dependencyInstallCommandSchema).default([]),
+    failedCommands: z.array(dependencyInstallCommandFailureSchema).default([]),
+    installRequested: z.boolean(),
+    mode: z.enum(DEPENDENCY_INSTALL_EXECUTION_MODES),
+    nonInteractive: z.boolean(),
+    packageManagerExecution: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTIONS),
+    packageManagerWrites: z.boolean(),
+    requiresExplicitApproval: z.literal(true),
+  })
+  .strict()
+
+export const dependencyInstallPlanSchema = z
+  .object({
+    commands: z.array(dependencyInstallCommandSchema).default([]),
+    dependencyPolicy: dependencyInstallPolicyPlanSchema,
+    executionPlan: dependencyInstallExecutionPlanSchema,
+    packageManager: dependencyInstallPackageManagerDetectionSchema,
+    recommendedCommands: z.array(dependencyInstallCommandSchema).default([]),
+    recommendations: z.array(dependencyInstallRecommendationSchema).default([]),
+    status: z.enum(DEPENDENCY_INSTALL_STATUSES),
+    targetManifest: dependencyInstallTargetManifestSchema,
+    workspace: dependencyInstallWorkspaceContextSchema,
+  })
+  .strict()
+
+export type TDependencyInstallPlan = z.infer<typeof dependencyInstallPlanSchema>
 
 export const registryInstallPlanSchema = z
   .object({
@@ -216,7 +376,7 @@ export const addAdvisoryEffectsSchema = z
       .object({
         plannedFileCount: z.number().int().nonnegative(),
         plannedItems: z.array(z.string().min(1)).default([]),
-        status: z.literal("not-written"),
+        status: z.literal(CLI_WRITE_STATUS__NOT_WRITTEN),
       })
       .strict(),
   })
@@ -229,6 +389,7 @@ export const addAdvisorySchema = z
     advisory: z.literal(true),
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     effects: addAdvisoryEffectsSchema,
     registrySourcePath: z.string().min(1),
     installPlan: registryInstallPlanSchema,
@@ -278,6 +439,7 @@ export const addDryRunSchema = z
   .object({
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     dryRun: z.literal(true),
     effects: addDryRunEffectsSchema,
     registrySourcePath: z.string().min(1),
@@ -308,7 +470,7 @@ export const addStrictEffectsSchema = z
         writtenCount: z.number().int().nonnegative(),
       })
       .strict(),
-    installsDependencies: z.literal(false),
+    installsDependencies: z.boolean(),
     writesConfig: z.literal(false),
     writesFiles: z.boolean(),
     writesLockfile: z.boolean(),
@@ -316,7 +478,7 @@ export const addStrictEffectsSchema = z
       .object({
         plannedFileCount: z.number().int().nonnegative(),
         plannedItems: z.array(z.string().min(1)).default([]),
-        status: z.enum(["blocked", "written"]),
+        status: z.enum(CLI_APPLIED_WRITE_STATUSES),
         writtenFileCount: z.number().int().nonnegative(),
       })
       .strict(),
@@ -330,6 +492,7 @@ export const addStrictSchema = z
     applied: z.boolean(),
     componentPackets: z.array(addAdvisoryComponentPacketSchema).default([]),
     cwd: z.string().min(1),
+    dependencyInstallPlan: dependencyInstallPlanSchema,
     effects: addStrictEffectsSchema,
     registrySourcePath: z.string().min(1),
     installPlan: registryInstallPlanSchema,

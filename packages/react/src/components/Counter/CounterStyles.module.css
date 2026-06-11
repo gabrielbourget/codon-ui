@@ -2,11 +2,11 @@
   height: auto;
   width: auto;
   display: flex;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   flex-direction: row;
   align-items: center;
   justify-content: center;
-  transition: var(--aui-transition-color);
+  transition: var(--cui-transition-color);
   text-align: center;
 }
 

@@ -59,15 +59,15 @@ const requiredStyleSelectors = [
   ".tagComboBox--successState",
 ]
 const requiredDefaultVariables = [
-  "--aui-control-border",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-space-1",
-  "--aui-transition-border-color",
-  "--aui-validation-error-border",
-  "--aui-validation-warning-border",
-  "--aui-validation-success-border",
+  "--cui-control-border",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-space-1",
+  "--cui-transition-border-color",
+  "--cui-validation-error-border",
+  "--cui-validation-warning-border",
+  "--cui-validation-success-border",
 ]
 
 const tagComboBoxSource = readRequiredText(tagComboBoxSourcePath)
@@ -192,7 +192,7 @@ assert(
 
 assert(packet.name === "tag-combo-box", "TagComboBox packet must describe the tag-combo-box item")
 assert(packet.type === "component", "TagComboBox packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "TagComboBox packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "TagComboBox packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "TagComboBox packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#tagcombobox-next-candidate-planning-checkpoint"),
@@ -318,7 +318,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "TagComboBox packet must record legacy CSS variable rewrite",
 )

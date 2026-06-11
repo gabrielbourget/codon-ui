@@ -1,3 +1,3 @@
-import config from "@amino-ui/shared-utils/prettier/index"
+import config from "@codon-ui/shared-utils/prettier/index"
 
 export default config

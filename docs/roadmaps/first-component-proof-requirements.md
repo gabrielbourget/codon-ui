@@ -2,12 +2,22 @@
 
 ## Purpose
 
-The first component proof should show that Amino UI can own a small real component graph before broad registry, CLI,
+The first component proof should show that Codon UI can own a small real component graph before broad registry, CLI,
 publication, or generated-token work expands around it.
 
 `Switch` remains the likely first proof candidate because Wavemap's polish and extraction roadmaps already classify it as
 small, representative, and free of app-domain runtime imports. This document names the approval packet and source-receipt
 constraints needed before strict consumer install proof work.
+
+## Graduated Reference
+
+The first-proof source-receipt and registry boundaries have graduated into the docs site:
+
+- `apps/docs/src/content/docs/component-library/source-graph.md`
+- `apps/docs/src/content/docs/component-library/adapter-boundaries.md`
+- `apps/docs/src/content/docs/foundation/extraction-boundaries.md`
+
+Keep this roadmap focused on proof history and remaining open decisions.
 
 ## Source Roadmaps
 
@@ -16,7 +26,7 @@ Use these Wavemap notes as the current source of truth for candidate readiness:
 - `apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md`
 - `apps/wavemap-docs/working-notes/WAVEMAP_COMPONENT_POLISH_AUDIT.md`
 
-The Amino UI repo should not duplicate every Wavemap finding. It should track only the target-repo decisions needed to
+The Codon UI repo should not duplicate every Wavemap finding. It should track only the target-repo decisions needed to
 receive and prove the component.
 
 The first `Switch` manifest plan lives in `switch-manifest-plan.md`. The current advisory packet data lives in
@@ -107,6 +117,6 @@ For the future first implementation proof:
 
 - `pnpm check`
 - `pnpm build:react`
-- `pnpm -F @amino-ui/react check:contracts`
+- `pnpm -F @codon-ui/react check:contracts`
 - Focused package or consumer tests once the proof harness exists.
 - Wavemap roadmap verification when Wavemap notes are updated.

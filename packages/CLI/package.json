@@ -1,15 +1,22 @@
 {
-  "name": "aminoui-cli",
+  "name": "@codon-ui/cli",
   "description": "Distribute centralized resources into your codebase in a modular fashion.",
   "module": "./dist/index.js",
   "type": "module",
   "exports": "./dist/index.js",
   "bin": {
-    "aminoui-cli": "./dist/index.js",
-    "aui": "./dist/index.js"
+    "codon-ui": "./dist/index.js",
+    "cui": "./dist/index.js",
+    "codonui": "./dist/index.js"
   },
-  "version": "0.0.1",
+  "files": [
+    "dist"
+  ],
+  "version": "0.1.0",
   "packageManager": "pnpm@10.18.3",
+  "publishConfig": {
+    "access": "restricted"
+  },
   "scripts": {
     "dev": "tsup --watch",
     "build": "tsup",
@@ -17,15 +24,18 @@
     "start": "node dist/index.js",
     "lint": "eslint \"src/**/*.{ts,tsx}\" --cache",
     "lint:fix": "eslint \"src/**/*.{ts,tsx}\" --fix --cache",
-    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
-    "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"*.{json,ts}\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
+    "format:write": "prettier --write \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx}\" \"scripts/**/*.mjs\" \"*.{json,ts}\"",
+    "pack:check": "pnpm build && node scripts/verify-pack-source.mjs && npm pack --dry-run",
+    "pack:dry-run": "pnpm build && npm pack --dry-run",
+    "postpack": "node scripts/cleanup-pack-source.mjs",
     "precommit": "pnpm format:check && pnpm lint && pnpm typecheck",
+    "prepack": "node scripts/prepare-pack-source.mjs",
+    "prepublishOnly": "pnpm pack:check && pnpm release:check",
+    "release:check": "node scripts/publication-safety.mjs verify",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/add.test.ts",
-    "pub:beta": "npm build && npm publish --access public --tag beta",
-    "pub:next": "npm build && npm publish --access public --tag next",
-    "pub:release": "npm build && npm publish --access public"
+    "test": "pnpm exec tsx src/contracts.test.ts && pnpm exec tsx src/commands/init.test.ts && pnpm exec tsx src/commands/status.test.ts && pnpm exec tsx src/commands/diff.test.ts && pnpm exec tsx src/commands/update.test.ts && pnpm exec tsx src/commands/remove.test.ts && pnpm exec tsx src/commands/eject.test.ts && pnpm exec tsx src/commands/add.test.ts"
   },
   "dependencies": {
     "@babel/core": "^7.24.4",
@@ -53,7 +63,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
-    "@amino-ui/shared-utils": "workspace:*",
+    "@codon-ui/shared-utils": "workspace:*",
     "@types/diff": "^5.0.9",
     "@types/figlet": "^1.5.8",
     "@types/fs-extra": "^11.0.4",

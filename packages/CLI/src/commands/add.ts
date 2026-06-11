@@ -13,7 +13,8 @@ import {
   addDryRunSchema,
   addAdvisorySchema,
   addStrictSchema,
-  AMINO_UI_CONFIG_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CONSUMER_DEPENDENCY_POLICIES,
   createAddAdvisoryEffects,
   createAddDryRunEffects,
   createAddStrictEffects,
@@ -25,6 +26,9 @@ import {
   handleError,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
   INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
+  INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER,
+  INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
+  INSTALL_PLAN_FINDING_SEVERITY__ERROR,
   INSTALL_PLAN_FINDING_SEVERITY__WARNING,
   INSTALL_PLAN_TARGET_RESOLUTION__REUSE_EXISTING,
   isLocalReactRegistryComponentItemRequest,
@@ -42,6 +46,16 @@ import { getConfig } from "@/src/helpers/config"
 import {
   computePackageManagerAddCommand,
   computePackageManagerDevDependencyFlag,
+  createDependencyInstallPlan,
+  createDependencyInstallPolicyPlan,
+  DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
+  DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
+  DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  executeDependencyInstallCommands,
+  resolveDependencyInstallTarget,
 } from "@/src/helpers/packageManagerHelpers"
 import {
   fetchComponentTree,
@@ -62,7 +76,7 @@ import type {
 } from "@/src/helpers/registry/schema"
 
 import type { TConfig } from "../helpers/config/schema"
-import { AMINO_HELPER_FILE_MARKER_REGEX, DEFAULT_COMPONENT_CONFIG_FILE } from "../helpers/constants/cli"
+import { DEFAULT_COMPONENT_CONFIG_FILE, HELPER_FILE_MARKER_REGEX } from "../helpers/constants/cli"
 import { transform } from "../helpers/transformers"
 
 const addOptionsSchema = z
@@ -75,7 +89,11 @@ const addOptionsSchema = z
     path: z.string().optional(),
     advisory: z.boolean().default(false),
     dryRun: z.boolean().default(false),
+    dependencyPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
+    installDependencies: z.boolean().default(false),
     json: z.boolean().default(false),
+    packageJson: z.string().optional(),
+    packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
     registrySource: z.string().optional(),
   })
   .transform(({ all, components, yes, ...options }) => ({
@@ -96,21 +114,30 @@ const isStrictLocalRegistryComponentAddRequest = ({
   components?: readonly string[]
 }) => !allComponents && components?.length === 1 && isLocalReactRegistryComponentItemRequest(components)
 
-const readConsumerConfigForDryRun = async (
-  cwd: string,
-): Promise<{ config: TConsumerConfig; findings: TInstallPlanFinding[] }> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+type TConsumerConfigPlanSource =
+  | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG
+  | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
+
+type TConsumerConfigPlan = {
+  config: TConsumerConfig
+  configSource: TConsumerConfigPlanSource
+  findings: TInstallPlanFinding[]
+}
+
+const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfigPlan> => {
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -119,6 +146,7 @@ const readConsumerConfigForDryRun = async (
   try {
     return {
       config: consumerConfigSchema.parse(JSON.parse(await fs.readFile(configPath, "utf8"))),
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
       findings: [],
     }
   } catch (error) {
@@ -126,17 +154,22 @@ const readConsumerConfigForDryRun = async (
 
     return {
       config: fallbackConfig,
+      configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
   }
 }
+
+const hasOnlyDependencyStrictAddBlockers = (findings: readonly TInstallPlanFinding[]) =>
+  findings.length > 0 &&
+  findings.every((finding) => finding.code === INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER)
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
   if (config.tsx) return filePath
@@ -181,7 +214,7 @@ const processComponentFilesFromRegistry = async (
 
 export const add = new Command()
   .name("add")
-  .description("Add one or more components to your project.")
+  .description("Add registry component source to your project.")
   .argument("[components...]", "The components you'd like to add.")
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-o, --overwrite", "Overwrite existing files.", false)
@@ -189,11 +222,22 @@ export const add = new Command()
   .option("-a, --all", "Add all available components to your project.", false)
   .option("--advisory", "Report the proposed install plan without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
+  .option(
+    "--dependency-policy <policy>",
+    "Override dependency install policy for planning and approved strict installs. Supported values: report-only, manual, prompt, install.",
+  )
+  .option(
+    "--install-dependencies",
+    "Explicitly allow strict add to install missing dependencies when policy also permits it.",
+    false,
+  )
   .option("--json", "Print machine-readable output.", false)
+  .option("--package-json <path>", "Read dependency declarations from a specific package.json for planning.")
+  .option("--package-manager <packageManager>", "Override package-manager detection for dependency install planning.")
   .option("--registry-source <path>", "Path to a local registry source JSON file for planning.")
   .option(
     "-p, --path <path>",
-    "A path to the directory where your chosen components should be added. Defaults to 'components'.",
+    "Legacy remote-registry target directory override. Local registry installs resolve through codon-ui.config.json paths.",
     "components",
   )
   .action(async (components, CLIOptions) => {
@@ -232,15 +276,26 @@ export const add = new Command()
           registrySource,
           requestedItems,
         })
-        const configPlan = options.dryRun
+        const configPlan: TConsumerConfigPlan = options.dryRun
           ? await readConsumerConfigForDryRun(cwd)
           : {
               config: consumerConfigSchema.parse({}),
+              configSource: DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
               findings: [],
             }
+        const dependencyPolicy = createDependencyInstallPolicyPlan({
+          configPolicy: configPlan.config.dependencies.policy,
+          configSource: configPlan.configSource,
+          policyOverride: options.dependencyPolicy,
+        })
+        const dependencyInstallTarget = resolveDependencyInstallTarget({
+          consumerRoot: cwd,
+          packageJsonPath: options.packageJson,
+        })
         const installPlan = createRegistryInstallPlan({
           config: configPlan.config,
           consumerRoot: cwd,
+          dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
           registrySource: advisoryRegistrySource,
           requestedItems,
           sourceRoot,
@@ -250,11 +305,21 @@ export const add = new Command()
           findings,
           installPlan,
         })
+        const dependencyInstallPlan = createDependencyInstallPlan({
+          consumerRoot: cwd,
+          dependencyPlan: installPlanWithFindings.dependencyPlan,
+          dependencyPolicy,
+          installDependencies: options.installDependencies,
+          nonInteractive: options.json,
+          packageManager: options.packageManager,
+          targetManifest: dependencyInstallTarget,
+        })
 
         if (options.dryRun) {
           const dryRun = addDryRunSchema.parse({
             componentPackets,
             cwd,
+            dependencyInstallPlan,
             dryRun: true,
             effects: createAddDryRunEffects(installPlanWithFindings),
             findings,
@@ -285,6 +350,7 @@ export const add = new Command()
           advisory: true,
           componentPackets,
           cwd,
+          dependencyInstallPlan,
           effects: createAddAdvisoryEffects(installPlanWithFindings),
           findings,
           installPlan: installPlanWithFindings,
@@ -332,40 +398,135 @@ export const add = new Command()
         })
         const configPlan = await readConsumerConfigForStrictAdd(cwd)
         const lockfilePlan = await readConsumerLockfileForStrictAdd(cwd)
-        const installPlan = createRegistryInstallPlan({
-          config: configPlan.config,
-          consumerRoot: cwd,
-          registrySource: advisoryRegistrySource,
-          requestedItems: explicitRequestedItems,
-          sourceRoot,
+        let dependencyPolicy = createDependencyInstallPolicyPlan({
+          configPolicy: configPlan.config.dependencies.policy,
+          configSource: configPlan.configSource,
+          policyOverride: options.dependencyPolicy,
         })
-        const planWithInitialFindings = createRegistryInstallPlanWithFindings({
-          findings: [
-            ...configPlan.findings,
-            ...lockfilePlan.findings,
-            ...componentPacketFindings,
-            ...installPlan.findings,
-          ],
-          installPlan,
-        })
-        const reusableTargetPlan = createStrictAddLockfileReusePlan({
-          installPlan: planWithInitialFindings,
-          lockfileData: lockfilePlan.lockfileData,
-        })
-        const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
-        const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
-        const installPlanWithFindings = createRegistryInstallPlanWithFindings({
-          findings,
-          installPlan: reusableTargetPlan,
-        })
+        const createStrictLocalRegistryAddPlan = ({
+          executedDependencyCommands = [],
+          failedDependencyCommands = [],
+        }: {
+          executedDependencyCommands?: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"]
+          failedDependencyCommands?: ReturnType<typeof createDependencyInstallPlan>["executionPlan"]["failedCommands"]
+        } = {}) => {
+          const dependencyInstallTarget = resolveDependencyInstallTarget({
+            consumerRoot: cwd,
+            packageJsonPath: options.packageJson,
+          })
+          const installPlan = createRegistryInstallPlan({
+            config: configPlan.config,
+            consumerRoot: cwd,
+            dependencyPackageJsonPath: dependencyInstallTarget.absolutePath,
+            registrySource: advisoryRegistrySource,
+            requestedItems: explicitRequestedItems,
+            sourceRoot,
+          })
+          const planWithInitialFindings = createRegistryInstallPlanWithFindings({
+            findings: [
+              ...configPlan.findings,
+              ...lockfilePlan.findings,
+              ...componentPacketFindings,
+              ...installPlan.findings,
+            ],
+            installPlan,
+          })
+          const reusableTargetPlan = createStrictAddLockfileReusePlan({
+            installPlan: planWithInitialFindings,
+            lockfileData: lockfilePlan.lockfileData,
+          })
+          const strictBlockerFindings = createStrictAddBlockerFindings(reusableTargetPlan)
+          const findings = [...reusableTargetPlan.findings, ...strictBlockerFindings]
+          const installPlanWithFindings = createRegistryInstallPlanWithFindings({
+            findings,
+            installPlan: reusableTargetPlan,
+          })
+          const dependencyInstallPlan = createDependencyInstallPlan({
+            consumerRoot: cwd,
+            dependencyPlan: installPlanWithFindings.dependencyPlan,
+            dependencyPolicy,
+            executedCommands: executedDependencyCommands,
+            failedCommands: failedDependencyCommands,
+            installDependencies: options.installDependencies,
+            nonInteractive: options.json,
+            packageManager: options.packageManager,
+            targetManifest: dependencyInstallTarget,
+          })
+
+          return {
+            dependencyInstallPlan,
+            findings,
+            installPlanWithFindings,
+            strictBlockerFindings,
+          }
+        }
+        const executedDependencyCommands: ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"] = []
+        let failedDependencyCommands: ReturnType<
+          typeof createDependencyInstallPlan
+        >["executionPlan"]["failedCommands"] = []
+        let { dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
+          createStrictLocalRegistryAddPlan()
+
+        if (
+          hasOnlyDependencyStrictAddBlockers(strictBlockerFindings) &&
+          dependencyInstallPlan.executionPlan.mode === DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE
+        ) {
+          const plannedDependencyCommands = dependencyInstallPlan.recommendedCommands
+          const dependencyExecutionResult = await executeDependencyInstallCommands({
+            commands: plannedDependencyCommands,
+            consumerRoot: cwd,
+          })
+
+          executedDependencyCommands.push(...dependencyExecutionResult.executedCommands)
+          failedDependencyCommands = dependencyExecutionResult.failedCommands
+
+          dependencyPolicy = createDependencyInstallPolicyPlan({
+            configPolicy: configPlan.config.dependencies.policy,
+            configSource: configPlan.configSource,
+            packageManagerExecution:
+              failedDependencyCommands.length > 0
+                ? DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__FAILED
+                : DEPENDENCY_INSTALL_PACKAGE_MANAGER_EXECUTION__COMPLETED,
+            packageManagerWrites:
+              executedDependencyCommands.length > 0 ||
+              failedDependencyCommands.some((command) => command.packageManagerWrites),
+            policyOverride: options.dependencyPolicy,
+          })
+          ;({ dependencyInstallPlan, findings, installPlanWithFindings, strictBlockerFindings } =
+            createStrictLocalRegistryAddPlan({
+              executedDependencyCommands,
+              failedDependencyCommands,
+            }))
+
+          if (failedDependencyCommands.length > 0) {
+            const failedCommand = failedDependencyCommands[0]
+            const failureFinding: TInstallPlanFinding = {
+              code: INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
+              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Codon source files or lockfile records were written.`,
+              severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+            }
+
+            findings = [...findings, failureFinding]
+            strictBlockerFindings = [...strictBlockerFindings, failureFinding]
+            installPlanWithFindings = createRegistryInstallPlanWithFindings({
+              findings,
+              installPlan: installPlanWithFindings,
+            })
+          }
+        }
 
         if (strictBlockerFindings.length > 0) {
+          const packageManagerWrites =
+            executedDependencyCommands.length > 0 ||
+            failedDependencyCommands.some((command) => command.packageManagerWrites)
           const blockedResult = addStrictSchema.parse({
             applied: false,
             componentPackets,
             cwd,
+            dependencyInstallPlan,
             effects: createAddStrictEffects({
               applied: false,
+              installsDependencies: packageManagerWrites,
               installPlan: installPlanWithFindings,
             }),
             findings,
@@ -391,6 +552,7 @@ export const add = new Command()
 
         const lockfileData = await writeStrictRegistryInstall({
           consumerRoot: cwd,
+          installedDependencies: executedDependencyCommands.flatMap((command) => command.dependencies),
           installPlan: installPlanWithFindings,
           lockfileData: lockfilePlan.lockfileData,
           sourceRoot,
@@ -403,8 +565,10 @@ export const add = new Command()
           applied: true,
           componentPackets,
           cwd,
+          dependencyInstallPlan,
           effects: createAddStrictEffects({
             applied: true,
+            installsDependencies: executedDependencyCommands.length > 0,
             installPlan: installPlanWithFindings,
             writtenFileCount,
           }),
@@ -561,7 +725,7 @@ export const add = new Command()
             if (fileExists) {
               const fileContents = await fs.readFile(helperFilePath, "utf-8")
 
-              if (!AMINO_HELPER_FILE_MARKER_REGEX.test(fileContents)) {
+              if (!HELPER_FILE_MARKER_REGEX.test(fileContents)) {
                 await fs.appendFile(helperFilePath, `\n ${helper.file.content}`)
               }
             } else {

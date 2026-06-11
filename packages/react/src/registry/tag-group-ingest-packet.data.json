@@ -1,7 +1,7 @@
 {
   "name": "tag-group",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#taggroup-next-candidate-planning-checkpoint-2026-06-02",
   "files": [
@@ -144,17 +144,17 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-control-background",
-        "--aui-control-border",
-        "--aui-control-foreground",
-        "--aui-control-placeholder",
-        "--aui-control-hover-background",
-        "--aui-control-pressed-background",
-        "--aui-control-selected-background",
-        "--aui-control-selected-foreground",
-        "--aui-state-success",
-        "--aui-state-warning",
-        "--aui-state-danger"
+        "--cui-control-background",
+        "--cui-control-border",
+        "--cui-control-foreground",
+        "--cui-control-placeholder",
+        "--cui-control-hover-background",
+        "--cui-control-pressed-background",
+        "--cui-control-selected-background",
+        "--cui-control-selected-foreground",
+        "--cui-state-success",
+        "--cui-state-warning",
+        "--cui-state-danger"
       ],
       "notes": ["These variables are already part of the package default theme contract."]
     },
@@ -169,20 +169,20 @@
         "--focus-ring-color",
         "--border_radius_1",
         "--shadow_1",
-        "--aui-tag-primary-hover-background",
-        "--aui-tag-primary-pressed-background",
-        "--aui-tag-primary-selected-background",
-        "--aui-tag-primary-selected-border",
-        "--aui-tag-primary-selected-foreground",
-        "--aui-tag-primary-selected-hover-background",
-        "--aui-tag-primary-selected-pressed-background",
-        "--aui-tag-quintenary-hover-background",
-        "--aui-tag-quintenary-pressed-background",
-        "--aui-tag-quintenary-selected-background",
-        "--aui-tag-quintenary-selected-border",
-        "--aui-tag-quintenary-selected-foreground",
-        "--aui-tag-quintenary-selected-hover-background",
-        "--aui-tag-quintenary-selected-pressed-background"
+        "--cui-tag-primary-hover-background",
+        "--cui-tag-primary-pressed-background",
+        "--cui-tag-primary-selected-background",
+        "--cui-tag-primary-selected-border",
+        "--cui-tag-primary-selected-foreground",
+        "--cui-tag-primary-selected-hover-background",
+        "--cui-tag-primary-selected-pressed-background",
+        "--cui-tag-quintenary-hover-background",
+        "--cui-tag-quintenary-pressed-background",
+        "--cui-tag-quintenary-selected-background",
+        "--cui-tag-quintenary-selected-border",
+        "--cui-tag-quintenary-selected-foreground",
+        "--cui-tag-quintenary-selected-hover-background",
+        "--cui-tag-quintenary-selected-pressed-background"
       ],
       "files": [
         {
@@ -208,14 +208,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side TagGroup proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and package export type surface."]

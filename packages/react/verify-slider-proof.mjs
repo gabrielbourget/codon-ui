@@ -61,15 +61,15 @@ const requiredStyleSelectors = [
   ".slider__thumb--applyFocusStyle",
 ]
 const requiredCompatibilityAliases = [
-  "--border_radius_1: var(--aui-radius-1)",
-  "--shadow_1: var(--aui-shadow-1)",
-  "--neutral_6: var(--aui-neutral-600)",
-  "--focus-ring-color: var(--aui-focus-ring)",
-  "--bgColorTransition: var(--aui-transition-background-color)",
-  "--aui-color-primary-500",
-  "--aui-color-primary-600",
-  "--aui-color-quintenary-500",
-  "--aui-color-quintenary-600",
+  "--border_radius_1: var(--cui-radius-1)",
+  "--shadow_1: var(--cui-shadow-1)",
+  "--neutral_6: var(--cui-neutral-600)",
+  "--focus-ring-color: var(--cui-focus-ring)",
+  "--bgColorTransition: var(--cui-transition-background-color)",
+  "--cui-color-primary-500",
+  "--cui-color-primary-600",
+  "--cui-color-quintenary-500",
+  "--cui-color-quintenary-600",
 ]
 
 assert(sliderSource.startsWith('"use client"'), "Slider must preserve the client component boundary")
@@ -111,9 +111,9 @@ requiredStyleSelectors.forEach((selector) => {
 requiredCompatibilityAliases.forEach((cssVariable) => {
   assert(compatibilityBridgeSource.includes(cssVariable), `Slider compatibility bridge must define ${cssVariable}`)
 })
-assert(stylesSource.includes("var(--aui-control-border)"), "Slider styles must read the default control border role")
+assert(stylesSource.includes("var(--cui-control-border)"), "Slider styles must read the default control border role")
 assert(
-  stylesSource.includes("var(--aui-control-foreground)"),
+  stylesSource.includes("var(--cui-control-foreground)"),
   "Slider styles must read the default control foreground role",
 )
 
@@ -133,7 +133,7 @@ assert(!sliderIndexSource.includes("toCSSSize"), "Slider index must not export l
 
 assert(packet.name === "slider", "Slider packet must describe the slider item")
 assert(packet.type === "component", "Slider packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Slider packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Slider packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Slider packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#slider-next-candidate-planning-checkpoint"),
@@ -194,8 +194,8 @@ const defaultContractRequirement = packet.themeRequirements.find(
 )
 assert(defaultContractRequirement, "Slider packet must record default theme contract pressure")
 assert(
-  defaultContractRequirement.cssVariables.includes("--aui-control-border") &&
-    defaultContractRequirement.cssVariables.includes("--aui-control-foreground"),
+  defaultContractRequirement.cssVariables.includes("--cui-control-border") &&
+    defaultContractRequirement.cssVariables.includes("--cui-control-foreground"),
   "Slider packet must record default control role pressure",
 )
 
@@ -230,11 +230,11 @@ assert(
   "Slider packet must record the Text component import rewrite",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Slider packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Slider packet must point at package typecheck verification",
 )
 assert(

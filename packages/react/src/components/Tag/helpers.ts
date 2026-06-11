@@ -25,8 +25,8 @@ type TTagCalibration = {
   tagStyle: TTagCSSVariables
 }
 
-const DEFAULT_ACTIVE_BACKGROUND_COLOR = "var(--aui-control-selected-background)"
-const DEFAULT_INACTIVE_BACKGROUND_COLOR = "var(--aui-control-background)"
+const DEFAULT_ACTIVE_BACKGROUND_COLOR = "var(--cui-control-selected-background)"
+const DEFAULT_INACTIVE_BACKGROUND_COLOR = "var(--cui-control-background)"
 
 export type TCommonTagProps = TTagNativeProps & {
   height?: string | number

@@ -94,18 +94,18 @@ const expectedPublicExports = [
   "resolveSortAndFilterPanelLabels",
 ]
 const expectedThemeVariables = [
-  "--aui-background",
-  "--aui-border",
-  "--aui-border-muted",
-  "--aui-control-hover-background",
-  "--aui-control-selected-foreground",
-  "--aui-foreground",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-surface-muted",
-  "--aui-transition-background-color",
+  "--cui-background",
+  "--cui-border",
+  "--cui-border-muted",
+  "--cui-control-hover-background",
+  "--cui-control-selected-foreground",
+  "--cui-foreground",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-surface-muted",
+  "--cui-transition-background-color",
 ]
 
 const sortAndFilterPanelSource = readRequiredText(path.join(sortAndFilterPanelRoot, "SortAndFilterPanel.tsx"))
@@ -186,17 +186,17 @@ assert(
 )
 assert(!receivedSourceText.includes("@wavemap/api-contracts"), "Wavemap API contracts must not enter source")
 assert(!receivedSourceText.includes("motion/react"), "SortAndFilterPanel must not import Motion")
-assert(receivedStyleText.includes("var(--aui-border-muted)"), "SortAndFilterPanel CSS must use Amino border tokens")
-assert(receivedStyleText.includes("var(--aui-space-2)"), "SortAndFilterPanel CSS must use Amino spacing tokens")
+assert(receivedStyleText.includes("var(--cui-border-muted)"), "SortAndFilterPanel CSS must use Amino border tokens")
+assert(receivedStyleText.includes("var(--cui-space-2)"), "SortAndFilterPanel CSS must use Amino spacing tokens")
 
 expectedThemeVariables.forEach((cssVariable) => {
   assert(themeCSS.includes(`${cssVariable}:`), `theme.css must declare ${cssVariable}`)
 })
-assert(actionColors.includes("--aui-color-primary-500"), "action-colors.css must declare --aui-color-primary-500")
+assert(actionColors.includes("--cui-color-primary-500"), "action-colors.css must declare --cui-color-primary-500")
 
 assert(packet.name === "sort-and-filter-panel", "SortAndFilterPanel packet must describe the public item")
 assert(packet.type === "component", "SortAndFilterPanel packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "SortAndFilterPanel packet must target @amino-ui/react")
+assert(packet.sourcePackage === "@codon-ui/react", "SortAndFilterPanel packet must target @codon-ui/react")
 assert(packet.sourceRepository === "wavemap", "SortAndFilterPanel packet must record Wavemap source")
 assert(packet.files.length === requiredPackageFileSources.length, "SortAndFilterPanel packet must list approved files")
 requiredPackageFileSources.forEach((sourcePath) => {
@@ -236,7 +236,7 @@ assert(packet.runtimeDependencies.classnames === "^2.3.2", "packet must declare 
 assert(!packet.runtimeDependencies.motion, "packet must not declare Motion")
 assert(
   packet.themeRequirements.some((requirement) =>
-    ["--aui-color-primary-500", ...expectedThemeVariables].every((cssVariable) =>
+    ["--cui-color-primary-500", ...expectedThemeVariables].every((cssVariable) =>
       requirement.cssVariables.includes(cssVariable),
     ),
   ),
