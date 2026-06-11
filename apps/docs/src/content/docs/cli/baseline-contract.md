@@ -111,9 +111,16 @@ Current `init --json` is the strict new-contract seed path. It writes only `codo
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
 overwritten. `init --defaults --json` remains an explicit alias for this same seed path.
 
+`init --setup-cli --json` keeps the same config and lockfile seed behavior, then adds a local CLI shortcut to
+`package.json` when it can do so without overwriting consumer intent. It writes `scripts.cui = "cui"` and adds
+`@codon-ui/cli` to `devDependencies` only when the package is not already declared in `dependencies` or
+`devDependencies`. It does not run `npm`, `pnpm`, `yarn`, or `bun`; consumers install the manifest change through their
+normal package-manager workflow.
+
 Current `init --dry-run --json` previews the same strict default seed without writing files. It reports actual effects as
 no-write and reports config/lockfile `wouldEffects` as `would-write`, `blocked`, or `not-written` depending on whether the
-consumer is greenfield, already initialized, or partially initialized.
+consumer is greenfield, already initialized, or partially initialized. With `--setup-cli`, dry-run also reports
+`wouldEffects.packageJson` and a `cliShortcut` block for the local `pnpm cui ...` shortcut.
 
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 

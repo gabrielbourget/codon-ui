@@ -5,7 +5,7 @@ import {
   CONSUMER_ADVISORY_SEVERITY__WARNING,
   CONSUMER_PACKAGE_MANAGER__UNKNOWN,
 } from "./constants"
-import { createDefaultConsumerConfig, type TConsumerInitOptions } from "./initSeed"
+import { createConsumerInitCliShortcutPlan, createDefaultConsumerConfig, type TConsumerInitOptions } from "./initSeed"
 import { resolveConsumerLayout } from "./layout"
 import { getConsumerProjectContext } from "./projectContext"
 import { consumerInitAdvisorySchema, type TConsumerInitAdvisory } from "./schema"
@@ -14,7 +14,12 @@ export const createConsumerInitAdvisory = (cwd: string, options: TConsumerInitOp
   const project = getConsumerProjectContext(cwd)
   const proposedConfig = createDefaultConsumerConfig(options)
   const layout = resolveConsumerLayout(proposedConfig)
-  const findings = [...layout.findings]
+  const cliShortcutPlan = createConsumerInitCliShortcutPlan({
+    cwd,
+    mode: "advisory",
+    setupCli: options.setupCli,
+  })
+  const findings = [...layout.findings, ...cliShortcutPlan.findings]
 
   if (project.packageManager === CONSUMER_PACKAGE_MANAGER__UNKNOWN) {
     findings.push({
@@ -42,6 +47,7 @@ export const createConsumerInitAdvisory = (cwd: string, options: TConsumerInitOp
 
   return consumerInitAdvisorySchema.parse({
     advisory: true,
+    cliShortcut: cliShortcutPlan.cliShortcut,
     cwd,
     findings,
     packageManager: project.packageManager,
