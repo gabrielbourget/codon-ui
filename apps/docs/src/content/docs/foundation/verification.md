@@ -64,6 +64,9 @@ Run that command from `../codon-ui-consumer-fixtures`.
 Use [Fixture Evidence](/cli/fixture-evidence/) for the expected proof-packet fields, scenario matrix, and non-mutation
 assertions.
 
+Use [Private CLI Publish](/cli/private-publish/) when the CLI change needs to become a restricted npm package for
+consumer repos.
+
 ## Documentation
 
 ```sh

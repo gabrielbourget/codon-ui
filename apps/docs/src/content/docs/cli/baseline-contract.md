@@ -84,6 +84,9 @@ Actual publish remains a manual final gate:
 pnpm -F @codon-ui/cli publish --access restricted
 ```
 
+Use [Private CLI Publish](/cli/private-publish/) for the full auth, versioning, preflight, publish, and post-publish
+smoke SOP.
+
 ## Advisory Mode
 
 Renovated command paths use `--advisory` as the shared non-mutating diagnostics mode.
