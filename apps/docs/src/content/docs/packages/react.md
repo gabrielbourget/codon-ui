@@ -28,6 +28,29 @@ The active React manifest currently contains 73 items: 52 components, 9 support 
 `@codon-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
 not drift from the manifest.
 
+## Test Posture
+
+Package-side component tests live next to received source under `src/components/**/__tests__`. The current reusable
+component surface has package tests for the active manifest components, including the Table/filtering/sort graph and the
+composed `SortAndFilterPanel` workflow.
+
+The migrated tests intentionally stop at reusable package contracts: styling hooks, accessibility labels, emitted query
+or sort payloads, source-receipt boundaries, registry manifests, and package exports. Wavemap tests for app-specific
+forms, providers, domain tables, media/upload flows, galleries, sheets, nav surfaces, saved views, and route/query-state
+adapters remain consumer-owned and are not Codon package tests.
+
+Use the focused package gate when touching React source:
+
+```sh
+pnpm -F @codon-ui/react test
+```
+
+Use the root verifier before publishing or after changes that can affect the CLI/package contract:
+
+```sh
+pnpm verify:tests
+```
+
 ## Distribution Contract
 
 For the first private npm proof, `@codon-ui/react` remains the canonical source identity but not the runtime source
