@@ -2,11 +2,11 @@
   height: auto;
   width: auto;
   display: flex;
-  background: var(--aui-control-background);
+  background: var(--cui-control-background);
 }
 
 .select--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 .select--round {
   border-radius: 10000px;
@@ -17,22 +17,22 @@
   width: 100%;
   display: grid;
   place-items: center;
-  padding: var(--aui-space-1);
+  padding: var(--cui-space-1);
 }
 
 .select__iconColor {
-  stroke: var(--aui-control-foreground);
+  stroke: var(--cui-control-foreground);
 }
 
 .select[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 .select[data-disabled]:hover {
   cursor: not-allowed;
 }
 
 .selectedItem[data-placeholder] {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
   font-style: italic;
   opacity: 1;
 }
@@ -43,10 +43,10 @@
 }
 
 .popover[data-entering] {
-  animation: var(--aui-animation-fade-in);
+  animation: var(--cui-animation-fade-in);
 }
 .popover[data-exiting] {
-  animation: var(--aui-animation-fade-out);
+  animation: var(--cui-animation-fade-out);
 }
 
 .optionsList {
@@ -55,13 +55,13 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  padding: var(--aui-space-1);
-  background-color: var(--aui-surface);
-  border-radius: var(--aui-radius-1);
-  box-shadow: var(--aui-shadow-1);
+  padding: var(--cui-space-1);
+  background-color: var(--cui-surface);
+  border-radius: var(--cui-radius-1);
+  box-shadow: var(--cui-shadow-1);
   overflow-y: scroll;
 }
 
 .optionsList[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }

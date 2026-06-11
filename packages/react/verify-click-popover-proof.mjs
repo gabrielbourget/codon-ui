@@ -61,23 +61,23 @@ const requiredStyleSelectors = [
   ".clickPopover__dialog",
 ]
 const requiredDefaultVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-focus-ring",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-surface",
-  "--aui-surface-foreground",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-focus-ring",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-surface",
+  "--cui-surface-foreground",
 ]
 const requiredActionVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 const clickPopoverSource = readRequiredText(clickPopoverSourcePath)
@@ -175,7 +175,7 @@ assert(
 
 assert(packet.name === "click-popover", "ClickPopover packet must describe the click-popover item")
 assert(packet.type === "component", "ClickPopover packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "ClickPopover packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "ClickPopover packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "ClickPopover packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#clickpopover-next-candidate-planning-checkpoint"),
@@ -233,14 +233,14 @@ assert(packet.peerDependencies["react-dom"], "ClickPopover packet must declare R
 assert(packet.runtimeDependencies.classnames === "^2.3.2", "ClickPopover packet must declare classnames")
 assert(
   packet.themeRequirements.some((requirement) =>
-    ["--aui-space-2", "--aui-radius-1", "--aui-focus-ring", "--aui-shadow-1"].every((cssVariable) =>
+    ["--cui-space-2", "--cui-radius-1", "--cui-focus-ring", "--cui-shadow-1"].every((cssVariable) =>
       requirement.cssVariables.includes(cssVariable),
     ),
   ),
   "ClickPopover packet must record default theme variables",
 )
 assert(
-  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--aui-color-quintenary-500")),
+  packet.themeRequirements.some((requirement) => requirement.cssVariables.includes("--cui-color-quintenary-500")),
   "ClickPopover packet must record action color variables",
 )
 assert(

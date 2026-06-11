@@ -4,7 +4,7 @@
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .breadcrumb {
@@ -16,7 +16,7 @@
 .breadcrumb a[data-disabled="true"],
 .breadcrumb [role="link"][data-disabled="true"],
 .breadcrumb button[data-disabled="true"] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
   pointer-events: none;
   cursor: not-allowed;
 }
@@ -31,23 +31,23 @@
   max-width: 250px;
 
   &[data-entering] {
-    animation: var(--aui-animation-fade-in);
+    animation: var(--cui-animation-fade-in);
   }
   &[data-exiting] {
-    animation: var(--aui-animation-fade-out);
+    animation: var(--cui-animation-fade-out);
   }
 }
 
 .breadcrumbsList {
   height: auto;
   width: 100%;
-  background-color: var(--aui-surface);
-  padding: var(--aui-space-1);
-  border-radius: var(--aui-radius-1);
-  box-shadow: var(--aui-shadow-1);
+  background-color: var(--cui-surface);
+  padding: var(--cui-space-1);
+  border-radius: var(--cui-radius-1);
+  box-shadow: var(--cui-shadow-1);
 
   &[data-focused] {
-    outline: 1.5px solid var(--aui-focus-ring);
+    outline: 1.5px solid var(--cui-focus-ring);
     outline-offset: 1.5px;
   }
 }

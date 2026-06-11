@@ -1,25 +1,25 @@
 .input {
   height: auto;
   width: auto;
-  padding: var(--aui-space-1);
-  border: 1px solid var(--aui-control-border);
-  transition: var(--aui-transition-border-color);
-  background-color: var(--aui-control-background);
-  color: var(--aui-control-foreground);
+  padding: var(--cui-space-1);
+  border: 1px solid var(--cui-control-border);
+  transition: var(--cui-transition-border-color);
+  background-color: var(--cui-control-background);
+  color: var(--cui-control-foreground);
 }
 
 .input--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 .input--round {
   border-radius: 50%;
-  padding: var(--aui-space-1) 7px;
+  padding: var(--cui-space-1) 7px;
 }
 
 .input--applyFocusStyle[data-focused],
 .input--applyFocusStyle:focus,
 .input--applyFocusStyle:focus-visible {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .input--noFocusStyle[data-focused],
@@ -34,25 +34,25 @@
 }
 
 .input::placeholder {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
   font-style: italic;
   font-size: 12px;
   opacity: 1;
 }
 
 .input[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 .input[data-disabled]:hover {
   cursor: not-allowed;
 }
 
 .input--errorState {
-  border: 1px solid var(--aui-state-danger);
+  border: 1px solid var(--cui-state-danger);
 }
 .input--warningState {
-  border: 1px solid var(--aui-state-warning);
+  border: 1px solid var(--cui-state-warning);
 }
 .input--successState {
-  border: 1px solid var(--aui-state-success);
+  border: 1px solid var(--cui-state-success);
 }

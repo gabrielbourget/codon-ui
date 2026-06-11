@@ -1,5 +1,6 @@
-export const AMINO_HELPER_FILE_MARKER_REGEX = /^\s*\/\/(\s*)amino-ui-helper-file-marker\s*$/gm
-export const DEFAULT_COMPONENT_CONFIG_FILE = "amino-ui.config.json"
+export const CODON_UI_HELPER_FILE_MARKER = "codon-ui-helper-file-marker"
+export const HELPER_FILE_MARKER_REGEX = /^\s*\/\/(\s*)codon-ui-helper-file-marker\s*$/m
+export const DEFAULT_COMPONENT_CONFIG_FILE = "codon-ui.config.json"
 
 export const DEFAULT_COMPONENTS_PATH = "@/components"
 export const DEFAULT_ICONS_PATH = "@/components/icons"

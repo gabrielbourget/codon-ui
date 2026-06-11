@@ -31,7 +31,7 @@ const styleGen = (props: TLineSegmentProps): CSSProperties => {
     height = 50,
     width = 50,
     size = 2.5,
-    color = "var(--aui-border)",
+    color = "var(--cui-border)",
     direction = LINE_SEGMENT_DIRECTION__HORIZONTAL,
   } = props
 

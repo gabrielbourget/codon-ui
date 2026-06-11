@@ -6,8 +6,8 @@
   display: flex;
   flex-direction: column;
   transition: all 350ms ease-in-out;
-  background: var(--aui-surface);
-  z-index: calc(var(--aui-z-index-panel) + var(--aui-z-index-content-offset));
+  background: var(--cui-surface);
+  z-index: calc(var(--cui-z-index-panel) + var(--cui-z-index-content-offset));
 }
 
 @media (width < 500px) {
@@ -20,7 +20,7 @@
   position: fixed;
   inset: 0;
   background-color: rgb(0, 0, 0, 30%);
-  z-index: calc(var(--aui-z-index-panel) + var(--aui-z-index-overlay-offset));
+  z-index: calc(var(--cui-z-index-panel) + var(--cui-z-index-overlay-offset));
 }
 
 .panel__overlay[data-entering] {
@@ -36,11 +36,11 @@
 }
 
 .panel--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .panel--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .panel--round {

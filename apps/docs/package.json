@@ -1,5 +1,5 @@
 {
-  "name": "@amino-ui/docs",
+  "name": "@codon-ui/docs",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -18,7 +18,7 @@
     "astro": "6.2.2"
   },
   "devDependencies": {
-    "@amino-ui/shared-utils": "workspace:*",
+    "@codon-ui/shared-utils": "workspace:*",
     "prettier": "^3.8.1",
     "typescript": "^5.4.4"
   }

@@ -1,6 +1,6 @@
 ---
 title: Source Graph
-description: Canonical reusable React component source in Amino UI.
+description: Canonical reusable React component source in Codon UI.
 ---
 
 `packages/react` is the canonical local source receiver for the reusable React component graph extracted from Wavemap.
@@ -54,7 +54,7 @@ Accepted component source should satisfy these conditions:
 
 ## Acceptance Checklist
 
-Use this checklist when a reusable graph moves from Wavemap evidence into Amino UI source.
+Use this checklist when a reusable graph moves from Wavemap evidence into Codon UI source.
 
 ### Before Receipt
 
@@ -125,7 +125,7 @@ distributes source slices:
 3. The install plan resolves target paths for the consumer layout.
 4. Dry-run/advisory modes report the plan without writes.
 5. Strict add writes source and support files, rewrites package-local relative imports to installed relative paths, and
-   records file hashes in `amino-ui.lock.json`.
+   records file hashes in `codon-ui.lock.json`.
 
 ## Current Non-Goals
 

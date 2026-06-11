@@ -16,41 +16,41 @@
 }
 
 .checkbox[data-hovered] .shape--fallback {
-  background-color: var(--aui-control-hover-background);
+  background-color: var(--cui-control-hover-background);
 }
 .checkbox[data-hovered] .shape--primary {
-  background-color: var(--aui-color-primary-100);
+  background-color: var(--cui-color-primary-100);
 }
 .checkbox[data-hovered] .shape--secondary {
-  background-color: var(--aui-color-secondary-100);
+  background-color: var(--cui-color-secondary-100);
 }
 .checkbox[data-hovered] .shape--tertiary {
-  background-color: var(--aui-color-tertiary-100);
+  background-color: var(--cui-color-tertiary-100);
 }
 .checkbox[data-hovered] .shape--quaternary {
-  background-color: var(--aui-color-quaternary-100);
+  background-color: var(--cui-color-quaternary-100);
 }
 .checkbox[data-hovered] .shape--quintenary {
-  background-color: var(--aui-color-quintenary-100);
+  background-color: var(--cui-color-quintenary-100);
 }
 
 .checkbox[data-pressed] .shape--fallback {
-  background-color: var(--aui-control-pressed-background);
+  background-color: var(--cui-control-pressed-background);
 }
 .checkbox[data-pressed] .shape--primary {
-  background-color: var(--aui-color-primary-200);
+  background-color: var(--cui-color-primary-200);
 }
 .checkbox[data-pressed] .shape--secondary {
-  background-color: var(--aui-color-secondary-200);
+  background-color: var(--cui-color-secondary-200);
 }
 .checkbox[data-pressed] .shape--tertiary {
-  background-color: var(--aui-color-tertiary-200);
+  background-color: var(--cui-color-tertiary-200);
 }
 .checkbox[data-pressed] .shape--quaternary {
-  background-color: var(--aui-color-quaternary-200);
+  background-color: var(--cui-color-quaternary-200);
 }
 .checkbox[data-pressed] .shape--quintenary {
-  background-color: var(--aui-color-quintenary-200);
+  background-color: var(--cui-color-quintenary-200);
 }
 
 .checkbox[data-focused] .shape--applyFocusStyle {
@@ -68,77 +68,77 @@
 }
 
 .checkbox[data-selected][data-hovered] .shape--primary {
-  background-color: var(--aui-action-primary-background-hover);
+  background-color: var(--cui-action-primary-background-hover);
 }
 .checkbox[data-selected][data-hovered] .shape--fallback {
-  background-color: var(--aui-control-selected-background-hover);
+  background-color: var(--cui-control-selected-background-hover);
 }
 .checkbox[data-selected][data-hovered] .shape--secondary {
-  background-color: var(--aui-action-secondary-background-hover);
+  background-color: var(--cui-action-secondary-background-hover);
 }
 .checkbox[data-selected][data-hovered] .shape--tertiary {
-  background-color: var(--aui-action-tertiary-background-hover);
+  background-color: var(--cui-action-tertiary-background-hover);
 }
 .checkbox[data-selected][data-hovered] .shape--quaternary {
-  background-color: var(--aui-action-quaternary-background-hover);
+  background-color: var(--cui-action-quaternary-background-hover);
 }
 .checkbox[data-selected][data-hovered] .shape--quintenary {
-  background-color: var(--aui-action-quintenary-background-hover);
+  background-color: var(--cui-action-quintenary-background-hover);
 }
 
 .checkbox[data-selected][data-pressed] .shape--fallback {
-  background-color: var(--aui-control-selected-background-pressed);
+  background-color: var(--cui-control-selected-background-pressed);
 }
 .checkbox[data-selected][data-pressed] .shape--primary {
-  background-color: var(--aui-action-primary-background-pressed);
+  background-color: var(--cui-action-primary-background-pressed);
 }
 .checkbox[data-selected][data-pressed] .shape--secondary {
-  background-color: var(--aui-action-secondary-background-pressed);
+  background-color: var(--cui-action-secondary-background-pressed);
 }
 .checkbox[data-selected][data-pressed] .shape--tertiary {
-  background-color: var(--aui-action-tertiary-background-pressed);
+  background-color: var(--cui-action-tertiary-background-pressed);
 }
 .checkbox[data-selected][data-pressed] .shape--quaternary {
-  background-color: var(--aui-action-quaternary-background-pressed);
+  background-color: var(--cui-action-quaternary-background-pressed);
 }
 .checkbox[data-selected][data-pressed] .shape--quintenary {
-  background-color: var(--aui-action-quintenary-background-pressed);
+  background-color: var(--cui-action-quintenary-background-pressed);
 }
 
 .checkbox[data-selected] .shape--fallback {
-  --checkbox-selected-foreground: var(--aui-control-selected-foreground);
-  background-color: var(--aui-control-selected-background);
-  border-color: var(--aui-control-selected-background);
+  --checkbox-selected-foreground: var(--cui-control-selected-foreground);
+  background-color: var(--cui-control-selected-background);
+  border-color: var(--cui-control-selected-background);
 }
 
 .checkbox[data-selected] .shape--primary {
-  --checkbox-selected-foreground: var(--aui-action-primary-foreground);
-  background-color: var(--aui-action-primary-background);
-  border-color: var(--aui-action-primary-border);
+  --checkbox-selected-foreground: var(--cui-action-primary-foreground);
+  background-color: var(--cui-action-primary-background);
+  border-color: var(--cui-action-primary-border);
 }
 
 .checkbox[data-selected] .shape--secondary {
-  --checkbox-selected-foreground: var(--aui-action-secondary-foreground);
-  background-color: var(--aui-action-secondary-background);
-  border-color: var(--aui-action-secondary-border);
+  --checkbox-selected-foreground: var(--cui-action-secondary-foreground);
+  background-color: var(--cui-action-secondary-background);
+  border-color: var(--cui-action-secondary-border);
 }
 
 .checkbox[data-selected] .shape--tertiary {
-  --checkbox-selected-foreground: var(--aui-action-tertiary-foreground);
-  background-color: var(--aui-action-tertiary-background);
-  border-color: var(--aui-action-tertiary-border);
+  --checkbox-selected-foreground: var(--cui-action-tertiary-foreground);
+  background-color: var(--cui-action-tertiary-background);
+  border-color: var(--cui-action-tertiary-border);
 }
 
 .checkbox[data-selected] .shape--quaternary {
-  --checkbox-selected-foreground: var(--aui-action-quaternary-foreground);
-  background-color: var(--aui-action-quaternary-background);
-  border-color: var(--aui-action-quaternary-border);
+  --checkbox-selected-foreground: var(--cui-action-quaternary-foreground);
+  background-color: var(--cui-action-quaternary-background);
+  border-color: var(--cui-action-quaternary-border);
 }
 
 .checkbox[data-selected] .shape--quintenary {
-  --checkbox-selected-foreground: var(--aui-action-quintenary-foreground);
-  background-color: var(--aui-action-quintenary-background);
-  border-color: var(--aui-action-quintenary-border);
+  --checkbox-selected-foreground: var(--cui-action-quintenary-foreground);
+  background-color: var(--cui-action-quintenary-background);
+  border-color: var(--cui-action-quintenary-border);
 }
 
 .checkbox[data-selected] svg {
@@ -146,45 +146,45 @@
 }
 
 .checkbox[data-indeterminate] .shape--fallback {
-  --checkbox-selected-foreground: var(--aui-control-selected-foreground);
-  background-color: var(--aui-control-selected-background);
-  border-color: var(--aui-control-selected-background);
+  --checkbox-selected-foreground: var(--cui-control-selected-foreground);
+  background-color: var(--cui-control-selected-background);
+  border-color: var(--cui-control-selected-background);
 }
 
 .checkbox[data-indeterminate] .shape--primary {
-  --checkbox-selected-foreground: var(--aui-action-primary-foreground);
-  background-color: var(--aui-action-primary-background);
-  border-color: var(--aui-action-primary-border);
+  --checkbox-selected-foreground: var(--cui-action-primary-foreground);
+  background-color: var(--cui-action-primary-background);
+  border-color: var(--cui-action-primary-border);
 }
 
 .checkbox[data-indeterminate] .shape--secondary {
-  --checkbox-selected-foreground: var(--aui-action-secondary-foreground);
-  background-color: var(--aui-action-secondary-background);
-  border-color: var(--aui-action-secondary-border);
+  --checkbox-selected-foreground: var(--cui-action-secondary-foreground);
+  background-color: var(--cui-action-secondary-background);
+  border-color: var(--cui-action-secondary-border);
 }
 
 .checkbox[data-indeterminate] .shape--tertiary {
-  --checkbox-selected-foreground: var(--aui-action-tertiary-foreground);
-  background-color: var(--aui-action-tertiary-background);
-  border-color: var(--aui-action-tertiary-border);
+  --checkbox-selected-foreground: var(--cui-action-tertiary-foreground);
+  background-color: var(--cui-action-tertiary-background);
+  border-color: var(--cui-action-tertiary-border);
 }
 
 .checkbox[data-indeterminate] .shape--quaternary {
-  --checkbox-selected-foreground: var(--aui-action-quaternary-foreground);
-  background-color: var(--aui-action-quaternary-background);
-  border-color: var(--aui-action-quaternary-border);
+  --checkbox-selected-foreground: var(--cui-action-quaternary-foreground);
+  background-color: var(--cui-action-quaternary-background);
+  border-color: var(--cui-action-quaternary-border);
 }
 
 .checkbox[data-indeterminate] .shape--quintenary {
-  --checkbox-selected-foreground: var(--aui-action-quintenary-foreground);
-  background-color: var(--aui-action-quintenary-background);
-  border-color: var(--aui-action-quintenary-border);
+  --checkbox-selected-foreground: var(--cui-action-quintenary-foreground);
+  background-color: var(--cui-action-quintenary-background);
+  border-color: var(--cui-action-quintenary-border);
 }
 
 .checkbox[data-indeterminate] svg {
   stroke-dashoffset: 44;
   stroke: none;
-  fill: var(--checkbox-selected-foreground, var(--aui-control-selected-foreground));
+  fill: var(--checkbox-selected-foreground, var(--cui-control-selected-foreground));
 }
 
 .shape {
@@ -215,29 +215,29 @@
 }
 
 .shape--fallback {
-  border: 2px solid var(--aui-control-border);
+  border: 2px solid var(--cui-control-border);
 }
 .shape--primary {
-  border: 2px solid var(--aui-color-primary-500);
+  border: 2px solid var(--cui-color-primary-500);
 }
 .shape--secondary {
-  border: 2px solid var(--aui-color-secondary-500);
+  border: 2px solid var(--cui-color-secondary-500);
 }
 .shape--tertiary {
-  border: 2px solid var(--aui-color-tertiary-500);
+  border: 2px solid var(--cui-color-tertiary-500);
 }
 .shape--quaternary {
-  border: 2px solid var(--aui-color-quaternary-500);
+  border: 2px solid var(--cui-color-quaternary-500);
 }
 .shape--quintenary {
-  border: 2px solid var(--aui-color-quintenary-500);
+  border: 2px solid var(--cui-color-quintenary-500);
 }
 
 .svg {
   width: 100%;
   height: 100%;
   fill: none;
-  stroke: var(--checkbox-selected-foreground, var(--aui-control-selected-foreground));
+  stroke: var(--checkbox-selected-foreground, var(--cui-control-selected-foreground));
   stroke-width: 2.5px;
   stroke-dasharray: 22px;
   stroke-dashoffset: 66;
@@ -248,65 +248,65 @@
 }
 
 body[data-theme="dark"] .checkbox[data-hovered] .shape--primary {
-  background-color: var(--aui-color-primary-700);
+  background-color: var(--cui-color-primary-700);
 }
 body[data-theme="dark"] .checkbox[data-hovered] .shape--secondary {
-  background-color: var(--aui-color-secondary-700);
+  background-color: var(--cui-color-secondary-700);
 }
 body[data-theme="dark"] .checkbox[data-hovered] .shape--tertiary {
-  background-color: var(--aui-color-tertiary-700);
+  background-color: var(--cui-color-tertiary-700);
 }
 body[data-theme="dark"] .checkbox[data-hovered] .shape--quaternary {
-  background-color: var(--aui-color-quaternary-700);
+  background-color: var(--cui-color-quaternary-700);
 }
 body[data-theme="dark"] .checkbox[data-hovered] .shape--quintenary {
-  background-color: var(--aui-color-quintenary-700);
+  background-color: var(--cui-color-quintenary-700);
 }
 
 body[data-theme="dark"] .checkbox[data-pressed] .shape--primary {
-  background-color: var(--aui-color-primary-600);
+  background-color: var(--cui-color-primary-600);
 }
 body[data-theme="dark"] .checkbox[data-pressed] .shape--secondary {
-  background-color: var(--aui-color-secondary-600);
+  background-color: var(--cui-color-secondary-600);
 }
 body[data-theme="dark"] .checkbox[data-pressed] .shape--tertiary {
-  background-color: var(--aui-color-tertiary-600);
+  background-color: var(--cui-color-tertiary-600);
 }
 body[data-theme="dark"] .checkbox[data-pressed] .shape--quaternary {
-  background-color: var(--aui-color-quaternary-600);
+  background-color: var(--cui-color-quaternary-600);
 }
 body[data-theme="dark"] .checkbox[data-pressed] .shape--quintenary {
-  background-color: var(--aui-color-quintenary-600);
+  background-color: var(--cui-color-quintenary-600);
 }
 
 body[data-theme="dark"] .checkbox[data-selected][data-hovered] .shape--primary {
-  background-color: var(--aui-action-primary-background-hover);
+  background-color: var(--cui-action-primary-background-hover);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-hovered] .shape--secondary {
-  background-color: var(--aui-action-secondary-background-hover);
+  background-color: var(--cui-action-secondary-background-hover);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-hovered] .shape--tertiary {
-  background-color: var(--aui-action-tertiary-background-hover);
+  background-color: var(--cui-action-tertiary-background-hover);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-hovered] .shape--quaternary {
-  background-color: var(--aui-action-quaternary-background-hover);
+  background-color: var(--cui-action-quaternary-background-hover);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-hovered] .shape--quintenary {
-  background-color: var(--aui-action-quintenary-background-hover);
+  background-color: var(--cui-action-quintenary-background-hover);
 }
 
 body[data-theme="dark"] .checkbox[data-selected][data-pressed] .shape--primary {
-  background-color: var(--aui-action-primary-background-pressed);
+  background-color: var(--cui-action-primary-background-pressed);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-pressed] .shape--secondary {
-  background-color: var(--aui-action-secondary-background-pressed);
+  background-color: var(--cui-action-secondary-background-pressed);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-pressed] .shape--tertiary {
-  background-color: var(--aui-action-tertiary-background-pressed);
+  background-color: var(--cui-action-tertiary-background-pressed);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-pressed] .shape--quaternary {
-  background-color: var(--aui-action-quaternary-background-pressed);
+  background-color: var(--cui-action-quaternary-background-pressed);
 }
 body[data-theme="dark"] .checkbox[data-selected][data-pressed] .shape--quintenary {
-  background-color: var(--aui-action-quintenary-background-pressed);
+  background-color: var(--cui-action-quintenary-background-pressed);
 }

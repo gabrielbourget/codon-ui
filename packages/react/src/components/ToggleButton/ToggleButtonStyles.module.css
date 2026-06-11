@@ -8,13 +8,13 @@
   align-items: center;
   justify-content: center;
   padding: var(--distance_1);
-  border: 1px solid var(--aui-control-border);
+  border: 1px solid var(--cui-control-border);
   background-color: inherit;
   transition: var(--bgColorTransition), var(--borderColorTransition), var(--colorTransition);
 }
 
 .toggleButton > * {
-  color: var(--aui-control-foreground);
+  color: var(--cui-control-foreground);
   transition: var(--colorTransition);
 }
 
@@ -41,35 +41,35 @@
 }
 
 .toggleButton--no-bg-color-provided-fallback {
-  background-color: var(--aui-control-background);
+  background-color: var(--cui-control-background);
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-hovered] {
-  background-color: var(--aui-control-hover-background);
+  background-color: var(--cui-control-hover-background);
   cursor: pointer;
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-pressed] {
-  background-color: var(--aui-control-pressed-background);
+  background-color: var(--cui-control-pressed-background);
   cursor: pointer;
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-selected] {
-  background-color: var(--aui-control-selected-background);
-  border: 1px solid var(--aui-control-selected-background);
+  background-color: var(--cui-control-selected-background);
+  border: 1px solid var(--cui-control-selected-background);
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-selected] > * {
-  color: var(--aui-control-selected-foreground);
+  color: var(--cui-control-selected-foreground);
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-selected][data-hovered] {
-  background-color: var(--aui-control-selected-background-hover);
+  background-color: var(--cui-control-selected-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--no-bg-color-provided-fallback[data-selected][data-pressed] {
-  background-color: var(--aui-control-selected-background-pressed);
+  background-color: var(--cui-control-selected-background-pressed);
   cursor: pointer;
 }
 
@@ -81,291 +81,291 @@
 }
 
 .toggleButton--primary[data-hovered] {
-  background-color: var(--aui-color-primary-100);
+  background-color: var(--cui-color-primary-100);
   cursor: pointer;
 }
 
 .toggleButton--primary[data-pressed] {
-  background-color: var(--aui-color-primary-200);
+  background-color: var(--cui-color-primary-200);
   cursor: pointer;
 }
 
 .toggleButton--primary[data-selected] {
-  background-color: var(--aui-action-primary-background);
-  border: 1px solid var(--aui-action-primary-border);
+  background-color: var(--cui-action-primary-background);
+  border: 1px solid var(--cui-action-primary-border);
 }
 
 .toggleButton--primary[data-selected] > * {
-  color: var(--aui-action-primary-foreground);
+  color: var(--cui-action-primary-foreground);
 }
 
 .toggleButton--primary[data-selected][data-hovered] {
-  background-color: var(--aui-action-primary-background-hover);
+  background-color: var(--cui-action-primary-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--primary[data-selected][data-pressed] {
-  background-color: var(--aui-action-primary-background-pressed);
+  background-color: var(--cui-action-primary-background-pressed);
   cursor: pointer;
 }
 
 .toggleButton--secondary[data-hovered] {
-  background-color: var(--aui-color-secondary-100);
+  background-color: var(--cui-color-secondary-100);
   cursor: pointer;
 }
 
 .toggleButton--secondary[data-pressed] {
-  background-color: var(--aui-color-secondary-200);
+  background-color: var(--cui-color-secondary-200);
   cursor: pointer;
 }
 
 .toggleButton--secondary[data-selected] {
-  background-color: var(--aui-action-secondary-background);
-  border: 1px solid var(--aui-action-secondary-border);
+  background-color: var(--cui-action-secondary-background);
+  border: 1px solid var(--cui-action-secondary-border);
 }
 
 .toggleButton--secondary[data-selected] > * {
-  color: var(--aui-action-secondary-foreground);
+  color: var(--cui-action-secondary-foreground);
 }
 
 .toggleButton--secondary[data-selected][data-hovered] {
-  background-color: var(--aui-action-secondary-background-hover);
+  background-color: var(--cui-action-secondary-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--secondary[data-selected][data-pressed] {
-  background-color: var(--aui-action-secondary-background-pressed);
+  background-color: var(--cui-action-secondary-background-pressed);
   cursor: pointer;
 }
 
 .toggleButton--tertiary[data-hovered] {
-  background-color: var(--aui-color-tertiary-100);
+  background-color: var(--cui-color-tertiary-100);
   cursor: pointer;
 }
 
 .toggleButton--tertiary[data-pressed] {
-  background-color: var(--aui-color-tertiary-200);
+  background-color: var(--cui-color-tertiary-200);
   cursor: pointer;
 }
 
 .toggleButton--tertiary[data-selected] {
-  background-color: var(--aui-action-tertiary-background);
-  border: 1px solid var(--aui-action-tertiary-border);
+  background-color: var(--cui-action-tertiary-background);
+  border: 1px solid var(--cui-action-tertiary-border);
 }
 
 .toggleButton--tertiary[data-selected] > * {
-  color: var(--aui-action-tertiary-foreground);
+  color: var(--cui-action-tertiary-foreground);
 }
 
 .toggleButton--tertiary[data-selected][data-hovered] {
-  background-color: var(--aui-action-tertiary-background-hover);
+  background-color: var(--cui-action-tertiary-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--tertiary[data-selected][data-pressed] {
-  background-color: var(--aui-action-tertiary-background-pressed);
+  background-color: var(--cui-action-tertiary-background-pressed);
   cursor: pointer;
 }
 
 .toggleButton--quaternary[data-hovered] {
-  background-color: var(--aui-color-quaternary-100);
+  background-color: var(--cui-color-quaternary-100);
   cursor: pointer;
 }
 
 .toggleButton--quaternary[data-pressed] {
-  background-color: var(--aui-color-quaternary-200);
+  background-color: var(--cui-color-quaternary-200);
   cursor: pointer;
 }
 
 .toggleButton--quaternary[data-selected] {
-  background-color: var(--aui-action-quaternary-background);
-  border: 1px solid var(--aui-action-quaternary-border);
+  background-color: var(--cui-action-quaternary-background);
+  border: 1px solid var(--cui-action-quaternary-border);
 }
 
 .toggleButton--quaternary[data-selected] > * {
-  color: var(--aui-action-quaternary-foreground);
+  color: var(--cui-action-quaternary-foreground);
 }
 
 .toggleButton--quaternary[data-selected][data-hovered] {
-  background-color: var(--aui-action-quaternary-background-hover);
+  background-color: var(--cui-action-quaternary-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--quaternary[data-selected][data-pressed] {
-  background-color: var(--aui-action-quaternary-background-pressed);
+  background-color: var(--cui-action-quaternary-background-pressed);
   cursor: pointer;
 }
 
 .toggleButton--quintenary[data-hovered] {
-  background-color: var(--aui-color-quintenary-100);
+  background-color: var(--cui-color-quintenary-100);
   cursor: pointer;
 }
 
 .toggleButton--quintenary[data-pressed] {
-  background-color: var(--aui-color-quintenary-200);
+  background-color: var(--cui-color-quintenary-200);
   cursor: pointer;
 }
 
 .toggleButton--quintenary[data-selected] {
-  background-color: var(--aui-action-quintenary-background);
-  border: 1px solid var(--aui-action-quintenary-border);
+  background-color: var(--cui-action-quintenary-background);
+  border: 1px solid var(--cui-action-quintenary-border);
 }
 
 .toggleButton--quintenary[data-selected] > * {
-  color: var(--aui-action-quintenary-foreground);
+  color: var(--cui-action-quintenary-foreground);
 }
 
 .toggleButton--quintenary[data-selected][data-hovered] {
-  background-color: var(--aui-action-quintenary-background-hover);
+  background-color: var(--cui-action-quintenary-background-hover);
   cursor: pointer;
 }
 
 .toggleButton--quintenary[data-selected][data-pressed] {
-  background-color: var(--aui-action-quintenary-background-pressed);
+  background-color: var(--cui-action-quintenary-background-pressed);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-hovered] {
-  background-color: var(--aui-color-primary-700);
+  background-color: var(--cui-color-primary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-pressed] {
-  background-color: var(--aui-color-primary-600);
+  background-color: var(--cui-color-primary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-selected] {
-  background-color: var(--aui-action-primary-background);
-  border: 1px solid var(--aui-action-primary-border);
+  background-color: var(--cui-action-primary-background);
+  border: 1px solid var(--cui-action-primary-border);
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-selected] > * {
-  color: var(--aui-action-primary-foreground);
+  color: var(--cui-action-primary-foreground);
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-selected][data-hovered] {
-  background-color: var(--aui-action-primary-background-hover);
+  background-color: var(--cui-action-primary-background-hover);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--primary[data-selected][data-pressed] {
-  background-color: var(--aui-action-primary-background-pressed);
+  background-color: var(--cui-action-primary-background-pressed);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-hovered] {
-  background-color: var(--aui-color-secondary-700);
+  background-color: var(--cui-color-secondary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-pressed] {
-  background-color: var(--aui-color-secondary-600);
+  background-color: var(--cui-color-secondary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-selected] {
-  background-color: var(--aui-action-secondary-background);
-  border: 1px solid var(--aui-action-secondary-border);
+  background-color: var(--cui-action-secondary-background);
+  border: 1px solid var(--cui-action-secondary-border);
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-selected] > * {
-  color: var(--aui-action-secondary-foreground);
+  color: var(--cui-action-secondary-foreground);
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-selected][data-hovered] {
-  background-color: var(--aui-action-secondary-background-hover);
+  background-color: var(--cui-action-secondary-background-hover);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--secondary[data-selected][data-pressed] {
-  background-color: var(--aui-action-secondary-background-pressed);
+  background-color: var(--cui-action-secondary-background-pressed);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-hovered] {
-  background-color: var(--aui-color-tertiary-700);
+  background-color: var(--cui-color-tertiary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-pressed] {
-  background-color: var(--aui-color-tertiary-600);
+  background-color: var(--cui-color-tertiary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-selected] {
-  background-color: var(--aui-action-tertiary-background);
-  border: 1px solid var(--aui-action-tertiary-border);
+  background-color: var(--cui-action-tertiary-background);
+  border: 1px solid var(--cui-action-tertiary-border);
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-selected] > * {
-  color: var(--aui-action-tertiary-foreground);
+  color: var(--cui-action-tertiary-foreground);
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-selected][data-hovered] {
-  background-color: var(--aui-action-tertiary-background-hover);
+  background-color: var(--cui-action-tertiary-background-hover);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--tertiary[data-selected][data-pressed] {
-  background-color: var(--aui-action-tertiary-background-pressed);
+  background-color: var(--cui-action-tertiary-background-pressed);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-hovered] {
-  background-color: var(--aui-color-quaternary-700);
+  background-color: var(--cui-color-quaternary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-pressed] {
-  background-color: var(--aui-color-quaternary-600);
+  background-color: var(--cui-color-quaternary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-selected] {
-  background-color: var(--aui-action-quaternary-background);
-  border: 1px solid var(--aui-action-quaternary-border);
+  background-color: var(--cui-action-quaternary-background);
+  border: 1px solid var(--cui-action-quaternary-border);
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-selected] > * {
-  color: var(--aui-action-quaternary-foreground);
+  color: var(--cui-action-quaternary-foreground);
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-selected][data-hovered] {
-  background-color: var(--aui-action-quaternary-background-hover);
+  background-color: var(--cui-action-quaternary-background-hover);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quaternary[data-selected][data-pressed] {
-  background-color: var(--aui-action-quaternary-background-pressed);
+  background-color: var(--cui-action-quaternary-background-pressed);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-hovered] {
-  background-color: var(--aui-color-quintenary-700);
+  background-color: var(--cui-color-quintenary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-pressed] {
-  background-color: var(--aui-color-quintenary-600);
+  background-color: var(--cui-color-quintenary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-selected] {
-  background-color: var(--aui-action-quintenary-background);
-  border: 1px solid var(--aui-action-quintenary-border);
+  background-color: var(--cui-action-quintenary-background);
+  border: 1px solid var(--cui-action-quintenary-border);
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-selected] > * {
-  color: var(--aui-action-quintenary-foreground);
+  color: var(--cui-action-quintenary-foreground);
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-selected][data-hovered] {
-  background-color: var(--aui-action-quintenary-background-hover);
+  background-color: var(--cui-action-quintenary-background-hover);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .toggleButton--quintenary[data-selected][data-pressed] {
-  background-color: var(--aui-action-quintenary-background-pressed);
+  background-color: var(--cui-action-quintenary-background-pressed);
   cursor: pointer;
 }

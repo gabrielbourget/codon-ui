@@ -1,7 +1,7 @@
 {
   "name": "list-box-item",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#listboxitem-next-candidate-planning-checkpoint-2026-06-03",
   "files": [
@@ -55,7 +55,7 @@
     {
       "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
       "importSource": "--distance_1 / --border_radius_1 / --bgColorTransition / --disabledOpacity aliases",
-      "replacementSource": "--aui-space-1 / --aui-radius-1 / --aui-transition-background-color / --aui-opacity-disabled",
+      "replacementSource": "--cui-space-1 / --cui-radius-1 / --cui-transition-background-color / --cui-opacity-disabled",
       "notes": ["ListBoxItem CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
@@ -92,11 +92,11 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-space-1",
-        "--aui-radius-1",
-        "--aui-transition-background-color",
-        "--aui-control-hover-background",
-        "--aui-opacity-disabled"
+        "--cui-space-1",
+        "--cui-radius-1",
+        "--cui-transition-background-color",
+        "--cui-control-hover-background",
+        "--cui-opacity-disabled"
       ],
       "notes": [
         "ListBoxItem source reads the default theme contract directly and does not need a component-specific compatibility bridge."
@@ -113,14 +113,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static ListBoxItem proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

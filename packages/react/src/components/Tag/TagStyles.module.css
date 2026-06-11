@@ -56,10 +56,10 @@
 
 .tag--active {
   border: var(--activeBorder, none);
-  background-color: var(--activeBGColor, var(--aui-control-selected-background));
+  background-color: var(--activeBGColor, var(--cui-control-selected-background));
 }
 
 .tag--inactive {
-  border: var(--inactiveBorder, 2px solid var(--aui-border-muted));
-  background-color: var(--inactiveBGColor, var(--aui-control-background));
+  border: var(--inactiveBorder, 2px solid var(--cui-border-muted));
+  background-color: var(--inactiveBGColor, var(--cui-control-background));
 }

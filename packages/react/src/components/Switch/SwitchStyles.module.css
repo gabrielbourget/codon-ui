@@ -30,7 +30,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background-color: var(--switch-track-color, var(--aui-border-muted));
+  background-color: var(--switch-track-color, var(--cui-border-muted));
   transition: var(--colorTransition), var(--bgColorTransition), var(--borderColorTransition);
 }
 ._switch__track--rounded {
@@ -40,7 +40,7 @@
   border-radius: 10000px;
 }
 ._switch__track--showBorder {
-  border: 1.5px solid var(--aui-control-border);
+  border: 1.5px solid var(--cui-control-border);
 }
 
 ._switch__iconSlot--on,
@@ -68,7 +68,7 @@
   left: 0;
   top: 0;
   bottom: 0;
-  background-color: var(--switch-indicator-color, var(--aui-control-selected-foreground));
+  background-color: var(--switch-indicator-color, var(--cui-control-selected-foreground));
   z-index: 1;
   transition:
     var(--bgColorTransition),
@@ -96,59 +96,59 @@
 }
 
 ._switch[data-pressed] ._switch__track {
-  background-color: var(--aui-control-pressed-background);
+  background-color: var(--cui-control-pressed-background);
 }
 ._switch[data-pressed] ._switch__track--showBorder {
-  background-color: var(--aui-control-pressed-background);
+  background-color: var(--cui-control-pressed-background);
 }
 
 ._switch[data-selected] ._switch__track--fallback {
-  background-color: var(--switch-track-selected-color-fallback, var(--aui-control-selected-background));
+  background-color: var(--switch-track-selected-color-fallback, var(--cui-control-selected-background));
 }
 ._switch[data-selected] ._switch__track--primary {
-  background-color: var(--switch-track-selected-color-primary, var(--aui-color-primary-500));
+  background-color: var(--switch-track-selected-color-primary, var(--cui-color-primary-500));
 }
 ._switch[data-selected] ._switch__track--secondary {
-  background-color: var(--switch-track-selected-color-secondary, var(--aui-color-secondary-500));
+  background-color: var(--switch-track-selected-color-secondary, var(--cui-color-secondary-500));
 }
 ._switch[data-selected] ._switch__track--tertiary {
-  background-color: var(--switch-track-selected-color-tertiary, var(--aui-color-tertiary-500));
+  background-color: var(--switch-track-selected-color-tertiary, var(--cui-color-tertiary-500));
 }
 ._switch[data-selected] ._switch__track--quaternary {
-  background-color: var(--switch-track-selected-color-quaternary, var(--aui-color-quaternary-500));
+  background-color: var(--switch-track-selected-color-quaternary, var(--cui-color-quaternary-500));
 }
 ._switch[data-selected] ._switch__track--quintenary {
-  background-color: var(--switch-track-selected-color-quintenary, var(--aui-color-quintenary-500));
+  background-color: var(--switch-track-selected-color-quintenary, var(--cui-color-quintenary-500));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--fallback {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-fallback, var(--aui-control-selected-background));
-  background-color: var(--switch-track-selected-invert-background-color-fallback, var(--aui-neutral-8));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-fallback, var(--cui-control-selected-background));
+  background-color: var(--switch-track-selected-invert-background-color-fallback, var(--cui-neutral-8));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--primary {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-primary, var(--aui-color-primary-500));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-primary, var(--cui-color-primary-500));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--secondary {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-secondary, var(--aui-color-secondary-500));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-secondary, var(--cui-color-secondary-500));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--tertiary {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-tertiary, var(--aui-color-tertiary-500));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-tertiary, var(--cui-color-tertiary-500));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--quaternary {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-quaternary, var(--aui-color-quaternary-500));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-quaternary, var(--cui-color-quaternary-500));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--quintenary {
-  border: 1.5px solid var(--switch-track-selected-invert-border-color-quintenary, var(--aui-color-quintenary-500));
+  border: 1.5px solid var(--switch-track-selected-invert-border-color-quintenary, var(--cui-color-quintenary-500));
 }
 
 ._switch[data-selected] ._switch__indicator {
   transform: translateX(100%);
 }
 ._switch[data-selected] ._switch__indicator--invertColorsOnToggle {
-  background-color: var(--switch-indicator-selected-color, var(--aui-control-selected-background));
+  background-color: var(--switch-indicator-selected-color, var(--cui-control-selected-background));
 }

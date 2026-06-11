@@ -6,7 +6,7 @@ import { execa } from "execa"
 import { z } from "zod"
 
 import {
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   consumerLockfileDependencySchema,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
@@ -420,7 +420,7 @@ const readConsumerLockfileForStrictRemove = async (
   findings: TRemoveStrictBlocker[]
   lockfileData: TConsumerLockfile
 }> => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
 
   if (!existsSync(lockfilePath)) {
     return {
@@ -428,8 +428,8 @@ const readConsumerLockfileForStrictRemove = async (
         createRemoveStrictBlocker({
           code: "strict-remove-lockfile-missing",
           kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
-          message: `${AMINO_UI_LOCK_FILE_NAME} is missing. Strict remove requires a valid Amino lockfile.`,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          message: `${CODON_UI_LOCK_FILE_NAME} is missing. Strict remove requires a valid Codon lockfile.`,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         }),
       ],
       lockfileData: createFallbackLockfile(),
@@ -449,8 +449,8 @@ const readConsumerLockfileForStrictRemove = async (
         createRemoveStrictBlocker({
           code: "strict-remove-lockfile-invalid",
           kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
-          message: `${AMINO_UI_LOCK_FILE_NAME} could not be read as an Amino lockfile. ${message}`,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          message: `${CODON_UI_LOCK_FILE_NAME} could not be read as a Codon lockfile. ${message}`,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         }),
       ],
       lockfileData: createFallbackLockfile(),
@@ -812,7 +812,7 @@ const createProjectStateBlockers = (dryRunReport: TRemoveDryRunReport) => {
         code: "strict-remove-lockfile-status-blocker",
         itemName: dryRunReport.itemName,
         kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
-        message: `Strict remove requires a present Amino lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
+        message: `Strict remove requires a present Codon lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
       }),
     )
   }
@@ -880,7 +880,7 @@ const createLockfileBlockers = ({
       code: "strict-remove-lockfile-item-missing",
       itemName: dryRunReport.itemName,
       kind: REMOVE_STRICT_BLOCKER_KIND__ITEM,
-      message: `Strict remove cannot continue because "${dryRunReport.itemName}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
+      message: `Strict remove cannot continue because "${dryRunReport.itemName}" is missing from ${CODON_UI_LOCK_FILE_NAME}.`,
     }),
   ]
 }
@@ -901,7 +901,7 @@ const createOrphanLockfileBlockers = ({
         code: "strict-remove-orphan-lockfile-item-missing",
         itemName: item.name,
         kind: REMOVE_STRICT_BLOCKER_KIND__ITEM,
-        message: `Strict orphan cleanup cannot continue because "${item.name}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
+        message: `Strict orphan cleanup cannot continue because "${item.name}" is missing from ${CODON_UI_LOCK_FILE_NAME}.`,
       }),
     )
 }
@@ -1219,7 +1219,7 @@ const writeStrictRemove = async ({
     items: nextItems,
   })
 
-  await fs.writeFile(path.join(cwd, AMINO_UI_LOCK_FILE_NAME), `${JSON.stringify(nextLockfileData, null, 2)}\n`, "utf8")
+  await fs.writeFile(path.join(cwd, CODON_UI_LOCK_FILE_NAME), `${JSON.stringify(nextLockfileData, null, 2)}\n`, "utf8")
 
   return {
     files,
@@ -1466,7 +1466,7 @@ export const createRemoveStrictReport = async ({
         code: "strict-remove-dependency-cleanup-execution-failed",
         itemName,
         kind: REMOVE_STRICT_BLOCKER_KIND__PROJECT,
-        message: `Package-manager dependency cleanup failed while running "${failedCommand.command}". No Amino source files or lockfile records were removed.`,
+        message: `Package-manager dependency cleanup failed while running "${failedCommand.command}". No Codon source files or lockfile records were removed.`,
       })
       const files = resolveBlockedFiles(dryRunReport.files)
       const orphanCleanup = createStrictOrphanCleanup({

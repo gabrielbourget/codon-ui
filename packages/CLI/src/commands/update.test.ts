@@ -1,12 +1,13 @@
 import assert from "node:assert/strict"
 import crypto from "node:crypto"
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import path from "node:path"
 
-import { createUpdateAdvisoryReport } from "../helpers/updateAdvisory"
-import { createUpdateDryRunReport } from "../helpers/updateDryRun"
-import { createUpdateStrictReport } from "../helpers/updateStrict"
+import { createUpdateAdvisoryReport, createUpdateAllAdvisoryReport } from "../helpers/updateAdvisory"
+import { createUpdateAllDryRunReport, createUpdateDryRunReport } from "../helpers/updateDryRun"
+import { createUpdateAllStrictReport, createUpdateStrictReport } from "../helpers/updateStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -36,8 +37,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/source-only.ts",
     "source/source-equals-local.ts",
     "source/dependency-blocked.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/source-changed.ts",
     "consumer/src/components/Diff/local-modified.ts",
@@ -52,7 +53,7 @@ const readFixtureSnapshot = (fixturePath: string) =>
     .map((filePath) => `${filePath}:${createContentHash(readFileSync(path.join(fixturePath, filePath)))}`)
     .sort()
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-update-advisory-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-update-advisory-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
@@ -92,7 +93,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/dependency-blocked.ts"), dependencyBlockedInstalled)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -141,7 +146,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -154,7 +159,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -167,7 +172,7 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -183,16 +188,16 @@ try {
         peerDependencies: {
           react: "^18.2.0 || ^19.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -214,7 +219,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-equals-local": {
         files: [
@@ -227,7 +232,7 @@ try {
           },
         ],
         name: "source-equals-local",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "dependency-blocked": {
         files: [
@@ -240,7 +245,7 @@ try {
           },
         ],
         name: "dependency-blocked",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -295,7 +300,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -308,6 +313,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "updateAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -352,6 +358,235 @@ try {
   assert.equal(sourceOnlyReport.summary.automaticBlockerCount, 0)
   assert.equal(sourceOnlyReport.files[0].action, "update-candidate")
 
+  const allAdvisoryReport = await createUpdateAllAdvisoryReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+  const allAdvisoryItems = new Map(allAdvisoryReport.items.map((item) => [item.itemName, item]))
+
+  assertCliJsonReportContract({ report: allAdvisoryReport, schemaName: "updateAllAdvisory" })
+  assert.equal(allAdvisoryReport.schemaVersion, 1)
+  assert.equal(allAdvisoryReport.advisory, true)
+  assert.equal(allAdvisoryReport.all, true)
+  assert.deepEqual(allAdvisoryReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(allAdvisoryReport.summary.itemCount, 4)
+  assert.equal(allAdvisoryReport.summary.itemStates["update-candidate"], 3)
+  assert.equal(allAdvisoryReport.summary.itemStates["review-required"], 1)
+  assert.equal(allAdvisoryReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allAdvisoryReport.summary.itemStates.unavailable, 0)
+  assert.equal(allAdvisoryReport.summary.fileCount, 10)
+  assert.equal(allAdvisoryReport.summary.candidateFileCount, 4)
+  assert.equal(allAdvisoryReport.summary.automaticBlockerCount, 5)
+  assert.equal(allAdvisoryReport.summary.preservationRequiredCount, 5)
+  assert.equal(allAdvisoryReport.summary.dependencyStates.missing, 1)
+  assert.equal(allAdvisoryItems.get("switch")?.itemUpdateState, "review-required")
+  assert.equal(allAdvisoryItems.get("source-only")?.itemUpdateState, "update-candidate")
+  assert.equal(allAdvisoryItems.get("source-equals-local")?.itemUpdateState, "update-candidate")
+  assert.equal(allAdvisoryItems.get("dependency-blocked")?.itemUpdateState, "update-candidate")
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const allDryRunReport = await createUpdateAllDryRunReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+  const allDryRunItems = new Map(allDryRunReport.items.map((item) => [item.itemName, item]))
+
+  assertCliJsonReportContract({ report: allDryRunReport, schemaName: "updateAllDryRun" })
+  assert.equal(allDryRunReport.schemaVersion, 1)
+  assert.equal(allDryRunReport.dryRun, true)
+  assert.equal(allDryRunReport.all, true)
+  assert.deepEqual(allDryRunReport.effects, {
+    installsDependencies: false,
+    writesConfig: false,
+    writesFiles: false,
+    writesLockfile: false,
+  })
+  assert.equal(allDryRunReport.summary.itemCount, 4)
+  assert.equal(allDryRunReport.summary.itemStates["would-update"], 2)
+  assert.equal(allDryRunReport.summary.itemStates.blocked, 2)
+  assert.equal(allDryRunReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allDryRunReport.summary.itemStates.unavailable, 0)
+  assert.equal(allDryRunReport.summary.fileCount, 10)
+  assert.equal(allDryRunReport.summary.candidateFileCount, 4)
+  assert.equal(allDryRunReport.summary.wouldWriteFileCount, 1)
+  assert.equal(allDryRunReport.summary.wouldUpdateLockfileFileCount, 2)
+  assert.equal(allDryRunReport.summary.skippedFileCount, 5)
+  assert.equal(allDryRunReport.summary.blockedFileCount, 2)
+  assert.equal(allDryRunReport.summary.preservationBlockerCount, 5)
+  assert.equal(allDryRunReport.summary.dependencyBlockerCount, 1)
+  assert.equal(allDryRunReport.summary.sourceBlockerCount, 0)
+  assert.equal(allDryRunReport.summary.fileActions.none, 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-write"], 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-update-lockfile"], 1)
+  assert.equal(allDryRunReport.summary.fileActions["would-skip"], 5)
+  assert.equal(allDryRunReport.summary.fileActions.blocked, 2)
+  assert.equal(allDryRunReport.summary.dependencyStates.missing, 1)
+  assert.equal(allDryRunReport.wouldEffects.files.candidateCount, 4)
+  assert.equal(allDryRunReport.wouldEffects.files.wouldWriteCount, 1)
+  assert.equal(allDryRunReport.wouldEffects.files.wouldUpdateLockfileCount, 2)
+  assert.equal(allDryRunReport.wouldEffects.files.skippedCount, 5)
+  assert.equal(allDryRunReport.wouldEffects.files.blockedCount, 2)
+  assert.equal(allDryRunReport.wouldEffects.lockfile.status, "blocked")
+  assert.equal(allDryRunReport.wouldEffects.lockfile.plannedFileCount, 10)
+  assert.equal(allDryRunReport.wouldEffects.lockfile.wouldWriteFileCount, 2)
+  assert.equal(allDryRunItems.get("switch")?.itemUpdateState, "blocked")
+  assert.equal(allDryRunItems.get("source-only")?.itemUpdateState, "would-update")
+  assert.equal(allDryRunItems.get("source-equals-local")?.itemUpdateState, "would-update")
+  assert.equal(allDryRunItems.get("dependency-blocked")?.itemUpdateState, "blocked")
+  assert.equal(allDryRunItems.get("source-only")?.summary.wouldWriteFileCount, 1)
+  assert.equal(allDryRunItems.get("source-equals-local")?.summary.wouldUpdateLockfileFileCount, 1)
+  assert.equal(allDryRunItems.get("dependency-blocked")?.summary.dependencyBlockerCount, 1)
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const allStrictBlockedReport = await createUpdateAllStrictReport({
+    cwd: consumerRoot,
+    registrySourcePath,
+  })
+
+  assertCliJsonReportContract({ report: allStrictBlockedReport, schemaName: "updateAllStrict" })
+  assert.equal(allStrictBlockedReport.schemaVersion, 1)
+  assert.equal(allStrictBlockedReport.all, true)
+  assert.equal(allStrictBlockedReport.applied, false)
+  assert.equal(allStrictBlockedReport.summary.itemCount, 4)
+  assert.equal(allStrictBlockedReport.summary.itemStates.updated, 0)
+  assert.equal(allStrictBlockedReport.summary.itemStates.blocked, 4)
+  assert.equal(allStrictBlockedReport.summary.itemStates["up-to-date"], 0)
+  assert.equal(allStrictBlockedReport.summary.itemStates.unavailable, 0)
+  assert.equal(allStrictBlockedReport.effects.writesFiles, false)
+  assert.equal(allStrictBlockedReport.effects.writesLockfile, false)
+  assert.equal(allStrictBlockedReport.effects.lockfile.status, "blocked")
+  assert.equal(allStrictBlockedReport.effects.lockfile.updatedFileRecordCount, 0)
+  assert.equal(allStrictBlockedReport.effects.lockfile.updatedItemCount, 0)
+  assert.equal(allStrictBlockedReport.effects.files.writtenCount, 0)
+  assert.equal(allStrictBlockedReport.effects.files.lockfileRecordUpdatedCount, 0)
+  assert(
+    allStrictBlockedReport.blockers.some((blocker) => blocker.code === "strict-update-dry-run-blocker"),
+    "expected strict update all dry-run blocker",
+  )
+  assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
+
+  const strictAllSuccessRoot = path.join(temporaryRoot, "strict-all-success")
+  const strictAllSuccessConsumerRoot = path.join(strictAllSuccessRoot, "consumer")
+  const strictAllSuccessRegistrySourcePath = path.join(strictAllSuccessRoot, "registry.json")
+  const strictAllSourceOnlyInstalled = "export const allSourceOnly = 'installed'\n"
+  const strictAllSourceOnlyCurrent = "export const allSourceOnly = 'registry'\n"
+  const strictAllSourceEqualsLocalPrevious = "export const allSourceEqualsLocal = 'previous'\n"
+  const strictAllSourceEqualsLocalCurrent = "export const allSourceEqualsLocal = 'registry'\n"
+
+  writeText(path.join(strictAllSuccessRoot, "source/source-only.ts"), strictAllSourceOnlyCurrent)
+  writeText(path.join(strictAllSuccessRoot, "source/source-equals-local.ts"), strictAllSourceEqualsLocalCurrent)
+  writeText(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-only.ts"), strictAllSourceOnlyInstalled)
+  writeText(
+    path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-equals-local.ts"),
+    strictAllSourceEqualsLocalCurrent,
+  )
+  writeJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.config.json"), {})
+  writeJson(strictAllSuccessRegistrySourcePath, {
+    items: [
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/source-only.ts",
+            targetPath: "Diff/source-only.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "source-only",
+        sourcePackage: "@codon-ui/react",
+        type: "component",
+      },
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/source-equals-local.ts",
+            targetPath: "Diff/source-equals-local.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourcePackage: "@codon-ui/react",
+        type: "component",
+      },
+    ],
+    schemaVersion: 1,
+    sourceIdentity: "@codon-ui/test-registry",
+    sourceRoot: ".",
+  })
+  writeJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
+    items: {
+      "source-only": {
+        files: [
+          {
+            installedHash: createContentHash(strictAllSourceOnlyInstalled),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/source-only.ts",
+            sourceHash: createContentHash(strictAllSourceOnlyInstalled),
+            targetRole: "components",
+          },
+        ],
+        name: "source-only",
+        sourceIdentity: "@codon-ui/test-registry",
+      },
+      "source-equals-local": {
+        files: [
+          {
+            installedHash: createContentHash(strictAllSourceEqualsLocalCurrent),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/source-equals-local.ts",
+            sourceHash: createContentHash(strictAllSourceEqualsLocalPrevious),
+            targetRole: "components",
+          },
+        ],
+        name: "source-equals-local",
+        sourceIdentity: "@codon-ui/test-registry",
+      },
+    },
+    lockfileVersion: 1,
+  })
+
+  const allStrictSuccessReport = await createUpdateAllStrictReport({
+    cwd: strictAllSuccessConsumerRoot,
+    registrySourcePath: strictAllSuccessRegistrySourcePath,
+  })
+
+  assertCliJsonReportContract({ report: allStrictSuccessReport, schemaName: "updateAllStrict" })
+  assert.equal(allStrictSuccessReport.applied, true)
+  assert.equal(allStrictSuccessReport.summary.itemCount, 2)
+  assert.equal(allStrictSuccessReport.summary.itemStates.updated, 2)
+  assert.equal(allStrictSuccessReport.summary.itemStates.blocked, 0)
+  assert.equal(allStrictSuccessReport.effects.writesFiles, true)
+  assert.equal(allStrictSuccessReport.effects.writesLockfile, true)
+  assert.equal(allStrictSuccessReport.effects.files.writtenCount, 1)
+  assert.equal(allStrictSuccessReport.effects.files.lockfileRecordUpdatedCount, 2)
+  assert.equal(allStrictSuccessReport.effects.lockfile.status, "written")
+  assert.equal(allStrictSuccessReport.effects.lockfile.updatedFileRecordCount, 2)
+  assert.equal(allStrictSuccessReport.effects.lockfile.updatedItemCount, 2)
+  assert.equal(
+    readFileSync(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-only.ts"), "utf8"),
+    strictAllSourceOnlyCurrent,
+  )
+  assert.equal(
+    readFileSync(path.join(strictAllSuccessConsumerRoot, "src/components/Diff/source-equals-local.ts"), "utf8"),
+    strictAllSourceEqualsLocalCurrent,
+  )
+  assert.equal(
+    readJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].sourceHash,
+    createContentHash(strictAllSourceOnlyCurrent),
+  )
+  assert.equal(
+    readJson(path.join(strictAllSuccessConsumerRoot, "codon-ui.lock.json")).items["source-equals-local"].files[0]
+      .sourceHash,
+    createContentHash(strictAllSourceEqualsLocalCurrent),
+  )
+
   const missingReport = await createUpdateAdvisoryReport({
     cwd: consumerRoot,
     itemName: "missing-item",
@@ -371,6 +606,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: mixedDryRunReport, schemaName: "updateDryRun" })
   assert.equal(mixedDryRunReport.schemaVersion, 1)
   assert.equal(mixedDryRunReport.dryRun, true)
   assert.deepEqual(mixedDryRunReport.effects, {
@@ -445,6 +681,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "updateStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemUpdateState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -479,7 +716,7 @@ try {
     createContentHash(sourceOnlyCurrent),
   )
   assert.equal(
-    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].installedHash,
+    readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].installedHash,
     createContentHash(sourceOnlyCurrent),
   )
 
@@ -546,6 +783,340 @@ try {
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
 
+  const dependencyInstallRoot = path.join(temporaryRoot, "dependency-install")
+  const dependencyInstallConsumerRoot = path.join(dependencyInstallRoot, "consumer")
+  const dependencyInstallRegistrySourcePath = path.join(dependencyInstallRoot, "registry.json")
+  const dependencyInstallPrevious = "export const motionUpdate = 'installed'\n"
+  const dependencyInstallCurrent = "export const motionUpdate = 'registry'\n"
+
+  const writeDependencyInstallFixture = ({
+    consumerRoot: fixtureConsumerRoot,
+    registrySourcePath: fixtureRegistrySourcePath,
+    root,
+  }: {
+    consumerRoot: string
+    registrySourcePath: string
+    root: string
+  }) => {
+    writeText(path.join(root, "source/motion-update.ts"), dependencyInstallCurrent)
+    writeText(path.join(fixtureConsumerRoot, "src/components/Diff/motion-update.ts"), dependencyInstallPrevious)
+    writeJson(path.join(fixtureConsumerRoot, "package.json"), {
+      dependencies: {},
+      name: "dependency-install-consumer",
+      packageManager: "npm@10.0.0",
+    })
+    writeJson(path.join(fixtureConsumerRoot, "codon-ui.config.json"), {})
+    writeJson(fixtureRegistrySourcePath, {
+      items: [
+        {
+          files: [
+            {
+              role: "source",
+              sourcePath: "source/motion-update.ts",
+              targetPath: "Diff/motion-update.ts",
+              targetRole: "components",
+            },
+          ],
+          name: "motion-update",
+          runtimeDependencies: {
+            motion: "^11.0.0",
+          },
+          sourcePackage: "@codon-ui/react",
+          type: "component",
+        },
+      ],
+      schemaVersion: 1,
+      sourceIdentity: "@codon-ui/test-registry",
+      sourceRoot: ".",
+    })
+    writeJson(path.join(fixtureConsumerRoot, "codon-ui.lock.json"), {
+      configFile: "codon-ui.config.json",
+      items: {
+        "motion-update": {
+          files: [
+            {
+              installedHash: createContentHash(dependencyInstallPrevious),
+              ownershipState: "registry-owned",
+              path: "src/components/Diff/motion-update.ts",
+              sourceHash: createContentHash(dependencyInstallPrevious),
+              targetRole: "components",
+            },
+          ],
+          name: "motion-update",
+          sourceIdentity: "@codon-ui/test-registry",
+        },
+      },
+      lockfileVersion: 1,
+    })
+  }
+
+  writeText(path.join(dependencyInstallRoot, "source/motion-update.ts"), dependencyInstallCurrent)
+  writeText(path.join(dependencyInstallConsumerRoot, "src/components/Diff/motion-update.ts"), dependencyInstallPrevious)
+  writeJson(path.join(dependencyInstallConsumerRoot, "package.json"), {
+    dependencies: {},
+    name: "dependency-install-consumer",
+    packageManager: "npm@10.0.0",
+  })
+  writeJson(path.join(dependencyInstallConsumerRoot, "codon-ui.config.json"), {})
+  writeJson(dependencyInstallRegistrySourcePath, {
+    items: [
+      {
+        files: [
+          {
+            role: "source",
+            sourcePath: "source/motion-update.ts",
+            targetPath: "Diff/motion-update.ts",
+            targetRole: "components",
+          },
+        ],
+        name: "motion-update",
+        runtimeDependencies: {
+          motion: "^11.0.0",
+        },
+        sourcePackage: "@codon-ui/react",
+        type: "component",
+      },
+    ],
+    schemaVersion: 1,
+    sourceIdentity: "@codon-ui/test-registry",
+    sourceRoot: ".",
+  })
+  writeJson(path.join(dependencyInstallConsumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
+    items: {
+      "motion-update": {
+        files: [
+          {
+            installedHash: createContentHash(dependencyInstallPrevious),
+            ownershipState: "registry-owned",
+            path: "src/components/Diff/motion-update.ts",
+            sourceHash: createContentHash(dependencyInstallPrevious),
+            targetRole: "components",
+          },
+        ],
+        name: "motion-update",
+        sourceIdentity: "@codon-ui/test-registry",
+      },
+    },
+    lockfileVersion: 1,
+  })
+
+  const dependencyInstallDryRunReport = await createUpdateDryRunReport({
+    cwd: dependencyInstallConsumerRoot,
+    dependencyPolicyOverride: "install",
+    installDependencies: true,
+    itemName: "motion-update",
+    registrySourcePath: dependencyInstallRegistrySourcePath,
+  })
+
+  assertCliJsonReportContract({ report: dependencyInstallDryRunReport, schemaName: "updateDryRun" })
+  assert.equal(dependencyInstallDryRunReport.itemUpdateState, "blocked")
+  assert.equal(dependencyInstallDryRunReport.summary.dependencyBlockerCount, 1)
+  assert.equal(dependencyInstallDryRunReport.dependencyInstallPlan?.executionPlan.mode, "eligible")
+  assert.equal(
+    dependencyInstallDryRunReport.dependencyInstallPlan?.recommendedCommands[0]?.command,
+    "npm i motion@^11.0.0",
+  )
+
+  const dependencyInstallBlockedReport = await createUpdateStrictReport({
+    cwd: dependencyInstallConsumerRoot,
+    installDependencies: true,
+    itemName: "motion-update",
+    registrySourcePath: dependencyInstallRegistrySourcePath,
+  })
+
+  assertCliJsonReportContract({ report: dependencyInstallBlockedReport, schemaName: "updateStrict" })
+  assert.equal(dependencyInstallBlockedReport.applied, false)
+  assert.equal(dependencyInstallBlockedReport.itemUpdateState, "blocked")
+  assert.equal(dependencyInstallBlockedReport.dependencyInstallPlan?.executionPlan.mode, "blocked")
+  assert.equal(readJson(path.join(dependencyInstallConsumerRoot, "package.json")).dependencies.motion, undefined)
+
+  const fakeBinPath = path.join(dependencyInstallRoot, "bin")
+  const fakeNpmPath = path.join(fakeBinPath, "npm")
+  const originalPath = process.env.PATH
+
+  writeText(
+    fakeNpmPath,
+    `#!/usr/bin/env node
+const fs = require("fs")
+const path = require("path")
+const failureMode = process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
+const packageJsonPath = path.join(process.cwd(), "package.json")
+const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"))
+const dependency = process.argv.slice(2).find((argument) => argument.startsWith("motion@"))
+if (failureMode === "before-write") {
+  console.log("fake npm failing before package writes")
+  console.error("fake npm dependency install failed before write")
+  process.exit(73)
+}
+if (!dependency) {
+  process.exitCode = 1
+} else {
+  packageJson.dependencies = {
+    ...(packageJson.dependencies ?? {}),
+    motion: dependency.slice("motion@".length),
+  }
+  fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2) + "\\n")
+  fs.writeFileSync(path.join(process.cwd(), "package-lock.json"), JSON.stringify({ args: process.argv.slice(2) }, null, 2) + "\\n")
+  if (failureMode === "after-write") {
+    console.log("fake npm wrote package boundary before failure")
+    console.error("fake npm dependency install failed after write")
+    process.exit(74)
+  }
+}
+`,
+  )
+  chmodSync(fakeNpmPath, 0o755)
+
+  try {
+    process.env.PATH = `${fakeBinPath}${path.delimiter}${originalPath ?? ""}`
+
+    const assertDependencyInstallFailure = async ({
+      expectedExitCode,
+      expectedMode,
+      expectedPackageManagerWrites,
+      failureMode,
+    }: {
+      expectedExitCode: number
+      expectedMode: string
+      expectedPackageManagerWrites: boolean
+      failureMode: "after-write" | "before-write"
+    }) => {
+      const failureRoot = path.join(dependencyInstallRoot, failureMode)
+      const failureConsumerRoot = path.join(failureRoot, "consumer")
+      const failureRegistrySourcePath = path.join(failureRoot, "registry.json")
+      const originalFailureMode = process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
+
+      writeDependencyInstallFixture({
+        consumerRoot: failureConsumerRoot,
+        registrySourcePath: failureRegistrySourcePath,
+        root: failureRoot,
+      })
+
+      const originalSourceContent = readFileSync(
+        path.join(failureConsumerRoot, "src/components/Diff/motion-update.ts"),
+        "utf8",
+      )
+      const originalCodonLockfileContent = readFileSync(path.join(failureConsumerRoot, "codon-ui.lock.json"), "utf8")
+
+      try {
+        process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE = failureMode
+
+        const failedReport = await createUpdateStrictReport({
+          cwd: failureConsumerRoot,
+          dependencyPolicyOverride: "install",
+          installDependencies: true,
+          itemName: "motion-update",
+          registrySourcePath: failureRegistrySourcePath,
+        })
+        const failedCommand = failedReport.dependencyInstallPlan?.executionPlan.failedCommands[0]
+
+        assertCliJsonReportContract({ report: failedReport, schemaName: "updateStrict" })
+        assert.equal(failedReport.applied, false)
+        assert.equal(failedReport.itemUpdateState, "blocked")
+        assert.equal(failedReport.effects.writesFiles, false)
+        assert.equal(failedReport.effects.writesLockfile, false)
+        assert.equal(failedReport.effects.installsDependencies, expectedPackageManagerWrites)
+        assert.equal(failedReport.effects.dependencies.status, expectedPackageManagerWrites ? "written" : "not-written")
+        assert.equal(failedReport.dependencyInstallPlan?.status, "failed")
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.mode, expectedMode)
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.packageManagerExecution, "failed")
+        assert.equal(
+          failedReport.dependencyInstallPlan?.executionPlan.packageManagerWrites,
+          expectedPackageManagerWrites,
+        )
+        assert.equal(failedReport.dependencyInstallPlan?.executionPlan.failedCommands.length, 1)
+        assert.equal(failedCommand?.exitCode, expectedExitCode)
+        assert.equal(failedCommand?.packageManagerWrites, expectedPackageManagerWrites)
+        assert.equal(failedCommand?.command, "npm i motion@^11.0.0")
+        assert(
+          failedReport.blockers.some((blocker) => blocker.code === "strict-update-dependency-execution-failed"),
+          `expected ${failureMode} strict update dependency execution failure blocker`,
+        )
+        assert(
+          failedReport.findings.some((finding) => finding.code === "strict-update-dependency-execution-failed"),
+          `expected ${failureMode} strict update dependency execution failure finding`,
+        )
+        assert.equal(
+          readFileSync(path.join(failureConsumerRoot, "src/components/Diff/motion-update.ts"), "utf8"),
+          originalSourceContent,
+        )
+        assert.equal(
+          readFileSync(path.join(failureConsumerRoot, "codon-ui.lock.json"), "utf8"),
+          originalCodonLockfileContent,
+        )
+
+        if (failureMode === "before-write") {
+          assert.equal(readJson(path.join(failureConsumerRoot, "package.json")).dependencies.motion, undefined)
+          assert.equal(existsSync(path.join(failureConsumerRoot, "package-lock.json")), false)
+          assert.deepEqual(failedCommand?.mutatedPaths, [])
+        } else {
+          assert.equal(readJson(path.join(failureConsumerRoot, "package.json")).dependencies.motion, "^11.0.0")
+          assert.equal(existsSync(path.join(failureConsumerRoot, "package-lock.json")), true)
+          assert.deepEqual(failedCommand?.mutatedPaths, ["package-lock.json", "package.json"])
+        }
+      } finally {
+        if (originalFailureMode === undefined) {
+          delete process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE
+        } else {
+          process.env.AMINO_UPDATE_TEST_FAKE_NPM_FAILURE_MODE = originalFailureMode
+        }
+      }
+    }
+
+    await assertDependencyInstallFailure({
+      expectedExitCode: 73,
+      expectedMode: "eligible",
+      expectedPackageManagerWrites: false,
+      failureMode: "before-write",
+    })
+    await assertDependencyInstallFailure({
+      expectedExitCode: 74,
+      expectedMode: "not-needed",
+      expectedPackageManagerWrites: true,
+      failureMode: "after-write",
+    })
+
+    const dependencyInstallStrictReport = await createUpdateStrictReport({
+      cwd: dependencyInstallConsumerRoot,
+      dependencyPolicyOverride: "install",
+      installDependencies: true,
+      itemName: "motion-update",
+      registrySourcePath: dependencyInstallRegistrySourcePath,
+    })
+
+    assertCliJsonReportContract({ report: dependencyInstallStrictReport, schemaName: "updateStrict" })
+    assert.equal(dependencyInstallStrictReport.applied, true)
+    assert.equal(dependencyInstallStrictReport.itemUpdateState, "updated")
+    assert.equal(dependencyInstallStrictReport.effects.installsDependencies, true)
+    assert.equal(dependencyInstallStrictReport.effects.dependencies.status, "written")
+    assert.equal(dependencyInstallStrictReport.effects.dependencies.updatedCount, 1)
+    assert.equal(
+      dependencyInstallStrictReport.dependencyInstallPlan?.executionPlan.packageManagerExecution,
+      "completed",
+    )
+    assert.equal(dependencyInstallStrictReport.dependencyInstallPlan?.executionPlan.executedCommands.length, 1)
+    assert.equal(
+      readFileSync(path.join(dependencyInstallConsumerRoot, "src/components/Diff/motion-update.ts"), "utf8"),
+      dependencyInstallCurrent,
+    )
+    assert.equal(readJson(path.join(dependencyInstallConsumerRoot, "package.json")).dependencies.motion, "^11.0.0")
+
+    const dependencyInstallLockfile = readJson(path.join(dependencyInstallConsumerRoot, "codon-ui.lock.json"))
+    const motionDependency = dependencyInstallLockfile.dependencies.find(
+      (dependency: { name: string }) => dependency.name === "motion",
+    )
+
+    assert.equal(motionDependency.action, "installed")
+    assert.equal(motionDependency.status, "satisfied")
+    assert.equal(
+      dependencyInstallLockfile.items["motion-update"].files[0].sourceHash,
+      createContentHash(dependencyInstallCurrent),
+    )
+  } finally {
+    process.env.PATH = originalPath
+  }
+
   const missingDryRunReport = await createUpdateDryRunReport({
     cwd: consumerRoot,
     itemName: "missing-item",
@@ -557,7 +1128,7 @@ try {
   assert.equal(missingDryRunReport.effects.writesFiles, false)
   assert.equal(missingDryRunReport.effects.writesLockfile, false)
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), dependencyBlockedSnapshot)
-  console.log("[aminoui-cli] update advisory, dry-run, and strict reports verified")
+  console.log("[codon-ui] update advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

@@ -1,16 +1,18 @@
 ---
-title: "@amino-ui/react"
+title: "@codon-ui/react"
 description: The private React source receiver package.
 ---
 
-`@amino-ui/react` is currently private. It is the canonical home for React component source, package default CSS,
+`@codon-ui/react` is currently private. It is the canonical home for React component source, package default CSS,
 support tokens, and registry manifests.
 
 ## Current Surface
 
 - `src/index.ts` exports the package-facing component surface.
 - `src/components` contains received reusable component source, helpers, labels, icons, and CSS modules.
-- `theme.css` is exported as `@amino-ui/react/theme.css`.
+- `theme.css` is exported as `@codon-ui/react/theme.css`.
+- `theme.css` exposes the canonical `--cui-*` custom properties; the legacy `--aui-*` compatibility aliases were removed
+  after the source flip, fixture, and Wavemap consumer proofs passed.
 - `src/theme` owns narrow theme support files that stay outside the default CSS contract.
 - `src/tokens` owns registry-owned support tokens.
 - `src/registry/manifest.ts` owns the internal registry manifest.
@@ -23,8 +25,19 @@ support tokens, and registry manifests.
 
 The active React manifest currently contains 73 items: 52 components, 9 support items, and 12 theme items.
 
-`@amino-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
+`@codon-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
 not drift from the manifest.
+
+## Distribution Contract
+
+For the first private npm proof, `@codon-ui/react` remains the canonical source identity but not the runtime source
+package that `npx` must resolve. The CLI package bundles a generated source snapshot at pack time so source-installed
+consumer workflows can be proven with one private npm package first.
+
+The mature distribution model is still a split package contract: `@codon-ui/cli` owns command behavior and
+`@codon-ui/react` owns the versioned registry/source artifact. Moving to that model requires `@codon-ui/react` to publish
+registry metadata and source files intentionally, not only `dist` and `theme.css`, and requires the CLI to resolve those
+assets from the installed React package.
 
 ## Peer Policy
 
@@ -38,6 +51,6 @@ without installing packages by default.
 ## Current Non-Goals
 
 - Public token exports.
-- Published package artifacts.
+- Publishing `@codon-ui/react` as the source artifact for the first private CLI proof.
 - Hosted registry artifacts.
 - Runtime provider or generated theme machinery.

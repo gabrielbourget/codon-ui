@@ -1,5 +1,5 @@
 .pageInput {
   display: flex;
   align-items: flex-end;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }

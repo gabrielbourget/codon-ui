@@ -28,7 +28,7 @@ const parseEjectOptions = (itemName: string, CLIOptions: unknown) => ({
 
 export const eject = new Command()
   .name("eject")
-  .description("Eject one installed Amino UI registry item when strict provenance checks pass.")
+  .description("Eject one installed Codon UI registry item when strict provenance checks pass.")
   .argument("<item>", "The installed registry item you'd like to inspect or eject.")
   .option("--advisory", "Report eject posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())

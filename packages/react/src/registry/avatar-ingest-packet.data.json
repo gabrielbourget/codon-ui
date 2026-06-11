@@ -1,7 +1,7 @@
 {
   "name": "avatar",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#avatar-next-candidate-planning-checkpoint-2026-06-03",
   "files": [
@@ -75,7 +75,7 @@
     {
       "sourcePath": "packages/react/src/components/Avatar/AvatarStyles.module.css",
       "importSource": "--shadow_1 / --border_radius_1 aliases",
-      "replacementSource": "--aui-shadow-1 / --aui-radius-1",
+      "replacementSource": "--cui-shadow-1 / --cui-radius-1",
       "notes": ["Avatar CSS now reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
@@ -106,7 +106,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-surface-foreground", "--aui-surface", "--aui-shadow-1", "--aui-radius-1"],
+      "cssVariables": ["--cui-surface-foreground", "--cui-surface", "--cui-shadow-1", "--cui-radius-1"],
       "notes": [
         "Avatar source reads the default theme contract directly and does not need a component-specific compatibility bridge."
       ]
@@ -129,14 +129,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Avatar proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source, Radix peer/dev dependency, and public export type surface."]

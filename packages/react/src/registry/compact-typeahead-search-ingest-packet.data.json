@@ -1,7 +1,7 @@
 {
   "name": "compact-typeahead-search",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#compacttypeaheadsearch-extraction-planning-checkpoint-2026-06-06",
   "files": [
@@ -174,7 +174,7 @@
     {
       "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
       "importSource": "legacy spacing/radius/focus/transition aliases",
-      "replacementSource": "default --aui-* theme variables",
+      "replacementSource": "default --cui-* theme variables",
       "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
     }
   ],
@@ -209,22 +209,22 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-control-background",
-        "--aui-control-border",
-        "--aui-control-foreground",
-        "--aui-focus-ring",
-        "--aui-opacity-disabled",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-surface",
-        "--aui-transition-border-color",
-        "--aui-validation-error-border",
-        "--aui-validation-success-border",
-        "--aui-validation-warning-border"
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-control-background",
+        "--cui-control-border",
+        "--cui-control-foreground",
+        "--cui-focus-ring",
+        "--cui-opacity-disabled",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-surface",
+        "--cui-transition-border-color",
+        "--cui-validation-error-border",
+        "--cui-validation-success-border",
+        "--cui-validation-warning-border"
       ],
       "notes": [
         "CompactTypeaheadSearch should use existing default Amino theme variables without a compatibility bridge."
@@ -241,7 +241,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": ["Runs the package-side static CompactTypeaheadSearch proof harness once wired into package scripts."]
     },

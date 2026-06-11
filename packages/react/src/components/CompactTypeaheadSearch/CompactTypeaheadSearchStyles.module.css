@@ -3,11 +3,11 @@
   width: 100%;
   display: flex;
   align-items: center;
-  background: var(--aui-control-background);
+  background: var(--cui-control-background);
 }
 
 .typeAheadSearch[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 
 .typeAheadSearch[data-disabled]:hover {
@@ -15,7 +15,7 @@
 }
 
 .typeAheadSearch__iconColor {
-  color: var(--aui-control-foreground);
+  color: var(--cui-control-foreground);
 }
 
 .typeAheadSearch__status {
@@ -23,8 +23,8 @@
   width: 100%;
   display: grid;
   place-items: center;
-  gap: var(--aui-space-1);
-  padding: var(--aui-space-2);
+  gap: var(--cui-space-1);
+  padding: var(--cui-space-2);
 }
 
 .typeAheadSearch__loadingIndicator {
@@ -32,7 +32,7 @@
   place-items: center;
   min-width: 24px;
   min-height: 24px;
-  color: var(--aui-control-foreground);
+  color: var(--cui-control-foreground);
 }
 
 .popover {
@@ -44,11 +44,11 @@
 }
 
 .popover[data-entering] {
-  animation: var(--aui-animation-fade-in);
+  animation: var(--cui-animation-fade-in);
 }
 
 .popover[data-exiting] {
-  animation: var(--aui-animation-fade-out);
+  animation: var(--cui-animation-fade-out);
 }
 
 .optionsList {
@@ -56,14 +56,14 @@
   width: 100%;
   max-height: 280px;
   overflow-y: auto;
-  background-color: var(--aui-surface);
-  padding: var(--aui-space-1);
-  border-radius: var(--aui-radius-1);
-  box-shadow: var(--aui-shadow-1);
+  background-color: var(--cui-surface);
+  padding: var(--cui-space-1);
+  border-radius: var(--cui-radius-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .optionsList[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .inputButtonGroup {
@@ -72,8 +72,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border: 1px solid var(--aui-control-border);
-  transition: var(--aui-transition-border-color);
+  border: 1px solid var(--cui-control-border);
+  transition: var(--cui-transition-border-color);
 }
 
 .inputButtonGroup--rtl {
@@ -81,17 +81,17 @@
 }
 
 .inputButtonGroup--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .inputButtonGroup--round {
   border-radius: 50%;
-  padding: var(--aui-space-1) 7px;
+  padding: var(--cui-space-1) 7px;
 }
 
 .inputButtonGroup--applyFocusStyle[data-focus-within],
 .inputButtonGroup--applyFocusStyle:focus-within {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .inputButtonGroup--noFocusStyle[data-focus-within],
@@ -104,15 +104,15 @@
 }
 
 .inputButtonGroup--errorState {
-  border-color: var(--aui-validation-error-border);
+  border-color: var(--cui-validation-error-border);
 }
 
 .inputButtonGroup--warningState {
-  border-color: var(--aui-validation-warning-border);
+  border-color: var(--cui-validation-warning-border);
 }
 
 .inputButtonGroup--successState {
-  border-color: var(--aui-validation-success-border);
+  border-color: var(--cui-validation-success-border);
 }
 
 .inputButtonGroup__button {

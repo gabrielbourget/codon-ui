@@ -63,21 +63,21 @@ const requiredStyleSelectors = [
   ".optionsList[data-focused]",
 ]
 const requiredDefaultVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-placeholder",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-surface",
-  "--aui-validation-error-border",
-  "--aui-validation-warning-border",
-  "--aui-validation-success-border",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-placeholder",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-surface",
+  "--cui-validation-error-border",
+  "--cui-validation-warning-border",
+  "--cui-validation-success-border",
 ]
 
 const selectSource = readRequiredText(selectSourcePath)
@@ -127,12 +127,12 @@ assert(helpersSource.includes("SELECT_SIZE__SM"), "Select size constants must st
 assert(helpersSource.includes("export const calibrateComponent"), "Select calibration helper must remain local")
 assert(helpersSource.includes('textStyles["fw-regular"]'), "Select must apply regular Text weight")
 assert(
-  helpersSource.includes("var(--aui-validation-error-border)") &&
-    helpersSource.includes("var(--aui-validation-warning-border)") &&
-    helpersSource.includes("var(--aui-validation-success-border)"),
+  helpersSource.includes("var(--cui-validation-error-border)") &&
+    helpersSource.includes("var(--cui-validation-warning-border)") &&
+    helpersSource.includes("var(--cui-validation-success-border)"),
   "Select must preserve validation border variables",
 )
-assert(helpersSource.includes("var(--aui-control-border)"), "Select must preserve default control border variable")
+assert(helpersSource.includes("var(--cui-control-border)"), "Select must preserve default control border variable")
 assert(
   helpersSource.includes("mergeSelectClassNames") && helpersSource.includes("computeSelectStyle"),
   "Select must preserve native className/style merge helpers",
@@ -151,7 +151,7 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(selector), `Select CSS module must include ${selector}`)
 })
 requiredDefaultVariables
-  .filter((cssVariable) => !cssVariable.startsWith("--aui-validation") && cssVariable !== "--aui-control-border")
+  .filter((cssVariable) => !cssVariable.startsWith("--cui-validation") && cssVariable !== "--cui-control-border")
   .forEach((cssVariable) => {
     assert(stylesSource.includes(`var(${cssVariable})`), `Select CSS must read ${cssVariable}`)
   })
@@ -193,7 +193,7 @@ assert(packageJson.peerDependencies["react-dom"], "Select package must keep Reac
 
 assert(packet.name === "select", "Select packet must describe the select item")
 assert(packet.type === "component", "Select packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Select packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Select packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Select packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#select-next-candidate-planning-checkpoint"),
@@ -282,7 +282,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--border_radius_1") && resolution.replacementSource.includes("--aui-radius-1"),
+      resolution.importSource.includes("--border_radius_1") && resolution.replacementSource.includes("--cui-radius-1"),
   ),
   "Select packet must record legacy CSS variable rewrite",
 )

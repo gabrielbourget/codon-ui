@@ -5,6 +5,7 @@ import { tmpdir } from "node:os"
 import path from "node:path"
 
 import { createDiffReport } from "../helpers/diff"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -29,8 +30,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/unknown.ts",
     "source/support.ts",
     "source/ejected.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/source-changed.ts",
     "consumer/src/components/Diff/local-modified.ts",
@@ -42,7 +43,7 @@ const readFixtureSnapshot = (fixturePath: string) =>
     .map((filePath) => `${filePath}:${createContentHash(readFileSync(path.join(fixturePath, filePath)))}`)
     .sort()
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-diff-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-diff-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
@@ -71,7 +72,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/unknown.ts"), unknownSource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/support.ts"), supportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedCurrent)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -120,16 +125,16 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     items: {
       switch: {
         files: [
@@ -184,7 +189,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -197,6 +202,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "diff" })
   assert.equal(report.schemaVersion, 1)
   assert.deepEqual(report.effects, {
     installsDependencies: false,
@@ -243,13 +249,14 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: missingReport, schemaName: "diff" })
   assert.equal(missingReport.files.length, 0)
   assert(
     missingReport.findings.some((finding) => finding.code === "status-lockfile-item-missing"),
     "expected missing item finding",
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), initialSnapshot)
-  console.log("[aminoui-cli] diff report verified")
+  console.log("[codon-ui] diff report verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

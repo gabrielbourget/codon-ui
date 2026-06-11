@@ -20,7 +20,7 @@ const parseStatusOptions = (itemName: string | undefined, CLIOptions: unknown) =
 
 export const status = new Command()
   .name("status")
-  .description("Inspect installed Amino UI registry files without writing changes.")
+  .description("Inspect installed Codon UI registry files without writing changes.")
   .argument("[item]", "The installed registry item you'd like to inspect.")
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
   .option("--json", "Print machine-readable status output.", false)

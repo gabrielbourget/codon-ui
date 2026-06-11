@@ -5,33 +5,84 @@ description: Current CLI renovation boundaries and advisory-mode policy.
 
 The CLI still contains legacy scaffold paths, but the local-registry lane now supports advisory planning, dry-run
 planning, strict init, strict single-component installs, read-only status inspection, focused read-only diff inspection,
-item-scoped update advisory, item-scoped update dry-run, item-scoped remove advisory, and item-scoped remove dry-run
-against the React registry snapshot, strict item-scoped update for fixture-proven cases, strict item-scoped remove for
-fixture-proven cases, opt-in strict remove/delete orphan cleanup for fixture-proven cases, item-scoped eject advisory,
-item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockfile ownership transfer. The visible
-`delete` command is an alias-style sibling for the current remove lifecycle surface.
+item-scoped update advisory, broad update advisory, item-scoped update dry-run, broad update dry-run, item-scoped remove
+advisory, and item-scoped remove dry-run against the React registry snapshot, strict item-scoped update and atomic
+broad strict update for fixture-proven cases, item-scoped strict update dependency installation for dependency-only
+update blockers,
+strict item-scoped remove for fixture-proven cases, opt-in strict remove/delete orphan cleanup for fixture-proven cases,
+explicit strict remove/delete package dependency cleanup for fixture-proven orphan cleanup cases, item-scoped eject
+advisory, item-scoped eject dry-run, and strict item-scoped eject for fixture-proven lockfile ownership transfer. The
+visible `delete` command is an alias-style sibling for the current remove lifecycle surface.
 
 ## Current Surface
 
-| Command  | Current state                                                                                                                                                                                                                                                                                                                                                                           |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `init`   | Legacy normal mode still mutates config, helper files, directories, and dependencies. `init --advisory` is read-only; `init --defaults` seeds only the new config and lockfile.                                                                                                                                                                                                         |
-| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                                 |
-| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent.                                                                                                                                                         |
-| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, `delete <item> --json`, and their `--with-orphans` variants use the same remove reports, blockers, effects, and mutation boundaries.                                                                                                                                                 |
-| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                                                                       |
-| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched.                 |
-| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers; `--with-orphans` opts into dependency orphan cleanup. |
-| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                                |
-| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, and lockfile effects without writing. Strict `update <item> --json` applies only dry-run-approved source-file writes and lockfile-record updates.                          |
+| Command  | Current state                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init`   | Plain `init` now uses the strict new-contract seed path. It writes only `codon-ui.config.json` and an empty `codon-ui.lock.json` when both are absent, preserves existing config/lockfile files by default, and does not write helper files, directories, dependencies, or package-manager lockfiles. `init --advisory` is read-only; `init --dry-run` previews the same seed; `init --defaults` remains an explicit alias for the strict default seed.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `info`   | Read-only project context and init advisory output are available through `info --json`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `add`    | Legacy normal mode remains for other inputs. Local-registry `add --advisory --json` and `add --dry-run --json` plan the graph; strict `add <component> --json` writes one local React component graph when blockers are absent or approved dependency installs resolve dependency-only blockers.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `delete` | Visible sibling for `remove`. `delete <item> --advisory --json`, `delete <item> --dry-run --json`, `delete <item> --json`, and their `--with-orphans` variants use the same remove reports, blockers, effects, and mutation boundaries. `--remove-dependencies` follows the same explicit strict cleanup boundary as `remove`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `diff`   | `diff <item> --json` compares one installed lockfile item against the local registry source and emits preservation-oriented file recommendations without writing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `eject`  | `eject <item> --advisory --json` reports item-scoped ownership-transfer posture from the status model without writing files or lockfile data. `eject <item> --dry-run --json` previews item-scoped lockfile ownership transfer without writing. Strict `eject <item> --json` writes only dry-run-approved lockfile ownership records and leaves source files untouched.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `remove` | `remove <item> --advisory --json` reports item-scoped remove posture from the status model without deleting files or writing lockfile data. `remove <item> --dry-run --json` previews item-scoped file and lockfile-record removals without writing. Strict `remove <item> --json` applies only when dry-run reports no blockers; `--with-orphans` opts into orphan item cleanup, and `--remove-dependencies` opts into eligible package dependency cleanup.                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `status` | `status --json` reads config, lockfile, local registry source, installed file hashes, and recorded dependency decisions without writing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `update` | `update <item> --advisory --json` reports item-scoped update posture from the diff model without writing. `update --all --advisory --json` enumerates every installed item and aggregates item-scoped advisory states without writing. `update <item> --dry-run --json` previews item-scoped writes, skips, blockers, dependency posture, dependency install planning, and lockfile effects without writing; `update --all --dry-run --json` aggregates those item-scoped previews without writing. Strict `update <item> --json` applies dry-run-approved source-file writes and lockfile-record updates; when the only current blockers are dependency blockers, it can first run an explicitly approved dependency install and replan. Strict `update --all --json` applies all dry-run-approved installed-item updates only when every installed item passes the strict preflight; any blocker prevents all writes. |
 
 These commands are local proof tooling. They do not decide public registry hosting, package publication, generated token
-output, broad update/merge behavior, broader ejection policy, dependency cleanup, or non-orphan support cleanup.
+output, broad update rollback or merge behavior, broader ejection policy, dependency cleanup outside
+explicit strict `remove`/`delete --with-orphans --remove-dependencies`, or non-orphan support cleanup.
 
-## Command Names
+## Private-Use Closeout Read
 
-The package still publishes the existing `aminoui-cli` bin and now also exposes `aui` as the shorter command alias. Both
-point at `dist/index.js`; package distribution policy remains separate from this alias.
+The current lifecycle surface is close to private-use complete after the package and command rename. The useful finish
+line is not public ecosystem behavior; it is a trustworthy source-distribution CLI for projects controlled by the same
+maintainer.
+
+For private distribution, update behavior should have enough authority to be useful without becoming a custom merge
+engine:
+
+- clean registry-owned files can update through item-scoped strict update or all-safe strict update;
+- stale lockfile metadata can refresh when local source already matches planned installed content;
+- dependency-only item update blockers can resolve through explicit package-manager approval and then replan;
+- locally modified, missing, unknown, consumer-owned-support, and ejected files are reported and preserved by default.
+
+The main closeout caveats before publishing are:
+
+- package publication is gated by `prepublishOnly`, which runs the package preflight and release safety guard before a
+  real publish can proceed;
+- custom update transforms, AST-aware merges, rollback after unexpected write failures, and public registry hosting remain
+  outside the private-use finish line.
+
+## Command Name
+
+The CLI package is `@codon-ui/cli` and exposes `codon-ui`, `cui`, and `codonui` bins that all point at `dist/index.js`.
+`codon-ui` remains the canonical documentation spelling; `cui` is the short ergonomic alias.
+
+## Package Shape
+
+The first private npm proof keeps the CLI package self-contained. `@codon-ui/cli` packs only `dist`, and `prepack`
+generates package-local registry snapshots plus referenced React source files under `dist/registry` and
+`dist/registry-source`. That lets `npx`, `npm exec`, or `pnpm dlx` run the CLI from a temporary npm cache without
+reaching back into a local monorepo checkout.
+
+The checked-in registry snapshots under `packages/CLI/registry` remain monorepo-local development snapshots that point
+back to `packages/react`. The generated pack-time copies rewrite only `sourceRoot`; they do not change registry item ids,
+source identities, source paths, lockfile identity, or consumer target paths.
+
+`@codon-ui/cli` is versioned at `0.1.0` for the first private npm proof and declares
+`publishConfig.access: "restricted"`. `prepublishOnly` runs the package preflight and release guard before any real npm
+publish can proceed. The pack preflight command builds the CLI, verifies the built command against the generated
+package-local registry source, and then runs npm's tarball dry-run:
+
+```sh
+pnpm -F @codon-ui/cli pack:check
+```
+
+Actual publish remains a manual final gate:
+
+```sh
+pnpm -F @codon-ui/cli publish --access restricted
+```
 
 ## Advisory Mode
 
@@ -52,12 +103,13 @@ hosted-registry advisory path.
 
 Current `init --advisory --json` reports the proposed consumer config, package manager, project context, theme tier,
 dependency policy, and role paths without writing files. The default `registry-contained` layout places support roles
-under `src/components/_registry`.
+under `src/components/_codon-ui-registry`; existing consumers can keep historical paths when config or lockfile records
+already make them explicit.
 
-Current `init --defaults --json` is the strict new-contract seed path. It writes only `amino-ui.config.json` and an empty
-`amino-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
+Current `init --json` is the strict new-contract seed path. It writes only `codon-ui.config.json` and an empty
+`codon-ui.lock.json` when neither file exists. It does not create directories, write helper/support files, install
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
-overwritten.
+overwritten. `init --defaults --json` remains an explicit alias for this same seed path.
 
 Current `init --dry-run --json` previews the same strict default seed without writing files. It reports actual effects as
 no-write and reports config/lockfile `wouldEffects` as `would-write`, `blocked`, or `not-written` depending on whether the
@@ -78,16 +130,18 @@ effects. Compatible declarations in the target package are reported as `satisfie
 
 Current `add <component> --dry-run --json` uses the same local React registry source and packet metadata, but reports
 would-apply effects instead of advisory-only effects. It still writes no files, config, lockfile, directories, or package
-metadata. Missing `amino-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
+metadata. Missing `codon-ui.config.json` is a warning for now, and the command falls back to default `registry-contained`
 paths so fixtures can preview the exact write set before strict init. Existing targets are counted as blockers,
 dependency decisions are summarized, and the lockfile effect reports `would-write`.
 
 Current strict `add <component> --json` reads the same local React registry source after strict init has created
-`amino-ui.config.json` and `amino-ui.lock.json`. It requires already-satisfied dependencies, rejects missing source files
-and unsafe existing target files, writes the planned support/theme/component graph, rewrites package-local imports to the
-installed registry paths, and records hash-based lockfile item/file ownership plus satisfied dependency decisions. It can
-reuse compatible support files when the lockfile proves they are reusable. It does not install packages, overwrite
-unknown files, generate hosted registry artifacts, or implement update/eject behavior.
+`codon-ui.config.json` and `codon-ui.lock.json`. It requires satisfied dependency decisions before writing component
+source; consumers can satisfy them out of band, or strict add can run the approved dependency command only when
+`--install-dependencies` combines with effective install policy and a known package manager. It rejects missing source
+files and unsafe existing target files, writes the planned support/theme/component graph, rewrites package-local imports
+to the installed registry paths, and records hash-based lockfile item/file ownership plus dependency decisions. It can
+reuse compatible support files when the lockfile proves they are reusable. It does not overwrite unknown files, generate
+hosted registry artifacts, or implement broad update/eject behavior.
 
 Focused fixture evidence now proves the clean `circle-loader` add lifecycle from strict init through advisory, dry-run,
 strict add, post-add `status --json`, and post-add `diff --json` in one temporary consumer copy. The strict phase writes
@@ -97,7 +151,7 @@ an unsafe existing component target or incompatible support token target is pres
 
 Focused fixture evidence also proves the compatible support reuse path for `add switch`. Advisory and dry-run classify an
 existing `tokens/geometry` target as `reuse-existing` with `targetCompatibility: "typescript-export-superset"`, strict
-add writes only the missing `Switch` graph files plus `amino-ui.lock.json`, and the lockfile adopts the existing support
+add writes only the missing `Switch` graph files plus `codon-ui.lock.json`, and the lockfile adopts the existing support
 file as `consumer-owned-support` without overwriting it.
 
 Focused fixture evidence also proves the missing dependency boundary for `add switch`. Advisory and dry-run classify
@@ -134,7 +188,7 @@ updates only the selected temp `package.json` outside the CLI, reruns advisory/d
 and strictly adds `switch` without package-manager writes. The same proof covers the default nearest package manifest and
 `--package-json apps/web/package.json`.
 
-Current `status --json` is read-only. It loads `amino-ui.config.json` and `amino-ui.lock.json`, selects the full local
+Current `status --json` is read-only. It loads `codon-ui.config.json` and `codon-ui.lock.json`, selects the full local
 React registry for component items such as `circle-loader`, computes current file hashes, compares them to installed and
 source hashes, reports lockfile dependency posture, and emits summary counts for file and source states. Fixture evidence
 currently proves greenfield uninitialized, greenfield initialized-empty, clean installed, locally modified, unknown,
@@ -146,26 +200,55 @@ Fixture evidence currently proves clean installed, locally modified, unknown, co
 dependency issue, and stale source-hash cases.
 
 Current `update <item> --advisory --json` is read-only and item-scoped. It builds on the diff model, emits per-file
-advisory actions, item update state, dependency posture, automatic-update blocker counts, and explicit no-write effects.
-It reports `update-candidate` only for pristine registry-owned files with source changes. It preserves locally modified,
-missing, unknown, consumer-owned-support, and ejected files by default. Fixture evidence currently proves clean installed,
-locally modified, unknown, consumer-owned-support, missing, ejected, dependency issue, and stale source-hash cases.
+advisory actions, item update state, dependency posture, dependency install planning, automatic-update blocker counts,
+and explicit no-write effects. It reports `update-candidate` only for pristine registry-owned files with source changes.
+It preserves locally modified, missing, unknown, consumer-owned-support, and ejected files by default. Fixture evidence
+currently proves clean installed, locally modified, unknown, consumer-owned-support, missing, ejected, dependency issue,
+and stale source-hash cases.
+
+Current `update --all --advisory --json` is also read-only. It starts from the installed lockfile item set, runs the
+same item-scoped advisory classification for each installed item, and returns per-item `itemUpdateState`, file actions,
+findings, dependency posture, and summary counts. The top-level summary aggregates item states, update-candidate files,
+automatic blockers, preservation requirements, source changes, and dependency states. It does not provide strict update
+authority.
+
+Current `update --all --dry-run --json` is non-mutating broad dry-run planning. It starts from the installed lockfile item
+set, runs the same item-scoped dry-run report for each installed item, and returns per-item `itemUpdateState`,
+`wouldEffects`, blockers, files, dependencies, findings, and summary counts. The top-level summary aggregates
+`would-update`, `blocked`, `up-to-date`, and `unavailable` item states plus candidate files, skipped files, blocked files,
+would-write files, would-update lockfile records, dependency blockers, and aggregate lockfile `wouldEffects`. It still
+writes no source files, config, lockfile, package manifests, package-manager lockfiles, or dependencies.
+
+Current strict `update --all --json` is atomic broad update execution for dry-run-approved installed items. It starts with
+the same broad dry-run report, preflights every installed item, and writes only when no item reports dry-run blockers,
+project blockers, dependency blockers, file-action blockers, stale hashes, missing sources, unsafe ownership, or duplicate
+actionable target paths. When blocked, it exits nonzero, writes no source files, and leaves `codon-ui.lock.json`
+untouched. When every item is up to date, it exits zero with a no-op report. When safe update candidates exist, it writes
+approved source files and lockfile-only hash refreshes, then writes the lockfile once after the item write pass. It does
+not install dependencies, merge local edits, apply partial-success policy, roll back runtime write failures, mutate
+package manifests, or touch package-manager lockfiles.
 
 Current `update <item> --dry-run --json` is also non-mutating and item-scoped. It reuses the update advisory
 classification, recomputes the current registry install plan for the item, applies the same relative-import rewrite logic
 used by strict add when calculating planned installed hashes, and reports `wouldEffects` separately from actual effects.
 Actual effects always report no source, config, lockfile, or dependency writes. `wouldEffects` reports whether strict
 update would write source files, update only lockfile hashes, skip preservation-sensitive files, block on dependencies or
-project state, or do nothing. The command marks the item `blocked` when any file in that installed item requires
-preservation, even if another file remains visible as an update candidate.
+project state, or do nothing. The report also includes `dependencyInstallPlan`, so consumers can review policy,
+package-manager detection, target manifest, and proposed install commands before any strict mutation. The command marks
+the item `blocked` when any file in that installed item requires preservation, even if another file remains visible as an
+update candidate.
 
 Current strict `update <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
 `would-update`, no dry-run blockers exist, and a final preflight proves the local file hashes and current registry source
 still match the dry-run plan. It writes dry-run-approved registry-owned component source files, updates matching lockfile
 file records, and supports lockfile-only hash refresh when the local file already matches the planned installed content.
 Up-to-date items return a no-op report with exit 0. It does not merge local edits, update unknown files, update
-consumer-owned support, update ejected files, install dependencies, mutate package manifests, or touch package-manager
-lockfiles.
+consumer-owned support, or update ejected files. When current strict blockers are dependency-only and the item still has
+an update candidate, strict update can run the detected npm, pnpm, yarn, or bun install command only when
+`--install-dependencies` combines with effective dependency policy `install`. It then replans from the selected target
+manifest before writing source files or `codon-ui.lock.json`; installed dependency decisions are recorded with action
+`installed`. Broad `update --all --json` still does not install dependencies, mutate package manifests, or touch
+package-manager lockfiles.
 
 Current `remove <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 remove advisory actions, item remove state, dependency posture, shared lockfile reference counts, and explicit no-write
@@ -183,7 +266,7 @@ review or preservation, so it does not preview partial deletion for mixed safe/u
 
 Current strict `remove <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
 `would-remove`, no dry-run blockers exist, and the preflight still proves every planned source-file deletion or
-lockfile-only cleanup is current. It deletes registry-owned component files, removes the item from `amino-ui.lock.json`,
+lockfile-only cleanup is current. It deletes registry-owned component files, removes the item from `codon-ui.lock.json`,
 and preserves dependency records. It does not remove package dependencies, package-manager lockfiles, shared/support
 files, unknown files, locally modified files, consumer-owned support, or ejected files.
 
@@ -193,9 +276,16 @@ the separate `orphanCleanup` report block. It removes only dry-run-approved orph
 stays blocked by local edits, unknown ownership, consumer-owned support, ejected files, outside shared references,
 unexpectedly missing files, or path-boundary violations.
 
+Current strict `remove <item> --with-orphans --remove-dependencies --json` and the matching `delete` command add one more
+explicit approval gate. They run the detected npm, pnpm, yarn, or bun removal command only for package dependency cleanup
+candidates that are no longer required by remaining installed items and are present in the selected target manifest. The
+strict report includes `dependencyCleanupExecution`, package-manager execution metadata, and dependency effects. It also
+removes stale no-longer-required Codon dependency records from `codon-ui.lock.json` while preserving dependencies that
+remain required by another installed item.
+
 Current `delete <item>` is a visible sibling command for the same lifecycle surface. It supports `--advisory`, `--dry-run`,
 and strict JSON modes by delegating to the remove implementation. The JSON schema remains the remove report schema; the
-command does not add dependency cleanup or any broader deletion policy.
+command does not add a separate schema or any broader deletion policy.
 
 Current `eject <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 eject advisory actions, item eject state, dependency posture, shared lockfile reference counts, and explicit no-write
@@ -213,7 +303,7 @@ not preview partial lockfile ownership transfer for mixed safe/unsafe items.
 
 Current strict `eject <item> --json` reuses the dry-run report as its gate. It applies only when the item state is
 `would-eject`, no dry-run blockers exist, and the lockfile still records the planned component files as registry-owned.
-It writes only `amino-ui.lock.json`, changing eligible file records to `ejected`, and it leaves source files,
+It writes only `codon-ui.lock.json`, changing eligible file records to `ejected`, and it leaves source files,
 package-manager files, config, and dependency records untouched. Already ejected items return a no-op report with exit 0. Missing files, shared/support files, local edits, unknown ownership, consumer-owned support, and mixed unsafe items
 block the strict write.
 
@@ -222,41 +312,45 @@ block the strict write.
 The semi-developed command lane is intentionally linear:
 
 ```text
-init advisory -> init dry-run -> init defaults -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update dry-run -> strict update -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
+init advisory -> init dry-run -> strict init -> add advisory -> add dry-run -> strict add -> status -> diff -> update advisory -> update all advisory -> update dry-run -> update all dry-run -> strict update -> strict update all -> remove advisory -> remove dry-run -> strict remove -> delete sibling -> remove/delete orphan cleanup -> eject advisory -> eject dry-run -> strict eject
 ```
 
 `init` establishes consumer intent and provenance storage. `add` consumes registry metadata and the consumer files created
 by `init`.
 
-| Stage                          | Reads                                                | Writes                                   |
-| ------------------------------ | ---------------------------------------------------- | ---------------------------------------- |
-| `init --advisory`              | Project shape and package metadata.                  | Nothing.                                 |
-| `init --dry-run`               | Project shape and existing Amino config/lockfile.    | Nothing.                                 |
-| `init --defaults`              | Project shape and existing Amino config/lockfile.    | Config and empty lockfile only.          |
-| `add --advisory`               | Local snapshot, packet metadata, target package.     | Nothing.                                 |
-| `add --dry-run`                | Local snapshot, packet metadata, config if present.  | Nothing.                                 |
-| Strict `add`                   | Snapshot, packet metadata, config, lockfile, source. | Source/support/theme files and lockfile. |
-| `status --json`                | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `diff --json`                  | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `update --advisory --json`     | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `update --dry-run --json`      | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| Strict `update`                | Config, lockfile, local snapshot, installed files.   | Source files and lockfile.               |
-| `remove --advisory --json`     | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `remove --dry-run --json`      | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| Strict `remove`                | Config, lockfile, local snapshot, installed files.   | Source-file deletes and lockfile.        |
-| `delete` sibling               | Same as matching `remove` mode.                      | Same as matching `remove` mode.          |
-| `remove/delete --with-orphans` | Config, lockfile, local snapshot, installed files.   | Source-file deletes and lockfile.        |
-| `eject --advisory --json`      | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| `eject --dry-run --json`       | Config, lockfile, local snapshot, installed files.   | Nothing.                                 |
-| Strict `eject`                 | Config, lockfile, local snapshot, installed files.   | Lockfile only.                           |
+| Stage                                                | Reads                                                                                              | Writes                                                                                 |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `init --advisory`                                    | Project shape and package metadata.                                                                | Nothing.                                                                               |
+| `init --dry-run`                                     | Project shape and existing config/lockfile.                                                        | Nothing.                                                                               |
+| `init` / `init --defaults`                           | Project shape and existing config/lockfile.                                                        | Config and empty lockfile only.                                                        |
+| `add --advisory`                                     | Local snapshot, packet metadata, target package.                                                   | Nothing.                                                                               |
+| `add --dry-run`                                      | Local snapshot, packet metadata, config if present.                                                | Nothing.                                                                               |
+| Strict `add`                                         | Snapshot, packet metadata, config, lockfile, source, target manifest, and package-manager context. | Source/support/theme files, lockfile, and approved dependency installs.                |
+| `status --json`                                      | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `diff --json`                                        | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `update --advisory --json`                           | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Nothing.                                                                               |
+| `update --all --advisory --json`                     | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `update --dry-run --json`                            | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Nothing.                                                                               |
+| `update --all --dry-run --json`                      | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| Strict `update`                                      | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Source files, lockfile, and approved dependency installs for dependency-only blockers. |
+| Strict `update --all`                                | Config, lockfile, local snapshot, installed files.                                                 | Source files and lockfile when every installed item passes strict preflight.           |
+| `remove --advisory --json`                           | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `remove --dry-run --json`                            | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| Strict `remove`                                      | Config, lockfile, local snapshot, installed files.                                                 | Source-file deletes and lockfile.                                                      |
+| `delete` sibling                                     | Same as matching `remove` mode.                                                                    | Same as matching `remove` mode.                                                        |
+| `remove/delete --with-orphans`                       | Config, lockfile, local snapshot, installed files.                                                 | Source-file deletes and lockfile.                                                      |
+| `remove/delete --with-orphans --remove-dependencies` | Config, lockfile, local snapshot, installed files, target manifest, and package-manager context.   | Source-file deletes, CLI lockfile, and approved package-manager dependency removals.   |
+| `eject --advisory --json`                            | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| `eject --dry-run --json`                             | Config, lockfile, local snapshot, installed files.                                                 | Nothing.                                                                               |
+| Strict `eject`                                       | Config, lockfile, local snapshot, installed files.                                                 | Lockfile only.                                                                         |
 
-This lane is designed so fixture evidence can capture each transition before stricter lifecycle commands exist.
+This lane is designed so fixture evidence captures each transition before broader write authority expands.
 
 ## Completed Renovation Sequence
 
 1. Add fixture tests around config, registry schemas, package-manager helpers, and transforms.
 2. Add advisory preflight paths for `init` and `add`.
-3. Seed strict init with config and empty Amino lockfile only.
+3. Seed strict init with config and empty CLI lockfile only.
 4. Add dry-run previews before strict component writes.
 5. Add strict single-component local registry install paths for satisfied-dependency, no-conflict proofs.
 6. Add read-only `status --json` for greenfield, clean installed, locally modified, and classification fixture proofs.
@@ -285,6 +379,14 @@ This lane is designed so fixture evidence can capture each transition before str
     copies.
 19. Add focused compatible support reuse coverage for `add switch` advisory, dry-run, and strict adoption.
 20. Add focused missing dependency boundary coverage for `add switch` advisory, dry-run, and strict blocking.
+21. Add explicit strict `remove/delete --with-orphans --remove-dependencies` package dependency cleanup execution for
+    fixture-proven orphan cleanup cases across fake npm, pnpm, yarn, and bun.
+22. Add broad read-only `update --all --advisory --json` coverage that enumerates installed items and aggregates
+    item-scoped advisory states without opening strict update writes.
+23. Add broad no-write `update --all --dry-run --json` coverage that aggregates item-scoped dry-run previews without
+    writing during the dry-run gate.
+24. Add atomic strict `update --all --json` coverage that blocks the whole run when any installed item is unsafe and
+    writes dry-run-approved updates only when every installed item passes strict preflight.
 
 ## Next Lifecycle Targets
 
@@ -299,14 +401,16 @@ Discussion targets before lifecycle behavior expands:
 - ownership states: registry-owned, locally modified, ejected, consumer-owned support, and unknown;
 - update stance: automatic only for pristine registry-owned files, manual merge for modified files, never auto-update
   ejected files;
-- lifecycle proof mode: use `status --json`, `diff --json`, and `update --advisory --json` as the read-only
-  classification base, then use `update --dry-run --json` to gate strict item-scoped update writes,
-  `remove --dry-run --json` to gate strict remove behavior, and `eject --dry-run --json` to gate strict lockfile-only
-  ownership transfer.
+- lifecycle proof mode: use `status --json`, `diff --json`, `update --advisory --json`, and
+  `update --all --advisory --json` as the read-only classification base, then use `update --dry-run --json` and
+  `update --all --dry-run --json` to preview update writes without mutation, strict `update --all --json` to apply only
+  all-safe broad updates, `remove --dry-run --json` to gate strict remove behavior, and `eject --dry-run --json` to gate
+  strict lockfile-only ownership transfer.
 
 ## Boundaries
 
-Do not expand strict update beyond dry-run-approved item-scoped source writes and lockfile refreshes, strict
-remove/delete cleanup beyond opt-in orphan dependency cleanup, strict eject beyond lockfile-only ownership transfer,
-registry artifact hosting, generated token writers, dependency cleanup, non-orphan support cleanup, or publication policy
-as incidental cleanup.
+Do not expand update-all beyond the atomic dry-run-approved strict boundary, strict update into merge or rollback
+behavior, strict remove/delete cleanup beyond opt-in orphan dependency cleanup and explicit no-longer-required package
+dependency cleanup, strict eject beyond lockfile-only ownership transfer, registry artifact hosting, generated token
+writers, dependency cleanup outside strict `--with-orphans --remove-dependencies`, non-orphan support cleanup, or
+publication policy as incidental cleanup.

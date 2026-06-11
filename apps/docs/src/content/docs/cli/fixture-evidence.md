@@ -1,9 +1,9 @@
 ---
 title: Fixture Evidence
-description: Proof packets for Amino UI CLI command behavior.
+description: Proof packets for Codon UI CLI command behavior.
 ---
 
-The fixture repo records command behavior evidence for Amino UI consumers. It is not canonical component source and it is
+The fixture repo records command behavior evidence for Codon UI consumers. It is not canonical component source and it is
 not a replacement for Wavemap mature-consumer proof. Its job is to make CLI behavior systematic, repeatable, and
 assertable.
 
@@ -22,7 +22,7 @@ explicitly justified duplicate coverage, and reports known gaps without failing 
 
 ## Evidence Repository
 
-Consumer fixture projects live in the sibling `amino-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
+Consumer fixture projects live in the sibling `codon-ui-consumer-fixtures` repository. Use them when CLI behavior affects:
 
 - config or lockfile creation;
 - advisory or dry-run output;
@@ -42,6 +42,7 @@ Use focused gates for narrow lifecycle slices:
 
 ```sh
 pnpm verify:evidence-ledger
+pnpm verify:json-contracts
 pnpm verify:init-dry-run
 pnpm verify:init-lifecycle
 pnpm verify:add-lifecycle
@@ -60,12 +61,16 @@ pnpm verify:dependency-out-of-band-resolution
 pnpm verify:status
 pnpm verify:diff
 pnpm verify:update-advisory
+pnpm verify:update-all-advisory
 pnpm verify:update-dry-run
 pnpm verify:strict-update
+pnpm verify:update-dependency-execution
+pnpm verify:update-dependency-execution-failure
 pnpm verify:remove-advisory
 pnpm verify:remove-dry-run
 pnpm verify:strict-remove
 pnpm verify:remove-orphans
+pnpm verify:dependency-cleanup-execution
 pnpm verify:delete
 pnpm verify:eject-advisory
 pnpm verify:eject-dry-run
@@ -98,59 +103,100 @@ logs.
 
 Use the same evidence shape across the current and planned CLI lifecycle.
 
-| Command mode                   | Fixture expectation                                                                                                                                                                                                                                                      |
-| ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `init --advisory --json`       | Reports project shape, default config, theme tier, role paths, and policy without writes.                                                                                                                                                                                |
-| `init --dry-run --json`        | Reports no actual writes plus config and lockfile would-effects for greenfield and existing-file blocker cases.                                                                                                                                                          |
-| `init --defaults --json`       | Writes only `amino-ui.config.json` and an empty `amino-ui.lock.json` when both are absent.                                                                                                                                                                               |
-| `add --advisory --json`        | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                                                                                                                                                       |
-| `add --dry-run --json`         | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                                                                                                                                                      |
-| Strict `add <item> --json`     | Writes only approved source/support/theme files plus lockfile metadata when blockers are absent; focused lifecycle proof follows strict init through post-add status/diff, existing-target blockers, compatible support reuse/adoption, and missing dependency blockers. |
-| `status --json`                | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.                                                                                                                                            |
-| `diff --json`                  | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                                                                                                                                                       |
-| `update --advisory --json`     | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                                                                                                                                                         |
-| `update --dry-run --json`      | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                                                                                                                                                           |
-| Strict `update <item> --json`  | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and package-manager state.                                                                                                                                                        |
-| `remove --advisory --json`     | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.                                                                                                                                               |
-| `remove --dry-run --json`      | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                                                                                                                                                        |
-| Strict `remove <item> --json`  | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                                                                                                                                                              |
-| `remove/delete --with-orphans` | Reports no-write orphan and dependency cleanup candidates, then proves strict temp-copy cleanup for eligible registry dependency items without package writes.                                                                                                           |
-| `delete <item>` sibling        | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.                                                                                                                                                     |
-| `eject --advisory --json`      | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects.                                                                                                                                       |
-| `eject --dry-run --json`       | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                                                                                                                                                                   |
-| Strict `eject <item> --json`   | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.                                                                                                                                                  |
-| Future lifecycle expansion     | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                                                                                                                                                                   |
+| Command mode                                         | Fixture expectation                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `init --advisory --json`                             | Reports project shape, default config, theme tier, role paths, and policy without writes.                                                                                                                                                                                                                   |
+| `init --dry-run --json`                              | Reports no actual writes plus config and lockfile would-effects for greenfield and existing-file blocker cases.                                                                                                                                                                                             |
+| `init --json` / `init --defaults --json`             | Writes only `codon-ui.config.json` and an empty `codon-ui.lock.json` when both are absent; `--defaults` is an explicit alias for the strict default seed.                                                                                                                                                   |
+| `add --advisory --json`                              | Reports graph, source availability, target status, dependencies, and not-written lockfile effects.                                                                                                                                                                                                          |
+| `add --dry-run --json`                               | Reports the exact would-write shape, blockers, dependency counts, and would-write lockfile effects.                                                                                                                                                                                                         |
+| Strict `add <item> --json`                           | Writes approved source/support/theme files plus lockfile metadata when blockers are absent or explicit dependency installs succeed; focused lifecycle proof follows strict init through post-add status/diff, existing-target blockers, compatible support reuse/adoption, and missing dependency blockers. |
+| `status --json`                                      | Classifies installed graph, local edits, source freshness, dependency posture, and ownership without writes for proven cases.                                                                                                                                                                               |
+| `diff --json`                                        | Compares one registry item against installed files without mutating source, lockfile, config, or dependency state.                                                                                                                                                                                          |
+| `update --advisory --json`                           | Reports available changes, blockers, ownership states, dependency posture, and no-write effects.                                                                                                                                                                                                            |
+| `update --all --advisory --json`                     | Enumerates every installed item, aggregates item-scoped advisory states, and preserves source, lockfile, config, and dependency state.                                                                                                                                                                      |
+| `update --dry-run --json`                            | Previews exact item-scoped writes, lockfile-only updates, skips, blocks, and lockfile effects without writing.                                                                                                                                                                                              |
+| `update --all --dry-run --json`                      | Enumerates every installed item, aggregates item-scoped dry-run would-effects, blockers, and lockfile effects without writing.                                                                                                                                                                              |
+| Strict `update <item> --json`                        | Writes only dry-run-approved source files and lockfile records; preserves unsafe files and can run explicitly approved dependency installs for dependency-only blockers.                                                                                                                                    |
+| `remove --advisory --json`                           | Reports removable files, lockfile-cleanup candidates, blockers, ownership states, shared references, and no-write effects.                                                                                                                                                                                  |
+| `remove --dry-run --json`                            | Previews item-scoped file deletion, lockfile-record cleanup, skips, blocks, and lockfile effects without writing.                                                                                                                                                                                           |
+| Strict `remove <item> --json`                        | Deletes only dry-run-approved registry-owned component files and lockfile records in temporary-copy proofs.                                                                                                                                                                                                 |
+| `remove/delete --with-orphans`                       | Reports no-write orphan and dependency cleanup candidates, then proves strict temp-copy cleanup for eligible registry dependency items.                                                                                                                                                                     |
+| `remove/delete --with-orphans --remove-dependencies` | Proves explicit strict package dependency cleanup for eligible orphan cleanup candidates while preserving still-required dependencies and local adapters.                                                                                                                                                   |
+| `delete <item>` sibling                              | Proves advisory, dry-run, and strict command-line parity with the same remove report schema and mutation boundaries.                                                                                                                                                                                        |
+| `eject --advisory --json`                            | Reports ownership-transfer candidates, already-ejected files, blockers, ownership states, shared references, and no-write effects.                                                                                                                                                                          |
+| `eject --dry-run --json`                             | Previews item-scoped lockfile ownership transfer, skips, blocks, and lockfile effects without writing.                                                                                                                                                                                                      |
+| Strict `eject <item> --json`                         | Transfers only dry-run-approved lockfile ownership records to `ejected`; source files and dependencies are not mutated.                                                                                                                                                                                     |
+| Future lifecycle expansion                           | Must preserve modified, consumer-owned-support, unknown, and ejected files unless explicitly approved.                                                                                                                                                                                                      |
 
 ## Fixture Matrix
 
 Grow fixture coverage by scenario, not by one-off command notes.
 
-| Scenario                 | What it proves                                                                                                                               |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| Greenfield default       | `init` advisory/dry-run/default behavior, config/lockfile-only writes, uninitialized `status --json`, and initialized-empty `status --json`. |
-| Clean registry-contained | `add` advisory, dry-run, strict writes, post-add status/diff, lockfile metadata, and compile behavior.                                       |
-| Existing unknown targets | Strict writes block rather than overwrite unknown local files.                                                                               |
-| Compatible support reuse | Existing support is reused only when metadata and content are safe.                                                                          |
-| Locally modified files   | `status` and `diff` report local edits; future lifecycle commands must preserve them by default.                                             |
-| Consumer-owned support   | Compatible support can be validated/reused without becoming registry-overwritten.                                                            |
-| Ejected files            | Ejected items stay visible for status/diff but are not mutated.                                                                              |
-| Missing dependencies     | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing.                                           |
-| Dependency policy        | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                               |
-| Dependency execution     | `add` reports explicit install intent and eligibility without running package-manager writes.                                                |
-| Dependency strict run    | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                       |
-| Dependency failure       | Strict `add` returns structured package-manager failure output and blocks Amino source/lockfile writes.                                      |
-| Dependency install plan  | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                 |
-| Dependency workspace     | Nested workspace targets report workspace context and npm/pnpm/yarn/bun command details without package-manager writes.                      |
-| Dependency workspace run | Strict `add` executes npm/pnpm/yarn/bun workspace commands and replans from the nested target manifest.                                      |
-| Dependency target        | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                 |
-| Dependency out-of-band   | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                           |
-| Snapshot/source drift    | Planner output reports stale or missing registry source clearly.                                                                             |
-| Mature-consumer shape    | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                             |
+| Scenario                  | What it proves                                                                                                                                                                                                    |
+| ------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Greenfield default        | `init` advisory/dry-run/default behavior, config/lockfile-only writes, uninitialized `status --json`, and initialized-empty `status --json`.                                                                      |
+| Clean registry-contained  | `add` advisory, dry-run, strict writes, post-add status/diff, lockfile metadata, and compile behavior.                                                                                                            |
+| Existing unknown targets  | Strict writes block rather than overwrite unknown local files.                                                                                                                                                    |
+| Compatible support reuse  | Existing support is reused only when metadata and content are safe.                                                                                                                                               |
+| Locally modified files    | `status` and `diff` report local edits; future lifecycle commands must preserve them by default.                                                                                                                  |
+| Consumer-owned support    | Compatible support can be validated/reused without becoming registry-overwritten.                                                                                                                                 |
+| Ejected files             | Ejected items stay visible for status/diff but are not mutated.                                                                                                                                                   |
+| Missing dependencies      | Advisory and dry-run classify dependency posture; strict add blocks when requirements are missing, and item-scoped strict update can resolve dependency-only blockers after explicit dependency install approval. |
+| Broad update advisory     | `update --all --advisory --json` enumerates installed items and aggregates update posture without writes.                                                                                                         |
+| Broad update dry-run      | `update --all --dry-run --json` enumerates installed items and aggregates dry-run would-effects without writes.                                                                                                   |
+| Dependency policy         | `add` reports dependency policy from default, config, and CLI override sources without package-manager writes.                                                                                                    |
+| Dependency execution      | `add` reports explicit install intent and eligibility without running package-manager writes.                                                                                                                     |
+| Dependency strict run     | Strict `add` executes fixture-local fake npm/pnpm/yarn/bun only after explicit approval, then replans.                                                                                                            |
+| Dependency failure        | Strict `add` returns structured package-manager failure output and blocks Codon source/lockfile writes.                                                                                                           |
+| Dependency install plan   | Missing dependency reports propose npm, pnpm, yarn, and bun commands without running package-manager writes.                                                                                                      |
+| Dependency workspace      | Nested workspace targets report workspace context and npm/pnpm/yarn/bun command details without package-manager writes.                                                                                           |
+| Dependency workspace run  | Strict `add` executes npm/pnpm/yarn/bun workspace commands and replans from the nested target manifest.                                                                                                           |
+| Dependency target         | `add` reports target package manifests, override provenance, and command working directories without package-manager writes.                                                                                      |
+| Dependency out-of-band    | Consumers can satisfy reported dependencies outside the CLI before strict add, including `--package-json` targets.                                                                                                |
+| Dependency cleanup run    | Strict `remove`/`delete --with-orphans --remove-dependencies` executes npm/pnpm/yarn/bun removal commands for eligible cleanup candidates.                                                                        |
+| Update dependency run     | Item-scoped strict `update` executes npm/pnpm/yarn/bun install commands only for dependency-only blockers after explicit approval, then replans before source and lockfile writes.                                |
+| Update dependency failure | Item-scoped strict `update` returns structured package-manager failure output and blocks Codon source/lockfile writes before and after package boundary mutations.                                                |
+| JSON contract validation  | Representative lifecycle reports parse through compiled Codon CLI canonical Zod schemas, including shared dependency install plans, failed dependency commands, and lockfile output when present.                 |
+| Snapshot/source drift     | Planner output reports stale or missing registry source clearly.                                                                                                                                                  |
+| Mature-consumer shape     | A Wavemap-like graph can be tested without using the full Wavemap repo for every CLI regression.                                                                                                                  |
 
 The current mature-consumer fixture is `wavemap-like-typeahead-lifecycle`. It installs the registry-owned
 `typeahead-search` graph and keeps app-owned artist wrapper, API query, route/query state, typeahead controller, local
-labels, and focused test files outside `amino-ui.lock.json`. Its focused gate proves status, diff, update, remove/delete,
+labels, and focused test files outside `codon-ui.lock.json`. Its focused gate proves status, diff, update, remove/delete,
 eject, and temp-copy typecheck/build behavior against that mixed graph.
+
+The `pnpm verify:json-contracts` gate validates representative CLI JSON output through the compiled
+`packages/CLI/dist/contracts.js` schemas before command-specific behavioral assertions inspect fields. The source contract
+surface lives in `packages/CLI/src/contracts.ts` and re-exports stable report schemas for init, add, status, diff,
+update, remove/delete, and eject command families without invoking the CLI executable entrypoint. The fixture gate imports
+that compiled contract surface and validates the representative cases by canonical schema key: `initDryRun`, `status`,
+`diff`, `addDryRun`, `initStrict`, `addStrict`, `updateAllDryRun`, `updateStrict`, `removeDryRun`, and `ejectDryRun`.
+
+The same gate also validates shared dependency install plans, failed dependency commands, and lockfile output through
+canonical schema exports when those structures are present. It covers init dry-run, status, diff, add dependency planning,
+strict add lockfile output, broad update dry-run aggregation, strict update dependency failure output, remove dry-run, and
+eject dry-run. This gate hardens output shape for already proven lifecycle behavior; it does not grant new write
+authority.
+
+## JSON Contract Maintenance
+
+`packages/CLI/src/contracts.ts` is the canonical source for internal CLI JSON report schemas. Keep command output,
+fixture assertions, and source-side tests pointed at that schema map instead of re-declaring report shapes in each proof.
+
+When a lifecycle report shape changes:
+
+1. Update the canonical schema and exported type surface in `packages/CLI/src/contracts.ts`.
+2. Add or update representative Codon CLI command-test coverage with `assertCliJsonReportContract` from
+   `packages/CLI/src/testUtils/cliJsonContracts.ts`.
+3. Rebuild the CLI package before fixture contract proofs that import `packages/CLI/dist/contracts.js`.
+4. Update the fixture repo's `pnpm verify:json-contracts` coverage when the externally observed report shape changes.
+5. Keep behavioral assertions alongside schema assertions so a report can be both structurally valid and semantically
+   checked.
+
+The source-side command tests catch drift before the package is compiled. The fixture gate catches drift in the compiled
+consumer-facing contract surface. Both checks are required for report shapes that future lifecycle automation or
+consumer tooling will rely on.
 
 The `pnpm verify:add-lifecycle` gate proves the clean `circle-loader` path in one temporary `vite-registry-contained`
 copy. It strict-initializes config and lockfile, runs add advisory and dry-run without mutation, performs the strict add
@@ -187,7 +233,7 @@ approval, replans from the mutated temp package manifest, and records installed 
 
 The `pnpm verify:dependency-execution-failure` gate proves the failed strict path. It uses a temporary fake pnpm binary
 that can fail before package writes or after mutating `package.json` plus `pnpm-lock.yaml`. Both cases return structured
-`failedCommands` output, report `dependencyInstallPlan.status: "failed"`, and block Amino source and lockfile writes.
+`failedCommands` output, report `dependencyInstallPlan.status: "failed"`, and block Codon source and lockfile writes.
 
 The `pnpm verify:dependency-install-plan` gate proves the companion read-only package-manager plan. It checks unknown
 package-manager state, `packageManager` metadata detection, lockfile fallback detection, npm/pnpm/yarn/bun command
@@ -213,6 +259,34 @@ installing `react-aria-components` and `classnames` outside the CLI, then proves
 satisfied and strict `add switch --json` succeeds without package-manager writes. The gate covers both the nearest
 package manifest and `--package-json apps/web/package.json`.
 
+The `pnpm verify:update-all-advisory` gate proves broad update advisory without broad write authority. It runs
+`update --all --advisory --json` against the Wavemap-like fixture, asserts every installed item is represented with an
+item-scoped update state, checks aggregate candidate and blocker counts, and verifies source files, lockfile data,
+package manifests, package-manager lockfiles, and local adapter files remain unchanged.
+
+The `pnpm verify:update-all-dry-run` gate proves broad update dry-run as the strict-all planning gate. It runs
+`update --all --dry-run --json` against the Wavemap-like fixture, asserts every installed item is represented with an
+item-scoped dry-run state, checks aggregate would-write, lockfile-only, skipped, blocked, dependency, and blocker counts,
+and verifies source files, lockfile data, package manifests, package-manager lockfiles, and local adapter files remain
+unchanged.
+
+The `pnpm verify:update-all-strict` gate proves atomic broad strict update behavior. It runs `update --all --json` in
+temporary fixture copies, asserts mixed unsafe items block the whole run without mutation, asserts mature Wavemap-like
+installs return a no-op report, and asserts an all-safe update candidate writes only the approved source file plus
+`codon-ui.lock.json`. Runtime rollback, merge behavior, dependency writes, and package-manager mutation remain outside
+this proof.
+
+The `pnpm verify:update-dependency-execution` gate proves item-scoped strict update dependency execution. It starts from
+temporary update-candidate fixture copies, removes only the required package dependency, proves dry-run install
+eligibility without mutation, proves strict update still blocks without explicit install approval, then executes fake npm,
+pnpm, yarn, and bun installs before replanning and writing the approved source file plus `codon-ui.lock.json`. Broad
+update dependency writes, dependency removals, and mixed-blocker dependency mutation remain outside this proof.
+
+The `pnpm verify:update-dependency-execution-failure` gate proves item-scoped strict update dependency failure handling.
+It uses a temporary fake pnpm binary that fails before package writes and after mutating `package.json` plus
+`pnpm-lock.yaml`. Both cases return structured `failedCommands` output, report
+`strict-update-dependency-execution-failed`, and block Codon source files plus `codon-ui.lock.json`.
+
 The `pnpm verify:remove-orphans` gate uses the same fixture to prove `remove`/`delete --with-orphans` advisory,
 dry-run, and strict temp-copy behavior. It verifies that the requested `typeahead-search` item remains item-scoped, that
 orphaned registry dependency items appear in a separate `orphanCleanup` block, that registry-owned support files can be
@@ -220,6 +294,12 @@ planned and removed there, that package dependency cleanup candidates appear in 
 that app-owned adapters remain outside both the lockfile and orphan cleanup report. The same gate mutates a temporary
 orphan file to prove modified orphan items remain installed, keep their package dependencies `still-required`, suppress
 dry-run dependency removals, and block strict cleanup atomically.
+
+The `pnpm verify:dependency-cleanup-execution` gate proves the explicit strict cleanup path. It runs `remove` and
+`delete --with-orphans --remove-dependencies` in temporary Wavemap-like fixture copies with fake npm, pnpm, yarn, and bun
+binaries. The gate asserts package manifest removals, fake package-manager lockfile records, `dependencyCleanupExecution`
+metadata, Codon lockfile dependency-record cleanup, delete parity, still-required dependency preservation, and
+Wavemap-like local adapter preservation.
 
 ## Non-Mutation Rule
 
@@ -233,7 +313,8 @@ is not enough if it silently overwrites unknown targets, modified files, or pack
 ## Deferred Behaviors
 
 Fixture evidence should describe deferred behavior without implying it exists. Public registry hosting, package
-publication, generated token writers, package-manager dependency writes outside approved strict add, package-manager
-removals, broad update/merge behavior, strict eject behavior beyond lockfile-only ownership transfer, strict dependency
-cleanup, strict orphan cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation
-remain separate approval-gated lanes.
+publication, generated token writers, package-manager dependency writes outside approved strict add and explicit strict
+remove/delete orphan dependency cleanup, broad update rollback and merge behavior, strict eject behavior beyond
+lockfile-only ownership transfer, dependency cleanup outside `--with-orphans --remove-dependencies`, strict orphan
+cleanup beyond the opt-in dry-run-approved registry item cleanup path, and Waveguide validation remain separate
+approval-gated lanes.

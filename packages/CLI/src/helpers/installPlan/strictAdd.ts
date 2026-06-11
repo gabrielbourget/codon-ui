@@ -5,8 +5,8 @@ import path from "path"
 import { Project, ScriptKind } from "ts-morph"
 
 import {
-  AMINO_UI_CONFIG_FILE_NAME,
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_DEPENDENCY_ACTION__INSTALLED,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
@@ -141,7 +141,7 @@ export const readConsumerConfigForStrictAdd = async (
   configSource: typeof DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG | typeof DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT
   findings: TInstallPlanFinding[]
 }> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
@@ -151,9 +151,9 @@ export const readConsumerConfigForStrictAdd = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Run strict init before strict add.`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} is missing. Run strict init before strict add.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -174,9 +174,9 @@ export const readConsumerConfigForStrictAdd = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. ${message}`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} could not be read as a consumer config. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -186,7 +186,7 @@ export const readConsumerConfigForStrictAdd = async (
 export const readConsumerLockfileForStrictAdd = async (
   cwd: string,
 ): Promise<{ lockfileData: TConsumerLockfile; findings: TInstallPlanFinding[] }> => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
   const fallbackLockfile = consumerLockfileSchema.parse({})
 
   if (!existsSync(lockfilePath)) {
@@ -194,9 +194,9 @@ export const readConsumerLockfileForStrictAdd = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_LOCKFILE_MISSING,
-          message: `${AMINO_UI_LOCK_FILE_NAME} is missing. Run strict init before strict add.`,
+          message: `${CODON_UI_LOCK_FILE_NAME} is missing. Run strict init before strict add.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         },
       ],
       lockfileData: fallbackLockfile,
@@ -215,9 +215,9 @@ export const readConsumerLockfileForStrictAdd = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_LOCKFILE_INVALID,
-          message: `${AMINO_UI_LOCK_FILE_NAME} could not be read as an Amino lockfile. ${message}`,
+          message: `${CODON_UI_LOCK_FILE_NAME} could not be read as a Codon lockfile. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         },
       ],
       lockfileData: fallbackLockfile,
@@ -446,7 +446,7 @@ export const writeStrictRegistryInstall = async ({
   })
 
   await fs.writeFile(
-    path.join(consumerRoot, AMINO_UI_LOCK_FILE_NAME),
+    path.join(consumerRoot, CODON_UI_LOCK_FILE_NAME),
     `${JSON.stringify(nextLockfileData, null, 2)}\n`,
     "utf8",
   )

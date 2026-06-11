@@ -138,7 +138,7 @@ assert(
     indicatorStylesSource.includes(".indicator--square"),
   "Indicator styles must define all shape classes",
 )
-assert(!indicatorStylesSource.includes("--aui-"), "Indicator styles must not require global Amino theme variables")
+assert(!indicatorStylesSource.includes("--cui-"), "Indicator styles must not require global Amino theme variables")
 
 assert(publicIndexSource.includes("export {"), "Package index must expose component values")
 assert(
@@ -177,7 +177,7 @@ assert(packageJson.scripts.test.includes("verify-indicator-proof.mjs"), "Package
 
 assert(packet.name === "indicator", "Indicator packet must describe the indicator item")
 assert(packet.type === "component", "Indicator packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Indicator packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Indicator packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Indicator packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#indicator-extraction-planning-checkpoint"),

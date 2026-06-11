@@ -14,7 +14,7 @@ import type { TActiveSortsProps } from "./helpers"
 
 const { activeSorts, activeSorts__topBar } = styles
 const SORT_AND_FILTER_PANEL_GEOMETRY__ROUND = "round"
-const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--aui-color-primary-500)"
+const SORT_AND_FILTER_PANEL_PRIMARY_COLOR = "var(--cui-color-primary-500)"
 
 const ActiveSorts: FC<TActiveSortsProps> = (props) => {
   const {

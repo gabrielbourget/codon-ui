@@ -61,17 +61,17 @@ const requiredExcludedConsumers = [
 const requiredThemePressure = [
   "--distance_1",
   "--text-color",
-  "--aui-color-primary-100",
-  "--aui-color-primary-700",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--cui-color-primary-100",
+  "--cui-color-primary-700",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_1: var(--aui-space-1)",
-  "--text-color: var(--aui-foreground)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
-  "--aui-action-primary-background",
-  "--aui-action-quintenary-foreground",
+  "--distance_1: var(--cui-space-1)",
+  "--text-color: var(--cui-foreground)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
+  "--cui-action-primary-background",
+  "--cui-action-quintenary-foreground",
 ]
 
 assert(checkboxSource.startsWith('"use client"'), "Checkbox must preserve the client component boundary")
@@ -160,7 +160,7 @@ assert(
 
 assert(packet.name === "checkbox", "Checkbox packet must describe the checkbox item")
 assert(packet.type === "component", "Checkbox packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Checkbox packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Checkbox packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Checkbox packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#checkbox-source-receipt-checkpoint"),
@@ -258,11 +258,11 @@ assert(
   "Checkbox packet must classify --checkbox-selected-foreground as component-local pressure",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "Checkbox packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "Checkbox packet must point at package typecheck verification",
 )
 assert(

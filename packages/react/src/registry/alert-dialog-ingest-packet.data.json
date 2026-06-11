@@ -1,7 +1,7 @@
 {
   "name": "alert-dialog",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#alertdialog-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -113,37 +113,37 @@
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--distance_1 / --distance_2 / --distance_3 / --distance_4 aliases",
-      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-space-3 / --aui-space-4",
+      "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-space-3 / --cui-space-4",
       "notes": ["AlertDialog spacing uses the default Amino space scale instead of legacy distance aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
-      "replacementSource": "--aui-animation-fade-in / --aui-animation-fade-out",
+      "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
       "notes": ["AlertDialog enter and exit animations read default Amino animation tokens."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--shadow_1 / --shadow_2 aliases",
-      "replacementSource": "--aui-shadow-1 / --aui-shadow-2",
+      "replacementSource": "--cui-shadow-1 / --cui-shadow-2",
       "notes": ["AlertDialog raised and icon-circle styling use stable Amino shadow tokens."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--border_radius_2 alias",
-      "replacementSource": "--aui-radius-2",
+      "replacementSource": "--cui-radius-2",
       "notes": ["AlertDialog rounded geometry uses the default Amino radius contract."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--focus-ring-color alias",
-      "replacementSource": "--aui-focus-ring",
+      "replacementSource": "--cui-focus-ring",
       "notes": ["AlertDialog dialog focus styling uses the default Amino focus-ring contract."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--Z_INDEX_MODAL alias",
-      "replacementSource": "--aui-z-index-modal",
+      "replacementSource": "--cui-z-index-modal",
       "notes": ["AlertDialog overlay stacking uses the default Amino modal z-index contract."]
     },
     {
@@ -179,24 +179,24 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-surface",
-        "--aui-surface-foreground",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-space-3",
-        "--aui-space-4",
-        "--aui-radius-2",
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-shadow-1",
-        "--aui-shadow-2",
-        "--aui-focus-ring",
-        "--aui-z-index-modal",
-        "--aui-control-selected-background",
-        "--aui-control-selected-foreground",
-        "--aui-status-warning",
-        "--aui-status-danger",
-        "--aui-status-success"
+        "--cui-surface",
+        "--cui-surface-foreground",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-space-3",
+        "--cui-space-4",
+        "--cui-radius-2",
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-shadow-1",
+        "--cui-shadow-2",
+        "--cui-focus-ring",
+        "--cui-z-index-modal",
+        "--cui-control-selected-background",
+        "--cui-control-selected-foreground",
+        "--cui-status-warning",
+        "--cui-status-danger",
+        "--cui-status-success"
       ],
       "notes": [
         "AlertDialog source reads the default theme contract directly and does not need a compatibility bridge."
@@ -213,14 +213,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static AlertDialog proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

@@ -470,7 +470,7 @@ const Pagination: FC<TPaginationProps> = (props) => {
             <LineSegment
               key={`line-segment-${index + 1}`}
               direction="vertical"
-              color="var(--aui-border)"
+              color="var(--cui-border)"
               customClassName={customSeparatorClassName}
               customStyles={{ height: "100%", width: 0.75, ...customSeparatorStyles }}
             />

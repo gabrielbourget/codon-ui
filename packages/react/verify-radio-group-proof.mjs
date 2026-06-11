@@ -53,8 +53,8 @@ const requiredTargetPaths = [
   "RadioGroup/__tests__/RadioGroup.test.tsx",
 ]
 const requiredCompatibilityAliases = [
-  "--distance_2: var(--aui-space-2)",
-  "--disabledOpacity: var(--aui-opacity-disabled)",
+  "--distance_2: var(--cui-space-2)",
+  "--disabledOpacity: var(--cui-opacity-disabled)",
 ]
 
 assert(radioGroupSource.startsWith('"use client"'), "RadioGroup must preserve the client component boundary")
@@ -133,7 +133,7 @@ assert(!radioGroupIndexSource.includes("ORIENTATION__"), "RadioGroup index must 
 
 assert(packet.name === "radio-group", "RadioGroup packet must describe the radio-group item")
 assert(packet.type === "component", "RadioGroup packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "RadioGroup packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "RadioGroup packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "RadioGroup packet must record Wavemap as the analyzed source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#radiogroup-sequential-planning-checkpoint"),
@@ -210,11 +210,11 @@ assert(
   "RadioGroup packet must record Radio dependency boundary",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react test"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react test"),
   "RadioGroup packet must point at the package-side proof harness",
 )
 assert(
-  packet.verification.some((step) => step.command === "pnpm -F @amino-ui/react typecheck"),
+  packet.verification.some((step) => step.command === "pnpm -F @codon-ui/react typecheck"),
   "RadioGroup packet must point at package typecheck verification",
 )
 assert(

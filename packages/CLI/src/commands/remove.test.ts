@@ -7,6 +7,7 @@ import path from "node:path"
 import { createRemoveAdvisoryReport } from "../helpers/removeAdvisory"
 import { createRemoveDryRunReport } from "../helpers/removeDryRun"
 import { createRemoveStrictReport } from "../helpers/removeStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 import { deleteCommand } from "./delete"
 import { remove } from "./remove"
@@ -77,7 +78,7 @@ fs.writeFileSync(
 assert.equal(deleteCommand.name(), "delete")
 assert.equal(
   deleteCommand.description(),
-  "Delete one installed Amino UI registry item using the same safety checks as remove.",
+  "Delete one installed Codon UI registry item using the same safety checks as remove.",
 )
 assert.deepEqual(
   deleteCommand.options.map((option) => option.flags),
@@ -102,8 +103,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/orphan-support.ts",
     "source/shared-support.ts",
     "source/other-dependent.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/local-modified.ts",
     "consumer/src/components/Diff/support.ts",
@@ -122,7 +123,7 @@ const readFixtureSnapshot = (fixturePath: string) =>
     .map((filePath) => `${filePath}:${createContentHash(readFileSync(path.join(fixturePath, filePath)))}`)
     .sort()
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-remove-advisory-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-remove-advisory-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
@@ -172,7 +173,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/orphan-support.ts"), orphanSupportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/shared-support.ts"), sharedSupportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -227,7 +232,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -240,7 +245,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -253,7 +258,7 @@ try {
           },
         ],
         name: "missing-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -273,7 +278,7 @@ try {
         runtimeDependencies: {
           "primary-only": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -290,7 +295,7 @@ try {
         runtimeDependencies: {
           "shared-runtime": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -303,7 +308,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -316,7 +321,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "support",
       },
       {
@@ -333,16 +338,16 @@ try {
         runtimeDependencies: {
           "shared-runtime": "^1.0.0",
         },
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -382,7 +387,7 @@ try {
           },
         ],
         name: "missing-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-shared": {
         files: [
@@ -395,7 +400,7 @@ try {
           },
         ],
         name: "other-shared",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-only": {
         files: [
@@ -408,7 +413,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-primary": {
         files: [
@@ -422,7 +427,7 @@ try {
         ],
         name: "orphan-primary",
         registryDependencies: ["orphan-component", "shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-component": {
         files: [
@@ -436,7 +441,7 @@ try {
         ],
         name: "orphan-component",
         registryDependencies: ["orphan-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-support": {
         files: [
@@ -449,7 +454,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "shared-support": {
         files: [
@@ -462,7 +467,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-dependent": {
         files: [
@@ -476,7 +481,7 @@ try {
         ],
         name: "other-dependent",
         registryDependencies: ["shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -538,7 +543,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -551,6 +556,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "removeAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -671,6 +677,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: orphanDryRunReport, schemaName: "removeDryRun" })
   assert.equal(orphanDryRunReport.itemRemoveState, "would-remove")
   assert.equal(orphanDryRunReport.summary.wouldRemoveFileCount, 1)
   assert.equal(orphanDryRunReport.orphanCleanup.enabled, true)
@@ -730,6 +737,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: primaryBlockedStrictReport, schemaName: "removeStrict" })
   assert.equal(primaryBlockedStrictReport.applied, false)
   assert.equal(primaryBlockedStrictReport.itemRemoveState, "blocked")
   assert.equal(primaryBlockedStrictReport.effects.writesFiles, false)
@@ -808,6 +816,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: mixedDryRunReport, schemaName: "removeDryRun" })
   assert.equal(mixedDryRunReport.schemaVersion, 1)
   assert.equal(mixedDryRunReport.dryRun, true)
   assert.deepEqual(mixedDryRunReport.effects, {
@@ -924,6 +933,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "removeStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemRemoveState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -943,6 +953,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictSourceOnlyReport, schemaName: "removeStrict" })
   assert.equal(strictSourceOnlyReport.applied, true)
   assert.equal(strictSourceOnlyReport.itemRemoveState, "removed")
   assert.equal(strictSourceOnlyReport.effects.writesFiles, true)
@@ -964,7 +975,7 @@ try {
     "expected registry source to remain untouched",
   )
   assert.equal(strictSourceOnlyReport.lockfileData.items["source-only"], undefined)
-  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"], undefined)
+  assert.equal(readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["source-only"], undefined)
 
   const strictMissingOnlyReport = await createRemoveStrictReport({
     cwd: consumerRoot,
@@ -982,7 +993,7 @@ try {
   assert.equal(strictMissingOnlyReport.effects.lockfile.status, "written")
   assert.equal(strictMissingOnlyReport.files[0].strictAction, "removed-lockfile-record")
   assert.equal(strictMissingOnlyReport.lockfileData.items["missing-only"], undefined)
-  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["missing-only"], undefined)
+  assert.equal(readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["missing-only"], undefined)
 
   const strictOrphanReport = await createRemoveStrictReport({
     cwd: consumerRoot,
@@ -1040,7 +1051,7 @@ try {
   assert.equal(strictOrphanReport.lockfileData.items["orphan-support"], undefined)
   assert.equal(strictOrphanReport.lockfileData.items["shared-support"]?.name, "shared-support")
   assert.equal(strictOrphanReport.lockfileData.items["other-dependent"]?.name, "other-dependent")
-  assert.equal(readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["orphan-primary"], undefined)
+  assert.equal(readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["orphan-primary"], undefined)
   assert.equal(
     existsSync(path.join(temporaryRoot, "source/orphan-component.ts")),
     true,
@@ -1054,7 +1065,11 @@ try {
   writeText(path.join(cleanupConsumerRoot, "src/components/Graph/other-dependent.ts"), otherDependentSource)
   writeText(path.join(cleanupConsumerRoot, "src/components/_registry/tokens/orphan-support.ts"), orphanSupportSource)
   writeText(path.join(cleanupConsumerRoot, "src/components/_registry/tokens/shared-support.ts"), sharedSupportSource)
-  writeJson(path.join(cleanupConsumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(cleanupConsumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(path.join(cleanupConsumerRoot, "package.json"), {
     dependencies: {
       "primary-only": "^1.0.0",
@@ -1063,8 +1078,8 @@ try {
     name: "cleanup-consumer",
     packageManager: "pnpm@9.15.0",
   })
-  writeJson(path.join(cleanupConsumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(cleanupConsumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -1105,7 +1120,7 @@ try {
         ],
         name: "orphan-component",
         registryDependencies: ["orphan-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-primary": {
         files: [
@@ -1119,7 +1134,7 @@ try {
         ],
         name: "orphan-primary",
         registryDependencies: ["orphan-component", "shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "orphan-support": {
         files: [
@@ -1132,7 +1147,7 @@ try {
           },
         ],
         name: "orphan-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-dependent": {
         files: [
@@ -1146,7 +1161,7 @@ try {
         ],
         name: "other-dependent",
         registryDependencies: ["shared-support"],
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "shared-support": {
         files: [
@@ -1159,7 +1174,7 @@ try {
           },
         ],
         name: "shared-support",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -1218,7 +1233,7 @@ try {
     assert.equal(readJson(path.join(cleanupConsumerRoot, "package.json")).dependencies["primary-only"], undefined)
     assert.equal(readJson(path.join(cleanupConsumerRoot, "package.json")).dependencies["shared-runtime"], "^1.0.0")
     assert.deepEqual(
-      readJson(path.join(cleanupConsumerRoot, "amino-ui.lock.json")).dependencies.map(
+      readJson(path.join(cleanupConsumerRoot, "codon-ui.lock.json")).dependencies.map(
         (dependency: { name: string }) => dependency.name,
       ),
       ["shared-runtime"],
@@ -1227,7 +1242,7 @@ try {
     process.env.PATH = originalPath
   }
 
-  console.log("[aminoui-cli] remove advisory, dry-run, strict, and orphan cleanup reports verified")
+  console.log("[codon-ui] remove advisory, dry-run, strict, and orphan cleanup reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

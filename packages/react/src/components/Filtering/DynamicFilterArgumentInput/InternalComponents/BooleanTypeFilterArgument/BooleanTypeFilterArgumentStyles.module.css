@@ -1,5 +1,5 @@
 .booleanTypeFilterArgument {
   display: flex;
   align-items: center;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
 }

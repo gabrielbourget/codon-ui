@@ -57,7 +57,7 @@ const requiredTargetPaths = [
   "Cards/Card/__tests__/Card.test.tsx",
 ]
 const requiredStyleSelectors = [".card", ".card--raised"]
-const requiredDefaultThemeVariables = ["--aui-space-3", "--aui-shadow-1"]
+const requiredDefaultThemeVariables = ["--cui-space-3", "--cui-shadow-1"]
 
 assert(cardSource.includes('from "motion/react"'), "Card must import Motion")
 assert(cardSource.includes("<motion.div"), "Card must render a Motion div")
@@ -85,8 +85,8 @@ requiredStyleSelectors.forEach((selector) => {
   "var(--height, auto)",
   "var(--width, auto)",
   "var(--borderRadius, 10px)",
-  "var(--aui-space-3)",
-  "var(--aui-shadow-1)",
+  "var(--cui-space-3)",
+  "var(--cui-shadow-1)",
 ].forEach((cssValue) => {
   assert(stylesSource.includes(cssValue), `Card CSS must read ${cssValue}`)
 })
@@ -113,7 +113,7 @@ assert(packageJson.peerDependencies["react-dom"], "Card package must keep React 
 
 assert(packet.name === "card", "Card packet must describe the card item")
 assert(packet.type === "component", "Card packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Card packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Card packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Card packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#card-next-candidate-planning-checkpoint"),
@@ -172,13 +172,13 @@ requiredDefaultThemeVariables.forEach((cssVariable) => {
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_3") && resolution.replacementSource === "--aui-space-3",
+      resolution.importSource.includes("--distance_3") && resolution.replacementSource === "--cui-space-3",
   ),
   "Card packet must record distance alias rewrite",
 )
 assert(
   packet.importResolutions.some(
-    (resolution) => resolution.importSource.includes("--shadow_1") && resolution.replacementSource === "--aui-shadow-1",
+    (resolution) => resolution.importSource.includes("--shadow_1") && resolution.replacementSource === "--cui-shadow-1",
   ),
   "Card packet must record shadow alias rewrite",
 )

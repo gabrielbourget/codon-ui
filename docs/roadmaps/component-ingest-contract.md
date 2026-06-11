@@ -5,7 +5,7 @@
 Component ingest is the source-receipt step before a component becomes an active registry item.
 
 The ingest packet should make source ownership, dependency graph content, public exports, theme requirements, and proof
-verification explicit before files move from Wavemap into Amino UI.
+verification explicit before files move from Wavemap into Codon UI.
 
 ## Graduated Reference
 
@@ -54,12 +54,12 @@ The initial type contract names three strategies:
 
 | Strategy                     | Meaning                                                                                  |
 | ---------------------------- | ---------------------------------------------------------------------------------------- |
-| `default-contract`           | The component can use `@amino-ui/react/theme.css` directly.                              |
+| `default-contract`           | The component can use `@codon-ui/react/theme.css` directly.                              |
 | `proof-compatibility-bridge` | The proof needs a narrow bridge outside the package default CSS.                         |
 | `consumer-owned`             | The component assumes a consumer-owned theme integration that the CLI must validate/add. |
 
 `Switch` should start with `proof-compatibility-bridge` unless a later pass approves rewriting its CSS directly to the
-current `--aui-` theme contract.
+canonical `--cui-*` theme bridge contract.
 
 ## Dependency Graph Content
 

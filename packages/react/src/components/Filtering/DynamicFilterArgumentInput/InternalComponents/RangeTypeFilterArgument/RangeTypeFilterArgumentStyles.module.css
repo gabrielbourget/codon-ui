@@ -1,6 +1,6 @@
 .rangeTypeFilterArgument {
   display: flex;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .rangeTypeFilterArgument__row {

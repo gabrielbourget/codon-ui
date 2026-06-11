@@ -35,7 +35,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|@radix-ui|@internationalized\/date/u
 const forbiddenLegacyCssPattern =
-  /--distance_|--border_radius_|--fadeInAnimation|--fadeOutAnimation|--shadow_1|--bgColorTransition|--focus-ring-color|--disabledOpacity|--aui-status-danger|theme\/menu-compatibility/u
+  /--distance_|--border_radius_|--fadeInAnimation|--fadeOutAnimation|--shadow_1|--bgColorTransition|--focus-ring-color|--disabledOpacity|--cui-status-danger|theme\/menu-compatibility/u
 
 const menuSource = readRequiredText(menuSourcePath)
 const menuItemSource = readRequiredText(menuItemSourcePath)
@@ -83,27 +83,27 @@ const requiredStyleSelectors = [
   ".menuSeparator",
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-radius-1",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-shadow-1",
-  "--aui-transition-background-color",
-  "--aui-control-hover-background",
-  "--aui-control-pressed-background",
-  "--aui-control-disabled-opacity",
-  "--aui-border-muted",
-  "--aui-focus-ring",
-  "--aui-state-danger",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-radius-1",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-shadow-1",
+  "--cui-transition-background-color",
+  "--cui-control-hover-background",
+  "--cui-control-pressed-background",
+  "--cui-control-disabled-opacity",
+  "--cui-border-muted",
+  "--cui-focus-ring",
+  "--cui-state-danger",
 ]
 
 assert(menuSource.startsWith('"use client"'), "Menu must preserve the client component boundary")
@@ -177,7 +177,7 @@ assert(packageJson.peerDependencies["react-dom"], "Menu package must keep React 
 
 assert(packet.name === "menu", "Menu packet must describe the menu item")
 assert(packet.type === "component", "Menu packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Menu packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Menu packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Menu packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#menu-next-candidate-planning-checkpoint"),
@@ -270,7 +270,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--aui-shadow-1"),
+      resolution.importSource.includes("--shadow_1") && resolution.replacementSource.includes("--cui-shadow-1"),
   ),
   "Menu packet must record shadow CSS variable rewrite",
 )
@@ -278,15 +278,15 @@ assert(
   packet.importResolutions.some(
     (resolution) =>
       resolution.importSource.includes("--bgColorTransition") &&
-      resolution.replacementSource.includes("--aui-transition-background-color"),
+      resolution.replacementSource.includes("--cui-transition-background-color"),
   ),
   "Menu packet must record transition CSS variable rewrite",
 )
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--aui-status-danger") &&
-      resolution.replacementSource.includes("--aui-state-danger"),
+      resolution.importSource.includes("--cui-status-danger") &&
+      resolution.replacementSource.includes("--cui-state-danger"),
   ),
   "Menu packet must record destructive color variable rewrite",
 )

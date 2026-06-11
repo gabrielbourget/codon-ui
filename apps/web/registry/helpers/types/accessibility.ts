@@ -1,4 +1,4 @@
-// amino-ui-helper-file-marker
+// codon-ui-helper-file-marker
 
 export type TAriaLabelingProps = {
   "aria-label"?: string

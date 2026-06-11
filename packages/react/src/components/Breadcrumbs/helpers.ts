@@ -176,19 +176,19 @@ const computeBreadcrumbsColor = (props: TBreadcrumbsProps) => {
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      breadcrumbsColor = "var(--aui-color-primary-500)"
+      breadcrumbsColor = "var(--cui-color-primary-500)"
       break
     case THEME_ORDER_CODE__SECONDARY:
-      breadcrumbsColor = "var(--aui-color-secondary-500)"
+      breadcrumbsColor = "var(--cui-color-secondary-500)"
       break
     case THEME_ORDER_CODE__TERTIARY:
-      breadcrumbsColor = "var(--aui-color-tertiary-500)"
+      breadcrumbsColor = "var(--cui-color-tertiary-500)"
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      breadcrumbsColor = "var(--aui-color-quaternary-500)"
+      breadcrumbsColor = "var(--cui-color-quaternary-500)"
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      breadcrumbsColor = "var(--aui-color-quintenary-500)"
+      breadcrumbsColor = "var(--cui-color-quintenary-500)"
       break
     default:
       break

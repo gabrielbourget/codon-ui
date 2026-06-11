@@ -4,14 +4,14 @@
   display: flex;
   flex-shrink: 0;
   flex-direction: row;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   align-items: center;
   justify-content: center;
-  padding: var(--aui-space-1);
+  padding: var(--cui-space-1);
   background-color: var(--btn-bg, transparent);
   border: none;
   transition:
-    var(--aui-transition-background-color), var(--aui-transition-border-color), var(--aui-transition-box-shadow);
+    var(--cui-transition-background-color), var(--cui-transition-border-color), var(--cui-transition-box-shadow);
 }
 
 .button svg {
@@ -35,7 +35,7 @@
 }
 
 .button[data-disabled] {
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 
 .button[data-disabled]:hover {
@@ -43,7 +43,7 @@
 }
 
 .button--applyFocusStyle[data-focused] {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .button--offsetFocusRing {
@@ -55,20 +55,20 @@
 }
 
 .button--rounded {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
 }
 
 .button--round {
   border-radius: 10000px;
-  padding: var(--aui-space-1) 7px;
+  padding: var(--cui-space-1) 7px;
 }
 
 .button--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .button--raisedOnHover[data-hovered]:not([data-disabled]) {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 
 .button--transparent {
@@ -81,9 +81,9 @@
 }
 
 .button--outline {
-  background-color: var(--aui-control-background);
-  border: 2px solid var(--aui-control-border);
-  color: var(--aui-control-foreground);
+  background-color: var(--cui-control-background);
+  border: 2px solid var(--cui-control-border);
+  color: var(--cui-control-foreground);
 }
 
 .button--customFill {
@@ -96,206 +96,206 @@
 }
 
 .button--primary--fill {
-  background-color: var(--aui-action-primary-background);
-  color: var(--aui-action-primary-foreground);
+  background-color: var(--cui-action-primary-background);
+  color: var(--cui-action-primary-foreground);
 }
 
 .button--primary--fill[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-action-primary-background-hover);
+  background-color: var(--cui-action-primary-background-hover);
   cursor: pointer;
 }
 
 .button--primary--fill[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-action-primary-background-pressed);
+  background-color: var(--cui-action-primary-background-pressed);
   cursor: pointer;
 }
 
 .button--primary--outline {
-  background-color: var(--aui-background);
-  color: var(--aui-color-primary-500);
-  border: 2px solid var(--aui-color-primary-500);
+  background-color: var(--cui-background);
+  color: var(--cui-color-primary-500);
+  border: 2px solid var(--cui-color-primary-500);
 }
 
 .button--primary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-primary-100);
+  background-color: var(--cui-color-primary-100);
   cursor: pointer;
 }
 
 .button--primary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-primary-200);
+  background-color: var(--cui-color-primary-200);
   cursor: pointer;
 }
 
 .button--secondary--fill {
-  background-color: var(--aui-action-secondary-background);
-  color: var(--aui-action-secondary-foreground);
+  background-color: var(--cui-action-secondary-background);
+  color: var(--cui-action-secondary-foreground);
 }
 
 .button--secondary--fill[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-action-secondary-background-hover);
+  background-color: var(--cui-action-secondary-background-hover);
   cursor: pointer;
 }
 
 .button--secondary--fill[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-action-secondary-background-pressed);
+  background-color: var(--cui-action-secondary-background-pressed);
   cursor: pointer;
 }
 
 .button--secondary--outline {
-  background-color: var(--aui-background);
-  color: var(--aui-color-secondary-500);
-  border: 2px solid var(--aui-color-secondary-500);
+  background-color: var(--cui-background);
+  color: var(--cui-color-secondary-500);
+  border: 2px solid var(--cui-color-secondary-500);
 }
 
 .button--secondary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-secondary-100);
+  background-color: var(--cui-color-secondary-100);
   cursor: pointer;
 }
 
 .button--secondary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-secondary-200);
+  background-color: var(--cui-color-secondary-200);
   cursor: pointer;
 }
 
 .button--tertiary--fill {
-  background-color: var(--aui-action-tertiary-background);
-  color: var(--aui-action-tertiary-foreground);
+  background-color: var(--cui-action-tertiary-background);
+  color: var(--cui-action-tertiary-foreground);
 }
 
 .button--tertiary--fill[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-action-tertiary-background-hover);
+  background-color: var(--cui-action-tertiary-background-hover);
   cursor: pointer;
 }
 
 .button--tertiary--fill[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-action-tertiary-background-pressed);
+  background-color: var(--cui-action-tertiary-background-pressed);
   cursor: pointer;
 }
 
 .button--tertiary--outline {
-  background-color: var(--aui-background);
-  color: var(--aui-color-tertiary-500);
-  border: 2px solid var(--aui-color-tertiary-500);
+  background-color: var(--cui-background);
+  color: var(--cui-color-tertiary-500);
+  border: 2px solid var(--cui-color-tertiary-500);
 }
 
 .button--tertiary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-tertiary-100);
+  background-color: var(--cui-color-tertiary-100);
   cursor: pointer;
 }
 
 .button--tertiary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-tertiary-200);
+  background-color: var(--cui-color-tertiary-200);
   cursor: pointer;
 }
 
 .button--quaternary--fill {
-  background-color: var(--aui-action-quaternary-background);
-  color: var(--aui-action-quaternary-foreground);
+  background-color: var(--cui-action-quaternary-background);
+  color: var(--cui-action-quaternary-foreground);
 }
 
 .button--quaternary--fill[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-action-quaternary-background-hover);
+  background-color: var(--cui-action-quaternary-background-hover);
   cursor: pointer;
 }
 
 .button--quaternary--fill[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-action-quaternary-background-pressed);
+  background-color: var(--cui-action-quaternary-background-pressed);
   cursor: pointer;
 }
 
 .button--quaternary--outline {
-  background-color: var(--aui-background);
-  color: var(--aui-color-quaternary-500);
-  border: 2px solid var(--aui-color-quaternary-500);
+  background-color: var(--cui-background);
+  color: var(--cui-color-quaternary-500);
+  border: 2px solid var(--cui-color-quaternary-500);
 }
 
 .button--quaternary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-quaternary-100);
+  background-color: var(--cui-color-quaternary-100);
   cursor: pointer;
 }
 
 .button--quaternary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-quaternary-200);
+  background-color: var(--cui-color-quaternary-200);
   cursor: pointer;
 }
 
 .button--quintenary--fill {
-  background-color: var(--aui-action-quintenary-background);
-  color: var(--aui-action-quintenary-foreground);
+  background-color: var(--cui-action-quintenary-background);
+  color: var(--cui-action-quintenary-foreground);
 }
 
 .button--quintenary--fill[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-action-quintenary-background-hover);
+  background-color: var(--cui-action-quintenary-background-hover);
   cursor: pointer;
 }
 
 .button--quintenary--fill[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-action-quintenary-background-pressed);
+  background-color: var(--cui-action-quintenary-background-pressed);
   cursor: pointer;
 }
 
 .button--quintenary--outline {
-  background-color: var(--aui-background);
-  color: var(--aui-color-quintenary-500);
-  border: 2px solid var(--aui-color-quintenary-500);
+  background-color: var(--cui-background);
+  color: var(--cui-color-quintenary-500);
+  border: 2px solid var(--cui-color-quintenary-500);
 }
 
 .button--quintenary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-quintenary-100);
+  background-color: var(--cui-color-quintenary-100);
   cursor: pointer;
 }
 
 .button--quintenary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-quintenary-200);
+  background-color: var(--cui-color-quintenary-200);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--primary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-primary-700);
+  background-color: var(--cui-color-primary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--primary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-primary-600);
+  background-color: var(--cui-color-primary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--secondary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-secondary-700);
+  background-color: var(--cui-color-secondary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--secondary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-secondary-600);
+  background-color: var(--cui-color-secondary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--tertiary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-tertiary-700);
+  background-color: var(--cui-color-tertiary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--tertiary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-tertiary-600);
+  background-color: var(--cui-color-tertiary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--quaternary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-quaternary-700);
+  background-color: var(--cui-color-quaternary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--quaternary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-quaternary-600);
+  background-color: var(--cui-color-quaternary-600);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--quintenary--outline[data-hovered]:not([data-disabled]) {
-  background-color: var(--aui-color-quintenary-700);
+  background-color: var(--cui-color-quintenary-700);
   cursor: pointer;
 }
 
 body[data-theme="dark"] .button--quintenary--outline[data-pressed]:not([data-disabled]) {
-  background-color: var(--aui-color-quintenary-600);
+  background-color: var(--cui-color-quintenary-600);
   cursor: pointer;
 }

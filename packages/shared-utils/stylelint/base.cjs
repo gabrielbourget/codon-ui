@@ -1,10 +1,13 @@
+const stylelintConfigStandard = require.resolve("stylelint-config-standard")
+const stylelintConfigStandardScss = require.resolve("stylelint-config-standard-scss")
+
 module.exports = {
-  extends: ["stylelint-config-standard"],
+  extends: [stylelintConfigStandard],
   overrides: [
     {
       files: ["**/*.scss"],
       customSyntax: "postcss-scss",
-      extends: ["stylelint-config-standard-scss"],
+      extends: [stylelintConfigStandardScss],
     },
   ],
   rules: {

@@ -4,7 +4,7 @@ import path from "path"
 import { z } from "zod"
 
 import {
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_OWNERSHIP_STATE__EJECTED,
   CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
   consumerLockfileDependencySchema,
@@ -198,7 +198,7 @@ const readConsumerLockfileForStrictEject = async (
   findings: TEjectStrictBlocker[]
   lockfileData: TConsumerLockfile
 }> => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
 
   if (!existsSync(lockfilePath)) {
     return {
@@ -206,8 +206,8 @@ const readConsumerLockfileForStrictEject = async (
         createEjectStrictBlocker({
           code: "strict-eject-lockfile-missing",
           kind: EJECT_STRICT_BLOCKER_KIND__PROJECT,
-          message: `${AMINO_UI_LOCK_FILE_NAME} is missing. Strict eject requires a valid Amino lockfile.`,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          message: `${CODON_UI_LOCK_FILE_NAME} is missing. Strict eject requires a valid Codon lockfile.`,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         }),
       ],
       lockfileData: createFallbackLockfile(),
@@ -227,8 +227,8 @@ const readConsumerLockfileForStrictEject = async (
         createEjectStrictBlocker({
           code: "strict-eject-lockfile-invalid",
           kind: EJECT_STRICT_BLOCKER_KIND__PROJECT,
-          message: `${AMINO_UI_LOCK_FILE_NAME} could not be read as an Amino lockfile. ${message}`,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          message: `${CODON_UI_LOCK_FILE_NAME} could not be read as a Codon lockfile. ${message}`,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         }),
       ],
       lockfileData: createFallbackLockfile(),
@@ -269,7 +269,7 @@ const createProjectStateBlockers = (dryRunReport: TEjectDryRunReport) => {
         code: "strict-eject-lockfile-status-blocker",
         itemName: dryRunReport.itemName,
         kind: EJECT_STRICT_BLOCKER_KIND__PROJECT,
-        message: `Strict eject requires a present Amino lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
+        message: `Strict eject requires a present Codon lockfile. Current lockfile status is "${dryRunReport.status.lockfile}".`,
       }),
     )
   }
@@ -340,7 +340,7 @@ const createLockfileBlockers = ({
         code: "strict-eject-lockfile-item-missing",
         itemName: dryRunReport.itemName,
         kind: EJECT_STRICT_BLOCKER_KIND__ITEM,
-        message: `Strict eject cannot continue because "${dryRunReport.itemName}" is missing from ${AMINO_UI_LOCK_FILE_NAME}.`,
+        message: `Strict eject cannot continue because "${dryRunReport.itemName}" is missing from ${CODON_UI_LOCK_FILE_NAME}.`,
       }),
     ]
   }
@@ -510,7 +510,7 @@ const writeStrictEject = async ({
     items: nextItems,
   })
 
-  await fs.writeFile(path.join(cwd, AMINO_UI_LOCK_FILE_NAME), `${JSON.stringify(nextLockfileData, null, 2)}\n`, "utf8")
+  await fs.writeFile(path.join(cwd, CODON_UI_LOCK_FILE_NAME), `${JSON.stringify(nextLockfileData, null, 2)}\n`, "utf8")
 
   return {
     files,

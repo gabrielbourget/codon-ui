@@ -72,21 +72,21 @@ const requiredStyleSelectors = [
   '.tooltip[data-placement="left"]',
 ]
 const requiredActionColorVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-radius-1",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-drop-shadow-1",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-radius-1",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-drop-shadow-1",
 ]
 
 assert(tooltipSource.startsWith('"use client"'), "Tooltip must preserve the client component boundary")
@@ -150,7 +150,7 @@ assert(packageJson.peerDependencies["react-dom"], "Tooltip package must keep Rea
 
 assert(packet.name === "tooltip", "Tooltip packet must describe the tooltip item")
 assert(packet.type === "component", "Tooltip packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Tooltip packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Tooltip packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Tooltip packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#tooltip-next-candidate-planning-checkpoint"),
@@ -236,7 +236,7 @@ assert(
   packet.importResolutions.some(
     (resolution) =>
       resolution.importSource.includes("--drop_shadow_1") &&
-      resolution.replacementSource.includes("--aui-drop-shadow-1"),
+      resolution.replacementSource.includes("--cui-drop-shadow-1"),
   ),
   "Tooltip packet must record drop-shadow CSS variable rewrite",
 )

@@ -6,34 +6,62 @@ import { Command } from "commander"
 import { z } from "zod"
 
 import {
+  CONSUMER_DEPENDENCY_POLICIES,
+  createUpdateAllAdvisoryReport,
+  createUpdateAllDryRunReport,
+  createUpdateAllStrictReport,
   createUpdateAdvisoryReport,
   createUpdateDryRunReport,
   createUpdateStrictReport,
   handleError,
   logger,
 } from "@/src/helpers"
+import { DEPENDENCY_INSTALL_PACKAGE_MANAGERS } from "@/src/helpers/packageManagerHelpers"
 
 const updateOptionsSchema = z.object({
+  all: z.boolean().default(false),
   advisory: z.boolean().default(false),
   cwd: z.string().default(process.cwd()),
+  dependencyPolicy: z.enum(CONSUMER_DEPENDENCY_POLICIES).optional(),
   dryRun: z.boolean().default(false),
+  installDependencies: z.boolean().default(false),
   json: z.boolean().default(false),
+  packageJson: z.string().optional(),
+  packageManager: z.enum(DEPENDENCY_INSTALL_PACKAGE_MANAGERS).optional(),
   registrySource: z.string().optional(),
 })
 
-const parseUpdateOptions = (itemName: string, CLIOptions: unknown) => ({
+const parseUpdateOptions = (itemName: string | undefined, CLIOptions: unknown) => ({
   itemName,
   ...updateOptionsSchema.parse(typeof CLIOptions === "object" && CLIOptions ? CLIOptions : {}),
 })
 
 export const update = new Command()
   .name("update")
-  .description("Update one installed Amino UI registry item when strict provenance checks pass.")
-  .argument("<item>", "The installed registry item you'd like to inspect or update.")
+  .description("Update one installed Codon UI registry item when strict provenance checks pass.")
+  .argument("[item]", "The installed registry item you'd like to inspect or update.")
+  .option("--all", "Target every installed registry item for advisory, dry-run, or all-safe strict update.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
-  .option("--dry-run", "Preview an item-scoped update without writing files or lockfile data.", false)
+  .option(
+    "--dependency-policy <policy>",
+    "Override dependency install policy for item-scoped update planning. Supported values: report-only, manual, prompt, install.",
+  )
+  .option("--dry-run", "Preview item-scoped or --all update effects without writing files or lockfile data.", false)
+  .option(
+    "--install-dependencies",
+    "Explicitly allow item-scoped strict update to install missing dependencies when policy also permits it.",
+    false,
+  )
   .option("--json", "Print machine-readable update output.", false)
+  .option(
+    "--package-json <path>",
+    "Read dependency declarations from a specific package.json for item-scoped planning.",
+  )
+  .option(
+    "--package-manager <packageManager>",
+    "Override package-manager detection for item-scoped dependency planning.",
+  )
   .option("--registry-source <path>", "Path to a local registry source JSON file for source comparison.")
   .action(async (itemName, CLIOptions) => {
     try {
@@ -45,15 +73,156 @@ export const update = new Command()
         process.exit(1)
       }
 
+      if (options.all && options.itemName) {
+        logger.error("Please choose either a single item or --all, not both.")
+        process.exit(1)
+      }
+
+      if (
+        options.all &&
+        (options.dependencyPolicy || options.installDependencies || options.packageJson || options.packageManager)
+      ) {
+        logger.error("Dependency install options are only supported for item-scoped update.")
+        process.exit(1)
+      }
+
+      if (!options.all && !options.itemName) {
+        logger.error("Please provide an item to update, or use --all.")
+        process.exit(1)
+      }
+
       if (!existsSync(cwd)) {
         logger.error(`The path ${cwd} could not be found. Please try again.`)
+        process.exit(1)
+      }
+
+      if (options.all) {
+        if (options.dryRun) {
+          const updateAllDryRunReport = await createUpdateAllDryRunReport({
+            cwd,
+            registrySourcePath: options.registrySource,
+          })
+
+          if (options.json) {
+            console.log(JSON.stringify(updateAllDryRunReport, null, 2))
+            return
+          }
+
+          logger.info(`${chalk.green("[ Update All Dry Run ]")} No files were written.`)
+          logger.info(`Items inspected: ${updateAllDryRunReport.summary.itemCount}`)
+          logger.info(`Would-update items: ${updateAllDryRunReport.summary.itemStates["would-update"]}`)
+          logger.info(`Blocked items: ${updateAllDryRunReport.summary.itemStates.blocked}`)
+          logger.info(`Up-to-date items: ${updateAllDryRunReport.summary.itemStates["up-to-date"]}`)
+          logger.info(`Unavailable items: ${updateAllDryRunReport.summary.itemStates.unavailable}`)
+          logger.info(`Update candidate files: ${updateAllDryRunReport.summary.candidateFileCount}`)
+          logger.info(`Would write files: ${updateAllDryRunReport.summary.wouldWriteFileCount}`)
+          logger.info(`Would update lockfile records: ${updateAllDryRunReport.summary.wouldUpdateLockfileFileCount}`)
+          logger.info(`Skipped files: ${updateAllDryRunReport.summary.skippedFileCount}`)
+          logger.info(`Blocked files: ${updateAllDryRunReport.summary.blockedFileCount}`)
+          logger.info(`Blockers: ${updateAllDryRunReport.summary.blockerCount}`)
+          logger.info(`Findings: ${updateAllDryRunReport.findings.length}`)
+
+          for (const item of updateAllDryRunReport.items) {
+            logger.info(`- ${item.itemName}: ${item.itemUpdateState}`)
+          }
+
+          return
+        }
+
+        if (!options.advisory) {
+          const updateAllStrictReport = await createUpdateAllStrictReport({
+            cwd,
+            registrySourcePath: options.registrySource,
+          })
+          const blockedItemCount = updateAllStrictReport.summary.itemStates.blocked ?? 0
+          const unavailableItemCount = updateAllStrictReport.summary.itemStates.unavailable ?? 0
+          const isBlocked =
+            updateAllStrictReport.blockers.length > 0 || blockedItemCount > 0 || unavailableItemCount > 0
+
+          if (isBlocked) {
+            if (options.json) {
+              console.log(JSON.stringify(updateAllStrictReport, null, 2))
+            } else {
+              logger.error(`${chalk.red("[ Strict Update All ]")} No files or lockfile records were written.`)
+              logger.error(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+              logger.error(`Blocked items: ${blockedItemCount}`)
+              logger.error(`Unavailable items: ${unavailableItemCount}`)
+              logger.error(`Blockers: ${updateAllStrictReport.summary.blockerCount}`)
+              logger.error(`Findings: ${updateAllStrictReport.findings.length}`)
+            }
+
+            process.exitCode = 1
+            return
+          }
+
+          if (options.json) {
+            console.log(JSON.stringify(updateAllStrictReport, null, 2))
+            return
+          }
+
+          if (!updateAllStrictReport.applied) {
+            logger.info(`${chalk.green("[ Strict Update All ]")} All installed items are already up to date.`)
+            logger.info(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+            logger.info(`Lockfile effect: ${updateAllStrictReport.effects.lockfile.status}`)
+            logger.info(`Findings: ${updateAllStrictReport.findings.length}`)
+            return
+          }
+
+          logger.info(`${chalk.green("[ Strict Update All ]")} Installed items updated.`)
+          logger.info(`Items inspected: ${updateAllStrictReport.summary.itemCount}`)
+          logger.info(`Updated items: ${updateAllStrictReport.summary.itemStates.updated}`)
+          logger.info(`Up-to-date items: ${updateAllStrictReport.summary.itemStates["up-to-date"]}`)
+          logger.info(`Files written: ${updateAllStrictReport.effects.files.writtenCount}`)
+          logger.info(`Lockfile records updated: ${updateAllStrictReport.effects.lockfile.updatedFileRecordCount}`)
+          logger.info(`Lockfile effect: ${updateAllStrictReport.effects.lockfile.status}`)
+          logger.info(`Findings: ${updateAllStrictReport.findings.length}`)
+
+          return
+        }
+
+        const updateAllAdvisoryReport = await createUpdateAllAdvisoryReport({
+          cwd,
+          registrySourcePath: options.registrySource,
+        })
+
+        if (options.json) {
+          console.log(JSON.stringify(updateAllAdvisoryReport, null, 2))
+          return
+        }
+
+        logger.info(`${chalk.green("[ Update All Advisory ]")} No files were written.`)
+        logger.info(`Items inspected: ${updateAllAdvisoryReport.summary.itemCount}`)
+        logger.info(`Update candidate items: ${updateAllAdvisoryReport.summary.itemStates["update-candidate"]}`)
+        logger.info(`Review-required items: ${updateAllAdvisoryReport.summary.itemStates["review-required"]}`)
+        logger.info(`Up-to-date items: ${updateAllAdvisoryReport.summary.itemStates["up-to-date"]}`)
+        logger.info(`Unavailable items: ${updateAllAdvisoryReport.summary.itemStates.unavailable}`)
+        logger.info(`Update candidate files: ${updateAllAdvisoryReport.summary.candidateFileCount}`)
+        logger.info(`Automatic update blockers: ${updateAllAdvisoryReport.summary.automaticBlockerCount}`)
+        logger.info(`Findings: ${updateAllAdvisoryReport.findings.length}`)
+
+        for (const item of updateAllAdvisoryReport.items) {
+          logger.info(`- ${item.itemName}: ${item.itemUpdateState}`)
+        }
+
+        return
+      }
+
+      const selectedItemName = options.itemName
+
+      if (!selectedItemName) {
+        logger.error("Please provide an item to update, or use --all.")
         process.exit(1)
       }
 
       if (options.dryRun) {
         const updateDryRunReport = await createUpdateDryRunReport({
           cwd,
-          itemName: options.itemName,
+          dependencyPolicyOverride: options.dependencyPolicy,
+          installDependencies: options.installDependencies,
+          itemName: selectedItemName,
+          nonInteractive: options.json,
+          packageJsonPath: options.packageJson,
+          packageManager: options.packageManager,
           registrySourcePath: options.registrySource,
         })
 
@@ -91,7 +260,12 @@ export const update = new Command()
       if (!options.advisory) {
         const updateStrictReport = await createUpdateStrictReport({
           cwd,
-          itemName: options.itemName,
+          dependencyPolicyOverride: options.dependencyPolicy,
+          installDependencies: options.installDependencies,
+          itemName: selectedItemName,
+          nonInteractive: options.json,
+          packageJsonPath: options.packageJson,
+          packageManager: options.packageManager,
           registrySourcePath: options.registrySource,
         })
 
@@ -138,7 +312,12 @@ export const update = new Command()
 
       const updateAdvisoryReport = await createUpdateAdvisoryReport({
         cwd,
-        itemName: options.itemName,
+        dependencyPolicyOverride: options.dependencyPolicy,
+        installDependencies: options.installDependencies,
+        itemName: selectedItemName,
+        nonInteractive: options.json,
+        packageJsonPath: options.packageJson,
+        packageManager: options.packageManager,
         registrySourcePath: options.registrySource,
       })
 

@@ -4,10 +4,10 @@ import starlight from "@astrojs/starlight"
 export default defineConfig({
   integrations: [
     starlight({
-      title: "Amino UI Docs",
-      description: "Component-library foundation, registry, and extraction planning docs for Amino UI.",
+      title: "Codon UI Docs",
+      description: "Component-library foundation, registry, and extraction planning docs for Codon UI.",
       disable404Route: true,
-      customCss: ["./src/styles/amino-theme.css"],
+      customCss: ["./src/styles/codon-theme.css"],
       components: {
         Head: "./src/components/DocsHead.astro",
         Search: "./src/components/DocsSearch.astro",

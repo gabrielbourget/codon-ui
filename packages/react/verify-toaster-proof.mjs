@@ -71,22 +71,22 @@ const requiredPackageFileSources = [
   "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
 ]
 const requiredDefaultThemeVariables = [
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-space-3",
-  "--aui-radius-1",
-  "--aui-radius-2",
-  "--aui-shadow-1",
-  "--aui-focus-ring",
-  "--aui-z-index-toast",
-  "--aui-control-placeholder",
-  "--aui-control-selected-background",
-  "--aui-control-selected-foreground",
-  "--aui-status-warning",
-  "--aui-status-danger",
-  "--aui-status-success",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-space-3",
+  "--cui-radius-1",
+  "--cui-radius-2",
+  "--cui-shadow-1",
+  "--cui-focus-ring",
+  "--cui-z-index-toast",
+  "--cui-control-placeholder",
+  "--cui-control-selected-background",
+  "--cui-control-selected-foreground",
+  "--cui-status-warning",
+  "--cui-status-danger",
+  "--cui-status-success",
 ]
 const expectedPublicExports = [
   "Toaster",
@@ -183,7 +183,7 @@ assert(!toasterIndexSource.includes("ToasterObserver"), "ToasterObserver must no
 
 assert(packet.name === "toaster", "Toaster packet must describe the toaster item")
 assert(packet.type === "component", "Toaster packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Toaster packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Toaster packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Toaster packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#toaster-extraction-planning-checkpoint"),
@@ -227,7 +227,7 @@ requiredDefaultThemeVariables.forEach((cssVariable) => {
   assert(defaultContractRequirement.cssVariables.includes(cssVariable), `Toaster packet must record ${cssVariable}`)
 })
 assert(
-  packet.importResolutions.some((resolution) => resolution.replacementSource === "--aui-z-index-toast"),
+  packet.importResolutions.some((resolution) => resolution.replacementSource === "--cui-z-index-toast"),
   "Toaster packet must record toast z-index rewrite",
 )
 assert(

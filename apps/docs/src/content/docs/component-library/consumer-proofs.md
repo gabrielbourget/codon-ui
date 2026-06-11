@@ -3,7 +3,7 @@ title: Consumer Proofs
 description: Mature consumer reinstall evidence and adapter preservation rules.
 ---
 
-Consumer proofs show that registry source can leave Amino UI, land in a real app, and remain understandable after
+Consumer proofs show that registry source can leave Codon UI, land in a real app, and remain understandable after
 installation. Fixtures prove small command contracts. Wavemap proves the registry graph against a mature consumer with
 existing adapters, aliases, tests, and local source history.
 
@@ -11,13 +11,13 @@ existing adapters, aliases, tests, and local source history.
 
 Wavemap is the mature local consumer for the extracted graph. Its proof job is narrow:
 
-- delete only files that Amino UI registry metadata owns;
+- delete only files that Codon UI registry metadata owns;
 - rehydrate those files through the local CLI and registry snapshot;
 - keep Wavemap-owned adapters and product workflows in Wavemap;
 - verify the app after reinstall;
-- inspect `amino-ui.lock.json` for provenance, dependencies, and ownership state.
+- inspect `codon-ui.lock.json` for provenance, dependencies, and ownership state.
 
-A Wavemap reinstall proof does not make Wavemap app code part of Amino UI. It proves that the boundary is enforceable in
+A Wavemap reinstall proof does not make Wavemap app code part of Codon UI. It proves that the boundary is enforceable in
 a real consumer.
 
 ## Reinstall Loop
@@ -32,10 +32,10 @@ Use this loop after source receipt, manifest activation, local snapshot refresh,
 5. Run the local CLI add command against the Wavemap front-end, for example:
 
    ```sh
-   node ../amino-ui/packages/CLI/dist/index.js add sort-and-filter-panel --json --cwd apps/wavemap-front-end
+   node ../codon-ui/packages/CLI/dist/index.js add sort-and-filter-panel --json --cwd apps/wavemap-front-end
    ```
 
-6. Inspect `apps/wavemap-front-end/amino-ui.lock.json` for installed items, registry dependencies, file hashes,
+6. Inspect `apps/wavemap-front-end/codon-ui.lock.json` for installed items, registry dependencies, file hashes,
    dependency decisions, and reused support files.
 7. Run focused Wavemap tests for the reinstalled surface and its local adapters.
 8. Run front-end format, lint, typecheck, boundary scans, source comparison when useful, and Wavemap roadmap/tooling
@@ -71,7 +71,7 @@ plan. It should not travel because it is adjacent to a registry-owned component.
 
 ## Lockfile Review
 
-`amino-ui.lock.json` is the consumer proof ledger. After reinstall, review:
+`codon-ui.lock.json` is the consumer proof ledger. After reinstall, review:
 
 - registry item names and installed source paths;
 - source and installed hashes for each file;

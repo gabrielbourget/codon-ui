@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "sourceIdentity": "@amino-ui/react-local",
+  "sourceIdentity": "@codon-ui/react-local",
   "sourceRoot": "../../..",
   "items": [
     {
       "name": "theme-css",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/theme.css",
@@ -19,7 +19,7 @@
     {
       "name": "theme/action-colors",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/theme/action-colors.css",
@@ -32,7 +32,7 @@
     {
       "name": "tokens/geometry",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/geometry.ts",
@@ -45,7 +45,7 @@
     {
       "name": "tokens/a11y",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/a11y.ts",
@@ -58,7 +58,7 @@
     {
       "name": "tokens/alignment",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/alignment.ts",
@@ -71,7 +71,7 @@
     {
       "name": "tokens/drag",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/drag.ts",
@@ -84,7 +84,7 @@
     {
       "name": "tokens/placement",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/placement.ts",
@@ -97,7 +97,7 @@
     {
       "name": "tokens/responsive",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/responsive.ts",
@@ -110,7 +110,7 @@
     {
       "name": "tokens/motion",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/motion.ts",
@@ -123,7 +123,7 @@
     {
       "name": "theme/switch-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Switch/switch-compatibility.css",
@@ -136,7 +136,7 @@
     {
       "name": "theme/checkbox-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Checkbox/checkbox-compatibility.css",
@@ -149,7 +149,7 @@
     {
       "name": "theme/toggle-button-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ToggleButton/toggle-button-compatibility.css",
@@ -162,7 +162,7 @@
     {
       "name": "theme/radio-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Radio/radio-compatibility.css",
@@ -175,7 +175,7 @@
     {
       "name": "theme/radio-group-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/RadioGroup/radio-group-compatibility.css",
@@ -188,7 +188,7 @@
     {
       "name": "theme/slider-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Slider/slider-compatibility.css",
@@ -201,7 +201,7 @@
     {
       "name": "theme/tag-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Tag/tag-compatibility.css",
@@ -214,7 +214,7 @@
     {
       "name": "theme/tag-group-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TagGroup/tag-group-compatibility.css",
@@ -227,7 +227,7 @@
     {
       "name": "theme/circular-progress-compatibility",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CircularProgress/circular-progress-compatibility.css",
@@ -240,7 +240,7 @@
     {
       "name": "theme/text-typography",
       "type": "theme",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Text/text-typography.css",
@@ -253,7 +253,7 @@
     {
       "name": "tokens/svg",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/svg.ts",
@@ -266,7 +266,7 @@
     {
       "name": "tokens/theme-order",
       "type": "support",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/tokens/theme-order.ts",
@@ -279,7 +279,7 @@
     {
       "name": "avatar",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Avatar/Avatar.tsx",
@@ -311,7 +311,7 @@
     {
       "name": "button",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Button/Button.tsx",
@@ -348,7 +348,7 @@
     {
       "name": "card",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Card/Card.tsx",
@@ -379,7 +379,7 @@
     {
       "name": "carousel",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Carousel/Carousel.tsx",
@@ -504,7 +504,7 @@
     {
       "name": "switch",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Switch/Switch.tsx",
@@ -541,7 +541,7 @@
     {
       "name": "checkbox",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Checkbox/Checkbox.tsx",
@@ -578,7 +578,7 @@
     {
       "name": "checkbox-group",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CheckboxGroup/CheckboxGroup.tsx",
@@ -610,7 +610,7 @@
     {
       "name": "input",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Input/Input.tsx",
@@ -642,7 +642,7 @@
     {
       "name": "text-area",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TextArea/TextArea.tsx",
@@ -674,7 +674,7 @@
     {
       "name": "number-input",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/NumberInput/NumberInput.tsx",
@@ -729,7 +729,7 @@
     {
       "name": "stepper",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Stepper/Stepper.tsx",
@@ -773,7 +773,7 @@
     {
       "name": "time-picker",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TimePicker/TimePicker.tsx",
@@ -817,7 +817,7 @@
     {
       "name": "date-time-picker",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/DateTimePicker/DateTimePicker.tsx",
@@ -874,7 +874,7 @@
     {
       "name": "date-time-range-picker",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/DateTimeRangePicker/DateTimeRangePicker.tsx",
@@ -931,7 +931,7 @@
     {
       "name": "table",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Table/Table.tsx",
@@ -1284,7 +1284,7 @@
     {
       "name": "toaster",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Toaster/Toaster.tsx",
@@ -1359,7 +1359,7 @@
     {
       "name": "toggle-button",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ToggleButton/ToggleButton.tsx",
@@ -1396,7 +1396,7 @@
     {
       "name": "toggle-switcher",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcher.tsx",
@@ -1430,7 +1430,7 @@
     {
       "name": "radio",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Radio/Radio.tsx",
@@ -1467,7 +1467,7 @@
     {
       "name": "text",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Text/Text.tsx",
@@ -1510,7 +1510,7 @@
     {
       "name": "placeholder-text",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Text/variants/PlaceholderText/PlaceholderText.tsx",
@@ -1541,7 +1541,7 @@
     {
       "name": "list-box-item",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItem.tsx",
@@ -1573,7 +1573,7 @@
     {
       "name": "select",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Select/Select.tsx",
@@ -1618,7 +1618,7 @@
     {
       "name": "combo-box",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ComboBox/ComboBox.tsx",
@@ -1669,7 +1669,7 @@
     {
       "name": "click-popover",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ClickPopover/ClickPopover.tsx",
@@ -1706,7 +1706,7 @@
     {
       "name": "tooltip",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Tooltip/Tooltip.tsx",
@@ -1743,7 +1743,7 @@
     {
       "name": "hover-popover",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/HoverPopover/HoverPopover.tsx",
@@ -1780,7 +1780,7 @@
     {
       "name": "menu",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Menu/Menu.tsx",
@@ -1829,7 +1829,7 @@
     {
       "name": "panel",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Panel/Panel.tsx",
@@ -1866,7 +1866,7 @@
     {
       "name": "modal",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Modal/Modal.tsx",
@@ -1906,7 +1906,7 @@
     {
       "name": "alert-dialog",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/AlertDialog/AlertDialog.tsx",
@@ -1956,7 +1956,7 @@
     {
       "name": "line-segment",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/LineSegment/LineSegment.tsx",
@@ -1972,7 +1972,7 @@
     {
       "name": "indicator",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Indicator/Indicator.tsx",
@@ -1999,7 +1999,7 @@
     {
       "name": "circle-loader",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CircleLoader/CircleLoader.tsx",
@@ -2019,7 +2019,7 @@
     {
       "name": "lagging-lines-loader",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/LaggingLinesLoader/LaggingLinesLoader.tsx",
@@ -2046,7 +2046,7 @@
     {
       "name": "link",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Link/Link.tsx",
@@ -2079,7 +2079,7 @@
     {
       "name": "breadcrumbs",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Breadcrumbs/Breadcrumbs.tsx",
@@ -2134,7 +2134,7 @@
     {
       "name": "pagination",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Pagination/Pagination.tsx",
@@ -2234,7 +2234,7 @@
     {
       "name": "tag-combo-box",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TagComboBox/TagComboBox.tsx",
@@ -2280,7 +2280,7 @@
     {
       "name": "typeahead-search",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
@@ -2349,7 +2349,7 @@
     {
       "name": "compact-typeahead-search",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
@@ -2413,7 +2413,7 @@
     {
       "name": "sort-and-filter-panel",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
@@ -2598,7 +2598,7 @@
     {
       "name": "thumbnail-image",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/ThumbnailImage/ThumbnailImage.tsx",
@@ -2615,7 +2615,7 @@
     {
       "name": "slider",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Slider/Slider.tsx",
@@ -2653,7 +2653,7 @@
     {
       "name": "tag",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Tag/Tag.tsx",
@@ -2688,7 +2688,7 @@
     {
       "name": "tag-group",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/TagGroup/TagGroup.tsx",
@@ -2749,7 +2749,7 @@
     {
       "name": "circular-progress",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/CircularProgress/CircularProgress.tsx",
@@ -2798,7 +2798,7 @@
     {
       "name": "counter",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Counter/Counter.tsx",
@@ -2834,7 +2834,7 @@
     {
       "name": "form-field",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/FormField/FormField.tsx",
@@ -2865,7 +2865,7 @@
     {
       "name": "linear-progress",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/LinearProgress/LinearProgress.tsx",
@@ -2902,7 +2902,7 @@
     {
       "name": "meter",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/Meter/Meter.tsx",
@@ -2939,7 +2939,7 @@
     {
       "name": "radio-group",
       "type": "component",
-      "sourcePackage": "@amino-ui/react",
+      "sourcePackage": "@codon-ui/react",
       "files": [
         {
           "sourcePath": "packages/react/src/components/RadioGroup/RadioGroup.tsx",

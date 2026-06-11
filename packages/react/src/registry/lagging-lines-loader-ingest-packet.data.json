@@ -1,7 +1,7 @@
 {
   "name": "lagging-lines-loader",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#loader-components-next-candidate-planning-checkpoint-2026-06-06",
   "files": [

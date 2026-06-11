@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The Amino UI monorepo should have a local verification surface that matches the first GitHub Actions CI workflow before
+The Codon UI monorepo should have a local verification surface that matches the first GitHub Actions CI workflow before
 component source starts moving in from Wavemap.
 
 This pass follows the Wavemap pattern: local shell scripts own the verification contract, and CI calls those scripts

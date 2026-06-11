@@ -2,9 +2,9 @@
 
 ## Purpose
 
-This document defines working guidelines for AI agents operating in the Amino UI monorepo.
+This document defines working guidelines for AI agents operating in the Codon UI monorepo.
 
-Amino UI is being renovated into the canonical component-library and registry source for reusable UI that can later be
+Codon UI is being renovated into the canonical component-library and registry source for reusable UI that can later be
 distributed back into Wavemap, Waveguide, and other consumer repos. Agents should prioritize small, high-confidence
 changes that preserve the current renovation sequence.
 
@@ -22,15 +22,16 @@ Then propose a plan first instead of implementing immediately.
 
 ## Repo Overview
 
-Amino UI is a `pnpm` workspace with separate package ownership boundaries:
+Codon UI is a `pnpm` workspace with separate package ownership boundaries:
 
 - `apps/web` owns the web app and current registry artifact builder surface.
-- `packages/CLI` owns the current CLI package, published as `aminoui-cli`.
+- `packages/CLI` owns the current CLI package, published as `@codon-ui/cli` with the canonical `codon-ui` bin and
+  Codon-era `cui` / `codonui` aliases.
 - `packages/shared-utils` owns shared ESLint, Prettier, Stylelint, and TypeScript presets.
-- `packages/react` owns the private `@amino-ui/react` React source receiver package and its package CSS entrypoint.
+- `packages/react` owns the private `@codon-ui/react` React source receiver package and its package CSS entrypoint.
 
-Treat sibling repos as separate git repositories. Do not edit Wavemap or another repo as incidental cleanup during an
-Amino UI pass. When component-library extraction roadmap updates are needed, use Wavemap's
+Treat sibling repos as separate git repositories. Do not edit Wavemap or another repo as incidental cleanup during a
+Codon UI pass. When component-library extraction roadmap updates are needed, use Wavemap's
 `apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md` deliberately and verify Wavemap with its own commands.
 
 ## Operating Modes
@@ -73,7 +74,7 @@ In this mode, agents may:
 - Implement a short chain of small, logical changes without pausing after every local edit.
 - Run targeted verification after each meaningful step.
 - Prepare and create multiple reviewable commits when the run includes explicit commit permission.
-- Continue through routine mechanical work that follows established Amino UI patterns.
+- Continue through routine mechanical work that follows established Codon UI patterns.
 
 Agents must still:
 
@@ -97,7 +98,7 @@ report the proposed split before committing.
 
 ## Component Extraction Guardrails
 
-Do not move `Switch` or any other Wavemap component source into Amino UI until the target repo can express source
+Do not move `Switch` or any other Wavemap component source into Codon UI until the target repo can express source
 ownership, theme CSS load order, registry artifact policy, peer/runtime policy, and focused tests.
 
 During foundation passes:
@@ -110,7 +111,7 @@ During foundation passes:
 - Do not decide package publication, release automation, or deploy workflows casually.
 - Do not treat legacy shadcn-derived scaffolding as authoritative.
 - Do not make broad registry behavior changes without an approved pass.
-- Keep `@amino-ui/react/theme.css` hand-authored until generated-token policy is explicitly chosen.
+- Keep `@codon-ui/react/theme.css` hand-authored until generated-token policy is explicitly chosen.
 - Keep canonical source ownership separate from generated registry artifacts.
 
 If package boundary, theme contract, registry artifact shape, CLI behavior, peer/runtime policy, or publication questions
@@ -130,7 +131,7 @@ appear, return to deliberate planning mode.
   - `pnpm build:react`
   - `pnpm build:cli`
 - Root checks use `pnpm -r` scripts where practical. Do not reopen a Turbo migration casually.
-- Prefer workspace-scoped commands for focused checks, such as `pnpm -F @amino-ui/react build`.
+- Prefer workspace-scoped commands for focused checks, such as `pnpm -F @codon-ui/react build`.
 - `pnpm verify:ci` is the local mirror of the initial GitHub Actions CI surface.
 - `pnpm verify:build` intentionally runs the web app with `pnpm -F web exec next build` so the CI baseline can validate
   Next build behavior without treating unresolved registry artifact generation as authoritative.
@@ -166,7 +167,7 @@ Agentic runs must not lose time to stale or over-broad verification sessions.
   with the focused command that matches the change.
 - Report the verification tier used in the final response, especially when choosing a focused gate instead of the full
   suite.
-- For sibling `amino-ui-consumer-fixtures` work, use the fixture repo's focused commands such as `pnpm verify:shape`,
+- For sibling `codon-ui-consumer-fixtures` work, use the fixture repo's focused commands such as `pnpm verify:shape`,
   `pnpm verify:status-seeds`, `pnpm verify:cli-readonly`, `pnpm verify:strict-add`, `pnpm verify:remove-orphans`,
   `pnpm verify:compile`, or `pnpm verify:loaders` before reaching for the full `pnpm verify`.
 
@@ -187,18 +188,19 @@ General preferences:
 
 ## Styling Conventions
 
-- CSS custom properties owned by Amino UI should use the `--aui-` prefix.
+- CSS custom properties owned by Codon UI should use the canonical `--cui-` prefix. `@codon-ui/react/theme.css` is
+  CUI-only after fixture and consumer proofs approved removal of the legacy `--aui-` compatibility variables.
 - Keep default theme variables narrow until real component source proves that more variables are needed.
 - Prefer semantic component-system roles such as foreground, background, surface, border, control, status, focus, spacing,
   radius, shadow, transition, and opacity before product-specific color decisions.
 - Do not promote Wavemap app chrome, gradients, route layout constants, map colors, or product typography into the default
-  Amino UI theme without an explicit contract pass.
+  Codon UI theme without an explicit contract pass.
 
 ## Testing And Verification
 
 Prefer the narrowest verification command that exercises the touched behavior.
 
-For Amino UI implementation work, normally run:
+For Codon UI implementation work, normally run:
 
 - `pnpm check` or `pnpm verify:tooling` when the change touches shared tooling or repo workflow.
 - A focused package build when relevant, such as `pnpm build:react` or `pnpm build:cli`.

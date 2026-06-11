@@ -7,7 +7,7 @@ export default [
   ...tseslint.configs.recommended,
 
   {
-    name: "amino-ui:shared-base",
+    name: "codon-ui:shared-base",
     files: ["**/*.{ts,tsx,js,jsx}"],
     plugins: {
       "@typescript-eslint": tseslint.plugin,
@@ -32,7 +32,7 @@ export default [
           pathGroups: [
             { pattern: "@/**", group: "internal", position: "after" },
             { pattern: "@src/**", group: "internal", position: "after" },
-            { pattern: "@amino-ui/**", group: "internal", position: "after" },
+            { pattern: "@codon-ui/**", group: "internal", position: "after" },
           ],
           pathGroupsExcludedImportTypes: ["builtin"],
           "newlines-between": "always",

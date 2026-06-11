@@ -4,8 +4,8 @@ import { PACKAGE_MANIFEST_DEPENDENCY_FIELDS } from "../packageManifestConstants"
 import { CLI_DRY_RUN_WRITE_STATUSES, CLI_WRITE_STATUS__NOT_WRITTEN } from "../reportConstants"
 
 import {
-  AMINO_UI_CONFIG_FILE_NAME,
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_ADVISORY_SEVERITIES,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_DEPENDENCY_ACTIONS,
@@ -49,7 +49,7 @@ export const consumerConfigSchema = z
     registry: z
       .object({
         source: z.string().min(1).default("local"),
-        sourcePackage: z.string().min(1).default("@amino-ui/react"),
+        sourcePackage: z.string().min(1).default("@codon-ui/react"),
       })
       .default({}),
     theme: z
@@ -101,7 +101,7 @@ export const consumerLockfileDependencySchema = z
 export const consumerLockfileSchema = z
   .object({
     lockfileVersion: z.literal(1).default(1),
-    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     dependencies: z.array(consumerLockfileDependencySchema).default([]),
     items: z.record(z.string().min(1), consumerLockfileItemSchema).default({}),
     themeTier: z.enum(CONSUMER_THEME_TIERS).optional(),
@@ -139,9 +139,9 @@ export type TConsumerProjectContext = z.infer<typeof consumerProjectContextSchem
 export const consumerInitAdvisorySchema = z
   .object({
     advisory: z.literal(true),
-    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
-    lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
+    lockfile: z.literal(CODON_UI_LOCK_FILE_NAME).default(CODON_UI_LOCK_FILE_NAME),
     packageManager: z.enum(CONSUMER_PACKAGE_MANAGERS),
     project: consumerProjectContextSchema,
     proposedConfig: consumerConfigSchema,
@@ -155,7 +155,7 @@ export type TConsumerInitAdvisory = z.infer<typeof consumerInitAdvisorySchema>
 export const consumerInitSeedResultSchema = z
   .object({
     config: consumerConfigSchema,
-    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
     effects: z
       .object({
@@ -167,7 +167,7 @@ export const consumerInitSeedResultSchema = z
       .strict(),
     findings: z.array(consumerAdvisoryFindingSchema).default([]),
     initialized: z.boolean(),
-    lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
+    lockfile: z.literal(CODON_UI_LOCK_FILE_NAME).default(CODON_UI_LOCK_FILE_NAME),
     lockfileData: consumerLockfileSchema,
   })
   .strict()
@@ -178,7 +178,7 @@ const consumerInitDryRunEffectStatusSchema = z.enum(CLI_DRY_RUN_WRITE_STATUSES)
 
 export const consumerInitDryRunResultSchema = z
   .object({
-    configFile: z.literal(AMINO_UI_CONFIG_FILE_NAME).default(AMINO_UI_CONFIG_FILE_NAME),
+    configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
     dryRun: z.literal(true),
     effects: z
@@ -191,7 +191,7 @@ export const consumerInitDryRunResultSchema = z
       .strict(),
     findings: z.array(consumerAdvisoryFindingSchema).default([]),
     initialized: z.boolean(),
-    lockfile: z.literal(AMINO_UI_LOCK_FILE_NAME).default(AMINO_UI_LOCK_FILE_NAME),
+    lockfile: z.literal(CODON_UI_LOCK_FILE_NAME).default(CODON_UI_LOCK_FILE_NAME),
     lockfileData: consumerLockfileSchema,
     packageManager: z.enum(CONSUMER_PACKAGE_MANAGERS),
     project: consumerProjectContextSchema,
@@ -201,7 +201,7 @@ export const consumerInitDryRunResultSchema = z
       .object({
         config: z
           .object({
-            path: z.literal(AMINO_UI_CONFIG_FILE_NAME),
+            path: z.literal(CODON_UI_CONFIG_FILE_NAME),
             status: consumerInitDryRunEffectStatusSchema,
             wouldWrite: z.boolean(),
           })
@@ -220,7 +220,7 @@ export const consumerInitDryRunResultSchema = z
           .strict(),
         lockfile: z
           .object({
-            path: z.literal(AMINO_UI_LOCK_FILE_NAME),
+            path: z.literal(CODON_UI_LOCK_FILE_NAME),
             status: consumerInitDryRunEffectStatusSchema,
             wouldWrite: z.boolean(),
           })

@@ -1,7 +1,7 @@
 {
   "name": "counter",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#counter-next-candidate-planning-checkpoint-2026-06-03",
   "files": [
@@ -69,13 +69,13 @@
     {
       "sourcePath": "packages/react/src/components/Counter/CounterStyles.module.css",
       "importSource": "--distance_1 / --colorTransition aliases",
-      "replacementSource": "--aui-space-1 / --aui-transition-color",
+      "replacementSource": "--cui-space-1 / --cui-transition-color",
       "notes": ["Counter CSS now reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Counter/helpers.ts",
-      "importSource": "--aui-status-warning / --aui-status-danger only",
-      "replacementSource": "status aliases with --aui-state-* fallback",
+      "importSource": "--cui-status-warning / --cui-status-danger only",
+      "replacementSource": "status aliases with --cui-state-* fallback",
       "notes": [
         "Wavemap can keep existing status aliases while default Amino theme consumers resolve warning/danger state colors."
       ]
@@ -110,14 +110,14 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-space-1", "--aui-transition-color", "--aui-state-warning", "--aui-state-danger"],
+      "cssVariables": ["--cui-space-1", "--cui-transition-color", "--cui-state-warning", "--cui-state-danger"],
       "notes": [
         "Counter source reads the default theme contract directly and does not need a component-specific compatibility bridge."
       ]
     },
     {
       "strategy": "consumer-owned",
-      "cssVariables": ["--aui-status-warning", "--aui-status-danger"],
+      "cssVariables": ["--cui-status-warning", "--cui-status-danger"],
       "notes": [
         "Wavemap already defines status aliases; Counter keeps those aliases as first-choice values with default state fallbacks for new consumers."
       ]
@@ -133,14 +133,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static Counter proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

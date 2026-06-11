@@ -1,7 +1,7 @@
 {
   "name": "pagination",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#pagination-next-candidate-planning-checkpoint-2026-06-04",
   "files": [
@@ -137,7 +137,7 @@
     {
       "sourcePath": "packages/react/src/components/Pagination/**/*.css",
       "importSource": "--distance_1 / --distance_2 / --fadeInAnimation / --fadeOutAnimation / --shadow_1 / --border_radius_1 / --focus-ring-color aliases",
-      "replacementSource": "--aui-space-1 / --aui-space-2 / --aui-animation-fade-in / --aui-animation-fade-out / --aui-shadow-1 / --aui-radius-1 / --aui-focus-ring",
+      "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-animation-fade-in / --cui-animation-fade-out / --cui-shadow-1 / --cui-radius-1 / --cui-focus-ring",
       "notes": [
         "Pagination CSS reads the default Amino theme contract and action-colors support item instead of a component-specific compatibility bridge."
       ]
@@ -182,17 +182,17 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-animation-fade-in",
-        "--aui-animation-fade-out",
-        "--aui-border",
-        "--aui-control-foreground",
-        "--aui-control-selected-foreground",
-        "--aui-focus-ring",
-        "--aui-radius-1",
-        "--aui-shadow-1",
-        "--aui-space-1",
-        "--aui-space-2",
-        "--aui-surface"
+        "--cui-animation-fade-in",
+        "--cui-animation-fade-out",
+        "--cui-border",
+        "--cui-control-foreground",
+        "--cui-control-selected-foreground",
+        "--cui-focus-ring",
+        "--cui-radius-1",
+        "--cui-shadow-1",
+        "--cui-space-1",
+        "--cui-space-2",
+        "--cui-surface"
       ],
       "notes": [
         "Pagination spacing, divider, focus, animation, surface, and shadow styles read the default theme contract directly."
@@ -201,11 +201,11 @@
     {
       "strategy": "default-contract",
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Pagination order-color resolution reads the existing action-colors support item directly."]
     }
@@ -220,7 +220,7 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "notes": [
         "Runs the static source receipt proof, including Pagination-specific assertions once wired into package scripts."

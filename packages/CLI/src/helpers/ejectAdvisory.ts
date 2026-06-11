@@ -4,7 +4,7 @@ import path from "path"
 import { z } from "zod"
 
 import {
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   consumerLockfileDependencySchema,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
@@ -152,7 +152,7 @@ const createEmptyRecord = <TKey extends string>(keys: readonly TKey[]): Record<T
   Object.fromEntries(keys.map((key) => [key, 0])) as Record<TKey, number>
 
 const readLockfilePathReferences = async (cwd: string) => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
   const pathReferences = new Map<string, Set<string>>()
 
   if (!existsSync(lockfilePath)) return pathReferences

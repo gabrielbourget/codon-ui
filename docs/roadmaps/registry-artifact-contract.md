@@ -2,7 +2,7 @@
 
 ## Purpose
 
-The registry should publish installable source slices that are generated from canonical Amino UI source, not from generated
+The registry should publish installable source slices that are generated from canonical Codon UI source, not from generated
 output directories or broad directory copies.
 
 This contract defines the target shape before `Switch` or any other Wavemap component source moves into the monorepo.
@@ -117,7 +117,7 @@ The first manifest shape should be small and explicit:
 | ---------------------- | --------------------------------------------------------------------------------------------- |
 | `name`                 | Stable registry item id, such as `switch`.                                                    |
 | `type`                 | Item category, currently `component`, `support`, `style`, `theme`, `asset`, or `test`.        |
-| `sourcePackage`        | Owning package, initially `@amino-ui/react`.                                                  |
+| `sourcePackage`        | Owning package, currently `@codon-ui/react`.                                                  |
 | `files`                | Explicit ordered source file entries.                                                         |
 | `registryDependencies` | Other registry items that must install before this item.                                      |
 | `peerDependencies`     | Consumer-owned peers required by installed source.                                            |
@@ -143,7 +143,7 @@ Before moving `Switch`, the registry contract needs only enough shape to express
 - The `Switch` component source graph.
 - Any component-local style files.
 - Registry-owned support files such as theme-order or corner-geometry constants if they remain needed.
-- `@amino-ui/react/theme.css` as the package default theme contract.
+- `@codon-ui/react/theme.css` as the package default theme contract.
 - The narrow `theme/switch-compatibility` bridge while `Switch` still needs Wavemap compatibility aliases.
 - React and React DOM as peer dependencies.
 - React Aria Components as a first-proof peer dependency and `classnames` as a first-proof runtime dependency when
@@ -195,9 +195,9 @@ For contract-only changes:
 For manifest or builder implementation changes:
 
 - `pnpm check`
-- `pnpm -F @amino-ui/react check:registry-manifest`
-- `pnpm -F @amino-ui/react check:registry-graph`
-- `pnpm -F @amino-ui/react check:local-registry-snapshot`
+- `pnpm -F @codon-ui/react check:registry-manifest`
+- `pnpm -F @codon-ui/react check:registry-graph`
+- `pnpm -F @codon-ui/react check:local-registry-snapshot`
 - Focused package builds for touched packages.
 - A registry artifact smoke check once the builder is renovated enough to be trusted.
 - `git diff --check`

@@ -1,1 +1,1 @@
-module.exports = require("@amino-ui/shared-utils/stylelint/base")
+module.exports = require("@codon-ui/shared-utils/stylelint/base")

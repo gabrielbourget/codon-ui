@@ -5,7 +5,7 @@ import path from "path"
 import { z } from "zod"
 
 import {
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   consumerLockfileDependencySchema,
   consumerLockfileSchema,
   consumerTargetRoleSchema,
@@ -221,7 +221,7 @@ const createContentHash = (content: string | Buffer) =>
 const createEmptyLockfileData = () => consumerLockfileSchema.parse({})
 
 const readConsumerLockfileForRemoveAdvisory = async (cwd: string): Promise<TConsumerLockfile> => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
 
   if (!existsSync(lockfilePath)) return createEmptyLockfileData()
 

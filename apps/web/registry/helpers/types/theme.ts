@@ -1,4 +1,4 @@
-// amino-ui-helper-file-marker
+// codon-ui-helper-file-marker
 
 import type { AVAILABLE_THEMING_ORDERS } from "@src/constants/theme"
 

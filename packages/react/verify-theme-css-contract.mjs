@@ -43,65 +43,65 @@ if (!themeCSS.includes('[data-theme="dark"] {')) {
 }
 
 for (const name of variables.keys()) {
-  if (!name.startsWith("--aui-")) {
-    fail(`Expected ${name} to stay out of the package default; only --aui- variables are allowed.`)
+  if (!name.startsWith("--cui-")) {
+    fail(`Expected ${name} to stay out of the package default; only --cui- variables are allowed.`)
   }
 }
 
 const requiredVariables = [
-  "--aui-background",
-  "--aui-border",
-  "--aui-border-muted",
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-disabled-opacity",
-  "--aui-control-foreground",
-  "--aui-control-hover-background",
-  "--aui-control-placeholder",
-  "--aui-control-pressed-background",
-  "--aui-control-selected-background",
-  "--aui-control-selected-background-hover",
-  "--aui-control-selected-background-pressed",
-  "--aui-control-selected-foreground",
-  "--aui-focus-ring",
-  "--aui-focus-ring-offset",
-  "--aui-foreground",
-  "--aui-opacity-backdrop",
-  "--aui-opacity-disabled",
-  "--aui-space-unit",
-  "--aui-state-danger",
-  "--aui-state-danger-surface",
-  "--aui-state-success",
-  "--aui-state-success-surface",
-  "--aui-state-warning",
-  "--aui-state-warning-surface",
-  "--aui-surface",
-  "--aui-surface-foreground",
-  "--aui-surface-muted",
-  "--aui-surface-raised",
-  "--aui-surface-raised-foreground",
-  "--aui-transition-background-color",
-  "--aui-transition-border-color",
-  "--aui-transition-box-shadow",
-  "--aui-transition-color",
-  "--aui-transition-opacity",
-  "--aui-transition-outline",
-  "--aui-validation-error-border",
-  "--aui-validation-success-border",
-  "--aui-validation-warning-border",
-  "--aui-z-index-base",
-  "--aui-z-index-content-offset",
-  "--aui-z-index-overlay-offset",
-  "--aui-z-index-panel",
-  "--aui-z-index-step",
-  "--aui-z-index-toast",
+  "--cui-background",
+  "--cui-border",
+  "--cui-border-muted",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-disabled-opacity",
+  "--cui-control-foreground",
+  "--cui-control-hover-background",
+  "--cui-control-placeholder",
+  "--cui-control-pressed-background",
+  "--cui-control-selected-background",
+  "--cui-control-selected-background-hover",
+  "--cui-control-selected-background-pressed",
+  "--cui-control-selected-foreground",
+  "--cui-focus-ring",
+  "--cui-focus-ring-offset",
+  "--cui-foreground",
+  "--cui-opacity-backdrop",
+  "--cui-opacity-disabled",
+  "--cui-space-unit",
+  "--cui-state-danger",
+  "--cui-state-danger-surface",
+  "--cui-state-success",
+  "--cui-state-success-surface",
+  "--cui-state-warning",
+  "--cui-state-warning-surface",
+  "--cui-surface",
+  "--cui-surface-foreground",
+  "--cui-surface-muted",
+  "--cui-surface-raised",
+  "--cui-surface-raised-foreground",
+  "--cui-transition-background-color",
+  "--cui-transition-border-color",
+  "--cui-transition-box-shadow",
+  "--cui-transition-color",
+  "--cui-transition-opacity",
+  "--cui-transition-outline",
+  "--cui-validation-error-border",
+  "--cui-validation-success-border",
+  "--cui-validation-warning-border",
+  "--cui-z-index-base",
+  "--cui-z-index-content-offset",
+  "--cui-z-index-overlay-offset",
+  "--cui-z-index-panel",
+  "--cui-z-index-step",
+  "--cui-z-index-toast",
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))
-requireVariableFamily(variables, "--aui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800"])
-requireVariableFamily(variables, "--aui-space-", [
+requireVariableFamily(variables, "--cui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800"])
+requireVariableFamily(variables, "--cui-space-", [
   "1",
   "2",
   "3",
@@ -123,8 +123,12 @@ requireVariableFamily(variables, "--aui-space-", [
   "19",
   "20",
 ])
-requireVariableFamily(variables, "--aui-radius-", ["1", "2", "3", "4", "5"])
-requireVariableFamily(variables, "--aui-shadow-", ["1", "2", "3", "4", "5"])
+requireVariableFamily(variables, "--cui-radius-", ["1", "2", "3", "4", "5"])
+requireVariableFamily(variables, "--cui-shadow-", ["1", "2", "3", "4", "5"])
+
+if (themeCSS.includes("--aui-")) {
+  fail("Expected theme.css to expose only --cui-* variables; found a legacy --aui-* token.")
+}
 
 if (!themeCSS.includes("@keyframes fade-in")) {
   fail("Expected theme.css to define fade-in keyframes.")
@@ -135,12 +139,12 @@ if (!themeCSS.includes("@keyframes fade-out")) {
 }
 
 const forbiddenVariablePatterns = [
-  /^--aui-color-/u,
-  /^--aui-(primary|secondary|tertiary|quaternary|quintenary|quinary)-/u,
-  /^--aui-gradient/u,
-  /^--aui-map/u,
-  /^--aui-navbar/u,
-  /^--aui-route/u,
+  /^--cui-color-/u,
+  /^--cui-(primary|secondary|tertiary|quaternary|quintenary|quinary)-/u,
+  /^--cui-gradient/u,
+  /^--cui-map/u,
+  /^--cui-navbar/u,
+  /^--cui-route/u,
 ]
 
 for (const name of variables.keys()) {

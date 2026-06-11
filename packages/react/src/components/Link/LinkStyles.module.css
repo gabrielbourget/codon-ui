@@ -1,9 +1,9 @@
 .link {
-  border-radius: var(--aui-radius-1);
+  border-radius: var(--cui-radius-1);
   transition: color 125ms ease-out;
   display: flex;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .link--underline {
@@ -11,7 +11,7 @@
 }
 
 .link--applyFocusStyle:focus {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 .link--offsetFocusRing {
   outline-offset: 2px;
@@ -22,7 +22,7 @@
 
 .link[data-disabled="true"] {
   pointer-events: none;
-  opacity: var(--aui-opacity-disabled);
+  opacity: var(--cui-opacity-disabled);
 }
 .link[data-disabled="true"]:hover {
   cursor: not-allowed;
@@ -49,66 +49,66 @@
 }
 
 .link--primary:link {
-  color: var(--aui-color-primary-500);
+  color: var(--cui-color-primary-500);
 }
 .link--primary:visited {
-  color: var(--aui-color-primary-400);
+  color: var(--cui-color-primary-400);
 }
 .link--primary:hover {
-  color: var(--aui-color-primary-600);
+  color: var(--cui-color-primary-600);
 }
 .link--primary:active {
-  color: var(--aui-color-primary-700);
+  color: var(--cui-color-primary-700);
 }
 
 .link--secondary:link {
-  color: var(--aui-color-secondary-500);
+  color: var(--cui-color-secondary-500);
 }
 .link--secondary:visited {
-  color: var(--aui-color-secondary-400);
+  color: var(--cui-color-secondary-400);
 }
 .link--secondary:hover {
-  color: var(--aui-color-secondary-600);
+  color: var(--cui-color-secondary-600);
 }
 .link--secondary:active {
-  color: var(--aui-color-secondary-700);
+  color: var(--cui-color-secondary-700);
 }
 
 .link--tertiary:link {
-  color: var(--aui-color-tertiary-500);
+  color: var(--cui-color-tertiary-500);
 }
 .link--tertiary:visited {
-  color: var(--aui-color-tertiary-400);
+  color: var(--cui-color-tertiary-400);
 }
 .link--tertiary:hover {
-  color: var(--aui-color-tertiary-600);
+  color: var(--cui-color-tertiary-600);
 }
 .link--tertiary:active {
-  color: var(--aui-color-tertiary-700);
+  color: var(--cui-color-tertiary-700);
 }
 
 .link--quaternary:link {
-  color: var(--aui-color-quaternary-500);
+  color: var(--cui-color-quaternary-500);
 }
 .link--quaternary:visited {
-  color: var(--aui-color-quaternary-400);
+  color: var(--cui-color-quaternary-400);
 }
 .link--quaternary:hover {
-  color: var(--aui-color-quaternary-600);
+  color: var(--cui-color-quaternary-600);
 }
 .link--quaternary:active {
-  color: var(--aui-color-quaternary-700);
+  color: var(--cui-color-quaternary-700);
 }
 
 .link--quintenary:link {
-  color: var(--aui-color-quintenary-500);
+  color: var(--cui-color-quintenary-500);
 }
 .link--quintenary:visited {
-  color: var(--aui-color-quintenary-400);
+  color: var(--cui-color-quintenary-400);
 }
 .link--quintenary:hover {
-  color: var(--aui-color-quintenary-600);
+  color: var(--cui-color-quintenary-600);
 }
 .link--quintenary:active {
-  color: var(--aui-color-quintenary-700);
+  color: var(--cui-color-quintenary-700);
 }

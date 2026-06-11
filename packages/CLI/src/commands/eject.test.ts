@@ -7,6 +7,7 @@ import path from "node:path"
 import { createEjectAdvisoryReport } from "../helpers/ejectAdvisory"
 import { createEjectDryRunReport } from "../helpers/ejectDryRun"
 import { createEjectStrictReport } from "../helpers/ejectStrict"
+import { assertCliJsonReportContract } from "../testUtils/cliJsonContracts"
 
 const createContentHash = (content: string | Buffer) =>
   `sha256:${crypto.createHash("sha256").update(content).digest("hex")}`
@@ -36,8 +37,8 @@ const readFixtureSnapshot = (fixturePath: string) =>
     "source/ejected.ts",
     "source/source-only.ts",
     "source/ejected-only.ts",
-    "consumer/amino-ui.config.json",
-    "consumer/amino-ui.lock.json",
+    "consumer/codon-ui.config.json",
+    "consumer/codon-ui.lock.json",
     "consumer/src/components/Diff/clean.ts",
     "consumer/src/components/Diff/local-modified.ts",
     "consumer/src/components/Diff/support.ts",
@@ -52,7 +53,7 @@ const readFixtureSnapshot = (fixturePath: string) =>
     .map((filePath) => `${filePath}:${createContentHash(readFileSync(path.join(fixturePath, filePath)))}`)
     .sort()
 
-const temporaryRoot = mkdtempSync(path.join(tmpdir(), "amino-ui-eject-advisory-"))
+const temporaryRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-eject-advisory-"))
 
 try {
   const consumerRoot = path.join(temporaryRoot, "consumer")
@@ -88,7 +89,11 @@ try {
   writeText(path.join(consumerRoot, "src/components/Diff/ejected-only.ts"), ejectedOnlySource)
   writeText(path.join(consumerRoot, "src/components/_registry/tokens/consumer-support.ts"), consumerSupportSource)
   writeText(path.join(consumerRoot, "src/components/_registry/utils/ejected.ts"), ejectedSource)
-  writeJson(path.join(consumerRoot, "amino-ui.config.json"), {})
+  writeJson(path.join(consumerRoot, "codon-ui.config.json"), {
+    paths: {
+      registry: "src/components/_registry",
+    },
+  })
   writeJson(registrySourcePath, {
     items: [
       {
@@ -143,7 +148,7 @@ try {
           },
         ],
         name: "switch",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -156,7 +161,7 @@ try {
           },
         ],
         name: "source-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
       {
@@ -169,16 +174,16 @@ try {
           },
         ],
         name: "ejected-only",
-        sourcePackage: "@amino-ui/react",
+        sourcePackage: "@codon-ui/react",
         type: "component",
       },
     ],
     schemaVersion: 1,
-    sourceIdentity: "@amino-ui/test-registry",
+    sourceIdentity: "@codon-ui/test-registry",
     sourceRoot: ".",
   })
-  writeJson(path.join(consumerRoot, "amino-ui.lock.json"), {
-    configFile: "amino-ui.config.json",
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), {
+    configFile: "codon-ui.config.json",
     dependencies: [
       {
         action: "none",
@@ -200,7 +205,7 @@ try {
           },
         ],
         name: "ejected-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "other-shared": {
         files: [
@@ -213,7 +218,7 @@ try {
           },
         ],
         name: "other-shared",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       "source-only": {
         files: [
@@ -226,7 +231,7 @@ try {
           },
         ],
         name: "source-only",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
       switch: {
         files: [
@@ -288,7 +293,7 @@ try {
           },
         ],
         name: "switch",
-        sourceIdentity: "@amino-ui/test-registry",
+        sourceIdentity: "@codon-ui/test-registry",
       },
     },
     lockfileVersion: 1,
@@ -301,6 +306,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report, schemaName: "ejectAdvisory" })
   assert.equal(report.schemaVersion, 1)
   assert.equal(report.advisory, true)
   assert.deepEqual(report.effects, {
@@ -378,6 +384,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: dryRunReport, schemaName: "ejectDryRun" })
   assert.equal(dryRunReport.schemaVersion, 1)
   assert.equal(dryRunReport.dryRun, true)
   assert.deepEqual(dryRunReport.effects, {
@@ -470,6 +477,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictBlockedReport, schemaName: "ejectStrict" })
   assert.equal(strictBlockedReport.applied, false)
   assert.equal(strictBlockedReport.itemEjectState, "blocked")
   assert.equal(strictBlockedReport.effects.writesFiles, false)
@@ -488,6 +496,7 @@ try {
     registrySourcePath,
   })
 
+  assertCliJsonReportContract({ report: strictSourceOnlyReport, schemaName: "ejectStrict" })
   assert.equal(strictSourceOnlyReport.applied, true)
   assert.equal(strictSourceOnlyReport.itemEjectState, "ejected")
   assert.equal(strictSourceOnlyReport.effects.writesFiles, false)
@@ -501,7 +510,7 @@ try {
   assert.equal(strictSourceOnlyReport.files[0].ejectedLockfileOwnership, true)
   assert.equal(strictSourceOnlyReport.lockfileData.items["source-only"]?.files[0].ownershipState, "ejected")
   assert.equal(
-    readJson(path.join(consumerRoot, "amino-ui.lock.json")).items["source-only"].files[0].ownershipState,
+    readJson(path.join(consumerRoot, "codon-ui.lock.json")).items["source-only"].files[0].ownershipState,
     "ejected",
   )
   assert.equal(
@@ -554,7 +563,7 @@ try {
     "expected missing item dry-run finding",
   )
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), ejectedNoOpSnapshot)
-  console.log("[aminoui-cli] eject advisory, dry-run, and strict reports verified")
+  console.log("[codon-ui] eject advisory, dry-run, and strict reports verified")
 } finally {
   rmSync(temporaryRoot, { force: true, recursive: true })
 }

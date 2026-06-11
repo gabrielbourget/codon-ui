@@ -625,19 +625,19 @@ export const useCalibratedComponent = (props: TPaginationProps): TCalibratedPagi
   if (color && order === undefined) paginationColor = color
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      paginationColor = "var(--aui-color-primary-500)"
+      paginationColor = "var(--cui-color-primary-500)"
       break
     case THEME_ORDER_CODE__SECONDARY:
-      paginationColor = "var(--aui-color-secondary-500)"
+      paginationColor = "var(--cui-color-secondary-500)"
       break
     case THEME_ORDER_CODE__TERTIARY:
-      paginationColor = "var(--aui-color-tertiary-500)"
+      paginationColor = "var(--cui-color-tertiary-500)"
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      paginationColor = "var(--aui-color-quaternary-500)"
+      paginationColor = "var(--cui-color-quaternary-500)"
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      paginationColor = "var(--aui-color-quintenary-500)"
+      paginationColor = "var(--cui-color-quintenary-500)"
       break
     default:
       break
@@ -646,10 +646,10 @@ export const useCalibratedComponent = (props: TPaginationProps): TCalibratedPagi
   if (order === undefined) paginationColor = "inherit"
 
   if (buttonColorMode === "fill") {
-    iconColor = color || order ? "var(--aui-control-selected-foreground)" : "currentColor"
+    iconColor = color || order ? "var(--cui-control-selected-foreground)" : "currentColor"
   } else iconColor = paginationColor
 
-  const computedPageButtonTextColor = "var(--aui-control-foreground)"
+  const computedPageButtonTextColor = "var(--cui-control-foreground)"
 
   return {
     paginationStyles,

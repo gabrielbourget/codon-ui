@@ -14,11 +14,11 @@ evidence. The boundary now protects the split between reusable source, consumer 
 - Consumer fixture evidence for default Vite installs and compile behavior.
 - Wavemap delete/reinstall checkpoints for recent registry items.
 - Default `registry-contained` consumer layout with `_registry` support paths.
-- Config and lockfile ownership through `amino-ui.config.json` and `amino-ui.lock.json`.
+- Config and lockfile ownership through `codon-ui.config.json` and `codon-ui.lock.json`.
 
 ## Consumer-Owned Boundaries
 
-The following stay outside Amino UI by default:
+The following stay outside Codon UI by default:
 
 - API contracts, DTOs, route/query state, saved views, translations, and providers.
 - Media upload and gallery flows.

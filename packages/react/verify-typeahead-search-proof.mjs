@@ -103,16 +103,16 @@ const expectedPublicExports = [
   "resolveTypeaheadSearchLabels",
 ]
 const expectedThemeVariables = [
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-space-1",
-  "--aui-space-2",
-  "--aui-transition-border-color",
-  "--aui-transition-box-shadow",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-space-1",
+  "--cui-space-2",
+  "--cui-transition-border-color",
+  "--cui-transition-box-shadow",
 ]
 
 assert(typeaheadSearchSource.startsWith('"use client"'), "TypeaheadSearch must preserve the client boundary")

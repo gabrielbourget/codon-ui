@@ -13,11 +13,11 @@
 }
 
 .tagGroup__emptyList__text {
-  color: var(--aui-control-placeholder);
+  color: var(--cui-control-placeholder);
 }
 
 .tagGroup__iconColor {
-  stroke: var(--aui-control-foreground);
+  stroke: var(--cui-control-foreground);
 }
 
 .tagList {

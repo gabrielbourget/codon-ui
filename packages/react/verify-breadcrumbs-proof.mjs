@@ -60,21 +60,21 @@ const expectedRegistryDependencies = [
   "text",
 ]
 const expectedDefaultVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-surface",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-surface",
 ]
 const expectedActionVariables = [
-  "--aui-color-primary-500",
-  "--aui-color-secondary-500",
-  "--aui-color-tertiary-500",
-  "--aui-color-quaternary-500",
-  "--aui-color-quintenary-500",
+  "--cui-color-primary-500",
+  "--cui-color-secondary-500",
+  "--cui-color-tertiary-500",
+  "--cui-color-quaternary-500",
+  "--cui-color-quintenary-500",
 ]
 
 const breadcrumbsSource = readRequiredText(breadcrumbsSourcePath)
@@ -178,7 +178,7 @@ assert(
 
 assert(packet.name === "breadcrumbs", "Breadcrumbs packet must describe the breadcrumbs item")
 assert(packet.type === "component", "Breadcrumbs packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "Breadcrumbs packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "Breadcrumbs packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "Breadcrumbs packet must record Wavemap as source repository")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#breadcrumbs-next-candidate-planning-checkpoint"),
@@ -280,7 +280,7 @@ assert(
 assert(
   packet.importResolutions.some(
     (resolution) =>
-      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--aui-space-1"),
+      resolution.importSource.includes("--distance_1") && resolution.replacementSource.includes("--cui-space-1"),
   ),
   "Breadcrumbs packet must record spacing alias rewrite",
 )

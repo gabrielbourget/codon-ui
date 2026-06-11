@@ -48,7 +48,7 @@ The initial strategies are:
 
 | Strategy                     | Use when                                                                                 |
 | ---------------------------- | ---------------------------------------------------------------------------------------- |
-| `default-contract`           | The component can use `@amino-ui/react/theme.css` directly.                              |
+| `default-contract`           | The component can use `@codon-ui/react/theme.css` directly.                              |
 | `proof-compatibility-bridge` | The proof needs a narrow bridge outside the package default CSS.                         |
 | `consumer-owned`             | The component assumes a consumer-owned theme integration that the CLI must validate/add. |
 
@@ -80,4 +80,4 @@ Distribution happens in the consumer CLI:
 - snapshots are read as registry sources;
 - install plans resolve paths and dependencies for the target consumer;
 - advisory and dry-run output explain the result;
-- strict add writes source only when blockers are absent and updates `amino-ui.lock.json`.
+- strict add writes source only when blockers are absent and updates `codon-ui.lock.json`.

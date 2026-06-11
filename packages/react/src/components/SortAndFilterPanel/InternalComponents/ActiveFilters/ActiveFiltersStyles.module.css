@@ -3,7 +3,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
   flex: 1;
   overflow-y: scroll;
 }
@@ -12,7 +12,7 @@
   height: auto;
   width: 100%;
   display: flex;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   flex-wrap: wrap;
 }
 
@@ -22,7 +22,7 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   overflow-y: scroll;
 }
 
@@ -31,11 +31,11 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-2);
-  padding: var(--aui-space-1);
-  background: var(--aui-background);
-  border: 1px solid var(--aui-border-muted);
-  border-radius: var(--aui-radius-1);
+  gap: var(--cui-space-2);
+  padding: var(--cui-space-1);
+  background: var(--cui-background);
+  border: 1px solid var(--cui-border-muted);
+  border-radius: var(--cui-radius-1);
 }
 
 .activeFilters__filterGroupHeader {
@@ -43,7 +43,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-2);
+  gap: var(--cui-space-2);
   align-items: stretch;
 }
 
@@ -53,26 +53,26 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .activeFilters__filterGroupTitle {
   min-width: 0;
   display: flex;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   flex-wrap: wrap;
 }
 
 .activeFilters__filterGroupCriteriaTag {
   height: 22px;
   max-width: 100%;
-  padding: 0 var(--aui-space-1);
+  padding: 0 var(--cui-space-1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--aui-color-primary-500);
-  color: var(--aui-control-selected-foreground);
+  background: var(--cui-color-primary-500);
+  color: var(--cui-control-selected-foreground);
   border-radius: 10000px;
 }
 
@@ -85,7 +85,7 @@
   width: 100%;
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .activeFilters__joinOperatorSwitcher {

@@ -22,7 +22,7 @@ const transformers: TTransform[] = [transformImports, transformRSC]
 const project = new Project({ compilerOptions: {} })
 
 const createTempSourceFile = async (fileName: string) => {
-  const directory = await fs.mkdtemp(path.join(tmpdir(), "amino-ui-"))
+  const directory = await fs.mkdtemp(path.join(tmpdir(), "codon-ui-"))
   return path.join(directory, fileName)
 }
 

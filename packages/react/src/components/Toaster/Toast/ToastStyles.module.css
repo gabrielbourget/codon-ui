@@ -3,18 +3,18 @@
   width: var(--width);
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
   overflow: hidden;
   position: absolute;
-  color: var(--aui-surface-foreground);
-  background: var(--aui-surface);
-  border-radius: var(--aui-radius-1);
-  box-shadow: var(--aui-shadow-1);
+  color: var(--cui-surface-foreground);
+  background: var(--cui-surface);
+  border-radius: var(--cui-radius-1);
+  box-shadow: var(--cui-shadow-1);
   outline: none;
   overflow-wrap: anywhere;
   --y: translateY(0);
   --lift-amount: calc(var(--lift) * var(--toastGap));
-  z-index: calc(var(--aui-z-index-toast) + var(--z-index));
+  z-index: calc(var(--cui-z-index-toast) + var(--z-index));
   opacity: 1;
   transform: var(--y);
   touch-action: none; /* - Rationale -> https://stackoverflow.com/questions/48124372/pointermove-event-not-working-with-touch-why-not */
@@ -27,7 +27,7 @@
 }
 
 .toast__icon--white {
-  fill: var(--aui-control-selected-foreground);
+  fill: var(--cui-control-selected-foreground);
 }
 
 @media (prefers-reduced-motion) {
@@ -43,10 +43,10 @@
 }
 
 .toast--raised {
-  box-shadow: var(--aui-shadow-1);
+  box-shadow: var(--cui-shadow-1);
 }
 .toast--rounded {
-  border-radius: var(--aui-radius-2);
+  border-radius: var(--cui-radius-2);
 }
 
 .toast[data-y-position="top"] {
@@ -171,40 +171,40 @@
   width: 100%;
   display: flex;
   align-items: center;
-  padding-left: var(--aui-space-2);
-  padding-right: var(--aui-space-1);
+  padding-left: var(--cui-space-2);
+  padding-right: var(--cui-space-1);
 }
 
 .toast__topRibbon--info {
-  background-color: var(--aui-control-selected-background);
+  background-color: var(--cui-control-selected-background);
 }
 .toast__topRibbon--warning {
-  background-color: var(--aui-status-warning);
+  background-color: var(--cui-status-warning);
 }
 .toast__topRibbon--errorOrDanger {
-  background-color: var(--aui-status-danger);
+  background-color: var(--cui-status-danger);
 }
 .toast__topRibbon--success {
-  background-color: var(--aui-status-success);
+  background-color: var(--cui-status-success);
 }
 
 .toast__topRibbon__leftContent {
   display: flex;
   flex: 1;
   align-items: center;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 .toast__bodyContent {
   display: flex;
   flex-direction: column;
-  gap: var(--aui-space-2);
-  padding: var(--aui-space-2);
+  gap: var(--cui-space-2);
+  padding: var(--cui-space-2);
   border-radius: 0.5px;
 }
 
 .toast__content:focus {
-  outline: 1.5px solid var(--aui-focus-ring);
+  outline: 1.5px solid var(--cui-focus-ring);
 }
 
 .toast__bottomRow {
@@ -219,7 +219,7 @@
   flex: 1;
   align-items: center;
   justify-content: flex-end;
-  gap: var(--aui-space-1);
+  gap: var(--cui-space-1);
 }
 
 @keyframes swipe-out {

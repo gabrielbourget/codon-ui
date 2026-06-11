@@ -13,7 +13,7 @@ import {
   addDryRunSchema,
   addAdvisorySchema,
   addStrictSchema,
-  AMINO_UI_CONFIG_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
   CONSUMER_DEPENDENCY_POLICIES,
   createAddAdvisoryEffects,
   createAddDryRunEffects,
@@ -54,6 +54,7 @@ import {
   DEPENDENCY_INSTALL_POLICY_SOURCE__CONFIG,
   DEPENDENCY_INSTALL_POLICY_SOURCE__DEFAULT,
   DEPENDENCY_INSTALL_PACKAGE_MANAGERS,
+  executeDependencyInstallCommands,
   resolveDependencyInstallTarget,
 } from "@/src/helpers/packageManagerHelpers"
 import {
@@ -75,7 +76,7 @@ import type {
 } from "@/src/helpers/registry/schema"
 
 import type { TConfig } from "../helpers/config/schema"
-import { AMINO_HELPER_FILE_MARKER_REGEX, DEFAULT_COMPONENT_CONFIG_FILE } from "../helpers/constants/cli"
+import { DEFAULT_COMPONENT_CONFIG_FILE, HELPER_FILE_MARKER_REGEX } from "../helpers/constants/cli"
 import { transform } from "../helpers/transformers"
 
 const addOptionsSchema = z
@@ -124,7 +125,7 @@ type TConsumerConfigPlan = {
 }
 
 const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfigPlan> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
@@ -134,9 +135,9 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} is missing. Dry-run is using the default registry-contained config; strict add will require init/config handling before writes.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -157,9 +158,9 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Dry-run is using the default registry-contained config. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
     }
@@ -169,119 +170,6 @@ const readConsumerConfigForDryRun = async (cwd: string): Promise<TConsumerConfig
 const hasOnlyDependencyStrictAddBlockers = (findings: readonly TInstallPlanFinding[]) =>
   findings.length > 0 &&
   findings.every((finding) => finding.code === INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_BLOCKER)
-
-const packageManagerMutationBoundaryFileNames = [
-  "package.json",
-  "package-lock.json",
-  "npm-shrinkwrap.json",
-  "pnpm-lock.yaml",
-  "pnpm-workspace.yaml",
-  "yarn.lock",
-  "bun.lock",
-  "bun.lockb",
-] as const
-
-const dependencyCommandOutputMaxLength = 4000
-
-const readPackageManagerBoundaryFile = async (filePath: string) => {
-  try {
-    return await fs.readFile(filePath, "utf8")
-  } catch (error) {
-    if (error && typeof error === "object" && "code" in error && error.code === "ENOENT") return undefined
-
-    throw error
-  }
-}
-
-const formatPackageManagerBoundaryPath = ({ consumerRoot, filePath }: { consumerRoot: string; filePath: string }) => {
-  const relativePath = path.relative(consumerRoot, filePath).replace(/\\/gu, "/")
-
-  if (!relativePath) return "."
-  if (relativePath.startsWith("../") || path.isAbsolute(relativePath)) return filePath
-
-  return relativePath
-}
-
-const resolvePackageManagerBoundaryDirectories = ({
-  consumerRoot,
-  targetManifestPath,
-  workingDirectory,
-}: {
-  consumerRoot: string
-  targetManifestPath?: string
-  workingDirectory: string
-}) => {
-  const directories = [workingDirectory]
-
-  if (targetManifestPath) {
-    directories.push(path.resolve(consumerRoot, path.dirname(targetManifestPath)))
-  }
-
-  return [...new Set(directories.map((directory) => path.resolve(directory)))]
-}
-
-const snapshotPackageManagerMutationBoundary = async ({
-  consumerRoot,
-  targetManifestPath,
-  workingDirectory,
-}: {
-  consumerRoot: string
-  targetManifestPath?: string
-  workingDirectory: string
-}) =>
-  new Map(
-    await Promise.all(
-      resolvePackageManagerBoundaryDirectories({
-        consumerRoot,
-        targetManifestPath,
-        workingDirectory,
-      }).flatMap((boundaryDirectory) =>
-        packageManagerMutationBoundaryFileNames.map(async (fileName) => {
-          const filePath = path.join(boundaryDirectory, fileName)
-
-          return [
-            formatPackageManagerBoundaryPath({
-              consumerRoot,
-              filePath,
-            }),
-            await readPackageManagerBoundaryFile(filePath),
-          ] as const
-        }),
-      ),
-    ),
-  )
-
-const getMutatedPackageManagerBoundaryPaths = ({
-  afterSnapshot,
-  beforeSnapshot,
-}: {
-  afterSnapshot: ReadonlyMap<string, string | undefined>
-  beforeSnapshot: ReadonlyMap<string, string | undefined>
-}) =>
-  [...new Set([...beforeSnapshot.keys(), ...afterSnapshot.keys()])]
-    .filter((filePath) => beforeSnapshot.get(filePath) !== afterSnapshot.get(filePath))
-    .sort()
-
-const limitDependencyCommandOutput = (value: unknown) => {
-  if (typeof value !== "string") return undefined
-  if (value.length <= dependencyCommandOutputMaxLength) return value
-
-  return value.slice(0, dependencyCommandOutputMaxLength)
-}
-
-type TDependencyExecutionCommand = ReturnType<typeof createDependencyInstallPlan>["recommendedCommands"][number]
-
-const getDependencyExecutionCommand = (command: TDependencyExecutionCommand): TDependencyExecutionCommand => {
-  if (!command.workspaceCommand) return command
-
-  return {
-    ...command,
-    args: command.workspaceCommand.args,
-    command: command.workspaceCommand.command,
-    packageManager: command.workspaceCommand.packageManager,
-    workingDirectory: command.workspaceCommand.workingDirectory,
-  }
-}
 
 const resolveTargetFilePath = (filePath: string, config: TConfig) => {
   if (config.tsx) return filePath
@@ -326,7 +214,7 @@ const processComponentFilesFromRegistry = async (
 
 export const add = new Command()
   .name("add")
-  .description("Add one or more components to your project.")
+  .description("Add registry component source to your project.")
   .argument("[components...]", "The components you'd like to add.")
   .option("-y, --yes", "Skip the confirmation prompt.", true)
   .option("-o, --overwrite", "Overwrite existing files.", false)
@@ -336,11 +224,11 @@ export const add = new Command()
   .option("--dry-run", "Preview the proposed add operation without writing files or installing dependencies.", false)
   .option(
     "--dependency-policy <policy>",
-    "Override dependency install policy for planning. Supported values: report-only, manual, prompt, install.",
+    "Override dependency install policy for planning and approved strict installs. Supported values: report-only, manual, prompt, install.",
   )
   .option(
     "--install-dependencies",
-    "Explicitly request dependency installation eligibility planning without running package-manager commands.",
+    "Explicitly allow strict add to install missing dependencies when policy also permits it.",
     false,
   )
   .option("--json", "Print machine-readable output.", false)
@@ -349,7 +237,7 @@ export const add = new Command()
   .option("--registry-source <path>", "Path to a local registry source JSON file for planning.")
   .option(
     "-p, --path <path>",
-    "A path to the directory where your chosen components should be added. Defaults to 'components'.",
+    "Legacy remote-registry target directory override. Local registry installs resolve through codon-ui.config.json paths.",
     "components",
   )
   .action(async (components, CLIOptions) => {
@@ -584,56 +472,13 @@ export const add = new Command()
           dependencyInstallPlan.executionPlan.mode === DEPENDENCY_INSTALL_EXECUTION_MODE__ELIGIBLE
         ) {
           const plannedDependencyCommands = dependencyInstallPlan.recommendedCommands
+          const dependencyExecutionResult = await executeDependencyInstallCommands({
+            commands: plannedDependencyCommands,
+            consumerRoot: cwd,
+          })
 
-          for (const command of plannedDependencyCommands) {
-            const executionCommand = getDependencyExecutionCommand(command)
-            const workingDirectory = path.resolve(cwd, executionCommand.workingDirectory ?? ".")
-            const beforePackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
-              consumerRoot: cwd,
-              targetManifestPath: executionCommand.targetManifestPath,
-              workingDirectory,
-            })
-
-            try {
-              await execa(executionCommand.packageManager, executionCommand.args, {
-                cwd: workingDirectory,
-              })
-              executedDependencyCommands.push(executionCommand)
-            } catch (error) {
-              const afterPackageManagerBoundary = await snapshotPackageManagerMutationBoundary({
-                consumerRoot: cwd,
-                targetManifestPath: executionCommand.targetManifestPath,
-                workingDirectory,
-              })
-              const mutatedPaths = getMutatedPackageManagerBoundaryPaths({
-                afterSnapshot: afterPackageManagerBoundary,
-                beforeSnapshot: beforePackageManagerBoundary,
-              })
-              const errorRecord = error && typeof error === "object" ? error : {}
-              const message = error instanceof Error ? error.message : "Package-manager dependency install failed."
-
-              failedDependencyCommands = [
-                {
-                  args: executionCommand.args,
-                  command: executionCommand.command,
-                  exitCode:
-                    "exitCode" in errorRecord && typeof errorRecord.exitCode === "number"
-                      ? errorRecord.exitCode
-                      : undefined,
-                  message,
-                  mutatedPaths,
-                  packageManager: executionCommand.packageManager,
-                  packageManagerWrites: mutatedPaths.length > 0,
-                  signal:
-                    "signal" in errorRecord && typeof errorRecord.signal === "string" ? errorRecord.signal : undefined,
-                  stderr: "stderr" in errorRecord ? limitDependencyCommandOutput(errorRecord.stderr) : undefined,
-                  stdout: "stdout" in errorRecord ? limitDependencyCommandOutput(errorRecord.stdout) : undefined,
-                  workingDirectory: executionCommand.workingDirectory,
-                },
-              ]
-              break
-            }
-          }
+          executedDependencyCommands.push(...dependencyExecutionResult.executedCommands)
+          failedDependencyCommands = dependencyExecutionResult.failedCommands
 
           dependencyPolicy = createDependencyInstallPolicyPlan({
             configPolicy: configPlan.config.dependencies.policy,
@@ -657,7 +502,7 @@ export const add = new Command()
             const failedCommand = failedDependencyCommands[0]
             const failureFinding: TInstallPlanFinding = {
               code: INSTALL_PLAN_FINDING__STRICT_ADD_DEPENDENCY_EXECUTION_FAILED,
-              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Amino source files or lockfile records were written.`,
+              message: `Package-manager dependency install failed while running "${failedCommand.command}". No Codon source files or lockfile records were written.`,
               severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
             }
 
@@ -880,7 +725,7 @@ export const add = new Command()
             if (fileExists) {
               const fileContents = await fs.readFile(helperFilePath, "utf-8")
 
-              if (!AMINO_HELPER_FILE_MARKER_REGEX.test(fileContents)) {
+              if (!HELPER_FILE_MARKER_REGEX.test(fileContents)) {
                 await fs.appendFile(helperFilePath, `\n ${helper.file.content}`)
               }
             } else {

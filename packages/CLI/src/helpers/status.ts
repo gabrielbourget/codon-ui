@@ -5,8 +5,8 @@ import path from "path"
 import { z } from "zod"
 
 import {
-  AMINO_UI_CONFIG_FILE_NAME,
-  AMINO_UI_LOCK_FILE_NAME,
+  CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_LOCK_FILE_NAME,
   CONSUMER_OWNERSHIP_STATE__CONSUMER_OWNED_SUPPORT,
   CONSUMER_OWNERSHIP_STATE__EJECTED,
   CONSUMER_OWNERSHIP_STATE__LOCALLY_MODIFIED,
@@ -152,7 +152,7 @@ const statusItemSchema = z
 type TStatusFile = z.infer<typeof statusFileSchema>
 type TStatusItem = z.infer<typeof statusItemSchema>
 
-const statusReportSchema = z
+export const statusReportSchema = z
   .object({
     config: z
       .object({
@@ -246,7 +246,7 @@ const readStatusRegistrySource = async (registrySourcePath: string): Promise<TSt
 const readConsumerConfigForStatus = async (
   cwd: string,
 ): Promise<{ config: TConsumerConfig; findings: TStatusFinding[]; status: TCliProjectResourceStatus }> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
   const fallbackConfig = consumerConfigSchema.parse({})
 
   if (!existsSync(configPath)) {
@@ -255,9 +255,9 @@ const readConsumerConfigForStatus = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_MISSING,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} is missing. Status is using default registry-contained paths where needed.`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} is missing. Status is using default registry-contained paths where needed.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
       status: CLI_PROJECT_RESOURCE_STATUS__MISSING,
@@ -278,9 +278,9 @@ const readConsumerConfigForStatus = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_CONFIG_INVALID,
-          message: `${AMINO_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Status is using default registry-contained paths where needed. ${message}`,
+          message: `${CODON_UI_CONFIG_FILE_NAME} could not be read as a consumer config. Status is using default registry-contained paths where needed. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_CONFIG_FILE_NAME,
+          targetPath: CODON_UI_CONFIG_FILE_NAME,
         },
       ],
       status: CLI_PROJECT_RESOURCE_STATUS__INVALID,
@@ -295,7 +295,7 @@ const readConsumerLockfileForStatus = async (
   lockfileData: TConsumerLockfile
   status: TCliProjectResourceStatus
 }> => {
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
   const fallbackLockfile = consumerLockfileSchema.parse({})
 
   if (!existsSync(lockfilePath)) {
@@ -303,9 +303,9 @@ const readConsumerLockfileForStatus = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_LOCKFILE_MISSING,
-          message: `${AMINO_UI_LOCK_FILE_NAME} is missing. No installed registry-owned files can be inspected.`,
+          message: `${CODON_UI_LOCK_FILE_NAME} is missing. No installed registry-owned files can be inspected.`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         },
       ],
       lockfileData: fallbackLockfile,
@@ -326,9 +326,9 @@ const readConsumerLockfileForStatus = async (
       findings: [
         {
           code: INSTALL_PLAN_FINDING__CONSUMER_LOCKFILE_INVALID,
-          message: `${AMINO_UI_LOCK_FILE_NAME} could not be read as an Amino lockfile. ${message}`,
+          message: `${CODON_UI_LOCK_FILE_NAME} could not be read as a Codon lockfile. ${message}`,
           severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-          targetPath: AMINO_UI_LOCK_FILE_NAME,
+          targetPath: CODON_UI_LOCK_FILE_NAME,
         },
       ],
       lockfileData: fallbackLockfile,
@@ -471,8 +471,8 @@ export const createStatusReport = async ({
   itemName,
   registrySourcePath,
 }: TCreateStatusReportOptions): Promise<TStatusReport> => {
-  const configPath = path.join(cwd, AMINO_UI_CONFIG_FILE_NAME)
-  const lockfilePath = path.join(cwd, AMINO_UI_LOCK_FILE_NAME)
+  const configPath = path.join(cwd, CODON_UI_CONFIG_FILE_NAME)
+  const lockfilePath = path.join(cwd, CODON_UI_LOCK_FILE_NAME)
   const configPlan = await readConsumerConfigForStatus(cwd)
   const lockfilePlan = await readConsumerLockfileForStatus(cwd)
   const allLockfileItemNames = Object.keys(lockfilePlan.lockfileData.items)
@@ -518,7 +518,7 @@ export const createStatusReport = async ({
       findings.push({
         code: STATUS_FINDING__LOCKFILE_ITEM_MISSING,
         itemName: requestedItemName,
-        message: `Registry item "${requestedItemName}" is not recorded in ${AMINO_UI_LOCK_FILE_NAME}.`,
+        message: `Registry item "${requestedItemName}" is not recorded in ${CODON_UI_LOCK_FILE_NAME}.`,
         severity: INSTALL_PLAN_FINDING_SEVERITY__WARNING,
       })
       continue

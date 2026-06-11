@@ -71,7 +71,7 @@ assert(
   circleLoaderStylesSource.includes("var(--spinner-color)"),
   "CircleLoader CSS must consume local spinner color custom property",
 )
-assert(!circleLoaderStylesSource.includes("--aui-"), "CircleLoader CSS must not require global theme variables")
+assert(!circleLoaderStylesSource.includes("--cui-"), "CircleLoader CSS must not require global theme variables")
 assert(
   circleLoaderIndexSource.includes('export { default as CircleLoader } from "./CircleLoader"'),
   "CircleLoader index must export the component",
@@ -89,7 +89,7 @@ assert(!publicIndexSource.includes("formatDimension"), "Package root must not ex
 
 assert(packet.name === "circle-loader", "CircleLoader packet must describe the circle-loader item")
 assert(packet.type === "component", "CircleLoader packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "CircleLoader packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "CircleLoader packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "CircleLoader packet must record Wavemap source")
 assert(
   packet.sourceRef.includes("COMPONENT_LIBRARY_EXTRACTION.md#loader-components-next-candidate-planning-checkpoint"),

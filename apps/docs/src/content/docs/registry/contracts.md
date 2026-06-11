@@ -31,7 +31,7 @@ Each registry item declares:
 | ---------------------- | --------------------------------------------------------------------------------------- |
 | `name`                 | Stable registry item id.                                                                |
 | `type`                 | `component`, `support`, `style`, `theme`, `asset`, or `test`.                           |
-| `sourcePackage`        | Owning package, currently `@amino-ui/react`.                                            |
+| `sourcePackage`        | Owning package, currently `@codon-ui/react`.                                            |
 | `files`                | Explicit source file entries.                                                           |
 | `registryDependencies` | Other registry items that install before this item.                                     |
 | `peerDependencies`     | Consumer-owned peer packages.                                                           |
@@ -47,9 +47,19 @@ Each file entry declares:
 | `targetPath` | Path relative to the consumer's chosen root for that target role.                       |
 | `role`       | File role, such as `source`, `style`, `test`, `theme`, `support`, or `asset`.           |
 
-The role-based target shape lets a later CLI support more than one consumer layout. A default layout can place support
-files in a contained registry directory, while a more integrated layout can map tokens, utilities, types, and components
-into existing project conventions.
+The manifest does not hard-code the consumer's concrete registry directory. It declares semantic roles and per-role
+relative paths; the CLI combines those entries with the consumer config to produce resolved target paths.
+
+`paths.registry` is the default contained-root knob. The current Codon UI default contained root is
+`src/components/_codon-ui-registry`.
+
+`paths.roles` is the advanced override map. It can route resource classes to different repo-relative locations, such as
+tokens under `src/design-system/tokens` or theme CSS under `src/styles/codon-ui`, while component source continues to use
+`paths.components`.
+
+Resolved target paths become install-plan and lockfile data. After a strict write, the consumer lockfile records each
+file's concrete path, target role, source hash, installed hash, and ownership state. Lifecycle commands should use those
+records as the authority instead of assuming `_registry`, `_codon-ui-registry`, or any other directory name.
 
 ## Activation Flow
 
@@ -100,12 +110,22 @@ order and reports issues for:
 
 The planner does not generate artifacts, mutate consumer projects, install packages, or define update behavior.
 
-`pnpm -F @amino-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
+`pnpm -F @codon-ui/react check:registry-graph` smoke-tests the active manifest by resolving the graph and reading each
 tracked source file that would feed a future generated artifact.
 
-`pnpm -F @amino-ui/react check:local-registry-snapshot` verifies that the support/theme subset and full local React
+`pnpm -F @codon-ui/react check:local-registry-snapshot` verifies that the support/theme subset and full local React
 snapshot still match the active React manifest. The JSON snapshots are tracked for local CLI planning only; public
 registry hosting remains a later artifact pass.
+
+For the first private npm proof, the CLI package turns those local snapshots into a package-local artifact at pack time.
+`@codon-ui/cli` `prepack` writes generated copies to `dist/registry`, rewrites their `sourceRoot` to
+`../registry-source`, and copies every referenced React source file to `dist/registry-source`. The source identity stays
+`@codon-ui/react-local` or `@codon-ui/react-local-support`, so consumer lockfiles preserve the same provenance semantics
+whether the CLI runs from a monorepo checkout or an npm cache.
+
+The mature split-package model remains separate: publish `@codon-ui/react` as the registry/source artifact and teach the
+CLI to resolve source assets from that installed package. That model needs its own package `files`, versioning, and
+resolver contract before it replaces the CLI-bundled proof shape.
 
 ## Artifact Policy
 

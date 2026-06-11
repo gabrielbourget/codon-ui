@@ -1,7 +1,7 @@
 {
   "name": "linear-progress",
   "type": "component",
-  "sourcePackage": "@amino-ui/react",
+  "sourcePackage": "@codon-ui/react",
   "sourceRepository": "wavemap",
   "sourceRef": "apps/wavemap-docs/working-notes/COMPONENT_LIBRARY_EXTRACTION.md#linearprogress-next-candidate-planning-checkpoint-2026-06-03",
   "files": [
@@ -62,12 +62,12 @@
     {
       "sourcePath": "packages/react/src/components/LinearProgress/LinearProgressStyles.module.css",
       "importSource": "--shadow_1 / --border_radius_1 aliases",
-      "replacementSource": "--aui-shadow-1 / --aui-radius-1",
+      "replacementSource": "--cui-shadow-1 / --cui-radius-1",
       "notes": ["LinearProgress CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/LinearProgress/LinearProgressStyles.module.css",
-      "importSource": "--aui-color-*-500 action palette variables",
+      "importSource": "--cui-color-*-500 action palette variables",
       "registryDependencyName": "theme/action-colors",
       "replacementSource": "theme/action-colors.css",
       "notes": ["Order-based bar colors use the existing action color theme support item."]
@@ -109,7 +109,7 @@
   "themeRequirements": [
     {
       "strategy": "default-contract",
-      "cssVariables": ["--aui-control-border", "--aui-control-selected-background", "--aui-radius-1", "--aui-shadow-1"],
+      "cssVariables": ["--cui-control-border", "--cui-control-selected-background", "--cui-radius-1", "--cui-shadow-1"],
       "notes": [
         "LinearProgress source reads the default theme contract directly and does not need a component-specific compatibility bridge."
       ]
@@ -125,11 +125,11 @@
         }
       ],
       "cssVariables": [
-        "--aui-color-primary-500",
-        "--aui-color-secondary-500",
-        "--aui-color-tertiary-500",
-        "--aui-color-quaternary-500",
-        "--aui-color-quintenary-500"
+        "--cui-color-primary-500",
+        "--cui-color-secondary-500",
+        "--cui-color-tertiary-500",
+        "--cui-color-quaternary-500",
+        "--cui-color-quintenary-500"
       ],
       "notes": ["Order-based bar colors depend on the existing action color theme support item."]
     }
@@ -144,14 +144,14 @@
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react test",
+      "command": "pnpm -F @codon-ui/react test",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Runs the package-side static LinearProgress proof harness without adding DOM test dependencies."]
     },
     {
       "kind": "command",
-      "command": "pnpm -F @amino-ui/react typecheck",
+      "command": "pnpm -F @codon-ui/react typecheck",
       "workingDirectory": ".",
       "advisory": true,
       "notes": ["Checks the received package source and public export type surface."]

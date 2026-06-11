@@ -227,6 +227,6 @@ export const createRemoveCommand = ({
 export const remove = createRemoveCommand({
   argumentDescription: "The installed registry item you'd like to inspect or remove.",
   commandName: "remove",
-  description: "Remove one installed Amino UI registry item when strict provenance checks pass.",
+  description: "Remove one installed Codon UI registry item when strict provenance checks pass.",
   jsonDescription: "Print machine-readable remove output.",
 })

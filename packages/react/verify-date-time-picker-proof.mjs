@@ -38,7 +38,7 @@ const readRequiredText = (filePath) => {
 const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|motion\/react|@internationalized\/date/u
 const forbiddenLegacyCssPattern =
-  /--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--bgColorTransition|--boxShadowTransition|--colorTransition|--focus-ring-color|--shadow_1|--fade|--Z_INDEX_MODAL|--aui-validation-|body\[data-theme/u
+  /--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--bgColorTransition|--boxShadowTransition|--colorTransition|--focus-ring-color|--shadow_1|--fade|--Z_INDEX_MODAL|--cui-validation-|body\[data-theme/u
 
 const dateTimePickerSource = readRequiredText(dateTimePickerSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
@@ -89,35 +89,35 @@ const expectedPublicExports = [
   "resolveDateTimePickerLabels",
 ]
 const expectedDefaultThemeVariables = [
-  "--aui-animation-fade-in",
-  "--aui-animation-fade-out",
-  "--aui-control-background",
-  "--aui-control-border",
-  "--aui-control-foreground",
-  "--aui-control-hover-background",
-  "--aui-control-placeholder",
-  "--aui-control-pressed-background",
-  "--aui-control-selected-background",
-  "--aui-focus-ring",
-  "--aui-opacity-disabled",
-  "--aui-radius-1",
-  "--aui-shadow-1",
-  "--aui-space-1",
-  "--aui-state-danger",
-  "--aui-state-success",
-  "--aui-state-warning",
-  "--aui-surface",
-  "--aui-transition-background-color",
-  "--aui-transition-border-color",
-  "--aui-transition-box-shadow",
-  "--aui-transition-color",
-  "--aui-z-index-modal",
+  "--cui-animation-fade-in",
+  "--cui-animation-fade-out",
+  "--cui-control-background",
+  "--cui-control-border",
+  "--cui-control-foreground",
+  "--cui-control-hover-background",
+  "--cui-control-placeholder",
+  "--cui-control-pressed-background",
+  "--cui-control-selected-background",
+  "--cui-focus-ring",
+  "--cui-opacity-disabled",
+  "--cui-radius-1",
+  "--cui-shadow-1",
+  "--cui-space-1",
+  "--cui-state-danger",
+  "--cui-state-success",
+  "--cui-state-warning",
+  "--cui-surface",
+  "--cui-transition-background-color",
+  "--cui-transition-border-color",
+  "--cui-transition-box-shadow",
+  "--cui-transition-color",
+  "--cui-z-index-modal",
 ]
 const expectedActionVariables = [
-  "--aui-color-primary-100",
-  "--aui-color-primary-200",
-  "--aui-color-primary-400",
-  "--aui-color-primary-500",
+  "--cui-color-primary-100",
+  "--cui-color-primary-200",
+  "--cui-color-primary-400",
+  "--cui-color-primary-500",
 ]
 const requiredDateTimePickerSelectors = [
   ".dateTimePicker",
@@ -308,7 +308,7 @@ assert(packageJson.dependencies.classnames === "^2.3.2", "DateTimePicker package
 
 assert(packet.name === "date-time-picker", "DateTimePicker packet must describe the date-time-picker item")
 assert(packet.type === "component", "DateTimePicker packet must remain a component packet")
-assert(packet.sourcePackage === "@amino-ui/react", "DateTimePicker packet must target @amino-ui/react ownership")
+assert(packet.sourcePackage === "@codon-ui/react", "DateTimePicker packet must target @codon-ui/react ownership")
 assert(packet.sourceRepository === "wavemap", "DateTimePicker packet must record Wavemap as source repository")
 assert(
   packet.sourceRef === "docs/roadmaps/date-time-picker-receipt-plan.md",
@@ -353,7 +353,7 @@ assert(
 assert(
   packet.themeRequirements.some((requirement) =>
     expectedDefaultThemeVariables
-      .filter((cssVariable) => cssVariable !== "--aui-z-index-modal")
+      .filter((cssVariable) => cssVariable !== "--cui-z-index-modal")
       .every((cssVariable) => requirement.cssVariables.includes(cssVariable)),
   ),
   "DateTimePicker packet must record default theme pressure",
