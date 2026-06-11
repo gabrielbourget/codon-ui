@@ -35,6 +35,8 @@
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm check:contracts && pnpm typecheck",
     "stylelint": "stylelint \"*.css\" \"src/**/*.css\"",
     "test": "node verify-switch-proof.mjs && node verify-checkbox-proof.mjs && node verify-checkbox-group-proof.mjs && node verify-click-popover-proof.mjs && node verify-line-segment-proof.mjs && node verify-indicator-proof.mjs && node verify-link-proof.mjs && node verify-breadcrumbs-proof.mjs && node verify-pagination-proof.mjs && node verify-input-proof.mjs && node verify-text-area-proof.mjs && node verify-number-input-proof.mjs && node verify-stepper-proof.mjs && node verify-time-picker-proof.mjs && node verify-toggle-button-proof.mjs && node verify-toggle-switcher-proof.mjs && node verify-radio-proof.mjs && node verify-radio-group-proof.mjs && node verify-text-proof.mjs && node verify-placeholder-text-proof.mjs && node verify-list-box-item-proof.mjs && node verify-select-proof.mjs && node verify-combo-box-proof.mjs && node verify-tag-combo-box-proof.mjs && node verify-slider-proof.mjs && node verify-tag-proof.mjs && node verify-tag-group-proof.mjs && node verify-circular-progress-proof.mjs && node verify-counter-proof.mjs && node verify-form-field-proof.mjs && node verify-avatar-proof.mjs && node verify-button-proof.mjs && node verify-card-proof.mjs && node verify-carousel-proof.mjs && node verify-linear-progress-proof.mjs && node verify-meter-proof.mjs && node verify-tooltip-proof.mjs && node verify-hover-popover-proof.mjs && node verify-menu-proof.mjs && node verify-panel-proof.mjs && node verify-modal-proof.mjs && node verify-alert-dialog-proof.mjs && node verify-date-time-picker-proof.mjs && node verify-date-time-range-picker-proof.mjs && node verify-table-proof.mjs && node verify-toaster-proof.mjs && node verify-typeahead-search-proof.mjs && node verify-compact-typeahead-search-proof.mjs && node verify-sort-and-filter-panel-proof.mjs && node verify-thumbnail-image-proof.mjs && node verify-circle-loader-proof.mjs && node verify-lagging-lines-loader-proof.mjs",
+    "test:unit": "vitest run --config vitest.config.ts",
+    "test:unit:watch": "vitest --config vitest.config.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -55,11 +57,20 @@
   "devDependencies": {
     "@codon-ui/shared-utils": "workspace:*",
     "@radix-ui/react-avatar": "^1.1.11",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.2",
+    "@testing-library/user-event": "^14.6.1",
+    "@types/react": "^18.3.29",
+    "@types/react-dom": "^18.3.7",
     "eslint": "^9.0.0",
+    "jsdom": "^24.1.3",
     "prettier": "^3.8.1",
+    "react": "^18.3.1",
     "react-aria": "^3.48.0",
     "react-aria-components": "^1.17.0",
+    "react-dom": "^18.3.1",
     "stylelint": "^16.3.1",
-    "typescript": "^5.4.3"
+    "typescript": "^5.4.3",
+    "vitest": "^4.1.8"
   }
 }
