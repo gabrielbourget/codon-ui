@@ -16,6 +16,7 @@ const initOptionsSchema = z.object({
   dryRun: z.boolean().default(false),
   json: z.boolean().default(false),
   registryRoot: z.string().optional(),
+  setupCli: z.boolean().default(false),
 })
 
 const parseInitOptions = (CLIOptions: unknown) => {
@@ -28,6 +29,7 @@ const parseInitOptions = (CLIOptions: unknown) => {
     dryRun: options.dryRun,
     json: options.json,
     registryRoot: options.registryRoot,
+    setupCli: options.setupCli,
   }
 }
 
@@ -38,6 +40,7 @@ export const init = new Command()
   .option("-y, --yes", "Accepted for compatibility; init is non-interactive.", true)
   .option("-d, --defaults", "Alias for the default strict config and lockfile seed path.", false)
   .option("--registry-root <path>", "Consumer-relative contained registry root for generated config.")
+  .option("--setup-cli", "Add a local package.json cui script and @codon-ui/cli devDependency.", false)
   .option("--advisory", "Report the proposed consumer setup without writing files or installing dependencies.", false)
   .option("--dry-run", "Preview the default consumer config and lockfile seed without writing files.", false)
   .option("--json", "Print machine-readable output.", false)
@@ -58,7 +61,10 @@ export const init = new Command()
         process.exit(1)
       }
 
-      const initOptions = options.registryRoot ? { registryRoot: options.registryRoot } : {}
+      const initOptions = {
+        ...(options.registryRoot ? { registryRoot: options.registryRoot } : {}),
+        ...(options.setupCli ? { setupCli: true } : {}),
+      }
 
       if (options.advisory) {
         const advisory = createConsumerInitAdvisory(cwd, initOptions)
@@ -76,6 +82,7 @@ export const init = new Command()
         logger.info(`Registry root: ${advisory.proposedConfig.paths.registry}`)
         logger.info(`Theme tier: ${advisory.proposedConfig.theme.tier}`)
         logger.info(`Dependency policy: ${advisory.proposedConfig.dependencies.policy}`)
+        logger.info(`CLI shortcut: ${advisory.cliShortcut.status}`)
 
         return
       }
@@ -98,6 +105,7 @@ export const init = new Command()
         logger.info(`Dependency policy: ${result.proposedConfig.dependencies.policy}`)
         logger.info(`Config effect: ${result.wouldEffects.config.status}`)
         logger.info(`Lockfile effect: ${result.wouldEffects.lockfile.status}`)
+        logger.info(`Package manifest effect: ${result.wouldEffects.packageJson.status}`)
         logger.info(`Findings: ${result.findings.length}`)
 
         return
@@ -117,6 +125,7 @@ export const init = new Command()
       logger.info(`Registry root: ${result.config.paths.registry}`)
       logger.info(`Theme tier: ${result.config.theme.tier}`)
       logger.info(`Dependency policy: ${result.config.dependencies.policy}`)
+      logger.info(`CLI shortcut: ${result.cliShortcut.status}`)
       logger.info(`Findings: ${result.findings.length}`)
     } catch (error) {
       handleError(error)

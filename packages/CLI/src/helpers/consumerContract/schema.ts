@@ -4,13 +4,19 @@ import { PACKAGE_MANIFEST_DEPENDENCY_FIELDS } from "../packageManifestConstants"
 import { CLI_DRY_RUN_WRITE_STATUSES, CLI_WRITE_STATUS__NOT_WRITTEN } from "../reportConstants"
 
 import {
+  CODON_UI_CLI_PACKAGE_NAME,
+  CODON_UI_CLI_SHORTCUT_DEFAULT_DEV_DEPENDENCY_RANGE,
+  CODON_UI_CLI_SHORTCUT_SCRIPT_COMMAND,
+  CODON_UI_CLI_SHORTCUT_SCRIPT_NAME,
   CODON_UI_CONFIG_FILE_NAME,
+  CODON_UI_CONSUMER_PACKAGE_MANIFEST_FILE_NAME,
   CODON_UI_LOCK_FILE_NAME,
   CONSUMER_ADVISORY_SEVERITIES,
   CONSUMER_DEPENDENCY_ACTION__NONE,
   CONSUMER_DEPENDENCY_ACTIONS,
   CONSUMER_DEPENDENCY_POLICY__REPORT_ONLY,
   CONSUMER_DEPENDENCY_POLICIES,
+  CONSUMER_INIT_CLI_SHORTCUT_STATUSES,
   CONSUMER_LAYOUT_MODE__REGISTRY_CONTAINED,
   CONSUMER_LAYOUT_MODES,
   CONSUMER_OWNERSHIP_STATES,
@@ -30,6 +36,7 @@ export type TConsumerDependencyAction = (typeof CONSUMER_DEPENDENCY_ACTIONS)[num
 export type TConsumerPackageManager = (typeof CONSUMER_PACKAGE_MANAGERS)[number]
 export type TConsumerOwnershipState = (typeof CONSUMER_OWNERSHIP_STATES)[number]
 export type TConsumerAdvisorySeverity = (typeof CONSUMER_ADVISORY_SEVERITIES)[number]
+export type TConsumerInitCliShortcutStatus = (typeof CONSUMER_INIT_CLI_SHORTCUT_STATUSES)[number]
 
 export const consumerTargetRoleSchema = z.enum(CONSUMER_TARGET_ROLES)
 export const consumerTargetPathOverridesSchema = z.record(consumerTargetRoleSchema, z.string().min(1))
@@ -136,9 +143,28 @@ export const consumerProjectContextSchema = z
 
 export type TConsumerProjectContext = z.infer<typeof consumerProjectContextSchema>
 
+export const consumerInitCliShortcutSchema = z
+  .object({
+    dependencyField: z.enum(PACKAGE_MANIFEST_DEPENDENCY_FIELDS).optional(),
+    devDependencyRange: z.string().min(1).default(CODON_UI_CLI_SHORTCUT_DEFAULT_DEV_DEPENDENCY_RANGE),
+    existingDependencyRange: z.string().min(1).optional(),
+    packageJsonPath: z.literal(CODON_UI_CONSUMER_PACKAGE_MANIFEST_FILE_NAME).optional(),
+    packageName: z.literal(CODON_UI_CLI_PACKAGE_NAME).default(CODON_UI_CLI_PACKAGE_NAME),
+    requested: z.boolean(),
+    scriptCommand: z.literal(CODON_UI_CLI_SHORTCUT_SCRIPT_COMMAND).default(CODON_UI_CLI_SHORTCUT_SCRIPT_COMMAND),
+    scriptName: z.literal(CODON_UI_CLI_SHORTCUT_SCRIPT_NAME).default(CODON_UI_CLI_SHORTCUT_SCRIPT_NAME),
+    status: z.enum(CONSUMER_INIT_CLI_SHORTCUT_STATUSES),
+    wouldWritePackageJson: z.boolean(),
+    writesPackageJson: z.boolean(),
+  })
+  .strict()
+
+export type TConsumerInitCliShortcut = z.infer<typeof consumerInitCliShortcutSchema>
+
 export const consumerInitAdvisorySchema = z
   .object({
     advisory: z.literal(true),
+    cliShortcut: consumerInitCliShortcutSchema,
     configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
     lockfile: z.literal(CODON_UI_LOCK_FILE_NAME).default(CODON_UI_LOCK_FILE_NAME),
@@ -154,6 +180,7 @@ export type TConsumerInitAdvisory = z.infer<typeof consumerInitAdvisorySchema>
 
 export const consumerInitSeedResultSchema = z
   .object({
+    cliShortcut: consumerInitCliShortcutSchema,
     config: consumerConfigSchema,
     configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
@@ -163,6 +190,7 @@ export const consumerInitSeedResultSchema = z
         installsDependencies: z.literal(false),
         writesConfig: z.boolean(),
         writesLockfile: z.boolean(),
+        writesPackageJson: z.boolean().default(false),
       })
       .strict(),
     findings: z.array(consumerAdvisoryFindingSchema).default([]),
@@ -178,6 +206,7 @@ const consumerInitDryRunEffectStatusSchema = z.enum(CLI_DRY_RUN_WRITE_STATUSES)
 
 export const consumerInitDryRunResultSchema = z
   .object({
+    cliShortcut: consumerInitCliShortcutSchema,
     configFile: z.literal(CODON_UI_CONFIG_FILE_NAME).default(CODON_UI_CONFIG_FILE_NAME),
     cwd: z.string().min(1),
     dryRun: z.literal(true),
@@ -187,6 +216,7 @@ export const consumerInitDryRunResultSchema = z
         installsDependencies: z.literal(false),
         writesConfig: z.literal(false),
         writesLockfile: z.literal(false),
+        writesPackageJson: z.literal(false),
       })
       .strict(),
     findings: z.array(consumerAdvisoryFindingSchema).default([]),
@@ -222,6 +252,13 @@ export const consumerInitDryRunResultSchema = z
           .object({
             path: z.literal(CODON_UI_LOCK_FILE_NAME),
             status: consumerInitDryRunEffectStatusSchema,
+            wouldWrite: z.boolean(),
+          })
+          .strict(),
+        packageJson: z
+          .object({
+            path: z.literal(CODON_UI_CONSUMER_PACKAGE_MANIFEST_FILE_NAME),
+            status: z.enum(CONSUMER_INIT_CLI_SHORTCUT_STATUSES),
             wouldWrite: z.boolean(),
           })
           .strict(),

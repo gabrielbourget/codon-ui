@@ -100,9 +100,9 @@ Do not broaden behavior before these risks are handled deliberately:
 - The current registry schema is legacy web-registry shape, not the approved `packages/react` manifest/artifact contract.
 - Transform helpers have no fixture tests.
 - `bin` aliases point to `dist/index.js`; fresh installs can warn or fail before build output exists.
-- Package publication is now restricted to the guarded private path: `@codon-ui/cli@0.1.0`,
-  `publishConfig.access: "restricted"`, `files: ["dist"]`, and `prepublishOnly` running package preflight plus release
-  safety checks.
+- Package publication is now restricted to the guarded private path: `@codon-ui/cli`,
+  `publishConfig.access: "restricted"`, `files: ["dist"]`, version-paired changelog entries, and `prepublishOnly`
+  running package preflight plus release safety checks.
 - Current command names and options are inherited scaffold surface, not settled public API.
 
 ## First Safe Implementation Sequence
@@ -151,6 +151,7 @@ Current read-only command behavior:
 codon-ui init --advisory --json --cwd <consumer-project>
 codon-ui init --dry-run --json --cwd <consumer-project>
 codon-ui init --dry-run --registry-root src/components/_codon-ui-registry --json --cwd <consumer-project>
+codon-ui init --dry-run --setup-cli --json --cwd <consumer-project>
 codon-ui info --json --cwd <consumer-project>
 ```
 
@@ -171,9 +172,22 @@ If either file already exists, it reports warnings and writes nothing; overwrite
 The optional `--registry-root` flag chooses the contained registry root recorded in the generated config. It must be a
 non-empty consumer-relative path without parent-directory traversal, and it does not create the directory during init.
 
+The optional `--setup-cli` flag adds a local package manifest shortcut without running the package manager. When
+`package.json` is present and no conflicting `scripts.cui` value exists, strict init writes `scripts.cui = "cui"` and
+adds `@codon-ui/cli` to `devDependencies` only when the package is not already declared in `dependencies` or
+`devDependencies`. Existing compatible declarations are preserved, and conflicting `scripts.cui` values are reported
+without overwrite.
+
+Waveguide bootstrap caveat: this shortcut exists in the current source tree and local package build, but the already
+published `@codon-ui/cli@0.1.0` private package does not expose `--setup-cli`. Before a fresh Waveguide scaffold relies
+on `pnpm dlx @codon-ui/cli init --setup-cli`, publish a follow-up restricted CLI package and extend the private package
+smoke proof to assert the manifest edit plus the resulting local `pnpm cui ...` path.
+
 `init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no
-config, lockfile, directory, or dependency writes. Its `wouldEffects` report `would-write` for greenfield config and
-lockfile creation, `blocked` for existing files, and `not-written` for the counterpart in partial existing-file states.
+config, lockfile, package manifest, directory, or dependency writes. Its `wouldEffects` report `would-write` for
+greenfield config and lockfile creation, `blocked` for existing files, and `not-written` for the counterpart in partial
+existing-file states. When `--setup-cli` is present, `wouldEffects.packageJson` previews whether the local `cui` script
+and CLI devDependency would be written.
 
 Against the `vite-registry-contained` fixture, both commands report:
 

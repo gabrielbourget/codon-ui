@@ -20,6 +20,8 @@ const writeJson = (filePath: string, value: unknown) => {
   writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`, "utf8")
 }
 
+const readJson = (filePath: string) => JSON.parse(readFileSync(filePath, "utf8"))
+
 const hashFile = (filePath: string) => crypto.createHash("sha256").update(readFileSync(filePath)).digest("hex")
 
 const snapshotFiles = (fixturePath: string) => {
@@ -64,8 +66,11 @@ const assertDefaultDryRunNoWriteEffects = (report: ReturnType<typeof createConsu
   assert.equal(report.effects.installsDependencies, false)
   assert.equal(report.effects.writesConfig, false)
   assert.equal(report.effects.writesLockfile, false)
+  assert.equal(report.effects.writesPackageJson, false)
   assert.equal(report.wouldEffects.directories.status, "not-written")
   assert.equal(report.wouldEffects.dependencies.status, "not-written")
+  assert.equal(report.wouldEffects.packageJson.status, "not-requested")
+  assert.equal(report.wouldEffects.packageJson.wouldWrite, false)
   assert.equal(report.wouldEffects.directories.plannedCount, 0)
   assert.equal(report.wouldEffects.dependencies.plannedInstallCount, 0)
 }
@@ -229,6 +234,100 @@ try {
   assert.equal(plainInit.effects.createsDirectories, false)
   assert.equal(plainInit.effects.installsDependencies, false)
   assert.equal(existsSync(path.join(plainInitFixturePath, "src")), false)
+
+  const setupCliDryRunFixturePath = createFixture("setup-cli-dry-run")
+  const beforeSetupCliDryRunSnapshot = snapshotFiles(setupCliDryRunFixturePath)
+  const setupCliDryRun = runInitCommandJsonReport<ReturnType<typeof createConsumerInitDryRun>>({
+    args: ["--dry-run", "--setup-cli"],
+    cwd: setupCliDryRunFixturePath,
+  })
+
+  assertCliJsonReportContract({ report: setupCliDryRun, schemaName: "initDryRun" })
+  assert.deepEqual(snapshotFiles(setupCliDryRunFixturePath), beforeSetupCliDryRunSnapshot)
+  assert.equal(setupCliDryRun.cliShortcut.status, "would-write")
+  assert.equal(setupCliDryRun.cliShortcut.wouldWritePackageJson, true)
+  assert.equal(setupCliDryRun.cliShortcut.writesPackageJson, false)
+  assert.equal(setupCliDryRun.wouldEffects.packageJson.status, "would-write")
+  assert.equal(setupCliDryRun.wouldEffects.packageJson.wouldWrite, true)
+  assert.equal(readJson(path.join(setupCliDryRunFixturePath, "package.json")).scripts, undefined)
+
+  const setupCliStrictFixturePath = createFixture("setup-cli-strict")
+  const setupCliStrict = runInitCommandJson({
+    args: ["--setup-cli"],
+    cwd: setupCliStrictFixturePath,
+  })
+  const setupCliPackageJson = readJson(path.join(setupCliStrictFixturePath, "package.json"))
+
+  assertCliJsonReportContract({ report: setupCliStrict, schemaName: "initStrict" })
+  assert.equal(setupCliStrict.initialized, true)
+  assert.equal(setupCliStrict.effects.writesConfig, true)
+  assert.equal(setupCliStrict.effects.writesLockfile, true)
+  assert.equal(setupCliStrict.effects.writesPackageJson, true)
+  assert.equal(setupCliStrict.cliShortcut.status, "written")
+  assert.equal(setupCliPackageJson.scripts.cui, "cui")
+  assert.equal(setupCliPackageJson.devDependencies["@codon-ui/cli"], "0.1.1")
+
+  const setupCliSecondSnapshotBefore = snapshotFiles(setupCliStrictFixturePath)
+  const setupCliSecond = runInitCommandJson({
+    args: ["--setup-cli"],
+    cwd: setupCliStrictFixturePath,
+  })
+
+  assertCliJsonReportContract({ report: setupCliSecond, schemaName: "initStrict" })
+  assert.deepEqual(snapshotFiles(setupCliStrictFixturePath), setupCliSecondSnapshotBefore)
+  assert.equal(setupCliSecond.initialized, false)
+  assert.equal(setupCliSecond.effects.writesConfig, false)
+  assert.equal(setupCliSecond.effects.writesLockfile, false)
+  assert.equal(setupCliSecond.effects.writesPackageJson, false)
+  assert.equal(setupCliSecond.cliShortcut.status, "already-configured")
+
+  const setupCliExistingDependencyFixturePath = createFixture("setup-cli-existing-dependency")
+  writeJson(path.join(setupCliExistingDependencyFixturePath, "package.json"), {
+    dependencies: {
+      "@codon-ui/cli": "workspace:*",
+    },
+    name: "@codon-ui-tests/setup-cli-existing-dependency",
+    packageManager: "pnpm@10.18.3",
+  })
+  const setupCliExistingDependency = runInitCommandJson({
+    args: ["--setup-cli"],
+    cwd: setupCliExistingDependencyFixturePath,
+  })
+  const setupCliExistingDependencyPackageJson = readJson(
+    path.join(setupCliExistingDependencyFixturePath, "package.json"),
+  )
+
+  assertCliJsonReportContract({ report: setupCliExistingDependency, schemaName: "initStrict" })
+  assert.equal(setupCliExistingDependency.effects.writesPackageJson, true)
+  assert.equal(setupCliExistingDependency.cliShortcut.dependencyField, "dependencies")
+  assert.equal(setupCliExistingDependency.cliShortcut.existingDependencyRange, "workspace:*")
+  assert.equal(setupCliExistingDependencyPackageJson.scripts.cui, "cui")
+  assert.equal(setupCliExistingDependencyPackageJson.dependencies["@codon-ui/cli"], "workspace:*")
+  assert.equal(setupCliExistingDependencyPackageJson.devDependencies, undefined)
+
+  const setupCliScriptConflictFixturePath = createFixture("setup-cli-script-conflict")
+  writeJson(path.join(setupCliScriptConflictFixturePath, "package.json"), {
+    name: "@codon-ui-tests/setup-cli-script-conflict",
+    packageManager: "pnpm@10.18.3",
+    scripts: {
+      cui: "codon-ui",
+    },
+  })
+  const setupCliScriptConflict = runInitCommandJson({
+    args: ["--setup-cli"],
+    cwd: setupCliScriptConflictFixturePath,
+  })
+  const setupCliScriptConflictPackageJson = readJson(path.join(setupCliScriptConflictFixturePath, "package.json"))
+
+  assertCliJsonReportContract({ report: setupCliScriptConflict, schemaName: "initStrict" })
+  assert.equal(setupCliScriptConflict.initialized, true)
+  assert.equal(setupCliScriptConflict.effects.writesConfig, true)
+  assert.equal(setupCliScriptConflict.effects.writesLockfile, true)
+  assert.equal(setupCliScriptConflict.effects.writesPackageJson, false)
+  assert.equal(setupCliScriptConflict.cliShortcut.status, "blocked")
+  assert(setupCliScriptConflict.findings.some((finding) => finding.code === "existing-cui-script"))
+  assert.equal(setupCliScriptConflictPackageJson.scripts.cui, "codon-ui")
+  assert.equal(setupCliScriptConflictPackageJson.devDependencies, undefined)
 
   const secondPlainInitSnapshotBefore = snapshotFiles(plainInitFixturePath)
   const secondPlainInit = runInitCommandJson({ cwd: plainInitFixturePath })

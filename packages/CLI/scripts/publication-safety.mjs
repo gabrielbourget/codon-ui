@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 
 const REQUIRED_PACKAGE_NAME = "@codon-ui/cli"
-const REQUIRED_PACKAGE_VERSION = "0.1.0"
+const REQUIRED_PACKAGE_VERSION = "0.1.1"
 const REQUIRED_PREPUBLISH_ONLY_SCRIPT = "pnpm pack:check && pnpm release:check"
 const REQUIRED_PUBLISH_ACCESS = "restricted"
 
@@ -51,7 +51,7 @@ const verifyPublicationSafety = () => {
   }
 
   if (packageJson.version !== REQUIRED_PACKAGE_VERSION) {
-    unsafeFindings.push(`package version must be ${REQUIRED_PACKAGE_VERSION} for the first private CLI proof.`)
+    unsafeFindings.push(`package version must be ${REQUIRED_PACKAGE_VERSION} for this private CLI release.`)
   }
 
   if (packageJson.private === true) {

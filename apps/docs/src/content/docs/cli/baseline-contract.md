@@ -69,10 +69,10 @@ The checked-in registry snapshots under `packages/CLI/registry` remain monorepo-
 back to `packages/react`. The generated pack-time copies rewrite only `sourceRoot`; they do not change registry item ids,
 source identities, source paths, lockfile identity, or consumer target paths.
 
-`@codon-ui/cli` is versioned at `0.1.0` for the first private npm proof and declares
-`publishConfig.access: "restricted"`. `prepublishOnly` runs the package preflight and release guard before any real npm
-publish can proceed. The pack preflight command builds the CLI, verifies the built command against the generated
-package-local registry source, and then runs npm's tarball dry-run:
+The first private npm proof shipped as `@codon-ui/cli@0.1.0`. Current private CLI releases keep
+`publishConfig.access: "restricted"` and record release notes in `packages/CLI/CHANGELOG.md`. `prepublishOnly` runs the
+package preflight and release guard before any real npm publish can proceed. The pack preflight command builds the CLI,
+verifies the built command against the generated package-local registry source, and then runs npm's tarball dry-run:
 
 ```sh
 pnpm -F @codon-ui/cli pack:check
@@ -83,6 +83,9 @@ Actual publish remains a manual final gate:
 ```sh
 pnpm -F @codon-ui/cli publish --access restricted
 ```
+
+Use [Private CLI Publish](/cli/private-publish/) for the full auth, versioning, preflight, publish, and post-publish
+smoke SOP.
 
 ## Advisory Mode
 
@@ -111,9 +114,16 @@ Current `init --json` is the strict new-contract seed path. It writes only `codo
 dependencies, or touch package-manager lockfiles. Existing config or lockfile files are reported as warnings and are not
 overwritten. `init --defaults --json` remains an explicit alias for this same seed path.
 
+`init --setup-cli --json` keeps the same config and lockfile seed behavior, then adds a local CLI shortcut to
+`package.json` when it can do so without overwriting consumer intent. It writes `scripts.cui = "cui"` and adds
+`@codon-ui/cli` to `devDependencies` only when the package is not already declared in `dependencies` or
+`devDependencies`. It does not run `npm`, `pnpm`, `yarn`, or `bun`; consumers install the manifest change through their
+normal package-manager workflow.
+
 Current `init --dry-run --json` previews the same strict default seed without writing files. It reports actual effects as
 no-write and reports config/lockfile `wouldEffects` as `would-write`, `blocked`, or `not-written` depending on whether the
-consumer is greenfield, already initialized, or partially initialized.
+consumer is greenfield, already initialized, or partially initialized. With `--setup-cli`, dry-run also reports
+`wouldEffects.packageJson` and a `cliShortcut` block for the local `pnpm cui ...` shortcut.
 
 Current `info --json` reports the same project context and init advisory packet for fixture checks and future automation.
 
