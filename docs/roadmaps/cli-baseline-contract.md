@@ -179,8 +179,8 @@ adds `@codon-ui/cli` to `devDependencies` only when the package is not already d
 without overwrite.
 
 Waveguide bootstrap caveat: because the CLI package exposes multiple bins, pnpm's first verbose bootstrap call should use
-the explicit package form, such as `pnpm --package=@codon-ui/cli@0.1.2 dlx codon-ui init --setup-cli`. The
-`@codon-ui/cli@0.1.2` patch fixes package metadata lookup for that `dlx` path; extend the private package smoke proof to
+the explicit package form, such as `pnpm --package=@codon-ui/cli@0.1.3 dlx codon-ui init --setup-cli`. The
+`@codon-ui/cli@0.1.2` patch fixed package metadata lookup for that `dlx` path; extend the private package smoke proof to
 assert the manifest edit plus the resulting local `pnpm cui ...` path.
 
 `init --dry-run --json` previews that same strict default seed without writing. Its actual effects always report no

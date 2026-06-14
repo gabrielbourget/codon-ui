@@ -1,5 +1,34 @@
 # @codon-ui/cli Changelog
 
+## 0.1.3 - 2026-06-14
+
+### Fixed
+
+- Packaged the React Button source fix so buttons expose a pointer cursor when interactive and transition hover color
+  changes smoothly.
+- Packaged the React NumberInput source fix so numeric filter arguments stretch across their full filter argument slot in
+  Sort and Filter Panel flows.
+
+### Consumer Notes
+
+- Use `pnpm --package=@codon-ui/cli@0.1.3 dlx codon-ui init --setup-cli` for the first verbose bootstrap call when
+  running through pnpm. The shorter local `pnpm cui ...` path is available after `init --setup-cli` and `pnpm install`.
+
+### Verification
+
+- `pnpm -F @codon-ui/react test`
+- `pnpm -F @codon-ui/react typecheck`
+- `pnpm -F @codon-ui/react lint`
+- `pnpm -F @codon-ui/react stylelint`
+- `pnpm -F @codon-ui/react check:contracts`
+- `pnpm -F @codon-ui/cli test`
+- `pnpm -F @codon-ui/cli typecheck`
+- `pnpm -F @codon-ui/cli build`
+- `pnpm -F @codon-ui/cli lint`
+- `pnpm -F @codon-ui/cli pack:check`
+- Tarball install proof from `npm pack`
+- Post-publish registry smoke target: `pnpm --package=@codon-ui/cli@0.1.3 dlx codon-ui ...`
+
 ## 0.1.2 - 2026-06-11
 
 ### Fixed
