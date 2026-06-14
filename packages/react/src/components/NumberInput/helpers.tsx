@@ -152,6 +152,9 @@ export const calibrateComponent = (props: TNumberInputProps): TNumberInputCalibr
     {
       border: "none",
       backgroundColor: "transparent",
+      flex: "1 1 auto",
+      minWidth: 0,
+      width: "100%",
     },
     { ...customInputStyles__props },
   )

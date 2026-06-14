@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import { FILTER_ARGUMENT_TYPE__INPUT, FILTER_ARGUMENT_TYPE__MULTI_INPUT } from "../../../Table/filterMetadata"
-import { TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT } from "../../../Table/queryTypes"
+import {
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__NUMBER,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
+} from "../../../Table/queryTypes"
 import DynamicFilterArgumentInput from "../DynamicFilterArgumentInput"
 import styles from "../DynamicFilterArgumentInputStyles.module.css"
 import type { TDynamicFilterArgumentInputProps } from "../helpers"
@@ -72,6 +75,19 @@ describe("<DynamicFilterArgumentInput />", () => {
     })
     expect(scalarInput).toHaveClass("custom-scalar-input")
     expect(scalarInput).toHaveStyle({ marginTop: "5px" })
+  })
+
+  it("stretches numeric scalar arguments across the full argument slot.", () => {
+    renderDynamicFilterArgumentInput({
+      argument: 130,
+      dataType: TABLE_FILTER_ARGUMENT_DATA_TYPE__NUMBER,
+    })
+
+    expect(screen.getByTestId("number-input")).toHaveStyle({ width: "100%" })
+    expect(screen.getByTestId("number-input-input")).toHaveStyle({
+      flex: "1 1 auto",
+      width: "100%",
+    })
   })
 
   it("applies row and action slot styling hooks to multi-value argument inputs.", () => {
