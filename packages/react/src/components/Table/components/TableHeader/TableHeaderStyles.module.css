@@ -17,11 +17,6 @@
   text-align: center;
 }
 
-.tableHeader__cell--alignCenter > * {
-  display: block;
-  width: 100%;
-}
-
 .tableHeader__cell--alignEnd {
   text-align: end;
 }
@@ -31,9 +26,26 @@
 }
 
 .tableHeader__cellInner {
-  display: inline-flex;
+  width: 100%;
+  min-width: 0;
+  display: flex;
   align-items: center;
   gap: var(--cui-space-1);
+}
+
+.tableHeader__cell--alignCenter .tableHeader__cellInner {
+  justify-content: center;
+}
+
+.tableHeader__cell--alignEnd .tableHeader__cellInner {
+  justify-content: flex-end;
+}
+
+.tableHeader__cellLabel {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .tableHeader__sortIndicator {

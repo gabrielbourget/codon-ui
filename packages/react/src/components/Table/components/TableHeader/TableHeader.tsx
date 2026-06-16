@@ -91,7 +91,7 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
 
         const nameText = (
           <Text
-            customClassName={classNames(hiddenStyle, column.customHeaderCellClassName)}
+            customClassName={classNames(styles.tableHeader__cellLabel, hiddenStyle, column.customHeaderCellClassName)}
             customStyles={{ ...column.customHeaderCellStyles }}
             elementType="span"
             variant="b10"
