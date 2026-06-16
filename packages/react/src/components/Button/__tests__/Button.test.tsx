@@ -109,6 +109,14 @@ describe("<Button />", () => {
       expect(buttonStylesSource).toContain("var(--cui-transition-color)")
     })
 
+    it("keeps hover background styles on the root button instead of child icons.", () => {
+      expect(buttonStylesSource).toContain(
+        ".button[data-hovered]:not(.button--transparent, [data-disabled]) {\n  background-color: var(--btn-hover-bg, var(--btn-bg));",
+      )
+      expect(buttonStylesSource).toContain(".button svg {\n  background: transparent;")
+      expect(buttonStylesSource).not.toContain(".button[data-hovered]:not([data-disabled]) svg")
+    })
+
     it("keeps fill order styles on semantic action foreground/background pairs.", () => {
       expect(buttonStylesSource).toContain(
         ".button--primary--fill {\n  background-color: var(--cui-action-primary-background);\n  color: var(--cui-action-primary-foreground)",

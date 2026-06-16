@@ -31,10 +31,6 @@
   background-color: transparent !important;
 }
 
-.button[data-hovered]:not([data-disabled]) svg {
-  background: var(--btn-hover-bg, inherit);
-}
-
 .button[data-pressed]:not([data-disabled]) {
   cursor: pointer;
 }
