@@ -64,7 +64,7 @@
       "importSource": "--distance_2 / --distance_3 / --fadeInAnimation / --fadeOutAnimation / --shadow_1 / --border_radius_1 / --focus-ring-color aliases",
       "replacementSource": "--cui-space-2 / --cui-space-3 / --cui-animation-fade-in / --cui-animation-fade-out / --cui-shadow-1 / --cui-radius-1 / --cui-focus-ring",
       "notes": [
-        "ClickPopover CSS reads the default Amino theme contract and the existing action-colors support item instead of a component-specific compatibility bridge."
+        "ClickPopover CSS reads the default Codon UI theme contract and the existing action-colors support item instead of a component-specific compatibility bridge."
       ]
     }
   ],

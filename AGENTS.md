@@ -24,7 +24,7 @@ Then propose a plan first instead of implementing immediately.
 
 Codon UI is a `pnpm` workspace with separate package ownership boundaries:
 
-- `apps/web` owns the web app and current registry artifact builder surface.
+- `apps/web` owns the web app only. It does not own registry source, registry manifests, or registry artifact generation.
 - `packages/CLI` owns the current CLI package, published as `@codon-ui/cli` with the canonical `codon-ui` bin and
   Codon-era `cui` / `codonui` aliases.
 - `packages/shared-utils` owns shared ESLint, Prettier, Stylelint, and TypeScript presets.
@@ -109,7 +109,6 @@ During foundation passes:
 - Before renovating CLI behavior, preserve a shared advisory-only mode so expected config, registry, dependency, and
   project-shape findings can report without failing or slowing broader processes.
 - Do not decide package publication, release automation, or deploy workflows casually.
-- Do not treat legacy shadcn-derived scaffolding as authoritative.
 - Do not make broad registry behavior changes without an approved pass.
 - Keep `@codon-ui/react/theme.css` hand-authored until generated-token policy is explicitly chosen.
 - Keep canonical source ownership separate from generated registry artifacts.
@@ -133,8 +132,8 @@ appear, return to deliberate planning mode.
 - Root checks use `pnpm -r` scripts where practical. Do not reopen a Turbo migration casually.
 - Prefer workspace-scoped commands for focused checks, such as `pnpm -F @codon-ui/react build`.
 - `pnpm verify:ci` is the local mirror of the initial GitHub Actions CI surface.
-- `pnpm verify:build` intentionally runs the web app with `pnpm -F web exec next build` so the CI baseline can validate
-  Next build behavior without treating unresolved registry artifact generation as authoritative.
+- `pnpm verify:build` intentionally runs the web app with `pnpm -F web exec next build` so the CI baseline validates
+  plain Next build behavior without reopening registry artifact policy.
 - `apps/docs` owns the Astro/Starlight docs site. Keep it documentation-only until hosting/deployment policy is approved.
 - If scripts differ, inspect `package.json` before guessing.
 
@@ -189,7 +188,7 @@ General preferences:
 ## Styling Conventions
 
 - CSS custom properties owned by Codon UI should use the canonical `--cui-` prefix. `@codon-ui/react/theme.css` is
-  CUI-only after fixture and consumer proofs approved removal of the legacy `--aui-` compatibility variables.
+  CUI-only.
 - Keep default theme variables narrow until real component source proves that more variables are needed.
 - Prefer semantic component-system roles such as foreground, background, surface, border, control, status, focus, spacing,
   radius, shadow, transition, and opacity before product-specific color decisions.

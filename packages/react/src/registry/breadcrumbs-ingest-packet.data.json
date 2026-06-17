@@ -106,7 +106,7 @@
       "sourcePath": "packages/react/src/components/Breadcrumbs/BreadcrumbsStyles.module.css",
       "importSource": "--distance_1 / --disabledOpacity / --fadeInAnimation / --fadeOutAnimation / --border_radius_1 / --shadow_1 / --focus-ring-color aliases",
       "replacementSource": "--cui-space-1 / --cui-opacity-disabled / --cui-animation-fade-in / --cui-animation-fade-out / --cui-radius-1 / --cui-shadow-1 / --cui-focus-ring",
-      "notes": ["Breadcrumbs CSS reads the default Amino theme contract directly instead of a compatibility bridge."]
+      "notes": ["Breadcrumbs CSS reads the default Codon UI theme contract directly instead of a compatibility bridge."]
     }
   ],
   "excludedSourcePaths": [
@@ -201,6 +201,6 @@
     "Keep route behavior consumer-owned through onNavigate; do not reintroduce next/navigation, next/link, locale routing, or a router abstraction package.",
     "Keep Breadcrumbs/i18n.ts, focused Wavemap tests, component showcase usage, app providers, Table, filtering/query adapters, Toast/Toaster, media surfaces, and broader app consumers out of the source slice.",
     "This source-receipt pass does not activate a breadcrumbs manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

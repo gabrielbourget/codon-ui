@@ -63,14 +63,14 @@
       "sourcePath": "packages/react/src/components/FormField/FormFieldStyles.module.css",
       "importSource": "--distance_1 / --shadow_1 aliases",
       "replacementSource": "--cui-space-1 / --cui-shadow-1",
-      "notes": ["FormField CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+      "notes": ["FormField CSS reads the default Codon UI theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/FormField/helpers.ts",
       "importSource": "--cui-validation-*-foreground only",
       "replacementSource": "validation foreground aliases with --cui-state-* fallbacks",
       "notes": [
-        "Wavemap can keep existing validation aliases while default Amino theme consumers resolve state colors."
+        "Wavemap can keep existing validation aliases while default Codon UI theme consumers resolve state colors."
       ]
     },
     {
@@ -165,6 +165,6 @@
     "Keep calibrateComponent, validation-color constants, slot class/style helpers, and native prop alias handling private unless a later API review approves exporting helper internals.",
     "Do not move Filtering, Pagination, app forms, component showcase code, ComboBox, ListBoxItem, TagComboBox, DateTimePicker, DateTimeRangePicker, query/typeahead wrappers, or broader app consumers with FormField.",
     "This source-receipt pass does not activate a form-field manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

@@ -4,7 +4,7 @@ export const CODON_UI_CONSUMER_PACKAGE_MANIFEST_FILE_NAME = "package.json"
 export const CODON_UI_CLI_PACKAGE_NAME = "@codon-ui/cli"
 export const CODON_UI_CLI_SHORTCUT_SCRIPT_NAME = "cui"
 export const CODON_UI_CLI_SHORTCUT_SCRIPT_COMMAND = "cui"
-export const CODON_UI_CLI_SHORTCUT_DEFAULT_DEV_DEPENDENCY_RANGE = "0.1.2"
+export const CODON_UI_CLI_SHORTCUT_DEFAULT_DEV_DEPENDENCY_RANGE = "0.2.0"
 
 export const CONSUMER_LAYOUT_MODE__REGISTRY_CONTAINED = "registry-contained"
 export const CONSUMER_LAYOUT_MODE__INTEGRATED = "integrated"

@@ -9,7 +9,6 @@
     "build:cli": "pnpm -F @codon-ui/cli build",
     "build:docs": "pnpm -F @codon-ui/docs build",
     "build:react": "pnpm -F @codon-ui/react build",
-    "build:registry": "pnpm -F web build:registry",
     "build:web": "pnpm -F web exec next build",
     "dev": "pnpm exec turbo run dev --parallel",
     "dev:cli": "pnpm -F @codon-ui/cli dev",

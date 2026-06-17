@@ -12,7 +12,7 @@ This repo is a `pnpm` monorepo.
 | Path                    | Purpose                                                                                                                                                                         |
 | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `apps/docs`             | Astro/Starlight documentation site for repo guidance and roadmap-facing docs.                                                                                                   |
-| `apps/web`              | Existing Next app and legacy registry web surface. Registry artifact policy is still unresolved.                                                                                |
+| `apps/web`              | Existing Next app for web experiments. It no longer owns registry source or registry artifact generation.                                                                       |
 | `packages/CLI`          | Private `@codon-ui/cli` package with the canonical `codon-ui` bin plus `cui` and `codonui` aliases. It owns lifecycle commands and the first CLI-bundled source snapshot proof. |
 | `packages/react`        | Private `@codon-ui/react` source package. It owns `theme.css`, component source, support tokens, and registry manifests.                                                        |
 | `packages/shared-utils` | Shared ESLint, Prettier, Stylelint, and TypeScript presets.                                                                                                                     |

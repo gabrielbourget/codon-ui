@@ -161,7 +161,7 @@
       "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
       "importSource": "legacy spacing/radius/focus/transition aliases",
       "replacementSource": "default --cui-* theme variables",
-      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Codon UI theme contract."]
     }
   ],
   "excludedSourcePaths": [
@@ -199,7 +199,7 @@
         "--cui-transition-border-color",
         "--cui-transition-box-shadow"
       ],
-      "notes": ["TypeaheadSearch should use existing default Amino theme variables without a compatibility bridge."]
+      "notes": ["TypeaheadSearch should use existing default Codon UI theme variables without a compatibility bridge."]
     }
   ],
   "verification": [

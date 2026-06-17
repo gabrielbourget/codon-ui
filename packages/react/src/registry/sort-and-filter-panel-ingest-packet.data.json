@@ -266,7 +266,7 @@
       "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
       "importSource": "legacy Wavemap CSS aliases",
       "replacementSource": "default --cui-* theme variables",
-      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Codon UI theme contract."]
     }
   ],
   "excludedSourcePaths": [
@@ -323,7 +323,7 @@
         "--cui-transition-background-color"
       ],
       "notes": [
-        "SortAndFilterPanel should use existing default Amino theme and action color variables without a compatibility bridge."
+        "SortAndFilterPanel should use existing default Codon UI theme and action color variables without a compatibility bridge."
       ]
     }
   ],

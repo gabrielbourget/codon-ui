@@ -11,7 +11,12 @@
   background-color: var(--btn-bg, transparent);
   border: none;
   transition:
-    var(--cui-transition-background-color), var(--cui-transition-border-color), var(--cui-transition-box-shadow);
+    var(--cui-transition-background-color), var(--cui-transition-border-color), var(--cui-transition-box-shadow),
+    var(--cui-transition-color);
+}
+
+.button:not([data-disabled]) {
+  cursor: pointer;
 }
 
 .button svg {
@@ -24,10 +29,6 @@
 
 .button--transparent[data-hovered]:not([data-disabled]) {
   background-color: transparent !important;
-}
-
-.button[data-hovered]:not([data-disabled]) svg {
-  background: var(--btn-hover-bg, inherit);
 }
 
 .button[data-pressed]:not([data-disabled]) {

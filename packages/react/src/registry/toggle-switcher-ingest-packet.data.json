@@ -75,7 +75,7 @@
       "sourcePath": "packages/react/src/components/ToggleSwitcher/ToggleSwitcherStyles.module.css",
       "importSource": "--distance_1, --disabledOpacity, --border_radius_1, --shadow_1, --focus-ring-color, --bgColorTransition, --borderColorTransition, --boxShadowTransition, --colorTransition",
       "replacementSource": "--cui-space-1, --cui-opacity-disabled, --cui-radius-1, --cui-shadow-1, --cui-focus-ring, --cui-transition-background-color, --cui-transition-border-color, --cui-transition-box-shadow, --cui-transition-color",
-      "notes": ["Legacy Wavemap CSS aliases are rewritten directly to the default Amino theme contract."]
+      "notes": ["Legacy Wavemap CSS aliases are rewritten directly to the default Codon UI theme contract."]
     }
   ],
   "excludedSourcePaths": [

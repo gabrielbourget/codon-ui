@@ -175,7 +175,7 @@
       "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearchStyles.module.css",
       "importSource": "legacy spacing/radius/focus/transition aliases",
       "replacementSource": "default --cui-* theme variables",
-      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Amino theme contract."]
+      "notes": ["Source receipt rewrites legacy Wavemap CSS aliases directly to the default Codon UI theme contract."]
     }
   ],
   "excludedSourcePaths": [
@@ -227,7 +227,7 @@
         "--cui-validation-warning-border"
       ],
       "notes": [
-        "CompactTypeaheadSearch should use existing default Amino theme variables without a compatibility bridge."
+        "CompactTypeaheadSearch should use existing default Codon UI theme variables without a compatibility bridge."
       ]
     }
   ],

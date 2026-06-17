@@ -70,7 +70,7 @@
       "importSource": "legacy spacing/radius/shadow/focus/transition aliases",
       "replacementSource": "default --cui-* theme variables plus theme/action-colors",
       "notes": [
-        "Button CSS now reads default Amino spacing, opacity, focus, radius, shadow, background, and transition variables directly.",
+        "Button CSS now reads default Codon UI spacing, opacity, focus, radius, shadow, background, and transition variables directly.",
         "The reusable action palette lives in theme/action-colors instead of a Button-local compatibility bridge."
       ]
     },
@@ -233,6 +233,6 @@
     "Keep calibration, color/geometry helpers, render-prop merge helpers, color-mode constants, and CSS variable helpers private unless a later API review approves exporting helper internals.",
     "Do not move Stepper, Pagination, overlays, table/filter controls, Toaster, app pages, Card/progress motion components, or broad app consumers with Button.",
     "This source-receipt pass does not activate a button manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

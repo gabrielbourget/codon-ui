@@ -53,7 +53,7 @@
     {
       "strategy": "default-contract",
       "cssVariables": ["--cui-border"],
-      "notes": ["LineSegment's default color reads the default Amino theme border variable directly."]
+      "notes": ["LineSegment's default color reads the default Codon UI theme border variable directly."]
     }
   ],
   "verification": [

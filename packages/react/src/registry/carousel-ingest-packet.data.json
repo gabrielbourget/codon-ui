@@ -212,7 +212,7 @@
       "sourcePath": "packages/react/src/components/Carousel/components/CarouselCounter/CarouselCounterStyles.module.css",
       "importSource": "--distance_1 alias",
       "replacementSource": "--cui-space-1",
-      "notes": ["CarouselCounter spacing reads the default Amino space scale."]
+      "notes": ["CarouselCounter spacing reads the default Codon UI space scale."]
     }
   ],
   "excludedSourcePaths": [

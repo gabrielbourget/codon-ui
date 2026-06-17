@@ -312,7 +312,7 @@ assert(packet.sourcePackage === "@codon-ui/react", "DateTimePicker packet must t
 assert(packet.sourceRepository === "wavemap", "DateTimePicker packet must record Wavemap as source repository")
 assert(
   packet.sourceRef === "docs/roadmaps/date-time-picker-receipt-plan.md",
-  "DateTimePicker packet must point at the Amino receipt plan",
+  "DateTimePicker packet must point at the receipt plan",
 )
 requiredPackageFileSources.forEach((sourcePath) => {
   assert(

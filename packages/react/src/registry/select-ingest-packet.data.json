@@ -94,7 +94,7 @@
       "sourcePath": "packages/react/src/components/Select/SelectStyles.module.css",
       "importSource": "--border_radius_1 / --distance_1 / --disabledOpacity / --shadow_1 / --focus-ring-color / --fadeInAnimation / --fadeOutAnimation aliases",
       "replacementSource": "--cui-radius-1 / --cui-space-1 / --cui-opacity-disabled / --cui-shadow-1 / --cui-focus-ring / --cui-animation-fade-in / --cui-animation-fade-out",
-      "notes": ["Select CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+      "notes": ["Select CSS reads the default Codon UI theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/theme.css",
@@ -197,6 +197,6 @@
     "Keep TSelectComponent, calibrateComponent, size constants, text-size helpers, geometry helpers, border-style helpers, class/style merge helpers, and the default chevron icon private to the package root unless a later API review approves exporting helper internals.",
     "Do not move ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, Input, label/i18n support, app forms, component showcase code, or broader app consumers with Select.",
     "This source-receipt pass does not activate a select manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

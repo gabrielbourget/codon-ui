@@ -104,7 +104,7 @@
       "importSource": "legacy radius/focus/transition/validation aliases",
       "replacementSource": "default --cui-* theme variables",
       "notes": [
-        "Stepper CSS now reads default Amino radius, focus, transition, disabled opacity, control, action, color-family, and validation state variables directly.",
+        "Stepper CSS now reads default Codon UI radius, focus, transition, disabled opacity, control, action, color-family, and validation state variables directly.",
         "The validation-state borders map to --cui-state-danger, --cui-state-warning, and --cui-state-success without a Stepper-local compatibility bridge."
       ]
     },
@@ -213,6 +213,6 @@
     "Keep useCalibrateComponent, useComputeButtonColorMode, size/type/orientation/color-mode constants/types, label types, default icon helpers, readable-color helpers, geometry/color/focus/validation helpers, and class/style merge helpers private unless a later API review approves exporting helper internals.",
     "Do not move Stepper/i18n.ts, Wavemap color utilities, Button helper support, ComboBox, Select, TagComboBox, typeahead/search wrappers, filtering adapters, pagination adapters, forms, saved views, FormField, showcase code, or broader app consumers into the Stepper runtime source graph.",
     "This source-receipt pass does not activate a stepper manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

@@ -63,7 +63,7 @@ const requiredStyleSelectors = [
 const requiredCompatibilityAliases = [
   "--border_radius_1: var(--cui-radius-1)",
   "--shadow_1: var(--cui-shadow-1)",
-  "--neutral_6: var(--cui-neutral-600)",
+  "--neutral_6: var(--cui-neutral-700)",
   "--focus-ring-color: var(--cui-focus-ring)",
   "--bgColorTransition: var(--cui-transition-background-color)",
   "--cui-color-primary-500",

@@ -59,7 +59,7 @@ assert.deepEqual(cliPackageJson.bin, {
   cui: "./dist/index.js",
   codonui: "./dist/index.js",
 })
-assert.equal(cliPackageJson.version, "0.1.2")
+assert.equal(cliPackageJson.version, "0.2.0")
 assert.deepEqual(cliPackageJson.files, ["dist"])
 assert.deepEqual(cliPackageJson.publishConfig, { access: "restricted" })
 assert.equal(
@@ -89,7 +89,7 @@ for (const schemaName of CLI_JSON_REPORT_SCHEMA_NAMES) {
 }
 
 assert.equal(HELPER_FILE_MARKER_REGEX.test("// codon-ui-helper-file-marker"), true)
-assert.equal(HELPER_FILE_MARKER_REGEX.test("// amino-ui-helper-file-marker"), false)
+assert.equal(HELPER_FILE_MARKER_REGEX.test("// other-ui-helper-file-marker"), false)
 
 const originalCwd = process.cwd()
 const temporaryConsumerRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-package-info-"))
