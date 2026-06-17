@@ -100,6 +100,47 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
             {column.name ?? ""}
           </Text>
         )
+        const filterControl = columnAllowsFiltering ? (
+          filteringMode === TABLE_FILTERING_CONTROL_MODE__POPOVER && filteringControls?.onFiltersChange ? (
+            <TableFilterPopover<T>
+              column={column}
+              filterGroup={activeFilterGroup}
+              activeFilters={filteringControls.activeFilters}
+              onFiltersChange={filteringControls.onFiltersChange}
+              isFilterActive={isFilterActive}
+              activeFilterIcon={activeFilterIcon}
+              inactiveFilterIcon={inactiveFilterIcon}
+              triggerClassName={filterButtonClassName}
+              labels={filteringLabels}
+            />
+          ) : (
+            <button
+              type="button"
+              aria-label={filteringLabels.popover.triggerButtonAriaLabel({
+                criteriaName: column.name ?? column.id,
+              })}
+              aria-pressed={isFilterActive}
+              className={filterButtonClassName}
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                e.stopPropagation()
+                filteringControls?.onFilterIconPress?.({
+                  columnID: column.id,
+                  columnName: column.name ?? column.id,
+                  filterGroup: activeFilterGroup,
+                })
+              }}
+            >
+              {isFilterActive ? activeFilterIcon : inactiveFilterIcon}
+            </button>
+          )
+        ) : null
+        const sortIndicator =
+          columnAllowsSorting && sortDirection ? (
+            <span aria-hidden="true" className={styles.tableHeader__sortIndicator}>
+              {sortDirection === TABLE_SORT_DIRECTION__ASCENDING ? ascendingIcon : descendingIcon}
+            </span>
+          ) : null
 
         return (
           <TableColumn
@@ -124,46 +165,10 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
             {needsInnerWrapper ? (
               <div className={styles.tableHeader__cellInner}>
                 {nameText}
-                {columnAllowsFiltering && (
-                  <>
-                    {filteringMode === TABLE_FILTERING_CONTROL_MODE__POPOVER && filteringControls?.onFiltersChange ? (
-                      <TableFilterPopover<T>
-                        column={column}
-                        filterGroup={activeFilterGroup}
-                        activeFilters={filteringControls.activeFilters}
-                        onFiltersChange={filteringControls.onFiltersChange}
-                        isFilterActive={isFilterActive}
-                        activeFilterIcon={activeFilterIcon}
-                        inactiveFilterIcon={inactiveFilterIcon}
-                        triggerClassName={filterButtonClassName}
-                        labels={filteringLabels}
-                      />
-                    ) : (
-                      <button
-                        type="button"
-                        aria-label={filteringLabels.popover.triggerButtonAriaLabel({
-                          criteriaName: column.name ?? column.id,
-                        })}
-                        aria-pressed={isFilterActive}
-                        className={filterButtonClassName}
-                        onPointerDown={(e) => e.stopPropagation()}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          filteringControls?.onFilterIconPress?.({
-                            columnID: column.id,
-                            columnName: column.name ?? column.id,
-                            filterGroup: activeFilterGroup,
-                          })
-                        }}
-                      >
-                        {isFilterActive ? activeFilterIcon : inactiveFilterIcon}
-                      </button>
-                    )}
-                  </>
-                )}
-                {columnAllowsSorting && sortDirection && (
-                  <span aria-hidden="true" className={styles.tableHeader__sortIndicator}>
-                    {sortDirection === TABLE_SORT_DIRECTION__ASCENDING ? ascendingIcon : descendingIcon}
+                {(filterControl || sortIndicator) && (
+                  <span className={styles.tableHeader__iconGroup}>
+                    {filterControl}
+                    {sortIndicator}
                   </span>
                 )}
               </div>

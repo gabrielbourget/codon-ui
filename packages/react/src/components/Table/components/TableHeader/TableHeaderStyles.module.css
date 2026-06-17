@@ -50,6 +50,14 @@
   white-space: nowrap;
 }
 
+.tableHeader__iconGroup {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  gap: var(--cui-space-1);
+  min-width: 0;
+}
+
 .tableHeader__sortIndicator {
   display: flex;
   align-items: center;
