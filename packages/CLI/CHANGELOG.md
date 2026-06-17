@@ -1,5 +1,36 @@
 # @codon-ui/cli Changelog
 
+## 0.2.0 - 2026-06-17
+
+### Changed
+
+- Packaged the Codon UI React theme contract update that expands the canonical neutral scale to
+  `--cui-neutral-100` through `--cui-neutral-900`.
+- Packaged refreshed registry source and compatibility CSS for neutral-scale consumers.
+- Packaged the registry cleanup that removes the retired web registry scaffold from the published source path.
+
+### Consumer Notes
+
+- Treat this as a theme contract release. Consumers with installed Codon UI theme files should update their local
+  registry assets intentionally before applying product-specific theme overrides.
+- Use `pnpm --package=@codon-ui/cli@0.2.0 dlx codon-ui init --setup-cli` for the first verbose bootstrap call when
+  running through pnpm. The shorter local `pnpm cui ...` path is available after `init --setup-cli` and `pnpm install`.
+
+### Verification
+
+- `pnpm -F @codon-ui/react check:contracts`
+- `pnpm -F @codon-ui/react stylelint`
+- `pnpm -F @codon-ui/react typecheck`
+- `pnpm -F @codon-ui/cli test`
+- `pnpm -F @codon-ui/cli typecheck`
+- `pnpm -F @codon-ui/cli lint`
+- `pnpm -F @codon-ui/cli build`
+- `pnpm -F @codon-ui/cli pack:check`
+- `pnpm -F @codon-ui/cli release:check`
+- `pnpm build:docs`
+- `git diff --check`
+- Post-publish registry smoke target: `CODON_UI_PUBLISHED_CLI_VERSION=0.2.0 pnpm verify:published-package-smoke`
+
 ## 0.1.3 - 2026-06-14
 
 ### Fixed

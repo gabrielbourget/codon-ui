@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs"
 
 const REQUIRED_PACKAGE_NAME = "@codon-ui/cli"
-const REQUIRED_PACKAGE_VERSION = "0.1.3"
+const REQUIRED_PACKAGE_VERSION = "0.2.0"
 const REQUIRED_PREPUBLISH_ONLY_SCRIPT = "pnpm pack:check && pnpm release:check"
 const REQUIRED_PUBLISH_ACCESS = "restricted"
 
