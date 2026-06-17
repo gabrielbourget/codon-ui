@@ -4,7 +4,7 @@
   --cui-color-tertiary-500: var(--cui-state-success);
   --cui-color-quaternary-500: var(--cui-state-warning);
   --cui-color-quintenary-500: var(--cui-state-danger);
-  --cui-neutral-8: var(--cui-neutral-800);
+  --cui-neutral-8: var(--cui-neutral-900);
   --disabledOpacity: var(--cui-opacity-disabled);
   --colorTransition: var(--cui-transition-color);
   --bgColorTransition: var(--cui-transition-background-color);

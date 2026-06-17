@@ -100,7 +100,7 @@ const requiredVariables = [
 ]
 
 requiredVariables.forEach((name) => requireThemeVariable(variables, name))
-requireVariableFamily(variables, "--cui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800"])
+requireVariableFamily(variables, "--cui-neutral-", ["100", "200", "300", "400", "500", "600", "700", "800", "900"])
 requireVariableFamily(variables, "--cui-space-", [
   "1",
   "2",
