@@ -133,6 +133,10 @@ requiredStyleSelectors.forEach((selector) => {
   assert(stylesSource.includes(cssValue), `Button CSS must read ${cssValue}`)
 })
 assert(!forbiddenLegacyCssPattern.test(stylesSource), "Button CSS must not read legacy Wavemap aliases")
+assert(
+  !stylesSource.includes(".button[data-hovered]:not([data-disabled]) svg"),
+  "Button hover background must stay on the root button instead of child SVGs",
+)
 
 requiredActionColorVariables.forEach((cssVariable) => {
   assert(actionColorsSource.includes(cssVariable), `action-colors CSS must define ${cssVariable}`)
