@@ -49,13 +49,15 @@
       "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
       "importSource": "--distance_3 alias",
       "replacementSource": "--cui-space-3",
-      "notes": ["Card spacing reads the default Amino space scale instead of the legacy distance alias."]
+      "notes": ["Card spacing reads the default Codon UI space scale instead of the legacy distance alias."]
     },
     {
       "sourcePath": "packages/react/src/components/Card/CardStyles.module.css",
       "importSource": "--shadow_1 alias",
       "replacementSource": "--cui-shadow-1",
-      "notes": ["Card raised styling reads the default Amino shadow contract instead of a proof compatibility bridge."]
+      "notes": [
+        "Card raised styling reads the default Codon UI shadow contract instead of a proof compatibility bridge."
+      ]
     },
     {
       "sourcePath": "packages/react/src/components/Card/__tests__/Card.test.tsx",
@@ -133,6 +135,6 @@
     "Keep calibrateComponent, normalizeDimension, CSS-module internals, and Motion helper details private unless a later API review approves exporting helper internals.",
     "Do not move ArtistCard, auth/settings card wrappers, FilterClauseRow, table/query filtering source, media thumbnail helpers, VisualUtilities, SortParameterList, app pages, component showcase code, reduced-motion abstractions, or broader app consumers with Card.",
     "This source-receipt pass does not activate a card manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

@@ -100,8 +100,6 @@ export const fetchRegistry = async (
     const results = await Promise.all(
       paths.map(async (path) => {
         if (registryType === REGISTRY_TYPE__COMPONENTS) {
-          // - TODO: -> Figure out how shadcn uses agent here but it doesn't work for me.
-          // const response = await fetch(`${baseUrl}/registry/${path}`, { agent });
           const response = await fetchRegistryJson(`${baseUrl}/registry/components/${path}`, timeoutMs)
           return await response.json()
         } else if (registryType === REGISTRY_TYPE__HELPERS) {

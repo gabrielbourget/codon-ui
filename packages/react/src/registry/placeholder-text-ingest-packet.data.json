@@ -132,6 +132,6 @@
     "Keep calibrateComponent and alignment constants private unless a later API review approves exporting helper internals.",
     "Do not move ListBoxItem, Select, ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, app empty states, app forms, component showcase code, or broader Text variant source with PlaceholderText.",
     "This source-receipt pass does not activate a placeholder-text manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

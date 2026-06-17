@@ -89,7 +89,7 @@ for (const schemaName of CLI_JSON_REPORT_SCHEMA_NAMES) {
 }
 
 assert.equal(HELPER_FILE_MARKER_REGEX.test("// codon-ui-helper-file-marker"), true)
-assert.equal(HELPER_FILE_MARKER_REGEX.test("// amino-ui-helper-file-marker"), false)
+assert.equal(HELPER_FILE_MARKER_REGEX.test("// other-ui-helper-file-marker"), false)
 
 const originalCwd = process.cwd()
 const temporaryConsumerRoot = mkdtempSync(path.join(tmpdir(), "codon-ui-package-info-"))

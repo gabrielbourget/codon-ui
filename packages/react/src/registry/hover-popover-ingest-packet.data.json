@@ -63,25 +63,25 @@
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--distance_2 / --distance_3 aliases",
       "replacementSource": "--cui-space-2 / --cui-space-3",
-      "notes": ["HoverPopover CSS reads the default Amino spacing contract instead of Wavemap aliases."]
+      "notes": ["HoverPopover CSS reads the default Codon UI spacing contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--border_radius_1 alias",
       "replacementSource": "--cui-radius-1",
-      "notes": ["HoverPopover CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
+      "notes": ["HoverPopover CSS reads the default Codon UI radius contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
       "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
-      "notes": ["HoverPopover CSS reads the default Amino animation contract instead of Wavemap aliases."]
+      "notes": ["HoverPopover CSS reads the default Codon UI animation contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
       "importSource": "--shadow_1 alias",
       "replacementSource": "--cui-shadow-1",
-      "notes": ["HoverPopover CSS uses the stable Amino shadow token instead of a component compatibility bridge."]
+      "notes": ["HoverPopover CSS uses the stable Codon UI shadow token instead of a component compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/HoverPopover/HoverPopoverStyles.module.css",
@@ -205,6 +205,6 @@
     "Keep calibrateComponent, geometry/color helpers, overlay-arrow classes, class/style merge helpers, and default arrow SVG private unless a later API review approves exporting helper internals.",
     "Do not move HoverPopoverRadix, Radix hover-card policy, Tooltip, Menu, Modal, AlertDialog, Panel, Breadcrumbs, Link, router/link adapter policy, sheets, app forms, media surfaces, table/query surfaces, Button, Text, TooltipTrigger, icons, component showcase code, or broader app consumers with HoverPopover.",
     "This source-receipt pass does not activate a hover-popover manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

@@ -63,7 +63,7 @@
       "sourcePath": "packages/react/src/components/LinearProgress/LinearProgressStyles.module.css",
       "importSource": "--shadow_1 / --border_radius_1 aliases",
       "replacementSource": "--cui-shadow-1 / --cui-radius-1",
-      "notes": ["LinearProgress CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+      "notes": ["LinearProgress CSS reads the default Codon UI theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/LinearProgress/LinearProgressStyles.module.css",
@@ -170,6 +170,6 @@
     "Keep calibrateComponent, orientation/direction constants, geometry helpers, class/style merge helpers, and Motion transition details private unless a later API review approves exporting helper internals.",
     "Do not move Meter, Card, Select, ComboBox, ListBoxItem, TagComboBox, Table, Filtering, Pagination, app forms, component showcase code, animation-token support, reduced-motion abstractions, or broader app consumers with LinearProgress.",
     "This source-receipt pass does not activate a linear-progress manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

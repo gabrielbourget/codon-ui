@@ -160,31 +160,31 @@
       "sourcePath": "packages/react/src/components/Toaster/**/*.css",
       "importSource": "--distance_* aliases",
       "replacementSource": "--cui-space-*",
-      "notes": ["Toaster spacing reads the default Amino space scale instead of legacy distance aliases."]
+      "notes": ["Toaster spacing reads the default Codon UI space scale instead of legacy distance aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
       "importSource": "--border_radius_* aliases",
       "replacementSource": "--cui-radius-*",
-      "notes": ["Toast rounded geometry reads the default Amino radius contract."]
+      "notes": ["Toast rounded geometry reads the default Codon UI radius contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
       "importSource": "--shadow_1 alias",
       "replacementSource": "--cui-shadow-1",
-      "notes": ["Toast raised styling uses the stable Amino shadow token."]
+      "notes": ["Toast raised styling uses the stable Codon UI shadow token."]
     },
     {
       "sourcePath": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
       "importSource": "--focus-ring-color alias",
       "replacementSource": "--cui-focus-ring",
-      "notes": ["Toast focus styling uses the default Amino focus-ring contract."]
+      "notes": ["Toast focus styling uses the default Codon UI focus-ring contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Toaster/**/*.css",
       "importSource": "--Z_INDEX_TOAST alias",
       "replacementSource": "--cui-z-index-toast",
-      "notes": ["Toaster stacking reads the default Amino toast z-index contract."]
+      "notes": ["Toaster stacking reads the default Codon UI toast z-index contract."]
     }
   ],
   "excludedSourcePaths": [

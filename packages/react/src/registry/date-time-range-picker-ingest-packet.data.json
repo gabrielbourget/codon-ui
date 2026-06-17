@@ -163,7 +163,7 @@
         "--cui-z-index-modal"
       ],
       "notes": [
-        "DateTimeRangePicker should use the default Amino theme contract directly after CSS alias rewrites.",
+        "DateTimeRangePicker should use the default Codon UI theme contract directly after CSS alias rewrites.",
         "Range calendar styling follows the existing DateTimePicker theme and dark-theme selector model."
       ]
     },

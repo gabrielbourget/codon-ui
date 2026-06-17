@@ -70,31 +70,31 @@
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--Z_INDEX_PANEL alias",
       "replacementSource": "--cui-z-index-panel",
-      "notes": ["Panel stacking reads the default Amino z-index contract instead of a compatibility bridge."]
+      "notes": ["Panel stacking reads the default Codon UI z-index contract instead of a compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--z-index-content-offset alias",
       "replacementSource": "--cui-z-index-content-offset",
-      "notes": ["Panel content stacking reads the default Amino z-index offset contract."]
+      "notes": ["Panel content stacking reads the default Codon UI z-index offset contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--z-index-overlay-offset alias",
       "replacementSource": "--cui-z-index-overlay-offset",
-      "notes": ["Panel overlay stacking reads the default Amino z-index offset contract."]
+      "notes": ["Panel overlay stacking reads the default Codon UI z-index offset contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--shadow_1 alias",
       "replacementSource": "--cui-shadow-1",
-      "notes": ["Raised Panel styling uses the stable Amino shadow token."]
+      "notes": ["Raised Panel styling uses the stable Codon UI shadow token."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/PanelStyles.module.css",
       "importSource": "--border_radius_1 alias",
       "replacementSource": "--cui-radius-1",
-      "notes": ["Panel rounded geometry uses the default Amino radius contract."]
+      "notes": ["Panel rounded geometry uses the default Codon UI radius contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Panel/__tests__/Panel.test.tsx",

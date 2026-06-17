@@ -156,7 +156,7 @@
         "--cui-transition-color"
       ],
       "notes": [
-        "DateTimePicker should use the default Amino theme contract directly after CSS alias rewrites.",
+        "DateTimePicker should use the default Codon UI theme contract directly after CSS alias rewrites.",
         "Dark-theme calendar selection styling and z-index pressure need source-receipt review before activation."
       ]
     },

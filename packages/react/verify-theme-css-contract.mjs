@@ -127,7 +127,7 @@ requireVariableFamily(variables, "--cui-radius-", ["1", "2", "3", "4", "5"])
 requireVariableFamily(variables, "--cui-shadow-", ["1", "2", "3", "4", "5"])
 
 if (themeCSS.includes("--aui-")) {
-  fail("Expected theme.css to expose only --cui-* variables; found a legacy --aui-* token.")
+  fail("Expected theme.css to expose only --cui-* variables; found a non-Codon UI token.")
 }
 
 if (!themeCSS.includes("@keyframes fade-in")) {
