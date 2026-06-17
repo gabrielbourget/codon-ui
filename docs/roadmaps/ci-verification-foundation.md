@@ -32,17 +32,16 @@ caching stay consistent between monorepos.
 pnpm -F web exec next build
 ```
 
-This is deliberate. The current web package `build` script still couples registry generation and Next build, while the
-registry artifact contract is unresolved. The CI foundation should validate the buildable workspace surface without
-turning the legacy registry builder path into new policy.
+This is deliberate. The web package `build` script runs the same plain Next build. The CI foundation should validate the
+buildable workspace surface without turning registry artifact generation into policy.
 
 ## Test Boundary
 
 `pnpm verify:tests` establishes the test entrypoint before the real component proof harness exists. Package-local tests
 can be added incrementally, and CI will pick them up through the recursive `--if-present` script.
 
-The CLI currently has a passing no-op test script so the recursive test surface is not blocked by the legacy placeholder
-failure. This is only a harness baseline, not CLI behavior proof.
+The CLI currently has a passing no-op test script so the recursive test surface is not blocked by a placeholder failure.
+This is only a harness baseline, not CLI behavior proof.
 
 ## Out Of Scope
 

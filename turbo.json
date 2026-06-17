@@ -5,7 +5,7 @@
     "build": {
       "dependsOn": ["^build"],
       "env": ["NEXT_PUBLIC_APP_URL", "COMPONENTS_REGISTRY_URL"],
-      "outputs": ["dist/**", ".next/**", "build/**", "public/registry/**", "!**/.next/cache/**"]
+      "outputs": ["dist/**", ".next/**", "build/**", "!**/.next/cache/**"]
     },
     "preview": {
       "env": ["NEXT_PUBLIC_APP_URL"],

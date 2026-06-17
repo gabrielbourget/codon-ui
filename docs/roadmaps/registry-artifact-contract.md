@@ -32,18 +32,7 @@ Keep this roadmap focused on public artifact hosting, generator, and publication
 - `verify-local-registry-snapshot.ts` checks the tracked CLI local support and full React registry snapshots against the
   canonical React manifest so early advisory planning cannot silently drift.
 
-The current web app registry code is legacy scaffold and should not be treated as authoritative.
-
-Current reads:
-
-- `apps/web/registry` owns the existing builder, schemas, helper files, and component registry list.
-- The builder writes JSON artifacts under `apps/web/public/registry`.
-- `apps/web` still couples `build` to registry generation through `pnpm build:registry`.
-- The current package script references `./scripts/build-registry.ts`, while the tracked builder lives at
-  `registry/buildRegistry.ts`.
-- The builder reads component directories and helper files from the web app registry tree rather than from
-  `packages/react`.
-- The CLI currently fetches registry artifacts, but install/update/diff behavior is not proof-ready.
+`apps/web` does not own registry source, registry manifests, or artifact generation.
 
 Current active React manifest entries:
 
@@ -70,7 +59,7 @@ Canonical source should live in `packages/react`:
 - Registry manifests or file lists owned near the React package, not inside generated output.
 
 The registry builder should consume explicit manifests or file lists. It should not infer ownership through broad
-directory recursion, generated output directories, or stale web-app registry lists.
+directory recursion or generated output directories.
 
 The current CLI local support registry at `packages/CLI/registry/local-react-support.registry.json` is a checked-in
 snapshot for support-only advisory planning. It must match the support/theme subset of the active React manifest.
@@ -81,13 +70,13 @@ snapshot update step, but this pass deliberately adds verification rather than c
 
 ## Artifact Policy
 
-`public/registry` should be treated as generated build output, not canonical source.
+`public/registry` should be treated as generated build output, not canonical source, if artifact hosting is introduced.
 
 That means:
 
 - Source files and manifests are reviewed and tracked.
 - Generated registry artifacts are reproducible from tracked source and manifests.
-- The web app may generate artifacts during its build when the serving strategy requires static public files.
+- A builder may generate artifacts during a package or app build when the serving strategy requires static public files.
 - Tracking generated artifacts should remain a separate deployment or release-policy decision.
 
 The first component proof should not depend on committed generated artifacts unless a deliberate hosting or review
@@ -156,11 +145,11 @@ The first proof does not need:
 - Publication or release automation.
 - Generated token writers.
 - Broad registry generation rewrites.
-- A full replacement for every legacy `apps/web/registry` helper.
+- A full hosted-artifact builder.
 
 ## Web App Boundary
 
-`apps/web` may serve generated artifacts, but it should not own canonical React component source.
+`apps/web` may serve generated artifacts in the future, but it should not own canonical React component source.
 
 The eventual builder can live in the web app, a package, or a dedicated registry package. That location is less important
 than preserving the data flow:
@@ -169,8 +158,7 @@ than preserving the data flow:
 tracked package source and manifests -> generated JSON artifacts -> web serving or CLI fetching
 ```
 
-The current `apps/web` build coupling should be revisited when the builder is renovated. Do not expand CLI behavior to
-compensate for unclear artifact ownership.
+Do not expand CLI behavior to compensate for unclear artifact ownership.
 
 ## Stop Conditions
 
@@ -183,7 +171,7 @@ Return to deliberate planning if implementation requires:
 - Deciding package publication or release automation.
 - Mutating deployment workflows.
 - Committing generated registry output as policy.
-- Redesigning every legacy registry helper at once.
+- Designing a full hosted-artifact builder as incidental cleanup.
 
 ## Verification Expectations
 

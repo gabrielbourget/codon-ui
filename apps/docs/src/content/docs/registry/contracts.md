@@ -129,10 +129,8 @@ resolver contract before it replaces the CLI-bundled proof shape.
 
 ## Artifact Policy
 
-`public/registry` should be treated as generated build output unless a later release or deployment policy deliberately
-chooses to track generated artifacts.
-
-The current web app still has legacy registry code. Do not treat it as authoritative for future source ownership.
+`public/registry` should be treated as generated build output if a later release or deployment policy introduces hosted
+artifacts and deliberately chooses to track them.
 
 ## Consumer Planning
 
