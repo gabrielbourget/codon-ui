@@ -98,7 +98,7 @@
       "sourcePath": "packages/react/src/components/ComboBox/ComboBoxStyles.module.css",
       "importSource": "--distance_1 / --disabledOpacity / --borderColorTransition / --border_radius_1 / --focus-ring-color / --fadeInAnimation / --fadeOutAnimation / --shadow_1 aliases",
       "replacementSource": "--cui-space-1 / --cui-opacity-disabled / --cui-transition-border-color / --cui-radius-1 / --cui-focus-ring / --cui-animation-fade-in / --cui-animation-fade-out / --cui-shadow-1",
-      "notes": ["ComboBox CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+      "notes": ["ComboBox CSS reads the default Codon UI theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/ComboBox/__tests__/ComboBox.test.tsx",
@@ -194,6 +194,6 @@
     "Keep calibrateComponent, size constants/types, geometry helpers, placement typing, class/style merge helpers, validation state helpers, label helper internals, and the default chevron icon private to the package root unless a later API review approves exporting helper internals.",
     "Do not move TagComboBox, TagGroup, AdobeTag, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, Input API changes, app forms, component showcase code, or broader app consumers with ComboBox.",
     "This source-receipt pass does not activate a combo-box manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

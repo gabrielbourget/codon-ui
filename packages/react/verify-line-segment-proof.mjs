@@ -65,7 +65,7 @@ assert(
   "LineSegment must preserve its local direction vocabulary",
 )
 assert(lineSegmentSource.includes("export type TLineSegmentProps"), "LineSegment must export local props")
-assert(lineSegmentSource.includes('color = "var(--cui-border)"'), "LineSegment must use the Amino border default")
+assert(lineSegmentSource.includes('color = "var(--cui-border)"'), "LineSegment must use the Codon UI border default")
 assert(
   lineSegmentSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
   "LineSegment must default horizontal",

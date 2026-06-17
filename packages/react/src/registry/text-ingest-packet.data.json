@@ -183,6 +183,6 @@
     "Keep calibrateComponent private unless a later API review approves exporting helper internals.",
     "Do not move PlaceholderText, Wavemap app font loading, broad app consumers, or unrelated typography SCSS into the Text runtime source graph.",
     "This source-receipt pass does not activate a text manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

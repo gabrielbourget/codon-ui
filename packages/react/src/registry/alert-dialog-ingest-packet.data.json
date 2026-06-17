@@ -114,37 +114,37 @@
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--distance_1 / --distance_2 / --distance_3 / --distance_4 aliases",
       "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-space-3 / --cui-space-4",
-      "notes": ["AlertDialog spacing uses the default Amino space scale instead of legacy distance aliases."]
+      "notes": ["AlertDialog spacing uses the default Codon UI space scale instead of legacy distance aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
       "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
-      "notes": ["AlertDialog enter and exit animations read default Amino animation tokens."]
+      "notes": ["AlertDialog enter and exit animations read default Codon UI animation tokens."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--shadow_1 / --shadow_2 aliases",
       "replacementSource": "--cui-shadow-1 / --cui-shadow-2",
-      "notes": ["AlertDialog raised and icon-circle styling use stable Amino shadow tokens."]
+      "notes": ["AlertDialog raised and icon-circle styling use stable Codon UI shadow tokens."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--border_radius_2 alias",
       "replacementSource": "--cui-radius-2",
-      "notes": ["AlertDialog rounded geometry uses the default Amino radius contract."]
+      "notes": ["AlertDialog rounded geometry uses the default Codon UI radius contract."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--focus-ring-color alias",
       "replacementSource": "--cui-focus-ring",
-      "notes": ["AlertDialog dialog focus styling uses the default Amino focus-ring contract."]
+      "notes": ["AlertDialog dialog focus styling uses the default Codon UI focus-ring contract."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/AlertDialogStyles.module.css",
       "importSource": "--Z_INDEX_MODAL alias",
       "replacementSource": "--cui-z-index-modal",
-      "notes": ["AlertDialog overlay stacking uses the default Amino modal z-index contract."]
+      "notes": ["AlertDialog overlay stacking uses the default Codon UI modal z-index contract."]
     },
     {
       "sourcePath": "packages/react/src/components/AlertDialog/__tests__/AlertDialog.test.tsx",

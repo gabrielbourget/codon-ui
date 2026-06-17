@@ -56,25 +56,25 @@
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--distance_1 alias",
       "replacementSource": "--cui-space-1",
-      "notes": ["Link spacing reads the default Amino space scale directly."]
+      "notes": ["Link spacing reads the default Codon UI space scale directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--border_radius_1 alias",
       "replacementSource": "--cui-radius-1",
-      "notes": ["Link corner radius reads the default Amino radius scale directly."]
+      "notes": ["Link corner radius reads the default Codon UI radius scale directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--focus-ring-color alias",
       "replacementSource": "--cui-focus-ring",
-      "notes": ["Link focus styling reads the default Amino focus-ring contract directly."]
+      "notes": ["Link focus styling reads the default Codon UI focus-ring contract directly."]
     },
     {
       "sourcePath": "packages/react/src/components/Link/LinkStyles.module.css",
       "importSource": "--disabledOpacity alias",
       "replacementSource": "--cui-opacity-disabled",
-      "notes": ["Link disabled styling reads the default Amino disabled opacity contract directly."]
+      "notes": ["Link disabled styling reads the default Codon UI disabled opacity contract directly."]
     }
   ],
   "excludedSourcePaths": [
@@ -177,6 +177,6 @@
     "Keep calibrateComponent and CSS-module internals private unless a later API review approves exporting helper internals.",
     "Do not move Breadcrumbs, Next link/router/navigation policy, locale routing, app providers, component showcase code, Table, filtering/query adapters, Toast/Toaster, media surfaces, or broader app consumers with Link.",
     "This source-receipt pass does not activate a link manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

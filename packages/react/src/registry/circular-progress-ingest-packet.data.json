@@ -195,6 +195,6 @@
     "Keep Path, dash/path helpers, calibration helpers, viewBox constants, and stroke-linecap support private or support-level unless a later API review approves exporting helper internals.",
     "Do not move Counter, LinearProgress, Meter, Card, Avatar, Button, input controls, component-showcase code, or broad app consumers with the CircularProgress component.",
     "This source-receipt pass does not activate a circular-progress manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

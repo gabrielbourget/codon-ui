@@ -186,8 +186,8 @@ assert(
 )
 assert(!receivedSourceText.includes("@wavemap/api-contracts"), "Wavemap API contracts must not enter source")
 assert(!receivedSourceText.includes("motion/react"), "SortAndFilterPanel must not import Motion")
-assert(receivedStyleText.includes("var(--cui-border-muted)"), "SortAndFilterPanel CSS must use Amino border tokens")
-assert(receivedStyleText.includes("var(--cui-space-2)"), "SortAndFilterPanel CSS must use Amino spacing tokens")
+assert(receivedStyleText.includes("var(--cui-border-muted)"), "SortAndFilterPanel CSS must use Codon UI border tokens")
+assert(receivedStyleText.includes("var(--cui-space-2)"), "SortAndFilterPanel CSS must use Codon UI spacing tokens")
 
 expectedThemeVariables.forEach((cssVariable) => {
   assert(themeCSS.includes(`${cssVariable}:`), `theme.css must declare ${cssVariable}`)

@@ -133,6 +133,6 @@
     "Keep calibrateComponent and orientation constants private unless a later API review approves exporting helper internals.",
     "Do not move Radio, Text, component-showcase code, or focused test composition into the RadioGroup runtime source graph.",
     "This source-receipt pass does not activate a radio-group manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

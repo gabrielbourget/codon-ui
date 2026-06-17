@@ -235,6 +235,6 @@
     "The package root exports TagGroup only in this source receipt to avoid colliding with the standalone Tag root export; the TagGroup folder barrel records the nested AdobeTag export intent for registry consumers.",
     "Do not move TagComboBox, Wavemap Button, standalone Wavemap Tag, active sort/filter panels, table/form/gallery consumers, app routes, or component-showcase code with TagGroup.",
     "This source-receipt pass does not activate a tag-group manifest item, regenerate local registry snapshots, change CLI behavior, install dependencies, or create fixture evidence.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

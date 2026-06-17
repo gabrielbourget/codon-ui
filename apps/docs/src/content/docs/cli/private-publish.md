@@ -75,8 +75,8 @@ pnpm -F @codon-ui/cli publish --access restricted
 ```
 
 The package `prepublishOnly` hook runs `pack:check` and `release:check`. The release guard fails if the package manifest
-contains public publish settings, legacy public publish scripts, an unexpected package name/version, an unexpected file
-allowlist, or missing restricted access.
+contains public publish settings, disallowed public publish scripts, an unexpected package name/version, an unexpected
+file allowlist, or missing restricted access.
 
 ## Post-Publish Smoke
 

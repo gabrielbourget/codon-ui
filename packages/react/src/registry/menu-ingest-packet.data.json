@@ -103,49 +103,49 @@
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--distance_1 alias",
       "replacementSource": "--cui-space-1",
-      "notes": ["Menu CSS reads the default Amino spacing contract instead of Wavemap aliases."]
+      "notes": ["Menu CSS reads the default Codon UI spacing contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--border_radius_1 alias",
       "replacementSource": "--cui-radius-1",
-      "notes": ["Menu CSS reads the default Amino radius contract instead of a proof compatibility bridge."]
+      "notes": ["Menu CSS reads the default Codon UI radius contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--fadeInAnimation / --fadeOutAnimation aliases",
       "replacementSource": "--cui-animation-fade-in / --cui-animation-fade-out",
-      "notes": ["Menu CSS reads the default Amino animation contract instead of Wavemap aliases."]
+      "notes": ["Menu CSS reads the default Codon UI animation contract instead of Wavemap aliases."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--shadow_1 alias",
       "replacementSource": "--cui-shadow-1",
-      "notes": ["Menu CSS uses the stable Amino shadow token instead of a component compatibility bridge."]
+      "notes": ["Menu CSS uses the stable Codon UI shadow token instead of a component compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--bgColorTransition alias",
       "replacementSource": "--cui-transition-background-color",
-      "notes": ["Menu item hover transitions use the default Amino transition contract."]
+      "notes": ["Menu item hover transitions use the default Codon UI transition contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--focus-ring-color alias",
       "replacementSource": "--cui-focus-ring",
-      "notes": ["Menu focus rings use the default Amino focus-ring contract."]
+      "notes": ["Menu focus rings use the default Codon UI focus-ring contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--disabledOpacity alias",
       "replacementSource": "--cui-control-disabled-opacity",
-      "notes": ["Disabled item opacity uses the default Amino control opacity contract."]
+      "notes": ["Disabled item opacity uses the default Codon UI control opacity contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
       "importSource": "--cui-status-danger alias",
       "replacementSource": "--cui-state-danger",
-      "notes": ["Destructive item color uses the default Amino state-danger contract."]
+      "notes": ["Destructive item color uses the default Codon UI state-danger contract."]
     },
     {
       "sourcePath": "packages/react/src/components/Menu/MenuStyles.module.css",
@@ -265,6 +265,6 @@
     "Keep calibrateComponent, item/separator calibration helpers, geometry/color helpers, class/style merge helpers, and CSS module internals private unless a later API review approves exporting helper internals.",
     "Do not move Breadcrumbs, Link, router/link adapter policy, Panel, Modal, AlertDialog, HoverPopoverRadix, Radix hover-card policy, sheets, toast/toaster, app forms, file-upload table source, media surfaces, table/query surfaces, Button, Text, icons, MenuTrigger, component showcase code, or broader app consumers with Menu.",
     "This source-receipt pass does not activate a menu manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

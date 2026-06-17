@@ -6,8 +6,7 @@
   "packageManager": "pnpm@10.18.3",
   "scripts": {
     "dev": "next dev --turbo",
-    "build": "pnpm build:registry && next build",
-    "build:registry": "tsx --tsconfig ./tsconfig.scripts.json ./scripts/build-registry.ts",
+    "build": "next build",
     "start": "next start -p 3001",
     "lint": "eslint . --max-warnings=0 --cache",
     "lint:fix": "eslint . --fix --cache",
@@ -16,7 +15,7 @@
     "format:check": "prettier --check .",
     "preview": "next build && next start -p 3001",
     "precommit": "pnpm format:check && pnpm lint && pnpm stylelint && pnpm typecheck",
-    "stylelint": "stylelint \"{src,registry}/**/*.{css,scss}\"",
+    "stylelint": "stylelint \"src/**/*.{css,scss}\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {

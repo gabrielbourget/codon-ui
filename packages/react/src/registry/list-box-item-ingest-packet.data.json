@@ -56,7 +56,7 @@
       "sourcePath": "packages/react/src/components/ListBoxItem/ListBoxItemStyles.module.css",
       "importSource": "--distance_1 / --border_radius_1 / --bgColorTransition / --disabledOpacity aliases",
       "replacementSource": "--cui-space-1 / --cui-radius-1 / --cui-transition-background-color / --cui-opacity-disabled",
-      "notes": ["ListBoxItem CSS reads the default Amino theme contract instead of a proof compatibility bridge."]
+      "notes": ["ListBoxItem CSS reads the default Codon UI theme contract instead of a proof compatibility bridge."]
     },
     {
       "sourcePath": "packages/react/src/components/ListBoxItem/__tests__/ListBoxItem.test.tsx",
@@ -139,6 +139,6 @@
     "Keep RequiresID, calibrateComponent, size constants, text-size helpers, and class/style merge helpers private to the package root unless a later API review approves exporting helper internals.",
     "Do not move Select, ComboBox, TagComboBox, typeahead/search wrappers, filtering panels, pagination controls, breadcrumbs, app forms, component showcase code, or broader app consumers with ListBoxItem.",
     "This source-receipt pass does not activate a list-box-item manifest item, regenerate local registry snapshots, change CLI behavior, create fixture evidence, or delete/reinstall Wavemap source.",
-    "Existing Amino UI shadcn-era registry material is not authoritative for this packet or future component packets."
+    "This packet records the Codon UI source receipt for this component."
   ]
 }

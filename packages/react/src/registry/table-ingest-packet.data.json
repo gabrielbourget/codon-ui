@@ -537,7 +537,7 @@
       "sourcePath": "packages/react/src/components/Table/** packages/react/src/components/Filtering/** packages/react/src/components/SortParameterList/**",
       "importSource": "@/src/components/Table/* and @/src/components/Filtering/*",
       "replacementSource": "relative package-local table and filtering imports",
-      "notes": ["The receipt should not add Wavemap path alias support to Amino UI."]
+      "notes": ["The receipt should not add Wavemap path alias support to Codon UI."]
     },
     {
       "sourcePath": "packages/react/src/components/Table/Table.tsx",
@@ -572,7 +572,7 @@
       "sourcePath": "packages/react/src/components/Table/**/*.css packages/react/src/components/Filtering/**/*.css packages/react/src/components/SortParameterList/**/*.css",
       "importSource": "--distance_1 / --distance_2 / --border_radius_1 / --shadow_1 / --bgColorTransition / --colorTransition aliases",
       "replacementSource": "--cui-space-1 / --cui-space-2 / --cui-radius-1 / --cui-shadow-1 / --cui-transition-background-color / --cui-transition-color",
-      "notes": ["Legacy Wavemap CSS aliases should be rewritten directly to the default Amino theme contract."]
+      "notes": ["Legacy Wavemap CSS aliases should be rewritten directly to the default Codon UI theme contract."]
     }
   ],
   "excludedSourcePaths": [
@@ -646,7 +646,7 @@
         "--cui-transition-color"
       ],
       "notes": [
-        "Table, Filtering, and SortParameterList source should read the default Amino theme contract directly after CSS alias rewrites."
+        "Table, Filtering, and SortParameterList source should read the default Codon UI theme contract directly after CSS alias rewrites."
       ]
     },
     {
@@ -703,7 +703,7 @@
   ],
   "notes": [
     "Table metadata models the public add table command as a rich table-builder kit rather than exposing internal registry subgraph names.",
-    "The source receipt moves the reusable Table, Filtering, and SortParameterList runtime graph into Amino UI, activates the public table manifest item, adds Table-owned runtime dependency pressure, and exports the Table kit without changing CLI behavior.",
+    "The source receipt moves the reusable Table, Filtering, and SortParameterList runtime graph into Codon UI, activates the public table manifest item, adds Table-owned runtime dependency pressure, and exports the Table kit without changing CLI behavior.",
     "The runtime graph includes Table core, table-owned filter draft/metadata/query vocabulary, TableFilterPopover, FilterClauseRow, DynamicFilterArgumentInput, SortParameterList, and their CSS modules/default icons.",
     "EventTable, RecentEventsTable, FileUploadTable, SortAndFilterPanel, backend query execution, upload/media workflows, saved views, route state, component showcase source, and Wavemap i18n adapters stay consumer-owned.",
     "Alignment, drag, and responsive token support plus DateTimePicker source receipt remain active prerequisites for the received Table graph.",
