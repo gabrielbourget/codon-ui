@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs"
 
 import { cleanup, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { useState } from "react"
 import { Button, DialogTrigger } from "react-aria-components"
 import { describe, expect, it } from "vitest"
 
@@ -17,6 +18,21 @@ const ModalExample = ({ children, ...props }: Partial<TModalProps>) => (
     <Modal {...props}>{children}</Modal>
   </DialogTrigger>
 )
+
+const ControlledModalExample = () => {
+  const [isOpen, setIsOpen] = useState(false)
+
+  return (
+    <>
+      <Button aria-label="Open controlled modal" onPress={() => setIsOpen(true)}>
+        Open
+      </Button>
+      <Modal isOpen={isOpen} onOpenChange={setIsOpen} aria-label="Controlled modal">
+        <span>Controlled modal body</span>
+      </Modal>
+    </>
+  )
+}
 
 const openDialog = async (role: "dialog" | "alertdialog" = "dialog") => {
   const user = userEvent.setup()
@@ -36,6 +52,20 @@ describe("<Modal />", () => {
     render(<ModalExample />)
     const { dialog } = await openDialog()
     expect(dialog).toBeInTheDocument()
+  })
+
+  it("supports controlled standalone open state.", async () => {
+    const user = userEvent.setup()
+
+    render(<ControlledModalExample />)
+
+    await user.click(screen.getByRole("button", { name: "Open controlled modal" }))
+
+    expect(await screen.findByRole("dialog", { name: "Controlled modal" })).toHaveTextContent("Controlled modal body")
+
+    await user.keyboard("{Escape}")
+
+    expect(screen.queryByRole("dialog", { name: "Controlled modal" })).not.toBeInTheDocument()
   })
 
   describe("props API surface", () => {

@@ -61,9 +61,15 @@ const Modal: TModalComponent = forwardRef<HTMLDivElement, PropsWithChildren<TMod
   const resolvedAriaDetails = ariaDetailsProp ?? ariaDetails
 
   return (
-    <ModalOverlay className={overlayStyles} style={customOverlayStyles} data-testid="modal-overlay">
+    <ModalOverlay
+      {...rest}
+      className={overlayStyles}
+      style={customOverlayStyles}
+      isDismissable={isDismissable}
+      isKeyboardDismissDisabled={isKeyboardDismissDisabled}
+      data-testid="modal-overlay"
+    >
       <AdobeModal
-        {...rest}
         className={modalStyles}
         style={{ ...customStyles }}
         ref={forwardedRef}
