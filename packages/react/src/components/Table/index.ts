@@ -9,6 +9,8 @@ export { default as DynamicFilterArgumentInput } from "../Filtering/DynamicFilte
 export { default as FilterClauseRow } from "../Filtering/FilterClauseRow/FilterClauseRow"
 export { default as SortParameterList } from "../SortParameterList/SortParameterList"
 export type {
+  TTableColumnResizeDetails as TableColumnResizeDetails,
+  TTableColumnResizingControls as TableColumnResizingControls,
   TTableColumnMetadata as TableColumnMetadata,
   TTableProps as TableProps,
   TTableQueryControls as TableQueryControls,

@@ -1,4 +1,5 @@
 .tableHeader__cell {
+  position: relative;
   text-align: start;
   width: 100%;
   min-width: 0;
@@ -21,8 +22,13 @@
   text-align: end;
 }
 
-.tableHeader__cell[data-allows-sorting] {
+.tableHeader__cell[data-allows-sorting],
+.tableHeader__cell--sortable {
   cursor: pointer;
+}
+
+.tableHeader__cell--resizable {
+  padding-inline-end: calc(var(--cui-space-1) + 6px);
 }
 
 .tableHeader__cellInner {
@@ -50,6 +56,36 @@
   white-space: nowrap;
 }
 
+.tableHeader__sortButton {
+  max-width: 100%;
+  min-width: 0;
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  padding: 0;
+  color: inherit;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: inherit;
+  text-align: inherit;
+  transition: var(--cui-transition-color);
+}
+
+.tableHeader__cell--alignCenter .tableHeader__sortButton {
+  justify-content: center;
+}
+
+.tableHeader__cell--alignEnd .tableHeader__sortButton {
+  justify-content: flex-end;
+}
+
+.tableHeader__sortButton:focus-visible {
+  outline: 2px solid var(--cui-focus-ring);
+  outline-offset: 2px;
+}
+
 .tableHeader__iconGroup {
   display: inline-flex;
   align-items: center;
@@ -64,6 +100,11 @@
   flex-shrink: 0;
   line-height: 0;
   color: var(--cui-control-foreground);
+  transition: color 150ms ease;
+}
+
+.tableHeader__sortIndicator--active {
+  color: var(--cui-control-selected-background);
 }
 
 .tableHeader__filterButton {
@@ -103,4 +144,40 @@
 
 .tableHeader__filterButton--active :global(.filterIcon__fill) {
   fill: currentcolor;
+}
+
+.tableHeader__resizeHandle {
+  position: absolute;
+  inset-block: 5px;
+  inset-inline-end: -4px;
+  z-index: 2;
+  width: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.tableHeader__resizeHandle::after {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 50%;
+  width: 1px;
+  background: color-mix(in srgb, var(--cui-control-foreground) 40%, transparent);
+  content: "";
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 150ms ease;
+}
+
+.tableHeader__resizeHandle:hover::after,
+.tableHeader__resizeHandle:focus-visible::after {
+  opacity: 1;
+}
+
+.tableHeader__resizeHandle:focus-visible {
+  outline: 2px solid var(--cui-focus-ring);
+  outline-offset: 2px;
 }
