@@ -156,6 +156,12 @@ describe("<Checkbox />", () => {
       expect(checkboxIcon).toBeNull()
     })
 
+    it("renders the selection icon within the centered icon view box.", () => {
+      render(<Checkbox defaultSelected />)
+
+      expect(document.querySelector("[data-icon='check']")).toHaveAttribute("d", "M3 9.45833L6.69231 13.125L15 4.875")
+    })
+
     it("responds to custom styles prop.", () => {
       render(<Checkbox customStyles={{ color: "turquoise", borderRadius: 0 }} />)
 
