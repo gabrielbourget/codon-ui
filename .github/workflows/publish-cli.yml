@@ -1,0 +1,81 @@
+name: Publish Private CLI
+
+run-name: Publish @codon-ui/cli@${{ inputs.version }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Exact @codon-ui/cli version already committed on develop.
+        required: true
+        type: string
+      confirmation:
+        description: Type "publish <version>" to authorize this paid, registry-mutating run.
+        required: true
+        type: string
+
+concurrency:
+  group: publish-codon-ui-cli
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Publish @codon-ui/cli
+    if: >-
+      github.ref == 'refs/heads/develop' &&
+      inputs.confirmation == format('publish {0}', inputs.version)
+    environment: npm-release
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      NPM_RELEASE_EXPECTED_VERSION: ${{ inputs.version }}
+    steps:
+      - name: Checkout Exact Release Source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify Release Request
+        run: node packages/CLI/scripts/publication-safety.mjs verify-request
+
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24.15.0"
+          package-manager-cache: false
+
+      - name: Verify Publish Toolchain
+        run: |
+          test "$(node --version)" = "v24.15.0"
+          test "$(npm --version)" = "11.12.1"
+
+      - name: Activate Pinned pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.18.3 --activate
+
+      - name: Install Dependencies Without Cache
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify Published React Contracts
+        run: |
+          pnpm -F @codon-ui/react check:contracts
+          pnpm -F @codon-ui/react stylelint
+          pnpm -F @codon-ui/react typecheck
+
+      - name: Verify CLI Release Surface
+        run: |
+          pnpm -F @codon-ui/cli test
+          pnpm -F @codon-ui/cli typecheck
+          pnpm -F @codon-ui/cli lint
+
+      - name: Publish Through npm Trusted Publishing
+        working-directory: packages/CLI
+        run: npm publish --access restricted

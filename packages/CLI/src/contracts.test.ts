@@ -25,6 +25,12 @@ const cliPackageJson = JSON.parse(readFileSync(new URL("../package.json", import
   files: string[]
   publishConfig: {
     access: string
+    registry: string
+  }
+  repository: {
+    directory: string
+    type: string
+    url: string
   }
   scripts: Record<string, string>
   version: string
@@ -61,15 +67,25 @@ assert.deepEqual(cliPackageJson.bin, {
 })
 assert.equal(cliPackageJson.version, "0.2.0")
 assert.deepEqual(cliPackageJson.files, ["dist"])
-assert.deepEqual(cliPackageJson.publishConfig, { access: "restricted" })
+assert.deepEqual(cliPackageJson.publishConfig, {
+  access: "restricted",
+  registry: "https://registry.npmjs.org",
+})
+assert.deepEqual(cliPackageJson.repository, {
+  type: "git",
+  url: "git+https://github.com/gabrielbourget/codon-ui.git",
+  directory: "packages/CLI",
+})
 assert.equal(
   cliPackageJson.scripts["pack:check"],
-  "pnpm build && node scripts/verify-pack-source.mjs && npm pack --dry-run",
+  "pnpm build && node scripts/verify-pack-source.mjs && node scripts/npm-pack-dry-run.mjs",
 )
-assert.equal(cliPackageJson.scripts["pack:dry-run"], "pnpm build && npm pack --dry-run")
+assert.equal(cliPackageJson.scripts["pack:dry-run"], "pnpm build && node scripts/npm-pack-dry-run.mjs")
 assert.equal(cliPackageJson.scripts.prepack, "node scripts/prepare-pack-source.mjs")
 assert.equal(cliPackageJson.scripts.postpack, "node scripts/cleanup-pack-source.mjs")
 assert.equal(cliPackageJson.scripts.prepublishOnly, "pnpm pack:check && pnpm release:check")
+assert.equal(cliPackageJson.scripts["release:request"], "node scripts/publication-safety.mjs verify-request")
+assert.equal(cliPackageJson.scripts["release:workflow-check"], "node scripts/publication-safety.mjs verify-workflow")
 assert.deepEqual(CLI_JSON_REPORT_SCHEMA_NAMES, expectedSchemaNames)
 assert.equal(cliJsonReportSchemas.addDryRun, addDryRunSchema)
 assert.equal(cliJsonReportSchemas.status, statusReportSchema)

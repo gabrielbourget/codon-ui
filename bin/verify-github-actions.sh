@@ -45,6 +45,10 @@ main() {
   echo "[github-actions] Checking GitHub workflow and local action formatting/YAML parsing."
   pnpm exec prettier --check "${github_yaml_files[@]}"
 
+  echo
+  echo "[github-actions] Checking the private CLI release workflow contract."
+  pnpm -F @codon-ui/cli release:workflow-check
+
   if ! command -v actionlint >/dev/null 2>&1; then
     cat >&2 <<ERROR
 [github-actions] actionlint is required for semantic GitHub Actions workflow checks.
