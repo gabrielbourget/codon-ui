@@ -71,7 +71,7 @@ const Checkbox = forwardRef<HTMLLabelElement, TCheckboxProps>((props, forwardedR
                 showIcon ? (
                   <path
                     data-icon="check"
-                    d="M4 12.6111L8.92308 17.5L20 6.5"
+                    d="M3 9.45833L6.69231 13.125L15 4.875"
                     strokeWidth="2"
                     strokeLinecap="butt"
                     strokeLinejoin="round"

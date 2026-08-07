@@ -176,6 +176,18 @@ export type TTableQueryControls = {
   pagination?: TTablePaginationControls
 }
 
+export type TTableColumnResizeDetails = {
+  columnID: string
+  width: number
+}
+
+export type TTableColumnResizingControls = {
+  enabled?: boolean
+  maxWidth?: number
+  minWidth?: number
+  onColumnResize: (details: TTableColumnResizeDetails) => void
+}
+
 export type TColumnKey<K extends string = string> = K
 export type TAvailableBreakpointNames = TScreenSizeType
 
@@ -217,6 +229,7 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   // -> Both must be provided together. If omitted the table is sort/filter-inert.
   columns?: TTableColumnMetadata<TRow>[]
   queryControls?: TTableQueryControls
+  columnResizing?: TTableColumnResizingControls
   filteringLabels?: TPartialTableFilteringLabels
   labels?: TPartialTableLabels
 }

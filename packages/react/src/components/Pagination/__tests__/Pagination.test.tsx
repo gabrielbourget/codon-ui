@@ -3,6 +3,7 @@ import { userEvent } from "@testing-library/user-event"
 import { describe, expect, it, vi, beforeEach } from "vitest"
 
 import buttonStyles from "../../Button/ButtonStyles.module.css"
+import clickPopoverStyles from "../../ClickPopover/ClickPopoverStyles.module.css"
 import {
   AVAILABLE_PAGINATION_SUBCOMPONENTS,
   DEFAULT_ITEMS_PER_PAGE,
@@ -239,6 +240,26 @@ describe("<Pagination />", () => {
       expect(popoverDialog).toHaveStyle({ backgroundColor: "rgb(255, 99, 71)" })
       expect(optionsList).toHaveClass("custom-overflow-options")
       expect(optionsList).toHaveStyle({ backgroundColor: "rgb(0, 0, 128)" })
+    })
+
+    it("renders overflow popovers without the raised shell by default.", async () => {
+      const user = userEvent.setup()
+
+      render(<PaginationExample currentPage={10} maxVisiblePages={4} />)
+
+      await user.click(screen.getAllByTestId("pagination-overflow-trigger")[0])
+
+      expect(await screen.findByTestId("click-popover")).not.toHaveClass(clickPopoverStyles["clickPopover--raised"])
+    })
+
+    it("allows overflow popovers to opt back into the raised shell.", async () => {
+      const user = userEvent.setup()
+
+      render(<PaginationExample currentPage={10} maxVisiblePages={4} customClickPopoverProps={{ raised: true }} />)
+
+      await user.click(screen.getAllByTestId("pagination-overflow-trigger")[0])
+
+      expect(await screen.findByTestId("click-popover")).toHaveClass(clickPopoverStyles["clickPopover--raised"])
     })
 
     it("responds to currentPage prop.", () => {

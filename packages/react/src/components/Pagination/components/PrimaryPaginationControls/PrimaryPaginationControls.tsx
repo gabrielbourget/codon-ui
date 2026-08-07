@@ -76,6 +76,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
     customDialogStyles: clickPopoverDialogStyles,
     customStyles: clickPopoverCustomStyles,
     placement: clickPopoverPlacement = "bottom right",
+    raised: clickPopoverRaised = false,
     style: clickPopoverStyle,
     ...restCustomClickPopoverProps
   } = customClickPopoverProps
@@ -345,6 +346,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
                   customClassName={clickPopoverCustomClassName}
                   customStyles={clickPopoverCustomStyles}
                   placement={clickPopoverPlacement}
+                  raised={clickPopoverRaised}
                   style={clickPopoverStyle}
                   customDialogStyles={{ outlineOffset: 2, ...clickPopoverDialogStyles }}
                 >
@@ -414,6 +416,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
       clickPopoverCustomStyles,
       clickPopoverDialogStyles,
       clickPopoverPlacement,
+      clickPopoverRaised,
       clickPopoverStyle,
       disabled,
       currentPage,

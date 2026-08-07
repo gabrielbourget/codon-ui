@@ -29,6 +29,7 @@ const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps
     clickableRows,
     onRowAction,
     columns,
+    columnResizing,
     queryControls,
     filteringLabels,
     labels,
@@ -44,8 +45,8 @@ const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps
   const resolvedLabels = useMemo(() => resolveTableLabels(labels), [labels])
 
   const contextValue = useMemo(
-    () => ({ queryControls, filteringLabels: resolvedFilteringLabels, labels: resolvedLabels }),
-    [queryControls, resolvedFilteringLabels, resolvedLabels],
+    () => ({ queryControls, columnResizing, filteringLabels: resolvedFilteringLabels, labels: resolvedLabels }),
+    [queryControls, columnResizing, resolvedFilteringLabels, resolvedLabels],
   )
 
   return (

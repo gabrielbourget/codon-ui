@@ -208,7 +208,7 @@
 }
 
 .shape--rounded {
-  border-radius: var(--border_radius_1);
+  border-radius: var(--cui-radius-1, var(--border_radius_1, 5px));
 }
 .shape--round {
   border-radius: 50%;

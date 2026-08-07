@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -327,6 +327,48 @@ describe("<Table /> Tests", () => {
 
     expect(screen.getByTestId("table-header-default-sort-ascending-icon")).toBeInTheDocument()
     expect(screen.getByTestId("table-header-default-inactive-filter-icon")).toBeInTheDocument()
+  })
+
+  it("Emits bounded column resize changes from table header resize controls.", () => {
+    const onColumnResize = vi.fn()
+    const resizableColumns: TTableColumnMetadata<TTableTestRow>[] = [
+      {
+        id: "name",
+        name: "Name",
+        isRowHeader: true,
+        accessor: (r) => r.name,
+        width: 120,
+        minWidth: 100,
+        maxWidth: 150,
+      },
+    ]
+
+    render(
+      <Table aria-label="Resizable table" columns={resizableColumns} columnResizing={{ enabled: true, onColumnResize }}>
+        <TableHeader<TTableTestRow> columns={resizableColumns} />
+        <TableBody<TTableTestRow> columns={resizableColumns} items={[row]} rowKey={(r) => r.id} />
+      </Table>,
+    )
+
+    const columnHeader = screen.getByRole("columnheader", { name: "Name" })
+    vi.spyOn(columnHeader, "getBoundingClientRect").mockReturnValue({
+      bottom: 0,
+      height: 0,
+      left: 0,
+      right: 120,
+      toJSON: () => ({}),
+      top: 0,
+      width: 120,
+      x: 0,
+      y: 0,
+    })
+
+    const resizeButton = screen.getByRole("button", { name: "Resize Name column" })
+
+    fireEvent(resizeButton, new MouseEvent("pointerdown", { bubbles: true, clientX: 10 }))
+    fireEvent(window, new MouseEvent("pointermove", { bubbles: true, clientX: 60 }))
+    fireEvent(window, new MouseEvent("pointerup", { bubbles: true }))
+    expect(onColumnResize).toHaveBeenLastCalledWith({ columnID: "name", width: 150 })
   })
 
   it("Renders pagination controls from table query controls.", () => {
