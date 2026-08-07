@@ -1,5 +1,36 @@
 # @codon-ui/cli Changelog
 
+## 0.2.1 - 2026-08-06
+
+### Changed
+
+- Moved package publication to the manual, default-branch-restricted GitHub OIDC workflow prepared for npm trusted
+  publishing.
+- Added exact-version, repository-identity, package-content, and credential-absence checks around the release path.
+- Kept the CLI runtime and registry-source behavior unchanged from `0.2.0`; this patch advances the immutable package
+  version for the first trusted-publishing proof.
+
+### Consumer Notes
+
+- No component, theme, registry-layout, or command-behavior migration is required from `0.2.0`.
+- Use `pnpm --package=@codon-ui/cli@0.2.1 dlx codon-ui init --setup-cli` for the first verbose bootstrap call when
+  running through pnpm. The shorter local `pnpm cui ...` path is available after `init --setup-cli` and `pnpm install`.
+
+### Verification
+
+- `pnpm -F @codon-ui/react check:contracts`
+- `pnpm -F @codon-ui/react stylelint`
+- `pnpm -F @codon-ui/react typecheck`
+- `pnpm -F @codon-ui/cli test`
+- `pnpm -F @codon-ui/cli typecheck`
+- `pnpm -F @codon-ui/cli lint`
+- `pnpm -F @codon-ui/cli build`
+- `pnpm -F @codon-ui/cli pack:check`
+- `pnpm -F @codon-ui/cli release:check`
+- `pnpm verify:github-actions`
+- `git diff --check`
+- Post-publish registry smoke target: `CODON_UI_PUBLISHED_CLI_VERSION=0.2.1 pnpm verify:published-package-smoke`
+
 ## 0.2.0 - 2026-06-17
 
 ### Changed
