@@ -38,6 +38,26 @@ describe("<AlertDialog />", () => {
     expect(dialog).toBeInTheDocument()
   })
 
+  it("supports standalone controlled open state through the overlay contract.", async () => {
+    const onOpenChange = vi.fn()
+    const user = userEvent.setup()
+
+    render(
+      <AlertDialog
+        titleText="Dialog Title"
+        bodyText="Concise body text that provides more context."
+        aria-label="alert dialog"
+        isOpen
+        onOpenChange={onOpenChange}
+      />,
+    )
+
+    const dialog = await screen.findByRole("alertdialog")
+    await user.click(within(dialog).getByRole("button", { name: "Confirm Action" }))
+
+    expect(onOpenChange).toHaveBeenCalledWith(false)
+  })
+
   describe("props API surface", () => {
     it("responds to height and width props.", async () => {
       render(<AlertDialogExample height={300} width={450} />)

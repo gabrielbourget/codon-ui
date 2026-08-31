@@ -121,6 +121,14 @@ const requiredDefaultIconExports = [
 assert(alertDialogSource.includes('from "react-aria-components"'), "AlertDialog must import React Aria")
 assert(alertDialogSource.includes("ModalOverlay"), "AlertDialog must preserve ModalOverlay composition")
 assert(alertDialogSource.includes("AdobeModal"), "AlertDialog must preserve React Aria Modal composition")
+assert(
+  alertDialogSource.includes("<ModalOverlay {...rest}"),
+  "AlertDialog must forward native overlay props to ModalOverlay",
+)
+assert(
+  alertDialogSource.indexOf("<AdobeModal\\n          {...rest}") === -1,
+  "AlertDialog must not forward overlay props to the inner Modal",
+)
 assert(alertDialogSource.includes("Dialog"), "AlertDialog must preserve React Aria Dialog composition")
 assert(alertDialogSource.includes("Header"), "AlertDialog must preserve Header composition")
 assert(alertDialogSource.includes('from "../Button/Button"'), "AlertDialog must import package-local Button")
