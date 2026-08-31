@@ -1,0 +1,90 @@
+{
+  "name": "thumbnail-showcase",
+  "type": "component",
+  "sourcePackage": "@codon-ui/react",
+  "sourceRepository": "wavemap",
+  "sourceRef": "apps/wavemap-docs/working-notes/EVENT_SERIES_ROADMAP.md#pass-s10-feature-columns-operations-and-graduation",
+  "files": [
+    {
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+      "targetRole": "components",
+      "targetPath": "ThumbnailShowcase/ThumbnailShowcase.tsx",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "ThumbnailShowcase/helpers.ts",
+      "role": "source"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+      "targetRole": "components",
+      "targetPath": "ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+      "role": "style"
+    },
+    {
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx",
+      "targetRole": "components",
+      "targetPath": "ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx",
+      "role": "test",
+      "required": false
+    }
+  ],
+  "publicExports": [
+    {
+      "exportedName": "ThumbnailShowcase",
+      "localName": "default",
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx"
+    },
+    {
+      "exportedName": "ThumbnailShowcaseProps",
+      "localName": "TThumbnailShowcaseProps",
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ThumbnailShowcaseRenderingMode",
+      "localName": "TThumbnailShowcaseRenderingMode",
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+      "typeOnly": true
+    },
+    {
+      "exportedName": "ThumbnailShowcaseSecondaryItem",
+      "localName": "TThumbnailShowcaseSecondaryItem",
+      "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+      "typeOnly": true
+    }
+  ],
+  "importResolutions": [],
+  "excludedSourcePaths": [
+    "apps/wavemap-front-end/src/components/MediaThumbnailImage/**",
+    "apps/wavemap-front-end/src/utils/media/**",
+    "apps/wavemap-front-end/src/utils/useIsHydrated.ts",
+    "apps/wavemap-front-end/src/components/ThumbnailShowcase/DefaultImageIcon.tsx",
+    "apps/wavemap-front-end/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx"
+  ],
+  "registryDependencies": [],
+  "peerDependencies": {
+    "react": "^18.2.0 || ^19.0.0",
+    "react-dom": "^18.2.0 || ^19.0.0"
+  },
+  "runtimeDependencies": {
+    "classnames": "^2.3.2"
+  },
+  "themeRequirements": [],
+  "verification": [
+    {
+      "kind": "command",
+      "command": "pnpm -F @codon-ui/react test:unit src/components/ThumbnailShowcase/__tests__/ThumbnailShowcase.test.tsx",
+      "workingDirectory": ".",
+      "advisory": true
+    }
+  ],
+  "notes": [
+    "ThumbnailShowcase is a framework-neutral composition primitive with caller-supplied media nodes and placeholders.",
+    "The default empty state renders only the primary placeholder; the secondary rail appears only when primary or secondary media content is available.",
+    "The layout uses self-contained 10px spacing and does not force a theme install or upgrade in consumers.",
+    "Wavemap media records, Next image rendering, media delivery helpers, hydration behavior, and product icons remain consumer-owned."
+  ]
+}

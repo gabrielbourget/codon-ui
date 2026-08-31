@@ -99,6 +99,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["thumbnail-showcase"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["click-popover"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -1692,6 +1696,18 @@ await verifyComponentAddPlanning({
 })
 
 await verifyComponentAddPlanning({
+  itemName: "thumbnail-showcase",
+  expectedItems: ["thumbnail-showcase"],
+  expectedResolvedPaths: [
+    "src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+    "src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+    "src/components/ThumbnailShowcase/helpers.ts",
+  ],
+  expectedMissingDependencyCount: 3,
+  expectedPlannedCount: 3,
+})
+
+await verifyComponentAddPlanning({
   itemName: "alert-dialog",
   expectedItems: [
     "theme-css",
@@ -1760,5 +1776,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[codon-ui] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, circle-loader, lagging-lines-loader, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[codon-ui] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, circle-loader, lagging-lines-loader, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, thumbnail-showcase, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

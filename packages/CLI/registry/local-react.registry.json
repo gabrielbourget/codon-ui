@@ -2613,6 +2613,36 @@
       }
     },
     {
+      "name": "thumbnail-showcase",
+      "type": "component",
+      "sourcePackage": "@codon-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/ThumbnailShowcase.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
+    },
+    {
       "name": "slider",
       "type": "component",
       "sourcePackage": "@codon-ui/react",
