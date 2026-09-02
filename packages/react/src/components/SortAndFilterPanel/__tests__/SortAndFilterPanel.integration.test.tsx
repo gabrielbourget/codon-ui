@@ -13,6 +13,7 @@ import {
   TABLE_SORT_DIRECTION__ASCENDING,
 } from "../../Table/queryTypes"
 import type { TApplySortAndFilterParametersArgs } from "../helpers"
+import { SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER } from "../helpers"
 import SortAndFilterPanel from "../SortAndFilterPanel"
 
 const sortAndFilterPanelStylesSource = readFileSync(
@@ -113,6 +114,38 @@ describe("<SortAndFilterPanel /> integration", () => {
     expect(screen.getByRole("button", { name: "Add Sort Criteria" })).toBeVisible()
     expect(screen.getByRole("button", { name: "Add Filter Criteria" })).toBeVisible()
     expect(screen.getByRole("button", { name: "Close Sort and Filter Panel" })).toBeVisible()
+  })
+
+  it("focuses the requested criteria control after the open panel commits.", async () => {
+    render(
+      <SortAndFilterPanel
+        title="Events"
+        possibleSortCriteria={possibleSortCriteria}
+        possibleFilterCriteria={possibleFilterCriteria}
+        applyPendingSortAndFilterChanges={vi.fn()}
+        initialFocusTarget={SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER}
+        isOpen
+        onOpenChange={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Add Filter Criteria" })).toHaveFocus()
+    })
+  })
+
+  it("restores the applied snapshot when canceling draft changes.", async () => {
+    const applyPendingSortAndFilterChanges = vi.fn()
+    renderSortAndFilterPanel({ applyPendingSortAndFilterChanges })
+
+    const user = await chooseSelectOption("Add Sort Criteria", "City")
+
+    expect(screen.getByRole("button", { name: "Remove City" })).toBeVisible()
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }))
+
+    expect(applyPendingSortAndFilterChanges).not.toHaveBeenCalled()
+    expect(screen.getByText("No sorting currently applied")).toBeVisible()
   })
 
   it("emits registry-shaped sort instructions.", async () => {
