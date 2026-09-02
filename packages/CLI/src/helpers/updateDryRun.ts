@@ -271,6 +271,7 @@ export type TUpdateDryRunReport = z.infer<typeof updateDryRunReportSchema>
 export type TUpdateAllDryRunReport = z.infer<typeof updateAllDryRunReportSchema>
 
 export type TCreateUpdateDryRunReportOptions = {
+  adoptCurrent?: boolean
   cwd: string
   dependencyPolicyOverride?: TUpdateDependencyPlanningOptions["dependencyPolicyOverride"]
   executedDependencyCommands?: TUpdateDependencyPlanningOptions["executedDependencyCommands"]
@@ -514,12 +515,14 @@ const createPlannedHashes = async ({
 }
 
 const createFileBlockers = ({
+  adoptCurrentMatches,
   advisoryFile,
   dependencyBlockerCount,
   installPlanFile,
   itemIsUnavailable,
   projectBlockerCount,
 }: {
+  adoptCurrentMatches: boolean
   advisoryFile: TUpdateAdvisoryReport["files"][number]
   dependencyBlockerCount: number
   installPlanFile?: TInstallPlanFile
@@ -527,8 +530,9 @@ const createFileBlockers = ({
   projectBlockerCount: number
 }) => {
   const blockers: z.infer<typeof updateDryRunBlockerSchema>[] = []
+  const isUpdateCandidate = advisoryFile.action === "update-candidate" || adoptCurrentMatches
 
-  if (advisoryFile.blocksAutomaticUpdate) {
+  if (advisoryFile.blocksAutomaticUpdate && !adoptCurrentMatches) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-preservation-blocker",
@@ -543,7 +547,7 @@ const createFileBlockers = ({
     )
   }
 
-  if (advisoryFile.action === "update-candidate" && !installPlanFile) {
+  if (isUpdateCandidate && !installPlanFile) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-plan-file-missing",
@@ -558,11 +562,7 @@ const createFileBlockers = ({
     )
   }
 
-  if (
-    advisoryFile.action === "update-candidate" &&
-    installPlanFile &&
-    installPlanFile.sourceStatus !== INSTALL_PLAN_SOURCE_STATUS__AVAILABLE
-  ) {
+  if (isUpdateCandidate && installPlanFile && installPlanFile.sourceStatus !== INSTALL_PLAN_SOURCE_STATUS__AVAILABLE) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-source-file-missing",
@@ -577,7 +577,7 @@ const createFileBlockers = ({
     )
   }
 
-  if (advisoryFile.action === "update-candidate" && dependencyBlockerCount > 0) {
+  if (isUpdateCandidate && dependencyBlockerCount > 0) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-dependency-blocker",
@@ -592,7 +592,7 @@ const createFileBlockers = ({
     )
   }
 
-  if (advisoryFile.action === "update-candidate" && projectBlockerCount > 0) {
+  if (isUpdateCandidate && projectBlockerCount > 0) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-project-state-blocker",
@@ -607,7 +607,7 @@ const createFileBlockers = ({
     )
   }
 
-  if (advisoryFile.action === "update-candidate" && itemIsUnavailable) {
+  if (isUpdateCandidate && itemIsUnavailable) {
     blockers.push(
       createUpdateDryRunBlocker({
         code: "update-dry-run-item-unavailable",
@@ -626,6 +626,7 @@ const createFileBlockers = ({
 }
 
 const createUpdateDryRunFile = async ({
+  adoptCurrentMatches,
   advisoryFile,
   dependencyBlockerCount,
   installPlanFile,
@@ -635,6 +636,7 @@ const createUpdateDryRunFile = async ({
   sourceRoot,
   installPlan,
 }: {
+  adoptCurrentMatches: boolean
   advisoryFile: TUpdateAdvisoryReport["files"][number]
   dependencyBlockerCount: number
   installPlan?: TRegistryInstallPlan
@@ -645,28 +647,27 @@ const createUpdateDryRunFile = async ({
   sourceRoot?: string
 }) => {
   const fileBlockers = createFileBlockers({
+    adoptCurrentMatches,
     advisoryFile,
     dependencyBlockerCount,
     installPlanFile,
     itemIsUnavailable,
     projectBlockerCount,
   })
-  const plannedHashes =
-    advisoryFile.action === "update-candidate"
-      ? await createPlannedHashes({ file: installPlanFile, installPlan, sourceRoot })
-      : {}
+  const isUpdateCandidate = advisoryFile.action === "update-candidate" || adoptCurrentMatches
+  const plannedHashes = isUpdateCandidate
+    ? await createPlannedHashes({ file: installPlanFile, installPlan, sourceRoot })
+    : {}
   const blocksStrictUpdate = fileBlockers.length > 0 || itemBlockerCount > 0
   const canUpdateLockfile =
-    advisoryFile.action === "update-candidate" &&
-    !blocksStrictUpdate &&
-    Boolean(plannedHashes.nextInstalledHash && plannedHashes.nextSourceHash)
+    isUpdateCandidate && !blocksStrictUpdate && Boolean(plannedHashes.nextInstalledHash && plannedHashes.nextSourceHash)
   const wouldWriteFile =
     canUpdateLockfile &&
     Boolean(advisoryFile.currentHash && plannedHashes.nextInstalledHash !== advisoryFile.currentHash)
   const wouldWriteLockfile = canUpdateLockfile
   const dryRunAction = (() => {
     if (advisoryFile.action === "none") return UPDATE_DRY_RUN_FILE_ACTION__NONE
-    if (advisoryFile.action !== "update-candidate") return UPDATE_DRY_RUN_FILE_ACTION__WOULD_SKIP
+    if (!isUpdateCandidate) return UPDATE_DRY_RUN_FILE_ACTION__WOULD_SKIP
     if (blocksStrictUpdate || !plannedHashes.nextInstalledHash || !plannedHashes.nextSourceHash) {
       return UPDATE_DRY_RUN_FILE_ACTION__BLOCKED
     }
@@ -772,7 +773,55 @@ const dedupeBlockers = (blockers: readonly z.infer<typeof updateDryRunBlockerSch
   return [...dedupedBlockers.values()]
 }
 
+const isLocalChangeAction = (action: string) =>
+  action === "preserve-local-change" || action === "review-local-and-source-change"
+
+const createAdoptableFilePathSet = async ({
+  advisoryReport,
+  adoptCurrent,
+  installPlan,
+  sourceRoot,
+}: {
+  advisoryReport: TUpdateAdvisoryReport
+  adoptCurrent: boolean
+  installPlan?: TRegistryInstallPlan
+  sourceRoot?: string
+}) => {
+  const adoptableFilePaths = new Set<string>()
+  if (!adoptCurrent) return adoptableFilePaths
+
+  const installPlanFilesByKey = createInstallPlanFileMap(installPlan)
+
+  await Promise.all(
+    advisoryReport.files.map(async (advisoryFile) => {
+      if (!isLocalChangeAction(advisoryFile.action) || !advisoryFile.currentHash) return
+
+      const plannedHashes = await createPlannedHashes({
+        file: installPlanFilesByKey.get(
+          createInstallPlanFileKey({
+            itemName: advisoryFile.itemName,
+            path: advisoryFile.path,
+          }),
+        ),
+        installPlan,
+        sourceRoot,
+      })
+
+      if (plannedHashes.nextInstalledHash === advisoryFile.currentHash) {
+        adoptableFilePaths.add(advisoryFile.path)
+      }
+    }),
+  )
+
+  return adoptableFilePaths
+}
+
+const isDryRunCandidate = (file: TUpdateDryRunFile) =>
+  file.advisoryAction === "update-candidate" ||
+  (isLocalChangeAction(file.advisoryAction) && file.currentHash === file.nextInstalledHash)
+
 export const createUpdateDryRunReport = async ({
+  adoptCurrent = false,
   cwd,
   dependencyPolicyOverride,
   executedDependencyCommands,
@@ -817,12 +866,21 @@ export const createUpdateDryRunReport = async ({
   })
   const itemIsUnavailable = advisoryReport.itemUpdateState === "unavailable"
   const itemBlockers = [...plan.projectBlockers, ...plan.dependencyBlockers, ...fileSetDriftBlockers]
-  const preservationBlockerCount = advisoryReport.files.filter((file) => file.blocksAutomaticUpdate).length
-  const itemBlockerCount = itemBlockers.length + preservationBlockerCount
   const installPlanFilesByKey = createInstallPlanFileMap(plan.installPlan)
+  const adoptableFilePaths = await createAdoptableFilePathSet({
+    advisoryReport,
+    adoptCurrent,
+    installPlan: plan.installPlan,
+    sourceRoot: plan.sourceRoot,
+  })
+  const preservationBlockerCount = advisoryReport.files.filter(
+    (file) => file.blocksAutomaticUpdate && !adoptableFilePaths.has(file.path),
+  ).length
+  const itemBlockerCount = itemBlockers.length + preservationBlockerCount
   const filesWithBlockers = await Promise.all(
     advisoryReport.files.map((advisoryFile) =>
       createUpdateDryRunFile({
+        adoptCurrentMatches: adoptableFilePaths.has(advisoryFile.path),
         advisoryFile,
         dependencyBlockerCount: plan.dependencyBlockers.length,
         installPlan: plan.installPlan,
@@ -882,7 +940,7 @@ export const createUpdateDryRunReport = async ({
     summary: {
       blockedFileCount,
       blockerCount: blockers.length,
-      candidateFileCount: files.filter((file) => file.advisoryAction === "update-candidate").length,
+      candidateFileCount: files.filter(isDryRunCandidate).length,
       dependencyBlockerCount: plan.dependencyBlockers.length,
       dependencyStates,
       fileActions,
@@ -904,7 +962,7 @@ export const createUpdateDryRunReport = async ({
       },
       files: {
         blockedCount: blockedFileCount,
-        candidateCount: files.filter((file) => file.advisoryAction === "update-candidate").length,
+        candidateCount: files.filter(isDryRunCandidate).length,
         skippedCount: skippedFileCount,
         wouldUpdateLockfileCount: wouldUpdateLockfileFileCount,
         wouldWriteCount: wouldWriteFileCount,

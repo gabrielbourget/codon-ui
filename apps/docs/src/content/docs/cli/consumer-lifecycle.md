@@ -378,6 +378,10 @@ Per-file `action` values are:
 `update-candidate` is advisory only. Exact file and lockfile previews belong to `update --dry-run --json`; strict update
 uses that dry-run output as its write gate.
 
+The item-scoped `--adopt-current` option is intentionally unavailable in advisory mode because adoption depends on the
+dry-run install planner's exact import-transformed output. Use it first with `--dry-run` so the lockfile-only effect is
+visible before strict update.
+
 Current fixture evidence proves clean installed update advisory, locally modified update advisory, missing local file
 advisory, unknown ownership advisory, consumer-owned support advisory, ejected advisory, missing dependency posture, and
 stale source-hash classification.
@@ -449,6 +453,7 @@ source-file and lockfile writes for an update candidate, and preservation of loc
 
 ```sh
 codon-ui update <item> --dry-run --json --cwd <consumer-project>
+codon-ui update <item> --dry-run --adopt-current --json --cwd <consumer-project>
 codon-ui update <item> --dry-run --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
@@ -484,6 +489,13 @@ Dry-run preserves the same defaults as advisory mode. If any file in the request
 unknown, consumer-owned support, or ejected, the item state is `blocked`; update candidates remain visible with planned
 hashes when possible, but `wouldWriteFile` and `wouldWriteLockfile` stay false until blockers are resolved.
 
+`--adopt-current` is a narrow provenance-repair mode for an item whose locally changed registry-owned files have already
+been reconciled outside the CLI. A local file is adoptable only when its current hash exactly matches the canonical,
+import-transformed installed hash produced by the current registry plan. Dry-run then reports
+`would-update-lockfile`—never `would-write`—for that file. Any byte mismatch, missing file, unknown ownership,
+consumer-owned support, ejected file, source failure, dependency blocker, or other item blocker preserves the default
+blocked result. The option is item-scoped and cannot be combined with `--all`.
+
 Current fixture evidence proves clean installed update dry-run, eligible source update preview, locally modified
 preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
 dependency blocking. Item-scoped update also accepts `--package-json <path>`, `--package-manager <name>`,
@@ -496,6 +508,7 @@ write nothing.
 
 ```sh
 codon-ui update <item> --json --cwd <consumer-project>
+codon-ui update <item> --adopt-current --json --cwd <consumer-project>
 codon-ui update <item> --json --install-dependencies --dependency-policy install --cwd <consumer-project>
 ```
 
@@ -520,6 +533,10 @@ lockfile-only hash refresh when dry-run says `would-update-lockfile`, meaning th
 planned installed content but the lockfile record is stale. In both cases, the lockfile file record receives the planned
 `sourceHash` and `installedHash`.
 
+With `--adopt-current`, strict update remains lockfile-only for the adopted local files. Final preflight rechecks the
+local hash and the current canonical install plan before writing provenance. The command does not copy, merge, replace,
+or otherwise write component source in this mode; a local file that ceases to match after dry-run blocks the update.
+
 The command is item-atomic. If any file in the item is locally modified, missing, unknown, consumer-owned support,
 ejected, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates remain untouched and
 the lockfile is not written. Up-to-date items return an exit-0 no-op report.
@@ -539,7 +556,8 @@ planned safety boundary: a blocker on any item prevents source and lockfile writ
 run can apply source-file writes and lockfile-only refreshes across multiple installed items.
 
 Current fixture evidence proves temp-copy clean installed no-op strict update, update-candidate source-file write,
-lockfile-only hash refresh, locally modified blocking, missing local file blocking, unknown ownership blocking,
+lockfile-only hash refresh, exact-current adoption without a source write, noncanonical local adoption blocking, locally
+modified blocking, missing local file blocking, unknown ownership blocking,
 consumer-owned support blocking, ejected blocking, missing dependency blocking, item-scoped dependency install execution,
 item-scoped dependency install failure, broad strict-all blocking, broad strict-all no-op behavior, and broad strict-all
 update-candidate writes.

@@ -736,6 +736,70 @@ try {
   assert.equal(strictSourceOnlyNoOpReport.files[0].strictAction, "none")
   assert.deepEqual(readFixtureSnapshot(temporaryRoot), sourceOnlyNoOpSnapshot)
 
+  const staleSourceOnlyLockfile = readJson(path.join(consumerRoot, "codon-ui.lock.json"))
+  staleSourceOnlyLockfile.items["source-only"].files[0].installedHash = createContentHash(sourceOnlyInstalled)
+  staleSourceOnlyLockfile.items["source-only"].files[0].sourceHash = createContentHash(sourceOnlyInstalled)
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), staleSourceOnlyLockfile)
+
+  const defaultCurrentContentDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(defaultCurrentContentDryRunReport.itemUpdateState, "blocked")
+  assert.equal(defaultCurrentContentDryRunReport.files[0].advisoryAction, "review-local-and-source-change")
+  assert.equal(defaultCurrentContentDryRunReport.files[0].dryRunAction, "would-skip")
+  assert.equal(defaultCurrentContentDryRunReport.summary.preservationBlockerCount, 1)
+
+  const adoptCurrentDryRunReport = await createUpdateDryRunReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(adoptCurrentDryRunReport.itemUpdateState, "would-update")
+  assert.equal(adoptCurrentDryRunReport.files[0].advisoryAction, "review-local-and-source-change")
+  assert.equal(adoptCurrentDryRunReport.files[0].dryRunAction, "would-update-lockfile")
+  assert.equal(adoptCurrentDryRunReport.files[0].wouldWriteFile, false)
+  assert.equal(adoptCurrentDryRunReport.files[0].wouldWriteLockfile, true)
+  assert.equal(adoptCurrentDryRunReport.summary.candidateFileCount, 1)
+  assert.equal(adoptCurrentDryRunReport.summary.preservationBlockerCount, 0)
+
+  const strictAdoptCurrentReport = await createUpdateStrictReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(strictAdoptCurrentReport.applied, true)
+  assert.equal(strictAdoptCurrentReport.itemUpdateState, "updated")
+  assert.equal(strictAdoptCurrentReport.effects.writesFiles, false)
+  assert.equal(strictAdoptCurrentReport.effects.writesLockfile, true)
+  assert.equal(strictAdoptCurrentReport.files[0].strictAction, "updated-lockfile-record")
+  assert.equal(readFileSync(path.join(consumerRoot, "src/components/Diff/source-only.ts"), "utf8"), sourceOnlyCurrent)
+
+  const nonCanonicalLocalContent = "export const sourceOnly = 'consumer'\n"
+  writeText(path.join(consumerRoot, "src/components/Diff/source-only.ts"), nonCanonicalLocalContent)
+  const mismatchedAdoptCurrentDryRunReport = await createUpdateDryRunReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "source-only",
+    registrySourcePath,
+  })
+
+  assert.equal(mismatchedAdoptCurrentDryRunReport.itemUpdateState, "blocked")
+  assert.equal(mismatchedAdoptCurrentDryRunReport.files[0].dryRunAction, "would-skip")
+  assert.equal(mismatchedAdoptCurrentDryRunReport.files[0].wouldWriteFile, false)
+  assert.equal(mismatchedAdoptCurrentDryRunReport.files[0].wouldWriteLockfile, false)
+  assert.equal(
+    readFileSync(path.join(consumerRoot, "src/components/Diff/source-only.ts"), "utf8"),
+    nonCanonicalLocalContent,
+  )
+  writeText(path.join(consumerRoot, "src/components/Diff/source-only.ts"), sourceOnlyCurrent)
+
   const sourceEqualsLocalBefore = readFileSync(
     path.join(consumerRoot, "src/components/Diff/source-equals-local.ts"),
     "utf8",

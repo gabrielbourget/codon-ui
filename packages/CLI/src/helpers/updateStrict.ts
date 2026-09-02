@@ -261,6 +261,7 @@ export type TUpdateStrictReport = z.infer<typeof updateStrictReportSchema>
 export type TUpdateAllStrictReport = z.infer<typeof updateAllStrictReportSchema>
 
 export type TCreateUpdateStrictReportOptions = {
+  adoptCurrent?: TCreateUpdateDryRunReportOptions["adoptCurrent"]
   cwd: string
   dependencyPolicyOverride?: TCreateUpdateDryRunReportOptions["dependencyPolicyOverride"]
   installDependencies?: boolean
@@ -1394,6 +1395,7 @@ const createDependencyExecutionFailureBlocker = (failedCommand: TDependencyInsta
   })
 
 export const createUpdateStrictReport = async ({
+  adoptCurrent,
   cwd,
   dependencyPolicyOverride,
   installDependencies,
@@ -1415,6 +1417,7 @@ export const createUpdateStrictReport = async ({
     packageManagerWrites?: boolean
   } = {}) => {
     const dryRunReport = await createUpdateDryRunReport({
+      adoptCurrent,
       cwd,
       dependencyPolicyOverride,
       executedDependencyCommands,
