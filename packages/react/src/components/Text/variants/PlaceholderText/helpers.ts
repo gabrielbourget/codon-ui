@@ -5,6 +5,12 @@ import type { TTextProps } from "../../helpers"
 
 import styles from "./PlaceholderTextStyles.module.css"
 
+const {
+  placeholderText,
+  ["placeholderText--alignCenter"]: placeholderTextAlignCenter,
+  ["placeholderText--alignLeft"]: placeholderTextAlignLeft,
+} = styles
+
 export const PLACEHOLDER_TEXT_ALIGNMENT__LEFT = "left"
 export const PLACEHOLDER_TEXT_ALIGNMENT__CENTER = "center"
 
@@ -25,11 +31,9 @@ export type TPlaceholderTextProps = PropsWithChildren<
 export const calibrateComponent = (props: TPlaceholderTextProps) => {
   const { align = PLACEHOLDER_TEXT_ALIGNMENT__LEFT, customClassName } = props
   const alignmentStyles =
-    align === PLACEHOLDER_TEXT_ALIGNMENT__CENTER
-      ? styles["placeholderText--alignCenter"]
-      : styles["placeholderText--alignLeft"]
+    align === PLACEHOLDER_TEXT_ALIGNMENT__CENTER ? placeholderTextAlignCenter : placeholderTextAlignLeft
 
   return {
-    placeholderTextStyles: classNames(styles.placeholderText, alignmentStyles, customClassName),
+    placeholderTextStyles: classNames(placeholderText, alignmentStyles, customClassName),
   }
 }

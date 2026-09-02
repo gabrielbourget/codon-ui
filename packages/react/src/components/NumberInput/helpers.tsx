@@ -9,6 +9,17 @@ import DefaultIncrementIcon from "./DefaultIncrementIcon"
 import type { TPartialNumberInputLabels } from "./labels"
 import styles from "./NumberInputStyles.module.css"
 
+const {
+  ["numberInput--applyFocusStyle"]: numberInputApplyFocusStyle,
+  ["numberInput--errorState"]: numberInputErrorState,
+  ["numberInput--noFocusStyle"]: numberInputNoFocusStyle,
+  ["numberInput--offsetFocusRing"]: numberInputOffsetFocusRing,
+  ["numberInput--round"]: numberInputRound,
+  ["numberInput--rounded"]: numberInputRounded,
+  ["numberInput--successState"]: numberInputSuccessState,
+  ["numberInput--warningState"]: numberInputWarningState,
+} = styles
+
 export const INPUT_SIZE__SM = "small"
 export const INPUT_SIZE__MD = "medium"
 export const INPUT_SIZE__LG = "large"
@@ -96,9 +107,9 @@ const computeGeometryStyle = (props: TNumberInputProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["numberInput--rounded"]
+      return numberInputRounded
     case ROUND:
-      return styles["numberInput--round"]
+      return numberInputRound
     default:
       return undefined
   }
@@ -107,9 +118,9 @@ const computeGeometryStyle = (props: TNumberInputProps) => {
 const computeValidationStyle = (props: TNumberInputProps) => {
   const { errorState, warningState, successState } = props
 
-  if (errorState) return styles["numberInput--errorState"]
-  if (warningState) return styles["numberInput--warningState"]
-  if (successState) return styles["numberInput--successState"]
+  if (errorState) return numberInputErrorState
+  if (warningState) return numberInputWarningState
+  if (successState) return numberInputSuccessState
 
   return undefined
 }
@@ -135,10 +146,8 @@ export const calibrateComponent = (props: TNumberInputProps): TNumberInputCalibr
   const geometryStyle = computeGeometryStyle(props)
   const validationStyle = computeValidationStyle(props)
   const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["numberInput--noFocusStyle"]
-      : styles["numberInput--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing === true ? styles["numberInput--offsetFocusRing"] : undefined
+    enableFocusStyle !== undefined && enableFocusStyle === false ? numberInputNoFocusStyle : numberInputApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing === true ? numberInputOffsetFocusRing : undefined
 
   const computedNumberInputStyles = classNames(numberInput, geometryStyle)
   const numberInputGroupStyles = classNames(numberInput__group, validationStyle, focusStyle, offsetFocusRingStyle)

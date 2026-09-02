@@ -5,6 +5,12 @@ import { type TAriaLabelingProps } from "../../tokens/a11y"
 
 import styles from "./FormFieldStyles.module.css"
 
+const {
+  ["formField__bottomRow--noLeftContent"]: formField__bottomRowNoLeftContent,
+  ["formField__topRow--noLeftContent"]: formField__topRowNoLeftContent,
+  ["formField--raised"]: formFieldRaised,
+} = styles
+
 type TFormFieldNativeProps = Omit<HTMLAttributes<HTMLDivElement>, "children">
 
 export type TFormFieldProps = PropsWithChildren<
@@ -80,10 +86,10 @@ export const calibrateComponent = (props: TFormFieldProps): TFormFieldCalibratio
   } = props
   const { formField, formField__topRow, formField__bottomRow, formField__validationMessages } = styles
 
-  const topRowJustifyContentStyle = label ? undefined : styles["formField__topRow--noLeftContent"]
+  const topRowJustifyContentStyle = label ? undefined : formField__topRowNoLeftContent
   const bottomRowJustifyContentStyle =
-    warningMessages || errorMessages || successMessages ? undefined : styles["formField__bottomRow--noLeftContent"]
-  const raisedStyle = raised ? styles["formField--raised"] : undefined
+    warningMessages || errorMessages || successMessages ? undefined : formField__bottomRowNoLeftContent
+  const raisedStyle = raised ? formFieldRaised : undefined
 
   const formFieldStyles = classNames(formField, raisedStyle, customClassName, className)
   const topRowStyles = classNames(formField__topRow, topRowJustifyContentStyle, customTopRowClassName)

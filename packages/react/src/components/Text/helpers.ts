@@ -57,6 +57,24 @@ import type {
   TAvailableFontWeights,
 } from "./types"
 
+const {
+  ["base--unselectable"]: baseUnselectable,
+  composedInLink: composedInLinkClassName,
+  ["fs-italic"]: fsItalic,
+  ["fw-bold"]: fwBold,
+  ["fw-extrabold"]: fwExtrabold,
+  ["fw-light"]: fwLight,
+  ["fw-medium"]: fwMedium,
+  ["fw-regular"]: fwRegular,
+  ["fw-semibold"]: fwSemibold,
+  ["h1-sm"]: h1Sm,
+  ["h2-sm"]: h2Sm,
+  ["h3-sm"]: h3Sm,
+  ["h4-sm"]: h4Sm,
+  ["h5-sm"]: h5Sm,
+  ["h6-sm"]: h6Sm,
+} = styles
+
 type TTextNativeProps = Omit<HTMLAttributes<HTMLElement>, "className" | "color" | "style"> &
   Pick<LabelHTMLAttributes<HTMLLabelElement>, "htmlFor">
 
@@ -112,17 +130,17 @@ const computeFontVariantStyle = (variant?: TAvailableFontVariants): string => {
     case FONT_VARIANT__HEADING_6:
       return h6
     case FONT_VARIANT__HEADING_SM_1:
-      return styles["h1-sm"]
+      return h1Sm
     case FONT_VARIANT__HEADING_SM_2:
-      return styles["h2-sm"]
+      return h2Sm
     case FONT_VARIANT__HEADING_SM_3:
-      return styles["h3-sm"]
+      return h3Sm
     case FONT_VARIANT__HEADING_SM_4:
-      return styles["h4-sm"]
+      return h4Sm
     case FONT_VARIANT__HEADING_SM_5:
-      return styles["h5-sm"]
+      return h5Sm
     case FONT_VARIANT__HEADING_SM_6:
-      return styles["h6-sm"]
+      return h6Sm
     case FONT_VARIANT__BODY_1:
       return b1
     case FONT_VARIANT__BODY_2:
@@ -157,24 +175,24 @@ const computeFontVariantStyle = (variant?: TAvailableFontVariants): string => {
 const computeFontWeightStyle = (weight?: TAvailableFontWeights): string => {
   switch (weight) {
     case FONT_WEIGHT__LIGHT:
-      return styles["fw-light"]
+      return fwLight
     case FONT_WEIGHT__REGULAR:
-      return styles["fw-regular"]
+      return fwRegular
     case FONT_WEIGHT__SEMIBOLD:
-      return styles["fw-semibold"]
+      return fwSemibold
     case FONT_WEIGHT__MEDIUM:
-      return styles["fw-medium"]
+      return fwMedium
     case FONT_WEIGHT__BOLD:
-      return styles["fw-bold"]
+      return fwBold
     case FONT_WEIGHT__EXTRABOLD:
-      return styles["fw-extrabold"]
+      return fwExtrabold
     default:
-      return styles["fw-regular"]
+      return fwRegular
   }
 }
 
 const computeFontStyleStyle = (style?: TAvailableFontStyles): string | undefined => {
-  if (style === FONT_STYLE__ITALIC) return styles["fs-italic"]
+  if (style === FONT_STYLE__ITALIC) return fsItalic
 
   return undefined
 }
@@ -197,8 +215,8 @@ export const calibrateComponent = (props: TTextProps): TTextCalibration => {
   const fontVariantStyle = computeFontVariantStyle(variant)
   const fontWeightStyle = computeFontWeightStyle(fontWeight)
   const fontStyleStyle = computeFontStyleStyle(fontStyle)
-  const composedInLinkStyle = composedInLink ? styles.composedInLink : undefined
-  const textSelectionStyle = elType === ELEM_TYPE__LABEL ? styles["base--unselectable"] : undefined
+  const composedInLinkStyle = composedInLink ? composedInLinkClassName : undefined
+  const textSelectionStyle = elType === ELEM_TYPE__LABEL ? baseUnselectable : undefined
 
   const textStyles = classNames(
     base,

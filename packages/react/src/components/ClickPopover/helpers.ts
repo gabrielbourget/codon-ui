@@ -14,6 +14,21 @@ import {
 
 import styles from "./ClickPopoverStyles.module.css"
 
+const {
+  ["clickPopover__overlayArrow--primary"]: clickPopover__overlayArrowPrimary,
+  ["clickPopover__overlayArrow--quaternary"]: clickPopover__overlayArrowQuaternary,
+  ["clickPopover__overlayArrow--quintenary"]: clickPopover__overlayArrowQuintenary,
+  ["clickPopover__overlayArrow--secondary"]: clickPopover__overlayArrowSecondary,
+  ["clickPopover__overlayArrow--tertiary"]: clickPopover__overlayArrowTertiary,
+  ["clickPopover--primary"]: clickPopoverPrimary,
+  ["clickPopover--quaternary"]: clickPopoverQuaternary,
+  ["clickPopover--quintenary"]: clickPopoverQuintenary,
+  ["clickPopover--raised"]: clickPopoverRaised,
+  ["clickPopover--rounded"]: clickPopoverRounded,
+  ["clickPopover--secondary"]: clickPopoverSecondary,
+  ["clickPopover--tertiary"]: clickPopoverTertiary,
+} = styles
+
 type TClickPopoverNativeProps = Omit<PopoverProps, "children" | "className" | "style">
 
 export type TClickPopoverProps = TClickPopoverNativeProps & {
@@ -54,28 +69,28 @@ const computeColorStyles = (props: TClickPopoverProps) => {
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      clickPopoverColorStyle = styles["clickPopover--primary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--primary"]
+      clickPopoverColorStyle = clickPopoverPrimary
+      overlayArrowColorStyle = clickPopover__overlayArrowPrimary
       break
     case THEME_ORDER_CODE__SECONDARY:
-      clickPopoverColorStyle = styles["clickPopover--secondary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--secondary"]
+      clickPopoverColorStyle = clickPopoverSecondary
+      overlayArrowColorStyle = clickPopover__overlayArrowSecondary
       break
     case THEME_ORDER_CODE__TERTIARY:
-      clickPopoverColorStyle = styles["clickPopover--tertiary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--tertiary"]
+      clickPopoverColorStyle = clickPopoverTertiary
+      overlayArrowColorStyle = clickPopover__overlayArrowTertiary
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      clickPopoverColorStyle = styles["clickPopover--quaternary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--quaternary"]
+      clickPopoverColorStyle = clickPopoverQuaternary
+      overlayArrowColorStyle = clickPopover__overlayArrowQuaternary
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      clickPopoverColorStyle = styles["clickPopover--quintenary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--quintenary"]
+      clickPopoverColorStyle = clickPopoverQuintenary
+      overlayArrowColorStyle = clickPopover__overlayArrowQuintenary
       break
     default:
-      clickPopoverColorStyle = styles["clickPopover--primary"]
-      overlayArrowColorStyle = styles["clickPopover__overlayArrow--primary"]
+      clickPopoverColorStyle = clickPopoverPrimary
+      overlayArrowColorStyle = clickPopover__overlayArrowPrimary
       break
   }
 
@@ -89,7 +104,7 @@ const computeGeometryStyle = (props: TClickPopoverProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["clickPopover--rounded"]
+      return clickPopoverRounded
     default:
       return undefined
   }
@@ -112,7 +127,7 @@ export const calibrateComponent = (props: TClickPopoverProps): TCalibratedClickP
 
   const geometryStyle = computeGeometryStyle(props)
   const { clickPopoverColorStyle, overlayArrowColorStyle } = computeColorStyles(props)
-  const raisedStyle = raised ? styles["clickPopover--raised"] : undefined
+  const raisedStyle = raised ? clickPopoverRaised : undefined
 
   const clickPopoverStyles = classNames(
     clickPopover,
