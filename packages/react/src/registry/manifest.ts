@@ -2160,6 +2160,12 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
+        sourcePath: "packages/react/src/components/Pagination/hooks.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Pagination/hooks.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
         sourcePath: "packages/react/src/components/Pagination/helpers.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Pagination/helpers.tsx",
@@ -2176,6 +2182,12 @@ export const reactRegistryManifest = [
           "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/Pagination/components/PrimaryPaginationControls/hooks.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Pagination/components/PrimaryPaginationControls/hooks.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {

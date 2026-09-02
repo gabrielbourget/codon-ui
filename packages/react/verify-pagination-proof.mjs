@@ -5,12 +5,14 @@ import { fileURLToPath } from "node:url"
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const paginationRoot = path.join(packageRoot, "src/components/Pagination")
 const paginationSourcePath = path.join(paginationRoot, "Pagination.tsx")
+const paginationHooksPath = path.join(paginationRoot, "hooks.tsx")
 const helpersSourcePath = path.join(paginationRoot, "helpers.tsx")
 const primaryControlsSourcePath = path.join(
   paginationRoot,
   "components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
 )
 const primaryControlsHelpersPath = path.join(paginationRoot, "components/PrimaryPaginationControls/helpers.tsx")
+const primaryControlsHooksPath = path.join(paginationRoot, "components/PrimaryPaginationControls/hooks.tsx")
 const primaryControlsStylesPath = path.join(
   paginationRoot,
   "components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
@@ -50,9 +52,11 @@ const forbiddenLegacyCssPattern =
   /--distance_|--border_radius_|--shadow_1|--fadeInAnimation|--fadeOutAnimation|--focus-ring-color/u
 const requiredRuntimeFileSources = [
   "packages/react/src/components/Pagination/Pagination.tsx",
+  "packages/react/src/components/Pagination/hooks.tsx",
   "packages/react/src/components/Pagination/helpers.tsx",
   "packages/react/src/components/Pagination/PaginationStyles.module.css",
   "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
+  "packages/react/src/components/Pagination/components/PrimaryPaginationControls/hooks.tsx",
   "packages/react/src/components/Pagination/components/PrimaryPaginationControls/helpers.tsx",
   "packages/react/src/components/Pagination/components/PrimaryPaginationControls/DefaultPaginationIcons.tsx",
   "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
@@ -102,9 +106,11 @@ const expectedActionVariables = [
 ]
 
 const paginationSource = readRequiredText(paginationSourcePath)
+const paginationHooks = readRequiredText(paginationHooksPath)
 const helpersSource = readRequiredText(helpersSourcePath)
 const primaryControlsSource = readRequiredText(primaryControlsSourcePath)
 const primaryControlsHelpers = readRequiredText(primaryControlsHelpersPath)
+const primaryControlsHooks = readRequiredText(primaryControlsHooksPath)
 const pageInputSource = readRequiredText(pageInputSourcePath)
 const itemsPerPageSource = readRequiredText(itemsPerPageSourcePath)
 const pageCounterSource = readRequiredText(pageCounterSourcePath)
@@ -123,12 +129,14 @@ const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 assert(paginationSource.startsWith('"use client"'), "Pagination must preserve the client component boundary")
-assert(paginationSource.includes('from "../../tokens/geometry"'), "Pagination must use package-local geometry tokens")
+assert(paginationHooks.includes('from "../../tokens/geometry"'), "Pagination must use package-local geometry tokens")
 assert(paginationSource.includes('from "../LineSegment/LineSegment"'), "Pagination must compose package LineSegment")
-assert(paginationSource.includes("<PageCounter"), "Pagination must preserve PageCounter composition")
-assert(paginationSource.includes("<PageInput"), "Pagination must preserve PageInput composition")
-assert(paginationSource.includes("<ItemsPerPage"), "Pagination must preserve ItemsPerPage composition")
-assert(paginationSource.includes("<PrimaryPaginationControls"), "Pagination must preserve primary controls composition")
+assert(paginationSource.includes('from "./hooks"'), "Pagination must consume its hook-backed calibration boundary")
+assert(paginationHooks.includes("<PageCounter"), "Pagination must preserve PageCounter composition")
+assert(paginationHooks.includes("<PageInput"), "Pagination must preserve PageInput composition")
+assert(paginationHooks.includes("<ItemsPerPage"), "Pagination must preserve ItemsPerPage composition")
+assert(paginationHooks.includes("<PrimaryPaginationControls"), "Pagination must preserve primary controls composition")
+assert(!helpersSource.includes("useCalibratedComponent"), "Pagination helpers must remain hook-free")
 assert(helpersSource.includes("buildItemsPerPageOptions"), "Pagination must localize the item-option mapper")
 assert(!helpersSource.includes("listItemsGen"), "Pagination must not import the Wavemap app utility mapper")
 assert(helpersSource.includes("type TIntRange"), "Pagination must keep range typing local")
@@ -156,7 +164,19 @@ assert(
   primaryControlsSource.includes('from "../../../ListBoxItem/ListBoxItem"'),
   "Primary controls must compose ListBoxItem",
 )
-assert(primaryControlsHelpers.includes("PaginationDefaultOverflowIcon"), "Primary controls must preserve default icons")
+assert(
+  primaryControlsSource.includes('from "./hooks"'),
+  "Primary controls must consume one hook-backed calibration boundary",
+)
+assert(
+  primaryControlsHooks.includes("PaginationDefaultOverflowIcon"),
+  "Primary controls calibration must preserve default icons",
+)
+assert(!primaryControlsHelpers.includes("useMemoizedProperties"), "Primary controls must not split hook preparation")
+assert(
+  !primaryControlsHelpers.includes("calibrateComponent"),
+  "Primary controls must not split calibration entry points",
+)
 assert(pageInputSource.includes('from "../../../FormField/FormField"'), "PageInput must compose FormField")
 assert(pageInputSource.includes('from "../../../NumberInput/NumberInput"'), "PageInput must compose NumberInput")
 assert(itemsPerPageSource.includes('from "../../../Select/Select"'), "ItemsPerPage must compose Select")
@@ -164,9 +184,11 @@ assert(itemsPerPageSource.includes('from "../../../ListBoxItem/ListBoxItem"'), "
 assert(pageCounterSource.includes('from "../../../Counter/Counter"'), "PageCounter must compose Counter")
 ;[
   paginationSource,
+  paginationHooks,
   helpersSource,
   primaryControlsSource,
   primaryControlsHelpers,
+  primaryControlsHooks,
   pageInputSource,
   itemsPerPageSource,
   pageCounterSource,

@@ -1,15 +1,7 @@
-import classNames from "classnames"
-import { useMemo, type CSSProperties, type HTMLAttributes, type ReactNode } from "react"
+import type { CSSProperties, HTMLAttributes, ReactNode } from "react"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
-import {
-  THEME_ORDER_CODE__PRIMARY,
-  THEME_ORDER_CODE__QUATERNARY,
-  THEME_ORDER_CODE__QUINTENARY,
-  THEME_ORDER_CODE__SECONDARY,
-  THEME_ORDER_CODE__TERTIARY,
-  type TThemingOrderCode,
-} from "../../tokens/theme-order"
+import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TAvailableColorModes, TButtonProps } from "../Button/helpers"
 import type { TClickPopoverProps } from "../ClickPopover/helpers"
 import type { TCounterProps } from "../Counter/helpers"
@@ -17,8 +9,6 @@ import type { TFormFieldProps } from "../FormField/helpers"
 import type { TNumberInputProps } from "../NumberInput/helpers"
 import type { TPartialNumberInputLabels } from "../NumberInput/labels"
 import type { TSelectProps } from "../Select/helpers"
-
-import styles from "./PaginationStyles.module.css"
 
 export const MIN_VISIBLE_PAGINATION_ITEMS = 3
 export const DEFAULT_MAX_VISIBLE_PAGINATION_ITEMS = 10
@@ -42,7 +32,7 @@ type TAriaLabelingProps = {
   ariaDetails?: string
 }
 
-const buildItemsPerPageOptions = <T extends readonly string[]>(items: T) => {
+export const buildItemsPerPageOptions = <T extends readonly string[]>(items: T) => {
   return items.map((item) => ({
     id: item,
     name: item,
@@ -363,20 +353,6 @@ export type TPaginationSubComponentKeymap = {
 
 export type TInternalPaginationItem = number | number[]
 
-type TCalibratedPaginationComponent = {
-  paginationStyles: string
-  paginationStyle: CSSProperties
-  elementsRowStyles: string
-  itemsPerPageOptionsList: { id: string; name: string }[]
-  numberOfPages: number
-  pageCounterStyles: string
-  pageInputRowStyles: string
-  pageNumberButtonRowStyles: string
-  internalPaginationItems: TInternalPaginationItem[]
-  iconColor: string
-  computedPageButtonTextColor: string
-}
-
 const generatePageNumbersArray = (numberOfPages: number, rtl: boolean): number[] => {
   const pages = Array.from({ length: numberOfPages }, (_, i) => i + 1)
   return rtl ? pages.reverse() : pages
@@ -574,94 +550,4 @@ export const computeInternalPaginationItems = (props: TPaginationProps): TIntern
   internalPaginationItems.push(lastPage)
 
   return internalPaginationItems
-}
-
-export const useCalibratedComponent = (props: TPaginationProps): TCalibratedPaginationComponent => {
-  const {
-    className,
-    customClassName,
-    customComponentStyles,
-    rtl,
-    itemsPerPageOptions,
-    numberOfItems,
-    itemsPerPage = DEFAULT_ITEMS_PER_PAGE,
-    color,
-    order,
-    buttonColorMode = "fill",
-    style,
-  } = props
-
-  const {
-    pagination,
-    pagination__elementsRow,
-    pagination__pageInputRow,
-    pagination__pageCounter,
-    pagination__pageNumberButtonRow,
-  } = styles
-
-  let paginationColor = ""
-  let iconColor = ""
-  const numberOfPages = Math.max(Math.ceil(numberOfItems / itemsPerPage), 1)
-
-  const rtlStyle = rtl ? styles["pagination--rtl"] : null
-
-  const paginationStyles = classNames(pagination, rtlStyle, customClassName, className)
-  const paginationStyle: CSSProperties = { ...customComponentStyles, ...style }
-  const pageCounterStyles = classNames(pagination__pageCounter)
-  const pageInputRowStyles = classNames(pagination__pageInputRow)
-  const elementsRowStyles = classNames(pagination__elementsRow)
-  const pageNumberButtonRowStyles = classNames(pagination__pageNumberButtonRow)
-
-  const itemsPerPageOptionsList = useMemo(
-    () =>
-      itemsPerPageOptions
-        ? buildItemsPerPageOptions(itemsPerPageOptions.map((item) => item.toString()))
-        : buildItemsPerPageOptions(AVAILABLE_ITEMS_PER_PAGE_OPTIONS.map((item) => item.toString())),
-    [itemsPerPageOptions],
-  )
-
-  const internalPaginationItems = computeInternalPaginationItems(props)
-
-  if (color && order === undefined) paginationColor = color
-  switch (order) {
-    case THEME_ORDER_CODE__PRIMARY:
-      paginationColor = "var(--cui-color-primary-500)"
-      break
-    case THEME_ORDER_CODE__SECONDARY:
-      paginationColor = "var(--cui-color-secondary-500)"
-      break
-    case THEME_ORDER_CODE__TERTIARY:
-      paginationColor = "var(--cui-color-tertiary-500)"
-      break
-    case THEME_ORDER_CODE__QUATERNARY:
-      paginationColor = "var(--cui-color-quaternary-500)"
-      break
-    case THEME_ORDER_CODE__QUINTENARY:
-      paginationColor = "var(--cui-color-quintenary-500)"
-      break
-    default:
-      break
-  }
-
-  if (order === undefined) paginationColor = "inherit"
-
-  if (buttonColorMode === "fill") {
-    iconColor = color || order ? "var(--cui-control-selected-foreground)" : "currentColor"
-  } else iconColor = paginationColor
-
-  const computedPageButtonTextColor = "var(--cui-control-foreground)"
-
-  return {
-    paginationStyles,
-    paginationStyle,
-    elementsRowStyles,
-    itemsPerPageOptionsList,
-    numberOfPages,
-    pageCounterStyles,
-    pageInputRowStyles,
-    pageNumberButtonRowStyles,
-    internalPaginationItems,
-    iconColor,
-    computedPageButtonTextColor,
-  }
 }
