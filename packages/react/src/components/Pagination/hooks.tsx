@@ -1,5 +1,5 @@
 import classNames from "classnames"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useMemo, useState, type CSSProperties, type HTMLAttributes, type ReactNode } from "react"
 
 import { ROUNDED } from "../../tokens/geometry"
 import {
@@ -31,11 +31,40 @@ import {
 } from "./helpers"
 import styles from "./PaginationStyles.module.css"
 
+type TPaginationNativeProps = Omit<HTMLAttributes<HTMLElement>, "children" | "className" | "color" | "style">
+
+type TCalibratedPaginationComponent = {
+  composition: {
+    items: {
+      key: keyof TPaginationSubComponentKeymap
+      node: ReactNode
+    }[]
+    separator: {
+      className: string | undefined
+      style: CSSProperties
+    }
+  }
+  root: {
+    ariaDescribedBy: string | undefined
+    ariaDetails: string | undefined
+    ariaLabel: string
+    ariaLabelledBy: string | undefined
+    className: string
+    dataTestID: string
+    isDisabled: boolean
+    nativeProps: TPaginationNativeProps
+    style: CSSProperties
+  }
+  visibility: {
+    isVisible: boolean
+  }
+}
+
 /**
  * Owns Pagination's internal draft, callbacks, presentation, and subcomponent composition while callers retain the
  * controlled page and page-size state.
  */
-export const useCalibratedComponent = (props: TPaginationProps) => {
+export const useCalibratedComponent = (props: TPaginationProps): TCalibratedPaginationComponent => {
   const {
     "aria-describedby": ariaDescribedBy,
     "aria-details": ariaDetails,

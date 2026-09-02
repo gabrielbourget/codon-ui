@@ -1,8 +1,14 @@
 import classNames from "classnames"
-import { useCallback, useMemo, type CSSProperties } from "react"
+import { useCallback, useMemo, type CSSProperties, type ReactNode } from "react"
 
 import { ROUND, ROUNDED } from "../../../../tokens/geometry"
-import { DEFAULT_PAGINATION_LABELS } from "../../helpers"
+import type { TButtonProps } from "../../../Button/helpers"
+import type { TClickPopoverProps } from "../../../ClickPopover/helpers"
+import {
+  DEFAULT_PAGINATION_LABELS,
+  type TInternalPaginationItem,
+  type TPaginationPrimaryControlsLabels,
+} from "../../helpers"
 
 import {
   PaginationDefaultChevronLeftIcon,
@@ -14,10 +20,90 @@ import {
 import type { TPrimaryPaginationControlsProps } from "./helpers"
 import styles from "./PrimaryPaginationControlsStyles.module.css"
 
+type TBuildButtonProps = (args: {
+  customClassName?: string
+  customStyles?: CSSProperties
+  defaultStyles: CSSProperties
+}) => Partial<TButtonProps>
+
+type TClickPopoverRemainderProps = Omit<
+  Partial<TClickPopoverProps>,
+  "className" | "customClassName" | "customDialogStyles" | "customStyles" | "placement" | "raised" | "style"
+>
+
+type TCalibratedPrimaryPaginationControlsComponent = {
+  controls: {
+    buildButtonProps: TBuildButtonProps
+    buttonColorMode: TPrimaryPaginationControlsProps["buttonColorMode"]
+    color: TPrimaryPaginationControlsProps["color"]
+    currentPage: number
+    customFirstPageButtonClassName: string | undefined
+    customFirstPageButtonStyles: CSSProperties | undefined
+    customLastPageButtonClassName: string | undefined
+    customLastPageButtonStyles: CSSProperties | undefined
+    customNextButtonClassName: string | undefined
+    customNextButtonStyles: CSSProperties | undefined
+    customPrevButtonClassName: string | undefined
+    customPrevButtonStyles: CSSProperties | undefined
+    disabled: boolean | undefined
+    geometry: TPrimaryPaginationControlsProps["geometry"]
+    numberOfPages: number
+    onPageNumButtonClick: TPrimaryPaginationControlsProps["onPageNumButtonClick"]
+    order: TPrimaryPaginationControlsProps["order"]
+    rtl: boolean
+    showFirstPageButtonIcon: boolean
+    showFirstPageButtonLabel: boolean | undefined
+    showIncrementButtonsWithOnePage: boolean
+    showLastPageButtonIcon: boolean
+    showLastPageButtonLabel: boolean | undefined
+    showNextPageButtonIcon: boolean
+    showNextPageButtonLabel: boolean | undefined
+    showPrevPageButtonIcon: boolean
+    showPrevPageButtonLabel: boolean | undefined
+  }
+  labels: TPaginationPrimaryControlsLabels
+  pages: {
+    clickPopoverClassName: string | undefined
+    clickPopoverCustomClassName: string | undefined
+    clickPopoverCustomStyles: CSSProperties | undefined
+    clickPopoverDialogStyles: CSSProperties | undefined
+    clickPopoverPlacement: NonNullable<TClickPopoverProps["placement"]>
+    clickPopoverRaised: boolean
+    clickPopoverStyle: CSSProperties | undefined
+    customClickPopoverTriggerButtonClassName: string | undefined
+    customClickPopoverTriggerButtonStyles: CSSProperties | undefined
+    customOptionsListClassName: string | undefined
+    customOptionsListStyles: CSSProperties | undefined
+    customPageNumberButtonClassName: string | undefined
+    customPageNumberButtonStyles: CSSProperties | undefined
+    internalPaginationItems: TInternalPaginationItem[]
+    restCustomClickPopoverProps: TClickPopoverRemainderProps
+  }
+  presentation: {
+    buttonRowStyles: string
+    computedFirstPageButtonIcon: ReactNode
+    computedLastPageButtonIcon: ReactNode
+    computedNextButtonIcon: ReactNode
+    computedPrevButtonIcon: ReactNode
+    overflowItemsButtonIcon: ReactNode
+    overflowItemsListStyles: string
+    pageNumberButtonRowStyles: string
+    popoverStyles: string
+  }
+  visibility: {
+    showFirstPageButton: boolean
+    showLastPageButton: boolean
+    showNextPageButton: boolean
+    showPrevPageButton: boolean
+  }
+}
+
 /**
  * Prepares the visibility, labels, customization props, and presentation resources consumed by the primary controls.
  */
-export const useCalibratedComponent = (props: TPrimaryPaginationControlsProps) => {
+export const useCalibratedComponent = (
+  props: TPrimaryPaginationControlsProps,
+): TCalibratedPrimaryPaginationControlsComponent => {
   const {
     color,
     order,
