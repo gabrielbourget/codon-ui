@@ -83,6 +83,19 @@ export type TApplySortAndFilterParametersArgs = {
   filterGroups: TSortAndFilterPanelFilterGroup[]
 }
 
+const getFilterArgumentValue = (item: TAvailableListItem) => item.argumentValue ?? item.name
+
+const inferFilterArgumentSelectedKey = (
+  availableFilterArguments: TAvailableListItem[] | undefined,
+  argument: TSortAndFilterPanelFilterGroup["clauses"][number]["argument"],
+) => {
+  if (!availableFilterArguments?.length) return null
+
+  const matchedArgument = availableFilterArguments.find((item) => getFilterArgumentValue(item) === argument)
+
+  return matchedArgument?.id ?? null
+}
+
 export const buildFilterGroupDraftsFromQueryFilterGroups = (
   filterGroups: TSortAndFilterPanelFilterGroup[],
   possibleFilterCriteria: TAvailableFilterCriteria[],
@@ -109,7 +122,10 @@ export const buildFilterGroupDraftsFromQueryFilterGroups = (
           id: clause.id,
           operationCode: clause.operationCode,
           argument: clause.argument,
-          filterArgumentSelectedKey: null,
+          filterArgumentSelectedKey: inferFilterArgumentSelectedKey(
+            matchingCriteria.availableCriteriaArguments,
+            clause.argument,
+          ),
         })),
       },
     ]
