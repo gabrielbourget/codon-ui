@@ -20,6 +20,13 @@ import {
 import type { TPrimaryPaginationControlsProps } from "./helpers"
 import styles from "./PrimaryPaginationControlsStyles.module.css"
 
+const {
+  buttonRow: buttonRowClassName,
+  paginationItemsList: paginationItemsListClassName,
+  pageNumberButtonRow: pageNumberButtonRowClassName,
+  popover: popoverClassName,
+} = styles
+
 type TBuildButtonProps = (args: {
   customClassName?: string
   customStyles?: CSSProperties
@@ -313,7 +320,7 @@ export const useCalibratedComponent = (
       restCustomClickPopoverProps,
     },
     presentation: {
-      buttonRowStyles: classNames(styles.buttonRow),
+      buttonRowStyles: classNames(buttonRowClassName),
       computedFirstPageButtonIcon: showFirstPageButtonIcon
         ? rtl
           ? incrementAllUpIcon
@@ -327,9 +334,9 @@ export const useCalibratedComponent = (
       computedNextButtonIcon: showNextPageButtonIcon ? (rtl ? incrementDownIcon : incrementUpIcon) : undefined,
       computedPrevButtonIcon: showPrevPageButtonIcon ? (rtl ? incrementUpIcon : incrementDownIcon) : undefined,
       overflowItemsButtonIcon,
-      overflowItemsListStyles: classNames(styles.paginationItemsList, overflowItemsListGeometryClassName),
-      pageNumberButtonRowStyles: classNames(styles.pageNumberButtonRow),
-      popoverStyles: classNames(styles.popover),
+      overflowItemsListStyles: classNames(paginationItemsListClassName, overflowItemsListGeometryClassName),
+      pageNumberButtonRowStyles: classNames(pageNumberButtonRowClassName),
+      popoverStyles: classNames(popoverClassName),
     },
     visibility,
   }

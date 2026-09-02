@@ -1,7 +1,6 @@
 import classNames from "classnames"
 import { type FC } from "react"
-import type { Selection } from "react-aria-components"
-import { DialogTrigger, ListBox } from "react-aria-components"
+import { DialogTrigger, ListBox, type Selection } from "react-aria-components"
 
 import Button from "../../../Button/Button"
 import { COLOR_MODE__FILL, COLOR_MODE__OUTLINE } from "../../../Button/helpers"
@@ -195,7 +194,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
 
             return (
               <Button
-                key={index}
+                key={`pagination-overflow-page-${targetPage}`}
                 data-testid="pagination-overflow-trigger"
                 onPress={() => onPageNumButtonClick(targetPage)}
                 isDisabled={disabled}
@@ -224,7 +223,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
           }))
 
           return (
-            <DialogTrigger key={index}>
+            <DialogTrigger key={`pagination-overflow-pages-${internalItem.join("-")}`}>
               <Button
                 colorMode="outline"
                 color={color}
@@ -286,7 +285,7 @@ const PrimaryPaginationControls: FC<TPrimaryPaginationControlsProps> = (props) =
         // -> Early return above guards against the item being an array of pagination items
         return (
           <Button
-            key={index}
+            key={`pagination-page-${internalItem}`}
             onPress={() => onPageNumButtonClick(internalItem)}
             isDisabled={disabled}
             colorMode={currentPage === internalItem ? COLOR_MODE__FILL : COLOR_MODE__OUTLINE}
