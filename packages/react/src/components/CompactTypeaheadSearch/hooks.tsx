@@ -16,7 +16,7 @@ import {
 } from "react"
 import type { Key } from "react-aria-components"
 
-import { POPOVER_PLACEMENT__BOTTOM_START, type TAvailablePopoverPlacementPositions } from "../../tokens/placement"
+import * as placementTokens from "../../tokens/placement"
 import ListBoxItem from "../ListBoxItem/ListBoxItem"
 
 import styles from "./CompactTypeaheadSearchStyles.module.css"
@@ -57,7 +57,7 @@ type TCalibratedCompactTypeaheadSearchComponent<T extends object> = {
   popover: {
     className: string
     isOpen: boolean
-    placement: TAvailablePopoverPlacementPositions
+    placement: placementTokens.TAvailablePopoverPlacementPositions
     style: CSSProperties
   }
   results: {
@@ -135,7 +135,7 @@ export const useCalibratedComponent = <T extends object>(
     onChange,
     onInputChange,
     onOpenChange,
-    placement = POPOVER_PLACEMENT__BOTTOM_START,
+    placement = placementTokens.POPOVER_PLACEMENT__BOTTOM_START,
     placeholder,
     SearchIcon: SearchIcon__props,
     renderItem,
