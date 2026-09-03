@@ -168,6 +168,7 @@ export const initState: TToastState = {
 }
 
 type TCalibratedToastComponent = {
+  bodyTextProps: Partial<TTextProps>
   toastStyles: string
   topRibbonStyles: string
   topRibbonLeftContentStyles: string
@@ -186,6 +187,47 @@ type TCalibratedToastComponent = {
   color__neutral_4: string
   toastColor: string
   toastIcon: ReactNode
+  timestampTextProps: Partial<TTextProps>
+  closeButtonProps: Partial<TButtonProps>
+  cancelButtonProps: Partial<TButtonProps>
+  confirmButtonProps: Partial<TButtonProps>
+}
+
+const mergeButtonSlotProps = (args: {
+  buttonProps?: Partial<TButtonProps>
+  customClassName?: string
+  customStyles?: CSSProperties
+  defaultStyles?: CSSProperties
+}): Partial<TButtonProps> => {
+  const { className, customClassName, customStyles, ...rest } = args.buttonProps ?? {}
+  const nativeClassName = typeof className === "string" ? className : undefined
+
+  return {
+    ...rest,
+    customClassName: classNames(customClassName, nativeClassName, args.customClassName),
+    customStyles: {
+      ...args.defaultStyles,
+      ...customStyles,
+      ...args.customStyles,
+    },
+  }
+}
+
+const mergeTextSlotProps = (args: {
+  textProps?: Partial<TTextProps>
+  customClassName?: string
+  customStyles?: CSSProperties
+}): Partial<TTextProps> => {
+  const { customClassName, customStyles, ...rest } = args.textProps ?? {}
+
+  return {
+    ...rest,
+    customClassName: classNames(customClassName, args.customClassName),
+    customStyles: {
+      ...customStyles,
+      ...args.customStyles,
+    },
+  }
 }
 
 const computeColorStyles = (props: TToastProps) => {
@@ -260,10 +302,25 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
       customTitleStyles,
       customContentClassName,
       customContentStyles,
+      customBodyTextClassName,
+      customBodyTextProps,
+      customBodyTextStyles,
       customBottomRowClassName,
       customBottomRowStyles,
+      customTimestampClassName,
+      customTimestampTextProps,
+      customTimestampStyles,
       customButtonRowClassName,
       customButtonRowStyles,
+      customCloseButtonClassName,
+      customCloseButtonProps,
+      customCloseButtonStyles,
+      customCancelButtonClassName,
+      customCancelButtonProps,
+      customCancelButtonStyles,
+      customConfirmButtonClassName,
+      customConfirmButtonProps,
+      customConfirmButtonStyles,
       style,
     },
   } = props
@@ -288,6 +345,32 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
   const toastContentStyles = classNames(toast__bodyContent, customContentClassName)
   const bottomRowStyles = classNames(toast__bottomRow, customBottomRowClassName)
   const buttonRowStyles = classNames(toast__buttonRow, customButtonRowClassName)
+  const bodyTextProps = mergeTextSlotProps({
+    textProps: customBodyTextProps,
+    customClassName: customBodyTextClassName,
+    customStyles: customBodyTextStyles,
+  })
+  const timestampTextProps = mergeTextSlotProps({
+    textProps: customTimestampTextProps,
+    customClassName: customTimestampClassName,
+    customStyles: customTimestampStyles,
+  })
+  const closeButtonProps = mergeButtonSlotProps({
+    buttonProps: customCloseButtonProps,
+    customClassName: customCloseButtonClassName,
+    customStyles: customCloseButtonStyles,
+    defaultStyles: { padding: 0 },
+  })
+  const cancelButtonProps = mergeButtonSlotProps({
+    buttonProps: customCancelButtonProps,
+    customClassName: customCancelButtonClassName,
+    customStyles: customCancelButtonStyles,
+  })
+  const confirmButtonProps = mergeButtonSlotProps({
+    buttonProps: customConfirmButtonProps,
+    customClassName: customConfirmButtonClassName,
+    customStyles: customConfirmButtonStyles,
+  })
 
   const customStyles: CSSProperties = Object.assign({ height, width }, { ...customStyles__props }, { ...style })
 
@@ -340,6 +423,7 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
   }
 
   return {
+    bodyTextProps,
     toastStyles,
     topRibbonStyles,
     topRibbonLeftContentStyles,
@@ -358,5 +442,9 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
     color__neutral_4,
     toastColor,
     toastIcon: ToastIcon__props ?? defaultToastIcon,
+    timestampTextProps,
+    closeButtonProps,
+    cancelButtonProps,
+    confirmButtonProps,
   }
 }

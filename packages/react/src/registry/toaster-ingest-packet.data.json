@@ -42,6 +42,12 @@
       "role": "source"
     },
     {
+      "sourcePath": "packages/react/src/components/Toaster/Toast/hooks.tsx",
+      "targetRole": "components",
+      "targetPath": "Toaster/Toast/hooks.tsx",
+      "role": "source"
+    },
+    {
       "sourcePath": "packages/react/src/components/Toaster/Toast/helpers.tsx",
       "targetRole": "components",
       "targetPath": "Toaster/Toast/helpers.tsx",
