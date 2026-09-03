@@ -2327,6 +2327,12 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
+        sourcePath: "packages/react/src/components/Search/TypeaheadSearch/hooks.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Search/TypeaheadSearch/hooks.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
         sourcePath: "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Search/TypeaheadSearch/helpers.ts",

@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url"
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const typeaheadSearchRoot = path.join(packageRoot, "src/components/Search/TypeaheadSearch")
 const typeaheadSearchSourcePath = path.join(typeaheadSearchRoot, "TypeaheadSearch.tsx")
+const hooksSourcePath = path.join(typeaheadSearchRoot, "hooks.tsx")
 const helpersSourcePath = path.join(typeaheadSearchRoot, "helpers.ts")
 const labelsSourcePath = path.join(typeaheadSearchRoot, "labels.ts")
 const statusSourcePath = path.join(typeaheadSearchRoot, "status.ts")
@@ -42,6 +43,7 @@ const forbiddenLegacyCssPattern =
   /--distance_|--disabledOpacity|--border_radius_|--borderColorTransition|--boxShadowTransition|--focus-ring-color|theme\/typeahead-search-compatibility/u
 
 const typeaheadSearchSource = readRequiredText(typeaheadSearchSourcePath)
+const hooksSource = readRequiredText(hooksSourcePath)
 const helpersSource = readRequiredText(helpersSourcePath)
 const labelsSource = readRequiredText(labelsSourcePath)
 const statusSource = readRequiredText(statusSourcePath)
@@ -60,6 +62,7 @@ const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 const requiredPackageFileSources = [
   "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+  "packages/react/src/components/Search/TypeaheadSearch/hooks.tsx",
   "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
   "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
   "packages/react/src/components/Search/TypeaheadSearch/status.ts",
@@ -70,6 +73,7 @@ const requiredPackageFileSources = [
 ]
 const requiredTargetPaths = [
   "Search/TypeaheadSearch/TypeaheadSearch.tsx",
+  "Search/TypeaheadSearch/hooks.tsx",
   "Search/TypeaheadSearch/helpers.ts",
   "Search/TypeaheadSearch/labels.ts",
   "Search/TypeaheadSearch/status.ts",
@@ -125,32 +129,36 @@ assert(
   "TypeaheadSearch must import package-local Input",
 )
 assert(
-  typeaheadSearchSource.includes('import ListBoxItem from "../../ListBoxItem/ListBoxItem"'),
-  "TypeaheadSearch must import package-local ListBoxItem",
+  hooksSource.includes('import ListBoxItem from "../../ListBoxItem/ListBoxItem"'),
+  "TypeaheadSearch hooks must import package-local ListBoxItem",
 )
 assert(
   typeaheadSearchSource.includes('import PlaceholderText from "../../Text/variants/PlaceholderText/PlaceholderText"'),
   "TypeaheadSearch must import package-local PlaceholderText",
 )
 assert(
-  typeaheadSearchSource.includes("ListBox") && typeaheadSearchSource.includes("Selection"),
-  "TypeaheadSearch must use React Aria listbox primitives",
+  typeaheadSearchSource.includes("ListBox") && hooksSource.includes("Selection"),
+  "TypeaheadSearch component graph must use React Aria listbox primitives",
 )
 assert(
   typeaheadSearchSource.includes("forwardedRef: ForwardedRef<HTMLDivElement>"),
   "TypeaheadSearch must forward a div ref",
 )
-assert(typeaheadSearchSource.includes("inputValue.trim()"), "TypeaheadSearch must trim submitted queries")
 assert(
-  typeaheadSearchSource.includes("onSelectionChange?.(selectedKey)"),
-  "TypeaheadSearch must preserve selection callbacks",
+  typeaheadSearchSource.includes("useCalibratedComponent"),
+  "TypeaheadSearch must use one calibrated component hook",
 )
+assert(!typeaheadSearchSource.includes("useCallback"), "TypeaheadSearch renderer must not own memoized callbacks")
+assert(!typeaheadSearchSource.includes("useMemo"), "TypeaheadSearch renderer must not own memoized data")
+assert(hooksSource.includes("inputValue.trim()"), "TypeaheadSearch must trim submitted queries")
+assert(hooksSource.includes("onSelectionChange?.(selectedKey)"), "TypeaheadSearch must preserve selection callbacks")
 assert(
-  typeaheadSearchSource.includes('data-testid={dataTestID ?? "typeahead-search"}'),
+  typeaheadSearchSource.includes("data-testid={root.dataTestID}") &&
+    hooksSource.includes('dataTestID: dataTestID ?? "typeahead-search"'),
   "TypeaheadSearch must preserve test id fallback",
 )
 assert(
-  typeaheadSearchSource.includes("TYPEAHEAD_SEARCH_STATUS__RESULTS"),
+  hooksSource.includes("TYPEAHEAD_SEARCH_STATUS__RESULTS"),
   "TypeaheadSearch must use component-owned status constants",
 )
 
@@ -193,6 +201,7 @@ assert(
 
 for (const [sourceName, source] of Object.entries({
   typeaheadSearchSource,
+  hooksSource,
   helpersSource,
   labelsSource,
   statusSource,

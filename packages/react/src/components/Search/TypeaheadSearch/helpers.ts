@@ -10,6 +10,18 @@ import type { TPartialTypeaheadSearchLabels } from "./labels"
 import type { TTypeaheadSearchStatus } from "./status"
 import styles from "./TypeaheadSearchStyles.module.css"
 
+const {
+  typeaheadSearch,
+  typeaheadSearch__input,
+  typeaheadSearch__inputRow,
+  ["typeaheadSearch__inputRow--round"]: typeaheadSearch__inputRowRound,
+  ["typeaheadSearch__inputRow--rounded"]: typeaheadSearch__inputRowRounded,
+  typeaheadSearch__resultsContainer,
+  typeaheadSearch__resultsList,
+  typeaheadSearch__searchButton,
+  typeaheadSearch__status,
+} = styles
+
 export type TTypeaheadSearchRenderItemArgs = {
   query: string
   textValue: string
@@ -80,9 +92,9 @@ const computeGeometryStyle = <T extends object>(props: TTypeaheadSearchProps<T>)
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["typeaheadSearch__inputRow--rounded"]
+      return typeaheadSearch__inputRowRounded
     case ROUND:
-      return styles["typeaheadSearch__inputRow--round"]
+      return typeaheadSearch__inputRowRound
     default:
       return undefined
   }
@@ -118,17 +130,17 @@ export const calibrateComponent = <T extends object>(props: TTypeaheadSearchProp
   }
 
   return {
-    typeaheadSearchStyles: classNames(styles.typeaheadSearch, customClassName, className),
+    typeaheadSearchStyles: classNames(typeaheadSearch, customClassName, className),
     typeaheadSearchStyle: {
       ...customStyles,
       ...style,
     },
-    inputRowStyles: classNames(styles.typeaheadSearch__inputRow, computeGeometryStyle(props)),
-    inputStyles: styles.typeaheadSearch__input,
-    searchButtonStyles: styles.typeaheadSearch__searchButton,
-    resultsContainerStyles: styles.typeaheadSearch__resultsContainer,
-    resultsListStyles: styles.typeaheadSearch__resultsList,
-    statusStyles: styles.typeaheadSearch__status,
+    inputRowStyles: classNames(typeaheadSearch__inputRow, computeGeometryStyle(props)),
+    inputStyles: typeaheadSearch__input,
+    searchButtonStyles: typeaheadSearch__searchButton,
+    resultsContainerStyles: typeaheadSearch__resultsContainer,
+    resultsListStyles: typeaheadSearch__resultsList,
+    statusStyles: typeaheadSearch__status,
     customStyles,
     customInputRowStyles,
     customInputStyles,
