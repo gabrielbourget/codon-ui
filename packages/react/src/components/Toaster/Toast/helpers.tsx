@@ -20,6 +20,15 @@ import {
 import type { TPartialToastLabels } from "./labels"
 import styles from "./ToastStyles.module.css"
 
+const {
+  ["toast__topRibbon--errorOrDanger"]: toast__topRibbonErrorOrDanger,
+  ["toast__topRibbon--info"]: toast__topRibbonInfo,
+  ["toast__topRibbon--success"]: toast__topRibbonSuccess,
+  ["toast__topRibbon--warning"]: toast__topRibbonWarning,
+  ["toast--raised"]: toastRaised,
+  ["toast--rounded"]: toastRounded,
+} = styles
+
 export const TOAST_TYPE__INFO = "info"
 export const TOAST_TYPE__WARNING = "warning"
 export const TOAST_TYPE__ERROR = "error"
@@ -190,25 +199,25 @@ const computeColorStyles = (props: TToastProps) => {
 
   switch (type) {
     case TOAST_TYPE__INFO:
-      colorStyle = styles["toast__topRibbon--info"]
+      colorStyle = toast__topRibbonInfo
       break
     case TOAST_TYPE__WARNING:
-      colorStyle = styles["toast__topRibbon--warning"]
+      colorStyle = toast__topRibbonWarning
       break
     case TOAST_TYPE__ERROR:
-      colorStyle = styles["toast__topRibbon--errorOrDanger"]
+      colorStyle = toast__topRibbonErrorOrDanger
       break
     case TOAST_TYPE__DANGER:
-      colorStyle = styles["toast__topRibbon--errorOrDanger"]
+      colorStyle = toast__topRibbonErrorOrDanger
       break
     case TOAST_TYPE__DELETE:
-      colorStyle = styles["toast__topRibbon--errorOrDanger"]
+      colorStyle = toast__topRibbonErrorOrDanger
       break
     case TOAST_TYPE__SUCCESS:
-      colorStyle = styles["toast__topRibbon--success"]
+      colorStyle = toast__topRibbonSuccess
       break
     default:
-      colorStyle = styles["toast__topRibbon--info"]
+      colorStyle = toast__topRibbonInfo
       break
   }
 
@@ -224,7 +233,7 @@ const computeGeometryStyle = (props: TToastProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["toast--rounded"]
+      return toastRounded
     default:
       return undefined
   }
@@ -270,7 +279,7 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
 
   const colorStyle = computeColorStyles(props)
   const geometryStyle = computeGeometryStyle(props)
-  const raisedStyle = raised ? styles["toast--raised"] : undefined
+  const raisedStyle = raised ? toastRaised : undefined
 
   const toastStyles = classNames(toast, geometryStyle, raisedStyle, customClassName, className)
   const topRibbonStyles = classNames(toast__topRibbon, colorStyle, customTopRibbonClassName)
