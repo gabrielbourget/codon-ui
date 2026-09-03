@@ -1103,6 +1103,7 @@ await verifyComponentAddPlanning({
     "src/components/Toaster/Toaster.tsx",
     "src/components/Toaster/ToasterStyles.module.css",
     "src/components/Toaster/helpers.ts",
+    "src/components/Toaster/hooks.tsx",
     "src/components/Toaster/stateManagement.ts",
     "src/components/_codon-ui-registry/action-colors.css",
     "src/components/_codon-ui-registry/text-typography.css",
@@ -1113,7 +1114,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-z-index-toast", "--cui-status-success", "--cui-control-selected-background"],
   expectedMissingDependencyCount: 5,
-  expectedPlannedCount: 23,
+  expectedPlannedCount: 24,
 })
 
 await verifyComponentAddPlanning({

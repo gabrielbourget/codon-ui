@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const toasterSourcePath = path.join(packageRoot, "src/components/Toaster/Toaster.tsx")
+const toasterHooksSourcePath = path.join(packageRoot, "src/components/Toaster/hooks.tsx")
 const toasterHelpersSourcePath = path.join(packageRoot, "src/components/Toaster/helpers.ts")
 const toasterStateSourcePath = path.join(packageRoot, "src/components/Toaster/stateManagement.ts")
 const toasterStylesSourcePath = path.join(packageRoot, "src/components/Toaster/ToasterStyles.module.css")
@@ -42,6 +43,7 @@ const forbiddenLegacyCssPattern =
   /--distance_|--border_radius_|--shadow_1|--focus-ring-color|--Z_INDEX|theme\/toaster-compatibility/u
 
 const toasterSource = readRequiredText(toasterSourcePath)
+const toasterHooksSource = readRequiredText(toasterHooksSourcePath)
 const toasterHelpersSource = readRequiredText(toasterHelpersSourcePath)
 const toasterStateSource = readRequiredText(toasterStateSourcePath)
 const toasterStylesSource = readRequiredText(toasterStylesSourcePath)
@@ -61,6 +63,7 @@ const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 const requiredPackageFileSources = [
   "packages/react/src/components/Toaster/Toaster.tsx",
+  "packages/react/src/components/Toaster/hooks.tsx",
   "packages/react/src/components/Toaster/helpers.ts",
   "packages/react/src/components/Toaster/stateManagement.ts",
   "packages/react/src/components/Toaster/ToasterStyles.module.css",
@@ -111,6 +114,7 @@ const expectedRegistryDependencies = [
 
 ;[
   toasterSource,
+  toasterHooksSource,
   toasterHelpersSource,
   toasterStateSource,
   toasterStylesSource,
@@ -125,9 +129,21 @@ const expectedRegistryDependencies = [
 assert(!forbiddenLegacyCssPattern.test(toasterStylesSource), "Toaster CSS must not read legacy Wavemap aliases")
 assert(!forbiddenLegacyCssPattern.test(toastStylesSource), "Toast CSS must not read legacy Wavemap aliases")
 
-assert(toasterSource.includes("ReactDOM.flushSync"), "Toaster must preserve sync toast transition publication")
-assert(toasterSource.includes("ToasterObserver.subscribe"), "Toaster must subscribe to published toast events")
-assert(toasterSource.includes('data-testid={dataTestID ?? "toaster"}'), "Toaster test id fallback must stay")
+assert(
+  toasterSource.includes("useCalibratedComponent(props)"),
+  "Toaster renderer must consume one grouped hook-backed calibration entry",
+)
+;["useState", "useEffect", "useMemo", "useCallback", "useRef", "calibrateComponent"].forEach(
+  (forbiddenRendererResource) => {
+    assert(
+      !toasterSource.includes(forbiddenRendererResource),
+      `Toaster renderer must not own ${forbiddenRendererResource}`,
+    )
+  },
+)
+assert(toasterHooksSource.includes("ReactDOM.flushSync"), "Toaster must preserve sync toast transition publication")
+assert(toasterHooksSource.includes("ToasterObserver.subscribe"), "Toaster must subscribe to published toast events")
+assert(toasterHooksSource.includes('dataTestID: dataTestID ?? "toaster"'), "Toaster test id fallback must stay")
 assert(toasterSource.includes("Ghost hover bridges"), "Toaster must preserve expanded-stack hover bridges")
 assert(
   toasterHelpersSource.includes('from "../../tokens/a11y"'),
