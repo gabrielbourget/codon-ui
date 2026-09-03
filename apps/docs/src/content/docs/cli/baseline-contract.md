@@ -261,8 +261,10 @@ package-manager lockfiles.
 
 Item-scoped dry-run and strict update also accept `--adopt-current` as a lockfile-only provenance repair. The option
 admits a locally changed registry-owned file only when its bytes exactly match the current canonical,
-import-transformed install output. It never writes component source, remains blocked by nonmatching content and every
-other preservation-sensitive ownership state, and is rejected with advisory mode or `--all`.
+import-transformed install output. It can also record a file newly added to the current registry item when that target
+already exists and byte-matches the canonical transformed output. It never writes component source, remains blocked by
+missing or nonmatching additions and every other preservation-sensitive ownership state, and is rejected with advisory
+mode or `--all`.
 
 Current `remove <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 remove advisory actions, item remove state, dependency posture, shared lockfile reference counts, and explicit no-write

@@ -53,6 +53,8 @@ const UPDATE_DRY_RUN_FILE_ACTION__WOULD_UPDATE_LOCKFILE = "would-update-lockfile
 const UPDATE_DRY_RUN_FILE_ACTION__WOULD_SKIP = "would-skip"
 const UPDATE_DRY_RUN_FILE_ACTION__BLOCKED = "blocked"
 
+export const UPDATE_DRY_RUN_ADVISORY_ACTION__ADOPT_FILE_ADDITION = "adopt-current-file-addition"
+
 const UPDATE_DRY_RUN_BLOCKER_KIND__DEPENDENCY = "dependency"
 const UPDATE_DRY_RUN_BLOCKER_KIND__FILE = "file"
 const UPDATE_DRY_RUN_BLOCKER_KIND__ITEM = "item"
@@ -109,13 +111,13 @@ const updateDryRunFileSchema = z
     currentHash: z.string().min(1).optional(),
     currentSourceHash: z.string().min(1).optional(),
     dryRunAction: z.enum(UPDATE_DRY_RUN_FILE_ACTIONS),
-    installedHash: z.string().min(1),
+    installedHash: z.string().min(1).optional(),
     itemName: z.string().min(1),
     nextInstalledHash: z.string().min(1).optional(),
     nextSourceHash: z.string().min(1).optional(),
     path: z.string().min(1),
     preservationRequired: z.boolean(),
-    sourceHash: z.string().min(1),
+    sourceHash: z.string().min(1).optional(),
     sourcePath: z.string().min(1).optional(),
     targetRole: consumerTargetRoleSchema,
     wouldWriteFile: z.boolean(),
@@ -459,33 +461,102 @@ const createInstallPlanFileMap = (installPlan?: TRegistryInstallPlan) => {
   return filesByKey
 }
 
-const createFileSetDriftBlockers = ({
+type TAdoptableFileAddition = {
+  currentHash: string
+  file: TInstallPlanFile
+  nextInstalledHash: string
+  nextSourceHash: string
+}
+
+const readCurrentFileHash = async ({ cwd, file }: { cwd: string; file: TInstallPlanFile }) => {
+  const absoluteTargetPath = path.resolve(cwd, file.resolvedPath)
+  const relativeTargetPath = path.relative(cwd, absoluteTargetPath)
+
+  if (
+    relativeTargetPath === ".." ||
+    relativeTargetPath.startsWith(`..${path.sep}`) ||
+    path.isAbsolute(relativeTargetPath)
+  ) {
+    return undefined
+  }
+
+  try {
+    const fileStats = await fs.lstat(absoluteTargetPath)
+    if (!fileStats.isFile() && !fileStats.isSymbolicLink()) return undefined
+
+    return createContentHash(await fs.readFile(absoluteTargetPath))
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined
+
+    throw error
+  }
+}
+
+const createFileSetDriftPlan = async ({
+  adoptCurrent,
   advisoryReport,
+  cwd,
   installPlan,
   itemName,
+  sourceRoot,
 }: {
+  adoptCurrent: boolean
   advisoryReport: TUpdateAdvisoryReport
+  cwd: string
   installPlan?: TRegistryInstallPlan
   itemName: string
+  sourceRoot?: string
 }) => {
-  if (!installPlan) return []
+  if (!installPlan) return { adoptableFileAdditions: [], blockers: [] }
 
   const advisoryPaths = new Set(advisoryReport.files.map((file) => file.path))
   const currentItem = installPlan.items.find((item) => item.name === itemName)
   const extraPlanFiles = currentItem?.files.filter((file) => !advisoryPaths.has(file.resolvedPath)) ?? []
 
-  return extraPlanFiles.map((file) =>
-    createUpdateDryRunBlocker({
-      code: "update-dry-run-file-set-drift",
-      itemName,
-      kind: UPDATE_DRY_RUN_BLOCKER_KIND__ITEM,
-      message: `Current registry item "${itemName}" includes ${file.resolvedPath}, which is not recorded in the installed lockfile item.`,
-      path: file.resolvedPath,
-      severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
-      sourcePath: file.sourcePath,
-      targetPath: file.resolvedPath,
+  const fileSetResults = await Promise.all(
+    extraPlanFiles.map(async (file) => {
+      const plannedHashes = await createPlannedHashes({ file, installPlan, sourceRoot })
+      const currentHash = adoptCurrent ? await readCurrentFileHash({ cwd, file }) : undefined
+      const isAdoptableFileAddition = Boolean(
+        adoptCurrent &&
+        currentHash &&
+        plannedHashes.nextInstalledHash &&
+        plannedHashes.nextSourceHash &&
+        currentHash === plannedHashes.nextInstalledHash,
+      )
+
+      if (isAdoptableFileAddition) {
+        return {
+          adoptableFileAddition: {
+            currentHash: currentHash as string,
+            file,
+            nextInstalledHash: plannedHashes.nextInstalledHash as string,
+            nextSourceHash: plannedHashes.nextSourceHash as string,
+          },
+        }
+      }
+
+      return {
+        blocker: createUpdateDryRunBlocker({
+          code: "update-dry-run-file-set-drift",
+          itemName,
+          kind: UPDATE_DRY_RUN_BLOCKER_KIND__ITEM,
+          message: `Current registry item "${itemName}" includes ${file.resolvedPath}, which is not recorded in the installed lockfile item.`,
+          path: file.resolvedPath,
+          severity: INSTALL_PLAN_FINDING_SEVERITY__ERROR,
+          sourcePath: file.sourcePath,
+          targetPath: file.resolvedPath,
+        }),
+      }
     }),
   )
+
+  return {
+    adoptableFileAdditions: fileSetResults.flatMap(({ adoptableFileAddition }) =>
+      adoptableFileAddition ? [adoptableFileAddition] : [],
+    ) as TAdoptableFileAddition[],
+    blockers: fileSetResults.flatMap(({ blocker }) => (blocker ? [blocker] : [])),
+  }
 }
 
 const createPlannedHashes = async ({
@@ -701,6 +772,38 @@ const createUpdateDryRunFile = async ({
   }
 }
 
+const createAdoptedFileAdditionDryRunFile = ({
+  addition,
+  itemBlockerCount,
+  itemName,
+}: {
+  addition: TAdoptableFileAddition
+  itemBlockerCount: number
+  itemName: string
+}) => {
+  const blocksStrictUpdate = itemBlockerCount > 0
+
+  return updateDryRunFileSchema.parse({
+    advisoryAction: UPDATE_DRY_RUN_ADVISORY_ACTION__ADOPT_FILE_ADDITION,
+    blockerCodes: [],
+    blocksStrictUpdate,
+    comparison: "canonical-file-addition",
+    currentHash: addition.currentHash,
+    dryRunAction: blocksStrictUpdate
+      ? UPDATE_DRY_RUN_FILE_ACTION__BLOCKED
+      : UPDATE_DRY_RUN_FILE_ACTION__WOULD_UPDATE_LOCKFILE,
+    itemName,
+    nextInstalledHash: addition.nextInstalledHash,
+    nextSourceHash: addition.nextSourceHash,
+    path: addition.file.resolvedPath,
+    preservationRequired: false,
+    sourcePath: addition.file.sourcePath,
+    targetRole: addition.file.targetRole,
+    wouldWriteFile: false,
+    wouldWriteLockfile: !blocksStrictUpdate,
+  })
+}
+
 const createDependencyStateCounts = (dependencies: TRegistryInstallPlan["dependencyPlan"]) => {
   const dependencyStates = createEmptyRecord(INSTALL_PLAN_DEPENDENCY_STATUSES)
 
@@ -818,6 +921,7 @@ const createAdoptableFilePathSet = async ({
 
 const isDryRunCandidate = (file: TUpdateDryRunFile) =>
   file.advisoryAction === "update-candidate" ||
+  file.advisoryAction === UPDATE_DRY_RUN_ADVISORY_ACTION__ADOPT_FILE_ADDITION ||
   (isLocalChangeAction(file.advisoryAction) && file.currentHash === file.nextInstalledHash)
 
 export const createUpdateDryRunReport = async ({
@@ -859,13 +963,16 @@ export const createUpdateDryRunReport = async ({
     packageManagerExecution,
     packageManagerWrites,
   })
-  const fileSetDriftBlockers = createFileSetDriftBlockers({
+  const fileSetDriftPlan = await createFileSetDriftPlan({
+    adoptCurrent,
     advisoryReport,
+    cwd,
     installPlan: plan.installPlan,
     itemName,
+    sourceRoot: plan.sourceRoot,
   })
   const itemIsUnavailable = advisoryReport.itemUpdateState === "unavailable"
-  const itemBlockers = [...plan.projectBlockers, ...plan.dependencyBlockers, ...fileSetDriftBlockers]
+  const itemBlockers = [...plan.projectBlockers, ...plan.dependencyBlockers, ...fileSetDriftPlan.blockers]
   const installPlanFilesByKey = createInstallPlanFileMap(plan.installPlan)
   const adoptableFilePaths = await createAdoptableFilePathSet({
     advisoryReport,
@@ -897,7 +1004,12 @@ export const createUpdateDryRunReport = async ({
       }),
     ),
   )
-  const files = filesWithBlockers.map((fileWithBlockers) => fileWithBlockers.file)
+  const files = [
+    ...filesWithBlockers.map((fileWithBlockers) => fileWithBlockers.file),
+    ...fileSetDriftPlan.adoptableFileAdditions.map((addition) =>
+      createAdoptedFileAdditionDryRunFile({ addition, itemBlockerCount, itemName }),
+    ),
+  ]
   const fileBlockers = filesWithBlockers.flatMap((fileWithBlockers) => fileWithBlockers.blockers)
   const sourceFileBlockers = fileBlockers.filter((blocker) => blocker.kind === UPDATE_DRY_RUN_BLOCKER_KIND__SOURCE)
   const blockers = dedupeBlockers([...itemBlockers, ...fileBlockers])

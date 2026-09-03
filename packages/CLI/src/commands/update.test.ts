@@ -800,6 +800,162 @@ try {
   )
   writeText(path.join(consumerRoot, "src/components/Diff/source-only.ts"), sourceOnlyCurrent)
 
+  const fileAdditionBase = "export const fileAdditionBase = true\n"
+  const canonicalFileAddition = "export const canonicalFileAddition = true\n"
+  const fileAdditionRegistry = readJson(registrySourcePath)
+  fileAdditionRegistry.items.push({
+    files: [
+      {
+        role: "source",
+        sourcePath: "source/file-addition-base.ts",
+        targetPath: "Diff/file-addition-base.ts",
+        targetRole: "components",
+      },
+      {
+        role: "source",
+        sourcePath: "source/canonical-file-addition.ts",
+        targetPath: "Diff/canonical-file-addition.ts",
+        targetRole: "components",
+      },
+    ],
+    name: "file-addition",
+    sourcePackage: "@codon-ui/react",
+    type: "component",
+  })
+  writeJson(registrySourcePath, fileAdditionRegistry)
+  writeText(path.join(temporaryRoot, "source/file-addition-base.ts"), fileAdditionBase)
+  writeText(path.join(temporaryRoot, "source/canonical-file-addition.ts"), canonicalFileAddition)
+  writeText(path.join(consumerRoot, "src/components/Diff/file-addition-base.ts"), fileAdditionBase)
+  writeText(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"), canonicalFileAddition)
+
+  const fileAdditionLockfile = readJson(path.join(consumerRoot, "codon-ui.lock.json"))
+  fileAdditionLockfile.items["file-addition"] = {
+    files: [
+      {
+        installedHash: createContentHash(fileAdditionBase),
+        ownershipState: "registry-owned",
+        path: "src/components/Diff/file-addition-base.ts",
+        sourceHash: createContentHash(fileAdditionBase),
+        targetRole: "components",
+      },
+    ],
+    name: "file-addition",
+    sourceIdentity: "@codon-ui/test-registry",
+  }
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), fileAdditionLockfile)
+
+  const defaultFileAdditionDryRunReport = await createUpdateDryRunReport({
+    cwd: consumerRoot,
+    itemName: "file-addition",
+    registrySourcePath,
+  })
+
+  assert.equal(defaultFileAdditionDryRunReport.itemUpdateState, "blocked")
+  assert(
+    defaultFileAdditionDryRunReport.blockers.some((blocker) => blocker.code === "update-dry-run-file-set-drift"),
+    "expected default file-set drift blocker",
+  )
+  assert.equal(defaultFileAdditionDryRunReport.summary.wouldUpdateLockfileFileCount, 0)
+
+  const adoptFileAdditionDryRunReport = await createUpdateDryRunReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "file-addition",
+    registrySourcePath,
+  })
+  const adoptFileAdditionFiles = new Map(adoptFileAdditionDryRunReport.files.map((file) => [file.path, file]))
+  const adoptedFileAddition = adoptFileAdditionFiles.get("src/components/Diff/canonical-file-addition.ts")
+
+  assert.equal(adoptFileAdditionDryRunReport.itemUpdateState, "would-update")
+  assert.equal(adoptFileAdditionDryRunReport.summary.blockerCount, 0)
+  assert.equal(adoptFileAdditionDryRunReport.summary.candidateFileCount, 1)
+  assert.equal(adoptFileAdditionDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(adoptFileAdditionDryRunReport.summary.wouldUpdateLockfileFileCount, 1)
+  assert.equal(adoptedFileAddition?.advisoryAction, "adopt-current-file-addition")
+  assert.equal(adoptedFileAddition?.dryRunAction, "would-update-lockfile")
+  assert.equal(adoptedFileAddition?.installedHash, undefined)
+  assert.equal(adoptedFileAddition?.sourceHash, undefined)
+  assert.equal(adoptedFileAddition?.nextInstalledHash, createContentHash(canonicalFileAddition))
+
+  rmSync(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"))
+  const missingFileAdditionDryRunReport = await createUpdateDryRunReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "file-addition",
+    registrySourcePath,
+  })
+
+  assert.equal(missingFileAdditionDryRunReport.itemUpdateState, "blocked")
+  assert(
+    missingFileAdditionDryRunReport.blockers.some((blocker) => blocker.code === "update-dry-run-file-set-drift"),
+    "expected missing file-addition blocker",
+  )
+  assert.equal(missingFileAdditionDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(missingFileAdditionDryRunReport.summary.wouldUpdateLockfileFileCount, 0)
+
+  const mismatchedFileAddition = "export const canonicalFileAddition = 'consumer'\n"
+  writeText(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"), mismatchedFileAddition)
+  const mismatchedFileAdditionDryRunReport = await createUpdateDryRunReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "file-addition",
+    registrySourcePath,
+  })
+
+  assert.equal(mismatchedFileAdditionDryRunReport.itemUpdateState, "blocked")
+  assert(
+    mismatchedFileAdditionDryRunReport.blockers.some((blocker) => blocker.code === "update-dry-run-file-set-drift"),
+    "expected mismatched file-addition blocker",
+  )
+  assert.equal(mismatchedFileAdditionDryRunReport.summary.wouldWriteFileCount, 0)
+  assert.equal(mismatchedFileAdditionDryRunReport.summary.wouldUpdateLockfileFileCount, 0)
+  assert.equal(
+    readFileSync(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"), "utf8"),
+    mismatchedFileAddition,
+  )
+
+  writeText(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"), canonicalFileAddition)
+  const strictFileAdditionReport = await createUpdateStrictReport({
+    adoptCurrent: true,
+    cwd: consumerRoot,
+    itemName: "file-addition",
+    registrySourcePath,
+  })
+  const strictFileAddition = strictFileAdditionReport.files.find(
+    (file) => file.path === "src/components/Diff/canonical-file-addition.ts",
+  )
+  const recordedFileAddition = strictFileAdditionReport.lockfileData.items["file-addition"]?.files.find(
+    (file) => file.path === "src/components/Diff/canonical-file-addition.ts",
+  )
+
+  assert.equal(strictFileAdditionReport.applied, true)
+  assert.equal(strictFileAdditionReport.itemUpdateState, "updated")
+  assert.equal(strictFileAdditionReport.effects.writesFiles, false)
+  assert.equal(strictFileAdditionReport.effects.writesLockfile, true)
+  assert.equal(strictFileAdditionReport.effects.files.writtenCount, 0)
+  assert.equal(strictFileAdditionReport.effects.files.lockfileRecordUpdatedCount, 1)
+  assert.equal(strictFileAddition?.strictAction, "updated-lockfile-record")
+  assert.equal(strictFileAddition?.sourceFileWritten, false)
+  assert.equal(strictFileAddition?.lockfileRecordUpdated, true)
+  assert.equal(recordedFileAddition?.installedHash, createContentHash(canonicalFileAddition))
+  assert.equal(recordedFileAddition?.sourceHash, createContentHash(canonicalFileAddition))
+  assert.equal(recordedFileAddition?.ownershipState, "registry-owned")
+  assert.equal(
+    readFileSync(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"), "utf8"),
+    canonicalFileAddition,
+  )
+
+  const restoredRegistry = readJson(registrySourcePath)
+  restoredRegistry.items = restoredRegistry.items.filter((item: { name: string }) => item.name !== "file-addition")
+  writeJson(registrySourcePath, restoredRegistry)
+  const restoredLockfile = readJson(path.join(consumerRoot, "codon-ui.lock.json"))
+  delete restoredLockfile.items["file-addition"]
+  writeJson(path.join(consumerRoot, "codon-ui.lock.json"), restoredLockfile)
+  rmSync(path.join(temporaryRoot, "source/file-addition-base.ts"))
+  rmSync(path.join(temporaryRoot, "source/canonical-file-addition.ts"))
+  rmSync(path.join(consumerRoot, "src/components/Diff/file-addition-base.ts"))
+  rmSync(path.join(consumerRoot, "src/components/Diff/canonical-file-addition.ts"))
+
   const sourceEqualsLocalBefore = readFileSync(
     path.join(consumerRoot, "src/components/Diff/source-equals-local.ts"),
     "utf8",

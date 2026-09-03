@@ -492,9 +492,12 @@ hashes when possible, but `wouldWriteFile` and `wouldWriteLockfile` stay false u
 `--adopt-current` is a narrow provenance-repair mode for an item whose locally changed registry-owned files have already
 been reconciled outside the CLI. A local file is adoptable only when its current hash exactly matches the canonical,
 import-transformed installed hash produced by the current registry plan. Dry-run then reports
-`would-update-lockfile`—never `would-write`—for that file. Any byte mismatch, missing file, unknown ownership,
-consumer-owned support, ejected file, source failure, dependency blocker, or other item blocker preserves the default
-blocked result. The option is item-scoped and cannot be combined with `--all`.
+`would-update-lockfile`—never `would-write`—for that file. A file newly added to the registry item is adoptable under the
+same exact-match rule when it already exists at the planned consumer target; the dry run exposes that addition as a
+lockfile-only candidate with no prior installed or source hash. Any byte mismatch, missing existing file, absent newly
+added target, removed registry file, unknown ownership, consumer-owned support, ejected file, source failure, dependency
+blocker, or other item blocker preserves the default blocked result. The option is item-scoped and cannot be combined
+with `--all`.
 
 Current fixture evidence proves clean installed update dry-run, eligible source update preview, locally modified
 preservation, mixed classification preservation, ejected preservation, consumer-owned support preservation, and missing
@@ -536,6 +539,8 @@ planned installed content but the lockfile record is stale. In both cases, the l
 With `--adopt-current`, strict update remains lockfile-only for the adopted local files. Final preflight rechecks the
 local hash and the current canonical install plan before writing provenance. The command does not copy, merge, replace,
 or otherwise write component source in this mode; a local file that ceases to match after dry-run blocks the update.
+For an exact newly added file, strict update appends a registry-owned lockfile record only after the same preflight proves
+the target and transformed registry output still match.
 
 The command is item-atomic. If any file in the item is locally modified, missing, unknown, consumer-owned support,
 ejected, source-blocked, or otherwise preservation-sensitive, otherwise-eligible update candidates remain untouched and
