@@ -1,6 +1,5 @@
 import classNames from "classnames"
-import type React from "react"
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
 import { type SortDescriptor, type TableProps } from "react-aria-components"
 
 import type { TAvailableAlignments } from "../../tokens/alignment"
@@ -10,8 +9,7 @@ import { resolveTableFilteringLabels, type TPartialTableFilteringLabels } from "
 import type { TPaginationProps } from "../Pagination/helpers"
 
 import type { TAvailableListItem } from "./filterMetadata"
-import type { TPartialTableLabels } from "./labels"
-import { resolveTableLabels } from "./labels"
+import { resolveTableLabels, type TPartialTableLabels } from "./labels"
 import {
   TABLE_SORT_DIRECTION__ASCENDING,
   TABLE_SORT_DIRECTION__DESCENDING,
@@ -22,7 +20,7 @@ import {
 } from "./queryTypes"
 import styles from "./TableStyles.module.css"
 
-export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => React.ReactNode
+export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
 
 export const TABLE_COLUMN_ROLE__DATA = "data"
 export const TABLE_COLUMN_ROLE__STRUCTURAL = "structural"
@@ -74,7 +72,7 @@ export type TTableColumnMetadataBase<T> = {
   name?: string
   headerAriaLabel?: string // -> For a11y when header text is hidden.
   headerVisuallyHidden?: boolean
-  cellRenderer?: (ctx: { row: T; column: TTableColumnMetadata<T> }) => React.ReactNode
+  cellRenderer?: (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
   width?: number | string
   minWidth?: number | string
   maxWidth?: number | string
@@ -84,15 +82,15 @@ export type TTableColumnMetadataBase<T> = {
   truncate?: boolean
   maxLines?: number
   isHidden?: boolean
-  customHeaderRowStyles?: React.CSSProperties
+  customHeaderRowStyles?: CSSProperties
   customHeaderRowClassname?: string
-  customHeaderColumnStyles?: React.CSSProperties
+  customHeaderColumnStyles?: CSSProperties
   customHeaderColumnClassName?: string
-  customHeaderCellStyles?: React.CSSProperties
+  customHeaderCellStyles?: CSSProperties
   customHeaderCellClassName?: string
-  customBodyCellStyles?: React.CSSProperties
+  customBodyCellStyles?: CSSProperties
   customBodyCellClassName?: string
-  customBodyRowStyles?: React.CSSProperties
+  customBodyRowStyles?: CSSProperties
   customBodyRowClassName?: string
 }
 
@@ -224,9 +222,9 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   clickableRows?: boolean
   onRowAction?: (key: string | number) => void
   customClassName?: string
-  customStyles?: React.CSSProperties
+  customStyles?: CSSProperties
   className?: string
-  style?: React.CSSProperties
+  style?: CSSProperties
   // -> Both must be provided together. If omitted the table is sort/filter-inert.
   columns?: TTableColumnMetadata<TRow>[]
   queryControls?: TTableQueryControls
@@ -274,7 +272,7 @@ type TCalibratedTableComponent<TRow extends object> = {
     onRowAction: TTableProps<TRow>["onRowAction"] | undefined
     onSortChange: ((descriptor: SortDescriptor) => void) | undefined
     sortDescriptor: SortDescriptor | undefined
-    style: React.CSSProperties
+    style: CSSProperties
   }
   shell: {
     className: string
@@ -532,7 +530,7 @@ export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>
     },
     { ...customStyles },
     { ...style },
-  ) as React.CSSProperties
+  ) as CSSProperties
 
   return { tableStyles, tableStyle }
 }
