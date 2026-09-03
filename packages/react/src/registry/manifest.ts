@@ -2457,6 +2457,12 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/registryDependencies.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
         sourcePath: "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Panels/SortAndFilterPanel/hooks.tsx",

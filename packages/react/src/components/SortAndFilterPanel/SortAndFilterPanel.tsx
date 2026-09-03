@@ -6,9 +6,6 @@ import { Dialog } from "react-aria-components"
 import FormField from "../FormField/FormField"
 import Panel from "../Panel/Panel"
 import Select from "../Select/Select"
-// -> Registry consumers place LineSegment under VisualUtilities, so keep its transformed import order lint-safe.
-// eslint-disable-next-line import/order
-import LineSegment from "../LineSegment/LineSegment"
 
 import type { TSortAndFilterPanelProps } from "./helpers"
 import { useCalibratedComponent } from "./hooks"
@@ -16,6 +13,7 @@ import ActiveFilters from "./InternalComponents/ActiveFilters/ActiveFilters"
 import ActiveSorts from "./InternalComponents/ActiveSorts/ActiveSorts"
 import PanelFooter from "./InternalComponents/PanelFooter/PanelFooter"
 import PanelHeader from "./InternalComponents/PanelHeader/PanelHeader"
+import { LineSegment } from "./registryDependencies"
 
 const SortAndFilterPanel: FC<PropsWithChildren<TSortAndFilterPanelProps>> = (props) => {
   const { panel, form, sorts, filters, footer } = useCalibratedComponent(props)

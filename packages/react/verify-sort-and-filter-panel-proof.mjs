@@ -37,6 +37,7 @@ const forbiddenLegacyCssPattern =
 
 const requiredPackageFileSources = [
   "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+  "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
   "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
   "packages/react/src/components/SortAndFilterPanel/helpers.ts",
   "packages/react/src/components/SortAndFilterPanel/labels.ts",
@@ -145,6 +146,10 @@ assert(
   sortAndFilterPanelSource.includes('from "./hooks"') &&
     sortAndFilterPanelSource.includes("const { panel, form, sorts, filters, footer } = useCalibratedComponent(props)"),
   "SortAndFilterPanel must consume one grouped hook-backed calibration boundary",
+)
+assert(
+  sortAndFilterPanelSource.includes('from "./registryDependencies"'),
+  "SortAndFilterPanel must isolate registry-remapped dependencies behind its local adapter",
 )
 assert(
   hooksSource.includes("applyPendingSortAndFilterChanges({") &&

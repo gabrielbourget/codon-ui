@@ -2434,6 +2434,12 @@
           "role": "source"
         },
         {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/registryDependencies.ts",
+          "role": "source"
+        },
+        {
           "sourcePath": "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
           "targetRole": "components",
           "targetPath": "Panels/SortAndFilterPanel/hooks.tsx",
