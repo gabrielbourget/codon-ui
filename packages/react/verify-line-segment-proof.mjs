@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url"
 
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const lineSegmentSourcePath = path.join(packageRoot, "src/components/LineSegment/LineSegment.tsx")
+const lineSegmentHelpersPath = path.join(packageRoot, "src/components/LineSegment/helpers.ts")
 const lineSegmentIndexPath = path.join(packageRoot, "src/components/LineSegment/index.ts")
 const themeCSSPath = path.join(packageRoot, "theme.css")
 const packetSourcePath = path.join(packageRoot, "src/registry/line-segment-ingest-packet.data.json")
@@ -31,14 +32,17 @@ const forbiddenConsumerImportsPattern =
   /@wavemap|i18n|next\/|router|route|media|query|api-contract|shared-utils|window|document|localStorage|@\/src\/|@radix-ui|@internationalized\/date/u
 const requiredPackageFileSources = [
   "packages/react/src/components/LineSegment/LineSegment.tsx",
+  "packages/react/src/components/LineSegment/helpers.ts",
   "packages/react/src/components/LineSegment/__tests__/LineSegment.test.tsx",
 ]
 const requiredTargetPaths = [
   "VisualUtilities/LineSegment/LineSegment.tsx",
+  "VisualUtilities/LineSegment/helpers.ts",
   "VisualUtilities/LineSegment/__tests__/LineSegment.test.tsx",
 ]
 
 const lineSegmentSource = readRequiredText(lineSegmentSourcePath)
+const lineSegmentHelpersSource = readRequiredText(lineSegmentHelpersPath)
 const lineSegmentIndexSource = readRequiredText(lineSegmentIndexPath)
 const themeCSS = readRequiredText(themeCSSPath)
 const packet = JSON.parse(readRequiredText(packetSourcePath))
@@ -48,48 +52,60 @@ const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 assert(lineSegmentSource.startsWith('"use client"'), "LineSegment must preserve the client component boundary")
-assert(lineSegmentSource.includes('import classNames from "classnames"'), "LineSegment must import classnames")
-assert(lineSegmentSource.includes("ComponentPropsWithoutRef"), "LineSegment must preserve native div props typing")
-assert(lineSegmentSource.includes("CSSProperties"), "LineSegment must preserve style typing")
+assert(lineSegmentSource.includes("calibrateComponent"), "LineSegment must import its pure calibration boundary")
+assert(lineSegmentSource.includes("const { root } = calibrateComponent(props)"), "LineSegment must calibrate once")
+assert(lineSegmentSource.includes("return <div {...root.props}"), "LineSegment must render calibrated root resources")
+assert(lineSegmentHelpersSource.includes('import classNames from "classnames"'), "LineSegment must import classnames")
 assert(
-  lineSegmentSource.includes('LINE_SEGMENT_DIRECTION__HORIZONTAL = "horizontal"'),
+  lineSegmentHelpersSource.includes("ComponentPropsWithoutRef"),
+  "LineSegment must preserve native div props typing",
+)
+assert(lineSegmentHelpersSource.includes("CSSProperties"), "LineSegment must preserve style typing")
+assert(
+  lineSegmentHelpersSource.includes('LINE_SEGMENT_DIRECTION__HORIZONTAL = "horizontal"'),
   "LineSegment must export horizontal direction constant",
 )
 assert(
-  lineSegmentSource.includes('LINE_SEGMENT_DIRECTION__VERTICAL = "vertical"'),
+  lineSegmentHelpersSource.includes('LINE_SEGMENT_DIRECTION__VERTICAL = "vertical"'),
   "LineSegment must export vertical direction constant",
 )
 assert(
-  lineSegmentSource.includes("export const AVAILABLE_LINE_SEGMENT_DIRECTIONS") &&
-    lineSegmentSource.includes("TAvailableLineSegmentDirections"),
+  lineSegmentHelpersSource.includes("export const AVAILABLE_LINE_SEGMENT_DIRECTIONS") &&
+    lineSegmentHelpersSource.includes("TAvailableLineSegmentDirections"),
   "LineSegment must preserve its local direction vocabulary",
 )
-assert(lineSegmentSource.includes("export type TLineSegmentProps"), "LineSegment must export local props")
-assert(lineSegmentSource.includes('color = "var(--cui-border)"'), "LineSegment must use the Codon UI border default")
+assert(lineSegmentHelpersSource.includes("export type TLineSegmentProps"), "LineSegment must export local props")
 assert(
-  lineSegmentSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
+  lineSegmentHelpersSource.includes('color = "var(--cui-border)"'),
+  "LineSegment must use the Codon UI border default",
+)
+assert(
+  lineSegmentHelpersSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
   "LineSegment must default horizontal",
 )
-assert(lineSegmentSource.includes("height = 50"), "LineSegment must preserve default height")
-assert(lineSegmentSource.includes("width = 50"), "LineSegment must preserve default width")
-assert(lineSegmentSource.includes("size = 2.5"), "LineSegment must preserve default size")
-assert(lineSegmentSource.includes("width: size"), "Horizontal LineSegment must size width from size")
-assert(lineSegmentSource.includes("height: size"), "Vertical LineSegment must size height from size")
+assert(lineSegmentHelpersSource.includes("height = 50"), "LineSegment must preserve default height")
+assert(lineSegmentHelpersSource.includes("width = 50"), "LineSegment must preserve default width")
+assert(lineSegmentHelpersSource.includes("size = 2.5"), "LineSegment must preserve default size")
+assert(lineSegmentHelpersSource.includes("width: size"), "Horizontal LineSegment must size width from size")
+assert(lineSegmentHelpersSource.includes("height: size"), "Vertical LineSegment must size height from size")
 assert(
-  lineSegmentSource.includes("style={{ ...styles, ...customStyles, ...style }}"),
+  lineSegmentHelpersSource.includes("style: { ...segmentStyle, ...customStyles, ...style }"),
   "LineSegment must let custom and native styles override computed styles",
 )
 assert(
-  lineSegmentSource.includes("classNames(customClassName, className)"),
+  lineSegmentHelpersSource.includes("classNames(customClassName, className)"),
   "LineSegment must merge custom and native class names",
 )
-;["color: _color", "direction: _direction", "height: _height", "size: _size", "width: _width"].forEach(
-  (consumedPropPattern) => {
-    assert(lineSegmentSource.includes(consumedPropPattern), `LineSegment must consume ${consumedPropPattern}`)
-  },
-)
 assert(!forbiddenConsumerImportsPattern.test(lineSegmentSource), "LineSegment must not import consumer-only modules")
+assert(
+  !forbiddenConsumerImportsPattern.test(lineSegmentHelpersSource),
+  "LineSegment helpers must not import consumer-only modules",
+)
 assert(!lineSegmentSource.includes("theme/line-segment-compatibility"), "LineSegment must not need a bridge item")
+assert(
+  !lineSegmentHelpersSource.includes("theme/line-segment-compatibility"),
+  "LineSegment helpers must not need a bridge item",
+)
 
 assert(themeCSS.includes("--cui-border:"), "theme.css must declare --cui-border")
 assert(
@@ -156,7 +172,7 @@ assert(
     (publicExport) =>
       publicExport.exportedName === "LineSegmentProps" &&
       publicExport.localName === "TLineSegmentProps" &&
-      publicExport.sourcePath === "packages/react/src/components/LineSegment/LineSegment.tsx" &&
+      publicExport.sourcePath === "packages/react/src/components/LineSegment/helpers.ts" &&
       publicExport.typeOnly === true,
   ),
   "LineSegment packet must define the public props type alias intent",

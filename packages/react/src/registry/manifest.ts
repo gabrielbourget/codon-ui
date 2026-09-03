@@ -1978,6 +1978,12 @@ export const reactRegistryManifest = [
         targetPath: "VisualUtilities/LineSegment/LineSegment.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
+      {
+        sourcePath: "packages/react/src/components/LineSegment/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "VisualUtilities/LineSegment/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
     ],
     registryDependencies: ["theme-css"],
     peerDependencies: {
