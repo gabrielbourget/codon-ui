@@ -1,9 +1,22 @@
 "use client"
 
-import { type FocusEvent, type ForwardedRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
+import {
+  type CSSProperties,
+  type FocusEvent,
+  type FocusEventHandler,
+  type ForwardedRef,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react"
 import type { Key } from "react-aria-components"
 
-import { POPOVER_PLACEMENT__BOTTOM_START } from "../../tokens/placement"
+import { POPOVER_PLACEMENT__BOTTOM_START, type TAvailablePopoverPlacementPositions } from "../../tokens/placement"
 import ListBoxItem from "../ListBoxItem/ListBoxItem"
 
 import styles from "./CompactTypeaheadSearchStyles.module.css"
@@ -17,6 +30,72 @@ import { resolveCompactTypeaheadSearchLabels } from "./labels"
 
 const { typeAheadSearch__status, inputButtonGroup__button } = styles
 
+type TCalibratedCompactTypeaheadSearchComponent<T extends object> = {
+  input: {
+    button: {
+      ariaLabel: string
+      className: string | undefined
+      icon: ReactNode
+      isDisabled: boolean | undefined
+      style: CSSProperties
+    }
+    control: {
+      onKeyDown: () => void
+      onPaste: () => void
+      placeholder: string | undefined
+      ref: RefObject<HTMLInputElement | null>
+      style: CSSProperties
+      textSize: TCompactTypeaheadSearchProps<T>["textSize"]
+    }
+    group: {
+      ariaLabel: string
+      className: string
+      onBlur: FocusEventHandler<HTMLDivElement>
+      style: CSSProperties
+    }
+  }
+  popover: {
+    className: string
+    isOpen: boolean
+    placement: TAvailablePopoverPlacementPositions
+    style: CSSProperties
+  }
+  results: {
+    ariaLabel: string
+    className: string
+    emptyListMessage: string
+    items: T[]
+    key: string
+    renderItem: (item: T) => ReactElement
+    shouldFocusWrap: boolean
+    style: CSSProperties
+  }
+  root: {
+    className: TCompactTypeaheadSearchProps<T>["className"]
+    dataTestID: string
+    direction: "ltr" | "rtl"
+    inputValue: string
+    isDisabled: boolean | undefined
+    items: T[]
+    nativeProps: Partial<TCompactTypeaheadSearchProps<T>>
+    onChange: (key: Key | null) => void
+    onInputChange: (value: string) => void
+    onOpenChange: (isOpen: boolean) => void
+    ref: (node: HTMLDivElement | null) => void
+    style: TCompactTypeaheadSearchProps<T>["style"]
+  }
+  status: {
+    ariaLabel: string
+    className: string | undefined
+    isLoading: boolean
+    isVisible: boolean
+    loadingIndicator: ReactNode
+    loadingMessage: string
+    minimumInputLengthMessage: string
+    shouldShowMinimumQuery: boolean
+  }
+}
+
 /**
  * Owns the compact combobox draft, focus lifecycle, callbacks, and presentation resources while callers retain result
  * curation and controlled query ownership.
@@ -24,7 +103,7 @@ const { typeAheadSearch__status, inputButtonGroup__button } = styles
 export const useCalibratedComponent = <T extends object>(
   props: TCompactTypeaheadSearchProps<T>,
   forwardedRef: ForwardedRef<HTMLDivElement>,
-) => {
+): TCalibratedCompactTypeaheadSearchComponent<T> => {
   const {
     "data-testid": dataTestID,
     className: _className,
