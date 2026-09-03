@@ -4,9 +4,11 @@ import { type FC, type PropsWithChildren } from "react"
 import { Dialog } from "react-aria-components"
 
 import FormField from "../FormField/FormField"
-import LineSegment from "../LineSegment/LineSegment"
 import Panel from "../Panel/Panel"
 import Select from "../Select/Select"
+// -> Registry consumers place LineSegment under VisualUtilities, so keep its transformed import order lint-safe.
+// eslint-disable-next-line import/order
+import LineSegment from "../LineSegment/LineSegment"
 
 import type { TSortAndFilterPanelProps } from "./helpers"
 import { useCalibratedComponent } from "./hooks"
