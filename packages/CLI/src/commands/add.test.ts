@@ -342,8 +342,8 @@ const verifyTableAddPlanning = async () => {
   }
 
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
-  assert.equal(dryRunEffects.files.plannedCount, 164)
-  assert.equal(dryRunEffects.files.wouldWriteCount, 164)
+  assert.equal(dryRunEffects.files.plannedCount, 166)
+  assert.equal(dryRunEffects.files.wouldWriteCount, 166)
   assert.equal(dryRunEffects.dependencies.missingCount, 7)
 }
 
@@ -810,7 +810,9 @@ await verifyComponentAddPlanning({
     "src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
     "src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
     "src/components/Pagination/components/PrimaryPaginationControls/helpers.tsx",
+    "src/components/Pagination/components/PrimaryPaginationControls/hooks.tsx",
     "src/components/Pagination/helpers.tsx",
+    "src/components/Pagination/hooks.tsx",
     "src/components/Select/DefaultChevronDownIcon.tsx",
     "src/components/Select/Select.tsx",
     "src/components/Select/SelectStyles.module.css",
@@ -836,7 +838,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-border", "--cui-color-quintenary-500"],
   expectedMissingDependencyCount: 5,
-  expectedPlannedCount: 63,
+  expectedPlannedCount: 65,
 })
 
 await verifyComponentAddPlanning({
@@ -1606,6 +1608,7 @@ await verifyComponentAddPlanning({
     "src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
     "src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
     "src/components/Search/TypeaheadSearch/helpers.ts",
+    "src/components/Search/TypeaheadSearch/hooks.tsx",
     "src/components/Search/TypeaheadSearch/labels.ts",
     "src/components/Search/TypeaheadSearch/status.ts",
     "src/components/Text/Text.tsx",
@@ -1624,7 +1627,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-transition-box-shadow"],
   expectedMissingDependencyCount: 4,
-  expectedPlannedCount: 30,
+  expectedPlannedCount: 31,
 })
 
 await verifyComponentAddPlanning({
@@ -1653,6 +1656,7 @@ await verifyComponentAddPlanning({
     "src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
     "src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
     "src/components/CompactTypeaheadSearch/helpers.ts",
+    "src/components/CompactTypeaheadSearch/hooks.tsx",
     "src/components/CompactTypeaheadSearch/labels.ts",
     "src/components/Input/Input.tsx",
     "src/components/Input/InputStyles.module.css",
@@ -1684,7 +1688,7 @@ await verifyComponentAddPlanning({
     "--cui-surface",
   ],
   expectedMissingDependencyCount: 4,
-  expectedPlannedCount: 30,
+  expectedPlannedCount: 31,
 })
 
 await verifyComponentAddPlanning({
