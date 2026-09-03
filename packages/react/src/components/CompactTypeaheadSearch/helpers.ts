@@ -10,6 +10,18 @@ import CompactTypeaheadSearchDefaultLoadingIndicator from "./DefaultLoadingIndic
 import CompactTypeaheadSearchDefaultSearchIcon from "./DefaultSearchIcon"
 import type { TPartialCompactTypeaheadSearchLabels } from "./labels"
 
+const {
+  ["inputButtonGroup--applyFocusStyle"]: inputButtonGroupApplyFocusStyle,
+  ["inputButtonGroup--errorState"]: inputButtonGroupErrorState,
+  ["inputButtonGroup--noFocusStyle"]: inputButtonGroupNoFocusStyle,
+  ["inputButtonGroup--offsetFocusRing"]: inputButtonGroupOffsetFocusRing,
+  ["inputButtonGroup--round"]: inputButtonGroupRound,
+  ["inputButtonGroup--rounded"]: inputButtonGroupRounded,
+  ["inputButtonGroup--rtl"]: inputButtonGroupRtl,
+  ["inputButtonGroup--successState"]: inputButtonGroupSuccessState,
+  ["inputButtonGroup--warningState"]: inputButtonGroupWarningState,
+} = styles
+
 export const TYPE_AHEAD_SEARCH_SIZE__SM = "small"
 export const TYPE_AHEAD_SEARCH_SIZE__MD = "medium"
 export const TYPE_AHEAD_SEARCH_SIZE__LG = "large"
@@ -146,9 +158,9 @@ const computeGeometryStyle = <T extends object>(props: TCompactTypeaheadSearchPr
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["inputButtonGroup--rounded"]
+      return inputButtonGroupRounded
     case ROUND:
-      return styles["inputButtonGroup--round"]
+      return inputButtonGroupRound
     default:
       return undefined
   }
@@ -159,17 +171,17 @@ const computeCompactTypeaheadSearchBorderStyle = <T extends object>(props: TComp
   let borderStyle: string | undefined = undefined
 
   if (errorState) {
-    borderStyle = styles["inputButtonGroup--errorState"]
+    borderStyle = inputButtonGroupErrorState
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = styles["inputButtonGroup--warningState"]
+    borderStyle = inputButtonGroupWarningState
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = styles["inputButtonGroup--successState"]
+    borderStyle = inputButtonGroupSuccessState
     return borderStyle
   }
 
@@ -215,10 +227,10 @@ export const calibrateComponent = <T extends object>(
   const typeAheadSearchBorderStyle = computeCompactTypeaheadSearchBorderStyle(props)
   const focusStyle =
     enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["inputButtonGroup--noFocusStyle"]
-      : styles["inputButtonGroup--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["inputButtonGroup--offsetFocusRing"] : undefined
-  const rtlStyle = rtl ? styles["inputButtonGroup--rtl"] : undefined
+      ? inputButtonGroupNoFocusStyle
+      : inputButtonGroupApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? inputButtonGroupOffsetFocusRing : undefined
+  const rtlStyle = rtl ? inputButtonGroupRtl : undefined
 
   const computedTypeAheadSearchStyles = classNames(typeAheadSearch)
   const optionsListStyles = classNames(optionsList)
