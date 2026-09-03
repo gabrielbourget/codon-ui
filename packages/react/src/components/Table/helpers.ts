@@ -6,11 +6,12 @@ import { type SortDescriptor, type TableProps } from "react-aria-components"
 import type { TAvailableAlignments } from "../../tokens/alignment"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TScreenSizeType } from "../../tokens/responsive"
-import type { TPartialTableFilteringLabels } from "../Filtering/labels"
+import { resolveTableFilteringLabels, type TPartialTableFilteringLabels } from "../Filtering/labels"
 import type { TPaginationProps } from "../Pagination/helpers"
 
 import type { TAvailableListItem } from "./filterMetadata"
 import type { TPartialTableLabels } from "./labels"
+import { resolveTableLabels } from "./labels"
 import {
   TABLE_SORT_DIRECTION__ASCENDING,
   TABLE_SORT_DIRECTION__DESCENDING,
@@ -232,6 +233,52 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   columnResizing?: TTableColumnResizingControls
   filteringLabels?: TPartialTableFilteringLabels
   labels?: TPartialTableLabels
+}
+
+type TTableNativeProps<TRow extends object> = Omit<
+  TTableProps<TRow>,
+  | "className"
+  | "customClassName"
+  | "customStyles"
+  | "geometry"
+  | "hoverColor"
+  | "zebraColor"
+  | "stickyHeader"
+  | "style"
+  | "zebra"
+  | "clickableRows"
+  | "onRowAction"
+  | "columns"
+  | "columnResizing"
+  | "queryControls"
+  | "filteringLabels"
+  | "labels"
+>
+
+type TCalibratedTableComponent<TRow extends object> = {
+  context: {
+    value: {
+      queryControls: TTableQueryControls | undefined
+      columnResizing: TTableColumnResizingControls | undefined
+      filteringLabels: ReturnType<typeof resolveTableFilteringLabels>
+      labels: ReturnType<typeof resolveTableLabels>
+    }
+  }
+  pagination: {
+    controls: TTablePaginationControls | undefined
+  }
+  root: {
+    className: string
+    isRowActionEnabled: boolean
+    nativeProps: TTableNativeProps<TRow>
+    onRowAction: TTableProps<TRow>["onRowAction"] | undefined
+    onSortChange: ((descriptor: SortDescriptor) => void) | undefined
+    sortDescriptor: SortDescriptor | undefined
+    style: React.CSSProperties
+  }
+  shell: {
+    className: string
+  }
 }
 
 // Bridges TTableSortInstruction[] state into the single-column SortDescriptor
@@ -488,4 +535,62 @@ export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>
   ) as React.CSSProperties
 
   return { tableStyles, tableStyle }
+}
+
+/**
+ * Composes Table-owned sorting, labels, context, and presentation resources while callers retain query-control state.
+ */
+export const useCalibratedComponent = <TRow extends object>(
+  props: TTableProps<TRow>,
+): TCalibratedTableComponent<TRow> => {
+  const {
+    className: _className,
+    customClassName: _customClassName,
+    customStyles: _customStyles,
+    geometry: _geometry,
+    hoverColor: _hoverColor,
+    zebraColor: _zebraColor,
+    stickyHeader: _stickyHeader,
+    style: _style,
+    zebra: _zebra,
+    clickableRows,
+    onRowAction,
+    columns,
+    columnResizing,
+    queryControls,
+    filteringLabels,
+    labels,
+    ...nativeProps
+  } = props
+  const { pagination, sorting } = queryControls ?? {}
+  const { sortDescriptor, handleSortChange } = useTableSortBridge(sorting, columns)
+  const { tableStyles, tableStyle } = calibrateComponent(props)
+  const isRowActionEnabled = Boolean(clickableRows && onRowAction)
+  const resolvedFilteringLabels = useMemo(() => resolveTableFilteringLabels(filteringLabels), [filteringLabels])
+  const resolvedLabels = useMemo(() => resolveTableLabels(labels), [labels])
+  const contextValue = useMemo(
+    () => ({ queryControls, columnResizing, filteringLabels: resolvedFilteringLabels, labels: resolvedLabels }),
+    [queryControls, columnResizing, resolvedFilteringLabels, resolvedLabels],
+  )
+
+  return {
+    context: {
+      value: contextValue,
+    },
+    pagination: {
+      controls: pagination,
+    },
+    root: {
+      className: tableStyles,
+      isRowActionEnabled,
+      nativeProps,
+      onRowAction: isRowActionEnabled ? onRowAction : undefined,
+      onSortChange: sorting ? handleSortChange : undefined,
+      sortDescriptor,
+      style: tableStyle,
+    },
+    shell: {
+      className: styles.tableShell,
+    },
+  }
 }
