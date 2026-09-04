@@ -195,6 +195,14 @@ General preferences:
 - Do not promote Wavemap app chrome, gradients, route layout constants, map colors, or product typography into the default
   Codon UI theme without an explicit contract pass.
 
+## Markdown Prose Portability
+
+- Write each ordinary Markdown paragraph as one physical source line. Let editors visually wrap long lines; do not insert source newlines to satisfy print width or improve source-file appearance.
+- Write each list item on one physical source line unless it contains multiple paragraphs or nested structure required by Markdown.
+- Use source newlines only for semantic Markdown structure such as paragraph boundaries, headings, lists, block quotes, tables, fenced code, or an intentional hard break.
+- When editing an already hard-wrapped paragraph, normalize the touched paragraph only; do not reflow unrelated prose solely to apply this convention.
+- Keep formatter behavior from introducing prose wrapping. `proseWrap: "preserve"` is acceptable only when authored prose follows this convention; override or adjust any formatter that would hard-wrap Markdown prose.
+
 ## Testing And Verification
 
 Prefer the narrowest verification command that exercises the touched behavior.
