@@ -1,11 +1,45 @@
 "use client"
 
-import { calibrateComponent, type TLineSegmentProps } from "./helpers"
+import classNames from "classnames"
+import type { CSSProperties } from "react"
+
+import { LINE_SEGMENT_DIRECTION__HORIZONTAL, LINE_SEGMENT_DIRECTION__VERTICAL, type TLineSegmentProps } from "./helpers"
 
 export const LineSegment = (props: TLineSegmentProps) => {
-  const { root } = calibrateComponent(props)
+  const {
+    className,
+    color = "var(--cui-border)",
+    customClassName,
+    customStyles,
+    direction = LINE_SEGMENT_DIRECTION__HORIZONTAL,
+    height = 50,
+    size = 2.5,
+    style,
+    width = 50,
+    ...rootProps
+  } = props
+  const segmentStyle: CSSProperties =
+    direction === LINE_SEGMENT_DIRECTION__HORIZONTAL
+      ? {
+          backgroundColor: color,
+          height,
+          width: size,
+        }
+      : direction === LINE_SEGMENT_DIRECTION__VERTICAL
+        ? {
+            backgroundColor: color,
+            width,
+            height: size,
+          }
+        : {}
 
-  return <div {...root.props} style={root.style} className={root.className} />
+  return (
+    <div
+      {...rootProps}
+      style={{ ...segmentStyle, ...customStyles, ...style }}
+      className={classNames(customClassName, className)}
+    />
+  )
 }
 
 export {

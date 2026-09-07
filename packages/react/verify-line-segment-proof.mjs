@@ -52,10 +52,13 @@ const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 assert(lineSegmentSource.startsWith('"use client"'), "LineSegment must preserve the client component boundary")
-assert(lineSegmentSource.includes("calibrateComponent"), "LineSegment must import its pure calibration boundary")
-assert(lineSegmentSource.includes("const { root } = calibrateComponent(props)"), "LineSegment must calibrate once")
-assert(lineSegmentSource.includes("return <div {...root.props}"), "LineSegment must render calibrated root resources")
-assert(lineSegmentHelpersSource.includes('import classNames from "classnames"'), "LineSegment must import classnames")
+assert(!lineSegmentSource.includes("calibrateComponent"), "LineSegment must keep its short preparation visible")
+assert(
+  lineSegmentSource.includes("const segmentStyle: CSSProperties"),
+  "LineSegment must prepare its deterministic style directly",
+)
+assert(lineSegmentSource.includes("{...rootProps}"), "LineSegment must forward native root props directly")
+assert(lineSegmentSource.includes('import classNames from "classnames"'), "LineSegment must import classnames")
 assert(
   lineSegmentHelpersSource.includes("ComponentPropsWithoutRef"),
   "LineSegment must preserve native div props typing",
@@ -75,25 +78,22 @@ assert(
   "LineSegment must preserve its local direction vocabulary",
 )
 assert(lineSegmentHelpersSource.includes("export type TLineSegmentProps"), "LineSegment must export local props")
+assert(lineSegmentSource.includes('color = "var(--cui-border)"'), "LineSegment must use the Codon UI border default")
 assert(
-  lineSegmentHelpersSource.includes('color = "var(--cui-border)"'),
-  "LineSegment must use the Codon UI border default",
-)
-assert(
-  lineSegmentHelpersSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
+  lineSegmentSource.includes("direction = LINE_SEGMENT_DIRECTION__HORIZONTAL"),
   "LineSegment must default horizontal",
 )
-assert(lineSegmentHelpersSource.includes("height = 50"), "LineSegment must preserve default height")
-assert(lineSegmentHelpersSource.includes("width = 50"), "LineSegment must preserve default width")
-assert(lineSegmentHelpersSource.includes("size = 2.5"), "LineSegment must preserve default size")
-assert(lineSegmentHelpersSource.includes("width: size"), "Horizontal LineSegment must size width from size")
-assert(lineSegmentHelpersSource.includes("height: size"), "Vertical LineSegment must size height from size")
+assert(lineSegmentSource.includes("height = 50"), "LineSegment must preserve default height")
+assert(lineSegmentSource.includes("width = 50"), "LineSegment must preserve default width")
+assert(lineSegmentSource.includes("size = 2.5"), "LineSegment must preserve default size")
+assert(lineSegmentSource.includes("width: size"), "Horizontal LineSegment must size width from size")
+assert(lineSegmentSource.includes("height: size"), "Vertical LineSegment must size height from size")
 assert(
-  lineSegmentHelpersSource.includes("style: { ...segmentStyle, ...customStyles, ...style }"),
+  lineSegmentSource.includes("style={{ ...segmentStyle, ...customStyles, ...style }}"),
   "LineSegment must let custom and native styles override computed styles",
 )
 assert(
-  lineSegmentHelpersSource.includes("classNames(customClassName, className)"),
+  lineSegmentSource.includes("classNames(customClassName, className)"),
   "LineSegment must merge custom and native class names",
 )
 assert(!forbiddenConsumerImportsPattern.test(lineSegmentSource), "LineSegment must not import consumer-only modules")
