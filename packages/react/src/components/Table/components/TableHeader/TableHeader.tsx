@@ -1,5 +1,5 @@
 import classNames from "classnames"
-import type { KeyboardEvent, PointerEvent } from "react"
+import type { PointerEvent } from "react"
 import { TableHeader as AdobeTableHeader, useTableOptions } from "react-aria-components"
 
 import { ALIGNMENT__CENTER, ALIGNMENT__RIGHT } from "../../../../tokens/alignment"
@@ -8,13 +8,15 @@ import { DEFAULT_TABLE_FILTERING_LABELS } from "../../../Filtering/labels"
 import Text from "../../../Text/Text"
 import {
   computeNextTableSorts,
+  getTableColumnWidth,
+  resizeTableColumn,
   normalizeTableColumns,
   TABLE_FILTERING_CONTROL_MODE__EXTERNAL,
   TABLE_FILTERING_CONTROL_MODE__POPOVER,
   type TTableColumnMetadata,
 } from "../../helpers"
 import { DEFAULT_TABLE_LABELS } from "../../labels"
-import { TABLE_SORT_DIRECTION__ASCENDING, TABLE_SORT_DIRECTION__DESCENDING } from "../../queryTypes"
+import { TABLE_SORT_DIRECTION__ASCENDING } from "../../queryTypes"
 import { useTableContext } from "../../TableContext"
 import tableStyles from "../../TableStyles.module.css"
 import TableColumn from "../TableColumn/TableColumn"
@@ -23,16 +25,22 @@ import TableFilterPopover from "../TableFilterPopover/TableFilterPopover"
 import { calibrateComponent, calibrateFilterIcons, calibrateSortIcons, type TTableHeaderProps } from "./helpers"
 import styles from "./TableHeaderStyles.module.css"
 
-const TABLE_COLUMN_RESIZE_MIN_WIDTH_PX = 52
-const TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX = 16
-
-const resolveNumericSize = (value: number | string | undefined) => (typeof value === "number" ? value : undefined)
-
-const clampColumnWidth = (width: number, minWidth: number, maxWidth?: number) => {
-  const maximum = typeof maxWidth === "number" ? maxWidth : Number.POSITIVE_INFINITY
-
-  return Math.round(Math.min(Math.max(width, minWidth), maximum))
-}
+const {
+  tableHeader__filterButton,
+  ["tableHeader__filterButton--active"]: tableHeader__filterButtonActive,
+  tableHeader__sortIndicator,
+  ["tableHeader__sortIndicator--active"]: tableHeader__sortIndicatorActive,
+  tableHeader__cellLabel,
+  tableHeader__resizeHandle,
+  tableHeader__cell,
+  ["tableHeader__cell--sortable"]: tableHeader__cellSortable,
+  ["tableHeader__cell--resizable"]: tableHeader__cellResizable,
+  ["tableHeader__cell--alignCenter"]: tableHeader__cellAlignCenter,
+  ["tableHeader__cell--alignEnd"]: tableHeader__cellAlignEnd,
+  tableHeader__cellInner,
+  tableHeader__sortButton,
+  tableHeader__iconGroup,
+} = styles
 
 const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
   const {
@@ -100,21 +108,13 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
           : undefined
         const isFilterActive = !!activeFilterGroup?.clauses.length
         const filterButtonClassName = classNames(
-          styles.tableHeader__filterButton,
-          isFilterActive && styles["tableHeader__filterButton--active"],
+          tableHeader__filterButton,
+          isFilterActive && tableHeader__filterButtonActive,
         )
         const sortIndicatorClassName = classNames(
-          styles.tableHeader__sortIndicator,
-          sortDirection && styles["tableHeader__sortIndicator--active"],
+          tableHeader__sortIndicator,
+          sortDirection && tableHeader__sortIndicatorActive,
         )
-        const ariaSort =
-          sortDirection === TABLE_SORT_DIRECTION__ASCENDING
-            ? "ascending"
-            : sortDirection === TABLE_SORT_DIRECTION__DESCENDING
-              ? "descending"
-              : columnAllowsSorting
-                ? "none"
-                : undefined
         const onSortPress = () => {
           if (!columnAllowsSorting || !queryControls?.sorting) return
 
@@ -126,36 +126,17 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
             }),
           )
         }
-        const resolveColumnResizeBounds = () => ({
-          maxWidth: resolveNumericSize(column.maxWidth) ?? columnResizing?.maxWidth,
-          minWidth: resolveNumericSize(column.minWidth) ?? columnResizing?.minWidth ?? TABLE_COLUMN_RESIZE_MIN_WIDTH_PX,
-        })
-        const commitColumnResize = (width: number) => {
-          if (!columnResizing) return
-
-          const { minWidth, maxWidth } = resolveColumnResizeBounds()
-
-          columnResizing.onColumnResize({
-            columnID: column.id,
-            width: clampColumnWidth(width, minWidth, maxWidth),
-          })
-        }
-        const getCurrentColumnWidth = (target: HTMLElement) => {
-          const headerCell = target.closest("th")
-
-          return headerCell?.getBoundingClientRect().width ?? resolveNumericSize(column.width) ?? 0
-        }
         const onResizePointerDown = (event: PointerEvent<HTMLButtonElement>) => {
-          if (!columnAllowsResizing) return
+          if (!columnAllowsResizing || !columnResizing) return
 
           event.preventDefault()
           event.stopPropagation()
 
           const startX = event.clientX
-          const startWidth = getCurrentColumnWidth(event.currentTarget)
+          const startWidth = getTableColumnWidth(event.currentTarget, column)
 
           const onPointerMove = (moveEvent: globalThis.PointerEvent) => {
-            commitColumnResize(startWidth + moveEvent.clientX - startX)
+            resizeTableColumn(column, columnResizing, startWidth + moveEvent.clientX - startX)
           }
           const onPointerUp = () => {
             window.removeEventListener("pointermove", onPointerMove)
@@ -165,21 +146,9 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
           window.addEventListener("pointermove", onPointerMove)
           window.addEventListener("pointerup", onPointerUp)
         }
-        const onResizeKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
-          if (!columnAllowsResizing || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
-
-          event.preventDefault()
-          event.stopPropagation()
-
-          const direction = event.key === "ArrowLeft" ? -1 : 1
-          const currentWidth = getCurrentColumnWidth(event.currentTarget)
-
-          commitColumnResize(currentWidth + direction * TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX)
-        }
-
         const nameText = (
           <Text
-            customClassName={classNames(styles.tableHeader__cellLabel, hiddenStyle, column.customHeaderCellClassName)}
+            customClassName={classNames(tableHeader__cellLabel, hiddenStyle, column.customHeaderCellClassName)}
             customStyles={{ ...column.customHeaderCellStyles }}
             elementType="span"
             variant="b10"
@@ -232,9 +201,9 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
         const resizeControl = columnAllowsResizing ? (
           <button
             aria-label={`Resize ${column.name ?? column.id} column`}
-            className={styles.tableHeader__resizeHandle}
+            className={tableHeader__resizeHandle}
             onClick={(event) => event.stopPropagation()}
-            onKeyDownCapture={onResizeKeyDown}
+            data-table-column-resize={column.id}
             onPointerDown={onResizePointerDown}
             type="button"
           />
@@ -245,16 +214,14 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
             id={column.id}
             key={column.id}
             isRowHeader={column.isRowHeader}
-            allowsSorting={false}
+            allowsSorting={columnAllowsSorting}
             aria-label={column.headerAriaLabel}
-            aria-sort={ariaSort}
-            onClick={onSortPress}
             className={classNames(
-              styles.tableHeader__cell,
-              columnAllowsSorting && styles["tableHeader__cell--sortable"],
-              columnAllowsResizing && styles["tableHeader__cell--resizable"],
-              headerAlignment === ALIGNMENT__CENTER && styles["tableHeader__cell--alignCenter"],
-              headerAlignment === ALIGNMENT__RIGHT && styles["tableHeader__cell--alignEnd"],
+              tableHeader__cell,
+              columnAllowsSorting && tableHeader__cellSortable,
+              columnAllowsResizing && tableHeader__cellResizable,
+              headerAlignment === ALIGNMENT__CENTER && tableHeader__cellAlignCenter,
+              headerAlignment === ALIGNMENT__RIGHT && tableHeader__cellAlignEnd,
               column.customHeaderColumnClassName,
             )}
             style={{
@@ -265,10 +232,11 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
             }}
           >
             {needsInnerWrapper ? (
-              <div className={styles.tableHeader__cellInner}>
+              <div className={tableHeader__cellInner}>
                 {columnAllowsSorting ? (
                   <button
-                    className={styles.tableHeader__sortButton}
+                    className={tableHeader__sortButton}
+                    onPointerDown={(event) => event.stopPropagation()}
                     onClick={(event) => {
                       event.stopPropagation()
                       onSortPress()
@@ -281,7 +249,7 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
                   nameText
                 )}
                 {(filterControl || sortIndicator) && (
-                  <span className={styles.tableHeader__iconGroup}>
+                  <span className={tableHeader__iconGroup}>
                     {filterControl}
                     {sortIndicator}
                   </span>

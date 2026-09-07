@@ -7,6 +7,8 @@ import type { TCellRenderer, TTableColumnMetadata } from "../../helpers"
 
 import styles from "./TableRowStyles.module.css"
 
+const { ["tableRow--rounded"]: tableRowRounded, ["tableRow--round"]: tableRowRound, tableRow } = styles
+
 export type TTableRowProps<T extends object> = Omit<RowProps<T>, "children" | "className" | "columns" | "style"> & {
   item: T
   columns: TTableColumnMetadata<T>[]
@@ -31,9 +33,9 @@ const computeRowGeometryStyle = <T extends object>(props: TTableRowProps<T>) => 
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["tableRow--rounded"]
+      return tableRowRounded
     case ROUND:
-      return styles["tableRow--round"]
+      return tableRowRound
     default:
       break
   }
@@ -43,7 +45,7 @@ export const calibrateComponent = <T extends object>(props: TTableRowProps<T>): 
   const { className, customClassName, customStyles, style } = props
   const rowGeometryStyle = computeRowGeometryStyle(props)
 
-  const rowStyles = classNames(styles.tableRow, rowGeometryStyle, customClassName, className)
+  const rowStyles = classNames(tableRow, rowGeometryStyle, customClassName, className)
   const rowStyle = Object.assign({}, { ...customStyles }, { ...style })
 
   return { rowStyles, rowStyle }

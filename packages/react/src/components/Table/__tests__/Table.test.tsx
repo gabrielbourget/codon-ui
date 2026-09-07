@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { useState } from "react"
 import { describe, expect, it, vi } from "vitest"
 
 import { ROUND } from "../../../tokens/geometry"
@@ -24,6 +25,7 @@ import {
   TABLE_FILTER_OPERATION_CODE__GREATER_THAN_EQUAL,
   TABLE_FILTER_OPERATION_CODE__LESS_THAN_EQUAL,
   TABLE_SORT_DIRECTION__ASCENDING,
+  type TTableSortInstruction,
 } from "../queryTypes"
 import Table from "../Table"
 import tableStyles from "../TableStyles.module.css"
@@ -103,6 +105,9 @@ describe("<Table /> Tests", () => {
       </Table>,
     )
 
+    expect(screen.getByRole("grid", { name: "Normalized table" })).not.toHaveClass(tableStyles["table--stickyHeader"])
+    expect(screen.queryByRole("button", { name: /Resize .+ column/ })).toBeNull()
+
     const columnHeaders = screen.getAllByRole("columnheader")
     expect(columnHeaders.map((header) => header.textContent || header.getAttribute("aria-label"))).toEqual([
       "Left action",
@@ -165,6 +170,7 @@ describe("<Table /> Tests", () => {
 
     expect(table).toHaveClass(tableStyles.table)
     expect(table).toHaveClass(tableStyles["table--zebra"])
+    expect(table).toHaveClass(tableStyles["table--stickyHeader"])
     expect(table).toHaveClass("custom-table")
     expect(table).toHaveClass("native-table")
     expect(table).toHaveStyle({ height: "320px", width: "640px" })
@@ -329,7 +335,78 @@ describe("<Table /> Tests", () => {
     expect(screen.getByTestId("table-header-default-inactive-filter-icon")).toBeInTheDocument()
   })
 
-  it("Emits bounded column resize changes from table header resize controls.", () => {
+  it("Cycles stacked sorts independently through pointer and keyboard controls.", async () => {
+    const user = userEvent.setup()
+    const onSortChange = vi.fn()
+    const sortableColumns: TTableColumnMetadata<TTableTestRow>[] = [
+      {
+        id: "name",
+        name: "Name",
+        isRowHeader: true,
+        accessor: (item) => item.name,
+        sort: { enabled: true, criteriaID: "name" },
+      },
+      { id: "date", name: "Date", accessor: (item) => item.date, sort: { enabled: true, criteriaID: "date" } },
+    ]
+    const ControlledSortTable = () => {
+      const [activeSorts, setActiveSorts] = useState<TTableSortInstruction[]>([])
+
+      return (
+        <Table
+          aria-label="Keyboard sortable table"
+          columns={sortableColumns}
+          queryControls={{
+            sorting: {
+              activeSorts,
+              mode: "multiple",
+              onSortChange: (nextSorts) => {
+                onSortChange(nextSorts)
+                setActiveSorts(nextSorts)
+              },
+            },
+          }}
+        >
+          <TableHeader<TTableTestRow> columns={sortableColumns} />
+          <TableBody<TTableTestRow> columns={sortableColumns} items={[row]} rowKey={(item) => item.id} />
+        </Table>
+      )
+    }
+
+    render(<ControlledSortTable />)
+
+    const nameControl = screen.getByRole("button", { name: "Name" })
+    const dateControl = screen.getByRole("button", { name: "Date" })
+    const nameHeader = screen.getByRole("columnheader", { name: "Name" })
+    const dateHeader = screen.getByRole("columnheader", { name: "Date" })
+
+    await user.click(nameControl)
+    await user.click(dateControl)
+    expect(nameHeader).toHaveAttribute("aria-sort", "ascending")
+    expect(dateHeader).toHaveAttribute("aria-sort", "none")
+
+    expect(onSortChange).toHaveBeenCalledTimes(2)
+    expect(onSortChange).toHaveBeenLastCalledWith([
+      expect.objectContaining({ criteriaID: "name", sortDirection: TABLE_SORT_DIRECTION__ASCENDING }),
+      expect.objectContaining({ criteriaID: "date", sortDirection: TABLE_SORT_DIRECTION__ASCENDING }),
+    ])
+
+    await user.click(nameControl)
+    expect(nameHeader).toHaveAttribute("aria-sort", "descending")
+    await user.keyboard("{Enter}")
+    expect(nameHeader).toHaveAttribute("aria-sort", "none")
+    expect(dateHeader).toHaveAttribute("aria-sort", "ascending")
+
+    dateControl.focus()
+    await user.keyboard(" ")
+    expect(dateHeader).toHaveAttribute("aria-sort", "descending")
+    await user.keyboard("{Enter}")
+    expect(dateHeader).toHaveAttribute("aria-sort", "none")
+    expect(onSortChange).toHaveBeenCalledTimes(6)
+    expect(onSortChange).toHaveBeenLastCalledWith([])
+  })
+
+  it("Emits bounded resize changes from pointer and keyboard controls and ends pointer tracking.", async () => {
+    const user = userEvent.setup()
     const onColumnResize = vi.fn()
     const resizableColumns: TTableColumnMetadata<TTableTestRow>[] = [
       {
@@ -369,6 +446,17 @@ describe("<Table /> Tests", () => {
     fireEvent(window, new MouseEvent("pointermove", { bubbles: true, clientX: 60 }))
     fireEvent(window, new MouseEvent("pointerup", { bubbles: true }))
     expect(onColumnResize).toHaveBeenLastCalledWith({ columnID: "name", width: 150 })
+    fireEvent(window, new MouseEvent("pointermove", { bubbles: true, clientX: 90 }))
+    expect(onColumnResize).toHaveBeenCalledTimes(1)
+
+    await user.click(screen.getByRole("rowheader", { name: "Alpha" }))
+    await user.keyboard("{ArrowUp}")
+    expect(resizeButton).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(onColumnResize).toHaveBeenLastCalledWith({ columnID: "name", width: 136 })
+    await user.keyboard("{ArrowLeft}")
+    expect(onColumnResize).toHaveBeenLastCalledWith({ columnID: "name", width: 104 })
+    expect(resizeButton).toHaveFocus()
   })
 
   it("Renders pagination controls from table query controls.", () => {

@@ -17,7 +17,7 @@ const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps
 
   return (
     <TableContext.Provider value={context.value}>
-      <div className={shell.className}>
+      <div className={shell.className} onKeyDownCapture={shell.onKeyDownCapture}>
         <AdobeTable
           {...root.nativeProps}
           sortDescriptor={root.sortDescriptor}

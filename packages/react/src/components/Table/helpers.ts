@@ -1,5 +1,14 @@
 import classNames from "classnames"
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react"
 import { type SortDescriptor, type TableProps } from "react-aria-components"
 
 import type { TAvailableAlignments } from "../../tokens/alignment"
@@ -19,6 +28,8 @@ import {
   type TTableSortInstruction,
 } from "./queryTypes"
 import styles from "./TableStyles.module.css"
+
+const { ["table--stickyHeader"]: tableStickyHeader, ["table--zebra"]: tableZebra, table, tableShell } = styles
 
 export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
 
@@ -187,6 +198,32 @@ export type TTableColumnResizingControls = {
   onColumnResize: (details: TTableColumnResizeDetails) => void
 }
 
+const TABLE_COLUMN_RESIZE_MIN_WIDTH_PX = 52
+const TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX = 16
+
+/** Measures the rendered header, falling back to its numeric metadata before layout is available. */
+export const getTableColumnWidth = <T extends object>(target: HTMLElement, column: TTableColumnMetadata<T>) =>
+  target.closest("th")?.getBoundingClientRect().width ?? (typeof column.width === "number" ? column.width : 0)
+
+/** Keeps pointer and keyboard resizing on the same column-first bounds and consumer-owned width contract. */
+export const resizeTableColumn = <T extends object>(
+  column: TTableColumnMetadata<T>,
+  columnResizing: TTableColumnResizingControls,
+  width: number,
+) => {
+  const minWidth =
+    typeof column.minWidth === "number"
+      ? column.minWidth
+      : (columnResizing.minWidth ?? TABLE_COLUMN_RESIZE_MIN_WIDTH_PX)
+  const maxWidth =
+    typeof column.maxWidth === "number" ? column.maxWidth : (columnResizing.maxWidth ?? Number.POSITIVE_INFINITY)
+
+  columnResizing.onColumnResize({
+    columnID: column.id,
+    width: Math.round(Math.min(Math.max(width, minWidth), maxWidth)),
+  })
+}
+
 export type TColumnKey<K extends string = string> = K
 export type TAvailableBreakpointNames = TScreenSizeType
 
@@ -214,7 +251,7 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   TableProps,
   "sortDescriptor" | "onSortChange" | "className" | "style"
 > & {
-  stickyHeader?: boolean // Stub for now - ref. point Sept 01, 2025
+  stickyHeader?: boolean
   zebra?: boolean
   hoverColor?: string
   zebraColor?: string
@@ -276,6 +313,7 @@ type TCalibratedTableComponent<TRow extends object> = {
   }
   shell: {
     className: string
+    onKeyDownCapture: (event: KeyboardEvent<HTMLDivElement>) => void
   }
 }
 
@@ -518,11 +556,12 @@ export const computeColumnSizingConstraintsForBreakpoint = <K extends string>(
 }
 
 export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>) => {
-  const { className, customClassName, customStyles, hoverColor, style, zebra, zebraColor } = props
+  const { className, customClassName, customStyles, hoverColor, stickyHeader, style, zebra, zebraColor } = props
 
-  const zebraStyle = zebra ? styles["table--zebra"] : undefined
+  const stickyHeaderStyle = stickyHeader ? tableStickyHeader : undefined
+  const zebraStyle = zebra ? tableZebra : undefined
 
-  const tableStyles = classNames(styles.table, zebraStyle, customClassName, className)
+  const tableStyles = classNames(table, stickyHeaderStyle, zebraStyle, customClassName, className)
   const tableStyle = Object.assign(
     {
       "--hoverColor": hoverColor ?? "transparent",
@@ -563,6 +602,27 @@ export const useCalibratedComponent = <TRow extends object>(
   const { pagination, sorting } = queryControls ?? {}
   const { sortDescriptor, handleSortChange } = useTableSortBridge(sorting, columns)
   const { tableStyles, tableStyle } = calibrateComponent(props)
+  // -> Capture resize arrows on the DOM shell before React Aria consumes them for cell navigation.
+  const onResizeKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!columnResizing?.enabled || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
+    if (!(event.target instanceof HTMLElement)) return
+
+    const resizeButton = event.target.closest<HTMLButtonElement>("button[data-table-column-resize]")
+    if (!resizeButton || !event.currentTarget.contains(resizeButton)) return
+
+    const column = columns?.find((candidate) => candidate.id === resizeButton.dataset.tableColumnResize)
+    if (!column || column.isHidden || column.headerVisuallyHidden) return
+
+    event.preventDefault()
+    event.stopPropagation()
+
+    const direction = event.key === "ArrowLeft" ? -1 : 1
+    resizeTableColumn(
+      column,
+      columnResizing,
+      getTableColumnWidth(resizeButton, column) + direction * TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX,
+    )
+  }
   const isRowActionEnabled = Boolean(clickableRows && onRowAction)
   const resolvedFilteringLabels = useMemo(() => resolveTableFilteringLabels(filteringLabels), [filteringLabels])
   const resolvedLabels = useMemo(() => resolveTableLabels(labels), [labels])
@@ -588,7 +648,8 @@ export const useCalibratedComponent = <TRow extends object>(
       style: tableStyle,
     },
     shell: {
-      className: styles.tableShell,
+      className: tableShell,
+      onKeyDownCapture: onResizeKeyDownCapture,
     },
   }
 }

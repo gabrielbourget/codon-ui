@@ -30,6 +30,17 @@ import {
 import TableFilterPopoverDefaultAddConditionIcon from "./DefaultAddConditionIcon"
 import styles from "./TableFilterPopoverStyles.module.css"
 
+const {
+  tableFilterPopover,
+  tableFilterPopover__titleRow,
+  tableFilterPopover__titleGroup,
+  tableFilterPopover__title,
+  tableFilterPopover__criteriaTag,
+  tableFilterPopover__form,
+  tableFilterPopover__clauseList,
+  tableFilterPopover__actions,
+} = styles
+
 export type TTableFilterPopoverProps<T extends object> = {
   "data-testid"?: string
   column: TTableColumnMetadata<T>
@@ -288,7 +299,7 @@ const TableFilterPopover = <T extends object>({
         offset={0}
       >
         <form
-          className={classNames(styles.tableFilterPopover, customClassName, className)}
+          className={classNames(tableFilterPopover, customClassName, className)}
           style={{ ...customStyles, ...style }}
           data-testid={dataTestID ?? "table-filter-popover"}
           onClick={(e) => e.stopPropagation()}
@@ -299,21 +310,21 @@ const TableFilterPopover = <T extends object>({
           }}
         >
           <div
-            className={classNames(styles.tableFilterPopover__titleRow, customTitleRowClassName)}
+            className={classNames(tableFilterPopover__titleRow, customTitleRowClassName)}
             style={customTitleRowStyles}
           >
             <div
-              className={classNames(styles.tableFilterPopover__titleGroup, customTitleGroupClassName)}
+              className={classNames(tableFilterPopover__titleGroup, customTitleGroupClassName)}
               style={customTitleGroupStyles}
             >
-              <Text customClassName={styles.tableFilterPopover__title} elementType="p" variant="b10" fontWeight="bold">
+              <Text customClassName={tableFilterPopover__title} elementType="p" variant="b10" fontWeight="bold">
                 {resolvedLabels.popover.title}
               </Text>
               <Tag
                 color="var(--cui-control-selected-background)"
                 geometry={ROUND}
                 aria-label={resolvedLabels.popover.criteriaTagAriaLabel({ criteriaName })}
-                customClassName={styles.tableFilterPopover__criteriaTag}
+                customClassName={tableFilterPopover__criteriaTag}
                 customStyles={{ border: "none", color: "var(--cui-control-selected-foreground)" }}
               >
                 <Text elementType="span" variant="b11" fontWeight="semibold">
@@ -342,7 +353,7 @@ const TableFilterPopover = <T extends object>({
             )}
           </div>
 
-          <div className={styles.tableFilterPopover__form}>
+          <div className={tableFilterPopover__form}>
             {draft.clauses.length > 1 && (
               <ToggleSwitcher
                 aria-label={resolvedLabels.popover.matchModeAriaLabel({ criteriaName })}
@@ -357,7 +368,7 @@ const TableFilterPopover = <T extends object>({
             )}
 
             <div
-              className={classNames(styles.tableFilterPopover__clauseList, customClauseListClassName)}
+              className={classNames(tableFilterPopover__clauseList, customClauseListClassName)}
               style={customClauseListStyles}
             >
               {draft.clauses.map((clause, index) => (
@@ -377,10 +388,7 @@ const TableFilterPopover = <T extends object>({
             </div>
           </div>
 
-          <div
-            className={classNames(styles.tableFilterPopover__actions, customActionsClassName)}
-            style={customActionsStyles}
-          >
+          <div className={classNames(tableFilterPopover__actions, customActionsClassName)} style={customActionsStyles}>
             <Button type="button" transparent raised={false} onPress={clearFilter}>
               <Text elementType="span" variant="b11">
                 {resolvedLabels.popover.clearButton}
