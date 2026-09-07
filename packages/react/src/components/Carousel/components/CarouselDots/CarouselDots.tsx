@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, type CSSProperties, type FC } from "react"
+import React, { useEffect, useRef, useState, type CSSProperties, type FC } from "react"
 
 import { useCarouselContext } from "../../helpers"
 
@@ -30,6 +30,7 @@ const CarouselDots: FC<TCarouselDotsProps> = (props) => {
   } = props
 
   const { selectedIndex, itemCount, scrollTo, getItemIDForIndex, labels: carouselLabels } = useCarouselContext()
+  const [focusIndex, setFocusIndex] = useState(selectedIndex)
   const resolvedLabels = {
     ...carouselLabels.dots,
     ...labels,
@@ -40,8 +41,6 @@ const CarouselDots: FC<TCarouselDotsProps> = (props) => {
     rightOverflow,
     windowStart,
     visibleCount,
-    focusIndex,
-    setFocusIndex,
     wrapperA11yProps,
     noTransition,
     wrappedThisRender,
@@ -50,7 +49,10 @@ const CarouselDots: FC<TCarouselDotsProps> = (props) => {
     isPinnedRight,
     carouselDotsStyles,
     sentinelDotStyles,
-  } = useCalibratedComponent({ ...props, ariaLabel: resolvedLabels.navigationAriaLabel }, { itemCount, selectedIndex })
+  } = useCalibratedComponent(
+    { ...props, ariaLabel: resolvedLabels.navigationAriaLabel },
+    { itemCount, selectedIndex, focusIndex },
+  )
 
   const buttonRefs = useRef<Array<HTMLButtonElement | null>>([])
 

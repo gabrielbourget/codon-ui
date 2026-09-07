@@ -375,7 +375,7 @@ export const useCarouselDotsKeyDownHandler = (params: {
 
 export const useCalibratedComponent = (
   props: TCarouselDotsProps,
-  contextInfo: { itemCount: number; selectedIndex: number },
+  contextInfo: { itemCount: number; selectedIndex: number; focusIndex: number },
 ) => {
   const {
     maxVisible = DEFAULT_MAX_VISIBLE_DOTS,
@@ -385,12 +385,10 @@ export const useCalibratedComponent = (
     className,
     customClassName,
   } = props
-  const { itemCount, selectedIndex } = contextInfo
+  const { itemCount, selectedIndex, focusIndex } = contextInfo
 
   const carouselDotsStyles = classNames(carouselDots, customClassName, className)
   const sentinelDotStyles = classNames(carouselDots__dot, carouselDots__dotSentinel)
-
-  const [focusIndex, setFocusIndex] = useState(selectedIndex)
 
   const anchorIndex = interactive && activationMode === CAROUSEL_DOTS_ACTIVATION_MODE__AUTO ? focusIndex : selectedIndex
   const largeZoneCount = DEFAULT_LARGE_ZONE_SIZE
@@ -451,8 +449,6 @@ export const useCalibratedComponent = (
     rightOverflow,
     windowStart,
     visibleCount,
-    focusIndex,
-    setFocusIndex,
     wrapperA11yProps,
     noTransition,
     wrappedThisRender,
