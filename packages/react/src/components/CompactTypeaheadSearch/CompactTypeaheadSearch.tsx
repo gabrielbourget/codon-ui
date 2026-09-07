@@ -1,8 +1,7 @@
 "use client"
 
 import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef, useRef, useState } from "react"
-import type { ListBoxRenderProps } from "react-aria-components"
-import { ComboBox as AdobeComboBox, Group, ListBox, Popover } from "react-aria-components"
+import { ComboBox as AdobeComboBox, Group, ListBox, Popover, type ListBoxRenderProps } from "react-aria-components"
 
 import { POPOVER_PLACEMENT__BOTTOM_START } from "../../tokens/placement"
 import Button from "../Button/Button"
