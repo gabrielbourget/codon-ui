@@ -2391,15 +2391,9 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
-        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/hooks.tsx",
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "CompactTypeaheadSearch/hooks.tsx",
-        role: REGISTRY_FILE_ROLE__SOURCE,
-      },
-      {
-        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
-        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "CompactTypeaheadSearch/helpers.ts",
+        targetPath: "CompactTypeaheadSearch/helpers.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {

@@ -1,125 +1,233 @@
 "use client"
 
-import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef } from "react"
+import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef, useRef, useState } from "react"
 import type { ListBoxRenderProps } from "react-aria-components"
 import { ComboBox as AdobeComboBox, Group, ListBox, Popover } from "react-aria-components"
 
+import { POPOVER_PLACEMENT__BOTTOM_START } from "../../tokens/placement"
 import Button from "../Button/Button"
 import Input from "../Input/Input"
 import PlaceholderText from "../Text/variants/PlaceholderText/PlaceholderText"
 
-import type { TCompactTypeaheadSearchProps } from "./helpers"
-import { useCalibratedComponent } from "./hooks"
+import styles from "./CompactTypeaheadSearchStyles.module.css"
+import { useCalibratedComponent, type TCompactTypeaheadSearchProps, type TCompactTypeaheadSearchState } from "./helpers"
+
+const { typeAheadSearch__status, inputButtonGroup__button } = styles
 
 const CompactTypeaheadSearch = forwardRef(function CompactTypeaheadSearchInner<T extends object>(
   props: TCompactTypeaheadSearchProps<T>,
   forwardedRef: ForwardedRef<HTMLDivElement>,
 ) {
-  const { input, popover, results, root, status } = useCalibratedComponent(props, forwardedRef)
+  const {
+    "data-testid": dataTestID,
+    className: _className,
+    color: _color,
+    customButtonStyles: customButtonStyles__props,
+    customInputButtonGroupStyles: customInputButtonGroupStyles__props,
+    customInputStyles: customInputStyles__props,
+    customOptionsListStyles,
+    customStyles: customStyles__props,
+    defaultInputValue = "",
+    emptyListMessage: _emptyListMessage,
+    enableFocusStyle: _enableFocusStyle,
+    errorState: _errorState,
+    geometry: _geometry,
+    getItemKey: _getItemKey,
+    getItemTextValue: _getItemTextValue,
+    height: _height,
+    inputValue: _inputValue,
+    isDisabled,
+    isLoading = false,
+    isOpen: _isOpen,
+    items: _items,
+    labels: _labels,
+    LoadingIndicator: LoadingIndicator__props,
+    loadingMessage: _loadingMessage,
+    minimumInputLength = 0,
+    minimumInputLengthMessage: _minimumInputLengthMessage,
+    offsetFocusRing: _offsetFocusRing,
+    onChange: _onChange,
+    onInputChange: _onInputChange,
+    onOpenChange: _onOpenChange,
+    placement = POPOVER_PLACEMENT__BOTTOM_START,
+    placeholder,
+    SearchIcon: SearchIcon__props,
+    renderItem: _renderItem,
+    rtl = false,
+    shouldFocusWrap = true,
+    style: _style,
+    successState: _successState,
+    textSize,
+    warningState: _warningState,
+    width: _width,
+    ...nativeProps
+  } = props
+  const comboBoxRef = useRef<HTMLDivElement | null>(null)
+  const inputRef = useRef<HTMLInputElement | null>(null)
+  const restoreInputFocusTimeoutRef = useRef<number | null>(null)
+  const [state, setState] = useState<TCompactTypeaheadSearchState>({
+    internalInputValue: defaultInputValue,
+    isOpen: false,
+    suppressMinimumQueryState: false,
+  })
+
+  const {
+    typeAheadSearchStyles,
+    typeAheadSearchStyle,
+    inputButtonGroupStyles,
+    optionsListStyles,
+    popoverStyles,
+    customInputButtonGroupStyles,
+    customButtonStyles,
+    customInputStyles,
+    SearchIcon,
+    LoadingIndicator,
+    resolvedInputValue,
+    resolvedItems,
+    resolvedOpen,
+    resolvedLabels,
+    shouldShowMinimumQueryStateResolved,
+    shouldShowStatusState,
+    setCompactTypeaheadSearchRef,
+    handleOpenChange,
+    handleInputChange,
+    clearMinimumQueryStateSuppression,
+    handleSelectionChange,
+    handleStatusStateBlur,
+    renderListBoxItem,
+  } = useCalibratedComponent({
+    props,
+    forwardedRef,
+    state,
+    setState,
+    comboBoxRef,
+    inputRef,
+    restoreInputFocusTimeoutRef,
+  })
 
   return (
     <AdobeComboBox
-      ref={root.ref}
+      ref={setCompactTypeaheadSearchRef}
       allowsEmptyCollection
-      {...root.nativeProps}
-      items={root.items}
-      isDisabled={root.isDisabled}
-      onOpenChange={root.onOpenChange}
-      onChange={root.onChange}
-      onInputChange={root.onInputChange}
-      inputValue={root.inputValue}
-      className={root.className}
-      style={root.style}
-      data-testid={root.dataTestID}
-      dir={root.direction}
+      {...nativeProps}
+      items={resolvedItems}
+      isDisabled={isDisabled}
+      onOpenChange={handleOpenChange}
+      onChange={handleSelectionChange}
+      onInputChange={handleInputChange}
+      inputValue={resolvedInputValue}
+      className={typeAheadSearchStyles}
+      style={typeAheadSearchStyle}
+      data-testid={dataTestID ?? "type-ahead-search"}
+      dir={rtl ? "rtl" : "ltr"}
     >
       {() => (
         <>
           {/* The combobox shell stays stable across states; only the popover body swaps between status views and results. */}
           <Group
-            className={input.group.className}
-            style={input.group.style}
-            aria-label={input.group.ariaLabel}
-            onBlur={input.group.onBlur}
+            className={inputButtonGroupStyles}
+            style={{ ...customInputButtonGroupStyles }}
+            aria-label={resolvedLabels.inputButtonGroupAriaLabel}
+            onBlur={handleStatusStateBlur}
           >
             <Input
-              ref={input.control.ref}
-              textSize={input.control.textSize}
-              customStyles={input.control.style}
+              ref={inputRef}
+              textSize={textSize}
+              customStyles={{ width: "100%", ...customInputStyles }}
               enableFocusStyle={false}
-              placeholder={input.control.placeholder}
-              onKeyDown={input.control.onKeyDown}
-              onPaste={input.control.onPaste}
+              placeholder={placeholder}
+              onKeyDown={clearMinimumQueryStateSuppression}
+              onPaste={clearMinimumQueryStateSuppression}
               data-testid="type-ahead-search-input"
             />
             <Button
-              aria-label={input.button.ariaLabel}
+              aria-label={resolvedLabels.searchButtonAriaLabel}
               aria-haspopup="listbox"
               geometry="rounded"
               raised={false}
-              customClassName={input.button.className}
-              customStyles={input.button.style}
-              isDisabled={input.button.isDisabled}
+              customClassName={inputButtonGroup__button}
+              customStyles={customButtonStyles}
+              isDisabled={isDisabled}
               data-testid="type-ahead-search-button"
             >
-              {input.button.icon}
+              {SearchIcon}
             </Button>
           </Group>
-          {status.isVisible ? (
+          {shouldShowStatusState ? (
             <Popover
-              className={popover.className}
-              style={popover.style}
+              className={popoverStyles}
+              style={{ ...customOptionsListStyles }}
               offset={5}
-              isOpen={popover.isOpen}
-              placement={popover.placement}
+              isOpen={resolvedOpen}
+              placement={placement}
             >
               {/* Minimum-query guidance prevents premature searching and makes the threshold visible to the user. */}
-              {status.shouldShowMinimumQuery ? (
-                <div className={results.className} style={results.style} role="listbox" aria-label={status.ariaLabel}>
+              {shouldShowMinimumQueryStateResolved ? (
+                <div
+                  className={optionsListStyles}
+                  style={{ ...customOptionsListStyles }}
+                  role="listbox"
+                  aria-label={resolvedLabels.suggestionsListAriaLabel}
+                >
                   <div
-                    className={status.className}
+                    className={typeAheadSearch__status}
                     data-testid="type-ahead-search-minimum-query-state"
                     aria-live="polite"
                   >
-                    <PlaceholderText align="center">{status.minimumInputLengthMessage}</PlaceholderText>
+                    <PlaceholderText align="center">
+                      {resolvedLabels.status.minimumInputLengthMessage({ minimumInputLength })}
+                    </PlaceholderText>
                   </div>
                 </div>
               ) : null}
 
               {/* Loading is parent-driven now, but the shell still owns the visual loading state. */}
-              {status.isLoading ? (
-                <div className={results.className} style={results.style} role="listbox" aria-label={status.ariaLabel}>
-                  <div className={status.className} data-testid="type-ahead-search-loading-state" aria-live="polite">
-                    {status.loadingIndicator}
-                    <PlaceholderText align="center">{status.loadingMessage}</PlaceholderText>
+              {isLoading ? (
+                <div
+                  className={optionsListStyles}
+                  style={{ ...customOptionsListStyles }}
+                  role="listbox"
+                  aria-label={resolvedLabels.suggestionsListAriaLabel}
+                >
+                  <div
+                    className={typeAheadSearch__status}
+                    data-testid="type-ahead-search-loading-state"
+                    aria-live="polite"
+                  >
+                    {LoadingIndicator}
+                    <PlaceholderText align="center">{resolvedLabels.status.loadingMessage}</PlaceholderText>
                   </div>
                 </div>
               ) : null}
             </Popover>
           ) : (
             <Popover
-              className={popover.className}
-              style={popover.style}
+              className={popoverStyles}
+              style={{ ...customOptionsListStyles }}
               offset={5}
-              isOpen={popover.isOpen}
-              placement={popover.placement}
+              isOpen={resolvedOpen}
+              placement={placement}
             >
               <ListBox
-                key={results.key}
-                items={results.items}
-                shouldFocusWrap={results.shouldFocusWrap}
-                className={results.className}
-                style={results.style}
-                aria-label={results.ariaLabel}
+                key={resolvedInputValue}
+                items={resolvedItems}
+                shouldFocusWrap={shouldFocusWrap}
+                className={optionsListStyles}
+                style={{ ...customOptionsListStyles }}
+                aria-label={resolvedLabels.suggestionsListAriaLabel}
                 renderEmptyState={({ isEmpty }: ListBoxRenderProps) =>
                   isEmpty ? (
-                    <div className={status.className} data-testid="type-ahead-search-empty-state" aria-live="polite">
-                      <PlaceholderText align="center">{results.emptyListMessage}</PlaceholderText>
+                    <div
+                      className={typeAheadSearch__status}
+                      data-testid="type-ahead-search-empty-state"
+                      aria-live="polite"
+                    >
+                      <PlaceholderText align="center">{resolvedLabels.status.emptyListMessage}</PlaceholderText>
                     </div>
                   ) : null
                 }
               >
-                {results.renderItem}
+                {renderListBoxItem}
               </ListBox>
             </Popover>
           )}

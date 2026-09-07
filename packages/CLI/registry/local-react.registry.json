@@ -2370,15 +2370,9 @@
           "role": "source"
         },
         {
-          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/hooks.tsx",
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
           "targetRole": "components",
-          "targetPath": "CompactTypeaheadSearch/hooks.tsx",
-          "role": "source"
-        },
-        {
-          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
-          "targetRole": "components",
-          "targetPath": "CompactTypeaheadSearch/helpers.ts",
+          "targetPath": "CompactTypeaheadSearch/helpers.tsx",
           "role": "source"
         },
         {
