@@ -2161,12 +2161,6 @@
           "role": "source"
         },
         {
-          "sourcePath": "packages/react/src/components/Pagination/hooks.tsx",
-          "targetRole": "components",
-          "targetPath": "Pagination/hooks.tsx",
-          "role": "source"
-        },
-        {
           "sourcePath": "packages/react/src/components/Pagination/helpers.tsx",
           "targetRole": "components",
           "targetPath": "Pagination/helpers.tsx",
@@ -2182,12 +2176,6 @@
           "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
           "targetRole": "components",
           "targetPath": "Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
-          "role": "source"
-        },
-        {
-          "sourcePath": "packages/react/src/components/Pagination/components/PrimaryPaginationControls/hooks.tsx",
-          "targetRole": "components",
-          "targetPath": "Pagination/components/PrimaryPaginationControls/hooks.tsx",
           "role": "source"
         },
         {

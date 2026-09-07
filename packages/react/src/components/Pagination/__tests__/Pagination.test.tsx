@@ -599,6 +599,38 @@ describe("<Pagination />", () => {
   })
 
   describe("user actions", () => {
+    it("Preserves the page input draft across parent renders until submission.", async () => {
+      const user = userEvent.setup()
+      const props = {
+        chosenPaginationSubcomponents: ["page-input", "primary-controls"],
+        pageInputLabel: "Choose page",
+      } satisfies Partial<TPaginationProps>
+      const { rerender } = render(<PaginationExample {...props} />)
+      await user.clear(screen.getByLabelText("Choose page"))
+      await user.type(screen.getByLabelText("Choose page"), "7")
+      rerender(<PaginationExample {...props} currentPage={5} />)
+      expect(screen.getByLabelText("Choose page")).toHaveValue("7")
+      expect(setCurrentPage).not.toHaveBeenCalled()
+      await user.click(screen.getByRole("button", { name: /navigate to selected page/iu }))
+      expect(setCurrentPage).toHaveBeenCalledExactlyOnceWith(7)
+    })
+
+    it("Uses the latest local page size when preserving the first visible item.", async () => {
+      const user = userEvent.setup()
+      render(<PaginationExample chosenPaginationSubcomponents={["items-per-page", "primary-controls"]} />)
+      const selectPageSize = async (size: number) => {
+        await user.click(
+          within(screen.getByTestId(PAGINATION_SUBCOMPONENT__ITEMS_PER_PAGE)).getByLabelText(/items per page/iu),
+        )
+        await user.click(screen.getByRole("option", { name: String(size) }))
+      }
+      await selectPageSize(50)
+      expect(setCurrentPage).toHaveBeenLastCalledWith(1)
+      await selectPageSize(20)
+      expect(setItemsPerPage).toHaveBeenLastCalledWith(20)
+      expect(setCurrentPage).toHaveBeenLastCalledWith(6)
+    })
+
     it("clicking the current page does not navigate.", async () => {
       const user = userEvent.setup()
       render(<PaginationExample />)

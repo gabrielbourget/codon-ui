@@ -1,38 +1,70 @@
 "use client"
 
-import { Fragment, type FC } from "react"
+import classNames from "classnames"
+import { Fragment, useCallback, useState, type FC } from "react"
 
 import LineSegment from "../LineSegment/LineSegment"
 
-import type { TPaginationProps } from "./helpers"
-import { useCalibratedComponent } from "./hooks"
+import { initState, useCalibratedComponent, type TPaginationProps, type TPaginationState } from "./helpers"
+import styles from "./PaginationStyles.module.css"
 
 const Pagination: FC<TPaginationProps> = (props) => {
-  const { composition, root, visibility } = useCalibratedComponent(props)
+  const {
+    "aria-describedby": ariaDescribedBy,
+    "aria-details": ariaDetails,
+    "aria-labelledby": ariaLabelledBy,
+    "data-testid": dataTestID,
+    ariaDescribedBy: ariaDescribedByAlias,
+    ariaDetails: ariaDetailsAlias,
+    ariaLabelledBy: ariaLabelledByAlias,
+    className,
+    customClassName,
+    customComponentStyles,
+    customSeparatorClassName,
+    customSeparatorStyles,
+    isDisabled = false,
+    itemsPerPage,
+    numberOfItems,
+    rtl = false,
+    showWithOnePage = false,
+    style,
+  } = props
+  const [state, setState] = useState<TPaginationState>({ ...initState, itemsPerPage })
+  const onPageNumberInputChange = useCallback(
+    (value: number) => setState((previousState) => ({ ...previousState, pageNumInput: value })),
+    [],
+  )
+  const { items, navigationAriaLabel, nativeProps } = useCalibratedComponent({
+    props,
+    state,
+    setState,
+    onPageNumberInputChange,
+  })
+  const isVisible = numberOfItems > (state.itemsPerPage as number) || showWithOnePage
 
-  return visibility.isVisible ? (
+  return isVisible ? (
     <nav
-      {...root.nativeProps}
-      aria-label={root.ariaLabel}
-      aria-labelledby={root.ariaLabelledBy}
-      aria-describedby={root.ariaDescribedBy}
-      aria-details={root.ariaDetails}
-      className={root.className}
-      style={root.style}
-      data-disabled={root.isDisabled ? "true" : undefined}
-      data-testid={root.dataTestID}
+      {...nativeProps}
+      aria-label={navigationAriaLabel}
+      aria-labelledby={ariaLabelledBy ?? ariaLabelledByAlias}
+      aria-describedby={ariaDescribedBy ?? ariaDescribedByAlias}
+      aria-details={ariaDetails ?? ariaDetailsAlias}
+      className={classNames(styles.pagination, rtl ? styles["pagination--rtl"] : null, customClassName, className)}
+      style={{ ...customComponentStyles, ...style }}
+      data-disabled={isDisabled ? "true" : undefined}
+      data-testid={dataTestID ?? "pagination"}
     >
-      {composition.items.map(({ key, node }, index) => (
+      {items.map(({ key, node }, index) => (
         <Fragment key={`pagination-render-fragment-${key}`}>
           {node}
 
-          {index < composition.items.length - 1 ? (
+          {index < items.length - 1 ? (
             <LineSegment
               key={`line-segment-${index + 1}`}
               direction="vertical"
               color="var(--cui-border)"
-              customClassName={composition.separator.className}
-              customStyles={composition.separator.style}
+              customClassName={customSeparatorClassName}
+              customStyles={{ height: "100%", width: 0.75, ...customSeparatorStyles }}
             />
           ) : null}
         </Fragment>
