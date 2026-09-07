@@ -1,12 +1,34 @@
 import classNames from "classnames"
 import { format } from "date-fns"
-import type { CSSProperties, ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  type CSSProperties,
+  type Dispatch,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+  type SetStateAction,
+} from "react"
 
 import { ORTHOGONAL, ROUNDED, type TCornerGeometry } from "../../../tokens/geometry"
 import type { TButtonProps } from "../../Button/helpers"
 import type { TTextProps } from "../../Text/helpers"
 import textStyles from "../../Text/TextStyles.module.css"
-import type { TAvailableToastPositions, TToastHeight } from "../helpers"
+import {
+  DEFAULT_TOAST_DURATION,
+  DEFAULT_TOAST_GAP,
+  DURATION_BEFORE_UNMOUNT,
+  TOAST_CLICK_DRAG_START_THRESHOLD,
+  TOAST_DISMISSAL_DRAG_THRESHOLD,
+  TOAST_DISMISSAL_DRAG_VELOCITY_THRESHOLD,
+  TOAST_TOUCH_DRAG_START_THRESHOLD,
+  isHotkeyPressed,
+  type TAvailableToastPositions,
+  type TToastHeight,
+} from "../helpers"
 
 import {
   ToastDefaultCheckmarkIcon,
@@ -16,7 +38,7 @@ import {
   ToastDefaultOctagonExclamationIcon,
   ToastDefaultTriangleExclamationIcon,
 } from "./DefaultToastIcons"
-import type { TPartialToastLabels } from "./labels"
+import { resolveToastLabels, type TPartialToastLabels } from "./labels"
 import styles from "./ToastStyles.module.css"
 
 const {
@@ -166,32 +188,6 @@ export const initState: TToastState = {
   color_white: "",
 }
 
-type TCalibratedToastComponent = {
-  bodyTextProps: Partial<TTextProps>
-  toastStyles: string
-  topRibbonStyles: string
-  topRibbonLeftContentStyles: string
-  headerStyles: string
-  toastContentStyles: string
-  bottomRowStyles: string
-  buttonRowStyles: string
-  customStyles: CSSProperties
-  topRibbonStyle?: CSSProperties
-  topRibbonLeftContentStyle?: CSSProperties
-  headerStyle?: CSSProperties
-  toastContentStyle?: CSSProperties
-  bottomRowStyle?: CSSProperties
-  buttonRowStyle?: CSSProperties
-  color__white: string
-  color__neutral_4: string
-  toastColor: string
-  toastIcon: ReactNode
-  timestampTextProps: Partial<TTextProps>
-  closeButtonProps: Partial<TButtonProps>
-  cancelButtonProps: Partial<TButtonProps>
-  confirmButtonProps: Partial<TButtonProps>
-}
-
 const mergeButtonSlotProps = (args: {
   buttonProps?: Partial<TButtonProps>
   customClassName?: string
@@ -282,35 +278,91 @@ const computeGeometryStyle = (props: TToastProps) => {
 
 export const computeToastDateTimeString = () => format(new Date(), "MMMM d, yyyy | HH:mm:ss")
 
-export const calibrateComponent = (props: TToastProps): TCalibratedToastComponent => {
+const useIsomorphicLayoutEffect = typeof window === "undefined" ? useEffect : useLayoutEffect
+
+type TCalibrateToastArgs = {
+  props: TToastProps
+  state: TToastState
+  setState: Dispatch<SetStateAction<TToastState>>
+  isDocumentHidden: boolean
+  setIsDocumentHidden: Dispatch<SetStateAction<boolean>>
+  internalToastRef: RefObject<HTMLLIElement | null>
+  dragStartTimeRef: RefObject<Date | null>
+  closeTimerStartTimeRef: RefObject<number>
+  lastCloseTimerStartTimeRef: RefObject<number>
+  offsetRef: RefObject<number>
+  pointerStartCoordsRef: RefObject<{ x: number; y: number } | null>
+}
+
+/** Derives toast visuals and coordinates timer, measurement, gesture and action lifecycles using the component's visible state and refs. */
+export const useCalibratedComponent = ({
+  props,
+  state,
+  setState,
+  isDocumentHidden,
+  setIsDocumentHidden,
+  internalToastRef,
+  dragStartTimeRef,
+  closeTimerStartTimeRef,
+  lastCloseTimerStartTimeRef,
+  offsetRef,
+  pointerStartCoordsRef,
+}: TCalibrateToastArgs) => {
+  const {
+    interacting,
+    setHeights,
+    maxVisibleToasts,
+    heights,
+    index,
+    numToasts,
+    toasterExpanded,
+    dismissalHotkey = ["Escape"],
+    removeToast,
+    position,
+    toastGap = DEFAULT_TOAST_GAP,
+    expandByDefault = false,
+    pauseWhenPageIsHidden = true,
+    duration: duration__props__toaster,
+    toast,
+    toastLabels,
+    toast: {
+      dismissable = true,
+      id,
+      important: important__props,
+      type = "info",
+      deletingToast,
+      duration: duration__props,
+      onDismiss,
+      onAutoClose,
+      cancelAction,
+      cancelActionBtnText,
+      confirmAction,
+      confirmActionBtnText,
+      labels,
+    },
+  } = props
+
   const {
     toast: {
       className,
       height,
       width,
-      type,
       ToastIcon: ToastIcon__props,
       raised = true,
       customClassName,
       customStyles: customStyles__props,
       customTopRibbonClassName,
-      customTopRibbonStyles,
       customTopRibbonLeftContentClassName,
-      customTopRibbonLeftContentStyles,
       customTitleClassName,
-      customTitleStyles,
       customContentClassName,
-      customContentStyles,
       customBodyTextClassName,
       customBodyTextProps,
       customBodyTextStyles,
       customBottomRowClassName,
-      customBottomRowStyles,
       customTimestampClassName,
       customTimestampTextProps,
       customTimestampStyles,
       customButtonRowClassName,
-      customButtonRowStyles,
       customCloseButtonClassName,
       customCloseButtonProps,
       customCloseButtonStyles,
@@ -323,9 +375,9 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
       style,
     },
   } = props
-  const { b10 } = textStyles
+  const { b10, "fw-bold": boldTextStyles } = textStyles
   const {
-    toast,
+    toast: toastRootStyles,
     toast__topRibbon,
     toast__topRibbon__leftContent,
     toast__bodyContent,
@@ -337,10 +389,10 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
   const geometryStyle = computeGeometryStyle(props)
   const raisedStyle = raised ? toastRaised : undefined
 
-  const toastStyles = classNames(toast, geometryStyle, raisedStyle, customClassName, className)
+  const toastStyles = classNames(toastRootStyles, geometryStyle, raisedStyle, customClassName, className)
   const topRibbonStyles = classNames(toast__topRibbon, colorStyle, customTopRibbonClassName)
   const topRibbonLeftContentStyles = classNames(toast__topRibbon__leftContent, customTopRibbonLeftContentClassName)
-  const headerStyles = classNames(b10, textStyles["fw-bold"], customTitleClassName)
+  const headerStyles = classNames(b10, boldTextStyles, customTitleClassName)
   const toastContentStyles = classNames(toast__bodyContent, customContentClassName)
   const bottomRowStyles = classNames(toast__bottomRow, customBottomRowClassName)
   const buttonRowStyles = classNames(toast__buttonRow, customButtonRowClassName)
@@ -421,6 +473,296 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
       break
   }
 
+  const [y, x] = position.split("-")
+  const resolvedLabels = useMemo(
+    () =>
+      resolveToastLabels({
+        labels: {
+          ...toastLabels,
+          ...labels,
+        },
+        cancelActionBtnText,
+        confirmActionBtnText,
+      }),
+    [cancelActionBtnText, confirmActionBtnText, labels, toastLabels],
+  )
+
+  useEffect(() => {
+    const handleVisibilityChange = () => setIsDocumentHidden(document.hidden)
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
+  }, [setIsDocumentHidden])
+
+  // -> Ensure the first paint happens with the off-screen transform,
+  //    then flip `mounted` on the next frame so transform/opacity animate.
+  useIsomorphicLayoutEffect(() => {
+    let firstAnimationFrame = 0
+    let secondAnimationFrame = 0
+
+    firstAnimationFrame = requestAnimationFrame(() => {
+      secondAnimationFrame = requestAnimationFrame(() => {
+        setState((previousState) => ({ ...previousState, mounted: true }))
+      })
+    })
+
+    return () => {
+      cancelAnimationFrame(firstAnimationFrame)
+      cancelAnimationFrame(secondAnimationFrame)
+    }
+  }, [setState])
+
+  useIsomorphicLayoutEffect(() => {
+    const internalToast = internalToastRef.current
+
+    if (document.activeElement === internalToast || internalToast!.contains(document.activeElement)) {
+      setState((previousState) => ({ ...previousState, isFocused: true }))
+    } else {
+      setState((previousState) => ({ ...previousState, isFocused: false }))
+    }
+  }, [internalToastRef, props, setState, type])
+
+  const { visible, isFirstToast, duration, important } = useMemo(() => {
+    const isVisible = index + 1 <= maxVisibleToasts
+    const isFirst = index === 0
+    const resolvedDuration = duration__props || duration__props__toaster || DEFAULT_TOAST_DURATION
+    const currentHeightsIndexRaw = heights.findIndex((height) => height.id === id)
+    const currentHeightsIndex = currentHeightsIndexRaw < 0 ? 0 : currentHeightsIndexRaw
+    const isImportant =
+      important__props !== undefined
+        ? important__props
+        : type === TOAST_TYPE__DANGER || type === TOAST_TYPE__DELETE || type === TOAST_TYPE__ERROR
+    const toastsHeightBefore = heights
+      .slice(0, currentHeightsIndex)
+      .reduce((heightSum, height) => heightSum + height.height, 0)
+
+    offsetRef.current = currentHeightsIndex * toastGap + toastsHeightBefore
+
+    return {
+      visible: isVisible,
+      isFirstToast: isFirst,
+      duration: resolvedDuration,
+      important: isImportant,
+    }
+  }, [
+    duration__props,
+    duration__props__toaster,
+    heights,
+    id,
+    important__props,
+    index,
+    maxVisibleToasts,
+    offsetRef,
+    toastGap,
+    type,
+  ])
+
+  // -> Keep the shared stack height model synchronized with the rendered toast.
+  useIsomorphicLayoutEffect(() => {
+    if (!state.mounted) return
+
+    const toastElement = internalToastRef.current
+    const originalToastHeight = toastElement!.style.height
+
+    toastElement!.style.height = "auto"
+    const updatedToastHeight = toastElement!.getBoundingClientRect().height
+    toastElement!.style.height = originalToastHeight
+    setState((previousState) => ({ ...previousState, initialHeight: updatedToastHeight }))
+
+    setHeights((currentHeights: TToastHeightInfo[]) => {
+      const alreadyExists = currentHeights.find((height: TToastHeightInfo) => height.id === toast.id)
+
+      if (!alreadyExists) {
+        return [{ id: toast.id, height: updatedToastHeight, position }, ...currentHeights]
+      }
+
+      return currentHeights.map((height: TToastHeightInfo) =>
+        height.id === toast.id ? { ...height, height: updatedToastHeight } : height,
+      )
+    })
+
+    return () => setHeights((currentHeights) => currentHeights.filter((height) => height.id !== toast.id))
+  }, [internalToastRef, setHeights, setState, toast.id, state.mounted, toast.position, position])
+
+  const deleteToast = useCallback(() => {
+    setState((previousState) => ({
+      ...previousState,
+      removed: true,
+      offsetBeforeRemove: offsetRef.current,
+    }))
+    setHeights((currentHeights) => currentHeights.filter((height) => height.id !== toast.id))
+    setTimeout(() => removeToast(toast), DURATION_BEFORE_UNMOUNT)
+  }, [toast, removeToast, setHeights, setState, offsetRef])
+
+  const onPointerDown = useCallback(
+    (event: PointerEvent<HTMLLIElement>) => {
+      if (!dismissable) return
+
+      dragStartTimeRef.current = new Date()
+      setState((previousState) => ({ ...previousState, offsetBeforeRemove: offsetRef.current }))
+
+      const eventTarget = event.target as HTMLElement
+      if (typeof eventTarget.setPointerCapture === "function") {
+        eventTarget.setPointerCapture(event.pointerId)
+      }
+      if (eventTarget.tagName.toLowerCase() === "button") return
+
+      setState((previousState) => ({ ...previousState, dragging: true }))
+      pointerStartCoordsRef.current = { x: event.clientX, y: event.clientY }
+    },
+    [dismissable, dragStartTimeRef, offsetRef, pointerStartCoordsRef, setState],
+  )
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const hotKeyPressed = isHotkeyPressed(event, dismissalHotkey)
+
+      if (
+        hotKeyPressed &&
+        (document.activeElement === internalToastRef.current ||
+          internalToastRef.current?.contains(document.activeElement))
+      ) {
+        deleteToast()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [deleteToast, dismissalHotkey, internalToastRef])
+
+  const onPointerMove = useCallback(
+    (event: PointerEvent<HTMLLIElement>) => {
+      if (!pointerStartCoordsRef.current || !dismissable) return
+
+      const yPosition = event.clientY - pointerStartCoordsRef.current.y
+      const xPosition = event.clientX - pointerStartCoordsRef.current.x
+      const computedClampOperation = y === "top" ? Math.min : Math.max
+      const clampedY = computedClampOperation(0, yPosition)
+      const dragStartThreshold =
+        event.pointerType === "touch" ? TOAST_TOUCH_DRAG_START_THRESHOLD : TOAST_CLICK_DRAG_START_THRESHOLD
+      const allowDrag = Math.abs(clampedY) > dragStartThreshold
+
+      if (allowDrag) {
+        internalToastRef.current?.style.setProperty("--dragAmount", `${yPosition}px`)
+      } else if (Math.abs(xPosition) > dragStartThreshold) {
+        pointerStartCoordsRef.current = null
+      }
+    },
+    [dismissable, internalToastRef, pointerStartCoordsRef, y],
+  )
+
+  const onPointerUp = useCallback(
+    (_event: PointerEvent<HTMLLIElement>) => {
+      if (state.draggingOut || !dismissable) return
+
+      pointerStartCoordsRef.current = null
+      const dragAmount = Number(internalToastRef.current?.style.getPropertyValue("--dragAmount").replace("px", "") || 0)
+      const timeDelta = dragStartTimeRef.current && new Date().getTime() - dragStartTimeRef.current.getTime()
+      const velocity = Math.abs(dragAmount) / timeDelta!
+
+      if (
+        Math.abs(dragAmount) >= TOAST_DISMISSAL_DRAG_THRESHOLD ||
+        velocity > TOAST_DISMISSAL_DRAG_VELOCITY_THRESHOLD
+      ) {
+        setState((previousState) => ({ ...previousState, offsetBeforeRemove: offsetRef.current }))
+        onDismiss?.(toast)
+        deleteToast()
+        setState((previousState) => ({ ...previousState, draggingOut: true }))
+        return
+      }
+
+      internalToastRef.current?.style.setProperty("--dragAmount", "0px")
+      setState((previousState) => ({ ...previousState, dragging: false }))
+    },
+    [
+      deleteToast,
+      dismissable,
+      dragStartTimeRef,
+      internalToastRef,
+      offsetRef,
+      onDismiss,
+      pointerStartCoordsRef,
+      setState,
+      state.draggingOut,
+      toast,
+    ],
+  )
+
+  useEffect(() => {
+    if (duration === "persistent") return
+
+    let timeoutId: ReturnType<typeof setTimeout>
+    let remainingTime = duration
+
+    const pauseTimer = () => {
+      if (lastCloseTimerStartTimeRef.current < closeTimerStartTimeRef.current) {
+        const elapsedTime = new Date().getTime() - closeTimerStartTimeRef.current
+        remainingTime -= elapsedTime
+      }
+
+      lastCloseTimerStartTimeRef.current = new Date().getTime()
+    }
+
+    const startTimer = () => {
+      closeTimerStartTimeRef.current = new Date().getTime()
+      timeoutId = setTimeout(() => {
+        onAutoClose?.(toast)
+        deleteToast()
+      }, remainingTime)
+    }
+
+    if (toasterExpanded || interacting || (pauseWhenPageIsHidden && isDocumentHidden)) {
+      pauseTimer()
+    } else {
+      startTimer()
+    }
+
+    return () => clearTimeout(timeoutId)
+  }, [
+    toasterExpanded,
+    interacting,
+    expandByDefault,
+    toast,
+    duration,
+    deleteToast,
+    type,
+    pauseWhenPageIsHidden,
+    isDocumentHidden,
+    onAutoClose,
+    closeTimerStartTimeRef,
+    lastCloseTimerStartTimeRef,
+  ])
+
+  useEffect(() => {
+    if (deletingToast) deleteToast()
+  }, [deleteToast, deletingToast])
+
+  const handleClose = useCallback(() => {
+    deleteToast()
+    onDismiss?.(toast)
+  }, [deleteToast, onDismiss, toast])
+  const handleCancel = useCallback(() => {
+    cancelAction?.()
+    deleteToast()
+    onDismiss?.(toast)
+  }, [cancelAction, deleteToast, onDismiss, toast])
+  const handleConfirm = useCallback(() => {
+    confirmAction?.()
+    deleteToast()
+    onDismiss?.(toast)
+  }, [confirmAction, deleteToast, onDismiss, toast])
+
+  const { removed, offsetBeforeRemove, initialHeight } = state
+  const rootStyle = {
+    "--index": index,
+    "--toastsBefore": index,
+    "--z-index": numToasts - index,
+    "--offset": `${removed ? offsetBeforeRemove : offsetRef.current}px`,
+    "--initial-height": expandByDefault ? "auto" : `${initialHeight}px`,
+    ...(toastGap != null ? { "--toastGap": `${toastGap}px` } : {}),
+    ...customStyles,
+  } as CSSProperties
+
   return {
     bodyTextProps,
     toastStyles,
@@ -430,14 +772,7 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
     toastContentStyles,
     bottomRowStyles,
     buttonRowStyles,
-    customStyles,
-    topRibbonStyle: customTopRibbonStyles,
-    topRibbonLeftContentStyle: customTopRibbonLeftContentStyles,
-    headerStyle: customTitleStyles,
-    toastContentStyle: customContentStyles,
-    bottomRowStyle: customBottomRowStyles,
-    buttonRowStyle: customButtonRowStyles,
-    color__white,
+    rootStyle,
     color__neutral_4,
     toastColor,
     toastIcon: ToastIcon__props ?? defaultToastIcon,
@@ -445,5 +780,17 @@ export const calibrateComponent = (props: TToastProps): TCalibratedToastComponen
     closeButtonProps,
     cancelButtonProps,
     confirmButtonProps,
+    resolvedLabels,
+    visible,
+    isFirstToast,
+    important,
+    x,
+    y,
+    onPointerDown,
+    onPointerMove,
+    onPointerUp,
+    handleClose,
+    handleCancel,
+    handleConfirm,
   }
 }

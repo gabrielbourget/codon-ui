@@ -1318,12 +1318,6 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
-        sourcePath: "packages/react/src/components/Toaster/hooks.tsx",
-        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "Toaster/hooks.tsx",
-        role: REGISTRY_FILE_ROLE__SOURCE,
-      },
-      {
         sourcePath: "packages/react/src/components/Toaster/helpers.ts",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Toaster/helpers.ts",
@@ -1345,12 +1339,6 @@ export const reactRegistryManifest = [
         sourcePath: "packages/react/src/components/Toaster/Toast/Toast.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Toaster/Toast/Toast.tsx",
-        role: REGISTRY_FILE_ROLE__SOURCE,
-      },
-      {
-        sourcePath: "packages/react/src/components/Toaster/Toast/hooks.tsx",
-        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "Toaster/Toast/hooks.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {

@@ -1,65 +1,185 @@
 "use client"
 
-import type { FC } from "react"
+import classNames from "classnames"
+import { useCallback, useRef, useState, type CSSProperties, type FC } from "react"
 
-import { type TExternalToast, type TToasterProps } from "./helpers"
-import { useCalibratedComponent } from "./hooks"
+import {
+  DEFAULT_MAX_VISIBLE_TOASTS,
+  DEFAULT_TOAST_WIDTH,
+  DEFAULT_VIEWPORT_OFFSET,
+  useCalibratedComponent,
+  type TExternalToast,
+  type TToasterInteractionState,
+  type TToasterProps,
+} from "./helpers"
 import { toast } from "./stateManagement"
-import type { TToast } from "./Toast/helpers"
+import type { TToast, TToastHeightInfo } from "./Toast/helpers"
 import Toast from "./Toast/Toast"
+import styles from "./ToasterStyles.module.css"
+
+const { toasterRoot, toaster, toaster__toastBridgeDiv } = styles
 
 const Toaster: FC<TToasterProps> = (props) => {
-  const { isVisible, root, stacks } = useCalibratedComponent(props)
+  const {
+    "aria-describedby": ariaDescribedBy,
+    "aria-details": ariaDetails,
+    "aria-label": ariaLabel,
+    "aria-labelledby": ariaLabelledBy,
+    "data-testid": dataTestID,
+    ariaDescribedBy: ariaDescribedByAlias,
+    ariaDetails: ariaDetailsAlias,
+    ariaLabel: ariaLabelAlias,
+    ariaLabelledBy: ariaLabelledByAlias,
+    className,
+    customClassName,
+    customRootStyles,
+    customStackClassName,
+    customStackStyles,
+    customStyles,
+    customToastBridgeClassName,
+    customToastBridgeStyles,
+    dismissalHotkey = ["Escape"],
+    duration,
+    expandByDefault = false,
+    expandToggleHotkey = ["altKey", "KeyE"],
+    maxVisibleToasts = DEFAULT_MAX_VISIBLE_TOASTS,
+    offset = DEFAULT_VIEWPORT_OFFSET,
+    pauseWhenPageIsHidden = true,
+    position: _position,
+    style,
+    toastGap,
+    toastLabels,
+    ...nativeProps
+  } = props
+  const [toasts, setToasts] = useState<TToast[]>([])
+  const [heights, setHeights] = useState<TToastHeightInfo[]>([])
+  const [interactionState, setInteractionState] = useState<TToasterInteractionState>({
+    toasterExpanded: false,
+    interacting: false,
+  })
+  const { toasterExpanded, interacting } = interactionState
+  const toasterListRef = useRef<HTMLOListElement>(null)
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null)
+  const focusWithinToasterRef = useRef(false)
+  const collapseTimerRef = useRef<number | null>(null)
+  const removeToast = useCallback(
+    (toastToRemove: TToast) => setToasts((currentToasts) => currentToasts.filter(({ id }) => id !== toastToRemove.id)),
+    [],
+  )
+  const { stacks, handleFocus, handleBlur, handlePointerDown, handlePointerUp, requestExpand, handleMouseLeave } =
+    useCalibratedComponent({
+      props,
+      toasts,
+      setToasts,
+      heights,
+      interactionState,
+      setInteractionState,
+      toasterListRef,
+      lastFocusedElementRef,
+      focusWithinToasterRef,
+      collapseTimerRef,
+    })
+  const hotkeyLabel = expandToggleHotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "")
+  const rootAriaLabel = ariaLabel ?? ariaLabelAlias ?? "Notifications Toaster"
+  const toasterRootStyles = classNames(toasterRoot, customClassName, className)
+  const toasterStyles = classNames(toaster, customStackClassName)
+  const toastBridgeStyles = classNames(toaster__toastBridgeDiv, customToastBridgeClassName)
 
-  if (!isVisible) return null
+  if (!toasts.length) return null
 
   return (
     <section
-      {...root.nativeProps}
-      aria-label={root.ariaLabel}
-      aria-labelledby={root.ariaLabelledBy}
-      aria-describedby={root.ariaDescribedBy}
-      aria-details={root.ariaDetails}
+      {...nativeProps}
+      aria-label={`${rootAriaLabel} - ${hotkeyLabel}`}
+      aria-labelledby={ariaLabelledBy ?? ariaLabelledByAlias}
+      aria-describedby={ariaDescribedBy ?? ariaDescribedByAlias}
+      aria-details={ariaDetails ?? ariaDetailsAlias}
       tabIndex={-1}
-      className={root.className}
-      style={root.style}
-      data-testid={root.dataTestID}
+      className={toasterRootStyles}
+      style={{ ...customRootStyles, ...style }}
+      data-testid={dataTestID ?? "toaster"}
     >
-      {stacks.map((stack) => (
-        <ol
-          key={stack.key}
-          tabIndex={-1}
-          ref={stack.list.ref}
-          data-y-position={stack.list.dataYPosition}
-          data-x-position={stack.list.dataXPosition}
-          data-expanded={stack.list.dataExpanded}
-          onFocus={stack.list.onFocus}
-          onBlur={stack.list.onBlur}
-          onMouseEnter={stack.list.onMouseEnter}
-          onMouseMove={stack.list.onMouseMove}
-          onMouseLeave={stack.list.onMouseLeave}
-          onPointerDown={stack.list.onPointerDown}
-          onPointerUp={stack.list.onPointerUp}
-          style={stack.list.style}
-          className={stack.list.className}
-        >
-          {stack.toastItems.map((toastItem) => (
-            <Toast key={toastItem.key} {...toastItem.props} />
-          ))}
+      {stacks.map(
+        ({
+          toastPosition,
+          positionedToasts,
+          positionedHeights,
+          yPosition,
+          xPosition,
+          gap,
+          bridgeInfo,
+          toastStackHeight,
+          firstToastHeight,
+        }) => (
+          <ol
+            key={toastPosition}
+            tabIndex={-1}
+            ref={toasterListRef}
+            data-y-position={yPosition}
+            data-x-position={xPosition}
+            data-expanded={toasterExpanded}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            onMouseEnter={requestExpand}
+            onMouseMove={requestExpand}
+            onMouseLeave={handleMouseLeave}
+            onPointerDown={handlePointerDown}
+            onPointerUp={handlePointerUp}
+            style={
+              {
+                "--firstToastHeight": `${firstToastHeight}px`,
+                "--offset": typeof offset === "number" ? `${offset}px` : offset,
+                "--width": `${DEFAULT_TOAST_WIDTH}px`,
+                "--toastGap": `${gap}px`,
+                "--toastStackHeight": `${toastStackHeight}px`,
+                ...customStyles,
+                ...customStackStyles,
+              } as CSSProperties
+            }
+            className={toasterStyles}
+          >
+            {positionedToasts.map((currentToast, index) => (
+              <Toast
+                key={currentToast.id}
+                dismissalHotkey={dismissalHotkey}
+                duration={duration}
+                expandByDefault={expandByDefault}
+                heights={positionedHeights}
+                index={index}
+                interacting={interacting}
+                maxVisibleToasts={maxVisibleToasts}
+                numToasts={positionedToasts.length}
+                pauseWhenPageIsHidden={pauseWhenPageIsHidden}
+                position={toastPosition}
+                removeToast={removeToast}
+                setHeights={setHeights}
+                toast={currentToast}
+                toastGap={toastGap}
+                toasterExpanded={toasterExpanded}
+                toastLabels={toastLabels}
+              />
+            ))}
 
-          {/* Ghost hover bridges to maintain expanded toaster state when moving cursor between toasts. */}
-          {stack.bridges.map((bridge) => (
-            <div
-              key={bridge.key}
-              className={bridge.className}
-              aria-hidden
-              style={bridge.style}
-              onMouseEnter={bridge.onMouseEnter}
-              onMouseMove={bridge.onMouseMove}
-            />
-          ))}
-        </ol>
-      ))}
+            {/* Ghost hover bridges to maintain expanded toaster state when moving cursor between toasts. */}
+            {bridgeInfo.map(({ key, offset: bridgeOffset }) => (
+              <div
+                key={key}
+                className={toastBridgeStyles}
+                aria-hidden
+                style={
+                  {
+                    "--bridgeOffset": `${bridgeOffset}px`,
+                    "--toastGap": `${gap}px`,
+                    ...customToastBridgeStyles,
+                  } as CSSProperties
+                }
+                onMouseEnter={requestExpand}
+                onMouseMove={requestExpand}
+              />
+            ))}
+          </ol>
+        ),
+      )}
     </section>
   )
 }
