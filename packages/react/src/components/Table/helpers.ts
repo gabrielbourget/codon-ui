@@ -14,11 +14,11 @@ import { type SortDescriptor, type TableProps } from "react-aria-components"
 import type { TAvailableAlignments } from "../../tokens/alignment"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TScreenSizeType } from "../../tokens/responsive"
-import { resolveTableFilteringLabels, type TPartialTableFilteringLabels } from "../Filtering/labels"
+import type { TPartialTableFilteringLabels } from "../Filtering/labels"
 import type { TPaginationProps } from "../Pagination/helpers"
 
 import type { TAvailableListItem } from "./filterMetadata"
-import { resolveTableLabels, type TPartialTableLabels } from "./labels"
+import type { TPartialTableLabels } from "./labels"
 import {
   TABLE_SORT_DIRECTION__ASCENDING,
   TABLE_SORT_DIRECTION__DESCENDING,
@@ -29,7 +29,7 @@ import {
 } from "./queryTypes"
 import styles from "./TableStyles.module.css"
 
-const { ["table--stickyHeader"]: tableStickyHeader, ["table--zebra"]: tableZebra, table, tableShell } = styles
+const { ["table--stickyHeader"]: tableStickyHeader, ["table--zebra"]: tableZebra, table } = styles
 
 export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
 
@@ -268,53 +268,6 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   columnResizing?: TTableColumnResizingControls
   filteringLabels?: TPartialTableFilteringLabels
   labels?: TPartialTableLabels
-}
-
-type TTableNativeProps<TRow extends object> = Omit<
-  TTableProps<TRow>,
-  | "className"
-  | "customClassName"
-  | "customStyles"
-  | "geometry"
-  | "hoverColor"
-  | "zebraColor"
-  | "stickyHeader"
-  | "style"
-  | "zebra"
-  | "clickableRows"
-  | "onRowAction"
-  | "columns"
-  | "columnResizing"
-  | "queryControls"
-  | "filteringLabels"
-  | "labels"
->
-
-type TCalibratedTableComponent<TRow extends object> = {
-  context: {
-    value: {
-      queryControls: TTableQueryControls | undefined
-      columnResizing: TTableColumnResizingControls | undefined
-      filteringLabels: ReturnType<typeof resolveTableFilteringLabels>
-      labels: ReturnType<typeof resolveTableLabels>
-    }
-  }
-  pagination: {
-    controls: TTablePaginationControls | undefined
-  }
-  root: {
-    className: string
-    isRowActionEnabled: boolean
-    nativeProps: TTableNativeProps<TRow>
-    onRowAction: TTableProps<TRow>["onRowAction"] | undefined
-    onSortChange: ((descriptor: SortDescriptor) => void) | undefined
-    sortDescriptor: SortDescriptor | undefined
-    style: CSSProperties
-  }
-  shell: {
-    className: string
-    onKeyDownCapture: (event: KeyboardEvent<HTMLDivElement>) => void
-  }
 }
 
 // Bridges TTableSortInstruction[] state into the single-column SortDescriptor
@@ -574,82 +527,32 @@ export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>
   return { tableStyles, tableStyle }
 }
 
-/**
- * Composes Table-owned sorting, labels, context, and presentation resources while callers retain query-control state.
- */
-export const useCalibratedComponent = <TRow extends object>(
-  props: TTableProps<TRow>,
-): TCalibratedTableComponent<TRow> => {
-  const {
-    className: _className,
-    customClassName: _customClassName,
-    customStyles: _customStyles,
-    geometry: _geometry,
-    hoverColor: _hoverColor,
-    zebraColor: _zebraColor,
-    stickyHeader: _stickyHeader,
-    style: _style,
-    zebra: _zebra,
-    clickableRows,
-    onRowAction,
-    columns,
+/** Captures resize arrows on the shell before React Aria handles them as grid navigation. */
+export const resizeTableColumnFromKeyboard = <TRow extends object>({
+  event,
+  columns,
+  columnResizing,
+}: {
+  event: KeyboardEvent<HTMLDivElement>
+  columns: TTableColumnMetadata<TRow>[] | undefined
+  columnResizing: TTableColumnResizingControls | undefined
+}) => {
+  if (!columnResizing?.enabled || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
+  if (!(event.target instanceof HTMLElement)) return
+
+  const resizeButton = event.target.closest<HTMLButtonElement>("button[data-table-column-resize]")
+  if (!resizeButton || !event.currentTarget.contains(resizeButton)) return
+
+  const column = columns?.find((candidate) => candidate.id === resizeButton.dataset.tableColumnResize)
+  if (!column || column.isHidden || column.headerVisuallyHidden) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  const direction = event.key === "ArrowLeft" ? -1 : 1
+  resizeTableColumn(
+    column,
     columnResizing,
-    queryControls,
-    filteringLabels,
-    labels,
-    ...nativeProps
-  } = props
-  const { pagination, sorting } = queryControls ?? {}
-  const { sortDescriptor, handleSortChange } = useTableSortBridge(sorting, columns)
-  const { tableStyles, tableStyle } = calibrateComponent(props)
-  // -> Capture resize arrows on the DOM shell before React Aria consumes them for cell navigation.
-  const onResizeKeyDownCapture = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (!columnResizing?.enabled || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
-    if (!(event.target instanceof HTMLElement)) return
-
-    const resizeButton = event.target.closest<HTMLButtonElement>("button[data-table-column-resize]")
-    if (!resizeButton || !event.currentTarget.contains(resizeButton)) return
-
-    const column = columns?.find((candidate) => candidate.id === resizeButton.dataset.tableColumnResize)
-    if (!column || column.isHidden || column.headerVisuallyHidden) return
-
-    event.preventDefault()
-    event.stopPropagation()
-
-    const direction = event.key === "ArrowLeft" ? -1 : 1
-    resizeTableColumn(
-      column,
-      columnResizing,
-      getTableColumnWidth(resizeButton, column) + direction * TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX,
-    )
-  }
-  const isRowActionEnabled = Boolean(clickableRows && onRowAction)
-  const resolvedFilteringLabels = useMemo(() => resolveTableFilteringLabels(filteringLabels), [filteringLabels])
-  const resolvedLabels = useMemo(() => resolveTableLabels(labels), [labels])
-  const contextValue = useMemo(
-    () => ({ queryControls, columnResizing, filteringLabels: resolvedFilteringLabels, labels: resolvedLabels }),
-    [queryControls, columnResizing, resolvedFilteringLabels, resolvedLabels],
+    getTableColumnWidth(resizeButton, column) + direction * TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX,
   )
-
-  return {
-    context: {
-      value: contextValue,
-    },
-    pagination: {
-      controls: pagination,
-    },
-    root: {
-      className: tableStyles,
-      isRowActionEnabled,
-      nativeProps,
-      onRowAction: isRowActionEnabled ? onRowAction : undefined,
-      onSortChange: sorting ? handleSortChange : undefined,
-      sortDescriptor,
-      style: tableStyle,
-    },
-    shell: {
-      className: tableShell,
-      onKeyDownCapture: onResizeKeyDownCapture,
-    },
-  }
 }

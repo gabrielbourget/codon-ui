@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import type { CSSProperties, ReactNode } from "react"
 import type { Key as RACKey, TableBodyProps } from "react-aria-components"
 
@@ -23,18 +22,4 @@ export type TTableBodyProps<T extends object> = Omit<
   customStyles?: CSSProperties
   customRowClassName?: string
   customRowStyles?: CSSProperties
-}
-
-type TTableBodyCalibration = {
-  tableBodyStyles: string
-  tableBodyStyle: CSSProperties
-}
-
-export const calibrateComponent = <T extends object>(props: TTableBodyProps<T>): TTableBodyCalibration => {
-  const { className, customClassName, customStyles, style } = props
-
-  const tableBodyStyles = classNames(customClassName, className)
-  const tableBodyStyle = Object.assign({}, { ...customStyles }, { ...style })
-
-  return { tableBodyStyles, tableBodyStyle }
 }
