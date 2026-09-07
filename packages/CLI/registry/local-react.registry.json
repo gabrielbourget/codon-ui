@@ -2458,12 +2458,6 @@
           "role": "source"
         },
         {
-          "sourcePath": "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
-          "targetRole": "components",
-          "targetPath": "Panels/SortAndFilterPanel/hooks.tsx",
-          "role": "source"
-        },
-        {
           "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
           "targetRole": "components",
           "targetPath": "Panels/SortAndFilterPanel/helpers.ts",

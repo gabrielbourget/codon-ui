@@ -1,18 +1,33 @@
-import classNames from "classnames"
-import type { CSSProperties } from "react"
+import { useEffect, useMemo, type CSSProperties, type Dispatch, type RefObject, type SetStateAction } from "react"
+import type {
+  DraggableCollectionStartEvent,
+  DroppableCollectionInsertDropEvent,
+  DroppableCollectionReorderEvent,
+} from "react-aria-components"
 
 import type { TPanelProps } from "../Panel/helpers"
-import type { TQueryFilterGroupDraft } from "../Table/filterDraft"
+import {
+  appendQueryFilterClauseDraftToGroup,
+  createQueryFilterGroupDraftFromCriteria,
+  normalizeDraftToQueryFilterGroups,
+  type TModifyFilterClauseArgs,
+  type TQueryFilterGroupDraft,
+} from "../Table/filterDraft"
 import type {
   TAvailableBooleanArgumentComponents,
   TAvailableFilterCriteria,
   TAvailableListItem,
   TAvailableSortCriteria,
 } from "../Table/filterMetadata"
-import type { TTableFilterGroup, TTableSortInstruction } from "../Table/queryTypes"
+import {
+  TABLE_SORT_DIRECTION__ASCENDING,
+  TABLE_SORT_DIRECTION__DESCENDING,
+  type TTableFilterGroup,
+  type TTableFilterJoinOperator,
+  type TTableSortInstruction,
+} from "../Table/queryTypes"
 
-import type { TPartialSortAndFilterPanelLabels } from "./labels"
-import styles from "./SortAndFilterPanelStyles.module.css"
+import { resolveSortAndFilterPanelLabels, type TPartialSortAndFilterPanelLabels } from "./labels"
 
 export type {
   TAvailableBooleanArgumentComponents,
@@ -132,9 +147,328 @@ export const buildFilterGroupDraftsFromQueryFilterGroups = (
   })
 }
 
-export const calibrateComponent = () => {
-  const { sortAndFilterPanel__content } = styles
-  const dialogStyles = classNames(sortAndFilterPanel__content)
+const DEFAULT_ACTIVE_SORTS: NonNullable<TSortAndFilterPanelProps["activeSorts"]> = []
+const DEFAULT_ACTIVE_FILTERS: NonNullable<TSortAndFilterPanelProps["activeFilters"]> = []
 
-  return { dialogStyles }
+type TClosePanel = () => void
+
+const removeEmptyFilterGroups = (filterGroupDrafts: TQueryFilterGroupDraft[]) =>
+  filterGroupDrafts.filter((group) => group.clauses.length > 0)
+
+/**
+ * Coordinates the visible panel draft and focus refs with applied snapshots and generic query commands.
+ * Callers retain persisted query ownership; rendering props and simple styles stay in the component.
+ */
+export const useCalibratedComponent = ({
+  props,
+  state,
+  setState,
+  selectNewSortCriteriaRef,
+  selectNewFilterCriteriaRef,
+}: {
+  props: TSortAndFilterPanelProps
+  state: TSortAndFilterPanelState
+  setState: Dispatch<SetStateAction<TSortAndFilterPanelState>>
+  selectNewSortCriteriaRef: RefObject<HTMLDivElement | null>
+  selectNewFilterCriteriaRef: RefObject<HTMLDivElement | null>
+}) => {
+  const {
+    isOpen,
+    possibleSortCriteria,
+    possibleFilterCriteria,
+    activeSorts = DEFAULT_ACTIVE_SORTS,
+    activeFilters = DEFAULT_ACTIVE_FILTERS,
+    initialFocusTarget = SORT_AND_FILTER_PANEL_FOCUS_TARGET__SORT,
+    applyPendingSortAndFilterChanges,
+    labels,
+  } = props
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const nextFilterGroupDrafts = buildFilterGroupDraftsFromQueryFilterGroups(activeFilters, possibleFilterCriteria)
+
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: activeSorts,
+      previouslyAppliedSortParameterList: activeSorts,
+      filterGroupDrafts: nextFilterGroupDrafts,
+      previouslyAppliedFilterGroupDrafts: nextFilterGroupDrafts,
+      sortCriteriaSelectedKey: null,
+      filterCriteriaSelectedKey: null,
+    }))
+  }, [activeFilters, activeSorts, possibleFilterCriteria, isOpen, setState])
+
+  useEffect(() => {
+    setState((previousState) => ({
+      ...previousState,
+      sortCriteriaSelectedKey: null,
+      filterCriteriaSelectedKey: null,
+    }))
+  }, [state.sortParameterList, state.filterGroupDrafts, setState])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const animationFrameID = requestAnimationFrame(() => {
+      const targetRef =
+        initialFocusTarget === SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER
+          ? selectNewFilterCriteriaRef
+          : selectNewSortCriteriaRef
+
+      targetRef.current?.querySelector<HTMLButtonElement>("[data-triggerbtn]")?.focus()
+    })
+
+    return () => cancelAnimationFrame(animationFrameID)
+  }, [initialFocusTarget, isOpen, selectNewFilterCriteriaRef, selectNewSortCriteriaRef])
+
+  const onSortParameterDrop = (event: DroppableCollectionReorderEvent | DroppableCollectionInsertDropEvent) => {
+    const { sortParameterList, draggedID } = state
+    const targetID = event.target.key
+
+    if (draggedID === targetID) return
+
+    const draggedIndex = sortParameterList.findIndex((item) => item.id === draggedID)
+    const targetIndex = sortParameterList.findIndex((item) => item.id === targetID)
+    const updatedSortItems = [...sortParameterList]
+    const [movedItem] = updatedSortItems.splice(draggedIndex, 1)
+
+    if (event.target.dropPosition === "before") {
+      updatedSortItems.splice(targetIndex === 0 ? 0 : targetIndex, 0, movedItem)
+    } else if (event.target.dropPosition === "after") {
+      updatedSortItems.splice(targetIndex, 0, movedItem)
+    }
+
+    setState((previousState) => ({ ...previousState, sortParameterList: updatedSortItems }))
+  }
+
+  const onSortParameterDragStart = (event: DraggableCollectionStartEvent) => {
+    setState((previousState) => ({ ...previousState, draggedID: Array.from(event.keys)[0] as string }))
+  }
+
+  const onAddSortParameter = (targetSortCriteriaID: string) => {
+    const { sortParameterList } = state
+    if (sortParameterList.some((sortParameter) => sortParameter.criteriaID === targetSortCriteriaID)) return
+
+    const selectedSortCriteria = possibleSortCriteria.find((item) => item.id === targetSortCriteriaID)
+    if (!selectedSortCriteria) return
+
+    const newSortParameter: TTableSortInstruction = {
+      id: selectedSortCriteria.id,
+      criteriaID: selectedSortCriteria.id,
+      criteriaName: selectedSortCriteria.name,
+      queryKey: selectedSortCriteria.queryKey,
+      sortDirection: selectedSortCriteria.defaultDirection ?? TABLE_SORT_DIRECTION__ASCENDING,
+    }
+
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: [...sortParameterList, newSortParameter],
+    }))
+  }
+
+  const onModifySortParameter = ({ sortCriteriaID, listItemID }: { sortCriteriaID: string; listItemID: string }) => {
+    const { sortParameterList } = state
+    const targetListItem = sortParameterList.find((item) => item.id === listItemID)
+    const targetListItemIndex = sortParameterList.findIndex((item) => item.id === listItemID)
+    const selectedSortCriteria = possibleSortCriteria.find((item) => item.id === sortCriteriaID)
+    if (!targetListItem || !selectedSortCriteria) return
+
+    const criteriaAlreadyUsed = sortParameterList.some(
+      (item) => item.id !== listItemID && item.criteriaID === selectedSortCriteria.id,
+    )
+    if (criteriaAlreadyUsed) return
+
+    const updatedList = [...sortParameterList]
+    updatedList.splice(targetListItemIndex, 1, {
+      ...targetListItem,
+      id: selectedSortCriteria.id,
+      criteriaID: selectedSortCriteria.id,
+      criteriaName: selectedSortCriteria.name,
+      queryKey: selectedSortCriteria.queryKey,
+    })
+
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: updatedList,
+      sortCriteriaSelectedKey: null,
+    }))
+  }
+
+  const onDeleteSortParameter = (listItemID: string) => {
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: previousState.sortParameterList.filter((item) => item.id !== listItemID),
+      sortCriteriaSelectedKey: null,
+    }))
+  }
+
+  const onChangeSortDirection = (listItemID: string, sortDirection: TTableSortInstruction["sortDirection"]) => {
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: previousState.sortParameterList.map((sortParameter) => {
+        if (sortParameter.id !== listItemID || sortParameter.sortDirection === sortDirection) return sortParameter
+
+        return {
+          ...sortParameter,
+          sortDirection,
+        }
+      }),
+    }))
+  }
+
+  const onSortAscending = (listItemID: string) => {
+    onChangeSortDirection(listItemID, TABLE_SORT_DIRECTION__ASCENDING)
+  }
+
+  const onSortDescending = (listItemID: string) => {
+    onChangeSortDirection(listItemID, TABLE_SORT_DIRECTION__DESCENDING)
+  }
+
+  const onAddFilterParameter = (targetFilterCriteriaID: string) => {
+    setState((previousState) => ({
+      ...previousState,
+      filterGroupDrafts: (() => {
+        const selectedFilterCriteria = possibleFilterCriteria.find((item) => item.id === targetFilterCriteriaID)
+        if (!selectedFilterCriteria) return previousState.filterGroupDrafts
+
+        const existingGroup = previousState.filterGroupDrafts.find(
+          (group) => group.criteriaID === selectedFilterCriteria.id,
+        )
+
+        if (existingGroup) {
+          return previousState.filterGroupDrafts.map((group) => {
+            if (group.id !== existingGroup.id) return group
+
+            return appendQueryFilterClauseDraftToGroup(group, {
+              allowDuplicateOperationCodes: true,
+              allowedOperationCodes: selectedFilterCriteria.allowedOperationCodes,
+            })
+          })
+        }
+
+        return [...previousState.filterGroupDrafts, createQueryFilterGroupDraftFromCriteria(selectedFilterCriteria)]
+      })(),
+    }))
+  }
+
+  const onModifyFilterClause = ({ updatedClause, newCriteriaID }: TModifyFilterClauseArgs) => {
+    setState((previousState) => ({
+      ...previousState,
+      filterGroupDrafts: (() => {
+        const groupsWithoutClause = removeEmptyFilterGroups(
+          previousState.filterGroupDrafts.map((group) => ({
+            ...group,
+            clauses: group.clauses.filter((clause) => clause.id !== updatedClause.id),
+          })),
+        )
+        const targetGroup = groupsWithoutClause.find((group) => group.criteriaID === newCriteriaID)
+
+        if (targetGroup) {
+          return groupsWithoutClause.map((group) => {
+            if (group.id !== targetGroup.id) return group
+            return { ...group, clauses: [...group.clauses, updatedClause] }
+          })
+        }
+
+        const selectedCriteria = possibleFilterCriteria.find((criteria) => criteria.id === newCriteriaID)
+        if (!selectedCriteria) return previousState.filterGroupDrafts
+
+        return [
+          ...groupsWithoutClause,
+          {
+            ...createQueryFilterGroupDraftFromCriteria(selectedCriteria, { clauseID: updatedClause.id }),
+            clauses: [updatedClause],
+          },
+        ]
+      })(),
+      filterCriteriaSelectedKey: null,
+    }))
+  }
+
+  const onDeleteFilterParameter = (listItemID: string) => {
+    setState((previousState) => ({
+      ...previousState,
+      filterGroupDrafts: removeEmptyFilterGroups(
+        previousState.filterGroupDrafts.map((group) => ({
+          ...group,
+          clauses: group.clauses.filter((clause) => clause.id !== listItemID),
+        })),
+      ),
+      filterCriteriaSelectedKey: null,
+    }))
+  }
+
+  const onChangeFilterGroupJoinOperator = (criteriaID: string, joinOperator: TTableFilterJoinOperator) => {
+    setState((previousState) => ({
+      ...previousState,
+      filterGroupDrafts: previousState.filterGroupDrafts.map((group) => {
+        if (group.criteriaID !== criteriaID) return group
+
+        return {
+          ...group,
+          joinOperator,
+        }
+      }),
+    }))
+  }
+
+  const onClearAllSortAndFilterParameters = () => {
+    setState((previousState) => ({
+      ...previousState,
+      filterGroupDrafts: [],
+      sortParameterList: [],
+    }))
+  }
+
+  const onCancelPendingChanges = (closePanel: TClosePanel) => {
+    setState((previousState) => ({
+      ...previousState,
+      sortParameterList: previousState.previouslyAppliedSortParameterList,
+      filterGroupDrafts: previousState.previouslyAppliedFilterGroupDrafts,
+    }))
+    closePanel()
+  }
+
+  const onApplyPendingChanges = (closePanel: TClosePanel) => {
+    const { sortParameterList, filterGroupDrafts } = state
+
+    applyPendingSortAndFilterChanges({
+      sortInstructions: sortParameterList,
+      filterGroups: normalizeDraftToQueryFilterGroups(filterGroupDrafts),
+    })
+    setState((previousState) => ({
+      ...previousState,
+      previouslyAppliedSortParameterList: sortParameterList,
+      previouslyAppliedFilterGroupDrafts: filterGroupDrafts,
+    }))
+    closePanel()
+  }
+
+  const { sortParameterList } = state
+  const availableSortCriteria = useMemo(() => {
+    const activeSortCriteriaIDs = new Set(sortParameterList.map((item) => item.criteriaID))
+
+    return possibleSortCriteria.filter((criteria) => !activeSortCriteriaIDs.has(criteria.id))
+  }, [possibleSortCriteria, sortParameterList])
+  const resolvedLabels = useMemo(() => resolveSortAndFilterPanelLabels(labels), [labels])
+
+  return {
+    availableSortCriteria,
+    resolvedLabels,
+    onSortParameterDrop,
+    onSortParameterDragStart,
+    onAddSortParameter,
+    onModifySortParameter,
+    onDeleteSortParameter,
+    onSortAscending,
+    onSortDescending,
+    onAddFilterParameter,
+    onModifyFilterClause,
+    onDeleteFilterParameter,
+    onChangeFilterGroupJoinOperator,
+    onClearAllSortAndFilterParameters,
+    onCancelPendingChanges,
+    onApplyPendingChanges,
+  }
 }

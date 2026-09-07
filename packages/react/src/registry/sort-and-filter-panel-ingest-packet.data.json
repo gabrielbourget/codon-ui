@@ -18,12 +18,6 @@
       "role": "source"
     },
     {
-      "sourcePath": "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
-      "targetRole": "components",
-      "targetPath": "Panels/SortAndFilterPanel/hooks.tsx",
-      "role": "source"
-    },
-    {
       "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
       "targetRole": "components",
       "targetPath": "Panels/SortAndFilterPanel/helpers.ts",
@@ -254,14 +248,14 @@
       ]
     },
     {
-      "sourcePath": "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
       "importSource": "../Table/filterDraft",
       "registryDependencyName": "table",
       "replacementSource": "../../Table/filterDraft",
       "notes": ["Filter draft state stays generic and comes from the registry-owned Table support graph."]
     },
     {
-      "sourcePath": "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
+      "sourcePath": "packages/react/src/components/SortAndFilterPanel/helpers.ts",
       "importSource": "../Table/queryTypes",
       "registryDependencyName": "table",
       "replacementSource": "../../Table/queryTypes",

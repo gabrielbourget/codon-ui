@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url"
 
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const sortAndFilterPanelRoot = path.join(packageRoot, "src/components/SortAndFilterPanel")
-const hooksPath = path.join(sortAndFilterPanelRoot, "hooks.tsx")
 const packetSourcePath = path.join(packageRoot, "src/registry/sort-and-filter-panel-ingest-packet.data.json")
 const packetWrapperPath = path.join(packageRoot, "src/registry/sort-and-filter-panel-ingest-packet.ts")
 const registryIndexPath = path.join(packageRoot, "src/registry/index.ts")
@@ -38,7 +37,6 @@ const forbiddenLegacyCssPattern =
 const requiredPackageFileSources = [
   "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
   "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
-  "packages/react/src/components/SortAndFilterPanel/hooks.tsx",
   "packages/react/src/components/SortAndFilterPanel/helpers.ts",
   "packages/react/src/components/SortAndFilterPanel/labels.ts",
   "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
@@ -112,7 +110,6 @@ const expectedThemeVariables = [
 ]
 
 const sortAndFilterPanelSource = readRequiredText(path.join(sortAndFilterPanelRoot, "SortAndFilterPanel.tsx"))
-const hooksSource = readRequiredText(hooksPath)
 const helpersSource = readRequiredText(path.join(sortAndFilterPanelRoot, "helpers.ts"))
 const labelsSource = readRequiredText(path.join(sortAndFilterPanelRoot, "labels.ts"))
 const componentIndexSource = readRequiredText(path.join(sortAndFilterPanelRoot, "index.ts"))
@@ -139,21 +136,22 @@ assert(
   "SortAndFilterPanel must import package-local Select",
 )
 assert(
-  hooksSource.includes('from "../Table/filterDraft"') && hooksSource.includes('from "../Table/queryTypes"'),
+  helpersSource.includes('from "../Table/filterDraft"') && helpersSource.includes('from "../Table/queryTypes"'),
   "SortAndFilterPanel must use generic Table query support",
 )
 assert(
-  sortAndFilterPanelSource.includes('from "./hooks"') &&
-    sortAndFilterPanelSource.includes("const { panel, form, sorts, filters, footer } = useCalibratedComponent(props)"),
-  "SortAndFilterPanel must consume one grouped hook-backed calibration boundary",
+  sortAndFilterPanelSource.includes("useState<TSortAndFilterPanelState>(initState)") &&
+    helpersSource.includes("export const useCalibratedComponent") &&
+    !helpersSource.includes("export const calibrateComponent"),
+  "SortAndFilterPanel must expose typed state and consume one helpers calibration boundary",
 )
 assert(
   sortAndFilterPanelSource.includes('from "./registryDependencies"'),
   "SortAndFilterPanel must isolate registry-remapped dependencies behind its local adapter",
 )
 assert(
-  hooksSource.includes("applyPendingSortAndFilterChanges({") &&
-    hooksSource.includes("filterGroups: normalizeDraftToQueryFilterGroups(filterGroupDrafts)"),
+  helpersSource.includes("applyPendingSortAndFilterChanges({") &&
+    helpersSource.includes("filterGroups: normalizeDraftToQueryFilterGroups(filterGroupDrafts)"),
   "SortAndFilterPanel must emit generic sortInstructions and filterGroups",
 )
 assert(
