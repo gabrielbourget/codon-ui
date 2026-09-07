@@ -7,6 +7,8 @@ import {
   type CSSProperties,
   type Dispatch,
   type FocusEvent,
+  type FocusEventHandler,
+  type ReactElement,
   type ForwardedRef,
   type ReactNode,
   type RefObject,
@@ -187,6 +189,32 @@ const computeCompactTypeaheadSearchBorderStyle = <T extends object>(props: TComp
   return borderStyle
 }
 
+type TCalibratedCompactTypeaheadSearch<T extends object> = {
+  typeAheadSearchStyles: TCompactTypeaheadSearchProps<T>["className"]
+  typeAheadSearchStyle: TCompactTypeaheadSearchProps<T>["style"]
+  inputButtonGroupStyles: string
+  optionsListStyles: string
+  popoverStyles: string
+  customInputButtonGroupStyles: CSSProperties
+  customButtonStyles: CSSProperties
+  customInputStyles: CSSProperties
+  SearchIcon: ReactNode
+  LoadingIndicator: ReactNode
+  resolvedInputValue: string
+  resolvedItems: T[]
+  resolvedOpen: boolean
+  resolvedLabels: ReturnType<typeof resolveCompactTypeaheadSearchLabels>
+  shouldShowMinimumQueryStateResolved: boolean
+  shouldShowStatusState: boolean
+  setCompactTypeaheadSearchRef: (node: HTMLDivElement | null) => void
+  handleOpenChange: (nextOpen: boolean) => void
+  handleInputChange: (value: string) => void
+  clearMinimumQueryStateSuppression: () => void
+  handleSelectionChange: (key: Key | null) => void
+  handleStatusStateBlur: FocusEventHandler<HTMLDivElement>
+  renderListBoxItem: (item: T) => ReactElement
+}
+
 type TCalibrateCompactTypeaheadSearchArgs<T extends object> = {
   props: TCompactTypeaheadSearchProps<T>
   forwardedRef: ForwardedRef<HTMLDivElement>
@@ -206,7 +234,7 @@ export const useCalibratedComponent = <T extends object>({
   comboBoxRef,
   inputRef,
   restoreInputFocusTimeoutRef,
-}: TCalibrateCompactTypeaheadSearchArgs<T>) => {
+}: TCalibrateCompactTypeaheadSearchArgs<T>): TCalibratedCompactTypeaheadSearch<T> => {
   const {
     inputValue,
     isLoading = false,
