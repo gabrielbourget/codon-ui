@@ -14,6 +14,21 @@ import {
 
 import styles from "./TooltipStyles.module.css"
 
+const {
+  ["tooltip__overlayArrow--primary"]: tooltip__overlayArrowPrimary,
+  ["tooltip__overlayArrow--quaternary"]: tooltip__overlayArrowQuaternary,
+  ["tooltip__overlayArrow--quintenary"]: tooltip__overlayArrowQuintenary,
+  ["tooltip__overlayArrow--secondary"]: tooltip__overlayArrowSecondary,
+  ["tooltip__overlayArrow--tertiary"]: tooltip__overlayArrowTertiary,
+  ["tooltip--primary"]: tooltipPrimary,
+  ["tooltip--quaternary"]: tooltipQuaternary,
+  ["tooltip--quintenary"]: tooltipQuintenary,
+  ["tooltip--raised"]: tooltipRaised,
+  ["tooltip--rounded"]: tooltipRounded,
+  ["tooltip--secondary"]: tooltipSecondary,
+  ["tooltip--tertiary"]: tooltipTertiary,
+} = styles
+
 type TTooltipNativeProps = Omit<TooltipProps, "children" | "className" | "style">
 
 export type TTooltipProps = TTooltipNativeProps & {
@@ -50,28 +65,28 @@ const computeColorStyles = (props: TTooltipProps) => {
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      tooltipColorStyle = styles["tooltip--primary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--primary"]
+      tooltipColorStyle = tooltipPrimary
+      overlayArrowColorStyle = tooltip__overlayArrowPrimary
       break
     case THEME_ORDER_CODE__SECONDARY:
-      tooltipColorStyle = styles["tooltip--secondary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--secondary"]
+      tooltipColorStyle = tooltipSecondary
+      overlayArrowColorStyle = tooltip__overlayArrowSecondary
       break
     case THEME_ORDER_CODE__TERTIARY:
-      tooltipColorStyle = styles["tooltip--tertiary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--tertiary"]
+      tooltipColorStyle = tooltipTertiary
+      overlayArrowColorStyle = tooltip__overlayArrowTertiary
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      tooltipColorStyle = styles["tooltip--quaternary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--quaternary"]
+      tooltipColorStyle = tooltipQuaternary
+      overlayArrowColorStyle = tooltip__overlayArrowQuaternary
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      tooltipColorStyle = styles["tooltip--quintenary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--quintenary"]
+      tooltipColorStyle = tooltipQuintenary
+      overlayArrowColorStyle = tooltip__overlayArrowQuintenary
       break
     default:
-      tooltipColorStyle = styles["tooltip--primary"]
-      overlayArrowColorStyle = styles["tooltip__overlayArrow--primary"]
+      tooltipColorStyle = tooltipPrimary
+      overlayArrowColorStyle = tooltip__overlayArrowPrimary
       break
   }
 
@@ -85,7 +100,7 @@ const computeGeometryStyle = (props: TTooltipProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["tooltip--rounded"]
+      return tooltipRounded
     default:
       return undefined
   }
@@ -107,7 +122,7 @@ export const calibrateComponent = (props: TTooltipProps): TTooltipCalibration =>
 
   const geometryStyle = computeGeometryStyle(props)
   const { tooltipColorStyle, overlayArrowColorStyle } = computeColorStyles(props)
-  const raisedStyle = raised ? styles["tooltip--raised"] : undefined
+  const raisedStyle = raised ? tooltipRaised : undefined
 
   const tooltipStyles = classNames(tooltip, geometryStyle, tooltipColorStyle, raisedStyle, customClassName, className)
   const overlayArrowStyles = classNames(tooltip__overlayArrow, overlayArrowColorStyle, raisedStyle)

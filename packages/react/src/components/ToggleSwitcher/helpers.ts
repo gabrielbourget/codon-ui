@@ -13,6 +13,30 @@ import {
 
 import styles from "./ToggleSwitcherStyles.module.css"
 
+const {
+  toggleSwitcher,
+  toggleSwitcher__option,
+  ["toggleSwitcher__option--applyFocusStyle"]: toggleSwitcher__optionApplyFocusStyle,
+  ["toggleSwitcher__option--custom"]: toggleSwitcher__optionCustom,
+  ["toggleSwitcher__option--default"]: toggleSwitcher__optionDefault,
+  ["toggleSwitcher__option--noFocusStyle"]: toggleSwitcher__optionNoFocusStyle,
+  ["toggleSwitcher__option--offsetFocusRing"]: toggleSwitcher__optionOffsetFocusRing,
+  ["toggleSwitcher__option--primary"]: toggleSwitcher__optionPrimary,
+  ["toggleSwitcher__option--quaternary"]: toggleSwitcher__optionQuaternary,
+  ["toggleSwitcher__option--quintenary"]: toggleSwitcher__optionQuintenary,
+  ["toggleSwitcher__option--round"]: toggleSwitcher__optionRound,
+  ["toggleSwitcher__option--rounded"]: toggleSwitcher__optionRounded,
+  ["toggleSwitcher__option--secondary"]: toggleSwitcher__optionSecondary,
+  ["toggleSwitcher__option--selected"]: toggleSwitcher__optionSelected,
+  ["toggleSwitcher__option--tertiary"]: toggleSwitcher__optionTertiary,
+  ["toggleSwitcher__option--uppercase"]: toggleSwitcher__optionUppercase,
+  toggleSwitcher__optionLabel,
+  toggleSwitcher__selectedSurface,
+  ["toggleSwitcher--raised"]: toggleSwitcherRaised,
+  ["toggleSwitcher--round"]: toggleSwitcherRound,
+  ["toggleSwitcher--rounded"]: toggleSwitcherRounded,
+} = styles
+
 export type TToggleSwitcherFontWeight =
   | "lighter"
   | "light"
@@ -76,9 +100,9 @@ const computeToggleSwitcherGeometryStyle = (props: TToggleSwitcherProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["toggleSwitcher--rounded"]
+      return toggleSwitcherRounded
     case ROUND:
-      return styles["toggleSwitcher--round"]
+      return toggleSwitcherRound
     default:
       return undefined
   }
@@ -91,9 +115,9 @@ const computeToggleSwitcherOptionGeometryStyle = (props: TToggleSwitcherProps) =
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["toggleSwitcher__option--rounded"]
+      return toggleSwitcher__optionRounded
     case ROUND:
-      return styles["toggleSwitcher__option--round"]
+      return toggleSwitcher__optionRound
     default:
       return undefined
   }
@@ -101,21 +125,21 @@ const computeToggleSwitcherOptionGeometryStyle = (props: TToggleSwitcherProps) =
 
 const computeToggleSwitcherOptionColorStyle = (props: TToggleSwitcherProps) => {
   const { color, order } = props
-  if (color) return styles["toggleSwitcher__option--custom"]
+  if (color) return toggleSwitcher__optionCustom
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      return styles["toggleSwitcher__option--primary"]
+      return toggleSwitcher__optionPrimary
     case THEME_ORDER_CODE__SECONDARY:
-      return styles["toggleSwitcher__option--secondary"]
+      return toggleSwitcher__optionSecondary
     case THEME_ORDER_CODE__TERTIARY:
-      return styles["toggleSwitcher__option--tertiary"]
+      return toggleSwitcher__optionTertiary
     case THEME_ORDER_CODE__QUATERNARY:
-      return styles["toggleSwitcher__option--quaternary"]
+      return toggleSwitcher__optionQuaternary
     case THEME_ORDER_CODE__QUINTENARY:
-      return styles["toggleSwitcher__option--quintenary"]
+      return toggleSwitcher__optionQuintenary
     default:
-      return styles["toggleSwitcher__option--default"]
+      return toggleSwitcher__optionDefault
   }
 }
 
@@ -144,24 +168,23 @@ export const calibrateComponent = (props: TToggleSwitcherProps): TToggleSwitcher
   const toggleSwitcherGeometryStyle = computeToggleSwitcherGeometryStyle(props)
   const optionGeometryStyle = computeToggleSwitcherOptionGeometryStyle(props)
   const optionColorStyle = computeToggleSwitcherOptionColorStyle(props)
-  const raisedStyle = raised ? styles["toggleSwitcher--raised"] : undefined
-  const uppercaseStyle = uppercase ? styles["toggleSwitcher__option--uppercase"] : undefined
+  const raisedStyle = raised ? toggleSwitcherRaised : undefined
+  const uppercaseStyle = uppercase ? toggleSwitcher__optionUppercase : undefined
   const focusStyle =
     enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["toggleSwitcher__option--noFocusStyle"]
-      : styles["toggleSwitcher__option--applyFocusStyle"]
-  const offsetFocusRingStyle =
-    offsetFocusRing__props === true ? styles["toggleSwitcher__option--offsetFocusRing"] : undefined
+      ? toggleSwitcher__optionNoFocusStyle
+      : toggleSwitcher__optionApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? toggleSwitcher__optionOffsetFocusRing : undefined
 
   const toggleSwitcherStyles = classNames(
-    styles.toggleSwitcher,
+    toggleSwitcher,
     toggleSwitcherGeometryStyle,
     raisedStyle,
     customClassName,
     className,
   )
   const optionStyles = classNames(
-    styles.toggleSwitcher__option,
+    toggleSwitcher__option,
     optionGeometryStyle,
     optionColorStyle,
     uppercaseStyle,
@@ -169,9 +192,9 @@ export const calibrateComponent = (props: TToggleSwitcherProps): TToggleSwitcher
     offsetFocusRingStyle,
     customOptionClassName,
   )
-  const selectedOptionStyles = classNames(styles["toggleSwitcher__option--selected"], customSelectedOptionClassName)
-  const selectedOptionLabelStyles = styles.toggleSwitcher__optionLabel
-  const selectedOptionSurfaceStyles = styles.toggleSwitcher__selectedSurface
+  const selectedOptionStyles = classNames(toggleSwitcher__optionSelected, customSelectedOptionClassName)
+  const selectedOptionLabelStyles = toggleSwitcher__optionLabel
+  const selectedOptionSurfaceStyles = toggleSwitcher__selectedSurface
 
   const customStyles = Object.assign(
     {

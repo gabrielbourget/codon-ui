@@ -11,6 +11,19 @@ import styles from "./DateTimePickerStyles.module.css"
 import { DateTimePickerDefaultCalendarIcon } from "./DefaultDateTimePickerIcons"
 import type { TPartialDateTimePickerLabels } from "./labels"
 
+const {
+  ["dialog--rounded"]: dialogRounded,
+  ["inputButtonGroup--applyFocusStyle"]: inputButtonGroupApplyFocusStyle,
+  ["inputButtonGroup--errorState"]: inputButtonGroupErrorState,
+  ["inputButtonGroup--noFocusStyle"]: inputButtonGroupNoFocusStyle,
+  ["inputButtonGroup--offsetFocusRing"]: inputButtonGroupOffsetFocusRing,
+  ["inputButtonGroup--round"]: inputButtonGroupRound,
+  ["inputButtonGroup--rounded"]: inputButtonGroupRounded,
+  ["inputButtonGroup--successState"]: inputButtonGroupSuccessState,
+  ["inputButtonGroup--warningState"]: inputButtonGroupWarningState,
+  ["popover--rounded"]: popoverRounded,
+} = styles
+
 export const DATETIME_PICKER_SIZE__SM = "small"
 export const DATETIME_PICKER_SIZE__MD = "medium"
 export const DATETIME_PICKER_SIZE__LG = "large"
@@ -163,19 +176,19 @@ const computeGeometryStyles = <T extends DateValue>(props: TDateTimePickerProps<
     case ORTHOGONAL:
       break
     case ROUNDED:
-      inputButtonGroupGeometryStyle = styles["inputButtonGroup--rounded"]
-      popoverGeometryStyle = styles["popover--rounded"]
-      dialogGeometryStyle = styles["dialog--rounded"]
+      inputButtonGroupGeometryStyle = inputButtonGroupRounded
+      popoverGeometryStyle = popoverRounded
+      dialogGeometryStyle = dialogRounded
       break
     case ROUND:
-      inputButtonGroupGeometryStyle = styles["inputButtonGroup--round"]
-      popoverGeometryStyle = styles["popover--rounded"]
-      dialogGeometryStyle = styles["dialog--rounded"]
+      inputButtonGroupGeometryStyle = inputButtonGroupRound
+      popoverGeometryStyle = popoverRounded
+      dialogGeometryStyle = dialogRounded
       break
     default:
-      inputButtonGroupGeometryStyle = styles["inputButtonGroup--rounded"]
-      popoverGeometryStyle = styles["popover--rounded"]
-      dialogGeometryStyle = styles["dialog--rounded"]
+      inputButtonGroupGeometryStyle = inputButtonGroupRounded
+      popoverGeometryStyle = popoverRounded
+      dialogGeometryStyle = dialogRounded
       break
   }
 
@@ -210,17 +223,17 @@ const computeDateTimePickerBorderStyle = <T extends DateValue>(props: TDateTimeP
   let borderStyle: string | undefined = undefined
 
   if (errorState) {
-    borderStyle = styles["inputButtonGroup--errorState"]
+    borderStyle = inputButtonGroupErrorState
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = styles["inputButtonGroup--warningState"]
+    borderStyle = inputButtonGroupWarningState
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = styles["inputButtonGroup--successState"]
+    borderStyle = inputButtonGroupSuccessState
     return borderStyle
   }
 
@@ -267,10 +280,8 @@ export const calibrateComponent = <T extends DateValue>(
   const { inputButtonGroupGeometryStyle, popoverGeometryStyle, dialogGeometryStyle } = computeGeometryStyles(props)
   const textSizeStyle = computeTextSizeStyle(props)
   const dateTimePickerBorderStyle = computeDateTimePickerBorderStyle(props)
-  const focusStyle = enableFocusStyle
-    ? styles["inputButtonGroup--applyFocusStyle"]
-    : styles["inputButtonGroup--noFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props ? styles["inputButtonGroup--offsetFocusRing"] : undefined
+  const focusStyle = enableFocusStyle ? inputButtonGroupApplyFocusStyle : inputButtonGroupNoFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props ? inputButtonGroupOffsetFocusRing : undefined
 
   const computedDateTimePickerStyles = classNames(dateTimePicker)
   const dateTimePickerStyles = mergeDateTimePickerClassNames(computedDateTimePickerStyles, className)

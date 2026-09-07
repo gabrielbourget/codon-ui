@@ -14,6 +14,17 @@ import type { TAvailableFontVariants } from "../Text/types"
 import type { TPartialTagComboBoxLabels } from "./labels"
 import styles from "./TagComboBoxStyles.module.css"
 
+const {
+  ["tagComboBox--applyFocusStyle"]: tagComboBoxApplyFocusStyle,
+  ["tagComboBox--errorState"]: tagComboBoxErrorState,
+  ["tagComboBox--noFocusStyle"]: tagComboBoxNoFocusStyle,
+  ["tagComboBox--offsetFocusRing"]: tagComboBoxOffsetFocusRing,
+  ["tagComboBox--round"]: tagComboBoxRound,
+  ["tagComboBox--rounded"]: tagComboBoxRounded,
+  ["tagComboBox--successState"]: tagComboBoxSuccessState,
+  ["tagComboBox--warningState"]: tagComboBoxWarningState,
+} = styles
+
 export const TAGCOMBOBOX_SIZE__SM = "small"
 export const TAGCOMBOBOX_SIZE__MD = "medium"
 export const TAGCOMBOBOX_SIZE__LG = "large"
@@ -113,9 +124,9 @@ const computeGeometryStyle = <T extends object>(props: TTagComboBoxProps<T>) => 
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["tagComboBox--rounded"]
+      return tagComboBoxRounded
     case ROUND:
-      return styles["tagComboBox--round"]
+      return tagComboBoxRound
     default:
       return undefined
   }
@@ -126,17 +137,17 @@ const computeTagComboBoxBorderStyle = <T extends object>(props: TTagComboBoxProp
   let borderStyle: string | undefined = undefined
 
   if (errorState) {
-    borderStyle = styles["tagComboBox--errorState"]
+    borderStyle = tagComboBoxErrorState
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = styles["tagComboBox--warningState"]
+    borderStyle = tagComboBoxWarningState
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = styles["tagComboBox--successState"]
+    borderStyle = tagComboBoxSuccessState
     return borderStyle
   }
 
@@ -174,10 +185,8 @@ export const calibrateComponent = <T extends object>(props: TTagComboBoxProps<T>
 
   const tagComboBoxBorderStyle = computeTagComboBoxBorderStyle(props)
   const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["tagComboBox--noFocusStyle"]
-      : styles["tagComboBox--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["tagComboBox--offsetFocusRing"] : undefined
+    enableFocusStyle !== undefined && enableFocusStyle === false ? tagComboBoxNoFocusStyle : tagComboBoxApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? tagComboBoxOffsetFocusRing : undefined
   const computedTextSizeVariant = computeTagTextSize(props)
 
   const tagComboBoxStyles = classNames(

@@ -6,6 +6,18 @@ import { POPOVER_PLACEMENT__LEFT as LEFT, POPOVER_PLACEMENT__RIGHT as RIGHT } fr
 
 import styles from "./PanelStyles.module.css"
 
+const {
+  panel,
+  panel__overlay,
+  ["panel__overlay--blur"]: panel__overlayBlur,
+  ["panel--left"]: panelLeft,
+  ["panel--open"]: panelOpen,
+  ["panel--raised"]: panelRaised,
+  ["panel--right"]: panelRight,
+  ["panel--round"]: panelRound,
+  ["panel--rounded"]: panelRounded,
+} = styles
+
 type TPanelPosition = typeof LEFT | typeof RIGHT
 
 export type TPanelProps = {
@@ -44,9 +56,9 @@ const computePanelGeometryStyle = (props: TPanelProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["panel--rounded"]
+      return panelRounded
     case ROUND:
-      return styles["panel--round"]
+      return panelRound
     default:
       return undefined
   }
@@ -81,14 +93,14 @@ export const calibrateComponent = (props: TPanelProps): TPanelCalibration => {
 
   const panelGeometryStyle = computePanelGeometryStyle(props)
   const horizontalGapStyle = computeHorizontalGapStyle(props)
-  const panelOpenStyle = resolvedPanelOpen ? styles["panel--open"] : undefined
-  const panelRaisedStyle = raised ? styles["panel--raised"] : undefined
-  const overlayBlurStyle = overlayBlur ? styles["panel__overlay--blur"] : undefined
-  const panelPositionStyle = position === RIGHT ? styles["panel--right"] : styles["panel--left"]
+  const panelOpenStyle = resolvedPanelOpen ? panelOpen : undefined
+  const panelRaisedStyle = raised ? panelRaised : undefined
+  const overlayBlurStyle = overlayBlur ? panel__overlayBlur : undefined
+  const panelPositionStyle = position === RIGHT ? panelRight : panelLeft
   const panelAnimationX = position === RIGHT ? "100%" : "-100%"
 
   const panelStyles = classNames(
-    styles.panel,
+    panel,
     panelGeometryStyle,
     panelOpenStyle,
     panelPositionStyle,
@@ -96,7 +108,7 @@ export const calibrateComponent = (props: TPanelProps): TPanelCalibration => {
     customClassName,
     className,
   )
-  const overlayStyles = classNames(styles.panel__overlay, overlayBlurStyle, customOverlayClassName)
+  const overlayStyles = classNames(panel__overlay, overlayBlurStyle, customOverlayClassName)
   const customStyles = Object.assign(
     { backgroundColor, height, width },
     horizontalGapStyle,

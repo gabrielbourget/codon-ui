@@ -5,6 +5,18 @@ import { ORTHOGONAL, ROUND, ROUNDED, type TCornerGeometry } from "../../tokens/g
 
 import styles from "./TagStyles.module.css"
 
+const {
+  tag,
+  ["tag--active"]: tagActive,
+  ["tag--disabled"]: tagDisabled,
+  ["tag--inactive"]: tagInactive,
+  ["tag--pressable"]: tagPressable,
+  ["tag--raised"]: tagRaised,
+  ["tag--raisedOnHover"]: tagRaisedOnHover,
+  ["tag--round"]: tagRound,
+  ["tag--rounded"]: tagRounded,
+} = styles
+
 type TTagNativeProps = Omit<HTMLAttributes<HTMLElement>, "children" | "className" | "color" | "id" | "style">
 
 type TTagCSSVariables = CSSProperties & {
@@ -76,10 +88,10 @@ const determineTagGeometryStyle = (props: TTagProps) => {
     case ORTHOGONAL:
       break
     case ROUNDED:
-      geometryStyle = styles["tag--rounded"]
+      geometryStyle = tagRounded
       break
     case ROUND:
-      geometryStyle = styles["tag--round"]
+      geometryStyle = tagRound
       break
     default:
       break
@@ -111,11 +123,11 @@ export const calibrateComponent = (props: TTagProps): TTagCalibration => {
   let computedInactiveBorder: string | undefined
 
   const geometryStyle = determineTagGeometryStyle(props)
-  const pressableStyle = pressable ? styles["tag--pressable"] : undefined
-  const raisedStyle = raised ? styles["tag--raised"] : undefined
-  const raisedOnHoverStyle = raisedOnHover ? styles["tag--raisedOnHover"] : undefined
+  const pressableStyle = pressable ? tagPressable : undefined
+  const raisedStyle = raised ? tagRaised : undefined
+  const raisedOnHoverStyle = raisedOnHover ? tagRaisedOnHover : undefined
 
-  let statusStyle = styles["tag--active"]
+  let statusStyle = tagActive
   let disabledStyle: string | undefined = undefined
 
   if (isPressable(props)) {
@@ -125,8 +137,8 @@ export const calibrateComponent = (props: TTagProps): TTagCalibration => {
     computedInactiveBGColor = inactiveColor ?? DEFAULT_INACTIVE_BACKGROUND_COLOR
     computedActiveBorder = activeBorder ?? "none"
     computedInactiveBorder = inactiveBorder ?? undefined
-    statusStyle = isPressed ? styles["tag--active"] : styles["tag--inactive"]
-    disabledStyle = isDisabled ? styles["tag--disabled"] : undefined
+    statusStyle = isPressed ? tagActive : tagInactive
+    disabledStyle = isDisabled ? tagDisabled : undefined
   } else {
     const { color, border } = props
 
@@ -136,7 +148,7 @@ export const calibrateComponent = (props: TTagProps): TTagCalibration => {
     computedInactiveBGColor = computedActiveBGColor
     computedInactiveBorder = computedActiveBorder
     // -> Use active styles path as basis for static tag styling.
-    statusStyle = styles["tag--active"]
+    statusStyle = tagActive
   }
 
   const CSSVars: TTagCSSVariables = {
@@ -151,7 +163,7 @@ export const calibrateComponent = (props: TTagProps): TTagCalibration => {
   } as TTagCSSVariables
 
   const tagStyles = classNames(
-    styles["tag"],
+    tag,
     statusStyle,
     disabledStyle,
     geometryStyle,
