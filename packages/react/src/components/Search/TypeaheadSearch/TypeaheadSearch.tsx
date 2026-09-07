@@ -7,90 +7,141 @@ import Button from "../../Button/Button"
 import Input from "../../Input/Input"
 import PlaceholderText from "../../Text/variants/PlaceholderText/PlaceholderText"
 
-import type { TTypeaheadSearchProps } from "./helpers"
-import { useCalibratedComponent } from "./hooks"
+import { useCalibratedComponent, type TTypeaheadSearchProps } from "./helpers"
+import {
+  TYPEAHEAD_SEARCH_STATUS__EMPTY,
+  TYPEAHEAD_SEARCH_STATUS__ERROR,
+  TYPEAHEAD_SEARCH_STATUS__IDLE,
+  TYPEAHEAD_SEARCH_STATUS__LOADING,
+  TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY,
+  TYPEAHEAD_SEARCH_STATUS__RESULTS,
+} from "./status"
+import styles from "./TypeaheadSearchStyles.module.css"
+
+const {
+  typeaheadSearch__input,
+  typeaheadSearch__resultsContainer,
+  typeaheadSearch__resultsList,
+  typeaheadSearch__searchButton,
+  typeaheadSearch__status,
+} = styles
 
 const TypeaheadSearch = forwardRef(function TypeaheadSearchInner<T extends object>(
   props: TTypeaheadSearchProps<T>,
   forwardedRef: ForwardedRef<HTMLDivElement>,
 ) {
-  const { input, results, root, status } = useCalibratedComponent(props, forwardedRef)
+  const {
+    "aria-label": inputAriaLabel,
+    "data-testid": dataTestID,
+    customInputRowStyles,
+    customInputStyles,
+    customSearchButtonStyles,
+    customResultsContainerStyles,
+    customResultsListStyles,
+    inputValue,
+    isDisabled,
+    minimumInputLength = 0,
+    placeholder,
+    shouldAutoFocusInput,
+    shouldFocusWrap = true,
+    status = TYPEAHEAD_SEARCH_STATUS__RESULTS,
+  } = props
+  const {
+    typeaheadSearchStyles,
+    typeaheadSearchStyle,
+    inputRowStyles,
+    SearchIcon,
+    LoadingIndicator,
+    resolvedLabels,
+    resolvedItems,
+    submitQuery,
+    handleInputChange,
+    handleInputKeyDown,
+    handleSelectionChange,
+    renderListBoxItem,
+  } = useCalibratedComponent(props)
 
   return (
     <div
-      ref={root.ref}
-      className={root.className}
-      style={root.style}
-      data-disabled={root.dataDisabled}
-      data-testid={root.dataTestID}
+      ref={forwardedRef}
+      className={typeaheadSearchStyles}
+      style={typeaheadSearchStyle}
+      data-disabled={isDisabled || undefined}
+      data-testid={dataTestID ?? "typeahead-search"}
     >
-      <div className={input.row.className} style={input.row.style}>
+      <div className={inputRowStyles} style={customInputRowStyles}>
         <Input
-          aria-label={input.control.ariaLabel}
+          aria-label={inputAriaLabel}
           data-testid="typeahead-search-input"
-          value={input.control.value}
-          placeholder={input.control.placeholder}
-          isDisabled={input.control.isDisabled}
-          autoFocus={input.control.shouldAutoFocus}
+          value={inputValue}
+          placeholder={placeholder}
+          isDisabled={isDisabled}
+          autoFocus={shouldAutoFocusInput}
           enableFocusStyle={false}
-          customStyles={input.control.style}
-          className={input.control.className}
-          onChange={input.control.onChange}
-          onKeyDown={input.control.onKeyDown}
+          customStyles={customInputStyles}
+          className={typeaheadSearch__input}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
         />
         <Button
-          aria-label={input.button.ariaLabel}
-          customClassName={input.button.className}
-          customStyles={input.button.style}
-          isDisabled={input.button.isDisabled}
+          aria-label={resolvedLabels.searchButtonAriaLabel}
+          customClassName={typeaheadSearch__searchButton}
+          customStyles={customSearchButtonStyles}
+          isDisabled={isDisabled}
           geometry="rounded"
           raised={false}
-          onPress={input.button.onPress}
+          onPress={submitQuery}
           data-testid="typeahead-search-button"
         >
-          {input.button.icon}
+          {SearchIcon}
         </Button>
       </div>
 
-      <div className={results.containerClassName} style={results.containerStyle}>
-        {results.isVisible ? (
+      <div className={typeaheadSearch__resultsContainer} style={customResultsContainerStyles}>
+        {status === TYPEAHEAD_SEARCH_STATUS__RESULTS ? (
           <ListBox
-            items={results.items}
-            shouldFocusWrap={results.shouldFocusWrap}
+            items={resolvedItems}
+            shouldFocusWrap={shouldFocusWrap}
             selectionMode="single"
-            className={results.className}
-            style={results.style}
-            onSelectionChange={results.onSelectionChange}
-            aria-label={results.ariaLabel}
+            className={typeaheadSearch__resultsList}
+            style={customResultsListStyles}
+            onSelectionChange={handleSelectionChange}
+            aria-label={resolvedLabels.resultsListAriaLabel}
           >
-            {results.renderItem}
+            {renderListBoxItem}
           </ListBox>
         ) : (
           <>
-            {status.isIdle && (
-              <div className={status.className} data-testid="typeahead-search-idle-state" aria-live="polite">
-                <PlaceholderText align="center">{status.idleMessage}</PlaceholderText>
+            {status === TYPEAHEAD_SEARCH_STATUS__IDLE && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-idle-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.idleMessage}</PlaceholderText>
               </div>
             )}
-            {status.isMinimumQuery && (
-              <div className={status.className} data-testid="typeahead-search-minimum-query-state" aria-live="polite">
-                <PlaceholderText align="center">{status.minimumInputLengthMessage}</PlaceholderText>
+            {status === TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY && (
+              <div
+                className={typeaheadSearch__status}
+                data-testid="typeahead-search-minimum-query-state"
+                aria-live="polite"
+              >
+                <PlaceholderText align="center">
+                  {resolvedLabels.status.minimumInputLengthMessage({ minimumInputLength })}
+                </PlaceholderText>
               </div>
             )}
-            {status.isLoading && (
-              <div className={status.className} data-testid="typeahead-search-loading-state" aria-live="polite">
-                {status.loadingIndicator}
-                <PlaceholderText align="center">{status.loadingMessage}</PlaceholderText>
+            {status === TYPEAHEAD_SEARCH_STATUS__LOADING && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-loading-state" aria-live="polite">
+                {LoadingIndicator}
+                <PlaceholderText align="center">{resolvedLabels.status.loadingMessage}</PlaceholderText>
               </div>
             )}
-            {status.isError && (
-              <div className={status.className} data-testid="typeahead-search-error-state" aria-live="polite">
-                <PlaceholderText align="center">{status.errorMessage}</PlaceholderText>
+            {status === TYPEAHEAD_SEARCH_STATUS__ERROR && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-error-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.errorMessage}</PlaceholderText>
               </div>
             )}
-            {status.isEmpty && (
-              <div className={status.className} data-testid="typeahead-search-empty-state" aria-live="polite">
-                <PlaceholderText align="center">{status.emptyListMessage}</PlaceholderText>
+            {status === TYPEAHEAD_SEARCH_STATUS__EMPTY && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-empty-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.emptyListMessage}</PlaceholderText>
               </div>
             )}
           </>

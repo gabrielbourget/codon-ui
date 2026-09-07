@@ -12,15 +12,9 @@
       "role": "source"
     },
     {
-      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/hooks.tsx",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.tsx",
       "targetRole": "components",
-      "targetPath": "Search/TypeaheadSearch/hooks.tsx",
-      "role": "source"
-    },
-    {
-      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
-      "targetRole": "components",
-      "targetPath": "Search/TypeaheadSearch/helpers.ts",
+      "targetPath": "Search/TypeaheadSearch/helpers.tsx",
       "role": "source"
     },
     {
