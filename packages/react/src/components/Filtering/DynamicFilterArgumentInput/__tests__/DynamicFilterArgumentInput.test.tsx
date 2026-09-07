@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { describe, expect, it, vi } from "vitest"
 
 import { FILTER_ARGUMENT_TYPE__INPUT, FILTER_ARGUMENT_TYPE__MULTI_INPUT } from "../../../Table/filterMetadata"
@@ -144,5 +144,33 @@ describe("<DynamicFilterArgumentInput />", () => {
     expect(dynamicFilterArgumentInput).not.toHaveAttribute("customactionbuttonstyles")
     expect(dynamicFilterArgumentInput).not.toHaveAttribute("customplaceholderclassname")
     expect(dynamicFilterArgumentInput).not.toHaveAttribute("customplaceholderstyles")
+  })
+
+  it("Keeps native root attributes separate from controlled input changes.", () => {
+    const onArgumentChange = vi.fn()
+    const onClick = vi.fn()
+    renderDynamicFilterArgumentInput({
+      onArgumentChange,
+      onClick,
+      role: "group",
+      "aria-label": "Native argument label",
+      ariaLabel: "Alias argument label",
+    })
+
+    const root = screen.getByRole("group", { name: "Native argument label" })
+    const input = screen.getByRole("textbox", { name: "Filter Name" })
+    expect(root).toContainElement(input)
+    expect(input).toHaveValue("ambient")
+    fireEvent.change(input, { target: { value: "warehouse" } })
+    expect(onArgumentChange).toHaveBeenLastCalledWith({ argument: "warehouse" })
+    fireEvent.click(root)
+    expect(onClick).toHaveBeenCalledTimes(1)
+  })
+
+  it("Renders no wrapper when the argument kind is unset.", () => {
+    renderDynamicFilterArgumentInput({ filterArgumentType: undefined })
+
+    expect(screen.queryByTestId("dynamic-filter-argument-input")).toBeNull()
+    expect(screen.queryByRole("textbox")).toBeNull()
   })
 })

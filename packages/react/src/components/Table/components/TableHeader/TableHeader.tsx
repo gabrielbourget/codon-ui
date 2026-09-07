@@ -22,7 +22,7 @@ import tableStyles from "../../TableStyles.module.css"
 import TableColumn from "../TableColumn/TableColumn"
 import TableFilterPopover from "../TableFilterPopover/TableFilterPopover"
 
-import { calibrateComponent, calibrateFilterIcons, calibrateSortIcons, type TTableHeaderProps } from "./helpers"
+import { calibrateFilterIcons, calibrateSortIcons, type TTableHeaderProps } from "./helpers"
 import styles from "./TableHeaderStyles.module.css"
 
 const {
@@ -43,14 +43,7 @@ const {
 } = styles
 
 const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
-  const {
-    className: _className,
-    columns,
-    customClassName: _customClassName,
-    customStyles: _customStyles,
-    style: _style,
-    ...rest
-  } = props
+  const { className, columns, customClassName, customStyles, style, ...rest } = props
   const { selectionBehavior, selectionMode, allowsDragging } = useTableOptions()
   const {
     queryControls,
@@ -72,7 +65,8 @@ const TableHeader = <T extends object>(props: TTableHeaderProps<T>) => {
   const { ascendingIcon, descendingIcon } = calibrateSortIcons(queryControls?.sorting?.icons)
   const { inactiveFilterIcon, activeFilterIcon } = calibrateFilterIcons(filteringControls?.icons)
   const { visibleColumns } = normalizeTableColumns(columns)
-  const { tableHeaderStyles, tableHeaderStyle } = calibrateComponent(props)
+  const tableHeaderStyles = classNames(customClassName, className)
+  const tableHeaderStyle = Object.assign({}, { ...customStyles }, { ...style })
 
   return (
     <AdobeTableHeader {...rest} className={tableHeaderStyles} style={tableHeaderStyle}>

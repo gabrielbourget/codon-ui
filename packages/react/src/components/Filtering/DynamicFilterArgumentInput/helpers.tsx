@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import type { CSSProperties, HTMLAttributes, ReactElement } from "react"
 
 import type { TAriaLabelingProps } from "../../../tokens/a11y"
@@ -24,7 +23,6 @@ import {
 import type { TTableFilterArgumentValue } from "../../Table/queryTypes"
 import { DEFAULT_TABLE_FILTERING_LABELS, type TTableFilterArgumentInputLabels } from "../labels"
 
-import styles from "./DynamicFilterArgumentInputStyles.module.css"
 import BooleanTypeFilterArgument from "./InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument"
 import ComboBoxTypeFilterArgument from "./InternalComponents/ComboBoxTypeFilterArgument/ComboBoxTypeFilterArgument"
 import InputTypeFilterArgument from "./InternalComponents/InputTypeFilterArgument/InputTypeFilterArgument"
@@ -76,118 +74,11 @@ export type TDynamicFilterArgumentInputProps = TDynamicFilterArgumentInputNative
     customStyles?: CSSProperties
   }
 
-type TDynamicFilterArgumentInputCalibration = {
-  dynamicFilterArgumentInputStyles: string
-  dynamicFilterArgumentInputStyle: CSSProperties
-}
-
 type TResolvedFilterArgumentInputContext = TFilterArgumentInputContext & {
   filterArgumentType: TAvailableFilterArgumentTypes
 }
 
 type TFilterArgumentRenderer = (props: TResolvedFilterArgumentInputContext) => ReactElement | null
-
-export const splitDynamicFilterArgumentInputProps = (props: TDynamicFilterArgumentInputProps) => {
-  const {
-    "aria-describedby": ariaDescribedBy,
-    "aria-details": ariaDetails,
-    "aria-label": ariaLabel,
-    "aria-labelledby": ariaLabelledBy,
-    "data-testid": dataTestID,
-    ariaDescribedBy: ariaDescribedByAlias,
-    ariaDetails: ariaDetailsAlias,
-    ariaLabel: ariaLabelAlias,
-    ariaLabelledBy: ariaLabelledByAlias,
-    className,
-    dataType,
-    argument,
-    availableFilterArguments,
-    filterArgumentSelectedKey,
-    filterArgumentAccessibleLabel,
-    booleanArgumentComponent,
-    labels,
-    onArgumentChange,
-    filterArgumentType,
-    customClassName,
-    customFieldClassName,
-    customFieldStyles,
-    customInputClassName,
-    customInputStyles,
-    customRowClassName,
-    customRowStyles,
-    customActionButtonClassName,
-    customActionButtonStyles,
-    customPlaceholderClassName,
-    customPlaceholderStyles,
-    customStyles,
-    role,
-    style,
-    ...nativeRootProps
-  } = props
-
-  return {
-    contextProps: {
-      dataType,
-      argument,
-      availableFilterArguments,
-      filterArgumentSelectedKey,
-      filterArgumentAccessibleLabel,
-      booleanArgumentComponent,
-      labels,
-      onArgumentChange,
-      filterArgumentType,
-      customFieldClassName,
-      customFieldStyles,
-      customInputClassName,
-      customInputStyles,
-      customRowClassName,
-      customRowStyles,
-      customActionButtonClassName,
-      customActionButtonStyles,
-      customPlaceholderClassName,
-      customPlaceholderStyles,
-    },
-    rootProps: {
-      ariaDescribedBy,
-      ariaDescribedByAlias,
-      ariaDetails,
-      ariaDetailsAlias,
-      ariaLabel,
-      ariaLabelAlias,
-      ariaLabelledBy,
-      ariaLabelledByAlias,
-      className,
-      customClassName,
-      customStyles,
-      dataTestID,
-      nativeRootProps,
-      role,
-      style,
-    },
-  }
-}
-
-export const calibrateComponent = (props: TDynamicFilterArgumentInputProps): TDynamicFilterArgumentInputCalibration => {
-  const { className, customClassName, customStyles, style } = props
-
-  const dynamicFilterArgumentInputStyles = classNames(styles.dynamicFilterArgumentInput, customClassName, className)
-  const dynamicFilterArgumentInputStyle = { ...customStyles, ...style }
-
-  return { dynamicFilterArgumentInputStyles, dynamicFilterArgumentInputStyle }
-}
-
-const resolveFilterArgumentInputContext = (
-  props: TDynamicFilterArgumentInputProps,
-): TResolvedFilterArgumentInputContext | undefined => {
-  const { contextProps } = splitDynamicFilterArgumentInputProps(props)
-  const { filterArgumentType } = contextProps
-  if (!filterArgumentType) return undefined
-
-  return {
-    ...contextProps,
-    filterArgumentType,
-  }
-}
 
 const renderInputTypeFilterArgument: TFilterArgumentRenderer = (props) => <InputTypeFilterArgument {...props} />
 
@@ -243,11 +134,12 @@ const filterArgumentRendererByType = {
   [FILTER_ARGUMENT_TYPE__BOOLEAN]: renderBooleanTypeFilterArgument,
 } satisfies Record<TAvailableFilterArgumentTypes, TFilterArgumentRenderer>
 
-export const renderFilterArgumentInput = (props: TDynamicFilterArgumentInputProps): ReactElement | null => {
-  const context = resolveFilterArgumentInputContext(props)
-  if (!context) return null
+/** Chooses a renderer for the controlled argument context; an unset kind has no input. */
+export const renderFilterArgumentInput = ({
+  filterArgumentType,
+  ...context
+}: TDynamicFilterArgumentInputContextProps): ReactElement | null => {
+  if (!filterArgumentType) return null
 
-  return filterArgumentRendererByType[context.filterArgumentType](context)
+  return filterArgumentRendererByType[filterArgumentType]({ ...context, filterArgumentType })
 }
-
-export const useComputedFilterArgumentComponent = renderFilterArgumentInput

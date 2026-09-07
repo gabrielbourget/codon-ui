@@ -1,4 +1,3 @@
-import classNames from "classnames"
 import type { CSSProperties, ReactNode } from "react"
 import type { TableHeaderProps } from "react-aria-components"
 
@@ -19,20 +18,6 @@ export type TTableHeaderProps<T extends object> = Omit<
   style?: CSSProperties
   customStyles?: CSSProperties
   customClassName?: string
-}
-
-type TTableHeaderCalibration = {
-  tableHeaderStyles: string
-  tableHeaderStyle: CSSProperties
-}
-
-export const calibrateComponent = <T extends object>(props: TTableHeaderProps<T>): TTableHeaderCalibration => {
-  const { className, customClassName, customStyles, style } = props
-
-  const tableHeaderStyles = classNames(customClassName, className)
-  const tableHeaderStyle = Object.assign({}, { ...customStyles }, { ...style })
-
-  return { tableHeaderStyles, tableHeaderStyle }
 }
 
 export const calibrateSortIcons = (
