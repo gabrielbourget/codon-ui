@@ -16,6 +16,8 @@ import {
   type TCarouselDotsProps,
 } from "./helpers"
 
+const { carouselDots__button, carouselDots__track, carouselDots__viewport, ["sr-only"]: srOnly } = styles
+
 const CarouselDots: FC<TCarouselDotsProps> = (props) => {
   const {
     interactive = DEFAULT_INTERACTIVITY_STATUS,
@@ -77,9 +79,9 @@ const CarouselDots: FC<TCarouselDotsProps> = (props) => {
 
   return (
     <div className={carouselDotsStyles} style={carouselDotsStyle} {...wrapperA11yProps}>
-      <div className={styles.carouselDots__viewport} style={{ "--visible-count": visibleCount } as CSSProperties}>
+      <div className={carouselDots__viewport} style={{ "--visible-count": visibleCount } as CSSProperties}>
         <div
-          className={styles.carouselDots__track}
+          className={carouselDots__track}
           style={
             {
               "--window-start": windowStart,
@@ -120,12 +122,10 @@ const CarouselDots: FC<TCarouselDotsProps> = (props) => {
                 tabIndex={focusIndex === index ? 0 : -1}
                 onClick={() => scrollTo(index)}
                 onKeyDown={onKeyDown}
-                className={styles.carouselDots__button}
+                className={carouselDots__button}
               >
                 <span className={computedDotStyles} aria-hidden="true" />
-                <span className={styles["sr-only"]}>
-                  {resolvedLabels.dotButtonLabel({ itemNumber: index + 1, itemCount })}
-                </span>
+                <span className={srOnly}>{resolvedLabels.dotButtonLabel({ itemNumber: index + 1, itemCount })}</span>
               </button>
             )
           })}

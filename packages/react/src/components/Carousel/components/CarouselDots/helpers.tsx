@@ -13,6 +13,17 @@ import { clamp, DEFAULT_CAROUSEL_LABELS, type TCarouselDotsLabels } from "../../
 
 import styles from "./CarouselDotsStyles.module.css"
 
+const {
+  carouselDots,
+  carouselDots__dot,
+  ["carouselDots__dot--active"]: carouselDots__dotActive,
+  ["carouselDots__dot--far"]: carouselDots__dotFar,
+  ["carouselDots__dot--hidden"]: carouselDots__dotHidden,
+  ["carouselDots__dot--near"]: carouselDots__dotNear,
+  ["carouselDots__dot--raised"]: carouselDots__dotRaised,
+  ["carouselDots__dot--sentinel"]: carouselDots__dotSentinel,
+} = styles
+
 export const CAROUSEL_DOTS_ACTIVATION_MODE__MANUAL = "manual"
 export const CAROUSEL_DOTS_ACTIVATION_MODE__AUTO = "auto"
 export const AVAILABLE_CAROUSEL_DOTS_ACTIVATION_MODES = [
@@ -99,12 +110,12 @@ const computeBorrowedZone = (params: {
 export const computeDotStyles = (params: { variant: TDotVariant; raised: boolean }) => {
   const { variant, raised } = params
 
-  return classNames(styles.carouselDots__dot, raised ? styles["carouselDots__dot--raised"] : undefined, {
-    [styles["carouselDots__dot--active"]]: variant === DOT_VARIANT__ACTIVE,
-    [styles["carouselDots__dot--near"]]: variant === DOT_VARIANT__NEAR,
-    [styles["carouselDots__dot--far"]]: variant === DOT_VARIANT__FAR,
-    [styles["carouselDots__dot--hidden"]]: variant === DOT_VARIANT__HIDDEN,
-    [styles["carouselDots__dot--sentinel"]]: variant === DOT_VARIANT__SENTINEL,
+  return classNames(carouselDots__dot, raised ? carouselDots__dotRaised : undefined, {
+    [carouselDots__dotActive]: variant === DOT_VARIANT__ACTIVE,
+    [carouselDots__dotNear]: variant === DOT_VARIANT__NEAR,
+    [carouselDots__dotFar]: variant === DOT_VARIANT__FAR,
+    [carouselDots__dotHidden]: variant === DOT_VARIANT__HIDDEN,
+    [carouselDots__dotSentinel]: variant === DOT_VARIANT__SENTINEL,
   })
 }
 
@@ -376,8 +387,8 @@ export const useCalibratedComponent = (
   } = props
   const { itemCount, selectedIndex } = contextInfo
 
-  const carouselDotsStyles = classNames(styles.carouselDots, customClassName, className)
-  const sentinelDotStyles = classNames(styles.carouselDots__dot, styles["carouselDots__dot--sentinel"])
+  const carouselDotsStyles = classNames(carouselDots, customClassName, className)
+  const sentinelDotStyles = classNames(carouselDots__dot, carouselDots__dotSentinel)
 
   const [focusIndex, setFocusIndex] = useState(selectedIndex)
 
