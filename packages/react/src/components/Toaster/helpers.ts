@@ -2,12 +2,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   type CSSProperties,
   type Dispatch,
   type FocusEventHandler,
   type HTMLAttributes,
   type PointerEventHandler,
-  type RefObject,
   type SetStateAction,
 } from "react"
 import ReactDOM from "react-dom"
@@ -143,10 +143,6 @@ type TCalibrateToasterArgs = {
   heights: TToastHeightInfo[]
   interactionState: TToasterInteractionState
   setInteractionState: Dispatch<SetStateAction<TToasterInteractionState>>
-  toasterListRef: RefObject<HTMLOListElement | null>
-  lastFocusedElementRef: RefObject<HTMLElement | null>
-  focusWithinToasterRef: RefObject<boolean>
-  collapseTimerRef: RefObject<number | null>
 }
 
 /** Coordinates observer publication, focus, hotkeys and hover lifecycles, and derives each positioned stack from component-owned state. */
@@ -157,11 +153,12 @@ export const useCalibratedComponent = ({
   heights,
   interactionState,
   setInteractionState,
-  toasterListRef,
-  lastFocusedElementRef,
-  focusWithinToasterRef,
-  collapseTimerRef,
 }: TCalibrateToasterArgs) => {
+  const toasterListRef = useRef<HTMLOListElement>(null)
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null)
+  const focusWithinToasterRef = useRef(false)
+  // -> Keep mutable lifecycle refs inside their coordinating hook.
+  const collapseTimerRef = useRef<number | null>(null)
   const {
     expandToggleHotkey = ["altKey", "KeyE"],
     maxVisibleToasts = DEFAULT_MAX_VISIBLE_TOASTS,
@@ -346,5 +343,14 @@ export const useCalibratedComponent = ({
     }
   })
 
-  return { stacks, handleFocus, handleBlur, handlePointerDown, handlePointerUp, requestExpand, handleMouseLeave }
+  return {
+    toasterListRef,
+    stacks,
+    handleFocus,
+    handleBlur,
+    handlePointerDown,
+    handlePointerUp,
+    requestExpand,
+    handleMouseLeave,
+  }
 }

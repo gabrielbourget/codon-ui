@@ -1,7 +1,7 @@
 "use client"
 
 import classNames from "classnames"
-import { useCallback, useRef, useState, type CSSProperties, type FC } from "react"
+import { useCallback, useState, type CSSProperties, type FC } from "react"
 
 import {
   DEFAULT_MAX_VISIBLE_TOASTS,
@@ -58,27 +58,27 @@ const Toaster: FC<TToasterProps> = (props) => {
     interacting: false,
   })
   const { toasterExpanded, interacting } = interactionState
-  const toasterListRef = useRef<HTMLOListElement>(null)
-  const lastFocusedElementRef = useRef<HTMLElement | null>(null)
-  const focusWithinToasterRef = useRef(false)
-  const collapseTimerRef = useRef<number | null>(null)
   const removeToast = useCallback(
     (toastToRemove: TToast) => setToasts((currentToasts) => currentToasts.filter(({ id }) => id !== toastToRemove.id)),
     [],
   )
-  const { stacks, handleFocus, handleBlur, handlePointerDown, handlePointerUp, requestExpand, handleMouseLeave } =
-    useCalibratedComponent({
-      props,
-      toasts,
-      setToasts,
-      heights,
-      interactionState,
-      setInteractionState,
-      toasterListRef,
-      lastFocusedElementRef,
-      focusWithinToasterRef,
-      collapseTimerRef,
-    })
+  const {
+    toasterListRef,
+    stacks,
+    handleFocus,
+    handleBlur,
+    handlePointerDown,
+    handlePointerUp,
+    requestExpand,
+    handleMouseLeave,
+  } = useCalibratedComponent({
+    props,
+    toasts,
+    setToasts,
+    heights,
+    interactionState,
+    setInteractionState,
+  })
   const hotkeyLabel = expandToggleHotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "")
   const rootAriaLabel = ariaLabel ?? ariaLabelAlias ?? "Notifications Toaster"
   const toasterRootStyles = classNames(toasterRoot, customClassName, className)

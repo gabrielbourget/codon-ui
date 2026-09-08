@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, type FC } from "react"
+import { useState, type FC } from "react"
 import { Heading } from "react-aria-components"
 
 import Button from "../../Button/Button"
@@ -42,13 +42,8 @@ const Toast: FC<TToastProps> = (props: TToastProps) => {
   const [state, setState] = useState<TToastState>(initState)
   const { mounted, removed, dragging, draggingOut, color_white } = state
   const [isDocumentHidden, setIsDocumentHidden] = useState(false)
-  const internalToastRef = useRef<HTMLLIElement>(null)
-  const dragStartTimeRef = useRef<Date | null>(null)
-  const closeTimerStartTimeRef = useRef(0)
-  const lastCloseTimerStartTimeRef = useRef(0)
-  const offsetRef = useRef(0)
-  const pointerStartCoordsRef = useRef<{ x: number; y: number } | null>(null)
   const {
+    internalToastRef,
     bodyTextProps,
     toastStyles,
     topRibbonStyles,
@@ -83,12 +78,6 @@ const Toast: FC<TToastProps> = (props: TToastProps) => {
     setState,
     isDocumentHidden,
     setIsDocumentHidden,
-    internalToastRef,
-    dragStartTimeRef,
-    closeTimerStartTimeRef,
-    lastCloseTimerStartTimeRef,
-    offsetRef,
-    pointerStartCoordsRef,
   })
 
   return (

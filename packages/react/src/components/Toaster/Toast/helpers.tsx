@@ -5,11 +5,11 @@ import {
   useEffect,
   useLayoutEffect,
   useMemo,
+  useRef,
   type CSSProperties,
   type Dispatch,
   type PointerEvent,
   type ReactNode,
-  type RefObject,
   type SetStateAction,
 } from "react"
 
@@ -286,12 +286,6 @@ type TCalibrateToastArgs = {
   setState: Dispatch<SetStateAction<TToastState>>
   isDocumentHidden: boolean
   setIsDocumentHidden: Dispatch<SetStateAction<boolean>>
-  internalToastRef: RefObject<HTMLLIElement | null>
-  dragStartTimeRef: RefObject<Date | null>
-  closeTimerStartTimeRef: RefObject<number>
-  lastCloseTimerStartTimeRef: RefObject<number>
-  offsetRef: RefObject<number>
-  pointerStartCoordsRef: RefObject<{ x: number; y: number } | null>
 }
 
 /** Derives toast visuals and coordinates timer, measurement, gesture and action lifecycles using the component's visible state and refs. */
@@ -301,13 +295,14 @@ export const useCalibratedComponent = ({
   setState,
   isDocumentHidden,
   setIsDocumentHidden,
-  internalToastRef,
-  dragStartTimeRef,
-  closeTimerStartTimeRef,
-  lastCloseTimerStartTimeRef,
-  offsetRef,
-  pointerStartCoordsRef,
 }: TCalibrateToastArgs) => {
+  const internalToastRef = useRef<HTMLLIElement>(null)
+  const dragStartTimeRef = useRef<Date | null>(null)
+  const closeTimerStartTimeRef = useRef(0)
+  const lastCloseTimerStartTimeRef = useRef(0)
+  const pointerStartCoordsRef = useRef<{ x: number; y: number } | null>(null)
+  // -> Keep mutable lifecycle refs inside their coordinating hook.
+  const offsetRef = useRef(0)
   const {
     interacting,
     setHeights,
@@ -764,6 +759,7 @@ export const useCalibratedComponent = ({
   } as CSSProperties
 
   return {
+    internalToastRef,
     bodyTextProps,
     toastStyles,
     topRibbonStyles,

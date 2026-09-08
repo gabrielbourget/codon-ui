@@ -137,10 +137,10 @@ assert(
   toasterSource.includes("useState<TToast[]>") && toasterSource.includes("useState<TToastHeightInfo[]>"),
   "Toaster must expose independent toast and measured-height state",
 )
-assert(toasterSource.includes("useRef<HTMLOListElement>"), "Toaster must expose its focus ref")
+assert(toasterHelpersSource.includes("useRef<HTMLOListElement>"), "Toaster lifecycle must own its focus ref")
 assert(
-  toastSource.includes("useState<TToastState>(initState)") && toastSource.includes("useRef<HTMLLIElement>"),
-  "Toast must expose its state and refs",
+  toastSource.includes("useState<TToastState>(initState)") && toastHelpersSource.includes("useRef<HTMLLIElement>"),
+  "Toast must expose its state and preserve its lifecycle-owned DOM ref",
 )
 assert(
   !toasterHelpersSource.includes("export const calibrateComponent") &&
