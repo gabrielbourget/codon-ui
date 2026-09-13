@@ -62,6 +62,10 @@
   overflow-y: scroll;
 }
 
+.optionsList [role="group"] > header {
+  padding: var(--cui-space-1);
+}
+
 .optionsList[data-focused] {
   outline: 1.5px solid var(--cui-focus-ring);
 }
