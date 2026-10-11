@@ -342,8 +342,8 @@ const verifyTableAddPlanning = async () => {
   }
 
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
-  assert.equal(dryRunEffects.files.plannedCount, 166)
-  assert.equal(dryRunEffects.files.wouldWriteCount, 166)
+  assert.equal(dryRunEffects.files.plannedCount, 165)
+  assert.equal(dryRunEffects.files.wouldWriteCount, 165)
   assert.equal(dryRunEffects.dependencies.missingCount, 7)
 }
 
@@ -632,11 +632,12 @@ await verifyComponentAddPlanning({
   expectedItems: ["theme-css", "line-segment"],
   expectedResolvedPaths: [
     "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
+    "src/components/VisualUtilities/LineSegment/helpers.ts",
     "src/components/_codon-ui-registry/theme.css",
   ],
   expectedThemeVariables: ["--cui-border"],
   expectedMissingDependencyCount: 2,
-  expectedPlannedCount: 2,
+  expectedPlannedCount: 3,
 })
 
 await verifyComponentAddPlanning({
@@ -810,9 +811,7 @@ await verifyComponentAddPlanning({
     "src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControls.tsx",
     "src/components/Pagination/components/PrimaryPaginationControls/PrimaryPaginationControlsStyles.module.css",
     "src/components/Pagination/components/PrimaryPaginationControls/helpers.tsx",
-    "src/components/Pagination/components/PrimaryPaginationControls/hooks.tsx",
     "src/components/Pagination/helpers.tsx",
-    "src/components/Pagination/hooks.tsx",
     "src/components/Select/DefaultChevronDownIcon.tsx",
     "src/components/Select/Select.tsx",
     "src/components/Select/SelectStyles.module.css",
@@ -826,6 +825,7 @@ await verifyComponentAddPlanning({
     "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
     "src/components/Text/variants/PlaceholderText/helpers.ts",
     "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
+    "src/components/VisualUtilities/LineSegment/helpers.ts",
     "src/components/_codon-ui-registry/action-colors.css",
     "src/components/_codon-ui-registry/circular-progress-compatibility.css",
     "src/components/_codon-ui-registry/text-typography.css",
@@ -838,7 +838,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-border", "--cui-color-quintenary-500"],
   expectedMissingDependencyCount: 5,
-  expectedPlannedCount: 65,
+  expectedPlannedCount: 64,
 })
 
 await verifyComponentAddPlanning({
@@ -1099,12 +1099,10 @@ await verifyComponentAddPlanning({
     "src/components/Toaster/Toast/Toast.tsx",
     "src/components/Toaster/Toast/ToastStyles.module.css",
     "src/components/Toaster/Toast/helpers.tsx",
-    "src/components/Toaster/Toast/hooks.tsx",
     "src/components/Toaster/Toast/labels.ts",
     "src/components/Toaster/Toaster.tsx",
     "src/components/Toaster/ToasterStyles.module.css",
     "src/components/Toaster/helpers.ts",
-    "src/components/Toaster/hooks.tsx",
     "src/components/Toaster/stateManagement.ts",
     "src/components/_codon-ui-registry/action-colors.css",
     "src/components/_codon-ui-registry/text-typography.css",
@@ -1115,7 +1113,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-z-index-toast", "--cui-status-success", "--cui-control-selected-background"],
   expectedMissingDependencyCount: 5,
-  expectedPlannedCount: 25,
+  expectedPlannedCount: 23,
 })
 
 await verifyComponentAddPlanning({
@@ -1609,8 +1607,7 @@ await verifyComponentAddPlanning({
     "src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
     "src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
     "src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
-    "src/components/Search/TypeaheadSearch/helpers.ts",
-    "src/components/Search/TypeaheadSearch/hooks.tsx",
+    "src/components/Search/TypeaheadSearch/helpers.tsx",
     "src/components/Search/TypeaheadSearch/labels.ts",
     "src/components/Search/TypeaheadSearch/status.ts",
     "src/components/Text/Text.tsx",
@@ -1629,7 +1626,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-transition-box-shadow"],
   expectedMissingDependencyCount: 4,
-  expectedPlannedCount: 31,
+  expectedPlannedCount: 30,
 })
 
 await verifyComponentAddPlanning({
@@ -1657,8 +1654,7 @@ await verifyComponentAddPlanning({
     "src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
     "src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
     "src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
-    "src/components/CompactTypeaheadSearch/helpers.ts",
-    "src/components/CompactTypeaheadSearch/hooks.tsx",
+    "src/components/CompactTypeaheadSearch/helpers.tsx",
     "src/components/CompactTypeaheadSearch/labels.ts",
     "src/components/Input/Input.tsx",
     "src/components/Input/InputStyles.module.css",
@@ -1690,7 +1686,7 @@ await verifyComponentAddPlanning({
     "--cui-surface",
   ],
   expectedMissingDependencyCount: 4,
-  expectedPlannedCount: 31,
+  expectedPlannedCount: 30,
 })
 
 await verifyComponentAddPlanning({
