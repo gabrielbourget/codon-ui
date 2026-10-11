@@ -1,6 +1,6 @@
 # Codon Native Library — First Pass And Compatibility Ledger
 
-Lifecycle: **M1-A JS foundation implemented and verified with recorded exceptions; owner review and native builds/rendering remain pending**. Owner and acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Recorded: **2026-10-11**. Canonical web revision: `ddc9f066f67af4742e05e04bd870726141c44129`. Full destination: native counterparts for all **53** active web components, then Wavemap's production native application.
+Lifecycle: **M1-A source checkpoint committed; root tests passed; native lab and owner-reviewed rendered evidence remain pending**. Owner and acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Recorded: **2026-10-11**. Canonical web revision: `ddc9f066f67af4742e05e04bd870726141c44129`. Full destination: native counterparts for all **53** active web components, then Wavemap's production native application.
 
 ## 1. Position And Authority
 
@@ -32,7 +32,7 @@ Keep executable checklists contiguous here. Details, choices, receipts and evide
 - [x] Prove native theme provider composition, public types, declared dependency ownership, Metro bundle resolution and one React/context identity.
 - [x] Run the applicable focused and root tooling/test gates, document runtime/host setup in curated Codon docs and record timings.
 - [ ] Inspect actual iOS/Android development output when the lab is available; retain unavailable-platform gates explicitly.
-- [ ] Obtain independent read-only review and owner checkpoint review; create the one coherent foundation commit only with explicit commit authority, then pause before M1-B.
+- [x] Obtain independent read-only review and owner source-checkpoint approval, create the foundation commit under explicit authority, and retain the pause before M1-B; physical acceptance remains open.
 
 ### 2.3. M1-B — Text/Button And External Consumer Checkpoint
 
@@ -43,6 +43,17 @@ Keep executable checklists contiguous here. Details, choices, receipts and evide
 - [ ] Record clean iOS/Android development/release builds, inspected states, screen-reader/touch checks and a narrow built-app smoke where available.
 - [ ] Graduate accepted runtime/API/consumer explanations into curated docs, obtain independent read-only review and owner acceptance, then commit only with explicit authority.
 - [ ] Return the source/proof/docs/review/exception/next-gate handoff; leave difficult controls, complete CLI/registry lifecycle and real fold observation at their separately approved gates.
+
+### 2.4. Authorized Agentic Passes — Exception Review And Lab Preparation
+
+- [x] Commit the M0 baseline/brief and reviewed foundation at separate boundaries, preserving local Git identity and normal hooks; record independent commit review.
+- [x] Audit and correct stale CLI add fixture expectations against unchanged canonical source, run the focused and root tests, independently review and commit the test-only correction.
+- [x] Disposition SDK recommendations and optional DOM peer bindings using the approved pins, package peer requirements and actual two-platform Metro maps; keep diagnostics visible.
+- [x] Generate ignored iOS/Android CNG skeletons without dependency installation or version mutation and extract the selected build requirements.
+- [x] Assess this host's model, OS, memory, disk and tool availability; prepare the curated native lab guide and concrete mobile-web reference capture matrix.
+- [ ] Select the actual lab host/storage and approve any system installation/OS change at its owning boundary; the asynchronous host question remains pending.
+- [ ] Select the current mobile-web environment and owner-reviewed scene references; source candidates do not establish rendered acceptance.
+- [ ] Complete local native development/release builds, inspected visual/accessibility/touch evidence and narrow smoke once access exists; physical fold proof remains its separate gate.
 
 ## 3. Decisions, Baselines And Access
 
@@ -338,17 +349,17 @@ Foundation authority is resolved: Gabriel approved the listed dependency/preset 
 
 ### 8.2. Handoff Packet And Next Gate
 
-| Packet field             | Current value / remaining proof                                                                                                                                                                                          |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Source                   | Web `ddc9f066f67af4742e05e04bd870726141c44129`; uncommitted native foundation in packages/react-native and apps/native-showcase; Text/Button remain staged                                                               |
-| Canonical ledger         | `docs/roadmaps/react-native-library-first-pass.md`                                                                                                                                                                       |
-| Immutable consumer input | Proposed hashed local pack archive + commit/source graph receipt; not yet built; no native CLI/schema claim                                                                                                              |
-| Proof                    | Native build/types, 7 provider + 2 composition cases, both platform JS exports and root tooling pass; root tests have unchanged CLI assertion failure; online Doctor 20/21; native builds/rendered/a11y/hardware pending |
-| Docs                     | Native package/showcase READMEs plus curated package/showcase guides and discovery links; docs build passed                                                                                                              |
-| Review                   | Preparation and independent implementation reviews passed after corrections; owner/native design/accessibility review pending                                                                                            |
-| Exceptions               | Native DOM/ref/event/style/selection/typography and Button inherited contract proposals in Section 5; owner approval pending                                                                                             |
-| Next gate                | Review M1-A source/diagnostic exceptions and arrange native lab/reference evidence; decide foundation commit only by explicit authority before advancing to Text/Button                                                  |
-| Later stop               | Difficult Input/Switch/Select/Checkbox, overlays/table/date, foundation comparison and full native distribution stay separately gated; production Wavemap remains after library acceptance                               |
+| Packet field             | Current value / remaining proof                                                                                                                                                                                                          |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Source                   | Web `ddc9f066f67af4742e05e04bd870726141c44129`; native foundation `be3e4c7`; baseline brief `65a1b16`; CLI test-only repair `cc5fda9`; Text/Button remain staged                                                                         |
+| Canonical ledger         | `docs/roadmaps/react-native-library-first-pass.md`                                                                                                                                                                                       |
+| Immutable consumer input | Proposed hashed local pack archive + commit/source graph receipt; not yet built; no native CLI/schema claim                                                                                                                              |
+| Proof                    | Native build/types, 9 native cases, both JS exports, root tooling and root tests passed after the CLI fixture repair; online Doctor 20/21 has a recorded recommendation disposition; actual native builds/rendered/a11y/hardware pending |
+| Docs                     | Native package/showcase READMEs plus curated package/showcase guides and discovery links; docs build passed                                                                                                                              |
+| Review                   | Preparation and independent implementation reviews passed after corrections; owner/native design/accessibility review pending                                                                                                            |
+| Exceptions               | Native DOM/ref/event/style/selection/typography and Button inherited contract proposals in Section 5; owner approval pending                                                                                                             |
+| Next gate                | Select lab host/storage and current mobile-web environment; complete native setup and inspect captured foundation references before the Text/Button approval gate                                                                        |
+| Later stop               | Difficult Input/Switch/Select/Checkbox, overlays/table/date, foundation comparison and full native distribution stay separately gated; production Wavemap remains after library acceptance                                               |
 
 ### 8.3. M1-A JS Foundation Receipt — 2026-10-11
 
@@ -374,8 +385,50 @@ Current iOS export SHA-256: `f78f3aa81e27866afefa1cc52b4dd38f6325ff2db979be50a89
 
 Independent implementation review by `native_m0_review` confirmed **No Material Findings Remain**, including all 80 action color fields, both sets of 31 font sizes, override isolation/undefined semantics, native peer identity and source/config ownership. Final reviewed 45-file source/config/docs/lock set SHA-256: `885b0ec4a88a938b5b6332ffcfe588aaeec09dad5acc5e598f1d0f45b14f427e`. The ledger receipt was confirmed at SHA-256 `a4519b8bf448feef6175b0702e019129b9bfee91bf00357f5eefc3aa5a8586ba` before adding this review receipt. A suggested diagnostic caveat was added beside startup commands and re-reviewed. This is source/technical review, not native design/accessibility/device acceptance.
 
-The CLI assertion, online SDK recommendations and optional DOM peer warning remain visible exceptions for owner review. They do not invalidate the narrow provider/scene/JS results, and they prevent describing the whole repo/SDK diagnostic surface as green. Resolve them in a separately scoped correction/version-policy decision rather than widening this native foundation silently.
+The exceptions above describe the initial M1-A receipt. Section 8.4 records the later CLI repair and SDK/native-peer disposition; Section 8.5 records the current lab/reference blockers. Online Doctor remains 20/21 because its recommended-version advice is still visible; native device acceptance stays open.
 
-Current authorized sequence: commit the reviewed foundation, resolve recorded exceptions within bounded passes, prepare a compatible two-platform native lab and mobile-web references, then inspect the foundation there. Text/Button, difficult controls, full native distribution and Wavemap production implementation remain subsequent approval gates. [Curated next-step guidance](../../apps/docs/src/content/docs/component-library/native-showcase.md) records that sequence.
+Current authorized sequence: baseline, foundation and CLI fixture repair commits are complete. Continue the lab/reference preparation pass, then wait for the selected host/environment to complete native setup and inspection. Text/Button, difficult controls, full native distribution and Wavemap production implementation remain subsequent approval gates. [Curated next-step guidance](../../apps/docs/src/content/docs/component-library/native-showcase.md) records that sequence.
 
-M0 commit receipt: `65a1b16` — docs: Pin Native Laboratory Baseline And Execution Brief. The existing precommit hook ran the root check successfully; this first commit contains the pre-implementation baseline/brief snapshot. The foundation source and its implementation receipts follow in the next logical commit.
+M0 commit receipt: `65a1b16` — docs: Pin Native Laboratory Baseline And Execution Brief. The existing precommit hook ran the root check successfully; this first commit contains the pre-implementation baseline/brief snapshot. Foundation commit: `be3e4c7`; the following receipts update the current exception/lab gate.
+
+### 8.4. Exception And Commit Pass Receipt — 2026-10-11
+
+The owner authorized logical agentic commits and suggested next steps 1/2. Commit boundaries completed: `65a1b16` pins the M0 baseline/brief; `be3e4c7` establishes the independently reviewed foundation/docs/lock; `cc5fda9` repairs stale CLI fixture expectations. Existing hooks passed for all three, using the configured local identity. No push or publication ran.
+
+The test-only repair follows earlier web source consolidation: LineSegment's helper is now expected; Pagination/Toaster retired hooks are removed from the literal arrays; both Typeahead helper extensions match .tsx; transitive Table count is 165. Final counts: LineSegment 3, Pagination 64, Toaster 23, TypeaheadSearch 30 and CompactTypeaheadSearch 30. All 49 literal add cases match the unchanged planner's paths/counts; exact path/item, dependency, schema/theme and ownership assertions remain. The focused add test and `pnpm verify:tests` passed, including all CLI scripts, 69 web suites / 833 tests and 9 native cases. This supersedes the historical root-test failure in Section 8.3. No CLI runtime, manifest, snapshot, dependency or public behavior changed.
+
+Independent read-only review confirmed the two initial commit boundaries and exact prior 45-file foundation digest `885b0ec4a88a938b5b6332ffcfe588aaeec09dad5acc5e598f1d0f45b14f427e`. It confirmed the test-only repair with **No Material Findings**, test SHA-256 `d5f1aca98267a7c6b411de6d78fb88721c385ce6e3f0c33e97ce8958760e08ce`. The current-record wording was corrected to name completed commits rather than uncommitted source.
+
+SDK disposition for this source checkpoint: retain the already approved frozen SDK 57 / RN 0.86.3 / React 19.2.3 / TS 5.9.3 / React types 19.2.2 tuple. RN's declared React-types peer is ^19.1.1; the installed Expo package's own dev range is ~19.2.0. The current source/type/JS proof passes, while the remote recommended-version endpoint asks for newer dev tooling/patches. Expo 57.0.27 was published October 6 and remains in the seven-day delay. No runtime requirement requiring a TS 6 migration was found in this narrow source audit; that does not promise future SDK/component compatibility. Keep Doctor's 20/21 result visible and take a new toolchain/version pass before changing those pins. No install exclusion or diagnostic suppression was added.
+
+The optional React DOM peer warning is a pnpm resolution-context finding outside this native bundle. Separate iOS/Android `expo export --source-maps` inspection outputs found 594/592 mapped sources, one React 19.2.3 package and one NativeThemeProvider module, with **zero actual React DOM, RN Web or packages/react module paths**. Their map SHA-256 values are `97f2cb0da1d240eda702497d2854434c5b69fd8512da23d6fb10e75d62728ee2` (iOS) and `386241890b27cfe757b803ffa1f4bb4884fa367f5c15eaf78b9a9c3c1e338217` (Android); their generated bundles are separate artifacts from the plain export hashes in Section 8.3. Checks matched final node_modules package segments, avoiding false positives from peer names inside pnpm directory suffixes. This establishes the inspected native JS graph; it does not support RN Web or close a native binary gate.
+
+### 8.5. Native Lab And Reference Readiness — 2026-10-11
+
+Current host: MacBookPro16,2, Intel x86_64, 16 GiB RAM, macOS 14.4.1. Free disk is a point-in-time observation: **3.6 GiB** at the initial inspection and **7.1 GiB** at the final contributor check, both below the documented emulator minimum. Apple's [model identification](https://support.apple.com/en-gb/108052) maps it to the 2020 13-inch four-port MacBook Pro; [Tahoe eligibility](https://support.apple.com/en-us/122867) includes that model. [Xcode 26.4.1 requirements](https://developer.apple.com/xcode/system-requirements) specify macOS Tahoe 26.2–26.x. Hardware eligibility is not successful build evidence. An OS upgrade/storage decision or another compatible Mac is required; available disk must also be checked against [Android Studio's documented minimum](https://developer.android.com/studio/install). No system upgrade, cleanup, SDK/JDK installation, account or paid service was initiated.
+
+Both `expo prebuild --platform android|ios --no-install --skip-dependency-update react-native,react` invocations succeeded. Package.json reported no changes; ios/android remain ignored generated directories. These skeletons are locally reproducible configuration evidence, not source owners or binaries.
+
+| Selected configuration / proposed lab input | Evidence / remaining decision                                                                                                                                                                                                                                                            |
+| ------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| iOS                                         | Generated deployment target 16.4 and Hermes; propose Xcode 26.4.1 on supported macOS Tahoe 26.2–26.x plus suitable simulator and CocoaPods. Exact installed tool versions/builds remain unverified. Xcode 27's scene-support change needs a separate config/dependency decision          |
+| Android                                     | Selected RN version catalog: SDK compile/target 36, min 24, Build-Tools 36.0.0, NDK 27.1.12297006; generated Gradle wrapper 9.3.1, Hermes and New Architecture true. JDK 17 is the upstream lane; actual installed SDK/JDK/native build remains pending                                  |
+| Emulation                                   | Use an architecture-matched image (x86_64 on this Intel host or arm64 on a selected Apple Silicon host); agree exact OS/device profiles at acquisition. Simulated blocked regions do not prove folding hardware                                                                          |
+| Host/storage                                | Existing eligible Mac after a separately approved OS upgrade and sufficient free storage, or owner-provided compatible host. Android's official recommended free-space baseline is 32 GB; iOS plus simulators/build caches need additional capacity. No automatic deletion of owner data |
+| Access/capture                              | Only Codex IAB/MCP browsers were enabled and both had no tabs; no current Wavemap rendering/reference was available. Physical devices, VoiceOver/TalkBack and durable private capture location still need owner/lab access                                                               |
+
+Reference candidates are pinned to Wavemap `2b8d270b71daed683aa54ce6217faff4fcd2130a`: `apps/wavemap-front-end/src/app/[locale]/component-showcase/page.tsx` contains Button with nested bold Text, b8 bold italic and b1 display examples; locale layout/globals supply Switzer and the 10px rem calibration. These are source candidates, not owner-reviewed screenshots. Add/Edit A4/B4 live/owner visual checkpoints remain open in the source UX roadmap and are not imported as accepted rendered references.
+
+| Reference/capture ID                                 | Concrete requested state                                                                                 | Evidence still needed                                                             |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| web-text-default / web-text-long                     | b10/default plus b8 bold italic, long en/fr copy at compact widths                                       | Current owner-selected URL, actual font/theme/viewport and inspected capture      |
+| web-button-content / web-button-states               | Source Button/nested Text; fill/outline/orders, disabled/pressed/focus and custom color/style precedence | Rendered state-specific references; hover precedence disposition before M1-B      |
+| native-foundation-theme / native-foundation-reset    | Both themes, customization, action increment and explicit reset                                          | Installed iOS/Android build/source/SDK/device/OS/window/fontScale capture         |
+| native-foundation-resize / native-foundation-blocked | Live resize, compact/expanded, vertical/horizontal synthetic gaps while preserving scene action state    | Inspected layout/reachability with actual font scaling; no physical posture claim |
+| native-accessibility / native-touch                  | Labels/selection, focus order, VoiceOver/TalkBack and measured target bounds                             | Actual screen-reader/device exercise; mocked events and JS maps cannot close it   |
+
+Proposed starting viewport references are 375×812 and 390×844, plus landscape/expanded inspection; use actual recorded window size rather than treating those as device specifications. Native text-scale checkpoints start at normal, 1.5 and 2.0 where available. Capture mandatory states once per platform and use representative combinations rather than a full Cartesian matrix. Owner may select different real target devices/references.
+
+The [curated native lab guide](../../apps/docs/src/content/docs/foundation/native-lab.md) carries reproducible commands and the future inspection sequence. Host choice and current mobile-web URL/scene selection were asked asynchronously and remain pending. Actual native setup/capture depends on those answers; Text/Button implementation has not begun.
+
+Documentation-pass verification passed: `pnpm build:docs` generated 19 pages; focused Prettier, 124 local links, 53 unique catalogue IDs and `git diff --check` passed. Independent read-only review by `native_m0_review` confirmed **No Material Findings Remain** after correcting the supported macOS range and source-map provenance. Reviewed five-document set SHA-256: `2f2fd3582b38dca90c32f83142171b8174d09590fea5407ae59123b04202b989`; ledger SHA-256 before this receipt: `502dc56eb42902c32a9b8c3c8c3b2e08c4b90971c8b36e0e606915d18326d306`. This pass changes documentation only; the existing commit hook remains the final mandatory gate. Native binaries, rendered references and accessibility acceptance remain pending.

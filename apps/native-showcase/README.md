@@ -12,7 +12,7 @@ pnpm -F @codon-ui/native-showcase bundle:android
 pnpm -F @codon-ui/native-showcase check:dependencies
 ```
 
-The current online dependency diagnostic returns nonzero because it recommends newer Expo/React-type patches and TypeScript 6 than the approved foundation pins. The SDK runtime map, native type checks and both JS exports pass; the ledger records this version-policy exception and an optional Expo/React DOM peer warning. Do not run an automatic upgrade or suppress the check while that disposition is pending.
+The current online dependency diagnostic returns nonzero because it recommends newer Expo/React-type patches and TypeScript 6 than the approved foundation pins. This lab retains its approved frozen tuple; types and inspected native JS maps pass, with no React DOM or RN Web modules in either platform map. The recommendation and optional Expo peer warning stay visible. Changing pins requires the next reviewed toolchain pass. See the native lab guide and ledger for that disposition.
 
 Use ios/android scripts only in a prepared local native lab. CNG owns generated ios/android directories, which remain ignored; app.config.ts and source own configuration. Native/config-plugin changes require a rebuilt development binary. No EAS project, cloud build, signing/publication or product integration is configured.
 
@@ -20,4 +20,4 @@ SafeAreaProvider owns insets and the scrollable scene shell owns available layou
 
 Tests compose the actual public native theme exports with app state and core native views. They inject only safe-area context metrics and use mocked native dimensions. Native rendering, VoiceOver/TalkBack, keyboard, measured touch regions and real fold/Activity delivery require separate inspected build/device evidence.
 
-See the [ledger](../../docs/roadmaps/react-native-library-first-pass.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.
+See the [ledger](../../docs/roadmaps/react-native-library-first-pass.md), [native lab guide](../docs/src/content/docs/foundation/native-lab.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.

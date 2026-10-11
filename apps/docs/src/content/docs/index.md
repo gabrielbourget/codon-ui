@@ -31,6 +31,7 @@ currently owns; roadmap files remain useful for remaining lifecycle work and def
 - [`@codon-ui/react`](/packages/react/) summarizes the receiver package.
 - [React Native Package](/packages/react-native/) explains native theme/runtime ownership and evidence limits.
 - [Native Showcase](/component-library/native-showcase/) describes the generic host and suggested next gates.
+- [Native Lab](/foundation/native-lab/) lists selected tool requirements, CNG boundaries and reference capture.
 - [Registry Contracts](/registry/contracts/) explains the current manifest posture.
 - [Local Snapshots](/registry/local-snapshots/) explains checked-in registry snapshots for CLI planning.
 - [CLI Baseline Contract](/cli/baseline-contract/) records the renovated CLI surface.
