@@ -19,6 +19,8 @@ This repo is a `pnpm` monorepo.
 
 ## Commands
 
+The native laboratory now adds `packages/react-native` for the typed native theme foundation and `apps/native-showcase` for its generic Expo consumer. Text/Button implementation, external consumption and native build/device acceptance remain subsequent gates. See the [native execution ledger](docs/roadmaps/react-native-library-first-pass.md) for current proof and review status.
+
 ```sh
 pnpm install
 pnpm check

@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["react", "jest"],
+    "strict": true,
+    "noImplicitAny": true,
+    "incremental": false
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules", "dist", "ios", "android"]
+}

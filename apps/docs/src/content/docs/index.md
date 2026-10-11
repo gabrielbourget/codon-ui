@@ -13,6 +13,8 @@ currently owns; roadmap files remain useful for remaining lifecycle work and def
 ## Current Status
 
 - `@codon-ui/react` owns received reusable component source and package-facing exports.
+- `@codon-ui/react-native` owns the native theme foundation; component parity and native device acceptance remain staged.
+- `apps/native-showcase` consumes that foundation through a generic Expo laboratory.
 - `packages/react/src/registry/manifest.ts` owns the active React registry graph.
 - Local registry snapshots feed CLI planning and strict single-component installs before public hosting exists.
 - `codon-ui.config.json` and `codon-ui.lock.json` model consumer setup intent and generated install provenance.
@@ -27,6 +29,8 @@ currently owns; roadmap files remain useful for remaining lifecycle work and def
 - [Adapter Boundaries](/component-library/adapter-boundaries/) records what stays in consumers.
 - [Consumer Proofs](/component-library/consumer-proofs/) explains Wavemap reinstall evidence and adapter preservation.
 - [`@codon-ui/react`](/packages/react/) summarizes the receiver package.
+- [React Native Package](/packages/react-native/) explains native theme/runtime ownership and evidence limits.
+- [Native Showcase](/component-library/native-showcase/) describes the generic host and suggested next gates.
 - [Registry Contracts](/registry/contracts/) explains the current manifest posture.
 - [Local Snapshots](/registry/local-snapshots/) explains checked-in registry snapshots for CLI planning.
 - [CLI Baseline Contract](/cli/baseline-contract/) records the renovated CLI surface.

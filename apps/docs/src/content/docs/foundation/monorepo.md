@@ -15,6 +15,8 @@ Codon UI uses `pnpm` workspaces. Treat each workspace as an ownership boundary, 
 
 ## Current Branch Purpose
 
+The approved native laboratory adds `packages/react-native` as the private native source owner and `apps/native-showcase` as its generic Expo consumer. Native TypeScript/Metro/test configuration belongs to those workspaces. Web registry/CLI and shared tooling ownership remain with their existing packages; the native library has no Expo or web runtime imports. See [React Native Package](/packages/react-native/) and [Native Showcase](/component-library/native-showcase/).
+
 The renovation branch establishes Codon UI as the local source receiver and registry planner for extracted reusable
 components. `packages/react` owns reusable source; `packages/CLI` owns consumer planning and install behavior; `apps/docs`
 owns durable reference material.
