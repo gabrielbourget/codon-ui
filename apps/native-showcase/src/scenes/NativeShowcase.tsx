@@ -61,21 +61,23 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
   const theme = useNativeTheme()
   const insets = useSafeAreaInsets()
   return (
-    <ScrollView
-      style={{ backgroundColor: theme.colors.background }}
-      contentContainerStyle={[
-        styles.page,
+    <View
+      style={[
+        styles.surface,
         {
-          paddingTop: insets.top + 15,
-          paddingBottom: insets.bottom + 15,
-          paddingLeft: insets.left + 15,
-          paddingRight: insets.right + 15,
+          backgroundColor: theme.colors.background,
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingLeft: insets.left,
+          paddingRight: insets.right,
         },
       ]}
     >
       <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
-      {children}
-    </ScrollView>
+      <ScrollView style={styles.surface} contentContainerStyle={styles.page}>
+        {children}
+      </ScrollView>
+    </View>
   )
 }
 
@@ -147,7 +149,8 @@ const WindowMetadata = ({ width, height, fontScale }: { width: number; height: n
 }
 
 const styles = StyleSheet.create({
-  page: { gap: 15 },
+  surface: { flex: 1 },
+  page: { gap: 15, padding: 15 },
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   action: {
     minHeight: Platform.OS === "ios" ? 44 : 48,
