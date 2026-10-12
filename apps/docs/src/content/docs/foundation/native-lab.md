@@ -3,17 +3,29 @@ title: Native Lab
 description: SDK 57 lab requirements, generated project boundaries and reference capture.
 ---
 
-The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android x86_64 lab produced development and local release binaries and inspected foundation states; iOS, physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
+The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android x86_64 lab produced development and local release binaries and inspected foundation states, including the corrected scrolling viewport; iOS, physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
 
 ## Select A Compatible Host
 
-For the proposed Xcode 26.4.1 lane, use its supported macOS Tahoe 26.2–26.x range as documented in [Apple's Xcode requirements](https://developer.apple.com/xcode/system-requirements). SDK 57's [Expo matrix](https://docs.expo.dev/versions/latest/) is the framework-specific floor. Selecting Xcode 27 adds a scene-lifecycle configuration decision, so use the reviewed 26.x lane first.
+For the proposed Xcode 26.4.1 lane, use its supported macOS Tahoe 26.2–26.x range as documented in [Apple's Xcode requirements](https://developer.apple.com/xcode/system-requirements). SDK 57's [Expo matrix](https://docs.expo.dev/versions/latest/) is the framework-specific floor. [Xcode 27 requires Apple silicon](https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes?changes=l_2_3&language=objc), so it cannot serve the selected Intel Mac; keep the reviewed 26.4.1 lane.
 
 The Android configuration extracted from the selected RN version catalog uses SDK compile/target 36, minimum 24, Build-Tools 36.0.0 and NDK 27.1.12297006. Generated Gradle is 9.3.1, Hermes and New Architecture are enabled. Use the JDK 17 lane described by [React Native's environment guide](https://reactnative.dev/docs/0.86/set-up-your-environment); exact installed tool versions and emulator profiles must be recorded before build acceptance.
 
 [Android Studio's requirements](https://developer.android.com/studio/install) list 16 GB RAM and 16 GB free disk as the Studio/emulator minimum, recommending 32 GB RAM and 32 GB or more free disk. iOS tools, simulator runtimes and build caches need additional storage. Match downloaded tools/images to the host architecture. Hardware eligibility alone does not prove the selected native dependency build.
 
 Choose host and storage before installing. OS upgrades, accepting SDK/tool licenses, account setup and new toolchain choices need their own explicit action/decision. Do not silently delete owner files, bypass the package release-age delay or activate paid build services.
+
+## Selected Mac And iOS Preparation
+
+On 2026-10-12 the owner selected this MacBookPro16,2 for both Android inspection and iOS, offering to upgrade macOS if required. This is the 2020 13-inch four-port Intel model included in [Apple's Tahoe compatibility list](https://support.apple.com/en-us/122867). Its observed macOS 14.4.1 cannot run the selected Xcode 26.4.1 lane, so an OS upgrade is required before iOS native builds.
+
+Prepare the iOS host in this order:
+
+1. Free storage for the upgrade, full Xcode, an Intel-compatible simulator runtime and build caches. Use approximately 80 GB free as a working budget estimate, rather than a vendor minimum. The host's Software Update catalogue offered Tahoe 26.7.1 with a 17.1 GiB full installer; observed free storage fell from approximately 15 GB to 9.8 GB during inspection.
+2. Have the owner upgrade this Mac to a supported Tahoe 26.x release at or above 26.2. Finish the Android session before the upgrade/reboot. No OS installer has been downloaded or run by this pass.
+3. Install the exact Xcode 26.4.1 release and resolve its SDK licence/developer-directory setup, then install an Intel-compatible universal iOS simulator runtime. [Apple documents the component and architecture selection](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components). The App Store's newest Xcode is not the selected pin.
+4. Verify the generated Podfile's Ruby/CocoaPods requirements on the upgraded host before choosing their installed versions. Keep those tools app/lab owned, without changing repository dependencies or generated native files by hand.
+5. Regenerate the ignored iOS CNG project as needed, install Pods, build the development/local release variants, and inspect the same foundation scenes on Simulator. Preserve the two-platform, physical accessibility and owner acceptance gates until actual proof exists.
 
 ## Reproduce Source And Native Generation
 
@@ -81,7 +93,7 @@ State must survive fixture/window changes; reset is explicit. Simulated blocked 
 
 Safe-area insets belong to the fixed showcase surface around the ScrollView; the scroll content owns its separate page padding. Content padding alone allowed large scrolled text to overlap Android's clock/status icons in the first lab inspection. Verify the bounded viewport against actual system bars in portrait, landscape and large-text captures; an unscrolled top screenshot cannot close this presentation check.
 
-The current viewport correction is a source/build checkpoint with partial Android portrait proof. Its complete large-text/action/rotation inspection remains blocked by recurring stock System UI ANRs during the 2026-10-12 lab run. Retain the open presentation finding and repeat that focused check on a stable Android lab before acceptance; a successful build or earlier pane-only smoke does not close it.
+The current viewport correction passed its installed local-release inspection after a fresh task-owned Android guest recovered from stock system-service ANRs. At 1.5 and 2.0 text scale, actions and bottom copy remained reachable inside the portrait viewport; portrait → landscape → portrait retained scene state and equal panes, with scrolled content clear of the system bars. The ledger records the exact APK, profile, additional scale checks and private capture manifest. This closes the observed Android viewport finding for that emulator artifact; iOS, physical accessibility and owner acceptance remain separate proof gates.
 
 The current Android system-font setting change recreates the showcase and resets its in-memory scene state. Inspect each scale after that restart, then prove actions and fixture changes within the running scene. Rotation and app recreation are separate checks; do not infer persisted state across recreation from the fixture tests.
 
