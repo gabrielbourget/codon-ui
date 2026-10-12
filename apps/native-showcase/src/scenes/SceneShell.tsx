@@ -1,4 +1,4 @@
-import type { PropsWithChildren } from "react"
+import { useState, type PropsWithChildren } from "react"
 import { StyleSheet, Text, View } from "react-native"
 
 import { useNativeTheme } from "@codon-ui/react-native"
@@ -7,11 +7,19 @@ import { LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
 
 type TSceneShellProps = PropsWithChildren<{ fixture: TLayoutFixture }>
 
+const VERTICAL_BLOCK_WIDTH = 20
+const VERTICAL_LAYOUT_GAP = 10
+
 export const SceneShell = ({ fixture, children }: TSceneShellProps) => {
   const theme = useNativeTheme()
   const isVerticalBlock = fixture === "vertical-block"
   const isHorizontalBlock = fixture === "horizontal-block"
   const maximumWidth = fixture === "compact" ? 320 : fixture === "expanded" ? 900 : undefined
+  const [verticalLayoutWidth, setVerticalLayoutWidth] = useState<number>()
+  const verticalPaneStyle =
+    isVerticalBlock && verticalLayoutWidth !== undefined
+      ? { flex: 0, width: Math.max(0, (verticalLayoutWidth - VERTICAL_BLOCK_WIDTH - 2 * VERTICAL_LAYOUT_GAP) / 2) }
+      : undefined
 
   return (
     <View style={[styles.scene, { maxWidth: maximumWidth, borderColor: theme.colors.controlBorder }]}>
@@ -19,12 +27,22 @@ export const SceneShell = ({ fixture, children }: TSceneShellProps) => {
       {(isVerticalBlock || isHorizontalBlock) && (
         <Text style={{ color: theme.colors.foreground }}>Simulated geometry; no hardware posture events.</Text>
       )}
-      <View style={isVerticalBlock ? styles.verticalLayout : undefined}>
-        <View style={styles.content}>{children}</View>
+      <View
+        style={isVerticalBlock ? styles.verticalLayout : undefined}
+        onLayout={
+          isVerticalBlock
+            ? ({ nativeEvent }) => {
+                const nextWidth = nativeEvent.layout.width
+                setVerticalLayoutWidth((currentWidth) => (currentWidth === nextWidth ? currentWidth : nextWidth))
+              }
+            : undefined
+        }
+      >
+        <View style={[styles.content, verticalPaneStyle]}>{children}</View>
         {isVerticalBlock && <View accessible={false} style={styles.verticalBlock} />}
         {isHorizontalBlock && <View accessible={false} style={styles.horizontalBlock} />}
         {(isVerticalBlock || isHorizontalBlock) && (
-          <View style={styles.content}>
+          <View style={[styles.content, verticalPaneStyle]}>
             <Text style={{ color: theme.colors.foreground }}>
               Complementary region stays reachable; fixture changes preserve scene state.
             </Text>
@@ -39,7 +57,7 @@ const styles = StyleSheet.create({
   scene: { alignSelf: "center", width: "100%", borderWidth: 1, borderRadius: 5, padding: 10, gap: 10 },
   caption: { fontWeight: "600", fontSize: 16 },
   content: { flex: 1, minWidth: 0 },
-  verticalLayout: { flexDirection: "row", gap: 10 },
-  verticalBlock: { width: 20, backgroundColor: "#878787" },
+  verticalLayout: { width: "100%", flexDirection: "row", gap: VERTICAL_LAYOUT_GAP },
+  verticalBlock: { width: VERTICAL_BLOCK_WIDTH, backgroundColor: "#878787" },
   horizontalBlock: { height: 20, marginVertical: 10, backgroundColor: "#878787" },
 })
