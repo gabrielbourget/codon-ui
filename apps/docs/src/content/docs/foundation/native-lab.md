@@ -3,11 +3,11 @@ title: Native Lab
 description: SDK 57 lab requirements, generated project boundaries and reference capture.
 ---
 
-The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android x86_64 lab produced development and local release binaries and inspected foundation states, including the corrected scrolling viewport; iOS, physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
+The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android and iOS x86_64 labs produced development and local release binaries and inspected foundation states, scrolling viewports, larger text and rotation. Physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
 
 ## Select A Compatible Host
 
-For the proposed Xcode 26.4.1 lane, use its supported macOS Tahoe 26.2–26.x range as documented in [Apple's Xcode requirements](https://developer.apple.com/xcode/system-requirements). SDK 57's [Expo matrix](https://docs.expo.dev/versions/latest/) is the framework-specific floor. [Xcode 27 requires Apple silicon](https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes?changes=l_2_3&language=objc), so it cannot serve the selected Intel Mac; keep the reviewed 26.4.1 lane.
+The installed and approved lane is Xcode 26.5 on macOS Tahoe 26.7.1. Use its supported Tahoe 26.2–26.x range as documented in [Apple's Xcode requirements](https://developer.apple.com/xcode/system-requirements). SDK 57's [Expo matrix](https://docs.expo.dev/versions/latest/) is the framework-specific floor. [Xcode 27 requires Apple silicon](https://developer.apple.com/documentation/xcode-release-notes/xcode-27-release-notes?changes=l_2_3&language=objc), so it cannot serve the selected Intel Mac. The earlier 26.4.1 proposal is retained as historical planning in the ledger.
 
 The Android configuration extracted from the selected RN version catalog uses SDK compile/target 36, minimum 24, Build-Tools 36.0.0 and NDK 27.1.12297006. Generated Gradle is 9.3.1, Hermes and New Architecture are enabled. Use the JDK 17 lane described by [React Native's environment guide](https://reactnative.dev/docs/0.86/set-up-your-environment); exact installed tool versions and emulator profiles must be recorded before build acceptance.
 
@@ -17,15 +17,22 @@ Choose host and storage before installing. OS upgrades, accepting SDK/tool licen
 
 ## Selected Mac And iOS Preparation
 
-On 2026-10-12 the owner selected this MacBookPro16,2 for both Android inspection and iOS, offering to upgrade macOS if required. This is the 2020 13-inch four-port Intel model included in [Apple's Tahoe compatibility list](https://support.apple.com/en-us/122867). Its observed macOS 14.4.1 cannot run the selected Xcode 26.4.1 lane, so an OS upgrade is required before iOS native builds.
+On 2026-10-12 the owner selected this MacBookPro16,2 for Android and iOS, cleared storage, upgraded it from macOS 14.4.1 to 26.7.1 and installed Xcode 26.5 through the App Store's compatible-version offer. This is the 2020 13-inch four-port Intel model included in [Apple's Tahoe compatibility list](https://support.apple.com/en-us/122867). The owner completed Xcode's licence/welcome flow and installed the universal iOS 26.5 Simulator runtime, supporting x86_64 and arm64. [Apple documents component and architecture selection](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components).
 
-Prepare the iOS host in this order:
+The approved isolated lab uses Ruby 3.4.11 and CocoaPods 1.16.2 under `~/.local/share/codon-native-lab`, with separate gem and CocoaPods homes. Ruby was compiled from verified official source using existing host libraries; no Homebrew upgrade, system Ruby replacement or repository dependency change was required. [CocoaPods recommends a separate newer Ruby](https://guides.cocoapods.org/using/getting-started.html). Acquisition hashes and the resolved gem/Pod graphs belong to the private receipt.
 
-1. Free storage for the upgrade, full Xcode, an Intel-compatible simulator runtime and build caches. Use approximately 80 GB free as a working budget estimate, rather than a vendor minimum. The host's Software Update catalogue offered Tahoe 26.7.1 with a 17.1 GiB full installer; observed free storage fell from approximately 15 GB to 9.8 GB during inspection.
-2. Have the owner upgrade this Mac to a supported Tahoe 26.x release at or above 26.2. Finish the Android session before the upgrade/reboot. No OS installer has been downloaded or run by this pass.
-3. Install the exact Xcode 26.4.1 release and resolve its SDK licence/developer-directory setup, then install an Intel-compatible universal iOS simulator runtime. [Apple documents the component and architecture selection](https://developer.apple.com/documentation/xcode/downloading-and-installing-additional-xcode-components). The App Store's newest Xcode is not the selected pin.
-4. Verify the generated Podfile's Ruby/CocoaPods requirements on the upgraded host before choosing their installed versions. Keep those tools app/lab owned, without changing repository dependencies or generated native files by hand.
-5. Regenerate the ignored iOS CNG project as needed, install Pods, build the development/local release variants, and inspect the same foundation scenes on Simulator. Preserve the two-platform, physical accessibility and owner acceptance gates until actual proof exists.
+The ignored iOS CNG project regenerated without React/RN pin updates. Pods installed successfully, followed by x86_64 development and local release Simulator builds using scoped `DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer`; the global developer-directory selection remains unchanged. The release embeds Hermes JS and runs with Metro stopped. Builds use `CODE_SIGNING_ALLOWED=NO` and establish Simulator evidence only. Physical devices, production signing and store distribution remain separate gates.
+
+Use the isolated tools explicitly when resuming app-owned Expo commands:
+
+```sh
+CODON_NATIVE_LAB_ROOT="$HOME/.local/share/codon-native-lab"
+env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer GEM_HOME="$CODON_NATIVE_LAB_ROOT/ios-gems" GEM_PATH="$CODON_NATIVE_LAB_ROOT/ios-gems:$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/lib/ruby/gems/3.4.0" PATH="$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/bin:$CODON_NATIVE_LAB_ROOT/ios-gems/bin:$PATH" CP_HOME_DIR="$CODON_NATIVE_LAB_ROOT/cocoapods" COCOAPODS_DISABLE_STATS=true pnpm -F @codon-ui/native-showcase ios
+```
+
+The receipt's unsigned local-release check used Xcode's Release configuration for `CodonNativeShowcase` in the generated workspace, x86_64/active architecture, a selected task-owned Simulator destination and separate derived data. Reuse the recorded private reproduction helper for that exact lane; the normal Expo command above starts development use and does not reproduce the unsigned release receipt by itself.
+
+Keep native compilation and Simulator inspection sequential on this host. Cold runtime migration and Apple's asset compiler stalled during initial attempts; sampled waits and interrupted logs are preserved. After task-device shutdown and a scoped CoreSimulator service restart with no other booted devices, both builds completed. The owner also explicitly approved `DevToolsSecurity -enable` for debugger/test diagnostics; this is a system authorization change recorded separately from isolated tools. Do not treat either recovery step as an established root cause or a routine setup requirement.
 
 ## Reproduce Source And Native Generation
 
@@ -93,7 +100,7 @@ State must survive fixture/window changes; reset is explicit. Simulated blocked 
 
 Safe-area insets belong to the fixed showcase surface around the ScrollView; the scroll content owns its separate page padding. Content padding alone allowed large scrolled text to overlap Android's clock/status icons in the first lab inspection. Verify the bounded viewport against actual system bars in portrait, landscape and large-text captures; an unscrolled top screenshot cannot close this presentation check.
 
-The current viewport correction passed its installed local-release inspection after a fresh task-owned Android guest recovered from stock system-service ANRs. At 1.5 and 2.0 text scale, actions and bottom copy remained reachable inside the portrait viewport; portrait → landscape → portrait retained scene state and equal panes, with scrolled content clear of the system bars. The ledger records the exact APK, profile, additional scale checks and private capture manifest. This closes the observed Android viewport finding for that emulator artifact; iOS, physical accessibility and owner acceptance remain separate proof gates.
+The current viewport correction passed its installed local-release inspection after a fresh task-owned Android guest recovered from stock system-service ANRs. At 1.5 and 2.0 text scale, actions and bottom copy remained reachable inside the portrait viewport; portrait → landscape → portrait retained scene state and equal panes, with scrolled content clear of the system bars. The iOS release subsequently passed the same foundation state/rotation inspection at normal text and scrolling reachability at observed scales 1.786 and 2.143. Its final end-of-scroll PNGs and exported bounds confirm the full action and bottom text inside the viewport. The ledger records exact artifacts, profiles, captures and test limits. The observed Android viewport finding is closed for its emulator artifact; physical accessibility and owner acceptance remain separate gates.
 
 The current Android system-font setting change recreates the showcase and resets its in-memory scene state. Inspect each scale after that restart, then prove actions and fixture changes within the running scene. Rotation and app recreation are separate checks; do not infer persisted state across recreation from the fixture tests.
 

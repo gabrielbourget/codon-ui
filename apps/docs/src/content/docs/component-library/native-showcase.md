@@ -32,8 +32,8 @@ Safe-area metrics and scroll layout are app-owned. These fixtures do not sense p
 
 ## Suggested Next Steps
 
-1. Review the foundation diff and test/bundle/dependency receipts; resolve any exception, then request its narrow commit. Changes remain uncommitted until the owner authorizes that commit.
-2. Arrange an iOS/Android development lab and owner-reviewed current mobile-web references. Capture source/build/device/window/font-scale provenance with required states; do not replace unavailable evidence with snapshots.
+1. Review the committed foundation and actual Android/iOS lab receipts. Source/type/unit/Metro proof, both platform toolchains and development/local-release builds are established; use the ledger for exact installed-artifact inspection outcomes and remaining limits.
+2. Complete owner review of native foundation and current mobile-web references, plus physical accessibility/touch evidence. Agent captures and Simulator/emulator geometry do not replace owner acceptance or VoiceOver/TalkBack inspection.
 3. Resolve Text/Button's native event/ref/style contracts, CSS-color validation and actual web hover precedence. Implement them with public type/contract tests, maintained scenes and reset/theme composition proof.
 4. Prove a clean consumer outside the monorepo from a hashed immutable artifact, then inspect actual native output and run a small installed-app smoke plus VoiceOver/TalkBack/touch checks.
 5. Review the difficult Input/Switch/Select/Checkbox and overlay/table/date cases before choosing a broad behavioral foundation. Continue audited families until all 53 counterparts satisfy the library acceptance gate.
