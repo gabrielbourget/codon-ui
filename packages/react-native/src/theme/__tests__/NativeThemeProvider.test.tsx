@@ -105,6 +105,29 @@ describe("NativeThemeProvider public contract", () => {
     expect(overrides.colors.foreground).toBe("#abcdef")
   })
 
+  it.each(["light", "dark"] as const)("matches canonical outline sRGB blends in %s mode", async (mode) => {
+    await renderTheme({ mode })
+    const theme = readTheme()
+    const blend = (foreground: string, background: string, amount: number) =>
+      "#" +
+      [1, 3, 5]
+        .map((offset) =>
+          Math.round(
+            Number.parseInt(foreground.slice(offset, offset + 2), 16) * amount +
+              Number.parseInt(background.slice(offset, offset + 2), 16) * (1 - amount),
+          )
+            .toString(16)
+            .padStart(2, "0"),
+        )
+        .join("")
+    for (const action of Object.values(theme.actions)) {
+      expect(action.border).toMatch(/^#[0-9a-f]{6}$/)
+      expect(theme.colors.background).toMatch(/^#[0-9a-f]{6}$/)
+      expect(action.outlineHoverBackground).toBe(blend(String(action.border), String(theme.colors.background), 0.15))
+      expect(action.outlinePressedBackground).toBe(blend(String(action.border), String(theme.colors.background), 0.3))
+    }
+  })
+
   it("preserves canonical light/dark action roles and native line metrics", async () => {
     const { rerender } = await renderTheme()
     expect(readTheme().actions.primary).toMatchObject({
@@ -121,8 +144,8 @@ describe("NativeThemeProvider public contract", () => {
     expect(readTheme().actions.primary).toMatchObject({
       hoverBackground: "#467aee",
       pressedBackground: "#5c8af0",
-      outlineHoverBackground: "#5c8af0",
-      outlinePressedBackground: "#467aee",
+      outlineHoverBackground: "#192237",
+      outlinePressedBackground: "#1b2e57",
     })
     expect(readTheme().opacity.disabled).toBe(0.4)
   })
