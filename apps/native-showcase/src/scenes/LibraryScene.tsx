@@ -154,7 +154,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
             Explicit 24 × 24 target in a 24 × 24 parent. Hit slop is clipped by the parent; this fixture is an
             intentional target limitation.
           </Text>
-          <View style={{ width: 24, height: 24 }}>
+          <View collapsable={false} style={{ width: 24, height: 24 }}>
             <Button accessibilityLabel="Constrained library action" width={24} height={24} onPress={increment}>
               !
             </Button>
