@@ -32,7 +32,7 @@ Safe-area metrics and scroll layout are app-owned. These fixtures do not sense p
 
 ## Suggested Next Steps
 
-1. Review the Text/Button source, maintained scenes, isolated archive consumer and ledger's recovery receipt. The constrained fixture now retains its native parent, and corrected Release installs have verified identities; outside/inside touch, complete matrices, larger-text/footer and iOS audit checks remain open. Save open work and restart this Mac before resuming one virtual device at a time; startup and stock-service failures still block runtime acceptance.
+1. Review the ledger's post-restart Android/iOS inspection and focused follow-up proposal. Development, color/state/layout, larger-text/footer and rotation checks reached results on both platforms. Outside-parent activation remains reproducible, and strict iOS audits flag the constrained control's duplicate-trait label. Decide the native clipping exception and targeted fixture/label remediation, then rerun affected touch/audit checks before acceptance.
 2. Complete owner visual review and physical VoiceOver/TalkBack/touch checks. The owner has an iPhone 16 and can borrow an Android phone; Apple account/signing preparation is deferred until the owner is ready. Agent captures and automated audits do not close this gate.
 3. Resolve any acceptance findings before opening the next Input/Switch/Select/Checkbox family contract pass. Review overlays, tables and dates before choosing a broad behavioral foundation; continue audited families until all 53 counterparts satisfy the library gate.
 4. Open native registry/CLI lifecycle and maintenance as separate contract passes. Wavemap production app work follows library acceptance; product navigation/auth/maps/server workflows stay consumer-owned.
