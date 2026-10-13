@@ -14,4 +14,8 @@ NativeThemeProvider selects explicit light/dark defaults and applies typed parti
 
 Tests own public provider behavior. They use the native Jest preset and RNTL 14's async API. Read installed RNTL docs before changing tests; showcase Expo seams have a separate test owner. Passing mocked tests/Metro bundles is not native rendering, accessibility, touch geometry or device acceptance.
 
+`Text` is the native typography component. It uses the provider's 31 variants and six weights, native line metrics and uncapped system scaling. Heading/link intent and explicit native roles are separate from font variants. Ordinary text defaults selectable; label and Button-owned content default unselectable, with an explicit `selectable` override. Native labels/IDs win over `aria-label`/`data-testid` aliases. RN Text refs and native events are retained; DOM class/form/click props are unsupported.
+
+Text resolves provider/inherited foreground, own color, custom native styles and final native styles in that order. Nested Text inherits the resolved foreground unless it supplies its own color/styles. Consumed color fields reject unresolved CSS variables and `currentColor` at runtime while supporting RN platform colors. Build the public package before running its unit tests: those tests exercise the compiled public entry. Button and the maintained component scenes enter in the next approved pass.
+
 The [canonical execution ledger](../../docs/roadmaps/react-native-library-first-pass.md) owns SDK/source revisions, review receipts, evidence limits and subsequent gates. Native registry/CLI lifecycle, package publication and shared runtime token extraction remain later decisions.
