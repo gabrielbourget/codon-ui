@@ -1,6 +1,6 @@
 # Native Text/Button — M1-B Contract And Execution Proposal
 
-Status: **Approved for four logical implementation passes on 2026-10-13; physical signing/account preparation deferred by the owner**. Prepared 2026-10-13 against Codon `8a9d4db`. This pass follows the [foundation ledger](react-native-library-first-pass.md), including its inspected Android/iOS artifacts. Gabriel's instruction to continue authorizes review, evidence preparation and this concrete proposal; Gabriel subsequently approved the entire recommended packet, including its native exceptions and ten-value theme correction.
+Status: **Four implementation/source/archive/build passes prepared on 2026-10-13; named final-source runtime checks, independent review and owner/physical acceptance remain open; physical signing/account preparation deferred by the owner**. Prepared 2026-10-13 against Codon `8a9d4db`. This pass follows the [foundation ledger](react-native-library-first-pass.md), including its inspected Android/iOS artifacts. Gabriel's instruction to continue authorizes review, evidence preparation and this concrete proposal; Gabriel subsequently approved the entire recommended packet, including its native exceptions and ten-value theme correction.
 
 ## Scope And Commit Cadence
 

@@ -3,7 +3,7 @@ title: Native Showcase
 description: Generic Expo laboratory, fixture boundaries and next acceptance gates.
 ---
 
-apps/native-showcase is the Expo consumer for Codon's native library. It imports the canonical package and synthetic display-ready fixtures. Its foundation scene includes themes, customization, a counter, reset, long English/French copy and live app-window/font-scale metadata. The app-owned core controls are fixture plumbing; Codon Text/Button enter in the next slice.
+apps/native-showcase is the Expo consumer for Codon's native library. It imports the canonical package and synthetic display-ready fixtures. Its foundation scene includes themes, customization, a counter, reset, long English/French copy and live app-window/font-scale metadata. App-owned core controls select scenes. The maintained Text/Button scene imports public library components and exposes variant/weight/order/geometry, outline, disabled, pending, custom-style and render-child controls. It also includes long bilingual labels, nested/selectable Text and an intentionally constrained 24 × 24 target.
 
 ## Local Use
 
@@ -26,17 +26,15 @@ CNG regenerates ignored native directories from app.config.ts and declared depen
 
 Use [Native Lab](/foundation/native-lab/) for host/tool requirements and actual build/reference capture. Source generation and JS export proof do not establish an installed app.
 
-Live dimensions come from the current app window. Compact and expanded fixtures constrain content inside that window; expanded does not fabricate a larger physical display. Vertical/horizontal blocked regions place gaps between synthetic content regions. Theme, customization and scene action state survive fixture/window changes; reset is explicit.
+Live dimensions come from the current app window. Compact and expanded fixtures constrain content inside that window; expanded does not fabricate a larger physical display. Vertical/horizontal blocked regions place gaps between synthetic content regions. Theme, customization and scene action state survive fixture/window changes; reset returns to light/live/foundation/count zero and restores library defaults when reselected.
 
 Safe-area metrics and scroll layout are app-owned. These fixtures do not sense physical hinges, infer posture from aspect ratio, normalize Android display coordinates or observe Activity recreation. Real foldable delivery belongs to Wavemap's separately approved application adapter/probe. Physical accessibility, touch bounds, keyboard/IME reachability and native rendering still require inspected evidence.
 
 ## Suggested Next Steps
 
-1. Review the committed foundation and actual Android/iOS lab receipts. Source/type/unit/Metro proof, both platform toolchains and development/local-release builds are established; use the ledger for exact installed-artifact inspection outcomes and remaining limits.
-2. Complete owner review of native foundation and current mobile-web references, plus physical accessibility/touch evidence. Agent captures and Simulator/emulator geometry do not replace owner acceptance or VoiceOver/TalkBack inspection.
-3. Resolve Text/Button's native event/ref/style contracts, CSS-color validation and actual web hover precedence. Implement them with public type/contract tests, maintained scenes and reset/theme composition proof.
-4. Prove a clean consumer outside the monorepo from a hashed immutable artifact, then inspect actual native output and run a small installed-app smoke plus VoiceOver/TalkBack/touch checks.
-5. Review the difficult Input/Switch/Select/Checkbox and overlay/table/date cases before choosing a broad behavioral foundation. Continue audited families until all 53 counterparts satisfy the library acceptance gate.
-6. Open complete native registry/CLI lifecycle and maintenance as their own contract pass. Wavemap production app work follows full library acceptance; product navigation/auth/maps/server workflows stay consumer-owned.
+1. Review the Text/Button source, maintained scenes, isolated archive consumer and exact build/runtime receipt in the ledger. Resume final-source Android/iOS inspection on a stable lab; current startup/service failures leave named checks open.
+2. Complete owner visual review and physical VoiceOver/TalkBack/touch checks. The owner has an iPhone 16 and can borrow an Android phone; Apple account/signing preparation is deferred until the owner is ready. Agent captures and automated audits do not close this gate.
+3. Resolve any acceptance findings before opening the next Input/Switch/Select/Checkbox family contract pass. Review overlays, tables and dates before choosing a broad behavioral foundation; continue audited families until all 53 counterparts satisfy the library gate.
+4. Open native registry/CLI lifecycle and maintenance as separate contract passes. Wavemap production app work follows library acceptance; product navigation/auth/maps/server workflows stay consumer-owned.
 
 Use [React Native Package](/packages/react-native/) for provider/runtime ownership. The canonical execution ledger remains docs/roadmaps/react-native-library-first-pass.md; this page describes the implemented foundation and future gates rather than duplicating per-component status.

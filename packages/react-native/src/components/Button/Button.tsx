@@ -148,6 +148,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
         onPressOut={(event) => {
           const cycle = pressCycle.current
           if (cycle) {
+            event.persist?.()
             cycle.nativeEnd = event
             finishPress(event)
             onPressOut?.(event)
@@ -167,11 +168,16 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
             if (cycle.nativeEnd) pressCycle.current = undefined
           }
         }}
-        onLongPress={(event) => {
-          if (!blocked && !pressCycle.current?.cancelled) onLongPress?.(event)
-        }}
+        onLongPress={
+          onLongPress
+            ? (event) => {
+                if (!blocked && !pressCycle.current?.cancelled) onLongPress(event)
+              }
+            : undefined
+        }
         onHoverIn={(event) => {
           if (blocked || hoverEvent.current) return
+          event.persist?.()
           hoverEvent.current = event
           setHovered(true)
           onHoverStart?.(event)

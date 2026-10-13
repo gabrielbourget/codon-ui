@@ -38,6 +38,22 @@ describe("Button public native contract", () => {
     expect(onPress.mock.calls[0][0]).toEqual(expect.objectContaining({ nativeEvent: expect.any(Object) }))
   })
 
+  it("activates after a held press when no long-press action is configured", async () => {
+    const onPress = jest.fn()
+    await render(<Button onPress={onPress}>Held action</Button>)
+    await userEvent.setup().longPress(screen.getByRole("button"), { duration: 700 })
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it("uses an authored long-press action without also activating the ordinary action", async () => {
+    const onPress = jest.fn(),
+      onLongPress = jest.fn()
+    await render(<Button {...{ onPress, onLongPress }}>Long action</Button>)
+    await userEvent.setup().longPress(screen.getByRole("button"), { duration: 700 })
+    expect(onLongPress).toHaveBeenCalledTimes(1)
+    expect(onPress).not.toHaveBeenCalled()
+  })
+
   it.each(["disabled", "pending"] as const)("suppresses activation/hover/press while %s", async (mode) => {
     const onPress = jest.fn(),
       onPressStart = jest.fn(),
@@ -83,6 +99,29 @@ describe("Button public native contract", () => {
     expect(onPress).not.toHaveBeenCalled()
     expect(onPressEnd).toHaveBeenCalledTimes(1)
     await userEvent.setup().press(button)
+    expect(onPress).toHaveBeenCalledTimes(1)
+  })
+
+  it("retains a pooled release payload so a later distinct activation can follow cancellation", async () => {
+    let persistent = false
+    const end: { nativeEvent: typeof pressEvent.nativeEvent | null; persist: () => void } = {
+      nativeEvent: { ...pressEvent.nativeEvent, timestamp: 101 },
+      persist: () => {
+        persistent = true
+      },
+    }
+    const onPress = jest.fn()
+    const { rerender } = await render(<Button onPress={onPress}>Cancelled then activated</Button>)
+    await fireEvent(screen.getByRole("button"), "pressIn", pressEvent)
+    await rerender(
+      <Button isPending onPress={onPress}>
+        Cancelled then activated
+      </Button>,
+    )
+    await rerender(<Button onPress={onPress}>Cancelled then activated</Button>)
+    await fireEvent(screen.getByRole("button"), "pressOut", end)
+    if (!persistent) end.nativeEvent = null
+    await fireEvent(screen.getByRole("button"), "press", { nativeEvent: { ...pressEvent.nativeEvent, timestamp: 200 } })
     expect(onPress).toHaveBeenCalledTimes(1)
   })
 
@@ -136,6 +175,29 @@ describe("Button public native contract", () => {
     expect(button.props.focusable).toBe(true)
     await fireEvent(button, "blur", pressEvent)
     expect(onFocusChange.mock.calls).toEqual([[true], [false]])
+  })
+
+  it("retains a pooled hover payload when pending ends an active hover", async () => {
+    let persistent = false
+    const event: { nativeEvent: typeof hoverEvent.nativeEvent | null; persist: () => void } = {
+      nativeEvent: hoverEvent.nativeEvent,
+      persist: () => {
+        persistent = true
+      },
+    }
+    const onHoverEnd = jest.fn(),
+      onHoverChange = jest.fn()
+    const { rerender } = await render(<Button {...{ onHoverEnd, onHoverChange }}>Hover transition</Button>)
+    await fireEvent(screen.getByRole("button"), "hoverIn", event)
+    if (!persistent) event.nativeEvent = null
+    await rerender(
+      <Button isPending {...{ onHoverEnd, onHoverChange }}>
+        Hover transition
+      </Button>,
+    )
+    expect(onHoverEnd).toHaveBeenCalledTimes(1)
+    expect(onHoverEnd.mock.calls[0][0].nativeEvent).toEqual(hoverEvent.nativeEvent)
+    expect(onHoverChange.mock.calls).toEqual([[true], [false]])
   })
 
   it("gives final styles precedence and passes final foreground to nested Text/render children", async () => {
