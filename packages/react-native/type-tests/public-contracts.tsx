@@ -1,7 +1,14 @@
 import { createRef } from "react"
-import type { Text as RNText } from "react-native"
+import type { Text as RNText, View } from "react-native"
 
-import { NativeThemeProvider, Text, useNativeTheme, type NativeThemeMode, type NativeThemeOverrides } from "../src"
+import {
+  Button,
+  NativeThemeProvider,
+  Text,
+  useNativeTheme,
+  type NativeThemeMode,
+  type NativeThemeOverrides,
+} from "../src"
 
 export const ValidText = (
   <Text
@@ -54,3 +61,37 @@ export const InvalidClass = <NativeThemeProvider className="theme" />
 export const InvalidUnit = <NativeThemeProvider overrides={{ typography: { fontSizes: { b10: "1.4rem" } } }} />
 // @ts-expect-error Product colors are not implicit theme roles.
 export const InvalidRole = <NativeThemeProvider overrides={{ colors: { mapRoad: "#ffffff" } }} />
+
+export const ValidButton = (
+  <Button
+    ref={createRef<View>()}
+    order="tertiary"
+    colorMode="outline"
+    geometry="round"
+    isPending
+    accessibilityState={{ selected: true }}
+    onPressStart={(event) => event.nativeEvent.pageX}
+    onHoverStart={(event) => event.nativeEvent.clientX}
+    style={(state) => [state.defaultStyle, { color: state.isPressed ? "red" : "blue" }]}
+  >
+    {(state) => <Text color={state.foregroundColor}>{state.isPending ? "Waiting" : "Continue"}</Text>}
+  </Button>
+)
+// @ts-expect-error Button owns disabled state through isDisabled.
+export const InvalidButtonDisabled = <Button disabled />
+// @ts-expect-error Button owns busy/disabled accessibility semantics.
+export const InvalidButtonBusy = <Button accessibilityState={{ busy: false }} />
+// @ts-expect-error Native Button has no DOM class plumbing.
+export const InvalidButtonClass = <Button className="web" />
+// @ts-expect-error Native Button has no HTML form semantics.
+export const InvalidButtonForm = <Button type="submit" />
+// @ts-expect-error Activation carries an RN event, not a DOM click.
+export const InvalidButtonClick = <Button onClick={() => undefined} />
+// @ts-expect-error Native press-out is not a browser press-up contract.
+export const InvalidButtonPressUp = <Button onPressUp={() => undefined} />
+// @ts-expect-error Native dimensions do not accept CSS length units.
+export const InvalidButtonDimension = <Button width="2rem" />
+// @ts-expect-error A browser node is not an RN View instance.
+export const InvalidButtonRef = <Button ref={createRef<{ tagName: string }>()} />
+// @ts-expect-error Focus visibility needs a future native modality contract.
+export const InvalidButtonFocusVisible = <Button>{(state) => (state.isFocusVisible ? "Visible" : "Hidden")}</Button>

@@ -7,6 +7,7 @@ import { NativeThemeProvider, useNativeTheme, type NativeThemeMode } from "@codo
 
 import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
 
+import { LibraryScene } from "./LibraryScene"
 import { SceneShell } from "./SceneShell"
 
 const FixtureAction = ({
@@ -51,7 +52,7 @@ const ThemePreview = ({ count, increment }: { count: number; increment: () => vo
       </Text>
       <FixtureAction label="Increment scene action" onPress={increment} />
       <Text style={{ color: theme.colors.foreground }}>
-        Text and Button library scenes enter at the next reviewed slice.
+        Text and Button library scenes are available from the scene controls.
       </Text>
     </View>
   )
@@ -87,11 +88,13 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
+  const [libraryScene, setLibraryScene] = useState(false)
   const reset = () => {
     setMode("light")
     setCustomized(false)
     setFixture("live")
     setCount(0)
+    setLibraryScene(false)
   }
 
   return (
@@ -102,6 +105,10 @@ export const NativeShowcase = () => {
       <ShowcaseSurface>
         <ThemeHeading />
         <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
+        <View style={styles.controls}>
+          <FixtureAction label="Foundation scene" selected={!libraryScene} onPress={() => setLibraryScene(false)} />
+          <FixtureAction label="Text/Button scene" selected={libraryScene} onPress={() => setLibraryScene(true)} />
+        </View>
         <View style={styles.controls}>
           <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
           <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
@@ -123,7 +130,11 @@ export const NativeShowcase = () => {
           ))}
         </View>
         <SceneShell fixture={fixture}>
-          <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
+          {libraryScene ? (
+            <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
+          ) : (
+            <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
+          )}
         </SceneShell>
       </ShowcaseSurface>
     </NativeThemeProvider>

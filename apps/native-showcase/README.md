@@ -1,6 +1,6 @@
 # Codon Native Showcase
 
-Generic Expo consumer of @codon-ui/react-native. The foundation scene exercises explicit themes, typed overrides, reset, live window metadata and simulated compact/expanded/blocked-region fixtures. Controls in this shell are app-owned core Pressable/Text fixtures; they do not imply that Codon Text/Button exist yet.
+Generic Expo consumer of @codon-ui/react-native. The foundation scene exercises explicit themes, typed overrides, reset, live window metadata and simulated compact/expanded/blocked-region fixtures. Shell selectors remain app-owned core controls. The Text/Button scene renders the public library components with variant/weight/order/geometry, outline, disabled, pending, custom-style and render-child controls. Reset restores foundation defaults; theme, fixture and live-window changes preserve action count.
 
 ```sh
 pnpm -F @codon-ui/react-native build
@@ -18,6 +18,8 @@ Use ios/android scripts only in a prepared local native lab. CNG owns generated 
 
 SafeAreaProvider owns insets and the scrollable scene shell owns available layout. App-window changes update metadata without resetting fixture state. A compact/expanded fixture changes maximum content width within the current window; it cannot enlarge the real device. Blocked rectangles are synthetic gaps between content regions and do not receive hardware posture events or normalize screen coordinates. No RN Web or bare-RN support is promised.
 
-Tests compose the actual public native theme exports with app state and core native views. They inject only safe-area context metrics and use mocked native dimensions. Native rendering, VoiceOver/TalkBack, keyboard, measured touch regions and real fold/Activity delivery require separate inspected build/device evidence.
+Tests compose the public native provider, Text and Button exports with app state and core shell views. They inject only safe-area context metrics and use mocked native dimensions. Native rendering, VoiceOver/TalkBack, keyboard, measured touch regions and real fold/Activity delivery require separate inspected build/device evidence.
 
 See the [ledger](../../docs/roadmaps/react-native-library-first-pass.md), [native lab guide](../docs/src/content/docs/foundation/native-lab.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.
+
+The constrained fixture intentionally renders a 24 × 24 Button inside a 24 × 24 parent. Its hit slop is clipped, so it remains a visible target limitation. Long bilingual labels and selectable/nested Text are available for larger-text and hands-on review. Automated component cases do not close physical screen-reader, pointer/keyboard or owner acceptance gates.

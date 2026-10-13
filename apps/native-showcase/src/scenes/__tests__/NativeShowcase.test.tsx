@@ -48,3 +48,54 @@ it("updates live window metadata while preserving scene state", async () => {
     })
   }
 })
+
+it("composes library controls, blocks disabled/pending activation and resets scene defaults", async () => {
+  const user = userEvent.setup()
+  await renderShowcase()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Text/Button scene")
+  await press("Library action")
+  await press("Toggle library disabled")
+  await press("Library action")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*State: disabled/)
+  await press("Toggle library disabled")
+  await press("Toggle library pending")
+  expect(screen.getByTestId("library-button").props.accessibilityState).toMatchObject({ busy: true, disabled: false })
+  await press("Library action")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  await press("Toggle library pending")
+  await press("Next button order")
+  await press("Toggle button outline")
+  await press("Toggle library styles")
+  await press("Toggle render children")
+  expect(screen.getByText("Rendered library action")).toHaveStyle({ color: "#ffffff" })
+  expect(screen.getByTestId("library-button")).toHaveStyle({ backgroundColor: "#123456" })
+  await press("Dark theme")
+  await press("Vertical blocked region")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*secondary.*outline/)
+  await press("Toggle constrained button")
+  expect(screen.getByRole("button", { name: "Constrained library action" })).toHaveStyle({ width: 24, height: 24 })
+  await press("Reset scene")
+  expect(screen.getByTestId("theme-preview")).toHaveTextContent(/light.*count: 0/)
+  await press("Text/Button scene")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 0.*primary.*fill.*enabled/)
+  expect(screen.queryByText("Rendered library action")).toBeNull()
+  expect(screen.queryByRole("button", { name: "Constrained library action" })).toBeNull()
+})
+
+it("retains library actions during live window changes", async () => {
+  const previous = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
+  const user = userEvent.setup()
+  await renderShowcase()
+  await user.press(screen.getByRole("button", { name: "Text/Button scene" }))
+  await user.press(screen.getByRole("button", { name: "Library action" }))
+  try {
+    await act(async () =>
+      Dimensions.set({ window: { width: 844, height: 390, scale: 3, fontScale: 2 }, screen: previous.screen }),
+    )
+    expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+    expect(screen.getByText(/Window 844 × 390 · font scale 2/)).toBeOnTheScreen()
+  } finally {
+    await act(async () => Dimensions.set(previous))
+  }
+})
