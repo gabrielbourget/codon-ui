@@ -100,7 +100,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           onPress={() => setRenderChildren((value) => !value)}
         />
         <SceneControl
-          label="Toggle constrained button"
+          label="Toggle constrained target"
           selected={constrained}
           onPress={() => setConstrained((value) => !value)}
         />
@@ -151,10 +151,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       {constrained && (
         <View style={styles.constraint}>
           <Text>
-            Explicit 24 × 24 target in a 24 × 24 parent. Hit slop is clipped by the parent; this fixture is an
-            intentional target limitation.
+            Explicit 24 × 24 target in a parent that clips overflow. This fixture is an intentional target limitation.
           </Text>
-          <View collapsable={false} style={{ width: 24, height: 24 }}>
+          <View collapsable={false} style={{ width: 24, height: 24, overflow: "hidden" }}>
             <Button accessibilityLabel="Constrained library action" width={24} height={24} onPress={increment}>
               !
             </Button>

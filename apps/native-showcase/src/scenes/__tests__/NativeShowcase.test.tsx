@@ -73,7 +73,7 @@ it("composes library controls, blocks disabled/pending activation and resets sce
   await press("Dark theme")
   await press("Vertical blocked region")
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1.*secondary.*outline/)
-  await press("Toggle constrained button")
+  await press("Toggle constrained target")
   expect(screen.getByRole("button", { name: "Constrained library action" })).toHaveStyle({ width: 24, height: 24 })
   await press("Reset scene")
   expect(screen.getByTestId("theme-preview")).toHaveTextContent(/light.*count: 0/)

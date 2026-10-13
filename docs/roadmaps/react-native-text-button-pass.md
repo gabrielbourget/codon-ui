@@ -107,17 +107,17 @@ Once the owner supplies that readiness and authorizes the exact local signing/de
 
 Hands-on review should cover light/dark labels and selected traits, activation/count/reset, scroll reachability with larger text, portrait/landscape state retention, and VoiceOver reading/activation order. For library scenes add disabled versus pending announcements, no duplicate child actions, long labels and constrained/adjacent target reach. Record actual results and remaining issues before owner acceptance; an available phone alone does not close those gates.
 
-## Post-Restart Inspection Follow-Up — Pending Owner Decision
+## Post-Restart Inspection Follow-Up — Approved
 
 The 2026-10-13 post-restart iOS inspection reached executable tests on the corrected `1b951af` fixture. The full 28-capture color/state/reset/rotation matrix, larger-text action/reset and full-footer checks passed. All three geometry and five layout captures retained state, but the subsequent outside-parent press still activated the 24 × 24 constrained action. The recorded synthesized coordinate was x=18, eight points left of the target's x=26 edge; retaining the native parent alone did not enforce the proposed boundary. Installed RN 0.86.3's Fabric `RCTViewComponentView.mm` permits descendant hit testing outside an unclipped view when overflow extends beyond it. This is a native overflow contract finding, not a host-startup failure.
 
 Strict light-fill and dark-outline audits each recorded one issue: the label “Toggle constrained button” duplicates the button trait. Every reported issue remained a failure; none were ignored. No contrast, hit-region or other description/trait issue was reported in those two visible audit states. These results do not certify every order or replace physical screen-reader review.
 
-Recommend the following bounded follow-up before closing these findings:
+The owner approved the following bounded follow-up on 2026-10-13 before closing these findings:
 
 1. Keep Button's native Pressable hit-testing behavior and current API/target calculation. Clarify package/showcase documentation that parent geometry and native overflow policy determine clipping; do not promise an unconditional parent-bounds barrier.
 2. Keep `collapsable={false}` and add `overflow: "hidden"` to the intentional 24 × 24 fixture parent, making its strict clipping requirement explicit. Update the fixture explanation accordingly.
 3. Rename the single control to “Toggle constrained target” and update its owning integration assertion and private inspection selectors. Preserve the component scene names and other control labels.
 4. Run owning showcase checks/four integration cases, rebuild affected Release JS/native artifacts, verify source-map and installed identities, and repeat outside/inside touch on both platforms plus strict iOS light-fill/dark-outline audits. Retain the failed baseline and record the corrected artifact separately.
 
-This proposal changes an app fixture, its label and the documented native clipping exception; dependency pins, theme values, component props, event adapters, default minima, registry/CLI, CI, publication and iPhone signing stay outside it. Adding library-side enforcement of every ancestor's bounds would require a separate design/API pass. The existing four-pass approval does not settle this newly observed documentation guarantee; owner approval of this follow-up is pending. Continue unaffected inspection while that decision is open.
+This approved pass changes an app fixture, its label and the documented native clipping exception; dependency pins, theme values, component props, event adapters, default minima, registry/CLI, CI, publication and iPhone signing stay outside it. Adding library-side enforcement of every ancestor's bounds would require a separate design/API pass. Implementation and fresh installed touch/audit verification are recorded separately from the failed baseline in the native inspection ledger.
