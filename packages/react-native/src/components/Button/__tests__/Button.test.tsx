@@ -402,4 +402,17 @@ describe("Button public native contract", () => {
     )
     await expect(render(<Button hoverColor="currentColor">Invalid hover</Button>)).rejects.toThrow(/Button.*hoverColor/)
   })
+
+  it("rejects invalid shadow colors in custom and callback style layers", async () => {
+    await expect(
+      render(<Button customStyles={{ boxShadow: "0px 1px 2px not-a-color" }}>Invalid custom shadow</Button>),
+    ).rejects.toThrow(/Button.*customStyles.boxShadow\[0\].color/)
+    await expect(
+      render(
+        <Button style={() => ({ filter: [{ dropShadow: { offsetX: 0, offsetY: 1, color: "var(--shadow)" } }] })}>
+          Invalid callback shadow
+        </Button>,
+      ),
+    ).rejects.toThrow(/Button.*style.filter\[0\].dropShadow.color/)
+  })
 })
