@@ -1,4 +1,6 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { Fragment, useState } from "react"
+import { View } from "react-native"
 
 import { AVAILABLE_THEMING_ORDER_CODES, Button, NativeThemeProvider, Text } from "../../../.."
 
@@ -9,6 +11,47 @@ const pressEvent = { nativeEvent: { timestamp: 100, identifier: 1, pageX: 10, pa
 const hoverEvent = { nativeEvent: { timestamp: 200, clientX: 10, clientY: 20 } }
 
 describe("Button public native contract", () => {
+  it.each([
+    ["nested arrays", ["Save ", [3]]],
+    ["fragments across a phrase", ["Save ", <Fragment key="count">{3}</Fragment>]],
+    ["an explicit fragment", <Fragment key="label">Save {3}</Fragment>],
+    ["a render callback", () => ["Save ", 3]],
+    ["a render callback fragment", () => <>Save {3}</>],
+  ])("wraps %s as one unselectable phrase", async (_name, children) => {
+    await render(<Button>{children}</Button>)
+    const label = screen.getByText("Save 3")
+    expect(label).toHaveStyle({ color: "#171717", fontSize: 14 })
+    expect(label.props.selectable).toBe(false)
+    expect(screen.getByRole("button", { name: "Save 3" })).toBeOnTheScreen()
+  })
+
+  it("preserves keyed authored child state and native elements around primitive groups", async () => {
+    const initialize = jest.fn((label: string) => label)
+    const AuthoredContent = ({ label }: { label: string }) => {
+      const [identity] = useState(() => initialize(label))
+      return <Text testID={label}>{identity}</Text>
+    }
+    const { rerender } = await render(
+      <Button>
+        <AuthoredContent key="first" label="First" />
+        <View key="icon" testID="authored-icon" style={{ width: 10, height: 10 }} />
+        <AuthoredContent key="second" label="Second" />
+      </Button>,
+    )
+    await rerender(
+      <Button>
+        <AuthoredContent key="second" label="Second" />
+        {"Save "}
+        {3}
+        <View key="icon" testID="authored-icon" style={{ width: 10, height: 10 }} />
+        <AuthoredContent key="first" label="First" />
+      </Button>,
+    )
+    expect(initialize).toHaveBeenCalledTimes(2)
+    expect(screen.getByTestId("authored-icon")).toHaveStyle({ width: 10, height: 10 })
+    expect(screen.getByText("Save 3")).toBeOnTheScreen()
+  })
+
   it("wraps plain content, preserves defaults and exposes a single button target", async () => {
     await render(<Button>Action</Button>)
     const button = screen.getByRole("button", { name: "Action" })

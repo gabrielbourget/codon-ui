@@ -3,8 +3,8 @@ import { Pressable, type GestureResponderEvent, type MouseEvent } from "react-na
 
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
-import { Text } from "../Text/Text"
 
+import { getNativeButtonContent } from "./content"
 import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
 
@@ -101,7 +101,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
   const resolved = getNativeButtonStyle(theme, props, flags)
   const state: TNativeButtonRenderState = { ...flags, foregroundColor: resolved.foregroundColor }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
-  const content = typeof rendered === "string" || typeof rendered === "number" ? <Text>{rendered}</Text> : rendered
+  const content = getNativeButtonContent(rendered)
   const automaticHitSlop = bounds
     ? {
         left: Math.max(0, (resolved.target - bounds.width) / 2),
