@@ -150,3 +150,66 @@ describe("NativeThemeProvider public contract", () => {
     expect(readTheme().opacity.disabled).toBe(0.4)
   })
 })
+
+it.each([
+  [
+    "light",
+    {
+      controlPlaceholder: "#707070",
+      controlHoverBackground: "#efefef",
+      controlPressedBackground: "#c6c6c6",
+      controlSelectedBackground: "#2563eb",
+      controlSelectedHoverBackground: "#245bd6",
+      controlSelectedPressedBackground: "#2254c1",
+      controlSelectedForeground: "#ffffff",
+      controlTrackBackground: "#c6c6c6",
+      controlTrackInvertedBackground: "#2c2c2c",
+      validationErrorBorder: "#b73434",
+      validationWarningBorder: "#a66b00",
+      validationSuccessBorder: "#2f7d18",
+    },
+  ],
+  [
+    "dark",
+    {
+      controlPlaceholder: "#878787",
+      controlHoverBackground: "#2c2c2c",
+      controlPressedBackground: "#3d3d3d",
+      controlSelectedBackground: "#2563eb",
+      controlSelectedHoverBackground: "#3b73ed",
+      controlSelectedPressedBackground: "#5182ef",
+      controlSelectedForeground: "#ffffff",
+      controlTrackBackground: "#3d3d3d",
+      controlTrackInvertedBackground: "#efefef",
+      validationErrorBorder: "#ff6b5f",
+      validationWarningBorder: "#f0b429",
+      validationSuccessBorder: "#6ad060",
+    },
+  ],
+] as const)("copies the twelve canonical control roles in %s mode", async (mode, expected) => {
+  await renderTheme({ mode })
+  expect(readTheme().colors).toMatchObject(expected)
+})
+
+it("overrides added control roles while retaining mode defaults and isolated children", async () => {
+  await render(
+    <NativeThemeProvider
+      mode="dark"
+      overrides={{ colors: { controlSelectedBackground: "#abcdef", validationErrorBorder: "#123456" } }}
+    >
+      <ThemeProbe label="outer" />
+      <NativeThemeProvider>
+        <ThemeProbe label="inner" />
+      </NativeThemeProvider>
+    </NativeThemeProvider>,
+  )
+  expect(readTheme("outer").colors).toMatchObject({
+    controlSelectedBackground: "#abcdef",
+    validationErrorBorder: "#123456",
+    controlPlaceholder: "#878787",
+  })
+  expect(readTheme("inner").colors).toMatchObject({
+    controlSelectedBackground: "#2563eb",
+    validationErrorBorder: "#b73434",
+  })
+})

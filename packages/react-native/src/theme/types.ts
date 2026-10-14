@@ -62,6 +62,18 @@ export type TNativeTheme = Readonly<{
     controlForeground: ColorValue
     controlBorder: ColorValue
     focusRing: ColorValue
+    controlPlaceholder: ColorValue
+    controlHoverBackground: ColorValue
+    controlPressedBackground: ColorValue
+    controlSelectedBackground: ColorValue
+    controlSelectedHoverBackground: ColorValue
+    controlSelectedPressedBackground: ColorValue
+    controlSelectedForeground: ColorValue
+    controlTrackBackground: ColorValue
+    controlTrackInvertedBackground: ColorValue
+    validationErrorBorder: ColorValue
+    validationWarningBorder: ColorValue
+    validationSuccessBorder: ColorValue
   }>
   actions: Readonly<Record<TThemingOrderCode, TNativeActionTheme>>
   spacing: Readonly<{ unit: number }>

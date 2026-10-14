@@ -22,3 +22,11 @@ export type {
 } from "./components/Button/types"
 export { AVAILABLE_CORNER_GEOMETRY_CODES } from "./tokens/geometry"
 export { AVAILABLE_THEMING_ORDER_CODES } from "./tokens/theme-order"
+export { Switch } from "./components/Switch/Switch"
+export type {
+  TNativeSwitchProps,
+  TNativeSwitchProps as SwitchProps,
+  TNativeSwitchRef,
+  TNativeSwitchRenderState,
+  TNativeSwitchStyleState,
+} from "./components/Switch/types"
