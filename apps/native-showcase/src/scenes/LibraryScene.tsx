@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { Fragment, useState } from "react"
 import { Platform, Pressable, StyleSheet, Text as CoreText, View } from "react-native"
 
 import {
@@ -123,20 +123,31 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         isDisabled={disabled}
         isPending={pending}
         onPress={increment}
+        raised={!custom}
         style={
           custom
-            ? (state) => ({ backgroundColor: state.isPressed ? "#173f5f" : "#123456", color: "#ffffff" })
+            ? (state) => ({
+                backgroundColor: state.isPressed ? "#173f5f" : "#123456",
+                color: "#ffffff",
+                boxShadow: renderChildren
+                  ? [{ offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0, 0, 0, 0.24)" }]
+                  : "0px 2px 3px rgba(0, 0, 0, 0.24)",
+                filter:
+                  renderChildren && Platform.OS === "android"
+                    ? [{ dropShadow: { offsetX: 0, offsetY: 2, standardDeviation: 1, color: "rgba(0, 0, 0, 0.24)" } }]
+                    : undefined,
+              })
             : undefined
         }
       >
         {renderChildren
           ? (state) => (
               <>
-                <Text>Rendered library action</Text>
+                Rendered library action {count}
                 <View accessible={false} style={{ width: 10, height: 10, backgroundColor: state.foregroundColor }} />
               </>
             )
-          : "Library action"}
+          : ["Library ", <Fragment key="label">action {count}</Fragment>]}
       </Button>
       <Button
         accessibilityLabel="Long library action"
@@ -154,7 +165,12 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
             Explicit 24 × 24 target in a parent that clips overflow. This fixture is an intentional target limitation.
           </Text>
           <View collapsable={false} style={{ width: 24, height: 24, overflow: "hidden" }}>
-            <Button accessibilityLabel="Constrained library action" width={24} height={24} onPress={increment}>
+            <Button
+              accessibilityLabel="Constrained library action"
+              customStyles={{ width: 24, height: 24 }}
+              style={(state) => state.defaultStyle}
+              onPress={increment}
+            >
               !
             </Button>
           </View>
