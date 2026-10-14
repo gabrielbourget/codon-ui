@@ -91,7 +91,12 @@ export const getNativeButtonStyle = (
       : {}),
   }
   const custom = resolveNativeStyle(customStyles, "Button", "customStyles")
-  const baseline = { ...base, ...custom }
+  const baseline = {
+    ...base,
+    minWidth: (custom.width ?? width) === undefined ? target : undefined,
+    minHeight: (custom.height ?? height) === undefined ? target : undefined,
+    ...custom,
+  }
   const final = resolveNativeStyle(
     typeof style === "function"
       ? style({ ...state, foregroundColor: baseline.color ?? foreground, defaultStyle: baseline })

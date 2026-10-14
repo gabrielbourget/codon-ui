@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { Fragment, useState } from "react"
-import { View } from "react-native"
+import { Platform, StyleSheet, View } from "react-native"
 
 import { AVAILABLE_THEMING_ORDER_CODES, Button, NativeThemeProvider, Text } from "../../../.."
 
@@ -335,6 +335,59 @@ describe("Button public native contract", () => {
     expect(button.props.hitSlop).toEqual({ left: 12, right: 12, top: 12, bottom: 12 })
     expect(onLayout).toHaveBeenCalledWith(event)
   })
+
+  it.each(["ios", "android"] as const)(
+    "keeps custom dimensions through an identity style callback on %s",
+    async (platform) => {
+      const platformSpy = jest.replaceProperty(Platform, "OS", platform)
+      const registered = StyleSheet.create({ dimensions: { width: 24, height: 24 } })
+      const styleCallback = jest.fn((state) => state.defaultStyle)
+      try {
+        await render(
+          <Button customStyles={[undefined, registered.dimensions]} style={styleCallback}>
+            Custom dimensions
+          </Button>,
+        )
+        expect(screen.getByRole("button")).toHaveStyle({
+          width: 24,
+          height: 24,
+          minWidth: undefined,
+          minHeight: undefined,
+        })
+        expect(styleCallback).toHaveBeenLastCalledWith(
+          expect.objectContaining({
+            defaultStyle: expect.objectContaining({ width: 24, height: 24, minWidth: undefined, minHeight: undefined }),
+          }),
+        )
+      } finally {
+        platformSpy.restore()
+      }
+    },
+  )
+
+  it.each(["ios", "android"] as const)(
+    "retains the other axis minimum and explicit final minima on %s",
+    async (platform) => {
+      const platformSpy = jest.replaceProperty(Platform, "OS", platform)
+      const target = platform === "ios" ? 44 : 48
+      try {
+        const { rerender } = await render(
+          <Button customStyles={{ width: 24 }} style={(state) => state.defaultStyle}>
+            One axis
+          </Button>,
+        )
+        expect(screen.getByRole("button")).toHaveStyle({ width: 24, minWidth: undefined, minHeight: target })
+        await rerender(
+          <Button customStyles={{ width: 24, height: 24 }} style={(state) => ({ ...state.defaultStyle, minWidth: 32 })}>
+            Explicit minimum
+          </Button>,
+        )
+        expect(screen.getByRole("button")).toHaveStyle({ width: 24, height: 24, minWidth: 32, minHeight: undefined })
+      } finally {
+        platformSpy.restore()
+      }
+    },
+  )
 
   it("retains alias/native precedence and rejects invalid callback/owned colors", async () => {
     await render(
