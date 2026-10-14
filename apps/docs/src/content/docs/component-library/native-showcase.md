@@ -32,7 +32,7 @@ Safe-area metrics and scroll layout are app-owned. These fixtures do not sense p
 
 ## Suggested Next Steps
 
-1. Review the ledger's post-restart Android/iOS inspection and completed focused follow-up. Development, color/state/layout, larger-text/footer and rotation results belong to the earlier inspected builds. Fresh Release builds with explicit fixture clipping and the corrected control label passed outside/inside touch checks on both emulators and the two strict iOS audits. Review the preserved captures and native overflow exception before owner acceptance.
+1. Review the prepared owner packet and independent implementation findings in the ledger. Its 83 original captures cover 44 review scenes with build provenance; three implementation issues require a bounded follow-up, and inherited low-contrast palette states need a separate theme decision. Earlier broad inspection and fresh corrected-fixture results retain their distinct artifacts. Passing primary-state audits do not certify other color orders.
 2. Complete owner visual review and physical VoiceOver/TalkBack/touch checks. The owner has an iPhone 16 and can borrow an Android phone; Apple account/signing preparation is deferred until the owner is ready. Agent captures and automated audits do not close this gate.
 3. Resolve any acceptance findings before opening the next Input/Switch/Select/Checkbox family contract pass. Review overlays, tables and dates before choosing a broad behavioral foundation; continue audited families until all 53 counterparts satisfy the library gate.
 4. Open native registry/CLI lifecycle and maintenance as separate contract passes. Wavemap production app work follows library acceptance; product navigation/auth/maps/server workflows stay consumer-owned.
