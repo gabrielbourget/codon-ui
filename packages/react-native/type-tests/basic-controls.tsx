@@ -1,6 +1,6 @@
 import { createRef } from "react"
 
-import { Switch, type SwitchProps, type TNativeSwitchRef } from "../src"
+import { Checkbox, CheckboxGroup, Switch, type SwitchProps, type TNativeSwitchRef } from "../src"
 
 const switchProps: SwitchProps = {
   isSelected: true,
@@ -19,3 +19,23 @@ export const InvalidSwitchClass = <Switch className="switch" />
 export const InvalidSwitchChildren = <Switch>Label</Switch>
 // @ts-expect-error disabled uses the Codon state prop
 export const InvalidSwitchDisabled = <Switch disabled />
+
+export const ValidCheckboxGroup = (
+  <CheckboxGroup value={["one"]} onChange={(values) => values.includes("one")}>
+    <Checkbox value="one" isIndeterminate>
+      {({ isSelected }) => <>Selected {isSelected ? 1 : 0}</>}
+    </Checkbox>
+  </CheckboxGroup>
+)
+// @ts-expect-error group selection uses string member values
+export const InvalidGroupValue = <CheckboxGroup value={[1]} />
+// @ts-expect-error the group must keep descendants individually accessible
+export const InvalidGroupAccessible = <CheckboxGroup accessible />
+// @ts-expect-error Checkbox owns checked state
+export const InvalidCheckboxState = <Checkbox accessibilityState={{ checked: "mixed" }} />
+// @ts-expect-error no DOM form submission contract
+export const InvalidCheckboxName = <Checkbox name="selection" />
+// @ts-expect-error native visual dimensions are numeric
+export const InvalidCheckboxWidth = <Checkbox width="20px" />
+// @ts-expect-error no React Aria state object is exposed
+export const InvalidCheckboxRenderState = <Checkbox>{(state) => state.state}</Checkbox>

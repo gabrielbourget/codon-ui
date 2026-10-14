@@ -1,0 +1,87 @@
+import { forwardRef, useState } from "react"
+import { View, type ViewStyle } from "react-native"
+
+import { useNativeTheme } from "../../theme"
+import { resolveNativeStyle } from "../colors"
+
+import { NativeCheckboxGroupContext } from "./context"
+import type { TNativeCheckboxGroupProps, TNativeCheckboxGroupRef } from "./types"
+
+export const CheckboxGroup = forwardRef<TNativeCheckboxGroupRef, TNativeCheckboxGroupProps>(
+  (
+    {
+      children,
+      value,
+      defaultValue = [],
+      onChange,
+      isDisabled = false,
+      isReadOnly = false,
+      orientation = "vertical",
+      customStyles,
+      style,
+      testID,
+      accessibilityLabel,
+      "data-testid": aliasTestID,
+      "aria-label": aliasLabel,
+      ...rest
+    },
+    ref,
+  ) => {
+    const theme = useNativeTheme()
+    const [localValue, setLocalValue] = useState(() => [...defaultValue])
+    const selected = value ?? localValue
+    const custom = resolveNativeStyle(customStyles, "CheckboxGroup", "customStyles")
+    const baseline: ViewStyle = {
+      flexDirection: orientation === "horizontal" ? "row" : "column",
+      alignItems: "flex-start",
+      flexWrap: "wrap",
+      gap: theme.spacing.unit * 2,
+      ...custom,
+    }
+    const resolved = resolveNativeStyle(
+      [
+        baseline,
+        resolveNativeStyle(
+          typeof style === "function"
+            ? style({ value: selected, isDisabled, isReadOnly, defaultStyle: baseline })
+            : style,
+          "CheckboxGroup",
+          "style",
+        ),
+      ],
+      "CheckboxGroup",
+      "resolvedStyle",
+    )
+    return (
+      <NativeCheckboxGroupContext.Provider
+        value={{
+          value: selected,
+          isDisabled,
+          isReadOnly,
+          change: (member, nextSelected) => {
+            if (isDisabled || isReadOnly) return
+            const next = nextSelected
+              ? selected.includes(member)
+                ? [...selected]
+                : [...selected, member]
+              : selected.filter((entry) => entry !== member)
+            if (value === undefined) setLocalValue(next)
+            onChange?.(next)
+          },
+        }}
+      >
+        <View
+          {...rest}
+          ref={ref}
+          accessible={false}
+          testID={testID ?? aliasTestID ?? "checkbox-group"}
+          accessibilityLabel={accessibilityLabel ?? aliasLabel}
+          style={resolved}
+        >
+          {children}
+        </View>
+      </NativeCheckboxGroupContext.Provider>
+    )
+  },
+)
+CheckboxGroup.displayName = "CheckboxGroup"
