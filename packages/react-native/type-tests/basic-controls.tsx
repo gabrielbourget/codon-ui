@@ -1,6 +1,14 @@
 import { createRef } from "react"
 
-import { Checkbox, CheckboxGroup, Switch, type SwitchProps, type TNativeSwitchRef } from "../src"
+import {
+  Checkbox,
+  CheckboxGroup,
+  Input,
+  Switch,
+  type SwitchProps,
+  type TNativeSwitchRef,
+  type TNativeInputRef,
+} from "../src"
 
 const switchProps: SwitchProps = {
   isSelected: true,
@@ -39,3 +47,26 @@ export const InvalidCheckboxName = <Checkbox name="selection" />
 export const InvalidCheckboxWidth = <Checkbox width="20px" />
 // @ts-expect-error no React Aria state object is exposed
 export const InvalidCheckboxRenderState = <Checkbox>{(state) => state.state}</Checkbox>
+
+export const ValidInput = (
+  <Input
+    ref={createRef<TNativeInputRef>()}
+    value="value"
+    onChangeText={(text) => text.toUpperCase()}
+    onChange={(event) => event.nativeEvent.text}
+    isReadOnly
+    style={({ defaultStyle, isInvalid }) => [defaultStyle, { color: isInvalid ? "red" : "black" }]}
+  />
+)
+// @ts-expect-error Input uses isReadOnly rather than a conflicting native alias
+export const InvalidInputReadOnly = <Input readOnly />
+// @ts-expect-error Input owns native editing availability
+export const InvalidInputEditable = <Input editable />
+// @ts-expect-error TextArea is a separate counterpart
+export const InvalidInputMultiline = <Input multiline />
+// @ts-expect-error no DOM input types
+export const InvalidInputType = <Input type="email" />
+// @ts-expect-error native events are not DOM targets
+export const InvalidInputChange = <Input onChange={(event) => event.target.value} />
+// @ts-expect-error TextInput does not promise a native hover style flag
+export const InvalidInputHover = <Input style={(state) => ({ opacity: state.isHovered ? 1 : 0.5 })} />

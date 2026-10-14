@@ -80,6 +80,19 @@ describe("Switch public native contract", () => {
     expect(part("track")).toHaveStyle({ width: 90, height: 25 })
   })
 
+  it("allows a fresh accessibility-style activation after a cancelled gesture ends", async () => {
+    const onChange = jest.fn()
+    const { rerender } = await render(<Switch onChange={onChange} />)
+    await fireEvent(screen.getByRole("switch"), "pressIn", event)
+    await rerender(<Switch isReadOnly onChange={onChange} />)
+    await fireEvent(screen.getByRole("switch"), "pressOut", event)
+    await rerender(<Switch onChange={onChange} />)
+    await fireEvent.press(screen.getByRole("switch"), event)
+    expect(onChange).not.toHaveBeenCalled()
+    await fireEvent.press(screen.getByRole("switch"), { nativeEvent: { timestamp: 101 } })
+    expect(onChange.mock.calls).toEqual([[true]])
+  })
+
   it("preserves custom dimensions in an identity callback and leaves explicit minima last", async () => {
     const callback = jest.fn(({ defaultStyle }) => defaultStyle)
     await render(<Switch height={21} customStyles={{ width: 24, height: 24, minWidth: 12 }} style={callback} />)

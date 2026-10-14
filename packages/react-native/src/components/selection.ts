@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import { Platform, type PressableProps, type StyleProp, type ViewStyle } from "react-native"
+import { Platform, type GestureResponderEvent, type PressableProps, type StyleProp, type ViewStyle } from "react-native"
 
 import type { TNativeTheme } from "../theme/types"
 import type { TCornerGeometry } from "../tokens/geometry"
@@ -46,7 +46,10 @@ export const useNativeSelectionInteraction = (
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
-  const cycle = useRef({ active: false, cancelled: false })
+  const cycle = useRef<{ active: boolean; cancelled: boolean; end?: GestureResponderEvent }>({
+    active: false,
+    cancelled: false,
+  })
   const blocked = isDisabled || isReadOnly
   useEffect(() => {
     if (!blocked) return
@@ -68,11 +71,18 @@ export const useNativeSelectionInteraction = (
     onPressOut: (event) => {
       if (!cycle.current.active) return
       cycle.current.active = false
+      cycle.current.end = event
       setPressed(false)
       props.onPressOut?.(event)
     },
     onPress: (event) => {
-      if (blocked || cycle.current.cancelled) return
+      const cancelledGesture =
+        cycle.current.cancelled &&
+        (!cycle.current.end ||
+          cycle.current.end === event ||
+          cycle.current.end.nativeEvent.timestamp === event.nativeEvent.timestamp)
+      if (blocked || cancelledGesture) return
+      cycle.current.cancelled = false
       activate()
       props.onPress?.(event)
     },
@@ -125,8 +135,8 @@ export const getNativeControlRootStyle = <T extends ViewStyle, S extends object>
   const custom = resolveNativeStyle(customStyles, component, "customStyles")
   const baseline = {
     ...base,
-    minWidth: custom.width === undefined ? target : undefined,
-    minHeight: custom.height === undefined ? target : undefined,
+    minWidth: (custom.width ?? base.width) === undefined ? target : undefined,
+    minHeight: (custom.height ?? base.height) === undefined ? target : undefined,
     ...custom,
   }
   const final = resolveNativeStyle(
@@ -138,8 +148,8 @@ export const getNativeControlRootStyle = <T extends ViewStyle, S extends object>
     [
       {
         ...base,
-        minWidth: (final.width ?? custom.width) === undefined ? target : undefined,
-        minHeight: (final.height ?? custom.height) === undefined ? target : undefined,
+        minWidth: (final.width ?? custom.width ?? base.width) === undefined ? target : undefined,
+        minHeight: (final.height ?? custom.height ?? base.height) === undefined ? target : undefined,
       },
       custom,
       final,
