@@ -72,7 +72,7 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
   const theme = useNativeTheme()
   const insets = useSafeAreaInsets()
   return (
-    <KeyboardAvoidingView style={styles.surface} behavior={Platform.OS === "android" ? "height" : undefined}>
+    <KeyboardAvoidingView style={styles.surface} behavior="height">
       <View
         style={[
           styles.surface,
@@ -91,7 +91,6 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
           contentContainerStyle={styles.page}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
-          automaticallyAdjustKeyboardInsets
         >
           {children}
         </ScrollView>
