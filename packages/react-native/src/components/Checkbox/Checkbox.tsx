@@ -165,7 +165,7 @@ export const Checkbox = forwardRef<TNativeCheckboxRef, TNativeCheckboxProps>((pr
             />
           ) : null}
         </View>
-        {getNativeControlContent(rendered)}
+        {getNativeControlContent(rendered, { flexShrink: 1 })}
       </Pressable>
     </NativeContentContext.Provider>
   )

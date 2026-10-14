@@ -67,6 +67,7 @@ describe("Input public native contract", () => {
     expect(onChange).not.toHaveBeenCalled()
     expect(onChangeText).not.toHaveBeenCalled()
     expect(input.props.editable).toBe(false)
+    expect(input.props.readOnly).toBe(true)
     expect(input.props.accessibilityState.disabled).toBe(flag === "isDisabled")
     expect(input).toHaveStyle({ opacity: flag === "isDisabled" ? 0.4 : 1 })
   })

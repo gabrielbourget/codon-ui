@@ -21,6 +21,7 @@ describe("Checkbox public native contract", () => {
       borderColor: "#9e9e9e",
     })
     expect(screen.getByText("Choose 3").props.selectable).toBe(false)
+    expect(screen.getByText("Choose 3")).toHaveStyle({ flexShrink: 1 })
     expect(checkbox.props.accessibilityState).toEqual({ checked: false, disabled: false })
   })
 

@@ -1,14 +1,19 @@
 import { Children, Fragment, isValidElement, type ReactNode } from "react"
+import type { StyleProp, TextStyle } from "react-native"
 
 import { Text } from "../Text/Text"
 
-export const getNativeButtonContent = (children: ReactNode) => {
+export const getNativeButtonContent = (children: ReactNode, ownedStyles?: StyleProp<TextStyle>) => {
   const content: ReactNode[] = []
   let phrase: (string | number)[] = []
   let phraseKey: string
   const finishPhrase = () => {
     if (!phrase.length) return
-    content.push(<Text key={phraseKey}>{phrase}</Text>)
+    content.push(
+      <Text key={phraseKey} customStyles={ownedStyles}>
+        {phrase}
+      </Text>,
+    )
     phrase = []
   }
   const visit = (nodes: ReactNode, scope: (string | number)[]) => {

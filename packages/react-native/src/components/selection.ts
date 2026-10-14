@@ -70,6 +70,7 @@ export const useNativeSelectionInteraction = (
     },
     onPressOut: (event) => {
       if (!cycle.current.active) return
+      event.persist?.()
       cycle.current.active = false
       cycle.current.end = event
       setPressed(false)

@@ -165,7 +165,7 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
         testID={testID ?? aliasTestID ?? "switch"}
         style={rootStyle}
       >
-        {getNativeControlContent(leftContent)}
+        {getNativeControlContent(leftContent, { flexShrink: 1 })}
         <View
           testID={`${testID ?? aliasTestID ?? "switch"}-track`}
           style={trackStyle}
@@ -223,7 +223,7 @@ export const Switch = forwardRef<TNativeSwitchRef, TNativeSwitchProps>((props, r
             />
           </View>
         </View>
-        {getNativeControlContent(rightContent)}
+        {getNativeControlContent(rightContent, { flexShrink: 1 })}
       </Pressable>
     </NativeContentContext.Provider>
   )

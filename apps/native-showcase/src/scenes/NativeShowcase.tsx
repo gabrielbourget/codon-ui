@@ -1,12 +1,22 @@
 import { StatusBar } from "expo-status-bar"
 import { useState, type PropsWithChildren } from "react"
-import { Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from "react-native"
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import { NativeThemeProvider, useNativeTheme, type NativeThemeMode } from "@codon-ui/react-native"
 
 import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
 
+import { BasicControlsScene } from "./BasicControlsScene"
 import { LibraryScene } from "./LibraryScene"
 import { SceneShell } from "./SceneShell"
 
@@ -62,23 +72,31 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
   const theme = useNativeTheme()
   const insets = useSafeAreaInsets()
   return (
-    <View
-      style={[
-        styles.surface,
-        {
-          backgroundColor: theme.colors.background,
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingLeft: insets.left,
-          paddingRight: insets.right,
-        },
-      ]}
-    >
-      <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
-      <ScrollView style={styles.surface} contentContainerStyle={styles.page}>
-        {children}
-      </ScrollView>
-    </View>
+    <KeyboardAvoidingView style={styles.surface} behavior={Platform.OS === "android" ? "height" : undefined}>
+      <View
+        style={[
+          styles.surface,
+          {
+            backgroundColor: theme.colors.background,
+            paddingTop: insets.top,
+            paddingBottom: insets.bottom,
+            paddingLeft: insets.left,
+            paddingRight: insets.right,
+          },
+        ]}
+      >
+        <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
+        <ScrollView
+          style={styles.surface}
+          contentContainerStyle={styles.page}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          automaticallyAdjustKeyboardInsets
+        >
+          {children}
+        </ScrollView>
+      </View>
+    </KeyboardAvoidingView>
   )
 }
 
@@ -88,13 +106,13 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [libraryScene, setLibraryScene] = useState(false)
+  const [scene, setScene] = useState<"foundation" | "library" | "controls">("foundation")
   const reset = () => {
     setMode("light")
     setCustomized(false)
     setFixture("live")
     setCount(0)
-    setLibraryScene(false)
+    setScene("foundation")
   }
 
   return (
@@ -106,8 +124,17 @@ export const NativeShowcase = () => {
         <ThemeHeading />
         <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
         <View style={styles.controls}>
-          <FixtureAction label="Foundation scene" selected={!libraryScene} onPress={() => setLibraryScene(false)} />
-          <FixtureAction label="Text/Button scene" selected={libraryScene} onPress={() => setLibraryScene(true)} />
+          <FixtureAction
+            label="Foundation scene"
+            selected={scene === "foundation"}
+            onPress={() => setScene("foundation")}
+          />
+          <FixtureAction label="Text/Button scene" selected={scene === "library"} onPress={() => setScene("library")} />
+          <FixtureAction
+            label="Basic controls scene"
+            selected={scene === "controls"}
+            onPress={() => setScene("controls")}
+          />
         </View>
         <View style={styles.controls}>
           <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -130,7 +157,9 @@ export const NativeShowcase = () => {
           ))}
         </View>
         <SceneShell fixture={fixture}>
-          {libraryScene ? (
+          {scene === "controls" ? (
+            <BasicControlsScene />
+          ) : scene === "library" ? (
             <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
           ) : (
             <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />

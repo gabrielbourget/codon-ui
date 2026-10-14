@@ -1,12 +1,12 @@
 # Native Basic Controls — Contract And Execution Proposal
 
-Status: **Source screening and focused web baseline complete; proposed native APIs and theme-role additions await owner approval**. Prepared 2026-10-14 against Codon `19ae608`. The owner has moved closer visual inspection to application feature integration; that review no longer blocks this contract pass. This proposal follows the [canonical native ledger](react-native-library-first-pass.md) and preserves the current palette and deferred iPhone signing.
+Status: **Owner-approved implementation and proof run recorded in ledger Section 8.17; rapid text-entry iOS Input acceptance remains open**. Prepared 2026-10-14 against Codon `19ae608`. The owner has moved closer visual inspection to application feature integration; that review no longer blocks this contract pass. This proposal follows the [canonical native ledger](react-native-library-first-pass.md) and preserves the current palette and deferred iPhone signing.
 
 ## Bounded Run And Commit Cadence
 
 Recommend four native counterparts in this run: Switch, Checkbox, CheckboxGroup and Input. Use the existing React Native 0.86.3/Expo host, hand-authored theme and native verification harnesses. Core Pressable/View/Text primitives support the toggles; core TextInput supports Input. No dependency changes or new behavioral framework are proposed. Keep implementation in `packages/react-native`, generic fixtures in `apps/native-showcase` and maintained explanations in Codon docs.
 
-After approval, commit at these coherent boundaries:
+The owner approved these coherent implementation boundaries:
 
 1. Add the exact existing-color theme roles below, native Switch, public types and focused state/style/color tests.
 2. Add native Checkbox and CheckboxGroup, private group context, public types and selection/composition tests.
@@ -33,7 +33,7 @@ The current web Switch destructures but does not render `children`; labels use `
 
 ## Shared Native Contract
 
-Public exports proposed: `Switch`, `Checkbox`, `CheckboxGroup`, `Input`, their `...Props` aliases and named `TNative...` ref/render/style-state types where needed, plus `INPUT_SIZE__SM`, `INPUT_SIZE__MD`, `INPUT_SIZE__LG` and `AVAILABLE_INPUT_SIZES` as an `as const` array. Reuse the existing geometry/order vocabulary. Private selection/style/content helpers and group context stay private; no new subpath exports or shared cross-package runtime are proposed.
+Approved public exports: `Switch`, `Checkbox`, `CheckboxGroup`, `Input`, their `...Props` aliases and named `TNative...` ref/render/style-state types where needed, plus `INPUT_SIZE__SM`, `INPUT_SIZE__MD`, `INPUT_SIZE__LG` and `AVAILABLE_INPUT_SIZES` as an `as const` array. Reuse the existing geometry/order vocabulary. Private selection/style/content helpers and group context stay private; no new subpath exports or shared cross-package runtime are proposed.
 
 Use native props and refs: Pressable's View ref for Switch/Checkbox, View for CheckboxGroup and TextInput for Input. Consume Codon wrapper props before spreading native host props. Support `testID`/`data-testid` and `accessibilityLabel`/`aria-label` with the established native-prop precedence. CSS classes, DOM event/form props, React Aria slot/inputRef/state objects, CSS variable strings and `isFocusVisible` are not native contracts. Preserve native hints, focus/blur, press and text events where the owning core primitive supports them; do not fabricate keyboard, hover or screen-reader proof from tests.
 
@@ -47,7 +47,7 @@ For each styled part use computed defaults → validated customStyles → final 
 
 Add these twelve ColorValue fields to `NativeTheme.colors` and its existing partial override type. Each default is an existing canonical web role; no current literal/action ramp is revised. Adding named override roles is a public theme-contract change included in this approval. Existing provider merge/isolation behavior stays unchanged.
 
-| Proposed role                    | Canonical role                                 | Light     | Dark      |
+| Approved role                    | Canonical role                                 | Light     | Dark      |
 | -------------------------------- | ---------------------------------------------- | --------- | --------- |
 | controlPlaceholder               | `--cui-control-placeholder`                    | `#707070` | `#878787` |
 | controlHoverBackground           | `--cui-control-hover-background`               | `#efefef` | `#2c2c2c` |
@@ -101,3 +101,7 @@ The owning showcase adds controlled and uncontrolled toggles, mixed/group select
 Use the prepared local native lab for affected installed Release checks on Android and iOS, sequentially to fit this Intel host. Prove activation/suppression, mixed/group labels, controlled output, text entry/keyboard reachability, reset and targeted large text. Capture changed representative scenes for later owner review. Do not repeat all prior Text/Button color/geometry captures when their source is untouched. Native inspection or accessibility failures that prevent usable controls must be fixed before advancing; routine cosmetic comparison and physical assistive-technology acceptance are deferred to application integration by the owner.
 
 Select's next proposal must resolve the native collection/value/render-item contract with ListBoxItem, popup versus modal presentation, dismissal/back/focus restoration, virtualization, labels and keyboard navigation before adding an overlay runtime or claiming parity. The four basic controls above neither require nor preselect that architecture. Stop this run for new dependencies, unplanned public APIs/theme shape, registry/CLI, release or ownership changes; otherwise complete all approved commits without pausing after each routine edit.
+
+## Execution Receipt
+
+The approved source passes landed as `6c6efc6`, `a2a0d51` and `8966afd`, followed by the maintained showcase/consumer/native-evidence boundary. [Ledger Section 8.17](react-native-library-first-pass.md#817-approved-basic-controls-consumer-and-installed-checks--2026-10-14) owns the final tests, immutable archive and installed-source identities, runtime fixes, passing paced-entry checks and the unresolved iOS rapid text-entry stream. This receipt does not close full Input or physical acceptance. Existing palette values and iPhone signing remain unchanged.
