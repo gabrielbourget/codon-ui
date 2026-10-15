@@ -1,0 +1,12 @@
+{
+  "typescript": "5.9.3",
+  "target": "ES2022",
+  "declarations": {
+    "strict": true,
+    "skipLibCheck": true,
+    "lib": ["ESNext", "DOM"],
+    "jsx": "react-jsx",
+    "module": "ESNext",
+    "moduleResolution": "Bundler"
+  }
+}

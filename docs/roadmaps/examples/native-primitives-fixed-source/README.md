@@ -1,0 +1,17 @@
+# Isolated Fixed-Source RN Primitives Trial
+
+These non-shipping reproduction inputs implement [the approved four-pass trial](../../react-native-primitives-fixed-source-pass.md). They are not a workspace, production dependency or public Codon API. Keep Codon's source archive, palette, styling and controlled contracts unchanged. Shared React Native TypeScript remains the component implementation language; generated native projects and XCTest are inspection infrastructure.
+
+`provenance.json` identifies the immutable upstream archive and checked Git blobs. `build.mjs` compiles only native TypeScript entry modules into ESM/CommonJS and strict declarations using the consumer's existing TypeScript 5.9.3. Relative ESM imports receive explicit .mjs suffixes. The existing consumer React types are bound only for declaration compilation; no runtime alias is used. The declaration build includes DOM types for upstream's existing web-shaped declarations, while the trial adapter retains its existing consumer compiler contract. No upstream tsup/development graph is installed. Private artifacts retain declared runtime/peer metadata, MIT notices, distinct file/hash/build identities and a private/non-publishing manifest. They do not claim web or publisher-build equivalence.
+
+Run the builder with Node 24.15.0 and pnpm 10.18.3 available on PATH:
+
+```sh
+node build.mjs /absolute/upstream /absolute/consumer /absolute/new-output portal
+```
+
+The output must be new. Install the resulting file tarball into a fresh copy of the archived consumer, along with the approved react-dom 19.2.3 development peer, using scripts disabled and the existing seven-day release age. Freeze the resulting lockfile and verify peer/module identities before running tests. Feature builds resolve their existing declared dependency graph from the consumer; no added compiler dependency or Metro alias is required. Build metadata distinguishes artifacts but does not alter semver precedence, so hashes and file references are authoritative.
+
+The original `portal-published.test.tsx` remains unchanged: it fails against the previously evaluated published Portal and must pass against the fixed artifact. `portal-lifecycle.test.tsx` adds edited-survivor, reverse-removal, host-isolation and cleanup cases. Preserve the published negative control in a separate consumer/result; do not count an expected failure as an accepted candidate test. The original App/style/mark/behavior examples are copied unchanged for the fixed-Portal-only checkpoint. Later source patches and adapter changes receive their own identities and receipts.
+
+Actual frozen consumer inputs, generated packages, both Metro maps, exact installed binaries, inspector inputs, native results and captured failures live in the new private evidence packet named in [the execution receipt](../../react-native-primitives-fixed-source-receipt.md). Earlier sealed packets remain read-only. Production adoption and long-term source/patch distribution require a subsequent decision.
