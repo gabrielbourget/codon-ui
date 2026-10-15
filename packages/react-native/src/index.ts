@@ -133,3 +133,16 @@ export type {
   TNativeNumberInputRenderState,
   TNativeNumberInputStyleState,
 } from "./components/NumberInput/types"
+
+export { NativeOverlayProvider } from "./overlays/NativeOverlayProvider"
+export type {
+  TNativeOverlayProviderProps,
+  TNativeOverlayProviderProps as NativeOverlayProviderProps,
+} from "./overlays/NativeOverlayProvider"
+export { Modal } from "./components/Modal/Modal"
+export type {
+  TNativeModalProps,
+  TNativeModalProps as ModalProps,
+  TNativeModalRef,
+  TNativeModalRootStyle,
+} from "./components/Modal/types"

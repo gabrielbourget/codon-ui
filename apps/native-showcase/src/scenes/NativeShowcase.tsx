@@ -13,7 +13,12 @@ import {
 } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
 
-import { NativeThemeProvider, useNativeTheme, type NativeThemeMode } from "@codon-ui/react-native"
+import {
+  NativeOverlayProvider,
+  NativeThemeProvider,
+  useNativeTheme,
+  type NativeThemeMode,
+} from "@codon-ui/react-native"
 
 import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
 
@@ -21,6 +26,7 @@ import { BasicControlsScene } from "./BasicControlsScene"
 import { LibraryScene } from "./LibraryScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
+import { OverlayScene } from "./OverlayScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 
@@ -135,9 +141,9 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select" | "multiline" | "number">(
-    "foundation",
-  )
+  const [scene, setScene] = useState<
+    "foundation" | "library" | "controls" | "select" | "multiline" | "number" | "overlay"
+  >("foundation")
   const reset = () => {
     setMode("light")
     setCustomized(false)
@@ -151,65 +157,74 @@ export const NativeShowcase = () => {
       mode={mode}
       overrides={customized ? { colors: { foreground: "#087f8c" }, typography: { fontSizes: { b10: 18 } } } : undefined}
     >
-      <ShowcaseSurface>
-        <ThemeHeading />
-        <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
-        <View style={styles.controls}>
-          <FixtureAction
-            label="Foundation scene"
-            selected={scene === "foundation"}
-            onPress={() => setScene("foundation")}
-          />
-          <FixtureAction label="Text/Button scene" selected={scene === "library"} onPress={() => setScene("library")} />
-          <FixtureAction
-            label="Basic controls scene"
-            selected={scene === "controls"}
-            onPress={() => setScene("controls")}
-          />
-          <FixtureAction
-            label="Multiline/Radio scene"
-            selected={scene === "multiline"}
-            onPress={() => setScene("multiline")}
-          />
-          <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
-          <FixtureAction label="NumberInput scene" selected={scene === "number"} onPress={() => setScene("number")} />
-        </View>
-        <View style={styles.controls}>
-          <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
-          <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
-          <FixtureAction
-            label="Toggle customization"
-            selected={customized}
-            onPress={() => setCustomized((value) => !value)}
-          />
-          <FixtureAction label="Reset scene" onPress={reset} />
-        </View>
-        <View style={styles.controls}>
-          {AVAILABLE_LAYOUT_FIXTURES.map((value) => (
+      <NativeOverlayProvider>
+        <ShowcaseSurface>
+          <ThemeHeading />
+          <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
+          <View style={styles.controls}>
             <FixtureAction
-              key={value}
-              label={LAYOUT_FIXTURE_LABELS[value]}
-              selected={fixture === value}
-              onPress={() => setFixture(value)}
+              label="Foundation scene"
+              selected={scene === "foundation"}
+              onPress={() => setScene("foundation")}
             />
-          ))}
-        </View>
-        <SceneShell fixture={fixture}>
-          {scene === "number" ? (
-            <NumberInputScene />
-          ) : scene === "multiline" ? (
-            <MultilineRadioScene />
-          ) : scene === "select" ? (
-            <SelectScene />
-          ) : scene === "controls" ? (
-            <BasicControlsScene />
-          ) : scene === "library" ? (
-            <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
-          ) : (
-            <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
-          )}
-        </SceneShell>
-      </ShowcaseSurface>
+            <FixtureAction
+              label="Text/Button scene"
+              selected={scene === "library"}
+              onPress={() => setScene("library")}
+            />
+            <FixtureAction
+              label="Basic controls scene"
+              selected={scene === "controls"}
+              onPress={() => setScene("controls")}
+            />
+            <FixtureAction
+              label="Multiline/Radio scene"
+              selected={scene === "multiline"}
+              onPress={() => setScene("multiline")}
+            />
+            <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+            <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
+            <FixtureAction label="NumberInput scene" selected={scene === "number"} onPress={() => setScene("number")} />
+          </View>
+          <View style={styles.controls}>
+            <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
+            <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
+            <FixtureAction
+              label="Toggle customization"
+              selected={customized}
+              onPress={() => setCustomized((value) => !value)}
+            />
+            <FixtureAction label="Reset scene" onPress={reset} />
+          </View>
+          <View style={styles.controls}>
+            {AVAILABLE_LAYOUT_FIXTURES.map((value) => (
+              <FixtureAction
+                key={value}
+                label={LAYOUT_FIXTURE_LABELS[value]}
+                selected={fixture === value}
+                onPress={() => setFixture(value)}
+              />
+            ))}
+          </View>
+          <SceneShell fixture={fixture}>
+            {scene === "overlay" ? (
+              <OverlayScene />
+            ) : scene === "number" ? (
+              <NumberInputScene />
+            ) : scene === "multiline" ? (
+              <MultilineRadioScene />
+            ) : scene === "select" ? (
+              <SelectScene />
+            ) : scene === "controls" ? (
+              <BasicControlsScene />
+            ) : scene === "library" ? (
+              <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
+            ) : (
+              <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
+            )}
+          </SceneShell>
+        </ShowcaseSurface>
+      </NativeOverlayProvider>
     </NativeThemeProvider>
   )
 }

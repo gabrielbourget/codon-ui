@@ -1,0 +1,67 @@
+import { createOverlayRegistry } from "../registry"
+
+it("waits for native readiness and closes an ancestor deepest first", () => {
+  const registry = createOverlayRegistry()
+  registry.register("parent", null, false, true)
+  registry.register("child", "parent", false, true)
+  expect(registry.state("parent").visible).toBe(true)
+  expect(registry.state("child").mounted).toBe(false)
+  registry.shown("parent")
+  expect(registry.state("child").visible).toBe(true)
+  expect(registry.state("parent").active).toBe(false)
+  registry.shown("child")
+  expect(registry.state("child").active).toBe(true)
+  registry.request("parent", false)
+  expect(registry.state("child").closing).toBe(true)
+  expect(registry.state("parent").visible).toBe(true)
+  expect(registry.canRestore("parent")).toBe(false)
+  registry.dismissed("child")
+  expect(registry.state("parent").closing).toBe(true)
+  expect(registry.state("child").mounted).toBe(false)
+  registry.dismissed("parent")
+  expect(registry.canRestore(null)).toBe(true)
+  // Caller-owned true children may reopen on a later ancestor presentation.
+  registry.request("parent", true)
+  expect(registry.state("child").mounted).toBe(false)
+  registry.shown("parent")
+  expect(registry.state("child").visible).toBe(true)
+})
+
+it("serializes replacement through native dismissal and ignores stale readiness", () => {
+  const registry = createOverlayRegistry()
+  registry.register("old", null, false, true)
+  registry.shown("old")
+  registry.request("old", false)
+  registry.register("next", null, false, true)
+  expect(registry.state("next").mounted).toBe(false)
+  registry.shown("old")
+  expect(registry.state("old").closing).toBe(true)
+  registry.dismissed("old")
+  expect(registry.state("next").visible).toBe(true)
+  expect(registry.dismissed("old")).toBe(false)
+})
+
+it("rejects competing roots, sibling branches and children of a Select leaf", () => {
+  for (const parent of [null, "parent"]) {
+    const registry = createOverlayRegistry()
+    if (parent) registry.register(parent, null, false, true)
+    registry.register("one", parent, false, true)
+    expect(() => registry.register("two", parent, false, true)).toThrow("competing overlay branches")
+  }
+  const registry = createOverlayRegistry()
+  registry.register("select", null, true, true)
+  expect(() => registry.register("child", "select", false, true)).toThrow("Select is a leaf")
+})
+
+it("handles child-before-parent registration and cancels unmounted entries", () => {
+  const registry = createOverlayRegistry()
+  registry.register("child", "parent", false, true)
+  expect(registry.state("child").mounted).toBe(false)
+  registry.register("parent", null, false, true)
+  registry.shown("parent")
+  registry.unregister("child")
+  registry.shown("child")
+  expect(registry.state("parent").active).toBe(true)
+  registry.unregister("parent")
+  expect(registry.canRestore(null)).toBe(true)
+})

@@ -56,6 +56,7 @@ export type TNativeActionTheme = Readonly<{
 export type TNativeTheme = Readonly<{
   mode: TNativeThemeMode
   colors: Readonly<{
+    overlayBackdrop: ColorValue
     background: ColorValue
     foreground: ColorValue
     controlBackground: ColorValue
