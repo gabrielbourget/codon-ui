@@ -40,6 +40,8 @@ export const SelectOptions = <T,>({
   const rows = useRef(new Map<string, View>())
   const visible = useRef(new Set<string>())
   const attempts = useRef(0)
+  const measuredThrough = useRef(-1)
+  const waitingForMeasurementAfter = useRef<number | undefined>(undefined)
   const finished = useRef(false)
   const mounted = useRef(true)
   const frame = useRef<ReturnType<typeof requestAnimationFrame> | undefined>(undefined)
@@ -72,6 +74,12 @@ export const SelectOptions = <T,>({
       focusInitial()
       return
     }
+    if (
+      waitingForMeasurementAfter.current !== undefined &&
+      measuredThrough.current <= waitingForMeasurementAfter.current
+    )
+      return
+    waitingForMeasurementAfter.current = undefined
     if (attempts.current >= 3) {
       if (heading.current) AccessibilityInfo.sendAccessibilityEvent(heading.current, "focus")
       finished.current = true
@@ -145,7 +153,8 @@ export const SelectOptions = <T,>({
         }}
         keyExtractor={(entry) => entry.encodedKey}
         style={listStyles}
-        contentContainerStyle={{ padding: theme.spacing.unit * 2, gap: theme.spacing.unit }}
+        contentContainerStyle={{ padding: theme.spacing.unit * 2 }}
+        ItemSeparatorComponent={<View style={{ height: theme.spacing.unit }} />}
         initialNumToRender={12}
         maxToRenderPerBatch={16}
         windowSize={5}
@@ -153,18 +162,20 @@ export const SelectOptions = <T,>({
         onLayout={schedulePosition}
         onContentSizeChange={schedulePosition}
         onViewableItemsChanged={viewabilityChanged}
-        onScrollToIndexFailed={({ index, averageItemLength }) => {
+        onScrollToIndexFailed={({ index, averageItemLength, highestMeasuredFrameIndex }) => {
           if (!mounted.current || finished.current) return
           if (averageItemLength <= 0) {
             attempts.current = Math.max(0, attempts.current - 1)
             return
           }
+          // Wait for newly measured cells before spending another positioning attempt.
+          waitingForMeasurementAfter.current = highestMeasuredFrameIndex
           list.current?.scrollToOffset({ offset: Math.max(0, averageItemLength * index), animated: false })
         }}
         ListEmptyComponent={
           <Text testID={`${identity}-empty`}>{props.emptyListMessage ?? "No items remaining to select"}</Text>
         }
-        renderItem={({ item: entry }) => (
+        renderItem={({ item: entry, index }) => (
           <ListBoxItem
             ref={(node) => {
               if (node) rows.current.set(entry.encodedKey, node)
@@ -177,7 +188,10 @@ export const SelectOptions = <T,>({
             isReadOnly={props.isReadOnly}
             textSize={props.textSize}
             testID={`${identity}-option-${entry.encodedKey}`}
-            onLayout={schedulePosition}
+            onLayout={() => {
+              measuredThrough.current = Math.max(measuredThrough.current, index)
+              schedulePosition()
+            }}
             onPress={() => activate(entry.key)}
           >
             {(state) => (props.renderItem ? props.renderItem(entry.item, state) : entry.text)}

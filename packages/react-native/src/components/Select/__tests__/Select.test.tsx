@@ -212,15 +212,25 @@ it("waits for cell measurements and does not scroll after closing", async () => 
 it("caps retries driven by measured row-layout progress", async () => {
   const offset = jest.spyOn(FlatList.prototype, "scrollToOffset").mockImplementation(() => undefined)
   const scroll = jest.spyOn(FlatList.prototype, "scrollToIndex").mockImplementation(() => {
-    screen
-      .getByTestId("select-list")
-      .props.onScrollToIndexFailed({ index: 199, averageItemLength: 48, highestMeasuredFrameIndex: 10 })
+    screen.getByTestId("select-list").props.onScrollToIndexFailed({
+      index: 199,
+      averageItemLength: 48,
+      highestMeasuredFrameIndex: scroll.mock.calls.length - 1,
+    })
   })
   const many = Array.from({ length: 200 }, (_, id) => ({ id, name: `Choice ${id}` }))
   await render(<Select {...base} items={many} defaultValue={199} defaultOpen />)
   await fireEvent(screen.getByTestId("select-window"), "show")
-  for (let attempt = 0; attempt < 5; attempt += 1) {
+  await act(() => jest.runAllTimers())
+  for (let repeat = 0; repeat < 3; repeat += 1) {
     await fireEvent(screen.getByRole("radio", { name: "Choice 0" }), "layout", {
+      nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 48 } },
+    })
+    await act(() => jest.runAllTimers())
+  }
+  expect(scroll).toHaveBeenCalledTimes(1)
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    await fireEvent(screen.getByRole("radio", { name: `Choice ${attempt + 1}` }), "layout", {
       nativeEvent: { layout: { x: 0, y: 0, width: 390, height: 48 } },
     })
     await act(() => jest.runAllTimers())
