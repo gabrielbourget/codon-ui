@@ -239,6 +239,33 @@ it("caps retries driven by measured row-layout progress", async () => {
   expect(offset).toHaveBeenCalledTimes(2)
 })
 
+it("waits for full row visibility before finishing initial accessibility focus", async () => {
+  jest.spyOn(FlatList.prototype, "scrollToIndex").mockImplementation(() => {
+    screen.getByTestId("select-list").props.onScrollToIndexFailed({
+      index: 0,
+      averageItemLength: 0,
+      highestMeasuredFrameIndex: -1,
+    })
+  })
+  await render(<Select {...base} defaultValue={0} defaultOpen />)
+  await fireEvent(screen.getByTestId("select-window"), "show")
+  await act(() => jest.runAllTimers())
+  jest.mocked(AccessibilityInfo.sendAccessibilityEvent).mockClear()
+  const list = screen.getByTestId("select-list")
+  expect(list.props.viewabilityConfig).toEqual({ itemVisiblePercentThreshold: 100 })
+  const token = {
+    item: { key: 0, encodedKey: "number:0", text: "Numeric zero", item: items[0] },
+    index: 0,
+    key: "number:0",
+  }
+  await act(() => list.props.onViewableItemsChanged({ viewableItems: [{ ...token, isViewable: false }] }))
+  await act(() => jest.runAllTimers())
+  expect(AccessibilityInfo.sendAccessibilityEvent).not.toHaveBeenCalled()
+  await act(() => list.props.onViewableItemsChanged({ viewableItems: [{ ...token, isViewable: true }] }))
+  await act(() => jest.runAllTimers())
+  expect(AccessibilityInfo.sendAccessibilityEvent).toHaveBeenCalledTimes(1)
+})
+
 it.each([
   { accessibilityLabel: " " },
   { closeLabel: " " },

@@ -164,6 +164,7 @@ export const SelectOptions = <T,>({
         removeClippedSubviews={false}
         onLayout={schedulePosition}
         onContentSizeChange={schedulePosition}
+        viewabilityConfig={{ itemVisiblePercentThreshold: 100 }}
         onViewableItemsChanged={viewabilityChanged}
         onScrollToIndexFailed={({ index, averageItemLength, highestMeasuredFrameIndex }) => {
           if (!mounted.current || finished.current) return
