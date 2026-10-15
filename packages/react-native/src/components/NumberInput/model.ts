@@ -40,12 +40,16 @@ export const createNumberModel = ({
   if (
     !formatOptions ||
     typeof formatOptions !== "object" ||
+    Array.isArray(formatOptions) ||
     Object.keys(formatOptions).some((key) => !allowed.includes(key))
   )
     invalid("formatOptions")
   if (formatOptions.style !== undefined && formatOptions.style !== "decimal") invalid("formatOptions.style")
   if (formatOptions.useGrouping !== undefined && typeof formatOptions.useGrouping !== "boolean")
     invalid("formatOptions.useGrouping")
+  for (const field of ["minimumFractionDigits", "maximumFractionDigits"] as const)
+    if (formatOptions[field] !== undefined && typeof formatOptions[field] !== "number")
+      invalid(`formatOptions.${field}`)
   const minimumFractionDigits = formatOptions.minimumFractionDigits ?? 0
   const maximumFractionDigits = formatOptions.maximumFractionDigits ?? Math.max(3, minimumFractionDigits)
   for (const digits of [minimumFractionDigits, maximumFractionDigits])

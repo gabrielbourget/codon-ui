@@ -116,6 +116,7 @@ export type {
   TNativeRadioGroupOrientation,
 } from "./components/RadioGroup/types"
 
+export { NumberInput } from "./components/NumberInput/NumberInput"
 export {
   NUMBER_INPUT_SIZE__SM,
   NUMBER_INPUT_SIZE__MD,

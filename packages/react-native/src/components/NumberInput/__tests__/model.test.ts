@@ -71,6 +71,9 @@ describe("NumberInput decimal model", () => {
     expect(() => createNumberModel(config)).toThrow(TypeError)
   })
   test("rejects unsupported formats and nonrepresentable props", () => {
+    expect(() => createNumberModel({ formatOptions: { maximumFractionDigits: null } as never })).toThrow(TypeError)
+    expect(() => createNumberModel({ formatOptions: [] as never })).toThrow(TypeError)
+    expect(() => createNumberModel({ locale: "en-US-u-nu-foobar" })).toThrow(TypeError)
     expect(() => createNumberModel({ formatOptions: { style: "currency" } as never })).toThrow(TypeError)
     expect(() => createNumberModel({ formatOptions: { notation: "compact" } as never })).toThrow(TypeError)
     expect(() => createNumberModel({ formatOptions: { useGrouping: "yes" } as never })).toThrow(TypeError)
