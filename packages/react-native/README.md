@@ -1,6 +1,6 @@
 # @codon-ui/react-native
 
-Private native-owned Codon foundation for the Expo SDK 57 / React Native 0.86.3 / React 19.2.3 laboratory. The package exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, the theme provider, hook and public types. Further component families follow the compatibility roadmap; closer owner visual review accompanies application feature integration.
+Private native-owned Codon foundation for the Expo SDK 57 / React Native 0.86.3 / React 19.2.3 laboratory. The package exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, ListBoxItem, the theme provider, hook and public types. Further component families follow the compatibility roadmap; closer owner visual review accompanies application feature integration.
 
 ```sh
 pnpm -F @codon-ui/react-native build
@@ -9,6 +9,8 @@ pnpm -F @codon-ui/react-native test --runInBand
 ```
 
 Metro's react-native export resolves canonical TypeScript source; types and compiled imports use dist. Build before checking consumer types. React and React Native are exact lab peers; Expo is owned by the consumer. The native package has no DOM, React Aria, Expo or CSS runtime imports.
+
+The approved Select pass adds react-native-safe-area-context 5.7.0 as an exact peer/development dependency, matching the showcase. Consumers install that peer and complete normal native linking/build steps. Select's modal owns its safe-area provider; Expo remains consumer-owned.
 
 NativeThemeProvider selects explicit light/dark defaults and applies typed partial overrides. Nested providers are independent; omitted mode selects light. useNativeTheme outside a provider returns light defaults. Overrides apply to named roles, not an automatic palette regeneration. System fonts and native line metrics are the defaults, with user text scaling retained by consuming Text views. CSS-variable color strings are not native color inputs even though RN's string color type accepts them.
 
@@ -29,3 +31,5 @@ Switch and Checkbox use View-backed Pressable refs. isSelected/onChange(boolean)
 CheckboxGroup coordinates string-valued Checkbox members through private context, including members inside ordinary native wrappers. Controlled value/onChange or defaultValue owns selection; member selection props do not override the group. Group disabled/read-only flags block members, nested groups isolate state and values are updated without mutating caller arrays. Members remain separate accessibility targets. DOM form validation/submission and table slot context remain host/later-family work.
 
 Input forwards a core TextInput ref and native value/defaultValue, onChangeText/onChange/submit/focus/selection events. It is single-line, retains native text scaling and keyboard options, and uses isDisabled/isReadOnly instead of editable/readOnly aliases. Small/medium/large map to b11/b10/b9. Error/warning/success props set border presentation in that priority; host form logic owns messages and validation. Input style callbacks receive focus/disabled/read-only/invalid flags and a post-custom defaultStyle, without hover/focus-visible claims. Twelve added theme color roles copy existing canonical control/validation colors; existing defaults and action ramps remain unchanged. Hosts should use the native submit event's final text when committing a form value. The showcase owns safe-area, scroll and keyboard reachability.
+
+ListBoxItem is a controlled radio row with required typed id and nonempty textValue. The text metadata owns its accessible name; visual children are decorative and must not contain nested interactive controls. Selection is represented by isSelected; disabled/read-only suppress activation, and only disabled changes opacity/accessibility disabled state. Primitive/Fragment content uses owned Text, with native font scaling, selected/hover/pressed theme roles, target minima and post-custom style callback precedence. Select's collection contract preserves numeric versus string keys, validates duplicate/invalid metadata and retains values through collection removal/reinsertion without fabricating callbacks. The modal/virtualized Select implementation follows the collection foundation in its own approved commit boundary.
