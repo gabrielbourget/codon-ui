@@ -1,6 +1,6 @@
 # Native NumberInput — Explicit Intl Compatibility Proposal
 
-Status: **Approved by the owner on 2026-10-15; repository/bootstrap implementation follows the unpolyfilled Android receipt**. This follows the installed capability stop in [the NumberInput pass](react-native-number-input-pass.md). Keep the approved numeric/component API, `@internationalized/number` 3.6.6, palette, Expo/React/RN/safe-area pins and deferred iPhone signing.
+Status: **All three owner-approved passes and the focused iOS viewport follow-up are complete; source/consumer and installed receipts are recorded in [Section 8.25 of the native ledger](react-native-library-first-pass.md#825-approved-numberinput-intl-compatibility-and-viewport-follow-up--2026-10-15)**. The original unpolyfilled packet remains sealed and separate. The number utility stays at 3.6.6, palette and existing peers stay unchanged, and closer visual/physical review plus iPhone signing remain deferred.
 
 ## Observed Boundary
 
@@ -35,4 +35,4 @@ This plan authorizes three logical commits plus narrow evidence-driven correctio
 
 ## Approval Boundary
 
-Gabriel approved the four exact app dependencies and declared transitive graph, explicit consumer-owned Intl/Number/BigInt global preparation and documented capability requirement on 2026-10-15. [AGENTS.md](../../AGENTS.md) says to "Ask before making changes that alter repo conventions, package boundaries, registry contracts, CLI behavior, dependencies, CI/CD, deployment, publication, or public APIs." The originally approved pass also explicitly stops on missing native Intl capability before adding a polyfill. That approval opens the three bounded passes above; repository dependency/runtime installation has not started in this receipt.
+Gabriel approved the four exact app dependencies and declared transitive graph, explicit consumer-owned Intl/Number/BigInt global preparation and documented capability requirement on 2026-10-15. [AGENTS.md](../../AGENTS.md) says to "Ask before making changes that alter repo conventions, package boundaries, registry contracts, CLI behavior, dependencies, CI/CD, deployment, publication, or public APIs." The originally approved pass also explicitly stops on missing native Intl capability before adding a polyfill. That approval opened the three bounded passes above. Commits `31e396c` and `4afaa4f` implement the bootstrap and consumer contract; `9080389` corrects the installed app-owned rotation viewport finding. The execution receipt records exact dependency/source/archive/binary identities, focused checks, startup/bundle observations, actual capture revisions and restored/stopped task guests.

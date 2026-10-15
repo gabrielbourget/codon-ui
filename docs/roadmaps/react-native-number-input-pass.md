@@ -1,6 +1,6 @@
 # Native NumberInput — Contract Proposal
 
-Status: **Approved implementation is complete through model, component, scene and frozen-consumer gates; iOS installed acceptance requires the approved Intl follow-up**. This follows the completed multiline/radio run in [the native ledger](react-native-library-first-pass.md#822-approved-textarea-radio-and-radiogroup--2026-10-1415). Recommend one native-owned NumberInput counterpart, advancing implementation from eleven to twelve of the 53 components after its implementation gates pass. Keep the palette, existing component contracts, Expo/React/RN/safe-area peers and iPhone signing unchanged. Closer owner visual review and physical acceptance retain their application/device disposition.
+Status: **All four approved passes are complete, including source/consumer and installed Android/iOS checks plus the approved explicit Intl follow-up; receipts are recorded in Section 8.25 of the native ledger**. Source implementation reaches twelve of the 53 native counterparts. The original contract below records the approved bounded NumberInput API and exact @internationalized/number 3.6.6 dependency. Palette values and existing peers remain unchanged; closer owner visual review, physical acceptance and iPhone signing remain deferred to the application/device lane.
 
 ## Source And Consumer Evidence
 

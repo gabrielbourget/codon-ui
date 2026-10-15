@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, Select and ListBoxItem with their public props/ref/state types, plus NativeThemeProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select and ListBoxItem with their public props/ref/state types, plus NativeThemeProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
 
 ## Host And Package Ownership
 
@@ -63,6 +63,14 @@ TextArea owns core multiline editing with a real TextInput ref and requires a no
 Radio requires a nearest RadioGroup, a string value and an explicit nonempty accessible name. RadioGroup also requires a name and owns controlled value or initial defaultValue plus onChange(string). undefined is uncontrolled; null clears controlled selection, and the empty string is a valid member value. Controlled members wait for parent echo. Reselection and removal do not emit changes; reinsertion restores the retained value. Hosts supply unique stable member values. Private context reaches ordinary wrappers and isolates nested groups without child discovery or cloning.
 
 Group disabled/read-only guards own descendants; a member can add isDisabled. Read-only permits focus/inspection without mutation or disabled opacity. Disabled opacity applies once per member. Each member owns radio/checked/disabled traits; the nonaccessible radiogroup wrapper keeps members separate. Hosts supply localized read-only/validation explanations and verify physical announcements later. Radio's 20-unit native mark uses existing geometry/order/color/focus roles, with stable selected fill during hover/press. Root width/height/customStyles/final style constrain the target; customShapeStyles owns the mark. Primitive/array/Fragment labels use owned Text with uncapped scaling. Targets retain the existing 44-point/48-dp minima and explicit/clipped-parent exceptions. Group flow defaults vertical with two spacing units; horizontal flow wraps. DOM forms, web keyboard coordination and independent member selection props are excluded.
+
+## NumberInput
+
+NumberInput composes the existing Input and two Buttons into independently named editor/decrement/increment targets. Supply accessibilityLabel (or aria-label), incrementLabel and decrementLabel. Its ref is the core TextInput. value/defaultValue are number or null; undefined selects uncontrolled initialization. Raw text remains a draft until a final native edit/submit or step commits one numeric change. Empty text commits null; invalid or incomplete text restores the stored value. Controlled values wait for parent echo, and configuration/guard changes cancel an outstanding edit.
+
+The private decimal model limits precision to six fractional digits and representable safe integer units. Bounds, optional min-anchored step, nearest rounding and single-press stepping have explicit semantics; hold-repeat, exponent/hex syntax, currency/percent/unit formatting and general web NumberField behavior are excluded. The exact @internationalized/number 3.6.6 utility owns locale symbols and parsing. Hosts own localized names, read-only explanations and validation messages. Per-part native styling, guard behavior and target minima follow the existing controls without adding palette roles.
+
+Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
 
 ## Select And ListBoxItem
 

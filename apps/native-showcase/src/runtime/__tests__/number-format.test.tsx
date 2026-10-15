@@ -71,3 +71,16 @@ it("prepares the observed missing-instance operation before App evaluation and s
   jest.isolateModules(() => jest.requireActual("../number-format"))
   expect(Intl.NumberFormat).toBe(prepared)
 }, 15000)
+
+it("prepares missing Intl prerequisites in order with selected regional data", () => {
+  for (const name of ["NumberFormat", "getCanonicalLocales", "Locale", "PluralRules"] as const)
+    Reflect.deleteProperty(Intl, name)
+  jest.isolateModules(() => {
+    expect(jest.requireActual("../number-format").NUMBER_INTL_PREPARATION).toBe("polyfilled")
+  })
+  expect(typeof Intl.getCanonicalLocales).toBe("function")
+  expect(typeof Intl.Locale).toBe("function")
+  expect(typeof Intl.PluralRules).toBe("function")
+  expect(new Intl.NumberFormat("fr-CA").format(1234.5)).toBe("1\u00a0234,5")
+  expect(new Intl.NumberFormat("en-US-u-nu-arab").format(12.5)).toBe("١٢٫٥")
+})
