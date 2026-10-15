@@ -115,3 +115,20 @@ export type {
   TNativeRadioGroupStyleState,
   TNativeRadioGroupOrientation,
 } from "./components/RadioGroup/types"
+
+export {
+  NUMBER_INPUT_SIZE__SM,
+  NUMBER_INPUT_SIZE__MD,
+  NUMBER_INPUT_SIZE__LG,
+  AVAILABLE_NUMBER_INPUT_SIZES,
+} from "./components/NumberInput/types"
+export type {
+  TNativeNumberInputProps,
+  TNativeNumberInputProps as NumberInputProps,
+  TNativeNumberInputRef,
+  TNativeNumberInputSize,
+  TNativeNumberInputFormatOptions,
+  TNativeNumberInputInputProps,
+  TNativeNumberInputRenderState,
+  TNativeNumberInputStyleState,
+} from "./components/NumberInput/types"
