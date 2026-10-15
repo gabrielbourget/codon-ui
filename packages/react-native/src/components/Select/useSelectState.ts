@@ -24,7 +24,7 @@ export const useSelectState = <T>(props: TNativeSelectProps<T>) => {
     }),
   )
   const [localValue, setLocalValue] = useState(defaultValue)
-  const [localOpen, setLocalOpen] = useState(defaultOpen)
+  const [localOpen, setLocalOpen] = useState(() => defaultOpen && !isDisabled)
   const selectedKey = value === undefined ? localValue : value
   const open = isOpen ?? localOpen
   const selectedEntry = entries.find((entry) => entry.key === selectedKey)

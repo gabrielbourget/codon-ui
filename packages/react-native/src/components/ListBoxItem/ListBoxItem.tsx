@@ -3,6 +3,7 @@ import { Pressable, type ViewStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
+import { validateNativeColor } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
 import { validateSelectKey } from "../Select/collection"
 import { getNativeControlRootStyle, useNativeSelectionInteraction } from "../selection"
@@ -32,6 +33,7 @@ export const ListBoxItem = forwardRef<TNativeListBoxItemRef, TNativeListBoxItemP
   const { flags, handlers } = useNativeSelectionInteraction(rest, isDisabled, isReadOnly, () => undefined)
   const state: TNativeListBoxItemRenderState = { ...flags, isSelected }
   const foreground = isSelected ? theme.colors.controlSelectedForeground : theme.colors.controlForeground
+  validateNativeColor(foreground, "ListBoxItem", "foreground")
   const background = isSelected
     ? state.isPressed
       ? theme.colors.controlSelectedPressedBackground

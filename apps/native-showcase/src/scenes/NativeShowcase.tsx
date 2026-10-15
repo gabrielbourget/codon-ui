@@ -20,6 +20,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { BasicControlsScene } from "./BasicControlsScene"
 import { LibraryScene } from "./LibraryScene"
 import { SceneShell } from "./SceneShell"
+import { SelectScene } from "./SelectScene"
 
 const FixtureAction = ({
   label,
@@ -130,7 +131,7 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [scene, setScene] = useState<"foundation" | "library" | "controls">("foundation")
+  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select">("foundation")
   const reset = () => {
     setMode("light")
     setCustomized(false)
@@ -159,6 +160,7 @@ export const NativeShowcase = () => {
             selected={scene === "controls"}
             onPress={() => setScene("controls")}
           />
+          <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
         </View>
         <View style={styles.controls}>
           <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -181,7 +183,9 @@ export const NativeShowcase = () => {
           ))}
         </View>
         <SceneShell fixture={fixture}>
-          {scene === "controls" ? (
+          {scene === "select" ? (
+            <SelectScene />
+          ) : scene === "controls" ? (
             <BasicControlsScene />
           ) : scene === "library" ? (
             <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />

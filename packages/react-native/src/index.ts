@@ -67,6 +67,7 @@ export type {
   TNativeListBoxItemStyleState,
 } from "./components/ListBoxItem/types"
 export { SELECT_SIZE__SM, SELECT_SIZE__MD, SELECT_SIZE__LG, AVAILABLE_SELECT_SIZES } from "./components/Select/types"
+export { Select } from "./components/Select/Select"
 export type {
   TNativeSelectProps,
   TNativeSelectProps as SelectProps,

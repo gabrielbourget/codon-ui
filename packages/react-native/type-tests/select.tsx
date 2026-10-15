@@ -1,6 +1,6 @@
 import { createRef } from "react"
 
-import { ListBoxItem, type SelectProps, type TNativeListBoxItemRef } from "../src"
+import { ListBoxItem, Select, type SelectProps, type TNativeListBoxItemRef, type TNativeSelectRef } from "../src"
 
 export const ValidRow = (
   <ListBoxItem id={0} textValue="Choice" ref={createRef<TNativeListBoxItemRef>()} isSelected>
@@ -17,6 +17,19 @@ export const ValidSelectProps: SelectProps<{ id: string; name: string }> = {
   width: "100%",
   style: ({ defaultStyle, isOpen }) => [defaultStyle, { opacity: isOpen ? 1 : 0.8 }],
 }
+export const ValidSelect = (
+  <Select
+    {...ValidSelectProps}
+    ref={createRef<TNativeSelectRef>()}
+    renderSelectedValue={({ selectedItem }) => selectedItem?.name}
+  />
+)
+// @ts-expect-error anchored web placement is not the native modal contract
+export const InvalidSelectPlacement = <Select {...ValidSelectProps} placement="bottom" />
+// @ts-expect-error obsolete React Aria key aliases are excluded
+export const InvalidSelectKeyAlias = <Select {...ValidSelectProps} selectedKey="first" />
+// @ts-expect-error web keyboard wrapping is not a native contract
+export const InvalidSelectWrap = <Select {...ValidSelectProps} shouldFocusWrap />
 // @ts-expect-error row checked state is owned
 export const InvalidRowChecked = <ListBoxItem id="one" textValue="One" aria-checked />
 // @ts-expect-error row label comes from required text metadata
