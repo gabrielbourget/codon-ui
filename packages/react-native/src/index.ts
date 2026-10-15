@@ -95,3 +95,23 @@ export type {
   TNativeTextAreaStyleState,
   TNativeTextAreaSize,
 } from "./components/TextArea/types"
+
+export { Radio } from "./components/Radio/Radio"
+export type {
+  TNativeRadioProps,
+  TNativeRadioProps as RadioProps,
+  TNativeRadioRef,
+  TNativeRadioRenderState,
+  TNativeRadioStyleState,
+  TNativeRadioChildrenState,
+} from "./components/Radio/types"
+export { RadioGroup } from "./components/RadioGroup/RadioGroup"
+export { RADIO_GROUP_ORIENTATIONS } from "./components/RadioGroup/types"
+export type {
+  TNativeRadioGroupProps,
+  TNativeRadioGroupProps as RadioGroupProps,
+  TNativeRadioGroupRef,
+  TNativeRadioGroupRenderState,
+  TNativeRadioGroupStyleState,
+  TNativeRadioGroupOrientation,
+} from "./components/RadioGroup/types"
