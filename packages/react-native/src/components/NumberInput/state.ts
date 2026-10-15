@@ -5,9 +5,25 @@ import type { TNativeNumberInputProps } from "./types"
 
 export const useNumberInputState = (props: TNativeNumberInputProps) => {
   const { value, defaultValue, onChange, onChangeText, isDisabled = false, isReadOnly = false } = props
+  const options = props.formatOptions
+  const optionKind = options === null ? "null" : Array.isArray(options) ? "array" : typeof options
+  const optionKeys = Object.keys(options ?? {})
+    .sort()
+    .join("\0")
   const model = useMemo(
     () => createNumberModel(props),
-    [props.locale, props.formatOptions, props.minValue, props.maxValue, props.step],
+    [
+      props.locale,
+      props.minValue,
+      props.maxValue,
+      props.step,
+      optionKind,
+      optionKeys,
+      options?.style,
+      options?.useGrouping,
+      options?.minimumFractionDigits,
+      options?.maximumFractionDigits,
+    ],
   )
   model.validateValue(value, "value")
   model.validateValue(defaultValue, "defaultValue")

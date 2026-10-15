@@ -2,7 +2,12 @@ import { act, fireEvent, render, screen, userEvent } from "@testing-library/reac
 import { createRef, useState } from "react"
 import { Platform, TextInput, View } from "react-native"
 
-import { NativeThemeProvider, NumberInput, type TNativeNumberInputRef } from "../../.."
+import {
+  NativeThemeProvider,
+  NumberInput,
+  type TNativeNumberInputFormatOptions,
+  type TNativeNumberInputRef,
+} from "../../.."
 
 const names = { accessibilityLabel: "Quantity", incrementLabel: "Add quantity", decrementLabel: "Reduce quantity" }
 const input = () => screen.getByTestId("number-input-input")
@@ -146,6 +151,21 @@ describe("NumberInput native composition", () => {
     expect(onChange).not.toHaveBeenCalled()
     await userEvent.setup().press(increment())
     expect(onChange.mock.calls).toEqual([[6]])
+  })
+  it("observes changed option values and unsupported keys when an option object is reused", async () => {
+    const onChange = jest.fn()
+    const options: TNativeNumberInputFormatOptions = { maximumFractionDigits: 3 }
+    const { rerender } = await render(<NumberInput {...names} value={5} formatOptions={options} onChange={onChange} />)
+    await change("8.125")
+    options.maximumFractionDigits = 0
+    await rerender(<NumberInput {...names} value={5} formatOptions={options} onChange={onChange} />)
+    expect(input()).toHaveDisplayValue("5")
+    await end("8.125")
+    expect(onChange).not.toHaveBeenCalled()
+    Object.assign(options, { currency: undefined })
+    await expect(rerender(<NumberInput {...names} value={5} formatOptions={options} />)).rejects.toThrow(
+      "formatOptions",
+    )
   })
   it("folds a pending end event into a step and ignores delayed end/submit", async () => {
     const onChange = jest.fn()

@@ -42,6 +42,18 @@ describe("NumberInput decimal model", () => {
     expect(createNumberModel({}).format(12.5)).toBe("12.5")
     expect(createNumberModel({ locale: "en-US-u-nu-arab" }).format(12.5)).toBe("١٢٫٥")
     expect(createNumberModel({ locale: "fr-CA" }).commit("1,")).toEqual({ value: 1 })
+    const canonical = createNumberModel({ locale: "EN-us-U-NU-ARAB" })
+    expect(canonical.format(12.5)).toBe("١٢٫٥")
+    expect(canonical.commit("invalid paste")).toBeUndefined()
+  })
+  test("explains the observed missing native number-parts capability", () => {
+    const descriptor = Object.getOwnPropertyDescriptor(Intl.NumberFormat.prototype, "formatToParts")!
+    try {
+      Object.defineProperty(Intl.NumberFormat.prototype, "formatToParts", { configurable: true, value: undefined })
+      expect(() => createNumberModel({})).toThrow("Intl.NumberFormat.formatToParts is required")
+    } finally {
+      Object.defineProperty(Intl.NumberFormat.prototype, "formatToParts", descriptor)
+    }
   })
   test("precision zero rejects fractional syntax; precision six rounds half away from zero", () => {
     expect(createNumberModel({ formatOptions: { maximumFractionDigits: 0 } }).commit("1.2")).toBeUndefined()

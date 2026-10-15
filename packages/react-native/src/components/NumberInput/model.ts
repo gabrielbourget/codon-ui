@@ -55,9 +55,12 @@ export const createNumberModel = ({
   for (const digits of [minimumFractionDigits, maximumFractionDigits])
     if (!Number.isInteger(digits) || digits < 0 || digits > 6) invalid("fraction digits (expected 0..6)")
   if (minimumFractionDigits > maximumFractionDigits) invalid("fraction digit order")
+  let canonicalLocale = locale
   try {
-    if (typeof locale !== "string" || !locale || Intl.NumberFormat.supportedLocalesOf([locale]).length !== 1)
-      invalid("locale")
+    if (typeof locale !== "string" || !locale) invalid("locale")
+    const supportedLocales = Intl.NumberFormat.supportedLocalesOf([locale])
+    if (supportedLocales.length !== 1) invalid("locale")
+    canonicalLocale = supportedLocales[0] ?? invalid("locale")
   } catch {
     invalid("locale/Intl support")
   }
@@ -67,10 +70,17 @@ export const createNumberModel = ({
     minimumFractionDigits,
     maximumFractionDigits,
   }
-  const formatter = new NumberFormatter(locale, options)
-  const parser = new NumberParser(locale, options)
+  const formatter = new NumberFormatter(canonicalLocale, options)
+  const parser = new NumberParser(canonicalLocale, options)
+  try {
+    if (!formatter.formatToParts(0).some((part) => part.type === "integer")) invalid("Intl number parts")
+  } catch {
+    throw new TypeError(
+      "NumberInput: Intl.NumberFormat.formatToParts is required; initialize consumer Intl support before importing Codon UI",
+    )
+  }
   const resolved = formatter.resolvedOptions()
-  const requestedNumberingSystem = locale.match(/-u-(?:[a-z0-9]+-)*nu-([a-z0-9]+)/i)?.[1]
+  const requestedNumberingSystem = canonicalLocale.match(/-u-(?:[a-z0-9]+-)*nu-([a-z0-9]+)/i)?.[1]
   if (requestedNumberingSystem && resolved.numberingSystem !== requestedNumberingSystem)
     invalid("Intl numbering system support")
   if (
