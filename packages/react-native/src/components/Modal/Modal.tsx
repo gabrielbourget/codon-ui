@@ -24,7 +24,7 @@ export const Modal = forwardRef<TNativeModalRef, TNativeModalProps>((props, ref)
       panelRef={ref}
       initialFocusRef={props.initialFocusRef ?? (children == null ? heading : undefined)}
     >
-      {(close) =>
+      {({ close }) =>
         children == null ? (
           <>
             <Text ref={heading} elementType="h2" variant="b8" fontWeight="bold">

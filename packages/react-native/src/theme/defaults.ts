@@ -6,6 +6,9 @@ import type { TNativeTheme, TNativeThemeMode, TNativeThemeOverrides } from "./ty
 const lightTheme: TNativeTheme = {
   mode: "light",
   colors: {
+    statusDanger: "#b73434",
+    statusWarning: "#a66b00",
+    statusSuccess: "#2f7d18",
     overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#ffffff",
     foreground: "#171717",
@@ -137,6 +140,9 @@ const lightTheme: TNativeTheme = {
 const darkTheme: TNativeTheme = {
   mode: "dark",
   colors: {
+    statusDanger: "#ff6b5f",
+    statusWarning: "#f0b429",
+    statusSuccess: "#6ad060",
     overlayBackdrop: "rgba(0, 0, 0, 0.3)",
     background: "#171717",
     foreground: "#ffffff",

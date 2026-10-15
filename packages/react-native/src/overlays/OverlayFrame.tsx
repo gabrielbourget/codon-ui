@@ -27,14 +27,20 @@ export const OverlayFrame = ({
   children,
   initialFocusRef,
   radiusMultiplier = 1,
+  leading,
+  dialogDefaults,
+  componentName = "Modal",
 }: {
   props: TNativeModalProps
   open: boolean
   requestClose: () => void
   panelRef: Ref<TNativeModalRef>
-  children: ReactNode | ((close: () => void) => ReactNode)
+  children: ReactNode | ((controls: { close: () => void; isActive: () => boolean }) => ReactNode)
   initialFocusRef?: TNativeModalProps["initialFocusRef"]
   radiusMultiplier?: number
+  leading?: (panelStyle: ViewStyle) => ReactNode
+  dialogDefaults?: ViewStyle
+  componentName?: string
 }) => {
   const theme = useNativeTheme()
   const overlay = useOverlay(open, true, false, props.restoreFocusRef)
@@ -43,10 +49,10 @@ export const OverlayFrame = ({
   const measurement = useRef(0)
   const label = props.accessibilityLabel ?? props["aria-label"]
   if (typeof label !== "string" || !label.trim())
-    throw new TypeError("Modal: a nonempty native accessible name is required")
+    throw new TypeError(`${componentName}: a nonempty native accessible name is required`)
   if (props.overlayBlur !== undefined && props.overlayBlur !== false)
-    throw new TypeError("Modal: overlayBlur supports only false on native")
-  validateNativeColor(props.color, "Modal", "color")
+    throw new TypeError(`${componentName}: overlayBlur supports only false on native`)
+  validateNativeColor(props.color, componentName, "color")
   for (const [name, value] of [
     ["width", props.width],
     ["height", props.height],
@@ -59,7 +65,7 @@ export const OverlayFrame = ({
         (typeof value === "string" && /^(?:\d+(?:\.\d+)?|\.\d+)%$/.test(value))
       )
     )
-      throw new TypeError(`Modal: ${name} must be a finite nonnegative native dimension`)
+      throw new TypeError(`${componentName}: ${name} must be a finite nonnegative native dimension`)
   }
   const panel = resolveNativeStyle(
     [
@@ -83,16 +89,16 @@ export const OverlayFrame = ({
               elevation: 2,
             }),
       },
-      resolveNativeStyle(props.customStyles, "Modal", "customStyles"),
-      resolveNativeStyle(props.style, "Modal", "style"),
+      resolveNativeStyle(props.customStyles, componentName, "customStyles"),
+      resolveNativeStyle(props.style, componentName, "style"),
     ],
-    "Modal",
+    componentName,
     "panel",
   )
   const { color: foreground, ...panelStyle } = panel
-  validateNativeColor(theme.colors.overlayBackdrop, "Modal", "overlayBackdrop")
-  const backdrop = resolveNativeStyle(props.customOverlayStyles, "Modal", "customOverlayStyles")
-  const dialog = resolveNativeStyle(props.customDialogStyles, "Modal", "customDialogStyles")
+  validateNativeColor(theme.colors.overlayBackdrop, componentName, "overlayBackdrop")
+  const backdrop = resolveNativeStyle(props.customOverlayStyles, componentName, "customOverlayStyles")
+  const dialog = resolveNativeStyle(props.customDialogStyles, componentName, "customDialogStyles")
   const identity = props.testID ?? props["data-testid"] ?? "modal"
   const close = () => {
     if (overlay.isActive()) requestClose()
@@ -119,9 +125,9 @@ export const OverlayFrame = ({
   const content = (
     <View
       testID={`${identity}-dialog`}
-      style={[{ flexShrink: 1, padding: theme.spacing.unit * 4, gap: theme.spacing.unit * 2 }, dialog]}
+      style={[{ flexShrink: 1, padding: theme.spacing.unit * 4, gap: theme.spacing.unit * 2 }, dialogDefaults, dialog]}
     >
-      {typeof children === "function" ? children(close) : children}
+      {typeof children === "function" ? children({ close, isActive: overlay.isActive }) : children}
     </View>
   )
   return (
@@ -188,6 +194,7 @@ export const OverlayFrame = ({
                       <NativeContentContext.Provider
                         value={{ foregroundColor: foreground ?? theme.colors.foreground, isButton: false }}
                       >
+                        {leading?.(panelStyle as ViewStyle)}
                         {props.isScrollable === false ? (
                           content
                         ) : (
