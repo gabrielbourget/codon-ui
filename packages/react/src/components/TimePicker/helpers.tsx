@@ -9,6 +9,17 @@ import TimePickerDefaultClockIcon from "./DefaultClockIcon"
 import type { TPartialTimePickerLabels } from "./labels"
 import styles from "./TimePickerStyles.module.css"
 
+const {
+  ["inputIconGroup--applyFocusStyle"]: inputIconGroupApplyFocusStyle,
+  ["inputIconGroup--errorState"]: inputIconGroupErrorState,
+  ["inputIconGroup--noFocusStyle"]: inputIconGroupNoFocusStyle,
+  ["inputIconGroup--offsetFocusRing"]: inputIconGroupOffsetFocusRing,
+  ["inputIconGroup--round"]: inputIconGroupRound,
+  ["inputIconGroup--rounded"]: inputIconGroupRounded,
+  ["inputIconGroup--successState"]: inputIconGroupSuccessState,
+  ["inputIconGroup--warningState"]: inputIconGroupWarningState,
+} = styles
+
 export const TIME_PICKER_SIZE__SM = "small"
 export const TIME_PICKER_SIZE__MD = "medium"
 export const TIME_PICKER_SIZE__LG = "large"
@@ -94,9 +105,9 @@ const computeGeometryStyle = <T extends TimeValue>(props: TTimePickerProps<T>) =
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["inputIconGroup--rounded"]
+      return inputIconGroupRounded
     case ROUND:
-      return styles["inputIconGroup--round"]
+      return inputIconGroupRound
     default:
       return undefined
   }
@@ -130,17 +141,17 @@ const computeTimePickerBorderStyle = <T extends TimeValue>(props: TTimePickerPro
   let borderStyle: string | undefined = undefined
 
   if (errorState) {
-    borderStyle = styles["inputIconGroup--errorState"]
+    borderStyle = inputIconGroupErrorState
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = styles["inputIconGroup--warningState"]
+    borderStyle = inputIconGroupWarningState
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = styles["inputIconGroup--successState"]
+    borderStyle = inputIconGroupSuccessState
     return borderStyle
   }
 
@@ -168,9 +179,9 @@ export const calibrateComponent = <T extends TimeValue>(props: TTimePickerProps<
   const timePickerBorderStyle = computeTimePickerBorderStyle(props)
   const focusStyle =
     enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["inputIconGroup--noFocusStyle"]
-      : styles["inputIconGroup--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["inputIconGroup--offsetFocusRing"] : undefined
+      ? inputIconGroupNoFocusStyle
+      : inputIconGroupApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? inputIconGroupOffsetFocusRing : undefined
 
   const computedTimePickerStyles = classNames(timePicker)
   const timePickerStyles = mergeTimePickerClassNames(computedTimePickerStyles, className)

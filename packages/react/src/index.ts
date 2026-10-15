@@ -206,6 +206,21 @@ export type {
   ThumbnailImageRenderImageArgs,
   ThumbnailImageRenderImageProps,
 } from "./components/ThumbnailImage"
+export {
+  AVAILABLE_THUMBNAIL_SHOWCASE_RENDERING_MODES,
+  DEFAULT_THUMBNAIL_SHOWCASE_SECONDARY_SLOT_COUNT,
+  ThumbnailShowcase,
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__ALL,
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__PRIMARY,
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__SECONDARY,
+} from "./components/ThumbnailShowcase"
+export type {
+  ThumbnailShowcaseProps,
+  ThumbnailShowcaseRenderingMode,
+  ThumbnailShowcaseRenderOverflowArgs,
+  ThumbnailShowcaseRenderSecondaryPlaceholderArgs,
+  ThumbnailShowcaseSecondaryItem,
+} from "./components/ThumbnailShowcase"
 export { TimePicker } from "./components/TimePicker"
 export type { TimePickerProps } from "./components/TimePicker"
 export { Tooltip } from "./components/Tooltip"

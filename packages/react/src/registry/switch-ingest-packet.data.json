@@ -88,7 +88,8 @@
         "--cui-control-border",
         "--cui-control-pressed-background",
         "--cui-control-selected-background",
-        "--cui-control-selected-foreground"
+        "--cui-control-selected-foreground",
+        "--cui-neutral-900"
       ],
       "notes": ["These variables are already part of the package default theme contract."]
     },
@@ -100,7 +101,6 @@
         "--cui-color-tertiary-500",
         "--cui-color-quaternary-500",
         "--cui-color-quintenary-500",
-        "--cui-neutral-8",
         "--disabledOpacity",
         "--colorTransition",
         "--bgColorTransition",

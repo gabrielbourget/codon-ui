@@ -1,10 +1,8 @@
-import classNames from "classnames"
 import type { CSSProperties, HTMLAttributes } from "react"
 
 import type { TAriaLabelingProps } from "../../tokens/a11y"
 
 import type { TSortParameter } from "./SortParameterListItem/helpers"
-import styles from "./SortParameterListStyles.module.css"
 
 type TSortParameterListNativeProps = Omit<HTMLAttributes<HTMLDivElement>, "children">
 
@@ -22,11 +20,6 @@ export type TSortParameterListProps = TSortParameterListNativeProps &
     customItemTextClassName?: string
     customItemTextStyles?: CSSProperties
   }
-
-type TSortParameterListCalibration = {
-  sortParameterListStyles: string
-  sortParameterListStyle: CSSProperties
-}
 
 export type TSortParameterListState = {
   draggedID: string | null
@@ -55,13 +48,4 @@ export const reorderSortParameterList = (
   updatedSortItems.splice(targetIndex, 0, movedItem)
 
   return updatedSortItems
-}
-
-export const calibrateComponent = (props: TSortParameterListProps): TSortParameterListCalibration => {
-  const { className, customClassName, customStyles, style } = props
-
-  const sortParameterListStyles = classNames(styles.sortParameterList, customClassName, className)
-  const sortParameterListStyle = { ...customStyles, ...style }
-
-  return { sortParameterListStyles, sortParameterListStyle }
 }

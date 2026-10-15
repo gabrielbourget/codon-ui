@@ -1,16 +1,19 @@
+import classNames from "classnames"
 import { useEffect, useState, type FC } from "react"
 import type { DragEndEvent } from "react-aria"
 
 import { DROP_OPERATION__MOVE } from "../../tokens/drag"
 
 import {
-  calibrateComponent,
   initState,
   reorderSortParameterList,
   type TSortParameterListProps,
   type TSortParameterListState,
 } from "./helpers"
 import SortParameterListItem from "./SortParameterListItem/SortParameterListItem"
+import styles from "./SortParameterListStyles.module.css"
+
+const { sortParameterList } = styles
 
 // - TODO: -> Once it's a good time, refactor component to update list state based on
 //            functions passed in by props.
@@ -40,13 +43,8 @@ const SortParameterList: FC<TSortParameterListProps> = (props) => {
     ...rest
   } = props
   const [state, setState] = useState<TSortParameterListState>(initState)
-  const { sortParameterListStyles, sortParameterListStyle } = calibrateComponent({
-    ...props,
-    className,
-    customClassName,
-    customStyles,
-    style,
-  })
+  const sortParameterListStyles = classNames(sortParameterList, customClassName, className)
+  const sortParameterListStyle = { ...customStyles, ...style }
 
   useEffect(() => {
     setState((prevState) => ({ ...prevState, sortParameterList: sortParameterList__props }))

@@ -1,79 +1,53 @@
 "use client"
 
 import classNames from "classnames"
-import type { ComponentPropsWithoutRef, CSSProperties } from "react"
+import type { CSSProperties } from "react"
 
-export const LINE_SEGMENT_DIRECTION__HORIZONTAL = "horizontal"
-export const LINE_SEGMENT_DIRECTION__VERTICAL = "vertical"
-
-export const AVAILABLE_LINE_SEGMENT_DIRECTIONS = [
-  LINE_SEGMENT_DIRECTION__HORIZONTAL,
-  LINE_SEGMENT_DIRECTION__VERTICAL,
-] as const
-export type TAvailableLineSegmentDirections = (typeof AVAILABLE_LINE_SEGMENT_DIRECTIONS)[number]
-
-type TLineSegmentNativeProps = Omit<ComponentPropsWithoutRef<"div">, "children" | "className" | "color" | "style">
-
-export type TLineSegmentProps = TLineSegmentNativeProps & {
-  height?: string | number
-  width?: string | number
-  size?: string | number
-  direction?: TAvailableLineSegmentDirections
-  color?: string
-  className?: string
-  style?: CSSProperties
-  customStyles?: CSSProperties
-  customClassName?: string
-}
-
-const styleGen = (props: TLineSegmentProps): CSSProperties => {
-  const {
-    height = 50,
-    width = 50,
-    size = 2.5,
-    color = "var(--cui-border)",
-    direction = LINE_SEGMENT_DIRECTION__HORIZONTAL,
-  } = props
-
-  if (direction === LINE_SEGMENT_DIRECTION__HORIZONTAL) {
-    return {
-      backgroundColor: color,
-      height,
-      width: size,
-    }
-  } else if (direction === LINE_SEGMENT_DIRECTION__VERTICAL) {
-    return {
-      backgroundColor: color,
-      width,
-      height: size,
-    }
-  }
-
-  return {}
-}
+import { LINE_SEGMENT_DIRECTION__HORIZONTAL, LINE_SEGMENT_DIRECTION__VERTICAL, type TLineSegmentProps } from "./helpers"
 
 export const LineSegment = (props: TLineSegmentProps) => {
   const {
     className,
-    color: _color,
+    color = "var(--cui-border)",
     customClassName,
     customStyles,
-    direction: _direction,
-    height: _height,
-    size: _size,
+    direction = LINE_SEGMENT_DIRECTION__HORIZONTAL,
+    height = 50,
+    size = 2.5,
     style,
-    width: _width,
-    ...rest
+    width = 50,
+    ...rootProps
   } = props
-  const styles = styleGen(props)
+  const segmentStyle: CSSProperties =
+    direction === LINE_SEGMENT_DIRECTION__HORIZONTAL
+      ? {
+          backgroundColor: color,
+          height,
+          width: size,
+        }
+      : direction === LINE_SEGMENT_DIRECTION__VERTICAL
+        ? {
+            backgroundColor: color,
+            width,
+            height: size,
+          }
+        : {}
 
   return (
     <div
-      {...rest}
-      style={{ ...styles, ...customStyles, ...style }}
+      {...rootProps}
+      style={{ ...segmentStyle, ...customStyles, ...style }}
       className={classNames(customClassName, className)}
     />
   )
 }
+
+export {
+  AVAILABLE_LINE_SEGMENT_DIRECTIONS,
+  LINE_SEGMENT_DIRECTION__HORIZONTAL,
+  LINE_SEGMENT_DIRECTION__VERTICAL,
+  type TAvailableLineSegmentDirections,
+  type TLineSegmentProps,
+} from "./helpers"
 
 export default LineSegment

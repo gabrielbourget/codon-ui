@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const compactTypeaheadSearchRoot = path.join(packageRoot, "src/components/CompactTypeaheadSearch")
 const compactTypeaheadSearchSourcePath = path.join(compactTypeaheadSearchRoot, "CompactTypeaheadSearch.tsx")
-const helpersSourcePath = path.join(compactTypeaheadSearchRoot, "helpers.ts")
+const helpersSourcePath = path.join(compactTypeaheadSearchRoot, "helpers.tsx")
 const labelsSourcePath = path.join(compactTypeaheadSearchRoot, "labels.ts")
 const searchIconSourcePath = path.join(compactTypeaheadSearchRoot, "DefaultSearchIcon.tsx")
 const loadingIndicatorSourcePath = path.join(compactTypeaheadSearchRoot, "DefaultLoadingIndicator.tsx")
@@ -58,7 +58,7 @@ const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 const requiredPackageFileSources = [
   "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
-  "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+  "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
   "packages/react/src/components/CompactTypeaheadSearch/labels.ts",
   "packages/react/src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
   "packages/react/src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
@@ -67,7 +67,7 @@ const requiredPackageFileSources = [
 ]
 const requiredTargetPaths = [
   "CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
-  "CompactTypeaheadSearch/helpers.ts",
+  "CompactTypeaheadSearch/helpers.tsx",
   "CompactTypeaheadSearch/labels.ts",
   "CompactTypeaheadSearch/DefaultSearchIcon.tsx",
   "CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
@@ -131,8 +131,8 @@ assert(
   "CompactTypeaheadSearch must import package-local Input",
 )
 assert(
-  compactTypeaheadSearchSource.includes('import ListBoxItem from "../ListBoxItem/ListBoxItem"'),
-  "CompactTypeaheadSearch must import package-local ListBoxItem",
+  helpersSource.includes('import ListBoxItem from "../ListBoxItem/ListBoxItem"'),
+  "CompactTypeaheadSearch hook must import package-local ListBoxItem",
 )
 assert(
   compactTypeaheadSearchSource.includes(
@@ -141,8 +141,8 @@ assert(
   "CompactTypeaheadSearch must import package-local PlaceholderText",
 )
 assert(
-  compactTypeaheadSearchSource.includes('from "../../tokens/placement"'),
-  "CompactTypeaheadSearch must import package-local placement tokens",
+  helpersSource.includes('from "../../tokens/placement"'),
+  "CompactTypeaheadSearch hook must import package-local placement tokens",
 )
 assert(
   compactTypeaheadSearchSource.includes("AdobeComboBox") &&
@@ -156,20 +156,32 @@ assert(
   "CompactTypeaheadSearch must forward a div ref",
 )
 assert(
-  compactTypeaheadSearchSource.includes("inputValue !== undefined ? inputValue : state.internalInputValue"),
+  compactTypeaheadSearchSource.includes('from "./helpers"') &&
+    compactTypeaheadSearchSource.includes("useCalibratedComponent({"),
+  "CompactTypeaheadSearch must consume one hook-backed calibration boundary",
+)
+assert(
+  compactTypeaheadSearchSource.includes("useState<TCompactTypeaheadSearchState>") &&
+    compactTypeaheadSearchSource.includes("restoreInputFocusTimeoutRef = useRef"),
+  "CompactTypeaheadSearch must expose state and refs",
+)
+assert(
+  helpersSource.includes("inputValue !== undefined ? inputValue : state.internalInputValue"),
   "CompactTypeaheadSearch must preserve controlled and uncontrolled input support",
 )
 assert(
-  compactTypeaheadSearchSource.includes("minimumInputLength") && compactTypeaheadSearchSource.includes("isLoading"),
+  helpersSource.includes("minimumInputLength") && helpersSource.includes("isLoading"),
   "CompactTypeaheadSearch must preserve minimum-query and loading states",
 )
-assert(
-  compactTypeaheadSearchSource.includes("onChange?.(key)"),
-  "CompactTypeaheadSearch must preserve selection callbacks",
-)
+assert(helpersSource.includes("onChange?.(key)"), "CompactTypeaheadSearch must preserve selection callbacks")
 assert(
   compactTypeaheadSearchSource.includes('data-testid={dataTestID ?? "type-ahead-search"}'),
   "CompactTypeaheadSearch must preserve test id fallback",
+)
+assert(
+  helpersSource.includes("export const useCalibratedComponent") &&
+    !helpersSource.includes("export const calibrateComponent"),
+  "CompactTypeaheadSearch helpers must keep one calibration entry",
 )
 
 assert(
@@ -185,7 +197,7 @@ assert(
   "CompactTypeaheadSearch helpers must export props",
 )
 assert(
-  helpersSource.includes("export const calibrateComponent"),
+  helpersSource.includes("export const useCalibratedComponent"),
   "CompactTypeaheadSearch calibration helper must remain local",
 )
 assert(

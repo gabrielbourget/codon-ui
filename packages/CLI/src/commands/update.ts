@@ -19,6 +19,7 @@ import {
 import { DEPENDENCY_INSTALL_PACKAGE_MANAGERS } from "@/src/helpers/packageManagerHelpers"
 
 const updateOptionsSchema = z.object({
+  adoptCurrent: z.boolean().default(false),
   all: z.boolean().default(false),
   advisory: z.boolean().default(false),
   cwd: z.string().default(process.cwd()),
@@ -40,6 +41,11 @@ export const update = new Command()
   .name("update")
   .description("Update one installed Codon UI registry item when strict provenance checks pass.")
   .argument("[item]", "The installed registry item you'd like to inspect or update.")
+  .option(
+    "--adopt-current",
+    "Refresh provenance only when locally modified registry files exactly match current canonical install output.",
+    false,
+  )
   .option("--all", "Target every installed registry item for advisory, dry-run, or all-safe strict update.", false)
   .option("--advisory", "Report update posture without writing files or lockfile data.", false)
   .option("-c, --cwd <cwd>", "The chosen working directory. Defaults to the current directory.", process.cwd())
@@ -73,6 +79,11 @@ export const update = new Command()
         process.exit(1)
       }
 
+      if (options.advisory && options.adoptCurrent) {
+        logger.error("--adopt-current is supported only for item-scoped dry-run or strict update.")
+        process.exit(1)
+      }
+
       if (options.all && options.itemName) {
         logger.error("Please choose either a single item or --all, not both.")
         process.exit(1)
@@ -80,9 +91,13 @@ export const update = new Command()
 
       if (
         options.all &&
-        (options.dependencyPolicy || options.installDependencies || options.packageJson || options.packageManager)
+        (options.adoptCurrent ||
+          options.dependencyPolicy ||
+          options.installDependencies ||
+          options.packageJson ||
+          options.packageManager)
       ) {
-        logger.error("Dependency install options are only supported for item-scoped update.")
+        logger.error("Reconciliation and dependency install options are only supported for item-scoped update.")
         process.exit(1)
       }
 
@@ -216,6 +231,7 @@ export const update = new Command()
 
       if (options.dryRun) {
         const updateDryRunReport = await createUpdateDryRunReport({
+          adoptCurrent: options.adoptCurrent,
           cwd,
           dependencyPolicyOverride: options.dependencyPolicy,
           installDependencies: options.installDependencies,
@@ -259,6 +275,7 @@ export const update = new Command()
 
       if (!options.advisory) {
         const updateStrictReport = await createUpdateStrictReport({
+          adoptCurrent: options.adoptCurrent,
           cwd,
           dependencyPolicyOverride: options.dependencyPolicy,
           installDependencies: options.installDependencies,

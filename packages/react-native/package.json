@@ -1,0 +1,56 @@
+{
+  "name": "@codon-ui/react-native",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Native-owned Codon UI foundation for iOS and Android.",
+  "type": "module",
+  "packageManager": "pnpm@10.18.3",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "react-native": "./src/index.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "src",
+    "!src/**/__tests__/**"
+  ],
+  "scripts": {
+    "build": "node clean-dist.mjs && tsc -p tsconfig.build.json",
+    "check:contracts": "pnpm typecheck:contracts",
+    "format:write": "prettier --write .",
+    "format:check": "prettier --check .",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:contracts": "tsc --noEmit -p tsconfig.contracts.json",
+    "test": "jest --config jest.config.cjs",
+    "precommit": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm typecheck:contracts"
+  },
+  "peerDependencies": {
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "5.7.0"
+  },
+  "devDependencies": {
+    "@babel/core": "7.29.0",
+    "@codon-ui/shared-utils": "workspace:*",
+    "@types/jest": "29.5.14",
+    "@types/react": "19.2.2",
+    "@react-native/jest-preset": "0.86.3",
+    "@testing-library/react-native": "14.0.1",
+    "eslint": "9.39.4",
+    "jest": "29.7.0",
+    "prettier": "3.8.3",
+    "test-renderer": "1.2.0",
+    "typescript": "5.9.3",
+    "@react-native/babel-preset": "0.86.3",
+    "react": "19.2.3",
+    "react-native": "0.86.3",
+    "react-native-safe-area-context": "5.7.0"
+  }
+}

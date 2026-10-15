@@ -84,7 +84,10 @@ assert(carouselSource.includes('from "embla-carousel-react"'), "Carousel must im
 assert(helpersSource.includes('from "embla-carousel"'), "Carousel helpers must import Embla types")
 assert(helpersSource.includes("export const clamp"), "Carousel must localize clamp support")
 assert(dotsHelpersSource.includes('from "../../helpers"'), "CarouselDots must use package-local helper imports")
-assert(dotsSource.includes('styles["sr-only"]'), "CarouselDots must use CSS-module sr-only class")
+assert(
+  dotsSource.includes('["sr-only"]: srOnly') && dotsSource.includes("className={srOnly}"),
+  "CarouselDots must use its CSS-module sr-only class",
+)
 ;[dotsStylesSource, counterStylesSource].forEach((source) => {
   assert(!forbiddenLegacyCssPattern.test(source), "Carousel CSS must not read legacy Wavemap aliases")
 })

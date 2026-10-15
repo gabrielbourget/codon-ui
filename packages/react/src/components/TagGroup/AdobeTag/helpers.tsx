@@ -15,6 +15,22 @@ import {
 import styles from "./AdobeTagStyles.module.css"
 import TagDefaultCloseIcon from "./DefaultCloseIcon"
 
+const {
+  ["tag--applyFocusStyle"]: tagApplyFocusStyle,
+  ["tag--default"]: tagDefault,
+  ["tag--noFocusStyle"]: tagNoFocusStyle,
+  ["tag--offsetFocusRing"]: tagOffsetFocusRing,
+  ["tag--primary"]: tagPrimary,
+  ["tag--quaternary"]: tagQuaternary,
+  ["tag--quintenary"]: tagQuintenary,
+  ["tag--raised"]: tagRaised,
+  ["tag--round"]: tagRound,
+  ["tag--rounded"]: tagRounded,
+  ["tag--secondary"]: tagSecondary,
+  ["tag--tertiary"]: tagTertiary,
+  ["tag--transparent"]: tagTransparent,
+} = styles
+
 type TTagRootProps = Omit<TagProps, "children">
 
 export type TTagProps = TTagRootProps & {
@@ -84,7 +100,7 @@ const computeTagColorStyle = (props: TTagProps) => {
   let backgroundColorStyle: string | undefined = undefined
 
   if (transparent) {
-    backgroundColorStyle = styles["tag--transparent"]
+    backgroundColorStyle = tagTransparent
     return backgroundColorStyle
   }
 
@@ -92,22 +108,22 @@ const computeTagColorStyle = (props: TTagProps) => {
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      backgroundColorStyle = styles["tag--primary"]
+      backgroundColorStyle = tagPrimary
       break
     case THEME_ORDER_CODE__SECONDARY:
-      backgroundColorStyle = styles["tag--secondary"]
+      backgroundColorStyle = tagSecondary
       break
     case THEME_ORDER_CODE__TERTIARY:
-      backgroundColorStyle = styles["tag--tertiary"]
+      backgroundColorStyle = tagTertiary
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      backgroundColorStyle = styles["tag--quaternary"]
+      backgroundColorStyle = tagQuaternary
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      backgroundColorStyle = styles["tag--quintenary"]
+      backgroundColorStyle = tagQuintenary
       break
     default:
-      backgroundColorStyle = styles["tag--default"]
+      backgroundColorStyle = tagDefault
       break
   }
 
@@ -121,9 +137,9 @@ const computeTagGeometryStyle = (props: TTagProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["tag--rounded"]
+      return tagRounded
     case ROUND:
-      return styles["tag--round"]
+      return tagRound
     default:
       return undefined
   }
@@ -153,12 +169,9 @@ export const calibrateComponent = (props: TTagProps): TTagCalibration => {
 
   const colorStyle = computeTagColorStyle(props)
   const tagGeometryStyle = computeTagGeometryStyle(props)
-  const raisedStyle = raised !== undefined && raised === true ? styles["tag--raised"] : undefined
-  const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["tag--noFocusStyle"]
-      : styles["tag--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["tag--offsetFocusRing"] : undefined
+  const raisedStyle = raised !== undefined && raised === true ? tagRaised : undefined
+  const focusStyle = enableFocusStyle !== undefined && enableFocusStyle === false ? tagNoFocusStyle : tagApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? tagOffsetFocusRing : undefined
 
   const computedTagStyles = classNames(
     tag,

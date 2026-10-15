@@ -1,22 +1,27 @@
+import classNames from "classnames"
 import type { CSSProperties, FC, ReactNode } from "react"
 import { Cell as AdobeCell } from "react-aria-components"
 
-import { calibrateComponent, type TCellProps } from "./helpers"
+import { ALIGNMENT__CENTER, ALIGNMENT__RIGHT } from "../../../../tokens/alignment"
+
+import type { TCellProps } from "./helpers"
 import styles from "./TableCellStyles.module.css"
 
+const {
+  ["tableCell--alignCenter"]: tableCellAlignCenter,
+  ["tableCell--alignEnd"]: tableCellAlignEnd,
+  ["tableCell--truncate"]: tableCellTruncate,
+  tableCell,
+} = styles
+
 const TableCell: FC<TCellProps> = (props) => {
-  const {
-    alignment: _alignment,
-    children,
-    className: _className,
-    customClassName: _customClassName,
-    customStyles: _customStyles,
-    maxLines,
-    style: _style,
-    truncate: _truncate,
-    ...rest
-  } = props
-  const { cellStyles, cellStyle } = calibrateComponent(props)
+  const { alignment, children, className, customClassName, customStyles, maxLines, style, truncate, ...rest } = props
+  const alignCenterStyle = alignment && alignment === ALIGNMENT__CENTER ? tableCellAlignCenter : undefined
+  const alignRightStyle = alignment && alignment === ALIGNMENT__RIGHT ? tableCellAlignEnd : undefined
+  const truncateStyle = truncate ? tableCellTruncate : undefined
+
+  const cellStyles = classNames(tableCell, alignCenterStyle, alignRightStyle, truncateStyle, customClassName, className)
+  const cellStyle = Object.assign({}, { ...customStyles }, { ...style })
 
   const needsClamp = !!maxLines
 

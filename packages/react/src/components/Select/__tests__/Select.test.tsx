@@ -178,6 +178,16 @@ describe("<Select />", () => {
       expect(screen.getByTestId("custom-select-icon")).toBeInTheDocument()
     })
 
+    it("renders a custom selected value.", () => {
+      render(
+        <SelectExample
+          renderSelectedValue={() => <span data-testid="custom-selected-value">Selected option summary</span>}
+        />,
+      )
+
+      expect(screen.getByTestId("custom-selected-value")).toHaveTextContent("Selected option summary")
+    })
+
     it("merges native className and style without losing computed root styles.", () => {
       render(
         <SelectExample

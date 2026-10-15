@@ -1,15 +1,13 @@
 "use client"
 
-import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef, useCallback, useMemo } from "react"
-import { type Key, ListBox, type Selection } from "react-aria-components"
+import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef } from "react"
+import { ListBox } from "react-aria-components"
 
 import Button from "../../Button/Button"
 import Input from "../../Input/Input"
-import ListBoxItem from "../../ListBoxItem/ListBoxItem"
 import PlaceholderText from "../../Text/variants/PlaceholderText/PlaceholderText"
 
-import { calibrateComponent, type TTypeaheadSearchProps, type TTypeaheadSearchRenderItemArgs } from "./helpers"
-import { resolveTypeaheadSearchLabels } from "./labels"
+import { useCalibratedComponent, type TTypeaheadSearchProps } from "./helpers"
 import {
   TYPEAHEAD_SEARCH_STATUS__EMPTY,
   TYPEAHEAD_SEARCH_STATUS__ERROR,
@@ -18,192 +16,78 @@ import {
   TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY,
   TYPEAHEAD_SEARCH_STATUS__RESULTS,
 } from "./status"
+import styles from "./TypeaheadSearchStyles.module.css"
+
+const {
+  typeaheadSearch__input,
+  typeaheadSearch__resultsContainer,
+  typeaheadSearch__resultsList,
+  typeaheadSearch__searchButton,
+  typeaheadSearch__status,
+} = styles
 
 const TypeaheadSearch = forwardRef(function TypeaheadSearchInner<T extends object>(
   props: TTypeaheadSearchProps<T>,
   forwardedRef: ForwardedRef<HTMLDivElement>,
 ) {
   const {
+    "aria-label": inputAriaLabel,
     "data-testid": dataTestID,
-    items,
-    inputValue,
-    onInputChange,
-    isDisabled,
-    placeholder,
-    status = TYPEAHEAD_SEARCH_STATUS__RESULTS,
-    minimumInputLength = 0,
-    idleMessage,
-    minimumInputLengthMessage,
-    loadingMessage,
-    emptyListMessage,
-    errorMessage,
-    labels,
-    shouldAutoFocusInput,
-    shouldFocusWrap = true,
-    getItemKey,
-    getItemTextValue,
-    renderItem,
-    onSelectionChange,
-    onSubmitQuery,
-    searchButtonAriaLabel,
-  } = props
-  const {
-    typeaheadSearchStyles,
-    inputRowStyles,
-    inputStyles,
-    searchButtonStyles,
-    resultsContainerStyles,
-    resultsListStyles,
-    statusStyles,
-    typeaheadSearchStyle,
     customInputRowStyles,
     customInputStyles,
     customSearchButtonStyles,
     customResultsContainerStyles,
     customResultsListStyles,
+    inputValue,
+    isDisabled,
+    minimumInputLength = 0,
+    placeholder,
+    shouldAutoFocusInput,
+    shouldFocusWrap = true,
+    status = TYPEAHEAD_SEARCH_STATUS__RESULTS,
+  } = props
+  const {
+    typeaheadSearchStyles,
+    typeaheadSearchStyle,
+    inputRowStyles,
     SearchIcon,
     LoadingIndicator,
-  } = calibrateComponent(props)
-  const resolvedIsDisabled = isDisabled
-  const resolvedLabels = resolveTypeaheadSearchLabels({
-    labels,
-    minimumInputLength,
-    idleMessage,
-    minimumInputLengthMessage,
-    loadingMessage,
-    emptyListMessage,
-    errorMessage,
-    searchButtonAriaLabel,
-  })
-  const resolvedItems = useMemo(() => Array.from(items ?? []), [items])
-
-  const getResolvedItemKey = useCallback(
-    (item: T, index: number): Key => {
-      if (getItemKey) return getItemKey(item)
-      if ("id" in item) return String(item.id)
-      if ("ID" in item) return String(item.ID)
-
-      return `${index}`
-    },
-    [getItemKey],
-  )
-
-  const getResolvedItemTextValue = useCallback(
-    (item: T): string => {
-      if (getItemTextValue) return getItemTextValue(item)
-      if ("name" in item && typeof item.name === "string") return item.name
-      if ("label" in item && typeof item.label === "string") return item.label
-
-      return ""
-    },
-    [getItemTextValue],
-  )
-
-  const submitQuery = () => {
-    onSubmitQuery?.(inputValue.trim())
-  }
-
-  const handleSelectionChange = (selection: Selection) => {
-    if (selection === "all") return
-
-    const selectedKey = Array.from(selection)[0] ?? null
-
-    onSelectionChange?.(selectedKey)
-  }
-
-  const renderListBoxItem = useCallback(
-    (item: T) => {
-      const itemIndex = resolvedItems.indexOf(item)
-      const resolvedItemIndex = itemIndex >= 0 ? itemIndex : 0
-      const itemKey = getResolvedItemKey(item, resolvedItemIndex)
-      const textValue = getResolvedItemTextValue(item)
-      const renderItemArgs: TTypeaheadSearchRenderItemArgs = {
-        query: inputValue,
-        textValue,
-        itemKey,
-      }
-
-      return (
-        <ListBoxItem id={itemKey} textValue={textValue}>
-          {renderItem ? renderItem(item, renderItemArgs) : textValue}
-        </ListBoxItem>
-      )
-    },
-    [getResolvedItemKey, getResolvedItemTextValue, inputValue, renderItem, resolvedItems],
-  )
-
-  const renderStatus = () => {
-    switch (status) {
-      case TYPEAHEAD_SEARCH_STATUS__IDLE:
-        return (
-          <div className={statusStyles} data-testid="typeahead-search-idle-state" aria-live="polite">
-            <PlaceholderText align="center">{resolvedLabels.status.idleMessage}</PlaceholderText>
-          </div>
-        )
-      case TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY:
-        return (
-          <div className={statusStyles} data-testid="typeahead-search-minimum-query-state" aria-live="polite">
-            <PlaceholderText align="center">
-              {resolvedLabels.status.minimumInputLengthMessage({ minimumInputLength })}
-            </PlaceholderText>
-          </div>
-        )
-      case TYPEAHEAD_SEARCH_STATUS__LOADING:
-        return (
-          <div className={statusStyles} data-testid="typeahead-search-loading-state" aria-live="polite">
-            {LoadingIndicator}
-            <PlaceholderText align="center">{resolvedLabels.status.loadingMessage}</PlaceholderText>
-          </div>
-        )
-      case TYPEAHEAD_SEARCH_STATUS__ERROR:
-        return (
-          <div className={statusStyles} data-testid="typeahead-search-error-state" aria-live="polite">
-            <PlaceholderText align="center">{resolvedLabels.status.errorMessage}</PlaceholderText>
-          </div>
-        )
-      case TYPEAHEAD_SEARCH_STATUS__EMPTY:
-        return (
-          <div className={statusStyles} data-testid="typeahead-search-empty-state" aria-live="polite">
-            <PlaceholderText align="center">{resolvedLabels.status.emptyListMessage}</PlaceholderText>
-          </div>
-        )
-      default:
-        return null
-    }
-  }
+    resolvedLabels,
+    resolvedItems,
+    submitQuery,
+    handleInputChange,
+    handleInputKeyDown,
+    handleSelectionChange,
+    renderListBoxItem,
+  } = useCalibratedComponent(props)
 
   return (
     <div
       ref={forwardedRef}
       className={typeaheadSearchStyles}
       style={typeaheadSearchStyle}
-      data-disabled={resolvedIsDisabled || undefined}
+      data-disabled={isDisabled || undefined}
       data-testid={dataTestID ?? "typeahead-search"}
     >
       <div className={inputRowStyles} style={customInputRowStyles}>
         <Input
-          aria-label={props["aria-label"]}
+          aria-label={inputAriaLabel}
           data-testid="typeahead-search-input"
           value={inputValue}
           placeholder={placeholder}
-          isDisabled={resolvedIsDisabled}
+          isDisabled={isDisabled}
           autoFocus={shouldAutoFocusInput}
           enableFocusStyle={false}
           customStyles={customInputStyles}
-          className={inputStyles}
-          onChange={(event) => onInputChange(event.target.value)}
-          onKeyDown={(event) => {
-            if (event.key !== "Enter") return
-
-            event.preventDefault()
-            submitQuery()
-          }}
+          className={typeaheadSearch__input}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
         />
         <Button
           aria-label={resolvedLabels.searchButtonAriaLabel}
-          customClassName={searchButtonStyles}
+          customClassName={typeaheadSearch__searchButton}
           customStyles={customSearchButtonStyles}
-          isDisabled={resolvedIsDisabled}
+          isDisabled={isDisabled}
           geometry="rounded"
           raised={false}
           onPress={submitQuery}
@@ -213,13 +97,13 @@ const TypeaheadSearch = forwardRef(function TypeaheadSearchInner<T extends objec
         </Button>
       </div>
 
-      <div className={resultsContainerStyles} style={customResultsContainerStyles}>
+      <div className={typeaheadSearch__resultsContainer} style={customResultsContainerStyles}>
         {status === TYPEAHEAD_SEARCH_STATUS__RESULTS ? (
           <ListBox
             items={resolvedItems}
             shouldFocusWrap={shouldFocusWrap}
             selectionMode="single"
-            className={resultsListStyles}
+            className={typeaheadSearch__resultsList}
             style={customResultsListStyles}
             onSelectionChange={handleSelectionChange}
             aria-label={resolvedLabels.resultsListAriaLabel}
@@ -227,7 +111,40 @@ const TypeaheadSearch = forwardRef(function TypeaheadSearchInner<T extends objec
             {renderListBoxItem}
           </ListBox>
         ) : (
-          renderStatus()
+          <>
+            {status === TYPEAHEAD_SEARCH_STATUS__IDLE && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-idle-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.idleMessage}</PlaceholderText>
+              </div>
+            )}
+            {status === TYPEAHEAD_SEARCH_STATUS__MINIMUM_QUERY && (
+              <div
+                className={typeaheadSearch__status}
+                data-testid="typeahead-search-minimum-query-state"
+                aria-live="polite"
+              >
+                <PlaceholderText align="center">
+                  {resolvedLabels.status.minimumInputLengthMessage({ minimumInputLength })}
+                </PlaceholderText>
+              </div>
+            )}
+            {status === TYPEAHEAD_SEARCH_STATUS__LOADING && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-loading-state" aria-live="polite">
+                {LoadingIndicator}
+                <PlaceholderText align="center">{resolvedLabels.status.loadingMessage}</PlaceholderText>
+              </div>
+            )}
+            {status === TYPEAHEAD_SEARCH_STATUS__ERROR && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-error-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.errorMessage}</PlaceholderText>
+              </div>
+            )}
+            {status === TYPEAHEAD_SEARCH_STATUS__EMPTY && (
+              <div className={typeaheadSearch__status} data-testid="typeahead-search-empty-state" aria-live="polite">
+                <PlaceholderText align="center">{resolvedLabels.status.emptyListMessage}</PlaceholderText>
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>

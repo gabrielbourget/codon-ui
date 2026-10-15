@@ -99,6 +99,10 @@ assert.equal(
   getDefaultLocalReactRegistrySourcePath(),
 )
 assert.equal(
+  resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["thumbnail-showcase"] }),
+  getDefaultLocalReactRegistrySourcePath(),
+)
+assert.equal(
   resolveDefaultAddRegistrySourcePath({ allComponents: false, requestedItems: ["click-popover"] }),
   getDefaultLocalReactRegistrySourcePath(),
 )
@@ -338,8 +342,8 @@ const verifyTableAddPlanning = async () => {
   }
 
   assert.equal(installPlan.findings.filter((finding) => finding.severity === "error").length, 0)
-  assert.equal(dryRunEffects.files.plannedCount, 164)
-  assert.equal(dryRunEffects.files.wouldWriteCount, 164)
+  assert.equal(dryRunEffects.files.plannedCount, 165)
+  assert.equal(dryRunEffects.files.wouldWriteCount, 165)
   assert.equal(dryRunEffects.dependencies.missingCount, 7)
 }
 
@@ -628,11 +632,12 @@ await verifyComponentAddPlanning({
   expectedItems: ["theme-css", "line-segment"],
   expectedResolvedPaths: [
     "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
+    "src/components/VisualUtilities/LineSegment/helpers.ts",
     "src/components/_codon-ui-registry/theme.css",
   ],
   expectedThemeVariables: ["--cui-border"],
   expectedMissingDependencyCount: 2,
-  expectedPlannedCount: 2,
+  expectedPlannedCount: 3,
 })
 
 await verifyComponentAddPlanning({
@@ -820,6 +825,7 @@ await verifyComponentAddPlanning({
     "src/components/Text/variants/PlaceholderText/PlaceholderTextStyles.module.css",
     "src/components/Text/variants/PlaceholderText/helpers.ts",
     "src/components/VisualUtilities/LineSegment/LineSegment.tsx",
+    "src/components/VisualUtilities/LineSegment/helpers.ts",
     "src/components/_codon-ui-registry/action-colors.css",
     "src/components/_codon-ui-registry/circular-progress-compatibility.css",
     "src/components/_codon-ui-registry/text-typography.css",
@@ -832,7 +838,7 @@ await verifyComponentAddPlanning({
   ],
   expectedThemeVariables: ["--cui-space-2", "--cui-focus-ring", "--cui-border", "--cui-color-quintenary-500"],
   expectedMissingDependencyCount: 5,
-  expectedPlannedCount: 63,
+  expectedPlannedCount: 64,
 })
 
 await verifyComponentAddPlanning({
@@ -1601,7 +1607,7 @@ await verifyComponentAddPlanning({
     "src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
     "src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
     "src/components/Search/TypeaheadSearch/TypeaheadSearchStyles.module.css",
-    "src/components/Search/TypeaheadSearch/helpers.ts",
+    "src/components/Search/TypeaheadSearch/helpers.tsx",
     "src/components/Search/TypeaheadSearch/labels.ts",
     "src/components/Search/TypeaheadSearch/status.ts",
     "src/components/Text/Text.tsx",
@@ -1648,7 +1654,7 @@ await verifyComponentAddPlanning({
     "src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.module.css",
     "src/components/CompactTypeaheadSearch/DefaultLoadingIndicator.tsx",
     "src/components/CompactTypeaheadSearch/DefaultSearchIcon.tsx",
-    "src/components/CompactTypeaheadSearch/helpers.ts",
+    "src/components/CompactTypeaheadSearch/helpers.tsx",
     "src/components/CompactTypeaheadSearch/labels.ts",
     "src/components/Input/Input.tsx",
     "src/components/Input/InputStyles.module.css",
@@ -1689,6 +1695,18 @@ await verifyComponentAddPlanning({
   expectedResolvedPaths: ["src/components/ThumbnailImage/ThumbnailImage.tsx"],
   expectedMissingDependencyCount: 2,
   expectedPlannedCount: 1,
+})
+
+await verifyComponentAddPlanning({
+  itemName: "thumbnail-showcase",
+  expectedItems: ["thumbnail-showcase"],
+  expectedResolvedPaths: [
+    "src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+    "src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+    "src/components/ThumbnailShowcase/helpers.ts",
+  ],
+  expectedMissingDependencyCount: 3,
+  expectedPlannedCount: 3,
 })
 
 await verifyComponentAddPlanning({
@@ -1760,5 +1778,5 @@ assert.equal(
 assert.equal(mergedTagDependencies.find((dependency) => dependency.name === "react-aria-components")?.status, "missing")
 
 console.log(
-  "[codon-ui] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, circle-loader, lagging-lines-loader, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
+  "[codon-ui] avatar, button, card, carousel, checkbox, checkbox-group, click-popover, tooltip, hover-popover, menu, panel, modal, alert-dialog, line-segment, indicator, circle-loader, lagging-lines-loader, link, breadcrumbs, pagination, input, text-area, number-input, stepper, time-picker, date-time-picker, date-time-range-picker, toggle-button, toggle-switcher, table, toaster, radio, text, placeholder-text, list-box-item, select, combo-box, tag-combo-box, typeahead-search, compact-typeahead-search, thumbnail-image, thumbnail-showcase, radio-group, slider, tag, tag-group, circular-progress, counter, form-field, linear-progress, meter, and dependency merge add planning verified",
 )

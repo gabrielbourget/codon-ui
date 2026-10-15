@@ -10,10 +10,12 @@ import {
 } from "../Pagination/helpers"
 import Pagination from "../Pagination/Pagination"
 
-import { calibrateComponent, useTableSortBridge, type TTableProps } from "./helpers"
+import { calibrateComponent, resizeTableColumnFromKeyboard, type TTableProps, useTableSortBridge } from "./helpers"
 import { resolveTableLabels } from "./labels"
 import { TableContext } from "./TableContext"
 import styles from "./TableStyles.module.css"
+
+const { tableShell } = styles
 
 const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps<TRow>) => {
   const {
@@ -33,17 +35,14 @@ const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps
     queryControls,
     filteringLabels,
     labels,
-    ...rest
+    ...nativeProps
   } = props
-
-  const { tableStyles, tableStyle } = calibrateComponent(props)
-
   const { pagination, sorting } = queryControls ?? {}
   const { sortDescriptor, handleSortChange } = useTableSortBridge(sorting, columns)
+  const { tableStyles, tableStyle } = calibrateComponent(props)
   const isRowActionEnabled = Boolean(clickableRows && onRowAction)
   const resolvedFilteringLabels = useMemo(() => resolveTableFilteringLabels(filteringLabels), [filteringLabels])
   const resolvedLabels = useMemo(() => resolveTableLabels(labels), [labels])
-
   const contextValue = useMemo(
     () => ({ queryControls, columnResizing, filteringLabels: resolvedFilteringLabels, labels: resolvedLabels }),
     [queryControls, columnResizing, resolvedFilteringLabels, resolvedLabels],
@@ -51,9 +50,12 @@ const Table = <TRow extends object = Record<string, unknown>>(props: TTableProps
 
   return (
     <TableContext.Provider value={contextValue}>
-      <div className={styles.tableShell}>
+      <div
+        className={tableShell}
+        onKeyDownCapture={(event) => resizeTableColumnFromKeyboard({ event, columns, columnResizing })}
+      >
         <AdobeTable
-          {...rest}
+          {...nativeProps}
           sortDescriptor={sortDescriptor}
           onSortChange={sorting ? handleSortChange : undefined}
           onRowAction={isRowActionEnabled ? onRowAction : undefined}

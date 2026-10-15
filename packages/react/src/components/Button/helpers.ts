@@ -14,6 +14,31 @@ import {
 
 import styles from "./ButtonStyles.module.css"
 
+const {
+  ["button--applyFocusStyle"]: buttonApplyFocusStyle,
+  ["button--customFill"]: buttonCustomFill,
+  ["button--customOutline"]: buttonCustomOutline,
+  ["button--fill"]: buttonFill,
+  ["button--noFocusStyle"]: buttonNoFocusStyle,
+  ["button--offsetFocusRing"]: buttonOffsetFocusRing,
+  ["button--outline"]: buttonOutline,
+  ["button--primary--fill"]: buttonPrimaryFill,
+  ["button--primary--outline"]: buttonPrimaryOutline,
+  ["button--quaternary--fill"]: buttonQuaternaryFill,
+  ["button--quaternary--outline"]: buttonQuaternaryOutline,
+  ["button--quintenary--fill"]: buttonQuintenaryFill,
+  ["button--quintenary--outline"]: buttonQuintenaryOutline,
+  ["button--raised"]: buttonRaised,
+  ["button--raisedOnHover"]: buttonRaisedOnHover,
+  ["button--round"]: buttonRound,
+  ["button--rounded"]: buttonRounded,
+  ["button--secondary--fill"]: buttonSecondaryFill,
+  ["button--secondary--outline"]: buttonSecondaryOutline,
+  ["button--tertiary--fill"]: buttonTertiaryFill,
+  ["button--tertiary--outline"]: buttonTertiaryOutline,
+  ["button--transparent"]: buttonTransparent,
+} = styles
+
 export const COLOR_MODE__FILL = "fill"
 export const COLOR_MODE__OUTLINE = "outline"
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -106,40 +131,36 @@ const computeButtonColorStyles = (props: TButtonProps) => {
   let colorStyle: string | undefined = undefined
 
   if (transparent) {
-    colorStyle = styles["button--transparent"]
+    colorStyle = buttonTransparent
     return colorStyle
   }
 
   if (color) {
-    return colorMode === COLOR_MODE__FILL ? styles["button--customFill"] : styles["button--customOutline"]
+    return colorMode === COLOR_MODE__FILL ? buttonCustomFill : buttonCustomOutline
   }
 
   if (!order) {
-    return colorMode === COLOR_MODE__FILL ? styles["button--fill"] : styles["button--outline"]
+    return colorMode === COLOR_MODE__FILL ? buttonFill : buttonOutline
   }
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      colorStyle = colorMode === COLOR_MODE__FILL ? styles["button--primary--fill"] : styles["button--primary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonPrimaryFill : buttonPrimaryOutline
       break
     case THEME_ORDER_CODE__SECONDARY:
-      colorStyle =
-        colorMode === COLOR_MODE__FILL ? styles["button--secondary--fill"] : styles["button--secondary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonSecondaryFill : buttonSecondaryOutline
       break
     case THEME_ORDER_CODE__TERTIARY:
-      colorStyle =
-        colorMode === COLOR_MODE__FILL ? styles["button--tertiary--fill"] : styles["button--tertiary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonTertiaryFill : buttonTertiaryOutline
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      colorStyle =
-        colorMode === COLOR_MODE__FILL ? styles["button--quaternary--fill"] : styles["button--quaternary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonQuaternaryFill : buttonQuaternaryOutline
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      colorStyle =
-        colorMode === COLOR_MODE__FILL ? styles["button--quintenary--fill"] : styles["button--quintenary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonQuintenaryFill : buttonQuintenaryOutline
       break
     default:
-      colorStyle = colorMode === COLOR_MODE__FILL ? styles["button--primary--fill"] : styles["button--primary--outline"]
+      colorStyle = colorMode === COLOR_MODE__FILL ? buttonPrimaryFill : buttonPrimaryOutline
       break
   }
 
@@ -153,9 +174,9 @@ const computeButtonGeometryStyle = (props: TButtonProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["button--rounded"]
+      return buttonRounded
     case ROUND:
-      return styles["button--round"]
+      return buttonRound
     default:
       return undefined
   }
@@ -184,13 +205,11 @@ export const calibrateComponent = (props: TButtonProps): TButtonCalibration => {
 
   const colorStyle = computeButtonColorStyles(props)
   const buttonGeometryStyle = computeButtonGeometryStyle(props)
-  const raisedStyle = raised !== undefined && raised === false ? undefined : styles["button--raised"]
-  const raisedOnHoverStyle = raisedOnHover ? styles["button--raisedOnHover"] : undefined
+  const raisedStyle = raised !== undefined && raised === false ? undefined : buttonRaised
+  const raisedOnHoverStyle = raisedOnHover ? buttonRaisedOnHover : undefined
   const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["button--noFocusStyle"]
-      : styles["button--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing ? styles["button--offsetFocusRing"] : undefined
+    enableFocusStyle !== undefined && enableFocusStyle === false ? buttonNoFocusStyle : buttonApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing ? buttonOffsetFocusRing : undefined
 
   const computedButtonStyles = classNames(
     button,

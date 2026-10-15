@@ -14,6 +14,33 @@ import {
 
 import styles from "./SwitchStyles.module.css"
 
+const {
+  ["_switch__indicator--applyFocusStyle"]: switch__indicatorApplyFocusStyle,
+  ["_switch__indicator--invertColorsOnToggle"]: switch__indicatorInvertColorsOnToggle,
+  ["_switch__indicator--noFocusStyle"]: switch__indicatorNoFocusStyle,
+  ["_switch__indicator--offsetFocusRing"]: switch__indicatorOffsetFocusRing,
+  ["_switch__indicator--raised"]: switch__indicatorRaised,
+  ["_switch__indicator--round"]: switch__indicatorRound,
+  ["_switch__indicator--rounded"]: switch__indicatorRounded,
+  ["_switch__track--fallback"]: switch__trackFallback,
+  ["_switch__track--primary"]: switch__trackPrimary,
+  ["_switch__track--quaternary"]: switch__trackQuaternary,
+  ["_switch__track--quintenary"]: switch__trackQuintenary,
+  ["_switch__track--round"]: switch__trackRound,
+  ["_switch__track--rounded"]: switch__trackRounded,
+  ["_switch__track--secondary"]: switch__trackSecondary,
+  ["_switch__track--showBorder"]: switch__trackShowBorder,
+  ["_switch__track--showBorder--invertColorsOnToggle--fallback"]: switch__trackShowBorderInvertColorsOnToggleFallback,
+  ["_switch__track--showBorder--invertColorsOnToggle--primary"]: switch__trackShowBorderInvertColorsOnTogglePrimary,
+  ["_switch__track--showBorder--invertColorsOnToggle--quaternary"]:
+    switch__trackShowBorderInvertColorsOnToggleQuaternary,
+  ["_switch__track--showBorder--invertColorsOnToggle--quintenary"]:
+    switch__trackShowBorderInvertColorsOnToggleQuintenary,
+  ["_switch__track--showBorder--invertColorsOnToggle--secondary"]: switch__trackShowBorderInvertColorsOnToggleSecondary,
+  ["_switch__track--showBorder--invertColorsOnToggle--tertiary"]: switch__trackShowBorderInvertColorsOnToggleTertiary,
+  ["_switch__track--tertiary"]: switch__trackTertiary,
+} = styles
+
 export type TSwitchProps = SwitchProps & {
   "data-testid"?: string
   height?: string | number
@@ -116,16 +143,16 @@ const computeGeometryStyles = (props: TSwitchProps) => {
     case ORTHOGONAL:
       break
     case ROUNDED:
-      trackGeometryStyle = styles["_switch__track--rounded"]
-      indicatorGeometryStyle = styles["_switch__indicator--rounded"]
+      trackGeometryStyle = switch__trackRounded
+      indicatorGeometryStyle = switch__indicatorRounded
       break
     case ROUND:
-      trackGeometryStyle = styles["_switch__track--round"]
-      indicatorGeometryStyle = styles["_switch__indicator--round"]
+      trackGeometryStyle = switch__trackRound
+      indicatorGeometryStyle = switch__indicatorRound
       break
     default:
-      trackGeometryStyle = styles["_switch__track--round"]
-      indicatorGeometryStyle = styles["_switch__indicator--round"]
+      trackGeometryStyle = switch__trackRound
+      indicatorGeometryStyle = switch__indicatorRound
       break
   }
 
@@ -139,63 +166,63 @@ const computeTrackStyles = (props: TSwitchProps) => {
   let trackBorderStyle: string | undefined = undefined
   let trackBorderColorInversionStyle: string | undefined = undefined
 
-  if (showBorder) trackBorderStyle = styles["_switch__track--showBorder"]
+  if (showBorder) trackBorderStyle = switch__trackShowBorder
 
   if (!order) {
-    trackColorStyle = styles["_switch__track--fallback"]
+    trackColorStyle = switch__trackFallback
 
     if (showBorder && invertColorsOnToggle) {
-      trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--fallback"]
+      trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnToggleFallback
     }
     return { trackColorStyle, trackBorderStyle, trackBorderColorInversionStyle }
   }
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      trackColorStyle = styles["_switch__track--primary"]
+      trackColorStyle = switch__trackPrimary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--primary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnTogglePrimary
       }
 
       break
     case THEME_ORDER_CODE__SECONDARY:
-      trackColorStyle = styles["_switch__track--secondary"]
+      trackColorStyle = switch__trackSecondary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--secondary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnToggleSecondary
       }
 
       break
     case THEME_ORDER_CODE__TERTIARY:
-      trackColorStyle = styles["_switch__track--tertiary"]
+      trackColorStyle = switch__trackTertiary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--tertiary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnToggleTertiary
       }
 
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      trackColorStyle = styles["_switch__track--quaternary"]
+      trackColorStyle = switch__trackQuaternary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--quaternary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnToggleQuaternary
       }
 
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      trackColorStyle = styles["_switch__track--quintenary"]
+      trackColorStyle = switch__trackQuintenary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--quintenary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnToggleQuintenary
       }
 
       break
     default:
-      trackColorStyle = styles["_switch__track--primary"]
+      trackColorStyle = switch__trackPrimary
 
       if (showBorder && invertColorsOnToggle) {
-        trackBorderColorInversionStyle = styles["_switch__track--showBorder--invertColorsOnToggle--primary"]
+        trackBorderColorInversionStyle = switch__trackShowBorderInvertColorsOnTogglePrimary
       }
 
       break
@@ -210,7 +237,7 @@ const computeIndicatorColorStyle = (props: TSwitchProps) => {
 
   if (!invertColorsOnToggle) return
 
-  indicatorColorStyle = styles["_switch__indicator--invertColorsOnToggle"]
+  indicatorColorStyle = switch__indicatorInvertColorsOnToggle
   return indicatorColorStyle
 }
 
@@ -263,11 +290,10 @@ export const calibrateComponent = (props: TSwitchProps): TSwitchCalibration => {
   const { trackGeometryStyle, indicatorGeometryStyle } = computeGeometryStyles(props)
   const focusStyle =
     enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["_switch__indicator--noFocusStyle"]
-      : styles["_switch__indicator--applyFocusStyle"]
-  const offsetFocusRingStyle =
-    offsetFocusRing__props === true ? styles["_switch__indicator--offsetFocusRing"] : undefined
-  const raisedStyle = raised !== undefined && raised === true ? styles["_switch__indicator--raised"] : undefined
+      ? switch__indicatorNoFocusStyle
+      : switch__indicatorApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? switch__indicatorOffsetFocusRing : undefined
+  const raisedStyle = raised !== undefined && raised === true ? switch__indicatorRaised : undefined
 
   const computedSwitchStyles = classNames(switchRootStyle)
   const switchStyles = mergeSwitchClassNames(computedSwitchStyles, className)

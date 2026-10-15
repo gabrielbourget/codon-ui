@@ -12,6 +12,12 @@
       "role": "source"
     },
     {
+      "sourcePath": "packages/react/src/components/LineSegment/helpers.ts",
+      "targetRole": "components",
+      "targetPath": "VisualUtilities/LineSegment/helpers.ts",
+      "role": "source"
+    },
+    {
       "sourcePath": "packages/react/src/components/LineSegment/__tests__/LineSegment.test.tsx",
       "targetRole": "components",
       "targetPath": "VisualUtilities/LineSegment/__tests__/LineSegment.test.tsx",
@@ -28,7 +34,7 @@
     {
       "exportedName": "LineSegmentProps",
       "localName": "TLineSegmentProps",
-      "sourcePath": "packages/react/src/components/LineSegment/LineSegment.tsx",
+      "sourcePath": "packages/react/src/components/LineSegment/helpers.ts",
       "typeOnly": true
     }
   ],

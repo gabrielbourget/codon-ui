@@ -1,0 +1,160 @@
+import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { PlatformColor, StyleSheet } from "react-native"
+
+import { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS, NativeThemeProvider, Text } from "../../.."
+
+beforeEach(() => jest.useFakeTimers())
+afterEach(() => jest.useRealTimers())
+
+describe("Text public native contract", () => {
+  it("uses scalable b10 regular defaults and strips wrapper props", async () => {
+    await render(<Text>Default text</Text>)
+    const text = screen.getByTestId("text")
+    expect(text).toHaveStyle({ fontSize: 14, fontWeight: "400", color: "#171717", fontStyle: "normal" })
+    expect(text.props.selectable).toBe(true)
+    expect(text.props.allowFontScaling).not.toBe(false)
+    expect(text.props.maxFontSizeMultiplier).toBeUndefined()
+    for (const prop of ["variant", "fontWeight", "fontStyle", "elementType", "customStyles", "composedInLink"]) {
+      expect(text.props[prop]).toBeUndefined()
+    }
+  })
+
+  it("resolves every variant and weight through the actual provider", async () => {
+    const variants = Object.fromEntries(AVAILABLE_FONT_VARIANTS.map((variant, index) => [variant, 20 + index]))
+    await render(
+      <NativeThemeProvider overrides={{ typography: { fontSizes: variants } }}>
+        {AVAILABLE_FONT_VARIANTS.map((variant) => (
+          <Text key={variant} testID={variant} variant={variant}>
+            {variant}
+          </Text>
+        ))}
+        {AVAILABLE_FONT_WEIGHTS.map((fontWeight) => (
+          <Text key={fontWeight} testID={fontWeight} fontWeight={fontWeight}>
+            {fontWeight}
+          </Text>
+        ))}
+      </NativeThemeProvider>,
+    )
+    AVAILABLE_FONT_VARIANTS.forEach((variant, index) =>
+      expect(screen.getByTestId(variant)).toHaveStyle({ fontSize: 20 + index }),
+    )
+    const expectedWeights = ["300", "400", "500", "600", "700", "800"] as const
+    AVAILABLE_FONT_WEIGHTS.forEach((weight, index) =>
+      expect(screen.getByTestId(weight)).toHaveStyle({ fontWeight: expectedWeights[index] }),
+    )
+  })
+
+  it("resolves heading/link intent and explicit native role precedence without forcing strong weight", async () => {
+    await render(
+      <>
+        <Text elementType="h2">Heading</Text>
+        <Text elementType="h1" composedInLink>
+          Linked heading
+        </Text>
+        <Text elementType="h3" role="button">
+          Explicit role
+        </Text>
+        <Text elementType="h4" accessibilityRole="link">
+          Explicit native role
+        </Text>
+        <Text elementType="strong">Strong intent</Text>
+      </>,
+    )
+    expect(screen.getByRole("heading", { name: "Heading" })).toBeOnTheScreen()
+    expect(screen.getByRole("link", { name: "Linked heading" })).toBeOnTheScreen()
+    expect(screen.getByRole("button", { name: "Explicit role" })).toBeOnTheScreen()
+    expect(screen.getByRole("link", { name: "Explicit native role" })).toBeOnTheScreen()
+    expect(screen.getByText("Strong intent")).toHaveStyle({ fontWeight: "400" })
+  })
+
+  it("gives native labels/IDs precedence over aliases, including empty values", async () => {
+    await render(
+      <>
+        <Text testID="native" data-testid="alias" accessibilityLabel="Native label" aria-label="Alias label">
+          Content
+        </Text>
+        <Text testID="" data-testid="fallback" accessibilityLabel="" aria-label="fallback label">
+          Empty wins
+        </Text>
+        <Text data-testid="alias-only" aria-label="Alias only">
+          Alias
+        </Text>
+      </>,
+    )
+    expect(screen.getByTestId("native").props.accessibilityLabel).toBe("Native label")
+    expect(screen.queryByTestId("alias")).toBeNull()
+    expect(screen.getByTestId("").props.accessibilityLabel).toBe("")
+    expect(screen.getByTestId("alias-only").props.accessibilityLabel).toBe("Alias only")
+  })
+
+  it("preserves selection overrides, style arrays and registered styles above provider defaults", async () => {
+    const registered = StyleSheet.create({ final: { color: "#abcdef", fontSize: 24 } })
+    await render(
+      <NativeThemeProvider mode="dark">
+        <Text
+          elementType="label"
+          selectable
+          color="red"
+          fontStyle="italic"
+          customStyles={[undefined, { color: "green", fontSize: 20 }]}
+          style={[false, registered.final]}
+        >
+          Styled label
+        </Text>
+        <Text testID="label-default" elementType="label">
+          Label
+        </Text>
+      </NativeThemeProvider>,
+    )
+    expect(screen.getByText("Styled label")).toHaveStyle({ color: "#abcdef", fontSize: 24, fontStyle: "italic" })
+    expect(screen.getByText("Styled label").props.selectable).toBe(true)
+    expect(screen.getByTestId("label-default").props.selectable).toBe(false)
+  })
+
+  it("retains nested text and forwards native press/layout payloads", async () => {
+    const press = jest.fn()
+    const layout = jest.fn()
+    const user = userEvent.setup()
+    await render(
+      <Text color="red" onPress={press} onLayout={layout}>
+        Parent <Text fontWeight="bold">Nested</Text>
+      </Text>,
+    )
+    await user.press(screen.getByText("Parent Nested"))
+    expect(press).toHaveBeenCalledTimes(1)
+    expect(press.mock.calls[0][0]).toEqual(expect.objectContaining({ nativeEvent: expect.any(Object) }))
+    const event = { nativeEvent: { layout: { x: 0, y: 0, width: 200, height: 30 } } }
+    await fireEvent(screen.getByText("Parent Nested"), "layout", event)
+    expect(layout).toHaveBeenCalledWith(event)
+    expect(screen.getByText("Nested")).toHaveStyle({ fontWeight: "700", color: "red" })
+  })
+
+  it.each(["var(--cui-foreground)", "currentColor", "not-a-color"])(
+    "rejects invalid owned colors: %s",
+    async (color) => {
+      await expect(render(<Text color={color}>Invalid</Text>)).rejects.toThrow(
+        /Text: unsupported native color in color/,
+      )
+    },
+  )
+
+  it("rejects invalid color fields in resolved style layers", async () => {
+    await expect(render(<Text style={{ textDecorationColor: "var(--line)" }}>Invalid style</Text>)).rejects.toThrow(
+      /style.textDecorationColor/,
+    )
+  })
+
+  it("accepts native platform colors", async () => {
+    await render(<Text color={PlatformColor("labelColor")}>Platform color</Text>)
+    expect(screen.getByText("Platform color")).toBeOnTheScreen()
+  })
+
+  it("rejects unresolved colors in structured and string native shadows", async () => {
+    await expect(
+      render(<Text style={{ boxShadow: [{ color: "var(--shadow)", offsetX: 0, offsetY: 1 }] }}>Shadow</Text>),
+    ).rejects.toThrow(/style.boxShadow\[0\].color/)
+    await expect(render(<Text style={{ boxShadow: "0 1px 2px var(--shadow)" }}>Shadow string</Text>)).rejects.toThrow(
+      /style.boxShadow/,
+    )
+  })
+})

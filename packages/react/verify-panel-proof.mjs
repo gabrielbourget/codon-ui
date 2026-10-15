@@ -110,8 +110,14 @@ assert(
 )
 assert(helpersSource.includes("export type TPanelProps"), "Panel helpers must export local Panel props")
 assert(helpersSource.includes("export const calibrateComponent"), "Panel calibration helper must remain local")
-assert(helpersSource.includes("POPOVER_PLACEMENT__LEFT as LEFT"), "Panel must resolve left placement locally")
-assert(helpersSource.includes("POPOVER_PLACEMENT__RIGHT as RIGHT"), "Panel must resolve right placement locally")
+assert(
+  helpersSource.includes("POPOVER_PLACEMENT__LEFT as PANEL_POSITION__LEFT"),
+  "Panel must resolve left placement locally",
+)
+assert(
+  helpersSource.includes("POPOVER_PLACEMENT__RIGHT as PANEL_POSITION__RIGHT"),
+  "Panel must resolve right placement locally",
+)
 ;[panelSource, helpersSource, stylesSource].forEach((source) => {
   assert(!forbiddenConsumerImportsPattern.test(source), "Panel runtime source must not import consumer-only modules")
 })

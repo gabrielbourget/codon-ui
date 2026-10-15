@@ -123,12 +123,15 @@ const publicIndexSource = readRequiredText(publicIndexPath)
 const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 assert(paginationSource.startsWith('"use client"'), "Pagination must preserve the client component boundary")
-assert(paginationSource.includes('from "../../tokens/geometry"'), "Pagination must use package-local geometry tokens")
+assert(helpersSource.includes('from "../../tokens/geometry"'), "Pagination must use package-local geometry tokens")
 assert(paginationSource.includes('from "../LineSegment/LineSegment"'), "Pagination must compose package LineSegment")
-assert(paginationSource.includes("<PageCounter"), "Pagination must preserve PageCounter composition")
-assert(paginationSource.includes("<PageInput"), "Pagination must preserve PageInput composition")
-assert(paginationSource.includes("<ItemsPerPage"), "Pagination must preserve ItemsPerPage composition")
-assert(paginationSource.includes("<PrimaryPaginationControls"), "Pagination must preserve primary controls composition")
+assert(paginationSource.includes('from "./helpers"'), "Pagination must consume its hook-backed calibration boundary")
+assert(helpersSource.includes("<PageCounter"), "Pagination must preserve PageCounter composition")
+assert(helpersSource.includes("<PageInput"), "Pagination must preserve PageInput composition")
+assert(helpersSource.includes("<ItemsPerPage"), "Pagination must preserve ItemsPerPage composition")
+assert(helpersSource.includes("<PrimaryPaginationControls"), "Pagination must preserve primary controls composition")
+assert(paginationSource.includes("useState<TPaginationState>"), "Pagination must declare its typed state visibly")
+assert(!helpersSource.includes("useState"), "Pagination helpers must not hide state declarations")
 assert(helpersSource.includes("buildItemsPerPageOptions"), "Pagination must localize the item-option mapper")
 assert(!helpersSource.includes("listItemsGen"), "Pagination must not import the Wavemap app utility mapper")
 assert(helpersSource.includes("type TIntRange"), "Pagination must keep range typing local")
@@ -156,7 +159,19 @@ assert(
   primaryControlsSource.includes('from "../../../ListBoxItem/ListBoxItem"'),
   "Primary controls must compose ListBoxItem",
 )
-assert(primaryControlsHelpers.includes("PaginationDefaultOverflowIcon"), "Primary controls must preserve default icons")
+assert(
+  primaryControlsSource.includes('from "./helpers"'),
+  "Primary controls must consume one hook-backed calibration boundary",
+)
+assert(
+  primaryControlsHelpers.includes("PaginationDefaultOverflowIcon"),
+  "Primary controls calibration must preserve default icons",
+)
+assert(!primaryControlsHelpers.includes("useMemoizedProperties"), "Primary controls must not split hook preparation")
+assert(
+  !primaryControlsHelpers.includes("calibrateComponent"),
+  "Primary controls must not split calibration entry points",
+)
 assert(pageInputSource.includes('from "../../../FormField/FormField"'), "PageInput must compose FormField")
 assert(pageInputSource.includes('from "../../../NumberInput/NumberInput"'), "PageInput must compose NumberInput")
 assert(itemsPerPageSource.includes('from "../../../Select/Select"'), "ItemsPerPage must compose Select")

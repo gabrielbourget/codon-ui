@@ -22,7 +22,7 @@ support tokens, and registry manifests.
 
 ## Registry Surface
 
-The active React manifest currently contains 73 items: 52 components, 9 support items, and 12 theme items.
+The active React manifest currently contains 74 items: 53 components, 9 support items, and 12 theme items. Native parity tracks this complete web baseline in its separate source package and execution ledger.
 
 `@codon-ui/react` remains the source of truth. CLI local snapshots are derived from this package and checked so they do
 not drift from the manifest.

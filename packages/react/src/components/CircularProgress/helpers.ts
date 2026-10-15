@@ -19,6 +19,20 @@ import {
 
 import styles from "./CircularProgressStyles.module.css"
 
+const {
+  ["circularProgress__path--lineCapButt"]: circularProgress__pathLineCapButt,
+  ["circularProgress__path--lineCapRound"]: circularProgress__pathLineCapRound,
+  ["circularProgress__path--lineCapSquare"]: circularProgress__pathLineCapSquare,
+  ["circularProgress__path--primary"]: circularProgress__pathPrimary,
+  ["circularProgress__path--quaternary"]: circularProgress__pathQuaternary,
+  ["circularProgress__path--quintenary"]: circularProgress__pathQuintenary,
+  ["circularProgress__path--secondary"]: circularProgress__pathSecondary,
+  ["circularProgress__path--tertiary"]: circularProgress__pathTertiary,
+  ["circularProgress__track--lineCapButt"]: circularProgress__trackLineCapButt,
+  ["circularProgress__track--lineCapRound"]: circularProgress__trackLineCapRound,
+  ["circularProgress__track--lineCapSquare"]: circularProgress__trackLineCapSquare,
+} = styles
+
 export const VIEWBOX_WIDTH = 100
 export const VIEWBOX_HEIGHT = 100
 export const VIEWBOX_HEIGHT_HALF = 50
@@ -138,27 +152,19 @@ const computeStrokeLinecapStyle = (props: TCircularProgressProps, component: TCi
   switch (strokeLineCap) {
     case STROKE_LINECAP__BUTT:
       strokeLineCapStyle =
-        component === COMPONENT__TRACK
-          ? styles["circularProgress__track--lineCapButt"]
-          : styles["circularProgress__path--lineCapButt"]
+        component === COMPONENT__TRACK ? circularProgress__trackLineCapButt : circularProgress__pathLineCapButt
       break
     case STROKE_LINECAP__ROUND:
       strokeLineCapStyle =
-        component === COMPONENT__TRACK
-          ? styles["circularProgress__track--lineCapRound"]
-          : styles["circularProgress__path--lineCapRound"]
+        component === COMPONENT__TRACK ? circularProgress__trackLineCapRound : circularProgress__pathLineCapRound
       break
     case STROKE_LINECAP__SQUARE:
       strokeLineCapStyle =
-        component === COMPONENT__TRACK
-          ? styles["circularProgress__track--lineCapSquare"]
-          : styles["circularProgress__path--lineCapSquare"]
+        component === COMPONENT__TRACK ? circularProgress__trackLineCapSquare : circularProgress__pathLineCapSquare
       break
     default:
       strokeLineCapStyle =
-        component === COMPONENT__TRACK
-          ? styles["circularProgress__track--lineCapButt"]
-          : styles["circularProgress__path--lineCapButt"]
+        component === COMPONENT__TRACK ? circularProgress__trackLineCapButt : circularProgress__pathLineCapButt
       break
   }
 
@@ -175,22 +181,22 @@ const computePathColorStyle = (props: TCircularProgressProps) => {
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      colorStyle = styles["circularProgress__path--primary"]
+      colorStyle = circularProgress__pathPrimary
       break
     case THEME_ORDER_CODE__SECONDARY:
-      colorStyle = styles["circularProgress__path--secondary"]
+      colorStyle = circularProgress__pathSecondary
       break
     case THEME_ORDER_CODE__TERTIARY:
-      colorStyle = styles["circularProgress__path--tertiary"]
+      colorStyle = circularProgress__pathTertiary
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      colorStyle = styles["circularProgress__path--quaternary"]
+      colorStyle = circularProgress__pathQuaternary
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      colorStyle = styles["circularProgress__path--quintenary"]
+      colorStyle = circularProgress__pathQuintenary
       break
     default:
-      colorStyle = styles["circularProgress__path--primary"]
+      colorStyle = circularProgress__pathPrimary
       break
   }
 

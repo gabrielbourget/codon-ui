@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url"
 const packageRoot = path.dirname(fileURLToPath(import.meta.url))
 const typeaheadSearchRoot = path.join(packageRoot, "src/components/Search/TypeaheadSearch")
 const typeaheadSearchSourcePath = path.join(typeaheadSearchRoot, "TypeaheadSearch.tsx")
-const helpersSourcePath = path.join(typeaheadSearchRoot, "helpers.ts")
+const helpersSourcePath = path.join(typeaheadSearchRoot, "helpers.tsx")
 const labelsSourcePath = path.join(typeaheadSearchRoot, "labels.ts")
 const statusSourcePath = path.join(typeaheadSearchRoot, "status.ts")
 const searchIconSourcePath = path.join(typeaheadSearchRoot, "DefaultSearchIcon.tsx")
@@ -60,7 +60,7 @@ const packageJson = JSON.parse(readRequiredText(packageJsonPath))
 
 const requiredPackageFileSources = [
   "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
-  "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+  "packages/react/src/components/Search/TypeaheadSearch/helpers.tsx",
   "packages/react/src/components/Search/TypeaheadSearch/labels.ts",
   "packages/react/src/components/Search/TypeaheadSearch/status.ts",
   "packages/react/src/components/Search/TypeaheadSearch/DefaultSearchIcon.tsx",
@@ -70,7 +70,7 @@ const requiredPackageFileSources = [
 ]
 const requiredTargetPaths = [
   "Search/TypeaheadSearch/TypeaheadSearch.tsx",
-  "Search/TypeaheadSearch/helpers.ts",
+  "Search/TypeaheadSearch/helpers.tsx",
   "Search/TypeaheadSearch/labels.ts",
   "Search/TypeaheadSearch/status.ts",
   "Search/TypeaheadSearch/DefaultSearchIcon.tsx",
@@ -125,32 +125,33 @@ assert(
   "TypeaheadSearch must import package-local Input",
 )
 assert(
-  typeaheadSearchSource.includes('import ListBoxItem from "../../ListBoxItem/ListBoxItem"'),
-  "TypeaheadSearch must import package-local ListBoxItem",
+  helpersSource.includes('import ListBoxItem from "../../ListBoxItem/ListBoxItem"'),
+  "TypeaheadSearch helpers must import package-local ListBoxItem",
 )
 assert(
   typeaheadSearchSource.includes('import PlaceholderText from "../../Text/variants/PlaceholderText/PlaceholderText"'),
   "TypeaheadSearch must import package-local PlaceholderText",
 )
 assert(
-  typeaheadSearchSource.includes("ListBox") && typeaheadSearchSource.includes("Selection"),
-  "TypeaheadSearch must use React Aria listbox primitives",
+  typeaheadSearchSource.includes("ListBox") && helpersSource.includes("Selection"),
+  "TypeaheadSearch component graph must use React Aria listbox primitives",
 )
 assert(
   typeaheadSearchSource.includes("forwardedRef: ForwardedRef<HTMLDivElement>"),
   "TypeaheadSearch must forward a div ref",
 )
-assert(typeaheadSearchSource.includes("inputValue.trim()"), "TypeaheadSearch must trim submitted queries")
 assert(
-  typeaheadSearchSource.includes("onSelectionChange?.(selectedKey)"),
-  "TypeaheadSearch must preserve selection callbacks",
+  typeaheadSearchSource.includes("useCalibratedComponent"),
+  "TypeaheadSearch must use one calibrated component hook",
 )
+assert(helpersSource.includes("inputValue.trim()"), "TypeaheadSearch must trim submitted queries")
+assert(helpersSource.includes("onSelectionChange?.(selectedKey)"), "TypeaheadSearch must preserve selection callbacks")
 assert(
   typeaheadSearchSource.includes('data-testid={dataTestID ?? "typeahead-search"}'),
   "TypeaheadSearch must preserve test id fallback",
 )
 assert(
-  typeaheadSearchSource.includes("TYPEAHEAD_SEARCH_STATUS__RESULTS"),
+  typeaheadSearchSource.includes("status === TYPEAHEAD_SEARCH_STATUS__RESULTS"),
   "TypeaheadSearch must use component-owned status constants",
 )
 
@@ -160,8 +161,9 @@ assert(
 )
 assert(helpersSource.includes("export type TTypeaheadSearchProps"), "TypeaheadSearch helpers must export props")
 assert(
-  helpersSource.includes("export const calibrateComponent"),
-  "TypeaheadSearch calibration helper must remain local",
+  helpersSource.includes("export const useCalibratedComponent") &&
+    !helpersSource.includes("export const calibrateComponent"),
+  "TypeaheadSearch must keep one helpers calibration entry",
 )
 assert(
   helpersSource.includes("TypeaheadSearchDefaultSearchIcon"),

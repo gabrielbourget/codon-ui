@@ -220,7 +220,8 @@ assert(
 assert(helpersSource.includes("export type TDateTimePickerProps"), "DateTimePicker helpers must export local props")
 assert(helpersSource.includes("export const calibrateComponent"), "DateTimePicker calibration helper must remain local")
 assert(
-  helpersSource.includes('styles["inputButtonGroup--errorState"]'),
+  helpersSource.includes('["inputButtonGroup--errorState"]: inputButtonGroupErrorState') &&
+    helpersSource.includes("borderStyle = inputButtonGroupErrorState"),
   "DateTimePicker helpers must preserve error precedence",
 )
 assert(

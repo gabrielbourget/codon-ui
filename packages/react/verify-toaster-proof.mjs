@@ -125,9 +125,28 @@ const expectedRegistryDependencies = [
 assert(!forbiddenLegacyCssPattern.test(toasterStylesSource), "Toaster CSS must not read legacy Wavemap aliases")
 assert(!forbiddenLegacyCssPattern.test(toastStylesSource), "Toast CSS must not read legacy Wavemap aliases")
 
-assert(toasterSource.includes("ReactDOM.flushSync"), "Toaster must preserve sync toast transition publication")
-assert(toasterSource.includes("ToasterObserver.subscribe"), "Toaster must subscribe to published toast events")
+assert(
+  toasterSource.includes("useCalibratedComponent({"),
+  "Toaster renderer must consume one helper-backed calibration entry using visible state and refs",
+)
+assert(toasterHelpersSource.includes("ReactDOM.flushSync"), "Toaster must preserve sync toast transition publication")
+assert(toasterHelpersSource.includes("ToasterObserver.subscribe"), "Toaster must subscribe to published toast events")
 assert(toasterSource.includes('data-testid={dataTestID ?? "toaster"}'), "Toaster test id fallback must stay")
+assert(toasterSource.includes("useState<TToasterInteractionState>"), "Toaster must expose its typed interaction state")
+assert(
+  toasterSource.includes("useState<TToast[]>") && toasterSource.includes("useState<TToastHeightInfo[]>"),
+  "Toaster must expose independent toast and measured-height state",
+)
+assert(toasterHelpersSource.includes("useRef<HTMLOListElement>"), "Toaster lifecycle must own its focus ref")
+assert(
+  toastSource.includes("useState<TToastState>(initState)") && toastHelpersSource.includes("useRef<HTMLLIElement>"),
+  "Toast must expose its state and preserve its lifecycle-owned DOM ref",
+)
+assert(
+  !toasterHelpersSource.includes("export const calibrateComponent") &&
+    !toastHelpersSource.includes("export const calibrateComponent"),
+  "Each component must retain only one calibration entry",
+)
 assert(toasterSource.includes("Ghost hover bridges"), "Toaster must preserve expanded-stack hover bridges")
 assert(
   toasterHelpersSource.includes('from "../../tokens/a11y"'),
@@ -144,8 +163,22 @@ assert(
 )
 assert(toastSource.includes('from "../../Button/Button"'), "Toast must import package-local Button")
 assert(toastSource.includes('from "../../Text/Text"'), "Toast must import package-local Text")
-assert(toastSource.includes("const useIsomorphicLayoutEffect"), "Toast must own its isomorphic layout effect helper")
-assert(toastSource.includes("const useIsDocumentHidden"), "Toast must own its document visibility helper")
+assert(
+  toastSource.includes("useCalibratedComponent({"),
+  "Toast renderer must consume one helper-backed calibration entry using visible state and refs",
+)
+assert(
+  toastHelpersSource.includes("const useIsomorphicLayoutEffect"),
+  "Toast hook must preserve layout effect selection",
+)
+assert(
+  toastHelpersSource.includes('document.addEventListener("visibilitychange"'),
+  "Toast hook must track page visibility",
+)
+assert(toastHelpersSource.includes("requestAnimationFrame"), "Toast hook must preserve the mount transition sequence")
+assert(toastHelpersSource.includes("setPointerCapture"), "Toast hook must preserve pointer capture while dragging")
+assert(toastHelpersSource.includes('setProperty("--dragAmount"'), "Toast hook must preserve swipe displacement")
+assert(toastHelpersSource.includes("DURATION_BEFORE_UNMOUNT"), "Toast hook must preserve delayed removal")
 assert(toastLabelsSource.includes("DEFAULT_TOAST_LABELS"), "Toast labels must define defaults")
 assert(toastLabelsSource.includes("resolveToastLabels"), "Toast labels must expose resolver")
 assert(toastIconsSource.includes("ToastDefaultCloseIcon"), "Default toast close icon must stay available")

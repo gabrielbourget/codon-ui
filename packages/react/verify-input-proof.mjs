@@ -119,7 +119,10 @@ assert(
 assert(helpersSource.includes('export const INPUT_SIZE__SM = "small"'), "Input helpers must keep size constants")
 assert(helpersSource.includes("export type TInputProps"), "Input helpers must export local props")
 assert(helpersSource.includes("export const calibrateComponent"), "Input calibration helper must remain local")
-assert(helpersSource.includes('styles["input--errorState"]'), "Input helpers must preserve error style precedence")
+assert(
+  helpersSource.includes("if (errorState) return inputErrorState"),
+  "Input helpers must preserve error style precedence",
+)
 assert(helpersSource.includes('textStyles["fw-regular"]'), "Input helpers must preserve regular text weight")
 ;[inputSource, helpersSource, stylesSource].forEach((source) => {
   assert(!forbiddenConsumerImportsPattern.test(source), "Input runtime source must not import consumer-only modules")

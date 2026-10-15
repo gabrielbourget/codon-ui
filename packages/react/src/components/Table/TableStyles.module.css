@@ -25,6 +25,19 @@
   background-color: var(--zebraColor, transparent);
 }
 
+.table--stickyHeader thead th,
+.table--stickyHeader [role="columnheader"] {
+  position: sticky;
+
+  /* Preserve existing consumer overrides while exposing canonical component variables. */
+  top: var(--cui-table-sticky-header-offset, var(--tableStickyHeaderOffset, 0));
+  z-index: 3;
+  background: var(
+    --cui-table-sticky-header-background,
+    var(--tableStickyHeaderBackground, var(--cui-background, #fff))
+  );
+}
+
 .screenReaderOnly {
   position: absolute;
   width: 1px;

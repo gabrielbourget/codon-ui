@@ -37,6 +37,7 @@ const Select = forwardRef(function SelectInner<T extends object = object>(
     isOpen,
     placement,
     placeholder = undefined,
+    renderSelectedValue,
     shouldFocusWrap = true,
     style,
     successState,
@@ -83,7 +84,9 @@ const Select = forwardRef(function SelectInner<T extends object = object>(
               data-testid="select-value"
               className={selectedItemTextStyles}
               style={customSelectedItemTextStyles}
-            />
+            >
+              {renderSelectedValue}
+            </SelectValue>
             <motion.div
               animate={{ rotateX: isOpenRenderProps ? 180 : 0 }}
               transition={{ ease: "easeInOut", duration: 0.4 }}

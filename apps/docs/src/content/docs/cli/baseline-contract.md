@@ -259,6 +259,13 @@ manifest before writing source files or `codon-ui.lock.json`; installed dependen
 `installed`. Broad `update --all --json` still does not install dependencies, mutate package manifests, or touch
 package-manager lockfiles.
 
+Item-scoped dry-run and strict update also accept `--adopt-current` as a lockfile-only provenance repair. The option
+admits a locally changed registry-owned file only when its bytes exactly match the current canonical,
+import-transformed install output. It can also record a file newly added to the current registry item when that target
+already exists and byte-matches the canonical transformed output. It never writes component source, remains blocked by
+missing or nonmatching additions and every other preservation-sensitive ownership state, and is rejected with advisory
+mode or `--all`.
+
 Current `remove <item> --advisory --json` is read-only and item-scoped. It builds on the status model, emits per-file
 remove advisory actions, item remove state, dependency posture, shared lockfile reference counts, and explicit no-write
 effects. It reports `remove-candidate` only for registry-owned component files that are present locally and not shared

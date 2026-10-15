@@ -123,7 +123,7 @@
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--fallback {
   border: 1.5px solid var(--switch-track-selected-invert-border-color-fallback, var(--cui-control-selected-background));
-  background-color: var(--switch-track-selected-invert-background-color-fallback, var(--cui-neutral-8));
+  background-color: var(--switch-track-selected-invert-background-color-fallback, var(--cui-neutral-900));
 }
 
 ._switch[data-selected] ._switch__track--showBorder--invertColorsOnToggle--primary {

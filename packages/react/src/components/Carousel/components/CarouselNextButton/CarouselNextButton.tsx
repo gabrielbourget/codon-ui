@@ -4,7 +4,8 @@ import { forwardRef, type ForwardRefExoticComponent, type PropsWithChildren, typ
 import Button from "../../../Button/Button"
 import { useCarouselContext } from "../../helpers"
 
-import { calibrateComponent, defaultButtonProps, type TCarouselNextButtonProps } from "./helpers"
+import CarouselDefaultNextIcon from "./DefaultNextIcon"
+import { defaultButtonProps, type TCarouselNextButtonProps } from "./helpers"
 
 const CarouselNextButton: ForwardRefExoticComponent<
   PropsWithChildren<TCarouselNextButtonProps> & RefAttributes<HTMLButtonElement>
@@ -23,7 +24,6 @@ const CarouselNextButton: ForwardRefExoticComponent<
     ...resolvedCustomButtonProps
   } = customButtonProps ?? {}
   const { canScrollNext, scrollNext, labels: carouselLabels } = useCarouselContext()
-  const { defaultButtonContent } = calibrateComponent(props)
 
   return (
     <Button
@@ -44,7 +44,7 @@ const CarouselNextButton: ForwardRefExoticComponent<
       {...rest}
       {...resolvedCustomButtonProps}
     >
-      {children ?? defaultButtonContent}
+      {children ?? <CarouselDefaultNextIcon size={20} />}
     </Button>
   )
 })

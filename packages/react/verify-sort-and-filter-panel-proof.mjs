@@ -36,6 +36,7 @@ const forbiddenLegacyCssPattern =
 
 const requiredPackageFileSources = [
   "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
+  "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
   "packages/react/src/components/SortAndFilterPanel/helpers.ts",
   "packages/react/src/components/SortAndFilterPanel/labels.ts",
   "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanelStyles.module.css",
@@ -135,14 +136,22 @@ assert(
   "SortAndFilterPanel must import package-local Select",
 )
 assert(
-  sortAndFilterPanelSource.includes('from "../Table/filterDraft"') &&
-    sortAndFilterPanelSource.includes('from "../Table/queryTypes"'),
+  helpersSource.includes('from "../Table/filterDraft"') && helpersSource.includes('from "../Table/queryTypes"'),
   "SortAndFilterPanel must use generic Table query support",
 )
 assert(
-  sortAndFilterPanelSource.includes(
-    "applyPendingSortAndFilterChanges({ sortInstructions: sortParameterList, filterGroups })",
-  ),
+  sortAndFilterPanelSource.includes("useState<TSortAndFilterPanelState>(initState)") &&
+    helpersSource.includes("export const useCalibratedComponent") &&
+    !helpersSource.includes("export const calibrateComponent"),
+  "SortAndFilterPanel must expose typed state and consume one helpers calibration boundary",
+)
+assert(
+  sortAndFilterPanelSource.includes('from "./registryDependencies"'),
+  "SortAndFilterPanel must isolate registry-remapped dependencies behind its local adapter",
+)
+assert(
+  helpersSource.includes("applyPendingSortAndFilterChanges({") &&
+    helpersSource.includes("filterGroups: normalizeDraftToQueryFilterGroups(filterGroupDrafts)"),
   "SortAndFilterPanel must emit generic sortInstructions and filterGroups",
 )
 assert(

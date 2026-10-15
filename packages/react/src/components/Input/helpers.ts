@@ -7,6 +7,17 @@ import textStyles from "../Text/TextStyles.module.css"
 
 import styles from "./InputStyles.module.css"
 
+const {
+  ["input--applyFocusStyle"]: inputApplyFocusStyle,
+  ["input--errorState"]: inputErrorState,
+  ["input--noFocusStyle"]: inputNoFocusStyle,
+  ["input--offsetFocusRing"]: inputOffsetFocusRing,
+  ["input--round"]: inputRound,
+  ["input--rounded"]: inputRounded,
+  ["input--successState"]: inputSuccessState,
+  ["input--warningState"]: inputWarningState,
+} = styles
+
 export const INPUT_SIZE__SM = "small"
 export const INPUT_SIZE__MD = "medium"
 export const INPUT_SIZE__LG = "large"
@@ -75,9 +86,9 @@ const computeGeometryStyle = (props: TInputProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["input--rounded"]
+      return inputRounded
     case ROUND:
-      return styles["input--round"]
+      return inputRound
     default:
       return undefined
   }
@@ -109,9 +120,9 @@ const computeTextSizeStyle = (props: TInputProps) => {
 const computeValidationStyle = (props: TInputProps) => {
   const { errorState, warningState, successState } = props
 
-  if (errorState) return styles["input--errorState"]
-  if (warningState) return styles["input--warningState"]
-  if (successState) return styles["input--successState"]
+  if (errorState) return inputErrorState
+  if (warningState) return inputWarningState
+  if (successState) return inputSuccessState
 
   return undefined
 }
@@ -132,10 +143,8 @@ export const calibrateComponent = (props: TInputProps): TInputCalibration => {
   const textSizeStyle = computeTextSizeStyle(props)
   const validationStyle = computeValidationStyle(props)
   const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["input--noFocusStyle"]
-      : styles["input--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["input--offsetFocusRing"] : undefined
+    enableFocusStyle !== undefined && enableFocusStyle === false ? inputNoFocusStyle : inputApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? inputOffsetFocusRing : undefined
 
   const computedInputStyles = classNames(
     input,

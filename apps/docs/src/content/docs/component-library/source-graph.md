@@ -9,11 +9,11 @@ the manifest entries that describe installable source slices.
 
 ## Current Receipt
 
-The active manifest currently contains 73 registry items:
+The active manifest currently contains 74 registry items:
 
 | Item type   | Count | Role                                                                 |
 | ----------- | ----- | -------------------------------------------------------------------- |
-| `component` | 52    | Reusable React component source and component-local style files.     |
+| `component` | 53    | Reusable React component source and component-local style files.     |
 | `support`   | 9     | Token/support modules installed before components that depend on it. |
 | `theme`     | 12    | Default theme CSS and narrow compatibility CSS files.                |
 

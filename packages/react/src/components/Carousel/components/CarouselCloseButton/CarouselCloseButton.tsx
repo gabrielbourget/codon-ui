@@ -4,8 +4,8 @@ import { forwardRef, type ForwardRefExoticComponent, type PropsWithChildren, typ
 import Button from "../../../Button/Button"
 import { DEFAULT_CAROUSEL_LABELS } from "../../helpers"
 
-import type { TCarouselCloseButtonProps } from "./helpers"
-import { calibrateComponent, defaultButtonProps } from "./helpers"
+import CarouselDefaultCloseIcon from "./DefaultCloseIcon"
+import { defaultButtonProps, type TCarouselCloseButtonProps } from "./helpers"
 
 const CarouselCloseButton: ForwardRefExoticComponent<
   PropsWithChildren<TCarouselCloseButtonProps> & RefAttributes<HTMLButtonElement>
@@ -23,7 +23,6 @@ const CarouselCloseButton: ForwardRefExoticComponent<
     customStyles: customButtonStyles,
     ...resolvedCustomButtonProps
   } = customButtonProps ?? {}
-  const { defaultButtonContent } = calibrateComponent(props)
 
   return (
     <Button
@@ -42,7 +41,7 @@ const CarouselCloseButton: ForwardRefExoticComponent<
       {...rest}
       {...resolvedCustomButtonProps}
     >
-      {children ?? defaultButtonContent}
+      {children ?? <CarouselDefaultCloseIcon size={20} />}
     </Button>
   )
 })

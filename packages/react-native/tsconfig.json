@@ -1,0 +1,16 @@
+{
+  "extends": "../shared-utils/tsconfig/base.json",
+  "compilerOptions": {
+    "lib": ["ESNext"],
+    "types": ["react", "jest"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "composite": false,
+    "incremental": false,
+    "declarationMap": false,
+    "strict": true,
+    "noImplicitAny": true
+  },
+  "include": ["src/**/*.ts", "src/**/*.tsx"],
+  "exclude": ["dist", "node_modules"]
+}

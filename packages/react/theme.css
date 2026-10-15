@@ -63,7 +63,7 @@
   --cui-control-foreground: var(--cui-foreground);
   --cui-control-border: var(--cui-border);
   --cui-control-placeholder: var(--cui-neutral-600);
-  --cui-control-hover-background: var(--cui-neutral-100);
+  --cui-control-hover-background: var(--cui-neutral-200);
   --cui-control-pressed-background: var(--cui-neutral-300);
   --cui-control-selected-background: var(--cui-focus-ring);
   --cui-control-selected-background-hover: color-mix(in srgb, var(--cui-focus-ring) 90%, var(--cui-foreground) 10%);

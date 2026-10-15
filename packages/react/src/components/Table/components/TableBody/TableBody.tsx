@@ -1,18 +1,19 @@
+import classNames from "classnames"
 import { TableBody as AdobeTableBody } from "react-aria-components"
 
 import TableRow from "../TableRow/TableRow"
 
-import { calibrateComponent, type TTableBodyProps } from "./helpers"
+import type { TTableBodyProps } from "./helpers"
 
 const TableBody = <T extends object>(props: TTableBodyProps<T>) => {
   const {
-    className: _className,
+    className,
     items = [],
     columns,
-    customClassName: _customClassName,
+    customClassName,
     customRowClassName,
     customRowStyles,
-    customStyles: _customStyles,
+    customStyles,
     geometry,
     isLoading,
     rowKey,
@@ -20,11 +21,12 @@ const TableBody = <T extends object>(props: TTableBodyProps<T>) => {
     renderLoadingState,
     renderCell,
     dependencies,
-    style: _style,
+    style,
     ...rest
   } = props
   const collectionDependencies = [items, columns, rowKey, renderCell, ...(dependencies ?? [])]
-  const { tableBodyStyles, tableBodyStyle } = calibrateComponent(props)
+  const tableBodyStyles = classNames(customClassName, className)
+  const tableBodyStyle = Object.assign({}, { ...customStyles }, { ...style })
 
   if (isLoading && renderLoadingState) {
     return (

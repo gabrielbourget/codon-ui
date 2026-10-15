@@ -159,7 +159,7 @@ assert(helpersSource.includes("IncrementIcon?: ReactNode"), "NumberInput props m
 assert(helpersSource.includes("DecrementIcon?: ReactNode"), "NumberInput props must keep custom decrement icon")
 assert(helpersSource.includes("export const calibrateComponent"), "NumberInput calibration helper must remain local")
 assert(
-  helpersSource.includes('styles["numberInput--errorState"]'),
+  helpersSource.includes("if (errorState) return numberInputErrorState"),
   "NumberInput helpers must preserve error style precedence",
 )
 assert(

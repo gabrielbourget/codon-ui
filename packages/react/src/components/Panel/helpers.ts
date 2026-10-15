@@ -2,11 +2,26 @@ import classNames from "classnames"
 import type { CSSProperties } from "react"
 
 import { ORTHOGONAL, ROUND, ROUNDED, type TCornerGeometry } from "../../tokens/geometry"
-import { POPOVER_PLACEMENT__LEFT as LEFT, POPOVER_PLACEMENT__RIGHT as RIGHT } from "../../tokens/placement"
+import {
+  POPOVER_PLACEMENT__LEFT as PANEL_POSITION__LEFT,
+  POPOVER_PLACEMENT__RIGHT as PANEL_POSITION__RIGHT,
+} from "../../tokens/placement"
 
 import styles from "./PanelStyles.module.css"
 
-type TPanelPosition = typeof LEFT | typeof RIGHT
+const {
+  panel,
+  panel__overlay,
+  ["panel__overlay--blur"]: panel__overlayBlur,
+  ["panel--left"]: panelLeft,
+  ["panel--open"]: panelOpen,
+  ["panel--raised"]: panelRaised,
+  ["panel--right"]: panelRight,
+  ["panel--round"]: panelRound,
+  ["panel--rounded"]: panelRounded,
+} = styles
+
+type TPanelPosition = typeof PANEL_POSITION__LEFT | typeof PANEL_POSITION__RIGHT
 
 export type TPanelProps = {
   "data-testid"?: string
@@ -44,20 +59,20 @@ const computePanelGeometryStyle = (props: TPanelProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["panel--rounded"]
+      return panelRounded
     case ROUND:
-      return styles["panel--round"]
+      return panelRound
     default:
       return undefined
   }
 }
 
 const computeHorizontalGapStyle = (props: TPanelProps): CSSProperties | undefined => {
-  const { horizontalGap, position = LEFT } = props
+  const { horizontalGap, position = PANEL_POSITION__LEFT } = props
 
   if (!horizontalGap) return undefined
-  if (position === LEFT) return { left: horizontalGap }
-  if (position === RIGHT) return { right: horizontalGap }
+  if (position === PANEL_POSITION__LEFT) return { left: horizontalGap }
+  if (position === PANEL_POSITION__RIGHT) return { right: horizontalGap }
 
   return undefined
 }
@@ -71,7 +86,7 @@ export const calibrateComponent = (props: TPanelProps): TPanelCalibration => {
     customStyles: customStyles__props,
     height,
     isOpen,
-    position = LEFT,
+    position = PANEL_POSITION__LEFT,
     raised,
     overlayBlur = false,
     style,
@@ -81,14 +96,14 @@ export const calibrateComponent = (props: TPanelProps): TPanelCalibration => {
 
   const panelGeometryStyle = computePanelGeometryStyle(props)
   const horizontalGapStyle = computeHorizontalGapStyle(props)
-  const panelOpenStyle = resolvedPanelOpen ? styles["panel--open"] : undefined
-  const panelRaisedStyle = raised ? styles["panel--raised"] : undefined
-  const overlayBlurStyle = overlayBlur ? styles["panel__overlay--blur"] : undefined
-  const panelPositionStyle = position === RIGHT ? styles["panel--right"] : styles["panel--left"]
-  const panelAnimationX = position === RIGHT ? "100%" : "-100%"
+  const panelOpenStyle = resolvedPanelOpen ? panelOpen : undefined
+  const panelRaisedStyle = raised ? panelRaised : undefined
+  const overlayBlurStyle = overlayBlur ? panel__overlayBlur : undefined
+  const panelPositionStyle = position === PANEL_POSITION__RIGHT ? panelRight : panelLeft
+  const panelAnimationX = position === PANEL_POSITION__RIGHT ? "100%" : "-100%"
 
   const panelStyles = classNames(
-    styles.panel,
+    panel,
     panelGeometryStyle,
     panelOpenStyle,
     panelPositionStyle,
@@ -96,7 +111,7 @@ export const calibrateComponent = (props: TPanelProps): TPanelCalibration => {
     customClassName,
     className,
   )
-  const overlayStyles = classNames(styles.panel__overlay, overlayBlurStyle, customOverlayClassName)
+  const overlayStyles = classNames(panel__overlay, overlayBlurStyle, customOverlayClassName)
   const customStyles = Object.assign(
     { backgroundColor, height, width },
     horizontalGapStyle,

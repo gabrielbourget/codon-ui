@@ -14,6 +14,21 @@ import {
 
 import styles from "./CheckboxStyles.module.css"
 
+const {
+  ["shape--applyFocusStyle"]: shapeApplyFocusStyle,
+  ["shape--fallback"]: shapeFallback,
+  ["shape--noFocusStyle"]: shapeNoFocusStyle,
+  ["shape--offsetFocusRing"]: shapeOffsetFocusRing,
+  ["shape--primary"]: shapePrimary,
+  ["shape--quaternary"]: shapeQuaternary,
+  ["shape--quintenary"]: shapeQuintenary,
+  ["shape--raised"]: shapeRaised,
+  ["shape--round"]: shapeRound,
+  ["shape--rounded"]: shapeRounded,
+  ["shape--secondary"]: shapeSecondary,
+  ["shape--tertiary"]: shapeTertiary,
+} = styles
+
 export type TCheckboxProps = CheckboxProps & {
   "data-testid"?: string
   height?: number | string
@@ -79,9 +94,9 @@ const computeGeometryStyle = (props: TCheckboxProps) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["shape--rounded"]
+      return shapeRounded
     case ROUND:
-      return styles["shape--round"]
+      return shapeRound
     default:
       return undefined
   }
@@ -95,28 +110,28 @@ const computeColorStyle = (props: TCheckboxProps) => {
   if (color) return
 
   if (!color && !order) {
-    colorStyle = styles["shape--fallback"]
+    colorStyle = shapeFallback
     return colorStyle
   }
 
   switch (order) {
     case THEME_ORDER_CODE__PRIMARY:
-      colorStyle = styles["shape--primary"]
+      colorStyle = shapePrimary
       break
     case THEME_ORDER_CODE__SECONDARY:
-      colorStyle = styles["shape--secondary"]
+      colorStyle = shapeSecondary
       break
     case THEME_ORDER_CODE__TERTIARY:
-      colorStyle = styles["shape--tertiary"]
+      colorStyle = shapeTertiary
       break
     case THEME_ORDER_CODE__QUATERNARY:
-      colorStyle = styles["shape--quaternary"]
+      colorStyle = shapeQuaternary
       break
     case THEME_ORDER_CODE__QUINTENARY:
-      colorStyle = styles["shape--quintenary"]
+      colorStyle = shapeQuintenary
       break
     default:
-      colorStyle = styles["shape--primary"]
+      colorStyle = shapePrimary
       break
   }
 
@@ -140,11 +155,9 @@ export const calibrateComponent = (props: TCheckboxProps): TCheckboxCalibration 
   const geometryStyle = computeGeometryStyle(props)
   const colorStyle = computeColorStyle(props)
   const focusStyle =
-    enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["shape--noFocusStyle"]
-      : styles["shape--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["shape--offsetFocusRing"] : undefined
-  const raisedStyle = raised ? styles["shape--raised"] : undefined
+    enableFocusStyle !== undefined && enableFocusStyle === false ? shapeNoFocusStyle : shapeApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? shapeOffsetFocusRing : undefined
+  const raisedStyle = raised ? shapeRaised : undefined
 
   const computedCheckboxStyles = classNames(checkbox)
   const checkboxStyles = mergeCheckboxClassNames(computedCheckboxStyles, className)

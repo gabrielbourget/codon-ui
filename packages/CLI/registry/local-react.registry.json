@@ -1963,6 +1963,12 @@
           "targetRole": "components",
           "targetPath": "VisualUtilities/LineSegment/LineSegment.tsx",
           "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/LineSegment/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "VisualUtilities/LineSegment/helpers.ts",
+          "role": "source"
         }
       ],
       "registryDependencies": ["theme-css"],
@@ -2289,9 +2295,9 @@
           "role": "source"
         },
         {
-          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+          "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.tsx",
           "targetRole": "components",
-          "targetPath": "Search/TypeaheadSearch/helpers.ts",
+          "targetPath": "Search/TypeaheadSearch/helpers.tsx",
           "role": "source"
         },
         {
@@ -2358,9 +2364,9 @@
           "role": "source"
         },
         {
-          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+          "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
           "targetRole": "components",
-          "targetPath": "CompactTypeaheadSearch/helpers.ts",
+          "targetPath": "CompactTypeaheadSearch/helpers.tsx",
           "role": "source"
         },
         {
@@ -2419,6 +2425,12 @@
           "sourcePath": "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
           "targetRole": "components",
           "targetPath": "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
+          "targetRole": "components",
+          "targetPath": "Panels/SortAndFilterPanel/registryDependencies.ts",
           "role": "source"
         },
         {
@@ -2611,6 +2623,36 @@
         "react": "^18.2.0 || ^19.0.0",
         "react-dom": "^18.2.0 || ^19.0.0"
       }
+    },
+    {
+      "name": "thumbnail-showcase",
+      "type": "component",
+      "sourcePackage": "@codon-ui/react",
+      "files": [
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/ThumbnailShowcase.tsx",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/helpers.ts",
+          "role": "source"
+        },
+        {
+          "sourcePath": "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+          "targetRole": "components",
+          "targetPath": "ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+          "role": "style"
+        }
+      ],
+      "peerDependencies": {
+        "react": "^18.2.0 || ^19.0.0",
+        "react-dom": "^18.2.0 || ^19.0.0"
+      },
+      "runtimeDependencies": { "classnames": "^2.3.2" }
     },
     {
       "name": "slider",

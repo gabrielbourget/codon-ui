@@ -47,6 +47,7 @@ import {
 import {
   createUpdateAllDryRunReport,
   createUpdateDryRunReport,
+  UPDATE_DRY_RUN_ADVISORY_ACTION__ADOPT_FILE_ADDITION,
   type TCreateUpdateDryRunReportOptions,
   updateDryRunReportSchema,
   type TUpdateAllDryRunReport,
@@ -120,7 +121,7 @@ const updateStrictFileSchema = z
   .object({
     currentHash: z.string().min(1).optional(),
     dryRunAction: z.string().min(1),
-    installedHash: z.string().min(1),
+    installedHash: z.string().min(1).optional(),
     itemName: z.string().min(1),
     lockfileRecordUpdated: z.boolean(),
     nextInstalledHash: z.string().min(1).optional(),
@@ -261,6 +262,7 @@ export type TUpdateStrictReport = z.infer<typeof updateStrictReportSchema>
 export type TUpdateAllStrictReport = z.infer<typeof updateAllStrictReportSchema>
 
 export type TCreateUpdateStrictReportOptions = {
+  adoptCurrent?: TCreateUpdateDryRunReportOptions["adoptCurrent"]
   cwd: string
   dependencyPolicyOverride?: TCreateUpdateDryRunReportOptions["dependencyPolicyOverride"]
   installDependencies?: boolean
@@ -447,6 +449,13 @@ const createLockfileBlockers = ({
     const lockfileFile = item.files.find((file) => file.path === dryRunFile.path)
 
     if (!lockfileFile) {
+      if (
+        dryRunFile.advisoryAction === UPDATE_DRY_RUN_ADVISORY_ACTION__ADOPT_FILE_ADDITION &&
+        dryRunFile.dryRunAction === "would-update-lockfile"
+      ) {
+        return []
+      }
+
       return [
         createUpdateStrictBlocker({
           code: "strict-update-lockfile-file-missing",
@@ -984,7 +993,10 @@ const writeStrictUpdateFilesAndLockfileData = async ({
 
   const installPlanFilesByKey = createInstallPlanFileMap(installPlan)
   const files: TUpdateStrictFile[] = []
-  const updatedRecordsByPath = new Map<string, { installedHash: string; sourceHash: string }>()
+  const updatedRecordsByPath = new Map<
+    string,
+    { installedHash: string; sourceHash: string; targetRole: TUpdateDryRunFile["targetRole"] }
+  >()
 
   for (const file of dryRunReport.files) {
     if (file.dryRunAction === "none") {
@@ -1063,8 +1075,24 @@ const writeStrictUpdateFilesAndLockfileData = async ({
     updatedRecordsByPath.set(file.path, {
       installedHash: plannedContent.nextInstalledHash,
       sourceHash: plannedContent.nextSourceHash,
+      targetRole: file.targetRole,
     })
   }
+
+  const existingLockfilePaths = new Set(item.files.map((file) => file.path))
+  const addedLockfileRecords = [...updatedRecordsByPath.entries()].flatMap(([filePath, updatedRecord]) =>
+    existingLockfilePaths.has(filePath)
+      ? []
+      : [
+          {
+            installedHash: updatedRecord.installedHash,
+            ownershipState: CONSUMER_OWNERSHIP_STATE__REGISTRY_OWNED,
+            path: filePath,
+            sourceHash: updatedRecord.sourceHash,
+            targetRole: updatedRecord.targetRole,
+          },
+        ],
+  )
 
   const nextLockfileData = consumerLockfileSchema.parse({
     ...lockfileData,
@@ -1079,17 +1107,20 @@ const writeStrictUpdateFilesAndLockfileData = async ({
       ...lockfileData.items,
       [dryRunReport.itemName]: {
         ...item,
-        files: item.files.map((file) => {
-          const updatedRecord = updatedRecordsByPath.get(file.path)
+        files: [
+          ...item.files.map((file) => {
+            const updatedRecord = updatedRecordsByPath.get(file.path)
 
-          return updatedRecord
-            ? {
-                ...file,
-                installedHash: updatedRecord.installedHash,
-                sourceHash: updatedRecord.sourceHash,
-              }
-            : file
-        }),
+            return updatedRecord
+              ? {
+                  ...file,
+                  installedHash: updatedRecord.installedHash,
+                  sourceHash: updatedRecord.sourceHash,
+                }
+              : file
+          }),
+          ...addedLockfileRecords,
+        ],
       },
     },
   })
@@ -1394,6 +1425,7 @@ const createDependencyExecutionFailureBlocker = (failedCommand: TDependencyInsta
   })
 
 export const createUpdateStrictReport = async ({
+  adoptCurrent,
   cwd,
   dependencyPolicyOverride,
   installDependencies,
@@ -1415,6 +1447,7 @@ export const createUpdateStrictReport = async ({
     packageManagerWrites?: boolean
   } = {}) => {
     const dryRunReport = await createUpdateDryRunReport({
+      adoptCurrent,
       cwd,
       dependencyPolicyOverride,
       executedDependencyCommands,

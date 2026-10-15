@@ -1,6 +1,6 @@
 import classNames from "classnames"
 import type { CSSProperties, ReactNode } from "react"
-import type { SelectProps, SelectRenderProps } from "react-aria-components"
+import type { SelectProps, SelectRenderProps, SelectValueRenderProps } from "react-aria-components"
 
 import { ORTHOGONAL, ROUND, ROUNDED, type TCornerGeometry } from "../../tokens/geometry"
 import type { TAvailablePopoverPlacementPositions } from "../../tokens/placement"
@@ -36,6 +36,7 @@ export type TSelectProps<T extends object = object> = Omit<
   warningState?: boolean
   successState?: boolean
   ComponentIcon?: ReactNode
+  renderSelectedValue?: (props: SelectValueRenderProps<T>) => ReactNode
   customStyles?: CSSProperties
   customClassName?: string
   customSelectedItemStyles?: CSSProperties

@@ -1,34 +1,15 @@
 "use client"
 
-import {
-  type FocusEvent,
-  type ForwardedRef,
-  type ReactElement,
-  type RefAttributes,
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react"
-import type { ListBoxRenderProps } from "react-aria-components"
-import { type Key, ComboBox as AdobeComboBox, Group, ListBox, Popover } from "react-aria-components"
+import { type ForwardedRef, type ReactElement, type RefAttributes, forwardRef, useRef, useState } from "react"
+import { ComboBox as AdobeComboBox, Group, ListBox, Popover, type ListBoxRenderProps } from "react-aria-components"
 
 import { POPOVER_PLACEMENT__BOTTOM_START } from "../../tokens/placement"
 import Button from "../Button/Button"
 import Input from "../Input/Input"
-import ListBoxItem from "../ListBoxItem/ListBoxItem"
 import PlaceholderText from "../Text/variants/PlaceholderText/PlaceholderText"
 
 import styles from "./CompactTypeaheadSearchStyles.module.css"
-import {
-  type TCompactTypeaheadSearchProps,
-  type TCompactTypeaheadSearchRenderItemArgs,
-  type TCompactTypeaheadSearchState,
-  calibrateComponent,
-} from "./helpers"
-import { resolveCompactTypeaheadSearchLabels } from "./labels"
+import { useCalibratedComponent, type TCompactTypeaheadSearchProps, type TCompactTypeaheadSearchState } from "./helpers"
 
 const { typeAheadSearch__status, inputButtonGroup__button } = styles
 
@@ -38,67 +19,55 @@ const CompactTypeaheadSearch = forwardRef(function CompactTypeaheadSearchInner<T
 ) {
   const {
     "data-testid": dataTestID,
-    className,
-    color,
+    className: _className,
+    color: _color,
     customButtonStyles: customButtonStyles__props,
     customInputButtonGroupStyles: customInputButtonGroupStyles__props,
     customInputStyles: customInputStyles__props,
     customOptionsListStyles,
     customStyles: customStyles__props,
     defaultInputValue = "",
-    emptyListMessage,
-    enableFocusStyle,
-    errorState,
-    geometry,
-    getItemKey,
-    getItemTextValue,
-    height,
-    inputValue,
+    emptyListMessage: _emptyListMessage,
+    enableFocusStyle: _enableFocusStyle,
+    errorState: _errorState,
+    geometry: _geometry,
+    getItemKey: _getItemKey,
+    getItemTextValue: _getItemTextValue,
+    height: _height,
+    inputValue: _inputValue,
     isDisabled,
     isLoading = false,
-    isOpen,
-    items,
-    labels,
+    isOpen: _isOpen,
+    items: _items,
+    labels: _labels,
     LoadingIndicator: LoadingIndicator__props,
-    loadingMessage,
+    loadingMessage: _loadingMessage,
     minimumInputLength = 0,
-    minimumInputLengthMessage,
-    offsetFocusRing,
-    onChange,
-    onInputChange,
-    onOpenChange,
+    minimumInputLengthMessage: _minimumInputLengthMessage,
+    offsetFocusRing: _offsetFocusRing,
+    onChange: _onChange,
+    onInputChange: _onInputChange,
+    onOpenChange: _onOpenChange,
     placement = POPOVER_PLACEMENT__BOTTOM_START,
     placeholder,
     SearchIcon: SearchIcon__props,
-    renderItem,
+    renderItem: _renderItem,
     rtl = false,
     shouldFocusWrap = true,
-    style,
-    successState,
+    style: _style,
+    successState: _successState,
     textSize,
-    warningState,
-    width,
-    ...rest
+    warningState: _warningState,
+    width: _width,
+    ...nativeProps
   } = props
   const comboBoxRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLInputElement | null>(null)
   const restoreInputFocusTimeoutRef = useRef<number | null>(null)
-
   const [state, setState] = useState<TCompactTypeaheadSearchState>({
     internalInputValue: defaultInputValue,
     isOpen: false,
     suppressMinimumQueryState: false,
-  })
-
-  // Controlled props win when present, otherwise the component falls back to its internal state.
-  const resolvedInputValue = inputValue !== undefined ? inputValue : state.internalInputValue
-  const trimmedInputValue = resolvedInputValue.trim()
-  const shouldRequestResults = trimmedInputValue.length >= minimumInputLength
-  const resolvedLabels = resolveCompactTypeaheadSearchLabels({
-    labels,
-    minimumInputLengthMessage,
-    loadingMessage,
-    emptyListMessage,
   })
 
   const {
@@ -112,188 +81,36 @@ const CompactTypeaheadSearch = forwardRef(function CompactTypeaheadSearchInner<T
     customInputStyles,
     SearchIcon,
     LoadingIndicator,
-  } = calibrateComponent({
-    ...props,
-    SearchIcon: SearchIcon__props,
-    LoadingIndicator: LoadingIndicator__props,
-    rtl,
+    resolvedInputValue,
+    resolvedItems,
+    resolvedOpen,
+    resolvedLabels,
+    shouldShowMinimumQueryStateResolved,
+    shouldShowStatusState,
+    setCompactTypeaheadSearchRef,
+    handleOpenChange,
+    handleInputChange,
+    clearMinimumQueryStateSuppression,
+    handleSelectionChange,
+    handleStatusStateBlur,
+    renderListBoxItem,
+  } = useCalibratedComponent({
+    props,
+    forwardedRef,
+    state,
+    setState,
+    comboBoxRef,
+    inputRef,
+    restoreInputFocusTimeoutRef,
   })
-
-  const resolvedItems = useMemo(() => {
-    if (!shouldRequestResults) return []
-
-    // Parents and wrappers fully curate the result collection before passing it in.
-    return Array.from(items ?? [])
-  }, [items, shouldRequestResults])
-
-  const shouldKeepControlledQueryOpen = inputValue !== undefined && trimmedInputValue.length > 0
-  const resolvedOpen = isOpen ?? (state.isOpen || shouldKeepControlledQueryOpen)
-  const isOpenControlled = isOpen !== undefined
-  const resolvedIsDisabled = isDisabled
-
-  const getResolvedItemKey = useCallback(
-    (item: T, index: number): Key => {
-      if (getItemKey) return getItemKey(item)
-      if ("id" in item) return String(item.id)
-      if ("ID" in item) return String(item.ID)
-
-      return `${index}`
-    },
-    [getItemKey],
-  )
-
-  const getResolvedItemTextValue = useCallback(
-    (item: T): string => {
-      if (getItemTextValue) return getItemTextValue(item)
-      if ("name" in item && typeof item.name === "string") return item.name
-      if ("label" in item && typeof item.label === "string") return item.label
-
-      return ""
-    },
-    [getItemTextValue],
-  )
-
-  const shouldShowMinimumQueryState = !shouldRequestResults && minimumInputLength > 0
-  const shouldShowLoadingState = isLoading
-  const shouldShowMinimumQueryStateResolved = shouldShowMinimumQueryState && !state.suppressMinimumQueryState
-  const shouldShowStatusState = shouldShowMinimumQueryStateResolved || shouldShowLoadingState
-
-  const setCompactTypeaheadSearchRef = useCallback(
-    (node: HTMLDivElement | null) => {
-      comboBoxRef.current = node
-
-      if (typeof forwardedRef === "function") {
-        forwardedRef(node)
-        return
-      }
-
-      if (forwardedRef) {
-        forwardedRef.current = node
-      }
-    },
-    [forwardedRef],
-  )
-
-  useEffect(() => {
-    return () => {
-      if (restoreInputFocusTimeoutRef.current !== null) {
-        window.clearTimeout(restoreInputFocusTimeoutRef.current)
-      }
-    }
-  }, [])
-
-  const handleOpenChange = (nextOpen: boolean) => {
-    const activeElement = typeof document !== "undefined" ? document.activeElement : null
-    const isFocusStillWithin = activeElement instanceof Node && comboBoxRef.current?.contains(activeElement) === true
-    const shouldIgnoreControlledClose =
-      shouldShowStatusState &&
-      inputValue !== undefined &&
-      trimmedInputValue.length > 0 &&
-      !nextOpen &&
-      isFocusStillWithin
-
-    if (shouldIgnoreControlledClose) return
-
-    if (!isOpenControlled) {
-      setState((prevState) => ({
-        ...prevState,
-        isOpen: nextOpen,
-      }))
-    }
-    onOpenChange?.(nextOpen)
-  }
-
-  const handleInputChange = (value: string) => {
-    setState((prevState) => ({
-      ...prevState,
-      // Uncontrolled usage stores the current query locally, but controlled usage delegates that to the parent.
-      ...(inputValue === undefined ? { internalInputValue: value } : {}),
-      // Typing reopens the popover in uncontrolled mode so new states or results are visible right away.
-      ...(!isOpenControlled ? { isOpen: true } : {}),
-    }))
-    onInputChange?.(value)
-  }
-
-  const clearMinimumQueryStateSuppression = () => {
-    setState((prevState) => ({
-      ...prevState,
-      suppressMinimumQueryState: false,
-    }))
-  }
-
-  const closePopoverAndRestoreInputFocus = useCallback(() => {
-    if (restoreInputFocusTimeoutRef.current !== null) {
-      window.clearTimeout(restoreInputFocusTimeoutRef.current)
-    }
-
-    restoreInputFocusTimeoutRef.current = window.setTimeout(() => {
-      if (!isOpenControlled) {
-        setState((prevState) => ({
-          ...prevState,
-          isOpen: false,
-        }))
-      }
-
-      onOpenChange?.(false)
-      inputRef.current?.focus()
-      restoreInputFocusTimeoutRef.current = null
-    }, 0)
-  }, [isOpenControlled, onOpenChange])
-
-  const handleSelectionChange = (key: Key | null) => {
-    if (key !== null) {
-      setState((prevState) => ({
-        ...prevState,
-        suppressMinimumQueryState: true,
-        ...(!isOpenControlled ? { isOpen: false } : {}),
-      }))
-    }
-
-    onChange?.(key)
-
-    if (key !== null) {
-      closePopoverAndRestoreInputFocus()
-    }
-  }
-
-  const handleStatusStateBlur = (event: FocusEvent<HTMLDivElement>) => {
-    // Status-only popovers have no actionable list items, so leaving the input/button group should collapse them.
-    if (!shouldShowStatusState) return
-
-    const nextFocusedElement = event.relatedTarget
-    if (nextFocusedElement instanceof Node && event.currentTarget.contains(nextFocusedElement)) return
-
-    handleOpenChange(false)
-  }
-
-  const renderListBoxItem = useCallback(
-    (item: T) => {
-      const itemIndex = resolvedItems.indexOf(item)
-      const resolvedItemIndex = itemIndex >= 0 ? itemIndex : 0
-      const itemKey = getResolvedItemKey(item, resolvedItemIndex)
-      const textValue = getResolvedItemTextValue(item)
-      const renderItemArgs: TCompactTypeaheadSearchRenderItemArgs = {
-        query: resolvedInputValue,
-        textValue,
-        itemKey,
-      }
-
-      return (
-        <ListBoxItem id={itemKey} textValue={textValue}>
-          {renderItem ? renderItem(item, renderItemArgs) : textValue}
-        </ListBoxItem>
-      )
-    },
-    [resolvedItems, getResolvedItemKey, getResolvedItemTextValue, resolvedInputValue, renderItem],
-  )
 
   return (
     <AdobeComboBox
       ref={setCompactTypeaheadSearchRef}
       allowsEmptyCollection
-      {...rest}
+      {...nativeProps}
       items={resolvedItems}
-      isDisabled={resolvedIsDisabled}
+      isDisabled={isDisabled}
       onOpenChange={handleOpenChange}
       onChange={handleSelectionChange}
       onInputChange={handleInputChange}
@@ -328,8 +145,8 @@ const CompactTypeaheadSearch = forwardRef(function CompactTypeaheadSearchInner<T
               geometry="rounded"
               raised={false}
               customClassName={inputButtonGroup__button}
-              customStyles={{ ...customButtonStyles }}
-              isDisabled={resolvedIsDisabled}
+              customStyles={customButtonStyles}
+              isDisabled={isDisabled}
               data-testid="type-ahead-search-button"
             >
               {SearchIcon}
@@ -364,7 +181,7 @@ const CompactTypeaheadSearch = forwardRef(function CompactTypeaheadSearchInner<T
               ) : null}
 
               {/* Loading is parent-driven now, but the shell still owns the visual loading state. */}
-              {shouldShowLoadingState ? (
+              {isLoading ? (
                 <div
                   className={optionsListStyles}
                   style={{ ...customOptionsListStyles }}

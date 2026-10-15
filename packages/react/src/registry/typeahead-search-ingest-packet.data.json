@@ -12,9 +12,9 @@
       "role": "source"
     },
     {
-      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/helpers.tsx",
       "targetRole": "components",
-      "targetPath": "Search/TypeaheadSearch/helpers.ts",
+      "targetPath": "Search/TypeaheadSearch/helpers.tsx",
       "role": "source"
     },
     {
@@ -137,7 +137,7 @@
       "notes": ["TypeaheadSearch query entry uses the registry-owned Input component."]
     },
     {
-      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/TypeaheadSearch.tsx",
+      "sourcePath": "packages/react/src/components/Search/TypeaheadSearch/hooks.tsx",
       "importSource": "@/src/components/ListBoxItem/ListBoxItem",
       "registryDependencyName": "list-box-item",
       "replacementSource": "../../ListBoxItem/ListBoxItem",

@@ -1,6 +1,14 @@
 import classNames from "classnames"
-import type React from "react"
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type ReactNode,
+} from "react"
 import { type SortDescriptor, type TableProps } from "react-aria-components"
 
 import type { TAvailableAlignments } from "../../tokens/alignment"
@@ -21,7 +29,9 @@ import {
 } from "./queryTypes"
 import styles from "./TableStyles.module.css"
 
-export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => React.ReactNode
+const { ["table--stickyHeader"]: tableStickyHeader, ["table--zebra"]: tableZebra, table } = styles
+
+export type TCellRenderer<T> = (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
 
 export const TABLE_COLUMN_ROLE__DATA = "data"
 export const TABLE_COLUMN_ROLE__STRUCTURAL = "structural"
@@ -73,7 +83,7 @@ export type TTableColumnMetadataBase<T> = {
   name?: string
   headerAriaLabel?: string // -> For a11y when header text is hidden.
   headerVisuallyHidden?: boolean
-  cellRenderer?: (ctx: { row: T; column: TTableColumnMetadata<T> }) => React.ReactNode
+  cellRenderer?: (ctx: { row: T; column: TTableColumnMetadata<T> }) => ReactNode
   width?: number | string
   minWidth?: number | string
   maxWidth?: number | string
@@ -83,15 +93,15 @@ export type TTableColumnMetadataBase<T> = {
   truncate?: boolean
   maxLines?: number
   isHidden?: boolean
-  customHeaderRowStyles?: React.CSSProperties
+  customHeaderRowStyles?: CSSProperties
   customHeaderRowClassname?: string
-  customHeaderColumnStyles?: React.CSSProperties
+  customHeaderColumnStyles?: CSSProperties
   customHeaderColumnClassName?: string
-  customHeaderCellStyles?: React.CSSProperties
+  customHeaderCellStyles?: CSSProperties
   customHeaderCellClassName?: string
-  customBodyCellStyles?: React.CSSProperties
+  customBodyCellStyles?: CSSProperties
   customBodyCellClassName?: string
-  customBodyRowStyles?: React.CSSProperties
+  customBodyRowStyles?: CSSProperties
   customBodyRowClassName?: string
 }
 
@@ -188,6 +198,32 @@ export type TTableColumnResizingControls = {
   onColumnResize: (details: TTableColumnResizeDetails) => void
 }
 
+const TABLE_COLUMN_RESIZE_MIN_WIDTH_PX = 52
+const TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX = 16
+
+/** Measures the rendered header, falling back to its numeric metadata before layout is available. */
+export const getTableColumnWidth = <T extends object>(target: HTMLElement, column: TTableColumnMetadata<T>) =>
+  target.closest("th")?.getBoundingClientRect().width ?? (typeof column.width === "number" ? column.width : 0)
+
+/** Keeps pointer and keyboard resizing on the same column-first bounds and consumer-owned width contract. */
+export const resizeTableColumn = <T extends object>(
+  column: TTableColumnMetadata<T>,
+  columnResizing: TTableColumnResizingControls,
+  width: number,
+) => {
+  const minWidth =
+    typeof column.minWidth === "number"
+      ? column.minWidth
+      : (columnResizing.minWidth ?? TABLE_COLUMN_RESIZE_MIN_WIDTH_PX)
+  const maxWidth =
+    typeof column.maxWidth === "number" ? column.maxWidth : (columnResizing.maxWidth ?? Number.POSITIVE_INFINITY)
+
+  columnResizing.onColumnResize({
+    columnID: column.id,
+    width: Math.round(Math.min(Math.max(width, minWidth), maxWidth)),
+  })
+}
+
 export type TColumnKey<K extends string = string> = K
 export type TAvailableBreakpointNames = TScreenSizeType
 
@@ -215,7 +251,7 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   TableProps,
   "sortDescriptor" | "onSortChange" | "className" | "style"
 > & {
-  stickyHeader?: boolean // Stub for now - ref. point Sept 01, 2025
+  stickyHeader?: boolean
   zebra?: boolean
   hoverColor?: string
   zebraColor?: string
@@ -223,9 +259,9 @@ export type TTableProps<TRow extends object = Record<string, unknown>> = Omit<
   clickableRows?: boolean
   onRowAction?: (key: string | number) => void
   customClassName?: string
-  customStyles?: React.CSSProperties
+  customStyles?: CSSProperties
   className?: string
-  style?: React.CSSProperties
+  style?: CSSProperties
   // -> Both must be provided together. If omitted the table is sort/filter-inert.
   columns?: TTableColumnMetadata<TRow>[]
   queryControls?: TTableQueryControls
@@ -473,11 +509,12 @@ export const computeColumnSizingConstraintsForBreakpoint = <K extends string>(
 }
 
 export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>) => {
-  const { className, customClassName, customStyles, hoverColor, style, zebra, zebraColor } = props
+  const { className, customClassName, customStyles, hoverColor, stickyHeader, style, zebra, zebraColor } = props
 
-  const zebraStyle = zebra ? styles["table--zebra"] : undefined
+  const stickyHeaderStyle = stickyHeader ? tableStickyHeader : undefined
+  const zebraStyle = zebra ? tableZebra : undefined
 
-  const tableStyles = classNames(styles.table, zebraStyle, customClassName, className)
+  const tableStyles = classNames(table, stickyHeaderStyle, zebraStyle, customClassName, className)
   const tableStyle = Object.assign(
     {
       "--hoverColor": hoverColor ?? "transparent",
@@ -485,7 +522,37 @@ export const calibrateComponent = <TRow extends object>(props: TTableProps<TRow>
     },
     { ...customStyles },
     { ...style },
-  ) as React.CSSProperties
+  ) as CSSProperties
 
   return { tableStyles, tableStyle }
+}
+
+/** Captures resize arrows on the shell before React Aria handles them as grid navigation. */
+export const resizeTableColumnFromKeyboard = <TRow extends object>({
+  event,
+  columns,
+  columnResizing,
+}: {
+  event: KeyboardEvent<HTMLDivElement>
+  columns: TTableColumnMetadata<TRow>[] | undefined
+  columnResizing: TTableColumnResizingControls | undefined
+}) => {
+  if (!columnResizing?.enabled || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return
+  if (!(event.target instanceof HTMLElement)) return
+
+  const resizeButton = event.target.closest<HTMLButtonElement>("button[data-table-column-resize]")
+  if (!resizeButton || !event.currentTarget.contains(resizeButton)) return
+
+  const column = columns?.find((candidate) => candidate.id === resizeButton.dataset.tableColumnResize)
+  if (!column || column.isHidden || column.headerVisuallyHidden) return
+
+  event.preventDefault()
+  event.stopPropagation()
+
+  const direction = event.key === "ArrowLeft" ? -1 : 1
+  resizeTableColumn(
+    column,
+    columnResizing,
+    getTableColumnWidth(resizeButton, column) + direction * TABLE_COLUMN_RESIZE_KEYBOARD_STEP_PX,
+  )
 }

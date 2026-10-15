@@ -12,8 +12,7 @@ import { Modal as AdobeModal, Dialog, Header, ModalOverlay } from "react-aria-co
 import Button from "../Button/Button"
 import Text from "../Text/Text"
 
-import type { TAlertDialogProps } from "./helpers"
-import { calibrateComponent } from "./helpers"
+import { calibrateComponent, type TAlertDialogProps } from "./helpers"
 import { resolveAlertDialogLabels } from "./labels"
 
 type TAlertDialogComponent = ForwardRefExoticComponent<
@@ -80,9 +79,8 @@ const AlertDialog: TAlertDialogComponent = forwardRef<HTMLDivElement, PropsWithC
     const resolvedAriaDetails = ariaDetailsProp ?? ariaDetails
 
     return (
-      <ModalOverlay className={overlayStyles} style={customOverlayStyles}>
+      <ModalOverlay {...rest} className={overlayStyles} style={customOverlayStyles}>
         <AdobeModal
-          {...rest}
           className={modalStyles}
           style={customStyles}
           ref={forwardedRef}

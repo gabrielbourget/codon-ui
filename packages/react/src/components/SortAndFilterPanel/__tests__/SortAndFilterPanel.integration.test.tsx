@@ -8,11 +8,13 @@ import type { TAvailableFilterCriteria, TAvailableSortCriteria } from "../../Tab
 import {
   TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
   TABLE_FILTER_JOIN_OPERATOR__AND,
+  TABLE_FILTER_OPERATION_CODE__EQUAL,
   TABLE_FILTER_OPERATION_CODE__LIKE,
   TABLE_FILTER_OPERATION_CODE__SIMILAR_TO,
   TABLE_SORT_DIRECTION__ASCENDING,
 } from "../../Table/queryTypes"
 import type { TApplySortAndFilterParametersArgs } from "../helpers"
+import { SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER } from "../helpers"
 import SortAndFilterPanel from "../SortAndFilterPanel"
 
 const sortAndFilterPanelStylesSource = readFileSync(
@@ -30,6 +32,7 @@ const sortParameterListStylesSource = readFileSync(
 
 const SORT_CRITERIA_ID__CITY = "city"
 const SORT_CRITERIA_ID__NAME = "name"
+const FILTER_CRITERIA_ID__COLLECTION_TYPE = "collectionType"
 const QUERY_KEY__CITY = "event.city"
 const QUERY_KEY__NAME = "event.name"
 
@@ -60,6 +63,21 @@ const possibleFilterCriteria: TAvailableFilterCriteria[] = [
     queryKey: QUERY_KEY__CITY,
     dataType: TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
     allowedOperationCodes: [TABLE_FILTER_OPERATION_CODE__LIKE],
+  },
+  {
+    id: FILTER_CRITERIA_ID__COLLECTION_TYPE,
+    name: "Collection Type",
+    queryKey: FILTER_CRITERIA_ID__COLLECTION_TYPE,
+    dataType: TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
+    allowedOperationCodes: [TABLE_FILTER_OPERATION_CODE__EQUAL],
+    availableCriteriaArguments: [
+      {
+        argumentValue: "mix_crate",
+        id: "mix_crate",
+        name: "Mixcrate",
+      },
+    ],
+    usesSelectInput: true,
   },
 ]
 
@@ -113,6 +131,72 @@ describe("<SortAndFilterPanel /> integration", () => {
     expect(screen.getByRole("button", { name: "Add Sort Criteria" })).toBeVisible()
     expect(screen.getByRole("button", { name: "Add Filter Criteria" })).toBeVisible()
     expect(screen.getByRole("button", { name: "Close Sort and Filter Panel" })).toBeVisible()
+  })
+
+  it("focuses the requested criteria control after the open panel commits.", async () => {
+    render(
+      <SortAndFilterPanel
+        title="Events"
+        possibleSortCriteria={possibleSortCriteria}
+        possibleFilterCriteria={possibleFilterCriteria}
+        applyPendingSortAndFilterChanges={vi.fn()}
+        initialFocusTarget={SORT_AND_FILTER_PANEL_FOCUS_TARGET__FILTER}
+        isOpen
+        onOpenChange={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Add Filter Criteria" })).toHaveFocus()
+    })
+  })
+
+  it("restores the applied snapshot when canceling draft changes.", async () => {
+    const applyPendingSortAndFilterChanges = vi.fn()
+    renderSortAndFilterPanel({ applyPendingSortAndFilterChanges })
+
+    const user = await chooseSelectOption("Add Sort Criteria", "City")
+
+    expect(screen.getByRole("button", { name: "Remove City" })).toBeVisible()
+
+    await user.click(screen.getByRole("button", { name: "Cancel" }))
+
+    expect(applyPendingSortAndFilterChanges).not.toHaveBeenCalled()
+    expect(screen.getByText("No sorting currently applied")).toBeVisible()
+  })
+
+  it("hydrates select-backed arguments from the applied filter snapshot.", async () => {
+    render(
+      <SortAndFilterPanel
+        title="Events"
+        possibleSortCriteria={possibleSortCriteria}
+        possibleFilterCriteria={possibleFilterCriteria}
+        activeFilters={[
+          {
+            clauses: [
+              {
+                argument: "mix_crate",
+                id: "collection-type-clause",
+                operationCode: TABLE_FILTER_OPERATION_CODE__EQUAL,
+              },
+            ],
+            criteriaID: FILTER_CRITERIA_ID__COLLECTION_TYPE,
+            criteriaName: "Collection Type",
+            dataType: TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
+            id: "collection-type",
+            joinOperator: TABLE_FILTER_JOIN_OPERATOR__AND,
+            queryKey: FILTER_CRITERIA_ID__COLLECTION_TYPE,
+          },
+        ]}
+        applyPendingSortAndFilterChanges={vi.fn()}
+        isOpen
+        onOpenChange={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Filter Argument" })).toHaveTextContent("Mixcrate")
+    })
   })
 
   it("emits registry-shaped sort instructions.", async () => {

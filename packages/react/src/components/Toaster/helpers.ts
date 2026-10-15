@@ -1,11 +1,22 @@
-import classNames from "classnames"
-import type { CSSProperties, HTMLAttributes } from "react"
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type Dispatch,
+  type FocusEventHandler,
+  type HTMLAttributes,
+  type PointerEventHandler,
+  type SetStateAction,
+} from "react"
+import ReactDOM from "react-dom"
 
 import type { TAriaLabelingProps } from "../../tokens/a11y"
 
-import type { TToast } from "./Toast/helpers"
+import { ToasterObserver } from "./stateManagement"
+import type { TToast, TToastHeightInfo } from "./Toast/helpers"
 import type { TPartialToastLabels } from "./Toast/labels"
-import styles from "./ToasterStyles.module.css"
 
 export const TOAST_POSITION__TOP_LEFT = "top-left"
 export const TOAST_POSITION__TOP_CENTER = "top-center"
@@ -78,13 +89,6 @@ export type TExternalToast = Omit<TToast, "id" | "title"> & {
   id?: number | string
 }
 
-type TCalibratedToasterComponent = {
-  toasterRootStyles: string
-  toasterRootStyle: CSSProperties
-  toasterStyles: string
-  toastBridgeStyles: string
-}
-
 // -> Compute per-toast visual offset used during expanded state
 export const computeOffsets = (
   toastsForThisPosition: Array<{ id: string | number }>,
@@ -127,14 +131,226 @@ export const computeToastStackHeight = (
   }, 0)
 }
 
-export const calibrateComponent = (props: TToasterProps): TCalibratedToasterComponent => {
-  const { className, customClassName, customRootStyles, customStackClassName, customToastBridgeClassName, style } =
-    props
-  const { toasterRoot, toaster, toaster__toastBridgeDiv } = styles
-  const toasterRootStyles = classNames(toasterRoot, customClassName, className)
-  const toasterRootStyle: CSSProperties = { ...customRootStyles, ...style }
-  const toasterStyles = classNames(toaster, customStackClassName)
-  const toastBridgeStyles = classNames(toaster__toastBridgeDiv, customToastBridgeClassName)
+export type TToasterInteractionState = {
+  toasterExpanded: boolean
+  interacting: boolean
+}
 
-  return { toasterRootStyles, toasterRootStyle, toasterStyles, toastBridgeStyles }
+type TCalibrateToasterArgs = {
+  props: TToasterProps
+  toasts: TToast[]
+  setToasts: Dispatch<SetStateAction<TToast[]>>
+  heights: TToastHeightInfo[]
+  interactionState: TToasterInteractionState
+  setInteractionState: Dispatch<SetStateAction<TToasterInteractionState>>
+}
+
+/** Coordinates observer publication, focus, hotkeys and hover lifecycles, and derives each positioned stack from component-owned state. */
+export const useCalibratedComponent = ({
+  props,
+  toasts,
+  setToasts,
+  heights,
+  interactionState,
+  setInteractionState,
+}: TCalibrateToasterArgs) => {
+  const toasterListRef = useRef<HTMLOListElement>(null)
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null)
+  const focusWithinToasterRef = useRef(false)
+  // -> Keep mutable lifecycle refs inside their coordinating hook.
+  const collapseTimerRef = useRef<number | null>(null)
+  const {
+    expandToggleHotkey = ["altKey", "KeyE"],
+    maxVisibleToasts = DEFAULT_MAX_VISIBLE_TOASTS,
+    position = DEFAULT_TOAST_POSITION,
+    toastGap,
+  } = props
+  const { toasterExpanded, interacting } = interactionState
+  // -> Keep repeated hover events from replacing an unchanged interaction state.
+  const setExpanded = useCallback(
+    (toasterExpanded: boolean) =>
+      setInteractionState((previousState) =>
+        previousState.toasterExpanded === toasterExpanded ? previousState : { ...previousState, toasterExpanded },
+      ),
+    [setInteractionState],
+  )
+  const setInteracting = useCallback(
+    (interacting: boolean) =>
+      setInteractionState((previousState) =>
+        previousState.interacting === interacting ? previousState : { ...previousState, interacting },
+      ),
+    [setInteractionState],
+  )
+  const toastGroups = useMemo(() => {
+    const positionToastsMap = new Map<TAvailableToastPositions, TToast[]>()
+
+    toasts.forEach((currentToast) => {
+      const toastPosition = currentToast.position ?? position
+      const positionedToasts = positionToastsMap.get(toastPosition) ?? []
+
+      positionToastsMap.set(toastPosition, [...positionedToasts, currentToast])
+    })
+
+    return Array.from(positionToastsMap.entries())
+  }, [position, toasts])
+  const handleFocus = useCallback<FocusEventHandler<HTMLOListElement>>(
+    (event) => {
+      const notDismissible = event.target instanceof HTMLElement && event.target.dataset.dismissable === "false"
+
+      if (notDismissible) return
+
+      if (!focusWithinToasterRef.current) {
+        focusWithinToasterRef.current = true
+        lastFocusedElementRef.current = event.relatedTarget as HTMLElement
+      }
+    },
+    [focusWithinToasterRef, lastFocusedElementRef],
+  )
+  const handleBlur = useCallback<FocusEventHandler<HTMLOListElement>>(
+    (event) => {
+      if (focusWithinToasterRef.current && !event.currentTarget.contains(event.relatedTarget)) {
+        focusWithinToasterRef.current = false
+        if (lastFocusedElementRef.current) {
+          lastFocusedElementRef.current.focus({ preventScroll: true })
+          lastFocusedElementRef.current = null
+        }
+      }
+    },
+    [focusWithinToasterRef, lastFocusedElementRef],
+  )
+  const handlePointerDown = useCallback<PointerEventHandler<HTMLOListElement>>(
+    (event) => {
+      const notDismissible = event.target instanceof HTMLElement && event.target.dataset.dismissable === "false"
+
+      if (notDismissible) return
+      setInteracting(true)
+    },
+    [setInteracting],
+  )
+  const handlePointerUp = useCallback(() => setInteracting(false), [setInteracting])
+  const requestExpand = useCallback(() => {
+    if (collapseTimerRef.current) {
+      clearTimeout(collapseTimerRef.current)
+      collapseTimerRef.current = null
+    }
+    setExpanded(true)
+  }, [collapseTimerRef, setExpanded])
+  const requestCollapse = useCallback(() => {
+    if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current)
+    collapseTimerRef.current = window.setTimeout(() => {
+      setExpanded(false)
+      collapseTimerRef.current = null
+    }, 120)
+  }, [collapseTimerRef, setExpanded])
+  const handleMouseLeave = useCallback(() => {
+    if (!interacting) requestCollapse()
+  }, [interacting, requestCollapse])
+
+  useEffect(
+    () =>
+      ToasterObserver.subscribe((publishedToast) => {
+        if ((publishedToast as TToastToDismiss).dismiss) {
+          setToasts((currentToasts) =>
+            currentToasts.map((currentToast) =>
+              currentToast.id === publishedToast.id ? { ...currentToast, deletingToast: true } : currentToast,
+            ),
+          )
+          return
+        }
+
+        // -> Defer publish handling so consecutive observer events settle into distinct toast transitions.
+        setTimeout(() => {
+          ReactDOM.flushSync(() => {
+            setToasts((currentToasts) => {
+              const existingToastIndex = currentToasts.findIndex(
+                (currentToast) => currentToast.id === publishedToast.id,
+              )
+
+              if (existingToastIndex !== -1) {
+                return [
+                  ...currentToasts.slice(0, existingToastIndex),
+                  { ...currentToasts[existingToastIndex], ...publishedToast },
+                  ...currentToasts.slice(existingToastIndex + 1),
+                ]
+              }
+
+              return [publishedToast, ...currentToasts]
+            })
+          })
+        })
+      }),
+    [setToasts],
+  )
+  useEffect(() => {
+    if (toasts.length <= 1) setExpanded(false)
+  }, [setExpanded, toasts])
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!isHotkeyPressed(event, expandToggleHotkey)) return
+
+      if (toasterExpanded) setExpanded(false)
+      else {
+        setExpanded(true)
+        toasterListRef.current?.focus()
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown)
+    return () => document.removeEventListener("keydown", handleKeyDown)
+  }, [expandToggleHotkey, setExpanded, toasterExpanded, toasterListRef])
+  useEffect(() => {
+    if (toasterListRef.current) {
+      return () => {
+        if (lastFocusedElementRef.current) {
+          lastFocusedElementRef.current.focus({ preventScroll: true })
+          lastFocusedElementRef.current = null
+          focusWithinToasterRef.current = false
+        }
+      }
+    }
+  }, [focusWithinToasterRef, lastFocusedElementRef, toasterListRef])
+  useEffect(
+    () => () => {
+      if (collapseTimerRef.current) clearTimeout(collapseTimerRef.current)
+    },
+    [collapseTimerRef],
+  )
+
+  const stacks = toastGroups.map(([toastPosition, positionedToasts]) => {
+    const [yPosition, xPosition] = toastPosition.split("-")
+    const positionedHeights = heights.filter((height) => height.position === toastPosition)
+    const gap = toastGap ?? DEFAULT_TOAST_GAP
+    const visibleToasts = positionedToasts.slice(0, maxVisibleToasts)
+    const offsets = computeOffsets(visibleToasts, positionedHeights, gap)
+    const bridgeInfo = computeBridgeDivInfo(offsets, visibleToasts, gap, toastPosition)
+    const toastStackHeight = computeToastStackHeight(offsets, visibleToasts, positionedHeights)
+    const firstToastID = visibleToasts[0]?.id
+    const firstToastHeight =
+      firstToastID == null
+        ? 0
+        : (positionedHeights.find(({ id }) => id === firstToastID)?.height ?? positionedHeights[0]?.height ?? 0)
+
+    return {
+      toastPosition,
+      positionedToasts,
+      positionedHeights,
+      yPosition,
+      xPosition,
+      gap,
+      bridgeInfo,
+      toastStackHeight,
+      firstToastHeight,
+    }
+  })
+
+  return {
+    toasterListRef,
+    stacks,
+    handleFocus,
+    handleBlur,
+    handlePointerDown,
+    handlePointerUp,
+    requestExpand,
+    handleMouseLeave,
+  }
 }

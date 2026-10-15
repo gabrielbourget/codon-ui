@@ -1966,6 +1966,12 @@ export const reactRegistryManifest = [
         targetPath: "VisualUtilities/LineSegment/LineSegment.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
+      {
+        sourcePath: "packages/react/src/components/LineSegment/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "VisualUtilities/LineSegment/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
     ],
     registryDependencies: ["theme-css"],
     peerDependencies: {
@@ -2315,9 +2321,9 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
-        sourcePath: "packages/react/src/components/Search/TypeaheadSearch/helpers.ts",
+        sourcePath: "packages/react/src/components/Search/TypeaheadSearch/helpers.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "Search/TypeaheadSearch/helpers.ts",
+        targetPath: "Search/TypeaheadSearch/helpers.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
@@ -2379,9 +2385,9 @@ export const reactRegistryManifest = [
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
-        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+        sourcePath: "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
-        targetPath: "CompactTypeaheadSearch/helpers.ts",
+        targetPath: "CompactTypeaheadSearch/helpers.tsx",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
@@ -2442,6 +2448,12 @@ export const reactRegistryManifest = [
         sourcePath: "packages/react/src/components/SortAndFilterPanel/SortAndFilterPanel.tsx",
         targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
         targetPath: "Panels/SortAndFilterPanel/SortAndFilterPanel.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/SortAndFilterPanel/registryDependencies.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "Panels/SortAndFilterPanel/registryDependencies.ts",
         role: REGISTRY_FILE_ROLE__SOURCE,
       },
       {
@@ -2655,6 +2667,38 @@ export const reactRegistryManifest = [
     peerDependencies: {
       react: "^18.2.0 || ^19.0.0",
       "react-dom": "^18.2.0 || ^19.0.0",
+    },
+  },
+  {
+    name: "thumbnail-showcase",
+    type: REGISTRY_ITEM_TYPE__COMPONENT,
+    sourcePackage: REGISTRY_SOURCE_PACKAGE__REACT,
+    files: [
+      {
+        sourcePath: "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcase.tsx",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ThumbnailShowcase/ThumbnailShowcase.tsx",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ThumbnailShowcase/helpers.ts",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ThumbnailShowcase/helpers.ts",
+        role: REGISTRY_FILE_ROLE__SOURCE,
+      },
+      {
+        sourcePath: "packages/react/src/components/ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+        targetRole: REGISTRY_TARGET_ROLE__COMPONENTS,
+        targetPath: "ThumbnailShowcase/ThumbnailShowcaseStyles.module.css",
+        role: REGISTRY_FILE_ROLE__STYLE,
+      },
+    ],
+    peerDependencies: {
+      react: "^18.2.0 || ^19.0.0",
+      "react-dom": "^18.2.0 || ^19.0.0",
+    },
+    runtimeDependencies: {
+      classnames: "^2.3.2",
     },
   },
   {

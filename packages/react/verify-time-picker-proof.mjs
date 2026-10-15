@@ -148,7 +148,8 @@ assert(
 assert(helpersSource.includes("export type TTimePickerProps"), "TimePicker helpers must export local props")
 assert(helpersSource.includes("export const calibrateComponent"), "TimePicker calibration helper must remain local")
 assert(
-  helpersSource.includes('styles["inputIconGroup--errorState"]'),
+  helpersSource.includes('["inputIconGroup--errorState"]: inputIconGroupErrorState') &&
+    helpersSource.includes("borderStyle = inputIconGroupErrorState"),
   "TimePicker helpers must preserve error precedence",
 )
 assert(helpersSource.includes("<TimePickerDefaultClockIcon"), "TimePicker helpers must preserve default clock icon")

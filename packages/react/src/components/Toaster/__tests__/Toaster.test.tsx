@@ -84,6 +84,36 @@ const getVisibleToasts = () =>
   screen.getAllByTestId("toast").filter((toast) => toast.getAttribute("data-visible") === "true")
 
 describe("<Toaster /> Tests", () => {
+  it("Keeps held-pointer expansion and cancels a pending collapse on re-entry.", async () => {
+    const { user } = renderToasterExample({ toastProps: { duration: "persistent" } })
+    await triggerToast(user, 2)
+    await waitFor(() => expect(screen.getAllByTestId("toast")).toHaveLength(2))
+    const toasterList = getToasterList()
+
+    vi.useFakeTimers()
+    try {
+      fireEvent.mouseEnter(toasterList)
+      expect(toasterList).toHaveAttribute("data-expanded", "true")
+      fireEvent.pointerDown(toasterList)
+      fireEvent.mouseLeave(toasterList)
+      act(() => vi.advanceTimersByTime(150))
+      expect(toasterList).toHaveAttribute("data-expanded", "true")
+
+      fireEvent.pointerUp(toasterList)
+      fireEvent.mouseLeave(toasterList)
+      act(() => vi.advanceTimersByTime(60))
+      fireEvent.mouseEnter(toasterList)
+      act(() => vi.advanceTimersByTime(150))
+      expect(toasterList).toHaveAttribute("data-expanded", "true")
+
+      fireEvent.mouseLeave(toasterList)
+      act(() => vi.advanceTimersByTime(120))
+      expect(toasterList).toHaveAttribute("data-expanded", "false")
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it("Toaster can render.", async () => {
     const { user } = renderToasterExample()
 

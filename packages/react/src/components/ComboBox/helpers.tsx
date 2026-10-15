@@ -9,6 +9,17 @@ import styles from "./ComboBoxStyles.module.css"
 import ComboBoxDefaultChevronDownIcon from "./DefaultChevronDownIcon"
 import type { TPartialComboBoxLabels } from "./labels"
 
+const {
+  ["inputButtonGroup--applyFocusStyle"]: inputButtonGroupApplyFocusStyle,
+  ["inputButtonGroup--errorState"]: inputButtonGroupErrorState,
+  ["inputButtonGroup--noFocusStyle"]: inputButtonGroupNoFocusStyle,
+  ["inputButtonGroup--offsetFocusRing"]: inputButtonGroupOffsetFocusRing,
+  ["inputButtonGroup--round"]: inputButtonGroupRound,
+  ["inputButtonGroup--rounded"]: inputButtonGroupRounded,
+  ["inputButtonGroup--successState"]: inputButtonGroupSuccessState,
+  ["inputButtonGroup--warningState"]: inputButtonGroupWarningState,
+} = styles
+
 export const COMBOBOX_SIZE__SM = "small"
 export const COMBOBOX_SIZE__MD = "medium"
 export const COMBOBOX_SIZE__LG = "large"
@@ -103,9 +114,9 @@ const computeGeometryStyle = <T extends object>(props: TComboBoxProps<T>) => {
     case ORTHOGONAL:
       return undefined
     case ROUNDED:
-      return styles["inputButtonGroup--rounded"]
+      return inputButtonGroupRounded
     case ROUND:
-      return styles["inputButtonGroup--round"]
+      return inputButtonGroupRound
     default:
       return undefined
   }
@@ -116,17 +127,17 @@ const computeComboBoxBorderStyle = <T extends object>(props: TComboBoxProps<T>) 
   let borderStyle: string | undefined = undefined
 
   if (errorState) {
-    borderStyle = styles["inputButtonGroup--errorState"]
+    borderStyle = inputButtonGroupErrorState
     return borderStyle
   }
 
   if (warningState) {
-    borderStyle = styles["inputButtonGroup--warningState"]
+    borderStyle = inputButtonGroupWarningState
     return borderStyle
   }
 
   if (successState) {
-    borderStyle = styles["inputButtonGroup--successState"]
+    borderStyle = inputButtonGroupSuccessState
     return borderStyle
   }
 
@@ -156,9 +167,9 @@ export const calibrateComponent = <T extends object>(props: TComboBoxProps<T>): 
   const comboBoxBorderStyle = computeComboBoxBorderStyle(props)
   const focusStyle =
     enableFocusStyle !== undefined && enableFocusStyle === false
-      ? styles["inputButtonGroup--noFocusStyle"]
-      : styles["inputButtonGroup--applyFocusStyle"]
-  const offsetFocusRingStyle = offsetFocusRing__props === true ? styles["inputButtonGroup--offsetFocusRing"] : undefined
+      ? inputButtonGroupNoFocusStyle
+      : inputButtonGroupApplyFocusStyle
+  const offsetFocusRingStyle = offsetFocusRing__props === true ? inputButtonGroupOffsetFocusRing : undefined
 
   const computedComboBoxStyles = classNames(comboBox)
   const optionsListStyles = classNames(optionsList)

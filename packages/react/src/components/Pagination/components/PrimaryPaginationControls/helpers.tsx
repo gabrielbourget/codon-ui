@@ -1,11 +1,15 @@
 import classNames from "classnames"
-import { useMemo, type CSSProperties, type ReactNode } from "react"
+import { useCallback, useMemo, type CSSProperties, type ReactNode } from "react"
 
 import { ROUND, ROUNDED, type TCornerGeometry } from "../../../../tokens/geometry"
 import type { TThemingOrderCode } from "../../../../tokens/theme-order"
 import type { TAvailableColorModes, TButtonProps } from "../../../Button/helpers"
 import type { TClickPopoverProps } from "../../../ClickPopover/helpers"
-import type { TInternalPaginationItem, TPaginationPrimaryControlsLabels } from "../../helpers"
+import {
+  DEFAULT_PAGINATION_LABELS,
+  type TInternalPaginationItem,
+  type TPaginationPrimaryControlsLabels,
+} from "../../helpers"
 
 import {
   PaginationDefaultChevronLeftIcon,
@@ -15,6 +19,8 @@ import {
   PaginationDefaultOverflowIcon,
 } from "./DefaultPaginationIcons"
 import styles from "./PrimaryPaginationControlsStyles.module.css"
+
+const { paginationItemsList: paginationItemsListClassName } = styles
 
 export type TPrimaryPaginationControlsProps = {
   internalPaginationItems: TInternalPaginationItem[]
@@ -78,93 +84,51 @@ export type TPrimaryPaginationControlsProps = {
   customClickPopoverTriggerButtonStyles?: CSSProperties
 }
 
-export type TExtraCalibrationInfo = {
-  iconColor: string
-  computedPageButtonTextColor: string
+type TCalibratedPrimaryPaginationControlsComponent = {
+  buildButtonProps: (args: {
+    customClassName?: string
+    customStyles?: CSSProperties
+    defaultStyles: CSSProperties
+  }) => Partial<TButtonProps>
+  numberOfPages: number
+  resolvedLabels: TPaginationPrimaryControlsLabels
+  computedFirstPageButtonIcon: ReactNode
+  computedLastPageButtonIcon: ReactNode
+  computedNextButtonIcon: ReactNode
+  computedPrevButtonIcon: ReactNode
+  overflowItemsButtonIcon: ReactNode
+  overflowItemsListStyles: string
+  visibility: {
+    showFirstPageButton: boolean
+    showLastPageButton: boolean
+    showNextPageButton: boolean
+    showPrevPageButton: boolean
+  }
 }
 
-export const useMemoizedProperties = (props: TPrimaryPaginationControlsProps) => {
+/**
+ * Prepares the visibility, labels, customization props, and presentation resources consumed by the primary controls.
+ */
+export const useCalibratedComponent = (
+  props: TPrimaryPaginationControlsProps,
+): TCalibratedPrimaryPaginationControlsComponent => {
   const {
-    showFirstPageButton: showFirstPageButton__props = true,
-    showPrevPageButton: showPrevPageButton__props = true,
-    showNextPageButton: showNextPageButton__props = true,
-    showLastPageButton: showLastPageButton__props = true,
-    showIncrementButtons = true,
-    itemsPerPage: itemsPerPage__props = 10,
-    numberOfItems,
-    currentPage,
-    showIncrementButtonsWithOnePage = true,
-    showFirstPageButtonOnFirstPage = true,
-    showPrevPageButtonOnFirstPage = true,
-    showNextPageButtonOnLastPage = true,
-    showLastPageButtonOnLastPage = true,
-  } = props
-
-  const { showFirstPageButton, showPrevPageButton, showNextPageButton, showLastPageButton } = useMemo(() => {
-    const numberOfPages = Math.max(Math.ceil(numberOfItems / itemsPerPage__props), 1)
-    const pageNumbers: number[] = []
-    for (let i = 1; i <= numberOfPages; i++) pageNumbers.push(i)
-
-    const showFirstPageButton =
-      showIncrementButtons &&
-      showFirstPageButton__props &&
-      (showFirstPageButtonOnFirstPage === false && currentPage === 1) === false &&
-      (showIncrementButtonsWithOnePage === false && numberOfPages === 1) === false
-
-    const showPrevPageButton =
-      showIncrementButtons &&
-      showPrevPageButton__props &&
-      (showPrevPageButtonOnFirstPage === false && currentPage === 1) === false &&
-      (showIncrementButtonsWithOnePage === false && numberOfPages === 1) === false
-
-    const showNextPageButton =
-      showIncrementButtons &&
-      showNextPageButton__props &&
-      (showNextPageButtonOnLastPage === false && currentPage === pageNumbers.length) === false &&
-      (showIncrementButtonsWithOnePage === false && numberOfPages === 1) === false
-
-    const showLastPageButton =
-      showIncrementButtons &&
-      showLastPageButton__props &&
-      (showLastPageButtonOnLastPage === false && currentPage === pageNumbers.length) === false &&
-      (showIncrementButtonsWithOnePage === false && numberOfPages === 1) === false
-
-    return {
-      numberOfPages,
-      showFirstPageButton,
-      showPrevPageButton,
-      showNextPageButton,
-      showLastPageButton,
-    }
-  }, [
-    numberOfItems,
-    itemsPerPage__props,
-    showIncrementButtons,
-    showFirstPageButton__props,
-    showFirstPageButtonOnFirstPage,
-    currentPage,
-    showIncrementButtonsWithOnePage,
-    showPrevPageButton__props,
-    showPrevPageButtonOnFirstPage,
-    showNextPageButton__props,
-    showNextPageButtonOnLastPage,
-    showLastPageButton__props,
-    showLastPageButtonOnLastPage,
-  ])
-
-  return { showFirstPageButton, showPrevPageButton, showNextPageButton, showLastPageButton }
-}
-
-export const calibrateComponent = (props: TPrimaryPaginationControlsProps, extraInfo: TExtraCalibrationInfo) => {
-  const { iconColor } = extraInfo
-  const { buttonRow, pageNumberButtonRow, popover, paginationItemsList } = styles
-  const {
+    geometry,
+    rtl = false,
+    showFirstPageButtonIcon = true,
     showPrevPageButtonIcon = true,
     showNextPageButtonIcon = true,
-    rtl = false,
-    geometry = ROUNDED,
-    showFirstPageButtonIcon = true,
     showLastPageButtonIcon = true,
+    firstPageLabel,
+    labels,
+    showIncrementButtonsWithOnePage = true,
+    prevPageLabel,
+    nextPageLabel,
+    lastPageLabel,
+    currentPage,
+    numberOfItems,
+    itemsPerPage = 10,
+    iconColor,
     incrementAllDownIcon = (
       <PaginationDefaultDoubleChevronLeftIcon data-testid="incr-all-down-icon" color={iconColor} size={10} />
     ),
@@ -174,38 +138,119 @@ export const calibrateComponent = (props: TPrimaryPaginationControlsProps, extra
       <PaginationDefaultDoubleChevronRightIcon data-testid="incr-all-up-icon" color={iconColor} size={10} />
     ),
     overflowItemsButtonIcon = <PaginationDefaultOverflowIcon size={15} />,
+    customGeneralButtonProps = {},
+    showFirstPageButton: showFirstPageButtonProp = true,
+    showPrevPageButton: showPrevPageButtonProp = true,
+    showNextPageButton: showNextPageButtonProp = true,
+    showLastPageButton: showLastPageButtonProp = true,
+    showIncrementButtons = true,
+    showFirstPageButtonOnFirstPage = true,
+    showPrevPageButtonOnFirstPage = true,
+    showNextPageButtonOnLastPage = true,
+    showLastPageButtonOnLastPage = true,
   } = props
+  const {
+    className: customGeneralButtonNativeClassNameProp,
+    customClassName: customGeneralButtonClassName,
+    customStyles: customGeneralButtonStyles,
+    ...restCustomGeneralButtonProps
+  } = customGeneralButtonProps
+  const customGeneralButtonNativeClassName =
+    typeof customGeneralButtonNativeClassNameProp === "string" ? customGeneralButtonNativeClassNameProp : undefined
+  const buildButtonProps = useCallback(
+    ({
+      customClassName,
+      customStyles,
+      defaultStyles,
+    }: {
+      customClassName?: string
+      customStyles?: CSSProperties
+      defaultStyles: CSSProperties
+    }) => ({
+      ...restCustomGeneralButtonProps,
+      customClassName: classNames(customGeneralButtonClassName, customGeneralButtonNativeClassName, customClassName),
+      customStyles: {
+        ...defaultStyles,
+        ...customGeneralButtonStyles,
+        ...customStyles,
+      },
+    }),
+    [
+      customGeneralButtonClassName,
+      customGeneralButtonNativeClassName,
+      customGeneralButtonStyles,
+      restCustomGeneralButtonProps,
+    ],
+  )
+  const numberOfPages = Math.max(Math.ceil(numberOfItems / itemsPerPage), 1)
+  const visibility = useMemo(() => {
+    const hideForSinglePage = showIncrementButtonsWithOnePage === false && numberOfPages === 1
 
-  const overflowITemsListGeometryStyle =
-    geometry === ROUNDED || geometry === ROUND ? styles["paginationItemsList--rounded"] : undefined
-
-  const buttonRowStyles = classNames(buttonRow)
-  const pageNumberButtonRowStyles = classNames(pageNumberButtonRow)
-  const popoverStyles = classNames(popover)
-  const overflowItemsListStyles = classNames(paginationItemsList, overflowITemsListGeometryStyle)
-
-  const computedFirstPageButtonIcon = showFirstPageButtonIcon
-    ? rtl
-      ? incrementAllUpIcon
-      : incrementAllDownIcon
-    : undefined
-  const computedPrevButtonIcon = showPrevPageButtonIcon ? (rtl ? incrementUpIcon : incrementDownIcon) : undefined
-  const computedNextButtonIcon = showNextPageButtonIcon ? (rtl ? incrementDownIcon : incrementUpIcon) : undefined
-  const computedLastPageButtonIcon = showLastPageButtonIcon
-    ? rtl
-      ? incrementAllDownIcon
-      : incrementAllUpIcon
-    : undefined
+    return {
+      showFirstPageButton:
+        showIncrementButtons &&
+        showFirstPageButtonProp &&
+        !(showFirstPageButtonOnFirstPage === false && currentPage === 1) &&
+        !hideForSinglePage,
+      showPrevPageButton:
+        showIncrementButtons &&
+        showPrevPageButtonProp &&
+        !(showPrevPageButtonOnFirstPage === false && currentPage === 1) &&
+        !hideForSinglePage,
+      showNextPageButton:
+        showIncrementButtons &&
+        showNextPageButtonProp &&
+        !(showNextPageButtonOnLastPage === false && currentPage === numberOfPages) &&
+        !hideForSinglePage,
+      showLastPageButton:
+        showIncrementButtons &&
+        showLastPageButtonProp &&
+        !(showLastPageButtonOnLastPage === false && currentPage === numberOfPages) &&
+        !hideForSinglePage,
+    }
+  }, [
+    currentPage,
+    numberOfPages,
+    showFirstPageButtonOnFirstPage,
+    showFirstPageButtonProp,
+    showIncrementButtons,
+    showIncrementButtonsWithOnePage,
+    showLastPageButtonOnLastPage,
+    showLastPageButtonProp,
+    showNextPageButtonOnLastPage,
+    showNextPageButtonProp,
+    showPrevPageButtonOnFirstPage,
+    showPrevPageButtonProp,
+  ])
+  const resolvedLabels = useMemo(
+    () => ({
+      ...DEFAULT_PAGINATION_LABELS.primaryControls,
+      firstPageButton: firstPageLabel ?? DEFAULT_PAGINATION_LABELS.primaryControls.firstPageButton,
+      previousPageButton: prevPageLabel ?? DEFAULT_PAGINATION_LABELS.primaryControls.previousPageButton,
+      nextPageButton: nextPageLabel ?? DEFAULT_PAGINATION_LABELS.primaryControls.nextPageButton,
+      lastPageButton: lastPageLabel ?? DEFAULT_PAGINATION_LABELS.primaryControls.lastPageButton,
+      ...labels,
+    }),
+    [firstPageLabel, labels, lastPageLabel, nextPageLabel, prevPageLabel],
+  )
+  const resolvedGeometry = geometry ?? ROUNDED
+  const overflowItemsListGeometryClassName =
+    resolvedGeometry === ROUNDED || resolvedGeometry === ROUND ? styles["paginationItemsList--rounded"] : undefined
 
   return {
-    computedFirstPageButtonIcon,
-    computedPrevButtonIcon,
-    computedNextButtonIcon,
-    computedLastPageButtonIcon,
+    buildButtonProps,
+    numberOfPages,
+    resolvedLabels,
+    computedFirstPageButtonIcon: showFirstPageButtonIcon
+      ? rtl
+        ? incrementAllUpIcon
+        : incrementAllDownIcon
+      : undefined,
+    computedLastPageButtonIcon: showLastPageButtonIcon ? (rtl ? incrementAllDownIcon : incrementAllUpIcon) : undefined,
+    computedNextButtonIcon: showNextPageButtonIcon ? (rtl ? incrementDownIcon : incrementUpIcon) : undefined,
+    computedPrevButtonIcon: showPrevPageButtonIcon ? (rtl ? incrementUpIcon : incrementDownIcon) : undefined,
     overflowItemsButtonIcon,
-    popoverStyles,
-    overflowItemsListStyles,
-    buttonRowStyles,
-    pageNumberButtonRowStyles,
+    overflowItemsListStyles: classNames(paginationItemsListClassName, overflowItemsListGeometryClassName),
+    visibility,
   }
 }

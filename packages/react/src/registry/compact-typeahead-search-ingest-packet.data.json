@@ -12,9 +12,9 @@
       "role": "source"
     },
     {
-      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.ts",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/helpers.tsx",
       "targetRole": "components",
-      "targetPath": "CompactTypeaheadSearch/helpers.ts",
+      "targetPath": "CompactTypeaheadSearch/helpers.tsx",
       "role": "source"
     },
     {
@@ -137,7 +137,7 @@
       "notes": ["CompactTypeaheadSearch query entry composes the registry-owned Input component."]
     },
     {
-      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/hooks.tsx",
       "importSource": "@/src/components/ListBoxItem/ListBoxItem",
       "registryDependencyName": "list-box-item",
       "replacementSource": "../ListBoxItem/ListBoxItem",
@@ -151,7 +151,7 @@
       "notes": ["CompactTypeaheadSearch status states compose installed PlaceholderText."]
     },
     {
-      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/CompactTypeaheadSearch.tsx",
+      "sourcePath": "packages/react/src/components/CompactTypeaheadSearch/hooks.tsx",
       "importSource": "@/src/components/_registry/tokens",
       "registryDependencyName": "tokens/placement",
       "replacementSource": "../../tokens/placement",
