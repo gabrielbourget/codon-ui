@@ -1,6 +1,6 @@
 # Native Modal And AlertDialog — Overlay Foundation Proposal
 
-Status: **Approved; first-pass native host/admission gate passed and Modal/AlertDialog source implemented. Maintained composition, consumer and final installed receipt remain pending**. The owner approved this packet with “proceed” on 2026-10-15. This follows the completed twelve-component slice merged through [PR #18](https://github.com/gabrielbourget/codon-ui/pull/18) at `4bd48eaa648bcc957f57efc7dc18cd3ff28f75c8`. The working branch is `codex/native-overlay-proposal`. Keep the palette, existing dependency pins and iPhone-signing disposition unchanged.
+Status: **Approved source/maintained composition and immutable consumer implemented through 13f267c; final installed acceptance incomplete. RN Primitives adoption evaluation now precedes further propagation**. The owner approved this packet with “proceed” on 2026-10-15 and subsequently requested [the RN Primitives evaluation/adoption proposal](react-native-primitives-adoption-proposal.md). Final iOS normal checks pass; the large landscape inspector result needs diagnosis and final Android checks remain pending. This follows the completed twelve-component slice merged through [PR #18](https://github.com/gabrielbourget/codon-ui/pull/18) at `4bd48eaa648bcc957f57efc7dc18cd3ff28f75c8`. The working branch is `codex/native-overlay-proposal`. Keep the palette, existing dependency pins and iPhone-signing disposition unchanged.
 
 ## Why This Family Follows
 
