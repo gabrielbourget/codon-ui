@@ -79,3 +79,57 @@ export type {
   TNativeSelectItemRenderState,
   TNativeSelectValueRenderState,
 } from "./components/Select/types"
+
+export { TextArea } from "./components/TextArea/TextArea"
+export {
+  TEXTAREA_SIZE__SM,
+  TEXTAREA_SIZE__MD,
+  TEXTAREA_SIZE__LG,
+  AVAILABLE_TEXTAREA_SIZES,
+} from "./components/TextArea/types"
+export type {
+  TNativeTextAreaProps,
+  TNativeTextAreaProps as TextAreaProps,
+  TNativeTextAreaRef,
+  TNativeTextAreaRenderState,
+  TNativeTextAreaStyleState,
+  TNativeTextAreaSize,
+} from "./components/TextArea/types"
+
+export { Radio } from "./components/Radio/Radio"
+export type {
+  TNativeRadioProps,
+  TNativeRadioProps as RadioProps,
+  TNativeRadioRef,
+  TNativeRadioRenderState,
+  TNativeRadioStyleState,
+  TNativeRadioChildrenState,
+} from "./components/Radio/types"
+export { RadioGroup } from "./components/RadioGroup/RadioGroup"
+export { RADIO_GROUP_ORIENTATIONS } from "./components/RadioGroup/types"
+export type {
+  TNativeRadioGroupProps,
+  TNativeRadioGroupProps as RadioGroupProps,
+  TNativeRadioGroupRef,
+  TNativeRadioGroupRenderState,
+  TNativeRadioGroupStyleState,
+  TNativeRadioGroupOrientation,
+} from "./components/RadioGroup/types"
+
+export { NumberInput } from "./components/NumberInput/NumberInput"
+export {
+  NUMBER_INPUT_SIZE__SM,
+  NUMBER_INPUT_SIZE__MD,
+  NUMBER_INPUT_SIZE__LG,
+  AVAILABLE_NUMBER_INPUT_SIZES,
+} from "./components/NumberInput/types"
+export type {
+  TNativeNumberInputProps,
+  TNativeNumberInputProps as NumberInputProps,
+  TNativeNumberInputRef,
+  TNativeNumberInputSize,
+  TNativeNumberInputFormatOptions,
+  TNativeNumberInputInputProps,
+  TNativeNumberInputRenderState,
+  TNativeNumberInputStyleState,
+} from "./components/NumberInput/types"

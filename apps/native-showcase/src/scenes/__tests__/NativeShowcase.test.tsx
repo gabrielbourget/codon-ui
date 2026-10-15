@@ -14,6 +14,73 @@ const renderShowcase = async () =>
     </SafeAreaInsetsContext.Provider>,
   )
 
+it("composes NumberInput locale/draft/commit/step fixtures and preserves state across theme/window changes", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("NumberInput scene")
+  expect(screen.getByTestId("number-intl-state")).toHaveTextContent(
+    "Intl locales: en-US, fr-CA, fr-FR. Explicit numbering system: arab.",
+  )
+  const input = screen.getByTestId("number-fraction-input")
+  await fireEvent.changeText(input, "0.25")
+  expect(screen.getByTestId("number-state")).toHaveTextContent(/Value: 0.2.*Raw: 0.25.*Changes: 0/)
+  await fireEvent(input, "submitEditing", { nativeEvent: { text: "0.25" } })
+  await fireEvent(input, "endEditing", { nativeEvent: { text: "0.25" } })
+  expect(screen.getByTestId("number-state")).toHaveTextContent(/Value: 0.3.*Changes: 1/)
+  await press("Next page number")
+  const french = screen.getByTestId("number-french-input")
+  await fireEvent.changeText(french, "2\u00a0345,75")
+  await fireEvent(french, "endEditing", { nativeEvent: { text: "2\u00a0345,75" } })
+  expect(french).toHaveDisplayValue("2\u00a0345,75")
+  await press("Toggle number locale")
+  expect(french).toHaveDisplayValue("2\u202f345,75")
+  await press("Dark theme")
+  await press("Vertical blocked region")
+  await press("Toggle number styles")
+  expect(screen.getByTestId("number-state")).toHaveTextContent(/Value: 0.3.*Page: 1.*French: 2345.75/)
+  expect(screen.getByTestId("number-fraction-input")).toHaveStyle({ fontSize: 18 })
+  expect(screen.getByRole("button", { name: "Commit number and dismiss keyboard" })).toBeOnTheScreen()
+  await press("Reset scene")
+  await press("NumberInput scene")
+  expect(screen.getByTestId("number-state")).toHaveTextContent(
+    /Value: 0.2.*Raw: empty.*Changes: 0.*Page: empty.*French: 1234.5.*enabled.*echoes.*fr-CA/,
+  )
+})
+
+it("exercises NumberInput declined commits, guards, configuration and bounded actions", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("NumberInput scene")
+  await press("Toggle number parent echo")
+  const input = screen.getByTestId("number-fraction-input")
+  await fireEvent.changeText(input, "3.4")
+  await fireEvent(input, "endEditing", { nativeEvent: { text: "3.4" } })
+  expect(input).toHaveDisplayValue("0.2")
+  expect(screen.getByTestId("number-state")).toHaveTextContent(/Changes: 1.*declines/)
+  await press("Toggle number read-only")
+  await press("Increase fractional quantity")
+  expect(screen.getByTestId("number-state")).toHaveTextContent(/Changes: 1.*read-only/)
+  expect(screen.getByTestId("number-fraction-increment")).not.toBeDisabled()
+  await press("Toggle number read-only")
+  await press("Toggle number disabled")
+  expect(screen.getByTestId("number-fraction-increment")).toBeDisabled()
+  await press("Toggle number disabled")
+  await press("Toggle number precision")
+  await press("Next number geometry")
+  const bounded = screen.getByTestId("number-bounded-input")
+  await fireEvent.changeText(bounded, "0.475")
+  await fireEvent(bounded, "endEditing", { nativeEvent: { text: "0.475" } })
+  expect(bounded).toHaveDisplayValue("0.6")
+  await press("Increase bounded quantity")
+  expect(bounded).toHaveDisplayValue("0.85")
+  expect(screen.getByTestId("number-bounded-increment")).toBeDisabled()
+  await press("Clear controlled number")
+  expect(input).toHaveDisplayValue("")
+  expect(screen.getByTestId("number-footer")).toHaveTextContent(/iPhone signing remains deferred/)
+})
+
 it("composes public theme exports, fixture controls and reset without resetting actions on theme/layout changes", async () => {
   const user = userEvent.setup()
   await renderShowcase()
@@ -266,4 +333,78 @@ it("uses custom Select visuals while preserving explicit row names and selected 
   await user.press(screen.getByRole("button", { name: "Showcase choice" }))
   expect(screen.getByRole("radio", { name: "Numeric zero" }).props.accessibilityState.checked).toBe(true)
   expect(screen.getByText("Numeric zero ✓")).toBeOnTheScreen()
+})
+
+it("composes multiline editing, final native submit text and controlled/uncontrolled radio guards", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Multiline/Radio scene")
+  const notes = "Bonjour Montréal\nComplete second line"
+  await user.type(screen.getByTestId("multiline-draft"), notes, { skipBlur: true })
+  await fireEvent.changeText(screen.getByTestId("multiline-submit"), "B")
+  await fireEvent(screen.getByTestId("multiline-submit"), "submitEditing", { nativeEvent: { text: "Bonjour final" } })
+  await user.press(screen.getByRole("radio", { name: "Radio second" }))
+  await user.press(screen.getByRole("radio", { name: "Radio second" }))
+  await user.press(screen.getByRole("radio", { name: "Radio unavailable" }))
+  await user.press(screen.getByRole("radio", { name: "Uncontrolled second" }))
+  expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+    /Draft: Bonjour Montréal Complete second line.*Submitted: Bonjour final.*Submits: 1.*Radio: second.*Changes: 1.*Uncontrolled: second/,
+  )
+  expect(screen.getByTestId("multiline-submit")).toHaveDisplayValue("Bonjour final")
+  expect(screen.getByTestId("multiline-draft").props.submitBehavior).toBe("newline")
+  expect(screen.getByTestId("multiline-long")).toHaveStyle({ height: 96 })
+  expect(screen.getByTestId("multiline-long").props.defaultValue).toContain("Line 16:")
+  for (const guard of ["disabled", "read-only"]) {
+    await press(`Toggle multiline ${guard}`)
+    await user.press(screen.getByRole("radio", { name: "Radio first" }))
+    await fireEvent.changeText(screen.getByTestId("multiline-draft"), "Changed")
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(/Radio: second.*Changes: 1/)
+    expect(screen.getByTestId("multiline-draft")).toHaveDisplayValue(notes)
+    await press(`Toggle multiline ${guard}`)
+  }
+})
+
+it("retains radio values through removal, themes, fixtures and rotation and resets all scene defaults", async () => {
+  const previous = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Multiline/Radio scene")
+  await user.press(screen.getByRole("radio", { name: "Radio first" }))
+  await press("Toggle selected radio removal")
+  expect(screen.queryByRole("radio", { name: "Radio first" })).toBeNull()
+  expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(/Radio: first.*Changes: 1/)
+  await press("Toggle selected radio removal")
+  expect(screen.getByRole("radio", { name: "Radio first" }).props.accessibilityState.checked).toBe(true)
+  await press("Toggle radio orientation")
+  await press("Toggle multiline styles")
+  await press("Next radio geometry")
+  await press("Next radio order")
+  await press("Dark theme")
+  await press("Vertical blocked region")
+  expect(screen.getByTestId("multiline-radio-group")).toHaveStyle({ flexDirection: "row", gap: 16 })
+  expect(screen.getByTestId("multiline-radio-first-shape", { includeHiddenElements: true })).toHaveStyle({
+    width: 24,
+    height: 24,
+    borderRadius: 10000,
+  })
+  try {
+    await act(() =>
+      Dimensions.set({ window: { width: 844, height: 390, scale: 3, fontScale: 2 }, screen: previous.screen }),
+    )
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+      /Radio: first.*Changes: 1.*secondary.*round.*horizontal/,
+    )
+    await press("Clear radio value")
+    expect(screen.getByRole("radio", { name: "Radio first" }).props.accessibilityState.checked).toBe(false)
+    await press("Reset scene")
+    await press("Multiline/Radio scene")
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+      /Draft: empty.*Submits: 0.*Radio: none.*Changes: 0.*Uncontrolled: first.*enabled.*primary.*rounded.*vertical/,
+    )
+    expect(screen.getByTestId("multiline-uncontrolled-first").props.accessibilityState.checked).toBe(true)
+  } finally {
+    await act(() => Dimensions.set(previous))
+  }
 })

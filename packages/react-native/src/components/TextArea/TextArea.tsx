@@ -1,0 +1,120 @@
+import { forwardRef, useEffect, useState } from "react"
+import { TextInput, type TextStyle } from "react-native"
+
+import { useNativeTheme } from "../../theme"
+import { validateNativeColor } from "../colors"
+import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
+
+import type { TNativeTextAreaProps, TNativeTextAreaRef, TNativeTextAreaRenderState } from "./types"
+
+export const TextArea = forwardRef<TNativeTextAreaRef, TNativeTextAreaProps>((props, ref) => {
+  const {
+    isDisabled = false,
+    isReadOnly = false,
+    textSize = "medium",
+    geometry = "rounded",
+    width,
+    height = 96,
+    enableFocusStyle = true,
+    offsetFocusRing = true,
+    errorState = false,
+    warningState = false,
+    successState = false,
+    customStyles,
+    style,
+    placeholderTextColor,
+    testID,
+    accessibilityLabel,
+    accessibilityState,
+    onChangeText,
+    onChange,
+    onFocus,
+    onBlur,
+    submitBehavior = "newline",
+    "data-testid": aliasTestID,
+    "aria-label": aliasLabel,
+    ...rest
+  } = props
+  const label = accessibilityLabel ?? aliasLabel
+  if (typeof label !== "string" || !label.trim())
+    throw new TypeError("TextArea: a nonempty accessibilityLabel or aria-label is required")
+  const theme = useNativeTheme()
+  const [focused, setFocused] = useState(false)
+  useEffect(() => {
+    if (isDisabled) setFocused(false)
+  }, [isDisabled])
+  const state: TNativeTextAreaRenderState = {
+    isFocused: focused && !isDisabled,
+    isDisabled,
+    isReadOnly,
+    isInvalid: errorState,
+  }
+  const placeholder = placeholderTextColor ?? theme.colors.controlPlaceholder
+  validateNativeColor(placeholder, "TextArea", "placeholderTextColor")
+  for (const field of ["selectionColor", "selectionHandleColor", "cursorColor", "underlineColorAndroid"] as const)
+    validateNativeColor(rest[field], "TextArea", field)
+  const border = errorState
+    ? theme.colors.validationErrorBorder
+    : warningState
+      ? theme.colors.validationWarningBorder
+      : successState
+        ? theme.colors.validationSuccessBorder
+        : theme.colors.controlBorder
+  const baseline: TextStyle = {
+    width,
+    height,
+    padding: theme.spacing.unit,
+    paddingHorizontal: geometry === "round" ? 7 : theme.spacing.unit,
+    backgroundColor: theme.colors.controlBackground,
+    color: theme.colors.controlForeground,
+    fontFamily: theme.typography.fontFamilies.body,
+    fontWeight: theme.typography.fontWeights.regular,
+    fontSize: theme.typography.fontSizes[textSize === "small" ? "b11" : textSize === "large" ? "b9" : "b10"],
+    lineHeight: theme.typography.lineHeight,
+    textAlignVertical: "top",
+    borderWidth: 1,
+    borderColor: border,
+    borderRadius: getNativeControlRadius(theme, geometry),
+    opacity: isDisabled ? theme.opacity.disabled : 1,
+    ...(enableFocusStyle && state.isFocused
+      ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
+      : {}),
+  }
+  const resolved = getNativeControlRootStyle("TextArea", baseline, customStyles, style, state)
+  const blocked = isDisabled || isReadOnly
+  return (
+    <TextInput
+      {...rest}
+      ref={ref}
+      multiline
+      submitBehavior={submitBehavior}
+      editable={!blocked}
+      readOnly={blocked}
+      focusable={!isDisabled}
+      aria-disabled={isDisabled}
+      accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
+      accessibilityLabel={label}
+      testID={testID ?? aliasTestID ?? "textarea"}
+      placeholderTextColor={placeholder}
+      underlineColorAndroid={rest.underlineColorAndroid ?? "transparent"}
+      style={resolved}
+      onChangeText={(value) => {
+        if (!blocked) onChangeText?.(value)
+      }}
+      onChange={(event) => {
+        if (!blocked) onChange?.(event)
+      }}
+      onFocus={(event) => {
+        if (!isDisabled) {
+          setFocused(true)
+          onFocus?.(event)
+        }
+      }}
+      onBlur={(event) => {
+        setFocused(false)
+        onBlur?.(event)
+      }}
+    />
+  )
+})
+TextArea.displayName = "TextArea"
