@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, userEvent } from "@testing-library/reac
 import { createRef, useState } from "react"
 import { AccessibilityInfo, FlatList, Platform } from "react-native"
 
-import { Select, type TNativeSelectProps, type TNativeSelectRef } from "../../../.."
+import { Select, type TNativeSelectProps, type TNativeSelectRef } from "../../.."
 
 jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")

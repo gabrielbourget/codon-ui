@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { PlatformColor, StyleSheet } from "react-native"
 
-import { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS, NativeThemeProvider, Text } from "../../../.."
+import { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS, NativeThemeProvider, Text } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())

@@ -2,7 +2,7 @@ import { fireEvent, render, screen, userEvent } from "@testing-library/react-nat
 import { Fragment, createRef } from "react"
 import { Platform, View } from "react-native"
 
-import { NativeThemeProvider, Switch, type TNativeSwitchRef } from "../../../.."
+import { NativeThemeProvider, Switch, type TNativeSwitchRef } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())

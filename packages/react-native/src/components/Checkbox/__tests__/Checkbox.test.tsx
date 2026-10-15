@@ -2,7 +2,7 @@ import { fireEvent, render, screen, userEvent } from "@testing-library/react-nat
 import { Fragment, createRef } from "react"
 import { View } from "react-native"
 
-import { Checkbox, CheckboxGroup, NativeThemeProvider, type TNativeCheckboxRef } from "../../../.."
+import { Checkbox, CheckboxGroup, NativeThemeProvider, type TNativeCheckboxRef } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())

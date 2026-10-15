@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react-native"
 import { Text } from "react-native"
 
-import { NativeThemeProvider, useNativeTheme } from "../../.."
+import { NativeThemeProvider, useNativeTheme } from "../.."
 import type { TNativeThemeProviderProps } from "../NativeThemeProvider"
 
 const ThemeProbe = ({ label = "theme" }: { label?: string }) => {

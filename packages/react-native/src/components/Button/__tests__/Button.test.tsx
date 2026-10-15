@@ -2,7 +2,7 @@ import { fireEvent, render, screen, userEvent } from "@testing-library/react-nat
 import { Fragment, useState } from "react"
 import { Platform, StyleSheet, View } from "react-native"
 
-import { AVAILABLE_THEMING_ORDER_CODES, Button, NativeThemeProvider, Text } from "../../../.."
+import { AVAILABLE_THEMING_ORDER_CODES, Button, NativeThemeProvider, Text } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())

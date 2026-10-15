@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 
-import { ListBoxItem } from "../../../.."
+import { ListBoxItem } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())

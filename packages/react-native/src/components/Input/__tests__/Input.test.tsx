@@ -2,7 +2,7 @@ import { fireEvent, render, screen, userEvent } from "@testing-library/react-nat
 import { createRef, useState } from "react"
 import { Platform } from "react-native"
 
-import { Input, NativeThemeProvider, type TNativeInputProps, type TNativeInputRef } from "../../../.."
+import { Input, NativeThemeProvider, type TNativeInputProps, type TNativeInputRef } from "../../.."
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => jest.useRealTimers())
