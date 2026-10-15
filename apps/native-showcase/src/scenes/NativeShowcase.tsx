@@ -20,6 +20,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { BasicControlsScene } from "./BasicControlsScene"
 import { LibraryScene } from "./LibraryScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
+import { NumberInputScene } from "./NumberInputScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 
@@ -133,7 +134,9 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select" | "multiline">("foundation")
+  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select" | "multiline" | "number">(
+    "foundation",
+  )
   const reset = () => {
     setMode("light")
     setCustomized(false)
@@ -168,6 +171,7 @@ export const NativeShowcase = () => {
             onPress={() => setScene("multiline")}
           />
           <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+          <FixtureAction label="NumberInput scene" selected={scene === "number"} onPress={() => setScene("number")} />
         </View>
         <View style={styles.controls}>
           <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -190,7 +194,9 @@ export const NativeShowcase = () => {
           ))}
         </View>
         <SceneShell fixture={fixture}>
-          {scene === "multiline" ? (
+          {scene === "number" ? (
+            <NumberInputScene />
+          ) : scene === "multiline" ? (
             <MultilineRadioScene />
           ) : scene === "select" ? (
             <SelectScene />
