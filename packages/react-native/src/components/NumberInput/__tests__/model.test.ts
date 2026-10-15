@@ -111,6 +111,8 @@ describe("NumberInput decimal model", () => {
     }
   })
   test("refuses unsafe arithmetic and never crosses the safe unit boundary", () => {
+    const nearLimit = createNumberModel({ step: 0.001 })
+    expect(nearLimit.step("9007199254740.99", 1)).toBeUndefined()
     expect(createNumberModel({}).step("999999999999999999999999", 1)).toBeUndefined()
     const model = createNumberModel({ formatOptions: { maximumFractionDigits: 0 } })
     expect(model.step(String(Number.MAX_SAFE_INTEGER), 1)).toBeUndefined()

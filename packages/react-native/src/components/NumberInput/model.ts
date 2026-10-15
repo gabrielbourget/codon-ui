@@ -86,7 +86,10 @@ export const createNumberModel = ({
   const increment = step === undefined ? scale : requireUnits(step, "step")
   if (increment <= 0) invalid("step (expected positive)")
   const anchor = min ?? 0
-  const number = (units: number) => (units === 0 ? 0 : units / scale)
+  const number = (units: number) => {
+    const value = units === 0 ? 0 : units / scale
+    return decimalUnits(value, maximumFractionDigits) === units ? value : undefined
+  }
   const parse = (raw: string): number | null | undefined => {
     if (!raw.trim() || !parser.isValidPartialNumber(raw)) return undefined
     const parsed = parser.parse(raw)
@@ -138,7 +141,8 @@ export const createNumberModel = ({
       if (parsed === undefined || parsed === null) return undefined
       const clamped = clamp(parsed)
       const result = step === undefined ? clamped : project(clamped)
-      return result === undefined ? undefined : { value: number(result) }
+      const value = result === undefined ? undefined : number(result)
+      return value === undefined ? undefined : { value }
     },
     step: (raw: string, direction: -1 | 1): number | undefined => {
       const parsed = parse(raw)
