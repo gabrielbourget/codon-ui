@@ -267,3 +267,77 @@ it("uses custom Select visuals while preserving explicit row names and selected 
   expect(screen.getByRole("radio", { name: "Numeric zero" }).props.accessibilityState.checked).toBe(true)
   expect(screen.getByText("Numeric zero ✓")).toBeOnTheScreen()
 })
+
+it("composes multiline editing, final native submit text and controlled/uncontrolled radio guards", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Multiline/Radio scene")
+  const notes = "Bonjour Montréal\nComplete second line"
+  await user.type(screen.getByTestId("multiline-draft"), notes, { skipBlur: true })
+  await fireEvent.changeText(screen.getByTestId("multiline-submit"), "B")
+  await fireEvent(screen.getByTestId("multiline-submit"), "submitEditing", { nativeEvent: { text: "Bonjour final" } })
+  await user.press(screen.getByRole("radio", { name: "Radio second" }))
+  await user.press(screen.getByRole("radio", { name: "Radio second" }))
+  await user.press(screen.getByRole("radio", { name: "Radio unavailable" }))
+  await user.press(screen.getByRole("radio", { name: "Uncontrolled second" }))
+  expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+    /Draft: Bonjour Montréal Complete second line.*Submitted: Bonjour final.*Submits: 1.*Radio: second.*Changes: 1.*Uncontrolled: second/,
+  )
+  expect(screen.getByTestId("multiline-submit")).toHaveDisplayValue("Bonjour final")
+  expect(screen.getByTestId("multiline-draft").props.submitBehavior).toBe("newline")
+  expect(screen.getByTestId("multiline-long")).toHaveStyle({ height: 96 })
+  expect(screen.getByTestId("multiline-long").props.defaultValue).toContain("Line 16:")
+  for (const guard of ["disabled", "read-only"]) {
+    await press(`Toggle multiline ${guard}`)
+    await user.press(screen.getByRole("radio", { name: "Radio first" }))
+    await fireEvent.changeText(screen.getByTestId("multiline-draft"), "Changed")
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(/Radio: second.*Changes: 1/)
+    expect(screen.getByTestId("multiline-draft")).toHaveDisplayValue(notes)
+    await press(`Toggle multiline ${guard}`)
+  }
+})
+
+it("retains radio values through removal, themes, fixtures and rotation and resets all scene defaults", async () => {
+  const previous = { window: Dimensions.get("window"), screen: Dimensions.get("screen") }
+  await renderShowcase()
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Multiline/Radio scene")
+  await user.press(screen.getByRole("radio", { name: "Radio first" }))
+  await press("Toggle selected radio removal")
+  expect(screen.queryByRole("radio", { name: "Radio first" })).toBeNull()
+  expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(/Radio: first.*Changes: 1/)
+  await press("Toggle selected radio removal")
+  expect(screen.getByRole("radio", { name: "Radio first" }).props.accessibilityState.checked).toBe(true)
+  await press("Toggle radio orientation")
+  await press("Toggle multiline styles")
+  await press("Next radio geometry")
+  await press("Next radio order")
+  await press("Dark theme")
+  await press("Vertical blocked region")
+  expect(screen.getByTestId("multiline-radio-group")).toHaveStyle({ flexDirection: "row", gap: 16 })
+  expect(screen.getByTestId("multiline-radio-first-shape", { includeHiddenElements: true })).toHaveStyle({
+    width: 24,
+    height: 24,
+    borderRadius: 10000,
+  })
+  try {
+    await act(() =>
+      Dimensions.set({ window: { width: 844, height: 390, scale: 3, fontScale: 2 }, screen: previous.screen }),
+    )
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+      /Radio: first.*Changes: 1.*secondary.*round.*horizontal/,
+    )
+    await press("Clear radio value")
+    expect(screen.getByRole("radio", { name: "Radio first" }).props.accessibilityState.checked).toBe(false)
+    await press("Reset scene")
+    await press("Multiline/Radio scene")
+    expect(screen.getByTestId("multiline-radio-state")).toHaveTextContent(
+      /Draft: empty.*Submits: 0.*Radio: none.*Changes: 0.*Uncontrolled: first.*enabled.*primary.*rounded.*vertical/,
+    )
+    expect(screen.getByTestId("multiline-uncontrolled-first").props.accessibilityState.checked).toBe(true)
+  } finally {
+    await act(() => Dimensions.set(previous))
+  }
+})

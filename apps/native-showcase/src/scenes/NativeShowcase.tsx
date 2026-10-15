@@ -19,6 +19,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 
 import { BasicControlsScene } from "./BasicControlsScene"
 import { LibraryScene } from "./LibraryScene"
+import { MultilineRadioScene } from "./MultilineRadioScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 
@@ -131,7 +132,7 @@ export const NativeShowcase = () => {
   const [customized, setCustomized] = useState(false)
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
-  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select">("foundation")
+  const [scene, setScene] = useState<"foundation" | "library" | "controls" | "select" | "multiline">("foundation")
   const reset = () => {
     setMode("light")
     setCustomized(false)
@@ -160,6 +161,11 @@ export const NativeShowcase = () => {
             selected={scene === "controls"}
             onPress={() => setScene("controls")}
           />
+          <FixtureAction
+            label="Multiline/Radio scene"
+            selected={scene === "multiline"}
+            onPress={() => setScene("multiline")}
+          />
           <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
         </View>
         <View style={styles.controls}>
@@ -183,7 +189,9 @@ export const NativeShowcase = () => {
           ))}
         </View>
         <SceneShell fixture={fixture}>
-          {scene === "select" ? (
+          {scene === "multiline" ? (
+            <MultilineRadioScene />
+          ) : scene === "select" ? (
             <SelectScene />
           ) : scene === "controls" ? (
             <BasicControlsScene />
