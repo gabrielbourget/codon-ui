@@ -1,4 +1,4 @@
-import { useRef, useState } from "react"
+import { Component, useRef, useState, type PropsWithChildren } from "react"
 import { Keyboard, View } from "react-native"
 
 import {
@@ -10,7 +10,36 @@ import {
   type TNativeNumberInputRef,
 } from "@codon-ui/react-native"
 
-export const NumberInputScene = () => {
+class NumberCapabilityBoundary extends Component<PropsWithChildren, { error?: Error }> {
+  state: { error?: Error } = {}
+  static getDerivedStateFromError(error: Error) {
+    return { error }
+  }
+  render() {
+    if (this.state.error)
+      return (
+        <Text testID="number-capability-failure">
+          Native number capability failed: {this.state.error.message}. {this.state.error.stack}
+        </Text>
+      )
+    return this.props.children
+  }
+}
+
+export const NumberInputScene = () => (
+  <View style={{ gap: 12 }}>
+    <Text testID="number-runtime-methods">
+      Native methods: NumberFormat.formatToParts={typeof Intl.NumberFormat.prototype.formatToParts}; String.replaceAll=
+      {typeof String.prototype.replaceAll}; String.padEnd={typeof String.prototype.padEnd}; Number.isSafeInteger=
+      {typeof Number.isSafeInteger}.
+    </Text>
+    <NumberCapabilityBoundary>
+      <NumberExamples />
+    </NumberCapabilityBoundary>
+  </View>
+)
+
+const NumberExamples = () => {
   const theme = useNativeTheme()
   const input = useRef<TNativeNumberInputRef>(null)
   const [value, setValue] = useState<number | null>(0.2)
