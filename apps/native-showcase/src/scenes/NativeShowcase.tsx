@@ -111,7 +111,7 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
           testID="showcase-scroll"
           style={styles.surface}
           contentContainerStyle={styles.page}
-          onLayout={Platform.OS === "ios" ? revealFocusedInput : undefined}
+          onLayout={revealFocusedInput}
           onScroll={({ nativeEvent }) => {
             scrollOffset.current = nativeEvent.contentOffset.y
           }}
