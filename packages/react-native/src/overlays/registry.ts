@@ -34,7 +34,8 @@ export const createOverlayRegistry = () => {
     }
     const chain = live()
     const last = chain.at(-1)
-    if (last && !effective(last)) entries.get(last)!.phase = "closing"
+    // Hiding an admitted window before onShow can suppress both native callbacks on iOS.
+    if (last && !effective(last) && entries.get(last)!.phase !== "presenting") entries.get(last)!.phase = "closing"
     if (chain.some((id) => entries.get(id)?.phase === "closing")) return
     const parent = last ? entries.get(last)! : undefined
     const next = branches.get(last ?? null)

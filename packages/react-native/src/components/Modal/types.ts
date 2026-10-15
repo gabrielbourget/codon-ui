@@ -1,11 +1,12 @@
 import type { ReactNode, RefObject } from "react"
-import type { ColorValue, DimensionValue, StyleProp, TextStyle, View, ViewStyle } from "react-native"
+import type { ColorValue, StyleProp, TextStyle, View, ViewStyle } from "react-native"
 
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 
 type TName =
   | { accessibilityLabel: string; "aria-label"?: string }
   | { accessibilityLabel?: string; "aria-label": string }
+type TStaticDimension = number | "auto" | `${number}%`
 export type TNativeModalRef = View
 export type TNativeModalRootStyle = ViewStyle & Pick<TextStyle, "color">
 export type TNativeModalProps = TName & {
@@ -23,8 +24,8 @@ export type TNativeModalProps = TName & {
   geometry?: "rounded" | "orthogonal"
   raised?: boolean
   overlayBlur?: false
-  width?: DimensionValue
-  height?: DimensionValue
+  width?: TStaticDimension
+  height?: TStaticDimension
   isScrollable?: boolean
   customStyles?: StyleProp<TNativeModalRootStyle>
   style?: StyleProp<TNativeModalRootStyle>

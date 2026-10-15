@@ -46,12 +46,13 @@ export const OverlayFrame = ({
     throw new TypeError("Modal: a nonempty native accessible name is required")
   if (props.overlayBlur !== undefined && props.overlayBlur !== false)
     throw new TypeError("Modal: overlayBlur supports only false on native")
+  validateNativeColor(props.color, "Modal", "color")
   for (const [name, value] of [
     ["width", props.width],
     ["height", props.height],
   ] as const) {
     if (
-      value != null &&
+      value !== undefined &&
       value !== "auto" &&
       !(
         (typeof value === "number" && Number.isFinite(value) && value >= 0) ||
@@ -107,8 +108,11 @@ export const OverlayFrame = ({
       input.measureInWindow((_inputX, inputTop, _inputWidth, inputHeight) => {
         if (epoch !== measurement.current || !overlay.isActive() || TextInput.State.currentlyFocusedInput() !== input)
           return
-        const overflow = inputTop + inputHeight + theme.spacing.unit * 2 - top - height
-        if (overflow > 0) scroll.current?.scrollTo({ y: Math.max(0, scrollOffset.current + overflow), animated: false })
+        const gap = theme.spacing.unit * 2
+        const above = inputTop - top - gap
+        const below = inputTop + inputHeight + gap - top - height
+        const delta = above < 0 ? above : below > 0 ? below : 0
+        if (delta) scroll.current?.scrollTo({ y: Math.max(0, scrollOffset.current + delta), animated: false })
       })
     })
   }

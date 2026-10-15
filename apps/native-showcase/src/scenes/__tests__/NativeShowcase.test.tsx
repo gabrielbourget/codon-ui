@@ -14,6 +14,22 @@ const renderShowcase = async () =>
     </SafeAreaInsetsContext.Provider>,
   )
 
+it("hands off a modal closed by body layout before native readiness", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Replace pending presentation" }))
+  const pending = screen.getByTestId("overlay-pending-window")
+  const onDismiss = pending.props.onDismiss
+  expect(screen.queryByTestId("overlay-parent-window")).toBeNull()
+  await fireEvent(pending, "show")
+  await act(() => onDismiss())
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  expect(screen.getByTestId("overlay-handoffs")).toHaveTextContent("Pending handoffs: 1.")
+  expect(screen.getByTestId("overlay-draft")).toHaveDisplayValue("retained draft")
+  expect(screen.getByTestId("overlay-context")).toHaveTextContent("Context: local caller context")
+})
+
 it("composes NumberInput locale/draft/commit/step fixtures and preserves state across theme/window changes", async () => {
   await renderShowcase()
   const user = userEvent.setup()

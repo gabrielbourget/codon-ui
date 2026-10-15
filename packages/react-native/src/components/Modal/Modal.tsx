@@ -3,6 +3,7 @@ import type { View } from "react-native"
 
 import { OverlayFrame } from "../../overlays/OverlayFrame"
 import { Button } from "../Button/Button"
+import { getNativeButtonContent } from "../Button/content"
 import { Text } from "../Text/Text"
 
 import type { TNativeModalProps, TNativeModalRef } from "./types"
@@ -24,7 +25,7 @@ export const Modal = forwardRef<TNativeModalRef, TNativeModalProps>((props, ref)
       initialFocusRef={props.initialFocusRef ?? (children == null ? heading : undefined)}
     >
       {(close) =>
-        children ?? (
+        children == null ? (
           <>
             <Text ref={heading} elementType="h2" variant="b8" fontWeight="bold">
               {titleText}
@@ -34,6 +35,8 @@ export const Modal = forwardRef<TNativeModalRef, TNativeModalProps>((props, ref)
               {closeButtonText}
             </Button>
           </>
+        ) : (
+          getNativeButtonContent(children)
         )
       }
     </OverlayFrame>

@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
-import { createRef, useState } from "react"
-import { AccessibilityInfo, Platform, View } from "react-native"
+import { createRef, useLayoutEffect, useState } from "react"
+import { AccessibilityInfo, Animated, Platform, View } from "react-native"
 
 import { Button, Modal, NativeOverlayProvider, NativeThemeProvider, Select, Text, type ModalProps } from "../../.."
 
@@ -37,10 +37,13 @@ it("requires a single provider, accessible name and supported native values", as
   for (const props of [
     { accessibilityLabel: " " },
     { width: -1 },
+    { width: new Animated.Value(100) },
+    { height: null },
     { height: Infinity },
     { width: "calc(100% - 1px)" },
     { overlayBlur: true },
     { color: "var(--bad)" },
+    { color: "var(--bad)", style: { backgroundColor: "gold" } },
     { style: { color: "var(--bad)" } },
     { closeButtonText: <Text>Close</Text> },
   ]) {
@@ -161,22 +164,80 @@ it("cancels pending focus on closure and owner unmount", async () => {
   expect(AccessibilityInfo.sendAccessibilityEvent).not.toHaveBeenCalled()
 })
 
-it("serializes a root replacement even when the new root is declared first", async () => {
-  const Fixture = () => {
-    const [next, setNext] = useState(false)
-    return (
-      <>
-        <Button onPress={() => setNext(true)}>Replace root</Button>
-        {next && <Modal accessibilityLabel="Next" testID="next" defaultOpen />}
-        <Modal accessibilityLabel="Old" testID="old" isOpen={!next} />
-      </>
-    )
-  }
-  await render(wrap(<Fixture />))
-  await show("old")
-  await userEvent.setup().press(screen.getByRole("button", { name: "Replace root" }))
-  expect(screen.queryByTestId("next-window")).toBeNull()
-  await dismiss("old")
-  expect(screen.getByTestId("next-window")).toBeOnTheScreen()
-  await show("next")
+it.each(["ios", "android"] as const)(
+  "serializes a root replacement even when the new root is declared first on %s",
+  async (platformName) => {
+    jest.replaceProperty(Platform, "OS", platformName)
+    const Fixture = () => {
+      const [next, setNext] = useState(false)
+      return (
+        <>
+          <Button onPress={() => setNext(true)}>Replace root</Button>
+          {next && <Modal accessibilityLabel="Next" testID="next" defaultOpen />}
+          <Modal accessibilityLabel="Old" testID="old" isOpen={!next} />
+        </>
+      )
+    }
+    await render(wrap(<Fixture />))
+    await show("old")
+    await userEvent.setup().press(screen.getByRole("button", { name: "Replace root" }))
+    if (Platform.OS === "ios") expect(screen.queryByTestId("next-window")).toBeNull()
+    await dismiss("old")
+    expect(screen.getByTestId("next-window")).toBeOnTheScreen()
+    await show("next")
+  },
+)
+
+it.each(["ios", "android"] as const)(
+  "replaces a presentation closed by its own body layout before native onShow on %s",
+  async (platformName) => {
+    jest.replaceProperty(Platform, "OS", platformName)
+    const Replace = ({ replace }: { replace: () => void }) => {
+      useLayoutEffect(() => {
+        replace()
+      }, [])
+      return <Text>Pending body</Text>
+    }
+    const Fixture = () => {
+      const [pending, setPending] = useState(true)
+      const [next, setNext] = useState(false)
+      return (
+        <>
+          <Modal testID="pending" accessibilityLabel="Pending" isOpen={pending}>
+            <Replace
+              replace={() => {
+                setPending(false)
+                setNext(true)
+              }}
+            />
+          </Modal>
+          <Modal testID="next" accessibilityLabel="Next" isOpen={next}>
+            Replacement content
+          </Modal>
+        </>
+      )
+    }
+    await render(wrap(<Fixture />))
+    expect(screen.getByTestId("pending-window")).toBeOnTheScreen()
+    expect(screen.queryByTestId("next-window")).toBeNull()
+    await show("pending")
+    expect(screen.queryByTestId("next-window")).toBeNull()
+    await dismiss("pending")
+    await show("next")
+    expect(screen.getByText("Replacement content")).toBeOnTheScreen()
+  },
+)
+
+it("wraps custom native phrases without replacing authored children or their context", async () => {
+  await render(
+    wrap(
+      <Modal aria-label="Custom" defaultOpen customStyles={{ color: "navy" }}>
+        Custom {0} content. <Text testID="authored">Authored text</Text>
+      </Modal>,
+    ),
+  )
+  await show()
+  expect(screen.getByText("Custom 0 content. ")).toHaveStyle({ color: "navy" })
+  expect(screen.getByTestId("authored")).toHaveTextContent("Authored text")
+  expect(screen.queryByText("Placeholder text")).toBeNull()
 })

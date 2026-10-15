@@ -1,10 +1,17 @@
-import { createContext, useContext, useRef, useState } from "react"
+import { createContext, useContext, useLayoutEffect, useRef, useState } from "react"
 import type { View } from "react-native"
 
 import { Button, Input, Modal, Select, Text } from "@codon-ui/react-native"
 
 const DraftContext = createContext("missing")
 const ContextProbe = () => <Text testID="overlay-context">Context: {useContext(DraftContext)}</Text>
+
+const ReplaceOnMount = ({ replace }: { replace: () => void }) => {
+  useLayoutEffect(() => {
+    replace()
+  }, [])
+  return <Text>Replacing an in-flight presentation.</Text>
+}
 
 export const OverlayScene = () => {
   const [parent, setParent] = useState(false)
@@ -14,6 +21,8 @@ export const OverlayScene = () => {
   const [requests, setRequests] = useState(0)
   const [echo, setEcho] = useState(true)
   const [mounted, setMounted] = useState(true)
+  const [pending, setPending] = useState(false)
+  const [handoffs, setHandoffs] = useState(0)
   const trigger = useRef<View>(null)
   const childTrigger = useRef<View>(null)
   const closeParent = () => {
@@ -38,6 +47,18 @@ export const OverlayScene = () => {
       </Button>
       <Button onPress={() => setEcho((value) => !value)}>Toggle overlay parent echo</Button>
       <Button onPress={() => setMounted((value) => !value)}>Toggle overlay owner</Button>
+      <Button onPress={() => setPending(true)}>Replace pending presentation</Button>
+      <Text testID="overlay-handoffs">Pending handoffs: {handoffs}.</Text>
+      <Modal testID="overlay-pending" accessibilityLabel="Pending presentation" isOpen={pending}>
+        <ReplaceOnMount
+          replace={() => {
+            setPending(false)
+            setMounted(true)
+            setParent(true)
+            setHandoffs((count) => count + 1)
+          }}
+        />
+      </Modal>
       {mounted && (
         <Modal
           testID="overlay-parent"

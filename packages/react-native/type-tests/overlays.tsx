@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import type { View } from "react-native"
+import { Animated, type TextInput, type View } from "react-native"
 
 import { Modal, NativeOverlayProvider, type ModalProps } from "../src"
 
@@ -27,3 +27,10 @@ export const InvalidOverlayWidth: ModalProps = { "aria-label": "Dialog", width: 
 export const InvalidOverlayGeometry = <Modal aria-label="Dialog" geometry="round" />
 // @ts-expect-error the provider has no public registration API
 export const InvalidProvider = <NativeOverlayProvider dismissAll />
+
+// @ts-expect-error static modal dimensions exclude animated nodes
+export const InvalidAnimatedWidth = <Modal aria-label="Dialog" width={new Animated.Value(200)} />
+// @ts-expect-error omission selects the default; null is not a static dimension
+export const InvalidNullHeight = <Modal aria-label="Dialog" height={null} />
+
+export const ValidEditorFocus = <Modal aria-label="Editor" initialFocusRef={createRef<TextInput>()} />
