@@ -1,5 +1,5 @@
 import { StatusBar } from "expo-status-bar"
-import { useState, type PropsWithChildren } from "react"
+import { useRef, useState, type PropsWithChildren } from "react"
 import {
   KeyboardAvoidingView,
   Platform,
@@ -7,6 +7,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
   useWindowDimensions,
 } from "react-native"
@@ -71,6 +72,23 @@ const ThemePreview = ({ count, increment }: { count: number; increment: () => vo
 const ShowcaseSurface = ({ children }: PropsWithChildren) => {
   const theme = useNativeTheme()
   const insets = useSafeAreaInsets()
+  const scrollView = useRef<ScrollView>(null)
+  const scrollOffset = useRef(0)
+  const layoutGeneration = useRef(0)
+  const revealFocusedInput = () => {
+    const generation = ++layoutGeneration.current
+    const input = TextInput.State.currentlyFocusedInput()
+    if (!input) return
+    // Native focus scrolling can leave the field outside the resized, clipped viewport.
+    scrollView.current?.getNativeScrollRef()?.measureInWindow((_x, viewportTop, _width, viewportHeight) => {
+      input.measureInWindow((_inputX, inputTop, _inputWidth, inputHeight) => {
+        if (generation !== layoutGeneration.current || TextInput.State.currentlyFocusedInput() !== input) return
+        const overflow = inputTop + inputHeight + styles.page.padding - (viewportTop + viewportHeight)
+        if (overflow > 0)
+          scrollView.current?.scrollTo({ y: Math.max(0, scrollOffset.current + overflow), animated: false })
+      })
+    })
+  }
   return (
     <KeyboardAvoidingView style={styles.surface} behavior="height">
       <View
@@ -87,8 +105,15 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
       >
         <StatusBar style={theme.mode === "dark" ? "light" : "dark"} />
         <ScrollView
+          ref={scrollView}
+          testID="showcase-scroll"
           style={styles.surface}
           contentContainerStyle={styles.page}
+          onLayout={revealFocusedInput}
+          onScroll={({ nativeEvent }) => {
+            scrollOffset.current = nativeEvent.contentOffset.y
+          }}
+          scrollEventThrottle={16}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
         >
