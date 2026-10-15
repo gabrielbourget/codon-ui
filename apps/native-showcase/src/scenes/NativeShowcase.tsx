@@ -112,6 +112,7 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
           style={styles.surface}
           contentContainerStyle={styles.page}
           onLayout={revealFocusedInput}
+          onContentSizeChange={revealFocusedInput}
           onScroll={({ nativeEvent }) => {
             scrollOffset.current = nativeEvent.contentOffset.y
           }}
