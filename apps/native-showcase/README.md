@@ -18,6 +18,8 @@ Use ios/android scripts only in a prepared local native lab. CNG owns generated 
 
 SafeAreaProvider owns insets and the scrollable scene shell owns available layout. App-window changes update metadata without resetting fixture state. A compact/expanded fixture changes maximum content width within the current window; it cannot enlarge the real device. Blocked rectangles are synthetic gaps between content regions and do not receive hardware posture events or normalize screen coordinates. No RN Web or bare-RN support is promised.
 
+The app owns keyboard avoidance and focused-field reveal. iOS uses KeyboardAvoidingView padding so flex layout follows the current window after rotation; Android retains height behavior. Installed inspection must compare the named scroll viewport and complete content against the physical app window as well as the keyboard. A scroll frame extending beyond the window cannot establish reachability.
+
 Tests compose the public native provider, Text and Button exports with app state and core shell views. They inject only safe-area context metrics and use mocked native dimensions. Native rendering, VoiceOver/TalkBack, keyboard, measured touch regions and real fold/Activity delivery require separate inspected build/device evidence.
 
 See the [ledger](../../docs/roadmaps/react-native-library-first-pass.md), [native lab guide](../docs/src/content/docs/foundation/native-lab.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.

@@ -92,8 +92,9 @@ const ShowcaseSurface = ({ children }: PropsWithChildren) => {
       })
     })
   }
+  // iOS padding keeps flex measurements tied to the current window after rotation.
   return (
-    <KeyboardAvoidingView style={styles.surface} behavior="height">
+    <KeyboardAvoidingView style={styles.surface} behavior={Platform.OS === "ios" ? "padding" : "height"}>
       <View
         style={[
           styles.surface,
