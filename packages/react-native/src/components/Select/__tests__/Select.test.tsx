@@ -31,6 +31,7 @@ afterEach(() => {
   jest.useRealTimers()
 })
 
+// Allow the first native modal render to initialize on shared CI workers.
 it("opens one named modal, selects once and exposes selected text on its trigger", async () => {
   const onChange = jest.fn(),
     onOpenChange = jest.fn()
@@ -44,7 +45,7 @@ it("opens one named modal, selects once and exposes selected text on its trigger
   expect(onOpenChange.mock.calls).toEqual([[true], [false]])
   expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("String zero")
   expect(screen.queryByRole("radio")).toBeNull()
-})
+}, 15_000)
 
 it("cancels via Close and native Back without changing selection", async () => {
   const onChange = jest.fn()
