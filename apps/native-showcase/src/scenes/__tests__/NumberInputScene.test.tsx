@@ -14,7 +14,7 @@ it("retains a readable capability diagnostic when a native number operation fail
   try {
     await render(<NumberInputScene />)
     expect(screen.getByTestId("number-capability-failure")).toHaveTextContent(/Native utility operation unavailable/)
-    expect(screen.getByTestId("number-runtime-methods")).toHaveTextContent(/NumberFormat.formatToParts=function/)
+    expect(screen.getByTestId("number-runtime-methods")).toHaveTextContent(/Instance formatToParts=function/)
   } finally {
     logged.mockRestore()
   }

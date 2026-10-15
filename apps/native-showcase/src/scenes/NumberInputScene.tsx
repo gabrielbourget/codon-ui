@@ -10,6 +10,8 @@ import {
   type TNativeNumberInputRef,
 } from "@codon-ui/react-native"
 
+import { NUMBER_INTL_PREPARATION } from "../runtime/number-format"
+
 class NumberCapabilityBoundary extends Component<PropsWithChildren, { error?: Error }> {
   state: { error?: Error } = {}
   static getDerivedStateFromError(error: Error) {
@@ -29,9 +31,9 @@ class NumberCapabilityBoundary extends Component<PropsWithChildren, { error?: Er
 export const NumberInputScene = () => (
   <View style={{ gap: 12 }}>
     <Text testID="number-runtime-methods">
-      Native methods: NumberFormat.formatToParts={typeof Intl.NumberFormat.prototype.formatToParts}; String.replaceAll=
-      {typeof String.prototype.replaceAll}; String.padEnd={typeof String.prototype.padEnd}; Number.isSafeInteger=
-      {typeof Number.isSafeInteger}.
+      Number Intl: {NUMBER_INTL_PREPARATION}. Instance formatToParts=
+      {typeof new Intl.NumberFormat("en-US").formatToParts}; getCanonicalLocales={typeof Intl.getCanonicalLocales};
+      Locale={typeof Intl.Locale}; PluralRules={typeof Intl.PluralRules}; BigInt={typeof BigInt}.
     </Text>
     <NumberCapabilityBoundary>
       <NumberExamples />
