@@ -79,3 +79,19 @@ export type {
   TNativeSelectItemRenderState,
   TNativeSelectValueRenderState,
 } from "./components/Select/types"
+
+export { TextArea } from "./components/TextArea/TextArea"
+export {
+  TEXTAREA_SIZE__SM,
+  TEXTAREA_SIZE__MD,
+  TEXTAREA_SIZE__LG,
+  AVAILABLE_TEXTAREA_SIZES,
+} from "./components/TextArea/types"
+export type {
+  TNativeTextAreaProps,
+  TNativeTextAreaProps as TextAreaProps,
+  TNativeTextAreaRef,
+  TNativeTextAreaRenderState,
+  TNativeTextAreaStyleState,
+  TNativeTextAreaSize,
+} from "./components/TextArea/types"
