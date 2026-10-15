@@ -1,6 +1,6 @@
 # Native Basic Controls — Contract And Execution Proposal
 
-Status: **Owner-approved implementation and proof run recorded in ledger Section 8.17; rapid text-entry iOS Input acceptance remains open**. Prepared 2026-10-14 against Codon `19ae608`. The owner has moved closer visual inspection to application feature integration; that review no longer blocks this contract pass. This proposal follows the [canonical native ledger](react-native-library-first-pass.md) and preserves the current palette and deferred iPhone signing.
+Status: **Owner-approved implementation and proof run recorded in ledger Section 8.17; the maintained-scene iOS rapid-entry correction is recorded in ledger Section 8.18**. Prepared 2026-10-14 against Codon `19ae608`. The owner has moved closer visual inspection to application feature integration; that review no longer blocks this contract pass. This proposal follows the [canonical native ledger](react-native-library-first-pass.md) and preserves the current palette and deferred iPhone signing.
 
 ## Bounded Run And Commit Cadence
 
@@ -104,4 +104,4 @@ Select's next proposal must resolve the native collection/value/render-item cont
 
 ## Execution Receipt
 
-The approved source passes landed as `6c6efc6`, `a2a0d51` and `8966afd`, followed by the maintained showcase/consumer/native-evidence boundary. [Ledger Section 8.17](react-native-library-first-pass.md#817-approved-basic-controls-consumer-and-installed-checks--2026-10-14) owns the final tests, immutable archive and installed-source identities, runtime fixes, passing paced-entry checks and the unresolved iOS rapid text-entry stream. This receipt does not close full Input or physical acceptance. Existing palette values and iPhone signing remain unchanged.
+The approved source passes landed as `6c6efc6`, `a2a0d51` and `8966afd`, followed by the maintained showcase/consumer/native-evidence boundary. [Ledger Section 8.17](react-native-library-first-pass.md#817-approved-basic-controls-consumer-and-installed-checks--2026-10-14) owns the final tests, immutable archive and installed-source identities, runtime fixes, passing paced-entry checks and the unresolved iOS rapid text-entry stream. [Section 8.18](react-native-library-first-pass.md#818-ios-rapid-entry-correction-and-select-proposal--2026-10-14) subsequently records the maintained-scene unpaced Input correction and the prepared Select proposal. Physical acceptance remains deferred. Existing palette values and iPhone signing remain unchanged.
