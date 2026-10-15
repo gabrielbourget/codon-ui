@@ -208,7 +208,7 @@ export const NativeShowcase = () => {
           </View>
           <SceneShell fixture={fixture}>
             {scene === "overlay" ? (
-              <OverlayScene />
+              <OverlayScene toggleTheme={() => setMode((current) => (current === "light" ? "dark" : "light"))} />
             ) : scene === "number" ? (
               <NumberInputScene />
             ) : scene === "multiline" ? (

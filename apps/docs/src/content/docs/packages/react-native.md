@@ -3,11 +3,11 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select and ListBoxItem with their public props/ref/state types, plus NativeThemeProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, Modal and AlertDialog with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
 
 ## Host And Package Ownership
 
-The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native and react-native-safe-area-context 5.7.0 are exact package peers. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select owns safe-area handling inside its separate modal window. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
+The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native and react-native-safe-area-context 5.7.0 are exact package peers. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select, Modal and AlertDialog own safe-area handling inside their separate native windows. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
 
 The root export has a react-native condition for canonical TypeScript source; declarations and compiled imports use dist. Build before consumer typechecks. The Text/Button pass includes a hashed local package archive and isolated Expo consumer; the ledger owns its exact proof receipt. Bare React Native, RN Web, other operating systems and earlier SDK combinations are unverified.
 
@@ -91,3 +91,39 @@ The owner-approved follow-up fixes the three independent-review findings. Button
 On 2026-10-14 the owner directed continuing the component roadmap and moved closer visual inspection to application feature integration. Text/Button source/consumer/installed proof is complete for its recorded scope; visual and physical acceptance remain deferred. The owner approved the Switch, Checkbox, CheckboxGroup and Input proposal, and those core React Native counterparts are implemented. Select and ListBoxItem now implement the approved explicit collection and full-screen modal contract. The canonical ledger owns the exact API/theme proposal and logical commit boundaries. Palette values and iPhone signing remain unchanged.
 
 The maintained-scene iOS rapid-entry finding is resolved for the recorded installed artifacts through showcase-owned keyboard viewport correction. Corrected XCTest inspection targets the app's named scroll wrapper and sends complete strings without character pacing; the ledger records the full controls flow, native input guards, combined text/Return and three fresh-launch strings. Earlier failed/paced/zero-test inspector attempts retain their diagnostic status. That keyboard correction left native package source and its then-current immutable consumer archive unchanged. Physical typing, IME and screen-reader checks remain in the deferred application/device lane. Select uses the approved explicit collection/modal contract and exact safe-area peer. Its installed verification receipt is recorded separately in the canonical ledger.
+
+## Modal, AlertDialog And Window Ownership
+
+Place one children-only NativeOverlayProvider at the application root when using Modal or AlertDialog. It retains React locations/context while coordinating a single nested window chain; nested providers and simultaneously requested sibling/unrelated branches are rejected. Child windows wait for native parent readiness. Only the active leaf dismisses or runs alert actions. Close the old root before replacement; admitted presentations that close before onShow drain readiness while inactive, then retire before the next root. iOS uses onDismiss and Android a committed hidden-frame barrier, without a portal, global singleton, BackHandler or public registration API. Select optionally joins this scope as an unchanged full-screen leaf and still works standalone.
+
+Modal accepts controlled isOpen/onOpenChange or initial defaultOpen, with ownership fixed for the instance. Supply a nonempty accessibilityLabel/aria-label. Backdrop isDismissable and system/escape isKeyboardDismissDisabled are independent; explicit actions still work with both blocked. A controlled parent may decline requests. Custom children replace the named starter title/body/Close composition; primitive phrases use native Text and authored elements are preserved. A complex starter close label needs closeLabel. View refs, static native dimensions, five orders, rounded/orthogonal geometry and computed → customStyles → style precedence are retained; backdrop/dialog styles are separate owners. Default sizing is bounded to the padded safe window, with internal scrolling; isScrollable=false delegates a bounded custom scroller to the caller.
+
+Covered content keeps its instance, local state and native controls. Ordinary closed content unmounts; keep longer-lived drafts outside it. Ancestor closure retires descendants deepest first without invoking business actions. Controlled descendant open values remain caller-owned and may resume after an ancestor returns. Native initial/restore focus refs belong to the expected active owner; pending work cancels with closure, replacement or unmount, and removed targets stay quiet. Accessibility-focus restoration does not deliberately reopen a TextInput keyboard. Each window owns native safe areas and measured keyboard reachability; physical screen-reader/touch/IME behavior still needs device review.
+
+AlertDialog shares that frame with six exported canonical types, required string title/body and optional custom content. Its decorative core-native marks replace SVG. Undefined/null AlertIcon retain the default; custom nodes remain decorative. Ribbon, circle, important heading/body and wrapping nonshrinking actions stay within bounded scrolling rather than a fixed footer. Four grouped label keys keep visible text and accessible names independent; the two legacy visible-text aliases override only visible labels. showCancelAction=false removes cancellation. Active cancel/confirm invokes its callback before requesting closure; synchronous throws prevent that request and promises are not awaited. Backdrop, Back/escape and external closure invoke neither business callback. Product async state and duplicate-mutation prevention remain caller-owned.
+
+The native blur contract accepts omission/false and rejects true. DOM dialogRole, classes/refs/forms, ID associations, portal containers, web trigger/slot/animation props and a screen-reader speech guarantee are excluded. Explicit authored clipping/dimensions retain their ordinary constraints. Four new roles copy unchanged canonical colors: overlayBackdrop rgba(0, 0, 0, 0.3), statusDanger #b73434/#ff6b5f, statusWarning #a66b00/#f0b429 and statusSuccess #2f7d18/#6ad060 (light/dark). Info reuses controlSelectedBackground; status and validation overrides are independent. No dependency is added and all pre-existing defaults remain unchanged.
+
+```tsx
+import { useState } from "react"
+import { AlertDialog, Button, NativeOverlayProvider } from "@codon-ui/react-native"
+
+const Example = () => {
+  const [open, setOpen] = useState(false)
+  return (
+    <NativeOverlayProvider>
+      <Button onPress={() => setOpen(true)}>Review changes</Button>
+      <AlertDialog
+        accessibilityLabel="Review changes"
+        titleText="Confirm changes"
+        bodyText="Review the current configuration."
+        isOpen={open}
+        onOpenChange={setOpen}
+        confirmAction={() => console.log("Confirmed")}
+      />
+    </NativeOverlayProvider>
+  )
+}
+```
+
+Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. Fourteen native counterparts now have source implementations; final installed/consumer receipts, remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.

@@ -30,6 +30,18 @@ it("hands off a modal closed by body layout before native readiness", async () =
   expect(screen.getByTestId("overlay-context")).toHaveTextContent("Context: local caller context")
 })
 
+it("updates the active overlay theme while preserving its local body state", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Open parent dialog" }))
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  await user.press(screen.getByRole("button", { name: "Increase local overlay count" }))
+  await user.press(screen.getByRole("button", { name: "Toggle overlay theme" }))
+  expect(screen.getByTestId("overlay-parent")).toHaveStyle({ backgroundColor: "#171717" })
+  expect(screen.getByTestId("overlay-local-state")).toHaveTextContent(/Local body count: 1\./)
+})
+
 it("composes NumberInput locale/draft/commit/step fixtures and preserves state across theme/window changes", async () => {
   await renderShowcase()
   const user = userEvent.setup()
