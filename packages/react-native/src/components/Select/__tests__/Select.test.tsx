@@ -213,13 +213,13 @@ it("caps retries driven by measured row-layout progress", async () => {
   const offset = jest.spyOn(FlatList.prototype, "scrollToOffset").mockImplementation(() => undefined)
   const scroll = jest.spyOn(FlatList.prototype, "scrollToIndex").mockImplementation(() => {
     screen.getByTestId("select-list").props.onScrollToIndexFailed({
-      index: 199,
+      index: 9,
       averageItemLength: 48,
       highestMeasuredFrameIndex: scroll.mock.calls.length - 1,
     })
   })
-  const many = Array.from({ length: 200 }, (_, id) => ({ id, name: `Choice ${id}` }))
-  await render(<Select {...base} items={many} defaultValue={199} defaultOpen />)
+  const many = Array.from({ length: 10 }, (_, id) => ({ id, name: `Choice ${id}` }))
+  await render(<Select {...base} items={many} defaultValue={9} defaultOpen />)
   await fireEvent(screen.getByTestId("select-window"), "show")
   await act(() => jest.runAllTimers())
   for (let repeat = 0; repeat < 3; repeat += 1) {
@@ -235,8 +235,8 @@ it("caps retries driven by measured row-layout progress", async () => {
     })
     await act(() => jest.runAllTimers())
   }
-  expect(scroll).toHaveBeenCalledTimes(3)
-  expect(offset).toHaveBeenCalledTimes(3)
+  expect(scroll).toHaveBeenCalledTimes(2)
+  expect(offset).toHaveBeenCalledTimes(2)
 })
 
 it.each([

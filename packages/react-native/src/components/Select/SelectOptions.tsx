@@ -80,7 +80,10 @@ export const SelectOptions = <T,>({
     )
       return
     waitingForMeasurementAfter.current = undefined
-    if (attempts.current >= 3) {
+    // Variable-height lists clamp scrolling to their measured tail. Allow enough
+    // measured batches to reach long collections, while keeping work bounded.
+    const maximumAttempts = Math.min(32, Math.ceil(latest.current.entries.length / 12) + 1)
+    if (attempts.current >= maximumAttempts) {
       if (heading.current) AccessibilityInfo.sendAccessibilityEvent(heading.current, "focus")
       finished.current = true
       return
