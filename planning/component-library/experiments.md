@@ -56,7 +56,7 @@ The failed raw typing assertion is complete and exported. Its secondary automati
 
 ## Current Raw First/Warm Investigation
 
-Status: **Bounded source/trace investigation complete; native extension blocked before test methods; RN-TEXT-01 remains open**. Planning consolidation commit `f0cb8e4` establishes this single roadmap/evidence structure, feature branch convention and normal formatter coverage. No production component is changed.
+Status: **Transport recovered and validated with observer033; raw first/warm continuation pending; RN-TEXT-01 remains open**. Planning consolidation commit `f0cb8e4` establishes this single roadmap/evidence structure, feature branch convention and normal formatter coverage. No production component is changed.
 
 The detailed comparison preserves JS observation timestamps relative to the XCTest typeText call. They are not native mutation timestamps.
 
@@ -89,9 +89,21 @@ The prelaunch guest-bridge PID lookup times out before xcodebuild starts. A veri
 | health-02                                    | Interrupted after 146.83 s for 90 s without stdout/native-session progress; no grace, exit -15, partial bundle/no completed verdict | None; no test method or raw attempt.                                                |
 | health-03, after one retained-guest recovery | Interrupted after 112.53 s for the same silence criterion; no grace, exit -15, partial bundle/no completed verdict                  | None; no acquired PID, matching Codon child or raw attempt at the final host query. |
 
-**Zero new raw cases and zero LLDB/native snapshots execute.** The prepared two-case budget is unused because transport never passes. Host load is observed at 140.20/191.38/132.91; it does not establish a unique cause. The new observer/cache condition and the earlier successful transport condition remain distinct. No additional guest/service/security recovery, typing retry, keyboard preference change or production repair follows. The guest is stopped, font large remains unchanged and app67/source62/archive/lock/fixture/pins/palette are verified.
+**The preceding run executes zero new raw cases and zero LLDB/native snapshots.** Its prepared two-case budget is unused because transport never passes. Host load is observed at 140.20/191.38/132.91; it does not establish a unique cause. The new observer/cache condition and the earlier successful transport condition remain distinct. No additional guest/service/security recovery, typing retry, keyboard preference change or production repair follows. The guest is stopped, font large remains unchanged and app67/source62/archive/lock/fixture/pins/palette are verified.
 
 The narrower result is an interleaving candidate plus corrected interpretation of key/ref observations. Still missing are accepted/applied native edits, EditingChanged/controlled-write ordering and marked/composition state during the original failed burst. RN-TEXT-01 stays open, with no attributed Codon-only remedy, upstream publication, restored original family acceptance or parity claim. Re-establish observable transport in the pinned app/observer condition before a native mutation trace; record that continuation here rather than opening another pass/receipt document.
+
+The subsequent coherent transport recovery uses the same retained C953 guest and frozen observer033. One scoped per-user simulator-service recycle occurs while all guests are stopped. The reusable [stdlib runner](fixtures/native-query-delivery/xctest_transport.py) invokes test-without-building directly against the frozen xctestrun, observes stdout plus native session logs, caps silence at 90 s and controller time at 420 s, preserves partial results/failed exits, exports completed results and requires one actual Transport 1 attachment for a transport pass. Installer/PID probes never gate that invocation. Six runner cases cover real callback proof, stdout-silent native progress, fixed caps, cleanup and retained failed-test status; the six focused-result cases also pass.
+
+Two early CLI validation invocations are rejected before native startup: Xcode disallows test-iterations=1, and retry-tests-on-failure is a standalone switch rather than a YES/NO setting. Both options are removed after checking installed Xcode help; no repetition flag is enabled. The first actual native attempt stops after 117.83 s during installer work with no method. A direct stack sample locates framework-bundle metadata enumeration in installd; measured CPU/read counters advance slowly. A separate, capped install of the unchanged runner completes in 30.03 s. Host load starts near 3, rises above 100 with simulator startup, and swap usage is observed near 7.5 GB. These observations do not establish a unique host or launcher cause.
+
+| Observer033 callback validation | Controller elapsed | Actual proof                                        |
+| ------------------------------- | -----------------: | --------------------------------------------------- |
+| Recovered retained guest        |           240.76 s | One test, zero failures, exported Transport 1 owner |
+| Warm guest                      |            41.29 s | One test, zero failures, exported Transport 1 owner |
+| Shutdown/reboot                 |            64.36 s | One test, zero failures, exported Transport 1 owner |
+
+After reboot, bootstatus completes in 48.07 s and a separately bounded frozen-runner install completes in 46.08 s; font large and all app67 files remain unchanged. The default wait_for_debugger=1 launch ultimately completes. A PosixSpawn contrast is prepared but never invoked; no fresh guest, additional service recycle, security reset, dependency change, app build or signing change is used. A read-only LLDB prewarm on the transport screen without an editor reaches its 30-second attach bound, so native snapshot availability remains unproven. The three actual callback passes, rather than launcher/PID presence or helper tests, open the two-case raw gate. Raw results will be recorded here in the next logical commit.
 
 ## Evidence Custody And Identities
 
