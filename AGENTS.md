@@ -170,6 +170,14 @@ Agentic runs must not lose time to stale or over-broad verification sessions.
   `pnpm verify:status-seeds`, `pnpm verify:cli-readonly`, `pnpm verify:strict-add`, `pnpm verify:remove-orphans`,
   `pnpm verify:compile`, or `pnpm verify:loaders` before reaching for the full `pnpm verify`.
 
+## Branches And Planning
+
+- Name feature branches `feature/<description>` unless the owner explicitly requests another name.
+- Keep this library implementation's canonical roadmap at `planning/component-library/roadmap.md` and experiment outcomes at `planning/component-library/experiments.md`, indexed by `planning/README.md`.
+- Extend those files for bounded work, decisions and receipts; do not create a separate roadmap, proposal or receipt document per component issue, experiment or timeout.
+- Preserve stable catalogue/issue identities, accepted decisions, open gates and source/evidence revisions when consolidating. Git history retains detailed superseded planning; immutable sourceRef strings and sealed evidence are not rewritten.
+- Keep reusable reference in the existing curated docs and non-shipping reproduction source under the workstream's fixtures directory.
+
 ## TypeScript And Code Style
 
 Follow the shared presets in `packages/shared-utils`.

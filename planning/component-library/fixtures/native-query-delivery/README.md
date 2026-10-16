@@ -1,6 +1,6 @@
 # Matched Query Delivery Diagnostic
 
-Private shared TypeScript fixture for the approved [two-pass diagnostic](../../react-native-query-delivery-diagnostic-pass.md). It is not a maintained product scene or a production text repair. Copy App.tsx and fixture.test.tsx into a fresh pinned consumer of the existing archive; retain the accepted index/Intl bootstrap. The production package, public input allowlist, dependencies and palette remain unchanged.
+Private shared TypeScript fixture for the approved [two-pass diagnostic](../../experiments.md). It is not a maintained product scene or a production text repair. Copy App.tsx and fixture.test.tsx into a fresh pinned consumer of the existing archive; retain the accepted index/Intl bootstrap. The production package, public input allowlist, dependencies and palette remain unchanged.
 
 Raw TextInput, Codon Input and ComboBox run as separate cases with one controlled owner above the native window, an empty query, the same safe-area/header/list geometry and a 120 ms cancellable result replacement. Raw/Input own their core native window; ComboBox uses its existing public presentation. Matching does not claim byte-identical composition or a replay of the original failure: the diagnostic adds ref/native-tag/key observations and uses compact current-state metadata instead of the original growing event trace in every result label. Those timing/workload differences limit conclusions from successful runs.
 

@@ -1,6 +1,6 @@
 # Select Acceptance Fixture
 
-Private shared React Native TypeScript for the approved [Select acceptance run](../../react-native-select-acceptance-pass.md), outside the public package and maintained showcase API. Copy `App.tsx` and `fixture.test.tsx` into a fresh isolated consumer with the recorded archive identity and unchanged external pins from the [Select acceptance receipt](../../react-native-select-acceptance-receipt.md). Keep the existing `index.ts` and conditional Intl bootstrap. No RN Primitives, Screens, native patches, signing or palette changes are required.
+Private shared React Native TypeScript for the approved [Select acceptance run](../../experiments.md), outside the public package and maintained showcase API. Copy `App.tsx` and `fixture.test.tsx` into a fresh isolated consumer with the recorded archive identity and unchanged external pins from the [Select acceptance receipt](../../experiments.md). Keep the existing `index.ts` and conditional Intl bootstrap. No RN Primitives, Screens, native patches, signing or palette changes are required.
 
 The picker separates standalone Select without a provider from nested Modal/Select/AlertDialog with NativeOverlayProvider. Ownership and nested cases reject the first two open, close and value requests; the third is accepted. Programmatic opening/closure demonstrates authoritative owner transitions even when the emitted close request is declined. Readouts count actual callbacks and distinguish numeric `0`, string `"0"` and null.
 

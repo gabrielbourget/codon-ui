@@ -22,7 +22,7 @@ The app owns keyboard avoidance and focused-field reveal. iOS uses KeyboardAvoid
 
 Tests compose the public native provider, Text and Button exports with app state and core shell views. They inject only safe-area context metrics and use mocked native dimensions. Native rendering, VoiceOver/TalkBack, keyboard, measured touch regions and real fold/Activity delivery require separate inspected build/device evidence.
 
-See the [ledger](../../docs/roadmaps/react-native-library-first-pass.md), [native lab guide](../docs/src/content/docs/foundation/native-lab.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.
+See the [ledger](../../planning/component-library/roadmap.md), [native lab guide](../docs/src/content/docs/foundation/native-lab.md) and [curated showcase guide](../docs/src/content/docs/component-library/native-showcase.md) for evidence and next gates.
 
 The constrained fixture intentionally renders a 24 × 24 Button inside a 24 × 24 native parent. The parent uses `collapsable={false}` because React Native can remove layout-only views from the native hierarchy; see the [native View contract](https://reactnative.dev/docs/0.86/view#collapsable). It explicitly sets `overflow: "hidden"` to require clipping, since native hit testing can descend outside an unclipped parent. The clipped fixture remains an intentional target limitation; installed outside/inside touch evidence belongs in the native inspection ledger. Long bilingual labels and selectable/nested Text are available for larger-text and hands-on review. Automated component cases do not close physical screen-reader, pointer/keyboard or owner acceptance gates.
 

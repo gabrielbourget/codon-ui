@@ -1,6 +1,6 @@
 # Controlled Text Isolation Fixture
 
-Non-shipping reproduction for the [approved two-pass diagnostic scope](../../react-native-controlled-text-sequence-pass.md). This directory does not change the production Input, overlay transport, palette or dependencies. The independent consumer uses the immutable Codon archive, Expo 57.0.26, React 19.2.3, React Native 0.86.3, safe-area 5.7.0 and the existing app-only Intl bootstrap. RN Primitives is absent from the consumer and actual Metro graphs.
+Non-shipping reproduction for the [approved two-pass diagnostic scope](../../experiments.md). This directory does not change the production Input, overlay transport, palette or dependencies. The independent consumer uses the immutable Codon archive, Expo 57.0.26, React 19.2.3, React Native 0.86.3, safe-area 5.7.0 and the existing app-only Intl bootstrap. RN Primitives is absent from the consumer and actual Metro graphs.
 
 `App.tsx` offers eight paired scenarios: standalone or nested choreography, unchanged defaults or explicitly correction-disabled diagnostic settings, and either field order. Each field uses the same phrase and controlled state ownership. A ref-held trace records native change text/counts, callback values, committed owner state, selection and focus/blur without introducing a separate native-value mirror. Capture happens after both entries; its accessible JSON is displayed as one bounded line to avoid expanding the alert and changing action reachability. Finishing editing is an explicit diagnostic action before confirmation, with keyboard disappearance and the actual confirmation callback/closure checked separately.
 
@@ -8,7 +8,7 @@ Non-shipping reproduction for the [approved two-pass diagnostic scope](../../rea
 
 The private evidence packet preserves the fresh consumer manifest/lock, package identity, source-map and installed-binary checks, private XCTest source and its actual results. Its helpers are lab material rather than repository tooling. Copy helpers into a new writable packet and update paths before reproduction; earlier sealed packets remain read-only. Generate native projects through the pinned Expo tooling and existing isolated Ruby/CocoaPods lab. Do not execute helpers directly from a sealed packet.
 
-The requested existing-wrapper comparison and the concrete Select decision point are recorded in [Select adoption triage](../../react-native-select-adoption-triage.md), with pinned React Native Reusables source links. No wrapper library or new styling/animation dependency is installed by this diagnostic pass.
+The requested existing-wrapper comparison and the concrete Select decision point are recorded in [Select adoption triage](../../experiments.md), with pinned React Native Reusables source links. No wrapper library or new styling/animation dependency is installed by this diagnostic pass.
 
 ## Reduced Raw Fixture
 

@@ -3,7 +3,7 @@ title: Native Lab
 description: SDK 57 lab requirements, generated project boundaries and reference capture.
 ---
 
-The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android and iOS x86_64 labs produced development and local release binaries and inspected foundation states, scrolling viewports, larger text and rotation. Physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is docs/roadmaps/react-native-library-first-pass.md and owns observed host availability and proof receipts.
+The native laboratory uses Expo SDK 57, React Native 0.86.3, React 19.2.3 and the approved TypeScript/React-type pins. Its source/type/unit and two-platform JS proof are complete. The 2026-10-12 Android and iOS x86_64 labs produced development and local release binaries and inspected foundation states, scrolling viewports, larger text and rotation. Physical-device accessibility and owner visual acceptance remain open. The canonical execution ledger is planning/component-library/roadmap.md and owns observed host availability and proof receipts.
 
 ## Select A Compatible Host
 
