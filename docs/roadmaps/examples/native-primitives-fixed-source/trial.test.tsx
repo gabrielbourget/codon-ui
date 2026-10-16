@@ -5,7 +5,11 @@ import { App } from "./App"
 
 jest.mock("react-native-safe-area-context", () => {
   const { View } = jest.requireActual("react-native")
-  return { SafeAreaProvider: View, SafeAreaView: View }
+  return {
+    SafeAreaProvider: View,
+    SafeAreaView: View,
+    useSafeAreaInsets: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
+  }
 })
 jest.setTimeout(15000)
 let mockWindowMode = false
@@ -230,4 +234,28 @@ it("keeps a removed controlled key authoritative until the caller accepts anothe
   )
   await act(() => dismiss())
   expect(screen.getByTestId("selected-value", { includeHiddenElements: true })).toHaveTextContent(/Selection: string:0/)
+})
+
+it("preserves live arbitrary nested context through successive native windows", async () => {
+  await render(<App />)
+  await press("Toggle host arrangement")
+  await press("Open trial parent")
+  await show("trial-parent")
+  await press("Open trial child")
+  const dismissChild = await show("trial-child")
+  expect(screen.getByTestId("trial-child-context", { includeHiddenElements: true })).toHaveTextContent(
+    /form: nested-form/,
+  )
+  await press("Update form in trial-child-context")
+  expect(screen.getByTestId("trial-child-context", { includeHiddenElements: true })).toHaveTextContent(
+    /form: updated-form/,
+  )
+  await press("Close trial-child")
+  await act(() => dismissChild())
+  await press("Toggle overlay theme")
+  await press("Open trial alert")
+  await show("trial-alert")
+  expect(screen.getByTestId("alert-context", { includeHiddenElements: true })).toHaveTextContent(
+    /theme: dark; form: updated-form/,
+  )
 })

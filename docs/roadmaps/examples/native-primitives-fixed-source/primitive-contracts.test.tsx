@@ -2,8 +2,8 @@ import * as Alert from "@rn-primitives/alert-dialog"
 import * as Dialog from "@rn-primitives/dialog"
 import * as Select from "@rn-primitives/select"
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import React from "react"
-import { AccessibilityInfo, BackHandler, Text } from "react-native"
+import React, { createRef, forwardRef, useImperativeHandle } from "react"
+import { AccessibilityInfo, BackHandler, Pressable, Text, type MeasureOnSuccessCallback } from "react-native"
 
 const node = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
 const popupState = () =>
@@ -100,6 +100,51 @@ it("supports defaultOpen and external controlled opening without a trigger press
     </Select.Root>,
   )
   expect(popupState().open).toBe(true)
+})
+
+it("measures accepted external openings and ignores stale completions after accepted closure", async () => {
+  const callbacks: MeasureOnSuccessCallback[] = []
+  const request = jest.fn()
+  const trigger = createRef<Select.TriggerRef>()
+  const MeasurableTrigger = forwardRef<Select.TriggerRef, Select.TriggerProps>((props, ref) => {
+    useImperativeHandle(
+      ref,
+      // This fixture exposes only the native measurement method used by Trigger.
+      () =>
+        ({
+          measure: (callback: MeasureOnSuccessCallback) => {
+            callbacks.push(callback)
+          },
+        }) as unknown as Select.TriggerRef,
+      [],
+    )
+    return <Pressable {...props} />
+  })
+  const tree = (open: boolean) => (
+    <Select.Root open={open} onOpenChange={request}>
+      <Select.Trigger ref={trigger} asChild>
+        <MeasurableTrigger testID="measured-trigger" />
+      </Select.Trigger>
+      <ContextProbe />
+    </Select.Root>
+  )
+  const view = await render(tree(false))
+  await fireEvent.press(node("measured-trigger"))
+  expect(request.mock.calls).toEqual([[true]])
+  expect(callbacks).toHaveLength(0)
+  await view.rerender(tree(true))
+  expect(callbacks).toHaveLength(1)
+  await act(() => callbacks[0]!(0, 0, 100, 44, 10, 20))
+  expect(popupState().trigger).toEqual({ width: 100, height: 44, pageX: 10, pageY: 20 })
+  await act(() => trigger.current?.close())
+  expect(popupState().trigger).toEqual({ width: 100, height: 44, pageX: 10, pageY: 20 })
+  await fireEvent(node("measured-trigger"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 44 } },
+  })
+  expect(callbacks).toHaveLength(2)
+  await view.rerender(tree(false))
+  await act(() => callbacks[1]!(0, 0, 999, 999, 999, 999))
+  expect(popupState()).toEqual({ open: false, trigger: null, content: null })
 })
 
 it("keeps repeated Android Back closure requests live while controlled closure is rejected", async () => {

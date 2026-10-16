@@ -1,6 +1,16 @@
-import type { ViewStyle } from "react-native"
+import type { ScaledSize, ViewStyle } from "react-native"
+import type { EdgeInsets } from "react-native-safe-area-context"
 
 import type { NativeTheme, TNativeAlertDialogType } from "@codon-ui/react-native"
+
+export const getTrialWindowPageStyle = (
+  viewport: Pick<ScaledSize, "width" | "height">,
+  insets: EdgeInsets,
+): ViewStyle => {
+  const width = Math.max(0, viewport.width - insets.left - insets.right)
+  const height = Math.max(0, viewport.height - insets.top - insets.bottom)
+  return { position: "absolute", top: 0, left: 0, borderRadius: 0, width, maxWidth: width, height, maxHeight: height }
+}
 
 export const getTrialStyles = (theme: NativeTheme) => {
   const page: ViewStyle = { flex: 1, backgroundColor: theme.colors.background }

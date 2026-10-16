@@ -3,8 +3,8 @@ import * as Dialog from "@rn-primitives/dialog"
 import { PortalHost } from "@rn-primitives/portal"
 import * as Select from "@rn-primitives/select"
 import { createContext, useContext, useId, useRef, useState, type ReactNode, type RefObject } from "react"
-import { KeyboardAvoidingView, Platform, ScrollView, View } from "react-native"
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context"
+import { KeyboardAvoidingView, Platform, ScrollView, useWindowDimensions, View } from "react-native"
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 
 import {
   AVAILABLE_ALERT_DIALOG_TYPES,
@@ -20,10 +20,18 @@ import {
 } from "@codon-ui/react-native"
 
 import { DefaultAlertMark } from "./DefaultMark"
-import { getTrialAlertStyles, getTrialStyles } from "./trial-styles"
+import { getTrialAlertStyles, getTrialStyles, getTrialWindowPageStyle } from "./trial-styles"
 
 const TrialHostContext = createContext("missing-trial-host")
 const CallerContext = createContext("host-context")
+type TTrialFormContext = Readonly<{ value: string; update: () => void }>
+const FormContext = createContext<TTrialFormContext>({ value: "host-form", update: () => undefined })
+const TrialFormProvider = ({ children }: { children: ReactNode }) => {
+  const [value, setValue] = useState("nested-form")
+  return (
+    <FormContext.Provider value={{ value, update: () => setValue("updated-form") }}>{children}</FormContext.Provider>
+  )
+}
 const HOST_MODES = ["portal", "window"] as const
 type THostMode = (typeof HOST_MODES)[number]
 type TFrameProps = {
@@ -105,10 +113,16 @@ const Frame = ({
 const ContextReadout = ({ id }: { id: string }) => {
   const theme = useNativeTheme()
   const caller = useContext(CallerContext)
+  const form = useContext(FormContext)
   return (
-    <Text testID={id}>
-      Context: {caller}; theme: {theme.mode}
-    </Text>
+    <>
+      <Text testID={id}>
+        Context: {caller}; theme: {theme.mode}; form: {form.value}
+      </Text>
+      <Button testID={`${id}-update-form`} accessibilityLabel={`Update form in ${id}`} onPress={form.update}>
+        Update form context
+      </Button>
+    </>
   )
 }
 
@@ -247,6 +261,9 @@ const TrialSelect = ({
   const [options, setOptions] = useState(OPTIONS)
   const windowTrigger = useRef<View>(null)
   const heading = useRef<View>(null)
+  const Page = mode === "window" ? View : SafeAreaView
+  const viewport = useWindowDimensions()
+  const insets = useSafeAreaInsets()
   const requestOpen = (next: boolean) => {
     setOpen(next)
     onOpen(next)
@@ -269,7 +286,7 @@ const TrialSelect = ({
       disablePositioningStyle
       style={mode === "portal" ? { ...styles.page, ...styles.full } : { flex: 1 }}
     >
-      <SafeAreaView style={styles.page}>
+      <Page style={styles.page}>
         <ScrollView
           ref={list}
           testID="trial-select-scroll"
@@ -302,7 +319,7 @@ const TrialSelect = ({
             </Select.Item>
           ))}
         </ScrollView>
-      </SafeAreaView>
+      </Page>
     </Select.Content>
   )
   return (
@@ -363,7 +380,8 @@ const TrialSelect = ({
           height="100%"
           initialFocusRef={heading}
           restoreFocusRef={windowTrigger}
-          customStyles={{ borderRadius: 0 }}
+          customStyles={getTrialWindowPageStyle(viewport, insets)}
+          customOverlayStyles={{ backgroundColor: theme.colors.background }}
           customDialogStyles={{ padding: 0, flex: 1 }}
         >
           {open && content}
@@ -492,6 +510,7 @@ const TrialAlert = ({
                 </Alert.Description>
                 <ContextReadout id="alert-context" />
                 <Input testID="alert-note" accessibilityLabel="Alert note" value={note} onChangeText={setNote} />
+                <Text testID="alert-note-state">Controlled note: {note}</Text>
                 <View testID="alert-actions" style={styles.actions}>
                   <Alert.Cancel asChild>
                     <Button
@@ -640,53 +659,55 @@ const Scene = ({
               onChangeText={setDraft}
             />
             <Button onPress={() => setRejectClose((value) => !value)}>Toggle parent close rejection</Button>
-            <TrialSelect
-              mode={mode}
-              selected={selected}
-              onChange={setSelected}
-              rejectSelection={rejectSelection}
-              onOpen={setSelectionOpen}
-            />
-            <TrialAlert
-              mode={mode}
-              open={alert}
-              onOpen={(next) => {
-                setAlert(next)
-                if (!next) setRequests((value) => value + 1)
-              }}
-              action={(kind) => {
-                if (kind === "confirm") setConfirmations((count) => count + 1)
-                else setCancellations((count) => count + 1)
-              }}
-              long={long}
-              systemDisabled={systemDisabled}
-              dismissable={dismissable}
-              type={alertType}
-            />
-            <TrialDialog
-              mode={mode}
-              id="trial-child"
-              title="Trial child dialog"
-              open={child}
-              dismissable={dismissable}
-              systemDisabled={systemDisabled}
-              request={(next, explicit = false) => {
-                if (next || explicit || !systemDisabled) setChild(next)
-              }}
-              trigger="Open trial child"
-            >
-              <Text>Parent content must remain mounted while this child is active.</Text>
-              <Button
-                onPress={() => {
-                  setChild(false)
-                  setAlert(false)
-                  setParent(false)
-                  onOverlayChange(false)
+            <TrialFormProvider>
+              <TrialSelect
+                mode={mode}
+                selected={selected}
+                onChange={setSelected}
+                rejectSelection={rejectSelection}
+                onOpen={setSelectionOpen}
+              />
+              <TrialAlert
+                mode={mode}
+                open={alert}
+                onOpen={(next) => {
+                  setAlert(next)
+                  if (!next) setRequests((value) => value + 1)
                 }}
+                action={(kind) => {
+                  if (kind === "confirm") setConfirmations((count) => count + 1)
+                  else setCancellations((count) => count + 1)
+                }}
+                long={long}
+                systemDisabled={systemDisabled}
+                dismissable={dismissable}
+                type={alertType}
+              />
+              <TrialDialog
+                mode={mode}
+                id="trial-child"
+                title="Trial child dialog"
+                open={child}
+                dismissable={dismissable}
+                systemDisabled={systemDisabled}
+                request={(next, explicit = false) => {
+                  if (next || explicit || !systemDisabled) setChild(next)
+                }}
+                trigger="Open trial child"
               >
-                Close entire trial chain
-              </Button>
-            </TrialDialog>
+                <Text>Parent content must remain mounted while this child is active.</Text>
+                <Button
+                  onPress={() => {
+                    setChild(false)
+                    setAlert(false)
+                    setParent(false)
+                    onOverlayChange(false)
+                  }}
+                >
+                  Close entire trial chain
+                </Button>
+              </TrialDialog>
+            </TrialFormProvider>
           </TrialDialog>
         </CallerContext.Provider>
         <Text testID="trial-footer">End of trial controls</Text>
