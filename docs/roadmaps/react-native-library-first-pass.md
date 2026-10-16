@@ -123,7 +123,7 @@ Keep executable checklists contiguous here. Details, choices, receipts and evide
 - [x] Prepare [the Select adoption decision](react-native-select-adoption-decision.md) and [three-pass acceptance/handoff proposal](react-native-select-acceptance-pass.md), referencing pinned React Native Reusables source and the screened deferred Screens candidate. Recommend retention of the current controlled Select; the runtime text issue remains separate.
 - [x] Obtain owner acceptance of retention and approval of the three-pass acceptance/handoff run; Gabriel approved on 2026-10-15.
 - [x] Complete the [focused source/installed Select receipt](react-native-select-acceptance-receipt.md), including the localized positioning fix and exact baseline/repaired artifact identities. Keep RN-TEXT-01, broader compositions and physical/signing gates separate.
-- [x] Prepare the dependency-led [PlaceholderText/ComboBox proposal](react-native-searchable-selection-pass.md), with React Native Reusables, RN Primitives and React Stately screened. Implementation awaits approval.
+- [x] Prepare the dependency-led [PlaceholderText/ComboBox proposal](react-native-searchable-selection-pass.md), with React Native Reusables, RN Primitives and React Stately screened. Gabriel approved the four-pass implementation and logical commits on 2026-10-15; see Section 8.47.
 
 ## 3. Decisions, Baselines And Access
 
@@ -1035,3 +1035,7 @@ The private packet retains all failures, archive/map/built/installed identities 
 ### 8.46. Next Dependency-Led Searchable-Selection Proposal — 2026-10-15
 
 Prepared [PlaceholderText followed by a bounded ComboBox feasibility/contract pass](react-native-searchable-selection-pass.md). The complete seven-file ComboBox and five-file PlaceholderText trees match pinned web revision `ddc9f066f67af4742e05e04bd870726141c44129`; both focused canonical suites pass 17 cases. The dependency audit places PlaceholderText before ComboBox and preserves later TagComboBox/Table/date leaves. The proposal records current value/query semantics, owner-controlled popup requirements, mobile full-screen presentation and explicit inherited web capability exceptions, with no new dependency or palette recommendation. React Native Reusables' pinned host compositions, published RN Primitives and the installed React Stately state/declaration boundaries are screened explicitly. Approval of that four-pass public contract/presentation scope is the next decision; this run does not implement the next family.
+
+### 8.47. Approved Searchable Selection — Leaf And Executable Contract — 2026-10-15
+
+Gabriel authorized the [four-pass PlaceholderText/ComboBox run](react-native-searchable-selection-pass.md) and logical agentic commits through the new-chat handoff. The first boundary adds native PlaceholderText and freezes executable positive/negative ComboBox ownership, presentation, ref, style and label types. Source audit permits narrowly shared private collection validation and existing caller-owned overlay leaf registration; no dependency, palette, host or Input synchronization change is needed. Installed query typing/first-activation acceptance remains a prerequisite for maintained-scene propagation. RN-TEXT-01 remains open independently.

@@ -7,6 +7,36 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { PlaceholderText } from "./components/Text/variants/PlaceholderText/PlaceholderText"
+export {
+  PLACEHOLDER_TEXT_ALIGNMENT__LEFT,
+  PLACEHOLDER_TEXT_ALIGNMENT__CENTER,
+  AVAILABLE_PLACEHOLDER_TEXT_ALIGNMENTS,
+} from "./components/Text/variants/PlaceholderText/types"
+export type {
+  TNativePlaceholderTextProps,
+  TNativePlaceholderTextProps as PlaceholderTextProps,
+  TNativePlaceholderTextRef,
+  TNativePlaceholderTextAlignment,
+} from "./components/Text/variants/PlaceholderText/types"
+export {
+  COMBOBOX_SIZE__SM,
+  COMBOBOX_SIZE__MD,
+  COMBOBOX_SIZE__LG,
+  AVAILABLE_COMBOBOX_SIZES,
+} from "./components/ComboBox/types"
+export type {
+  TNativeComboBoxProps,
+  TNativeComboBoxProps as ComboBoxProps,
+  TNativeComboBoxKey,
+  TNativeComboBoxRef,
+  TNativeComboBoxRootStyle,
+  TNativeComboBoxSize,
+  TNativeComboBoxRenderState,
+  TNativeComboBoxStyleState,
+  TNativeComboBoxItemRenderState,
+  TNativeComboBoxInputProps,
+} from "./components/ComboBox/types"
 export { AVAILABLE_NATIVE_TEXT_ELEMENT_TYPES } from "./components/Text/types"
 export type { TNativeTextProps, TNativeTextRef, TNativeTextElementType } from "./components/Text/types"
 export { AVAILABLE_FONT_VARIANTS, AVAILABLE_FONT_WEIGHTS } from "./theme/types"
