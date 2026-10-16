@@ -9,3 +9,9 @@ Non-shipping reproduction for the [approved two-pass diagnostic scope](../../rea
 The private evidence packet preserves the fresh consumer manifest/lock, package identity, source-map and installed-binary checks, private XCTest source and its actual results. Its helpers are lab material rather than repository tooling. Copy helpers into a new writable packet and update paths before reproduction; earlier sealed packets remain read-only. Generate native projects through the pinned Expo tooling and existing isolated Ruby/CocoaPods lab. Do not execute helpers directly from a sealed packet.
 
 The requested existing-wrapper comparison and the concrete Select decision point are recorded in [Select adoption triage](../../react-native-select-adoption-triage.md), with pinned React Native Reusables source links. No wrapper library or new styling/animation dependency is installed by this diagnostic pass.
+
+## Reduced Raw Fixture
+
+`MinimumRawApp.tsx` imports only React and React Native. It keeps one controlled TextInput and the same native view structure for parent-owned and field-local-owned state. Each active owner records its actual committed state in a layout effect; the inactive alternative is not synchronized with it. Key and end-editing observations supplement native text/counts, callbacks, selection, focus and blur. Input correction props retain their defaults. `minimum.test.tsx` verifies both ownership paths and these trace channels.
+
+For the second consumer variant, preserve the paired component as a test-only `PairedApp.tsx` alias, keep its source tests pointing at that alias, and make the entry `App.tsx` re-export the reduced fixture. The installed minimum graph must contain the four actual app/bootstrap sources and zero Codon/RN Primitives runtime modules. Preserve paired and reduced maps, binaries and results under distinct labels. A non-reproduction is evidence about this attempt, rather than a repaired production Input.

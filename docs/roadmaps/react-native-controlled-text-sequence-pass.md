@@ -1,12 +1,12 @@
 # Native Controlled Text — Sequence Isolation Proposal
 
-Status: **Approved two-pass diagnostic run in progress**. Gabriel approved this bounded implementation and logical commits on 2026-10-15. The [fixed-source receipt](react-native-primitives-fixed-source-receipt.md) records the actual native/callback/owner/host values, the matched raw-input control and the Codon-only comparison. No production Input, Portal transport, dependency, public default or palette change is included here. Shared React Native TypeScript remains the default; iPhone signing and physical acceptance remain deferred.
+Status: **Completed two-pass diagnostic run; no attributed production fix**. Gabriel approved this bounded implementation and logical commits on 2026-10-15. The [fixed-source receipt](react-native-primitives-fixed-source-receipt.md) records the actual native/callback/owner/host values, the matched raw-input control and the Codon-only comparison. No production Input, Portal transport, dependency, public default or palette change is included here. Shared React Native TypeScript remains the default; iPhone signing and physical acceptance remain deferred.
 
 ## Recommendation
 
 Keep the current production components and investigate the installed automated controlled-text mismatch independently of RN Primitives adoption. Fixed Portal identity, selected-value control and popup control are separate findings; they do not establish a reliable text-entry composition. The window candidate's three complete unpaced sequences produce one pass and two failures. A diagnostic also reproduces wrong text in raw React Native TextInput when it receives the same phrase first, while the later Codon field succeeds. This rules out a failure confined to Codon's wrapper, but does not identify IME, native controlled-value feedback, event delivery or the inspection driver as the cause. The Codon-only result and its limits remain in the receipt rather than being treated as a universal baseline guarantee.
 
-The proposed next run is two diagnostic commits, followed by a concrete source-fix or upstream/runtime decision. Do not add another controlled/native value mirror, suppress late events, move fields to uncontrolled ownership, pace keystrokes or change defaults to manufacture acceptance. A production fix needs its own reviewable implementation plan after the failure is isolated.
+The approved run uses two diagnostic commits, followed by a concrete source-fix or upstream/runtime decision. The [receipt](react-native-controlled-text-sequence-receipt.md) records the actual indeterminate result and the separate [prepared runtime follow-up](react-native-controlled-text-runtime-follow-up.md). Do not add another controlled/native value mirror, suppress late events, move fields to uncontrolled ownership, pace keystrokes or change defaults to manufacture acceptance. A production fix needs its own reviewable implementation plan after the failure is isolated.
 
 ## Bounded Run
 

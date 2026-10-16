@@ -1,6 +1,6 @@
 # Native Controlled Text — Isolation Receipt
 
-Status: **Pass 1 complete; reduced-fixture pass 2 pending**. Gabriel approved the [two-pass scope](react-native-controlled-text-sequence-pass.md) and logical commits on 2026-10-15. Production Input, overlay transport, public defaults, dependency pins and palette remain unchanged. Shared TypeScript and controlled values remain required; iPhone signing and physical acceptance stay deferred.
+Status: **Two-pass diagnostic run complete; cause remains indeterminate**. Gabriel approved the [two-pass scope](react-native-controlled-text-sequence-pass.md) and logical commits on 2026-10-15. Production Input, overlay transport, public defaults, dependency pins and palette remain unchanged. Shared TypeScript and controlled values remain required; iPhone signing and physical acceptance stay deferred.
 
 ## Pass 1 — Independent Paired Consumer
 
@@ -35,9 +35,23 @@ The first failure shows delayed delivery, rather than the earlier wrong-native-t
 
 Each case restarts the application; the simulator keyboard process and learned/predictive state are not reset between cases. XCTest executes the cases in its reported order. Consequently the correction-disabled successes do not causally establish a remedy for the earlier default failure. The new comparison uses a two-item numeric/string-zero Select and an empty field without surplus delete keystrokes; it is an independent isolation fixture rather than a byte-identical replay of the older trial. Default failures and final post-blur successes remain separate results.
 
+## Pass 2 — Reduced Raw Input And Ownership
+
+The [reduced fixture](examples/native-controlled-text/MinimumRawApp.tsx) imports only React and React Native. It retains one controlled field and the same native structure while choosing parent-owned or field-local-owned state. Each active owner records its actual committed value; the inactive state is not synchronized with it. The two cases keep default input settings and the same unpaced phrase. Key and end-editing traces supplement the paired fixture's channels, without a native-value mirror or late-event suppression.
+
+The fresh consumer retains its unchanged manifest/lock and native project. Its paired component is preserved as a test-only alias; the new entry re-exports the raw fixture. Both platform exports and the embedded Release map verify four actual app/bootstrap sources and zero Codon/RN Primitives/Zustand runtime modules. All 54 installed/archive/production sources still match. Seven source cases across two suites, ESNext/no-DOM strict types, five-file lint and shared formatting pass.
+
+Both installed default-setting ownership cases pass. Each records the intended seventeen keys, contiguous native counts 1–17, matching native text/callbacks/committed owner values while focused and the complete end-editing value. Moving controlled state between the parent and the local owner produces no observed difference in these two attempts. The source and full native inputs remain under the separate minimum label rather than overwriting paired evidence.
+
+This reduction does not reproduce the earlier native-text corruption or the new callback-until-blur delay. A stable minimal failing reproduction is not established. The original failure remains open; the successful repeat and reduced controls do not repair it or prove a universal ownership strategy. The evidence shows no callback-string transformation or demonstrated Codon setter defect, and does not identify IME composition, native dispatch, JavaScript starvation, controlled-prop feedback or the driver as the root cause.
+
+Decision: retain the production Input and controlled defaults. Carry the specific [runtime follow-up RN-TEXT-01](react-native-controlled-text-runtime-follow-up.md): distinguish startup/JavaScript responsiveness from native composition/change dispatch before an attributed source fix, exact runtime dependency proposal or upstream report draft. The existing Reusables Input forwarding pattern supports keeping the wrapper thin; it is not evidence that the runtime failure is solved there. The follow-up is prepared rather than launched as an unbounded extension of this run.
+
+Verification is focused consumer behavior/types/lint/format, frozen dependency and source identities, both native Metro exports, actual embedded/installed byte parity and installed Intel iOS Release diagnostics. Native results remain separate: preflight 1/1, initial paired matrix 7/8, one same-binary cohort repeat 1/1 and reduced raw ownership 2/2. Android is exported/source-verified without an installed Android run. The normal text category is restored and the task simulator is stopped. Physical touch/IME/screen-reader/ARM and signed iPhone acceptance retain their deferred lane.
+
 ## Existing Wrapper And Select Disposition
 
-The requested [React Native Reusables comparison and Select triage](react-native-select-adoption-triage.md) pins upstream source, identifies the thin Input forwarding pattern and the named-host/iOS FullWindowOverlay techniques, and names an explicit decision before the next component family. Those techniques remain candidates rather than new Codon dependencies or evidence of complete parity. The existing controlled Codon Select remains in place.
+The requested [React Native Reusables comparison and Select triage](react-native-select-adoption-triage.md) pins upstream source, identifies the thin Input forwarding pattern and the named-host/iOS FullWindowOverlay techniques, and names an explicit decision before the next component family. Those techniques remain candidates rather than new Codon dependencies or evidence of complete parity. The existing controlled Codon Select remains in place. Select adoption has its own host/control/parity/maintenance decision; the unresolved automated text result is not a sole unexplained Select veto. The next family starts after that disposition is recorded. Direct confirmation while the keyboard remains active also stays in the earlier installed overlay-acceptance lane; this fixture’s explicit finish-editing action is a diagnostic separation rather than a production repair.
 
 ## Evidence Location
 
