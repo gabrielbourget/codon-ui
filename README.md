@@ -51,6 +51,4 @@ pnpm -F @codon-ui/docs build
 
 ## Guardrails
 
-Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish
-packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the roadmap docs under
-`planning/component-library/roadmap.md` before opening follow-up implementation passes.
+Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the [component-library roadmap](planning/component-library/roadmap.md) before opening follow-up implementation passes.

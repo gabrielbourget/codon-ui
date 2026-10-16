@@ -56,9 +56,42 @@ The failed raw typing assertion is complete and exported. Its secondary automati
 
 ## Current Raw First/Warm Investigation
 
-Status: **Authorized and bounded; source/trace analysis in progress**. The roadmap defines at most two new raw attempts following one real preflight, same frozen Release app and pins, one unpaced phrase and initially empty controlled owner value. Any private native snapshot occurs only after the immutable focused verdict, and observer effects/timing are recorded. No production repair, keyboard preference, pacing/default change, public API or dependency migration is authorized by this run.
+Status: **Bounded source/trace investigation complete; native extension blocked before test methods; RN-TEXT-01 remains open**. Planning consolidation commit `f0cb8e4` establishes this single roadmap/evidence structure, feature branch convention and normal formatter coverage. No production component is changed.
 
-The pinned RN source emits onKeyPress in textInputShouldChangeText before native acceptance is known. The adapter then returns whether UIKit should accept the proposal; EditingChanged and textInputDidChange drive native state/event-count and onChange. Fabric's JS-origin/state-update guards and event-count equality protect controlled writes. Source establishes possible branches, not which branch the failed run took. Detailed analysis and the two bounded native outcomes will be recorded in this existing section.
+The detailed comparison preserves JS observation timestamps relative to the XCTest typeText call. They are not native mutation timestamps.
+
+| Observation                                   |                       Original first raw failure |               Original passing warm raw |
+| --------------------------------------------- | -----------------------------------------------: | --------------------------------------: |
+| First key/native-change callback              |                         926.20 / 927.20 ms (`N`) |                    1209.69 / 1209.69 ms |
+| Last native change                            |                               927.20 ms; count 1 |                    1212.69 ms; count 17 |
+| Ref detach/reattach                           |            933.20 / 935.20 ms, same instance/tag | 1222.69 / 1225.69 ms, same instance/tag |
+| Owner commit                                  |                                  935.20 ms (`N`) |                1225.69 ms (full phrase) |
+| Async result replacement                      |                                 1064.20 ms (`N`) |                1354.69 ms (full phrase) |
+| Last key callback                             | 1912.20 ms; 19 callbacks including two extra `N` |                1212.69 ms; 17 callbacks |
+| Native typing call duration                   |                                       1921.40 ms |                              1232.80 ms |
+| Heartbeat maximum gap through focused verdict |                                           118 ms |                                  118 ms |
+
+The failed observation interleaves the first change, an owner commit and result replacement before the remaining key-callback batch. The passing observation delivers all 17 change callbacks before the owner commit/result replacement. This identifies an ordering difference worth isolating; it does not prove the render or async replacement lost characters, nor reconstruct UIKit application timing.
+
+The exact installed RN 0.86.3 source was inspected and copied with SHA-256 identities into the private packet:
+
+- Fabric RCTTextInputComponentView.mm emits onKeyPress inside textInputShouldChangeText before acceptance/change publication. Default maxLength is int max and the fixture sets no limit. Key callbacks therefore establish proposals at that boundary, not accepted/applied edits.
+- RCTBackedTextInputDelegateAdapter.mm calls the proposal delegate, then sets textDidChangeIsComing when it accepts the same replacement. EditingChanged clears that flag and calls textInputDidChange. Its pending-change fallback on end editing is a possible branch, not observed execution in the original failure.
+- Fabric textInputDidChange has JS-origin and next-change suppression branches; updateState/setTextAndSelection guard controlled feedback with event-count equality. Neither the original JS trace nor the later post-verdict capture can identify every branch taken during typing.
+- TextInput.js rebuilds setLocalRef when mostRecentEventCount changes. useMergeRefs/useRefEffect can clean up and reassign the same instance when that callback changes. This supplies an upstream explanation for the recorded same-instance ref callbacks; those callbacks do not establish a native view remount. No Codon ref/synchronization patch is justified by their presence.
+
+A private observer variant changes only the post-focused-verdict hold so both raw conditions can receive read-only UIKit/KVC snapshots. Its binary SHA-256 is 033de169c329e6697c1f070ea1ee9c9aa4bb233c687d8b2dd6da31e72d620de1. The Release application remains byte-identical; the observer is a distinct condition from prior inspector4a645f3d. The variant builds, and its snapshot expression passes a syntax check against the installed simulator SDK. Six result-parser cases preserve failed focused verdicts and exclude later debugger time, four native-session-progress cases pass, and six host-binding cases fail closed on wrong/reused process identities: **16 focused private cases pass**. These are helper/source checks, not new native input proof.
+
+The prelaunch guest-bridge PID lookup times out before xcodebuild starts. A verified same-user host PID/parent/path/birth binding removes that instrumentation dependency. The first actual preflight completes session initiation and runner installation, then stops at launch without an acquired runner PID or test-method verdict. After the one planned retained-guest shutdown/reboot recovery, its installer starts on demand; direct libproc metadata avoids an all-process-argument lookup that itself times out under host load. The final actual preflight remains in testmanagerd session initiation without a completed verdict.
+
+| Actual native preflight                      | Controller outcome                                                                                                                  | Native input evidence                                                               |
+| -------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| health-02                                    | Interrupted after 146.83 s for 90 s without stdout/native-session progress; no grace, exit -15, partial bundle/no completed verdict | None; no test method or raw attempt.                                                |
+| health-03, after one retained-guest recovery | Interrupted after 112.53 s for the same silence criterion; no grace, exit -15, partial bundle/no completed verdict                  | None; no acquired PID, matching Codon child or raw attempt at the final host query. |
+
+**Zero new raw cases and zero LLDB/native snapshots execute.** The prepared two-case budget is unused because transport never passes. Host load is observed at 140.20/191.38/132.91; it does not establish a unique cause. The new observer/cache condition and the earlier successful transport condition remain distinct. No additional guest/service/security recovery, typing retry, keyboard preference change or production repair follows. The guest is stopped, font large remains unchanged and app67/source62/archive/lock/fixture/pins/palette are verified.
+
+The narrower result is an interleaving candidate plus corrected interpretation of key/ref observations. Still missing are accepted/applied native edits, EditingChanged/controlled-write ordering and marked/composition state during the original failed burst. RN-TEXT-01 stays open, with no attributed Codon-only remedy, upstream publication, restored original family acceptance or parity claim. Re-establish observable transport in the pinned app/observer condition before a native mutation trace; record that continuation here rather than opening another pass/receipt document.
 
 ## Evidence Custody And Identities
 
@@ -66,7 +99,7 @@ The retained latest sealed packet is `native-xctest-lab-recovery-2026-10-16` und
 
 Frozen current source62 matches repo/archive/external installed package; all app67 files match the built/installed Release app. Archive is 2b31ed8025c4260bb8c0781fc3632f7fb9f62a0f6643197852cb8eda61d8cfa4; lock is f49c4748936ab5bf0d326d66763a533dec65191e90f883c5bb22d8cdb017c573; palette is 9ca00a7fe4f741c2ea48dfb543aae135c9ac8288619825a3ef754ca877dfb71a; App.tsx is 75cc0dec79e1d9a53158e45adc6bf33a21cb101e5cb6b4e6dc8dff302ff27429. Executable and embedded Hermes are 2df58c5218c2ac566d90319dcea5318631f9ba860825182b2cee5cb1f6ccf3d1 and 7394c3e28e930aa20f16ba9a5c140b5f51a93f9828bd7d100757a55b4c2cf037. No sibling runtime link or signing acceptance is inferred.
 
-The new writable packet is `native-raw-first-warm-investigation-2026-10-16` under that same chat root. Copied helper roots are rewritten before execution; sealed helpers are never imported/executed. Native/fixture path migration is recorded with byte identities; historical sourceRef strings and sealed manifests stay unchanged. Restore task settings and stop the guest before sealing the new packet after the final commit.
+The new writable packet is `native-raw-first-warm-investigation-2026-10-16` under that same chat root. Copied helper roots are rewritten before execution; sealed helpers are never imported/executed. Native/fixture path migration is recorded with byte identities; historical sourceRef strings and sealed manifests stay unchanged. The bounded outcome, prepared observer, both incomplete preflights, native-source/timeline analysis and cleanup are preserved there. The guest is stopped with font unchanged, and app67/runtime source62/fixture/archive/lock/pins/palette verify unchanged. The new packet is sealed after the final logical commit; helpers inside sealed packets remain non-executable evidence.
 
 ## Historical Document Lookup
 
