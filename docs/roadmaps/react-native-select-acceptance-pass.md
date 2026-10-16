@@ -1,6 +1,6 @@
 # Native Select — Acceptance And Roadmap Handoff Proposal
 
-Status: **Approved; execution in progress**. This follows the [Select adoption decision](react-native-select-adoption-decision.md), recommending retention of the current implementation. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Approved cadence: three agentic passes, committing coherent fixture work, any directly attributed fix and the final receipt at natural review boundaries. Gabriel approved this bounded run and logical commits on 2026-10-15; Screens/RN Primitives migration remains outside scope.
+Status: **Executed in three passes; see the [receipt](react-native-select-acceptance-receipt.md)**. This follows the [Select adoption decision](react-native-select-adoption-decision.md), recommending retention of the current implementation. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Approved cadence: three agentic passes, committing coherent fixture work, any directly attributed fix and the final receipt at natural review boundaries. Gabriel approved this bounded run and logical commits on 2026-10-15; Screens/RN Primitives migration remains outside scope.
 
 ## Scope And Fixed Contracts
 

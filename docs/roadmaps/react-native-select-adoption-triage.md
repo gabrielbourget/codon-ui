@@ -1,6 +1,6 @@
 # Native Select — Adoption Triage
 
-Status: **Adoption choice closed on 2026-10-15; installed acceptance in progress**. Tracking item: **RN-SELECT-ADOPT-01**. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. The [prepared decision](react-native-select-adoption-decision.md) recommends retention and the [next-step proposal](react-native-select-acceptance-pass.md) defines three bounded acceptance/handoff passes. Gabriel accepted retention and the three-pass run; RN-SELECT-ADOPT-01 is closed as an adoption-choice decision. Installed acceptance and RN-TEXT-01 remain separate gates. It does not authorize another dependency, enduring fork or public contract change. Styling, canonical palette, controlled selected values and shared TypeScript remain required; iPhone signing stays deferred.
+Status: **Adoption choice closed on 2026-10-15; focused Select installed acceptance passed**. Tracking item: **RN-SELECT-ADOPT-01**. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. The [prepared decision](react-native-select-adoption-decision.md) recommends retention and the [next-step proposal](react-native-select-acceptance-pass.md) defines three bounded acceptance/handoff passes. Gabriel accepted retention and the three-pass run; RN-SELECT-ADOPT-01 is closed as an adoption-choice decision. Installed acceptance and RN-TEXT-01 remain separate gates. It does not authorize another dependency, enduring fork or public contract change. Styling, canonical palette, controlled selected values and shared TypeScript remain required; iPhone signing stays deferred.
 
 ## What Is And Is Not Blocked
 
@@ -16,10 +16,12 @@ Its [Select](https://github.com/founded-labs/react-native-reusables/blob/385834c
 
 Do not import the wrapper's NativeWind/Uniwind theme or silently add its screens/animation dependencies. A local named host must be inside the context it needs to preserve. Whether that placement can retain Codon's public provider-placement behavior and remove enough machinery needs a bounded proposal and installed proof. The current reference is useful source evidence, not a claim that its complete behavior has been tested here.
 
-## Prepared Disposition And Next Step
+## Accepted Disposition And Next Step
 
 Recommend retaining the current controlled Select and declining production migration to the evaluated RN Primitives candidates. The [decision](react-native-select-adoption-decision.md) compares retention, published primitives, the private fixed-source trial and adapting Reusables. Its native controlled-popup gap and unproven net simplification remain distinct from RN-TEXT-01. FullWindowOverlay/named-host ideas are preserved for a concrete integration need or a shared multi-component host proposal; another Select-only dependency/fork trial is not the recommended next run.
 
 The [three-pass acceptance proposal](react-native-select-acceptance-pass.md) covers focused fixtures/source gates, installed Android/iOS controlled/collection/virtualization/keyboard/layout checks and the final receipt/next-family proposal. It preserves existing dependencies, source ownership, styling/palette and shared TypeScript. Directly attributed localized Select fixes may use their own regression test and coherent commit; new API, dependency or host architecture findings require another plan.
 
 Owner acceptance closes the adoption-choice item. Installed overlay acceptance, physical review and RN-TEXT-01 retain their own gates; deferring signing or closer visual review does not close behavior checks. Revisit triggers and the source-screened Screens 4.26.0 alternative remain recorded in the decision, without installing it.
+
+The approved [acceptance receipt](react-native-select-acceptance-receipt.md) records passing focused Android/iOS ownership, context, keyboard, collection, teardown and Select layout gates, plus the localized shared-TypeScript positioning repair. The [next-family proposal](react-native-searchable-selection-pass.md) screens PlaceholderText/ComboBox and its headless options. RN-TEXT-01, broader overlay/catalogue compositions, physical acceptance and signing retain their separate dispositions.
