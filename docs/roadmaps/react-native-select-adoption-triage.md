@@ -1,0 +1,23 @@
+# Native Select — Adoption Triage
+
+Status: **Tracked, open; current Codon implementation retained**. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. This item is a prerequisite decision before resuming the next component-family proposal or replacing Select during application integration. It does not authorize another dependency, enduring fork or public contract change. Styling, canonical palette, controlled selected values and shared TypeScript remain required; iPhone signing stays deferred.
+
+## What Is And Is Not Blocked
+
+The existing Codon Select is implemented with controlled selected values and popup visibility; its source/consumer receipt remains valid, and final installed overlay acceptance remains open in the [roadmap](react-native-library-first-pass.md). The no-go concerns replacing that implementation with the evaluated RN Primitives packages. It does not mean that Select cannot be controlled or that the roadmap must wait indefinitely for an upstream library.
+
+The [fixed-source trial](react-native-primitives-fixed-source-receipt.md) proves private native popup control and fixed Portal entry identity. It leaves three adoption questions: arbitrary caller-context transport, worthwhile removal of Codon's interaction/list/focus machinery, and an enduring source/distribution policy for the private patches. The controlled-text result has its own [approved isolation pass](react-native-controlled-text-sequence-pass.md); an automated text failure shared by raw TextInput must not become an unexplained permanent Select veto.
+
+## Existing Wrapper Reference
+
+The requested reference is [React Native Reusables](https://github.com/founded-labs/react-native-reusables), inspected at revision `385834c2196f8a303cbc9057d1ac768f3bde0a3b`. Its [nativewind Input](https://github.com/founded-labs/react-native-reusables/blob/385834c2196f8a303cbc9057d1ac768f3bde0a3b/packages/registry/src/nativewind/components/ui/input.tsx) forwards TextInput props and does not implement another controlled-value mirror or disable corrections by default. It supplies no demonstrated cure for our installed sequence result.
+
+Its [Select](https://github.com/founded-labs/react-native-reusables/blob/385834c2196f8a303cbc9057d1ac768f3bde0a3b/packages/registry/src/nativewind/components/ui/select.tsx) and [Dialog](https://github.com/founded-labs/react-native-reusables/blob/385834c2196f8a303cbc9057d1ac768f3bde0a3b/packages/registry/src/nativewind/components/ui/dialog.tsx) expose a named `portalHost` and use react-native-screens FullWindowOverlay on iOS. Those are concrete candidates for a smaller host composition. Select aliases the primitive Root; the wrapper itself adds no native controlled-popup state extension. FullWindowOverlay addresses native presentation/stacking; inspecting this wrapper does not prove arbitrary caller context, controlled-popup parity, virtualization, restoration or Android behavior for Codon.
+
+Do not import the wrapper's NativeWind/Uniwind theme or silently add its screens/animation dependencies. A local named host must be inside the context it needs to preserve. Whether that placement can retain Codon's public provider-placement behavior and remove enough machinery needs a bounded proposal and installed proof. The current reference is useful source evidence, not a claim that its complete behavior has been tested here.
+
+## Required Next Decision
+
+After the controlled-text isolation receipt, prepare a focused Select disposition before starting another family. Compare (a) retaining Codon's Select with a recorded rationale and completing its pending installed acceptance, and (b) a small named-host/FullWindowOverlay trial informed by Reusables, with exact dependencies, native popup-control policy and an honest retained-versus-removed machinery inventory. Prefer the published upstream route when it can meet the contract; any enduring private patch needs explicit maintenance approval.
+
+The trial proposal must name its stop conditions: caller-local live context and theme, accepted/rejected controlled selection and popup changes, distinct numeric/string keys, large variable-height virtualized collections, one active dismissal/focus owner, keyboard and safe-area geometry, teardown/restoration and actual installed Android/iOS checks. A failure must end in either a specific repair proposal or an explicit decision to retain the working Codon implementation. This tracked item closes only when that disposition is recorded; deferring signing or closer visual review does not close these behavior gates.

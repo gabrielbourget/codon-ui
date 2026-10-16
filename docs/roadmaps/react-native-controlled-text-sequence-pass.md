@@ -1,6 +1,6 @@
 # Native Controlled Text — Sequence Isolation Proposal
 
-Status: **Prepared for a subsequent decision; not authorized by the fixed-source trial**. The [fixed-source receipt](react-native-primitives-fixed-source-receipt.md) records the actual native/callback/owner/host values, the matched raw-input control and the Codon-only comparison. No production Input, Portal transport, dependency, public default or palette change is included here. Shared React Native TypeScript remains the default; iPhone signing and physical acceptance remain deferred.
+Status: **Approved two-pass diagnostic run in progress**. Gabriel approved this bounded implementation and logical commits on 2026-10-15. The [fixed-source receipt](react-native-primitives-fixed-source-receipt.md) records the actual native/callback/owner/host values, the matched raw-input control and the Codon-only comparison. No production Input, Portal transport, dependency, public default or palette change is included here. Shared React Native TypeScript remains the default; iPhone signing and physical acceptance remain deferred.
 
 ## Recommendation
 
@@ -17,4 +17,6 @@ Use the existing simulator/lab tools one heavy guest/build at a time and preserv
 
 ## Exit Boundary
 
-Success is a stable, attributed minimum reproduction and a reviewable next fix, or clear evidence that the automated result remains indeterminate. The run does not promise an unverified Input change. Stop at a demonstrated runtime or driver limitation with actual artifacts, rather than weakening controlled values or silently accepting the observed result. Review this bounded diagnostic scope before implementation; the previous four-pass trial explicitly returns to planning when an additional input or transport fix would be required.
+Success is a stable, attributed minimum reproduction and a reviewable next fix, or clear evidence that the automated result remains indeterminate. The run does not promise an unverified Input change. Stop at a demonstrated runtime or driver limitation with actual artifacts, rather than weakening controlled values or silently accepting the observed result. The owner has approved this bounded diagnostic scope. A production input or transport fix still requires an attributed implementation proposal. Select has an explicit [adoption triage item](react-native-select-adoption-triage.md), including the requested React Native Reusables source reference and a decision before the next component family.
+
+The [isolation receipt](react-native-controlled-text-sequence-receipt.md) records execution, source/binary identities and the resulting decision. The [versioned diagnostic fixture](examples/native-controlled-text/README.md) is reproduction material rather than production component source.
