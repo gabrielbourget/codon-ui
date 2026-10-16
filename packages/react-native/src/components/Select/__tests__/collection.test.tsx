@@ -83,6 +83,44 @@ it("waits for controlled echoes and distinguishes null from uncontrolled state",
   expect(result.current.selectedEntry?.text).toBe("Numeric zero")
 })
 
+it("repeats declined open, value and close requests without mutating controlled output", async () => {
+  const onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  const { result, rerender } = await renderHook(
+    (props: TNativeSelectProps<(typeof items)[number]>) => useSelectState(props),
+    { initialProps: { ...base, value: 0, isOpen: false, onChange, onOpenChange } },
+  )
+  await act(() => {
+    result.current.requestOpen(true)
+    result.current.requestOpen(true)
+  })
+  expect(result.current.open).toBe(false)
+  expect(onOpenChange.mock.calls).toEqual([[true], [true]])
+  await rerender({ ...base, value: 0, isOpen: true, onChange, onOpenChange })
+  await act(() => {
+    result.current.activate("0")
+    result.current.activate("0")
+  })
+  expect(onChange.mock.calls).toEqual([["0"], ["0"]])
+  expect(onOpenChange.mock.calls).toEqual([[true], [true], [false], [false]])
+  expect(result.current.selectedKey).toBe(0)
+  expect(result.current.open).toBe(true)
+})
+
+it("updates a controlled selected label without emitting selection or open requests", async () => {
+  const onChange = jest.fn(),
+    onOpenChange = jest.fn()
+  const { result, rerender } = await renderHook(
+    (props: TNativeSelectProps<(typeof items)[number]>) => useSelectState(props),
+    { initialProps: { ...base, value: 0, onChange, onOpenChange } },
+  )
+  await rerender({ ...base, items: [{ id: 0, name: "Renamed zero" }, items[1]], value: 0, onChange, onOpenChange })
+  expect(result.current.selectedEntry?.text).toBe("Renamed zero")
+  expect(result.current.selectedKey).toBe(0)
+  expect(onChange).not.toHaveBeenCalled()
+  expect(onOpenChange).not.toHaveBeenCalled()
+})
+
 it("retains removed values and restores their display after reorder/reinsertion without callbacks", async () => {
   const onChange = jest.fn()
   const { result, rerender } = await renderHook(
