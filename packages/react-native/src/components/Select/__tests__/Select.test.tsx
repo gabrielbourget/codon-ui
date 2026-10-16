@@ -210,7 +210,7 @@ it("waits for cell measurements and does not scroll after closing", async () => 
   expect(scroll).toHaveBeenCalledTimes(count)
 })
 
-it("caps retries driven by measured row-layout progress", async () => {
+it("allows small measured batches without spending retries on unchanged row layouts", async () => {
   const offset = jest.spyOn(FlatList.prototype, "scrollToOffset").mockImplementation(() => undefined)
   const scroll = jest.spyOn(FlatList.prototype, "scrollToIndex").mockImplementation(() => {
     screen.getByTestId("select-list").props.onScrollToIndexFailed({
@@ -236,8 +236,8 @@ it("caps retries driven by measured row-layout progress", async () => {
     })
     await act(() => jest.runAllTimers())
   }
-  expect(scroll).toHaveBeenCalledTimes(2)
-  expect(offset).toHaveBeenCalledTimes(2)
+  expect(scroll).toHaveBeenCalledTimes(6)
+  expect(offset).toHaveBeenCalledTimes(6)
 })
 
 it("waits for full row visibility before finishing initial accessibility focus", async () => {
