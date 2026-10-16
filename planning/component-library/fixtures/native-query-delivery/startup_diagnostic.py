@@ -1,6 +1,7 @@
 """Proof checks for a private XCTest observer using a host-prelaunched app."""
 
 import re
+from pathlib import Path
 
 from lldb_diagnostic import require_owned_process
 
@@ -10,6 +11,17 @@ def launched_app_pid(output, bundle):
     if len(matches) != 1 or int(matches[0]) <= 0:
         raise ValueError("Require one explicit launch result for the expected bundle")
     return int(matches[0])
+
+
+def installed_app_executable(container, metadata, bundle):
+    path = Path(container)
+    if not path.is_absolute() or not isinstance(metadata, dict) or metadata.get("CFBundleIdentifier") != bundle:
+        raise ValueError("Require the verified installed container and expected bundle metadata")
+    executable = metadata.get("CFBundleExecutable")
+    if (not isinstance(executable, str) or not executable or executable in (".", "..")
+            or "/" in executable or "\\" in executable):
+        raise ValueError("Require an executable name inside the installed app container")
+    return str(path / executable)
 
 
 def new_app_after_launch(binding, expected_path, expected_uid, launched_at):

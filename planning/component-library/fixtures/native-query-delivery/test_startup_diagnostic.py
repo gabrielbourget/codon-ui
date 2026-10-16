@@ -1,6 +1,6 @@
 import unittest
 
-from startup_diagnostic import launched_app_pid, new_app_after_launch, prelaunched_callback_passed
+from startup_diagnostic import installed_app_executable, launched_app_pid, new_app_after_launch, prelaunched_callback_passed
 
 
 class PrelaunchedStartupTests(unittest.TestCase):
@@ -22,6 +22,31 @@ class PrelaunchedStartupTests(unittest.TestCase):
                        "dev.codon.app: 77\ndev.codon.app: 78", "77"]:
             with self.subTest(output=output), self.assertRaises(ValueError):
                 launched_app_pid(output, "dev.codon.app")
+
+    def test_installed_folder_name_does_not_replace_the_verified_executable_identity(self):
+        metadata = {"CFBundleIdentifier": "dev.codon.app", "CFBundleExecutable": "App"}
+        path = installed_app_executable("/owned/Renamed Fixture.app", metadata, "dev.codon.app")
+        binding = {**self.identity, "path": "/owned/Renamed Fixture.app/App"}
+        self.assertTrue(new_app_after_launch(binding, path, 501, 123.0))
+        self.assertTrue(prelaunched_callback_passed(self.receipt, binding, binding, path, 501))
+        self.assertFalse(new_app_after_launch(binding, "/owned/App.app/App", 501, 123.0))
+
+    def test_installed_metadata_cannot_adopt_another_bundle(self):
+        for metadata in [None, {}, {"CFBundleIdentifier": "other.app", "CFBundleExecutable": "App"}]:
+            with self.subTest(metadata=metadata), self.assertRaises(ValueError):
+                installed_app_executable("/owned/App.app", metadata, "dev.codon.app")
+
+    def test_executable_must_stay_inside_an_absolute_installed_container(self):
+        for executable in [None, "", ".", "..", "../Other", "/foreign/App", "nested/App", "nested\\App", 77]:
+            with self.subTest(executable=executable), self.assertRaises(ValueError):
+                installed_app_executable(
+                    "/owned/App.app", {"CFBundleIdentifier": "dev.codon.app", "CFBundleExecutable": executable},
+                    "dev.codon.app",
+                )
+        with self.assertRaises(ValueError):
+            installed_app_executable(
+                "relative/App.app", {"CFBundleIdentifier": "dev.codon.app", "CFBundleExecutable": "App"}, "dev.codon.app",
+            )
 
     def test_real_callback_and_same_live_process_are_both_required(self):
         self.assertTrue(self.passed())

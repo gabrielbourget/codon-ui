@@ -7,7 +7,6 @@ final class CodonPrimitiveTrialTests: XCTestCase {
     override func setUpWithError() throws { continueAfterFailure = false }
     override func tearDownWithError() throws {
         if (testRun?.failureCount ?? 0) > 0 { capture("method-failure-after-diagnostic", ["diag-owner", "diag-trace-json", "diag-field-input"]) }
-        XCUIDevice.shared.orientation = .portrait
     }
     private func now() -> Double { Date().timeIntervalSince1970 * 1000 }
     private func node(_ id: String) -> XCUIElement { app.descendants(matching: .any).matching(identifier: id).firstMatch }
@@ -41,8 +40,10 @@ final class CodonPrimitiveTrialTests: XCTestCase {
         app.activate()
         XCTAssertEqual(app.state, .runningForeground)
         wait("case-raw")
-        // Keep orientation requests after activating the owned application.
-        XCUIDevice.shared.orientation = .portrait
+        // The host retains portrait; avoid a redundant system-wide orientation transition.
+        XCTAssertEqual(XCUIDevice.shared.orientation, .portrait, "Retained guest must already be portrait")
+        let window = app.windows.firstMatch.frame
+        XCTAssertLessThan(window.width, window.height, "The app window must remain portrait")
     }
     func testTransportPreflight() {
         start(); tap("diag-transport-action")
