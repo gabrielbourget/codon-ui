@@ -5,6 +5,7 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
 ## Contents
 
 - [Implementation checkpoints](#implementation-checkpoints)
+- [ComboBox customization coverage](#combobox-customization-coverage)
 - [RN Primitives decision](#rn-primitives-decision)
 - [RN-TEXT-01 evidence](#rn-text-01-evidence)
 - [XCTest recovery](#xctest-recovery)
@@ -26,7 +27,17 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
 | PlaceholderText/ComboBox              | 111 distinct focused cases across eight affected suites plus consumer/type/build proofs. Original installed ComboBox query fails N-only before activation; no Android/full family or maintained-scene acceptance follows.                                 | 4d2cf60, 878a12d; former ledger 8.46–8.48                                                                           |
 | Matched query fixture                 | Four source cases, strict no-DOM consumer types and source/map/build/app identities pass. Compact observation labels differ from the original first-query fixture; preserve that condition.                                                               | 65817c3; [fixture](fixtures/native-query-delivery/)                                                                 |
 
-Historical counts describe their own checkpoint and do not certify web/native customization parity. The roadmap preserves the remaining assertion table and full 53-item destination.
+Historical counts describe their own checkpoint and do not certify web/native customization parity. The roadmap preserves the assertion coverage/gap table and full 53-item destination.
+
+## ComboBox Customization Coverage
+
+The next independent roadmap step closes the supported ComboBox source-assertion debt while RN-TEXT-01 and its native startup prerequisite remain unresolved. Commit `0c8f58c` extends the existing [native ComboBox suite](../../packages/react-native/src/components/ComboBox/__tests__/ComboBox.test.tsx) against the [canonical web suite](../../packages/react/src/components/ComboBox/__tests__/ComboBox.test.tsx) and accepted native contracts. No production implementation, public API, dependency/pin, palette, controlled-value semantics, fixture or installed application changes.
+
+The suite gains 24 cases: both platform target defaults versus authored numeric/percentage/auto dimensions and override precedence; isolated root/summary/query/default-glyph foreground propagation and summary-button override isolation; all three geometries and text sizes with mounted provider updates; trigger/query focus/blur with focus-style and offset toggles; each validation border and priority/reset behavior; independent root/input/button/group/list overrides; default/open/closed/custom/null icon behavior; and consumed wrapper props versus native root ownership. Ordinary queries address rendered host elements; the decorative unnamed chevron uses the pinned test renderer's host-only queryAll API, without composite queries, new production test IDs or snapshots.
+
+Verification is the focused source tier: the 31-case baseline passes; the final suite passes 55/55 in 4.989 seconds, with native package typechecking, focused ESLint, formatting, normal package commit checks including contract types, and git diff --check. The initial icon assertions use a query removed in pinned RNTL14; both corresponding runtime/type errors are corrected before the passing run. No simulator/device, XCTest, LLDB or app build is used, and no dependency/toolchain change is needed for this test-only pass. Platform defaults are simulated and focus events are synthesized; the results establish component bindings and style/state contracts, not native pixels, touch targets, IME delivery or screen-reader behavior.
+
+The source gaps in the roadmap are covered, with installed family acceptance and deferred web capabilities still explicit. The original query failure, native startup blocker, focused result/Close/Back/nesting/layout matrices, maintained-scene propagation and physical/ARM proof remain open. iPhone signing stays deferred, and all prior frozen cohorts/evidence retain their original status. Continue with the remaining native acceptance prerequisites or an explicitly scoped contract audit; these source tests do not promote a new component family or imply full catalogue parity.
 
 ## RN Primitives Decision
 
