@@ -1,6 +1,6 @@
 import unittest
 
-from startup_diagnostic import launched_app_pid, prelaunched_callback_passed
+from startup_diagnostic import launched_app_pid, new_app_after_launch, prelaunched_callback_passed
 
 
 class PrelaunchedStartupTests(unittest.TestCase):
@@ -30,6 +30,15 @@ class PrelaunchedStartupTests(unittest.TestCase):
                        {"nativeCallbackPassed": False}, {"stopReason": "total-cap"}]:
             with self.subTest(change=change):
                 self.assertFalse(self.passed(receipt={**self.receipt, **change}))
+
+    def test_late_process_can_only_be_considered_after_the_recorded_launch(self):
+        self.assertTrue(new_app_after_launch(self.identity, "/owned/App", 501, 123.0))
+        self.assertFalse(new_app_after_launch(self.identity, "/owned/App", 501, 123.000005))
+        self.assertFalse(new_app_after_launch(self.identity, "/foreign/App", 501, 123.0))
+        self.assertFalse(new_app_after_launch(self.identity, "/owned/App", 502, 123.0))
+        for change in [{"start": []}, {"start": None}, {"status": 4}, {"traced": True}]:
+            with self.subTest(change=change):
+                self.assertFalse(new_app_after_launch({**self.identity, **change}, "/owned/App", 501, 123.0))
 
     def test_replacement_process_or_wrong_owner_cannot_validate_startup(self):
         for change in [{"pid": 78}, {"start": [124, 4]}, {"uid": 502},

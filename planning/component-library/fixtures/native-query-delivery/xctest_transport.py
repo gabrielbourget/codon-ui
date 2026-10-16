@@ -87,6 +87,19 @@ def callback_proof(summary, captures, method):
     return method.endswith("/testTransportPreflight") and len(matches) == 1
 
 
+def completed_method_verdict(summary, method):
+    if summary.get("totalTestCount") != 1:
+        return False
+    if summary.get("passedTests") == 1 and summary.get("failedTests") == 0:
+        return True
+    if summary.get("failedTests") != 1 or summary.get("passedTests") != 0:
+        return False
+    selected = "/".join(method.split("/")[-2:])
+    identifiers = {method, method + "()", selected, selected + "()"}
+    return any(failure.get("testIdentifierString") in identifiers
+               for failure in summary.get("testFailures", []))
+
+
 def replay_selection(xctestrun, project=None, scheme=None, derived_data=None):
     project_options = (project, scheme, derived_data)
     if any(project_options) and not all(project_options):
@@ -181,7 +194,7 @@ def main():
             captures.append(json.loads(path.read_text()))
         except ValueError:
             pass
-    receipt["completedVerdict"] = summary.get("totalTestCount") == 1
+    receipt["completedVerdict"] = completed_method_verdict(summary, args.method)
     receipt["nativeCallbackPassed"] = (
         receipt.get("exitCode") == 0 and not receipt.get("stopReason")
         and callback_proof(summary, captures, args.method)

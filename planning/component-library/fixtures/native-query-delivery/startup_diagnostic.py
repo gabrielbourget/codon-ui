@@ -12,6 +12,17 @@ def launched_app_pid(output, bundle):
     return int(matches[0])
 
 
+def new_app_after_launch(binding, expected_path, expected_uid, launched_at):
+    try:
+        require_owned_process(binding, binding, expected_path, expected_uid)
+        seconds, microseconds = binding["start"]
+        born_after_launch = seconds + microseconds / 1_000_000 >= launched_at
+    except (ValueError, TypeError, KeyError):
+        return False
+    return (born_after_launch and binding.get("traced") is False
+            and binding.get("status") in (2, 3))
+
+
 def prelaunched_callback_passed(receipt, before, after, expected_path, expected_uid):
     try:
         require_owned_process(before, after, expected_path, expected_uid)

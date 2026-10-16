@@ -4,7 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from xctest_transport import callback_proof, native_progress, replay_selection, run_bounded
+from xctest_transport import callback_proof, completed_method_verdict, native_progress, replay_selection, run_bounded
 
 
 class TransportTests(unittest.TestCase):
@@ -39,6 +39,25 @@ class TransportTests(unittest.TestCase):
             before = native_progress(root)
             session.write_text("session started and runner connected")
             self.assertNotEqual(before, native_progress(root))
+
+    def test_runner_bootstrap_failure_is_not_a_completed_selected_method(self):
+        summary = {"totalTestCount": 1, "passedTests": 0, "failedTests": 1,
+                   "testFailures": [{"testIdentifierString": "Tests-Runner (77) encountered an error",
+                                     "failureText": "Test crashed while preparing to run tests."}]}
+        self.assertFalse(completed_method_verdict(summary, "Tests/Tests/testRaw"))
+        self.assertFalse(completed_method_verdict({**summary, "testFailures": []}, "Tests/Tests/testRaw"))
+
+    def test_actual_method_failures_remain_completed_failed_verdicts(self):
+        summary = {"totalTestCount": 1, "passedTests": 0, "failedTests": 1,
+                   "testFailures": [{"testIdentifierString": "Tests/testRaw()"}]}
+        self.assertTrue(completed_method_verdict(summary, "Tests/Tests/testRaw"))
+        self.assertFalse(completed_method_verdict(summary, "Tests/Tests/testInput"))
+        self.assertFalse(completed_method_verdict({**summary, "totalTestCount": 2}, "Tests/Tests/testRaw"))
+
+    def test_single_method_pass_and_skipped_result_are_distinct(self):
+        summary = {"totalTestCount": 1, "passedTests": 1, "failedTests": 0}
+        self.assertTrue(completed_method_verdict(summary, "Tests/Tests/testRaw"))
+        self.assertFalse(completed_method_verdict({**summary, "passedTests": 0, "skippedTests": 1}, "Tests/Tests/testRaw"))
 
     def test_silent_process_is_stopped_and_recorded(self):
         with tempfile.TemporaryDirectory() as folder:
