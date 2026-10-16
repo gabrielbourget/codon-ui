@@ -1,6 +1,6 @@
-# Native Query Delivery — Frozen Fixture And Blocked Transport Receipt
+# Native Query Delivery — Frozen Fixture, Transport Recovery And Comparison Receipt
 
-Status: **Pass 1 complete; pass 2 stopped at the single transport preflight; text-delivery attribution indeterminate**. Gabriel approved the [bounded diagnostic](react-native-query-delivery-diagnostic-pass.md) and logical commits on 2026-10-16. Commit `65817c3233412d2126945542f43c62e8d2b44170` freezes the private matched fixture and coverage audit. No production component, controlled-value behavior, dependency pin, palette, public API or signing configuration changes in this diagnostic.
+Status: **Frozen fixture and resumed comparison complete; first raw fails and its warm repeat passes; attribution indeterminate**. Gabriel approved the [bounded diagnostic](react-native-query-delivery-diagnostic-pass.md) and logical commits on 2026-10-16. Commit `65817c3233412d2126945542f43c62e8d2b44170` freezes the private matched fixture and coverage audit. No production component, controlled-value behavior, dependency pin, palette, public API or signing configuration changes in this diagnostic.
 
 ## Frozen Source And Runtime
 
@@ -48,3 +48,7 @@ The verification tier is focused fixture tests/types/lint/format plus frozen Met
 ## Authorized Transport Investigation — 2026-10-16
 
 The subsequent [bounded investigation receipt](react-native-xctest-preflight-recovery-receipt.md) retains this frozen app/inspector/fixture and makes two new incomplete preflight attempts. Session initiation completes, but runner installation waits for a CoreSimulator bridge reply even after one guest-only installer restart. A later installer sample shows framework enumeration, leaving slow initialization versus a stuck installation unresolved and exposing the runner-only liveness limitation. No component comparison runs. This earlier packet and verdict remain sealed separately.
+
+## Resumed Comparison After Coherent Lab Recovery — 2026-10-16
+
+Gabriel's later coherent recovery authorization supersedes the earlier per-timeout/preflight stop limits while preserving the frozen comparison and four-component-attempt bound. The [recovery and comparison receipt](react-native-xctest-lab-recovery.md) records three successful actual native preflights and checkpoint `bf6e202`, then raw → Input → ComboBox → one warm raw repeat. First raw fails N-only with a responsive JavaScript heartbeat and 19 key observations including the intended phrase plus two N events; Input, ComboBox and warm raw pass the full phrase across native/change/callback/query/owner channels. The first failure remains preserved, the conditional warm-failure debugger window is unused and the cause remains indeterminate. No production repair, component acceptance, web/native coverage parity or signing propagation follows. Earlier failed preflight sections remain historical evidence.
