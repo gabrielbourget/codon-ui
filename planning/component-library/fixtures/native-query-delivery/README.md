@@ -30,3 +30,5 @@ Keep target expressions and native breakpoints outside the basic attachment proo
 ```sh
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s . -p 'test_*.py' -v
 ```
+
+`startup_diagnostic.py` checks evidence for a private observer that requires and activates an app prelaunched by the host. An exact bundle/PID launch response, a real completed Transport 1 callback and the same live, untraced PID/UID/birth/executable before and after are required together. Replacement processes, missing state and a passing controller without callback proof fail closed. These helper checks are unit-tested; the host-prelaunch startup contrast has not passed native validation. In its bounded trial, simctl launch hits 90 seconds before XCTest starts, although a matching app process is found later. Do not treat process appearance as startup success or use this helper to relax text assertions.
