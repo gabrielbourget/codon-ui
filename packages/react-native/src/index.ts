@@ -8,6 +8,7 @@ export type {
 
 export { Text } from "./components/Text/Text"
 export { PlaceholderText } from "./components/Text/variants/PlaceholderText/PlaceholderText"
+export { ComboBox } from "./components/ComboBox/ComboBox"
 export {
   PLACEHOLDER_TEXT_ALIGNMENT__LEFT,
   PLACEHOLDER_TEXT_ALIGNMENT__CENTER,

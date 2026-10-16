@@ -1,17 +1,8 @@
-import { createRef, type ReactElement, type RefAttributes } from "react"
+import { createRef } from "react"
 import type { TextInput, View } from "react-native"
 
-import {
-  PlaceholderText,
-  type TNativePlaceholderTextRef,
-  type TNativeComboBoxProps,
-  type TNativeComboBoxRef,
-} from "../src"
+import { ComboBox, PlaceholderText, type TNativePlaceholderTextRef, type TNativeComboBoxProps } from "../src"
 
-// This executable declaration freezes the surface before the implementation pass.
-declare const ComboBoxContract: <T>(
-  props: TNativeComboBoxProps<T> & RefAttributes<TNativeComboBoxRef>,
-) => ReactElement | null
 export const ValidPlaceholder = (
   <PlaceholderText
     ref={createRef<TNativePlaceholderTextRef>()}
@@ -45,7 +36,7 @@ const base: TNativeComboBoxProps<{ key: string | number; label: string }> = {
   closeLabel: "Close choices",
 }
 export const ValidComboBox = (
-  <ComboBoxContract
+  <ComboBox
     {...base}
     ref={createRef<View>()}
     inputRef={createRef<TextInput>()}
@@ -118,6 +109,6 @@ accept({ ...base, inputProps: { accessibilityLabel: "Other" } })
 // @ts-expect-error editor identity is owned
 accept({ ...base, inputProps: { testID: "Other" } })
 // @ts-expect-error DOM refs are excluded
-export const InvalidComboBoxRef = <ComboBoxContract {...base} ref={createRef<{ tagName: string }>()} />
+export const InvalidComboBoxRef = <ComboBox {...base} ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error root View ref and input TextInput ref are distinct
-export const InvalidComboBoxInputRef = <ComboBoxContract {...base} inputRef={createRef<View>()} />
+export const InvalidComboBoxInputRef = <ComboBox {...base} inputRef={createRef<View>()} />
