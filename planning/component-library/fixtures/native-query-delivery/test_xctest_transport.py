@@ -77,6 +77,14 @@ class TransportTests(unittest.TestCase):
             self.assertEqual(result["stopReason"], "total-cap")
             self.assertNotEqual(result["exitCode"], 0)
 
+    def test_slow_silent_completion_uses_the_configured_allowance(self):
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            result = run_bounded([sys.executable, "-c", "import time; time.sleep(.4)"],
+                                 root / "log", root / "result", os.environ.copy(), 3, 2, 0.02)
+            self.assertIsNone(result["stopReason"])
+            self.assertEqual(result["exitCode"], 0)
+
     def test_native_session_can_progress_without_stdout(self):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)

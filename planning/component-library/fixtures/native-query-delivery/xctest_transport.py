@@ -144,8 +144,8 @@ def main():
     parser.add_argument("--project", type=Path)
     parser.add_argument("--scheme")
     parser.add_argument("--derived-data", type=Path)
-    parser.add_argument("--total-seconds", type=int, default=420)
-    parser.add_argument("--silence-seconds", type=int, default=90)
+    parser.add_argument("--total-seconds", type=int, default=600)
+    parser.add_argument("--silence-seconds", type=int, default=180)
     args = parser.parse_args()
     if not (0 < args.silence_seconds <= args.total_seconds <= 600):
         parser.error("Require 0 < silence <= total <= 600 seconds")
