@@ -1,6 +1,6 @@
 # RN Primitives — Fixed-Source Compatibility Proposal
 
-Status: **Approved; four-pass fixed-source trial in progress**. Gabriel approved the four passes and logical agentic commits on 2026-10-15 after the [published-package trial returned a no-go](react-native-primitives-trial-receipt.md). Prepared at Codon `92e4ce6` on `codex/native-overlay-proposal`. The [execution receipt](react-native-primitives-fixed-source-receipt.md) records actual results and stop conditions. Preserve Codon's styling, palette, controlled values and popup visibility, public names/props and shared React Native TypeScript. iPhone signing and physical acceptance remain deferred.
+Status: **Approved trial complete; no-go for production migration**. Gabriel approved the four passes and logical agentic commits on 2026-10-15 after the [published-package trial returned a no-go](react-native-primitives-trial-receipt.md). Prepared at Codon `92e4ce6` on `codex/native-overlay-proposal`. The [execution receipt](react-native-primitives-fixed-source-receipt.md) records successful source/peer/state fixes, actual installed text failures, the explicit stop before broader native matrices and the maintenance decision. Codon's styling, palette, controlled values and popup visibility, production source/dependencies and shared TypeScript remain intact. iPhone signing and physical acceptance remain deferred.
 
 ## Recommendation And Scope
 
