@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createContext, createRef, useContext, useState } from "react"
-import { AccessibilityInfo, Platform, type TextInput } from "react-native"
+import { AccessibilityInfo, Platform, StyleSheet, type TextInput } from "react-native"
 
 import {
   ComboBox,
@@ -378,6 +378,257 @@ it("preserves root and separate slot precedence, validation priority and authore
   expect(screen.getByLabelText("Search choices")).toHaveStyle({ color: "tomato", fontSize: 23 })
   expect(screen.getByTestId("combo-box-list")).toHaveStyle({ backgroundColor: "pink" })
   expect(screen.getByText("Icon", { includeHiddenElements: true })).toBeOnTheScreen()
+})
+
+describe("ComboBox customization contracts", () => {
+  const summary = "Current query"
+  const hidden = { includeHiddenElements: true }
+  // The decorative chevron has no accessible name; inspect only its rendered native views.
+  const chevrons = () =>
+    screen
+      .getByTestId("combo-box-trigger", hidden)
+      .queryAll((view) => StyleSheet.flatten(view.props.style)?.borderBottomWidth === 1.5)
+
+  it.each(["ios", "android"] as const)(
+    "preserves authored %s dimensions instead of imposing default target minima",
+    async (platform) => {
+      jest.replaceProperty(Platform, "OS", platform)
+      const { rerender } = await render(<ComboBox {...base} />)
+      const root = () => screen.getByTestId("combo-box")
+      const minimum = platform === "ios" ? 44 : 48
+      expect(root()).toHaveStyle({ minWidth: minimum, minHeight: minimum })
+      await rerender(<ComboBox {...base} width={30} height={24} />)
+      expect(root()).toHaveStyle({ width: 30, height: 24 })
+      expect(StyleSheet.flatten(root().props.style)).toMatchObject({ minWidth: undefined, minHeight: undefined })
+      expect(screen.getByTestId("combo-box-group")).toHaveStyle({ width: "100%", height: "100%" })
+      expect(screen.getByRole("button", { name: "Choose" })).toHaveStyle({ height: "100%" })
+      await rerender(<ComboBox {...base} width="75%" height="auto" />)
+      expect(root()).toHaveStyle({ width: "75%", height: "auto" })
+      await rerender(
+        <ComboBox
+          {...base}
+          width={150}
+          height={50}
+          customStyles={{ width: 24, height: 26 }}
+          style={({ defaultStyle }) => [defaultStyle, { width: 32, height: 34 }]}
+        />,
+      )
+      expect(root()).toHaveStyle({ width: 32, height: 34 })
+      expect(StyleSheet.flatten(root().props.style)).toMatchObject({ minWidth: undefined, minHeight: undefined })
+    },
+  )
+
+  it("propagates the baseline foreground to the owned summary, query and default icon", async () => {
+    await render(<ComboBox {...base} inputValue={summary} isOpen color="turquoise" />)
+    expect(screen.getByTestId("combo-box", hidden)).toHaveStyle({ color: "turquoise" })
+    expect(screen.getByTestId("combo-box-trigger", hidden)).toHaveStyle({ color: "turquoise" })
+    expect(screen.getByText(summary, hidden)).toHaveStyle({ color: "turquoise" })
+    expect(screen.getByLabelText("Search choices")).toHaveStyle({ color: "turquoise" })
+    expect(chevrons()).toHaveLength(1)
+    expect(chevrons()[0]).toHaveStyle({ borderColor: "turquoise" })
+  })
+
+  it("keeps a custom summary-button foreground separate from the query foreground", async () => {
+    await render(
+      <ComboBox
+        {...base}
+        inputValue={summary}
+        isOpen
+        color="turquoise"
+        customButtonStyles={{ color: "purple", minHeight: 65 }}
+      />,
+    )
+    expect(screen.getByTestId("combo-box-trigger", hidden)).toHaveStyle({ color: "purple", minHeight: 65 })
+    expect(screen.getByText(summary, hidden)).toHaveStyle({ color: "purple" })
+    expect(chevrons()).toHaveLength(1)
+    expect(chevrons()[0]).toHaveStyle({ borderColor: "purple" })
+    expect(screen.getByLabelText("Search choices")).toHaveStyle({ color: "turquoise" })
+    expect(screen.getByTestId("combo-box", hidden)).toHaveStyle({ color: "turquoise" })
+  })
+
+  it.each([
+    ["rounded", 5],
+    ["round", 10000],
+    ["orthogonal", 0],
+  ] as const)("applies %s geometry to both groups, the trigger and query", async (geometry, borderRadius) => {
+    await render(<ComboBox {...base} defaultOpen geometry={geometry} />)
+    for (const id of ["combo-box-group", "combo-box-query-group", "combo-box-trigger", "combo-box-input"])
+      expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderRadius })
+  })
+
+  it.each([
+    ["small", 12, 13],
+    ["medium", 14, 17],
+    ["large", 16, 21],
+  ] as const)(
+    "maps %s text size on the summary and query, including provider overrides",
+    async (textSize, fontSize, overriddenSize) => {
+      const { rerender } = await render(
+        <NativeThemeProvider>
+          <ComboBox {...base} inputValue={summary} isOpen textSize={textSize} />
+        </NativeThemeProvider>,
+      )
+      expect(screen.getByText(summary, hidden)).toHaveStyle({ fontSize })
+      expect(screen.getByLabelText("Search choices")).toHaveStyle({ fontSize })
+      await rerender(
+        <NativeThemeProvider overrides={{ typography: { fontSizes: { b11: 13, b10: 17, b9: 21 } } }}>
+          <ComboBox {...base} inputValue={summary} isOpen textSize={textSize} />
+        </NativeThemeProvider>,
+      )
+      expect(screen.getByText(summary, hidden)).toHaveStyle({ fontSize: overriddenSize })
+      expect(screen.getByLabelText("Search choices")).toHaveStyle({ fontSize: overriddenSize })
+    },
+  )
+
+  it.each(["trigger", "query"] as const)("honors focus and offset toggles on the %s group", async (target) => {
+    const props = { ...base, isOpen: target === "query" }
+    const { rerender } = await render(<ComboBox {...props} />)
+    const group = () => screen.getByTestId(target === "query" ? "combo-box-query-group" : "combo-box-group")
+    const control = () => screen.getByTestId(target === "query" ? "combo-box-input" : "combo-box-trigger")
+    expect(StyleSheet.flatten(group().props.style).outlineWidth).toBeUndefined()
+    await fireEvent(control(), "focus", { nativeEvent: {} })
+    expect(group()).toHaveStyle({ outlineColor: "#2563eb", outlineWidth: 1.5, outlineOffset: 1.5 })
+    await rerender(<ComboBox {...props} enableFocusStyle={false} />)
+    expect(StyleSheet.flatten(group().props.style).outlineWidth).toBeUndefined()
+    await rerender(<ComboBox {...props} offsetFocusRing={false} />)
+    expect(group()).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 0 })
+    await rerender(<ComboBox {...props} />)
+    expect(group()).toHaveStyle({ outlineOffset: 1.5 })
+    await fireEvent(control(), "blur", { nativeEvent: {} })
+    expect(StyleSheet.flatten(group().props.style).outlineWidth).toBeUndefined()
+    if (target === "query") expect(StyleSheet.flatten(control().props.style).outlineWidth).toBeUndefined()
+  })
+
+  it.each([
+    [{ errorState: true }, "#b73434"],
+    [{ warningState: true }, "#a66b00"],
+    [{ successState: true }, "#2f7d18"],
+    [{ warningState: true, successState: true }, "#a66b00"],
+    [{ errorState: true, warningState: true, successState: true }, "#b73434"],
+  ] as const)("renders validation borders and restores the baseline for %p", async (validation, borderColor) => {
+    const { rerender } = await render(<ComboBox {...base} defaultOpen {...validation} />)
+    for (const id of ["combo-box-group", "combo-box-query-group"])
+      expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderColor })
+    await rerender(<ComboBox {...base} defaultOpen />)
+    for (const id of ["combo-box-group", "combo-box-query-group"])
+      expect(screen.getByTestId(id, hidden)).toHaveStyle({ borderColor: "#9e9e9e" })
+  })
+
+  it.each([
+    { slot: "root", props: { customStyles: { backgroundColor: "tomato", padding: 19 } }, targets: ["combo-box"] },
+    {
+      slot: "input",
+      props: { customInputStyles: { backgroundColor: "tomato", padding: 19 } },
+      targets: ["combo-box-input"],
+    },
+    {
+      slot: "button",
+      props: { customButtonStyles: { backgroundColor: "tomato", padding: 19 } },
+      targets: ["combo-box-trigger"],
+    },
+    {
+      slot: "group",
+      props: { customInputButtonGroupStyles: { backgroundColor: "tomato", padding: 19 } },
+      targets: ["combo-box-group", "combo-box-query-group"],
+    },
+    {
+      slot: "list",
+      props: { customOptionsListStyles: { backgroundColor: "tomato", padding: 19 } },
+      targets: ["combo-box-list"],
+    },
+  ])("applies the $slot style slot independently", async ({ props, targets }) => {
+    await render(<ComboBox {...base} inputValue={summary} isOpen {...props} />)
+    for (const [id, backgroundColor] of [
+      ["combo-box", "#ffffff"],
+      ["combo-box-group", "#ffffff"],
+      ["combo-box-query-group", "#ffffff"],
+      ["combo-box-trigger", "transparent"],
+      ["combo-box-input", "transparent"],
+      ["combo-box-list", "#ffffff"],
+    ]) {
+      const node = screen.getByTestId(id, hidden)
+      expect(node).toHaveStyle({ backgroundColor: targets.includes(id) ? "tomato" : backgroundColor })
+      if (targets.includes(id)) expect(node).toHaveStyle({ padding: 19 })
+    }
+    expect(screen.getByText(summary, hidden)).toHaveStyle({ color: "#171717" })
+  })
+
+  it("renders the decorative open/closed chevron, replaces it with authored content and honors null", async () => {
+    const { rerender } = await render(<ComboBox {...base} inputValue={summary} isOpen={false} />)
+    expect(chevrons()).toHaveLength(1)
+    expect(chevrons()[0]).toHaveStyle({ width: 8, height: 8, borderRightWidth: 1.5, transform: [{ rotate: "45deg" }] })
+    await rerender(<ComboBox {...base} inputValue={summary} isOpen />)
+    expect(chevrons()[0]).toHaveStyle({ transform: [{ rotate: "225deg" }] })
+    await rerender(
+      <ComboBox {...base} inputValue={summary} isOpen ComponentIcon={<Text testID="authored-icon">Custom</Text>} />,
+    )
+    expect(chevrons()).toHaveLength(0)
+    expect(screen.getByTestId("authored-icon", hidden)).toHaveTextContent("Custom")
+    await rerender(<ComboBox {...base} inputValue={summary} isOpen ComponentIcon={null} />)
+    expect(chevrons()).toHaveLength(0)
+    expect(screen.queryByTestId("authored-icon", hidden)).toBeNull()
+    expect(screen.getByText(summary, hidden)).toBeOnTheScreen()
+  })
+
+  it("consumes wrapper props while forwarding only the owned native root props", async () => {
+    const consumed: TNativeComboBoxProps<TChoice> = {
+      ...base,
+      inputValue: summary,
+      value: 0,
+      isOpen: true,
+      isDisabled: false,
+      isReadOnly: true,
+      width: 150,
+      height: 50,
+      color: "turquoise",
+      textSize: "small",
+      geometry: "round",
+      enableFocusStyle: false,
+      offsetFocusRing: false,
+      errorState: true,
+      warningState: true,
+      successState: true,
+      placeholder: "Choose a value",
+      emptyListMessage: "No choices",
+      disabledKeys: ["blocked"],
+      inputRef: createRef<TextInput>(),
+      inputProps: { keyboardType: "web-search" },
+      renderItem: (item) => <Text>{item.label}</Text>,
+      onChange: jest.fn(),
+      onInputChange: jest.fn(),
+      onOpenChange: jest.fn(),
+      ComponentIcon: null,
+      customStyles: { margin: 2 },
+      customInputStyles: { margin: 3 },
+      customButtonStyles: { margin: 4 },
+      customInputButtonGroupStyles: { margin: 5 },
+      customOptionsListStyles: { margin: 6 },
+    }
+    const onLayout = jest.fn()
+    await render(
+      <ComboBox
+        {...consumed}
+        testID="owned"
+        nativeID="native-root"
+        id="root-id"
+        pointerEvents="box-none"
+        collapsable={false}
+        onLayout={onLayout}
+      />,
+    )
+    const root = screen.getByTestId("owned", hidden)
+    expect(root.props).toMatchObject({
+      nativeID: "native-root",
+      id: "root-id",
+      pointerEvents: "box-none",
+      collapsable: false,
+      onLayout,
+      accessible: false,
+    })
+    for (const name of Object.keys(consumed)) expect(root.props).not.toHaveProperty(name)
+    expect(root).toHaveStyle({ width: 150, height: 50, color: "turquoise", margin: 2 })
+    expect(screen.getByTestId("owned-input")).toHaveDisplayValue(summary)
+  })
 })
 
 it.each(["ios", "android"] as const)("keeps default %s action targets and uncapped text", async (platform) => {
