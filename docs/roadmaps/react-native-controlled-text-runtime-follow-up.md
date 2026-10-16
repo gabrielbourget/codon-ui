@@ -1,6 +1,6 @@
 # Native Controlled Text — Runtime Follow-Up
 
-Status: **Prepared follow-up; outside the approved two-pass run**. Tracking item: **RN-TEXT-01**. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Use the [isolation receipt](react-native-controlled-text-sequence-receipt.md) and its frozen raw fixture as the starting point. Preserve Codon's controlled values, styling, palette and shared TypeScript. Physical iPhone signing remains deferred.
+Status: **Open; matched delivery diagnostic stopped at transport preflight**. Tracking item: **RN-TEXT-01**. Owner/acceptance: Gabriel Bourget. Responsible contributor: this Codon chat. Retain the [isolation receipt](react-native-controlled-text-sequence-receipt.md), first-query failure and [matched diagnostic receipt](react-native-query-delivery-diagnostic-receipt.md) as separate evidence. Preserve Codon's controlled values, styling, palette and shared TypeScript. Physical iPhone signing remains deferred.
 
 ## Decision To Carry Forward
 
@@ -19,3 +19,7 @@ The trigger is a continuing automated default-contract block or reproduction in 
 ## Searchable-Selection Trigger — 2026-10-16
 
 The [first installed ComboBox query gate](react-native-searchable-selection-receipt.md) supplies a new default-setting failure signature: one requested Native query text burst leaves only N in the native field, the sole native change (event count 1), callback and committed owner while focus/keyboard remain active. The saved synthesized event contains the intended full string but does not prove per-key native delivery. No blur, selection or close follows before failure capture. This is distinct from the prior full-native-text/Na-until-blur result; neither failure is explained or closed. No production Input/ComboBox repair is made. The [bounded matched delivery proposal](react-native-query-delivery-diagnostic-pass.md) freezes raw/Input/ComboBox comparisons and heartbeat/native-dispatch attribution before any further propagation; it is not launched by recording this trigger.
+
+## Approved Matched Diagnostic — Transport Block — 2026-10-16
+
+The approved [two-pass diagnostic receipt](react-native-query-delivery-diagnostic-receipt.md) freezes matched raw/Input/ComboBox cases, ref-only heartbeat/event observations, exact existing pins and verified Release/installed identities. Four focused source cases and associated types/lint/format gates pass. The retained guest's single preflight then stalls before any completed test verdict; a 90-second log-silence watchdog interrupts it and the partial result bundle cannot export attachments. Apply the explicit stop: zero component attempts, no warm repeat, debugger inspection, guest cycling or production repair. The guest is restored/stopped. This adds a transport blocker, not a new text-delivery signature or cause. RN-TEXT-01 remains open; investigating this exact startup failure requires the next bounded decision. The web/native customization coverage gaps remain separately visible in the [family audit](react-native-searchable-selection-coverage.md).
