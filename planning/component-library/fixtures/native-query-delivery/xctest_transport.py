@@ -87,6 +87,18 @@ def callback_proof(summary, captures, method):
     return method.endswith("/testTransportPreflight") and len(matches) == 1
 
 
+def replay_selection(xctestrun, project=None, scheme=None, derived_data=None):
+    project_options = (project, scheme, derived_data)
+    if any(project_options) and not all(project_options):
+        raise ValueError("Private project replay requires project, scheme and derived data together")
+    if project:
+        if xctestrun.parent.resolve() != (derived_data / "Build/Products").resolve():
+            raise ValueError("The frozen xctestrun must belong to the selected derived-data products")
+        return ["-project", str(project.resolve()), "-scheme", scheme,
+                "-derivedDataPath", str(derived_data.resolve()), "-sdk", "iphonesimulator"]
+    return ["-xctestrun", str(xctestrun.resolve())]
+
+
 def export_result(result, output, environment):
     commands = [
         ("summary", ["get", "test-results", "summary", "--path", str(result)]),
@@ -116,6 +128,9 @@ def main():
     parser.add_argument("--method", required=True)
     parser.add_argument("--output", required=True, type=Path)
     parser.add_argument("--developer-dir", required=True, type=Path)
+    parser.add_argument("--project", type=Path)
+    parser.add_argument("--scheme")
+    parser.add_argument("--derived-data", type=Path)
     parser.add_argument("--total-seconds", type=int, default=420)
     parser.add_argument("--silence-seconds", type=int, default=90)
     args = parser.parse_args()
@@ -123,6 +138,10 @@ def main():
         parser.error("Require 0 < silence <= total <= 600 seconds")
     if not args.xctestrun.is_file():
         parser.error("The frozen .xctestrun must exist")
+    try:
+        selection = replay_selection(args.xctestrun, args.project, args.scheme, args.derived_data)
+    except ValueError as error:
+        parser.error(str(error))
     if any((parent / "SEALED.json").exists() for parent in [args.output, *args.output.parents]):
         parser.error("Never write under a sealed evidence packet")
     args.output.mkdir(parents=True, exist_ok=False)
@@ -130,8 +149,7 @@ def main():
     environment["DEVELOPER_DIR"] = str(args.developer_dir)
     result = args.output / "result.xcresult"
     command = [
-        str(args.developer_dir / "usr/bin/xcodebuild"), "test-without-building",
-        "-xctestrun", str(args.xctestrun.resolve()),
+        str(args.developer_dir / "usr/bin/xcodebuild"), "test-without-building", *selection,
         "-destination", "platform=iOS Simulator,id=" + args.device,
         "-parallel-testing-enabled", "NO",
         "-only-testing:" + args.method,
@@ -143,7 +161,7 @@ def main():
                "startedAtUnix": time.time(), "totalCapSeconds": args.total_seconds,
                "silenceCapSeconds": args.silence_seconds, "automaticRetries": 0,
                "installerOrPIDProbeRequired": False, "command": command,
-               "invocationMode": "xctestrun",
+               "invocationMode": "private-project" if args.project else "xctestrun",
                "controllerSHA256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     write_json(args.output / "attempt.json", receipt)
     try:

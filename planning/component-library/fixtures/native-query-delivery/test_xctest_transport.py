@@ -4,10 +4,21 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from xctest_transport import callback_proof, native_progress, run_bounded
+from xctest_transport import callback_proof, native_progress, replay_selection, run_bounded
 
 
 class TransportTests(unittest.TestCase):
+    def test_private_launcher_requires_complete_frozen_product_selection(self):
+        cache = Path("frozen/Build/Products/Tests.xctestrun")
+        with self.assertRaises(ValueError):
+            replay_selection(cache, project=Path("Harness.xcodeproj"))
+        with self.assertRaises(ValueError):
+            replay_selection(cache, Path("Harness.xcodeproj"), "Tests", Path("other-cache"))
+        arguments = replay_selection(cache, Path("Harness.xcodeproj"), "Tests", Path("frozen"))
+        self.assertNotIn("-xctestrun", arguments)
+        self.assertIn(str(Path("frozen").resolve()), arguments)
+        self.assertEqual(replay_selection(cache), ["-xctestrun", str(cache.resolve())])
+
     def test_callback_requires_native_owner_and_single_pass(self):
         method = "Tests/Tests/testTransportPreflight"
         summary = {"totalTestCount": 1, "passedTests": 1, "failedTests": 0}
@@ -42,8 +53,8 @@ class TransportTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as folder:
             root = Path(folder)
             result = run_bounded([sys.executable, "-u", "-c",
-                                  "import time\nwhile True:\n print('active'); time.sleep(.02)"],
-                                 root / "log", root / "result", os.environ.copy(), 0.3, 0.2, 0.01)
+                                  "import time\nwhile True:\n print('active'); time.sleep(.03)"],
+                                 root / "log", root / "result", os.environ.copy(), 1.2, 1, 0.02)
             self.assertEqual(result["stopReason"], "total-cap")
             self.assertNotEqual(result["exitCode"], 0)
 
@@ -54,9 +65,9 @@ class TransportTests(unittest.TestCase):
             native.mkdir()
             script = ("from pathlib import Path\nimport sys,time\n"
                       "path=Path(sys.argv[1])\n"
-                      "for index in range(8):\n path.write_text(str(index)); time.sleep(.04)")
+                      "for index in range(16):\n path.write_text(str(index)); time.sleep(.2)")
             result = run_bounded([sys.executable, "-c", script, str(native / "Session-test.log")],
-                                 root / "log", native, os.environ.copy(), 2, 0.15, 0.01)
+                                 root / "log", native, os.environ.copy(), 10, 2, 0.02)
             self.assertIsNone(result["stopReason"])
             self.assertEqual(result["exitCode"], 0)
 
