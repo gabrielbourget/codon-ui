@@ -15,6 +15,8 @@ The Progress/Meter scene presents caller-owned task progress and a negative-to-p
 
 The Loading scene composes CircleLoader and LaggingLinesLoader with numeric/time-string duration controls, explicit stopped zero, transparent tracks, numeric/percentage/zero dimensions and native colors. Circle container styles and line visual styles retain separate owners, including the line animationDuration override and root final styles. A loader inside a Button inherits its foreground and stays decorative. Theme/window/fixture changes preserve scene state; reset remounts defaults. Live Reduce Motion and installed frame/geometry/semantic outcomes remain separate native acceptance cases.
 
+The Toggle scene adds controlled and initially selected ToggleButton examples, repeated caller vetoes with separate request/activation counts, disabled takeover, geometry/order, explicit colors, final render-foreground styles and zero dimensions. Both controlled false and a changed uncontrolled value survive theme/window/fixture changes; reset remounts defaults. This standalone scene does not establish upstream group/indicator composition or installed native acceptance.
+
 ```sh
 pnpm -F @codon-ui/react-native build
 pnpm -F @codon-ui/native-showcase start

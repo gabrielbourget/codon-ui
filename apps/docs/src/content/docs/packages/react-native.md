@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, ToggleButton, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -79,6 +79,28 @@ Select accepts readonly items with stable typed getKey and nonempty getTextValue
 The native presentation is an opaque full-screen core Modal with its own safe-area provider, heading, Close action and dynamic-height FlatList. Android Back requests closure. Initial selected-row positioning uses bounded measurement-driven attempts; pending focus/scroll work stops after closure or unmount. Public ListBoxItem is a controlled radio row with explicit id/textValue and one owned interactive root. Custom row content must remain decorative. Native minimum targets are 44 points on iOS and 48 dp on Android unless explicitly constrained by the host.
 
 Consumers must install react-native-safe-area-context exactly 5.7.0 alongside the existing React/RN peers and rebuild their native binary. No new palette roles are introduced. Root, trigger, selected text and options list have separate native style owners. DOM/forms, anchored placement, arbitrary child registration, multi-selection, search and hardware typeahead are outside this contract. Physical screen-reader focus and keyboard acceptance remain in the application/device lane.
+
+## ToggleButton
+
+ToggleButton composes the existing native Button target and interaction lifecycle. isSelected/onChange(boolean) owns controlled selection and defaultSelected initializes uncontrolled selection once. False remains authoritative while an owner repeatedly declines requests. A native activation requests selection before invoking onPress; same-value requests are suppressed. Disabled blocks native activation and cancels an active press with balanced callbacks. A parent can still change its prop, and explicit render-state methods remain programmatic requests.
+
+```tsx
+import { useState } from "react"
+import { ToggleButton } from "@codon-ui/react-native"
+
+export const Flag = () => {
+  const [selected, setSelected] = useState(false)
+  return (
+    <ToggleButton accessibilityLabel="Mark item" isSelected={selected} onChange={setSelected}>
+      Mark item
+    </ToggleButton>
+  )
+}
+```
+
+Render children and final style callbacks receive current selected/pressed/hovered/focused/disabled state and foregroundColor, plus state with isSelected/defaultSelected/setSelected/toggle. Final style additionally receives post-custom defaultStyle. Primitive/Fragment content receives native Text; authored content remains intact. Root color reaches owned content. No-order semantic selection, all five action orders, three geometries, focus outline/offset and raised true/false use existing tokens; raised defaults false. Explicit color remains authored through hover/press/selection. Computed styles precede customStyles and final style, with native colors, registered styles and arrays. Numeric/percentage/auto dimensions include explicit zero and retain the existing target/clipping exceptions.
+
+The actual View ref, native names/IDs and event/layout payloads remain public. Native semantics use one Button with owned checked selection state, corresponding to web button/aria-pressed. Initial autoFocus schedules a cancellable native View focus request; unmount or disabling before the frame prevents stale focus. This requests platform focus without a claim about physical keyboard or spoken output. Native focus replaces web focus-visible modality; DOM forms/classes/events and upstream slot context have no direct core-native host mapping. ToggleButtonGroup membership and SelectionIndicator context remain open inherited composition capabilities in roadmap 3.5.3. Standalone source delivery does not close those cells or installed rendering/autofocus/semantic acceptance.
 
 ## Indicators And Segments
 

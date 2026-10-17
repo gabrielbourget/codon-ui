@@ -32,6 +32,7 @@ import { OverlayScene } from "./OverlayScene"
 import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
+import { ToggleScene } from "./ToggleScene"
 
 const FixtureAction = ({
   label,
@@ -155,6 +156,7 @@ export const NativeShowcase = () => {
     | "range"
     | "display"
     | "loading"
+    | "toggle"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -208,6 +210,7 @@ export const NativeShowcase = () => {
               onPress={() => setScene("display")}
             />
             <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
+            <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -230,7 +233,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "loading" ? (
+            {scene === "toggle" ? (
+              <ToggleScene />
+            ) : scene === "loading" ? (
               <LoadingScene />
             ) : scene === "display" ? (
               <DisplayScene />
