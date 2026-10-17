@@ -1,6 +1,14 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { AccessibilityInfo, Animated, PlatformColor, StyleSheet, type View, type ViewStyle } from "react-native"
+import {
+  AccessibilityInfo,
+  Animated,
+  Platform,
+  PlatformColor,
+  StyleSheet,
+  type View,
+  type ViewStyle,
+} from "react-native"
 
 import { LinearProgress, Meter, NativeThemeProvider } from "../../.."
 import type { TNativeLinearProgressStyleState } from "../../LinearProgress/types"
@@ -379,6 +387,16 @@ it("keeps meter callback state determinate", async () => {
   await render(<Meter aria-label="Capacity" value={50} style={callback} />)
   expect(callback.mock.calls.at(-1)?.[0]).toMatchObject({ percentage: 50, valueText: "50%" })
   expect(callback.mock.calls.at(-1)?.[0]).not.toHaveProperty("isIndeterminate")
+})
+
+it("uses Android's supported range role without exposing measurement as an editable control", async () => {
+  jest.replaceProperty(Platform, "OS", "android")
+  await render(<Meter aria-label="Measured quantity" value={-5} minValue={-10} maxValue={10} />)
+  const root = screen.getByRole("progressbar", { name: "Measured quantity" })
+  expect(root.props.role).toBe("progressbar")
+  expect(root.props.accessibilityRole).toBe("progressbar")
+  expect(root).toHaveAccessibilityValue({ min: -10, max: 10, now: -5, text: "25%" })
+  expect(screen.queryByRole("slider")).toBeNull()
 })
 
 it("animates only the visual fill and cancels superseded and unmounted transitions", async () => {

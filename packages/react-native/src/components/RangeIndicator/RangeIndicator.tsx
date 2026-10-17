@@ -1,5 +1,5 @@
 import { forwardRef } from "react"
-import { ActivityIndicator, Animated, View, type ViewStyle } from "react-native"
+import { ActivityIndicator, Animated, Platform, View, type ViewStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -69,6 +69,8 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
   const { animatedFill, reduceMotion } = useRangeAnimation(visiblePercentage)
   const vertical = orientation === "vertical"
   const componentID = component === "Meter" ? "meter" : "linear-progress"
+  // RN 0.86's Android ARIA meter enum suppresses the fallback without mapping to a native role.
+  const role = component === "Meter" && Platform.OS !== "android" ? "meter" : "progressbar"
   const identity = testID ?? aliasTestID ?? componentID
   const custom = resolveNativeStyle(customStyles, component, "customStyles")
   const baseline: ViewStyle = {
@@ -138,7 +140,7 @@ export const RangeIndicator = forwardRef<View, TRangeIndicatorProps>((props, ref
       {...rest}
       ref={ref}
       accessible
-      role={component === "Meter" ? "meter" : "progressbar"}
+      role={role}
       accessibilityRole="progressbar"
       accessibilityLabel={label}
       accessibilityValue={isIndeterminate ? {} : { min: minValue, max: maxValue, now: boundedValue, text: valueText }}
