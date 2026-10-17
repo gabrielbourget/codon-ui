@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress and Meter with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator and LineSegment with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -79,6 +79,27 @@ Select accepts readonly items with stable typed getKey and nonempty getTextValue
 The native presentation is an opaque full-screen core Modal with its own safe-area provider, heading, Close action and dynamic-height FlatList. Android Back requests closure. Initial selected-row positioning uses bounded measurement-driven attempts; pending focus/scroll work stops after closure or unmount. Public ListBoxItem is a controlled radio row with explicit id/textValue and one owned interactive root. Custom row content must remain decorative. Native minimum targets are 44 points on iOS and 48 dp on Android unless explicitly constrained by the host.
 
 Consumers must install react-native-safe-area-context exactly 5.7.0 alongside the existing React/RN peers and rebuild their native binary. No new palette roles are introduced. Root, trigger, selected text and options list have separate native style owners. DOM/forms, anchored placement, arbitrary child registration, multi-selection, search and hardware typeahead are outside this contract. Physical screen-reader focus and keyboard acceptance remain in the application/device lane.
+
+## Indicators And Segments
+
+Indicator is a passive, caller-owned visual state. isActive defaults true; explicit false chooses inactiveColor, whose default is transparent. Its border still uses the active color unless borderColor is supplied. color defaults to the current owned Text/Button foreground or the theme foreground. size defaults to 10 native logical units, borderWidth to zero and shape to circle; rounded and square use the existing radius tokens. Constants, available-shape array and public props/ref/state aliases are exported.
+
+```tsx
+import { Indicator, LineSegment } from "@codon-ui/react-native"
+
+export const Availability = ({ active }: { active: boolean }) => (
+  <>
+    <Indicator isActive={active} size={14} color="green" inactiveColor="gray" borderWidth={2} />
+    <LineSegment direction="horizontal" height={80} size={4} />
+  </>
+)
+```
+
+LineSegment preserves the canonical direction tokens: horizontal uses height × size, and vertical uses size × width. With defaults this produces height50/width2.5 or height2.5/width50 respectively. color defaults to the native semantic control border. Native logical dimensions, percentages and auto replace CSS length strings; finite nonnegative numbers include explicit zero. Border thickness is numeric. CSS variables/units and unsupported dimensions reject rather than being ignored.
+
+Both components expose an actual View ref, forward native identity/layout/accessibility props and consume their wrapper props. Native name/testID spellings take precedence over aliases, including explicit empty strings. They are decorative by default; set accessible and an appropriate native role/name when the surrounding composition needs a distinct semantic target. Neither component owns children, editing, selection requests or default-value state.
+
+Root customization follows computed → customStyles → final style, with native color validation, registered styles and style arrays. A style callback receives post-custom defaultStyle plus current isActive for Indicator or direction for LineSegment. Provider changes update current colors/radii without local value mirrors. The maintained Indicator/Segment scene exercises state, all shapes, dimensions, explicit colors, style precedence, owned foreground, reset and live host changes. Source/consumer evidence and installed Android/iOS acceptance are separate cells in the roadmap matrix.
 
 ## Progress And Measurement
 

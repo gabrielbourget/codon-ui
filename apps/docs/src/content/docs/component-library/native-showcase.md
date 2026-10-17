@@ -11,6 +11,8 @@ The NumberInput scene adds controlled fractional and initially empty page-like v
 
 ## Local Use
 
+The Progress/Meter scene presents caller-owned task progress and a negative-to-positive measurement range, with unknown progress, geometry/order/direction, authored labels and independent native style slots. The Indicator/Segment scene adds passive status shapes, active/inactive colors, explicit zero dimensions, canonical segment direction tokens, theme-owned foreground and final style overrides. Both scenes preserve their state through live theme/window/fixture changes and reset explicitly. Their source composition tests do not close measured installed-platform or physical acceptance cells.
+
 ```sh
 pnpm -F @codon-ui/react-native build
 pnpm -F @codon-ui/native-showcase start
