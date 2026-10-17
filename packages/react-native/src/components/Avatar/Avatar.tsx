@@ -10,16 +10,17 @@ import { Text } from "../Text/Text"
 import { getNativeAvatarName, getNativeAvatarStyle } from "./styles"
 import type { TNativeAvatarProps, TNativeAvatarRef, TNativeAvatarRootStyle } from "./types"
 
-const AvatarGraphic = ({
+const AvatarImage = ({
   uri,
   imageStyle,
-  fallback,
+  loaded,
+  onLoadedChange,
 }: {
-  uri?: string
+  uri: string
   imageStyle: ImageStyle
-  fallback: ReactNode
+  loaded: boolean
+  onLoadedChange: (loaded: boolean) => void
 }) => {
-  const [loaded, setLoaded] = useState(false)
   const mounted = useRef(false)
   useLayoutEffect(() => {
     mounted.current = true
@@ -28,25 +29,45 @@ const AvatarGraphic = ({
     }
   }, [])
   return (
+    <Image
+      source={{ uri }}
+      testID="avatar-image"
+      accessible={false}
+      importantForAccessibility="no"
+      resizeMode="contain"
+      style={[imageStyle, !loaded && { opacity: 0, position: "absolute" }]}
+      onLoad={() => {
+        if (mounted.current) onLoadedChange(true)
+      }}
+      onError={() => {
+        if (mounted.current) onLoadedChange(false)
+      }}
+    />
+  )
+}
+
+const AvatarGraphic = ({
+  uri,
+  imageStyle,
+  fallback,
+  renderRoot,
+}: {
+  uri?: string
+  imageStyle: ImageStyle
+  fallback: ReactNode
+  renderRoot: (content: ReactNode) => ReactNode
+}) => {
+  const [image, setImage] = useState({ uri, loaded: false })
+  if (image.uri !== uri) setImage({ uri, loaded: false })
+  const loaded = image.uri === uri && image.loaded
+  const setLoaded = (next: boolean) => setImage((current) => (current.uri === uri ? { uri, loaded: next } : current))
+  return renderRoot(
     <>
       {uri ? (
-        <Image
-          source={{ uri }}
-          testID="avatar-image"
-          accessible={false}
-          importantForAccessibility="no"
-          resizeMode="contain"
-          style={[imageStyle, !loaded && { opacity: 0, position: "absolute" }]}
-          onLoad={() => {
-            if (mounted.current) setLoaded(true)
-          }}
-          onError={() => {
-            if (mounted.current) setLoaded(false)
-          }}
-        />
+        <AvatarImage key={uri} uri={uri} imageStyle={imageStyle} loaded={loaded} onLoadedChange={setLoaded} />
       ) : null}
       {!loaded && fallback}
-    </>
+    </>,
   )
 }
 
@@ -87,6 +108,9 @@ export const Avatar = forwardRef<TNativeAvatarRef, TNativeAvatarProps>((props, r
     onBlur,
     onLayout,
     hitSlop,
+    pointerEvents,
+    onPointerEnter,
+    onPointerLeave,
     ...rest
   } = props
   const theme = useNativeTheme()
@@ -154,25 +178,55 @@ export const Avatar = forwardRef<TNativeAvatarRef, TNativeAvatarProps>((props, r
       </NativeContentContext.Provider>
     </View>
   ) : null
+  const identity = {
+    ref,
+    accessible,
+    accessibilityLabel: accessibilityLabel ?? aliasLabel ?? name,
+    testID: testID ?? aliasTestID ?? "avatar",
+    onLayout: target.onLayout,
+    style: resolved.viewStyle,
+  }
   return (
-    <Pressable
-      {...rest}
-      {...interaction.handlers}
-      ref={ref}
-      accessible={accessible}
-      role={isInteractive ? "button" : "img"}
-      disabled={!isInteractive || isDisabled}
-      focusable={isInteractive && !isDisabled}
-      aria-disabled={isInteractive ? isDisabled : undefined}
-      accessibilityState={{ ...accessibilityState, disabled: isInteractive ? isDisabled : undefined }}
-      accessibilityLabel={accessibilityLabel ?? aliasLabel ?? name}
-      testID={testID ?? aliasTestID ?? "avatar"}
-      onLayout={target.onLayout}
-      hitSlop={isInteractive ? target.hitSlop : undefined}
-      style={resolved.viewStyle}
-    >
-      <AvatarGraphic key={imageURL ?? ""} uri={imageURL} imageStyle={imageStyle} fallback={fallback} />
-    </Pressable>
+    <AvatarGraphic
+      uri={imageURL}
+      imageStyle={imageStyle}
+      fallback={fallback}
+      renderRoot={(graphic) =>
+        isInteractive ? (
+          <Pressable
+            {...rest}
+            {...interaction.handlers}
+            {...identity}
+            role="button"
+            disabled={isDisabled}
+            focusable={!isDisabled}
+            aria-disabled={isDisabled}
+            accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
+            pointerEvents={pointerEvents}
+            onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
+            hitSlop={target.hitSlop}
+          >
+            {graphic}
+          </Pressable>
+        ) : (
+          <View
+            {...rest}
+            {...identity}
+            role="img"
+            focusable={false}
+            accessibilityState={accessibilityState}
+            pointerEvents={pointerEvents ?? "none"}
+            onPointerEnter={onPointerEnter}
+            onPointerLeave={onPointerLeave}
+            onFocus={onFocus}
+            onBlur={onBlur}
+          >
+            {graphic}
+          </View>
+        )
+      }
+    />
   )
 })
 Avatar.displayName = "Avatar"

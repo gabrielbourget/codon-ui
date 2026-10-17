@@ -36,6 +36,41 @@ it("CAP.avatar.001 renders a single named image root with canonical inverse colo
   expect(screen.queryByTestId("avatar-image", { includeHiddenElements: true })).toBeNull()
 })
 
+it("NATIVE.avatar.002 exposes an enabled passive image without taking the enclosing control's touch responder", async () => {
+  const onPress = jest.fn()
+  const { rerender } = await render(<Avatar name1="Alice" onPress={onPress} />)
+  const root = screen.getByRole("img", { name: "Alice" })
+  expect(root).not.toBeDisabled()
+  expect(root.props.pointerEvents).toBe("none")
+  await fireEvent.press(root, { nativeEvent: { timestamp: 1 } })
+  expect(onPress).not.toHaveBeenCalled()
+  await rerender(<Avatar name1="Alice" pointerEvents="box-none" />)
+  expect(screen.getByRole("img").props.pointerEvents).toBe("box-none")
+})
+
+it("NATIVE.avatar.001 retains successful image/fallback lifetime when clickable mode changes", async () => {
+  const { rerender } = await render(<Avatar imageURL="a" clickable onPress={() => undefined} />)
+  await fireEvent(graphic("avatar-image"), "load", {})
+  expect(fallback()).toBeNull()
+  const retiredError = graphic("avatar-image").props.onError
+  await rerender(<Avatar imageURL="a" clickable={false} onPress={() => undefined} />)
+  expect(fallback()).toBeNull()
+  expect(screen.getByRole("img")).not.toBeDisabled()
+  await act(() => retiredError({}))
+  expect(fallback()).toBeNull()
+})
+
+it("NATIVE.avatar.001 keeps the actual native root instance stable across image URI changes", async () => {
+  const ref = createRef<TNativeAvatarRef>()
+  const onPress = jest.fn()
+  const { rerender } = await render(<Avatar ref={ref} imageURL="a" clickable onPress={onPress} />)
+  const originalRoot = ref.current
+  await rerender(<Avatar ref={ref} imageURL="b" clickable onPress={onPress} />)
+  expect(ref.current).toBe(originalRoot)
+  expect(fallback()).not.toBeNull()
+  expect(onPress).not.toHaveBeenCalled()
+})
+
 it.each([50, "50", " 50 ", "50%", "auto", 0] as const)("CAP.avatar.002 preserves native size %s", async (size) => {
   await render(<Avatar size={size} />)
   const expected = size === "50" || size === " 50 " ? 50 : size
