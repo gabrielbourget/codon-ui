@@ -147,6 +147,30 @@ Only clickable plus onPress enables activation; native disabled guards it and ca
 
 fallbackDelay controls eligibility once per mounted Avatar lifetime, matching the inherited Radix behavior: omitted delay is immediate; a defined delay, including zero, schedules eligibility. URI/name/theme changes preserve that lifetime. A changed pending delay cancels its old timer; removing it before eligibility leaves the fallback pending until another defined delay or a remount. Eligibility stays true once reached. Unmount cancels work. The maintained Avatar scene provides local valid/invalid PNG data, a deliberate lifetime restart and live controls for these behaviors.
 
+## Tag
+
+Tag is the standalone status/pressable component, distinct from TagGroup's collection item. Static mode renders a native text container with live-region off by default. pressable=true requires caller-owned isPressed and onPress(id); the callback retains numeric 0, string "0", empty string and undefined without creating a selection mirror. A caller may repeatedly decline. Programmatic owner changes still render while disabled, while isDisabled blocks/cancels user activation. aria-pressed can explicitly override the exposed checked state, including false and mixed, without changing the visual owner value.
+
+```tsx
+import { useState } from "react"
+import { Tag } from "@codon-ui/react-native"
+
+export const Choice = () => {
+  const [pressed, setPressed] = useState(false)
+  return (
+    <Tag pressable id={0} isPressed={pressed} onPress={() => setPressed((value) => !value)}>
+      Choice
+    </Tag>
+  )
+}
+```
+
+Static color and interactive activeColor/inactiveColor control background. border/activeBorder/inactiveBorder accept none or native borderWidth/borderColor/borderStyle objects. Three geometries, raised/raisedOnHover, native dimensions including zero/percent/auto, focusOutline/outlineOffset and auto/pointer hoverCursor retain their controls. Root computed → customStyles → final style/callback preserves post-custom defaults; native text typography/color fields reach owned content. Authored children retain identity and their own styles. Native IDs/names/layout/ref payloads remain available; nativeID precedes String(id), and callbacks keep the original typed id. Static mode exposes View events, while press controls/ripple belong to interactive mode. Both modes can observe native pointer hover; static tags create no press responder.
+
+Native backgroundColorTransition accepts milliseconds, an s/ms duration or an object with duration, delay and linear/ease/ease-in/ease-out/ease-in-out. Defaults mirror the canonical bridge: 250ms background/foreground/border colors and 450ms raised shadows. Component-local core Animated transitions stop at current values when interrupted and cancel on removal or Reduce Motion. Unknown/unavailable motion preference stays static. Opaque native colors remain supported and snap rather than inventing unavailable RGB channels. Private compatibility bindings reconcile the pinned RN runtime/declaration differences without changing dependencies.
+
+The curated Tag scene demonstrates exact typed requests, repeated veto, disabled/programmatic updates, exposed-state overrides, static status, geometry/border/palette/native text/final style controls, zero and constrained dimensions, long bilingual labels, timing and reset. Independent global muted-border/transition theme controls, opaque-color interpolation, complex authored shadow transitions and installed intrinsic/nowrap/layout/semantic acceptance remain open; source timing assertions do not certify native frames. Physical pointer/spoken acceptance retains its existing application/device authority.
+
 ## Indicators And Segments
 
 Indicator is a passive, caller-owned visual state. isActive defaults true; explicit false chooses inactiveColor, whose default is transparent. Its border still uses the active color unless borderColor is supplied. color defaults to the current owned Text/Button foreground or the theme foreground. size defaults to 10 native logical units, borderWidth to zero and shape to circle; rounded and square use the existing radius tokens. Constants, available-shape array and public props/ref/state aliases are exported.

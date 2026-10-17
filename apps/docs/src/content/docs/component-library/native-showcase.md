@@ -11,6 +11,8 @@ The NumberInput scene adds controlled fractional and initially empty page-like v
 
 ## Local Use
 
+The Tag scene adds controlled false values with exact numeric/string/empty/undefined request IDs, repeated owner veto, disabled/programmatic changes and independent exposed checked state. Paired static status and interactive tags expose geometry, borders, raised/hover, colors, native text/final style overrides, zero/width constraints, long labels and transition controls. Settings survive theme/window/fixture changes and reset explicitly. Source checks leave actual intrinsic/nowrap, native motion and accessibility evidence open.
+
 The Avatar scene adds local valid/invalid PNG image fixtures, named/anonymous initials, first activation and disabled/passive guards, explicit zero dimensions, size/geometry/shadow/color controls and all four style owners. A deliberate lifetime restart demonstrates the inherited fallback-delay behavior. Host activation counts and settings survive theme/window/fixture updates; Reset scene starts a fresh composition. Source composition tests inject native image callbacks and do not certify installed decoding or rendering.
 
 The Progress/Meter scene presents caller-owned task progress and a negative-to-positive measurement range, with unknown progress, geometry/order/direction, authored labels and independent native style slots. The Indicator/Segment scene adds passive status shapes, active/inactive colors, explicit zero dimensions, canonical segment direction tokens, theme-owned foreground and final style overrides. Both scenes preserve their state through live theme/window/fixture changes and reset explicitly. Their source composition tests do not close measured installed-platform or physical acceptance cells.

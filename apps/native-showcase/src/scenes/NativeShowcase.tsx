@@ -33,6 +33,7 @@ import { OverlayScene } from "./OverlayScene"
 import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
+import { TagScene } from "./TagScene"
 import { ToggleScene } from "./ToggleScene"
 
 const FixtureAction = ({
@@ -159,6 +160,7 @@ export const NativeShowcase = () => {
     | "loading"
     | "toggle"
     | "avatar"
+    | "tag"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -214,6 +216,7 @@ export const NativeShowcase = () => {
             <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
             <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
             <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
+            <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -236,7 +239,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "avatar" ? (
+            {scene === "tag" ? (
+              <TagScene />
+            ) : scene === "avatar" ? (
               <AvatarScene />
             ) : scene === "toggle" ? (
               <ToggleScene />
