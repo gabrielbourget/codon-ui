@@ -32,6 +32,8 @@ The native library has a native Jest preset; showcase integration has jest-expo.
 
 CNG regenerates ignored native directories from app.config.ts and declared dependencies/plugins. Native module/config changes require a fresh development binary. Local ios/android scripts require suitable Xcode/CocoaPods or Android SDK/JDK tooling. Expo Go exploration cannot close the development/release acceptance gates. No paid/cloud build, release service, signing or store pipeline is enabled.
 
+The Toggle scene also presents a controlled ToggleSwitcher with independent request counts, repeated veto, read-only/group/member guards, item removal/reinsertion/reorder, an empty collection and an explicit empty key. Shared order/geometry/color/style controls cover the root, option and selected-option owners. Long English/French labels exercise wrapping; live host changes retain selection and reset remounts defaults. Source composition is separate from installed intrinsic sizing, target, motion and semantic acceptance.
+
 ## Adaptive Fixtures
 
 Use [Native Lab](/foundation/native-lab/) for host/tool requirements and actual build/reference capture. Source generation and JS export proof do not establish an installed app.

@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, ToggleButton, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -101,6 +101,33 @@ export const Flag = () => {
 Render children and final style callbacks receive current selected/pressed/hovered/focused/disabled state and foregroundColor, plus state with isSelected/defaultSelected/setSelected/toggle. Final style additionally receives post-custom defaultStyle. Primitive/Fragment content receives native Text; authored content remains intact. Root color reaches owned content. No-order semantic selection, all five action orders, three geometries, focus outline/offset and raised true/false use existing tokens; raised defaults false. Explicit color remains authored through hover/press/selection. Computed styles precede customStyles and final style, with native colors, registered styles and arrays. Numeric/percentage/auto dimensions include explicit zero and retain the existing target/clipping exceptions.
 
 The actual View ref, native names/IDs and event/layout payloads remain public. Native semantics use one Button with owned checked selection state, corresponding to web button/aria-pressed. Initial autoFocus schedules a cancellable native View focus request; unmount or disabling before the frame prevents stale focus. This requests platform focus without a claim about physical keyboard or spoken output. Native focus replaces web focus-visible modality; DOM forms/classes/events and upstream slot context have no direct core-native host mapping. ToggleButtonGroup membership and SelectionIndicator context remain open inherited composition capabilities in roadmap 3.5.3. Standalone source delivery does not close those cells or installed rendering/autofocus/semantic acceptance.
+
+## ToggleSwitcher
+
+ToggleSwitcher renders a readonly explicit-items list with string id, ReactNode label, optional disabled and optional native accessibilityLabel for complex visual content. selectedKey/onSelectionChange controls selection; otherwise defaultSelectedKey, the initial first enabled item or an empty fallback initializes it once. An empty string is a real key. Same-key requests, group disabled/read-only and item-disabled actions do not change selection. A controlled parent may repeatedly decline; removal/reorder/relabel/reinsertion retains the key without synthetic callbacks. Unavailable keys render no selected option until reinserted.
+
+```tsx
+import { useState } from "react"
+import { ToggleSwitcher } from "@codon-ui/react-native"
+
+const modes = [
+  { id: "and", label: "Match all" },
+  { id: "or", label: "Match any" },
+]
+
+export const MatchMode = () => {
+  const [mode, setMode] = useState("and")
+  return <ToggleSwitcher accessibilityLabel="Match mode" items={modes} selectedKey={mode} onSelectionChange={setMode} />
+}
+```
+
+The actual root ref is a View. Native identity/name aliases and layout events retain their payloads; the root is nonaccessible, leaving separate button/checked targets for options. Authored labels must be decorative content. Read-only remains inspectable; group disabled/read-only opacity applies once and does not announce busy. Unconstrained options use the existing 44-point/48-dp target policy, with authored dimensions/parent constraints retaining their normal exceptions.
+
+Root size, three geometries, five orders, selected foreground color, fontSize12, uppercase and the nine canonical font-weight aliases remain configurable. Named dimensions are static logical numbers, percentages or auto and preserve zero; standard native style slots retain their broader native types. Root computed styles precede customStyles and final style. customOptionStyles applies to every option and customSelectedOptionStyles wins on the selected option; native typography fields reach owned Text. Labels render once, retain authored state and wrap within measured equal columns. Root layout fields configure the private row, while padding/border/background/external sizing remain root-owned. Root style callbacks receive current selectedKey/guards and post-custom defaultStyle.
+
+One decorative selected surface follows accepted selection and measured layout positions with a 250 ms ease-in-out translation, opacity and scale0.92→1 entrance. Replaced transitions resume from stopped native values; late callbacks cannot restart a retired transition. Pending/unavailable Reduce Motion is static, live changes cancel current motion and unmount cancels both motion and measurement work. Source checks do not certify actual native frame timing, intrinsic geometry or spoken output.
+
+Muted root defaults copy the unchanged canonical light/dark surface #f7f7f7/#202020 and border #c6c6c6/#3d3d3d. Root custom/final styles override them independently. Adding independent surfaceMuted/borderMuted provider roles remains a public-theme decision, so full theme acceptance stays open. This explicit-items component does not provide upstream ToggleButtonGroup or SelectionIndicator interop. Installed equal-cell/large-text/layout/motion/semantic cells remain separate acceptance work.
 
 ## Indicators And Segments
 
