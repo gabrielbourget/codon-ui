@@ -11,6 +11,8 @@ The NumberInput scene adds controlled fractional and initially empty page-like v
 
 ## Local Use
 
+The Stepper scene exposes controlled0/null, exact numeric request/count and raw draft receipts, repeated owner veto, short/held stepping and bounds/guard takeover. Type, orientation, fill/outline, all action orders, geometry/text size, validation, four style owners, custom icons, locale, zero width and editor focus remain caller-controlled. The actual root frame is observational and never feeds numeric state. Theme/window/fixture changes preserve state; reset remounts defaults. Source integration does not certify installed repeat, native rendering, focused editing or accessibility/profile acceptance.
+
 The Gallery scene composes ThumbnailShowcase and ThumbnailImage with caller-owned keyed controls. It exercises all modes, nullish/falsy primary content, normalized slot counts and independent columns, item/overflow changes, reorder, disabled actions, zero width, four style owners and explicit content restart. Native frame receipts are observational; they never feed controlled values. Source tests preserve keyed actions through theme/window/fixture changes and keep actual track/clipping/profile acceptance separate.
 
 The Thumbnail scene chains local invalid/valid PNG candidates, distinguishes equivalent lists from source/lifetime resets, and exposes authored zero fallback, empty alt, natural/zero/constrained geometry, native styles and an injected renderer. Native error/load counts, decoded sizes and onLayout receipts remain visible without feeding controlled values. The landscape and square fixtures test actual decoder geometry; source tests inject those events and leave installed decode/pixel/semantic/profile acceptance separate.

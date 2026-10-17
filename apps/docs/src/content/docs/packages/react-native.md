@@ -72,6 +72,35 @@ The private decimal model limits precision to six fractional digits and represen
 
 Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
 
+## Stepper
+
+Stepper uses the same approved decimal state, contextual incrementLabel/decrementLabel, native TextInput ref and inputProps observer/keyboard allowlist as NumberInput. It places decrement, editor and increment in a horizontal row or column-reverse group. Segmented/cohesive type, fill/outline mode, three geometries/sizes, all five action orders and independent root/group/input/button styles follow the audited web contract. Root final style callbacks receive numeric/focus/guard state and post-custom defaultStyle. Canonical default-type margin/button-mode quirks and falsy-to-default PlusIcon/MinusIcon behavior are retained; native dimensions preserve zero.
+
+```tsx
+import { useState } from "react"
+import { Stepper } from "@codon-ui/react-native"
+
+export const Quantity = () => {
+  const [value, setValue] = useState<number | null>(0)
+  return (
+    <Stepper
+      accessibilityLabel="Quantity"
+      incrementLabel="Increase quantity"
+      decrementLabel="Decrease quantity"
+      value={value}
+      onChange={setValue}
+      minValue={0}
+      maxValue={10}
+      step={0.1}
+      type="cohesive"
+      order="primary"
+    />
+  )
+}
+```
+
+A short native release requests one step. Holding starts repeat after600ms and continues every60ms, with no extra release request; cancellation, guard/configuration takeover, bounds and unmount retire it. Repeated controlled veto requests always derive from the authoritative value. Raw editing text commits from native end/submit events, with duplicate final delivery suppressed; a cancelled press cannot leave that commit pending. The group stays nonaggregating so its editor/buttons remain separate targets; labels.inputButtonGroupAriaLabel preserves the authored group name. Actual installed focus/gesture/geometry/accessibility acceptance remains open. Currency/percent/unit/significant-digit formatting, non-snap validation, browser forms/reset, automatic label-ID/description relationships, full wheel/modifier/composition-aware keyboard and pointer-specific/localized speech behavior are still required inherited mappings, not approved capability removals. No dependency or palette change is introduced.
+
 ## Select And ListBoxItem
 
 Select accepts readonly items with stable typed getKey and nonempty getTextValue metadata; numeric 0 and string "0" remain different keys. It supports controlled value or initial defaultValue, controlled isOpen or initial defaultOpen, disabledKeys, disabled/read-only guards and decorative renderItem content. Missing selected keys retain their value and display the placeholder until reinserted. Choosing the current key closes quietly; cancellation leaves selection unchanged. Required accessibilityLabel (or aria-label) and localized closeLabel name the trigger and dismissal action.
