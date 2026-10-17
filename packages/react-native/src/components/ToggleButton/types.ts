@@ -7,6 +7,7 @@ import type {
   TNativeButtonRenderState,
   TNativeButtonRootStyle,
 } from "../Button/types"
+import type { TNativeDisplayDimension } from "../displayDimensions"
 
 export type TNativeToggleButtonRef = TNativeButtonRef
 export type TNativeToggleButtonSelectionState = Readonly<{
@@ -25,6 +26,8 @@ export type TNativeToggleButtonProps = Omit<
   TNativeButtonProps,
   | "children"
   | "style"
+  | "width"
+  | "height"
   | "isPending"
   | "colorMode"
   | "transparent"
@@ -39,6 +42,8 @@ export type TNativeToggleButtonProps = Omit<
   defaultSelected?: boolean
   onChange?: (selected: boolean) => void
   autoFocus?: boolean
+  width?: TNativeDisplayDimension
+  height?: TNativeDisplayDimension
   children?: ReactNode | ((state: TNativeToggleButtonChildrenState) => ReactNode)
   style?:
     | StyleProp<TNativeButtonRootStyle>

@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import { PlatformColor, type View } from "react-native"
+import { Animated, PlatformColor, type View } from "react-native"
 
 import { Text, ToggleButton, type ToggleButtonProps } from "../src"
 
@@ -18,6 +18,7 @@ export const props: ToggleButtonProps = {
   children: ({ state, foregroundColor }) => <Text color={foregroundColor}>{String(state.isSelected)}</Text>,
 }
 export const Valid = <ToggleButton {...props} ref={createRef<View>()} />
+export const AnimatedRootStyle = <ToggleButton style={{ width: new Animated.Value(100) }} />
 // @ts-expect-error Selection is boolean, not a string-key axis.
 export const InvalidSelection = <ToggleButton isSelected="yes" />
 // @ts-expect-error Selection semantics are owned.
@@ -30,6 +31,10 @@ export const InvalidPending = <ToggleButton isPending />
 export const InvalidTransparent = <ToggleButton transparent />
 // @ts-expect-error Native dimensions do not accept CSS rem units.
 export const InvalidWidth = <ToggleButton width="12rem" />
+// @ts-expect-error The named dimension shorthand is static, not an animated style slot.
+export const InvalidAnimatedWidth = <ToggleButton width={new Animated.Value(10)} />
+// @ts-expect-error Explicit null is not a configured static dimension.
+export const InvalidNullHeight = <ToggleButton height={null} />
 // @ts-expect-error Native refs expose View methods, not DOM buttons.
 export const InvalidRef = <ToggleButton ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error Browser classes are replaced by native styles.
