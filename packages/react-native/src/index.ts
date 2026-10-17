@@ -7,6 +7,18 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { Avatar } from "./components/Avatar/Avatar"
+export type {
+  TNativeAvatarProps,
+  TNativeAvatarProps as AvatarProps,
+  TNativeAvatarRef,
+  TNativeAvatarLabels,
+  TNativeAvatarLabels as AvatarLabels,
+  TNativeAvatarRootStyle,
+  TNativeAvatarRenderState,
+  TNativeAvatarStyleState,
+  TNativeAvatarTextProps,
+} from "./components/Avatar/types"
 export { ToggleSwitcher } from "./components/ToggleSwitcher/ToggleSwitcher"
 export { AVAILABLE_TOGGLE_SWITCHER_FONT_WEIGHTS } from "./components/ToggleSwitcher/types"
 export type {
