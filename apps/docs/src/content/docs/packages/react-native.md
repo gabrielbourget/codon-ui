@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator and LineSegment with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -101,6 +101,31 @@ Both components expose an actual View ref, forward native identity/layout/access
 
 Root customization follows computed → customStyles → final style, with native color validation, registered styles and style arrays. A style callback receives post-custom defaultStyle plus current isActive for Indicator or direction for LineSegment. Provider changes update current colors/radii without local value mirrors. The maintained Indicator/Segment scene exercises state, all shapes, dimensions, explicit colors, style precedence, owned foreground, reset and live host changes. Source/consumer evidence and installed Android/iOS acceptance are separate cells in the roadmap matrix.
 
+## Loading Indicators
+
+CircleLoader retains size25, a 3-unit track, current owned/theme foreground, translucent gray remaining sides and an 850 ms linear rotation. Supply spinnerColor, spinnerTrackColor, spinnerTrackWidth and size independently. spinnerTrackIsTransparent=true overrides the supplied track color. customStyles belongs to the outer container; its color supplies the default ring foreground, and final style takes precedence. Container dimensions do not replace the ring's size prop.
+
+LaggingLinesLoader retains a 150-by-50 container with three 20%-width/5-unit lines, opacity0.4/0.6/0.9, scaleX1.2/1.1/1, one-time 200/100/0 ms delays and a 3000 ms round trip eased separately on each half. width and color supply defaults. Its customStyles belongs to every visual line and may override animationDuration; standard final style belongs to the root. Native measured track width controls travel distance without restarting an active loop. Motion wrappers preserve authored visual transforms and the canonical far-end overhang.
+
+```tsx
+import { CircleLoader, LaggingLinesLoader } from "@codon-ui/react-native"
+
+export const Loading = ({ stopped }: { stopped: boolean }) => (
+  <>
+    <CircleLoader accessibilityLabel="Saving changes" size={30} duration={stopped ? 0 : "0.85s"} />
+    <LaggingLinesLoader
+      accessibilityLabel="Fetching results"
+      width="100%"
+      customStyles={{ borderRadius: 5, animationDuration: stopped ? 0 : "1.5s" }}
+    />
+  </>
+)
+```
+
+Both accept finite nonnegative numeric milliseconds and portable s/ms strings. Explicit zero stops motion without removing busy status. Reduce Motion changes stop/restart eligible motion; the first frame stays static while the preference query is pending or unavailable. Replaced/unmounted animations and preference subscriptions are cancelled. Layout and accessible-name aliases retain native precedence; refs expose the root View. Root style callbacks receive resolved duration, motion eligibility and post-custom defaultStyle. Native colors, arrays and registered styles remain supported without CSS variables/length units.
+
+Exposed loaders own an indeterminate progressbar role, busy state and polite live region with default name Loading; accessibilityLabel, aria-label or legacy ariaLabel may provide a localized name. The graphic is decorative and there is no numeric value. Inside owned Button content the loader is decorative by default; explicit accessible opt-in remains available. Native frame timing, Reduce Motion rendering, measured custom geometry and screen-reader output require their separate installed/physical matrix cells.
+
 ## Progress And Measurement
 
 LinearProgress represents a task's progress; Meter represents a measurement within a range. Both require a caller-owned numeric value and a nonempty accessibilityLabel (or aria-label). minValue/maxValue default to 0/100, must be finite and strictly increasing, and clamp the displayed value to their range. Zero and negative values remain meaningful. These are display components with no default value or change callback; the forwarded ref is the actual root native View.
@@ -181,4 +206,4 @@ const Example = () => {
 }
 ```
 
-Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. Fourteen native counterparts now have source implementations; final installed/consumer receipts, remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.
+Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. The roadmap records current source availability and separate installed/consumer acceptance; remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.

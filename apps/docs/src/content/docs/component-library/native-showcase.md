@@ -13,6 +13,8 @@ The NumberInput scene adds controlled fractional and initially empty page-like v
 
 The Progress/Meter scene presents caller-owned task progress and a negative-to-positive measurement range, with unknown progress, geometry/order/direction, authored labels and independent native style slots. The Indicator/Segment scene adds passive status shapes, active/inactive colors, explicit zero dimensions, canonical segment direction tokens, theme-owned foreground and final style overrides. Both scenes preserve their state through live theme/window/fixture changes and reset explicitly. Their source composition tests do not close measured installed-platform or physical acceptance cells.
 
+The Loading scene composes CircleLoader and LaggingLinesLoader with numeric/time-string duration controls, explicit stopped zero, transparent tracks, numeric/percentage/zero dimensions and native colors. Circle container styles and line visual styles retain separate owners, including the line animationDuration override and root final styles. A loader inside a Button inherits its foreground and stays decorative. Theme/window/fixture changes preserve scene state; reset remounts defaults. Live Reduce Motion and installed frame/geometry/semantic outcomes remain separate native acceptance cases.
+
 ```sh
 pnpm -F @codon-ui/react-native build
 pnpm -F @codon-ui/native-showcase start

@@ -25,6 +25,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { BasicControlsScene } from "./BasicControlsScene"
 import { DisplayScene } from "./DisplayScene"
 import { LibraryScene } from "./LibraryScene"
+import { LoadingScene } from "./LoadingScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
 import { OverlayScene } from "./OverlayScene"
@@ -144,7 +145,16 @@ export const NativeShowcase = () => {
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
   const [scene, setScene] = useState<
-    "foundation" | "library" | "controls" | "select" | "multiline" | "number" | "overlay" | "range" | "display"
+    | "foundation"
+    | "library"
+    | "controls"
+    | "select"
+    | "multiline"
+    | "number"
+    | "overlay"
+    | "range"
+    | "display"
+    | "loading"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -197,6 +207,7 @@ export const NativeShowcase = () => {
               selected={scene === "display"}
               onPress={() => setScene("display")}
             />
+            <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -219,7 +230,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "display" ? (
+            {scene === "loading" ? (
+              <LoadingScene />
+            ) : scene === "display" ? (
               <DisplayScene />
             ) : scene === "range" ? (
               <RangeScene />
