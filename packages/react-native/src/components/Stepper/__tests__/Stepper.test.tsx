@@ -526,3 +526,14 @@ it("retains explicit inline outline color ahead of validation classes", async ()
   await render(<Stepper {...names} type="cohesive" colorMode="outline" color="red" errorState warningState />)
   expect(group()).toHaveStyle({ borderColor: "red" })
 })
+
+it.each(["light", "dark"] as const)("keeps default segmented editor theme roles in %s mode", async (mode) => {
+  const theme = resolveNativeTheme(mode)
+  await render(
+    <NativeThemeProvider mode={mode}>
+      <Stepper {...names} value={0} type="segmented" />
+    </NativeThemeProvider>,
+  )
+  expect(input()).toHaveDisplayValue("0")
+  expect(input()).toHaveStyle({ color: theme.colors.controlForeground, borderColor: theme.colors.controlBorder })
+})
