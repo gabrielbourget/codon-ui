@@ -5,6 +5,7 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
 ## Contents
 
 - [Implementation checkpoints](#implementation-checkpoints)
+- [Progress and meter delivery](#progress-and-meter-delivery)
 - [ComboBox customization coverage](#combobox-customization-coverage)
 - [RN Primitives decision](#rn-primitives-decision)
 - [RN-TEXT-01 evidence](#rn-text-01-evidence)
@@ -28,6 +29,10 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
 | Matched query fixture                 | Four source cases, strict no-DOM consumer types and source/map/build/app identities pass. Compact observation labels differ from the original first-query fixture; preserve that condition.                                                               | 65817c3; [fixture](fixtures/native-query-delivery/)                                                                 |
 
 Historical counts describe their own checkpoint and do not certify web/native customization parity. The roadmap preserves the assertion coverage/gap table and full 53-item destination.
+
+## Progress And Meter Delivery
+
+On 2026-10-17 Gabriel requests a persistent component-delivery goal and approves the paired LinearProgress/Meter native contract in the roadmap. The complete canonical component/helper/CSS/root-suite/index audit finds both families unchanged from manifest revision `ddc9f066f67af4742e05e04bd870726141c44129`. The focused web baseline passes 26/26 cases across the two suites in 4.43 seconds. Inherited React Aria range/render/formatting contracts and native role/value types are inspected locally; native implementation and all installed/device proof remain pending at this planning checkpoint. Further XCTest/LLDB startup investigations are excluded from this goal, while RN-TEXT-01 and the original ComboBox installed gate retain their prior outcomes.
 
 ## ComboBox Customization Coverage
 
