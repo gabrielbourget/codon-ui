@@ -7,6 +7,20 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { ToggleSwitcher } from "./components/ToggleSwitcher/ToggleSwitcher"
+export { AVAILABLE_TOGGLE_SWITCHER_FONT_WEIGHTS } from "./components/ToggleSwitcher/types"
+export type {
+  TNativeToggleSwitcherProps,
+  TNativeToggleSwitcherProps as ToggleSwitcherProps,
+  TNativeToggleSwitcherItem,
+  TNativeToggleSwitcherItem as ToggleSwitcherItem,
+  TNativeToggleSwitcherFontWeight,
+  TNativeToggleSwitcherRef,
+  TNativeToggleSwitcherRenderState,
+  TNativeToggleSwitcherStyleState,
+  TNativeToggleSwitcherRootStyle,
+  TNativeToggleSwitcherOptionStyle,
+} from "./components/ToggleSwitcher/types"
 export { ToggleButton } from "./components/ToggleButton/ToggleButton"
 export type {
   TNativeToggleButtonProps,
