@@ -534,3 +534,13 @@ it("NATIVE.thumbnail-image.intrinsic snapshots decoded scalars before batched ow
   })
   expect(image()).toHaveStyle({ width: 200, aspectRatio: 2 })
 })
+
+it("NATIVE.thumbnail-image.lifetime retains a decoded image when changed candidate contents resolve to the same URI", async () => {
+  const { rerender } = await render(
+    <ThumbnailImage srcCandidates={["a", "b"]} fallback={fallback} testID="thumbnail" />,
+  )
+  await load(120, 80)
+  await rerender(<ThumbnailImage srcCandidates={["a", "new-tail"]} fallback={fallback} testID="thumbnail" />)
+  expect(image().props.src).toBe("a")
+  expect(image()).toHaveStyle({ width: 120, aspectRatio: 1.5 })
+})

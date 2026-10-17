@@ -75,6 +75,6 @@ export const ThumbnailImage = (props: TNativeThumbnailImageProps) => {
   return renderImage ? (
     <>{getNativeButtonContent(renderImage({ alt, src: selected, imageProps, onError: handleError }))}</>
   ) : (
-    <NativeThumbnailImage key={JSON.stringify([key, index, hostProps.srcSet])} {...imageProps} />
+    <NativeThumbnailImage key={JSON.stringify([selected, hostProps.srcSet])} {...imageProps} />
   )
 }
