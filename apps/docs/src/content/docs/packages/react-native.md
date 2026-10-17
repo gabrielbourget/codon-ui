@@ -129,6 +129,24 @@ One decorative selected surface follows accepted selection and measured layout p
 
 Muted root defaults copy the unchanged canonical light/dark surface #f7f7f7/#202020 and border #c6c6c6/#3d3d3d. Root custom/final styles override them independently. Adding independent surfaceMuted/borderMuted provider roles remains a public-theme decision, so full theme acceptance stays open. This explicit-items component does not provide upstream ToggleButtonGroup or SelectionIndicator interop. Installed equal-cell/large-text/layout/motion/semantic cells remain separate acceptance work.
 
+## Avatar
+
+Avatar displays an imageURL after native image loading succeeds and uses name1/name2 initials while loading, on failure or without an image. Anonymous labels default to Name/Unknown; labels can localize those words, including explicit empty strings. Initials preserve the canonical first-character uppercase rule. Image replacement starts a fresh load lifecycle and ignores retired callbacks. The default image mode is contain. Source tests inject native image events; actual decode and rendering remain installed acceptance work.
+
+```tsx
+import { Avatar } from "@codon-ui/react-native"
+
+export const Profile = ({ openProfile }: { openProfile: () => void }) => (
+  <Avatar name1="Alice" name2="Smith" size={48} clickable onPress={openProfile} />
+)
+```
+
+Size defaults to 30 and accepts finite nonnegative logical numbers, numeric strings, percentages or auto; zero remains explicit. Three geometries, raised styling, foreground/color alias and background retain their controls with existing theme roles. Foreground defaults to the theme background and the avatar background to the theme foreground. Root computed → customStyles → final style/callback and post-custom defaultStyle apply before color is passed to owned text. customImageStyles, customFallbackStyles and customTextStyles have separate owners. Text customStyles from customTextProps precede customTextStyles, and customTextProps.style remains final. Text scaling stays enabled unless the caller explicitly constrains it.
+
+Only clickable plus onPress enables activation; native disabled guards it and cancels an in-flight press. One named image/button root owns semantics and the actual View ref, native identity/layout and press payloads. Name precedence is accessibilityLabel → aria-label → resolved full name; accessible=false supports decorative composition. Image/fallback/text remain decorative children. Measured hitSlop follows the existing 44pt/48dp target policy without changing authored geometry; explicit hitSlop and clipped-parent limits remain in effect. DOM classes, asChild and browser click events use the native host/style/onPress boundary.
+
+fallbackDelay controls eligibility once per mounted Avatar lifetime, matching the inherited Radix behavior: omitted delay is immediate; a defined delay, including zero, schedules eligibility. URI/name/theme changes preserve that lifetime. A changed pending delay cancels its old timer; removing it before eligibility leaves the fallback pending until another defined delay or a remount. Eligibility stays true once reached. Unmount cancels work. The maintained Avatar scene provides local valid/invalid PNG data, a deliberate lifetime restart and live controls for these behaviors.
+
 ## Indicators And Segments
 
 Indicator is a passive, caller-owned visual state. isActive defaults true; explicit false chooses inactiveColor, whose default is transparent. Its border still uses the active color unless borderColor is supplied. color defaults to the current owned Text/Button foreground or the theme foreground. size defaults to 10 native logical units, borderWidth to zero and shape to circle; rounded and square use the existing radius tokens. Constants, available-shape array and public props/ref/state aliases are exported.

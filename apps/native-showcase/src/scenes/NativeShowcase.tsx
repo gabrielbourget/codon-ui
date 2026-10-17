@@ -22,6 +22,7 @@ import {
 
 import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture } from "../fixtures/layout"
 
+import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { DisplayScene } from "./DisplayScene"
 import { LibraryScene } from "./LibraryScene"
@@ -157,6 +158,7 @@ export const NativeShowcase = () => {
     | "display"
     | "loading"
     | "toggle"
+    | "avatar"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -211,6 +213,7 @@ export const NativeShowcase = () => {
             />
             <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
             <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
+            <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -233,7 +236,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "toggle" ? (
+            {scene === "avatar" ? (
+              <AvatarScene />
+            ) : scene === "toggle" ? (
               <ToggleScene />
             ) : scene === "loading" ? (
               <LoadingScene />
