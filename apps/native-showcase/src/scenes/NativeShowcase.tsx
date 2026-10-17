@@ -35,6 +35,7 @@ import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 import { TagScene } from "./TagScene"
+import { ThumbnailScene } from "./ThumbnailScene"
 import { ToggleScene } from "./ToggleScene"
 
 const FixtureAction = ({
@@ -163,6 +164,7 @@ export const NativeShowcase = () => {
     | "avatar"
     | "tag"
     | "link"
+    | "thumbnail"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -220,6 +222,11 @@ export const NativeShowcase = () => {
             <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
             <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
             <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
+            <FixtureAction
+              label="Thumbnail scene"
+              selected={scene === "thumbnail"}
+              onPress={() => setScene("thumbnail")}
+            />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -242,7 +249,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "link" ? (
+            {scene === "thumbnail" ? (
+              <ThumbnailScene />
+            ) : scene === "link" ? (
               <LinkScene />
             ) : scene === "tag" ? (
               <TagScene />

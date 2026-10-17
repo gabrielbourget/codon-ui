@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -160,6 +160,34 @@ isVisited is caller-owned; URL success never changes it internally. Existing act
 Computed defaults precede customStyles and final native registered/array/callback style. Style callbacks receive current interaction/visited flags, foregroundColor and post-custom defaultStyle. Native focus uses a 1.5-unit outline with default offset2; enableFocusStyle/offsetFocusRing accept explicit false. The default visible decoration is none, matching the canonical :link rule overriding its underline class; unvisited hover underlines, and explicit native textDecoration or final textDecorationLine controls the line. Native names/IDs take precedence over ARIA/camel aliases, retaining empty strings. accessibilityHint supplies descriptive content; Android label IDs retain pinned core behavior.
 
 Core Linking hands the URL to the OS. Browser window/referrer/download behavior, relative/fragment resolution and automatic visited-history lookup are open host mapping decisions; they are not silently implemented by a router. Core RN also lacks the canonical describedby/details ID relationships. Those unsupported aliases and browser props are rejected at the public boundary; their missing capabilities and the independent global visited theme role remain explicit in roadmap 3.5.8. Source/scene/consumer proof does not close installed URL handoff, glyph, motion or accessibility acceptance.
+
+## ThumbnailImage
+
+ThumbnailImage resolves ordered string URI candidates and renders authored fallback content after exhaustion. A nonempty srcCandidates array takes precedence over src; an empty array uses src. Null/undefined/empty entries are removed, exact duplicates collapse and whitespace/order remain meaningful. A nonempty list containing only unusable entries renders fallback even if src exists. Equivalent normalized contents retain private fallback progress through unrelated native/theme/layout updates; changed contents start at index0 immediately. Loading a valid candidate does not display fallback prematurely.
+
+```tsx
+import { Text, ThumbnailImage } from "@codon-ui/react-native"
+
+const Example = () => (
+  <ThumbnailImage
+    srcCandidates={["file:///cache/thumbnail.png", "file:///cache/original.png"]}
+    alt="Preview"
+    width={120}
+    height={80}
+    style={{ borderRadius: 5 }}
+    fallback={<Text>No thumbnail</Text>}
+    onError={(event) => console.warn(event.nativeEvent.error)}
+  />
+)
+```
+
+An active genuine ImageErrorEvent reaches onError before one advancement; a synchronous owner throw prevents that advancement. Retired/duplicate decode attempts cannot skip the current source after replacement or unmount. The renderImage adapter receives alt, src, imageProps and the same onError handler. Its optional-event onError() advances without inventing a caller error payload. Adapters own their actual native refs, geometry and host semantics; there is no universal root ref for arbitrary renderer/fallback content. Native source objects belong inside an adapter, with the owned src removed before using a source override. Primitive/array/Fragment fallback or renderer output receives native Text wrapping while authored keyed elements keep their state.
+
+The default core Image uses real onLoad source metadata for intrinsic geometry. Missing/auto axes follow the decoded ratio, final native style arrays/registered styles and explicit aspect/constraint overrides; authored numeric zero remains zero. Named width/height use standard native numbers, while percentages/auto belong to style. The default resizeMode is stretch (browser fill equivalent), resizeMethod is scale so ordinary URI decoding can precede layout, and Android fadeDuration defaults0. Explicit native controls retain their values. Load/layout callbacks receive their original native payloads; private geometry copies decoded scalars before a caller can mutate an event.
+
+Native srcSet retains pinned core behavior. When responsive sources need a frame before decoding, a component-local getSize preflight seeds implicit geometry using the same crossOrigin/referrerPolicy headers. Metadata failures never advance fallback or fabricate a native error; a minimal private1×1 seed permits the view to deliver its genuine load/error event. Source replacement/unmount retires pending metadata work. Explicit zero axes are never replaced; native zero-size multi-source decoding and browser w/sizes/responsive-density, lazy/decoding/fetch-priority/image-map equivalence remain explicit open capabilities in roadmap3.5.9.
+
+The default alt is Thumbnail image. Empty alt is decorative unless explicit native accessibility/name/label-association props opt in; accessibilityLabel precedes aria-label and alt, retaining empty values and accessible=false. The built-in renderer avoids core alt forcing accessibility back on. An injected renderer owns that decision for its host. The maintained scene uses local valid/invalid PNGs, an explicit renderer, candidate/lifetime resets, zero/final-style/alt controls and actual load/layout receipts. Source checks do not certify installed decoding, responsive choice, geometry or accessibility.
 
 ## Avatar
 
