@@ -1,6 +1,71 @@
 import unittest
 
-from startup_diagnostic import installed_app_executable, launched_app_pid, new_app_after_launch, prelaunched_callback_passed
+from startup_diagnostic import installed_app_executable, launched_app_pid, new_app_after_launch, prelaunched_callback_passed, priority_callback_proof, runner_bootstrap_failure
+
+
+class RunnerBootstrapTests(unittest.TestCase):
+    def setUp(self):
+        self.receipt = {"exitCode": 65, "stopReason": None, "completedVerdict": False,
+                        "selectedMethodStarted": False, "typingBegins": 0}
+
+    def test_only_observed_ax_and_busy_failures_are_bootstrap_conditions(self):
+        for log in ["Timed out waiting for AX loaded notification",
+                    "Timed out while loading Accessibility.",
+                    'Busy ("Application failed preflight checks")']:
+            with self.subTest(log=log):
+                self.assertTrue(runner_bootstrap_failure(self.receipt, log))
+
+    def test_rejected_configuration_must_not_trigger_a_warm_bootstrap_observation(self):
+        log = "when UseDestinationArtifacts is set, the destination must be an iOS device"
+        self.assertFalse(runner_bootstrap_failure(self.receipt, log))
+        self.assertFalse(runner_bootstrap_failure(self.receipt, "Failed to build workspace"))
+
+    def test_completed_started_typed_and_controller_stopped_conditions_fail_closed(self):
+        for change in [{"completedVerdict": True}, {"selectedMethodStarted": True},
+                       {"typingBegins": 1}, {"exitCode": 0}, {"stopReason": "total-cap"}]:
+            with self.subTest(change=change):
+                self.assertFalse(runner_bootstrap_failure(
+                    {**self.receipt, **change}, "Timed out while loading Accessibility.",
+                ))
+        self.assertFalse(runner_bootstrap_failure({}, "Timed out while loading Accessibility."))
+
+
+class PriorityCallbackTests(unittest.TestCase):
+    def setUp(self):
+        self.method = "Tests/Tests/testTransportPreflight"
+        self.summary = {"totalTestCount": 1, "passedTests": 1, "failedTests": 0}
+        self.capture = {"protocol": "controlled-open-veto", "owner": {
+            "scenario": "veto", "query": "", "requests": {"opens": 1},
+        }}
+
+    def test_priority_veto_callback_uses_its_actual_owner_protocol(self):
+        self.assertTrue(priority_callback_proof(self.summary, [self.capture], self.method))
+        diagnostic = {"frames": {"diag-transport-owner": {"label": "Transport 1"}}}
+        self.assertFalse(priority_callback_proof(self.summary, [diagnostic], self.method))
+
+    def test_missing_duplicate_and_malformed_callback_fail_closed(self):
+        for captures in [[], [self.capture, self.capture], [None],
+                         [{**self.capture, "owner": None}],
+                         [{**self.capture, "owner": {"requests": None}}]]:
+            with self.subTest(captures=captures):
+                self.assertFalse(priority_callback_proof(self.summary, captures, self.method))
+
+    def test_initial_owner_and_another_scenario_do_not_prove_delivery(self):
+        owner = self.capture["owner"]
+        for change in [{"requests": {"opens": 0}}, {"requests": {"opens": 2}},
+                       {"query": "changed"}, {"scenario": "query"}]:
+            with self.subTest(change=change):
+                self.assertFalse(priority_callback_proof(
+                    self.summary, [{**self.capture, "owner": {**owner, **change}}], self.method,
+                ))
+
+    def test_only_a_single_completed_preflight_pass_can_validate_startup(self):
+        for change in [{"totalTestCount": 2}, {"passedTests": 0}, {"failedTests": 1}]:
+            with self.subTest(change=change):
+                self.assertFalse(priority_callback_proof(
+                    {**self.summary, **change}, [self.capture], self.method,
+                ))
+        self.assertFalse(priority_callback_proof(self.summary, [self.capture], "Tests/Tests/testPriorityAcceptance"))
 
 
 class PrelaunchedStartupTests(unittest.TestCase):

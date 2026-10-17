@@ -6,6 +6,36 @@ from pathlib import Path
 from lldb_diagnostic import require_owned_process
 
 
+def runner_bootstrap_failure(receipt, log):
+    if (receipt.get("exitCode") != 65 or receipt.get("stopReason")
+            or receipt.get("completedVerdict") is not False
+            or receipt.get("selectedMethodStarted") is not False
+            or receipt.get("typingBegins") != 0):
+        return False
+    return any(marker in log for marker in (
+        "Timed out waiting for AX loaded notification",
+        "Timed out while loading Accessibility.",
+        'Busy ("Application failed preflight checks")',
+    ))
+
+
+def priority_callback_proof(summary, captures, method):
+    if (not method.endswith("/testTransportPreflight")
+            or summary.get("totalTestCount") != 1 or summary.get("passedTests") != 1
+            or summary.get("failedTests") != 0):
+        return False
+    callbacks = [item for item in captures if isinstance(item, dict)
+                 and item.get("protocol") == "controlled-open-veto"]
+    if len(callbacks) != 1:
+        return False
+    owner = callbacks[0].get("owner")
+    if not isinstance(owner, dict):
+        return False
+    requests = owner.get("requests")
+    return (isinstance(requests, dict) and requests.get("opens") == 1
+            and owner.get("scenario") == "veto" and owner.get("query") == "")
+
+
 def launched_app_pid(output, bundle):
     matches = re.findall(r"^" + re.escape(bundle) + r":\s*([0-9]+)\s*$", output, re.M)
     if len(matches) != 1 or int(matches[0]) <= 0:
