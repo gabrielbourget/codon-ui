@@ -1,3 +1,17 @@
+export { Stepper } from "./components/Stepper/Stepper"
+export type {
+  TNativeStepperProps,
+  TNativeStepperProps as StepperProps,
+  TNativeStepperRef,
+  TNativeStepperType,
+  TNativeStepperOrientation,
+  TNativeStepperColorMode,
+  TNativeStepperRootStyle,
+  TNativeStepperRenderState,
+  TNativeStepperStyleState,
+  TNativeStepperLabels,
+} from "./components/Stepper/types"
+
 export { NativeThemeProvider, useNativeTheme } from "./theme"
 export type {
   TNativeThemeProviderProps as NativeThemeProviderProps,
