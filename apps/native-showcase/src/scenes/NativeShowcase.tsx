@@ -27,6 +27,7 @@ import { LibraryScene } from "./LibraryScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
 import { OverlayScene } from "./OverlayScene"
+import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 
@@ -142,7 +143,7 @@ export const NativeShowcase = () => {
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
   const [scene, setScene] = useState<
-    "foundation" | "library" | "controls" | "select" | "multiline" | "number" | "overlay"
+    "foundation" | "library" | "controls" | "select" | "multiline" | "number" | "overlay" | "range"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -185,6 +186,11 @@ export const NativeShowcase = () => {
             <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
             <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
             <FixtureAction label="NumberInput scene" selected={scene === "number"} onPress={() => setScene("number")} />
+            <FixtureAction
+              label="Progress/Meter scene"
+              selected={scene === "range"}
+              onPress={() => setScene("range")}
+            />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -207,7 +213,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "overlay" ? (
+            {scene === "range" ? (
+              <RangeScene />
+            ) : scene === "overlay" ? (
               <OverlayScene toggleTheme={() => setMode((current) => (current === "light" ? "dark" : "light"))} />
             ) : scene === "number" ? (
               <NumberInputScene />

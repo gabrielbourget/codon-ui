@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, Modal and AlertDialog with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress and Meter with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -79,6 +79,40 @@ Select accepts readonly items with stable typed getKey and nonempty getTextValue
 The native presentation is an opaque full-screen core Modal with its own safe-area provider, heading, Close action and dynamic-height FlatList. Android Back requests closure. Initial selected-row positioning uses bounded measurement-driven attempts; pending focus/scroll work stops after closure or unmount. Public ListBoxItem is a controlled radio row with explicit id/textValue and one owned interactive root. Custom row content must remain decorative. Native minimum targets are 44 points on iOS and 48 dp on Android unless explicitly constrained by the host.
 
 Consumers must install react-native-safe-area-context exactly 5.7.0 alongside the existing React/RN peers and rebuild their native binary. No new palette roles are introduced. Root, trigger, selected text and options list have separate native style owners. DOM/forms, anchored placement, arbitrary child registration, multi-selection, search and hardware typeahead are outside this contract. Physical screen-reader focus and keyboard acceptance remain in the application/device lane.
+
+## Progress And Measurement
+
+LinearProgress represents a task's progress; Meter represents a measurement within a range. Both require a caller-owned numeric value and a nonempty accessibilityLabel (or aria-label). minValue/maxValue default to 0/100, must be finite and strictly increasing, and clamp the displayed value to their range. Zero and negative values remain meaningful. These are display components with no default value or change callback; the forwarded ref is the actual root native View.
+
+```tsx
+import { LinearProgress, Meter } from "@codon-ui/react-native"
+
+export const Capacity = ({ completed }: { completed: number }) => (
+  <>
+    <LinearProgress accessibilityLabel="Tasks completed" value={completed} maxValue={20} width="100%" order="primary" />
+    <Meter
+      accessibilityLabel="Storage used"
+      value={12}
+      maxValue={64}
+      valueLabel="12 of 64 gigabytes"
+      barGeometry="rounded"
+      trackGeometry="rounded"
+    />
+  </>
+)
+```
+
+LinearProgress alone accepts isIndeterminate. Unknown progress presents a decorative native activity indicator and omits the numeric accessibility value, without creating a second accessible target. Meter always presents a measurement. Root roles and range/value semantics are owned by the components; Meter uses the native meter role on iOS and progressbar compatibility on Android, whose pinned RN delegate has no meter-role mapping. Physical platform announcements still require device acceptance.
+
+Value text defaults to a formatted percentage. An explicit formatOptions object follows Intl.NumberFormat; percent formatting uses the range fraction, while other formats use the clamped number. Supply locale for an explicit locale or valueLabel for a localized string, including an intentionally empty string. An authored valueLabel bypasses Intl formatting. Hosts retain responsibility for adequate Intl support and their existing bootstrap; these components install no polyfills.
+
+Default dimensions are 150 × 10 logical units horizontally or 10 × 150 vertically. Native height/width, including percentages and zero, override them. Horizontal direction defaults right; vertical defaults up. left reverses horizontal fill, and down reverses vertical fill; directions from the other axis have no effect. The accessible root is not rotated. Determinate updates use 250 ms visual transitions while accessibility and style callback values reflect current props immediately. Reduce Motion disables transitions and stops the unknown-progress spinner; pending preference queries or query failures retain static presentation. Replaced transitions and unmounted listeners are cleaned up.
+
+barColor/trackColor accept native ColorValue values. The semantic selected color is the default fill; order chooses an existing action background, and an explicit barColor wins. Independent barGeometry/trackGeometry accept orthogonal, rounded and round; raised applies the existing native track elevation. No palette values or theme roles are added.
+
+customStyles, customTrackStyles and customBarStyles own the root, track and fill separately. Root precedence is computed → customStyles → final style. A style callback receives percentage, valueText and the post-custom defaultStyle; LinearProgress additionally supplies isIndeterminate. Track/bar overrides remain independent, including authored dimensions. Native IDs/layout events forward to the root. DOM classes, browser refs, React Aria slot context and ReactNode value labels have native style/ref/name/string equivalents; the wrappers own their track/bar children.
+
+The maintained Progress/Meter scene exercises controlled zero, negative measurement, unknown progress, orientation/direction, geometry/order, style overrides and value labels under the showcase's theme and layout controls. Component/consumer tests and compiled declarations verify the source contract; measured Android/iOS rendering, motion and physical accessibility remain pending. The unrelated RN-TEXT-01 and original ComboBox installed acceptance stay open.
 
 ## Evidence Limits
 
