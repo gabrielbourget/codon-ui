@@ -115,7 +115,7 @@ it("composes geometry, borders, colors, native text/final styles and exposed-sta
   expect(screen.getByTestId("tag-example").props.accessibilityState.checked).toBe("mixed")
 })
 
-it("reports native layout separately from controlled values, including an invisible zero frame", async () => {
+it("reports native layout separately from authored zero dimensions and their padding-box minimum", async () => {
   const press = await enterTagScene()
   await fireEvent(screen.getByTestId("tag-example"), "layout", {
     nativeEvent: { layout: { x: 0, y: 0, width: 110.123456, height: 48 } },
@@ -125,9 +125,9 @@ it("reports native layout separately from controlled values, including an invisi
   )
   await press("Toggle tag zero dimensions")
   await fireEvent(screen.getByTestId("tag-example"), "layout", {
-    nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+    nativeEvent: { layout: { x: 0, y: 0, width: 10, height: 10 } },
   })
-  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Requests: 0.*Size: zero.*Frame: 0 x 0\./)
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Requests: 0.*Size: zero.*Frame: 10 x 10\./)
   expect(screen.getByTestId("tag-example")).toHaveStyle({ width: 0, height: 0 })
 })
 
