@@ -7,6 +7,17 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { ThumbnailImage } from "./components/ThumbnailImage/ThumbnailImage"
+export type {
+  TNativeThumbnailImageProps,
+  TNativeThumbnailImageProps as ThumbnailImageProps,
+  TNativeThumbnailImageErrorHandler,
+  TNativeThumbnailImageErrorHandler as ThumbnailImageErrorHandler,
+  TNativeThumbnailImageRenderImageArgs,
+  TNativeThumbnailImageRenderImageArgs as ThumbnailImageRenderImageArgs,
+  TNativeThumbnailImageRenderImageProps,
+  TNativeThumbnailImageRenderImageProps as ThumbnailImageRenderImageProps,
+} from "./components/ThumbnailImage/types"
 export { Link } from "./components/Link/Link"
 export type {
   TNativeLinkProps,
