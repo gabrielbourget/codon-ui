@@ -2,21 +2,34 @@
 
 Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **2026-10-17**. [Roadmap](roadmap.md) owns current tasks, contracts, catalogue and acceptance gates. This file records bounded experiment outcomes and historical lookup; raw logs and captures stay in private evidence packets. A historical failure, source checkpoint or passing repeat retains its actual proof tier.
 
-## Contents
+<a id="contents"></a>
 
-- [Implementation checkpoints](#implementation-checkpoints)
-- [Catalogue acceptance matrix](#catalogue-acceptance-matrix)
-- [Progress and meter delivery](#progress-and-meter-delivery)
-- [ComboBox customization coverage](#combobox-customization-coverage)
-- [RN Primitives decision](#rn-primitives-decision)
-- [RN-TEXT-01 evidence](#rn-text-01-evidence)
-- [XCTest recovery](#xctest-recovery)
-- [Current raw first/warm investigation](#current-raw-firstwarm-investigation)
-- [LLDB attachment and native trace](#lldb-attachment-and-native-trace)
-- [Evidence custody and identities](#evidence-custody-and-identities)
-- [Historical document lookup](#historical-document-lookup)
+## 1. Contents
 
-## Implementation Checkpoints
+- [2. Implementation Checkpoints](#2-implementation-checkpoints)
+- [3. Catalogue Acceptance Matrix](#3-catalogue-acceptance-matrix)
+  - [3.1. Current Evidence Keys](#31-current-evidence-keys)
+  - [3.2. Deferred Evidence Authority](#32-deferred-evidence-authority)
+- [4. Progress And Meter Delivery](#4-progress-and-meter-delivery)
+- [5. ComboBox Customization Coverage](#5-combobox-customization-coverage)
+- [6. RN Primitives Decision](#6-rn-primitives-decision)
+- [7. RN-TEXT-01 Evidence](#7-rn-text-01-evidence)
+- [8. XCTest Recovery](#8-xctest-recovery)
+- [9. Current Raw First/Warm Investigation](#9-current-raw-firstwarm-investigation)
+- [10. LLDB Attachment And Native Trace](#10-lldb-attachment-and-native-trace)
+  - [10.1. Startup And Minimal-Metadata Continuation](#101-startup-and-minimal-metadata-continuation)
+  - [10.2. Delayed App Launch And Host Load](#102-delayed-app-launch-and-host-load)
+  - [10.3. Accessibility Bootstrap And Activation Ordering](#103-accessibility-bootstrap-and-activation-ordering)
+  - [10.4. Activation-First Validation And Timeout Allowances](#104-activation-first-validation-and-timeout-allowances)
+  - [10.5. Patient Startup And ComboBox Priority Acceptance](#105-patient-startup-and-combobox-priority-acceptance)
+  - [10.6. Priority Runner Identity And Replay](#106-priority-runner-identity-and-replay)
+  - [10.7. Control-Session Activation And Bootstrap](#107-control-session-activation-and-bootstrap)
+- [11. Evidence Custody And Identities](#11-evidence-custody-and-identities)
+- [12. Historical Document Lookup](#12-historical-document-lookup)
+
+<a id="implementation-checkpoints"></a>
+
+## 2. Implementation Checkpoints
 
 | Checkpoint                            | Recorded result and limits                                                                                                                                                                                                                                | Source/history                                                                                                      |
 | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
@@ -31,78 +44,84 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
 
 Historical counts describe their own checkpoint and do not certify web/native customization parity. The roadmap preserves the assertion coverage/gap table and full 53-item destination.
 
-## Catalogue Acceptance Matrix
+<a id="catalogue-acceptance-matrix"></a>
 
-This is the active M2 completion ledger for all 53 stable catalogue IDs. Gate definitions, exact scenario IDs and required platform profiles live in [the acceptance rubric](roadmap.md#acceptance-rubric). A cell ID is `CAT.<manifest-id>.G<n>`; native scenario cells extend it with platform/profile/scenario/case as specified there. Every mandatory capability and scenario must be instantiated and resolved before its aggregate gate can pass. An empty or uninstantiated scenario set is not vacuous success.
+## 3. Catalogue Acceptance Matrix
+
+This is the active M2 completion ledger for all 53 stable catalogue IDs. Gate definitions, exact scenario IDs and required platform profiles live in [the acceptance rubric](roadmap.md#31-acceptance-rubric). A cell ID is `CAT.<manifest-id>.G<n>`; native scenario cells extend it with platform/profile/scenario/case as specified there. Every mandatory capability and scenario must be instantiated and resolved before its aggregate gate can pass. An empty or uninstantiated scenario set is not vacuous success.
 
 `OPEN` is an administrative state before reconciliation/execution; it is not a failed test. Final verification dispositions are `PASS`, `FAIL`, `BLOCKED`, `N/A(reason)` or `OWNER-DEFERRED(authority)`. Historical passes retain their recorded scope and artifacts; opening a broader aggregate cell does not invalidate those receipts or promote them to full current-matrix acceptance. Source availability is tracked in the roadmap catalogue separately. The table initially leaves unreconciled aggregates open rather than inventing complete proof from earlier test counts.
 
-| Catalogue ID                   | G01 contract | G02 behavior | G03 types/ref | G04 styles | G05 source/scene | G06 consumer | G07 Android | G08 iOS     | G09 closure | Existing evidence / unresolved scope                                                                                                |
-| ------------------------------ | ------------ | ------------ | ------------- | ---------- | ---------------- | ------------ | ----------- | ----------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `CAT.avatar`                   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.button`                   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.card`                     | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.carousel`                 | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.switch`                   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.checkbox`                 | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.checkbox-group`           | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.input`                    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.text-area`                | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.number-input`             | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.stepper`                  | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.time-picker`              | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.date-time-picker`         | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.date-time-range-picker`   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.table`                    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.toaster`                  | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.toggle-button`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.toggle-switcher`          | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.radio`                    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.text`                     | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.placeholder-text`         | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.list-box-item`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.select`                   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.combo-box`                | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | FAIL(CB-01) | OPEN        | CB-01: original focused query fails N-only before first-result activation; [preserve that cohort](#rn-text-01-evidence).            |
-| `CAT.click-popover`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.tooltip`                  | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.hover-popover`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.menu`                     | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.panel`                    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.modal`                    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.alert-dialog`             | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
-| `CAT.line-segment`             | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.indicator`                | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.circle-loader`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.lagging-lines-loader`     | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.link`                     | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.breadcrumbs`              | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.pagination`               | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.tag-combo-box`            | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.typeahead-search`         | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.compact-typeahead-search` | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.sort-and-filter-panel`    | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.thumbnail-image`          | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.thumbnail-showcase`       | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.slider`                   | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.tag`                      | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.tag-group`                | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.circular-progress`        | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.counter`                  | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.form-field`               | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                  |
-| `CAT.linear-progress`          | OPEN         | OPEN         | PASS(PR-01)   | OPEN       | PASS(PR-01)      | OPEN         | OPEN        | OPEN        | OPEN        | PR-01: source/type/build/showcase checkpoint; capability/style mapping and installed/consumer/closure aggregates remain open.       |
-| `CAT.meter`                    | OPEN         | OPEN         | PASS(PR-01)   | OPEN       | PASS(PR-01)      | OPEN         | OPEN        | OPEN        | OPEN        | PR-01: source/type/build/showcase checkpoint; capability/style mapping and installed/consumer/closure aggregates remain open.       |
-| `CAT.radio-group`              | OPEN         | OPEN         | OPEN          | OPEN       | OPEN             | OPEN         | OPEN        | OPEN        | OPEN        | Existing source checkpoint; reconcile scoped proof from [implementation history](#implementation-checkpoints) with the full rubric. |
+| Catalogue ID                   | 3.1.1 Contract | 3.1.2 Behavior | 3.1.3 Types/ref | 3.1.4 Styles | 3.1.5 Source/scene | 3.1.6 Consumer | 3.1.7 Android | 3.1.8 iOS   | 3.1.9 Closure | Existing evidence / unresolved scope                                                                                                  |
+| ------------------------------ | -------------- | -------------- | --------------- | ------------ | ------------------ | -------------- | ------------- | ----------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| `CAT.avatar`                   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.button`                   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.card`                     | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.carousel`                 | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.switch`                   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.checkbox`                 | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.checkbox-group`           | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.input`                    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.text-area`                | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.number-input`             | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.stepper`                  | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.time-picker`              | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.date-time-picker`         | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.date-time-range-picker`   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.table`                    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.toaster`                  | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.toggle-button`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.toggle-switcher`          | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.radio`                    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.text`                     | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.placeholder-text`         | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.list-box-item`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.select`                   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.combo-box`                | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | FAIL(CB-01) | OPEN          | CB-01: original focused query fails N-only before first-result activation; [preserve that cohort](#7-rn-text-01-evidence).            |
+| `CAT.click-popover`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.tooltip`                  | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.hover-popover`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.menu`                     | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.panel`                    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.modal`                    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.alert-dialog`             | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
+| `CAT.line-segment`             | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.indicator`                | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.circle-loader`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.lagging-lines-loader`     | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.link`                     | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.breadcrumbs`              | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.pagination`               | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.tag-combo-box`            | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.typeahead-search`         | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.compact-typeahead-search` | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.sort-and-filter-panel`    | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.thumbnail-image`          | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.thumbnail-showcase`       | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.slider`                   | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.tag`                      | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.tag-group`                | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.circular-progress`        | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.counter`                  | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.form-field`               | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | No counterpart yet; audit canonical source/contracts/suites before implementation.                                                    |
+| `CAT.linear-progress`          | OPEN           | OPEN           | PASS(PR-01)     | OPEN         | PASS(PR-01)        | OPEN           | OPEN          | OPEN        | OPEN          | PR-01: source/type/build/showcase checkpoint; capability/style mapping and installed/consumer/closure aggregates remain open.         |
+| `CAT.meter`                    | OPEN           | OPEN           | PASS(PR-01)     | OPEN         | PASS(PR-01)        | OPEN           | OPEN          | OPEN        | OPEN          | PR-01: source/type/build/showcase checkpoint; capability/style mapping and installed/consumer/closure aggregates remain open.         |
+| `CAT.radio-group`              | OPEN           | OPEN           | OPEN            | OPEN         | OPEN               | OPEN           | OPEN          | OPEN        | OPEN          | Existing source checkpoint; reconcile scoped proof from [implementation history](#2-implementation-checkpoints) with the full rubric. |
 
 Gabriel authorizes the standing conventional-port construction policy on 2026-10-17 for the full goal. Component-family checkpoints do not end execution or require another routine API approval under that policy; novel architecture/dependencies/capability reductions still require a concrete decision while unaffected cells continue.
 
-### Current Evidence Keys
+<a id="current-evidence-keys"></a>
 
-| Key   | Exact proof and limits                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| PR-01 | Component source `2b39444`, Android role correction `f7783c2`, maintained consumer/docs `30f024b`; native public contract cases in `type-tests/range-contracts.tsx` and public ref/event/prop cases in `RangeIndicator.test.tsx` pass. The two RangeScene tests and 17 retained NativeShowcase tests pass with these source bytes. Commands and 64-case source result are in [the progress/meter record](#progress-and-meter-delivery). G03/G05 alone close here; this does not close G01/G02/G04/G06/G07/G08/G09. Reuse only after relevant source identities are verified. |
-| CB-01 | Frozen searchable-selection producer `878a12d` and archive `2b31ed8025c4260bb8c0781fc3632f7fb9f62a0f6643197852cb8eda61d8cfa4`; original installed iOS query remains N across focused native text/change/callback/committed owner. Later matched and raw repeats are separate cohorts, not repairs of that first gate. Exact source/app/observer identities remain in the original sealed receipts and RN-TEXT-01 record.                                                                                                                                                     |
+### 3.1. Current Evidence Keys
 
-### Deferred Evidence Authority
+| Key   | Exact proof and limits                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| PR-01 | Component source `2b39444`, Android role correction `f7783c2`, maintained consumer/docs `30f024b`; native public contract cases in `type-tests/range-contracts.tsx` and public ref/event/prop cases in `RangeIndicator.test.tsx` pass. The two RangeScene tests and 17 retained NativeShowcase tests pass with these source bytes. Commands and 64-case source result are in [the progress/meter record](#4-progress-and-meter-delivery). G03/G05 alone close here; this does not close G01/G02/G04/G06/G07/G08/G09. Reuse only after relevant source identities are verified. |
+| CB-01 | Frozen searchable-selection producer `878a12d` and archive `2b31ed8025c4260bb8c0781fc3632f7fb9f62a0f6643197852cb8eda61d8cfa4`; original installed iOS query remains N across focused native text/change/callback/committed owner. Later matched and raw repeats are separate cohorts, not repairs of that first gate. Exact source/app/observer identities remain in the original sealed receipts and RN-TEXT-01 record.                                                                                                                                                       |
+
+<a id="deferred-evidence-authority"></a>
+
+### 3.2. Deferred Evidence Authority
 
 | Deferral                                        | Existing authority and limit                                                                                                                                                                                                                                                                 |
 | ----------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -113,7 +132,9 @@ Gabriel authorizes the standing conventional-port construction policy on 2026-10
 
 No new deferral of inherited component capability, Android/iOS installed acceptance, archive/consumer identity or technical review is implied by these rows. Any proposed additional deferral requires owner authority and a concrete affected-cell list.
 
-## Progress And Meter Delivery
+<a id="progress-and-meter-delivery"></a>
+
+## 4. Progress And Meter Delivery
 
 On 2026-10-17 Gabriel requests a persistent component-delivery goal and approves the paired LinearProgress/Meter native contract in the roadmap. The complete canonical component/helper/CSS/root-suite/index audit finds both families unchanged from manifest revision `ddc9f066f67af4742e05e04bd870726141c44129`. The focused web baseline passes 26/26 cases across the two suites in 4.43 seconds. Inherited React Aria range/render/formatting contracts and native role/value types are inspected locally; native implementation and all installed/device proof remain pending at this planning checkpoint. Further XCTest/LLDB startup investigations are excluded from this goal, while RN-TEXT-01 and the original ComboBox installed gate retain their prior outcomes.
 
@@ -125,7 +146,9 @@ Correction `f7783c2` follows final source review of a pinned-RN platform distinc
 
 The maintained Progress/Meter scene and curated native reference accompany this source milestone. The documentation build passes all 19 pages and its generated native reference contains the new usage examples. Both source counterparts are available through the public native barrel, taking the catalogue to 18 of 53 source implementations. No installed Android/iOS, measured rendering/motion or physical screen-reader acceptance is claimed. No simulator, XCTest, LLDB, app rebuild, signing or frozen text-fixture mutation occurs. RN-TEXT-01 and the original ComboBox acceptance remain open independently; the next component proposal can proceed from the remaining 35 catalogue rows rather than reopening the lab by default.
 
-## ComboBox Customization Coverage
+<a id="combobox-customization-coverage"></a>
+
+## 5. ComboBox Customization Coverage
 
 The next independent roadmap step closes the supported ComboBox source-assertion debt while RN-TEXT-01 and its native startup prerequisite remain unresolved. Commit `0c8f58c` extends the existing [native ComboBox suite](../../packages/react-native/src/components/ComboBox/__tests__/ComboBox.test.tsx) against the [canonical web suite](../../packages/react/src/components/ComboBox/__tests__/ComboBox.test.tsx) and accepted native contracts. No production implementation, public API, dependency/pin, palette, controlled-value semantics, fixture or installed application changes.
 
@@ -135,11 +158,15 @@ Verification is the focused source tier: the 31-case baseline passes; the final 
 
 The source gaps in the roadmap are covered, with installed family acceptance and deferred web capabilities still explicit. The original query failure, native startup blocker, focused result/Close/Back/nesting/layout matrices, maintained-scene propagation and physical/ARM proof remain open. iPhone signing stays deferred, and all prior frozen cohorts/evidence retain their original status. Continue with the remaining native acceptance prerequisites or an explicitly scoped contract audit; these source tests do not promote a new component family or imply full catalogue parity.
 
-## RN Primitives Decision
+<a id="rn-primitives-decision"></a>
+
+## 6. RN Primitives Decision
 
 Published Dialog/AlertDialog/Select and portal/hooks/slot/types were screened with controlled-state, context and source-quality boundaries. Published Portal has a platform-independent identity failure; the bounded package trial concludes no-go without production migration. A separate fixed-source Portal/state/host trial proves selected source/peer fixes but fails independent text and maintenance gates before broader native matrices. Context cannot be repaired by accepting lost caller providers; selected values and visibility remain caller-controlled. Retain Codon's existing shared TypeScript Select/overlay implementation. React Native Reusables was screened as source reference; neither it nor Screens is adopted implicitly. Full details and pinned dependency/source/patch provenance remain in the historical lookup and [trial fixtures](fixtures/native-primitives-fixed-source/).
 
-## RN-TEXT-01 Evidence
+<a id="rn-text-01-evidence"></a>
+
+## 7. RN-TEXT-01 Evidence
 
 | Evidence cohort                   | Focused result                                                                                                                                                  | Disposition                                                                                                                             |
 | --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
@@ -154,7 +181,9 @@ The matched order is exactly raw → Input → ComboBox → raw-warm. Default co
 
 No Codon-only synchronization remedy is attributed. The extra N key callbacks, missing native changes and possible native feedback/IME/driver timing remain open. A local report draft is retained without publication. Source4d2cf60/878a12d, fixture65817c3 and actual native condition identities must accompany any further result.
 
-## XCTest Recovery
+<a id="xctest-recovery"></a>
+
+## 8. XCTest Recovery
 
 Earlier tightly capped diagnostic passes stopped at runner installation/PID discovery/acquisition. A completed default-launcher failure then shows successful proxy/daemon and automation setup followed by Timed out while loading Accessibility; this is a runner initialization failure, not a typing assertion. UI/environment correction and retained-guest per-user service recovery alone do not establish success. Severe first-boot host load and placeholder system icons are observed without a unique causal attribution.
 
@@ -162,7 +191,9 @@ A same-runtime isolated iPhone 16e guest C953A303-766A-4549-8B43-77C390079773, c
 
 The failed raw typing assertion is complete and exported. Its secondary automatic diagnostic collector reports missing simctl internally; explicit scoped exports succeed. The longer warm bootstrap advances in native logs and completes without another guest cycle. All task guests stop, font large is confirmed unchanged, and old guests/cache remain preserved. This operational recovery does not establish that the old guest/cache is repaired or that every future launch will be fast.
 
-## Current Raw First/Warm Investigation
+<a id="current-raw-firstwarm-investigation"></a>
+
+## 9. Current Raw First/Warm Investigation
 
 Status: **Transport recovered for two completed raw methods; both focused verdicts fail; RN-TEXT-01 remains open**. Planning consolidation commit `f0cb8e4` establishes this single roadmap/evidence structure, feature branch convention and normal formatter coverage. No production component is changed.
 
@@ -238,7 +269,9 @@ Both cases retain the same recorded native instance1/tag62 through ref callback 
 
 Both optional post-verdict LLDB attempts reach their fixed total/silence bounds without returning a UIKit/KVC snapshot. Neither marked text, native event-counter state nor the actual EditingChanged/controlled-write sequence is captured. There are exactly two completed raw methods, two preserved text failures, two post-verdict inspection attempts and zero successful snapshots; the earlier retained startup controller performs no typing. Seven reusable-runner cases and six focused-result cases pass. A subsecond child-start allowance in the progress test flakes under host pressure and is replaced by a 3.2-second progress scenario with a two-second silence threshold; native typing/defaults are unchanged. Normal commit checks, planning/link preservation, frozen source62/app67/archive/locks/pins/palette and prior evidence seals are verified at closeout. No production synchronization patch, ownership relaxation, Input/ComboBox rerun, acceptance propagation, dependency change, publication or iPhone signing follows. The next evidence gate is native change-publication and controlled-write/selection/composition tracing, not another unbounded typing retry.
 
-## LLDB Attachment And Native Trace
+<a id="lldb-attachment-and-native-trace"></a>
+
+## 10. LLDB Attachment And Native Trace
 
 The next bounded run keeps the same retained 89459775 guest and frozen Release app. Its initial limit is 60 minutes, two owned host-probe attachments, three simulator attachments and two gated raw invocations. After the agent-authored live expression fails to compile, automatic approval review rejects a fourth attachment/third invocation as exceeding that bound. Gabriel then explicitly approves one bounded replay; the original deadline remains fixed. That approval authorizes one replay only and does not turn setup failures into typing evidence.
 
@@ -254,7 +287,9 @@ The single approved replay completes with xcodebuild exit 65 after 216.76 s: tes
 
 Final native totals are one host-probe attachment, three simulator attachments, three gated raw invocations, zero typing calls, zero focused text verdicts and zero native breakpoint events. Basic LLDB read/detach is proven, but reliable XCTest startup and live metadata evaluation remain unproven. The prepared probe is not promoted as a validated native mutation tracer. RN-TEXT-01 remains open, and the prior frozen first/warm failures retain their original meaning. No new Input/ComboBox comparison or component acceptance is inferred. A future continuation must first pass reliable no-editor callback startup and a minimal live metadata read before committing another typing budget; no automatic continuation is authorized here.
 
-### Startup And Minimal-Metadata Continuation
+<a id="startup-and-minimal-metadata-continuation"></a>
+
+### 10.1. Startup And Minimal-Metadata Continuation
 
 The next run prepares a fresh private observer whose start method requires an already running app and activates it instead of calling terminate/launch through XCTest. The intended proof requires the same owned PID/UID/birth/executable before and after an actual Transport 1 callback. Four focused helper cases pass for exact launch parsing, combined callback/process evidence, process replacement and unknown/stopped/traced state. The private observer builds in 24.05 s and installs in 32.10 s; the frozen Release app is not rebuilt. One missing progress-reader import is corrected before the build starts, without a native validation attempt.
 
@@ -262,7 +297,9 @@ The single host-prelaunch attempt then reaches its fixed 90-second bound without
 
 The stated 45-minute deadline is exceeded by the final read-only process observation by about two minutes, followed by cleanup; this is an execution-discipline failure, not an authorized budget extension. No additional native attempt follows. The final font read also times out; closing the identified task UI is followed by shutdown reporting that the guest is already stopped, and a separate state read confirms all five task guests are Shutdown. The failed launch, partial evidence, exact observer identities and actual counts remain in native-startup-minimal-metadata-2026-10-16. Startup repair and the minimal live metadata prerequisite remain unvalidated, RN-TEXT-01 stays open, and neither a production workaround nor restored component acceptance is claimed.
 
-### Delayed App Launch And Host Load
+<a id="delayed-app-launch-and-host-load"></a>
+
+### 10.2. Delayed App Launch And Host Load
 
 The next run reuses the unchanged prelaunched observer/cache and retained 89459775 guest. Its controller records a 25-minute investigation cutoff plus five minutes for automatic native cleanup, checks the remaining budget before stages and preserves command receipts even on timeout. The guest becomes ready in 41.01 s, and the frozen app's direct launch returns its new PID in 1.29 s. Its PID/UID/birth/executable remains unchanged through the subsequent failed XCTest invocation. This attempt does not reproduce the preceding 90-second app-launch timeout, and a fast launch does not establish test readiness.
 
@@ -274,7 +311,9 @@ The original runner receipt records completedVerdict=true because Xcode represen
 
 Actual native totals are one app launch, one XCTest invocation, zero callback passes, zero LLDB attachments, zero live metadata probes and zero typing. The controller enters cleanup after 5.21 minutes and confirms all five task guests Shutdown within its native budget; the task UI is then closed and frozen source62/app67/archive/locks/pins/palette/controlled values and global Developer selection are verified. No font setting is written; its current category is not queried. The warm validation, minimal metadata and tracing gates remain unused after the first callback prerequisite fails. RN-TEXT-01 remains open, with no validated startup repair or production workaround. The concrete remaining barrier is Accessibility/framework bootstrap under the observed host conditions, rather than a component test assertion.
 
-### Accessibility Bootstrap And Activation Ordering
+<a id="accessibility-bootstrap-and-activation-ordering"></a>
+
+### 10.3. Accessibility Bootstrap And Activation Ordering
 
 The next retained-guest run keeps the existing prelaunched observer/cache and all Accessibility/watchdog settings unchanged. A bounded CPU observation initially records only about 1–3% idle, then reaches consecutive 38.99%/48.81% idle samples after about 20 seconds. A process-only snapshot identifies high boot-time averages in the guest News widget, Mail agent, PosterBoard and diagnostic services; those measurements precede the component app's launch. No background service or user process is terminated to force readiness. The observed quiet window is an experiment condition, not a guarantee of Accessibility readiness or an isolated causal intervention.
 
@@ -289,7 +328,9 @@ The prepared [versioned private observer](fixtures/native-query-delivery/CodonPr
 
 Actual native totals are two app launches, two callback-check invocations, zero callback passes, zero LLDB attachments, zero metadata evaluations and zero typing. The latest callback gate fails, so metadata and tracing remain unused. The controller automatically stops all five task guests after its bounded investigation; task-UI cleanup, frozen app67/source62/archive/locks/pins/palette/controlled values and global Developer selection verify unchanged. Twenty-one existing helper cases pass, and the new observer has a compiler pass only. The next concrete validation is the activation-before-orientation candidate, keeping the cold bootstrap failure separate. RN-TEXT-01 and full component acceptance remain open; no production synchronization or signing change follows.
 
-### Activation-First Validation And Timeout Allowances
+<a id="activation-first-validation-and-timeout-allowances"></a>
+
+### 10.4. Activation-First Validation And Timeout Allowances
 
 The compiled activation-first observer is installed in the retained guest in 53.40 s, with its source, xctestrun and runner binary matching the prepared candidate. The frozen Release app is unchanged. The 60-second CPU observation never reaches its quiet threshold: measured idle ranges from 8.94% to 18.74%. A single process inventory shows high average CPU in the guest media-analysis service and only the current xcodebuild among lab-tool candidates; it does not establish a unique cause or authorize stopping system/user processes.
 
@@ -305,7 +346,9 @@ Following the owner's explicit request for more generous timeouts, the reusable 
 
 The generous replay launches the frozen app in 2.82 s and retains its PID/UID/birth/executable through the failed check. Its native session waits from runner installation at 16:22:12 local time until the runner emits Running tests at 16:24:00, then emits the AX bootstrap error at 16:25:07. The changed allowance lets this condition advance beyond a long startup gap; it does not isolate timeout length as the cause of other cohort differences or repair the later framework error. No selected method reaches the activation/orientation sequence. Actual totals are two boots of the same retained guest, three app launches, three XCTest invocations, zero callback passes, zero metadata/debugger probes and zero typing. Automatic cleanup follows within the original native budget. The activation-first observer remains unvalidated at its intended behavior; minimal metadata, native tracing and frozen family acceptance remain pending. No further replay is inferred from changing helper defaults.
 
-### Patient Startup And ComboBox Priority Acceptance
+<a id="patient-startup-and-combobox-priority-acceptance"></a>
+
+### 10.5. Patient Startup And ComboBox Priority Acceptance
 
 This follow-on uses one unchanged 40-minute native investigation deadline plus five minutes for cleanup. The same retained 89459775 guest is used throughout, with larger 600-second total/300-second silent XCTest allowances capped by the remaining original budget. First and warm startup conditions run in the same boot; a private observer repair is then validated before the original frozen ComboBox fixture is resumed. No production source, controlled ownership, keyboard/correction defaults, pins or palette changes. The unused private checker-profile candidate is not selected, and no debugger/native mutation trace runs. A 180-second CPU observation never reaches its quiet criterion, with idle ranging from 5.76% to 20.24%; this records host pressure without isolating a unique cause. The native log shows a separate 70-second Accessibility-load wait, and none of the recorded XCTest failures is stopped by the outer controller allowance.
 
@@ -329,7 +372,9 @@ The deadline is not restarted for that correction or for the final targeted reco
 
 Automatic cleanup completes within the original native bound, restores the exact 67-file diagnostic app, stops all five task guests and closes only identified task Simulator UI instances. Frozen source62/archive/locks/pins/palette/controlled values and global Developer selection verify unchanged. No font setting is written or freshly queried; signing stays deferred. The portrait-precondition and identity-guard fixes are retained, while original ComboBox first-result/Close/Back/nesting/layout acceptance, Android and maintained-scene propagation remain open. Further acceptance work first needs reliable startup of the priority observer; no new typing or production workaround is inferred from the isolated callback pass.
 
-### Priority Runner Identity And Replay
+<a id="priority-runner-identity-and-replay"></a>
+
+### 10.6. Priority Runner Identity And Replay
 
 This continuation uses one controller-enforced 40-minute investigation deadline plus five minutes for native cleanup, starting 2026-10-17 03:07:38 UTC. Native investigation ends at 03:41:49 UTC and guest cleanup at 03:42:00 UTC, inside both limits. Four boots use the same retained 89459775 guest; zero new guests, service/security resets, debugger attachments or app rebuilds occur. The private priority runner moves to dev.codonui.lab.priorityacceptance.xctrunner in a separate cache. Its complete Swift source remains byte-identical to the preceding acceptance observer, SHA-256 8842332974faadc5cf2851dc11e64bcd90d81c66ad284b82d276e49ba06e8ca4, preserving the original veto callback, controlled query, unpaced phrase, keyboard/focus, first-result geometry, Close/reopen and nested-context assertions. No production value, palette, pin or keyboard-default change follows.
 
@@ -351,7 +396,9 @@ Aggregate totals are five xcodebuild replay commands: three supported runner-acq
 
 The fresh packet is native-priority-runner-startup-2026-10-16 under this chat's existing evidence root. It retains source/product identities, both installation conditions, all failed replay receipts, effective launch options, control-session logs, the verified historical result copy, helper checks and cleanup. Original ComboBox native acceptance and RN-TEXT-01 remain open. Further iOS work first needs a deliberate test-manager/AX startup and lab/runtime decision; another identical replay or a production synchronization workaround is not inferred from this bounded result.
 
-### Control-Session Activation And Bootstrap
+<a id="control-session-activation-and-bootstrap"></a>
+
+### 10.7. Control-Session Activation And Bootstrap
 
 The original controller-enforced 40-minute investigation starts at 00:25:00 Toronto time on 2026-10-17 (04:25:00 UTC), with a five-minute native cleanup reserve. Investigation ends at 00:44:39 and guest cleanup at 00:44:54, inside both limits. The initial single-boot plan gains one retained-guest boot for validation after sampling confounds the first bootstrap outcome; the original deadline is not extended. Two conditions reuse the original priority app, observer Swift/source and compiled products without rebuilding them. Controlled values, unpaced typing/assertions, keyboard defaults, pins, palette and deferred iPhone signing stay unchanged.
 
@@ -370,7 +417,9 @@ Preparation and orchestration errors remain separate from XCTest: the copied sea
 
 Final cleanup restores the exact diagnostic app67, stops all five task guests and closes only identified task Simulator UI. The original priority app67, installed private runner34, cached observer identities, source62/archive/locks/pins/palette and global Developer selection verify unchanged. Font preferences are not written or freshly queried. All 21 inherited manifests/10242 listed files verify as data; sealed helpers are never executed/imported. The fresh native-xctest-control-session-2026-10-17 packet under the existing chat evidence root retains the complete sources, activation/guard records, original failure receipts, sampling limitations, clean validation and cleanup. The initial control connection is quick in these prepared conditions, but native ComboBox acceptance and RN-TEXT-01 remain open at runner launch/test-bundle bootstrap and later AX/callback prerequisites. Another unchanged control-session replay is not the next gate.
 
-## Evidence Custody And Identities
+<a id="evidence-custody-and-identities"></a>
+
+## 11. Evidence Custody And Identities
 
 The preceding sealed packet is native-raw-first-warm-investigation-2026-10-16 under /Users/gabrielbourget/.codex/visualizations/2026/10/16/01a142c2-0db7-7d31-aa1f-53e3773a7870. It contains 294 listed files, manifest SHA-256 279b2ee3831d3f2e7b8d8f099ee0ffcaef755d678625077d58a2f81351bef955 and receipt commit 6851bf6. It verifies twelve preceding manifests/7130 files. That continuation verifies thirteen inherited manifests/7424 listed files unchanged; the subsequent LLDB run verifies fourteen inherited manifests/8124 listed files unchanged. Earlier controlled-text packets under the 2026/10/11 root retain their distinct identities and two known pre-seal unlisted bytecode files, preserved as data without import/execution.
 
@@ -390,53 +439,55 @@ The preceding activation-first packet is native-activation-first-validation-2026
 
 The current packet is native-xctest-combobox-acceptance-2026-10-16 under the same chat root. It preserves the patient startup contrast, the validated portrait-precondition callback, the agent-owned folder guard failure/correction, original priority app/observer identities, all four priority startup failures, exact unchanged deadlines, separate/aggregate dispositions and final restoration. Nineteen inherited manifests/9120 listed files verify unchanged as data. Frozen production identities and deferred signing remain intact. The packet is sealed after logical commits and remains non-executable evidence.
 
-## Historical Document Lookup
+<a id="historical-document-lookup"></a>
+
+## 12. Historical Document Lookup
 
 The 44 former top-level documents in docs/roadmaps are consolidated into this roadmap and evidence companion. Their complete text, exact proposal/receipt scope and former native ledger sections 8.1–8.56 remain available at local Git revision db54a8a. Resolve any historical path with `git show db54a8a:<path>`; this does not require a published branch or tracker. Existing immutable proof-packet sourceRef strings (including DateTimePicker) deliberately retain their former paths and resolve through this lookup. They are provenance, not current task links. Settled public behavior is documented in the curated pages referenced from the roadmap; no registry artifact or CLI contract is changed by removing duplicate planning prose.
 
-| Former path at db54a8a                                            | Current reading home                                                                      |
-| ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
-| `docs/roadmaps/ci-verification-foundation.md`                     | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/cli-baseline-contract.md`                          | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/codon-ui-rename-decision-packet.md`                | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/component-ingest-contract.md`                      | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/date-time-picker-receipt-plan.md`                  | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/first-component-proof-requirements.md`             | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/react-native-basic-controls-pass.md`               | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-cached-preflight-receipt.md`          | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-component-standards-review.md`        | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-controlled-text-runtime-follow-up.md` | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-controlled-text-sequence-pass.md`     | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-controlled-text-sequence-receipt.md`  | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-installer-progress-pass.md`           | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-installer-progress-receipt.md`        | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-library-first-pass.md`                | [Roadmap](roadmap.md)                                                                     |
-| `docs/roadmaps/react-native-multiline-radio-pass.md`              | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-number-input-intl-pass.md`            | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-number-input-pass.md`                 | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-overlay-pass.md`                      | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-primitives-adoption-proposal.md`      | [RN Primitives decision](#rn-primitives-decision)                                         |
-| `docs/roadmaps/react-native-primitives-fixed-source-pass.md`      | [RN Primitives decision](#rn-primitives-decision)                                         |
-| `docs/roadmaps/react-native-primitives-fixed-source-receipt.md`   | [RN Primitives decision](#rn-primitives-decision)                                         |
-| `docs/roadmaps/react-native-primitives-trial-receipt.md`          | [RN Primitives decision](#rn-primitives-decision)                                         |
-| `docs/roadmaps/react-native-query-delivery-diagnostic-pass.md`    | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-query-delivery-diagnostic-receipt.md` | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-runner-startup-receipt.md`            | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-searchable-selection-coverage.md`     | [Roadmap](roadmap.md)                                                                     |
-| `docs/roadmaps/react-native-searchable-selection-pass.md`         | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-searchable-selection-receipt.md`      | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-select-acceptance-pass.md`            | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-select-acceptance-receipt.md`         | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-select-adoption-decision.md`          | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-select-adoption-triage.md`            | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-select-pass.md`                       | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-text-button-pass.md`                  | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-text-button-review.md`                | [Evidence and accepted contracts](#implementation-checkpoints)                            |
-| `docs/roadmaps/react-native-xctest-lab-recovery.md`               | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-xctest-preflight-recovery-pass.md`    | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-native-xctest-preflight-recovery-receipt.md` | [RN-TEXT-01 evidence](#rn-text-01-evidence)                                               |
-| `docs/roadmaps/react-theme-css-contract.md`                       | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/receiver-support-contract.md`                      | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/registry-artifact-contract.md`                     | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/switch-manifest-plan.md`                           | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
-| `docs/roadmaps/table-receipt-plan.md`                             | [Settled contract ownership](roadmap.md#ownership-and-accepted-contracts) and Git history |
+| Former path at db54a8a                                            | Current reading home                                                                        |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `docs/roadmaps/ci-verification-foundation.md`                     | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/cli-baseline-contract.md`                          | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/codon-ui-rename-decision-packet.md`                | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/component-ingest-contract.md`                      | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/date-time-picker-receipt-plan.md`                  | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/first-component-proof-requirements.md`             | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/react-native-basic-controls-pass.md`               | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-cached-preflight-receipt.md`          | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-component-standards-review.md`        | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-controlled-text-runtime-follow-up.md` | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-controlled-text-sequence-pass.md`     | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-controlled-text-sequence-receipt.md`  | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-installer-progress-pass.md`           | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-installer-progress-receipt.md`        | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-library-first-pass.md`                | [Roadmap](roadmap.md)                                                                       |
+| `docs/roadmaps/react-native-multiline-radio-pass.md`              | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-number-input-intl-pass.md`            | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-number-input-pass.md`                 | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-overlay-pass.md`                      | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-primitives-adoption-proposal.md`      | [RN Primitives decision](#6-rn-primitives-decision)                                         |
+| `docs/roadmaps/react-native-primitives-fixed-source-pass.md`      | [RN Primitives decision](#6-rn-primitives-decision)                                         |
+| `docs/roadmaps/react-native-primitives-fixed-source-receipt.md`   | [RN Primitives decision](#6-rn-primitives-decision)                                         |
+| `docs/roadmaps/react-native-primitives-trial-receipt.md`          | [RN Primitives decision](#6-rn-primitives-decision)                                         |
+| `docs/roadmaps/react-native-query-delivery-diagnostic-pass.md`    | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-query-delivery-diagnostic-receipt.md` | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-runner-startup-receipt.md`            | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-searchable-selection-coverage.md`     | [Roadmap](roadmap.md)                                                                       |
+| `docs/roadmaps/react-native-searchable-selection-pass.md`         | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-searchable-selection-receipt.md`      | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-select-acceptance-pass.md`            | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-select-acceptance-receipt.md`         | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-select-adoption-decision.md`          | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-select-adoption-triage.md`            | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-select-pass.md`                       | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-text-button-pass.md`                  | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-text-button-review.md`                | [Evidence and accepted contracts](#2-implementation-checkpoints)                            |
+| `docs/roadmaps/react-native-xctest-lab-recovery.md`               | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-xctest-preflight-recovery-pass.md`    | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-native-xctest-preflight-recovery-receipt.md` | [RN-TEXT-01 evidence](#7-rn-text-01-evidence)                                               |
+| `docs/roadmaps/react-theme-css-contract.md`                       | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/receiver-support-contract.md`                      | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/registry-artifact-contract.md`                     | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/switch-manifest-plan.md`                           | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |
+| `docs/roadmaps/table-receipt-plan.md`                             | [Settled contract ownership](roadmap.md#4-ownership-and-accepted-contracts) and Git history |

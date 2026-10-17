@@ -175,6 +175,7 @@ Agentic runs must not lose time to stale or over-broad verification sessions.
 - Name feature branches `feature/<description>` unless the owner explicitly requests another name.
 - Keep this library implementation's canonical roadmap at `planning/component-library/roadmap.md` and experiment outcomes at `planning/component-library/experiments.md`, indexed by `planning/README.md`.
 - Extend those files for bounded work, decisions and receipts; do not create a separate roadmap, proposal or receipt document per component issue, experiment or timeout.
+- Preserve numbered hierarchical section headings in the component-library roadmap and evidence companion: `## 1.`, `### 1.1.`, `#### 1.1.1.`. Number visible acceptance-gate/scenario/profile labels consistently with that hierarchy; keep stable evidence IDs as metadata, never as replacement section headings. Maintain contents links and legacy anchor compatibility when renumbering.
 - Preserve stable catalogue/issue identities, accepted decisions, open gates and source/evidence revisions when consolidating. Git history retains detailed superseded planning; immutable sourceRef strings and sealed evidence are not rewritten.
 - Keep reusable reference in the existing curated docs and non-shipping reproduction source under the workstream's fixtures directory.
 
