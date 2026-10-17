@@ -7,6 +7,26 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { ThumbnailShowcase } from "./components/ThumbnailShowcase/ThumbnailShowcase"
+export {
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__ALL,
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__PRIMARY,
+  THUMBNAIL_SHOWCASE_RENDERING_MODE__SECONDARY,
+  AVAILABLE_THUMBNAIL_SHOWCASE_RENDERING_MODES,
+  DEFAULT_THUMBNAIL_SHOWCASE_SECONDARY_SLOT_COUNT,
+} from "./components/ThumbnailShowcase/types"
+export type {
+  TNativeThumbnailShowcaseProps,
+  TNativeThumbnailShowcaseProps as ThumbnailShowcaseProps,
+  TNativeThumbnailShowcaseRenderingMode,
+  TNativeThumbnailShowcaseRenderingMode as ThumbnailShowcaseRenderingMode,
+  TNativeThumbnailShowcaseSecondaryItem,
+  TNativeThumbnailShowcaseSecondaryItem as ThumbnailShowcaseSecondaryItem,
+  TNativeThumbnailShowcaseRenderOverflowArgs,
+  TNativeThumbnailShowcaseRenderOverflowArgs as ThumbnailShowcaseRenderOverflowArgs,
+  TNativeThumbnailShowcaseRenderSecondaryPlaceholderArgs,
+  TNativeThumbnailShowcaseRenderSecondaryPlaceholderArgs as ThumbnailShowcaseRenderSecondaryPlaceholderArgs,
+} from "./components/ThumbnailShowcase/types"
 export { ThumbnailImage } from "./components/ThumbnailImage/ThumbnailImage"
 export type {
   TNativeThumbnailImageProps,
