@@ -28,6 +28,7 @@ export const AvatarScene = () => {
   const [explicitColors, setExplicitColors] = useState(false)
   const [delayed, setDelayed] = useState(false)
   const [lifetime, setLifetime] = useState(0)
+  const [measuredFrame, setMeasuredFrame] = useState<{ width: number; height: number }>()
   const [name1, name2] = AVATAR_NAMES[nameIndex]
   const size = zero ? 0 : AVATAR_SIZES[sizeIndex]
   const geometry = AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]
@@ -41,7 +42,8 @@ export const AvatarScene = () => {
       <Text testID="avatar-state">
         Activations: {activations}. Names: {nameIndex}. Size: {size}. Geometry: {geometry}. Image: {imageMode}.
         {clickable ? " Clickable." : " Passive."}
-        {disabled ? " Disabled." : " Enabled."}
+        {disabled ? " Disabled." : " Enabled."} Frame:{" "}
+        {measuredFrame ? `${measuredFrame.width} x ${measuredFrame.height}` : "unmeasured"}.
       </Text>
       <View style={styles.controls}>
         <Button onPress={() => setNameIndex((index) => (index + 1) % AVATAR_NAMES.length)}>Next avatar name</Button>
@@ -74,6 +76,13 @@ export const AvatarScene = () => {
           clickable={clickable}
           disabled={disabled}
           onPress={() => setActivations((count) => count + 1)}
+          onLayout={({ nativeEvent: { layout } }) => {
+            const width = Math.round(layout.width * 1000) / 1000
+            const height = Math.round(layout.height * 1000) / 1000
+            setMeasuredFrame((current) =>
+              current?.width === width && current.height === height ? current : { width, height },
+            )
+          }}
           imageURL={
             imageMode === "sample" ? SAMPLE_IMAGE : imageMode === "invalid" ? "data:image/png;base64,AA==" : undefined
           }

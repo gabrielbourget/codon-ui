@@ -33,6 +33,8 @@ export const TagScene = () => {
   const [zero, setZero] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [longLabel, setLongLabel] = useState(false)
+  const [measuredFrame, setMeasuredFrame] = useState<{ width: number; height: number }>()
+  const [disableDuringPress, setDisableDuringPress] = useState(false)
   const id = TAG_IDS[idIndex]
   const alias = TAG_ALIASES[aliasIndex]
   const geometry = AVAILABLE_CORNER_GEOMETRY_CODES[geometryIndex]
@@ -46,12 +48,15 @@ export const TagScene = () => {
       <Text testID="tag-state">
         Owner: {String(selected)}. Echo: {String(echo)}. Requests: {requests}. Last: {lastRequest}. ID: {describeID(id)}
         . Exposed: {alias === undefined ? "default" : String(alias)}. Size:{" "}
-        {zero ? "zero" : constrained ? "140" : "automatic"}. Geometry: {geometry}.
+        {zero ? "zero" : constrained ? "140" : "automatic"}. Geometry: {geometry}. Frame:{" "}
+        {measuredFrame ? `${measuredFrame.width} x ${measuredFrame.height}` : "unmeasured"}. Armed guard:{" "}
+        {String(disableDuringPress)}.
       </Text>
       <View style={styles.controls}>
         <Button onPress={() => setEcho((current) => !current)}>Toggle tag owner echo</Button>
         <Button onPress={() => setSelected((current) => !current)}>Toggle tag owner value</Button>
         <Button onPress={() => setDisabled((current) => !current)}>Toggle tag disabled</Button>
+        <Button onPress={() => setDisableDuringPress(true)}>Arm tag disable during press</Button>
         <Button onPress={() => setIDIndex((index) => (index + 1) % TAG_IDS.length)}>Next tag ID</Button>
         <Button onPress={() => setAliasIndex((index) => (index + 1) % TAG_ALIASES.length)}>
           Next tag accessibility override
@@ -94,6 +99,18 @@ export const TagScene = () => {
           isDisabled={disabled}
           id={id}
           aria-pressed={alias}
+          onPressIn={() => {
+            if (!disableDuringPress) return
+            setDisableDuringPress(false)
+            setDisabled(true)
+          }}
+          onLayout={({ nativeEvent: { layout } }) => {
+            const width = Math.round(layout.width * 1000) / 1000
+            const height = Math.round(layout.height * 1000) / 1000
+            setMeasuredFrame((current) =>
+              current?.width === width && current.height === height ? current : { width, height },
+            )
+          }}
           onPress={(requestedID) => {
             setRequests((count) => count + 1)
             setLastRequest(describeID(requestedID))

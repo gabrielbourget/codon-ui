@@ -103,3 +103,17 @@ it("composes all geometries, names, explicit colors and four style owners", asyn
   await press("Next avatar image")
   expect(graphic("avatar-initials")).toHaveTextContent("AP")
 })
+
+it("reports native layout and zero geometry without inventing activation or changing the authored size", async () => {
+  const press = await enterAvatarScene()
+  await fireEvent(screen.getByTestId("avatar-example"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 30, height: 30 } },
+  })
+  expect(screen.getByTestId("avatar-state")).toHaveTextContent(/Activations: 0.*Frame: 30 x 30\./)
+  await press("Toggle avatar zero size")
+  await fireEvent(screen.getByTestId("avatar-example"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+  })
+  expect(screen.getByTestId("avatar-state")).toHaveTextContent(/Activations: 0.*Size: 0.*Frame: 0 x 0\./)
+  expect(screen.getByTestId("avatar-example")).toHaveStyle({ width: 0, height: 0 })
+})

@@ -1,4 +1,4 @@
-import { act, render, screen, userEvent } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { AccessibilityInfo, Dimensions } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
@@ -113,4 +113,31 @@ it("composes geometry, borders, colors, native text/final styles and exposed-sta
   await press("Next tag accessibility override")
   await press("Next tag accessibility override")
   expect(screen.getByTestId("tag-example").props.accessibilityState.checked).toBe("mixed")
+})
+
+it("reports native layout separately from controlled values, including an invisible zero frame", async () => {
+  const press = await enterTagScene()
+  await fireEvent(screen.getByTestId("tag-example"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 110.123456, height: 48 } },
+  })
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(
+    /Owner: false\. Echo: true\. Requests: 0.*Frame: 110.123 x 48\./,
+  )
+  await press("Toggle tag zero dimensions")
+  await fireEvent(screen.getByTestId("tag-example"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 0, height: 0 } },
+  })
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Requests: 0.*Size: zero.*Frame: 0 x 0\./)
+  expect(screen.getByTestId("tag-example")).toHaveStyle({ width: 0, height: 0 })
+})
+
+it("can arm an owner-disabled takeover during a real press lifecycle without manufacturing a request", async () => {
+  const press = await enterTagScene()
+  await press("Arm tag disable during press")
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Armed guard: true/)
+  const event = { nativeEvent: { timestamp: 10 } }
+  await fireEvent(screen.getByTestId("tag-example"), "pressIn", event)
+  await fireEvent.press(screen.getByTestId("tag-example"), event)
+  expect(screen.getByTestId("tag-example")).toBeDisabled()
+  expect(screen.getByTestId("tag-state")).toHaveTextContent(/Owner: false.*Requests: 0.*Armed guard: false/)
 })
