@@ -7,6 +7,37 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { Indicator } from "./components/Indicator/Indicator"
+export {
+  INDICATOR_SHAPE__CIRCLE,
+  INDICATOR_SHAPE__ROUNDED,
+  INDICATOR_SHAPE__SQUARE,
+  AVAILABLE_INDICATOR_SHAPES,
+} from "./components/Indicator/types"
+export type {
+  TNativeIndicatorProps,
+  TNativeIndicatorProps as IndicatorProps,
+  TNativeIndicatorRef,
+  TNativeIndicatorShape,
+  TNativeIndicatorShape as AvailableIndicatorShape,
+  TNativeIndicatorRenderState,
+  TNativeIndicatorStyleState,
+} from "./components/Indicator/types"
+export { LineSegment } from "./components/LineSegment/LineSegment"
+export {
+  LINE_SEGMENT_DIRECTION__HORIZONTAL,
+  LINE_SEGMENT_DIRECTION__VERTICAL,
+  AVAILABLE_LINE_SEGMENT_DIRECTIONS,
+} from "./components/LineSegment/types"
+export type {
+  TNativeLineSegmentProps,
+  TNativeLineSegmentProps as LineSegmentProps,
+  TNativeLineSegmentRef,
+  TNativeLineSegmentDirection,
+  TNativeLineSegmentDirection as AvailableLineSegmentDirections,
+  TNativeLineSegmentRenderState,
+  TNativeLineSegmentStyleState,
+} from "./components/LineSegment/types"
 export { LinearProgress } from "./components/LinearProgress/LinearProgress"
 export type {
   TNativeLinearProgressProps,
