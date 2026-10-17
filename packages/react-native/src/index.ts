@@ -7,6 +7,15 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { Link } from "./components/Link/Link"
+export type {
+  TNativeLinkProps,
+  TNativeLinkProps as LinkProps,
+  TNativeLinkRef,
+  TNativeLinkRootStyle,
+  TNativeLinkRenderState,
+  TNativeLinkStyleState,
+} from "./components/Link/types"
 export { Tag } from "./components/Tag/Tag"
 export { AVAILABLE_NATIVE_TAG_EASINGS } from "./components/Tag/types"
 export type {
