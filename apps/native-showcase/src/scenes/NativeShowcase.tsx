@@ -26,6 +26,7 @@ import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { DisplayScene } from "./DisplayScene"
 import { LibraryScene } from "./LibraryScene"
+import { LinkScene } from "./LinkScene"
 import { LoadingScene } from "./LoadingScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
@@ -161,6 +162,7 @@ export const NativeShowcase = () => {
     | "toggle"
     | "avatar"
     | "tag"
+    | "link"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -217,6 +219,7 @@ export const NativeShowcase = () => {
             <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
             <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
             <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
+            <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -239,7 +242,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "tag" ? (
+            {scene === "link" ? (
+              <LinkScene />
+            ) : scene === "tag" ? (
               <TagScene />
             ) : scene === "avatar" ? (
               <AvatarScene />

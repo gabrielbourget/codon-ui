@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -128,6 +128,38 @@ Root size, three geometries, five orders, selected foreground color, fontSize12,
 One decorative selected surface follows accepted selection and measured layout positions with a 250 ms ease-in-out translation, opacity and scale0.92→1 entrance. Replaced transitions resume from stopped native values; late callbacks cannot restart a retired transition. Pending/unavailable Reduce Motion is static, live changes cancel current motion and unmount cancels both motion and measurement work. Source checks do not certify actual native frame timing, intrinsic geometry or spoken output.
 
 Muted root defaults copy the unchanged canonical light/dark surface #f7f7f7/#202020 and border #c6c6c6/#3d3d3d. Root custom/final styles override them independently. Adding independent surfaceMuted/borderMuted provider roles remains a public-theme decision, so full theme acceptance stays open. This explicit-items component does not provide upstream ToggleButtonGroup or SelectionIndicator interop. Installed equal-cell/large-text/layout/motion/semantic cells remain separate acceptance work.
+
+## Link
+
+Link renders one native link with an actual View ref and owned Text for primitive/array/Fragment content. href is required and remains verbatim, including empty strings. onPress receives the original native event before one Linking.openURL call; call event.preventDefault() to handle application routing, fragments, relative URLs or any owner veto. isDisabled blocks activation and cancels held gestures. onNavigationError(error, href) reports synchronous and asynchronous failures against their original target/callback; a link without that handler warns, and unmount retires error reporting.
+
+```tsx
+import { useState } from "react"
+import { Link } from "@codon-ui/react-native"
+
+const Example = () => {
+  const [visited, setVisited] = useState(false)
+  return (
+    <Link
+      href="https://example.com"
+      order="primary"
+      isVisited={visited}
+      onPress={() => setVisited(true)}
+      onNavigationError={(error, href) => console.warn(href, error)}
+      customStyles={{ fontSize: 18 }}
+      style={(state) => ({ opacity: state.isDisabled ? 0.4 : 1 })}
+    >
+      Open destination
+    </Link>
+  )
+}
+```
+
+isVisited is caller-owned; URL success never changes it internally. Existing action colors supply 500/600/700 rest/hover/press roles. The default visited400 is the canonical 85% action /15% background mix for native numeric colors; visitedColor can supply an opaque or independent value. Explicit color and custom/final styles override computed state colors. Without an order, foreground inherits the native content context. RGB foreground transitions use 125ms ease-out from the current frame; opaque native colors and pending/unavailable/live Reduce Motion use static colors. Native typography and textDecoration style fields reach owned Text, while authored elements keep their own style ownership.
+
+Computed defaults precede customStyles and final native registered/array/callback style. Style callbacks receive current interaction/visited flags, foregroundColor and post-custom defaultStyle. Native focus uses a 1.5-unit outline with default offset2; enableFocusStyle/offsetFocusRing accept explicit false. The default visible decoration is none, matching the canonical :link rule overriding its underline class; unvisited hover underlines, and explicit native textDecoration or final textDecorationLine controls the line. Native names/IDs take precedence over ARIA/camel aliases, retaining empty strings. accessibilityHint supplies descriptive content; Android label IDs retain pinned core behavior.
+
+Core Linking hands the URL to the OS. Browser window/referrer/download behavior, relative/fragment resolution and automatic visited-history lookup are open host mapping decisions; they are not silently implemented by a router. Core RN also lacks the canonical describedby/details ID relationships. Those unsupported aliases and browser props are rejected at the public boundary; their missing capabilities and the independent global visited theme role remain explicit in roadmap 3.5.8. Source/scene/consumer proof does not close installed URL handoff, glyph, motion or accessibility acceptance.
 
 ## Avatar
 
