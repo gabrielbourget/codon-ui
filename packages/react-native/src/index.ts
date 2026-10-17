@@ -7,6 +7,16 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { ToggleButton } from "./components/ToggleButton/ToggleButton"
+export type {
+  TNativeToggleButtonProps,
+  TNativeToggleButtonProps as ToggleButtonProps,
+  TNativeToggleButtonRef,
+  TNativeToggleButtonRenderState,
+  TNativeToggleButtonStyleState,
+  TNativeToggleButtonChildrenState,
+  TNativeToggleButtonSelectionState,
+} from "./components/ToggleButton/types"
 export { CircleLoader } from "./components/CircleLoader/CircleLoader"
 export type {
   TNativeCircleLoaderProps,
