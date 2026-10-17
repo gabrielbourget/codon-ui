@@ -25,6 +25,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { DisplayScene } from "./DisplayScene"
+import { GalleryScene } from "./GalleryScene"
 import { LibraryScene } from "./LibraryScene"
 import { LinkScene } from "./LinkScene"
 import { LoadingScene } from "./LoadingScene"
@@ -165,6 +166,7 @@ export const NativeShowcase = () => {
     | "tag"
     | "link"
     | "thumbnail"
+    | "gallery"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -227,6 +229,7 @@ export const NativeShowcase = () => {
               selected={scene === "thumbnail"}
               onPress={() => setScene("thumbnail")}
             />
+            <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
           </View>
           <View style={styles.controls}>
             <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
@@ -249,7 +252,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "thumbnail" ? (
+            {scene === "gallery" ? (
+              <GalleryScene />
+            ) : scene === "thumbnail" ? (
               <ThumbnailScene />
             ) : scene === "link" ? (
               <LinkScene />

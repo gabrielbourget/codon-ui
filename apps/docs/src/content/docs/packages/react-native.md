@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -160,6 +160,40 @@ isVisited is caller-owned; URL success never changes it internally. Existing act
 Computed defaults precede customStyles and final native registered/array/callback style. Style callbacks receive current interaction/visited flags, foregroundColor and post-custom defaultStyle. Native focus uses a 1.5-unit outline with default offset2; enableFocusStyle/offsetFocusRing accept explicit false. The default visible decoration is none, matching the canonical :link rule overriding its underline class; unvisited hover underlines, and explicit native textDecoration or final textDecorationLine controls the line. Native names/IDs take precedence over ARIA/camel aliases, retaining empty strings. accessibilityHint supplies descriptive content; Android label IDs retain pinned core behavior.
 
 Core Linking hands the URL to the OS. Browser window/referrer/download behavior, relative/fragment resolution and automatic visited-history lookup are open host mapping decisions; they are not silently implemented by a router. Core RN also lacks the canonical describedby/details ID relationships. Those unsupported aliases and browser props are rejected at the public boundary; their missing capabilities and the independent global visited theme role remain explicit in roadmap 3.5.8. Source/scene/consumer proof does not close installed URL handoff, glyph, motion or accessibility acceptance.
+
+## ThumbnailShowcase
+
+ThumbnailShowcase arranges caller-owned primary and secondary React content. It has all/primary/secondary rendering modes, a required primaryPlaceholder, optional primaryContent, readonly secondaryItems with React id/content, a default four-slot count and delegated placeholder/overflow renderers. Nullish primary content falls back; false,0 and empty string remain authoritative and still count as available media. The secondary row is omitted when no media exists or its normalized count is0. Finite slot counts floor/clamp at0; nonfinite values use4.
+
+```tsx
+import { Text, ThumbnailImage, ThumbnailShowcase } from "@codon-ui/react-native"
+
+const Example = () => (
+  <ThumbnailShowcase
+    width={300}
+    primaryContent={
+      <ThumbnailImage
+        src="file:///cache/primary.png"
+        alt="Primary photo"
+        style={{ width: "100%", height: "100%" }}
+        fallback={<Text>No photo</Text>}
+      />
+    }
+    primaryPlaceholder={<Text>No primary media</Text>}
+    secondaryItems={[{ id: 0, content: <Text>First item</Text> }]}
+    renderSecondaryPlaceholder={({ index }) => <Text>Empty slot {index}</Text>}
+    renderOverflow={({ hiddenItemCount }) => <Text>+{hiddenItemCount}</Text>}
+  />
+)
+```
+
+Overflow replaces the last visible slot when there are more items and a renderer exists. It deliberately retains the canonical hiddenItemCount=items.length-slotCount contract: five items/four slots renders three ordinary items and +1. Returned actions remain caller-owned; the layout adds no button or navigation behavior. Item keys, including0/empty/bigint, retain authored state through reorder, column and ordinary style/theme changes. Mode removal and explicit remount start new content lifetimes. Primitive/array/Fragment content gets native Text wrapping without replacing authored elements.
+
+The root defaults to width100%, column layout and10-unit gap. Primary and secondary owned slots default to full track width, square aspect, minWidth0, clipping and relative positioning. Root style, primarySlotStyle, secondaryRowStyle and secondarySlotStyle are separate native registered/array style owners. Final root style overrides named width; numeric zero stays zero, while padding/borders/gaps still contribute their own box sizes. There is no universal root ref in the canonical/native wrapper; authored content can own native refs, and root native layout/events/identity remain available.
+
+secondaryColumnCount is a positive integer that independently maps the web CSS column-count override; omission follows normalized rendered slot count. A local content-box measurement calculates equal tracks after numeric/percentage column gaps, preserving a flat keyed parent across wrapping changes. Private fractional/cache precision does not rewrite caller values. Measurement updates do not invoke content render callbacks; equivalent parent renders retain valid in-flight measurements, while changed layout contexts retire obsolete callbacks. Native row flow/gap fields apply to the private surface and row box/padding/border/background styles remain on the styled row. Authored slot width changes its visual slot without replacing track allocation.
+
+Arbitrary named/nonuniform/spanning CSS grid, over-constrained/absolute positioning and complete browser/native layout equivalence remain explicit open mappings in roadmap3.5.10. Source styles and renderer tests do not certify actual native grid geometry, clipping, adaptive profiles or accessibility. The maintained Gallery scene composes ThumbnailImage and keyed caller controls with mode/count/column/availability/reorder/width/style/disabled/lifetime controls and native frame readouts. This family adds no media DTO, image loader, hydration behavior, dependency or theme role.
 
 ## ThumbnailImage
 

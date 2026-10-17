@@ -11,6 +11,8 @@ The NumberInput scene adds controlled fractional and initially empty page-like v
 
 ## Local Use
 
+The Gallery scene composes ThumbnailShowcase and ThumbnailImage with caller-owned keyed controls. It exercises all modes, nullish/falsy primary content, normalized slot counts and independent columns, item/overflow changes, reorder, disabled actions, zero width, four style owners and explicit content restart. Native frame receipts are observational; they never feed controlled values. Source tests preserve keyed actions through theme/window/fixture changes and keep actual track/clipping/profile acceptance separate.
+
 The Thumbnail scene chains local invalid/valid PNG candidates, distinguishes equivalent lists from source/lifetime resets, and exposes authored zero fallback, empty alt, natural/zero/constrained geometry, native styles and an injected renderer. Native error/load counts, decoded sizes and onLayout receipts remain visible without feeding controlled values. The landscape and square fixtures test actual decoder geometry; source tests inject those events and leave installed decode/pixel/semantic/profile acceptance separate.
 
 The Link scene demonstrates repeated navigation veto, caller-owned visited state, explicit empty/relative/fragment targets and opt-in OS URL handoff to an intentionally unhandled custom scheme. Exact requests/errors, disabled and armed held-press guards, all orders, foreground/visited colors, text/final styles, decoration/focus controls, zero/width constraints, long French content and actual onLayout receipts remain inspectable. Owner values survive theme/window/fixture changes and reset explicitly. Browser-history/router/window policy and installed handoff/rendering/accessibility remain separate acceptance work.
