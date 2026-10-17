@@ -1,6 +1,6 @@
 # @codon-ui/react-native
 
-Private native-owned Codon foundation for the Expo SDK 57 / React Native 0.86.3 / React 19.2.3 laboratory. The package exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ComboBox, ListBoxItem, Modal, AlertDialog, the theme/overlay providers, hook and public types. Further component families follow the compatibility roadmap; closer owner visual review accompanies application feature integration.
+Private native-owned Codon foundation for the Expo SDK 57 / React Native 0.86.3 / React 19.2.3 laboratory. The package exports native Text, PlaceholderText, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ComboBox, ListBoxItem, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader, LaggingLinesLoader, the theme/overlay providers, hook and public types. Further component families follow the compatibility roadmap; closer owner visual review accompanies application feature integration.
 
 ```sh
 pnpm -F @codon-ui/react-native build
@@ -9,6 +9,10 @@ pnpm -F @codon-ui/react-native test --runInBand
 ```
 
 Metro's react-native export resolves canonical TypeScript source; types and compiled imports use dist. Build before checking consumer types. React and React Native are exact lab peers; Expo is owned by the consumer. The native package has no DOM, React Aria, Expo or CSS runtime imports.
+
+CircleLoader is an indeterminate native progressbar named Loading by default, with size25, track width3, a translucent gray track, current owned/theme foreground and an 850 ms linear rotation. spinnerColor, spinnerTrackColor, spinnerTrackIsTransparent, spinnerTrackWidth and size retain independent ownership. customStyles styles the outer container, whose color supplies the default ring foreground; final style wins over that root layer. Native logical dimensions replace CSS lengths and track width is numeric.
+
+LaggingLinesLoader preserves the 150-by-50 container, three 20%-width/5-unit lines, opacity/scale recipes, one-time 200/100/0 ms staggering and a 3000 ms eased round trip. width and color supply defaults; customStyles styles every line and may override animationDuration. Standard final style owns its root. Measured track width updates travel distance without restarting the active loop. Authored line transforms remain separate from motion. Both loaders accept numeric millisecond or s/ms duration strings, preserve zero as a static frame, honor live Reduce Motion and cancel replaced/unmounted work. The first frame stays static while preference readiness is pending or unavailable. Their View refs, native names/IDs/layout callbacks and style callbacks remain public; role, busy and indeterminate value semantics are owned. Inside owned Button content they are decorative by default. Source animation tests do not certify native frame timing or accessibility announcements; installed platform acceptance remains separate.
 
 The approved Select pass adds react-native-safe-area-context 5.7.0 as an exact peer/development dependency, matching the showcase. Consumers install that peer and complete normal native linking/build steps. Select's modal owns its safe-area provider; Expo remains consumer-owned.
 

@@ -7,6 +7,25 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { CircleLoader } from "./components/CircleLoader/CircleLoader"
+export type {
+  TNativeCircleLoaderProps,
+  TNativeCircleLoaderProps as CircleLoaderProps,
+  TNativeCircleLoaderRef,
+} from "./components/CircleLoader/types"
+export { LaggingLinesLoader } from "./components/LaggingLinesLoader/LaggingLinesLoader"
+export type {
+  TNativeLaggingLinesLoaderProps,
+  TNativeLaggingLinesLoaderProps as LaggingLinesLoaderProps,
+  TNativeLaggingLinesLoaderRef,
+  TNativeLaggingLineStyle,
+} from "./components/LaggingLinesLoader/types"
+export type {
+  TNativeLoaderDuration,
+  TNativeLoaderRootStyle,
+  TNativeLoaderRenderState,
+  TNativeLoaderStyleState,
+} from "./components/Loaders/types"
 export { Indicator } from "./components/Indicator/Indicator"
 export {
   INDICATOR_SHAPE__CIRCLE,
