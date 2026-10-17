@@ -7,6 +7,22 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { LinearProgress } from "./components/LinearProgress/LinearProgress"
+export type {
+  TNativeLinearProgressProps,
+  TNativeLinearProgressProps as LinearProgressProps,
+  TNativeLinearProgressRef,
+  TNativeLinearProgressRenderState,
+  TNativeLinearProgressStyleState,
+} from "./components/LinearProgress/types"
+export { Meter } from "./components/Meter/Meter"
+export type {
+  TNativeMeterProps,
+  TNativeMeterProps as MeterProps,
+  TNativeMeterRef,
+  TNativeMeterRenderState,
+  TNativeMeterStyleState,
+} from "./components/Meter/types"
 export { PlaceholderText } from "./components/Text/variants/PlaceholderText/PlaceholderText"
 export { ComboBox } from "./components/ComboBox/ComboBox"
 export {
