@@ -7,6 +7,23 @@ export type {
 } from "./theme"
 
 export { Text } from "./components/Text/Text"
+export { Tag } from "./components/Tag/Tag"
+export { AVAILABLE_NATIVE_TAG_EASINGS } from "./components/Tag/types"
+export type {
+  TNativeTagProps,
+  TNativeTagProps as TagProps,
+  TNativeStaticTagProps,
+  TNativePressableTagProps,
+  TNativeTagRef,
+  TNativeTagRenderState,
+  TNativeTagStyleState,
+  TNativeTagRootStyle,
+  TNativeTagBorder,
+  TNativeTagOutline,
+  TNativeTagTransition,
+  TNativeTagDuration,
+  TNativeTagEasing,
+} from "./components/Tag/types"
 export { Avatar } from "./components/Avatar/Avatar"
 export type {
   TNativeAvatarProps,
