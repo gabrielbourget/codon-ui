@@ -345,6 +345,16 @@ it("NATIVE.switcher.guards cancels a started contact across read-only takeover a
   expect(change).not.toHaveBeenCalled()
 })
 
+it("NATIVE.switcher.layout ignores native floating-point noise without restarting intrinsic measurement", async () => {
+  await render(<Example />)
+  await measure()
+  await layout(labels()[1], 5, 2, 78.00001, 16.00001)
+  expect(screen.getByTestId("toggle-switcher")).toHaveStyle({ width: 184 })
+  for (const option of options()) expect(option).toHaveStyle({ width: 88 })
+  await layout(labels()[1], 5, 2, 79, 16)
+  expect(StyleSheet.flatten(screen.getByTestId("toggle-switcher").props.style).width).toBeUndefined()
+})
+
 it("NATIVE.switcher.layout remeasures unchanged views and rejects callbacks from the retired measurement pass", async () => {
   const ref = createRef<View>()
   const { rerender } = await render(<ToggleSwitcher ref={ref} items={items} />)

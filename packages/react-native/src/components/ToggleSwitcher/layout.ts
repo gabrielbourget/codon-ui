@@ -20,7 +20,10 @@ const emptyLayout = (signature: object): TLayout => ({
   frames: new Map(),
 })
 const validSize = (size: TSize) => [size.width, size.height].every((value) => Number.isFinite(value) && value >= 0)
-const sameSize = (left: TSize | undefined, right: TSize) => left?.width === right.width && left.height === right.height
+// Native layout events and imperative measurements can encode the same size at different precision.
+const sameLength = (left: number | undefined, right: number) => left !== undefined && Math.abs(left - right) < 0.001
+const sameSize = (left: TSize | undefined, right: TSize) =>
+  sameLength(left?.width, right.width) && sameLength(left?.height, right.height)
 
 export const useNativeSwitcherLayout = (
   signature: object,
@@ -110,7 +113,7 @@ export const useNativeSwitcherLayout = (
     natural: (key: string, size: TSize, authored = false) => {
       if ((columnWidth !== undefined && !authored) || !validSize(size)) return
       update((layout) =>
-        layout.natural.get(key) === size.width
+        sameLength(layout.natural.get(key), size.width)
           ? layout
           : { ...layout, natural: new Map(layout.natural).set(key, size.width) },
       )
@@ -125,8 +128,9 @@ export const useNativeSwitcherLayout = (
       if (!validSize(frame) || !Number.isFinite(frame.x) || !Number.isFinite(frame.y)) return
       update((layout) => {
         const previous = layout.frames.get(key)
-        const unchanged = sameSize(previous, frame) && previous?.x === frame.x && previous.y === frame.y
-        if (unchanged && (columnWidth !== undefined || layout.natural.get(key) === frame.width)) return layout
+        const unchanged =
+          sameSize(previous, frame) && sameLength(previous?.x, frame.x) && sameLength(previous?.y, frame.y)
+        if (unchanged && (columnWidth !== undefined || sameLength(layout.natural.get(key), frame.width))) return layout
         return {
           ...layout,
           frames: new Map(layout.frames).set(key, frame),
