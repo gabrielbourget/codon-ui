@@ -71,7 +71,6 @@ export const DisplayScene = () => {
         size={zero ? 0 : 3}
         color={explicitColors ? "#2f7d18" : undefined}
         accessible
-        role="separator"
         accessibilityLabel="Example boundary"
         customStyles={custom ? { backgroundColor: "#a66b00", opacity: 0.75 } : undefined}
         style={

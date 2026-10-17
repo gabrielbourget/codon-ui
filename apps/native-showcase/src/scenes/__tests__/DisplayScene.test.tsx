@@ -65,7 +65,9 @@ it("composes every shape, native semantic opt-in, geometry, color and final over
     backgroundColor: "#2f7d18",
   })
   expect(screen.getByTestId("display-segment")).toHaveStyle({ width: 90, height: 3, backgroundColor: "#2f7d18" })
-  expect(screen.getByTestId("display-segment").props.role).toBe("separator")
+  expect(screen.getByTestId("display-segment").props.accessible).toBe(true)
+  expect(screen.getByTestId("display-segment").props.accessibilityLabel).toBe("Example boundary")
+  expect(screen.getByTestId("display-segment").props.role).toBeUndefined()
   expect(screen.getByTestId("display-indicator").props.accessibilityLabel).toBe("Availability active")
   await press("Toggle indicator activity")
   expect(screen.getByTestId("display-indicator")).toHaveStyle({ backgroundColor: "#a66b00", borderColor: "#2f7d18" })
