@@ -1,9 +1,13 @@
 package com.codonui.input;
 
 import android.text.TextUtils;
+import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.accessibility.AccessibilityNodeInfo;
 import android.widget.TextView;
+import androidx.annotation.RequiresApi;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.facebook.react.uimanager.util.ReactFindViewUtil;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -11,6 +15,20 @@ import java.util.List;
 import java.util.Set;
 
 final class CUIAccessibilityReferences {
+  private static final String supplementalDescriptionKey = "androidx.view.accessibility.AccessibilityNodeInfoCompat.SUPPLEMENTAL_DESCRIPTION_KEY";
+
+  static void setDetails(AccessibilityNodeInfoCompat node, CharSequence details) {
+    if (Build.VERSION.SDK_INT >= 36) Api36.setDetails(node.unwrap(), details);
+    else node.getExtras().putCharSequence(supplementalDescriptionKey, details);
+  }
+  static CharSequence details(AccessibilityNodeInfoCompat node) {
+    return Build.VERSION.SDK_INT >= 36 ? Api36.details(node.unwrap()) : node.getExtras().getCharSequence(supplementalDescriptionKey);
+  }
+  @RequiresApi(36)
+  private static final class Api36 {
+    static void setDetails(AccessibilityNodeInfo node, CharSequence details) { node.setSupplementalDescription(details); }
+    static CharSequence details(AccessibilityNodeInfo node) { return node.getSupplementalDescription(); }
+  }
   static final class Text {
     final boolean available;
     final String value;
@@ -42,7 +60,7 @@ final class CUIAccessibilityReferences {
   private static CharSequence read(View view, boolean bodyOnly, Set<View> seen) {
     if (!seen.add(view) || resolving.get().contains(view)) return null;
     if (bodyOnly && view instanceof TextView) return ((TextView) view).getText();
-    CharSequence label = view.getContentDescription();
+    CharSequence label = view instanceof CUIFocusView ? ((CUIFocusView) view).accessibilityReferenceLabel() : view.getContentDescription();
     if (!bodyOnly && label != null) return label;
     if (view instanceof TextView) return ((TextView) view).getText();
     if (view instanceof ViewGroup) {

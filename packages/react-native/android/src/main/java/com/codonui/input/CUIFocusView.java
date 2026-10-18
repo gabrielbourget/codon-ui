@@ -48,7 +48,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void setNativeDetailsBy(List<String> ids) { nativeDetailsBy = ids; }
   void setNativeDescriptionTag(int tag) { nativeDescriptionTag = tag; }
 
-  @Override public CharSequence getContentDescription() {
+  CharSequence accessibilityReferenceLabel() {
     if (nativeLabelledBy == null || nativeLabelledBy.isEmpty()) return super.getContentDescription();
     CUIAccessibilityReferences.Text label = CUIAccessibilityReferences.resolve(this, nativeLabelledBy, 0, false);
     CharSequence original = super.getContentDescription();
@@ -69,13 +69,13 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     CUIAccessibilityReferences.Text label = CUIAccessibilityReferences.resolve(this, nativeLabelledBy, 0, false);
     CUIAccessibilityReferences.Text description = CUIAccessibilityReferences.resolve(this, nativeDescribedBy, nativeDescriptionTag, true);
     CUIAccessibilityReferences.Text details = CUIAccessibilityReferences.resolve(this, nativeDetailsBy, 0, true);
-    if (label.available) node.setContentDescription(getContentDescription());
+    if (label.available) node.setContentDescription(accessibilityReferenceLabel());
     if (description.available) {
       // RN uses tooltip text for accessibilityHint; retain it in the native hint field before binding the description.
       if (node.getHintText() == null && node.getTooltipText() != null) node.setHintText(node.getTooltipText());
       node.setTooltipText(description.value);
     }
-    if (details.available) node.setSupplementalDescription(details.value);
+    if (details.available) CUIAccessibilityReferences.setDetails(node, details.value);
     return info;
   }
   void inspectAccessibility(String owner) {
@@ -93,7 +93,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     data.putString("hint", hint == null ? "" : hint.toString());
     data.putString("value", node.getText() == null ? "" : node.getText().toString());
     data.putString("description", node.getTooltipText() == null ? "" : node.getTooltipText().toString());
-    data.putString("details", node.getSupplementalDescription() == null ? "" : node.getSupplementalDescription().toString());
+    CharSequence nativeDetails = CUIAccessibilityReferences.details(node);
+    data.putString("details", nativeDetails == null ? "" : nativeDetails.toString());
     data.putBoolean("descriptionAvailable", description.available);
     data.putBoolean("detailsAvailable", details.available);
     data.putDouble("observedAt", SystemClock.uptimeMillis());
