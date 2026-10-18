@@ -1,3 +1,16 @@
+export { Slider } from "./components/Slider/Slider"
+export type {
+  TNativeSliderProps,
+  TNativeSliderProps as SliderProps,
+  TNativeSliderRef,
+  TNativeSliderState,
+  TNativeSliderRenderState,
+  TNativeSliderStyleState,
+  TNativeSliderValue,
+  TNativeSliderOrientation,
+  TNativeSliderDirection,
+} from "./components/Slider/types"
+
 export { Stepper } from "./components/Stepper/Stepper"
 export type {
   TNativeStepperProps,
