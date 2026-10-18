@@ -7,6 +7,7 @@ import {
   AVAILABLE_FONT_WEIGHTS,
   AVAILABLE_THEMING_ORDER_CODES,
   Button,
+  CarouselCloseButton,
   Text,
   useNativeTheme,
 } from "@codon-ui/react-native"
@@ -46,6 +47,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [selectable, setSelectable] = useState(true)
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [closeActions, setCloseActions] = useState(0)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
   const weight = AVAILABLE_FONT_WEIGHTS[weightIndex]
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -159,6 +162,24 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       >
         A long action label: continuez lorsque tous les paramètres sont prêts.
       </Button>
+      <Text testID="carousel-close-receipt">
+        Close preview: {previewOpen ? "open" : "closed"}. Close actions: {closeActions}.
+      </Text>
+      {previewOpen && (
+        <View testID="carousel-close-preview" style={styles.closePreview}>
+          <Text>Standalone Carousel close control</Text>
+          <CarouselCloseButton
+            isDisabled={disabled}
+            isPending={pending}
+            onPress={() => {
+              setPreviewOpen(false)
+              setCloseActions((value) => value + 1)
+            }}
+            customStyles={custom ? { padding: 10, borderWidth: 2, borderColor: "#087f8c" } : undefined}
+          />
+        </View>
+      )}
+      <SceneControl label="Restore close preview" onPress={() => setPreviewOpen(true)} />
       {constrained && (
         <View style={styles.constraint}>
           <Text>
@@ -189,4 +210,5 @@ const styles = StyleSheet.create({
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   control: { minHeight: Platform.OS === "ios" ? 44 : 48, padding: 10, justifyContent: "center", borderRadius: 5 },
   constraint: { gap: 10 },
+  closePreview: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
 })
