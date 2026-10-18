@@ -1,5 +1,6 @@
 package com.codonui.input;
 
+import android.text.TextUtils;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -15,7 +16,9 @@ final class CUIAccessibilityReferences {
     final String value;
     Text(boolean available, String value) { this.available = available; this.value = value; }
   }
-  private static final ThreadLocal<Set<View>> resolving = ThreadLocal.withInitial(HashSet::new);
+  private static final ThreadLocal<Set<View>> resolving = new ThreadLocal<Set<View>>() {
+    @Override protected Set<View> initialValue() { return new HashSet<>(); }
+  };
 
   static Text resolve(View source, List<String> ids, int tag, boolean bodyOnly) {
     if (ids.isEmpty() && tag <= 0) return new Text(false, "");
@@ -28,7 +31,7 @@ final class CUIAccessibilityReferences {
         append(source, target, bodyOnly, values);
       }
       if (tag > 0) append(source, source.getRootView().findViewById(tag), bodyOnly, values);
-      return new Text(!values.isEmpty(), String.join(" ", values));
+      return new Text(!values.isEmpty(), TextUtils.join(" ", values));
     } finally { active.remove(source); }
   }
   private static void append(View source, View target, boolean bodyOnly, List<String> values) {
@@ -49,7 +52,7 @@ final class CUIAccessibilityReferences {
         CharSequence child = read(group.getChildAt(i), bodyOnly, seen);
         if (child != null) children.add(child.toString());
       }
-      if (!children.isEmpty()) return String.join(" ", children);
+      if (!children.isEmpty()) return TextUtils.join(" ", children);
     }
     return label;
   }
