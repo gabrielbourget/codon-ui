@@ -45,9 +45,12 @@ const press = async (id: string) => {
 }
 const key = async (id: string, value: string, phase: "down" | "up", extra: Record<string, unknown> = {}) => {
   const target = row(id)
+  let prevented = false
   const event = {
-    preventDefault: jest.fn(),
-    isDefaultPrevented: () => false,
+    preventDefault: jest.fn(() => {
+      prevented = true
+    }),
+    isDefaultPrevented: () => prevented,
     nativeEvent: {
       kind: "keyboard",
       ownerId: target.props.ownerId,
@@ -496,4 +499,47 @@ it("accepts dynamic one-shot item iterables and typed key zero/empty without a l
   )
   expect(screen.getByText("Zero again")).toBeOnTheScreen()
   expect(screen.getByText("Empty again")).toBeOnTheScreen()
+})
+it("matches pinned default text buffering and captures Space before selection with the original raw event", async () => {
+  jest.useFakeTimers()
+  try {
+    const change = jest.fn(),
+      raw = jest.fn()
+    await render(
+      node(
+        { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change },
+        <Tag id={0} testID="zero" onKeyDown={raw}>
+          Zero
+        </Tag>,
+      ),
+    )
+    await key("zero", "z", "down", { nativeDefaultHandled: false })
+    const space = await key("zero", " ", "down")
+    await key("zero", " ", "up")
+    expect(space.preventDefault).toHaveBeenCalledTimes(1)
+    expect(raw.mock.calls.at(-1)?.[0] === space).toBe(true)
+    expect(change).not.toHaveBeenCalled()
+    await act(() => jest.advanceTimersByTime(1000))
+    await key("zero", " ", "down")
+    expect([...change.mock.calls[0][0]]).toEqual([0])
+    await key("zero", " ", "up")
+  } finally {
+    jest.useRealTimers()
+  }
+})
+it("retires the text buffer timer on unmount", async () => {
+  jest.useFakeTimers()
+  try {
+    const schedule = jest.spyOn(globalThis, "setTimeout"),
+      cancel = jest.spyOn(globalThis, "clearTimeout")
+    const view = await render(node())
+    await key("zero", "z", "down", { nativeDefaultHandled: false })
+    const index = schedule.mock.calls.findLastIndex(([, delay]) => delay === 1000)
+    expect(index).toBeGreaterThanOrEqual(0)
+    const handle = schedule.mock.results[index].value
+    await view.unmount()
+    expect(cancel.mock.calls.some(([value]) => value === handle)).toBe(true)
+  } finally {
+    jest.useRealTimers()
+  }
 })

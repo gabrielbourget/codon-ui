@@ -121,10 +121,9 @@ export const getNativeTagGroupSelectAllRequest = (
   mode: TNativeTagGroupSelectionMode,
   selection: TNativeTagGroupSelection,
   rows: readonly TNativeTagGroupRow[],
-  disallowEmptySelection = false,
-): "all" | Set<TNativeTagGroupKey> | null => {
+): "all" | null => {
   if (mode !== "multiple") return null
   const enabled = rows.filter((row) => !row.isDisabled)
   const all = selection === "all" || (selection.size > 0 && enabled.every((row) => selection.has(row.key)))
-  return all ? (disallowEmptySelection ? null : new Set()) : "all"
+  return all ? null : "all"
 }

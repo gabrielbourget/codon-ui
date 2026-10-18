@@ -1,7 +1,7 @@
 import { createContext, type RefObject } from "react"
 import type { View } from "react-native"
 
-import type { TNativePressEvent } from "../../input/types"
+import type { TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 
 import type { TNativeTagGroupActionState, TNativeTagGroupPointerType, TNativeTagGroupPressPhase } from "./intent"
 import type { TNativeTagGroupKey, TNativeTagGroupSelectionBehavior, TNativeTagGroupSelectionMode } from "./model"
@@ -36,6 +36,7 @@ export const NativeTagGroupContext = createContext<{
   selected: (row: TNativeTagRegistration) => boolean
   actionState: (row: TNativeTagRegistration, props?: TNativeGroupedTagProps) => TNativeTagGroupActionState
   focus: (row: TNativeTagRegistration, focused: boolean, visible: boolean) => void
+  keyCapture: (row: TNativeTagRegistration, event: TNativeKeyboardEvent) => void
   press: (
     row: TNativeTagRegistration,
     phase: TNativeTagGroupPressPhase,

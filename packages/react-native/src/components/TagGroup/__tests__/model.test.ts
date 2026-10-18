@@ -98,18 +98,13 @@ it("keyboard removal of all materializes enabled collection members without touc
   expect([...getNativeTagGroupRemovalRequest("multiple", "all", rows, 0, "keyboard")!]).toEqual([0, "0", "", "link"])
   expect(rows).toHaveLength(5)
 })
-it("select-all respects mode, empty veto, explicit complete sets and typed keys", () => {
+it("select-all preserves already-all owners, explicit complete sets and typed keys", () => {
   expect(getNativeTagGroupSelectAllRequest("single", new Set(), rows)).toBeNull()
   expect(getNativeTagGroupSelectAllRequest("multiple", new Set(), rows)).toBe("all")
-  expect([...(getNativeTagGroupSelectAllRequest("multiple", "all", rows) as Set<string | number>)]).toEqual([])
-  expect(getNativeTagGroupSelectAllRequest("multiple", "all", rows, true)).toBeNull()
-  expect([
-    ...(getNativeTagGroupSelectAllRequest("multiple", new Set([0, "0", "", "link"]), rows) as Set<string | number>),
-  ]).toEqual([])
+  expect(getNativeTagGroupSelectAllRequest("multiple", "all", rows)).toBeNull()
+  expect(getNativeTagGroupSelectAllRequest("multiple", new Set([0, "0", "", "link"]), rows)).toBeNull()
   expect(getNativeTagGroupSelectAllRequest("multiple", new Set(), [])).toBe("all")
-  expect([
-    ...(getNativeTagGroupSelectAllRequest("multiple", new Set(["missing"]), []) as Set<string | number>),
-  ]).toEqual([])
+  expect(getNativeTagGroupSelectAllRequest("multiple", new Set(["missing"]), [])).toBeNull()
 })
 it("compares authoritative membership without conflating all or mutating anchor metadata", () => {
   expect(equalNativeTagGroupSelection(new Set([0, ""]), new Set(["", 0]))).toBe(true)
