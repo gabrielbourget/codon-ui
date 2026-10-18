@@ -19,7 +19,7 @@ This repo is a `pnpm` monorepo.
 
 ## Commands
 
-The native laboratory now adds `packages/react-native` for the typed native theme foundation and `apps/native-showcase` for its generic Expo consumer. Text/Button implementation, external consumption and native build/device acceptance remain subsequent gates. See the [native execution ledger](docs/roadmaps/react-native-library-first-pass.md) for current proof and review status.
+`packages/react-native` owns the shared native component library and `apps/native-showcase` its generic Expo consumer. The [component-library roadmap](planning/component-library/roadmap.md) owns the complete catalogue, implementation sequence and open acceptance gates; [experiment results](planning/component-library/experiments.md) retain diagnostic evidence. See [planning](planning/README.md) for the working-document policy.
 
 ```sh
 pnpm install
@@ -51,6 +51,4 @@ pnpm -F @codon-ui/docs build
 
 ## Guardrails
 
-Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish
-packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the roadmap docs under
-`docs/roadmaps` before opening follow-up implementation passes.
+Do not treat this foundation branch as approval to move additional components, expand CLI install behavior, publish packages, add generated token writers, or decide deployment/release automation. Use `AGENTS.md` and the [component-library roadmap](planning/component-library/roadmap.md) before opening follow-up implementation passes.

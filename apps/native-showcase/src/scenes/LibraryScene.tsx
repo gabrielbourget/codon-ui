@@ -7,6 +7,7 @@ import {
   AVAILABLE_FONT_WEIGHTS,
   AVAILABLE_THEMING_ORDER_CODES,
   Button,
+  CarouselCloseButton,
   Text,
   useNativeTheme,
 } from "@codon-ui/react-native"
@@ -46,6 +47,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [selectable, setSelectable] = useState(true)
+  const [clearTextTypography, setClearTextTypography] = useState(false)
+  const [previewOpen, setPreviewOpen] = useState(true)
+  const [closeActions, setCloseActions] = useState(0)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
   const weight = AVAILABLE_FONT_WEIGHTS[weightIndex]
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -95,6 +99,11 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
         <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
         <SceneControl
+          label="Clear text typography"
+          selected={clearTextTypography}
+          onPress={() => setClearTextTypography((value) => !value)}
+        />
+        <SceneControl
           label="Toggle render children"
           selected={renderChildren}
           onPress={() => setRenderChildren((value) => !value)}
@@ -108,7 +117,18 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Text variant {variant}; weight {weight}; button geometry {geometry}.
       </Text>
-      <Text testID="library-text-preview" variant={variant} fontWeight={weight} selectable={selectable}>
+      <Text
+        testID="library-text-preview"
+        variant={variant}
+        fontWeight={weight}
+        selectable={selectable}
+        customStyles={custom ? { fontSize: 18, fontWeight: "700", fontStyle: "italic", lineHeight: 26 } : undefined}
+        style={
+          clearTextTypography
+            ? { fontSize: undefined, fontWeight: undefined, fontStyle: undefined, lineHeight: undefined }
+            : undefined
+        }
+      >
         Native text remains readable: sélectionnez les paramètres et continuez lorsque vous êtes prêt.
       </Text>
       <Text>
@@ -129,6 +149,10 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
             ? (state) => ({
                 backgroundColor: state.isPressed ? "#173f5f" : "#123456",
                 color: "#ffffff",
+                fontSize: 20,
+                fontWeight: "700",
+                letterSpacing: 1,
+                textTransform: "uppercase",
                 boxShadow: renderChildren
                   ? [{ offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0, 0, 0, 0.24)" }]
                   : "0px 2px 3px rgba(0, 0, 0, 0.24)",
@@ -159,6 +183,24 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       >
         A long action label: continuez lorsque tous les paramètres sont prêts.
       </Button>
+      <Text testID="carousel-close-receipt">
+        Close preview: {previewOpen ? "open" : "closed"}. Close actions: {closeActions}.
+      </Text>
+      {previewOpen && (
+        <View testID="carousel-close-preview" style={styles.closePreview}>
+          <Text>Standalone Carousel close control</Text>
+          <CarouselCloseButton
+            isDisabled={disabled}
+            isPending={pending}
+            onPress={() => {
+              setPreviewOpen(false)
+              setCloseActions((value) => value + 1)
+            }}
+            customStyles={custom ? { padding: 10, borderWidth: 2, borderColor: "#087f8c" } : undefined}
+          />
+        </View>
+      )}
+      <SceneControl label="Restore close preview" onPress={() => setPreviewOpen(true)} />
       {constrained && (
         <View style={styles.constraint}>
           <Text>
@@ -189,4 +231,5 @@ const styles = StyleSheet.create({
   controls: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
   control: { minHeight: Platform.OS === "ios" ? 44 : 48, padding: 10, justifyContent: "center", borderRadius: 5 },
   constraint: { gap: 10 },
+  closePreview: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 10 },
 })

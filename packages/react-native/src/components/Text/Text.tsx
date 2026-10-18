@@ -1,5 +1,5 @@
 import { forwardRef } from "react"
-import { Text as NativeText, type TextProps } from "react-native"
+import { Text as NativeText, type TextProps, type TextStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -37,22 +37,21 @@ export const Text = forwardRef<TNativeTextRef, TNativeTextProps>(
     const family = variant.startsWith("d") ? "display" : variant.startsWith("h") ? "heading" : "body"
     const custom = resolveNativeStyle(customStyles, "Text", "customStyles")
     const final = resolveNativeStyle(style, "Text", "style")
-    const merged = resolveNativeStyle(
-      [
-        {
-          color: foreground,
-          fontSize: theme.typography.fontSizes[variant],
-          fontWeight: theme.typography.fontWeights[fontWeight],
-          fontStyle: fontStyle ?? "normal",
-          fontFamily: theme.typography.fontFamilies[family] ?? theme.typography.fontFamilies.body,
-          lineHeight: theme.typography.lineHeight,
-        },
-        custom,
-        final,
-      ],
-      "Text",
-      "resolvedStyle",
-    )
+    const defaultStyle: TextStyle = {
+      color: foreground,
+      fontSize: theme.typography.fontSizes[variant],
+      fontWeight: theme.typography.fontWeights[fontWeight],
+      fontStyle: fontStyle ?? "normal",
+      fontFamily: theme.typography.fontFamilies[family] ?? theme.typography.fontFamilies.body,
+      lineHeight: theme.typography.lineHeight,
+    }
+    const merged = resolveNativeStyle([defaultStyle, custom, final], "Text", "resolvedStyle")
+    const resolved: TextStyle = {
+      ...merged,
+      ...Object.fromEntries(
+        Object.entries(defaultStyle).filter(([key]) => merged[key as keyof TextStyle] === undefined),
+      ),
+    }
     const semanticRole: TextProps["role"] =
       role ??
       (accessibilityRole !== undefined
@@ -65,7 +64,7 @@ export const Text = forwardRef<TNativeTextRef, TNativeTextProps>(
 
     return (
       <NativeContentContext.Provider
-        value={{ foregroundColor: merged.color ?? foreground, isButton: content?.isButton ?? false }}
+        value={{ foregroundColor: resolved.color ?? foreground, isButton: content?.isButton ?? false }}
       >
         <NativeText
           {...rest}
@@ -75,7 +74,7 @@ export const Text = forwardRef<TNativeTextRef, TNativeTextProps>(
           accessibilityLabel={accessibilityLabel ?? aliasLabel}
           testID={testID ?? aliasTestID ?? "text"}
           selectable={selectable ?? (elementType !== "label" && !content?.isButton)}
-          style={{ ...merged, color: merged.color ?? foreground }}
+          style={{ ...resolved, color: resolved.color ?? foreground }}
         >
           {children}
         </NativeText>

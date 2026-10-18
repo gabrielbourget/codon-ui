@@ -18,7 +18,13 @@
   "files": [
     "dist",
     "src",
-    "!src/**/__tests__/**"
+    "!src/**/__tests__/**",
+    "ios",
+    "!ios/build",
+    "android/src",
+    "android/build.gradle",
+    "*.podspec",
+    "react-native.config.js"
   ],
   "scripts": {
     "build": "node clean-dist.mjs && tsc -p tsconfig.build.json",
@@ -34,7 +40,9 @@
   "peerDependencies": {
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2"
   },
   "devDependencies": {
     "@babel/core": "7.29.0",
@@ -51,9 +59,26 @@
     "@react-native/babel-preset": "0.86.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2",
+    "react-dom": "19.2.3"
   },
   "dependencies": {
     "@internationalized/number": "3.6.6"
+  },
+  "codegenConfig": {
+    "name": "CodonNativeInputSpec",
+    "type": "components",
+    "jsSrcsDir": "src/input/specs",
+    "android": {
+      "javaPackageName": "com.codonui.input"
+    },
+    "ios": {
+      "componentProvider": {
+        "CUIFocusView": "CUIFocusView",
+        "CUIKeyboardScope": "CUIKeyboardScope"
+      }
+    }
   }
 }

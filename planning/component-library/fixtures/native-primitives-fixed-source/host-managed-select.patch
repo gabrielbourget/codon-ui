@@ -1,0 +1,284 @@
+--- a/packages/alert-dialog/src/alert-dialog.tsx
++++ b/packages/alert-dialog/src/alert-dialog.tsx
+@@ -143,12 +143,13 @@
+ Overlay.displayName = 'OverlayNativeAlertDialog';
+ type ContentComponentProps = ContentProps & React.RefAttributes<ContentRef>;
+ 
+-const Content = ({ asChild, forceMount, ref, ...props }: ContentComponentProps) => {
++const Content = ({ asChild, forceMount, nativeHostManaged = false, ref, ...props }: ContentComponentProps) => {
+   const { open: value, onOpenChange } = useRootContext();
+-  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(value);
++  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(value && !nativeHostManaged);
+   const composedRef = useComposedRefs(ref, accessibilityFocusRef);
+ 
+   React.useEffect(() => {
++    if (nativeHostManaged) return;
+     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+       onOpenChange(false);
+       return true;
+@@ -157,7 +158,7 @@
+     return () => {
+       backHandler.remove();
+     };
+-  }, []);
++  }, [nativeHostManaged, onOpenChange]);
+ 
+   if (!forceMount) {
+     if (!value) {
+@@ -171,7 +172,7 @@
+       ref={composedRef}
+       role='alertdialog'
+       aria-modal={true}
+-      onAccessibilityEscape={() => onOpenChange(false)}
++      onAccessibilityEscape={nativeHostManaged ? undefined : () => onOpenChange(false)}
+       {...props}
+     />
+   );
+--- a/packages/alert-dialog/src/types.ts
++++ b/packages/alert-dialog/src/types.ts
+@@ -34,6 +34,8 @@
+ 
+ type ContentProps = ForceMountable &
+   SlottableViewProps & {
++    /** Native-only trial: the enclosing Codon host owns focus and system dismissal. */
++    nativeHostManaged?: boolean;
+     /**
+      * Platform: WEB ONLY
+      */
+--- a/packages/dialog/src/dialog.tsx
++++ b/packages/dialog/src/dialog.tsx
+@@ -156,12 +156,13 @@
+ Overlay.displayName = 'OverlayNativeDialog';
+ type ContentComponentProps = ContentProps & React.RefAttributes<ContentRef>;
+ 
+-const Content = ({ asChild, forceMount, ref, ...props }: ContentComponentProps) => {
++const Content = ({ asChild, forceMount, nativeHostManaged = false, ref, ...props }: ContentComponentProps) => {
+   const { open, onOpenChange } = useRootContext();
+-  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(open);
++  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(open && !nativeHostManaged);
+   const composedRef = useComposedRefs(ref, accessibilityFocusRef);
+ 
+   React.useEffect(() => {
++    if (nativeHostManaged) return;
+     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+       onOpenChange(false);
+       return true;
+@@ -170,7 +171,7 @@
+     return () => {
+       backHandler.remove();
+     };
+-  }, []);
++  }, [nativeHostManaged, onOpenChange]);
+ 
+   if (!forceMount) {
+     if (!open) {
+@@ -184,7 +185,7 @@
+       ref={composedRef}
+       role='dialog'
+       aria-modal={true}
+-      onAccessibilityEscape={() => onOpenChange(false)}
++      onAccessibilityEscape={nativeHostManaged ? undefined : () => onOpenChange(false)}
+       onStartShouldSetResponder={onStartShouldSetResponder}
+       {...props}
+     />
+--- a/packages/dialog/src/types.ts
++++ b/packages/dialog/src/types.ts
+@@ -39,6 +39,8 @@
+   };
+ type ContentProps = ForceMountable &
+   SlottableViewProps & {
++    /** Native-only trial: the enclosing Codon host owns focus and system dismissal. */
++    nativeHostManaged?: boolean;
+     /**
+      * Platform: WEB ONLY
+      */
+--- a/packages/select/src/select.tsx
++++ b/packages/select/src/select.tsx
+@@ -66,6 +66,8 @@
+   asChild,
+   value: valueProp,
+   defaultValue,
++  open: openProp,
++  defaultOpen = false,
+   onValueChange: onValueChangeProp,
+   onOpenChange: onOpenChangeProp,
+   disabled,
+@@ -80,12 +82,17 @@
+   });
+   const [triggerPosition, setTriggerPosition] = React.useState<LayoutPosition | null>(null);
+   const [contentLayout, setContentLayout] = React.useState<LayoutRectangle | null>(null);
+-  const [open, setOpen] = React.useState(false);
+-
+-  function onOpenChange(value: boolean) {
+-    setOpen(value);
+-    onOpenChangeProp?.(value);
+-  }
++  const [open = false, onOpenChange] = useControllableState({
++    prop: openProp,
++    defaultProp: defaultOpen,
++    onChange: onOpenChangeProp,
++  });
++
++  React.useEffect(() => {
++    if (open) return;
++    setTriggerPosition(null);
++    setContentLayout(null);
++  }, [open]);
+ 
+   const Component = asChild ? Slot : View;
+   return (
+@@ -123,6 +130,7 @@
+   asChild,
+   onPress: onPressProp,
+   disabled = false,
++  onLayout: onLayoutProp,
+   ref,
+   ...props
+ }: TriggerComponentProps) => {
+@@ -130,18 +138,29 @@
+   const triggerRef = React.useRef<TriggerRef>(null);
+   useRestoreAccessibilityFocus(open, triggerRef);
+ 
+-  function measureTrigger() {
++  const measurementEpoch = React.useRef(0);
++  const measureTrigger = useEffectEvent(() => {
++    const epoch = ++measurementEpoch.current;
+     triggerRef.current?.measure((_x, _y, width, height, pageX, pageY) => {
+-      setTriggerPosition({ width, pageX, pageY: pageY, height });
++      if (epoch !== measurementEpoch.current) return;
++      setTriggerPosition({ width, pageX, pageY, height });
+     });
++  });
++
++  React.useEffect(() => {
++    if (open) measureTrigger();
++    return () => { measurementEpoch.current += 1; };
++  }, [open, measureTrigger]);
++
++  function onLayout(event: LayoutChangeEvent) {
++    if (open) measureTrigger();
++    onLayoutProp?.(event);
+   }
+ 
+   const openTriggerEvent = useEffectEvent(() => {
+     onOpenChange(true);
+-    measureTrigger();
+   });
+   const closeTriggerEvent = useEffectEvent(() => {
+-    setTriggerPosition(null);
+     onOpenChange(false);
+   });
+ 
+@@ -157,7 +176,6 @@
+ 
+   function onPress(ev: GestureResponderEvent) {
+     if (disabled) return;
+-    measureTrigger();
+     onOpenChange(!open);
+     onPressProp?.(ev);
+   }
+@@ -168,6 +186,7 @@
+       ref={composedRef}
+       aria-disabled={disabled ?? undefined}
+       role='combobox'
++      onLayout={onLayout}
+       accessibilityState={{ disabled: (disabled || disabledRoot) ?? false, expanded: open }}
+       onPress={onPress}
+       disabled={disabled ?? disabledRoot}
+@@ -224,12 +243,10 @@
+   ref,
+   ...props
+ }: OverlayComponentProps) => {
+-  const { open, onOpenChange, setTriggerPosition, setContentLayout } = useRootContext();
++  const { open, onOpenChange } = useRootContext();
+ 
+   function onPress(ev: GestureResponderEvent) {
+     if (closeOnPress) {
+-      setTriggerPosition(null);
+-      setContentLayout(null);
+       onOpenChange(false);
+     }
+     OnPressProp?.(ev);
+@@ -251,6 +268,7 @@
+ const Content = ({
+   asChild = false,
+   forceMount,
++  nativeHostManaged = false,
+   align = 'start',
+   side = 'bottom',
+   sideOffset = 0,
+@@ -270,24 +288,21 @@
+     contentLayout,
+     triggerPosition,
+     setContentLayout,
+-    setTriggerPosition,
+   } = useRootContext();
+-  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(open);
++  const accessibilityFocusRef = useAccessibilityFocus<ContentRef>(open && !nativeHostManaged);
+   const composedRef = useComposedRefs(ref, accessibilityFocusRef);
+ 
+   React.useEffect(() => {
++    if (nativeHostManaged) return;
+     const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+-      setTriggerPosition(null);
+-      setContentLayout(null);
+       onOpenChange(false);
+       return true;
+     });
+ 
+     return () => {
+-      setContentLayout(null);
+       backHandler.remove();
+     };
+-  }, []);
++  }, [nativeHostManaged, onOpenChange]);
+ 
+   const positionStyle = useRelativePosition({
+     align,
+@@ -318,11 +333,7 @@
+       ref={composedRef}
+       role='list'
+       aria-modal={true}
+-      onAccessibilityEscape={() => {
+-        setTriggerPosition(null);
+-        setContentLayout(null);
+-        onOpenChange(false);
+-      }}
++      onAccessibilityEscape={nativeHostManaged ? undefined : () => onOpenChange(false)}
+       style={[positionStyle, style]}
+       onLayout={onLayout}
+       onStartShouldSetResponder={onStartShouldSetResponder}
+@@ -349,12 +360,9 @@
+   ref,
+   ...props
+ }: ItemComponentProps) => {
+-  const { onOpenChange, value, onValueChange, setTriggerPosition, setContentLayout } =
+-    useRootContext();
++  const { onOpenChange, value, onValueChange } = useRootContext();
+   function onPress(ev: GestureResponderEvent) {
+     if (closeOnPress) {
+-      setTriggerPosition(null);
+-      setContentLayout(null);
+       onOpenChange(false);
+     }
+ 
+--- a/packages/select/src/types.ts
++++ b/packages/select/src/types.ts
+@@ -25,6 +25,8 @@
+ type RootProps = SlottableViewProps & {
+   value?: Option;
+   defaultValue?: Option;
++  open?: boolean;
++  defaultOpen?: boolean;
+   onValueChange?: (option: Option) => void;
+   onOpenChange?: (open: boolean) => void;
+   disabled?: boolean;
+@@ -65,6 +67,8 @@
+ 
+ type ContentProps = SlottableViewProps &
+   PositionedContentProps & {
++    /** Native-only trial: the enclosing Codon host owns focus and system dismissal. */
++    nativeHostManaged?: boolean;
+     /**
+      * Platform: WEB ONLY
+      */

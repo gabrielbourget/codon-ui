@@ -34,6 +34,17 @@ export const InvalidTextUnit = <Text style={{ fontSize: "1.4rem" }} />
 export const InvalidTextVariant = <Text variant="caption" />
 // @ts-expect-error A browser-shaped node is not an RN Text instance.
 export const InvalidTextRef = <Text ref={createRef<{ tagName: string; focus: () => void }>()} />
+export const ResetTextTypography = (
+  <Text
+    variant="h1"
+    fontWeight="bold"
+    fontStyle="italic"
+    customStyles={{ fontSize: 17, fontWeight: "400" }}
+    style={{ fontSize: undefined, fontWeight: undefined }}
+  >
+    Heading
+  </Text>
+)
 
 const mode: NativeThemeMode = "dark"
 const overrides: NativeThemeOverrides = {
@@ -70,13 +81,35 @@ export const ValidButton = (
     geometry="round"
     isPending
     accessibilityState={{ selected: true }}
-    onPressStart={(event) => event.nativeEvent.pageX}
+    onPressStart={(event) => {
+      if ("kind" in event.nativeEvent) {
+        // @ts-expect-error Native keyboard events do not fabricate touch coordinates.
+        void event.nativeEvent.pageX
+        return event.nativeEvent.nativeCode
+      }
+      return event.nativeEvent.pageX
+    }}
     onHoverStart={(event) => event.nativeEvent.clientX}
     style={(state) => [state.defaultStyle, { color: state.isPressed ? "red" : "blue" }]}
   >
     {(state) => <Text color={state.foregroundColor}>{state.isPending ? "Waiting" : "Continue"}</Text>}
   </Button>
 )
+export const TypographyButton = (
+  <Button
+    customStyles={{ fontFamily: "Body", fontSize: 18, fontWeight: "600", textTransform: "uppercase" }}
+    style={(state) => [
+      state.defaultStyle,
+      { fontSize: state.isPressed ? 22 : 20, letterSpacing: 0, textDecorationLine: "underline" },
+    ]}
+  >
+    Save
+  </Button>
+)
+// @ts-expect-error Native button typography uses logical numeric units.
+export const InvalidButtonFontUnit = <Button customStyles={{ fontSize: "1.4rem" }} />
+// @ts-expect-error Native text decoration uses the native field/value contract.
+export const InvalidButtonTextDecoration = <Button style={{ textDecorationLine: "overline" }} />
 // @ts-expect-error Button owns disabled state through isDisabled.
 export const InvalidButtonDisabled = <Button disabled />
 // @ts-expect-error Button owns busy/disabled accessibility semantics.

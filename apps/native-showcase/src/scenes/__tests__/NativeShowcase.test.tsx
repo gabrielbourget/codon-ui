@@ -14,6 +14,34 @@ const renderShowcase = async () =>
     </SafeAreaInsetsContext.Provider>,
   )
 
+it("hands off a modal closed by body layout before native readiness", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Replace pending presentation" }))
+  const pending = screen.getByTestId("overlay-pending-window")
+  const onDismiss = pending.props.onDismiss
+  expect(screen.queryByTestId("overlay-parent-window")).toBeNull()
+  await fireEvent(pending, "show")
+  await act(() => onDismiss())
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  expect(screen.getByTestId("overlay-handoffs")).toHaveTextContent("Pending handoffs: 1.")
+  expect(screen.getByTestId("overlay-draft")).toHaveDisplayValue("retained draft")
+  expect(screen.getByTestId("overlay-context")).toHaveTextContent("Context: local caller context")
+})
+
+it("updates the active overlay theme while preserving its local body state", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Overlay scene" }))
+  await user.press(screen.getByRole("button", { name: "Open parent dialog" }))
+  await fireEvent(screen.getByTestId("overlay-parent-window"), "show")
+  await user.press(screen.getByRole("button", { name: "Increase local overlay count" }))
+  await user.press(screen.getByRole("button", { name: "Toggle overlay theme" }))
+  expect(screen.getByTestId("overlay-parent")).toHaveStyle({ backgroundColor: "#171717" })
+  expect(screen.getByTestId("overlay-local-state")).toHaveTextContent(/Local body count: 1\./)
+})
+
 it("composes NumberInput locale/draft/commit/step fixtures and preserves state across theme/window changes", async () => {
   await renderShowcase()
   const user = userEvent.setup()
@@ -266,9 +294,28 @@ it("uses native submitted text when the final edit precedes a rendered controlle
   expect(screen.getByTestId("basic-control-state")).toHaveTextContent(/Input: Salut.*Submits: 1/)
 })
 
+// The renderer does not produce platform Modal lifecycle events.
+const nativeWindowUser = () => {
+  const user = userEvent.setup()
+  return {
+    ...user,
+    press: async (...args: Parameters<typeof user.press>) => {
+      const before = screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })
+      await user.press(...args)
+      for (const window of before) {
+        if (!screen.queryByTestId(window.props.testID, { includeHiddenElements: true }))
+          await act(() => window.props.onDismiss?.())
+      }
+      for (const window of screen.queryAllByTestId(/-window$/, { includeHiddenElements: true })) {
+        if (!before.some((prior) => prior.props.testID === window.props.testID)) await fireEvent(window, "show")
+      }
+    },
+  }
+}
+
 it("composes controlled and uncontrolled Select flows and blocks disabled/read-only changes", async () => {
   await renderShowcase()
-  const user = userEvent.setup()
+  const user = nativeWindowUser()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Select scene")
   await press("Showcase choice")
@@ -294,7 +341,7 @@ it("composes controlled and uncontrolled Select flows and blocks disabled/read-o
 
 it("retains Select identity through removal, empty collections, themes and fixtures and resets explicitly", async () => {
   await renderShowcase()
-  const user = userEvent.setup()
+  const user = nativeWindowUser()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Select scene")
   await press("Showcase choice")
@@ -323,7 +370,7 @@ it("retains Select identity through removal, empty collections, themes and fixtu
 
 it("uses custom Select visuals while preserving explicit row names and selected state", async () => {
   await renderShowcase()
-  const user = userEvent.setup()
+  const user = nativeWindowUser()
   await user.press(screen.getByRole("button", { name: "Select scene" }))
   await user.press(screen.getByRole("button", { name: "Toggle Select custom content" }))
   expect(screen.getByText("Picked none")).toBeOnTheScreen()

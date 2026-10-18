@@ -12,6 +12,11 @@ import {
 import { AccessibilityInfo, Modal, Platform, Pressable, View, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import {
+  NativeFloatingWindowHost,
+  type TNativeFloatingWindowDismiss,
+} from "../../overlays/floating/NativeFloatingLayerHost"
+import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -23,6 +28,7 @@ import type { TNativeSelectProps, TNativeSelectRef, TNativeSelectRenderState } f
 import { useSelectState } from "./useSelectState"
 
 const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNativeSelectRef>) => {
+  const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const {
     items,
     getKey,
@@ -82,6 +88,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
   validateNativeColor(theme.colors.background, "Select", "modalBackground")
   const selection = useSelectState(props)
   const trigger = useRef<TNativeSelectRef>(null)
+  const overlay = useOverlay(selection.open, false, true, trigger)
   const mounted = useRef(true)
   const openRef = useRef(selection.open)
   const epoch = useRef(0)
@@ -106,9 +113,9 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
     openRef.current = selection.open
     epoch.current += 1
     setShown(false)
-    if (previousOpen.current && !selection.open && Platform.OS === "android") restoreFocus()
+    if (!overlay.managed && previousOpen.current && !selection.open && Platform.OS === "android") restoreFocus()
     previousOpen.current = selection.open
-  }, [selection.open, restoreFocus])
+  }, [selection.open, restoreFocus, overlay.managed])
   useEffect(() => {
     mounted.current = true
     const scheduled = frames.current
@@ -253,33 +260,48 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
       </NativeContentContext.Provider>
       <Modal
         testID={`${identity}-window`}
-        visible={selection.open}
+        visible={overlay.visible}
         transparent={false}
         animationType="none"
         presentationStyle="fullScreen"
         allowSwipeDismissal={false}
         supportedOrientations={["portrait", "portrait-upside-down", "landscape-left", "landscape-right"]}
-        onRequestClose={() => selection.requestOpen(false)}
+        onRequestClose={() => {
+          if (floatingDismiss.current?.("keyboard")) return
+          if (overlay.isActive()) selection.requestOpen(false)
+        }}
         onShow={() => {
+          overlay.shown()
           if (openRef.current) setShown(true)
         }}
         onDismiss={() => {
-          if (!openRef.current) restoreFocus()
+          if (overlay.managed) overlay.dismissed()
+          else if (!openRef.current) restoreFocus()
         }}
       >
-        {selection.open && (
+        {overlay.mounted && (
           <SafeAreaProvider style={{ flex: 1 }}>
-            <SelectOptions
-              entries={selection.entries}
-              selectedKey={selection.selectedKey}
-              disabledKeys={selection.disabledKeys}
-              identity={identity}
-              label={label}
-              ready={shown}
-              close={() => selection.requestOpen(false)}
-              activate={selection.activate}
-              props={props}
-            />
+            <NativeFloatingWindowHost
+              testID={`${identity}-floating-host`}
+              isWindowActive={() => shown && overlay.isActive()}
+              dismissRef={floatingDismiss}
+            >
+              <SelectOptions
+                entries={selection.entries}
+                selectedKey={selection.selectedKey}
+                disabledKeys={selection.disabledKeys}
+                identity={identity}
+                label={label}
+                ready={shown && overlay.active}
+                close={() => {
+                  if (overlay.isActive()) selection.requestOpen(false)
+                }}
+                activate={(key) => {
+                  if (overlay.isActive()) selection.activate(key)
+                }}
+                props={props}
+              />
+            </NativeFloatingWindowHost>
           </SafeAreaProvider>
         )}
       </Modal>

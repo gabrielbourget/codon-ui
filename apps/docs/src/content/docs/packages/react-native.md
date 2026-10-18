@@ -3,11 +3,11 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, Button, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select and ListBoxItem with their public props/ref/state types, plus NativeThemeProvider, useNativeTheme and the public theme types. Other component families remain reviewed work.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
-The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native and react-native-safe-area-context 5.7.0 are exact package peers. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select owns safe-area handling inside its separate modal window. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
+The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native, react-native-safe-area-context5.7.0, react-native-svg15.15.4 and react-native-teleport1.2.2 are exact package peers. Hosts install/link the native peers and rebuild their native binaries after adding SVG or Teleport. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select, Modal and AlertDialog own safe-area handling inside their separate native windows. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
 
 The root export has a react-native condition for canonical TypeScript source; declarations and compiled imports use dist. Build before consumer typechecks. The Text/Button pass includes a hashed local package archive and isolated Expo consumer; the ledger owns its exact proof receipt. Bare React Native, RN Web, other operating systems and earlier SDK combinations are unverified.
 
@@ -17,6 +17,14 @@ pnpm -F @codon-ui/react-native typecheck
 pnpm -F @codon-ui/react-native typecheck:contracts
 pnpm -F @codon-ui/react-native test --runInBand
 ```
+
+## Native Keyboard Focus
+
+NativeFocusView provides a source-owned native View root with ordinary native props/styles and the actual View ref. It adds no layout wrapper. focusable defaults to true; focusable=false or tabIndex=-1 blocks keyboard focus requests. Use focusNativeTarget(target) and blurNativeTarget(target) for this host or a live registered core TextInput. A true return means request admission; onFocus/onBlur acknowledge actual native focus and include native origin metadata. Plain core Views retain upstream focus behavior. The helpers preserve editor values and do not move screen-reader focus.
+
+onKeyDown/onKeyUp receive original native synthetic keyboard events with logical key, platform code/characters, phase/repeat/cancellation, separate Shift/Alt/Control/Meta/Caps, raw modifiers and timestamp. TNativePressEvent is the declared touch-or-keyboard union; narrow nativeEvent by its keyboard kind before reading touch-only coordinates. Native default capture uses private declarative policy before JS delivery; later JS preventDefault cannot retroactively cancel a platform default.
+
+This package now includes native codegen/autolinking inputs and needs a consumer native rebuild. Raw source/type and compiler checks do not prove installed behavior. The private per-window key scope now occupies the floating host’s existing native root and acknowledges actual window epochs and policy revisions before JS action admission. Native target/modifier/editable/composition policies, Escape child/shield routing and physical-window deactivation guards are implemented at source tier. NativeFocusView focus events include observed isFocusVisible metadata; a generic focus event alone does not establish keyboard-visible focus. The updated scope still requires matching consumer/native products and installed proof. Owned-control migration, native hover delivery, descriptions and viewport/scroll integration remain under construction. Tooltip/HoverPopover remain private: touch entry is ignored, with no automatic tap or long-press trigger. An explicit tap-triggered popover is a separate ClickPopover contract, also still under construction.
 
 ## Theme Contract
 
@@ -42,9 +50,11 @@ The small theme owns colors, five action orders, spacing unit, radius, disabled 
 
 ## Text And Button
 
-Text uses 31 variants, six weights, system fonts and uncapped native scaling. Explicit native role/accessibility-role wins, followed by link intent and heading intent. Element names express semantics, without DOM associations or heading-level guarantees. Ordinary Text defaults selectable; labels and Button-owned content default unselectable. Explicit selection wins. Native labels/IDs take precedence over the supported aliases.
+Text uses 31 variants, six weights, system fonts and uncapped native scaling. A final undefined font field clears an authored override and restores the current variant/weight/style/theme default. Defined zero, empty strings and other native styles remain authoritative. This also restores owned Link/Tag phrases when their root typography is cleared. Explicit native role/accessibility-role wins, followed by link intent and heading intent. Element names express semantics, without DOM associations or heading-level guarantees. Ordinary Text defaults selectable; labels and Button-owned content default unselectable. Explicit selection wins. Native labels/IDs take precedence over the supported aliases.
 
-Button exposes native Pressable events and a View ref. Its render state contains pressed, hovered, focused, disabled, pending and final foreground; focus-visible is intentionally absent. Strings/numbers receive an owned Text wrapper, nested Text inherits foreground and render children can use it for icons. Pending suppresses activation/presentation, announces busy and retains focus eligibility. Disabled also disables focus. Mid-gesture blocking balances started end/change transitions.
+Button retains the pinned native Pressability touch behavior on its source-owned focusable View root, with the actual View ref. Its activation/start/end and press-in/out callbacks receive TNativePressEvent; narrow nativeEvent before reading touch coordinates. Its render state contains pressed, hovered, focused, disabled, pending and final foreground; focus-visible is intentionally absent. Strings/numbers/bigints receive an owned Text wrapper, nested Text inherits foreground and render children can use it for icons. Root customStyles/final style support native text typography and decoration: fontSize, fontFamily, fontWeight, lineHeight, letterSpacing, textTransform and other native TextStyle fields apply to owned primitive/array/Fragment/render-function phrases. Text fields stay off the native layout style. Authored Text/elements retain their own typography and identity; they are not cloned. Final styles win, zero remains meaningful and undefined clears an authored text field back to the owned Text default. Pending suppresses activation/presentation, announces busy and retains focus eligibility. Disabled also disables focus. Mid-gesture blocking balances started end/change transitions.
+
+An admitted Enter/Space down starts the Button press; its matching native up ends it and activates once, including modified keys. Repeats do not create another action. Blur, pending/disabled takeover and observed window deactivation cancel held activation; re-enabling does not revive it. Native onKeyDown/onKeyUp retain original modifier/consumption data and can veto the library action with preventDefault, without undoing the already reported native default handling. Real pointer enter/leave preserves the original event and supports delayHoverIn/delayHoverOut; touch entry does not create hover. Timers retire on guard/window loss and unmount, and callback replacement uses the current owner. Native hover production and installed keyboard/default/lifetime acceptance remain open; source-injected events do not prove transport.
 
 Computed theme/state styles precede custom and final native styles. Explicit hoverColor wins in the computed layer, pressed state wins over hover and final authored styles always win. This approved native rule differs from the web cascade. Default unconstrained Buttons have 44-point iOS / 48-dp Android minima and grow with text; authored dimensions remain meaningful. Hit testing follows native parent geometry and overflow policy, and an unclipped parent can allow activation outside its bounds. Hosts requiring a strict parent boundary must explicitly clip overflow. Automatic hit slop does not prove an adjacent or constrained target passes.
 
@@ -72,6 +82,137 @@ The private decimal model limits precision to six fractional digits and represen
 
 Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
 
+## FormField
+
+FormField arranges a caller-owned control with a label/required marker, top/bottom right content, ordered error/warning/success messages and an italic description. It owns no control value, validation state, submission or child ref. An explicit empty message array still renders the bottom row. Zero/false bottom-right content alone does not create that row; zero is preserved when a message array creates it.
+
+```tsx
+import { useRef, useState } from "react"
+import type { TextInput } from "react-native"
+import { FormField, Input } from "@codon-ui/react-native"
+
+export const EmailField = () => {
+  const editor = useRef<TextInput>(null)
+  const [value, setValue] = useState("")
+  return (
+    <FormField
+      label="Email"
+      labelID="email-label"
+      labelFor={editor}
+      required
+      description="Where to send the requested information"
+      errorMessages={[]}
+    >
+      <Input ref={editor} accessibilityLabel="Email" value={value} onChangeText={setValue} />
+    </FormField>
+  )
+}
+```
+
+labelFor accepts a native focus ref; label activation requests only the current target's focus method. Replacing/removing a label or ref and unmounting retire old handlers. labelID maps to nativeID, while callers explicitly name their actual controls. accessibilityLabelledBy is an Android relationship; do not infer cross-platform spoken output from a source test. Supported native name/ID props precede native aria forms and aliases, including explicit empty strings. Native accessibilityHint is spoken text rather than a browser ID reference. Browser describedby/details relationships remain required OPEN capabilities and their props reject in types and at runtime.
+
+Eight independent native style owners cover root, top row, label, top right, bottom row, bottom right, validation and description. Computed → customStyles → final root style preserves zero dimensions, native arrays/registered styles and platform colors. Validation styles apply to the cradle and each message, with custom text color overriding the existing severity role. Root foreground reaches ordinary content without replacing an explicitly colored child. raised uses the canonical light/dark shadow values. Browser text transitions, independent validation-foreground theme aliases, exact inline marker spacing and full installed layout/accessibility/profile acceptance remain OPEN. Existing physical/device deferrals remain unchanged.
+
+## TypeaheadSearch
+
+TypeaheadSearch is an inline search surface with a controlled query, caller-curated Iterable results and six caller-driven statuses. It adds no fetching, filtering, debouncing, minimum-length gate or automatic empty status. The search button and native submit action call onSubmitQuery with the trimmed current controlled query, including empty/repeated submissions. Native observer text never replaces the owner query.
+
+```tsx
+import { useRef, useState } from "react"
+import type { TextInput } from "react-native"
+import { TypeaheadSearch } from "@codon-ui/react-native"
+
+const suggestions = [
+  { id: 0, name: "Alpha" },
+  { id: "", name: "Empty-key result" },
+]
+
+export const SearchExample = () => {
+  const editor = useRef<TextInput>(null)
+  const [query, setQuery] = useState("")
+  return (
+    <TypeaheadSearch
+      accessibilityLabel="Search suggestions"
+      inputRef={editor}
+      inputValue={query}
+      onInputChange={setQuery}
+      items={suggestions}
+      getItemKey={(item) => item.id}
+      getItemTextValue={(item) => item.name}
+      status="results"
+    />
+  )
+}
+```
+
+The root ref is a native View; inputRef exposes the actual TextInput. A filtered inputProps keyboard/observer allowlist keeps native payloads while preventing value/change/style/ref/name/identity replacement. Native onSubmitEditing submits once after the observer, using the owner query rather than event.nativeEvent.text. onKeyPress is observational and does not add a second Enter submission. Root children and DOM class/ref/event surfaces are excluded.
+
+Status defaults to results. idle/minimum-query/loading/error/empty display resolved copy; results with zero items stays an empty collection until the caller changes status. Default labels merge defined legacy aliases, then grouped labels and nested status overrides; explicit empty strings survive. SearchIcon/LoadingIndicator retain falsy-to-default behavior. Defaults are a decorative native magnifier and an 18-unit/2.5-track/850ms transparent-track loader with live Reduce Motion. Native primitive content also supports bigint through the existing Text wrapper, with keyed authored children retained.
+
+Results own internal single selection: a repeated key toggles to null; query/relabel/reorder/removal/reinsertion retains selection without a fabricated callback. Leaving results unmounts that collection and resets its selection while preserving the Input and viewport. Explicit getItemKey keeps typed string/number identities; default keys stringify id/ID before falling back to index. Keys must be unique. Empty text metadata is allowed and row names derive from authored native content. The canonical disabled scope is preserved: query/search are blocked and dimmed, while existing result rows stay selectable.
+
+Six independent native style owners cover root, input row, input, search button, result viewport and result list. Root precedence is computed → customStyles → final style; three row geometries, current theme roles, array/registered styles, platform colors and authored zeros remain supported. The viewport defaults to minHeight160 and half the actual window height, with native nested scrolling. Native row focus actions honor shouldFocusWrap and use guarded measured scrolling without selecting. Equivalent data/styles and callback-only updates retain pending focus; layout/query/render/data or editor/button focus takeover retires it. Complete browser keyboard/typeahead/modifier/virtual-focus semantics, inherited transitions, exact native icon/rendering/viewport behavior and installed Android/iOS/profile proof remain required OPEN. Physical/device/closer-owner/signing deferrals retain their existing scope.
+
+## Stepper
+
+Stepper uses the same approved decimal state, contextual incrementLabel/decrementLabel, native TextInput ref and inputProps observer/keyboard allowlist as NumberInput. It places decrement, editor and increment in a horizontal row or column-reverse group. Segmented/cohesive type, fill/outline mode, three geometries/sizes, all five action orders and independent root/group/input/button styles follow the audited web contract. Root final style callbacks receive numeric/focus/guard state and post-custom defaultStyle. Canonical default-type margin/button-mode quirks and falsy-to-default PlusIcon/MinusIcon behavior are retained; native dimensions preserve zero.
+
+```tsx
+import { useState } from "react"
+import { Stepper } from "@codon-ui/react-native"
+
+export const Quantity = () => {
+  const [value, setValue] = useState<number | null>(0)
+  return (
+    <Stepper
+      accessibilityLabel="Quantity"
+      incrementLabel="Increase quantity"
+      decrementLabel="Decrease quantity"
+      value={value}
+      onChange={setValue}
+      minValue={0}
+      maxValue={10}
+      step={0.1}
+      type="cohesive"
+      order="primary"
+    />
+  )
+}
+```
+
+A short native release requests one step. Holding starts repeat after600ms and continues every60ms, with no extra release request; cancellation, guard/configuration takeover, bounds and unmount retire it. Repeated controlled veto requests always derive from the authoritative value. Raw editing text commits from native end/submit events, with duplicate final delivery suppressed; a cancelled press cannot leave that commit pending. The group stays nonaggregating so its editor/buttons remain separate targets; labels.inputButtonGroupAriaLabel preserves the authored group name. Actual installed focus/gesture/geometry/accessibility acceptance remains open. Currency/percent/unit/significant-digit formatting, non-snap validation, browser forms/reset, automatic label-ID/description relationships, full wheel/modifier/composition-aware keyboard and pointer-specific/localized speech behavior are still required inherited mappings, not approved capability removals. No dependency or palette change is introduced.
+
+## Slider
+
+Slider keeps scalar and multi-thumb range values caller-owned. Omitted value/defaultValue creates one minimum thumb and array callbacks; a numeric value/defaultValue infers numeric onChange/onChangeEnd. Empty arrays remain empty. Bounds/step/adjacent-thumb projection never mutates supplied arrays. Track presses choose the nearest thumb with end-side tie preference; individual thumb drags keep their grab offset. onChangeEnd reports the final actual request once, including owner veto. Multiple pointers finish after the last active thumb; disabled/member/configuration/count/geometry takeover and unmount retire obsolete work.
+
+```tsx
+import { useState } from "react"
+import { Slider } from "@codon-ui/react-native"
+
+export const PriceRange = () => {
+  const [values, setValues] = useState([0.25, 0.75])
+  return (
+    <Slider
+      accessibilityLabel="Price range"
+      label="Price range"
+      thumbAriaLabels={["Minimum price", "Maximum price"]}
+      value={values}
+      onChange={setValues}
+      minValue={0}
+      maxValue={1}
+      step={0.05}
+      formatOptions={{ style: "percent" }}
+      width="100%"
+    />
+  )
+}
+```
+
+Horizontal LTR/RTL and vertical use root-relative native measure/touch coordinates. Native thumb targets are44 points on iOS/48dp on Android around18-unit visual bodies, with endpoint insets. Explicit thumb axes retain their authored sizes. The default horizontal root is300 units with maxWidth300; a vertical track uses150 units unless resolved root height constrains it. A fixed minValue=maxValue domain stays at one finite position without fabricated numeric changes. The five root/label/output/track/thumb style owners accept native registered/array styles and colors, with post-custom defaultStyle in the root style callback. Its state supplies the audited SliderState queries/setters, thumb formatting, focus/editability/dragging and page helpers. customOutputFormatter receives a disposable value copy. Native adjustable fields/actions use the same numeric path, contextual thumb names stay separate and label activation requests the first surviving thumb ref.
+
+All three geometries, five existing action orders, both modes and theme updates remain available. Explicit thumb paint wins over dragging colors; local neutral700 values mirror the canonical theme without adding a role. Root native refs/IDs/layout/observers are preserved. Source typing rejects DOM classes, unsupported CSS dimensions, form thumbNames, child replacement, role takeover and null values. Browser form/reset/description-ID association, upstream locale context, complete modifier/pointer-button/keyboard handling, arbitrary root rendering, CSS transitions and unrestricted transformed style/hit coupling remain required open mappings. Actual installed gestures, target/layout/font/window/semantic profiles and full Android/iOS acceptance remain separate.
+
 ## Select And ListBoxItem
 
 Select accepts readonly items with stable typed getKey and nonempty getTextValue metadata; numeric 0 and string "0" remain different keys. It supports controlled value or initial defaultValue, controlled isOpen or initial defaultOpen, disabledKeys, disabled/read-only guards and decorative renderItem content. Missing selected keys retain their value and display the placeholder until reinserted. Choosing the current key closes quietly; cancellation leaves selection unchanged. Required accessibilityLabel (or aria-label) and localized closeLabel name the trigger and dismissal action.
@@ -80,14 +221,382 @@ The native presentation is an opaque full-screen core Modal with its own safe-ar
 
 Consumers must install react-native-safe-area-context exactly 5.7.0 alongside the existing React/RN peers and rebuild their native binary. No new palette roles are introduced. Root, trigger, selected text and options list have separate native style owners. DOM/forms, anchored placement, arbitrary child registration, multi-selection, search and hardware typeahead are outside this contract. Physical screen-reader focus and keyboard acceptance remain in the application/device lane.
 
+## ToggleButton
+
+ToggleButton composes the existing native Button target and interaction lifecycle. isSelected/onChange(boolean) owns controlled selection and defaultSelected initializes uncontrolled selection once. False remains authoritative while an owner repeatedly declines requests. A native activation requests selection before invoking onPress; same-value requests are suppressed. Disabled blocks native activation and cancels an active press with balanced callbacks. A parent can still change its prop, and explicit render-state methods remain programmatic requests.
+
+```tsx
+import { useState } from "react"
+import { ToggleButton } from "@codon-ui/react-native"
+
+export const Flag = () => {
+  const [selected, setSelected] = useState(false)
+  return (
+    <ToggleButton accessibilityLabel="Mark item" isSelected={selected} onChange={setSelected}>
+      Mark item
+    </ToggleButton>
+  )
+}
+```
+
+Render children and final style callbacks receive current selected/pressed/hovered/focused/disabled state and foregroundColor, plus state with isSelected/defaultSelected/setSelected/toggle. Final style additionally receives post-custom defaultStyle. Primitive/Fragment content receives native Text; authored content remains intact. Root color reaches owned content. No-order semantic selection, all five action orders, three geometries, focus outline/offset and raised true/false use existing tokens; raised defaults false. Explicit color remains authored through hover/press/selection. Computed styles precede customStyles and final style, with native colors, registered styles and arrays. Numeric/percentage/auto dimensions include explicit zero and retain the existing target/clipping exceptions.
+
+The actual View ref, native names/IDs and event/layout payloads remain public. Native semantics use one Button with owned checked selection state, corresponding to web button/aria-pressed. Initial autoFocus schedules a cancellable native View focus request; unmount or disabling before the frame prevents stale focus. This requests platform focus without a claim about physical keyboard or spoken output. Native focus replaces web focus-visible modality; DOM forms/classes/events and upstream slot context have no direct core-native host mapping. ToggleButtonGroup membership and SelectionIndicator context remain open inherited composition capabilities in roadmap 3.5.3. Standalone source delivery does not close those cells or installed rendering/autofocus/semantic acceptance.
+
+## ToggleSwitcher
+
+ToggleSwitcher renders a readonly explicit-items list with string id, ReactNode label, optional disabled and optional native accessibilityLabel for complex visual content. selectedKey/onSelectionChange controls selection; otherwise defaultSelectedKey, the initial first enabled item or an empty fallback initializes it once. An empty string is a real key. Same-key requests, group disabled/read-only and item-disabled actions do not change selection. A controlled parent may repeatedly decline; removal/reorder/relabel/reinsertion retains the key without synthetic callbacks. Unavailable keys render no selected option until reinserted.
+
+```tsx
+import { useState } from "react"
+import { ToggleSwitcher } from "@codon-ui/react-native"
+
+const modes = [
+  { id: "and", label: "Match all" },
+  { id: "or", label: "Match any" },
+]
+
+export const MatchMode = () => {
+  const [mode, setMode] = useState("and")
+  return <ToggleSwitcher accessibilityLabel="Match mode" items={modes} selectedKey={mode} onSelectionChange={setMode} />
+}
+```
+
+The actual root ref is a View. Native identity/name aliases and layout events retain their payloads; the root is nonaccessible, leaving separate button/checked targets for options. Authored labels must be decorative content. Read-only remains inspectable; group disabled/read-only opacity applies once and does not announce busy. Unconstrained options use the existing 44-point/48-dp target policy, with authored dimensions/parent constraints retaining their normal exceptions.
+
+Root size, three geometries, five orders, selected foreground color, fontSize12, uppercase and the nine canonical font-weight aliases remain configurable. Named dimensions are static logical numbers, percentages or auto and preserve zero; standard native style slots retain their broader native types. Root computed styles precede customStyles and final style. customOptionStyles applies to every option and customSelectedOptionStyles wins on the selected option; native typography fields reach owned Text. Labels render once, retain authored state and wrap within measured equal columns. Root layout fields configure the private row, while padding/border/background/external sizing remain root-owned. Root style callbacks receive current selectedKey/guards and post-custom defaultStyle.
+
+One decorative selected surface follows accepted selection and measured layout positions with a 250 ms ease-in-out translation, opacity and scale0.92→1 entrance. Replaced transitions resume from stopped native values; late callbacks cannot restart a retired transition. Pending/unavailable Reduce Motion is static, live changes cancel current motion and unmount cancels both motion and measurement work. Source checks do not certify actual native frame timing, intrinsic geometry or spoken output.
+
+Muted root defaults copy the unchanged canonical light/dark surface #f7f7f7/#202020 and border #c6c6c6/#3d3d3d. Root custom/final styles override them independently. Adding independent surfaceMuted/borderMuted provider roles remains a public-theme decision, so full theme acceptance stays open. This explicit-items component does not provide upstream ToggleButtonGroup or SelectionIndicator interop. Installed equal-cell/large-text/layout/motion/semantic cells remain separate acceptance work.
+
+## Link
+
+Link renders one native link with an actual View ref and owned Text for primitive/array/Fragment content. href is required and remains verbatim, including empty strings. onPress receives the original native event before one Linking.openURL call; call event.preventDefault() to handle application routing, fragments, relative URLs or any owner veto. isDisabled blocks activation and cancels held gestures. onNavigationError(error, href) reports synchronous and asynchronous failures against their original target/callback; a link without that handler warns, and unmount retires error reporting.
+
+```tsx
+import { useState } from "react"
+import { Link } from "@codon-ui/react-native"
+
+const Example = () => {
+  const [visited, setVisited] = useState(false)
+  return (
+    <Link
+      href="https://example.com"
+      order="primary"
+      isVisited={visited}
+      onPress={() => setVisited(true)}
+      onNavigationError={(error, href) => console.warn(href, error)}
+      customStyles={{ fontSize: 18 }}
+      style={(state) => ({ opacity: state.isDisabled ? 0.4 : 1 })}
+    >
+      Open destination
+    </Link>
+  )
+}
+```
+
+isVisited is caller-owned; URL success never changes it internally. Existing action colors supply 500/600/700 rest/hover/press roles. The default visited400 is the canonical 85% action /15% background mix for native numeric colors; visitedColor can supply an opaque or independent value. Explicit color and custom/final styles override computed state colors. Without an order, foreground inherits the native content context. RGB foreground transitions use 125ms ease-out from the current frame; opaque native colors and pending/unavailable/live Reduce Motion use static colors. Native typography and textDecoration style fields reach owned Text, while authored elements keep their own style ownership.
+
+Computed defaults precede customStyles and final native registered/array/callback style. Style callbacks receive current interaction/visited flags, foregroundColor and post-custom defaultStyle. Native focus uses a 1.5-unit outline with default offset2; enableFocusStyle/offsetFocusRing accept explicit false. The default visible decoration is none, matching the canonical :link rule overriding its underline class; unvisited hover underlines, and explicit native textDecoration or final textDecorationLine controls the line. Native names/IDs take precedence over ARIA/camel aliases, retaining empty strings. accessibilityHint supplies descriptive content; Android label IDs retain pinned core behavior.
+
+Core Linking hands the URL to the OS. Browser window/referrer/download behavior, relative/fragment resolution and automatic visited-history lookup are open host mapping decisions; they are not silently implemented by a router. Core RN also lacks the canonical describedby/details ID relationships. Those unsupported aliases and browser props are rejected at the public boundary; their missing capabilities and the independent global visited theme role remain explicit in roadmap 3.5.8. Source/scene/consumer proof does not close installed URL handoff, glyph, motion or accessibility acceptance.
+
+## ThumbnailShowcase
+
+ThumbnailShowcase arranges caller-owned primary and secondary React content. It has all/primary/secondary rendering modes, a required primaryPlaceholder, optional primaryContent, readonly secondaryItems with React id/content, a default four-slot count and delegated placeholder/overflow renderers. Nullish primary content falls back; false,0 and empty string remain authoritative and still count as available media. The secondary row is omitted when no media exists or its normalized count is0. Finite slot counts floor/clamp at0; nonfinite values use4.
+
+```tsx
+import { Text, ThumbnailImage, ThumbnailShowcase } from "@codon-ui/react-native"
+
+const Example = () => (
+  <ThumbnailShowcase
+    width={300}
+    primaryContent={
+      <ThumbnailImage
+        src="file:///cache/primary.png"
+        alt="Primary photo"
+        style={{ width: "100%", height: "100%" }}
+        fallback={<Text>No photo</Text>}
+      />
+    }
+    primaryPlaceholder={<Text>No primary media</Text>}
+    secondaryItems={[{ id: 0, content: <Text>First item</Text> }]}
+    renderSecondaryPlaceholder={({ index }) => <Text>Empty slot {index}</Text>}
+    renderOverflow={({ hiddenItemCount }) => <Text>+{hiddenItemCount}</Text>}
+  />
+)
+```
+
+Overflow replaces the last visible slot when there are more items and a renderer exists. It deliberately retains the canonical hiddenItemCount=items.length-slotCount contract: five items/four slots renders three ordinary items and +1. Returned actions remain caller-owned; the layout adds no button or navigation behavior. Item keys, including0/empty/bigint, retain authored state through reorder, column and ordinary style/theme changes. Mode removal and explicit remount start new content lifetimes. Primitive/array/Fragment content gets native Text wrapping without replacing authored elements.
+
+The root defaults to width100%, column layout and10-unit gap. Primary and secondary owned slots default to full track width, square aspect, minWidth0, clipping and relative positioning. Root style, primarySlotStyle, secondaryRowStyle and secondarySlotStyle are separate native registered/array style owners. Final root style overrides named width; numeric zero stays zero, while padding/borders/gaps still contribute their own box sizes. There is no universal root ref in the canonical/native wrapper; authored content can own native refs, and root native layout/events/identity remain available.
+
+secondaryColumnCount is a positive integer that independently maps the web CSS column-count override; omission follows normalized rendered slot count. A local content-box measurement calculates equal tracks after numeric/percentage column gaps, preserving a flat keyed parent across wrapping changes. Private fractional/cache precision does not rewrite caller values. Measurement updates do not invoke content render callbacks; equivalent parent renders retain valid in-flight measurements, while changed layout contexts retire obsolete callbacks. Native row flow/gap fields apply to the private surface and row box/padding/border/background styles remain on the styled row. Authored slot width changes its visual slot without replacing track allocation.
+
+Arbitrary named/nonuniform/spanning CSS grid, over-constrained/absolute positioning and complete browser/native layout equivalence remain explicit open mappings in roadmap3.5.10. Source styles and renderer tests do not certify actual native grid geometry, clipping, adaptive profiles or accessibility. The maintained Gallery scene composes ThumbnailImage and keyed caller controls with mode/count/column/availability/reorder/width/style/disabled/lifetime controls and native frame readouts. This family adds no media DTO, image loader, hydration behavior, dependency or theme role.
+
+## ThumbnailImage
+
+ThumbnailImage resolves ordered string URI candidates and renders authored fallback content after exhaustion. A nonempty srcCandidates array takes precedence over src; an empty array uses src. Null/undefined/empty entries are removed, exact duplicates collapse and whitespace/order remain meaningful. A nonempty list containing only unusable entries renders fallback even if src exists. Equivalent normalized contents retain private fallback progress through unrelated native/theme/layout updates; changed contents start at index0 immediately. Loading a valid candidate does not display fallback prematurely.
+
+```tsx
+import { Text, ThumbnailImage } from "@codon-ui/react-native"
+
+const Example = () => (
+  <ThumbnailImage
+    srcCandidates={["file:///cache/thumbnail.png", "file:///cache/original.png"]}
+    alt="Preview"
+    width={120}
+    height={80}
+    style={{ borderRadius: 5 }}
+    fallback={<Text>No thumbnail</Text>}
+    onError={(event) => console.warn(event.nativeEvent.error)}
+  />
+)
+```
+
+An active genuine ImageErrorEvent reaches onError before one advancement; a synchronous owner throw prevents that advancement. Retired/duplicate decode attempts cannot skip the current source after replacement or unmount. The renderImage adapter receives alt, src, imageProps and the same onError handler. Its optional-event onError() advances without inventing a caller error payload. Adapters own their actual native refs, geometry and host semantics; there is no universal root ref for arbitrary renderer/fallback content. Native source objects belong inside an adapter, with the owned src removed before using a source override. Primitive/array/Fragment fallback or renderer output receives native Text wrapping while authored keyed elements keep their state.
+
+The default core Image uses real onLoad source metadata for intrinsic geometry. Missing/auto axes follow the decoded ratio, final native style arrays/registered styles and explicit aspect/constraint overrides; authored numeric zero remains zero. Named width/height use standard native numbers, while percentages/auto belong to style. The default resizeMode is stretch (browser fill equivalent), resizeMethod is scale so ordinary URI decoding can precede layout, and Android fadeDuration defaults0. Explicit native controls retain their values. Load/layout callbacks receive their original native payloads; private geometry copies decoded scalars before a caller can mutate an event.
+
+Native srcSet retains pinned core behavior. When responsive sources need a frame before decoding, a component-local getSize preflight seeds implicit geometry using the same crossOrigin/referrerPolicy headers. Metadata failures never advance fallback or fabricate a native error; a minimal private1×1 seed permits the view to deliver its genuine load/error event. Source replacement/unmount retires pending metadata work. Explicit zero axes are never replaced; native zero-size multi-source decoding and browser w/sizes/responsive-density, lazy/decoding/fetch-priority/image-map equivalence remain explicit open capabilities in roadmap3.5.9.
+
+The default alt is Thumbnail image. Empty alt is decorative unless explicit native accessibility/name/label-association props opt in; accessibilityLabel precedes aria-label and alt, retaining empty values and accessible=false. The built-in renderer avoids core alt forcing accessibility back on. An injected renderer owns that decision for its host. The maintained scene uses local valid/invalid PNGs, an explicit renderer, candidate/lifetime resets, zero/final-style/alt controls and actual load/layout receipts. Source checks do not certify installed decoding, responsive choice, geometry or accessibility.
+
+## Avatar
+
+Avatar displays an imageURL after native image loading succeeds and uses name1/name2 initials while loading, on failure or without an image. Anonymous labels default to Name/Unknown; labels can localize those words, including explicit empty strings. Initials preserve the canonical first-character uppercase rule. Image replacement starts a fresh load lifecycle and ignores retired callbacks. The default image mode is contain. Source tests inject native image events; actual decode and rendering remain installed acceptance work.
+
+```tsx
+import { Avatar } from "@codon-ui/react-native"
+
+export const Profile = ({ openProfile }: { openProfile: () => void }) => (
+  <Avatar name1="Alice" name2="Smith" size={48} clickable onPress={openProfile} />
+)
+```
+
+Size defaults to 30 and accepts finite nonnegative logical numbers, numeric strings, percentages or auto; zero remains explicit. Three geometries, raised styling, foreground/color alias and background retain their controls with existing theme roles. Foreground defaults to the theme background and the avatar background to the theme foreground. Root computed → customStyles → final style/callback and post-custom defaultStyle apply before color is passed to owned text. customImageStyles, customFallbackStyles and customTextStyles have separate owners. Text customStyles from customTextProps precede customTextStyles, and customTextProps.style remains final. Text scaling stays enabled unless the caller explicitly constrains it.
+
+Only clickable plus onPress enables activation; native disabled guards it and cancels an in-flight press. Passive mode uses a native View so the image remains enabled without acquiring a touch responder; changing mode preserves image/fallback lifetime, and URI changes preserve the actual root ref. One named image/button root owns semantics and the actual View ref, native identity/layout and press payloads. Name precedence is accessibilityLabel → aria-label → resolved full name; accessible=false supports decorative composition. Image/fallback/text remain decorative children. Measured hitSlop follows the existing 44pt/48dp target policy without changing authored geometry; explicit hitSlop and clipped-parent limits remain in effect. DOM classes, asChild and browser click events use the native host/style/onPress boundary.
+
+fallbackDelay controls eligibility once per mounted Avatar lifetime, matching the inherited Radix behavior: omitted delay is immediate; a defined delay, including zero, schedules eligibility. URI/name/theme changes preserve that lifetime. A changed pending delay cancels its old timer; removing it before eligibility leaves the fallback pending until another defined delay or a remount. Eligibility stays true once reached. Unmount cancels work. The maintained Avatar scene provides local valid/invalid PNG data, a deliberate lifetime restart and live controls for these behaviors.
+
+## Tag
+
+Tag is the standalone status/pressable component, distinct from TagGroup's collection item. Static mode renders a native text container with live-region off by default. pressable=true requires caller-owned isPressed and onPress(id); the callback retains numeric 0, string "0", empty string and undefined without creating a selection mirror. A caller may repeatedly decline. Programmatic owner changes still render while disabled, while isDisabled blocks/cancels user activation. aria-pressed can explicitly override the exposed checked state, including false and mixed, without changing the visual owner value.
+
+```tsx
+import { useState } from "react"
+import { Tag } from "@codon-ui/react-native"
+
+export const Choice = () => {
+  const [pressed, setPressed] = useState(false)
+  return (
+    <Tag pressable id={0} isPressed={pressed} onPress={() => setPressed((value) => !value)}>
+      Choice
+    </Tag>
+  )
+}
+```
+
+Static color and interactive activeColor/inactiveColor control background. border/activeBorder/inactiveBorder accept none or native borderWidth/borderColor/borderStyle objects. Three geometries, raised/raisedOnHover, native dimensions including zero/percent/auto, focusOutline/outlineOffset and auto/pointer hoverCursor retain their controls. Root computed → customStyles → final style/callback preserves post-custom defaults; native text typography/color fields reach owned content. Authored children retain identity and their own styles. Authored zero dimensions retain native/CSS padding-box minima: default 5-unit padding yields an approximately 10-unit box; use authored zero padding/border for a physical zero box. Native IDs/names/layout/ref payloads remain available; nativeID precedes String(id), and callbacks keep the original typed id. Static mode exposes View events, while press controls/ripple belong to interactive mode. Both modes can observe native pointer hover; static tags create no press responder.
+
+Native backgroundColorTransition accepts milliseconds, an s/ms duration or an object with duration, delay and linear/ease/ease-in/ease-out/ease-in-out. Defaults mirror the canonical bridge: 250ms background/foreground/border colors and 450ms raised shadows. Component-local core Animated transitions stop at current values when interrupted and cancel on removal or Reduce Motion. Unknown/unavailable motion preference stays static. Opaque native colors remain supported and snap rather than inventing unavailable RGB channels. Private compatibility bindings reconcile the pinned RN runtime/declaration differences without changing dependencies.
+
+The curated Tag scene demonstrates exact typed requests, repeated veto, disabled/programmatic updates, exposed-state overrides, static status, geometry/border/palette/native text/final style controls, zero and constrained dimensions, long bilingual labels, timing and reset. Independent global muted-border/transition theme controls, opaque-color interpolation, complex authored shadow transitions and installed intrinsic/nowrap/layout/semantic acceptance remain open; source timing assertions do not certify native frames. Physical pointer/spoken acceptance retains its existing application/device authority.
+
+## Indicators And Segments
+
+Indicator is a passive, caller-owned visual state. isActive defaults true; explicit false chooses inactiveColor, whose default is transparent. Its border still uses the active color unless borderColor is supplied. color defaults to the current owned Text/Button foreground or the theme foreground. size defaults to 10 native logical units, borderWidth to zero and shape to circle; rounded and square use the existing radius tokens. Constants, available-shape array and public props/ref/state aliases are exported.
+
+```tsx
+import { Indicator, LineSegment } from "@codon-ui/react-native"
+
+export const Availability = ({ active }: { active: boolean }) => (
+  <>
+    <Indicator isActive={active} size={14} color="green" inactiveColor="gray" borderWidth={2} />
+    <LineSegment direction="horizontal" height={80} size={4} />
+  </>
+)
+```
+
+LineSegment preserves the canonical direction tokens: horizontal uses height × size, and vertical uses size × width. With defaults this produces height50/width2.5 or height2.5/width50 respectively. color defaults to the native semantic control border. Native logical dimensions, percentages and auto replace CSS length strings; finite nonnegative numbers include explicit zero. Border thickness is numeric. CSS variables/units and unsupported dimensions reject rather than being ignored.
+
+Both components expose an actual View ref, forward native identity/layout/accessibility props and consume their wrapper props. Native name/testID spellings take precedence over aliases, including explicit empty strings. They are decorative by default; set accessible and an appropriate native role/name when the surrounding composition needs a distinct semantic target. Neither component owns children, editing, selection requests or default-value state.
+
+Root customization follows computed → customStyles → final style, with native color validation, registered styles and style arrays. A style callback receives post-custom defaultStyle plus current isActive for Indicator or direction for LineSegment. Provider changes update current colors/radii without local value mirrors. The maintained Indicator/Segment scene exercises state, all shapes, dimensions, explicit colors, style precedence, owned foreground, reset and live host changes. Source/consumer evidence and installed Android/iOS acceptance are separate cells in the roadmap matrix.
+
+## Loading Indicators
+
+CircleLoader retains size25, a 3-unit track, current owned/theme foreground, translucent gray remaining sides and an 850 ms linear rotation. Supply spinnerColor, spinnerTrackColor, spinnerTrackWidth and size independently. spinnerTrackIsTransparent=true overrides the supplied track color. customStyles belongs to the outer container; its color supplies the default ring foreground, and final style takes precedence. Container dimensions do not replace the ring's size prop.
+
+LaggingLinesLoader retains a 150-by-50 container with three 20%-width/5-unit lines, opacity0.4/0.6/0.9, scaleX1.2/1.1/1, one-time 200/100/0 ms delays and a 3000 ms round trip eased separately on each half. width and color supply defaults. Its customStyles belongs to every visual line and may override animationDuration; standard final style belongs to the root. Native measured track width controls travel distance without restarting an active loop. Motion wrappers preserve authored visual transforms and the canonical far-end overhang.
+
+```tsx
+import { CircleLoader, LaggingLinesLoader } from "@codon-ui/react-native"
+
+export const Loading = ({ stopped }: { stopped: boolean }) => (
+  <>
+    <CircleLoader accessibilityLabel="Saving changes" size={30} duration={stopped ? 0 : "0.85s"} />
+    <LaggingLinesLoader
+      accessibilityLabel="Fetching results"
+      width="100%"
+      customStyles={{ borderRadius: 5, animationDuration: stopped ? 0 : "1.5s" }}
+    />
+  </>
+)
+```
+
+Both accept finite nonnegative numeric milliseconds and portable s/ms strings. Explicit zero stops motion without removing busy status. Reduce Motion changes stop/restart eligible motion; the first frame stays static while the preference query is pending or unavailable. Replaced/unmounted animations and preference subscriptions are cancelled. Layout and accessible-name aliases retain native precedence; refs expose the root View. Root style callbacks receive resolved duration, motion eligibility and post-custom defaultStyle. Native colors, arrays and registered styles remain supported without CSS variables/length units.
+
+Exposed loaders own an indeterminate progressbar role, busy state and polite live region with default name Loading; accessibilityLabel, aria-label or legacy ariaLabel may provide a localized name. The graphic is decorative and there is no numeric value. Inside owned Button content the loader is decorative by default; explicit accessible opt-in remains available. Native frame timing, Reduce Motion rendering, measured custom geometry and screen-reader output require their separate installed/physical matrix cells.
+
+## CircularProgress And Counter
+
+CircularProgress uses the approved native SVG peer with a100×100 viewBox and a native View ref. Required caller value and optional minValue/maxValue drive its clamped arc; circleRatio, counterClockwise, strokeWidth, butt/round/square strokeLineCap, optional background/padding and centered text retain separate controls. The default native root is100×100 logical units; explicit zero/percentage/auto dimensions remain authored. Rendered stroke defaults6 while the canonical radius helper defaults8. Root computed dimensions precede customStyles and final style/state callback; the callback receives percentage/valueText/isIndeterminate and post-custom defaultStyle. Six independent native style owners cover root, SVG, track, path, text and background, with computed dashes taking final precedence.
+
+```tsx
+import { CircularProgress, Counter } from "@codon-ui/react-native"
+
+export const Completion = ({ completed }: { completed: number }) => (
+  <>
+    <CircularProgress
+      value={completed}
+      aria-label="Completion"
+      text={`${completed}%`}
+      width={100}
+      height={100}
+      strokeLineCap="round"
+      customPathStyles={{ stroke: "#2f7d18" }}
+      customTrackStyles={{ stroke: "#efefef" }}
+      customTextStyles={{ fill: "#171717", fontSize: 18 }}
+    />
+    <Counter
+      value={completed}
+      maxValue={100}
+      showMaxValue
+      showProgressIndicator
+      warningPercentageThreshold={80}
+      errorOrDangerPercentageThreshold={90}
+      aria-label="Completed count"
+    />
+  </>
+)
+```
+
+Named pathColor/trackColor set SVG color; backgroundColor enables its circle and sets its background color. Canonical explicit stroke/fill defaults still own paint. Use customPathStyles.stroke/customTrackStyles.stroke/customBackgroundStyles.fill or SVG currentColor to choose actual paint. A truthy pathColor suppresses numbered order, preserving the source quirk. Slot paint accepts native colors and SVG none/currentColor, while CSS variables reject. No palette or public theme role changes; the track copies canonical neutral100 defaults privately and remains slot-overridable.
+
+Counter displays its raw string/number value and optional raw max suffix. Optional ring/suffix require a truthy max: numeric0 hides them, string0 retains them. Status converts finite numbers, excludes zero denominators and rounds percentage before danger-first thresholds. customStyles/final style own the root, customTextStyles override status/color text and customProgressIndicatorStyles own the12-unit ring root. Children follow the count and inherit final root foreground. Invalid numeric conversion never rewrites valid display text; only an invalid derived path is omitted at the native drawing boundary. Infinite values retain canonical clamped drawing where defined. Native progress semantics omit invalid numeric fields; isIndeterminate omits current value while keeping canonical value-driven drawing.
+
+valueLabel accepts ReactNode semantic data and never mounts it as visual content. Falsy undefined/null/false/empty/numeric0/bigint0 inputs use locale/formatOptions formatting. A truthy resolved label retains its original identity in JavaScript style-state valueText; its type is ReactNode, so narrow it before calling string methods. Only the native accessibility boundary serializes it: arrays retain canonical comma-separated strings, element/fragment labels become [object Object] and promises become [object Promise]. Those labels are neither rendered nor awaited; visible string text remains a separate SVG owner. Indeterminate state omits both callback valueText and native semantic text. Root native names/labelledBy aliases and actual layout events/refs remain available.350ms dash and125ms inherited color transitions use existing core animation patterns, honor live Reduce Motion and clean up replacement/unmount. Browser description/details/context, CSS empty-child behavior, global muted-role customization and vector text scaling remain required open capabilities. Source/scene/type/consumer checks do not certify installed rendering, baseline, timing or announcements; the roadmap retains those Android/iOS/profile gates.
+
+## Progress And Measurement
+
+LinearProgress represents a task's progress; Meter represents a measurement within a range. Both require a caller-owned numeric value and a nonempty accessibilityLabel (or aria-label). minValue/maxValue default to 0/100, must be finite and strictly increasing, and clamp the displayed value to their range. Zero and negative values remain meaningful. These are display components with no default value or change callback; the forwarded ref is the actual root native View.
+
+```tsx
+import { LinearProgress, Meter } from "@codon-ui/react-native"
+
+export const Capacity = ({ completed }: { completed: number }) => (
+  <>
+    <LinearProgress accessibilityLabel="Tasks completed" value={completed} maxValue={20} width="100%" order="primary" />
+    <Meter
+      accessibilityLabel="Storage used"
+      value={12}
+      maxValue={64}
+      valueLabel="12 of 64 gigabytes"
+      barGeometry="rounded"
+      trackGeometry="rounded"
+    />
+  </>
+)
+```
+
+LinearProgress alone accepts isIndeterminate. Unknown progress presents a decorative native activity indicator and omits the numeric accessibility value, without creating a second accessible target. Meter always presents a measurement. Root roles and range/value semantics are owned by the components; Meter uses the native meter role on iOS and progressbar compatibility on Android, whose pinned RN delegate has no meter-role mapping. Physical platform announcements still require device acceptance.
+
+Value text defaults to a formatted percentage. An explicit formatOptions object follows Intl.NumberFormat; percent formatting uses the range fraction, while other formats use the clamped number. Supply locale for an explicit locale or valueLabel for a localized string, including an intentionally empty string. An authored valueLabel bypasses Intl formatting. Hosts retain responsibility for adequate Intl support and their existing bootstrap; these components install no polyfills.
+
+Default dimensions are 150 × 10 logical units horizontally or 10 × 150 vertically. Native height/width, including percentages and zero, override them. Horizontal direction defaults right; vertical defaults up. left reverses horizontal fill, and down reverses vertical fill; directions from the other axis have no effect. The accessible root is not rotated. Determinate updates use 250 ms visual transitions while accessibility and style callback values reflect current props immediately. Reduce Motion disables transitions and stops the unknown-progress spinner; pending preference queries or query failures retain static presentation. Replaced transitions and unmounted listeners are cleaned up.
+
+barColor/trackColor accept native ColorValue values. The semantic selected color is the default fill; order chooses an existing action background, and an explicit barColor wins. Independent barGeometry/trackGeometry accept orthogonal, rounded and round; raised applies the existing native track elevation. No palette values or theme roles are added.
+
+customStyles, customTrackStyles and customBarStyles own the root, track and fill separately. Root precedence is computed → customStyles → final style. A style callback receives percentage, valueText and the post-custom defaultStyle; LinearProgress additionally supplies isIndeterminate. Track/bar overrides remain independent, including authored dimensions. Native IDs/layout events forward to the root. DOM classes, browser refs, React Aria slot context and ReactNode value labels have native style/ref/name/string equivalents; the wrappers own their track/bar children.
+
+The maintained Progress/Meter scene exercises controlled zero, negative measurement, unknown progress, orientation/direction, geometry/order, style overrides and value labels under the showcase's theme and layout controls. Component/consumer tests and compiled declarations verify the source contract; measured Android/iOS rendering, motion and physical accessibility remain pending. The unrelated RN-TEXT-01 and original ComboBox installed acceptance stay open.
+
 ## Evidence Limits
 
 Public provider/type tests and platform JS bundle checks exercise the source and host graph. Mocked view assertions do not establish measured layout, screen-reader behavior, shadows, native press regions or rendered parity. Post-restart inspection reached development, color/state/layout, larger-text/footer and rotation results on both platforms. The owner-approved follow-up explicitly clips the intentional 24-point fixture and renames its control to “Toggle constrained target.” Fresh hash-verified Release builds passed outside/inside touch checks on both emulators; strict iOS light-fill and dark-outline audits reported zero issues with none ignored. Those audits cover two visible states, without the intentionally constrained target enabled. The ledger preserves the earlier failed baseline and the new artifacts separately. Physical VoiceOver/TalkBack, touch and owner visual acceptance remain open; no support claim substitutes for those results.
 
-The repository's docs/roadmaps/react-native-library-first-pass.md owns exact baseline hashes, per-component compatibility, current proof receipts, independent review and owner checkpoints. Use [Native Showcase](/component-library/native-showcase/) for the generic host and staged next steps.
+The repository's planning/component-library/roadmap.md owns exact baseline hashes, per-component compatibility, current proof receipts, independent review and owner checkpoints. Use [Native Showcase](/component-library/native-showcase/) for the generic host and staged next steps.
 
 The owner-approved follow-up fixes the three independent-review findings. Button groups adjacent primitive children through arrays/fragments into owned Text phrases, including callback results; its callback baseline respects custom dimensions; string/structured box-shadow and drop-shadow colors receive contextual validation through RN processColor. Authored child elements, style precedence, explicit minima and supported native input forms retain their contracts. Fresh verification passed 66 native cases, public contracts, five showcase cases and a new isolated archive consumer; follow-up independent source review found the original P2 issues resolved. The ledger owns refreshed installed proof. Low resting contrast in several inherited palette states remains an explicit owner/theme gate; theme values are unchanged, and passing primary-state audits do not certify the other orders.
 
 On 2026-10-14 the owner directed continuing the component roadmap and moved closer visual inspection to application feature integration. Text/Button source/consumer/installed proof is complete for its recorded scope; visual and physical acceptance remain deferred. The owner approved the Switch, Checkbox, CheckboxGroup and Input proposal, and those core React Native counterparts are implemented. Select and ListBoxItem now implement the approved explicit collection and full-screen modal contract. The canonical ledger owns the exact API/theme proposal and logical commit boundaries. Palette values and iPhone signing remain unchanged.
 
 The maintained-scene iOS rapid-entry finding is resolved for the recorded installed artifacts through showcase-owned keyboard viewport correction. Corrected XCTest inspection targets the app's named scroll wrapper and sends complete strings without character pacing; the ledger records the full controls flow, native input guards, combined text/Return and three fresh-launch strings. Earlier failed/paced/zero-test inspector attempts retain their diagnostic status. That keyboard correction left native package source and its then-current immutable consumer archive unchanged. Physical typing, IME and screen-reader checks remain in the deferred application/device lane. Select uses the approved explicit collection/modal contract and exact safe-area peer. Its installed verification receipt is recorded separately in the canonical ledger.
+
+## Modal, AlertDialog And Window Ownership
+
+NativeFloatingLayerHost provides an explicit full-size floating-layer container per native window. Mount it around the application surface; its ref is the actual core View, its onLayout receives the original native event and its style supports native View styles. It uses box-none hit handling and unique named native portal hosts. Modal/AlertDialog/Select windows own private local hosts automatically. NativeOverlayProvider still coordinates the existing window chain independently. The current host foundation does not yet export ClickPopover or NativeDialogTrigger.
+
+Host style owns the outer full-size container; put content layout in the child surface's own View. A private background surface lets modal floating layers isolate touches/accessibility without hiding their reparented portal content, while nonmodal layers retain background interaction. System Back and accessibility escape request dismissal of the eligible floating child first and keep window onShow/onDismiss barriers intact. Geometry readiness waits for the actual native window to become active. Source tests verify these policies; actual native routing, reparenting, clipping, accessibility and focus still require installed acceptance with matching identities.
+
+The approved portal peer is exact react-native-teleport1.2.2, which requires fresh linked Android/iOS builds. Its upstream React DOM peer is satisfied by a development-only19.2.3 fixture; Codon's native runtime/peer contract does not include React DOM and native bundles must exclude it. Context/state retention has source-level coverage; clipping escape, native press delivery, renderer lifetimes and focus need actual installed acceptance. Native focus/key feature flags remain unchanged.
+
+Place one children-only NativeOverlayProvider at the application root when using Modal or AlertDialog. It retains React locations/context while coordinating a single nested window chain; nested providers and simultaneously requested sibling/unrelated branches are rejected. Child windows wait for native parent readiness. Only the active leaf dismisses or runs alert actions. Close the old root before replacement; admitted presentations that close before onShow drain readiness while inactive, then retire before the next root. iOS uses onDismiss and Android a committed hidden-frame barrier, without a portal, global singleton, BackHandler or public registration API. Select optionally joins this scope as an unchanged full-screen leaf and still works standalone.
+
+Modal accepts controlled isOpen/onOpenChange or initial defaultOpen, with ownership fixed for the instance. Supply a nonempty accessibilityLabel/aria-label. Backdrop isDismissable and system/escape isKeyboardDismissDisabled are independent; explicit actions still work with both blocked. A controlled parent may decline requests. Custom children replace the named starter title/body/Close composition; primitive phrases use native Text and authored elements are preserved. A complex starter close label needs closeLabel. View refs, static native dimensions, five orders, rounded/orthogonal geometry and computed → customStyles → style precedence are retained; backdrop/dialog styles are separate owners. Default sizing is bounded to the padded safe window, with internal scrolling; isScrollable=false delegates a bounded custom scroller to the caller.
+
+Covered content keeps its instance, local state and native controls. Ordinary closed content unmounts; keep longer-lived drafts outside it. Ancestor closure retires descendants deepest first without invoking business actions. Controlled descendant open values remain caller-owned and may resume after an ancestor returns. Native initial/restore focus refs belong to the expected active owner; pending work cancels with closure, replacement or unmount, and removed targets stay quiet. Accessibility-focus restoration does not deliberately reopen a TextInput keyboard. Each window owns native safe areas and measured keyboard reachability; physical screen-reader/touch/IME behavior still needs device review.
+
+AlertDialog shares that frame with six exported canonical types, required string title/body and optional custom content. Its decorative core-native marks replace SVG. Undefined/null AlertIcon retain the default; custom nodes remain decorative. Ribbon, circle, important heading/body and wrapping nonshrinking actions stay within bounded scrolling rather than a fixed footer. Four grouped label keys keep visible text and accessible names independent; the two legacy visible-text aliases override only visible labels. showCancelAction=false removes cancellation. Active cancel/confirm invokes its callback before requesting closure; synchronous throws prevent that request and promises are not awaited. Backdrop, Back/escape and external closure invoke neither business callback. Product async state and duplicate-mutation prevention remain caller-owned.
+
+The native blur contract accepts omission/false and rejects true. DOM dialogRole, classes/refs/forms, ID associations, portal containers, web trigger/slot/animation props and a screen-reader speech guarantee are excluded. Explicit authored clipping/dimensions retain their ordinary constraints. Four new roles copy unchanged canonical colors: overlayBackdrop rgba(0, 0, 0, 0.3), statusDanger #b73434/#ff6b5f, statusWarning #a66b00/#f0b429 and statusSuccess #2f7d18/#6ad060 (light/dark). Info reuses controlSelectedBackground; status and validation overrides are independent. No dependency is added and all pre-existing defaults remain unchanged.
+
+```tsx
+import { useState } from "react"
+import { AlertDialog, Button, NativeOverlayProvider } from "@codon-ui/react-native"
+
+const Example = () => {
+  const [open, setOpen] = useState(false)
+  return (
+    <NativeOverlayProvider>
+      <Button onPress={() => setOpen(true)}>Review changes</Button>
+      <AlertDialog
+        accessibilityLabel="Review changes"
+        titleText="Confirm changes"
+        bodyText="Review the current configuration."
+        isOpen={open}
+        onOpenChange={setOpen}
+        confirmAction={() => console.log("Confirmed")}
+      />
+    </NativeOverlayProvider>
+  )
+}
+```
+
+Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. The roadmap records current source availability and separate installed/consumer acceptance; remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.
+
+## Carousel Close Control
+
+CarouselCloseButton is independently usable before the full Carousel family exists. It composes the native Button with round geometry, raised=false, raisedOnHover=true, translucent black background, padding5 and a20-unit current-foreground SVG icon. The grouped labels.closeButtonAriaLabel defaults nullishly to Close Carousel; explicit empty names remain authored.
+
+```tsx
+import { CarouselCloseButton } from "@codon-ui/react-native"
+
+const CloseControl = ({ onClose }: { onClose: () => void }) => (
+  <CarouselCloseButton
+    labels={{ closeButtonAriaLabel: "Close image viewer" }}
+    isDisabled={false}
+    onPress={onClose}
+    customStyles={{ padding: 10 }}
+    customButtonProps={{ style: (state) => [state.defaultStyle, { opacity: state.isPressed ? 0.8 : 1 }] }}
+  />
+)
+```
+
+Default props precede outer Button props, then customButtonProps; that inner layer can replace the callback, disabled state, name and final style. customStyles merges default→outer→inner. Explicit children have final ownership: false/0/empty render as authored, null/undefined select the icon and nested customButtonProps.children cannot replace them. Native View refs/events, registered styles, render children, live provider foreground and disabled/pending guards retain the Button contract. DOM classes/styles/refs/events are excluded.
+
+The Text/Button showcase scene exposes caller-owned preview visibility and a separate close-action count, restoration, scene guards/styles and explicit reset. Source/scene/type checks leave actual target geometry, SVG rendering, accessibility and installed profile acceptance open. Context-dependent Prev/Next remain private; Carousel root/engine interop, hardware keyboard behavior, dots and counter are required pending work. The extra public close export does not establish a complete Carousel counterpart or close its aggregate catalogue gates.
