@@ -1,3 +1,11 @@
+export { FormField } from "./components/FormField/FormField"
+export type {
+  TNativeFormFieldProps,
+  TNativeFormFieldProps as FormFieldProps,
+  TNativeFormFieldRef,
+  TNativeFormFieldFocusTarget,
+} from "./components/FormField/types"
+
 export { Slider } from "./components/Slider/Slider"
 export type {
   TNativeSliderProps,
