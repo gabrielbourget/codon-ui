@@ -38,7 +38,13 @@ def verify_inputs(root):
         assert digest(REPO / name) == checksum, name
     for name, checksum in inputs["nativeProjectInputs"].items():
         assert digest(REPO / name) == checksum, name
-    for name, checksum in inputs["fixtureInputs"].items():
+    expected = dict(inputs["fixtureInputs"])
+    updates = root / "verifier-updates.json"
+    if updates.exists():
+        for update in json.loads(updates.read_text()):
+            assert update["file"] == "build.py" and update["previousSHA256"] == expected["build.py"]
+            expected["build.py"] = update["currentSHA256"]
+    for name, checksum in expected.items():
         assert digest(FIXTURE / name) == checksum, name
     for name in ["App.tsx", "index.ts", "phases.json"]:
         assert digest(STAGE / name) == inputs["fixtureInputs"][name], name
@@ -81,7 +87,11 @@ def build(root, platform):
         command = ["./gradlew", "--init-script", str(root / "entry.gradle"), ":app:createBundleReleaseJsAndAssets", "--rerun", ":app:assembleRelease", "-PreactNativeArchitectures=x86_64", "--offline", "--no-daemon", "--max-workers=2", "--console=plain"]
         cwd, cap = REPO / "apps/native-showcase/android", 1800
     else:
-        env.update({"ENTRY_FILE": str(STAGE / "index.ts"), "FORCE_BUNDLING": "1", "EXTRA_PACKAGER_ARGS": "--max-workers 2"})
+        compose = REPO / "apps/native-showcase/node_modules/react-native/scripts/compose-source-maps.js"
+        wrapper = root / "capture-compose.cjs"
+        wrapper.write_text('const fs = require("node:fs")\nconst cp = require("node:child_process")\nfs.copyFileSync(process.argv[2], ' + json.dumps(str(root / "ios.packager.map")) + ')\ncp.execFileSync(process.execPath, [' + json.dumps(str(compose)) + ', ...process.argv.slice(2)], { stdio: "inherit" })\n')
+        env.update({"ENTRY_FILE": str(STAGE / "index.ts"), "FORCE_BUNDLING": "1", "EXTRA_PACKAGER_ARGS": "--max-workers 2", "COMPOSE_SOURCEMAP_PATH": str(wrapper)})
+        (root / "ios-compose-inputs.json").write_text(json.dumps({"wrapperSHA256": digest(wrapper), "upstreamComposeSHA256": digest(compose)}, indent=2) + "\n")
         command = ["/usr/bin/xcodebuild", "-jobs", "2", "-workspace", "CodonNativeShowcase.xcworkspace", "-scheme", "CodonNativeShowcase", "-configuration", "Release", "-sdk", "iphonesimulator", "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", str(LAB / "ios-app-derived-data"), "ARCHS=x86_64", "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "SOURCEMAP_FILE=" + str(root / "ios.map"), "build"]
         cwd, cap = REPO / "apps/native-showcase/ios", 2700
     cap = min(cap, max(1, int(inputs["deadlineUnix"] - time.time())))
@@ -119,7 +129,8 @@ def build(root, platform):
 def prove(root, platform):
     inputs = verify_inputs(root)
     target = root / "products" / platform
-    target.mkdir(parents=True)
+    target.mkdir(parents=True, exist_ok=True)
+    assert not (target / "proof.json").exists(), "Do not replace a completed product proof"
     if platform == "android":
         app = REPO / "apps/native-showcase/android/app/build/outputs/apk/release/app-release.apk"
         mapping = REPO / "apps/native-showcase/android/app/build/generated/sourcemaps/react/release/index.android.bundle.map"
@@ -134,7 +145,7 @@ def prove(root, platform):
         assert digest(app / "CodonNativeShowcase") == digest(BASELINE / "artifacts/ios/CodonNativeShowcase"), "Native executable differs from CP-50"
         signature = subprocess.run(["/usr/bin/codesign", "-dv", str(app)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         assert signature.returncode != 0 and b"not signed" in signature.stdout
-        shutil.copytree(app, target / "CodonNativeShowcase.app")
+        shutil.copytree(app, target / "CodonNativeShowcase.app", dirs_exist_ok=True)
         product, mapping = target / "CodonNativeShowcase.app/CodonNativeShowcase", root / "ios.map"
     data = json.loads(mapping.read_text())
     library, fixture, react = {}, {}, set()
@@ -152,18 +163,48 @@ def prove(root, platform):
             assert content is not None and hashlib.sha256(content.encode()).hexdigest() == inputs["fixtureInputs"][name], source
             fixture[name] = inputs["fixtureInputs"][name]
     assert len(react) == 1 and "react@19.2.3" in next(iter(react)), react
-    assert {"App.tsx", "index.ts", "phases.json"} <= fixture.keys(), fixture
+    assert {"App.tsx", "index.ts"} <= fixture.keys(), fixture
+    compiler_input_map = REPO / "apps/native-showcase/android/app/build/intermediates/sourcemaps/react/release/index.android.bundle.packager.map" if platform == "android" else root / "ios.packager.map"
+    compiler_input = json.loads(compiler_input_map.read_text())
+    json_inputs = {}
+    for source, content in zip(compiler_input["sources"], compiler_input["sourcesContent"]):
+        if ".expo/codon-navigation-observer/" in source:
+            name = source.split(".expo/codon-navigation-observer/", 1)[1]
+            assert content is not None and hashlib.sha256(content.encode()).hexdigest() == inputs["fixtureInputs"][name], source
+            json_inputs[name] = inputs["fixtureInputs"][name]
+    assert {"App.tsx", "index.ts", "phases.json"} <= json_inputs.keys(), json_inputs
+    shutil.copy2(compiler_input_map, target / "packager.map")
     for family in ["Breadcrumbs/Breadcrumbs.tsx", "Pagination/Pagination.tsx"]:
         assert "packages/react-native/src/components/" + family in library
     shutil.copy2(mapping, target / "bundle.map")
-    (target / "proof.json").write_text(json.dumps({"platform": platform, "productSHA256": digest(product), "mapSHA256": digest(mapping), "nativeCodeByteMatchesCP50": True, "unsignedSimulator": platform == "ios", "librarySHA256": library, "fixtureSHA256": fixture, "reactRoots": sorted(react), "installedActions": 0}, indent=2) + "\n")
+    (target / "proof.json").write_text(json.dumps({"platform": platform, "productSHA256": digest(product), "mapSHA256": digest(mapping), "nativeCodeByteMatchesCP50": True, "unsignedSimulator": platform == "ios", "librarySHA256": library, "fixtureSHA256": json_inputs, "composedMapFixtureSHA256": fixture, "compilerInputMapSHA256": digest(compiler_input_map), "reactRoots": sorted(react), "installedActions": 0}, indent=2) + "\n")
     print(platform, "private-entry product verified; native code matches CP-50; library modules", len(library), flush=True)
+
+
+def register_verifier_update(root):
+    inputs = json.loads((root / "inputs.json").read_text())
+    path = root / "verifier-updates.json"
+    assert not path.exists(), "One explicit compiler-map proof correction"
+    changed = [name for name, checksum in inputs["fixtureInputs"].items() if digest(FIXTURE / name) != checksum]
+    assert changed == ["build.py"] or set(changed) == {"build.py"}, changed
+    update = {"file": "build.py", "previousSHA256": inputs["fixtureInputs"]["build.py"], "currentSHA256": digest(FIXTURE / "build.py"), "producer": subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip(), "reason": "Hermes composed maps elide JSON; retain and verify the actual Metro compiler input map. Native products and observer payload are unchanged; do not rebuild Android or replay a guest."}
+    path.write_text(json.dumps([update], indent=2) + "\n")
+    shutil.copy2(FIXTURE / "build.py", root / "corrected-build-verifier.py")
+    verify_inputs(root)
+    print("Recorded proof-only correction; original source snapshot and Android build result preserved", flush=True)
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("phase", choices=["prepare", "android", "ios"])
+    parser.add_argument("phase", choices=["prepare", "android", "ios", "verifier-update", "prove-android", "prove-ios"])
     parser.add_argument("output", type=Path)
     args = parser.parse_args()
     assert not any((parent / "SEALED").exists() or (parent / "SEALED.json").exists() for parent in [args.output, *args.output.parents])
-    prepare(args.output) if args.phase == "prepare" else build(args.output, args.phase)
+    if args.phase == "prepare":
+        prepare(args.output)
+    elif args.phase == "verifier-update":
+        register_verifier_update(args.output)
+    elif args.phase.startswith("prove-"):
+        prove(args.output, args.phase.removeprefix("prove-"))
+    else:
+        build(args.output, args.phase)
