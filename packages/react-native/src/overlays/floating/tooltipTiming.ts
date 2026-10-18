@@ -45,8 +45,8 @@ export const createNativeTooltipTiming = () => {
       if (value !== undefined && !Number.isFinite(value)) throw new TypeError("Tooltip delays must be finite")
     return options
   }
-  const close = (entry: TEntry, immediate = false) => {
-    if (!live || !entries.has(entry)) return
+  const close = (entry: TEntry, immediate = false, eligible: () => boolean = () => true) => {
+    if (!live || !entries.has(entry) || !eligible()) return
     const delay = readOptions(entry).closeDelay ?? 500
     if (warmup?.entry === entry) clearWarmup()
     if (immediate || delay <= 0) {
@@ -57,7 +57,7 @@ export const createNativeTooltipTiming = () => {
       entry.closeTimer = setTimeout(() => {
         if (!live || !entries.has(entry) || token !== entry.closeGeneration) return
         entry.closeTimer = null
-        request(entry, false)
+        if (eligible()) request(entry, false)
       }, delay)
     }
     if (warmed) {
@@ -117,7 +117,7 @@ export const createNativeTooltipTiming = () => {
           }, delay)
           warmup = { entry, timer, generation: token }
         },
-        close: (immediate = false) => close(entry, immediate),
+        close: (immediate = false, eligible?: () => boolean) => close(entry, immediate, eligible),
         unregister: () => {
           clearClose(entry)
           if (warmup?.entry === entry) clearWarmup()

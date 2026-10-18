@@ -128,6 +128,18 @@ it("rechecks native window eligibility before a queued hover requests opening", 
   f.group.dispose()
 })
 
+it("does not apply a delayed native close after its window loses eligibility", () => {
+  const f = owner(undefined, true)
+  let active = true
+  f.lease.close(false, () => active)
+  active = false
+  jest.advanceTimersByTime(500)
+  expect(f.request).not.toHaveBeenCalled()
+  f.lease.close(true)
+  expect(f.request.mock.calls).toEqual([[false]])
+  f.group.dispose()
+})
+
 it("cancels old owner warmup/close timers on replacement and all timers on host disposal", () => {
   const f = owner()
   f.lease.open()

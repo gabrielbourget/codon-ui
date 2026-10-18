@@ -43,8 +43,8 @@ export const useNativeTooltipTriggerState = (options: TOptions = {}) => {
   const open = useCallback((immediate = false, eligible?: () => boolean) => {
     lease.current?.open(immediate, eligible)
   }, [])
-  const close = useCallback((immediate = false) => {
-    lease.current?.close(immediate)
+  const close = useCallback((immediate = false, eligible?: () => boolean) => {
+    lease.current?.close(immediate, eligible)
   }, [])
   return { isOpen, open, close }
 }
