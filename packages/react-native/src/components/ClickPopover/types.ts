@@ -1,5 +1,5 @@
 import type { ReactNode, RefObject } from "react"
-import type { ColorValue, ScrollView, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
+import type { ColorValue, ScrollView, StyleProp, TextInput, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 import type { PathProps } from "react-native-svg"
 
 import type { TNativeFloatingOutsideInteraction } from "../../overlays/floating/interaction"
@@ -37,8 +37,8 @@ export type TNativeClickPopoverProps = Omit<
   triggerRef?: RefObject<TNativeFloatingMeasurable | null>
   boundaryRef?: RefObject<TNativeFloatingMeasurable | null>
   scrollRef?: RefObject<ScrollView | null>
-  initialFocusRef?: RefObject<Pick<View, "focus"> | null>
-  restoreFocusRef?: RefObject<Pick<View, "focus"> | null>
+  initialFocusRef?: RefObject<View | TextInput | null>
+  restoreFocusRef?: RefObject<View | TextInput | null>
   placement?: TNativeFloatingPlacement
   direction?: "ltr" | "rtl"
   offset?: number

@@ -7,6 +7,9 @@ const textInputState: Readonly<{ isTextInput: (target: TTarget) => boolean }> = 
 type TBinding = Readonly<{ focus: () => void; blur: () => void; canFocus: () => boolean }>
 const bindings = new WeakMap<TTarget, TBinding>()
 
+export const isNativeFocusTarget = (target: object | null): target is TTarget =>
+  target !== null && (bindings.has(target as TTarget) || textInputState.isTextInput(target as TTarget))
+
 export const registerNativeFocusTarget = (target: TTarget, binding: TBinding) => {
   bindings.set(target, binding)
   return () => {

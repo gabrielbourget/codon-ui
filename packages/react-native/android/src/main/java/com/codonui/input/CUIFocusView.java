@@ -160,7 +160,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   void requestKeyboardFocus(String owner) {
-    if (!ownerId.equals(owner) || !keyboardFocusable || !isAttachedToWindow() || !isShown()) return;
+    if (!ownerId.equals(owner) || !keyboardFocusable || !isAttachedToWindow() || !isShown() || !hasWindowFocus()) return;
     origin = "programmatic";
     requestFocus();
   }

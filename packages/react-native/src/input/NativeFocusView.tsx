@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useId, useInsertionEffect, useRef, useState, type ElementRef } from "react"
-import type { GestureResponderEvent, NativeSyntheticEvent } from "react-native"
+import type { GestureResponderEvent, NativeSyntheticEvent, ViewProps } from "react-native"
 
 import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { registerNativeFocusTarget } from "./focus"
@@ -31,6 +31,8 @@ export const NativeFocusHost = forwardRef<
     nativeDescriptionTag?: number
     nativeDescriptionLabel?: string
     nativeDetailsLabel?: string
+    onBubbledFocus?: ViewProps["onFocus"]
+    onBubbledBlur?: ViewProps["onBlur"]
     onNativeAccessibilitySnapshot?: (event: NativeSyntheticEvent<NativeAccessibilityData>) => void
     onNativeActivation?: (event: TNativeActivationPacket) => void
     capturedKeys?: readonly string[]
@@ -47,6 +49,8 @@ export const NativeFocusHost = forwardRef<
     capturedKeys,
     onNativeActivation,
     onNativeAccessibilitySnapshot,
+    onBubbledFocus,
+    onBubbledBlur,
     ...rest
   } = props
   const ownerId = useId()
@@ -104,6 +108,20 @@ export const NativeFocusHost = forwardRef<
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
         capturedKeys={capturedKeys}
+        onFocus={
+          onBubbledFocus
+            ? (event) => {
+                if (attached.current) onBubbledFocus(event)
+              }
+            : undefined
+        }
+        onBlur={
+          onBubbledBlur
+            ? (event) => {
+                if (attached.current) onBubbledBlur(event)
+              }
+            : undefined
+        }
         onNativeAccessibilitySnapshot={(event) => {
           if (attached.current && event.nativeEvent.ownerId === ownerId) onNativeAccessibilitySnapshot?.(event)
         }}
