@@ -101,6 +101,37 @@ export const Quantity = () => {
 
 A short native release requests one step. Holding starts repeat after600ms and continues every60ms, with no extra release request; cancellation, guard/configuration takeover, bounds and unmount retire it. Repeated controlled veto requests always derive from the authoritative value. Raw editing text commits from native end/submit events, with duplicate final delivery suppressed; a cancelled press cannot leave that commit pending. The group stays nonaggregating so its editor/buttons remain separate targets; labels.inputButtonGroupAriaLabel preserves the authored group name. Actual installed focus/gesture/geometry/accessibility acceptance remains open. Currency/percent/unit/significant-digit formatting, non-snap validation, browser forms/reset, automatic label-ID/description relationships, full wheel/modifier/composition-aware keyboard and pointer-specific/localized speech behavior are still required inherited mappings, not approved capability removals. No dependency or palette change is introduced.
 
+## Slider
+
+Slider keeps scalar and multi-thumb range values caller-owned. Omitted value/defaultValue creates one minimum thumb and array callbacks; a numeric value/defaultValue infers numeric onChange/onChangeEnd. Empty arrays remain empty. Bounds/step/adjacent-thumb projection never mutates supplied arrays. Track presses choose the nearest thumb with end-side tie preference; individual thumb drags keep their grab offset. onChangeEnd reports the final actual request once, including owner veto. Multiple pointers finish after the last active thumb; disabled/member/configuration/count/geometry takeover and unmount retire obsolete work.
+
+```tsx
+import { useState } from "react"
+import { Slider } from "@codon-ui/react-native"
+
+export const PriceRange = () => {
+  const [values, setValues] = useState([0.25, 0.75])
+  return (
+    <Slider
+      accessibilityLabel="Price range"
+      label="Price range"
+      thumbAriaLabels={["Minimum price", "Maximum price"]}
+      value={values}
+      onChange={setValues}
+      minValue={0}
+      maxValue={1}
+      step={0.05}
+      formatOptions={{ style: "percent" }}
+      width="100%"
+    />
+  )
+}
+```
+
+Horizontal LTR/RTL and vertical use root-relative native measure/touch coordinates. Native thumb targets are44 points on iOS/48dp on Android around18-unit visual bodies, with endpoint insets. Explicit thumb axes retain their authored sizes. The default horizontal root is300 units with maxWidth300; a vertical track uses150 units unless resolved root height constrains it. A fixed minValue=maxValue domain stays at one finite position without fabricated numeric changes. The five root/label/output/track/thumb style owners accept native registered/array styles and colors, with post-custom defaultStyle in the root style callback. Its state supplies the audited SliderState queries/setters, thumb formatting, focus/editability/dragging and page helpers. customOutputFormatter receives a disposable value copy. Native adjustable fields/actions use the same numeric path, contextual thumb names stay separate and label activation requests the first surviving thumb ref.
+
+All three geometries, five existing action orders, both modes and theme updates remain available. Explicit thumb paint wins over dragging colors; local neutral700 values mirror the canonical theme without adding a role. Root native refs/IDs/layout/observers are preserved. Source typing rejects DOM classes, unsupported CSS dimensions, form thumbNames, child replacement, role takeover and null values. Browser form/reset/description-ID association, upstream locale context, complete modifier/pointer-button/keyboard handling, arbitrary root rendering, CSS transitions and unrestricted transformed style/hit coupling remain required open mappings. Actual installed gestures, target/layout/font/window/semantic profiles and full Android/iOS acceptance remain separate.
+
 ## Select And ListBoxItem
 
 Select accepts readonly items with stable typed getKey and nonempty getTextValue metadata; numeric 0 and string "0" remain different keys. It supports controlled value or initial defaultValue, controlled isOpen or initial defaultOpen, disabledKeys, disabled/read-only guards and decorative renderItem content. Missing selected keys retain their value and display the placeholder until reinserted. Choosing the current key closes quietly; cancellation leaves selection unchanged. Required accessibilityLabel (or aria-label) and localized closeLabel name the trigger and dismissal action.

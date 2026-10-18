@@ -35,6 +35,7 @@ import { OverlayScene } from "./OverlayScene"
 import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
+import { SliderScene } from "./SliderScene"
 import { StepperScene } from "./StepperScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
@@ -169,6 +170,7 @@ export const NativeShowcase = () => {
     | "thumbnail"
     | "gallery"
     | "stepper"
+    | "slider"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -232,6 +234,7 @@ export const NativeShowcase = () => {
               onPress={() => setScene("thumbnail")}
             />
             <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
+            <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
             <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
           </View>
           <View style={styles.controls}>
@@ -255,7 +258,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "stepper" ? (
+            {scene === "slider" ? (
+              <SliderScene />
+            ) : scene === "stepper" ? (
               <StepperScene />
             ) : scene === "gallery" ? (
               <GalleryScene />
