@@ -18,18 +18,20 @@ export const NativeCarouselDotsViewport = ({
   visibleCount,
   windowStart,
   noTransition,
+  cellSize = 8,
   testID,
   children,
 }: {
   visibleCount: number
   windowStart: number
   noTransition: boolean
+  cellSize?: number
   testID: string
   children: ReactNode
 }) => {
   const theme = useNativeTheme()
   const reduced = useNativeLoaderReducedMotion()
-  const viewport = getNativeCarouselDotsViewport(visibleCount, windowStart, theme.spacing.unit)
+  const viewport = getNativeCarouselDotsViewport(visibleCount, windowStart, theme.spacing.unit, cellSize)
   const translateX = useNativeCarouselDotScalar(viewport.translateX, reduced, noTransition)
   return (
     <View

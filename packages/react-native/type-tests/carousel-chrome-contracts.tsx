@@ -39,3 +39,7 @@ export { CarouselDots } from "../src"
 export { NativeCarouselDotsVisualStrip } from "../src"
 // @ts-expect-error The private track does not add a public viewport API.
 export { NativeCarouselDotsViewport } from "../src"
+// @ts-expect-error The private target does not complete CarouselDots keyboard/focus integration.
+export { NativeCarouselDotTarget } from "../src"
+// @ts-expect-error The key policy is private preparation, not a public transport API.
+export { handleNativeCarouselDotKey } from "../src"

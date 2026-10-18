@@ -4,6 +4,8 @@ import type { TNativeTheme } from "../../theme/types"
 
 export const NATIVE_CAROUSEL_DOT_VARIANTS = ["active", "default", "near", "far", "hidden", "sentinel"] as const
 export type TNativeCarouselDotVariant = (typeof NATIVE_CAROUSEL_DOT_VARIANTS)[number]
+export const NATIVE_CAROUSEL_DOTS_ACTIVATION_MODES = ["manual", "auto"] as const
+export type TNativeCarouselDotsActivationMode = (typeof NATIVE_CAROUSEL_DOTS_ACTIVATION_MODES)[number]
 export type TNativeCarouselDotEdgeBias = "left" | "right" | null
 export type TNativeCarouselDotVariantInput = Readonly<{
   index: number
@@ -23,7 +25,7 @@ export const getNativeCarouselDotsCalibration = (input: {
   selectedIndex: number
   focusIndex: number
   interactive?: boolean
-  activationMode?: "manual" | "auto"
+  activationMode?: TNativeCarouselDotsActivationMode
   maxVisible?: number
 }) => {
   const { itemCount, selectedIndex, focusIndex, interactive = true, activationMode = "auto", maxVisible = 7 } = input
@@ -125,8 +127,13 @@ export const getNativeCarouselDotStyle = (
     : {}),
 })
 
-export const getNativeCarouselDotsViewport = (visibleCount: number, windowStart: number, gap: number) => ({
-  width: Math.max(0, visibleCount * (8 + gap) - gap),
-  translateX: -windowStart * (8 + gap),
+export const getNativeCarouselDotsViewport = (
+  visibleCount: number,
+  windowStart: number,
+  gap: number,
+  cellSize = 8,
+) => ({
+  width: Math.max(0, visibleCount * (cellSize + gap) - gap),
+  translateX: -windowStart * (cellSize + gap),
   paddingVertical: gap,
 })
