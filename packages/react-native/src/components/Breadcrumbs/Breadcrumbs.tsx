@@ -83,6 +83,8 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
         {...rest}
         ref={ref}
         role="list"
+        nativeNavigation={!isDisabled}
+        nativeNavigationLabel={labels.navigationRoleDescription}
         accessible={false}
         focusable={false}
         accessibilityLabel={rest.accessibilityLabel ?? nativeLabel ?? ariaLabel ?? labels.navAriaLabel}
@@ -107,6 +109,7 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
                 <Text
                   style={[styles.item.text, { fontWeight: "700", opacity: 1 }]}
                   accessibilityState={{ selected: true }}
+                  accessibilityValue={{ text: labels.currentPageValue }}
                   testID="breadcrumb-current"
                 >
                   {node.item.content}

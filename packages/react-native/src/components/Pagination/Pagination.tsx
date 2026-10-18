@@ -188,6 +188,8 @@ export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProp
         {...native}
         ref={ref}
         role="navigation"
+        nativeNavigation
+        nativeNavigationLabel={labels.root.navigationRoleDescription}
         accessible={false}
         focusable={props.focusable ?? false}
         onFocus={undefined}

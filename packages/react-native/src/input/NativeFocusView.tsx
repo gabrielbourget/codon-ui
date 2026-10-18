@@ -25,6 +25,8 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    nativeNavigation?: boolean
+    nativeNavigationLabel?: string
     nativeLabelledBy?: readonly string[]
     nativeDescribedBy?: readonly string[]
     nativeDetailsBy?: readonly string[]

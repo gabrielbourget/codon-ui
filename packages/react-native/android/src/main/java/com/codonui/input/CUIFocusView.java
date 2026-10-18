@@ -31,6 +31,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private String origin = "unknown";
   private boolean keyboardFocusable = true;
   private boolean nativePressable = false;
+  private boolean nativeNavigation = false;
+  private String nativeNavigationLabel = "Navigation";
   private double activationId;
   private List<String> nativeLabelledBy = new ArrayList<>();
   private List<String> nativeDescribedBy = new ArrayList<>();
@@ -47,6 +49,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void setNativeDescribedBy(List<String> ids) { nativeDescribedBy = ids; }
   void setNativeDetailsBy(List<String> ids) { nativeDetailsBy = ids; }
   void setNativeDescriptionTag(int tag) { nativeDescriptionTag = tag; }
+  void setNativeNavigation(boolean enabled) { nativeNavigation = enabled; }
+  void setNativeNavigationLabel(String label) { nativeNavigationLabel = label == null ? "Navigation" : label; }
 
   CharSequence accessibilityReferenceLabel() {
     if (nativeLabelledBy == null || nativeLabelledBy.isEmpty()) return super.getContentDescription();
@@ -76,6 +80,10 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
       node.setTooltipText(description.value);
     }
     if (details.available) CUIAccessibilityReferences.setDetails(node, details.value);
+    if (nativeNavigation) {
+      node.setRoleDescription(nativeNavigationLabel);
+      node.setContainerTitle(node.getContentDescription());
+    }
     return info;
   }
   void inspectAccessibility(String owner) {
@@ -87,6 +95,13 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     CUIAccessibilityReferences.Text details = CUIAccessibilityReferences.resolve(this, nativeDetailsBy, 0, true);
     WritableMap data = baseData();
     data.putString("windowId", CUIInputWindow.identity(this));
+    data.putString("platform", "android");
+    data.putBoolean("selected", node.isSelected());
+    data.putInt("containerType", -1);
+    CharSequence containerTitle = node.getContainerTitle();
+    CharSequence roleDescription = node.getRoleDescription();
+    data.putString("containerTitle", containerTitle == null ? "" : containerTitle.toString());
+    data.putString("roleDescription", roleDescription == null ? "" : roleDescription.toString());
     data.putString("label", node.getContentDescription() == null ? "" : node.getContentDescription().toString());
     CharSequence hint = node.getHintText();
     if (hint == null && !description.available) hint = node.getTooltipText();

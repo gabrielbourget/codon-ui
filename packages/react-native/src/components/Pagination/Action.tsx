@@ -15,6 +15,7 @@ type TProps = {
   children: ReactNode
   disabled?: boolean
   selected?: boolean
+  currentPageValue?: string
   expanded?: boolean
   nativeID?: string
   colorMode?: TNativeButtonProps["colorMode"]
@@ -32,6 +33,7 @@ export const NativePaginationAction = forwardRef<View, TProps>(
       children,
       disabled,
       selected,
+      currentPageValue,
       expanded,
       nativeID,
       colorMode,
@@ -44,6 +46,22 @@ export const NativePaginationAction = forwardRef<View, TProps>(
     ref,
   ) => {
     const general = props.customGeneralButtonProps ?? {}
+    const valueText = general["aria-valuetext"] ?? general.accessibilityValue?.text
+    // Removing a value map clears Android's unchanged label; keep numeric buttons' empty text maps stable.
+    const currentValue =
+      selected === undefined && currentPageValue === undefined
+        ? {}
+        : {
+            "aria-valuetext": undefined,
+            accessibilityValue: {
+              ...general.accessibilityValue,
+              text: !valueText
+                ? (currentPageValue ?? "")
+                : !currentPageValue
+                  ? valueText
+                  : `${valueText}, ${currentPageValue}`,
+            },
+          }
     const scope = useContext(NativeFloatingScopeContext),
       window = useContext(NativeFloatingWindowContext),
       input = useNativeKeyScope()
@@ -56,6 +74,7 @@ export const NativePaginationAction = forwardRef<View, TProps>(
         colorMode={colorMode ?? props.buttonColorMode ?? "fill"}
         raised
         {...general}
+        {...currentValue}
         nativeID={nativeID ?? general.nativeID}
         testID={general.testID ?? general["data-testid"] ?? testID}
         accessibilityLabel={general.accessibilityLabel ?? general["aria-label"] ?? label}
@@ -65,6 +84,8 @@ export const NativePaginationAction = forwardRef<View, TProps>(
           ...(selected !== undefined ? { selected } : {}),
           ...(expanded !== undefined ? { expanded } : {}),
         }}
+        aria-selected={selected ?? general["aria-selected"]}
+        aria-expanded={expanded ?? general["aria-expanded"]}
         customStyles={[{ minWidth: target, height: target }, textStyle, general.customStyles, customStyles]}
         onPress={(event) => {
           general.onPress?.(event)

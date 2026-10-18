@@ -17,6 +17,7 @@ using namespace facebook::react;
 @implementation CUIFocusView {
   BOOL _keyboardFocusable;
   BOOL _nativePressable;
+  BOOL _nativeNavigation;
   double _activationId;
   BOOL _focusAcknowledged;
   NSString *_ownerId;
@@ -62,6 +63,11 @@ using namespace facebook::react;
   return label != nil ? label : [super accessibilityLabel];
 }
 
+- (UIAccessibilityContainerType)accessibilityContainerType
+{
+  return _nativeNavigation ? UIAccessibilityContainerTypeLandmark : [super accessibilityContainerType];
+}
+
 - (void)setAccessibilityCustomContent:(NSArray<AXCustomContent *> *)content
 {
   _callerAccessibilityContent = [content copy];
@@ -88,6 +94,11 @@ using namespace facebook::react;
   value.ownerId = _ownerId.UTF8String;
   value.target = (int)self.tag;
   value.windowId = CUIInputWindowIdentity(self.window).UTF8String;
+  value.platform = CUIFocusViewEventEmitter::OnNativeAccessibilitySnapshotPlatform::Ios;
+  value.selected = (self.accessibilityTraits & UIAccessibilityTraitSelected) != 0;
+  value.containerType = (int)self.accessibilityContainerType;
+  value.containerTitle = "";
+  value.roleDescription = "";
   value.label = self.accessibilityLabel.UTF8String ?: "";
   value.hint = self.accessibilityHint.UTF8String ?: "";
   value.value = self.accessibilityValue.UTF8String ?: "";
@@ -319,6 +330,7 @@ using namespace facebook::react;
   _ownerId = owner;
   _keyboardFocusable = next.keyboardFocusable;
   _nativePressable = next.nativePressable;
+  _nativeNavigation = next.nativeNavigation;
   _capturedKeys = capture;
   NSMutableArray<NSString *> *labelledBy = [NSMutableArray array];
   for (const auto &id : next.nativeLabelledBy) [labelledBy addObject:[NSString stringWithUTF8String:id.c_str()]];
@@ -354,6 +366,7 @@ using namespace facebook::react;
   _capturedKeys = [NSSet set];
   _keyboardFocusable = YES;
   _nativePressable = NO;
+  _nativeNavigation = NO;
   _nativeLabelledBy = nil;
   _nativeDescribedBy = nil;
   _nativeDetailsBy = nil;

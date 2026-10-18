@@ -146,6 +146,7 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
                 testID={`pagination-page-${item}`}
                 label={names.pageButtonAriaLabel(item)}
                 selected={item === props.currentPage}
+                currentPageValue={item === props.currentPage ? names.currentPageValue : undefined}
                 colorMode={item === props.currentPage ? "fill" : "outline"}
                 customStyles={props.customPageNumberButtonStyles}
                 onRequest={() => requestPage(item)}
