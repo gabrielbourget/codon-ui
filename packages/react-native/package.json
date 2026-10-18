@@ -34,7 +34,8 @@
   "peerDependencies": {
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4"
   },
   "devDependencies": {
     "@babel/core": "7.29.0",
@@ -51,7 +52,8 @@
     "@react-native/babel-preset": "0.86.3",
     "react": "19.2.3",
     "react-native": "0.86.3",
-    "react-native-safe-area-context": "5.7.0"
+    "react-native-safe-area-context": "5.7.0",
+    "react-native-svg": "15.15.4"
   },
   "dependencies": {
     "@internationalized/number": "3.6.6"
