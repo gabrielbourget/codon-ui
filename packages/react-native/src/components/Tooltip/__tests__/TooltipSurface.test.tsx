@@ -14,6 +14,7 @@ import { HoverPopover } from "../../HoverPopover/HoverPopover"
 import { Tooltip } from "../Tooltip"
 import type { TNativeTooltipProps } from "../types"
 
+const ReactNative = jest.requireActual<typeof import("react-native")>("react-native")
 const hidden = { includeHiddenElements: true }
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
 let frameId = 0
@@ -90,6 +91,21 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     }
     return { node, ready, root, host, onOpenChange, background, trigger: () => trigger! }
   }
+
+  it("binds the measured description to the actual owned trigger only while ready/open, preserving an empty caption", async () => {
+    jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(91)
+    const f = setup({ descriptionLabel: "" })
+    await render(f.node())
+    const trigger = () => screen.getByRole("button", { name: "Trigger", ...hidden })
+    expect(trigger().props.nativeDescriptionTag).toBe(0)
+    await f.ready()
+    await tick()
+    expect(ReactNative.findNodeHandle).toHaveBeenCalledWith(f.root.current)
+    expect(trigger().props.nativeDescriptionTag).toBe(91)
+    expect(trigger().props.nativeDescriptionLabel).toBe("")
+    await screen.rerender(f.node({ isOpen: false, descriptionLabel: "" }))
+    expect(trigger().props.nativeDescriptionTag).toBe(0)
+  })
 
   it("uses top placement with zero base offset and the actual forwarded native ref", async () => {
     const onLayout = jest.fn()

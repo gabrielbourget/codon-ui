@@ -14,6 +14,6 @@ export type TNativeTooltipProps = Omit<
   | "scrollRef"
   | "shouldCloseOnInteractOutside"
   | "trigger"
->
+> & { descriptionLabel?: string }
 export type TNativeHoverPopoverProps = TNativeTooltipProps
 export type TNativeHoverPopoverRef = TNativeTooltipRef
