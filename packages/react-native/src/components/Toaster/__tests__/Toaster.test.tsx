@@ -239,3 +239,31 @@ it("NATIVE.toaster.004 unmount retires subscriptions and pending collapse before
   await publish({ id: "later" })
   expect(screen.queryByTestId("toaster")).toBeNull()
 })
+it("CAP.toaster.012 maps native relationship aliases, localized captions and explicit empty IDs", async () => {
+  const { rerender } = await render(
+    node({
+      ariaLabelledBy: " heading\tsection ",
+      ariaDescribedBy: "summary explanation",
+      ariaDetails: "full-details",
+      labels: { descriptionLabel: "Résumé", detailsLabel: "Détails" },
+    }),
+  )
+  await publish({ id: 0 })
+  expect(root().props).toMatchObject({
+    nativeLabelledBy: ["heading", "section"],
+    nativeDescribedBy: ["summary", "explanation"],
+    nativeDetailsBy: ["full-details"],
+    nativeDescriptionLabel: "Résumé",
+    nativeDetailsLabel: "Détails",
+  })
+  expect(root().props.ariaLabelledBy).toBeUndefined()
+  expect(root().props.ariaDescribedBy).toBeUndefined()
+  expect(root().props.ariaDetails).toBeUndefined()
+  expect(root().props.labels).toBeUndefined()
+  await rerender(node({ "aria-labelledby": "", ariaLabelledBy: "ignored", "aria-describedby": "", "aria-details": "" }))
+  expect(root().props).toMatchObject({ nativeLabelledBy: [], nativeDescribedBy: [], nativeDetailsBy: [] })
+  await rerender(
+    node({ accessibilityLabelledBy: ["native-a", "native-b"], "aria-labelledby": "aria", ariaLabelledBy: "alias" }),
+  )
+  expect(root().props.nativeLabelledBy).toEqual(["native-a", "native-b"])
+})

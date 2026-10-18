@@ -14,6 +14,10 @@ const accepted = (
     toastGap={0}
     customRootStyles={[styles.root, false]}
     toastLabels={{ closeButtonAriaLabel: "" }}
+    ariaLabelledBy="heading"
+    ariaDescribedBy="summary"
+    ariaDetails="details"
+    labels={{ descriptionLabel: "Résumé" }}
   />
 )
 const payload: TNativeToast = {
@@ -25,7 +29,7 @@ const payload: TNativeToast = {
   titleText: "",
   showButtons: false,
   customBodyTextStyles: styles.text,
-  customStyles: { width: "50%" },
+  customStyles: { width: "50%", color: "blue" },
 }
 const publishEmpty = () => toast({ ...payload, id: "" })
 // @ts-expect-error DOM classes have a native style equivalent rather than a silently ignored prop.

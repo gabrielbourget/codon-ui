@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import type { StyleProp, TextStyle, ViewStyle } from "react-native"
+import type { ColorValue, StyleProp, TextStyle, ViewStyle } from "react-native"
 
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeButtonProps } from "../Button/types"
@@ -24,6 +24,7 @@ export const DEFAULT_MAX_VISIBLE_TOASTS = 5
 export const DEFAULT_TOAST_GAP = 15
 export const DEFAULT_TOAST_POSITION = "top-right"
 export const DURATION_BEFORE_UNMOUNT = 250
+export type TNativeToastRootStyle = ViewStyle & { color?: ColorValue }
 
 export type TNativeToastLabels = {
   cancelActionButton: string
@@ -36,7 +37,7 @@ export type TNativeToast = {
   id: TNativeToastID
   height?: ViewStyle["height"]
   width?: ViewStyle["width"]
-  style?: StyleProp<ViewStyle>
+  style?: StyleProp<TNativeToastRootStyle>
   position?: TNativeToastPosition
   type?: TNativeToastType
   geometry?: "orthogonal" | "rounded"
@@ -58,7 +59,7 @@ export type TNativeToast = {
   CloseIcon?: ReactNode
   onDismiss?: (toast: TNativeToast) => void
   onAutoClose?: (toast: TNativeToast) => void
-  customStyles?: StyleProp<ViewStyle>
+  customStyles?: StyleProp<TNativeToastRootStyle>
   customTopRibbonStyles?: StyleProp<ViewStyle>
   customTopRibbonLeftContentStyles?: StyleProp<ViewStyle>
   customTitleStyles?: StyleProp<TextStyle>
@@ -99,6 +100,12 @@ export type TNativeToasterProps = Omit<TNativeFocusViewProps, "children" | "styl
   "data-testid"?: string
   "aria-label"?: string
   ariaLabel?: string
+  ariaLabelledBy?: string
+  ariaDescribedBy?: string
+  ariaDetails?: string
+  "aria-describedby"?: string
+  "aria-details"?: string
+  labels?: { descriptionLabel?: string; detailsLabel?: string }
 }
 
 export type TNativeToastProps = {
