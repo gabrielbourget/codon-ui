@@ -59,6 +59,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
     onFocusChange,
     onLayout,
     hitSlop,
+    focusable,
     ...rest
   } = props
   const theme = useNativeTheme()
@@ -93,10 +94,11 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
     }
     if (hoverEvent.current) finishHover(hoverEvent.current)
   })
+  const keyboardFocusable = !isDisabled && focusable !== false && rest.tabIndex !== -1
   const flags = {
     isPressed: pressed && !blocked,
     isHovered: hovered && !blocked,
-    isFocused: focused && !isDisabled,
+    isFocused: focused && keyboardFocusable,
     isDisabled,
     isPending,
   }
@@ -122,7 +124,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
         role="button"
         disabled={isDisabled}
         activationBlocked={blocked}
-        focusable={!isDisabled}
+        focusable={keyboardFocusable}
         aria-disabled={isDisabled}
         aria-busy={isPending}
         accessibilityState={{ ...accessibilityState, disabled: isDisabled, busy: isPending }}
@@ -198,7 +200,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
           onHoverOut?.(event)
         }}
         onFocus={(event) => {
-          if (isDisabled) return
+          if (!keyboardFocusable) return
           setFocused(true)
           onFocus?.(event)
           if (!focusState.current) onFocusChange?.(true)

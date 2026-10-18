@@ -11,7 +11,11 @@ const isKeyboardEvent = (event: NativeSyntheticEvent<NativeKeyData>): event is T
 
 export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
-  TNativeFocusViewProps & { capturedKeys?: readonly string[]; onClick?: (event: GestureResponderEvent) => void }
+  TNativeFocusViewProps & {
+    nativePressable?: boolean
+    capturedKeys?: readonly string[]
+    onClick?: (event: GestureResponderEvent) => void
+  }
 >((props, forwardedRef) => {
   const { onKeyDown, onKeyUp, onFocus, onBlur, focusable, tabIndex, capturedKeys, ...rest } = props
   const ownerId = useId()

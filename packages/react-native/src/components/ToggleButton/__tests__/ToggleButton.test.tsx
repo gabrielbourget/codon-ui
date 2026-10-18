@@ -13,6 +13,7 @@ import {
   type TNativeToggleButtonRef,
   type TNativeToggleButtonStyleState,
 } from "../../.."
+import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 
 beforeEach(() => jest.useFakeTimers())
 afterEach(() => {
@@ -348,13 +349,18 @@ it.each([false, true])(
     const cancel = jest.spyOn(globalThis, "cancelAnimationFrame")
     const ref = createRef<TNativeToggleButtonRef>()
     const { rerender, unmount } = await render(<Example autoFocus ref={ref} />)
-    const focus = jest.spyOn(ref.current!, "focus")
+    const focus = jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
+    const upstreamFocus = ref.current!.focus
     focus.mockClear()
     if (disabled) await rerender(<Example autoFocus ref={ref} isDisabled />)
     await act(() => frame!(0))
     expect(focus).toHaveBeenCalledTimes(disabled ? 0 : 1)
+    if (!disabled) expect(focus).toHaveBeenCalledWith(ref.current, screen.getByRole("button").props.ownerId)
+    expect(ref.current!.focus).toBe(upstreamFocus)
     await unmount()
     expect(cancel).toHaveBeenCalledWith(53)
+    await act(() => frame!(0))
+    expect(focus).toHaveBeenCalledTimes(disabled ? 0 : 1)
   },
 )
 

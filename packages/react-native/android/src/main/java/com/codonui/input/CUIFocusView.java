@@ -5,6 +5,7 @@ import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
@@ -13,16 +14,18 @@ import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
+import com.facebook.react.views.view.ViewGroupClickEvent;
 import java.util.HashSet;
 import java.util.Set;
 
-public final class CUIFocusView extends ReactViewGroup {
+public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener {
   private final SparseArray<KeyEvent> held = new SparseArray<>();
   private final Set<Integer> consumed = new HashSet<>();
   private Set<String> capturedKeys = new HashSet<>();
   private String ownerId = "";
   private String origin = "unknown";
   private boolean keyboardFocusable = true;
+  private boolean nativePressable = false;
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
@@ -42,8 +45,33 @@ public final class CUIFocusView extends ReactViewGroup {
       cancelHeldKeys();
       clearFocus();
     }
-    setFocusable(enabled);
-    setFocusableInTouchMode(enabled);
+    synchronizeKeyboardFocusability();
+  }
+
+  void setNativePressable(boolean enabled) {
+    if (nativePressable && !enabled) {
+      setOnClickListener(null);
+      setClickable(false);
+    }
+    nativePressable = enabled;
+  }
+  boolean isNativePressable() { return nativePressable; }
+
+  void synchronizeNativeClick() {
+    setOnClickListener(this);
+    setClickable(true);
+  }
+
+  @Override public void onClick(View view) {
+    if (!nativePressable || !isAttachedToWindow() || !isShown()) return;
+    ThemedReactContext context = (ThemedReactContext) getContext();
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
+    if (dispatcher != null) dispatcher.dispatchEvent(new ViewGroupClickEvent(UIManagerHelper.getSurfaceId(this), getId()));
+  }
+
+  void synchronizeKeyboardFocusability() {
+    setFocusable(keyboardFocusable);
+    setFocusableInTouchMode(keyboardFocusable);
   }
 
   void setCapturedKeys(Set<String> next) {

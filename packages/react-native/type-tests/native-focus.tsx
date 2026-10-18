@@ -37,3 +37,5 @@ export const nativePress = (event: TNativePressEvent) => {
 export const fabricatedTouch = <NativeFocusView onKeyDown={(event) => event.nativeEvent.pageX} />
 // @ts-expect-error Capture/default handling is private native policy.
 export const lateDefault = <NativeFocusView capturedKeys={["0000:Enter"]} />
+// @ts-expect-error Native press/click wiring is private adapter policy.
+export const privatePressable = <NativeFocusView nativePressable />

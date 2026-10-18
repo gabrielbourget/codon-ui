@@ -34,6 +34,7 @@ export type NativeFocusData = Readonly<{
 export interface NativeProps extends ViewProps {
   ownerId: string
   keyboardFocusable?: WithDefault<boolean, true>
+  nativePressable?: WithDefault<boolean, false>
   capturedKeys?: ReadonlyArray<string>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>

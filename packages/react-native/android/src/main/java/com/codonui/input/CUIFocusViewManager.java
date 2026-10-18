@@ -22,7 +22,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "capturedKeys".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "capturedKeys".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -36,6 +36,16 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "keyboardFocusable", defaultBoolean = true)
   public void setKeyboardFocusable(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setKeyboardFocusable(value); }
+
+  @Override @ReactProp(name = "nativePressable", defaultBoolean = false)
+  public void setNativePressable(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativePressable(value); }
+
+  @Override protected void onAfterUpdateTransaction(ReactViewGroup view) {
+    super.onAfterUpdateTransaction(view);
+    // Retain SDK click delivery without temporarily enabling keyboard focus.
+    if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
+    ((CUIFocusView) view).synchronizeKeyboardFocusability();
+  }
 
   @Override @ReactProp(name = "capturedKeys")
   public void setCapturedKeys(ReactViewGroup view, ReadableArray value) {

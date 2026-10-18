@@ -75,6 +75,8 @@ export const InvalidRole = <NativeThemeProvider overrides={{ colors: { mapRoad: 
 
 export const ValidButton = (
   <Button
+    focusable={false}
+    tabIndex={-1}
     ref={createRef<View>()}
     order="tertiary"
     colorMode="outline"

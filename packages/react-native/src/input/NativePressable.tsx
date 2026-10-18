@@ -84,6 +84,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     "aria-live": ariaLive,
     ...rest
   } = props
+  const keyboardEnabled = !disabled && focusable !== false && rest.tabIndex !== -1
   const scope = useContext(NativeFloatingScopeContext)
   const window = useContext(NativeFloatingWindowContext)
   const input = useNativeKeyScope()
@@ -122,6 +123,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onLongPress,
     onPressMove,
     ripple,
+    keyboardEnabled,
   })
   useInsertionEffect(() => {
     current.current = {
@@ -142,6 +144,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       onLongPress,
       onPressMove,
       ripple,
+      keyboardEnabled,
     }
   })
   const admitted = () =>
@@ -176,6 +179,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   )
   useLayoutEffect(() => {
     if (!eligible || disabled || activationBlocked) cancel()
+    else if (!keyboardEnabled) cancel(true)
   })
   useLayoutEffect(
     () =>
@@ -265,7 +269,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         selected: ariaSelected ?? accessibilityState?.selected,
       }}
       collapsable={false}
-      focusable={focusable !== false && !disabled}
+      nativePressable
+      focusable={keyboardEnabled}
       hitSlop={hitSlop}
       capturedKeys={activationKeys}
       style={typeof style === "function" ? style({ pressed: pressed || testOnly_pressed === true }) : style}
@@ -327,14 +332,15 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         else close()
       }}
       onFocus={(event) => {
-        if (attached.current && !current.current.disabled) current.current.onFocus?.(event)
+        if (attached.current && current.current.keyboardEnabled && current.current.canAct())
+          current.current.onFocus?.(event)
       }}
       onBlur={(event) => {
         cancel(true)
         if (attached.current) current.current.onBlur?.(event)
       }}
       onKeyDown={(event) => {
-        if (!attached.current || current.current.disabled || !current.current.canAct()) return
+        if (!attached.current || !current.current.keyboardEnabled || !current.current.canAct()) return
         current.current.onKeyDown?.(event)
         const data = event.nativeEvent
         if (
@@ -361,7 +367,13 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         setPressed(false)
         cycle.ended = true
         current.current.onPressOut?.(event)
-        if (admitted() && !cycle.cancelled && !event.nativeEvent.cancelled && !event.isDefaultPrevented?.())
+        if (
+          admitted() &&
+          current.current.keyboardEnabled &&
+          !cycle.cancelled &&
+          !event.nativeEvent.cancelled &&
+          !event.isDefaultPrevented?.()
+        )
           current.current.onPress?.(event)
       }}
     >
