@@ -2,15 +2,22 @@ import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import { TextInput, View, type NativeSyntheticEvent } from "react-native"
 
+import { inspectNativeAccessibility, registerNativeAccessibilityInspector } from "../accessibilityInspection"
+import { nativeAccessibilityIDs } from "../accessibilityReferences"
 import { blurNativeTarget, focusNativeTarget, registerNativeFocusTarget } from "../focus"
-import { NativeFocusView } from "../NativeFocusView"
-import { Commands, type NativeFocusData, type NativeKeyData } from "../specs/CUIFocusViewNativeComponent"
+import { NativeFocusHost, NativeFocusView } from "../NativeFocusView"
+import {
+  Commands,
+  type NativeAccessibilityData,
+  type NativeFocusData,
+  type NativeKeyData,
+} from "../specs/CUIFocusViewNativeComponent"
 import type { TNativeKeyboardData } from "../types"
 
 jest.mock("../specs/CUIFocusViewNativeComponent", () => ({
   __esModule: true,
   default: jest.requireActual("react-native").View,
-  Commands: { requestKeyboardFocus: jest.fn(), requestKeyboardBlur: jest.fn() },
+  Commands: { requestKeyboardFocus: jest.fn(), requestKeyboardBlur: jest.fn(), inspectAccessibility: jest.fn() },
 }))
 
 const keyData = (ownerId: string, extra: Partial<TNativeKeyboardData> = {}): TNativeKeyboardData => ({
@@ -35,6 +42,110 @@ const keyData = (ownerId: string, extra: Partial<TNativeKeyboardData> = {}): TNa
 })
 const nativeEvent = <T,>(data: T) => ({ nativeEvent: data }) as NativeSyntheticEvent<T>
 const host = () => screen.getByTestId("focus")
+beforeEach(() => jest.clearAllMocks())
+
+it("routes native ID lists and explicit empty descriptions without replacing the native label, hint or value", async () => {
+  const ids = ["first", "second"]
+  await render(
+    <NativeFocusHost
+      testID="focus"
+      accessibilityLabel=""
+      accessibilityHint="Hint"
+      accessibilityValue={{ now: 0, text: "" }}
+      nativeLabelledBy={ids}
+      nativeDescribedBy={[]}
+      nativeDetailsBy={["details"]}
+      nativeDescriptionTag={0}
+      nativeDescriptionLabel=""
+      nativeDetailsLabel="Détails"
+    />,
+  )
+  expect(host().props).toMatchObject({
+    accessibilityLabel: "",
+    accessibilityHint: "Hint",
+    accessibilityValue: { now: 0, text: "" },
+    nativeLabelledBy: ids,
+    nativeDescribedBy: [],
+    nativeDetailsBy: ["details"],
+    nativeDescriptionTag: 0,
+    nativeDescriptionLabel: "",
+    nativeDetailsLabel: "Détails",
+  })
+  expect(host().props.nativeLabelledBy).toBe(ids)
+})
+
+it("routes inherited labelled-by aliases through the owned host while retaining core View precedence", async () => {
+  await render(<NativeFocusView testID="focus" accessibilityLabelledBy="native" aria-labelledby="first,second" />)
+  expect(host().props.nativeLabelledBy).toEqual(["first", "second"])
+  await screen.rerender(<NativeFocusView testID="focus" accessibilityLabelledBy={["native"]} />)
+  expect(host().props.nativeLabelledBy).toEqual(["native"])
+  await screen.rerender(<NativeFocusView testID="focus" />)
+  expect(host().props.nativeLabelledBy).toBeUndefined()
+})
+
+it("inspects only the registered actual native target and retires the command on unmount", async () => {
+  const ref = createRef<View>()
+  await render(<NativeFocusHost testID="focus" ref={ref} focusable={false} />)
+  const target = ref.current!
+  expect(inspectNativeAccessibility(target)).toBe(true)
+  expect(Commands.inspectAccessibility).toHaveBeenCalledWith(target, host().props.ownerId)
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await screen.unmount()
+  expect(inspectNativeAccessibility(target)).toBe(false)
+  expect(inspectNativeAccessibility(null)).toBe(false)
+  expect(Commands.inspectAccessibility).toHaveBeenCalledTimes(1)
+})
+
+it("cannot retire a replacement inspector with an older registration's cleanup", async () => {
+  const ref = createRef<View>()
+  await render(<View ref={ref} />)
+  const inspect = jest.fn()
+  const releaseOld = registerNativeAccessibilityInspector(ref.current!, jest.fn())
+  const release = registerNativeAccessibilityInspector(ref.current!, inspect)
+  releaseOld()
+  expect(inspectNativeAccessibility(ref.current)).toBe(true)
+  expect(inspect).toHaveBeenCalledTimes(1)
+  release()
+  expect(inspectNativeAccessibility(ref.current)).toBe(false)
+})
+
+it("forwards the original native accessibility snapshot only to its current live owner", async () => {
+  const first = jest.fn(),
+    next = jest.fn()
+  await render(<NativeFocusHost testID="focus" onNativeAccessibilitySnapshot={first} />)
+  const record = nativeEvent<NativeAccessibilityData>({
+    ownerId: host().props.ownerId,
+    target: 17,
+    windowId: "native-window",
+    label: "",
+    hint: "Hint",
+    value: "0",
+    description: "",
+    details: "Native details",
+    descriptionAvailable: true,
+    detailsAvailable: true,
+    observedAt: 0,
+  })
+  await act(() => host().props.onNativeAccessibilitySnapshot(record))
+  expect(first.mock.calls[0][0]).toBe(record)
+  await screen.rerender(<NativeFocusHost testID="focus" onNativeAccessibilitySnapshot={next} />)
+  const deliver = host().props.onNativeAccessibilitySnapshot
+  await act(() => deliver(nativeEvent({ ...record.nativeEvent, ownerId: "retired" })))
+  expect(next).not.toHaveBeenCalled()
+  await act(() => deliver(record))
+  expect(next.mock.calls[0][0]).toBe(record)
+  await screen.unmount()
+  await act(() => deliver(record))
+  expect(next).toHaveBeenCalledTimes(1)
+})
+
+it("tokenizes canonical ARIA whitespace lists while preserving authored native lists and empty values", () => {
+  const ids = ["native-one", "native-two"]
+  expect(nativeAccessibilityIDs(" first\nsecond\tthird ")).toEqual(["first", "second", "third"])
+  expect(nativeAccessibilityIDs("")).toEqual([])
+  expect(nativeAccessibilityIDs(undefined)).toBeUndefined()
+  expect(nativeAccessibilityIDs(ids)).toBe(ids)
+})
 
 it("keeps the actual root ref and zero styles, admitting commands without changing View.focus", async () => {
   const ref = createRef<View>()

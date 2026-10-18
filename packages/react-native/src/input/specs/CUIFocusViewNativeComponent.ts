@@ -34,6 +34,20 @@ export type NativeActivationData = Readonly<{
   epoch: Double
 }>
 
+export type NativeAccessibilityData = Readonly<{
+  ownerId: string
+  target: Int32
+  windowId: string
+  label: string
+  hint: string
+  value: string
+  description: string
+  details: string
+  descriptionAvailable: boolean
+  detailsAvailable: boolean
+  observedAt: Double
+}>
+
 export type NativeFocusData = Readonly<{
   ownerId: string
   target: Int32
@@ -48,6 +62,13 @@ export interface NativeProps extends ViewProps {
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
   capturedKeys?: ReadonlyArray<string>
+  nativeLabelledBy?: ReadonlyArray<string>
+  nativeDescribedBy?: ReadonlyArray<string>
+  nativeDetailsBy?: ReadonlyArray<string>
+  nativeDescriptionTag?: WithDefault<Int32, 0>
+  nativeDescriptionLabel?: WithDefault<string, "Description">
+  nativeDetailsLabel?: WithDefault<string, "Details">
+  onNativeAccessibilitySnapshot?: DirectEventHandler<NativeAccessibilityData>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>
@@ -55,12 +76,13 @@ export interface NativeProps extends ViewProps {
 
 type TNativeComponent = HostComponent<NativeProps>
 interface NativeCommands {
+  inspectAccessibility: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardBlur: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ["requestKeyboardFocus", "requestKeyboardBlur"],
+  supportedCommands: ["requestKeyboardFocus", "requestKeyboardBlur", "inspectAccessibility"],
 })
 
 export default codegenNativeComponent<NativeProps>("CUIFocusView") as TNativeComponent

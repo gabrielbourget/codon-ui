@@ -2,6 +2,7 @@ import { forwardRef, useContext, useId, useImperativeHandle, useLayoutEffect, us
 import { Animated, I18nManager, StyleSheet, View } from "react-native"
 import type { PathProps } from "react-native-svg"
 
+import { bindNativeDescription } from "../../input/nativeDescription"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { NativeFloatingArrow } from "../../overlays/floating/NativeFloatingArrow"
 import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
@@ -54,6 +55,7 @@ export const NativeTooltipSurface = forwardRef<
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     accessibilityLabel,
+    descriptionLabel = "Description",
     onLayout,
     onPointerEnter,
     onPointerLeave,
@@ -137,6 +139,9 @@ export const NativeTooltipSurface = forwardRef<
   useLayoutEffect(() => {
     if (ready && layer.phase === "entering") layer.entered()
   }, [ready, layer.phase, layer.generation])
+  useLayoutEffect(() => {
+    if (open && ready && layer.active) return bindNativeDescription(anchor.current, root.current, descriptionLabel)
+  }, [anchor, open, ready, layer.active, layer.generation, layoutRevision, descriptionLabel])
   const contentHovered = useRef(false)
   useLayoutEffect(() => {
     contentHovered.current = false

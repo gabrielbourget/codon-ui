@@ -7,9 +7,11 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
-import { Linking, Platform, View } from "react-native"
+import { Linking, View } from "react-native"
 
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
 import { useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
@@ -66,15 +68,6 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
     testID,
     ...rest
   } = props
-  if (
-    nativeDescription !== undefined ||
-    ariaDescribedBy !== undefined ||
-    nativeDetails !== undefined ||
-    ariaDetails !== undefined ||
-    (Platform.OS === "ios" &&
-      (nativeLabelledBy !== undefined || ariaLabelledBy !== undefined || rest.accessibilityLabelledBy !== undefined))
-  )
-    throw new Error("Breadcrumbs: native ID description/details and iOS labelled-by binding remain under construction")
   const theme = useNativeTheme()
   const inherited = useNativeContentContext()
   const styles = getNativeBreadcrumbStyles(theme, props, inherited?.foregroundColor)
@@ -86,13 +79,18 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
     <NativeContentContext.Provider
       value={{ foregroundColor: styles.root.text.color ?? theme.colors.foreground, isButton: false }}
     >
-      <View
+      <NativeFocusHost
         {...rest}
         ref={ref}
         role="list"
         accessible={false}
+        focusable={false}
         accessibilityLabel={rest.accessibilityLabel ?? nativeLabel ?? ariaLabel ?? labels.navAriaLabel}
-        accessibilityLabelledBy={rest.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
+        nativeLabelledBy={nativeAccessibilityIDs(rest.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
+        nativeDescribedBy={nativeAccessibilityIDs(nativeDescription ?? ariaDescribedBy)}
+        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+        nativeDescriptionLabel={labels.descriptionLabel}
+        nativeDetailsLabel={labels.detailsLabel}
         accessibilityState={{ ...rest.accessibilityState, disabled: isDisabled }}
         style={styles.root.view}
         testID={testID ?? aliasID ?? "breadcrumbs"}
@@ -130,7 +128,7 @@ export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsP
             </View>
           ),
         )}
-      </View>
+      </NativeFocusHost>
     </NativeContentContext.Provider>
   )
 })

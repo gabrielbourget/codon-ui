@@ -14,6 +14,8 @@ export const DEFAULT_NATIVE_BREADCRUMBS_LABELS = {
   overflowBreadcrumbAriaLabel: "navigational breadcrumbs",
   overflowButtonAriaLabel: "Visually Consolidated Breadcrumbs",
   overflowListAriaLabel: "Consolidated Breadcrumb Items",
+  descriptionLabel: "Description",
+  detailsLabel: "Details",
 } as const
 export type TNativeBreadcrumbsLabels = { [K in keyof typeof DEFAULT_NATIVE_BREADCRUMBS_LABELS]: string }
 export type TNativeBreadcrumbsProps = Omit<ViewProps, "children" | "style" | "role" | "accessibilityRole"> & {

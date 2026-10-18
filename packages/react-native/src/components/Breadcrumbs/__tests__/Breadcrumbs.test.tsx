@@ -223,11 +223,42 @@ it("CAP.breadcrumbs preserves localized/empty labels and consumes wrapper props"
   expect(screen.getByTestId("breadcrumbs").props.accessibilityLabel).toBe("")
   expect(screen.getByRole("button").props.accessibilityLabel).toBe("")
 })
-it("keeps unsupported relationship binding explicit while private construction is incomplete", async () => {
-  const error = jest.spyOn(console, "error").mockImplementation(() => {})
-  const f = fixture({ ariaDescribedBy: "description" })
-  await expect(render(f.node())).rejects.toThrow(/under construction/)
-  error.mockRestore()
+it("CAP.breadcrumbs routes ordered relationship IDs into its nonfocusable native root without changing caller metadata", async () => {
+  const f = fixture({
+    ariaLabelledBy: " heading\tsection ",
+    ariaDescribedBy: "summary explanation",
+    ariaDetails: "full-details",
+    accessibilityLabel: "Fallback",
+    accessibilityHint: "Hint",
+    accessibilityValue: { now: 0, text: "" },
+    labels: { descriptionLabel: "Description localisée", detailsLabel: "" },
+  })
+  await render(f.node())
+  expect(screen.getByTestId("breadcrumbs").props).toMatchObject({
+    nativeLabelledBy: ["heading", "section"],
+    nativeDescribedBy: ["summary", "explanation"],
+    nativeDetailsBy: ["full-details"],
+    nativeDescriptionLabel: "Description localisée",
+    nativeDetailsLabel: "",
+    accessibilityLabel: "Fallback",
+    accessibilityHint: "Hint",
+    accessibilityValue: { now: 0, text: "" },
+    keyboardFocusable: false,
+    accessible: false,
+  })
+  expect(f.root.current).not.toBeNull()
+  await screen.rerender(
+    f.node({ "aria-labelledby": "", ariaLabelledBy: "ignored", "aria-describedby": "", "aria-details": "" }),
+  )
+  expect(screen.getByTestId("breadcrumbs").props).toMatchObject({
+    nativeLabelledBy: [],
+    nativeDescribedBy: [],
+    nativeDetailsBy: [],
+  })
+  await screen.rerender(f.node({ accessibilityLabelledBy: ["native-a", "native-b"], ariaLabelledBy: "ignored" }))
+  expect(screen.getByTestId("breadcrumbs").props.nativeLabelledBy).toEqual(["native-a", "native-b"])
+  expect(screen.getByTestId("breadcrumbs").props.nativeDescribedBy).toBeUndefined()
+  expect(screen.getByTestId("breadcrumbs").props.nativeDetailsBy).toBeUndefined()
 })
 it("CAP.breadcrumbs applies independent overflow/list/popover/dialog overrides and closes before one owner navigation request", async () => {
   const onNavigate = jest.fn()
