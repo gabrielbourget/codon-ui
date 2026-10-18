@@ -16,6 +16,7 @@ import type { TNativeModalProps, TNativeModalRef } from "../components/Modal/typ
 import { NativeContentContext } from "../components/NativeContentContext"
 import { useNativeTheme } from "../theme"
 
+import { NativeFloatingLayerHost } from "./floating/NativeFloatingLayerHost"
 import { OverlayParentContext } from "./NativeOverlayProvider"
 import { useOverlay } from "./useOverlay"
 
@@ -149,7 +150,12 @@ export const OverlayFrame = ({
       {overlay.mounted && (
         <OverlayParentContext.Provider value={overlay.id}>
           <SafeAreaProvider style={{ flex: 1 }}>
-            <View style={{ flex: 1 }} accessibilityViewIsModal onAccessibilityEscape={systemClose}>
+            <NativeFloatingLayerHost
+              testID={`${identity}-floating-host`}
+              style={{ flex: 1 }}
+              accessibilityViewIsModal
+              onAccessibilityEscape={systemClose}
+            >
               <Pressable
                 testID={`${identity}-backdrop`}
                 accessible={false}
@@ -219,7 +225,7 @@ export const OverlayFrame = ({
                   </View>
                 </KeyboardAvoidingView>
               </SafeAreaView>
-            </View>
+            </NativeFloatingLayerHost>
           </SafeAreaProvider>
         </OverlayParentContext.Provider>
       )}

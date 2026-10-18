@@ -35,7 +35,8 @@
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "5.7.0",
-    "react-native-svg": "15.15.4"
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2"
   },
   "devDependencies": {
     "@babel/core": "7.29.0",
@@ -53,7 +54,9 @@
     "react": "19.2.3",
     "react-native": "0.86.3",
     "react-native-safe-area-context": "5.7.0",
-    "react-native-svg": "15.15.4"
+    "react-native-svg": "15.15.4",
+    "react-native-teleport": "1.2.2",
+    "react-dom": "19.2.3"
   },
   "dependencies": {
     "@internationalized/number": "3.6.6"

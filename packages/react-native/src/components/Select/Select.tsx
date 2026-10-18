@@ -12,6 +12,7 @@ import {
 import { AccessibilityInfo, Modal, Platform, Pressable, View, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import { NativeFloatingLayerHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
@@ -275,21 +276,23 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
       >
         {overlay.mounted && (
           <SafeAreaProvider style={{ flex: 1 }}>
-            <SelectOptions
-              entries={selection.entries}
-              selectedKey={selection.selectedKey}
-              disabledKeys={selection.disabledKeys}
-              identity={identity}
-              label={label}
-              ready={shown && overlay.active}
-              close={() => {
-                if (overlay.isActive()) selection.requestOpen(false)
-              }}
-              activate={(key) => {
-                if (overlay.isActive()) selection.activate(key)
-              }}
-              props={props}
-            />
+            <NativeFloatingLayerHost testID={`${identity}-floating-host`}>
+              <SelectOptions
+                entries={selection.entries}
+                selectedKey={selection.selectedKey}
+                disabledKeys={selection.disabledKeys}
+                identity={identity}
+                label={label}
+                ready={shown && overlay.active}
+                close={() => {
+                  if (overlay.isActive()) selection.requestOpen(false)
+                }}
+                activate={(key) => {
+                  if (overlay.isActive()) selection.activate(key)
+                }}
+                props={props}
+              />
+            </NativeFloatingLayerHost>
           </SafeAreaProvider>
         )}
       </Modal>
