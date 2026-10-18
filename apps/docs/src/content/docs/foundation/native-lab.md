@@ -32,6 +32,15 @@ env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer GEM_HOME="$CODON_NA
 
 The receipt's unsigned local-release check used Xcode's Release configuration for `CodonNativeShowcase` in the generated workspace, x86_64/active architecture, a selected task-owned Simulator destination and separate derived data. Copy/re-root the recorded private reproduction helper into a fresh writable directory for that exact lane; never execute it inside a sealed cohort. The normal Expo command above starts development use and does not reproduce the unsigned release receipt by itself.
 
+A compile/link check can use the generic Simulator destination without booting a task guest. From the repository root, after native generation and the pinned Pod installation, the selected Intel lane can build unsigned Release output as follows:
+
+```sh
+CODON_NATIVE_LAB_ROOT="$HOME/.local/share/codon-native-lab"
+env DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer NODE_ENV=production CI=1 EXPO_OFFLINE=1 EXPO_NO_TELEMETRY=1 FORCE_BUNDLING=1 EXTRA_PACKAGER_ARGS="--max-workers 2" PATH="$CODON_NATIVE_LAB_ROOT/ruby-3.4.11/bin:$CODON_NATIVE_LAB_ROOT/ios-gems/bin:$PATH" xcodebuild -jobs 2 -workspace apps/native-showcase/ios/CodonNativeShowcase.xcworkspace -scheme CodonNativeShowcase -configuration Release -sdk iphonesimulator -destination "generic/platform=iOS Simulator" -derivedDataPath "$CODON_NATIVE_LAB_ROOT/ios-app-derived-data" ARCHS=x86_64 ONLY_ACTIVE_ARCH=YES CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO SOURCEMAP_FILE="$CODON_NATIVE_LAB_ROOT/ios-release.map" build
+```
+
+Verify the actual executable architecture/native classes and embedded Hermes bundle against its composed map and committed source. Copy completed artifacts to a fresh evidence directory before sealing; a sealed directory must never be reused as a build or source-map destination. Compilation/linkage does not establish app launch, rendering, accessibility or interaction acceptance.
+
 Keep native compilation and Simulator inspection sequential on this host. Cold runtime migration and Apple's asset compiler stalled during initial attempts; sampled waits and interrupted logs are preserved. After task-device shutdown and a scoped CoreSimulator service restart with no other booted devices, both builds completed. The owner also explicitly approved `DevToolsSecurity -enable` for debugger/test diagnostics; this is a system authorization change recorded separately from isolated tools. Do not treat either recovery step as an established root cause or a routine setup requirement.
 
 ## Reproduce Source And Native Generation
@@ -54,6 +63,8 @@ pnpm -F @codon-ui/native-showcase exec expo prebuild --platform ios --no-install
 pnpm -F @codon-ui/native-showcase exec expo prebuild --platform android --no-install --skip-dependency-update react-native,react
 git diff -- apps/native-showcase/package.json pnpm-lock.yaml
 ```
+
+When refreshing an existing laboratory, save the generated iOS Podfile.lock outside the platform directory before prebuild. Restore those exact bytes before running the isolated CocoaPods command with install --no-repo-update. Compare every previous Pod version after installation; only the separately approved native module may add versions. CNG can clear the ignored platform directory even when dependency installation is disabled, so an absent old lock must not silently trigger a fresh resolution.
 
 Both skeletons were generated successfully during lab preparation; that is configuration evidence. Generation is [documented by Expo](https://docs.expo.dev/workflow/continuous-native-generation/) and may clear/recreate native directories. Keep native edits in app config/plugins, not hand-edited generated files. Check for unexpected package/config diffs before installation or build.
 

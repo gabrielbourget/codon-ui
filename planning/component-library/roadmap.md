@@ -579,6 +579,8 @@ Semantic-label audit checkpoint: the complete pinned RAC ProgressBar and React A
 
 Semantic label implementation: native `411c1ae`, maintained scene `b044298` and web probe `437fb81` pass54 focused web,92 native pair and22 maintained/navigation cases with24 compiled public fixtures. CP-39 verifies the428-file/142-source package and Android858/iOS860 graphs with unchanged peers. Thirty exact label mappings cover raw callback identity and native text serialization, with1524 installed cells remaining unexecuted. Rich semantic data never mounts visually; native valueText typing reflects that actual ReactNode data flow. [Evidence3.22](experiments.md#322-circular-progress-semantic-label-contract-repair) records before/after failures, precise type/scene facets, immutable hashes and remaining inherited/native gates.
 
+Native build checkpoint: producer `909a464` validates the approved SVG15.15.4 code in actual local x86_64 Android Release and unsigned iOS Simulator Release binaries. Both native artifacts match the CP-39 source/fixture/SVG graphs, and all158 old Pod versions/176 frozen inputs remain unchanged. [Evidence3.23](experiments.md#323-native-svg-release-build-checkpoint) records the two compile/link facets, exact native/bundle identities and integrity checks. This passes no installed scenario, native rendering/accessibility or aggregate Android/iOS gate; all1524 expected installed cells and the goal-wide startup investigation stop remain intact.
+
 Existing RN-TEXT-01 and ComboBox failure cells, owner physical/ARM/closer-visual/signing deferrals and goal-wide native lab stop remain unchanged. This pair is a construction checkpoint, never completion of the53-component goal. Unsupported inherited cells remain OPEN rather than being recategorized as owner-deferred.
 
 #### 3.5.17. Shared Native Floating Layer Decision
@@ -678,7 +680,7 @@ Use the existing isolated Android lab and x86_64 iOS 26.5 build 23F77/Xcode 26.5
 
 ## 6. Component Catalogue
 
-All 53 manifest identities below are retained from the former native ledger. These rows distinguish approved source and bounded proof from complete family acceptance; their root suites are starting points for each contract audit. Implemented counterparts total 31; the other 22 remain pending.
+All 53 manifest identities below are retained from the former native ledger. These rows distinguish approved source and bounded proof from complete family acceptance; their root suites are starting points for each contract audit. Implemented counterparts total 35; the other 18 remain pending. The additional standalone CarouselCloseButton export remains a partial family and does not increment this count.
 
 | Manifest ID                | Canonical source                                                                                                | Root web suite                                                                                                    | Contract audit                                                                     | Native implementation / proof / review                                            |
 | -------------------------- | --------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
