@@ -385,3 +385,40 @@ it("does not queue a navigation action when the caller's controlled close callba
   expect(onNavigate).not.toHaveBeenCalled()
   expect(Linking.openURL).not.toHaveBeenCalled()
 })
+
+it("NAV.001/.003 binds enabled navigation and passive localized current-page metadata", async () => {
+  const f = fixture({
+    labels: { navigationRoleDescription: "Navigation locale", currentPageValue: "Page actuelle" },
+    accessibilityValue: { now: 0, text: "" },
+  })
+  await render(f.node())
+  expect(screen.getByTestId("breadcrumbs").props).toMatchObject({
+    nativeNavigation: true,
+    nativeNavigationLabel: "Navigation locale",
+    accessible: false,
+    keyboardFocusable: false,
+    accessibilityValue: { now: 0, text: "" },
+  })
+  expect(screen.getByTestId("breadcrumb-current").props).toMatchObject({
+    accessibilityState: { selected: true },
+    accessibilityValue: { text: "Page actuelle" },
+  })
+  expect(screen.queryByRole("button", { name: "F" })).toBeNull()
+  expect(f.root.current).not.toBeNull()
+  await screen.rerender(f.node({ isDisabled: true }))
+  expect(screen.getByTestId("breadcrumbs").props.nativeNavigation).toBe(false)
+  await screen.rerender(f.node({ labels: { navigationRoleDescription: "", currentPageValue: "" } }))
+  expect(screen.getByTestId("breadcrumbs").props.nativeNavigationLabel).toBe("")
+  expect(screen.getByTestId("breadcrumb-current").props.accessibilityValue).toEqual({ text: "" })
+})
+
+it("NAV.003 moves passive current status only with the caller's actual breadcrumb collection", async () => {
+  const f = fixture({ items: items.slice(0, 2) })
+  await render(f.node())
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent("B")
+  expect(screen.getByTestId("breadcrumb-current").props.accessibilityValue).toEqual({ text: "Current page" })
+  await screen.rerender(f.node({ items: items.slice(0, 3) }))
+  expect(screen.getByTestId("breadcrumb-current")).toHaveTextContent("C")
+  expect(screen.getByTestId("breadcrumb-link-B").props.accessibilityValue).toBeUndefined()
+  expect(Linking.openURL).not.toHaveBeenCalled()
+})

@@ -38,6 +38,13 @@ export type NativeAccessibilityData = Readonly<{
   ownerId: string
   target: Int32
   windowId: string
+  platform: "android" | "ios"
+  selected: boolean
+  // UIKit's actual enum; -1 on Android, which has no corresponding container-type property.
+  containerType: Int32
+  // Actual Android NodeInfo fields; empty on UIKit, which has no corresponding properties.
+  containerTitle: string
+  roleDescription: string
   label: string
   hint: string
   value: string
@@ -61,6 +68,8 @@ export interface NativeProps extends ViewProps {
   ownerId: string
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
+  nativeNavigation?: WithDefault<boolean, false>
+  nativeNavigationLabel?: WithDefault<string, "Navigation">
   capturedKeys?: ReadonlyArray<string>
   nativeLabelledBy?: ReadonlyArray<string>
   nativeDescribedBy?: ReadonlyArray<string>

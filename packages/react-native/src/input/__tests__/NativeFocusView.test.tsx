@@ -134,6 +134,11 @@ it("forwards the original native accessibility snapshot only to its current live
     ownerId: host().props.ownerId,
     target: 17,
     windowId: "native-window",
+    platform: "ios",
+    selected: false,
+    containerType: 0,
+    containerTitle: "",
+    roleDescription: "",
     label: "",
     hint: "Hint",
     value: "0",
@@ -325,3 +330,61 @@ it("requests an existing registered TextInput's unchanged focus methods without 
   }
   expect(focusNativeTarget(target)).toBe(false)
 })
+
+it("NAV.001 keeps private navigation fields, actual refs and empty native metadata independent", async () => {
+  const ref = createRef<View>()
+  await render(
+    <NativeFocusHost
+      ref={ref}
+      testID="focus"
+      nativeNavigation
+      nativeNavigationLabel=""
+      accessible={false}
+      focusable={false}
+      accessibilityValue={{ now: 0, text: "" }}
+    />,
+  )
+  const actual = ref.current
+  expect(host().props).toMatchObject({
+    nativeNavigation: true,
+    nativeNavigationLabel: "",
+    accessible: false,
+    keyboardFocusable: false,
+    accessibilityValue: { now: 0, text: "" },
+  })
+  await screen.rerender(<NativeFocusHost ref={ref} testID="focus" nativeNavigation={false} />)
+  expect(host().props.nativeNavigation).toBe(false)
+  expect(host().props.nativeNavigationLabel).toBeUndefined()
+  expect(ref.current).toBe(actual)
+})
+
+it.each(["android", "ios"] as const)(
+  "NAV.004 preserves the actual %s inspector record and platform-specific unsupported fields",
+  async (platform) => {
+    const callback = jest.fn()
+    await render(<NativeFocusHost testID="focus" onNativeAccessibilitySnapshot={callback} />)
+    const record = nativeEvent<NativeAccessibilityData>({
+      ownerId: host().props.ownerId,
+      target: 17,
+      windowId: "observed-window",
+      platform,
+      selected: false,
+      containerType: platform === "ios" ? 3 : -1,
+      containerTitle: platform === "android" ? "Observed title" : "",
+      roleDescription: platform === "android" ? "Observed role" : "",
+      label: "Observed label",
+      hint: "",
+      value: "0",
+      description: "",
+      details: "",
+      descriptionAvailable: false,
+      detailsAvailable: false,
+      observedAt: 0,
+    })
+    await act(() => host().props.onNativeAccessibilitySnapshot(record))
+    expect(callback.mock.calls[0][0]).toBe(record)
+    expect(callback.mock.calls[0][0].nativeEvent).toBe(record.nativeEvent)
+    expect(record.nativeEvent.selected).toBe(false)
+    expect(record.nativeEvent.observedAt).toBe(0)
+  },
+)

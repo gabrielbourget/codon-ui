@@ -51,3 +51,8 @@ export const privatePressable = <NativeFocusView nativePressable />
 
 // @ts-expect-error Native activation transport is private adapter policy.
 export const privateActivation = <NativeFocusView onNativeActivation={() => undefined} />
+
+// @ts-expect-error Navigation binding is private family/adapter policy.
+export const privateNavigation = <NativeFocusView nativeNavigation />
+// @ts-expect-error Native inspection is not a new public focus API.
+export const privateInspection = <NativeFocusView onNativeAccessibilitySnapshot={() => undefined} />

@@ -11,6 +11,8 @@ export type TNativeBreadcrumbsRef = View
 export type TNativeBreadcrumbNavigateDetails = Readonly<{ href: string; item: TNativeBreadcrumbItem; target: string }>
 export const DEFAULT_NATIVE_BREADCRUMBS_LABELS = {
   navAriaLabel: "Breadcrumbs Nav",
+  navigationRoleDescription: "Navigation",
+  currentPageValue: "Current page",
   overflowBreadcrumbAriaLabel: "navigational breadcrumbs",
   overflowButtonAriaLabel: "Visually Consolidated Breadcrumbs",
   overflowListAriaLabel: "Consolidated Breadcrumb Items",

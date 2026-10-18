@@ -1,7 +1,12 @@
 import type { TNativePaginationProps } from "./types"
 
 export type TNativePaginationLabels = {
-  root: { navigationAriaLabel: string; descriptionLabel: string; detailsLabel: string }
+  root: {
+    navigationAriaLabel: string
+    navigationRoleDescription: string
+    descriptionLabel: string
+    detailsLabel: string
+  }
   primaryControls: {
     firstPageButton: string
     firstPageButtonAriaLabel: string
@@ -12,6 +17,7 @@ export type TNativePaginationLabels = {
     lastPageButton: string
     lastPageButtonAriaLabel: string
     pageButtonAriaLabel: (page: number) => string
+    currentPageValue: string
     overflowButtonAriaLabel: string
     overflowListAriaLabel: (position: number) => string
   }
@@ -41,7 +47,12 @@ export type TNativePartialPaginationLabels = {
 }
 
 export const DEFAULT_NATIVE_PAGINATION_LABELS: TNativePaginationLabels = {
-  root: { navigationAriaLabel: "Pagination Navigation", descriptionLabel: "Description", detailsLabel: "Details" },
+  root: {
+    navigationAriaLabel: "Pagination Navigation",
+    navigationRoleDescription: "Navigation",
+    descriptionLabel: "Description",
+    detailsLabel: "Details",
+  },
   primaryControls: {
     firstPageButton: "First",
     firstPageButtonAriaLabel: "First Page",
@@ -52,6 +63,7 @@ export const DEFAULT_NATIVE_PAGINATION_LABELS: TNativePaginationLabels = {
     lastPageButton: "Last",
     lastPageButtonAriaLabel: "Last Page",
     pageButtonAriaLabel: (page) => `Go To Page ${page}`,
+    currentPageValue: "Current page",
     overflowButtonAriaLabel: "Visually Consolidated Pagination Items",
     overflowListAriaLabel: (position) => `Consolidated pages at position ${position}`,
   },

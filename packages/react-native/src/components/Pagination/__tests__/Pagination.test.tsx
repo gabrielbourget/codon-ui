@@ -607,3 +607,111 @@ it("does not submit a discarded editor draft after the native numeric configurat
   await press("Navigate to Selected Page")
   expect(f.page.mock.calls).toEqual([[1]])
 })
+
+it("NAV.001/.003 binds navigation and current-page wording without moving current state after declined requests", async () => {
+  const f = fixture({
+    labels: {
+      root: { navigationRoleDescription: "Navigation locale" },
+      primaryControls: { currentPageValue: "Page actuelle" },
+    },
+  })
+  await render(f.node())
+  expect(screen.getByTestId("pagination").props).toMatchObject({
+    nativeNavigation: true,
+    nativeNavigationLabel: "Navigation locale",
+    accessible: false,
+  })
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityValue).toEqual({ text: "Page actuelle" })
+  expect(screen.getByTestId("pagination-page-5").props.accessibilityValue).toEqual({ text: "" })
+  await press("Go To Page 5")
+  await press("Go To Page 5")
+  expect(f.page.mock.calls).toEqual([[5], [5]])
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityValue).toEqual({ text: "Page actuelle" })
+  expect(screen.getByTestId("pagination-page-5").props.accessibilityValue).toEqual({ text: "" })
+  await screen.rerender(f.node({ currentPage: 5 }))
+  expect(screen.getByTestId("pagination-page-5").props.accessibilityValue).toEqual({ text: "Current page" })
+  expect(
+    screen
+      .getAllByTestId(/^pagination-page-/)
+      .filter((node) => node.props.accessibilityState.selected)
+      .map((node) => node.props.testID),
+  ).toEqual(["pagination-page-5"])
+})
+
+it.each([false, true])("NAV.003 preserves authored value text and zero range fields with alias=%s", async (alias) => {
+  const f = fixture({
+    customGeneralButtonProps: {
+      accessibilityValue: { min: 0, max: 0, now: 0, text: alias ? "ignored" : "Author value" },
+      ...(alias ? { "aria-valuetext": "Author alias" } : {}),
+    },
+  })
+  await render(f.node())
+  const text = alias ? "Author alias" : "Author value"
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityValue).toEqual({
+    min: 0,
+    max: 0,
+    now: 0,
+    text: `${text}, Current page`,
+  })
+  for (const id of ["pagination-page-5", "pagination-previous", "pagination-next"])
+    expect(screen.getByTestId(id).props.accessibilityValue).toEqual({ min: 0, max: 0, now: 0, text })
+})
+
+it("NAV.003 preserves explicit empty wording and updates localization without page callbacks", async () => {
+  const f = fixture({
+    labels: { root: { navigationRoleDescription: "" }, primaryControls: { currentPageValue: "" } },
+    customGeneralButtonProps: { accessibilityValue: { now: 0, text: "" } },
+  })
+  await render(f.node())
+  expect(screen.getByTestId("pagination").props.nativeNavigationLabel).toBe("")
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityValue).toMatchObject({ now: 0, text: "" })
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityState.selected).toBe(true)
+  await screen.rerender(f.node({ labels: { primaryControls: { currentPageValue: "Aktuelle Seite" } } }))
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityValue).toEqual({ text: "Aktuelle Seite" })
+  expect(f.page).not.toHaveBeenCalled()
+  expect(f.size).not.toHaveBeenCalled()
+})
+
+it.each([false, true])("NAV.003 protects caller current-page state from a nested selected alias=%s", async (alias) => {
+  const f = fixture({ customGeneralButtonProps: { "aria-selected": alias, accessibilityState: { selected: alias } } })
+  await render(f.node())
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityState.selected).toBe(true)
+  expect(screen.getByTestId("pagination-page-5").props.accessibilityState.selected).toBe(false)
+})
+
+it("NAV.003 keeps a controlled overflow's expanded state authoritative over nested aliases", async () => {
+  const f = fixture({
+    currentPage: 1,
+    customClickPopoverProps: { isOpen: true },
+    customGeneralButtonProps: { "aria-expanded": false, accessibilityState: { expanded: false } },
+  })
+  await render(f.node())
+  for (const trigger of screen.getAllByTestId("pagination-overflow-trigger", hidden))
+    expect(trigger.props.accessibilityState.expanded).toBe(true)
+  await screen.rerender(
+    f.node({
+      currentPage: 1,
+      customClickPopoverProps: { isOpen: false },
+      customGeneralButtonProps: { "aria-expanded": true },
+    }),
+  )
+  for (const trigger of screen.getAllByTestId("pagination-overflow-trigger", hidden))
+    expect(trigger.props.accessibilityState.expanded).toBe(false)
+})
+
+it("NAV.003 retains the numeric accessibility value map when current status moves, preserving fixed labels", async () => {
+  const f = fixture({ currentPage: 1 })
+  await render(f.node())
+  expect(screen.getByTestId("pagination-page-1").props).toMatchObject({
+    accessibilityLabel: "Go To Page 1",
+    accessibilityValue: { text: "Current page" },
+  })
+  await screen.rerender(f.node({ currentPage: 2 }))
+  expect(screen.getByTestId("pagination-page-1").props).toMatchObject({
+    accessibilityLabel: "Go To Page 1",
+    accessibilityValue: { text: "" },
+    accessibilityState: { selected: false },
+  })
+  expect(screen.getByTestId("pagination-page-2").props.accessibilityValue).toEqual({ text: "Current page" })
+  expect(f.page).not.toHaveBeenCalled()
+})
