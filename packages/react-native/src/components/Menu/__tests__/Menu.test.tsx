@@ -340,6 +340,49 @@ it("keeps selected typed zero/empty keys authoritative through repeated veto and
   expect(row("empty").props.accessibilityState.checked).toBe(true)
   expect(row("zero").props.accessibilityState.checked).toBe(false)
 })
+it("retains one-shot controlled selection and disabled iterators across internal renders and vetoes", async () => {
+  const selected = jest.fn()
+  const owner = new Set([0]),
+    disabled = new Set(["blocked"])
+  const props = {
+    selectionMode: "single" as const,
+    selectedKeys: owner.values(),
+    disabledKeys: disabled.values(),
+    onSelectionChange: selected,
+    shouldCloseOnSelect: false,
+  }
+  const f = fixture(
+    props,
+    <>
+      <MenuItem id={0} testID="zero">
+        Zero
+      </MenuItem>
+      <MenuItem id="blocked" testID="blocked">
+        Blocked
+      </MenuItem>
+    </>,
+  )
+  await render(f.node())
+  await f.ready()
+  expect(row("zero").props.accessibilityState.checked).toBe(true)
+  expect(row("blocked").props.accessibilityState.disabled).toBe(true)
+  await press("blocked")
+  expect(f.action).not.toHaveBeenCalled()
+  await press("zero")
+  expect(selected.mock.calls.map(([keys]) => [...keys])).toEqual([[]])
+  expect(row("zero").props.accessibilityState.checked).toBe(true)
+  await screen.rerender(f.node())
+  expect(row("zero").props.accessibilityState.checked).toBe(true)
+  expect(row("blocked").props.accessibilityState.disabled).toBe(true)
+  await screen.rerender(
+    f.node({ ...props, selectedKeys: new Set<number>().values(), disabledKeys: new Set<string>().values() }),
+  )
+  expect(row("zero").props.accessibilityState.checked).toBe(false)
+  expect(row("blocked").props.accessibilityState.disabled).toBe(false)
+  expect([...owner]).toEqual([0])
+  expect([...disabled]).toEqual(["blocked"])
+})
+
 it("toggles uncontrolled multiple selection and respects item close false over root true", async () => {
   const selection = jest.fn()
   const f = fixture(

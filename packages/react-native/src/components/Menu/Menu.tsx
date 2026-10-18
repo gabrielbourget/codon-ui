@@ -6,6 +6,7 @@ import {
   useContext,
   useInsertionEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
@@ -156,13 +157,15 @@ const NativeMenuList = (props: TListProps) => {
   const scope = useContext(NativeFloatingScopeContext),
     window = useContext(NativeFloatingWindowContext),
     input = useNativeKeyScope()
-  const normalized =
-    props.selectedKeys === undefined
-      ? localSelection
-      : props.selectedKeys === "all"
-        ? "all"
-        : normalizeNativeMenuKeys(props.selectedKeys)
-  const disabledKeys = normalizeNativeMenuKeys(props.disabledKeys ?? [])
+  const selectedKeys = useMemo(
+    () =>
+      props.selectedKeys === undefined || props.selectedKeys === "all"
+        ? (props.selectedKeys as "all" | undefined)
+        : normalizeNativeMenuKeys(props.selectedKeys),
+    [props.selectedKeys],
+  )
+  const normalized = selectedKeys ?? localSelection
+  const disabledKeys = useMemo(() => normalizeNativeMenuKeys(props.disabledKeys ?? []), [props.disabledKeys])
   const hints = orderHints(props.children)
   const ordered = [...rows.values()].sort(
     (a, b) => (hints.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (hints.get(b.id) ?? Number.MAX_SAFE_INTEGER),
