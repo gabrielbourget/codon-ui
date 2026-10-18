@@ -146,3 +146,29 @@ it("retires the host generation and old layout callback after keyed replacement/
   await result.unmount()
   expect(hosts.at(-1)?.live.current).toBe(false)
 })
+
+it("renders unique native target hosts in the owned presentation order without moving React children", async () => {
+  let host: THost | undefined
+  const result = await render(
+    <NativeFloatingLayerHost>
+      <Probe
+        observe={(value) => {
+          host = value
+        }}
+      />
+    </NativeFloatingLayerHost>,
+  )
+  const options = { parent: null, isOpen: true, isModal: false, isKeyboardDismissDisabled: false, onDismiss: jest.fn() }
+  await act(() => {
+    host!.layers.register("first", { ...options, priority: 10 })
+    host!.layers.register("second", { ...options, priority: 0 })
+  })
+  const names = (tree: unknown): string[] => {
+    if (Array.isArray(tree)) return tree.flatMap(names)
+    if (!tree || typeof tree !== "object") return []
+    const node = tree as { type?: string; props?: { name?: string }; children?: unknown[] }
+    const current = node.type === "PortalHostView" && node.props?.name?.startsWith(host!.name) ? [node.props.name] : []
+    return [...current, ...names(node.children)]
+  }
+  expect(names(result.toJSON())).toEqual([host!.name, `${host!.name}-layer-second`, `${host!.name}-layer-first`])
+})

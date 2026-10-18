@@ -10,6 +10,14 @@ export const host = (
     {...props}
     ref={ref}
     onLayout={(event: LayoutChangeEvent) => event.nativeEvent.layout.width.toFixed()}
+    onTouchStartCapture={(event) => {
+      event.persist()
+      event.nativeEvent.identifier.toString()
+    }}
+    onFocusCapture={(event) => {
+      event.persist()
+      event.nativeEvent.target.toFixed()
+    }}
   >
     <View />
   </NativeFloatingLayerHost>

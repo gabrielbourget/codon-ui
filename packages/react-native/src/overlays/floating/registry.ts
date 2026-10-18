@@ -1,3 +1,5 @@
+import type { TNativeFloatingOutsideInteraction } from "./interaction"
+
 export const NATIVE_FLOATING_DISMISS_REASONS = ["keyboard", "accessibilityEscape", "outside"] as const
 export type TNativeFloatingDismissReason = (typeof NATIVE_FLOATING_DISMISS_REASONS)[number]
 type TPhase = "closed" | "entering" | "open" | "exiting"
@@ -6,7 +8,9 @@ type TOptions = {
   isOpen: boolean
   isModal: boolean
   isKeyboardDismissDisabled: boolean
+  priority?: number
   onDismiss: (reason: TNativeFloatingDismissReason) => void
+  onOutside?: (interaction: TNativeFloatingOutsideInteraction) => void
 }
 type TEntry = TOptions & {
   owner: symbol
@@ -33,7 +37,9 @@ export const createNativeFloatingLayerRegistry = () => {
     return !!parent && parent.phase === "open" && requested(parent)
   }
   const stack = () =>
-    [...entries].filter(([, entry]) => entry.phase !== "closed").sort((a, b) => a[1].order - b[1].order)
+    [...entries]
+      .filter(([, entry]) => entry.phase !== "closed")
+      .sort((a, b) => (a[1].priority ?? 0) - (b[1].priority ?? 0) || a[1].order - b[1].order)
   const covered = (id: string) => {
     const modal = stack()
       .reverse()
@@ -125,8 +131,26 @@ export const createNativeFloatingLayerRegistry = () => {
     },
     flush: publish,
     state,
+    presentationOrder: () => stack().map(([id]) => id),
     hasModal: () => stack().some(([, entry]) => entry.isModal),
     requestDismiss,
+    captureOutside: () => {
+      const active = top()
+      if (!active || !state(active[0]).active) return null
+      const [id, entry] = active
+      const token = entry.generation
+      const isCurrent = () =>
+        entries.get(id) === entry && entry.generation === token && state(id).active && top()?.[0] === id
+      return {
+        id,
+        isCurrent,
+        invoke: (interaction: TNativeFloatingOutsideInteraction) => {
+          if (!isCurrent()) return
+          if (entry.onOutside) entry.onOutside(interaction)
+          else entry.onDismiss("outside")
+        },
+      }
+    },
     canRestore: (parent: string | null) =>
       parent === null ? stack().length === 0 : state(parent).active && top()?.[0] === parent,
     register: (id: string, options: TOptions, notify = true) => {
