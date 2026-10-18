@@ -33,3 +33,9 @@ export { Carousel } from "../src"
 export { CarouselPrevButton } from "../src"
 // @ts-expect-error Context-dependent controls remain private until root construction.
 export { CarouselNextButton } from "../src"
+// @ts-expect-error Private passive graphics do not export the full radio/keyboard contract.
+export { CarouselDots } from "../src"
+// @ts-expect-error Passive strip composition remains an implementation detail.
+export { NativeCarouselDotsVisualStrip } from "../src"
+// @ts-expect-error The private track does not add a public viewport API.
+export { NativeCarouselDotsViewport } from "../src"
