@@ -76,7 +76,8 @@
     },
     "ios": {
       "componentProvider": {
-        "CUIFocusView": "CUIFocusView"
+        "CUIFocusView": "CUIFocusView",
+        "CUIKeyboardScope": "CUIKeyboardScope"
       }
     }
   }

@@ -1,4 +1,6 @@
 #import "CUIFocusView.h"
+#import "CUIInputWindow.h"
+#import <react/featureflags/ReactNativeFeatureFlags.h>
 
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -6,28 +8,6 @@
 #import <react/renderer/components/CodonNativeInputSpec/RCTComponentViewHelpers.h>
 
 using namespace facebook::react;
-
-static NSString *CUIKeyName(UIKey *key)
-{
-  switch (key.keyCode) {
-    case UIKeyboardHIDUsageKeyboardReturnOrEnter:
-    case UIKeyboardHIDUsageKeypadEnter: return @"Enter";
-    case UIKeyboardHIDUsageKeyboardEscape: return @"Escape";
-    case UIKeyboardHIDUsageKeyboardTab: return @"Tab";
-    case UIKeyboardHIDUsageKeyboardDeleteOrBackspace: return @"Backspace";
-    case UIKeyboardHIDUsageKeyboardDeleteForward: return @"Delete";
-    case UIKeyboardHIDUsageKeyboardRightArrow: return @"ArrowRight";
-    case UIKeyboardHIDUsageKeyboardLeftArrow: return @"ArrowLeft";
-    case UIKeyboardHIDUsageKeyboardDownArrow: return @"ArrowDown";
-    case UIKeyboardHIDUsageKeyboardUpArrow: return @"ArrowUp";
-    case UIKeyboardHIDUsageKeyboardHome: return @"Home";
-    case UIKeyboardHIDUsageKeyboardEnd: return @"End";
-    case UIKeyboardHIDUsageKeyboardPageUp: return @"PageUp";
-    case UIKeyboardHIDUsageKeyboardPageDown: return @"PageDown";
-    case UIKeyboardHIDUsageKeyboardSpacebar: return @" ";
-    default: return key.characters.length ? key.characters : @"Unidentified";
-  }
-}
 
 @interface CUIFocusView () <RCTCUIFocusViewViewProtocol>
 @end
@@ -77,9 +57,19 @@ static NSString *CUIKeyName(UIKey *key)
   value.ownerId = _ownerId.UTF8String;
   value.target = (int)self.tag;
   value.isFocused = focused;
+  value.isFocusVisible = focused && self.window.isKeyWindow && [CUIInputWindowModality(self.window) isEqualToString:@"keyboard"];
   value.origin = origin;
+  if (origin == CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown) {
+    NSString *modality = CUIInputWindowModality(self.window);
+    if ([modality isEqualToString:@"keyboard"]) value.origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Keyboard;
+    else if ([modality isEqualToString:@"pointer"]) value.origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Pointer;
+  }
   value.timestamp = NSProcessInfo.processInfo.systemUptime * 1000;
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeFocusChange(value);
+  if (!ReactNativeFeatureFlags::enableImperativeFocus()) {
+    if (focused) _eventEmitter->onFocus();
+    else _eventEmitter->onBlur();
+  }
 }
 
 - (BOOL)becomeFirstResponder
@@ -133,7 +123,7 @@ static NSString *CUIKeyName(UIKey *key)
   UIKeyModifierFlags flags = key.modifierFlags;
   return [NSString stringWithFormat:@"%d%d%d%d:%@", !!(flags & UIKeyModifierShift),
       !!(flags & UIKeyModifierAlternate), !!(flags & UIKeyModifierControl),
-      !!(flags & UIKeyModifierCommand), CUIKeyName(key)];
+      !!(flags & UIKeyModifierCommand), CUIInputKeyName(key)];
 }
 
 - (void)emitKey:(UIPress *)press down:(BOOL)down repeat:(BOOL)repeat cancelled:(BOOL)cancelled handled:(BOOL)handled
@@ -145,7 +135,7 @@ static NSString *CUIKeyName(UIKey *key)
   value.kind = "keyboard";
   value.ownerId = _ownerId.UTF8String;
   value.target = (int)self.tag;
-  value.key = CUIKeyName(key).UTF8String;
+  value.key = CUIInputKeyName(key).UTF8String;
   value.nativeCode = (int)key.keyCode;
   value.characters = key.characters.UTF8String ?: "";
   value.phase = down ? CUIFocusViewEventEmitter::OnNativeKeyPhase::Down : CUIFocusViewEventEmitter::OnNativeKeyPhase::Up;
@@ -179,6 +169,7 @@ static NSString *CUIKeyName(UIKey *key)
       if (handled) [_consumed addObject:code];
     }
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Keyboard;
+    CUIRecordWindowModality(self.window, @"keyboard");
     [self emitKey:press down:down repeat:repeat cancelled:cancelled handled:handled];
     if (!down) {
       [_held removeObjectForKey:code];
@@ -224,6 +215,7 @@ static NSString *CUIKeyName(UIKey *key)
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
 {
   _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Pointer;
+  CUIRecordWindowModality(self.window, @"pointer");
   [super touchesBegan:touches withEvent:event];
 }
 

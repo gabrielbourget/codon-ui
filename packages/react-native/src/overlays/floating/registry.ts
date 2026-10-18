@@ -139,6 +139,21 @@ export const createNativeFloatingLayerRegistry = () => {
     presentationOrder: () => stack().map(([id]) => id),
     hasModal: () => stack().some(([, entry]) => entry.isModal),
     requestDismiss,
+    captureKeyboard: () => {
+      const current = top()
+      if (!current) return null
+      const [id, entry] = current
+      const key = `${id}:${entry.generation}:${entry.phase}:${+entry.isKeyboardDismissDisabled}`
+      const isCurrent = () => {
+        const latest = top()
+        return (
+          latest?.[0] === id &&
+          latest[1] === entry &&
+          key === `${id}:${entry.generation}:${entry.phase}:${+entry.isKeyboardDismissDisabled}`
+        )
+      }
+      return { key, isCurrent, invoke: () => isCurrent() && requestDismiss("keyboard") }
+    },
     captureOutside: () => {
       const active = outsideTop()
       if (!active || !state(active[0]).active) return null

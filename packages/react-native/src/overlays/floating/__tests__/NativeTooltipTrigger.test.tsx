@@ -14,7 +14,8 @@ type TPointer = Parameters<TNativeTooltipTriggerRenderState["triggerProps"]["onP
 type TFocus = Parameters<TNativeTooltipTriggerRenderState["triggerProps"]["onFocus"]>[0]
 type TPress = Parameters<TNativeTooltipTriggerRenderState["triggerProps"]["onPressIn"]>[0]
 const pointer = (pointerType = "mouse") => ({ nativeEvent: { pointerType } }) as unknown as TPointer
-const focus = (target = 1, currentTarget = 1) => ({ target, currentTarget }) as unknown as TFocus
+const focus = (target = 1, currentTarget = 1, visible = true) =>
+  ({ target, currentTarget, nativeEvent: { target, isFocusVisible: visible } }) as unknown as TFocus
 const press = () => ({ target: 1, currentTarget: 1, nativeEvent: {} }) as unknown as TPress
 const advance = async (milliseconds: number) =>
   act(() => {
@@ -129,6 +130,61 @@ it("opens immediately for direct native focus in focus-only mode and ignores des
   expect(f.onOpenChange.mock.calls).toEqual([[true], [false]])
 })
 
+it("opens only for genuine visible native focus, preserving pointer/unknown focus and the underlying action", async () => {
+  const f = setup({ triggerMode: "focus" })
+  await render(f.node())
+  await act(() => f.state().triggerProps.onFocus(focus(1, 1, false)))
+  await act(() =>
+    f.state().triggerProps.onFocus({ target: 1, currentTarget: 1, nativeEvent: { target: 1 } } as unknown as TFocus),
+  )
+  expect(f.onOpenChange).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByRole("button", { name: "Action" }))
+  expect(f.action).toHaveBeenCalledTimes(1)
+  await act(() => f.state().triggerProps.onFocus(focus()))
+  expect(f.onOpenChange.mock.calls).toEqual([[true]])
+})
+
+it("admits an ordinary native focus event only with observed keyboard input from its current window", async () => {
+  const f = setup({ triggerMode: "focus" })
+  await render(f.node())
+  const host = () => screen.getByTestId("native-floating-layer-host").props
+  const status = (ready: boolean) => {
+    const props = host()
+    props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: "native",
+        epoch: 1,
+        policyRevision: props.policyRevision,
+        ready,
+        windowActive: true,
+      },
+    })
+  }
+  await act(() => status(false))
+  await act(() => status(true))
+  const input = (origin: "keyboard" | "pointer", timestamp: number) => {
+    const props = host()
+    props.onNativeInputModality({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: props.acceptedWindowId,
+        epoch: props.acceptedEpoch,
+        origin,
+        timestamp,
+      },
+    })
+  }
+  const ordinary = { target: 1, currentTarget: 1, nativeEvent: { target: 1 } } as unknown as TFocus
+  await act(() => input("keyboard", 0))
+  await act(() => f.state().triggerProps.onFocus(ordinary))
+  expect(f.onOpenChange.mock.calls).toEqual([[true]])
+  await act(() => f.state().triggerProps.onBlur(focus()))
+  await act(() => input("pointer", 1))
+  await act(() => f.state().triggerProps.onFocus(ordinary))
+  expect(f.onOpenChange.mock.calls).toEqual([[true], [false]])
+})
+
 it("keeps the underlying action enabled while tooltip disablement guards native opening", async () => {
   const f = setup({ isDisabled: true, delay: 0 })
   await render(f.node())
@@ -190,6 +246,27 @@ it("rechecks current window and parent eligibility for pending native opens and 
   expect(f.onOpenChange).not.toHaveBeenCalled()
   await act(() => f.state().close(true))
   expect(f.onOpenChange.mock.calls).toEqual([[false]])
+})
+
+it("retires a pending native hover open when the physical window becomes inactive", async () => {
+  const f = setup()
+  await render(f.node())
+  await act(() => f.state().triggerProps.onPointerEnter(pointer()))
+  const props = screen.getByTestId("native-floating-layer-host").props
+  await act(() =>
+    props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: "native",
+        epoch: 1,
+        policyRevision: props.policyRevision,
+        ready: false,
+        windowActive: false,
+      },
+    }),
+  )
+  await advance(1500)
+  expect(f.onOpenChange).not.toHaveBeenCalled()
 })
 
 it("retires retained native handlers, timers and explicit actions on replacement and unmount", async () => {

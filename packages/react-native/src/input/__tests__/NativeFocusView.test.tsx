@@ -90,6 +90,7 @@ it("keeps native focus acknowledgement separate from a request and forwards the 
     ownerId: host().props.ownerId,
     target: 17,
     isFocused: true,
+    isFocusVisible: false,
     origin: "programmatic",
     timestamp: 0,
   })

@@ -7,6 +7,7 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
@@ -60,47 +61,6 @@ public final class CUIFocusView extends ReactViewGroup {
     if (ownerId.equals(owner)) clearFocus();
   }
 
-  private static String keyName(KeyEvent event) {
-    switch (event.getKeyCode()) {
-      case KeyEvent.KEYCODE_ENTER:
-      case KeyEvent.KEYCODE_NUMPAD_ENTER: return "Enter";
-      case KeyEvent.KEYCODE_ESCAPE: return "Escape";
-      case KeyEvent.KEYCODE_TAB: return "Tab";
-      case KeyEvent.KEYCODE_DEL: return "Backspace";
-      case KeyEvent.KEYCODE_FORWARD_DEL: return "Delete";
-      case KeyEvent.KEYCODE_DPAD_RIGHT: return "ArrowRight";
-      case KeyEvent.KEYCODE_DPAD_LEFT: return "ArrowLeft";
-      case KeyEvent.KEYCODE_DPAD_DOWN: return "ArrowDown";
-      case KeyEvent.KEYCODE_DPAD_UP: return "ArrowUp";
-      case KeyEvent.KEYCODE_MOVE_HOME: return "Home";
-      case KeyEvent.KEYCODE_MOVE_END: return "End";
-      case KeyEvent.KEYCODE_PAGE_UP: return "PageUp";
-      case KeyEvent.KEYCODE_PAGE_DOWN: return "PageDown";
-      case KeyEvent.KEYCODE_SPACE: return " ";
-      case KeyEvent.KEYCODE_SHIFT_LEFT:
-      case KeyEvent.KEYCODE_SHIFT_RIGHT: return "Shift";
-      case KeyEvent.KEYCODE_CTRL_LEFT:
-      case KeyEvent.KEYCODE_CTRL_RIGHT: return "Control";
-      case KeyEvent.KEYCODE_ALT_LEFT:
-      case KeyEvent.KEYCODE_ALT_RIGHT: return "Alt";
-      case KeyEvent.KEYCODE_META_LEFT:
-      case KeyEvent.KEYCODE_META_RIGHT: return "Meta";
-      case KeyEvent.KEYCODE_CAPS_LOCK: return "CapsLock";
-      default:
-        int unicode = event.getUnicodeChar();
-        if (unicode != 0 && Character.isValidCodePoint(unicode)) return new String(Character.toChars(unicode));
-        if (event.getKeyCode() >= KeyEvent.KEYCODE_F1 && event.getKeyCode() <= KeyEvent.KEYCODE_F12) {
-          return "F" + (event.getKeyCode() - KeyEvent.KEYCODE_F1 + 1);
-        }
-        return "Unidentified";
-    }
-  }
-
-  private static String captureToken(KeyEvent event) {
-    return (event.isShiftPressed() ? "1" : "0") + (event.isAltPressed() ? "1" : "0")
-        + (event.isCtrlPressed() ? "1" : "0") + (event.isMetaPressed() ? "1" : "0") + ":" + keyName(event);
-  }
-
   private WritableMap baseData() {
     WritableMap data = Arguments.createMap();
     data.putString("ownerId", ownerId);
@@ -117,7 +77,7 @@ public final class CUIFocusView extends ReactViewGroup {
   private void emitKey(KeyEvent event, boolean down, boolean cancelled, boolean handled) {
     WritableMap data = baseData();
     data.putString("kind", "keyboard");
-    data.putString("key", keyName(event));
+    data.putString("key", CUIInputWindow.keyName(event));
     data.putInt("nativeCode", event.getKeyCode());
     int unicode = event.getUnicodeChar();
     String characters = event.getCharacters();
@@ -146,11 +106,12 @@ public final class CUIFocusView extends ReactViewGroup {
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
     boolean handled = consumed.contains(code);
     if (down) {
-      if (held.get(code) == null) handled = capturedKeys.contains(captureToken(event));
+      if (held.get(code) == null) handled = capturedKeys.contains(CUIInputWindow.keyToken(event));
       held.put(code, new KeyEvent(event));
       if (handled) consumed.add(code);
     }
     origin = "keyboard";
+    CUIInputWindow.record(this, "keyboard");
     emitKey(event, down, event.isCanceled(), handled);
     if (!down) {
       held.remove(code);
@@ -174,15 +135,21 @@ public final class CUIFocusView extends ReactViewGroup {
     if (!focused) cancelHeldKeys();
     WritableMap data = baseData();
     data.putBoolean("isFocused", focused);
-    data.putString("origin", origin);
+    data.putString("origin", origin.equals("programmatic") ? origin : CUIInputWindow.modality(this));
+    boolean nativeNonTouchFocus = !isInTouchMode() && !CUIInputWindow.dispatchingPointer(this) && !origin.equals("programmatic");
+    data.putBoolean("isFocusVisible", focused && hasWindowFocus() && (CUIInputWindow.modality(this).equals("keyboard") || nativeNonTouchFocus));
     data.putDouble("timestamp", SystemClock.uptimeMillis());
     emit("topNativeFocusChange", data);
+    if (!ReactNativeFeatureFlags.enableImperativeFocus()) {
+      WritableMap bubbled = Arguments.createMap(); bubbled.putInt("target", getId());
+      emit(focused ? "topFocus" : "topBlur", bubbled);
+    }
     if (!focused) origin = "unknown";
   }
 
   @Override
   public boolean onTouchEvent(MotionEvent event) {
-    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) origin = "pointer";
+    if (event.getActionMasked() == MotionEvent.ACTION_DOWN) { origin = "pointer"; CUIInputWindow.record(this, "pointer"); }
     return super.onTouchEvent(event);
   }
 

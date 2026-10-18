@@ -26,6 +26,7 @@ export type NativeFocusData = Readonly<{
   ownerId: string
   target: Int32
   isFocused: boolean
+  isFocusVisible: boolean
   origin: "unknown" | "keyboard" | "pointer" | "programmatic"
   timestamp: Double
 }>

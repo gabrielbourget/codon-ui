@@ -1,6 +1,8 @@
 import { createContext, useContext, useId, useInsertionEffect, useRef, type ReactNode, type RefObject } from "react"
 import type { PressableProps, View, ViewProps } from "react-native"
 
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
 import { useNativeTooltipTriggerState } from "./useTooltipTriggerState"
 
@@ -52,6 +54,7 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
   if (!NATIVE_TOOLTIP_TRIGGER_MODES.includes(triggerMode)) throw new TypeError("Tooltip: unsupported triggerMode")
   const scope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
+  const inputScope = useNativeKeyScope()
   const triggerRef = useRef<View>(null)
   const id = useId()
   const live = useRef(false)
@@ -68,7 +71,12 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
   }, [])
   const eligible = () => {
     const latest = current.current
-    return live.current && latest.scope?.canAct() !== false && latest.windowActive?.() !== false
+    return (
+      live.current &&
+      latest.scope?.canAct() !== false &&
+      latest.windowActive?.() !== false &&
+      inputScope?.isWindowActive() !== false
+    )
   }
   const canOpen = () => eligible() && !current.current.isDisabled
   const hoverIn = () => {
@@ -101,6 +109,11 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
       },
       onFocus: (event) => {
         if (event.target !== event.currentTarget || !canOpen()) return
+        const visible =
+          "isFocusVisible" in event.nativeEvent
+            ? event.nativeEvent.isFocusVisible === true
+            : inputScope?.lastInput()?.origin === "keyboard"
+        if (!visible) return
         focused.current = true
         current.current.state.open(true, canOpen)
       },

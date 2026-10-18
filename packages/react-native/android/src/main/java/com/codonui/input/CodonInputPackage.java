@@ -5,6 +5,7 @@ import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 import java.util.Collections;
+import java.util.Arrays;
 import java.util.List;
 
 public final class CodonInputPackage implements ReactPackage {
@@ -15,6 +16,6 @@ public final class CodonInputPackage implements ReactPackage {
 
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext context) {
-    return Collections.singletonList(new CUIFocusViewManager());
+    return Arrays.asList(new CUIFocusViewManager(), new CUIKeyboardScopeManager());
   }
 }

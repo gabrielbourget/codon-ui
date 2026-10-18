@@ -1,0 +1,199 @@
+import { act, render, screen } from "@testing-library/react-native"
+import { useLayoutEffect } from "react"
+
+import { NativeFloatingLayerHost, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
+
+type THost = ReturnType<typeof useNativeFloatingHost>
+type TLease = ReturnType<THost["layers"]["register"]>
+const Probe = ({ observe }: { observe: (host: THost) => void }) => {
+  const host = useNativeFloatingHost()
+  useLayoutEffect(() => observe(host), [host, observe])
+  return null
+}
+const root = () => screen.getByTestId("host")
+const acknowledge = async (epoch = 1, windowId = "native-window") => {
+  const report = (ready: boolean) => {
+    const props = root().props
+    return props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId,
+        epoch,
+        policyRevision: props.policyRevision,
+        ready,
+        windowActive: true,
+      },
+    })
+  }
+  await act(() => report(false))
+  await act(() => report(true))
+}
+const packet = (extra: Record<string, unknown> = {}) => {
+  const props = root().props
+  return {
+    nativeEvent: {
+      kind: "keyboard",
+      ownerId: props.ownerId,
+      policyId: props.policies[0].id,
+      target: 1,
+      focusedTarget: -1,
+      windowId: props.acceptedWindowId,
+      epoch: props.acceptedEpoch,
+      policyRevision: props.policyRevision,
+      key: "Escape",
+      nativeCode: 0,
+      characters: "",
+      phase: "down",
+      repeat: false,
+      cancelled: false,
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      capsLock: false,
+      nativeModifierData: "0",
+      nativeDefaultHandled: true,
+      timestamp: 0,
+      ...extra,
+    },
+  }
+}
+const setup = async (protectedLayer = false) => {
+  let host: THost | undefined
+  const dismiss = jest.fn()
+  const result = await render(
+    <NativeFloatingLayerHost testID="host">
+      <Probe
+        observe={(next) => {
+          host = next
+        }}
+      />
+    </NativeFloatingLayerHost>,
+  )
+  const options = {
+    parent: null,
+    isOpen: true,
+    isModal: false,
+    isKeyboardDismissDisabled: protectedLayer,
+    onDismiss: dismiss,
+  }
+  let layer: TLease
+  await act(() => {
+    layer = host!.layers.register("layer", options)
+  })
+  await act(() => {
+    layer!.entered(layer!.state().generation)
+  })
+  return { host: host!, layer: layer!, options, dismiss, result }
+}
+
+it("admits Escape only after native window/policy acknowledgment and keeps the owner authoritative", async () => {
+  const f = await setup()
+  const initial = packet()
+  await act(() => root().props.onNativeScopedKey(initial))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await acknowledge()
+  const current = packet()
+  await act(() => root().props.onNativeScopedKey(current))
+  expect(f.dismiss.mock.calls).toEqual([["keyboard"]])
+  expect(f.layer.state().active).toBe(true)
+  await act(() => root().props.onNativeScopedKey(packet({ repeat: true })))
+  await act(() => root().props.onNativeScopedKey(packet({ phase: "up", cancelled: true })))
+  expect(f.dismiss).toHaveBeenCalledTimes(1)
+})
+
+it("keeps protected and transitioning layers shielding the containing window", async () => {
+  const f = await setup(true)
+  await acknowledge()
+  const protectedPacket = packet()
+  await act(() => root().props.onNativeScopedKey(protectedPacket))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await act(() => f.layer.update({ ...f.options, isKeyboardDismissDisabled: false }))
+  await acknowledge()
+  await act(() => root().props.onNativeScopedKey(protectedPacket))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await act(() => root().props.onNativeScopedKey(packet()))
+  expect(f.dismiss).toHaveBeenCalledTimes(1)
+  const enteringDismiss = jest.fn()
+  let entering: TLease
+  await act(() => {
+    entering = f.host.layers.register("entering", {
+      ...f.options,
+      parent: "layer",
+      isKeyboardDismissDisabled: false,
+      onDismiss: enteringDismiss,
+    })
+  })
+  await acknowledge()
+  const enteringPacket = packet()
+  await act(() => root().props.onNativeScopedKey(enteringPacket))
+  expect(enteringDismiss).not.toHaveBeenCalled()
+  expect(f.dismiss).toHaveBeenCalledTimes(1)
+  await act(() => {
+    entering!.entered(entering!.state().generation)
+  })
+  await acknowledge()
+  await act(() => root().props.onNativeScopedKey(enteringPacket))
+  expect(enteringDismiss).not.toHaveBeenCalled()
+  await act(() => root().props.onNativeScopedKey(packet()))
+  expect(enteringDismiss).toHaveBeenCalledTimes(1)
+})
+
+it("retires the old child packet before exposing its parent, including after fresh acknowledgment", async () => {
+  const f = await setup()
+  const childDismiss = jest.fn()
+  let child: TLease
+  await act(() => {
+    child = f.host.layers.register("child", {
+      ...f.options,
+      parent: "layer",
+      capturesOutside: false,
+      onDismiss: childDismiss,
+    })
+  })
+  await act(() => {
+    child!.entered(child!.state().generation)
+  })
+  await acknowledge()
+  const childPacket = packet()
+  await act(() => root().props.onNativeScopedKey(childPacket))
+  expect(childDismiss).toHaveBeenCalledTimes(1)
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await act(() => {
+    child!.unregister()
+  })
+  await acknowledge()
+  await act(() => root().props.onNativeScopedKey(childPacket))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await act(() => root().props.onNativeScopedKey(packet()))
+  expect(f.dismiss).toHaveBeenCalledTimes(1)
+})
+
+it("rejects retired native windows and retained callbacks after unmount", async () => {
+  const f = await setup()
+  await acknowledge()
+  const old = packet()
+  const callback = root().props.onNativeScopedKey
+  const props = root().props
+  await act(() =>
+    props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: props.acceptedWindowId,
+        epoch: 2,
+        policyRevision: props.policyRevision,
+        ready: false,
+        windowActive: false,
+      },
+    }),
+  )
+  await act(() => callback(old))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  await acknowledge(3, "replacement-window")
+  await act(() => callback(old))
+  expect(f.dismiss).not.toHaveBeenCalled()
+  const fresh = packet()
+  await f.result.unmount()
+  await act(() => callback(fresh))
+  expect(f.dismiss).not.toHaveBeenCalled()
+})

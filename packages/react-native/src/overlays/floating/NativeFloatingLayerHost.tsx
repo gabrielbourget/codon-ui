@@ -25,6 +25,9 @@ import {
 } from "react-native"
 import { Portal, PortalHost, PortalProvider } from "react-native-teleport"
 
+import { nativeKeyTokens } from "../../input/keyScope"
+import { NativeKeyboardScope, useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
+
 import { createNativeFloatingInteractions } from "./interaction"
 import {
   createNativeFloatingLayerRegistry,
@@ -56,6 +59,25 @@ type TNativeFloatingHost = {
 }
 
 const FloatingHostContext = createContext<TNativeFloatingHost | null>(null)
+const escapeTokens = nativeKeyTokens("Escape")
+const NativeFloatingKeyboard = ({ host }: { host: TNativeFloatingHost }) => {
+  const windowActive = useContext(NativeFloatingWindowContext)
+  const lease = host.layers.captureKeyboard()
+  useNativeKeyPolicy({
+    tokens: escapeTokens,
+    targetTag: 0,
+    excludeEditable: false,
+    excludeComposing: true,
+    isEnabled: lease !== null,
+    lifetimeKey: lease?.key ?? "closed",
+    canAct: () => host.live.current && windowActive?.() !== false && lease?.isCurrent() === true,
+    onKey: (event) => {
+      if (event.nativeEvent.phase === "down" && !event.nativeEvent.repeat && !event.nativeEvent.cancelled)
+        lease?.invoke()
+    },
+  })
+  return null
+}
 
 export const useNativeFloatingHost = () => {
   const host = useContext(FloatingHostContext)
@@ -191,9 +213,10 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
     return (
       <PortalProvider>
         <FloatingHostContext.Provider value={host}>
-          <View
+          <NativeKeyboardScope
             {...rest}
             ref={root}
+            captureEnabled={windowActive?.() !== false}
             testID={testID}
             collapsable={false}
             pointerEvents="box-none"
@@ -205,6 +228,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
               if (!layers.requestDismiss("accessibilityEscape")) current.current.onAccessibilityEscape?.()
             }}
           >
+            <NativeFloatingKeyboard host={host} />
             <View
               testID={`${testID}-background`}
               style={{ flex: 1 }}
@@ -218,7 +242,7 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
             {layers.presentationOrder().map((layerId) => (
               <PortalHost key={layerId} name={layerHostName(name, layerId)} style={StyleSheet.absoluteFill} />
             ))}
-          </View>
+          </NativeKeyboardScope>
         </FloatingHostContext.Provider>
       </PortalProvider>
     )
