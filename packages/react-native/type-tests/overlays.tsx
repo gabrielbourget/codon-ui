@@ -17,8 +17,7 @@ export const ValidOverlay = (
 )
 // @ts-expect-error an explicit native name is required
 export const InvalidUnnamedModal = <Modal />
-// @ts-expect-error blur needs a separately approved dependency/host contract
-export const InvalidNativeBlur = <Modal aria-label="Dialog" overlayBlur />
+export const AdapterBackedBlur = <Modal aria-label="Dialog" overlayBlur />
 // @ts-expect-error DOM role forwarding is excluded
 export const InvalidDialogRole = <Modal aria-label="Dialog" dialogRole="alertdialog" />
 // @ts-expect-error CSS lengths are excluded

@@ -425,6 +425,13 @@ export type {
 } from "./components/NumberInput/types"
 
 export { NativeOverlayProvider } from "./overlays/NativeOverlayProvider"
+export { NativeBackdropHost } from "./overlays/backdrop/NativeBackdropHost"
+export type {
+  TNativeBackdropAdapter,
+  TNativeBackdropEffectProps,
+  TNativeBackdropHostProps,
+  TNativeBackdropLease,
+} from "./overlays/backdrop/types"
 export { NativeFloatingLayerHost } from "./overlays/floating/NativeFloatingLayerHost"
 export type {
   TNativeFloatingLayerHostProps,

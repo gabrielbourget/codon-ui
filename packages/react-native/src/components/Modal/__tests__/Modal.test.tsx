@@ -41,7 +41,7 @@ it("requires a single provider, accessible name and supported native values", as
     { height: null },
     { height: Infinity },
     { width: "calc(100% - 1px)" },
-    { overlayBlur: true },
+    { overlayBlur: "true" },
     { color: "var(--bad)" },
     { color: "var(--bad)", style: { backgroundColor: "gold" } },
     { style: { color: "var(--bad)" } },

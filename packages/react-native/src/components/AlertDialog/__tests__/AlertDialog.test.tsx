@@ -217,7 +217,7 @@ it("hides cancellation and validates only rendered action names", async () => {
     { titleText: 1 },
     { bodyText: null },
     { customStyles: { color: "var(--bad)" } },
-    { overlayBlur: true },
+    { overlayBlur: "true" },
   ]) {
     await expect(render(wrap(<AlertDialog {...base} {...(props as unknown as AlertDialogProps)} />))).rejects.toThrow()
   }
