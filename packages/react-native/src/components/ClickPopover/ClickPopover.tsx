@@ -6,6 +6,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react"
 import {
   Animated,
@@ -18,6 +19,9 @@ import {
 } from "react-native"
 import type { PathProps } from "react-native-svg"
 
+import { focusNativeTarget, isNativeFocusTarget } from "../../input/focus"
+import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { useNativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
 import { NativeFloatingArrow } from "../../overlays/floating/NativeFloatingArrow"
@@ -31,6 +35,14 @@ import { NativeContentContext } from "../NativeContentContext"
 
 import { getNativeClickPopoverStyles } from "./styles"
 import type { TNativeClickPopoverProps, TNativeClickPopoverRef } from "./types"
+
+const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusHost)
+const subscribeNone = () => () => {}
+const zero = () => 0
+const getFocusSessionKey = (scope: ReturnType<typeof useNativeKeyScope>) => {
+  const session = scope?.acknowledgedSession()
+  return JSON.stringify([session?.windowId, session?.epoch])
+}
 
 export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopoverProps>((props, ref) => {
   const {
@@ -83,6 +95,10 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
   const host = useNativeFloatingHost()
   const parent = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
+  const input = useNativeKeyScope()
+  useSyncExternalStore(input?.subscribe ?? subscribeNone, input?.snapshot ?? zero, zero)
+  const inputSession = getFocusSessionKey(input)
+  const inputReady = input?.isNativeReady() ?? true
   const trigger = useNativeDialogTrigger()
   const contextOwned = isOpen === undefined && defaultOpen === undefined && trigger !== null
   const mode = contextOwned ? "trigger" : isOpen !== undefined ? "controlled" : "local"
@@ -144,7 +160,7 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
       if (interaction.kind === "focus") {
         if (isNonModal) {
           if (current.current.shouldCloseOnInteractOutside?.(interaction) !== false) close()
-        } else (childIsDialog ? dialog : root).current?.focus()
+        } else if (input?.isNativeReady() !== false) focusNativeTarget((childIsDialog ? dialog : root).current)
         return
       }
       if (!isNonModal && current.current.shouldCloseOnInteractOutside?.(interaction) !== false) close()
@@ -191,33 +207,77 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
   useLayoutEffect(() => {
     if (
       !ready ||
+      !inputReady ||
       !layer.active ||
       focused.current === layer.generation ||
       (isNonModal && !childIsDialog && !initialFocusRef)
     )
       return
+    let retired = false
     const frame = requestAnimationFrame(() => {
-      if (!layer.canAct()) return
+      if (
+        retired ||
+        !live.current ||
+        !layer.canAct() ||
+        input?.isNativeReady() === false ||
+        getFocusSessionKey(input) !== inputSession
+      )
+        return
       const target = (initialFocusRef ?? (childIsDialog ? dialog : root)).current
-      if (target) {
-        target.focus()
-        focused.current = layer.generation
-      }
+      if (focusNativeTarget(target)) focused.current = layer.generation
     })
-    return () => cancelAnimationFrame(frame)
-  }, [ready, layer.active, layer.generation, initialFocusRef, childIsDialog, isNonModal])
-  const wasMounted = useRef(false)
+    return () => {
+      retired = true
+      cancelAnimationFrame(frame)
+    }
+  }, [
+    ready,
+    layer.active,
+    layer.generation,
+    initialFocusRef,
+    childIsDialog,
+    isNonModal,
+    input,
+    inputSession,
+    inputReady,
+  ])
+  type TRestoreSession = { input: typeof input; session: string; parent: string | null }
+  const wasMounted = useRef<TRestoreSession | null>(null)
+  const pendingRestore = useRef<TRestoreSession | null>(null)
   useLayoutEffect(() => {
-    const restore = wasMounted.current && !layer.mounted
-    wasMounted.current = layer.mounted
+    if (layer.mounted) {
+      wasMounted.current = { input, session: inputSession, parent: parent?.id ?? null }
+      pendingRestore.current = null
+      return
+    }
+    if (wasMounted.current) pendingRestore.current = wasMounted.current
+    wasMounted.current = null
+    const restore = pendingRestore.current
     if (!restore) return
+    if (restore.input !== input || restore.session !== inputSession || restore.parent !== (parent?.id ?? null)) {
+      pendingRestore.current = null
+      return
+    }
+    if (!inputReady) return
+    let retired = false
     const frame = requestAnimationFrame(() => {
-      if (!live.current || windowActive?.() === false || !host.layers.canRestore(parent?.id ?? null)) return
+      if (retired || !live.current) return
+      if (input?.isNativeReady() === false) return
+      pendingRestore.current = null
+      if (
+        windowActive?.() === false ||
+        getFocusSessionKey(input) !== restore.session ||
+        !host.layers.canRestore(parent?.id ?? null)
+      )
+        return
       const target = (restoreFocusRef ?? anchor).current
-      if (target && "focus" in target && typeof target.focus === "function") target.focus()
+      if (isNativeFocusTarget(target)) focusNativeTarget(target)
     })
-    return () => cancelAnimationFrame(frame)
-  }, [layer.mounted, host.layers, parent?.id, restoreFocusRef, anchor, windowActive])
+    return () => {
+      retired = true
+      cancelAnimationFrame(frame)
+    }
+  }, [layer.mounted, host.layers, parent?.id, restoreFocusRef, anchor, windowActive, input, inputSession, inputReady])
   const [dialogFocused, setDialogFocused] = useState(false)
   if (!layer.mounted && !isExiting) return null
   const identity = testID ?? aliasTestID ?? "click-popover"
@@ -253,12 +313,13 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
           accessibilityElementsHidden={!ready || !layer.active}
         >
           <NativeFloatingScopeContext.Provider value={{ id: layer.id, canAct: layer.canAct }}>
-            <Animated.View
+            <AnimatedFocusView
               {...nativeProps}
               ref={root}
               testID={identity}
               collapsable={false}
               accessible={false}
+              focusable={nativeProps.focusable !== false && !childIsDialog && ready && layer.active}
               accessibilityLabel={accessibilityLabel ?? aliasLabel}
               role={!childIsDialog && !isNonModal ? "dialog" : undefined}
               accessibilityViewIsModal={!isNonModal}
@@ -280,10 +341,10 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
                 },
               }}
               onLayout={updateLayout}
-              onFocus={(event) => {
+              onBubbledFocus={(event) => {
                 if (layer.canAct()) onFocus?.(event)
               }}
-              onBlur={(event) => {
+              onBubbledBlur={(event) => {
                 if (layer.canAct()) onBlur?.(event)
               }}
               onAccessibilityEscape={() => {
@@ -313,11 +374,12 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
                   />
                 )}
                 {childIsDialog ? (
-                  <View
+                  <NativeFocusView
                     ref={dialog}
                     testID={`${identity}-dialog`}
                     role="dialog"
                     accessible={false}
+                    focusable={ready && layer.active}
                     accessibilityLabel={accessibilityLabel ?? aliasLabel}
                     style={[
                       dialogFocused
@@ -335,12 +397,12 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
                     >
                       {body}
                     </NativeContentContext.Provider>
-                  </View>
+                  </NativeFocusView>
                 ) : (
                   body
                 )}
               </NativeContentContext.Provider>
-            </Animated.View>
+            </AnimatedFocusView>
           </NativeFloatingScopeContext.Provider>
         </View>
       </View>

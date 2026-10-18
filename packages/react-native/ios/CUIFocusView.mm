@@ -188,6 +188,9 @@ using namespace facebook::react;
 - (void)requestKeyboardFocus:(NSString *)ownerId
 {
   if (![_ownerId isEqualToString:ownerId] || ![self canBecomeFirstResponder]) return;
+  UIWindow *window = self.window;
+  BOOL sceneActive = window.windowScene == nil || window.windowScene.activationState == UISceneActivationStateForegroundActive;
+  if (!window.isKeyWindow || window.hidden || !sceneActive || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) return;
   _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Programmatic;
   [self becomeFirstResponder];
   UIFocusSystem *system = [UIFocusSystem focusSystemForEnvironment:self];

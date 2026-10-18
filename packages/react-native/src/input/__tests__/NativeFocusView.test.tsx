@@ -44,6 +44,23 @@ const nativeEvent = <T,>(data: T) => ({ nativeEvent: data }) as NativeSyntheticE
 const host = () => screen.getByTestId("focus")
 beforeEach(() => jest.clearAllMocks())
 
+it("keeps raw bubbling focus observations distinct from direct native acknowledgments and retires both after unmount", async () => {
+  const observed = jest.fn(),
+    acknowledged = jest.fn()
+  await render(<NativeFocusHost testID="focus" onBubbledFocus={observed} onFocus={acknowledged} />)
+  const raw = nativeEvent({ target: 29 })
+  const notify = host().props.onFocus
+  await act(() => notify(raw))
+  expect(observed.mock.calls[0][0]).toBe(raw)
+  expect(acknowledged).not.toHaveBeenCalled()
+  await act(() => host().props.onNativeFocusChange(nativeEvent({ ownerId: host().props.ownerId, isFocused: true })))
+  expect(acknowledged).toHaveBeenCalledTimes(1)
+  expect(observed).toHaveBeenCalledTimes(1)
+  await screen.unmount()
+  await act(() => notify(raw))
+  expect(observed).toHaveBeenCalledTimes(1)
+})
+
 it("routes native ID lists and explicit empty descriptions without replacing the native label, hint or value", async () => {
   const ids = ["first", "second"]
   await render(
