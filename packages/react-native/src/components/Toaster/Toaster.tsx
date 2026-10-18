@@ -1,16 +1,35 @@
-import { forwardRef, useCallback, useContext, useEffect, useInsertionEffect, useRef, useState } from "react"
-import { View, type ViewStyle } from "react-native"
+import {
+  forwardRef,
+  useCallback,
+  useContext,
+  useEffect,
+  useInsertionEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react"
+import { findNodeHandle, View, type ViewProps, type ViewStyle } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { focusNativeTarget } from "../../input/focus"
+import {
+  captureNativeFocusTarget,
+  focusNativeTarget,
+  getNativeFocusedTarget,
+  getNativeFocusTargetWindow,
+  getNativePreviousFocusTarget,
+  isNativeFocusTarget,
+  subscribeNativeFocus,
+} from "../../input/focus"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
+import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
+import { OverlayRegistryContext } from "../../overlays/NativeOverlayProvider"
 import { encodeCollectionKey } from "../collection"
 
+import { createNativeToasterFocus, NativeToasterFocusContext } from "./focus"
 import { applyToastPublication, getNativeToastStacks, isNativeToastHotkey, nativeToastHotkey } from "./model"
 import { ToasterObserver } from "./stateManagement"
 import { Toast } from "./Toast"
@@ -65,6 +84,8 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   const host = useNativeFloatingHost()
   const scope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
+  const inputScope = useNativeKeyScope()
+  const overlays = useContext(OverlayRegistryContext)
   const insets = useContext(SafeAreaInsetsContext)
   const [toasts, setToasts] = useState<TNativeToast[]>([])
   const [heights, setHeights] = useState<TNativeToastHeight[]>([])
@@ -73,9 +94,9 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   const live = useRef(true)
   const collapse = useRef<ReturnType<typeof setTimeout> | null>(null)
   const stackRefs = useRef(new Map<string, TNativeFocusViewRef>())
-  const current = useRef({ expanded, expandToggleHotkey, scope, windowActive })
+  const current = useRef({ expanded, expandToggleHotkey, scope, windowActive, inputScope })
   useInsertionEffect(() => {
-    current.current = { expanded, expandToggleHotkey, scope, windowActive }
+    current.current = { expanded, expandToggleHotkey, scope, windowActive, inputScope }
   })
   useInsertionEffect(
     () => () => {
@@ -99,6 +120,46 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
     host.live.current &&
     current.current.scope?.canAct() !== false &&
     current.current.windowActive?.() !== false
+  const windowKey = () => {
+    const input = current.current.inputScope
+    const session = input?.acknowledgedSession()
+    return `${input?.ownerId ?? ""}:${session?.windowId ?? ""}:${session?.epoch ?? 0}`
+  }
+  const [focus] = useState(() =>
+    createNativeToasterFocus({
+      current: getNativeFocusedTarget,
+      previous: getNativePreviousFocusTarget,
+      canAct: () =>
+        host.live.current &&
+        current.current.inputScope?.isWindowActive() !== false &&
+        current.current.scope?.canAct() !== false &&
+        current.current.windowActive?.() !== false &&
+        host.layers.canRestore(current.current.scope?.id ?? null),
+      lifetime: windowKey,
+      isLiveTarget: isNativeFocusTarget,
+      lease: captureNativeFocusTarget,
+      canCaptureUnmatched: (target) =>
+        !!current.current.inputScope?.acknowledgedSession().windowId &&
+        getNativeFocusTargetWindow(target) === windowKey(),
+      tag: findNodeHandle,
+      request: focusNativeTarget,
+      schedule: requestAnimationFrame,
+      cancel: cancelAnimationFrame,
+    }),
+  )
+  useInsertionEffect(() => () => focus.dispose(), [focus])
+  useLayoutEffect(() => subscribeNativeFocus(focus.changed), [focus])
+  useLayoutEffect(() => inputScope?.subscribe(focus.changed), [focus, inputScope])
+  useLayoutEffect(() => host.layers.subscribe(focus.changed), [focus, host.layers])
+  useLayoutEffect(() => {
+    const release = overlays?.subscribe(focus.changed)
+    return () => {
+      release?.()
+    }
+  }, [focus, overlays])
+  useLayoutEffect(() => {
+    if (!canAct() || inputScope?.isWindowActive() === false) focus.invalidate()
+  }, [focus, inputScope, scope, windowActive])
   useNativeKeyPolicy({
     tokens: nativeToastHotkey(expandToggleHotkey),
     targetTag: 0,
@@ -117,6 +178,8 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
       )
         return
       const next = !current.current.expanded
+      if (next && "focusedTarget" in data && typeof data.focusedTarget === "number" && data.focusedTarget > 0)
+        focus.capture(data.focusedTarget)
       setExpanded(next)
       if (next) focusNativeTarget([...stackRefs.current.values()].at(-1) ?? null)
     },
@@ -143,127 +206,146 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   const stacks = getNativeToastStacks(toasts, heights, position, toastGap, maxVisibleToasts)
   if (!toasts.length) return null
   const hotkeyLabel = expandToggleHotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "")
+  const captureHandlers: { onTouchStartCapture?: ViewProps["onTouchStart"] } = {
+    onTouchStartCapture: () => focus.capture(),
+  }
   return (
     <NativeFloatingPortal>
-      <NativeFocusHost
-        {...native}
-        ref={forwardedRef}
-        testID={testID ?? aliasTestID ?? "toaster"}
-        focusable={false}
-        accessible={false}
-        pointerEvents="box-none"
-        accessibilityLabel={`${accessibilityLabel ?? aliasLabel ?? ariaLabel ?? "Notifications Toaster"} - ${hotkeyLabel}`}
-        nativeLabelledBy={nativeAccessibilityIDs(native.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
-        nativeDescribedBy={nativeAccessibilityIDs(nativeDescription ?? ariaDescribedBy)}
-        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
-        nativeDescriptionLabel={labels?.descriptionLabel}
-        nativeDetailsLabel={labels?.detailsLabel}
-        style={[{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }, customRootStyles, style]}
-      >
-        {stacks.map((stack) => {
-          const top = stack.position.startsWith("top")
-          const side = stack.position.split("-")[1]
-          const availableWidth = host.layout?.width
-          const width =
-            availableWidth !== undefined && availableWidth <= 500
-              ? Math.max(0, availableWidth - 32)
-              : DEFAULT_TOAST_WIDTH
-          const stackStyle: ViewStyle = {
-            position: "absolute",
-            width,
-            height: expanded ? stack.stackHeight : stack.firstHeight,
-            [top ? "top" : "bottom"]: Math.max(offset, top ? (insets?.top ?? 0) : (insets?.bottom ?? 0)),
-            ...(side === "center"
-              ? { left: "50%", transform: [{ translateX: -width / 2 }] }
-              : { [side]: Math.max(offset, side === "left" ? (insets?.left ?? 0) : (insets?.right ?? 0)) }),
-          }
-          const onHeight = (id: TNativeToastID, height: number) => {
-            if (!live.current || !Number.isFinite(height) || height < 0) return
-            setHeights((current) => {
-              const old = current.find((entry) => entry.id === id)
-              if (old?.height === height && old.position === stack.position) return current
-              return [...current.filter((entry) => entry.id !== id), { id, height, position: stack.position }]
-            })
-          }
-          return (
-            <NativeFocusHost
-              key={stack.position}
-              testID={`toaster-stack-${stack.position}`}
-              ref={(target) => {
-                if (target) stackRefs.current.set(stack.position, target)
-                else stackRefs.current.delete(stack.position)
-              }}
-              accessible={false}
-              focusable
-              pointerEvents="box-none"
-              onPointerEnter={requestExpand}
-              onPointerMove={requestExpand}
-              onPointerLeave={requestCollapse}
-              onPointerDown={() => {
-                if (canAct()) setInteracting(true)
-              }}
-              onPointerUp={() => {
-                if (live.current) setInteracting(false)
-              }}
-              onPointerCancel={() => {
-                if (live.current) setInteracting(false)
-              }}
-              onTouchStart={() => {
-                if (canAct()) setInteracting(true)
-              }}
-              onTouchEnd={() => {
-                if (live.current) setInteracting(false)
-              }}
-              onTouchCancel={() => {
-                if (live.current) setInteracting(false)
-              }}
-              style={[stackStyle, customStyles, customStackStyles]}
-            >
-              {stack.toasts.map((toast, index) => (
-                <Toast
-                  key={encodeCollectionKey(toast.id)}
-                  toast={toast}
-                  index={index}
-                  numToasts={stack.toasts.length}
-                  position={stack.position}
-                  offset={stack.offsets[index]}
-                  firstHeight={stack.firstHeight}
-                  maxVisibleToasts={maxVisibleToasts}
-                  toasterExpanded={expanded}
-                  interacting={interacting}
-                  expandByDefault={expandByDefault}
-                  pauseWhenPageIsHidden={pauseWhenPageIsHidden}
-                  duration={duration}
-                  dismissalHotkey={dismissalHotkey}
-                  toastLabels={toastLabels}
-                  toastGap={toastGap}
-                  removeToast={removeToast}
-                  onHeight={onHeight}
-                />
-              ))}
-              {stack.bridges.map((bridge) => (
-                <View
-                  key={bridge.key}
-                  testID={`toaster-bridge-${bridge.key}`}
-                  accessible={false}
-                  onPointerEnter={requestExpand}
-                  onPointerMove={requestExpand}
-                  style={[
-                    {
-                      position: "absolute",
-                      left: 0,
-                      right: 0,
-                      height: toastGap + 1,
-                      [top ? "top" : "bottom"]: bridge.offset,
-                    },
-                    customToastBridgeStyles,
-                  ]}
-                />
-              ))}
-            </NativeFocusHost>
-          )
-        })}
-      </NativeFocusHost>
+      <NativeToasterFocusContext.Provider value={focus}>
+        <NativeFocusHost
+          {...native}
+          {...captureHandlers}
+          ref={forwardedRef}
+          testID={testID ?? aliasTestID ?? "toaster"}
+          focusable={false}
+          accessible={false}
+          pointerEvents="box-none"
+          accessibilityLabel={`${accessibilityLabel ?? aliasLabel ?? ariaLabel ?? "Notifications Toaster"} - ${hotkeyLabel}`}
+          nativeLabelledBy={nativeAccessibilityIDs(
+            native.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy,
+          )}
+          nativeDescribedBy={nativeAccessibilityIDs(nativeDescription ?? ariaDescribedBy)}
+          nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+          nativeDescriptionLabel={labels?.descriptionLabel}
+          nativeDetailsLabel={labels?.detailsLabel}
+          onBubbledFocus={(event) => {
+            const target = getNativeFocusedTarget()
+            if (target && findNodeHandle(target) === event.nativeEvent.target) focus.enter(target)
+          }}
+          onBubbledBlur={focus.changed}
+          style={[{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }, customRootStyles, style]}
+        >
+          {stacks.map((stack) => {
+            const top = stack.position.startsWith("top")
+            const side = stack.position.split("-")[1]
+            const availableWidth = host.layout?.width
+            const width =
+              availableWidth !== undefined && availableWidth <= 500
+                ? Math.max(0, availableWidth - 32)
+                : DEFAULT_TOAST_WIDTH
+            const stackStyle: ViewStyle = {
+              position: "absolute",
+              width,
+              height: expanded ? stack.stackHeight : stack.firstHeight,
+              [top ? "top" : "bottom"]: Math.max(offset, top ? (insets?.top ?? 0) : (insets?.bottom ?? 0)),
+              ...(side === "center"
+                ? { left: "50%", transform: [{ translateX: -width / 2 }] }
+                : { [side]: Math.max(offset, side === "left" ? (insets?.left ?? 0) : (insets?.right ?? 0)) }),
+            }
+            const onHeight = (id: TNativeToastID, height: number) => {
+              if (!live.current || !Number.isFinite(height) || height < 0) return
+              setHeights((current) => {
+                const old = current.find((entry) => entry.id === id)
+                if (old?.height === height && old.position === stack.position) return current
+                return [...current.filter((entry) => entry.id !== id), { id, height, position: stack.position }]
+              })
+            }
+            return (
+              <NativeFocusHost
+                key={stack.position}
+                testID={`toaster-stack-${stack.position}`}
+                ref={(target) => {
+                  if (target) {
+                    stackRefs.current.set(stack.position, target)
+                    const release = focus.register(target)
+                    return () => {
+                      release()
+                      if (stackRefs.current.get(stack.position) === target) stackRefs.current.delete(stack.position)
+                    }
+                  } else stackRefs.current.delete(stack.position)
+                }}
+                accessible={false}
+                focusable
+                pointerEvents="box-none"
+                onPointerEnter={requestExpand}
+                onPointerMove={requestExpand}
+                onPointerLeave={requestCollapse}
+                onPointerDown={() => {
+                  if (canAct()) setInteracting(true)
+                }}
+                onPointerUp={() => {
+                  if (live.current) setInteracting(false)
+                }}
+                onPointerCancel={() => {
+                  if (live.current) setInteracting(false)
+                }}
+                onTouchStart={() => {
+                  if (canAct()) setInteracting(true)
+                }}
+                onTouchEnd={() => {
+                  if (live.current) setInteracting(false)
+                }}
+                onTouchCancel={() => {
+                  if (live.current) setInteracting(false)
+                }}
+                style={[stackStyle, customStyles, customStackStyles]}
+              >
+                {stack.toasts.map((toast, index) => (
+                  <Toast
+                    key={encodeCollectionKey(toast.id)}
+                    toast={toast}
+                    index={index}
+                    numToasts={stack.toasts.length}
+                    position={stack.position}
+                    offset={stack.offsets[index]}
+                    firstHeight={stack.firstHeight}
+                    maxVisibleToasts={maxVisibleToasts}
+                    toasterExpanded={expanded}
+                    interacting={interacting}
+                    expandByDefault={expandByDefault}
+                    pauseWhenPageIsHidden={pauseWhenPageIsHidden}
+                    duration={duration}
+                    dismissalHotkey={dismissalHotkey}
+                    toastLabels={toastLabels}
+                    toastGap={toastGap}
+                    removeToast={removeToast}
+                    onHeight={onHeight}
+                  />
+                ))}
+                {stack.bridges.map((bridge) => (
+                  <View
+                    key={bridge.key}
+                    testID={`toaster-bridge-${bridge.key}`}
+                    accessible={false}
+                    onPointerEnter={requestExpand}
+                    onPointerMove={requestExpand}
+                    style={[
+                      {
+                        position: "absolute",
+                        left: 0,
+                        right: 0,
+                        height: toastGap + 1,
+                        [top ? "top" : "bottom"]: bridge.offset,
+                      },
+                      customToastBridgeStyles,
+                    ]}
+                  />
+                ))}
+              </NativeFocusHost>
+            )
+          })}
+        </NativeFocusHost>
+      </NativeToasterFocusContext.Provider>
     </NativeFloatingPortal>
   )
 })
