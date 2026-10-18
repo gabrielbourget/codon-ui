@@ -39,6 +39,7 @@ it("stages requested open state until explicit geometry readiness", async () => 
   expect(fixture.layer().mounted).toBe(false)
   await result.rerender(fixture.node({ ...fixture.options, isOpen: true }))
   expect(fixture.layer().phase).toBe("entering")
+  expect(fixture.layer().canMeasure()).toBe(true)
   expect(fixture.layer().canAct()).toBe(false)
   await act(() => {
     expect(fixture.layer().entered()).toBe(true)
@@ -70,6 +71,7 @@ it("keeps old readiness/exit/action closures inert across close and reopen", asy
   })
   expect(fixture.layer().active).toBe(true)
   expect(oldOpen.canAct()).toBe(false)
+  expect(oldOpen.canMeasure()).toBe(false)
   await act(() => {
     expect(oldExit.exited()).toBe(false)
   })
@@ -110,6 +112,7 @@ it("checks actual window admission before delivery and tracks native window regi
   })
   expect(fixture.layer().active).toBe(false)
   expect(fixture.layer().canAct()).toBe(false)
+  expect(fixture.layer().canMeasure()).toBe(false)
   await act(() => {
     fixture.options.registry.requestDismiss("keyboard")
   })
@@ -164,6 +167,7 @@ it("retires source callbacks and subscription ownership on unmount", async () =>
   await result.unmount()
   expect(fixture.options.registry.state(old.id).mounted).toBe(false)
   expect(old.canAct()).toBe(false)
+  expect(old.canMeasure()).toBe(false)
   expect(old.entered()).toBe(false)
   expect(old.exited()).toBe(false)
   expect(fixture.options.registry.requestDismiss("keyboard")).toBe(false)

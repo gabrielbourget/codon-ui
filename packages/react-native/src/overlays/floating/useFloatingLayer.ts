@@ -60,6 +60,15 @@ export const useNativeFloatingLayer = (options: TOptions) => {
     id,
     active: state.active && windowActive?.() !== false,
     canAct: () => current.current.windowActive?.() !== false && (owned?.canAct(generation) ?? false),
+    canMeasure: () => {
+      const latest = owned?.state()
+      return (
+        current.current.windowActive?.() !== false &&
+        latest?.generation === generation &&
+        (latest.phase === "entering" || latest.phase === "open") &&
+        !latest.covered
+      )
+    },
     entered: () => current.current.windowActive?.() !== false && (owned?.entered(generation) ?? false),
     exited: () => owned?.exited(generation) ?? false,
   }
