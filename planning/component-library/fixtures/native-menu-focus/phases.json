@@ -1,0 +1,30 @@
+{
+  "probe": "codon-native-menu-focus-v1",
+  "libraryProducer": "7b503dabe61ba9977c7c4a519a0fc79e7104da44",
+  "phases": [
+    {
+      "id": "initial-first",
+      "keys": [0, "", "tail"],
+      "focusKey": 0,
+      "explicitFocus": false
+    },
+    {
+      "id": "explicit-middle",
+      "keys": [0, "", "tail"],
+      "focusKey": "",
+      "explicitFocus": true
+    },
+    {
+      "id": "removed-forward",
+      "keys": [0, "tail"],
+      "focusKey": "tail",
+      "explicitFocus": false
+    },
+    {
+      "id": "removed-backward",
+      "keys": [0],
+      "focusKey": 0,
+      "explicitFocus": false
+    }
+  ]
+}
