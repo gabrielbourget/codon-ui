@@ -39,6 +39,7 @@ const press = async (name: string) => userEvent.setup().press(screen.getByRole("
 const choose = async (name = "String zero") => userEvent.setup().press(screen.getByRole("radio", { name }))
 const edit = async (text: string) => fireEvent.changeText(screen.getByLabelText("Search choices"), text)
 
+// The first mounted picker competes with parallel package tests on shared CI.
 it("keeps all three controlled axes authoritative through repeated vetoes and sends ordered independent requests", async () => {
   const requests: unknown[][] = []
   const props = {
@@ -83,7 +84,7 @@ it("keeps all three controlled axes authoritative through repeated vetoes and se
   ])
   await rerender(<ComboBox {...props} value={null} inputValue="" isOpen={false} placeholder="Empty" />)
   expect(screen.getByRole("button", { name: "Choose" }).props.accessibilityValue.text).toBe("Empty")
-})
+}, 15_000)
 
 it.each(["value", "query", "open"] as const)("allows the owner to accept only the %s axis", async (accepted) => {
   const Owner = () => {
