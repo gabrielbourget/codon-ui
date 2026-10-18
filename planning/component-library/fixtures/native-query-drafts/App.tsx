@@ -1,1 +1,1 @@
-export { default } from "../../../../packages/react-native/src/components/SortAndFilterPanel/__tests__/fixtures/QueryProbe"
+export { default } from "../../../../packages/react-native/src/components/Filtering/__tests__/fixtures/FilterControlProbe"
