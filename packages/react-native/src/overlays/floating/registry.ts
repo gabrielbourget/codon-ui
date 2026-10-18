@@ -34,7 +34,16 @@ export const createNativeFloatingLayerRegistry = () => {
   }
   const stack = () =>
     [...entries].filter(([, entry]) => entry.phase !== "closed").sort((a, b) => a[1].order - b[1].order)
-  const top = () => stack().at(-1)
+  const covered = (id: string) => {
+    const modal = stack()
+      .reverse()
+      .find(([, entry]) => entry.isModal)
+    return !!modal && modal[0] !== id && !descendants(modal[0]).includes(id)
+  }
+  const top = () =>
+    stack()
+      .filter(([id]) => !covered(id))
+      .at(-1)
   const reconcile = () => {
     for (const entry of entries.values()) {
       const desired = requested(entry)
@@ -93,8 +102,8 @@ export const createNativeFloatingLayerRegistry = () => {
       phase: entry?.phase ?? "closed",
       generation: entry?.generation ?? 0,
       mounted: !!entry && entry.phase !== "closed",
-      active: !!entry && entry.phase === "open" && top()?.[0] === id && requested(entry),
-      covered: !!entry && entry.phase !== "closed" && top()?.[0] !== id,
+      active: !!entry && entry.phase === "open" && !covered(id) && requested(entry),
+      covered: !!entry && entry.phase !== "closed" && covered(id),
     }
   }
   const requestDismiss = (reason: TNativeFloatingDismissReason) => {
@@ -118,7 +127,8 @@ export const createNativeFloatingLayerRegistry = () => {
     state,
     hasModal: () => stack().some(([, entry]) => entry.isModal),
     requestDismiss,
-    canRestore: (parent: string | null) => (parent === null ? stack().length === 0 : state(parent).active),
+    canRestore: (parent: string | null) =>
+      parent === null ? stack().length === 0 : state(parent).active && top()?.[0] === parent,
     register: (id: string, options: TOptions, notify = true) => {
       assertParent(id, options.parent)
       if (entries.has(id)) throw new Error("Floating layer identity is already registered")
