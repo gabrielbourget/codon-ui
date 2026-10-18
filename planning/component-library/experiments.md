@@ -77,6 +77,7 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
     - [3.31.24. Navigation Consumer And Release Checkpoint](#33124-navigation-consumer-and-release-checkpoint)
     - [3.31.25. Installed Metadata Observer Construction](#33125-installed-metadata-observer-construction)
     - [3.31.26. Installed Metadata Observer Outcomes](#33126-installed-metadata-observer-outcomes)
+    - [3.31.27. Persisted Metadata Receipt Construction](#33127-persisted-metadata-receipt-construction)
 - [4. Progress And Meter Delivery](#4-progress-and-meter-delivery)
 - [5. ComboBox Customization Coverage](#5-combobox-customization-coverage)
 - [6. RN Primitives Decision](#6-rn-primitives-decision)
@@ -1397,6 +1398,16 @@ The iOS guest also boots once, installs once and launches once. Installed execut
 Both task guests stop, and a fresh adb/simctl inventory confirms none is booted. All attempts stay within the original 30-minute installed-observation bound. Native fields returned on Android remain valid evidence despite the separate iOS capture failure. The existing locked SDK already contains ExpoFileSystem 57.0.7; its supported module API is a concrete candidate for private persisted receipts to audit before any further observation, without assuming a new dependency/API approval or a passing iOS result.
 
 Immutable DATA ONLY packet native-navigation-observer-359f288 has 157 listed files and manifest d254271dbf28a88f95824bd7ddcd4cdad78af5cceab4d5a612b4e9b668c93403, under the existing native-library-construction-2026-10-17 root. It contains the original source/builds, explicit compiler-map correction, distinct private products/maps, installed hashes, raw channels, screenshot, validator verdict, partial matrix and cleanup receipts. Never execute/import its helpers or write below the seal. Source 359f288 and verifier 8a0c7ab remain distinct from the unchanged native library identity. The full 53-component goal stays active; public availability remains 35/53, physical/input/ARM/fold/closer visual and iPhone-signing deferrals remain unchanged. Subsequent goal PR ordinal 6 skips hosted CI under §9.1 with normal hooks retained.
+
+#### 3.31.27. Persisted Metadata Receipt Construction
+
+Feature/native-metadata-receipts starts from PR #25 head 5972b5d under roadmap §3.5.29. The concrete new observation route uses the already-linked ExpoFileSystem 57.0.7 legacy module ExponentFileSystem, whose inspected Swift implementation exports cacheDirectory and UTF-8 writeAsStringAsync with atomic replacement when append=false. The existing expo entry exports requireNativeModule. No package/dependency, native code/schema, SDK flag, public library API or production entry changes are introduced.
+
+Fixture version codon-native-navigation-v2 retains the same eleven metadata phases and actual native command/callback path. Each original record is serialized immediately to an append-only journal; completion/failure writes the complete journal once to its versioned app-cache file. Native completion and persisted/receipt-failed UI states are distinct. A lazy typed SDK boundary preserves original packet data, explicit zero/false/empty/Unicode and exact observation order; no expected metadata is copied into actual records and no native command is retried to repair receipts.
+
+Focused receipt checks pass for immutable serialization, one-write/idempotent completion, late-record rejection, exact values, surfaced I/O failure and cache ownership; the six independent native-field validator unit tests also pass. Pinned native TypeScript compilation passes for the byte-identical staged fixture. The tsx CLI initially encounters sandbox IPC denial; the same pinned loader runs the test successfully through node --import tsx, with no tool/dependency change. Native build and actual file readback remain pending at this checkpoint.
+
+This cohort builds and invokes only iOS for the changed receipt channel. The prior 21 Android PASS cells retain their original source/product/inspector identity rather than being relabeled as the new payload. Before launch, the driver requires exact installed executable/bundle identity and absence of a stale versioned receipt, then copies the actual app-container file into the new evidence packet before field validation. One boot/install/launch is bounded by the new source contract; the sealed previous logging failure is preserved and is not replayed. All 53 catalogue IDs, controlled values, pins/palette, package ownership and physical/iPhone-signing deferrals remain intact; the full goal stays active.
 
 ## 4. Progress And Meter Delivery
 

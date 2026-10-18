@@ -1,5 +1,5 @@
 {
-  "probe": "codon-native-navigation-v1",
+  "probe": "codon-native-navigation-v2",
   "libraryProducer": "f86d8a60d71e8c549080fac0f2e3a1a690a58224",
   "phases": [
     { "id": "initial", "page": 1 },
