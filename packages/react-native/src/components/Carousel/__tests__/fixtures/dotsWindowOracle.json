@@ -1,0 +1,2969 @@
+{
+  "canonicalSourceSHA256": "aec6f8a7dd34972cc65c2acc912ebd1a50243057554328fdc41e8aacdc7e6c18",
+  "sequences": [
+    {
+      "name": "forward then reverse",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 2,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 3,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 4,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 1
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 1,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 7,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 4
+          },
+          "beforeFrames": {
+            "windowStart": 3,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 8,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 5
+          },
+          "beforeFrames": {
+            "windowStart": 4,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 4,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 4,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 9,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 6
+          },
+          "beforeFrames": {
+            "windowStart": 5,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 8,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 5
+          },
+          "beforeFrames": {
+            "windowStart": 5,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 7,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 4
+          },
+          "beforeFrames": {
+            "windowStart": 5,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 4,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 4,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 4,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 3,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 4,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 1
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 3,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 1,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 2,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reverse then forward",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 19,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 18,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 17,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 16,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 15,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 12
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 14,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 11
+          },
+          "beforeFrames": {
+            "windowStart": 12,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 12,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 12,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 13,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 10
+          },
+          "beforeFrames": {
+            "windowStart": 11,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 12,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 9
+          },
+          "beforeFrames": {
+            "windowStart": 10,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 10,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 10,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 11,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 8
+          },
+          "beforeFrames": {
+            "windowStart": 9,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 12,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 9
+          },
+          "beforeFrames": {
+            "windowStart": 9,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 13,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 10
+          },
+          "beforeFrames": {
+            "windowStart": 9,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 14,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 11
+          },
+          "beforeFrames": {
+            "windowStart": 10,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 10,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 10,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 15,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 12
+          },
+          "beforeFrames": {
+            "windowStart": 11,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 16,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 12,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 12,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 12,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 17,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 18,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 19,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "wrap both ways",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 19,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 18,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 19,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 19,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "repeat selection and rapid reversal",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 4,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 1
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 7,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 4
+          },
+          "beforeFrames": {
+            "windowStart": 3,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 3,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 5,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 3,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 3,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "programmatic interior jumps",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 10,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 7
+          },
+          "beforeFrames": {
+            "windowStart": 6,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 6,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 6,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 15,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 12
+          },
+          "beforeFrames": {
+            "windowStart": 11,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 11,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 4,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 1
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 12,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 9
+          },
+          "beforeFrames": {
+            "windowStart": 8,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 8,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 8,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 3,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 1,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 1,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 17,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 13
+          },
+          "beforeFrames": {
+            "windowStart": 13,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 13,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 2,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two items",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "one and empty collections",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 1,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 0,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 1,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "collection and viewport replacements",
+      "steps": [
+        {
+          "input": {
+            "selectedIndex": 12,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 9
+          },
+          "beforeFrames": {
+            "windowStart": 9,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 0,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 9,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 0,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 9,
+            "itemCount": 12,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 5,
+            "initialWindowStart": 5
+          },
+          "beforeFrames": {
+            "windowStart": 5,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 5,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 9,
+            "itemCount": 12,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 2,
+            "initialWindowStart": 2
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 2,
+            "itemCount": 6,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 1,
+            "itemCount": 2,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": true,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": true,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 0,
+            "itemCount": 0,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 0,
+            "initialWindowStart": 0
+          },
+          "beforeFrames": {
+            "windowStart": 0,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": -1,
+            "isFlipCooldownActive": false
+          },
+          "afterFrames": [
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            },
+            {
+              "windowStart": 0,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": -1,
+              "isFlipCooldownActive": false
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 13,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        },
+        {
+          "input": {
+            "selectedIndex": 6,
+            "itemCount": 20,
+            "largeZoneCount": 3,
+            "neighbors": 2,
+            "minPinned": 1,
+            "maxStart": 8,
+            "initialWindowStart": 3
+          },
+          "beforeFrames": {
+            "windowStart": 2,
+            "noTransition": false,
+            "wrappedThisRender": false,
+            "currDir": 1,
+            "isFlipCooldownActive": true
+          },
+          "afterFrames": [
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            },
+            {
+              "windowStart": 2,
+              "noTransition": false,
+              "wrappedThisRender": false,
+              "currDir": 1,
+              "isFlipCooldownActive": true
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
