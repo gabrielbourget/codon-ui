@@ -1,4 +1,5 @@
 #import "CUIFocusView.h"
+#import "CUIAccessibilityReferences.h"
 #import "CUIInputWindow.h"
 #import "CUIKeyboardScope.h"
 #import <react/featureflags/ReactNativeFeatureFlags.h>
@@ -22,6 +23,13 @@ using namespace facebook::react;
   NSSet<NSString *> *_capturedKeys;
   NSMutableDictionary<NSNumber *, UIPress *> *_held;
   NSMutableSet<NSNumber *> *_consumed;
+  NSArray<NSString *> *_nativeLabelledBy;
+  NSArray<NSString *> *_nativeDescribedBy;
+  NSArray<NSString *> *_nativeDetailsBy;
+  NSInteger _nativeDescriptionTag;
+  NSString *_nativeDescriptionLabel;
+  NSString *_nativeDetailsLabel;
+  NSArray<AXCustomContent *> *_callerAccessibilityContent;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -39,10 +47,56 @@ using namespace facebook::react;
     _capturedKeys = [NSSet set];
     _held = [NSMutableDictionary dictionary];
     _consumed = [NSMutableSet set];
+    _nativeDescriptionLabel = @"Description";
+    _nativeDetailsLabel = @"Details";
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
+}
+
+- (NSString *)accessibilityLabel
+{
+  if (CUIAccessibilityIsResolving(self)) return nil;
+  NSString *label = CUIAccessibilityResolve(self, _nativeLabelledBy, 0, NO);
+  return label != nil ? label : [super accessibilityLabel];
+}
+
+- (void)setAccessibilityCustomContent:(NSArray<AXCustomContent *> *)content
+{
+  _callerAccessibilityContent = [content copy];
+}
+
+- (NSArray<AXCustomContent *> *)accessibilityCustomContent
+{
+  NSMutableArray<AXCustomContent *> *content = [_callerAccessibilityContent mutableCopy] ?: [NSMutableArray array];
+  NSString *description = CUIAccessibilityResolve(self, _nativeDescribedBy, _nativeDescriptionTag, YES);
+  NSString *details = CUIAccessibilityResolve(self, _nativeDetailsBy, 0, YES);
+  if (description != nil) [content addObject:[AXCustomContent customContentWithLabel:_nativeDescriptionLabel value:description]];
+  if (details != nil) [content addObject:[AXCustomContent customContentWithLabel:_nativeDetailsLabel value:details]];
+  return content;
+}
+
+- (void)inspectAccessibility:(NSString *)ownerId
+{
+  if (![_ownerId isEqualToString:ownerId] || !_eventEmitter || !self.window.isKeyWindow) return;
+  NSArray<AXCustomContent *> *content = self.accessibilityCustomContent;
+  NSUInteger index = _callerAccessibilityContent.count;
+  BOOL descriptionAvailable = CUIAccessibilityResolve(self, _nativeDescribedBy, _nativeDescriptionTag, YES) != nil;
+  BOOL detailsAvailable = CUIAccessibilityResolve(self, _nativeDetailsBy, 0, YES) != nil;
+  CUIFocusViewEventEmitter::OnNativeAccessibilitySnapshot value{};
+  value.ownerId = _ownerId.UTF8String;
+  value.target = (int)self.tag;
+  value.windowId = CUIInputWindowIdentity(self.window).UTF8String;
+  value.label = self.accessibilityLabel.UTF8String ?: "";
+  value.hint = self.accessibilityHint.UTF8String ?: "";
+  value.value = self.accessibilityValue.UTF8String ?: "";
+  value.description = descriptionAvailable ? content[index++].value.UTF8String : "";
+  value.details = detailsAvailable ? content[index].value.UTF8String : "";
+  value.descriptionAvailable = descriptionAvailable;
+  value.detailsAvailable = detailsAvailable;
+  value.observedAt = NSProcessInfo.processInfo.systemUptime * 1000;
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeAccessibilitySnapshot(value);
 }
 
 - (BOOL)accessibilityActivate
@@ -263,6 +317,18 @@ using namespace facebook::react;
   _keyboardFocusable = next.keyboardFocusable;
   _nativePressable = next.nativePressable;
   _capturedKeys = capture;
+  NSMutableArray<NSString *> *labelledBy = [NSMutableArray array];
+  for (const auto &id : next.nativeLabelledBy) [labelledBy addObject:[NSString stringWithUTF8String:id.c_str()]];
+  NSMutableArray<NSString *> *describedBy = [NSMutableArray array];
+  for (const auto &id : next.nativeDescribedBy) [describedBy addObject:[NSString stringWithUTF8String:id.c_str()]];
+  NSMutableArray<NSString *> *detailsBy = [NSMutableArray array];
+  for (const auto &id : next.nativeDetailsBy) [detailsBy addObject:[NSString stringWithUTF8String:id.c_str()]];
+  _nativeLabelledBy = labelledBy;
+  _nativeDescribedBy = describedBy;
+  _nativeDetailsBy = detailsBy;
+  _nativeDescriptionTag = next.nativeDescriptionTag;
+  _nativeDescriptionLabel = [NSString stringWithUTF8String:next.nativeDescriptionLabel.c_str()];
+  _nativeDetailsLabel = [NSString stringWithUTF8String:next.nativeDetailsLabel.c_str()];
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
 }
@@ -285,6 +351,13 @@ using namespace facebook::react;
   _capturedKeys = [NSSet set];
   _keyboardFocusable = YES;
   _nativePressable = NO;
+  _nativeLabelledBy = nil;
+  _nativeDescribedBy = nil;
+  _nativeDetailsBy = nil;
+  _nativeDescriptionTag = 0;
+  _nativeDescriptionLabel = @"Description";
+  _nativeDetailsLabel = @"Details";
+  _callerAccessibilityContent = nil;
   _focusAcknowledged = NO;
   _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
   [super prepareForRecycle];

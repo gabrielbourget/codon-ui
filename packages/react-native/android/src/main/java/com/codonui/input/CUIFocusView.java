@@ -7,14 +7,19 @@ import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewParent;
+import android.view.accessibility.AccessibilityNodeInfo;
+import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
+import com.facebook.react.R;
 import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -27,11 +32,72 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private boolean keyboardFocusable = true;
   private boolean nativePressable = false;
   private double activationId;
+  private List<String> nativeLabelledBy = new ArrayList<>();
+  private List<String> nativeDescribedBy = new ArrayList<>();
+  private List<String> nativeDetailsBy = new ArrayList<>();
+  private int nativeDescriptionTag;
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
     setFocusable(true);
     setFocusableInTouchMode(true);
+  }
+
+  void setNativeLabelledBy(List<String> ids) { nativeLabelledBy = ids; }
+  void setNativeDescribedBy(List<String> ids) { nativeDescribedBy = ids; }
+  void setNativeDetailsBy(List<String> ids) { nativeDetailsBy = ids; }
+  void setNativeDescriptionTag(int tag) { nativeDescriptionTag = tag; }
+
+  @Override public CharSequence getContentDescription() {
+    if (nativeLabelledBy == null || nativeLabelledBy.isEmpty()) return super.getContentDescription();
+    CUIAccessibilityReferences.Text label = CUIAccessibilityReferences.resolve(this, nativeLabelledBy, 0, false);
+    CharSequence original = super.getContentDescription();
+    if (!label.available || original == null) return label.available ? label.value : original;
+    String content = original.toString();
+    String callerLabel = (String) getTag(R.id.accessibility_label);
+    // The SDK appends native state/value text to its primary label; replace only the label portion.
+    if (callerLabel != null) {
+      if (content.equals(callerLabel)) return label.value;
+      if (content.startsWith(callerLabel + ", ")) return label.value + content.substring(callerLabel.length());
+    }
+    return label.value + ", " + content;
+  }
+  @Override public AccessibilityNodeInfo createAccessibilityNodeInfo() {
+    AccessibilityNodeInfo info = super.createAccessibilityNodeInfo();
+    if (info == null) return null;
+    AccessibilityNodeInfoCompat node = AccessibilityNodeInfoCompat.wrap(info);
+    CUIAccessibilityReferences.Text label = CUIAccessibilityReferences.resolve(this, nativeLabelledBy, 0, false);
+    CUIAccessibilityReferences.Text description = CUIAccessibilityReferences.resolve(this, nativeDescribedBy, nativeDescriptionTag, true);
+    CUIAccessibilityReferences.Text details = CUIAccessibilityReferences.resolve(this, nativeDetailsBy, 0, true);
+    if (label.available) node.setContentDescription(getContentDescription());
+    if (description.available) {
+      // RN uses tooltip text for accessibilityHint; retain it in the native hint field before binding the description.
+      if (node.getHintText() == null && node.getTooltipText() != null) node.setHintText(node.getTooltipText());
+      node.setTooltipText(description.value);
+    }
+    if (details.available) node.setSupplementalDescription(details.value);
+    return info;
+  }
+  void inspectAccessibility(String owner) {
+    if (!ownerId.equals(owner) || !isAttachedToWindow() || !hasWindowFocus()) return;
+    AccessibilityNodeInfo info = createAccessibilityNodeInfo();
+    if (info == null) return;
+    AccessibilityNodeInfoCompat node = AccessibilityNodeInfoCompat.wrap(info);
+    CUIAccessibilityReferences.Text description = CUIAccessibilityReferences.resolve(this, nativeDescribedBy, nativeDescriptionTag, true);
+    CUIAccessibilityReferences.Text details = CUIAccessibilityReferences.resolve(this, nativeDetailsBy, 0, true);
+    WritableMap data = baseData();
+    data.putString("windowId", CUIInputWindow.identity(this));
+    data.putString("label", node.getContentDescription() == null ? "" : node.getContentDescription().toString());
+    CharSequence hint = node.getHintText();
+    if (hint == null && !description.available) hint = node.getTooltipText();
+    data.putString("hint", hint == null ? "" : hint.toString());
+    data.putString("value", node.getText() == null ? "" : node.getText().toString());
+    data.putString("description", node.getTooltipText() == null ? "" : node.getTooltipText().toString());
+    data.putString("details", node.getSupplementalDescription() == null ? "" : node.getSupplementalDescription().toString());
+    data.putBoolean("descriptionAvailable", description.available);
+    data.putBoolean("detailsAvailable", details.available);
+    data.putDouble("observedAt", SystemClock.uptimeMillis());
+    emit("topNativeAccessibilitySnapshot", data);
   }
 
   void setOwnerId(String next) {

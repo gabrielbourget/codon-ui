@@ -13,5 +13,6 @@ Pod::Spec.new do |s|
   s.source = { :git => "https://github.com/gabrielbourget/codon-ui.git", :tag => s.version.to_s }
   s.source_files = "ios/**/*.{h,mm}"
   s.private_header_files = "ios/**/*.h"
+  s.frameworks = "Accessibility"
   install_modules_dependencies(s)
 end
