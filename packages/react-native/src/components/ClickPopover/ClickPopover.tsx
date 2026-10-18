@@ -1,5 +1,7 @@
 import {
   forwardRef,
+  type ForwardRefExoticComponent,
+  type RefAttributes,
   useContext,
   useImperativeHandle,
   useInsertionEffect,
@@ -16,6 +18,7 @@ import {
   View,
   type GestureResponderEvent,
   type LayoutChangeEvent,
+  type ViewProps,
 } from "react-native"
 import type { PathProps } from "react-native-svg"
 
@@ -44,9 +47,13 @@ const getFocusSessionKey = (scope: ReturnType<typeof useNativeKeyScope>) => {
   return JSON.stringify([session?.windowId, session?.epoch])
 }
 
-export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopoverProps>((props, ref) => {
+export const NativeFloatingSurface = forwardRef<
+  TNativeClickPopoverRef,
+  TNativeClickPopoverProps & { nativeRootRole?: ViewProps["role"] | null }
+>((props, ref) => {
   const {
     children,
+    nativeRootRole,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -321,7 +328,11 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
               accessible={false}
               focusable={nativeProps.focusable !== false && !childIsDialog && ready && layer.active}
               accessibilityLabel={accessibilityLabel ?? aliasLabel}
-              role={!childIsDialog && !isNonModal ? "dialog" : undefined}
+              role={
+                nativeRootRole === null
+                  ? undefined
+                  : (nativeRootRole ?? (!childIsDialog && !isNonModal ? "dialog" : undefined))
+              }
               accessibilityViewIsModal={!isNonModal}
               style={[
                 {
@@ -409,4 +420,6 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
     </NativeFloatingPortal>
   )
 })
-ClickPopover.displayName = "ClickPopover"
+NativeFloatingSurface.displayName = "ClickPopover"
+export const ClickPopover: ForwardRefExoticComponent<TNativeClickPopoverProps & RefAttributes<TNativeClickPopoverRef>> =
+  NativeFloatingSurface

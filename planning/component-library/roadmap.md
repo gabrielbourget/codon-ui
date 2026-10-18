@@ -51,6 +51,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon U
     - [3.5.27. Native Navigation And Current Page Metadata](#3527-native-navigation-and-current-page-metadata)
     - [3.5.28. Installed Native Metadata Observer](#3528-installed-native-metadata-observer)
     - [3.5.29. Persisted Native Metadata Receipts](#3529-persisted-native-metadata-receipts)
+    - [3.5.30. Native Menu Construction Contract](#3530-native-menu-construction-contract)
   - [3.6. LinearProgress And Meter Contract](#36-linearprogress-and-meter-contract)
 - [4. Ownership And Accepted Contracts](#4-ownership-and-accepted-contracts)
 - [5. Native Runtime And Distribution](#5-native-runtime-and-distribution)
@@ -910,6 +911,58 @@ The first observer returns verified Android fields and reaches the completed iOS
 
 This changes the private receipt channel after an observed log-transport failure; it is not another XCTest startup experiment. All 53 catalogue IDs, controlled values, existing pins/palette, sealed evidence and physical/iPhone-signing deferrals remain intact. Native code and public consumer/source proof are reused only after matching their exact unchanged inputs and product scope. The persisted cohort now returns 77 original iOS snapshots and closes 18 exact forms, retaining the prior 21 Android passes. The metadata projection is 39 PASS/34 OPEN/3 N/A; [§3.31.28](experiments.md#33128-persisted-ios-metadata-outcomes) records the actual file, installed hashes, native assertions and unclosed scope.
 
+#### 3.5.30. Native Menu Construction Contract
+
+This conventional private family follows the approved floating/input architecture in §3.5.17/§3.5.21 and full-goal standing policy. The complete canonical Menu/helpers/CSS/item/separator/index and all 35 root cases are read; the unchanged baseline passes 35/35. Inherited pinned Menu/Popover/MenuTrigger, useMenu/useMenuItem/useSelectableItem/useSelectableCollection and selection-state/manager contracts are inspected. Construction stays inside packages/react-native with the existing peer set, palette, actual refs and native event union.
+
+| Capability ID | Exact canonical root assertion / native expected behavior |
+| ------------- | --------------------------------------------------------- |
+| CAP.menu.001  | renders                                                   |
+| CAP.menu.002  | shows three actionable items, excluding separators        |
+| CAP.menu.003  | width                                                     |
+| CAP.menu.004  | foreground color                                          |
+| CAP.menu.005  | primary order                                             |
+| CAP.menu.006  | secondary order                                           |
+| CAP.menu.007  | tertiary order                                            |
+| CAP.menu.008  | quaternary order                                          |
+| CAP.menu.009  | quintenary order                                          |
+| CAP.menu.010  | numbered palette equivalents                              |
+| CAP.menu.011  | rounded geometry                                          |
+| CAP.menu.012  | orthogonal geometry                                       |
+| CAP.menu.013  | raised by default                                         |
+| CAP.menu.014  | raised=false                                              |
+| CAP.menu.015  | independent root/list styles                              |
+| CAP.menu.016  | menu-list accessible name                                 |
+| CAP.menu.017  | keep open after action                                    |
+| CAP.menu.018  | consume root wrapper props                                |
+| CAP.menu.019  | root action receives exact typed key                      |
+| CAP.menu.020  | individual action callback                                |
+| CAP.menu.021  | disabled keys prevent action                              |
+| CAP.menu.022  | authored icon slot                                        |
+| CAP.menu.023  | no icon slot when omitted                                 |
+| CAP.menu.024  | destructive variant                                       |
+| CAP.menu.025  | ordinary variant                                          |
+| CAP.menu.026  | item custom/final style                                   |
+| CAP.menu.027  | item state style callback                                 |
+| CAP.menu.028  | consume item wrapper props                                |
+| CAP.menu.029  | separator content                                         |
+| CAP.menu.030  | separator semantics                                       |
+| CAP.menu.031  | separator custom/final style                              |
+| CAP.menu.032  | consume separator wrapper props                           |
+| CAP.menu.033  | Enter trigger opens                                       |
+| CAP.menu.034  | arrow navigation then action                              |
+| CAP.menu.035  | Escape closes                                             |
+
+Root Menu preserves the popover open/default/trigger/placement/lifetime surface through the existing private floating core, but its outer shell does not acquire dialog semantics. The actual menu list has menu semantics, native scrolling and a real root View ref; default minWidth 160, padding one theme unit, rounded radius, raised shadow and root/custom/final style order remain explicit. Order changes background using existing native action roles; explicit color affects foreground and suppresses order background, matching the canonical distinction. The list owns its separate column/gap2/padding0/margin0 and text/layout styles.
+
+Retain declarative MenuItem/MenuSeparator children, typed string/number keys including 0/empty, generated IDs for omitted IDs, original refs and item callback/style/icon identities. Menu-local item registration binds actual committed instances and current metadata; direct/fragment/native-wrapper child order hints cover explicitly keyed conventional authored trees. Mixed generated/explicit IDs also require complete logical-order reconciliation. Opaque custom-component collection reorder, arbitrary hidden/virtualized collection composition, section/submenu integration and complete logical-order reconciliation remain mandatory inherited OPEN capabilities until implemented and verified; no new general collection architecture or public capability drop is authorized by this local construction step. Keep the family private while those obligations remain. The current construction and precise source/consumer/native scope are recorded in [experiments §3.31.29](experiments.md#33129-private-menu-construction-and-consumer-checkpoint).
+
+SelectionMode defaults none; undefined selectedKeys owns a distinct local empty selection while provided iterables/Set/all remain caller-owned. A request never echoes or mutates owner keys; preserve typed-key identity, repeated vetoes, empty sets and missing keys. Single selection toggles the current item off while retaining unrelated owner keys. Multiple toggles and Shift-range preserve selection-manager anchor/current metadata; all/range materialization uses current selectable rows, including link membership, while activating a link bypasses selection. Disabled metadata follows the audited item/root precedence rather than a falsy fallback. Selection is requested before item action, then root action, URL handoff and close; callback changes/unmount/retirement are checked between steps. Links use existing guarded native URL semantics. Menu defaults shouldCloseOnSelect=true even in multiple mode; an explicit item override wins, including false.
+
+Native keyboard Enter/Space activates on key-down without duplicate key-up action; actual raw and semantic press callbacks retain their event identity/lifetimes. Native scoped arrows/Home/End/Page and locale typeahead use actual focused targets and measured scrolling; repeat/cancel/modifier/default-handling policy stays explicit. Trigger Enter/Space and first/last arrow focus, full Tab containment/restoration, native pointer-origin drag-release/submenus, description/keyboard-shortcut relationships and all applicable profiles remain required, with unsupported source/native forms OPEN rather than silently removed. Item styles preserve disabled/hover/pressed/focus-visible/selection state callbacks, semantic danger, icon-presence for null versus undefined, and independent root/text/native overrides. Separator retains independent computed/custom/final style and accessibility semantics.
+
+First construct typed selection/model/style contracts and their executable tests, then item/separator/list/floating composition with all 35 mapped root assertions and inherited source cases, then current consumer/private runtime proof and installed forms. The existing metadata receipts may support genuine native observations but cannot replace input/pointer/focus or full menu acceptance. No dependency, SDK flag, palette, public shared API, XCTest/LLDB/startup repair, signing, registry/publication or workflow modification is included. Use logical model/control/composition/proof commits. Goal PR ordinal 8 requires the full existing CI workflow at its final exact head under §9.1.
+
 <a id="linearprogress-and-meter-contract"></a>
 
 ### 3.6. LinearProgress And Meter Contract
@@ -995,7 +1048,7 @@ All 53 manifest identities below are retained from the former native ledger. The
 | `click-popover`            | [ClickPopover](../../packages/react/src/components/ClickPopover/ClickPopover.tsx)                               | [suite](../../packages/react/src/components/ClickPopover/__tests__/ClickPopover.test.tsx)                         | Approved floating plan3.5.17; owned/inherited audit recorded                       | Private1671059; source assertions pass; scroll/focus/key/public/native OPEN             |
 | `tooltip`                  | [Tooltip](../../packages/react/src/components/Tooltip/Tooltip.tsx)                                              | [suite](../../packages/react/src/components/Tooltip/__tests__/Tooltip.test.tsx)                                   | Audited owned/inherited contract;3.5.17.20–23                                      | Private surfaces5ffa805; exact required matrix3.31.3; native/public OPEN                |
 | `hover-popover`            | [HoverPopover](../../packages/react/src/components/HoverPopover/HoverPopover.tsx)                               | [suite](../../packages/react/src/components/HoverPopover/__tests__/HoverPopover.test.tsx)                         | Audited owned/inherited contract;3.5.17.20–23                                      | Private surfaces5ffa805; exact required matrix3.31.3; native/public OPEN                |
-| `menu`                     | [Menu](../../packages/react/src/components/Menu/Menu.tsx)                                                       | [suite](../../packages/react/src/components/Menu/__tests__/Menu.test.tsx)                                         | Audit before family implementation                                                 | Pending                                                                                 |
+| `menu`                     | [Menu](../../packages/react/src/components/Menu/Menu.tsx)                                                       | [suite](../../packages/react/src/components/Menu/__tests__/Menu.test.tsx)                                         | Audited private conventional contract in §3.5.30                                   | Private 6103855; 47 cases; consumer/graphs pass; inherited/public/native OPEN           |
 | `panel`                    | [Panel](../../packages/react/src/components/Panel/Panel.tsx)                                                    | [suite](../../packages/react/src/components/Panel/__tests__/Panel.test.tsx)                                       | Audit before family implementation                                                 | Pending                                                                                 |
 | `modal`                    | [Modal](../../packages/react/src/components/Modal/Modal.tsx)                                                    | [suite](../../packages/react/src/components/Modal/__tests__/Modal.test.tsx)                                       | Approved native overlay contract                                                   | Source implemented; [proof history](experiments.md#2-implementation-checkpoints)        |
 | `alert-dialog`             | [AlertDialog](../../packages/react/src/components/AlertDialog/AlertDialog.tsx)                                  | [suite](../../packages/react/src/components/AlertDialog/__tests__/AlertDialog.test.tsx)                           | Approved native overlay contract                                                   | Source implemented; [proof history](experiments.md#2-implementation-checkpoints)        |
