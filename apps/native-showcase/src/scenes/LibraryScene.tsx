@@ -132,6 +132,10 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
             ? (state) => ({
                 backgroundColor: state.isPressed ? "#173f5f" : "#123456",
                 color: "#ffffff",
+                fontSize: 20,
+                fontWeight: "700",
+                letterSpacing: 1,
+                textTransform: "uppercase",
                 boxShadow: renderChildren
                   ? [{ offsetX: 0, offsetY: 2, blurRadius: 3, color: "rgba(0, 0, 0, 0.24)" }]
                   : "0px 2px 3px rgba(0, 0, 0, 0.24)",
