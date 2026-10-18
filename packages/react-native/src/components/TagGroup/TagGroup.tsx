@@ -13,10 +13,9 @@ import {
   type ReactNode,
   type RefAttributes,
 } from "react"
-import { findNodeHandle, I18nManager, Linking, type View } from "react-native"
+import { findNodeHandle, I18nManager, Linking, Platform, type View } from "react-native"
 
 import { focusNativeTarget } from "../../input/focus"
-import { nativeKeyToken } from "../../input/keyScope"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent } from "../../input/types"
@@ -31,6 +30,12 @@ import {
   getNativeTagGroupPressIntent,
   getNativeTagGroupSelectionOperation,
 } from "./intent"
+import {
+  getNativeTagGroupKeyTokens,
+  getNativeTagGroupNavigationKey,
+  getNativeTagGroupNavigationSelection,
+  isNativeTagGroupNavigationKey,
+} from "./keyboard"
 import {
   equalNativeTagGroupSelection,
   getNativeTagGroupRemovalRequest,
@@ -58,29 +63,6 @@ const hintsFor = (children: ReactNode) => {
   visit(children)
   return result
 }
-const tokens = [
-  "ArrowLeft",
-  "ArrowRight",
-  "ArrowUp",
-  "ArrowDown",
-  "Home",
-  "End",
-  "Delete",
-  "Backspace",
-  "Escape",
-].flatMap((key) =>
-  [false, true].map((shiftKey) => nativeKeyToken({ key, shiftKey, altKey: false, ctrlKey: false, metaKey: false })),
-)
-tokens.push(
-  ...["a", "A"].flatMap((key) =>
-    [false, true].flatMap((shiftKey) =>
-      [
-        { ctrlKey: true, metaKey: false },
-        { ctrlKey: false, metaKey: true },
-      ].map((modifier) => nativeKeyToken({ key, shiftKey, altKey: false, ...modifier })),
-    ),
-  ),
-)
 const KeyBindings = ({
   targetTag,
   lifetime,
@@ -93,7 +75,7 @@ const KeyBindings = ({
   onKey: (event: TNativeKeyboardEvent) => void
 }) => {
   useNativeKeyPolicy({
-    tokens,
+    tokens: getNativeTagGroupKeyTokens(Platform.OS === "ios"),
     targetTag,
     lifetimeKey: lifetime,
     isEnabled: targetTag > 0,
@@ -169,6 +151,19 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
   const list = useRef<View>(null),
     live = useRef(false),
     previousOrder = useRef<readonly TNativeTagGroupKey[]>([])
+  const typeahead = useRef<{
+    search: string
+    timer: ReturnType<typeof setTimeout> | null
+    generation: number
+    session: string
+  }>({ search: "", timer: null, generation: 0, session: "" })
+  const clearTypeahead = () => {
+    const state = typeahead.current
+    state.generation++
+    if (state.timer !== null) clearTimeout(state.timer)
+    state.timer = null
+    state.search = ""
+  }
   const scope = useContext(NativeFloatingScopeContext),
     window = useContext(NativeFloatingWindowContext),
     input = useNativeKeyScope()
@@ -235,6 +230,7 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
     live.current = true
     return () => {
       live.current = false
+      clearTypeahead()
     }
   }, [])
   const register = useCallback((row: TNativeTagRegistration) => {
@@ -272,6 +268,37 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
         hasAction: false,
       },
     )
+  const keyCapture = (row: TNativeTagRegistration, event: TNativeKeyboardEvent) => {
+    if (!admitted(row)) {
+      clearTypeahead()
+      return
+    }
+    const data = event.nativeEvent
+    if (event.defaultPrevented || event.isDefaultPrevented?.() || data.cancelled || data.phase !== "down") return
+    const session = JSON.stringify(current.current.input?.acknowledgedSession() ?? null),
+      state = typeahead.current
+    if (state.session !== session) {
+      clearTypeahead()
+      state.session = session
+    }
+    const character = data.key.length === 1 || !/^[A-Z]/i.test(data.key) ? data.key : ""
+    if (!character || data.ctrlKey || data.metaKey || (!state.search.length && character === " ")) return
+    if (character === " " && state.search.trim().length) {
+      event.preventDefault()
+      event.stopPropagation?.()
+    }
+    state.search += character
+    state.generation++
+    const generation = state.generation
+    if (state.timer !== null) clearTimeout(state.timer)
+    // The pinned default TagGroup delegate has no collator; its capture buffer still owns Space.
+    state.timer = setTimeout(() => {
+      if (state.generation === generation) {
+        state.search = ""
+        state.timer = null
+      }
+    }, 1000)
+  }
   const actionState: NonNullable<React.ContextType<typeof NativeTagGroupContext>>["actionState"] = (
     row,
     item = row.props(),
@@ -407,45 +434,42 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
         requestSelection(new Set())
       return
     }
-    if (data.key.toLocaleLowerCase() === "a" && (data.ctrlKey || data.metaKey) && !data.altKey && !data.repeat) {
+    if (data.key === "a" && (Platform.OS === "ios" ? data.metaKey : data.ctrlKey)) {
       requestSelection(
-        getNativeTagGroupSelectAllRequest(
-          owner.props.selectionMode ?? "none",
-          owner.selection,
-          owner.model,
-          owner.props.disallowEmptySelection,
-        ),
+        getNativeTagGroupSelectAllRequest(owner.props.selectionMode ?? "none", owner.selection, owner.model),
       )
       return
     }
-    if (!row) return
     if (data.key === "Delete" || data.key === "Backspace") {
-      if (!data.repeat) remove(row, "keyboard", event)
+      if (row) remove(row, "keyboard", event)
       return
     }
-    if (data.altKey || data.ctrlKey || data.metaKey) return
-    const available = owner.ordered.filter((entry) => !owner.isDisabled(entry)),
-      index = available.indexOf(row)
-    if (index < 0 || !available.length) return
-    let next = index
-    if (data.key === "Home") next = 0
-    else if (data.key === "End") next = available.length - 1
-    else if (data.key === "ArrowDown" || data.key === (I18nManager.isRTL ? "ArrowLeft" : "ArrowRight"))
-      next = (index + 1) % available.length
-    else if (data.key === "ArrowUp" || data.key === (I18nManager.isRTL ? "ArrowRight" : "ArrowLeft"))
-      next = (index - 1 + available.length) % available.length
-    else return
-    const target = available[next]
+    if (!isNativeTagGroupNavigationKey(data.key) || (!row && tag !== findNodeHandle(list.current))) return
+    if (!row && data.shiftKey && (data.key === "Home" || data.key === "End")) return
+    const nextKey = getNativeTagGroupNavigationKey(owner.model, row?.key ?? null, data.key, I18nManager.isRTL)
+    const target = nextKey === null ? undefined : owner.rows.get(nextKey)
+    if (!target) return
     focusNativeTarget(target.view.current)
-    if (!target.props().href && owner.behavior === "replace")
+    const operation = getNativeTagGroupNavigationSelection({
+      key: data.key,
+      mode: owner.props.selectionMode ?? "none",
+      behavior: owner.behavior,
+      isLink: !!target.props().href,
+      isApple: Platform.OS === "ios",
+      modifiers: data,
+    })
+    if (operation)
       requestSelection(
         getNativeTagGroupSelectionRequest(
           owner.props.selectionMode ?? "none",
           owner.selection,
           owner.model,
           target.key,
-          data.shiftKey && owner.props.selectionMode === "multiple" ? "extend" : "replace",
-          { disallowEmptySelection: owner.props.disallowEmptySelection },
+          operation,
+          {
+            disallowEmptySelection: owner.props.disallowEmptySelection,
+            allowLinkSelection: data.key === "Home" || data.key === "End",
+          },
         ),
       )
   }
@@ -487,6 +511,7 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
           disabled: isDisabled,
           selected,
           actionState,
+          keyCapture,
           focus: (row, value, visible) => {
             if (value && admitted(row)) {
               setFocusWithin(true)

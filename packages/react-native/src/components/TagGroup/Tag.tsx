@@ -202,6 +202,7 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
               onFocus={(event) => group.focus(row, true, event.nativeEvent.isFocusVisible)}
               onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
               onPress={(event) => group.remove(row, "button", event)}
+              onKeyDown={(event) => group.keyCapture(row, event)}
             >
               {closeIcon || (
                 <Svg
@@ -247,7 +248,10 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
         accessible={!group.allowsRemoving}
         focusable={!disabled && props.focusable !== false && props.tabIndex !== -1}
         style={style.view}
-        onKeyDown={onKeyDown}
+        onKeyDown={(event) => {
+          group.keyCapture(row, event)
+          onKeyDown?.(event)
+        }}
         onKeyUp={onKeyUp}
       >
         {content(state, style.foregroundColor)}
@@ -326,7 +330,10 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
       onPressUp={onPressUp}
       onPressIn={onPressIn}
       onPressOut={onPressOut}
-      onKeyDown={onKeyDown}
+      onKeyDown={(event) => {
+        group.keyCapture(row, event)
+        onKeyDown?.(event)
+      }}
       onKeyUp={onKeyUp}
       onHoverStart={onHoverStart}
       onHoverEnd={onHoverEnd}
