@@ -88,6 +88,21 @@ it("clears authored inline dimensions with undefined and retains computed geomet
   expect(styles({ raised: false }).root.boxShadow).toBeUndefined()
 })
 
+it("lets final styles reset framework placement and stacking while retaining explicit zero priority", () => {
+  const result = styles({
+    customStyles: { top: 20, zIndex: 30, position: "relative" },
+    style: { top: undefined, zIndex: undefined, position: undefined, maxHeight: 0 },
+  })
+  expect(result.root).toHaveProperty("top", undefined)
+  expect(result.root).toHaveProperty("position", undefined)
+  expect(result.root).toHaveProperty("zIndex", undefined)
+  expect(result.root.maxHeight).toBe(0)
+  expect(result.priority).toBe(0)
+  expect(styles({ style: { zIndex: 0 } }).priority).toBe(0)
+  expect(styles({}).priority).toBe(100000)
+  expect(() => styles({ style: { zIndex: Infinity } })).toThrow("zIndex")
+})
+
 it("resolves native edge/axis/shorthand, logical RTL and computed percentage margins without altering their authored values", () => {
   expect(styles({ style: { margin: 0 } }).margins).toEqual({ top: 0, right: 0, bottom: 0, left: 0 })
   const fractional = styles({ style: { marginTop: 2.5, marginHorizontal: "10%", marginStart: 0 } })

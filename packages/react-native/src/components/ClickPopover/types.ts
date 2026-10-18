@@ -1,16 +1,8 @@
 import type { ReactNode, RefObject } from "react"
-import type {
-  ColorValue,
-  GestureResponderEvent,
-  ScrollView,
-  StyleProp,
-  TextStyle,
-  View,
-  ViewProps,
-  ViewStyle,
-} from "react-native"
+import type { ColorValue, ScrollView, StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 import type { PathProps } from "react-native-svg"
 
+import type { TNativeFloatingOutsideInteraction } from "../../overlays/floating/interaction"
 import type { TNativeFloatingMeasurable } from "../../overlays/floating/measurement"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -33,10 +25,7 @@ export type TNativeClickPopoverArrowStyle = ViewStyle &
     | "strokeDasharray"
     | "strokeDashoffset"
   > & { color?: ColorValue }
-export type TNativeFloatingOutsideInteraction = Readonly<{
-  target: GestureResponderEvent["target"]
-  event: GestureResponderEvent
-}>
+export type { TNativeFloatingOutsideInteraction } from "../../overlays/floating/interaction"
 export type TNativeClickPopoverProps = Omit<
   ViewProps,
   "children" | "style" | "role" | "accessibilityRole" | "accessible" | "onAccessibilityEscape"
@@ -48,7 +37,6 @@ export type TNativeClickPopoverProps = Omit<
   triggerRef?: RefObject<TNativeFloatingMeasurable | null>
   boundaryRef?: RefObject<TNativeFloatingMeasurable | null>
   scrollRef?: RefObject<ScrollView | null>
-  scrollContentRef?: RefObject<TNativeFloatingMeasurable | null>
   initialFocusRef?: RefObject<Pick<View, "focus"> | null>
   restoreFocusRef?: RefObject<Pick<View, "focus"> | null>
   placement?: TNativeFloatingPlacement

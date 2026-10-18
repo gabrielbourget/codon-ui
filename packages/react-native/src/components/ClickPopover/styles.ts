@@ -116,13 +116,20 @@ export const getNativeClickPopoverStyles = (
     quintenary: theme.colors.statusDanger,
   }
   const surface = !props.color && props.order ? colors[props.order] : theme.colors.background
-  const inline = withoutUndefined(
-    resolveNativeStyle(
-      [{ color: props.color, width: props.width, height: props.height }, props.customStyles, props.style],
-      "ClickPopover",
-      "style",
-    ),
+  const rawInline = resolveNativeStyle(
+    [{ color: props.color, width: props.width, height: props.height }, props.customStyles, props.style],
+    "ClickPopover",
+    "style",
   )
+  const inline = withoutUndefined(rawInline)
+  const frameworkFields = ["position", "top", "right", "bottom", "left", "start", "end", "zIndex", "maxHeight"] as const
+  const frameworkResets = Object.fromEntries(
+    frameworkFields
+      .filter((key) => Object.hasOwn(rawInline, key) && rawInline[key] === undefined)
+      .map((key) => [key, undefined]),
+  )
+  const priority = Object.hasOwn(rawInline, "zIndex") ? (rawInline.zIndex ?? 0) : 100000
+  if (!Number.isFinite(priority)) throw new TypeError("ClickPopover: zIndex must be finite")
   const rtl = direction === "rtl"
   const marginSide = side === "bottom" ? "top" : side === "top" ? "bottom" : side === "right" ? "left" : "right"
   const defaultMargin = marginKeys(marginSide, rtl).some((key) => inline[key] !== undefined)
@@ -131,7 +138,6 @@ export const getNativeClickPopoverStyles = (
   const root = resolveNativeStyle(
     [
       {
-        position: "absolute",
         padding: theme.spacing.unit * 2,
         color: theme.colors.foreground,
         backgroundColor: surface,
@@ -157,6 +163,7 @@ export const getNativeClickPopoverStyles = (
             }),
       },
       inline,
+      frameworkResets,
     ],
     "ClickPopover",
     "resolvedStyle",
@@ -205,5 +212,6 @@ export const getNativeClickPopoverStyles = (
     arrowPaint: paint,
     arrowColor: arrow.color ?? root.color,
     margins,
+    priority,
   }
 }

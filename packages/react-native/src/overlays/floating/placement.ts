@@ -221,6 +221,7 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
     arrowCrossOffset: arrowCenter - arrowSize / 2,
     arrowSide: opposite[side],
     anchorPoint: { x: vertical ? crossOrigin : mainOrigin, y: vertical ? mainOrigin : crossOrigin },
+    arrowSize,
     positionStyle: vertical
       ? side === "top"
         ? { bottom: host.height - (y - host.y) - height, left: x - host.x }
