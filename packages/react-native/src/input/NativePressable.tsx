@@ -16,12 +16,20 @@ import { nativeKeyTokens } from "./keyScope"
 import { NativeFocusHost } from "./NativeFocusView"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { useNativeAndroidRipple, useNativePressability } from "./nativePressability"
-import type { TNativeFocusViewProps, TNativeKeyboardEvent, TNativePressEvent } from "./types"
+import type {
+  TNativeActivationEvent,
+  TNativeFocusViewProps,
+  TNativeInteractionEvent,
+  TNativeKeyboardEvent,
+  TNativePressEvent,
+} from "./types"
 
 type TCallbacks = {
   onPress?: (event: TNativePressEvent) => void
-  onPressIn?: (event: TNativePressEvent) => void
-  onPressOut?: (event: TNativePressEvent) => void
+  onPressUp?: (event: TNativePressEvent) => void
+  onActivation?: (event: TNativeActivationEvent) => void
+  onPressIn?: (event: TNativeInteractionEvent) => void
+  onPressOut?: (event: TNativeInteractionEvent) => void
 }
 export type TNativePressableProps = Omit<
   PressableProps,
@@ -36,7 +44,7 @@ export type TNativePressableProps = Omit<
     onPressCancel?: (event: TNativePressEvent) => void
     onHoverCancel?: (event: MouseEvent) => void
   }
-type TCycle<E> = { event: E; cancelled: boolean; ended: boolean }
+type TCycle<E> = { event: E; cancelled: boolean; ended: boolean; upDelivered?: boolean }
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
 const subscribeNothing = () => () => {}
 
@@ -48,6 +56,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     style,
     testOnly_pressed,
     onPress,
+    onPressUp,
+    onActivation,
     onPressIn,
     onPressOut,
     onLongPress,
@@ -102,11 +112,13 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   const hoverIntent = useRef(false)
   const hoverTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hoverGeneration = useRef(0)
-  const accessibilityClick = useRef(false)
+  const releasingPointer = useRef<GestureResponderEvent | null>(null)
   const [pressed, setPressed] = useState(false)
   const ripple = useNativeAndroidRipple(android_ripple, view)
   const current = useRef({
     onPress,
+    onPressUp,
+    onActivation,
     onPressIn,
     onPressOut,
     onKeyDown,
@@ -128,6 +140,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   useInsertionEffect(() => {
     current.current = {
       onPress,
+      onPressUp,
+      onActivation,
       onPressIn,
       onPressOut,
       onKeyDown,
@@ -213,6 +227,12 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     },
     [forwardedRef],
   )
+  const deliverPointerUp = (event: GestureResponderEvent) => {
+    const cycle = pointer.current
+    if (!cycle || cycle.cancelled || cycle.ended || cycle.upDelivered || !admitted()) return
+    cycle.upDelivered = true
+    current.current.onPressUp?.(event)
+  }
   const handlers = useNativePressability({
     cancelable,
     disabled: !!disabled,
@@ -225,7 +245,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     delayPressIn: unstable_pressDelay,
     blockNativeResponder,
     onPress: (event) => {
-      if (admitted() && (accessibilityClick.current || !pointer.current?.cancelled)) current.current.onPress?.(event)
+      if (admitted() && !pointer.current?.cancelled) current.current.onPress?.(event)
     },
     onPressIn: (event) => {
       if (!admitted() || pointer.current?.cancelled) return
@@ -234,6 +254,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       setPressed(true)
       ripple?.onPressIn(event)
       current.current.onPressIn?.(event)
+      if (releasingPointer.current) deliverPointerUp(releasingPointer.current)
     },
     onPressOut: (event) => {
       ripple?.onPressOut(event)
@@ -274,19 +295,34 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       hitSlop={hitSlop}
       capturedKeys={activationKeys}
       style={typeof style === "function" ? style({ pressed: pressed || testOnly_pressed === true }) : style}
-      onClick={(event: GestureResponderEvent) => {
-        if (!admitted()) return
-        accessibilityClick.current = true
-        try {
-          handlers.onClick(event)
-        } finally {
-          accessibilityClick.current = false
+      onClick={undefined}
+      onNativeActivation={(event) => {
+        const data = event.nativeEvent
+        if (!admitted() || keyboard.current || !data.windowId) return
+        if (input) {
+          const session = input.acknowledgedSession()
+          if (data.scopeOwnerId !== input.ownerId || data.windowId !== session.windowId || data.epoch !== session.epoch)
+            return
+        } else if (data.scopeOwnerId) return
+        const cycle = pointer.current
+        if (cycle && !cycle.cancelled) {
+          cycle.cancelled = true
+          if (!cycle.ended) {
+            cycle.ended = true
+            setPressed(false)
+            current.current.ripple?.onPressOut(cycle.event)
+          }
         }
+        current.current.onActivation?.(event)
+        if (admitted()) current.current.onPress?.(event)
       }}
       onResponderRelease={(event) => {
+        releasingPointer.current = event
         try {
+          deliverPointerUp(event)
           handlers.onResponderRelease?.(event)
         } finally {
+          releasingPointer.current = null
           pointer.current = null
         }
       }}
@@ -366,6 +402,9 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         keyboard.current = null
         setPressed(false)
         cycle.ended = true
+        const canRelease =
+          admitted() && current.current.keyboardEnabled && !cycle.cancelled && !event.nativeEvent.cancelled
+        if (canRelease) current.current.onPressUp?.(event)
         current.current.onPressOut?.(event)
         if (
           admitted() &&

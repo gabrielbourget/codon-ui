@@ -6,6 +6,7 @@ import android.util.SparseArray;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewParent;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
@@ -14,7 +15,6 @@ import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
-import com.facebook.react.views.view.ViewGroupClickEvent;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -26,6 +26,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private String origin = "unknown";
   private boolean keyboardFocusable = true;
   private boolean nativePressable = false;
+  private double activationId;
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
@@ -63,10 +64,22 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   @Override public void onClick(View view) {
-    if (!nativePressable || !isAttachedToWindow() || !isShown()) return;
-    ThemedReactContext context = (ThemedReactContext) getContext();
-    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
-    if (dispatcher != null) dispatcher.dispatchEvent(new ViewGroupClickEvent(UIManagerHelper.getSurfaceId(this), getId()));
+    if (!nativePressable || !isAttachedToWindow() || !isShown() || !hasWindowFocus()) return;
+    WritableMap data = baseData();
+    data.putString("kind", "activation");
+    data.putString("source", "android-click");
+    data.putDouble("observedAt", SystemClock.uptimeMillis());
+    data.putDouble("activationId", ++activationId);
+    data.putString("scopeOwnerId", "");
+    data.putString("windowId", CUIInputWindow.identity(this));
+    data.putDouble("epoch", 0);
+    for (ViewParent parent = getParent(); parent != null; parent = parent.getParent()) {
+      if (parent instanceof CUIKeyboardScope) {
+        ((CUIKeyboardScope) parent).writeActivationSession(data);
+        break;
+      }
+    }
+    emit("topNativeActivation", data);
   }
 
   void synchronizeKeyboardFocusability() {

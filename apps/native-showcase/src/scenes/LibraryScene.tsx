@@ -44,6 +44,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [disabled, setDisabled] = useState(false)
   const [pending, setPending] = useState(false)
   const [keyboardFocusable, setKeyboardFocusable] = useState(true)
+  const [lastRelease, setLastRelease] = useState("none")
   const [custom, setCustom] = useState(false)
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
@@ -141,6 +142,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
+      <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         accessibilityLabel="Library action"
         testID="library-button"
@@ -151,6 +153,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         isPending={pending}
         focusable={keyboardFocusable}
         onPress={increment}
+        onPressUp={(event) => setLastRelease("kind" in event.nativeEvent ? event.nativeEvent.kind : "touch")}
         raised={!custom}
         style={
           custom

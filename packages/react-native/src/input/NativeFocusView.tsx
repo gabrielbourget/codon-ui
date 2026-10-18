@@ -3,8 +3,13 @@ import type { GestureResponderEvent, NativeSyntheticEvent } from "react-native"
 
 import { registerNativeFocusTarget } from "./focus"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
-import FocusHost, { Commands, type NativeKeyData } from "./specs/CUIFocusViewNativeComponent"
+import FocusHost, { Commands, type NativeActivationData, type NativeKeyData } from "./specs/CUIFocusViewNativeComponent"
 import type { TNativeKeyboardEvent, TNativeFocusViewProps, TNativeFocusViewRef } from "./types"
+
+export type TNativeActivationPacket = NativeSyntheticEvent<Omit<NativeActivationData, "kind"> & { kind: "activation" }>
+const isActivationEvent = (event: NativeSyntheticEvent<NativeActivationData>): event is TNativeActivationPacket =>
+  event.nativeEvent.kind === "activation" &&
+  (event.nativeEvent.source === "android-click" || event.nativeEvent.source === "ios-accessibility-activate")
 
 const isKeyboardEvent = (event: NativeSyntheticEvent<NativeKeyData>): event is TNativeKeyboardEvent =>
   event.nativeEvent.kind === "keyboard"
@@ -13,13 +18,15 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    onNativeActivation?: (event: TNativeActivationPacket) => void
     capturedKeys?: readonly string[]
     onClick?: (event: GestureResponderEvent) => void
   }
 >((props, forwardedRef) => {
-  const { onKeyDown, onKeyUp, onFocus, onBlur, focusable, tabIndex, capturedKeys, ...rest } = props
+  const { onKeyDown, onKeyUp, onFocus, onBlur, focusable, tabIndex, capturedKeys, onNativeActivation, ...rest } = props
   const ownerId = useId()
   const attached = useRef(false)
+  const activationId = useRef(0)
   const release = useRef<(() => void) | undefined>(undefined)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
   const keyboardFocusable = tabIndex === -1 ? false : (focusable ?? true)
@@ -58,6 +65,13 @@ export const NativeFocusHost = forwardRef<
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
         capturedKeys={capturedKeys}
+        onNativeActivation={(event) => {
+          const data = event.nativeEvent
+          if (!attached.current || data.ownerId !== ownerId || !isActivationEvent(event)) return
+          if (!Number.isSafeInteger(data.activationId) || data.activationId <= activationId.current) return
+          activationId.current = data.activationId
+          onNativeActivation?.(event)
+        }}
         onNativeKey={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return
           if (event.nativeEvent.phase === "down") {

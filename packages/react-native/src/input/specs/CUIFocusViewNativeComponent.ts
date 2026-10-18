@@ -22,6 +22,18 @@ export type NativeKeyData = Readonly<{
   timestamp: Double
 }>
 
+export type NativeActivationData = Readonly<{
+  kind: string
+  ownerId: string
+  target: Int32
+  source: "android-click" | "ios-accessibility-activate"
+  observedAt: Double
+  activationId: Double
+  scopeOwnerId: string
+  windowId: string
+  epoch: Double
+}>
+
 export type NativeFocusData = Readonly<{
   ownerId: string
   target: Int32
@@ -36,6 +48,7 @@ export interface NativeProps extends ViewProps {
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
   capturedKeys?: ReadonlyArray<string>
+  onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>
 }

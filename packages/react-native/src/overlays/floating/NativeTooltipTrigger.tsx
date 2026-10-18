@@ -2,7 +2,7 @@ import { createContext, useContext, useId, useInsertionEffect, useRef, type Reac
 import type { PressableProps, View, ViewProps } from "react-native"
 
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
-import type { TNativePressEvent } from "../../input/types"
+import type { TNativeInteractionEvent } from "../../input/types"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
 import { useNativeTooltipTriggerState } from "./useTooltipTriggerState"
@@ -24,7 +24,7 @@ export type TNativeTooltipTriggerRenderState = Readonly<{
     onPointerLeave: NonNullable<ViewProps["onPointerLeave"]>
     onFocus: NonNullable<ViewProps["onFocus"]>
     onBlur: NonNullable<ViewProps["onBlur"]>
-    onPressIn: (event: TNativePressEvent) => void
+    onPressIn: (event: TNativeInteractionEvent) => void
   }>
   tooltipProps: Readonly<{
     nativeID: string

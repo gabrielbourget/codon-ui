@@ -69,8 +69,21 @@ it("provides an actual View ref and preserves the original native trigger event"
     }),
   )
   expect(state?.triggerRef.current?.measureInWindow).toEqual(expect.any(Function))
-  const event = { nativeEvent: {}, currentTarget: 1, target: 1 }
-  await act(() => screen.getByRole("button").props.onClick(event))
+  const target = screen.getByRole("button")
+  const event = {
+    nativeEvent: {
+      kind: "activation",
+      source: "android-click",
+      observedAt: 0,
+      ownerId: target.props.ownerId,
+      target: 17,
+      activationId: 1,
+      scopeOwnerId: "",
+      windowId: "dialog-window",
+      epoch: 0,
+    },
+  }
+  await act(() => target.props.onNativeActivation(event))
   expect(onPress.mock.calls[0]?.[0]).toBe(event)
   expect(screen.getByTestId("state")).toHaveTextContent("true")
 })

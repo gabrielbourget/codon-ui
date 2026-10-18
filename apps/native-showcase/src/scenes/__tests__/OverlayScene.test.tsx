@@ -22,9 +22,44 @@ const retire = async (id: string) => {
 }
 const press = async (name: string) => userEvent.setup().press(screen.getByRole("button", { name }))
 // Mock Modal retains its React ancestry; deliver activation to the ready native child explicitly.
+let activationId = 0
 const childActivation = async (name: string, role: "button" | "radio" = "button") => {
   const node = screen.getByRole(role, { name, includeHiddenElements: true })
-  await act(() => node.props.onClick({ nativeEvent: {}, stopPropagation: () => undefined }))
+  if (role === "radio") {
+    await act(() => node.props.onClick({ nativeEvent: {}, stopPropagation: () => undefined }))
+    return
+  }
+  let scope = node.parent
+  while (scope && !scope.props.onNativeScopeStatus) scope = scope.parent
+  if (!scope) throw new Error("Expected the button's same-window native keyboard scope")
+  const host = scope.props
+  await act(() =>
+    host.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host.ownerId,
+        windowId: host.ownerId,
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  await act(() =>
+    node.props.onNativeActivation({
+      nativeEvent: {
+        kind: "activation",
+        source: "ios-accessibility-activate",
+        ownerId: node.props.ownerId,
+        target: 17,
+        observedAt: 0,
+        activationId: ++activationId,
+        scopeOwnerId: host.ownerId,
+        windowId: host.ownerId,
+        epoch: 1,
+      },
+    }),
+  )
 }
 const renderScene = async () =>
   render(

@@ -42,7 +42,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) {
     super.onAfterUpdateTransaction(view);
-    // Retain SDK click delivery without temporarily enabling keyboard focus.
+    // Keep native activation independent of keyboard focus eligibility.
     if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
     ((CUIFocusView) view).synchronizeKeyboardFocusability();
   }
@@ -66,6 +66,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     Map<String, Object> events = new HashMap<>();
     Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();
     if (inherited != null) events.putAll(inherited);
+    events.put("topNativeActivation", Collections.singletonMap("registrationName", "onNativeActivation"));
     events.put("topNativeKey", Collections.singletonMap("registrationName", "onNativeKey"));
     events.put("topNativeFocusChange", Collections.singletonMap("registrationName", "onNativeFocusChange"));
     return events;

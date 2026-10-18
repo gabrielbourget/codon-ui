@@ -15,6 +15,7 @@ type TPressCycle = {
   cancelled: boolean
   endDelivered: boolean
   activationDelivered?: boolean
+  upDelivered?: boolean
   nativeEnd?: TNativePressEvent
 }
 
@@ -48,6 +49,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
     onLongPress,
     onPressStart,
     onPressEnd,
+    onPressUp,
     onPressChange,
     onHoverIn,
     onHoverOut,
@@ -150,6 +152,32 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
           onPressChange?.(true)
           onPressIn?.(event)
         }}
+        onPressUp={(event) => {
+          const cycle = pressCycle.current
+          if (!blocked && cycle && !cycle.cancelled && !cycle.upDelivered) {
+            cycle.upDelivered = true
+            onPressUp?.(event)
+          }
+        }}
+        onActivation={(event) => {
+          if (blocked) return
+          let cycle = pressCycle.current
+          if (cycle?.cancelled && !cycle.endDelivered) return
+          if (!cycle || cycle.endDelivered) {
+            cycle = { event, cancelled: false, endDelivered: false }
+            pressCycle.current = cycle
+            setPressed(true)
+            onPressStart?.(event)
+            onPressChange?.(true)
+          }
+          if (!cycle.upDelivered) {
+            cycle.upDelivered = true
+            onPressUp?.(event)
+          }
+          finishPress(event)
+          if (pressCycle.current === cycle && cycle.event.nativeEvent === event.nativeEvent)
+            pressCycle.current = undefined
+        }}
         onPressCancel={(event) => {
           if (pressCycle.current) pressCycle.current.cancelled = true
           finishPress(event)
@@ -171,8 +199,10 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
             cycle?.cancelled &&
             (!cycle.nativeEnd ||
               cycle.nativeEnd === event ||
-              cycle.nativeEnd.nativeEvent.timestamp === event.nativeEvent.timestamp)
-          if (!blocked && !cancelledGesture) onPress?.(event)
+              ("timestamp" in cycle.nativeEnd.nativeEvent &&
+                "timestamp" in event.nativeEvent &&
+                cycle.nativeEnd.nativeEvent.timestamp === event.nativeEvent.timestamp))
+          if (!blocked && !cancelledGesture && !cycle?.activationDelivered) onPress?.(event)
           if (cycle) {
             cycle.activationDelivered = true
             if (cycle.nativeEnd) pressCycle.current = undefined

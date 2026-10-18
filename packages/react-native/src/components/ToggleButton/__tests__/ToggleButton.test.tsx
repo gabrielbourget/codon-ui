@@ -255,7 +255,9 @@ it("NATIVE.toggle-button.001 preserves controlled false through repeated vetoes 
     <Example
       isSelected={false}
       onChange={(next) => calls.push(next)}
-      onPress={(event) => calls.push(event.nativeEvent.timestamp)}
+      onPress={(event) =>
+        calls.push("observedAt" in event.nativeEvent ? event.nativeEvent.observedAt : event.nativeEvent.timestamp)
+      }
     />,
   )
   await fireEvent(screen.getByRole("button"), "press", pressEvent)

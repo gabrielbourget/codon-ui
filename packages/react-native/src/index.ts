@@ -467,7 +467,12 @@ export type {
 
 export { NativeFocusView } from "./input/NativeFocusView"
 export { focusNativeTarget, blurNativeTarget } from "./input/focus"
+export { NATIVE_ACTIVATION_SOURCES } from "./input/types"
 export type {
+  TNativeActivationData,
+  TNativeActivationSource,
+  TNativeActivationEvent,
+  TNativeInteractionEvent,
   TNativeKeyboardData,
   TNativeKeyboardEvent,
   TNativePressEvent,
