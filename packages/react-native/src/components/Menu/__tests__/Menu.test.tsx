@@ -157,6 +157,41 @@ it("retries initial item focus after a delayed native policy acknowledgment", as
   expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(first.current, row("first").props.ownerId)
 })
 
+it("shares the actual default first-item target with the floating surface startup focus", async () => {
+  const first = createRef<RN.View>()
+  const f = fixture(
+    {},
+    <MenuItem id={0} ref={first} testID="first">
+      Zero
+    </MenuItem>,
+  )
+  await render(f.node())
+  await f.ready()
+  const last = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
+  expect(last?.[0] === first.current).toBe(true)
+})
+
+it("preserves explicit initial-focus ownership without briefly requesting the default item", async () => {
+  const first = createRef<RN.View>(),
+    authored = createRef<RN.View>()
+  const f = fixture(
+    { initialFocusRef: authored },
+    <>
+      <MenuItem id={0} ref={first}>
+        Zero
+      </MenuItem>
+      <MenuItem id="" ref={authored}>
+        Authored
+      </MenuItem>
+    </>,
+  )
+  await render(f.node())
+  await f.ready()
+  const calls = jest.mocked(Commands.requestKeyboardFocus).mock.calls
+  expect(calls.some(([target]) => target === first.current)).toBe(false)
+  expect(calls.some(([target]) => target === authored.current)).toBe(true)
+})
+
 it("CAP.menu.003/.004/.015 independently applies root width/foreground/final style and list typography", async () => {
   const f = fixture({
     width: 250,
