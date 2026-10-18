@@ -562,3 +562,25 @@ const Example = () => {
 ```
 
 Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. The roadmap records current source availability and separate installed/consumer acceptance; remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.
+
+## Carousel Close Control
+
+CarouselCloseButton is independently usable before the full Carousel family exists. It composes the native Button with round geometry, raised=false, raisedOnHover=true, translucent black background, padding5 and a20-unit current-foreground SVG icon. The grouped labels.closeButtonAriaLabel defaults nullishly to Close Carousel; explicit empty names remain authored.
+
+```tsx
+import { CarouselCloseButton } from "@codon-ui/react-native"
+
+const CloseControl = ({ onClose }: { onClose: () => void }) => (
+  <CarouselCloseButton
+    labels={{ closeButtonAriaLabel: "Close image viewer" }}
+    isDisabled={false}
+    onPress={onClose}
+    customStyles={{ padding: 10 }}
+    customButtonProps={{ style: (state) => [state.defaultStyle, { opacity: state.isPressed ? 0.8 : 1 }] }}
+  />
+)
+```
+
+Default props precede outer Button props, then customButtonProps; that inner layer can replace the callback, disabled state, name and final style. customStyles merges default→outer→inner. Explicit children have final ownership: false/0/empty render as authored, null/undefined select the icon and nested customButtonProps.children cannot replace them. Native View refs/events, registered styles, render children, live provider foreground and disabled/pending guards retain the Button contract. DOM classes/styles/refs/events are excluded.
+
+The Text/Button showcase scene exposes caller-owned preview visibility and a separate close-action count, restoration, scene guards/styles and explicit reset. Source/scene/type checks leave actual target geometry, SVG rendering, accessibility and installed profile acceptance open. Context-dependent Prev/Next remain private; Carousel root/engine interop, hardware keyboard behavior, dots and counter are required pending work. The extra public close export does not establish a complete Carousel counterpart or close its aggregate catalogue gates.

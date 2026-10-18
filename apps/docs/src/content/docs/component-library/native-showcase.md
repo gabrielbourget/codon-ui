@@ -54,6 +54,8 @@ The Toggle scene also presents a controlled ToggleSwitcher with independent requ
 
 Circular/Counter scene composes controlled circular progress and raw counters with value0, rounded warning/danger thresholds, numeric/string max0, raw nonnumeric text, ratio/direction/caps/order, all six circular and three counter style owners, unknown semantics and reset. Global theme/fixture/window controls retain caller values. The exact react-native-svg15.15.4 host dependency requires a fresh linked Release binary before installed acceptance; existing binary receipts do not prove this module addition. Source/scene and packed-graph checks remain separate from native rendering.
 
+The Text/Button scene also includes a standalone CarouselCloseButton preview. Visibility and close-action count are caller-owned and independent of the Library action count; disabled/pending and custom-style controls exercise the actual wrapper. Restore preview reopens it without resetting the count. Theme/window/fixture changes retain state; global reset remounts defaults. This partial-family fixture proves source composition only; complete Carousel construction and installed acceptance remain open.
+
 ## Adaptive Fixtures
 
 Use [Native Lab](/foundation/native-lab/) for host/tool requirements and actual build/reference capture. Source generation and JS export proof do not establish an installed app.
