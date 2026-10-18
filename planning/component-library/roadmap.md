@@ -53,6 +53,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon U
     - [3.5.29. Persisted Native Metadata Receipts](#3529-persisted-native-metadata-receipts)
     - [3.5.30. Native Menu Construction Contract](#3530-native-menu-construction-contract)
     - [3.5.31. Native Menu Focus And Collection Acceptance](#3531-native-menu-focus-and-collection-acceptance)
+    - [3.5.32. Native TagGroup Construction Contract](#3532-native-taggroup-construction-contract)
   - [3.6. LinearProgress And Meter Contract](#36-linearprogress-and-meter-contract)
 - [4. Ownership And Accepted Contracts](#4-ownership-and-accepted-contracts)
 - [5. Native Runtime And Distribution](#5-native-runtime-and-distribution)
@@ -986,6 +987,42 @@ The first cohort is preserved in experiments §3.31.31: Android reports an inact
 The corrected cohort passes exactly the four named iOS P01 focus forms; Android remains OPEN behind a captured SystemUI ANR dialog. Source tests pass 58 cases, actual native completion is separately verified and original failures remain preserved; [experiments §3.31.32](experiments.md#33132-corrected-native-menu-focus-outcomes) records the exact scope.
 
 This cohort covers exactly the four P01 focus forms per platform. Empty-list focus, native host/href replacement, complete ordering/opaque/virtualized collection behavior, external pointer/key activation, Tab, relationships, roles/checked speech, broader profiles and all other Menu acceptance remain required OPEN. Keep the family private and every existing physical/ARM/fold/closer visual/signing deferral. Use coherent source/regression, fixture/validation and outcome commits; subsequent goal PR ordinal 9 may skip hosted CI under §9.1 while retaining meaningful local checks and normal hooks.
+
+#### 3.5.32. Native TagGroup Construction Contract
+
+Continue conventional construction from PR #28's exact head 65f8d13 on feature/native-tag-group under the standing full-goal policy. The complete canonical TagGroup/grouped AdobeTag source, helpers, CSS/compatibility bridge, default icon, indices and both root suites are audited; the unchanged web baseline passes all 21 cases. The grouped Tag is distinct from the existing standalone native Tag and must not change that public contract. Pinned TagGroup/Tag/useTagGroup/useTag/grid-list/selectable-item/list-state/selection-manager types and behavior supply the inherited contract. No dependency, shared collection architecture, theme role, palette or native schema change is introduced by this private family increment.
+
+| Capability ID          | Exact canonical root assertion / native expected behavior                             |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| CAP.tag-group.001      | Group renders with actual native root ref.                                            |
+| CAP.tag-group.002      | Root and list dimensions preserve authored native zero/percentage/auto values.        |
+| CAP.tag-group.003      | Horizontal/vertical layout, wrapping and gap.                                         |
+| CAP.tag-group.004      | Independent root/list custom styles.                                                  |
+| CAP.tag-group.005      | Computed → custom → final root precedence; list remains independent.                  |
+| CAP.tag-group.006      | Empty content belongs to the list; explicit empty renderer precedes emptyListMessage. |
+| CAP.tag-group.007      | Group wrapper-only props are consumed.                                                |
+| CAP.tag-group.item.001 | Grouped items render their content and actual refs.                                   |
+| CAP.tag-group.item.002 | Independent item width/height.                                                        |
+| CAP.tag-group.item.003 | Rounded/round/orthogonal geometry.                                                    |
+| CAP.tag-group.item.004 | Default and all five existing order equivalents.                                      |
+| CAP.tag-group.item.005 | Selected state uses semantic foreground/background/border pairs.                      |
+| CAP.tag-group.item.006 | enableFocusStyle and offsetFocusRing preserve explicit false.                         |
+| CAP.tag-group.item.007 | Explicit background color and transparency.                                           |
+| CAP.tag-group.item.008 | Raised=true and default false.                                                        |
+| CAP.tag-group.item.009 | Item custom text/layout styles.                                                       |
+| CAP.tag-group.item.010 | Computed → custom → final item precedence and state callback.                         |
+| CAP.tag-group.item.011 | Item wrapper-only props are consumed.                                                 |
+| CAP.tag-group.item.012 | Render children receive actual selection/interaction/removal state.                   |
+| CAP.tag-group.item.013 | Removable groups render the local decorative 15-unit default close icon.              |
+| CAP.tag-group.item.014 | Authored close icon retains identity; the audited falsy fallback remains explicit.    |
+
+Construct family-local typed selection/removal/interaction-intent and style contracts first, then their conventional explicit/declarative collection composition. Preserve none/single/multiple, toggle/replace, controlled/default selectedKeys including all and one-shot iterables, disallowEmptySelection, root-or-item disabled state, exact typed zero/empty keys, missing owner keys, anchor/current metadata and request equality. A request copies owner sets and never removes or selects actual items locally when caller-owned. Remove-button activation requests its item only; Delete/Backspace on a selected item requests all current selected keys, including caller-owned missing keys, while an unselected item requests itself. Disabled items cannot act or remove. Item action precedes root action and guarded URL handoff, with current callback/lifetime checks.
+
+Inherited input intent remains required: keyboard selection on down and Enter action on up; touch/pen/virtual selection or primary action on release; mouse down/up policy, secondary double-click, actual modifier metadata, shouldSelectOnPressUp and long-press entry into toggle behavior. Keep actual native event/ref identities and retirement/window guards. Existing per-window NativeFloatingLayerHost supplies scoped key routing; no new global input provider or SDK flag is inferred. Native descriptions/removal labels must remain localizable. Grid/group, row/cell, selected/disabled and empty-focus equivalents require actual platform bindings and native observations, not accepted enum strings alone.
+
+Root/list dimensions and independent style owners use existing native style validation. The grouped item keeps control/status-derived state roles, foreground inheritance, geometry, border/shadow, focus outline, disabled opacity, typography and independent remove-button/icon presentation without modifying global palette or the standalone Tag. General opaque/hidden/virtualized collection reconciliation, full host-render and renderEmptyState state/selection-manager interoperability, sections/context integration, native Tab/typeahead/scroll/announcement/description relationships and all applicable installed/profile cells remain mandatory OPEN until implemented or given a reviewed native equivalent. Keep this family private while those obligations remain; no reduced public counterpart or silent capability exclusion is authorized. Use logical model/style, composition/type/test and current consumer/native proof commits, opening the next coherent approximately 2,000-line review checkpoint as goal ordinal 10 with the permitted hosted-CI skip.
+
+Private composition checkpoint: the grouped renderer now preserves caller-owned typed selection/removal requests, original native events/refs, current callbacks, dynamic one-shot items, independent style owners and scoped removal/navigation. All 21 canonical root assertions have precise source mappings in [3.31.34](experiments.md#33134-native-taggroup-composition-and-source-mapping); The full 2,213-case/86-suite native source regression passes at the 53-case checkpoint; final review adds a focused default-none Escape regression, followed by an explicit accessibility-alias ownership guard, taking focused coverage to 55 cases. These source results close no aggregate or installed cell. Full inherited collection/host-render/context/input/description/theme behavior and current consumer/native proof remain OPEN; TagGroup stays private and public availability stays 35/53. Open the coherent ordinal-10 source PR promptly under §9.1 rather than waiting for complete native acceptance.
 
 <a id="linearprogress-and-meter-contract"></a>
 
