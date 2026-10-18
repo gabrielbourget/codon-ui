@@ -1,8 +1,7 @@
 import type { ReactNode } from "react"
-import type { ColorValue, StyleProp } from "react-native"
+import type { ColorValue, StyleProp, ViewStyle } from "react-native"
 
 import type { TThemingOrderCode } from "../../tokens/theme-order"
-import type { TNativeButtonRootStyle } from "../Button/types"
 import type { TNativeDisplayDimension } from "../displayDimensions"
 import type {
   TNativeNumberInputProps,
@@ -17,7 +16,7 @@ export type TNativeStepperType = (typeof AVAILABLE_NATIVE_STEPPER_TYPES)[number]
 export type TNativeStepperOrientation = (typeof AVAILABLE_NATIVE_STEPPER_ORIENTATIONS)[number]
 export type TNativeStepperColorMode = (typeof AVAILABLE_NATIVE_STEPPER_COLOR_MODES)[number]
 export type TNativeStepperRef = TNativeNumberInputRef
-export type TNativeStepperRootStyle = TNativeButtonRootStyle
+export type TNativeStepperRootStyle = ViewStyle & { color?: ColorValue }
 export type TNativeStepperRenderState = TNativeNumberInputRenderState
 export type TNativeStepperStyleState = TNativeStepperRenderState & { defaultStyle: TNativeStepperRootStyle }
 export type TNativeStepperLabels = { inputButtonGroupAriaLabel: string }

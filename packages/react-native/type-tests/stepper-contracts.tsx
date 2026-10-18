@@ -47,6 +47,11 @@ const nativeRef = createRef<TextInput>()
 const sample = <Stepper {...names} ref={ref} PlusIcon={<Text>+</Text>} />
 const nativeSample = <Stepper {...names} ref={nativeRef} value={0} />
 void [sample, nativeSample]
+accept({ ...names, customButtonStyles: { fontSize: 20, fontWeight: "700" } })
+// @ts-expect-error Container typography is not implemented by Stepper's root View.
+accept({ ...names, customStyles: { fontSize: 20 } })
+// @ts-expect-error Group View styles do not become Button text styles.
+accept({ ...names, customGroupStyles: { fontWeight: "700" } })
 // @ts-expect-error an editor name is required
 accept({ incrementLabel: "Add", decrementLabel: "Reduce" })
 // @ts-expect-error contextual action labels are required
