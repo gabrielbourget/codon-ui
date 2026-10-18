@@ -86,6 +86,12 @@ export type TNativeGroupedTagProps = Omit<
     href?: string
     onNavigate?: (href: string) => void
     onNavigationError?: (error: unknown, href: string) => void
+    // Explicit never prevents JSX from accepting omitted hyphenated aliases.
+    "aria-selected"?: never
+    "aria-checked"?: never
+    "aria-expanded"?: never
+    "aria-disabled"?: never
+    "aria-busy"?: never
     accessibilityState?: Omit<
       NonNullable<TNativeButtonProps["accessibilityState"]>,
       "selected" | "checked" | "expanded"

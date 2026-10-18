@@ -227,6 +227,28 @@ it("requests copied typed keys repeatedly under owner veto and paints only owner
   expect(row("zero").props.accessibilityState.selected).toBe(false)
   expect(change).toHaveBeenCalledTimes(2)
 })
+it("protects passive row ownership from untyped accessibility-state aliases", async () => {
+  const aliases: object = {
+    "aria-selected": true,
+    "aria-checked": true,
+    "aria-expanded": true,
+    "aria-disabled": false,
+    "aria-busy": true,
+  }
+  await render(
+    node(
+      { selectedKeys: [0], disabledKeys: [0] },
+      <Tag {...aliases} id={0} testID="zero">
+        Zero
+      </Tag>,
+    ),
+  )
+  expect(row("zero").props.accessibilityState.selected).toBeUndefined()
+  expect(row("zero").props.accessibilityState.checked).toBeUndefined()
+  expect(row("zero").props.accessibilityState.expanded).toBeUndefined()
+  expect(row("zero").props.accessibilityState.disabled).toBe(true)
+  expect(row("zero").props.accessibilityState.busy).toBeUndefined()
+})
 it("caches one-shot selected/disabled iterables by owner identity across internal renders", async () => {
   const selectedKeys = [0, "missing"][Symbol.iterator](),
     disabledKeys = [""][Symbol.iterator](),
