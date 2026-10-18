@@ -40,6 +40,7 @@ import {
   TABLE_FILTER_OPERATION_CODE__SIMILAR_TO as FILTERING_OPERATION_CODE__SIMILAR_TO,
   type TTableFilterArgumentDataType as TQueryFilterArgumentDataType,
   type TTableFilterArgumentValue as TQueryFilterArgumentValue,
+  type TTableFilterDraftArgumentValue as TQueryFilterDraftArgumentValue,
   type TTableFilterClause as TQueryFilterClause,
   type TTableFilterConditionType as TFilterConditionTypeCode,
   type TTableFilterGroup as TQueryFilterGroup,
@@ -56,7 +57,7 @@ export type TQueryFilterClauseDraft = {
   id: string
   operationCode?: TFilteringOperationCode
   conditionType?: TFilterConditionTypeCode
-  argument?: TQueryFilterArgumentValue
+  argument?: TQueryFilterDraftArgumentValue
   filterArgumentSelectedKey?: string | null
 }
 
@@ -93,7 +94,7 @@ export type TCreateQueryFilterClauseDraftArgs = {
   id: string
   operationCode?: TFilteringOperationCode
   conditionType?: TFilterConditionTypeCode
-  argument?: TQueryFilterArgumentValue
+  argument?: TQueryFilterDraftArgumentValue
   filterArgumentSelectedKey?: string | null
 }
 
@@ -144,7 +145,7 @@ const multiValueFilteringOperationCodeSet = new Set<TFilteringOperationCode>(mul
 
 export const computeInitialQueryFilterDraftArgument = (
   operationCode?: TFilteringOperationCode,
-): TQueryFilterArgumentValue => {
+): TQueryFilterDraftArgumentValue => {
   if (operationCode === FILTERING_OPERATION_CODE__BETWEEN) return ["", ""]
   if (operationCode && multiValueFilteringOperationCodeSet.has(operationCode)) return []
 
@@ -311,41 +312,45 @@ export const computeFilterArgumentTypeFromOperationCode = (
   return undefined
 }
 
-const isMeaningfulArgument = (argument: TQueryFilterArgumentValue): boolean => {
+const isMeaningfulArgument = (argument: TQueryFilterDraftArgumentValue): boolean => {
   if (Array.isArray(argument)) return argument.some((item) => isMeaningfulArgument(item))
   if (typeof argument === "string") return argument.trim().length > 0
+  if (typeof argument === "number") return Number.isFinite(argument)
 
   return argument != null
 }
 
 const normalizeScalarArgument = (
-  argument: Exclude<TQueryFilterArgumentValue, string[] | number[]>,
-): Exclude<TQueryFilterArgumentValue, string[] | number[]> => {
+  argument: Exclude<TQueryFilterDraftArgumentValue, unknown[]>,
+): Exclude<TQueryFilterDraftArgumentValue, unknown[]> => {
   return typeof argument === "string" ? argument.trim() : argument
 }
 
+const isMeaningfulArrayEntry = (argument: string | number | null | undefined): argument is string | number =>
+  isMeaningfulArgument(argument)
+
 const normalizeArrayArgument = (
   operationCode: TFilteringOperationCode,
-  argument: string[] | number[],
-): string[] | number[] | undefined => {
+  argument: (string | number | null | undefined)[],
+): (string | number)[] | undefined => {
   if (operationCode === FILTERING_OPERATION_CODE__BETWEEN) {
-    const [minimumValue, maximumValue] = argument.map((item) => normalizeScalarArgument(item))
+    const [minimumValue, maximumValue] = argument.map((item) => (typeof item === "string" ? item.trim() : item))
 
-    return isMeaningfulArgument(minimumValue) && isMeaningfulArgument(maximumValue)
-      ? ([minimumValue, maximumValue] as string[] | number[])
+    return isMeaningfulArrayEntry(minimumValue) && isMeaningfulArrayEntry(maximumValue)
+      ? [minimumValue, maximumValue]
       : undefined
   }
 
   const meaningfulValues = argument
-    .map((item) => normalizeScalarArgument(item))
-    .filter((item) => isMeaningfulArgument(item))
+    .map((item) => (typeof item === "string" ? item.trim() : item))
+    .filter(isMeaningfulArrayEntry)
 
-  return meaningfulValues.length ? (meaningfulValues as string[] | number[]) : undefined
+  return meaningfulValues.length ? meaningfulValues : undefined
 }
 
 const normalizeClauseArgument = (
   operationCode: TFilteringOperationCode,
-  argument: TQueryFilterArgumentValue,
+  argument: TQueryFilterDraftArgumentValue,
 ): TQueryFilterArgumentValue => {
   if (Array.isArray(argument)) return normalizeArrayArgument(operationCode, argument)
 

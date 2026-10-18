@@ -20,7 +20,7 @@ import {
   type TAvailableFilterArgumentTypes,
   type TAvailableListItem,
 } from "../../Table/filterMetadata"
-import type { TTableFilterArgumentValue } from "../../Table/queryTypes"
+import type { TTableFilterDraftArgumentValue } from "../../Table/queryTypes"
 import { DEFAULT_TABLE_FILTERING_LABELS, type TTableFilterArgumentInputLabels } from "../labels"
 
 import BooleanTypeFilterArgument from "./InternalComponents/BooleanTypeFilterArgument/BooleanTypeFilterArgument"
@@ -32,7 +32,7 @@ import RangeTypeFilterArgument from "./InternalComponents/RangeTypeFilterArgumen
 import SelectTypeFilterArgument from "./InternalComponents/SelectTypeFilterArgument/SelectTypeFilterArgument"
 
 export type TFilterArgumentChangeArgs = {
-  argument: TTableFilterArgumentValue
+  argument: TTableFilterDraftArgumentValue
   filterArgumentSelectedKey?: string | null
 }
 
@@ -51,7 +51,7 @@ export type TFilterArgumentSlotProps = {
 
 export type TFilterArgumentInputContext = TFilterArgumentSlotProps & {
   dataType: TAvailableFilterArgumentDataTypes
-  argument?: TTableFilterArgumentValue
+  argument?: TTableFilterDraftArgumentValue
   availableFilterArguments?: TAvailableListItem[]
   filterArgumentSelectedKey?: string | null
   filterArgumentAccessibleLabel?: string

@@ -47,7 +47,7 @@ const BooleanTypeFilterArgument: FC<TBooleanTypeFilterArgumentProps> = (props) =
           <Checkbox
             aria-labelledby="boolean-type-filter-argument"
             className={customInputClassName}
-            isSelected={argument as boolean}
+            isSelected={(argument ?? false) as boolean}
             geometry={ROUNDED}
             customStyles={customInputStyles}
             onChange={(value) => {
@@ -75,7 +75,7 @@ const BooleanTypeFilterArgument: FC<TBooleanTypeFilterArgumentProps> = (props) =
             order="primary"
             customStyles={{ padding: "5px", ...customInputStyles }}
             geometry={ROUND}
-            isSelected={argument as boolean}
+            isSelected={(argument ?? false) as boolean}
             onChange={(value) => {
               onArgumentChange({ argument: value })
             }}

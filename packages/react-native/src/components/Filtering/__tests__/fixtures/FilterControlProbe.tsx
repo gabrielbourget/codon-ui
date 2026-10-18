@@ -4,9 +4,15 @@ import { ScrollView, View } from "react-native"
 import { Button, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
 import { useNativeQueryDraftController, type TNativeQueryApplyRequest } from "../../../SortAndFilterPanel/controller"
 import type { TAvailableFilterCriteria } from "../../../Table/filterMetadata"
+import { BooleanFilterArgument } from "../../BooleanArgument"
+import { ComboBoxFilterArgument } from "../../ComboBoxArgument"
 import { FilterClauseSelectors } from "../../FilterClauseSelectors"
+import { ListFilterArgument } from "../../ListArgument"
 import { computeFilterArgumentType } from "../../metadata"
+import { NumberFilterArgument } from "../../NumberArgument"
 import { MultiSelectFilterArgument, SelectFilterArgument } from "../../OptionArguments"
+import { RangeFilterArgument } from "../../RangeArgument"
+import { TextFilterArgument } from "../../TextArgument"
 
 const criteria: TAvailableFilterCriteria[] = [
   {
@@ -29,6 +35,16 @@ const criteria: TAvailableFilterCriteria[] = [
       { id: "alpha", name: "Alpha", argumentValue: false },
       { id: "beta", name: "Beta", argumentValue: 0 },
     ],
+  },
+  { id: "amount", name: "Amount", dataType: "number", allowedOperationCodes: ["equal", "between", "in"] },
+  { id: "enabled", name: "Enabled", dataType: "boolean", allowedOperationCodes: ["equal", "not-equal"] },
+  {
+    id: "suggested",
+    name: "Suggested",
+    dataType: "text",
+    usesComboBoxInput: true,
+    allowedOperationCodes: ["equal"],
+    availableCriteriaArguments: [{ id: "", name: "Alpha", argumentValue: false }],
   },
 ]
 const initial = (): TNativeQueryApplyRequest => ({
@@ -53,7 +69,7 @@ const initial = (): TNativeQueryApplyRequest => ({
   ],
 })
 
-// Nonshipping selector/option composition. The full row and remaining argument renderers are still required.
+// Nonshipping controls and non-temporal editors. Full row/dispatcher and date policy remain open.
 const FilterControlProbe = () => {
   const [confirmed, setConfirmed] = useState(initial)
   const [metadata, setMetadata] = useState(criteria)
@@ -144,6 +160,53 @@ const FilterControlProbe = () => {
                       argument={clause.argument}
                       availableFilterArguments={group.availableFilterArguments}
                       inputLabel="Find filter arguments"
+                      closeLabel="Close filter arguments"
+                      canAct={() => open}
+                      onArgumentChange={change}
+                    />
+                  ) : kind === "Input" && group.dataType === "text" ? (
+                    <TextFilterArgument
+                      argument={clause.argument}
+                      filterArgumentAccessibleLabel={`Filter ${group.criteriaName}`}
+                      canAct={() => open}
+                      onArgumentChange={change}
+                    />
+                  ) : kind === "Input" && group.dataType === "number" ? (
+                    <NumberFilterArgument
+                      argument={clause.argument}
+                      incrementLabel="Increase argument"
+                      decrementLabel="Decrease argument"
+                      canAct={() => open}
+                      onArgumentChange={change}
+                    />
+                  ) : kind === "Boolean" ? (
+                    <BooleanFilterArgument
+                      argument={clause.argument}
+                      booleanArgumentComponent="Checkbox"
+                      canAct={() => open}
+                      onArgumentChange={change}
+                    />
+                  ) : kind === "Range" && (group.dataType === "text" || group.dataType === "number") ? (
+                    <RangeFilterArgument
+                      dataType={group.dataType}
+                      argument={clause.argument}
+                      numberLabels={{
+                        minimumIncrement: "Increase minimum",
+                        minimumDecrement: "Decrease minimum",
+                        maximumIncrement: "Increase maximum",
+                        maximumDecrement: "Decrease maximum",
+                      }}
+                      canAct={() => open}
+                      onArgumentChange={change}
+                    />
+                  ) : kind === "Multi Input" ? (
+                    <ListFilterArgument argument={clause.argument} canAct={() => open} onArgumentChange={change} />
+                  ) : kind === "Combo Box" ? (
+                    <ComboBoxFilterArgument
+                      argument={clause.argument}
+                      availableFilterArguments={group.availableFilterArguments}
+                      filterArgumentSelectedKey={clause.filterArgumentSelectedKey}
+                      inputLabel="Edit filter argument"
                       closeLabel="Close filter arguments"
                       canAct={() => open}
                       onArgumentChange={change}

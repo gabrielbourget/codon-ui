@@ -7,7 +7,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import { Select } from "../Select/Select"
 import type { TNativeSelectRef } from "../Select/types"
 import type { TAvailableListItem } from "../Table/filterMetadata"
-import type { TTableFilterArgumentValue } from "../Table/queryTypes"
+import type { TTableFilterDraftArgumentValue } from "../Table/queryTypes"
 import { TagComboBox } from "../TagComboBox/TagComboBox"
 import type { TNativeTagComboBoxRef } from "../TagComboBox/types"
 
@@ -15,11 +15,11 @@ import { DEFAULT_FILTER_OPTION_LABELS, type TFilterOptionLabels } from "./labels
 import { useFilterRequest, type TFilterAvailability } from "./requests"
 
 export type TFilterArgumentChangeArgs = {
-  argument: TTableFilterArgumentValue
+  argument: TTableFilterDraftArgumentValue
   filterArgumentSelectedKey?: string | null
 }
 type TOptionArgumentProps = TFilterAvailability & {
-  argument?: TTableFilterArgumentValue
+  argument?: TTableFilterDraftArgumentValue
   availableFilterArguments?: TAvailableListItem[]
   filterArgumentSelectedKey?: string | null
   onArgumentChange: (args: TFilterArgumentChangeArgs) => void
