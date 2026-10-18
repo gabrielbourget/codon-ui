@@ -81,6 +81,7 @@ def run(output, platform):
     state["platforms"][platform] = record
     state_path.write_text(json.dumps(state, indent=2) + "\n")
     emulator, monitor, started_guest = None, None, False
+    original_screen_timeout, screen_timeout_changed = None, False
     stage = "identity"
     try:
         if platform == "android":
@@ -126,6 +127,16 @@ def run(output, platform):
             _, installed_hash = command(root, "installed-package-hash", [ADB, "-s", SERIAL, "shell", "sha256sum", package_paths[0]], env)
             record["installedProductSHA256"] = installed_hash.split()[0]
             assert record["installedProductSHA256"] == digest(apk), "installed APK identity mismatch"
+            command(root, "power-before-foreground", [ADB, "-s", SERIAL, "shell", "dumpsys", "power"], env)
+            _, original = command(root, "screen-timeout-before", [ADB, "-s", SERIAL, "shell", "settings", "get", "system", "screen_off_timeout"], env)
+            original_screen_timeout = original.strip()
+            assert original_screen_timeout == "null" or re.fullmatch(r"\d+", original_screen_timeout), "owned guest timeout identity"
+            record["originalScreenTimeout"] = original_screen_timeout
+            command(root, "screen-timeout-observation", [ADB, "-s", SERIAL, "shell", "settings", "put", "system", "screen_off_timeout", "600000"], env)
+            screen_timeout_changed = True
+            command(root, "wake-before-launch", [ADB, "-s", SERIAL, "shell", "input", "keyevent", "KEYCODE_WAKEUP"], env)
+            command(root, "dismiss-keyguard-before-launch", [ADB, "-s", SERIAL, "shell", "wm", "dismiss-keyguard"], env)
+            command(root, "power-ready-before-launch", [ADB, "-s", SERIAL, "shell", "dumpsys", "power"], env)
             stage = "launch"
             record["launchAttempts"] = 1
             command(root, "launch", [ADB, "-s", SERIAL, "shell", "am", "start", "-W", "-n", package + "/" + activity], env, 90)
@@ -181,6 +192,9 @@ def run(output, platform):
             path = copied
         record.update({"selectedTransport": channel, "rawLog": str(path), "rawLogSHA256": digest(path) if path.exists() else None, "parsedRecords": len(records)})
         (root / "records.json").write_text(json.dumps(records, indent=2) + "\n")
+        if platform == "android":
+            command(root, "power-after-observation", [ADB, "-s", SERIAL, "shell", "dumpsys", "power"], env, 60, False)
+            command(root, "window-after-observation", [ADB, "-s", SERIAL, "shell", "dumpsys", "window", "windows"], env, 60, False)
         stage = "receipt-transport"
         assert any(row.get("kind") in ("complete", "failure") for row in records), "incomplete receipt transport; native focus unproven"
         stage = "native-focus-verdict"
@@ -201,6 +215,11 @@ def run(output, platform):
                 monitor.wait()
         if started_guest:
             if platform == "android":
+                if screen_timeout_changed:
+                    restore = [ADB, "-s", SERIAL, "shell", "settings", "delete", "system", "screen_off_timeout"] if original_screen_timeout == "null" else [ADB, "-s", SERIAL, "shell", "settings", "put", "system", "screen_off_timeout", original_screen_timeout]
+                    code, _ = command(root, "restore-screen-timeout", restore, env, 60, False)
+                    checked, restored = command(root, "screen-timeout-restored", [ADB, "-s", SERIAL, "shell", "settings", "get", "system", "screen_off_timeout"], env, 60, False)
+                    record["displayPolicyRestored"] = code == 0 and checked == 0 and restored.strip() == original_screen_timeout
                 command(root, "stop-owned-guest", [ADB, "-s", SERIAL, "emu", "kill"], env, 30, False)
                 if emulator and emulator.poll() is None:
                     try:

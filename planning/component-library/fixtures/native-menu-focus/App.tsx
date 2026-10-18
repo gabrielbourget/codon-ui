@@ -250,7 +250,9 @@ const MenuFocusCases = () => {
             ? "native-scope-or-layout-missing"
             : request.requested
               ? "native-snapshot-missing"
-              : "native-focus-callback-missing",
+              : focused.current.get(phase.focusKey)?.actual.isFocused === false
+                ? "native-focus-not-retained"
+                : "native-focus-callback-missing",
         ),
       90_000,
     )
