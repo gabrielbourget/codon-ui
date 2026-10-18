@@ -2,6 +2,7 @@ import {
   encodeNativeMenuKey,
   equalNativeMenuSelection,
   getNativeMenuSelectionRequest,
+  getNativeMenuRecoveryKey,
   nativeMenuSelected,
   nativeMenuSelectionKeys,
   normalizeNativeMenuKeys,
@@ -72,4 +73,41 @@ it("single deselection retains unrelated caller keys rather than normalizing the
   const owner = new Set([0, "missing"])
   expect([...getNativeMenuSelectionRequest("single", owner, rows, 0)!]).toEqual(["missing"])
   expect([...owner]).toEqual([0, "missing"])
+})
+
+it("recovers forward in the previous order while preserving typed zero/empty keys", () => {
+  const before = [0, "0", "", "disabled", "link"] as const
+  expect(
+    getNativeMenuRecoveryKey(
+      before,
+      rows.filter((row) => row.id !== 0),
+      0,
+    ),
+  ).toBe("0")
+  expect(
+    getNativeMenuRecoveryKey(
+      before,
+      rows.filter((row) => row.id !== "0"),
+      "0",
+    ),
+  ).toBe("")
+  expect([...before]).toEqual([0, "0", "", "disabled", "link"])
+})
+it("recovers backward after trailing removal, skipping disabled and missing items", () => {
+  expect(
+    getNativeMenuRecoveryKey(
+      rows.map((row) => row.id),
+      rows.filter((row) => row.id !== "link"),
+      "link",
+    ),
+  ).toBe("")
+})
+it("uses the previous order rather than the new collection's first item", () => {
+  const before = ["link", 0, "0", ""]
+  expect(getNativeMenuRecoveryKey(before, [rows[0], rows[1], rows[4]], "")).toBe("0")
+})
+it("leaves first/last fallback to the caller when no previous neighbor survives", () => {
+  expect(getNativeMenuRecoveryKey([0], [rows[1]], 0)).toBeUndefined()
+  expect(getNativeMenuRecoveryKey([0], rows, "missing")).toBeUndefined()
+  expect(getNativeMenuRecoveryKey([0], rows, null)).toBeUndefined()
 })

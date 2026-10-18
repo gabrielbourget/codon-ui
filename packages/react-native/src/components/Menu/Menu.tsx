@@ -29,6 +29,7 @@ import { NativeMenuContext, type TNativeMenuRegistration } from "./context"
 import { MenuItem } from "./MenuItem"
 import {
   equalNativeMenuSelection,
+  getNativeMenuRecoveryKey,
   getNativeMenuSelectionRequest,
   nativeMenuSelected,
   normalizeNativeMenuKeys,
@@ -96,6 +97,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) =>
   const theme = useNativeTheme()
   const styles = getNativeMenuStyles(theme, props)
   const list = useRef<View>(null)
+  const initialTarget = useRef<View>(null)
   return (
     <NativeFloatingSurface
       {...surface}
@@ -106,7 +108,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) =>
       childIsDialog={false}
       nativeRootRole={null}
       showOverlayArrow={false}
-      initialFocusRef={props.initialFocusRef ?? list}
+      initialFocusRef={props.initialFocusRef ?? initialTarget}
       style={styles.root}
     >
       <NativeMenuList
@@ -123,6 +125,7 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) =>
           styles,
         }}
         root={list}
+        initialTarget={initialTarget}
         close={() => request(false)}
       />
     </NativeFloatingSurface>
@@ -139,6 +142,7 @@ type TListProps = Pick<
   shouldCloseOnSelect: boolean
   styles: ReturnType<typeof getNativeMenuStyles>
   root: RefObject<View | null>
+  initialTarget: RefObject<View | null>
   close: () => void
 }
 const NativeMenuList = (props: TListProps) => {
@@ -151,6 +155,7 @@ const NativeMenuList = (props: TListProps) => {
   const live = useRef(false),
     scroll = useRef<ScrollView>(null)
   const frames = useRef(new Map<TNativeMenuKey, { y: number; height: number }>())
+  const recoveryOrder = useRef<readonly TNativeMenuKey[]>([])
   const viewport = useRef(0),
     offset = useRef(0),
     search = useRef({ value: "", time: 0 })
@@ -183,6 +188,7 @@ const NativeMenuList = (props: TListProps) => {
   const current = useRef({ props, rows, ordered, model, disabled, normalized, active, scope, window, input })
   useInsertionEffect(() => {
     current.current = { props, rows, ordered, model, disabled, normalized, active, scope, window, input }
+    if (active === null || rows.has(active)) recoveryOrder.current = ordered.map((row) => row.id)
   })
   useInsertionEffect(() => {
     live.current = true
@@ -242,11 +248,17 @@ const NativeMenuList = (props: TListProps) => {
   }
   const lifetime = JSON.stringify(model.map((row) => [row.id, row.text, row.disabled, row.href]))
   useLayoutEffect(() => {
+    const registered = current.current.ordered.filter((row) => !current.current.disabled(row))
+    const initial = strategy === "last" ? registered[registered.length - 1] : registered[0]
+    props.initialTarget.current = initial?.view.current ?? props.root.current
     const frame = requestAnimationFrame(() => {
       if (!admitted() || current.current.input?.isNativeReady() === false) return
+      if (current.current.props.props.initialFocusRef !== undefined && current.current.active === null) return
       const available = current.current.ordered.filter((row) => !current.current.disabled(row))
+      const recovered = getNativeMenuRecoveryKey(recoveryOrder.current, current.current.model, current.current.active)
       const target =
         available.find((row) => row.id === current.current.active) ??
+        available.find((row) => row.id === recovered) ??
         (strategy === "last" ? available[available.length - 1] : available[0])
       if (target && !available.some((row) => row.id === current.current.active)) {
         setActive(target.id)
@@ -254,7 +266,7 @@ const NativeMenuList = (props: TListProps) => {
       }
     })
     return () => cancelAnimationFrame(frame)
-  }, [lifetime, scope, strategy])
+  }, [lifetime, scope, strategy, props.initialTarget, props.root])
   const activate = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
     if (!admitted(row) || event.defaultPrevented || event.isDefaultPrevented?.()) return
     const owner = current.current
