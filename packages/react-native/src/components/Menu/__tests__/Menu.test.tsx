@@ -90,7 +90,7 @@ const fixture = (initial: Partial<TNativeMenuProps> = {}, children: ReactNode = 
       </NativeOverlayProvider>
     </NativeThemeProvider>
   )
-  const ready = async () => {
+  const ready = async (flushBeforeAcknowledgment = false) => {
     const measure = (view: RN.View, value: [number, number, number, number]) =>
       Object.defineProperty(view, "measureInWindow", {
         configurable: true,
@@ -116,6 +116,10 @@ const fixture = (initial: Partial<TNativeMenuProps> = {}, children: ReactNode = 
           },
         }),
       )
+      if (!ready && flushBeforeAcknowledgment) {
+        for (let i = 0; i < 3; i++) await tick()
+        jest.mocked(Commands.requestKeyboardFocus).mockClear()
+      }
     }
     for (let i = 0; i < 3; i++) await tick()
   }
@@ -140,6 +144,19 @@ it("CAP.menu.001/.002 renders the actual menu/list/item/separator structure with
   expect(row("menu-separator").props.role).toBe("separator")
   expect(row("menu").props.role).toBeUndefined()
 })
+it("retries initial item focus after a delayed native policy acknowledgment", async () => {
+  const first = createRef<RN.View>()
+  const f = fixture(
+    {},
+    <MenuItem id={0} ref={first} testID="first">
+      First
+    </MenuItem>,
+  )
+  await render(f.node())
+  await f.ready(true)
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(first.current, row("first").props.ownerId)
+})
+
 it("CAP.menu.003/.004/.015 independently applies root width/foreground/final style and list typography", async () => {
   const f = fixture({
     width: 250,
