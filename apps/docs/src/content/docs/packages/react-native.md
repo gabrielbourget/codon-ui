@@ -44,7 +44,7 @@ The small theme owns colors, five action orders, spacing unit, radius, disabled 
 
 Text uses 31 variants, six weights, system fonts and uncapped native scaling. Explicit native role/accessibility-role wins, followed by link intent and heading intent. Element names express semantics, without DOM associations or heading-level guarantees. Ordinary Text defaults selectable; labels and Button-owned content default unselectable. Explicit selection wins. Native labels/IDs take precedence over the supported aliases.
 
-Button exposes native Pressable events and a View ref. Its render state contains pressed, hovered, focused, disabled, pending and final foreground; focus-visible is intentionally absent. Strings/numbers receive an owned Text wrapper, nested Text inherits foreground and render children can use it for icons. Pending suppresses activation/presentation, announces busy and retains focus eligibility. Disabled also disables focus. Mid-gesture blocking balances started end/change transitions.
+Button exposes native Pressable events and a View ref. Its render state contains pressed, hovered, focused, disabled, pending and final foreground; focus-visible is intentionally absent. Strings/numbers/bigints receive an owned Text wrapper, nested Text inherits foreground and render children can use it for icons. Pending suppresses activation/presentation, announces busy and retains focus eligibility. Disabled also disables focus. Mid-gesture blocking balances started end/change transitions.
 
 Computed theme/state styles precede custom and final native styles. Explicit hoverColor wins in the computed layer, pressed state wins over hover and final authored styles always win. This approved native rule differs from the web cascade. Default unconstrained Buttons have 44-point iOS / 48-dp Android minima and grow with text; authored dimensions remain meaningful. Hit testing follows native parent geometry and overflow policy, and an unclipped parent can allow activation outside its bounds. Hosts requiring a strict parent boundary must explicitly clip overflow. Automatic hit slop does not prove an adjacent or constrained target passes.
 
@@ -102,6 +102,46 @@ export const EmailField = () => {
 labelFor accepts a native focus ref; label activation requests only the current target's focus method. Replacing/removing a label or ref and unmounting retire old handlers. labelID maps to nativeID, while callers explicitly name their actual controls. accessibilityLabelledBy is an Android relationship; do not infer cross-platform spoken output from a source test. Supported native name/ID props precede native aria forms and aliases, including explicit empty strings. Native accessibilityHint is spoken text rather than a browser ID reference. Browser describedby/details relationships remain required OPEN capabilities and their props reject in types and at runtime.
 
 Eight independent native style owners cover root, top row, label, top right, bottom row, bottom right, validation and description. Computed → customStyles → final root style preserves zero dimensions, native arrays/registered styles and platform colors. Validation styles apply to the cradle and each message, with custom text color overriding the existing severity role. Root foreground reaches ordinary content without replacing an explicitly colored child. raised uses the canonical light/dark shadow values. Browser text transitions, independent validation-foreground theme aliases, exact inline marker spacing and full installed layout/accessibility/profile acceptance remain OPEN. Existing physical/device deferrals remain unchanged.
+
+## TypeaheadSearch
+
+TypeaheadSearch is an inline search surface with a controlled query, caller-curated Iterable results and six caller-driven statuses. It adds no fetching, filtering, debouncing, minimum-length gate or automatic empty status. The search button and native submit action call onSubmitQuery with the trimmed current controlled query, including empty/repeated submissions. Native observer text never replaces the owner query.
+
+```tsx
+import { useRef, useState } from "react"
+import type { TextInput } from "react-native"
+import { TypeaheadSearch } from "@codon-ui/react-native"
+
+const suggestions = [
+  { id: 0, name: "Alpha" },
+  { id: "", name: "Empty-key result" },
+]
+
+export const SearchExample = () => {
+  const editor = useRef<TextInput>(null)
+  const [query, setQuery] = useState("")
+  return (
+    <TypeaheadSearch
+      accessibilityLabel="Search suggestions"
+      inputRef={editor}
+      inputValue={query}
+      onInputChange={setQuery}
+      items={suggestions}
+      getItemKey={(item) => item.id}
+      getItemTextValue={(item) => item.name}
+      status="results"
+    />
+  )
+}
+```
+
+The root ref is a native View; inputRef exposes the actual TextInput. A filtered inputProps keyboard/observer allowlist keeps native payloads while preventing value/change/style/ref/name/identity replacement. Native onSubmitEditing submits once after the observer, using the owner query rather than event.nativeEvent.text. onKeyPress is observational and does not add a second Enter submission. Root children and DOM class/ref/event surfaces are excluded.
+
+Status defaults to results. idle/minimum-query/loading/error/empty display resolved copy; results with zero items stays an empty collection until the caller changes status. Default labels merge defined legacy aliases, then grouped labels and nested status overrides; explicit empty strings survive. SearchIcon/LoadingIndicator retain falsy-to-default behavior. Defaults are a decorative native magnifier and an 18-unit/2.5-track/850ms transparent-track loader with live Reduce Motion. Native primitive content also supports bigint through the existing Text wrapper, with keyed authored children retained.
+
+Results own internal single selection: a repeated key toggles to null; query/relabel/reorder/removal/reinsertion retains selection without a fabricated callback. Leaving results unmounts that collection and resets its selection while preserving the Input and viewport. Explicit getItemKey keeps typed string/number identities; default keys stringify id/ID before falling back to index. Keys must be unique. Empty text metadata is allowed and row names derive from authored native content. The canonical disabled scope is preserved: query/search are blocked and dimmed, while existing result rows stay selectable.
+
+Six independent native style owners cover root, input row, input, search button, result viewport and result list. Root precedence is computed → customStyles → final style; three row geometries, current theme roles, array/registered styles, platform colors and authored zeros remain supported. The viewport defaults to minHeight160 and half the actual window height, with native nested scrolling. Native row focus actions honor shouldFocusWrap and use guarded measured scrolling without selecting. Equivalent data/styles and callback-only updates retain pending focus; layout/query/render/data or editor/button focus takeover retires it. Complete browser keyboard/typeahead/modifier/virtual-focus semantics, inherited transitions, exact native icon/rendering/viewport behavior and installed Android/iOS/profile proof remain required OPEN. Physical/device/closer-owner/signing deferrals retain their existing scope.
 
 ## Stepper
 

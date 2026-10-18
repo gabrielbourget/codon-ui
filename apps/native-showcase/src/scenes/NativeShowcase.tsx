@@ -41,6 +41,7 @@ import { StepperScene } from "./StepperScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
 import { ToggleScene } from "./ToggleScene"
+import { TypeaheadSearchScene } from "./TypeaheadSearchScene"
 
 const FixtureAction = ({
   label,
@@ -173,6 +174,7 @@ export const NativeShowcase = () => {
     | "stepper"
     | "slider"
     | "field"
+    | "search"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -238,6 +240,11 @@ export const NativeShowcase = () => {
             <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
             <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
             <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
+            <FixtureAction
+              label="Inline search scene"
+              selected={scene === "search"}
+              onPress={() => setScene("search")}
+            />
             <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
           </View>
           <View style={styles.controls}>
@@ -261,7 +268,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "field" ? (
+            {scene === "search" ? (
+              <TypeaheadSearchScene />
+            ) : scene === "field" ? (
               <FormFieldScene />
             ) : scene === "slider" ? (
               <SliderScene />
