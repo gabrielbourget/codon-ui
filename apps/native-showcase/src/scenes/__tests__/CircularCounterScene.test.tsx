@@ -97,3 +97,73 @@ it("distinguishes numeric/string max zero and retains raw nonnumeric text then r
     /Value: 25\. Counter: 25\. Max: 100 \(number\).*Ratio: full.*forward.*butt.*semantic/,
   )
 })
+
+it("cycles all semantic label shapes without mounting them or changing the owner value and visible text", async () => {
+  const press = await enter()
+  const cases = [
+    ["automatic", "25%"],
+    ["null", "25%"],
+    ["false", "25%"],
+    ["empty", "25%"],
+    ["numeric zero", "25%"],
+    ["bigint zero", "25%"],
+    ["numeric label", "4"],
+    ["bigint label", "4"],
+    ["string zero", "0"],
+    ["true", "true"],
+    ["text", "One quarter"],
+    ["array", "1, of ,4"],
+    ["fragment", "[object Object]"],
+    ["element", "[object Object]"],
+    ["promise", "[object Promise]"],
+  ] as const
+  for (const [index, [name, text]] of cases.entries()) {
+    if (index) await press("Next circular value label")
+    expect(screen.getByTestId("circular-value-label-state")).toHaveTextContent(`Value label: ${name}.`)
+    expect(screen.getByRole("progressbar", { name: "Circular task progress" })).toHaveAccessibilityValue({
+      now: 25,
+      text,
+    })
+    expect(screen.getByTestId("counter-demo-value").props.children).toBe(25)
+    expect(screen.getByTestId("circular-demo-text", hidden).children).toEqual(
+      expect.arrayContaining([expect.objectContaining({ props: expect.objectContaining({ content: "25%" }) })]),
+    )
+    expect(screen.queryByText("Value label nodes remain unmounted")).toBeNull()
+  }
+})
+
+it("retains label mode and owner zero through live theme/window changes and indeterminate transitions until reset", async () => {
+  const press = await enter()
+  for (let index = 0; index < 13; index += 1) await press("Next circular value label")
+  await press("Zero circular value")
+  await press("Dark theme")
+  await press("Compact width")
+  const window = Dimensions.get("window")
+  try {
+    await act(() => Dimensions.set({ window: { ...window, width: 800, height: 400, fontScale: 2 } }))
+    expect(screen.getByTestId("circular-value-label-state")).toHaveTextContent("Value label: element.")
+    expect(screen.getByRole("progressbar", { name: "Circular task progress" })).toHaveAccessibilityValue({
+      now: 0,
+      text: "[object Object]",
+    })
+    expect(screen.getByTestId("counter-demo-value").props.children).toBe(0)
+    await press("Toggle circular unknown semantics")
+    expect(
+      screen.getByRole("progressbar", { name: "Circular task progress" }).props.accessibilityValue.text,
+    ).toBeUndefined()
+    await press("Toggle circular unknown semantics")
+    expect(screen.getByRole("progressbar", { name: "Circular task progress" })).toHaveAccessibilityValue({
+      now: 0,
+      text: "[object Object]",
+    })
+    await press("Reset scene")
+    await press("Circular/Counter scene")
+    expect(screen.getByTestId("circular-value-label-state")).toHaveTextContent("Value label: automatic.")
+    expect(screen.getByRole("progressbar", { name: "Circular task progress" })).toHaveAccessibilityValue({
+      now: 25,
+      text: "25%",
+    })
+  } finally {
+    await act(() => Dimensions.set({ window }))
+  }
+})

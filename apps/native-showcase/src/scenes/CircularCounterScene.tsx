@@ -10,6 +10,24 @@ import {
   Text,
 } from "@codon-ui/react-native"
 
+const valueLabels = [
+  { name: "automatic", value: undefined },
+  { name: "null", value: null },
+  { name: "false", value: false },
+  { name: "empty", value: "" },
+  { name: "numeric zero", value: 0 },
+  { name: "bigint zero", value: 0n },
+  { name: "numeric label", value: 4 },
+  { name: "bigint label", value: 4n },
+  { name: "string zero", value: "0" },
+  { name: "true", value: true },
+  { name: "text", value: "One quarter" },
+  { name: "array", value: ["1", " of ", 4] },
+  { name: "fragment", value: <>One quarter</> },
+  { name: "element", value: <Text>Value label nodes remain unmounted</Text> },
+  { name: "promise", value: Promise.resolve("One quarter") },
+] as const
+
 export const CircularCounterScene = () => {
   const [value, setValue] = useState(25)
   const [raw, setRaw] = useState(false)
@@ -22,6 +40,7 @@ export const CircularCounterScene = () => {
   const [unknown, setUnknown] = useState(false)
   const [showMax, setShowMax] = useState(true)
   const [showRing, setShowRing] = useState(true)
+  const [valueLabelIndex, setValueLabelIndex] = useState(0)
   const max = [100, 0, "0"] as const
   const cap = AVAILABLE_NATIVE_STROKE_LINECAPS[capIndex]
   const order = orderIndex < 0 ? undefined : AVAILABLE_THEMING_ORDER_CODES[orderIndex]
@@ -31,6 +50,7 @@ export const CircularCounterScene = () => {
       <Text elementType="h2" variant="h3">
         Circular progress and counters
       </Text>
+      <Text testID="circular-value-label-state">Value label: {valueLabels[valueLabelIndex].name}.</Text>
       <Text testID="circular-counter-state">
         Value: {value}. Counter: {rawValue}. Max: {String(max[maxIndex])} ({typeof max[maxIndex]}). Ratio:{" "}
         {half ? "half" : "full"}. Direction: {reverse ? "counter-clockwise" : "forward"}. Cap: {cap}. Order:{" "}
@@ -57,6 +77,9 @@ export const CircularCounterScene = () => {
         </Button>
         <Button onPress={() => setCustom((current) => !current)}>Toggle circular and counter styles</Button>
         <Button onPress={() => setUnknown((current) => !current)}>Toggle circular unknown semantics</Button>
+        <Button onPress={() => setValueLabelIndex((current) => (current + 1) % valueLabels.length)}>
+          Next circular value label
+        </Button>
         <Button onPress={() => setShowMax((current) => !current)}>Toggle counter max suffix</Button>
         <Button onPress={() => setShowRing((current) => !current)}>Toggle counter ring</Button>
       </View>
@@ -64,6 +87,7 @@ export const CircularCounterScene = () => {
         testID="circular-demo"
         aria-label="Circular task progress"
         value={value}
+        valueLabel={valueLabels[valueLabelIndex].value}
         text={`${value}%`}
         width={120}
         height={120}
