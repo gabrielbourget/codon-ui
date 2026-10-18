@@ -77,6 +77,21 @@ export const ValidButton = (
     {(state) => <Text color={state.foregroundColor}>{state.isPending ? "Waiting" : "Continue"}</Text>}
   </Button>
 )
+export const TypographyButton = (
+  <Button
+    customStyles={{ fontFamily: "Body", fontSize: 18, fontWeight: "600", textTransform: "uppercase" }}
+    style={(state) => [
+      state.defaultStyle,
+      { fontSize: state.isPressed ? 22 : 20, letterSpacing: 0, textDecorationLine: "underline" },
+    ]}
+  >
+    Save
+  </Button>
+)
+// @ts-expect-error Native button typography uses logical numeric units.
+export const InvalidButtonFontUnit = <Button customStyles={{ fontSize: "1.4rem" }} />
+// @ts-expect-error Native text decoration uses the native field/value contract.
+export const InvalidButtonTextDecoration = <Button style={{ textDecorationLine: "overline" }} />
 // @ts-expect-error Button owns disabled state through isDisabled.
 export const InvalidButtonDisabled = <Button disabled />
 // @ts-expect-error Button owns busy/disabled accessibility semantics.

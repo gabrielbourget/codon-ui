@@ -101,7 +101,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
   const resolved = getNativeButtonStyle(theme, props, flags)
   const state: TNativeButtonRenderState = { ...flags, foregroundColor: resolved.foregroundColor }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
-  const content = getNativeButtonContent(rendered)
+  const content = getNativeButtonContent(rendered, resolved.textStyle)
   const automaticHitSlop = bounds
     ? {
         left: Math.max(0, (resolved.target - bounds.width) / 2),

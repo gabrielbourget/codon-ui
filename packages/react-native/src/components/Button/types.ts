@@ -1,12 +1,20 @@
 import type { ReactNode } from "react"
-import type { AccessibilityState, ColorValue, PressableProps, StyleProp, View, ViewStyle } from "react-native"
+import type {
+  AccessibilityState,
+  ColorValue,
+  PressableProps,
+  StyleProp,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 
 export const AVAILABLE_NATIVE_BUTTON_COLOR_MODES = ["fill", "outline"] as const
 export type TNativeButtonColorMode = (typeof AVAILABLE_NATIVE_BUTTON_COLOR_MODES)[number]
-export type TNativeButtonRootStyle = ViewStyle & { color?: ColorValue }
+export type TNativeButtonRootStyle = TextStyle
 export type TNativeButtonRef = View
 export type TNativeButtonRenderState = Readonly<{
   isPressed: boolean
