@@ -32,6 +32,7 @@ export const useNativeFloatingPosition = ({
   maxHeight,
   arrowSize,
   arrowBoundaryOffset,
+  margins,
 }: TOptions) => {
   const host = useNativeFloatingHost()
   const [controller] = useState(createNativeFloatingMeasurement)
@@ -49,6 +50,7 @@ export const useNativeFloatingPosition = ({
       maxHeight,
       arrowSize,
       arrowBoundaryOffset,
+      margins: { top: margins?.top, right: margins?.right, bottom: margins?.bottom, left: margins?.left },
     }),
     [
       placement,
@@ -60,6 +62,10 @@ export const useNativeFloatingPosition = ({
       maxHeight,
       arrowSize,
       arrowBoundaryOffset,
+      margins?.top,
+      margins?.right,
+      margins?.bottom,
+      margins?.left,
     ],
   )
   // Validate caller geometry during render; native coordinates only come from measurements below.
