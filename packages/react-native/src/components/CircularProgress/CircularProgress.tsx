@@ -57,20 +57,19 @@ export const CircularProgress = forwardRef<TNativeCircularProgressRef, TNativeCi
   } = props
   if (describedBy !== undefined || details !== undefined)
     throw new TypeError("CircularProgress: browser description/details relationships are not implemented")
-  if (valueLabel !== undefined && typeof valueLabel !== "number" && typeof valueLabel !== "string")
-    throw new TypeError("CircularProgress: native semantic valueLabel must be text")
   const theme = useNativeTheme()
   const context = useNativeContentContext()
   const geometry = getNativeCircularGeometry(props)
   const valueText = isIndeterminate
     ? undefined
     : valueLabel
-      ? String(valueLabel)
+      ? valueLabel
       : new Intl.NumberFormat(locale, formatOptions).format(
           formatOptions.style === "percent" ? geometry.percentage / 100 : geometry.bounded,
         )
   const state = { percentage: isIndeterminate ? undefined : geometry.percentage, valueText, isIndeterminate }
   const styles = getNativeCircularStyles(theme, props, state)
+  const semanticValueText = valueText === undefined ? undefined : String(valueText)
   const { color: rootColor, ...rootStyle } = styles.root
   const dashOffset = useNativeCircularOffset(geometry.canDrawPath ? geometry.pathOffset : undefined)
   const identity = testID ?? aliasID ?? "circular-progress"
@@ -88,12 +87,12 @@ export const CircularProgress = forwardRef<TNativeCircularProgressRef, TNativeCi
       accessibilityValue={{
         ...range,
         ...(!isIndeterminate && geometry.hasNativeRange ? { now: geometry.bounded } : {}),
-        text: valueText,
+        text: semanticValueText,
       }}
       aria-valuemin={geometry.hasNativeRange ? minValue : undefined}
       aria-valuemax={geometry.hasNativeRange ? maxValue : undefined}
       aria-valuenow={!isIndeterminate && geometry.hasNativeRange ? geometry.bounded : undefined}
-      aria-valuetext={valueText}
+      aria-valuetext={semanticValueText}
       testID={identity}
       style={rootStyle}
     >

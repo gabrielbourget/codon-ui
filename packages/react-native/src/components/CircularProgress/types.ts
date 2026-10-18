@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import type { ColorValue, StyleProp, View, ViewProps, ViewStyle } from "react-native"
 import type { CircleProps, PathProps, SvgProps, TextProps } from "react-native-svg"
 
@@ -51,7 +52,7 @@ export type TNativeCircularProgressTextStyle = ViewStyle &
   >
 export type TNativeCircularProgressRenderState = Readonly<{
   percentage: number | undefined
-  valueText: string | undefined
+  valueText: ReactNode
   isIndeterminate: boolean
 }>
 export type TNativeCircularProgressStyleState = TNativeCircularProgressRenderState & {
@@ -73,7 +74,7 @@ export type TNativeCircularProgressProps = Omit<
   value: number
   minValue?: number
   maxValue?: number
-  valueLabel?: string | number
+  valueLabel?: ReactNode
   isIndeterminate?: boolean
   locale?: string
   formatOptions?: Intl.NumberFormatOptions

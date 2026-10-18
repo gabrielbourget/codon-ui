@@ -69,8 +69,39 @@ export const CssPath = <CircularProgress value={0} customPathStyles="stroke: red
 export const DomRef = <CircularProgress value={0} ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Browser description relationships remain an explicit open native capability.
 export const DomDescription = <CircularProgress value={0} aria-describedby="description" />
-// @ts-expect-error Native value labels are semantic text rather than arbitrary elements.
-export const RichLabel = <CircularProgress value={0} valueLabel={<Text>Progress</Text>} />
+const richLabel = <Text>Progress</Text>
+export const RichLabel = (
+  <CircularProgress
+    value={0}
+    valueLabel={richLabel}
+    style={({ valueText, defaultStyle }) => [defaultStyle, { opacity: valueText === richLabel ? 1 : 0.5 }]}
+  />
+)
+const semanticLabels: CircularProgressProps["valueLabel"][] = [
+  undefined,
+  null,
+  false,
+  "",
+  0,
+  0n,
+  4,
+  4n,
+  "0",
+  true,
+  "One quarter",
+  ["1", " of ", 4],
+  <>One quarter</>,
+  richLabel,
+  Promise.resolve("One quarter"),
+]
+export const SemanticLabelCases = semanticLabels.map((valueLabel, index) => (
+  <CircularProgress
+    key={index}
+    value={0}
+    valueLabel={valueLabel}
+    style={({ valueText }) => ({ opacity: typeof valueText === "string" && valueText.length ? 1 : 0.5 })}
+  />
+))
 // @ts-expect-error Value semantics are derived from authoritative value/range.
 export const OverrideNow = <CircularProgress value={0} aria-valuenow={30} />
 // @ts-expect-error Counter requires raw caller-owned text or number.
