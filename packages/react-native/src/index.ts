@@ -1,3 +1,10 @@
+export { CarouselCloseButton } from "./components/Carousel/CarouselControls"
+export type {
+  TNativeCarouselCloseButtonProps,
+  TNativeCarouselCloseButtonProps as CarouselCloseButtonProps,
+  TNativeCarouselCloseButtonRef,
+} from "./components/Carousel/types"
+
 export { CircularProgress } from "./components/CircularProgress/CircularProgress"
 export { AVAILABLE_NATIVE_STROKE_LINECAPS } from "./components/CircularProgress/types"
 export type {
