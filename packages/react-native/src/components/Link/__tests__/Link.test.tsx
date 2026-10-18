@@ -215,17 +215,27 @@ it("CAP.link.007 suppresses disabled activation, long press and cancelled held g
       Label
     </Link>,
   )
-  const held = event(2)
-  await fireEvent(screen.getByTestId("link"), "pressIn", held)
+  const touch = (timestamp: number) => ({
+    persist: jest.fn(),
+    currentTarget: 17,
+    target: 17,
+    nativeEvent: { timestamp, target: 17, identifier: 0, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+  })
+  const held = touch(2)
+  await act(() => screen.getByTestId("link").props.onResponderGrant(held))
   await rerender(<Link href="x" isDisabled onPress={onPress} />)
   await rerender(<Link href="x" isDisabled={false} onPress={onPress} onLongPress={onLongPress} />)
-  await fireEvent.press(screen.getByTestId("link"), held)
+  await act(() => screen.getByTestId("link").props.onResponderRelease(touch(3)))
+  await act(() => jest.runOnlyPendingTimers())
   expect(onPress).not.toHaveBeenCalled()
   expect(onLongPress).not.toHaveBeenCalled()
   expect(Linking.openURL).not.toHaveBeenCalled()
-  await fireEvent(screen.getByTestId("link"), "pressIn", event(3))
-  await fireEvent(screen.getByTestId("link"), "longPress", event(3))
-  await fireEvent.press(screen.getByTestId("link"), event(3))
+  await act(() => screen.getByTestId("link").props.onResponderGrant(touch(4)))
+  await act(() => jest.advanceTimersByTime(600))
+  await act(() => screen.getByTestId("link").props.onResponderRelease(touch(5)))
+  expect(onPress).not.toHaveBeenCalled()
+  await act(() => screen.getByTestId("link").props.onResponderGrant(touch(6)))
+  await act(() => screen.getByTestId("link").props.onResponderRelease(touch(7)))
   expect(onPress).toHaveBeenCalledTimes(1)
   expect(onLongPress).toHaveBeenCalledTimes(1)
   expect(Linking.openURL).toHaveBeenCalledTimes(1)

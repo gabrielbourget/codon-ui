@@ -274,7 +274,7 @@ Muted root defaults copy the unchanged canonical light/dark surface #f7f7f7/#202
 
 ## Link
 
-Link renders one native link with an actual View ref and owned Text for primitive/array/Fragment content. href is required and remains verbatim, including empty strings. onPress receives the original native event before one Linking.openURL call; call event.preventDefault() to handle application routing, fragments, relative URLs or any owner veto. isDisabled blocks activation and cancels held gestures. onNavigationError(error, href) reports synchronous and asynchronous failures against their original target/callback; a link without that handler warns, and unmount retires error reporting.
+Link renders one native link on the owned input host with an actual View ref and owned Text for primitive/array/Fragment content. Enter/Space and native activation preserve the original TNativePressEvent record; raw press-in/out retain touch-or-keyboard events. Key/focus callbacks use the native input contracts and focusNativeTarget makes portable requests on the real root. Explicit focusable=false/tabIndex=-1 excludes keyboard admission while retaining independent native activation. href is required and remains verbatim, including empty strings. onPress receives the original native event before one Linking.openURL call; call event.preventDefault() to handle application routing, fragments, relative URLs or any owner veto. isDisabled blocks activation and cancels held gestures. onNavigationError(error, href) reports synchronous and asynchronous failures against their original target/callback; a link without that handler warns, and unmount retires error reporting.
 
 ```tsx
 import { useState } from "react"
