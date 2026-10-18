@@ -106,7 +106,7 @@ it("CAP.toaster.001 held pointer expansion, cancelable collapse and bridge re-en
   expect(scale()).toBe(1)
   await fireEvent(stack(), "pointerLeave", {})
   await advance(120)
-  expect(scale()).toBe(-1.05)
+  expect(scale()).toBe(0.95)
 })
 it("CAP.toaster.007/.008 renders expanded-by-default independently and hides overflow from hit testing/accessibility", async () => {
   await render(node({ expandByDefault: true, maxVisibleToasts: 1 }))

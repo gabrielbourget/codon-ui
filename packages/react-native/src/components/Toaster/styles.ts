@@ -50,7 +50,7 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
           opacity: removed || index >= props.maxVisibleToasts ? 0 : 1,
           transform: [
             { translateY: lift * (expanded ? offset : index * (props.toastGap ?? DEFAULT_TOAST_GAP)) },
-            { scale: !expanded && index > 0 ? -(index * 0.05 + 1) : 1 },
+            { scale: !expanded && index > 0 ? 1 - index * 0.05 : 1 },
           ],
         },
         view,

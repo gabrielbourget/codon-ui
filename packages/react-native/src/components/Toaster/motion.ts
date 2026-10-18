@@ -23,7 +23,7 @@ export const getNativeToastMotionFrame = (
   }
   return {
     translation,
-    scale: !expanded && props.index > 0 ? -(props.index * 0.05 + 1) : 1,
+    scale: !expanded && props.index > 0 ? 1 - props.index * 0.05 : 1,
     opacity:
       (typeof authored.opacity === "number" ? authored.opacity : undefined) ??
       (props.index >= props.maxVisibleToasts || state.removed || (!state.entered && props.index === 0) ? 0 : 1),
