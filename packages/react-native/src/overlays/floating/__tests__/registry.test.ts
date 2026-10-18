@@ -1,0 +1,162 @@
+import { createNativeFloatingLayerRegistry } from "../registry"
+const options = (
+  override: Partial<Parameters<ReturnType<typeof createNativeFloatingLayerRegistry>["register"]>[1]> = {},
+) => ({ parent: null, isOpen: true, isModal: true, isKeyboardDismissDisabled: false, onDismiss: () => {}, ...override })
+type TLease = ReturnType<ReturnType<typeof createNativeFloatingLayerRegistry>["register"]>
+const show = (lease: TLease) => expect(lease.entered(lease.state().generation)).toBe(true)
+const finish = (lease: TLease) => expect(lease.exited(lease.state().generation)).toBe(true)
+test("closed ownership and readiness", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options({ isOpen: false }))
+  expect(a.state().mounted).toBe(false)
+  a.update(options())
+  expect(a.state().phase).toBe("entering")
+  expect(a.state().active).toBe(false)
+  show(a)
+  expect(a.state().active).toBe(true)
+})
+test("top layer owns actions and modal coverage", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  show(a)
+  const b = r.register("b", options({ isModal: false }))
+  expect(a.state().covered).toBe(true)
+  expect(r.hasModal()).toBe(true)
+  show(b)
+  expect(b.state().active).toBe(true)
+  expect(a.canAct(a.state().generation)).toBe(false)
+})
+test("parent readiness and deepest-first exit barriers", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  const b = r.register("b", options({ parent: "a" }))
+  expect(b.state().phase).toBe("closed")
+  show(a)
+  show(b)
+  a.update(options({ isOpen: false }))
+  expect(a.state().phase).toBe("exiting")
+  expect(b.state().phase).toBe("exiting")
+  finish(a)
+  expect(a.state().phase).toBe("exiting")
+  finish(b)
+  expect(a.state().phase).toBe("closed")
+  expect(b.state().phase).toBe("closed")
+  expect(r.canRestore(null)).toBe(true)
+})
+test("stale entry and action generations", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  const old = a.state().generation
+  a.update(options({ isOpen: false }))
+  expect(a.entered(old)).toBe(false)
+  expect(a.canAct(old)).toBe(false)
+  finish(a)
+  a.update(options())
+  show(a)
+  expect(a.canAct(old)).toBe(false)
+})
+test("reopen waits for prior exit completion", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  show(a)
+  a.update(options({ isOpen: false }))
+  const exit = a.state().generation
+  a.update(options())
+  expect(a.state().phase).toBe("exiting")
+  expect(a.exited(exit)).toBe(true)
+  expect(a.state().phase).toBe("entering")
+  expect(a.exited(exit)).toBe(false)
+  show(a)
+})
+test("retired descendants cannot join a replacement parent identity", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  show(a)
+  const b = r.register("b", options({ parent: "a" }))
+  show(b)
+  const old = b.state().generation
+  a.unregister()
+  expect(b.state().phase).toBe("closed")
+  const replacement = r.register("a", options())
+  show(replacement)
+  expect(b.state().phase).toBe("closed")
+  expect(b.canAct(old)).toBe(false)
+})
+test("keyboard-protected and transitioning layers shield native windows", () => {
+  const r = createNativeFloatingLayerRegistry()
+  let calls = 0
+  const a = r.register("a", options({ isKeyboardDismissDisabled: true, onDismiss: () => calls++ }))
+  expect(r.requestDismiss("keyboard")).toBe(true)
+  show(a)
+  expect(r.requestDismiss("keyboard")).toBe(true)
+  expect(r.requestDismiss("accessibilityEscape")).toBe(true)
+  expect(calls).toBe(0)
+  a.unregister()
+  expect(r.requestDismiss("keyboard")).toBe(false)
+})
+test("controlled declines remain authoritative and repeatable", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const requests: string[] = []
+  const a = r.register("a", options({ onDismiss: (x) => requests.push(x) }))
+  show(a)
+  r.requestDismiss("keyboard")
+  r.requestDismiss("outside")
+  expect(requests).toEqual(["keyboard", "outside"])
+  expect(a.state().phase).toBe("open")
+})
+test("dispatch uses the current callback", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const calls: string[] = []
+  const a = r.register("a", options({ onDismiss: () => calls.push("old") }))
+  show(a)
+  a.update(options({ onDismiss: () => calls.push("new") }))
+  r.requestDismiss("outside")
+  expect(calls).toEqual(["new"])
+})
+test("child-first registration admits only a ready parent", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const b = r.register("b", options({ parent: "a" }), false)
+  const a = r.register("a", options(), false)
+  r.flush()
+  expect(b.state().mounted).toBe(false)
+  show(a)
+  expect(b.state().phase).toBe("entering")
+})
+test("unsubscribed listeners and stale leases stay inert", () => {
+  const r = createNativeFloatingLayerRegistry()
+  let calls = 0
+  const stop = r.subscribe(() => calls++)
+  const a = r.register("a", options())
+  stop()
+  a.unregister()
+  const next = r.register("a", options())
+  a.update(options({ isOpen: false }))
+  expect(next.state().phase).toBe("entering")
+  expect(calls).toBe(1)
+  expect(a.entered(a.state().generation)).toBe(false)
+})
+test("cycles, duplicate identities and parent changes are rejected", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register("a", options())
+  expect(() => r.register("a", options())).toThrow()
+  expect(() => r.register("b", options({ parent: "b" }))).toThrow()
+  expect(() => a.update(options({ parent: "missing" }))).toThrow()
+  r.register("child", options({ parent: "later" }))
+  expect(() => r.register("later", options({ parent: "child" }))).toThrow()
+})
+
+it("preserves owner state when the dismissal callback throws", () => {
+  const r = createNativeFloatingLayerRegistry()
+  const a = r.register(
+    "a",
+    options({
+      onDismiss: () => {
+        throw new Error("caller failure")
+      },
+    }),
+  )
+  show(a)
+  expect(() => r.requestDismiss("keyboard")).toThrow(/caller failure/)
+  expect(a.state().phase).toBe("open")
+  expect(a.state().active).toBe(true)
+})
