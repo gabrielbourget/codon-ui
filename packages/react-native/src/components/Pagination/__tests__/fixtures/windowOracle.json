@@ -1,0 +1,12 @@
+{
+  "canonicalFunction": "computeInternalPaginationItems",
+  "canonicalFile": "packages/react/src/components/Pagination/helpers.tsx",
+  "canonicalSourceSHA256": "e7edf8dabee0709efec9b0d665ef796069593e5ab59b3dd1813ca9f6020b371a",
+  "pageCount": [1, 60],
+  "maxVisiblePages": [3, 20],
+  "placements": ["left", "right"],
+  "rtl": [false, true],
+  "currentPages": "every valid page",
+  "caseCount": 131760,
+  "sha256": "7dc775549cd26809c1b184d838cbfaf95fa6ca84d927500580c5e7783edc30d9"
+}
