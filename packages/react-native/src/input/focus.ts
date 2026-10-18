@@ -3,9 +3,63 @@ import type { TextInput, View } from "react-native"
 import upstreamTextInputState from "react-native/Libraries/Components/TextInput/TextInputState"
 
 type TTarget = View | TextInput
-const textInputState: Readonly<{ isTextInput: (target: TTarget) => boolean }> = upstreamTextInputState
-type TBinding = Readonly<{ focus: () => void; blur: () => void; canFocus: () => boolean }>
+const textInputState: Readonly<{
+  isTextInput: (target: TTarget) => boolean
+  currentlyFocusedInput: () => TextInput | null
+}> = upstreamTextInputState
+type TBinding = Readonly<{ focus: () => void; blur: () => void; canFocus: () => boolean; window?: () => string }>
 const bindings = new WeakMap<TTarget, TBinding>()
+const focusObservers = new Set<() => void>()
+let observedFocus: TTarget | null = null
+let previousFocus: TTarget | null = null
+const publishFocus = () => {
+  for (const observer of [...focusObservers]) observer()
+}
+
+export const getNativeFocusedTarget = (): TTarget | null => {
+  const input = textInputState.currentlyFocusedInput()
+  if (input && textInputState.isTextInput(input)) return input
+  if (observedFocus && bindings.get(observedFocus)?.canFocus()) return observedFocus
+  return null
+}
+export const getNativeFocusTargetWindow = (target: TTarget) => bindings.get(target)?.window?.()
+export const captureNativeFocusTarget = (target: TTarget): (() => boolean) | null => {
+  const binding = bindings.get(target)
+  if (binding) {
+    if (!binding.canFocus()) return null
+    const window = binding.window?.()
+    return () => bindings.get(target) === binding && binding.canFocus() && binding.window?.() === window
+  }
+  return textInputState.isTextInput(target) ? () => textInputState.isTextInput(target) : null
+}
+export const getNativePreviousFocusTarget = (): TTarget | null =>
+  previousFocus && bindings.get(previousFocus)?.canFocus() ? previousFocus : null
+export const subscribeNativeFocus = (observer: () => void) => {
+  focusObservers.add(observer)
+  return () => {
+    focusObservers.delete(observer)
+  }
+}
+export const observeNativeFocus = (target: TTarget, focused: boolean) => {
+  const binding = bindings.get(target)
+  if (!binding || (focused && !binding.canFocus())) return
+  if (focused) {
+    if (observedFocus === target) return
+    previousFocus = observedFocus ?? previousFocus
+    observedFocus = target
+  } else {
+    if (observedFocus !== target) return
+    previousFocus = target
+    observedFocus = null
+  }
+  publishFocus()
+}
+export const retireNativeFocusObservation = (target: TTarget) => {
+  const changed = observedFocus === target || previousFocus === target
+  if (observedFocus === target) observedFocus = null
+  if (previousFocus === target) previousFocus = null
+  if (changed) publishFocus()
+}
 
 export const isNativeFocusTarget = (target: object | null): target is TTarget =>
   target !== null && (bindings.has(target as TTarget) || textInputState.isTextInput(target as TTarget))
@@ -14,6 +68,7 @@ export const registerNativeFocusTarget = (target: TTarget, binding: TBinding) =>
   bindings.set(target, binding)
   return () => {
     if (bindings.get(target) === binding) bindings.delete(target)
+    if (!bindings.has(target)) retireNativeFocusObservation(target)
   }
 }
 

@@ -1,9 +1,22 @@
-import { forwardRef, useCallback, useId, useInsertionEffect, useRef, useState, type ElementRef } from "react"
-import type { GestureResponderEvent, NativeSyntheticEvent, ViewProps } from "react-native"
+import {
+  forwardRef,
+  useCallback,
+  useContext,
+  useId,
+  useInsertionEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ElementRef,
+} from "react"
+import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, type ViewProps } from "react-native"
+
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
-import { registerNativeFocusTarget } from "./focus"
+import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
+import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import FocusHost, {
   Commands,
@@ -57,6 +70,8 @@ export const NativeFocusHost = forwardRef<
   } = props
   const ownerId = useId()
   const attached = useRef(false)
+  const nativeTarget = useRef<ElementRef<typeof FocusHost> | null>(null)
+  const observedFocusedTarget = useRef<{ target: ElementRef<typeof FocusHost>; window: string } | null>(null)
   const activationId = useRef(0)
   const release = useRef<(() => void) | undefined>(undefined)
   const releaseInspector = useRef<(() => void) | undefined>(undefined)
@@ -64,13 +79,40 @@ export const NativeFocusHost = forwardRef<
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
   const keyboardFocusable = tabIndex === -1 ? false : (focusable ?? true)
-  const focusEligibility = useRef(keyboardFocusable)
+  const inputScope = useNativeKeyScope()
+  const floatingScope = useContext(NativeFloatingScopeContext)
+  const windowActive = useContext(NativeFloatingWindowContext)
+  const focusEligibility = useRef({ keyboardFocusable, inputScope, floatingScope, windowActive })
   useInsertionEffect(() => {
-    focusEligibility.current = keyboardFocusable
-  }, [keyboardFocusable])
+    focusEligibility.current = { keyboardFocusable, inputScope, floatingScope, windowActive }
+  })
+  const focusWindow = useCallback(() => {
+    const scope = focusEligibility.current.inputScope
+    const session = scope?.acknowledgedSession()
+    return `${scope?.ownerId ?? ""}:${session?.windowId ?? ""}:${session?.epoch ?? 0}`
+  }, [])
+  const canFocus = useCallback(() => {
+    const current = focusEligibility.current
+    return (
+      current.keyboardFocusable &&
+      current.inputScope?.isWindowActive() !== false &&
+      current.floatingScope?.canAct() !== false &&
+      current.windowActive?.() !== false
+    )
+  }, [])
+  const retireObservation = useCallback(() => {
+    const observed = observedFocusedTarget.current
+    if (observed && (!canFocus() || observed.window !== focusWindow())) {
+      observedFocusedTarget.current = null
+      retireNativeFocusObservation(observed.target)
+    }
+  }, [canFocus, focusWindow])
+  useLayoutEffect(retireObservation)
+  useLayoutEffect(() => inputScope?.subscribe(retireObservation), [inputScope, retireObservation])
   const setRef = useCallback(
     (target: ElementRef<typeof FocusHost> | null) => {
       attached.current = target !== null
+      nativeTarget.current = target
       release.current?.()
       releaseInspector.current?.()
       releaseDescription.current?.()
@@ -78,11 +120,16 @@ export const NativeFocusHost = forwardRef<
       releaseForwardedRef.current = undefined
       release.current = target
         ? registerNativeFocusTarget(target, {
-            canFocus: () => focusEligibility.current,
+            canFocus,
+            window: focusWindow,
             focus: () => Commands.requestKeyboardFocus(target, ownerId),
             blur: () => Commands.requestKeyboardBlur(target, ownerId),
           })
         : undefined
+      if (target && observedFocusedTarget.current?.target === target) {
+        if (observedFocusedTarget.current.window === focusWindow() && canFocus()) observeNativeFocus(target, true)
+        else observedFocusedTarget.current = null
+      }
       releaseInspector.current = target
         ? registerNativeAccessibilityInspector(target, () => Commands.inspectAccessibility(target, ownerId))
         : undefined
@@ -94,7 +141,7 @@ export const NativeFocusHost = forwardRef<
         }
       } else if (forwardedRef) forwardedRef.current = target
     },
-    [forwardedRef, ownerId],
+    [forwardedRef, ownerId, canFocus, focusWindow],
   )
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
@@ -142,6 +189,12 @@ export const NativeFocusHost = forwardRef<
         }}
         onNativeFocusChange={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId) return
+          const target = nativeTarget.current
+          const tag = target && findNodeHandle(target)
+          if (target && typeof tag === "number" && tag > 0 && event.nativeEvent.target === tag) {
+            observedFocusedTarget.current = event.nativeEvent.isFocused ? { target, window: focusWindow() } : null
+            observeNativeFocus(target, event.nativeEvent.isFocused)
+          }
           if (event.nativeEvent.isFocused) onFocus?.(event)
           else onBlur?.(event)
         }}

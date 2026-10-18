@@ -1,8 +1,9 @@
-import { useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
+import { useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
 import { Animated, View, type PointerEvent } from "react-native"
 
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
@@ -10,6 +11,7 @@ import type { TNativeButtonProps } from "../Button/types"
 import { NativeContentContext } from "../NativeContentContext"
 import { Text } from "../Text/Text"
 
+import { NativeToasterFocusContext } from "./focus"
 import { createNativeToastGesture } from "./gesture"
 import { computeToastDateTimeString, isNativeToastHotkey, resolveToastLabels } from "./model"
 import { useNativeToastMotion } from "./motion"
@@ -43,10 +45,17 @@ export const Toast = (props: TNativeToastProps) => {
   const important = toast.important ?? ["error", "danger", "delete"].includes(type)
   const visible = index < maxVisibleToasts
   const keyScope = useNativeKeyScope()
+  const focus = useContext(NativeToasterFocusContext)
   const current = useRef({ scope, windowActive, keyScope, lifecycle, visible, dismissable, props })
   useInsertionEffect(() => {
     current.current = { scope, windowActive, keyScope, lifecycle, visible, dismissable, props }
   })
+  const setFocusRef = useCallback(
+    (target: TNativeFocusViewRef | null) => {
+      if (target) return focus?.register(target, () => current.current.dismissable)
+    },
+    [focus],
+  )
   const canAct = () => {
     const value = current.current
     return (
@@ -112,6 +121,7 @@ export const Toast = (props: TNativeToastProps) => {
   return (
     <NativeContentContext.Provider value={{ foregroundColor: styles.foreground, isButton: false }}>
       <AnimatedFocusHost
+        ref={setFocusRef}
         testID={`toast-${typeof toast.id}-${toast.id}`}
         accessible={false}
         focusable={visible && !lifecycle.removed}
