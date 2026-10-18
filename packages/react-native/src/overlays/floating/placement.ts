@@ -118,11 +118,8 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
   if (!Object.values(room).every(Number.isFinite)) return null
   const opposite = { top: "bottom", bottom: "top", left: "right", right: "left" } as const
   const vertical = side === "top" || side === "bottom"
-  const requestedHeight = Math.min(content.height, maxHeight ?? content.height)
-  const mainSize = vertical ? requestedHeight : content.width
+  const mainSize = vertical ? content.height : content.width
   if (shouldFlip && mainSize > room[side] && room[opposite[side]] > room[side]) side = opposite[side]
-  const height = Math.max(0, Math.min(requestedHeight, bottom - top, vertical ? room[side] : Infinity))
-  const width = content.width
   const crossAlignment =
     alignment === "start"
       ? direction === "rtl"
@@ -133,40 +130,76 @@ export const getNativeFloatingPlacement = (input: TNativeFloatingPlacementInput)
           ? "left"
           : "right"
         : alignment
-  const cross = vertical
-    ? crossAlignment === "left"
-      ? anchor.x
-      : crossAlignment === "right"
-        ? anchor.x + anchor.width - width
-        : anchor.x + anchor.width / 2 - width / 2
-    : alignment === "top"
-      ? anchor.y
-      : alignment === "bottom"
-        ? anchor.y + anchor.height - height
-        : anchor.y + anchor.height / 2 - height / 2
-  const x = bounded(
-    vertical ? cross + crossOffset : side === "left" ? anchor.x - offset - width : anchor.x + anchor.width + offset,
-    left,
-    right - width,
+  const anchorCross = vertical ? anchor.x : anchor.y
+  const anchorCrossSize = vertical ? anchor.width : anchor.height
+  const clampToInterval = (value: number, minimum: number, maximum: number) =>
+    Math.min(Math.max(value, minimum), maximum)
+  const positionForHeight = (height: number) => {
+    const crossSize = vertical ? content.width : height
+    const leading = vertical ? "left" : "top"
+    const trailing = vertical ? "right" : "bottom"
+    const preferred =
+      crossAlignment === leading
+        ? anchorCross
+        : crossAlignment === trailing
+          ? anchorCross + anchorCrossSize - crossSize
+          : anchorCross + (anchorCrossSize - crossSize) / 2
+    const anchored = clampToInterval(
+      preferred + crossOffset,
+      anchorCross - crossSize + arrowSize + arrowBoundaryOffset,
+      anchorCross + anchorCrossSize - arrowSize - arrowBoundaryOffset,
+    )
+    const cross = bounded(anchored, vertical ? left : top, (vertical ? right : bottom) - crossSize)
+    if (vertical) {
+      const y =
+        side === "top"
+          ? host.y + host.height - Math.floor(host.height - (anchor.y - host.y) + offset) - height
+          : host.y + Math.floor(anchor.y - host.y + anchor.height + offset)
+      return { x: cross, y }
+    }
+    const x =
+      side === "left"
+        ? host.x + host.width - Math.floor(host.width - (anchor.x - host.x) + offset) - content.width
+        : host.x + Math.floor(anchor.x - host.x + anchor.width + offset)
+    return { x, y: cross }
+  }
+  const naturalFrame = positionForHeight(content.height)
+  const growsUp = side === "top" || (!vertical && crossAlignment === "bottom")
+  const availableHeight = Math.max(0, growsUp ? naturalFrame.y + content.height - top : bottom - naturalFrame.y)
+  const constrainedHeight = Math.min(maxHeight ?? availableHeight, availableHeight)
+  const height = Math.min(content.height, constrainedHeight)
+  const width = content.width
+  const { x, y } = positionForHeight(height)
+  const crossPosition = vertical ? x : y
+  const crossSize = vertical ? width : height
+  const origin = anchorCross - crossPosition
+  const anchorArrowCenter = clampToInterval(
+    origin + anchorCrossSize / 2,
+    origin + arrowSize / 2,
+    origin + anchorCrossSize - arrowSize / 2,
   )
-  const y = bounded(
-    vertical ? (side === "top" ? anchor.y - offset - height : anchor.y + anchor.height + offset) : cross + crossOffset,
-    top,
-    bottom - height,
+  const arrowCenter = clampToInterval(
+    anchorArrowCenter,
+    arrowSize / 2 + arrowBoundaryOffset,
+    crossSize - arrowSize / 2 - arrowBoundaryOffset,
   )
-  const arrowCrossSize = vertical ? width : height
-  const arrowMinimum = Math.min(arrowBoundaryOffset, Math.max(0, (arrowCrossSize - arrowSize) / 2))
-  const arrowMaximum = Math.max(arrowMinimum, arrowCrossSize - arrowSize - arrowMinimum)
-  const arrowCenter = vertical ? anchor.x + anchor.width / 2 - x : anchor.y + anchor.height / 2 - y
+  const crossOrigin = arrowSize
+    ? arrowCenter
+    : crossAlignment === "right"
+      ? origin + anchorCrossSize
+      : crossAlignment === undefined
+        ? origin + anchorCrossSize / 2
+        : origin
+  const mainOrigin = side === "top" || side === "left" ? (vertical ? height : width) : 0
   return {
     placement: side,
     didFlip: side !== physicalSide,
     frame: { x, y, width, height },
     hostFrame: { x: x - host.x, y: y - host.y, width, height },
-    maxHeight: Math.max(0, Math.min(maxHeight ?? Infinity, bottom - top, vertical ? room[side] : Infinity)),
+    maxHeight: constrainedHeight,
     availableMainSpace: Math.max(0, room[side]),
-    arrowCrossOffset: bounded(arrowCenter - arrowSize / 2, arrowMinimum, arrowMaximum),
+    arrowCrossOffset: arrowCenter - arrowSize / 2,
     arrowSide: opposite[side],
-    anchorPoint: { x: anchor.x + anchor.width / 2 - x, y: anchor.y + anchor.height / 2 - y },
+    anchorPoint: { x: vertical ? crossOrigin : mainOrigin, y: vertical ? mainOrigin : crossOrigin },
   }
 }

@@ -133,3 +133,60 @@ it("does not admit overflowing finite native frame arithmetic", () => {
     getNativeFloatingPlacement({ ...base, host: { x: 1e308, y: 0, width: 0, height: 300 }, containerPadding: 1e308 }),
   ).toBeNull()
 })
+
+it("floors positioned main-axis edges in the host coordinate system", () => {
+  const input = {
+    ...base,
+    anchor: { x: 100.25, y: 100.75, width: 40.5, height: 20.5 },
+    content: { width: 60.5, height: 40.5 },
+  }
+  expect(getNativeFloatingPlacement({ ...input, placement: "bottom" })?.frame).toEqual({
+    x: 90.25,
+    y: 129,
+    width: 60.5,
+    height: 40.5,
+  })
+  expect(getNativeFloatingPlacement({ ...input, placement: "top" })?.frame).toEqual({
+    x: 90.25,
+    y: 52.5,
+    width: 60.5,
+    height: 40.5,
+  })
+  expect(getNativeFloatingPlacement({ ...input, placement: "right" })?.frame.x).toBe(148)
+  expect(getNativeFloatingPlacement({ ...input, placement: "left" })?.frame.x).toBe(32.5)
+})
+it("keeps large cross offsets attached to the trigger before boundary adjustment", () => {
+  expect(
+    getNativeFloatingPlacement({ ...base, crossOffset: 100, arrowSize: 10, arrowBoundaryOffset: 6 })?.frame.x,
+  ).toBe(124)
+  expect(
+    getNativeFloatingPlacement({ ...base, crossOffset: -100, arrowSize: 10, arrowBoundaryOffset: 6 })?.frame.x,
+  ).toBe(56)
+  expect(
+    getNativeFloatingPlacement({ ...base, placement: "right", crossOffset: 100, arrowSize: 10, arrowBoundaryOffset: 6 })
+      ?.frame.y,
+  ).toBe(104)
+})
+it("computes horizontal height growth from the positioned cross-axis edge", () => {
+  expect(getNativeFloatingPlacement({ ...base, placement: "right" })).toMatchObject({
+    frame: { x: 148, y: 90, height: 40 },
+    maxHeight: 198,
+  })
+  expect(getNativeFloatingPlacement({ ...base, placement: "right bottom" })).toMatchObject({
+    frame: { x: 148, y: 80, height: 40 },
+    maxHeight: 108,
+  })
+})
+it("preserves authored width and its main-axis relationship when neither side can contain it", () => {
+  expect(
+    getNativeFloatingPlacement({ ...base, placement: "right", content: { width: 400, height: 40 } }),
+  ).toMatchObject({ placement: "right", frame: { x: 148, width: 400 } })
+})
+it("exposes the actual overlay entry edge and arrow center as the animation origin", () => {
+  expect(getNativeFloatingPlacement(base)?.anchorPoint).toEqual({ x: 30, y: 0 })
+  expect(getNativeFloatingPlacement({ ...base, placement: "top" })?.anchorPoint).toEqual({ x: 30, y: 40 })
+  expect(getNativeFloatingPlacement({ ...base, placement: "right", arrowSize: 10 })?.anchorPoint).toEqual({
+    x: 0,
+    y: 20,
+  })
+})
