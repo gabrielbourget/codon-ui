@@ -1,4 +1,4 @@
-import { useRef, type ReactNode, type Ref } from "react"
+import { useContext, useRef, type ReactNode, type Ref } from "react"
 import {
   KeyboardAvoidingView,
   Modal as NativeModal,
@@ -16,6 +16,9 @@ import type { TNativeModalProps, TNativeModalRef } from "../components/Modal/typ
 import { NativeContentContext } from "../components/NativeContentContext"
 import { useNativeTheme } from "../theme"
 
+import { NativeBackdropSourceContext } from "./backdrop/context"
+import { NativeBackdropEffect } from "./backdrop/NativeBackdropEffect"
+import { NativeBackdropWindow } from "./backdrop/NativeBackdropWindow"
 import { NativeFloatingWindowHost, type TNativeFloatingWindowDismiss } from "./floating/NativeFloatingLayerHost"
 import { OverlayParentContext } from "./NativeOverlayProvider"
 import { useOverlay } from "./useOverlay"
@@ -44,6 +47,7 @@ export const OverlayFrame = ({
   componentName?: string
 }) => {
   const theme = useNativeTheme()
+  const backdropSource = useContext(NativeBackdropSourceContext)
   const overlay = useOverlay(open, true, false, props.restoreFocusRef)
   const scroll = useRef<ScrollView>(null)
   const scrollOffset = useRef(0)
@@ -52,8 +56,8 @@ export const OverlayFrame = ({
   const label = props.accessibilityLabel ?? props["aria-label"]
   if (typeof label !== "string" || !label.trim())
     throw new TypeError(`${componentName}: a nonempty native accessible name is required`)
-  if (props.overlayBlur !== undefined && props.overlayBlur !== false)
-    throw new TypeError(`${componentName}: overlayBlur supports only false on native`)
+  if (props.overlayBlur !== undefined && typeof props.overlayBlur !== "boolean")
+    throw new TypeError(`${componentName}: overlayBlur must be a boolean`)
   validateNativeColor(props.color, componentName, "color")
   for (const [name, value] of [
     ["width", props.width],
@@ -152,84 +156,92 @@ export const OverlayFrame = ({
       {overlay.mounted && (
         <OverlayParentContext.Provider value={overlay.id}>
           <SafeAreaProvider style={{ flex: 1 }}>
-            <NativeFloatingWindowHost
-              isWindowActive={overlay.isActive}
-              dismissRef={floatingDismiss}
-              testID={`${identity}-floating-host`}
-              style={{ flex: 1 }}
-              accessibilityViewIsModal
-              onAccessibilityEscape={systemClose}
-            >
-              <Pressable
-                testID={`${identity}-backdrop`}
-                accessible={false}
-                importantForAccessibility="no"
-                style={[
-                  {
-                    position: "absolute",
-                    top: 0,
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    backgroundColor: theme.colors.overlayBackdrop,
-                  },
-                  backdrop,
-                ]}
-                onPress={() => {
-                  if (props.isDismissable !== false) close()
-                }}
-              />
-              <SafeAreaView pointerEvents="box-none" style={{ flex: 1 }}>
-                <KeyboardAvoidingView
-                  pointerEvents="box-none"
-                  behavior={Platform.OS === "ios" ? "padding" : "height"}
-                  style={{ flex: 1 }}
-                >
-                  <View
+            <NativeBackdropWindow testID={`${identity}-backdrop-target`}>
+              <NativeFloatingWindowHost
+                isWindowActive={overlay.isActive}
+                dismissRef={floatingDismiss}
+                testID={`${identity}-floating-host`}
+                style={{ flex: 1 }}
+                accessibilityViewIsModal
+                onAccessibilityEscape={systemClose}
+              >
+                {props.overlayBlur && <NativeBackdropEffect source={backdropSource} />}
+                <Pressable
+                  testID={`${identity}-backdrop`}
+                  accessible={false}
+                  importantForAccessibility="no"
+                  style={[
+                    {
+                      position: "absolute",
+                      top: 0,
+                      bottom: 0,
+                      left: 0,
+                      right: 0,
+                      backgroundColor: theme.colors.overlayBackdrop,
+                    },
+                    backdrop,
+                  ]}
+                  onPress={() => {
+                    if (props.isDismissable !== false) close()
+                  }}
+                />
+                <SafeAreaView pointerEvents="box-none" style={{ flex: 1 }}>
+                  <KeyboardAvoidingView
                     pointerEvents="box-none"
-                    onLayout={revealFocusedInput}
-                    style={{ flex: 1, padding: theme.spacing.unit * 4, justifyContent: "center", alignItems: "center" }}
+                    behavior={Platform.OS === "ios" ? "padding" : "height"}
+                    style={{ flex: 1 }}
                   >
                     <View
-                      ref={panelRef}
-                      collapsable={false}
-                      testID={identity}
-                      accessibilityLabel={label}
-                      accessible={false}
-                      accessibilityElementsHidden={overlay.covered}
-                      importantForAccessibility={overlay.covered ? "no-hide-descendants" : "auto"}
-                      pointerEvents={overlay.active ? "auto" : "none"}
-                      style={panelStyle as ViewStyle}
+                      pointerEvents="box-none"
+                      onLayout={revealFocusedInput}
+                      style={{
+                        flex: 1,
+                        padding: theme.spacing.unit * 4,
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
                     >
-                      <NativeContentContext.Provider
-                        value={{ foregroundColor: foreground ?? theme.colors.foreground, isButton: false }}
+                      <View
+                        ref={panelRef}
+                        collapsable={false}
+                        testID={identity}
+                        accessibilityLabel={label}
+                        accessible={false}
+                        accessibilityElementsHidden={overlay.covered}
+                        importantForAccessibility={overlay.covered ? "no-hide-descendants" : "auto"}
+                        pointerEvents={overlay.active ? "auto" : "none"}
+                        style={panelStyle as ViewStyle}
                       >
-                        {leading?.(panelStyle as ViewStyle)}
-                        {props.isScrollable === false ? (
-                          content
-                        ) : (
-                          <ScrollView
-                            ref={scroll}
-                            testID={`${identity}-scroll`}
-                            style={{ flexShrink: 1 }}
-                            keyboardShouldPersistTaps="handled"
-                            keyboardDismissMode="on-drag"
-                            onLayout={revealFocusedInput}
-                            onContentSizeChange={revealFocusedInput}
-                            onScroll={({ nativeEvent }) => {
-                              scrollOffset.current = nativeEvent.contentOffset.y
-                            }}
-                            scrollEventThrottle={16}
-                          >
-                            {content}
-                          </ScrollView>
-                        )}
-                      </NativeContentContext.Provider>
+                        <NativeContentContext.Provider
+                          value={{ foregroundColor: foreground ?? theme.colors.foreground, isButton: false }}
+                        >
+                          {leading?.(panelStyle as ViewStyle)}
+                          {props.isScrollable === false ? (
+                            content
+                          ) : (
+                            <ScrollView
+                              ref={scroll}
+                              testID={`${identity}-scroll`}
+                              style={{ flexShrink: 1 }}
+                              keyboardShouldPersistTaps="handled"
+                              keyboardDismissMode="on-drag"
+                              onLayout={revealFocusedInput}
+                              onContentSizeChange={revealFocusedInput}
+                              onScroll={({ nativeEvent }) => {
+                                scrollOffset.current = nativeEvent.contentOffset.y
+                              }}
+                              scrollEventThrottle={16}
+                            >
+                              {content}
+                            </ScrollView>
+                          )}
+                        </NativeContentContext.Provider>
+                      </View>
                     </View>
-                  </View>
-                </KeyboardAvoidingView>
-              </SafeAreaView>
-            </NativeFloatingWindowHost>
+                  </KeyboardAvoidingView>
+                </SafeAreaView>
+              </NativeFloatingWindowHost>
+            </NativeBackdropWindow>
           </SafeAreaProvider>
         </OverlayParentContext.Provider>
       )}

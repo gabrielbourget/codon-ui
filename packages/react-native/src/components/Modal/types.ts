@@ -23,7 +23,8 @@ export type TNativeModalProps = TName & {
   order?: TThemingOrderCode
   geometry?: "rounded" | "orthogonal"
   raised?: boolean
-  overlayBlur?: false
+  /** Requires a configured backdrop adapter and a parent-window NativeBackdropHost when true. */
+  overlayBlur?: boolean
   width?: TStaticDimension
   height?: TStaticDimension
   isScrollable?: boolean

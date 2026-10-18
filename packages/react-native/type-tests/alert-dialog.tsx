@@ -38,8 +38,7 @@ export const InvalidUnnamedAlert = <AlertDialog titleText="Title" bodyText="Body
 export const InvalidAlertTitle = <AlertDialog {...ValidAlertProps} titleText={<></>} />
 // @ts-expect-error the six canonical tones are closed
 export const InvalidAlertTone = <AlertDialog {...ValidAlertProps} type="urgent" />
-// @ts-expect-error native backdrop blur is excluded
-export const InvalidAlertBlur = <AlertDialog {...ValidAlertProps} overlayBlur />
+export const AdapterBackedAlertBlur = <AlertDialog {...ValidAlertProps} overlayBlur />
 // @ts-expect-error AlertDialog owns its body/action scrolling
 export const InvalidAlertScroll = <AlertDialog {...ValidAlertProps} isScrollable={false} />
 // @ts-expect-error Modal's starter Close is not an AlertDialog action
