@@ -1,0 +1,38 @@
+{
+  "agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/155.0.0.0 Safari/537.36",
+  "frames": [
+    {
+      "index": 0,
+      "scale": "0 * 0.05 + 1",
+      "transform": "matrix(1, 0, 0, 1, 0, 0)",
+      "matrix": [1.0, 0.0, 0.0, 1.0, 0.0, 0.0]
+    },
+    {
+      "index": 1,
+      "scale": "1 * 0.05 + 1",
+      "transform": "matrix(0.95, 0, 0, 0.95, 0, 15)",
+      "matrix": [0.95, 0.0, 0.0, 0.95, 0.0, 15.0]
+    },
+    {
+      "index": 2,
+      "scale": "2 * 0.05 + 1",
+      "transform": "matrix(0.9, 0, 0, 0.9, 0, 30)",
+      "matrix": [0.9, 0.0, 0.0, 0.9, 0.0, 30.0]
+    },
+    {
+      "index": 4,
+      "scale": "4 * 0.05 + 1",
+      "transform": "matrix(0.8, 0, 0, 0.8, 0, 60)",
+      "matrix": [0.8, 0.0, 0.0, 0.8, 0.0, 60.0]
+    },
+    {
+      "index": 20,
+      "scale": "20 * 0.05 + 1",
+      "transform": "matrix(0, 0, 0, 0, 0, 300)",
+      "matrix": [0.0, 0.0, 0.0, 0.0, 0.0, 300.0]
+    }
+  ],
+  "source": "packages/react/src/components/Toaster/Toast/ToastStyles.module.css",
+  "sourceSHA256": "c77171714d869002881be4f530bb631b86a2bd116fb5ff069d66cffeb03e9063",
+  "scope": "Actual browser computed transforms for the unmodified canonical CSS; no native rendering inference."
+}

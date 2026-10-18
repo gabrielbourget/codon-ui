@@ -73,5 +73,5 @@ export const useToastLifecycle = (props: TNativeToastProps) => {
     },
     [retire],
   )
-  return { removed, act, retire, live }
+  return { removed, act, retire, live, inactive }
 }

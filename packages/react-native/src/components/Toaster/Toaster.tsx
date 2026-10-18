@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useContext, useEffect, useInsertionEffect, use
 import { View, type ViewStyle } from "react-native"
 import { SafeAreaInsetsContext } from "react-native-safe-area-context"
 
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
@@ -48,6 +49,13 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
     accessibilityLabel,
     "aria-label": aliasLabel,
     ariaLabel,
+    ariaLabelledBy,
+    ariaDescribedBy,
+    ariaDetails,
+    "aria-labelledby": nativeLabelledBy,
+    "aria-describedby": nativeDescription,
+    "aria-details": nativeDetails,
+    labels,
     ...native
   } = props
   for (const [name, value] of Object.entries({ toastGap, offset, maxVisibleToasts }))
@@ -145,6 +153,11 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
         accessible={false}
         pointerEvents="box-none"
         accessibilityLabel={`${accessibilityLabel ?? aliasLabel ?? ariaLabel ?? "Notifications Toaster"} - ${hotkeyLabel}`}
+        nativeLabelledBy={nativeAccessibilityIDs(native.accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
+        nativeDescribedBy={nativeAccessibilityIDs(nativeDescription ?? ariaDescribedBy)}
+        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+        nativeDescriptionLabel={labels?.descriptionLabel}
+        nativeDetailsLabel={labels?.detailsLabel}
         style={[{ position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }, customRootStyles, style]}
       >
         {stacks.map((stack) => {

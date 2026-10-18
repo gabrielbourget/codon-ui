@@ -157,7 +157,7 @@ it("CAP.toast.002/.005/.006/.017 retains dimensions, geometry and caller final r
     marginTop: 7,
   })
 })
-it("NATIVE.toast.002 retains the canonical collapsed negative-scale expression pending rendered geometry acceptance", () => {
+it("NATIVE.toast.002 matches the canonical browser-evaluated collapsed scale expression", () => {
   const props: TNativeToastProps = {
     toast: { id: 0 },
     index: 1,
@@ -173,7 +173,7 @@ it("NATIVE.toast.002 retains the canonical collapsed negative-scale expression p
   }
   expect(getNativeToastStyles(resolveNativeTheme("light"), props, false).root).toMatchObject({
     height: 30,
-    transform: [{ translateY: -15 }, { scale: -1.05 }],
+    transform: [{ translateY: -15 }, { scale: 0.95 }],
   })
   expect(
     getNativeToastStyles(resolveNativeTheme("light"), { ...props, toasterExpanded: true }, false).root.transform,

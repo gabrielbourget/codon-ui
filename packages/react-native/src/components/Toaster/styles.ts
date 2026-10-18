@@ -1,5 +1,5 @@
 import type { TNativeTheme } from "../../theme/types"
-import { resolveNativeStyle } from "../colors"
+import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 
 import { DEFAULT_TOAST_GAP, DEFAULT_TOAST_WIDTH, type TNativeToastProps } from "./types"
@@ -20,8 +20,13 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
           : theme.colors.controlSelectedBackground
   const expanded = toasterExpanded || expandByDefault
   const lift = position.startsWith("top") ? 1 : -1
+  const authored = resolveNativeStyle([toast.customStyles, toast.style], "Toaster", "toast.style")
+  const { color: foreground = theme.colors.foreground, ...view } = authored
+  validateNativeColor(foreground, "Toaster", "color")
   return {
     color,
+    foreground,
+    authored: view,
     lift,
     expanded,
     root: resolveNativeStyle(
@@ -30,7 +35,7 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
           position: "absolute",
           [lift === 1 ? "top" : "bottom"]: 0,
           width: width ?? DEFAULT_TOAST_WIDTH,
-          height: !expanded && index > 0 && firstHeight > 0 ? firstHeight : height,
+          height: !expanded && index > 0 ? firstHeight : height,
           flexDirection: "column",
           gap: theme.spacing.unit,
           overflow: "hidden",
@@ -45,11 +50,10 @@ export const getNativeToastStyles = (theme: TNativeTheme, props: TNativeToastPro
           opacity: removed || index >= props.maxVisibleToasts ? 0 : 1,
           transform: [
             { translateY: lift * (expanded ? offset : index * (props.toastGap ?? DEFAULT_TOAST_GAP)) },
-            { scale: !expanded && index > 0 ? -(index * 0.05 + 1) : 1 },
+            { scale: !expanded && index > 0 ? 1 - index * 0.05 : 1 },
           ],
         },
-        toast.customStyles,
-        toast.style,
+        view,
       ],
       "Toaster",
       "toast.style",
