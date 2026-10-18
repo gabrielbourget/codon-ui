@@ -1,3 +1,4 @@
+import { requireNativeModule } from "expo"
 import { useCallback, useEffect, useRef, useState, type ComponentProps, type RefAttributes } from "react"
 import { findNodeHandle, View, type NativeSyntheticEvent } from "react-native"
 import { SafeAreaProvider, initialWindowMetrics } from "react-native-safe-area-context"
@@ -17,6 +18,7 @@ import { useNativeKeyScope } from "../../../../packages/react-native/src/input/N
 import type { NativeAccessibilityData } from "../../../../packages/react-native/src/input/specs/CUIFocusViewNativeComponent"
 
 import configuration from "./phases.json"
+import { createReceiptJournal, type TReceiptFileSystem } from "./receipt"
 
 type TPhase = {
   id: string
@@ -34,12 +36,25 @@ type TPhase = {
 type TObservation = Pick<ComponentProps<typeof NativeFocusHost>, "onNativeAccessibilitySnapshot">
 type TPending = { phase: string; remaining: Set<number>; windowId: string; epoch: number }
 const phases: readonly TPhase[] = configuration.phases
-const emit = (record: Record<string, unknown>) =>
-  console.warn(`CUI_NAV_PROBE ${JSON.stringify({ probe: configuration.probe, ...record })}`)
 const items = ["A", "B", "C"].map((content) => ({ id: content, content, href: `#${content}`, disabled: false }))
 
 const NavigationCases = () => {
   const [index, setIndex] = useState(0)
+  const [receiptState, setReceiptState] = useState("collecting")
+  const [journal] = useState(() =>
+    createReceiptJournal(
+      configuration.probe,
+      () => requireNativeModule<TReceiptFileSystem>("ExponentFileSystem"),
+      (line) => console.warn(line),
+    ),
+  )
+  const emit = useCallback((record: Record<string, unknown>) => journal.append(record), [journal])
+  const persist = useCallback(() => {
+    journal.flush().then(
+      () => setReceiptState("persisted"),
+      () => setReceiptState("receipt-failed"),
+    )
+  }, [journal])
   const phase = phases[index]
   const pagination = useRef<View>(null),
     breadcrumbs = useRef<View>(null)
@@ -49,17 +64,21 @@ const NavigationCases = () => {
   const total = useRef(0)
   const scope = useNativeKeyScope()
   const watchdog = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
-  const fail = useCallback((reason: string) => {
-    if (stopped.current) return
-    stopped.current = true
-    clearTimeout(watchdog.current)
-    emit({
-      kind: "failure",
-      reason,
-      pending: pending.current ? [...pending.current.remaining] : [],
-      snapshots: total.current,
-    })
-  }, [])
+  const fail = useCallback(
+    (reason: string) => {
+      if (stopped.current) return
+      stopped.current = true
+      clearTimeout(watchdog.current)
+      emit({
+        kind: "failure",
+        reason,
+        pending: pending.current ? [...pending.current.remaining] : [],
+        snapshots: total.current,
+      })
+      persist()
+    },
+    [emit, persist],
+  )
   useEffect(() => {
     emit({ kind: "begin", libraryProducer: configuration.libraryProducer, phases: phases.map((item) => item.id) })
     watchdog.current = setTimeout(() => fail("scope-or-snapshot-deadline"), 240_000)
@@ -67,7 +86,7 @@ const NavigationCases = () => {
       stopped.current = true
       clearTimeout(watchdog.current)
     }
-  }, [fail])
+  }, [fail, emit])
   const receive = useCallback(
     (event: NativeSyntheticEvent<NativeAccessibilityData>) => {
       const request = pending.current
@@ -89,7 +108,7 @@ const NavigationCases = () => {
         setIndex((current) => current + 1)
       }
     },
-    [fail],
+    [fail, emit],
   )
   const registerButton = useCallback((target: View | null) => {
     if (!target) return
@@ -104,6 +123,7 @@ const NavigationCases = () => {
       stopped.current = true
       clearTimeout(watchdog.current)
       emit({ kind: "complete", snapshots: total.current, phases: phases.length })
+      persist()
       return
     }
     let frame: number | undefined
@@ -140,7 +160,7 @@ const NavigationCases = () => {
       unsubscribe?.()
       if (frame !== undefined) cancelAnimationFrame(frame)
     }
-  }, [index, phase, scope, fail])
+  }, [index, phase, scope, fail, emit, persist])
   const observation: TObservation = { onNativeAccessibilitySnapshot: receive }
   const general: Partial<TNativeButtonProps> & RefAttributes<View> & TObservation = {
     ...observation,
@@ -160,7 +180,7 @@ const NavigationCases = () => {
         : ["First", "Second"]
   return (
     <View style={{ flex: 1, padding: 20, gap: 12 }}>
-      <Text testID="navigation-observer-phase">{phase?.id ?? "complete"}</Text>
+      <Text testID="navigation-observer-phase">{`${phase?.id ?? "complete"}:${receiptState}`}</Text>
       {referenced && referenceMode !== "removed" ? (
         <>
           <Text nativeID="probe-title-a">{referenceText[0]}</Text>

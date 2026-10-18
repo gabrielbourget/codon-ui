@@ -16,6 +16,7 @@ LAB = Path.home() / ".local/share/codon-native-lab"
 EVIDENCE = Path.home() / ".codex/visualizations/2026/10/16/01a142c2-0db7-7d31-aa1f-53e3773a7870/native-library-construction-2026-10-17"
 BASELINE = EVIDENCE / "native-navigation-release-f86d8a6"
 STAGE = REPO / "apps/native-showcase/.expo/codon-navigation-observer"
+STAGED_FILES = ["App.tsx", "index.ts", "phases.json", "receipt.ts"]
 
 
 def digest(path):
@@ -46,7 +47,7 @@ def verify_inputs(root):
             expected["build.py"] = update["currentSHA256"]
     for name, checksum in expected.items():
         assert digest(FIXTURE / name) == checksum, name
-    for name in ["App.tsx", "index.ts", "phases.json"]:
+    for name in STAGED_FILES:
         assert digest(STAGE / name) == inputs["fixtureInputs"][name], name
     return inputs
 
@@ -61,7 +62,7 @@ def prepare(root):
     old = json.loads((BASELINE / "inputs.json").read_text())
     root.mkdir(parents=True)
     STAGE.mkdir(parents=True, exist_ok=True)
-    for name in ["App.tsx", "index.ts", "phases.json"]:
+    for name in STAGED_FILES:
         shutil.copy2(FIXTURE / name, STAGE / name)
     fixture_inputs = {path.name: digest(path) for path in FIXTURE.iterdir() if path.is_file()}
     for path in FIXTURE.iterdir():
@@ -163,7 +164,7 @@ def prove(root, platform):
             assert content is not None and hashlib.sha256(content.encode()).hexdigest() == inputs["fixtureInputs"][name], source
             fixture[name] = inputs["fixtureInputs"][name]
     assert len(react) == 1 and "react@19.2.3" in next(iter(react)), react
-    assert {"App.tsx", "index.ts"} <= fixture.keys(), fixture
+    assert {"App.tsx", "index.ts", "receipt.ts"} <= fixture.keys(), fixture
     compiler_input_map = REPO / "apps/native-showcase/android/app/build/intermediates/sourcemaps/react/release/index.android.bundle.packager.map" if platform == "android" else root / "ios.packager.map"
     compiler_input = json.loads(compiler_input_map.read_text())
     json_inputs = {}
@@ -172,7 +173,7 @@ def prove(root, platform):
             name = source.split(".expo/codon-navigation-observer/", 1)[1]
             assert content is not None and hashlib.sha256(content.encode()).hexdigest() == inputs["fixtureInputs"][name], source
             json_inputs[name] = inputs["fixtureInputs"][name]
-    assert {"App.tsx", "index.ts", "phases.json"} <= json_inputs.keys(), json_inputs
+    assert set(STAGED_FILES) <= json_inputs.keys(), json_inputs
     shutil.copy2(compiler_input_map, target / "packager.map")
     for family in ["Breadcrumbs/Breadcrumbs.tsx", "Pagination/Pagination.tsx"]:
         assert "packages/react-native/src/components/" + family in library

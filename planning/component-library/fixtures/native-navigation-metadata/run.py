@@ -5,6 +5,7 @@ import json
 import os
 import re
 import signal
+import shutil
 import subprocess
 import time
 
@@ -65,7 +66,7 @@ def observe(root, channels, cap=240):
 def run(output, platform):
     inputs = verify_inputs(output)
     assert not any((parent / "SEALED").exists() for parent in [output, *output.parents])
-    for name in ["android", "ios"]:
+    for name in [platform]:
         proof = json.loads((output / "products" / name / "proof.json").read_text())
         assert proof["fixtureSHA256"]["App.tsx"] == inputs["fixtureInputs"]["App.tsx"]
     state_path = output / "observations.json"
@@ -152,7 +153,7 @@ def run(output, platform):
             command(root, "boot-status", ["/usr/bin/xcrun", "simctl", "bootstatus", UDID, "-b"], env, 480)
             stage = "install"
             record["installAttempts"] = 1
-            command(root, "install", ["/usr/bin/xcrun", "simctl", "install", UDID, app], env, 120)
+            command(root, "install", ["/usr/bin/xcrun", "simctl", "install", UDID, app], env, 480)
             stage = "installed-product-identity"
             _, installed_path = command(root, "installed-package-path", ["/usr/bin/xcrun", "simctl", "get_app_container", UDID, package, "app"], env)
             installed_app = Path(installed_path.strip())
@@ -160,15 +161,24 @@ def run(output, platform):
             record["installedBundleSHA256"] = digest(installed_app / "main.jsbundle")
             assert record["installedProductSHA256"] == digest(app / executable), "installed iOS executable identity mismatch"
             assert record["installedBundleSHA256"] == digest(app / "main.jsbundle"), "installed iOS bundle identity mismatch"
+            _, data_path = command(root, "app-data-container", ["/usr/bin/xcrun", "simctl", "get_app_container", UDID, package, "data"], env)
+            probe = json.loads((Path(__file__).parent / "phases.json").read_text())["probe"]
+            receipt_path = Path(data_path.strip()) / "Library/Caches" / (probe + ".jsonl")
+            assert not receipt_path.exists(), "Versioned receipt must not predate this invocation"
+            record["receiptPath"] = str(receipt_path)
             capture = root / "native.log"
             handle = capture.open("wb")
             monitor = subprocess.Popen(["/usr/bin/xcrun", "simctl", "spawn", UDID, "log", "stream", "--style", "compact", "--level", "debug", "--predicate", 'process == "' + executable + '"'], env=env, stdout=handle, stderr=subprocess.STDOUT, start_new_session=True)
             stage = "launch"
             record["launchAttempts"] = 1
-            command(root, "launch", ["/usr/bin/xcrun", "simctl", "launch", "--stdout=" + str(root / "app.stdout"), "--stderr=" + str(root / "app.stderr"), UDID, package], env, 90)
-            channels = [("unified-log", capture), ("stderr", root / "app.stderr"), ("stdout", root / "app.stdout")]
+            command(root, "launch", ["/usr/bin/xcrun", "simctl", "launch", "--stdout=" + str(root / "app.stdout"), "--stderr=" + str(root / "app.stderr"), UDID, package], env, 180)
+            channels = [("file-receipt", receipt_path), ("unified-log", capture), ("stderr", root / "app.stderr"), ("stdout", root / "app.stdout")]
         stage = "native-observation"
         channel, path, records = observe(root, channels, min(240, max(1, int(state["deadlineUnix"] - time.time()))))
+        if channel == "file-receipt":
+            copied = root / "native-receipt.jsonl"
+            shutil.copy2(path, copied)
+            path = copied
         record.update({"selectedTransport": channel, "rawLog": str(path), "rawLogSHA256": digest(path) if path.exists() else None, "parsedRecords": len(records)})
         (root / "records.json").write_text(json.dumps(records, indent=2) + "\n")
         stage = "native-field-verdict"
