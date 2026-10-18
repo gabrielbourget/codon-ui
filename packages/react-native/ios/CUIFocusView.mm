@@ -1,5 +1,6 @@
 #import "CUIFocusView.h"
 #import "CUIInputWindow.h"
+#import "CUIKeyboardScope.h"
 #import <react/featureflags/ReactNativeFeatureFlags.h>
 
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -14,6 +15,8 @@ using namespace facebook::react;
 
 @implementation CUIFocusView {
   BOOL _keyboardFocusable;
+  BOOL _nativePressable;
+  double _activationId;
   BOOL _focusAcknowledged;
   NSString *_ownerId;
   NSSet<NSString *> *_capturedKeys;
@@ -40,6 +43,36 @@ using namespace facebook::react;
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
+}
+
+- (BOOL)accessibilityActivate
+{
+  if (!_nativePressable) return [super accessibilityActivate];
+  UIWindow *window = self.window;
+  BOOL sceneActive = window.windowScene == nil || window.windowScene.activationState == UISceneActivationStateForegroundActive;
+  if (!_eventEmitter || !window.isKeyWindow || window.hidden || self.hidden || self.alpha <= 0 || !sceneActive || UIApplication.sharedApplication.applicationState != UIApplicationStateActive) return NO;
+  CUIFocusViewEventEmitter::OnNativeActivation value{};
+  value.kind = "activation";
+  value.ownerId = _ownerId.UTF8String;
+  value.target = (int)self.tag;
+  value.source = CUIFocusViewEventEmitter::OnNativeActivationSource::IosAccessibilityActivate;
+  value.observedAt = NSProcessInfo.processInfo.systemUptime * 1000;
+  value.activationId = ++_activationId;
+  value.scopeOwnerId = "";
+  value.windowId = CUIInputWindowIdentity(window).UTF8String;
+  value.epoch = 0;
+  for (UIView *parent = self.superview; parent; parent = parent.superview) {
+    if ([parent isKindOfClass:CUIKeyboardScope.class]) {
+      NSDictionary *session = [(CUIKeyboardScope *)parent activationSession];
+      value.scopeOwnerId = [session[@"scopeOwnerId"] UTF8String];
+      value.windowId = [session[@"windowId"] UTF8String];
+      value.epoch = [session[@"epoch"] doubleValue];
+      break;
+    }
+  }
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeActivation(value);
+  [super accessibilityActivate];
+  return YES;
 }
 
 - (BOOL)canBecomeFocused { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
@@ -228,6 +261,7 @@ using namespace facebook::react;
   if (![_ownerId isEqualToString:owner] || !next.keyboardFocusable || ![_capturedKeys isEqual:capture]) [self cancelHeldKeys];
   _ownerId = owner;
   _keyboardFocusable = next.keyboardFocusable;
+  _nativePressable = next.nativePressable;
   _capturedKeys = capture;
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
@@ -250,6 +284,7 @@ using namespace facebook::react;
   _ownerId = @"";
   _capturedKeys = [NSSet set];
   _keyboardFocusable = YES;
+  _nativePressable = NO;
   _focusAcknowledged = NO;
   _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
   [super prepareForRecycle];

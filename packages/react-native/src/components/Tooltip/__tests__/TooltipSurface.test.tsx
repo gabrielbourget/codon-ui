@@ -274,10 +274,34 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     measure(description.current!, [0, 0, 100, 80])
     if (arrow) await fireEvent(screen.getByTestId(`${name}-overlay-arrow`, hidden), "layout", layout(10, 10))
     await fireEvent(screen.getByTestId(name, hidden), "layout", layout(100, 80))
+    const scope = screen.getByTestId("host", hidden).props
     await act(() =>
-      screen
-        .getByRole("button", { name: "Parent action", ...hidden })
-        .props.onClick({ nativeEvent: {}, target: 1, currentTarget: 1 }),
+      scope.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scope.ownerId,
+          windowId: "tooltip-window",
+          epoch: 1,
+          policyRevision: scope.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      }),
+    )
+    const target = screen.getByRole("button", { name: "Parent action", ...hidden })
+    await act(() =>
+      target.props.onNativeActivation({
+        nativeEvent: {
+          kind: "activation",
+          source: "android-click",
+          observedAt: 0,
+          target: 17,
+          ownerId: target.props.ownerId,
+          activationId: 1,
+          scopeOwnerId: scope.ownerId,
+          windowId: "tooltip-window",
+          epoch: 1,
+        },
+      }),
     )
     expect(action).toHaveBeenCalledTimes(1)
     const order = host!.layers.presentationOrder()

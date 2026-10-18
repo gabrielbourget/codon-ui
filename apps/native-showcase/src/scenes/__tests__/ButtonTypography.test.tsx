@@ -81,15 +81,69 @@ it("composes native keyboard activation with the maintained scene's pending guar
   await press("Toggle library pending")
   await send("up", " ")
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  await press("Toggle library keyboard focus")
+  expect(screen.getByTestId("library-button").props.keyboardFocusable).toBe(false)
+  await send("down")
+  await send("up")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  await press("Library action")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 2/)
+  await press("Toggle library keyboard focus")
   await press("Toggle render children")
   await press("Dark theme")
   await send("down")
   await send("up")
-  expect(screen.getByText("Rendered library action 2")).toBeOnTheScreen()
+  expect(screen.getByText("Rendered library action 3")).toBeOnTheScreen()
   const retained = screen.getByTestId("library-button").props.onNativeKey
   const ownerId = screen.getByTestId("library-button").props.ownerId
   await press("Reset scene")
   await act(() => retained({ nativeEvent: { kind: "keyboard", ownerId, key: "Enter", nativeCode: 40, phase: "up" } }))
   await press("Text/Button scene")
   expect(screen.getByText("Library action 0")).toBeOnTheScreen()
+})
+
+it("composes native activation and press-up with owner state, guards, callback retirement and scene reset", async () => {
+  await render(
+    <SafeAreaInsetsContext.Provider value={{ top: 20, bottom: 10, left: 0, right: 0 }}>
+      <NativeShowcase />
+    </SafeAreaInsetsContext.Provider>,
+  )
+  const user = userEvent.setup()
+  const press = async (name: string) => user.press(screen.getByRole("button", { name }))
+  await press("Text/Button scene")
+  const activation = (activationId: number) => ({
+    nativeEvent: {
+      kind: "activation",
+      source: "ios-accessibility-activate",
+      ownerId: screen.getByTestId("library-button").props.ownerId,
+      target: 17,
+      observedAt: 0,
+      activationId,
+      scopeOwnerId: "",
+      windowId: "window-1",
+      epoch: 0,
+    },
+  })
+  const send = async (event: ReturnType<typeof activation>) =>
+    act(() => screen.getByTestId("library-button").props.onNativeActivation(event))
+  await send(activation(1))
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  expect(screen.getByTestId("library-release")).toHaveTextContent("Last release: activation")
+  await press("Toggle library pending")
+  const blocked = activation(2)
+  await send(blocked)
+  await press("Toggle library pending")
+  await send(blocked)
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
+  await press("Toggle render children")
+  await press("Dark theme")
+  await send(activation(3))
+  expect(screen.getByText("Rendered library action 2")).toBeOnTheScreen()
+  const retained = screen.getByTestId("library-button").props.onNativeActivation
+  const retired = activation(4)
+  await press("Reset scene")
+  await act(() => retained(retired))
+  await press("Text/Button scene")
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 0/)
+  expect(screen.getByTestId("library-release")).toHaveTextContent("Last release: none")
 })

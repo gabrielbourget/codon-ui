@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
 
+import { focusNativeTarget } from "../../input/focus"
 import { useNativeTheme } from "../../theme"
 import { Button } from "../Button/Button"
 import type { TNativeButtonRootStyle } from "../Button/types"
@@ -68,7 +69,7 @@ export const ToggleButton = forwardRef<TNativeToggleButtonRef, TNativeToggleButt
   useEffect(() => {
     if (!initialAutoFocus.current) return
     const frame = requestAnimationFrame(() => {
-      if (!disabled.current) root.current?.focus()
+      if (!disabled.current) focusNativeTarget(root.current)
     })
     return () => cancelAnimationFrame(frame)
   }, [])

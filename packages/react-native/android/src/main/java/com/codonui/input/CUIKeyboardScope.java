@@ -87,6 +87,11 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   void setAcceptedEpoch(double next) { if (acceptedEpoch != next) retireHeld(); acceptedEpoch = next; }
   void setPolicyRevision(double next) { if (policyRevision != next) retireHeld(); policyRevision = next; }
   private boolean windowActive() { return isAttachedToWindow() && hasWindowFocus() && getWindowVisibility() == View.VISIBLE; }
+  void writeActivationSession(WritableMap data) {
+    data.putString("scopeOwnerId", ownerId);
+    data.putString("windowId", CUIInputWindow.identity(this));
+    data.putDouble("epoch", windowEpoch);
+  }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");

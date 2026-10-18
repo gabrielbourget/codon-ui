@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { View } from "react-native"
 
@@ -252,3 +252,58 @@ it("retains the inherited native accessibility alias precedence and explicit fal
   expect(button().props.nativeID).toBe("native-action")
   await fireEvent.press(button())
 })
+
+it("respects explicit focusable=false without disabling touch activation or replacing the actual root", async () => {
+  const ref = createRef<View>()
+  const press = jest.fn()
+  const focus = jest.fn()
+  const node = (focusable: boolean) => (
+    <Button ref={ref} focusable={focusable} onPress={press} onFocus={focus} accessibilityLabel="Action">
+      {(state) => (state.isFocused ? "focused" : "unfocused")}
+    </Button>
+  )
+  await render(node(true))
+  const actual = ref.current
+  const focused = () =>
+    button().props.onNativeFocusChange({ nativeEvent: { ownerId: button().props.ownerId, isFocused: true } })
+  await act(focused)
+  expect(screen.getByText("focused")).toBeOnTheScreen()
+  focus.mockClear()
+  await screen.rerender(node(false))
+  expect(button().props.keyboardFocusable).toBe(false)
+  expect(button().props.nativePressable).toBe(true)
+  expect(focusNativeTarget(ref.current)).toBe(false)
+  expect(ref.current).toBe(actual)
+  await act(focused)
+  expect(focus).not.toHaveBeenCalled()
+  expect(screen.getByText("unfocused")).toBeOnTheScreen()
+  await userEvent.setup().press(button())
+  expect(press).toHaveBeenCalledTimes(1)
+  expect(ref.current).not.toBeNull()
+})
+
+it.each([{ focusable: false }, { tabIndex: -1 as const }])(
+  "retires a held keyboard cycle after %j and cannot revive it by restoring focus eligibility",
+  async (guard) => {
+    const press = jest.fn(),
+      end = jest.fn(),
+      change = jest.fn()
+    const node = (blocked = false) => (
+      <Button {...(blocked ? guard : {})} onPress={press} onPressEnd={end} onPressChange={change}>
+        Action
+      </Button>
+    )
+    await render(node())
+    const down = key()
+    await send(down)
+    await screen.rerender(node(true))
+    expect(end.mock.calls[0]?.[0]).toBe(down)
+    expect(change.mock.calls).toEqual([[true], [false]])
+    await screen.rerender(node())
+    await send(key({ phase: "up" }))
+    expect(press).not.toHaveBeenCalled()
+    await send(key())
+    await send(key({ phase: "up" }))
+    expect(press).toHaveBeenCalledTimes(1)
+  },
+)

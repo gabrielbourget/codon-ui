@@ -9,7 +9,7 @@ import type {
   ViewStyle,
 } from "react-native"
 
-import type { TNativeFocusViewProps, TNativePressEvent } from "../../input/types"
+import type { TNativeFocusViewProps, TNativeInteractionEvent, TNativePressEvent } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 
@@ -48,8 +48,8 @@ export type TNativeButtonProps = Omit<
 > &
   Pick<TNativeFocusViewProps, "onFocus" | "onBlur" | "onKeyDown" | "onKeyUp"> & {
     onPress?: (event: TNativePressEvent) => void
-    onPressIn?: (event: TNativePressEvent) => void
-    onPressOut?: (event: TNativePressEvent) => void
+    onPressIn?: (event: TNativeInteractionEvent) => void
+    onPressOut?: (event: TNativeInteractionEvent) => void
     children?: ReactNode | ((state: TNativeButtonChildrenState) => ReactNode)
     style?: StyleProp<TNativeButtonRootStyle> | ((state: TNativeButtonStyleState) => StyleProp<TNativeButtonRootStyle>)
     customStyles?: StyleProp<TNativeButtonRootStyle>
@@ -72,6 +72,7 @@ export type TNativeButtonProps = Omit<
     "aria-label"?: string
     onPressStart?: (event: TNativePressEvent) => void
     onPressEnd?: (event: TNativePressEvent) => void
+    onPressUp?: (event: TNativePressEvent) => void
     onPressChange?: (pressed: boolean) => void
     onFocusChange?: (focused: boolean) => void
     onHoverStart?: NonNullable<PressableProps["onHoverIn"]>

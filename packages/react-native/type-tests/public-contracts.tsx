@@ -75,6 +75,8 @@ export const InvalidRole = <NativeThemeProvider overrides={{ colors: { mapRoad: 
 
 export const ValidButton = (
   <Button
+    focusable={false}
+    tabIndex={-1}
     ref={createRef<View>()}
     order="tertiary"
     colorMode="outline"
@@ -85,7 +87,7 @@ export const ValidButton = (
       if ("kind" in event.nativeEvent) {
         // @ts-expect-error Native keyboard events do not fabricate touch coordinates.
         void event.nativeEvent.pageX
-        return event.nativeEvent.nativeCode
+        return event.nativeEvent.kind === "keyboard" ? event.nativeEvent.nativeCode : event.nativeEvent.observedAt
       }
       return event.nativeEvent.pageX
     }}
@@ -120,8 +122,22 @@ export const InvalidButtonClass = <Button className="web" />
 export const InvalidButtonForm = <Button type="submit" />
 // @ts-expect-error Activation carries an RN event, not a DOM click.
 export const InvalidButtonClick = <Button onClick={() => undefined} />
-// @ts-expect-error Native press-out is not a browser press-up contract.
-export const InvalidButtonPressUp = <Button onPressUp={() => undefined} />
+export const NativeButtonPressUp = (
+  <Button
+    onPressUp={(event) => {
+      if ("kind" in event.nativeEvent)
+        return event.nativeEvent.kind === "keyboard" ? event.nativeEvent.nativeCode : event.nativeEvent.observedAt
+      return event.nativeEvent.pageX
+    }}
+    onPressIn={(event) => {
+      if ("kind" in event.nativeEvent) {
+        const kind: "keyboard" = event.nativeEvent.kind
+        return kind
+      }
+      return event.nativeEvent.pageX
+    }}
+  />
+)
 // @ts-expect-error Native dimensions do not accept CSS length units.
 export const InvalidButtonDimension = <Button width="2rem" />
 // @ts-expect-error A browser node is not an RN View instance.

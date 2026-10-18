@@ -14,7 +14,7 @@ export const props: ToggleButtonProps = {
   raised: false,
   customStyles: { color: "orange" },
   style: (state) => [state.defaultStyle, { opacity: state.isSelected ? 1 : 0.5 }],
-  onPress: (event) => event.nativeEvent.timestamp,
+  onPress: (event) => ("observedAt" in event.nativeEvent ? event.nativeEvent.observedAt : event.nativeEvent.timestamp),
   children: ({ state, foregroundColor }) => <Text color={foregroundColor}>{String(state.isSelected)}</Text>,
 }
 export const Valid = <ToggleButton {...props} ref={createRef<View>()} />

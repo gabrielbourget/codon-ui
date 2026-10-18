@@ -158,6 +158,10 @@ static UIView *CUIFirstResponder(UIView *root)
   }
   return self;
 }
+- (NSDictionary *)activationSession
+{
+  return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
+}
 - (BOOL)captureReady
 {
   return _captureEnabled && [self windowActive] && _acceptedEpoch == _windowEpoch && [_acceptedWindowId isEqualToString:CUIInputWindowIdentity(self.window)];

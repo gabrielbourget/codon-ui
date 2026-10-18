@@ -13,7 +13,12 @@ export const closeProps: CarouselCloseButtonProps = {
   customButtonProps: {
     geometry: "orthogonal",
     onPress: (event) => {
-      const x: number = "kind" in event.nativeEvent ? event.nativeEvent.nativeCode : event.nativeEvent.pageX
+      const x: number =
+        "kind" in event.nativeEvent
+          ? event.nativeEvent.kind === "keyboard"
+            ? event.nativeEvent.nativeCode
+            : event.nativeEvent.observedAt
+          : event.nativeEvent.pageX
       void x
     },
     style: (state) => [state.defaultStyle, { opacity: state.isDisabled ? 0.4 : 1 }],

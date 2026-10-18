@@ -4,7 +4,17 @@ import type { NativeFocusData, NativeKeyData } from "./specs/CUIFocusViewNativeC
 
 export type TNativeKeyboardData = Omit<NativeKeyData, "kind"> & Readonly<{ kind: "keyboard" }>
 export type TNativeKeyboardEvent = NativeSyntheticEvent<TNativeKeyboardData>
-export type TNativePressEvent = GestureResponderEvent | TNativeKeyboardEvent
+export const NATIVE_ACTIVATION_SOURCES = ["android-click", "ios-accessibility-activate"] as const
+export type TNativeActivationSource = (typeof NATIVE_ACTIVATION_SOURCES)[number]
+export type TNativeInteractionEvent = GestureResponderEvent | TNativeKeyboardEvent
+export type TNativeActivationData = Readonly<{
+  kind: "activation"
+  target: number
+  source: TNativeActivationSource
+  observedAt: number
+}>
+export type TNativeActivationEvent = NativeSyntheticEvent<TNativeActivationData>
+export type TNativePressEvent = TNativeInteractionEvent | TNativeActivationEvent
 export type TNativeFocusEvent = NativeSyntheticEvent<NativeFocusData>
 export type TNativeFocusViewRef = View
 export type TNativeFocusViewProps = Omit<ViewProps, "onFocus" | "onBlur"> & {

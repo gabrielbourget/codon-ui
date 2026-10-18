@@ -43,6 +43,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [outlined, setOutlined] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [pending, setPending] = useState(false)
+  const [keyboardFocusable, setKeyboardFocusable] = useState(true)
+  const [lastRelease, setLastRelease] = useState("none")
   const [custom, setCustom] = useState(false)
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
@@ -62,7 +64,8 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       </Text>
       <Text testID="library-state">
         Library action count: {count}. Order: {order}. Mode: {outlined ? "outline" : "fill"}. State:{" "}
-        {disabled ? "disabled" : pending ? "pending" : "enabled"}.
+        {disabled ? "disabled" : pending ? "pending" : "enabled"}. Keyboard focus:{" "}
+        {keyboardFocusable ? "enabled" : "excluded"}.
       </Text>
       <View style={styles.controls}>
         <SceneControl
@@ -97,6 +100,11 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
           onPress={() => setDisabled((value) => !value)}
         />
         <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
+        <SceneControl
+          label="Toggle library keyboard focus"
+          selected={keyboardFocusable}
+          onPress={() => setKeyboardFocusable((value) => !value)}
+        />
         <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
         <SceneControl
           label="Clear text typography"
@@ -134,6 +142,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Parent text with <Text fontWeight="bold">nested bold content</Text> and inherited foreground.
       </Text>
+      <Text testID="library-release">Last release: {lastRelease}</Text>
       <Button
         accessibilityLabel="Library action"
         testID="library-button"
@@ -142,7 +151,9 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         geometry={geometry}
         isDisabled={disabled}
         isPending={pending}
+        focusable={keyboardFocusable}
         onPress={increment}
+        onPressUp={(event) => setLastRelease("kind" in event.nativeEvent ? event.nativeEvent.kind : "touch")}
         raised={!custom}
         style={
           custom
