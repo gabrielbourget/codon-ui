@@ -66,12 +66,10 @@ it("keeps all three controlled axes authoritative through repeated vetoes and se
   expect(input.props.value).toBe("held query")
   await choose()
   await choose()
-  expect(requests.slice(-6)).toEqual([
+  expect(requests.slice(-4)).toEqual([
     ["value", "0"],
-    ["query", "String zero"],
     ["open", false],
     ["value", "0"],
-    ["query", "String zero"],
     ["open", false],
   ])
   expect(screen.getByRole("radio", { name: "Numeric zero" }).props.accessibilityState.checked).toBe(true)
@@ -104,6 +102,7 @@ it.each(["value", "query", "open"] as const)("allows the owner to accept only th
     )
   }
   await render(<Owner />)
+  if (accepted === "query") await edit("accepted typing")
   await choose()
   if (accepted === "open") {
     expect(screen.queryByRole("radio")).toBeNull()
@@ -112,7 +111,7 @@ it.each(["value", "query", "open"] as const)("allows the owner to accept only th
     expect(screen.getByRole("radio", { name: "String zero" }).props.accessibilityState.checked).toBe(
       accepted === "value",
     )
-    expect(screen.getByLabelText("Search choices").props.value).toBe(accepted === "query" ? "String zero" : "held")
+    expect(screen.getByLabelText("Search choices").props.value).toBe(accepted === "query" ? "accepted typing" : "held")
   }
 })
 
@@ -185,7 +184,7 @@ it("does not copy subsequent controlled selection changes into an uncontrolled q
   expect(query).not.toHaveBeenCalled()
 })
 
-it("suppresses same-axis requests independently without suppressing label or close requests", async () => {
+it("preserves same-key label synchronization without changing controlled owners", async () => {
   const value = jest.fn()
   const query = jest.fn()
   const open = jest.fn()
