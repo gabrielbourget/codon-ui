@@ -14,6 +14,7 @@ import {
 import type { NativeSyntheticEvent, View, ViewProps } from "react-native"
 
 import { createNativeKeyScope, type TNativeKeyPolicy, type TNativeKeyScope } from "./keyScope"
+import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import ScopeHost, { type NativeScopedKeyData } from "./specs/CUIKeyboardScopeNativeComponent"
 import type { TNativeKeyboardData } from "./types"
 
@@ -74,27 +75,29 @@ export const NativeKeyboardScope = forwardRef<View, ViewProps & { captureEnabled
     const session = scope.acknowledgedSession()
     return (
       <NativeKeyScopeContext.Provider value={scope}>
-        <ScopeHost
-          {...props}
-          ref={setRef}
-          ownerId={ownerId}
-          enabled={captureEnabled}
-          policies={scope.policies()}
-          acceptedWindowId={session.windowId}
-          acceptedEpoch={session.epoch}
-          policyRevision={scope.policyRevision()}
-          onNativeScopeStatus={(event) => {
-            if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
-          }}
-          onNativeInputModality={(event) => {
-            if (attached.current) scope.recordInput(event.nativeEvent)
-          }}
-          onNativeScopedKey={(event) => {
-            if (!attached.current || !isKeyboardEvent(event)) return
-            const data = event.nativeEvent
-            scope.dispatch(data.policyId, event, data)
-          }}
-        />
+        <NativeViewContextBoundary>
+          <ScopeHost
+            {...nativeViewProps(props)}
+            ref={setRef}
+            ownerId={ownerId}
+            enabled={captureEnabled}
+            policies={scope.policies()}
+            acceptedWindowId={session.windowId}
+            acceptedEpoch={session.epoch}
+            policyRevision={scope.policyRevision()}
+            onNativeScopeStatus={(event) => {
+              if (attached.current) scope.acceptNativeStatus(event.nativeEvent)
+            }}
+            onNativeInputModality={(event) => {
+              if (attached.current) scope.recordInput(event.nativeEvent)
+            }}
+            onNativeScopedKey={(event) => {
+              if (!attached.current || !isKeyboardEvent(event)) return
+              const data = event.nativeEvent
+              scope.dispatch(data.policyId, event, data)
+            }}
+          />
+        </NativeViewContextBoundary>
       </NativeKeyScopeContext.Provider>
     )
   },

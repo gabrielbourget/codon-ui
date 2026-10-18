@@ -158,6 +158,7 @@ it("restores focus after iOS dismissal and cancels queued work on unmount", asyn
   const { unmount } = await render(<Select {...base} ref={ref} />)
   const user = userEvent.setup()
   await user.press(screen.getByRole("button", { name: "Choose" }))
+  await fireEvent(screen.getByTestId("select-window"), "show")
   const dismiss = screen.getByTestId("select-window").props.onDismiss
   await user.press(screen.getByRole("button", { name: "Close choices" }))
   await act(() => dismiss())

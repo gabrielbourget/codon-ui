@@ -1,20 +1,28 @@
-import { forwardRef, useCallback, useId, useRef, type ElementRef } from "react"
-import type { NativeSyntheticEvent } from "react-native"
+import { forwardRef, useCallback, useId, useInsertionEffect, useRef, type ElementRef } from "react"
+import type { GestureResponderEvent, NativeSyntheticEvent } from "react-native"
 
 import { registerNativeFocusTarget } from "./focus"
+import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import FocusHost, { Commands, type NativeKeyData } from "./specs/CUIFocusViewNativeComponent"
 import type { TNativeKeyboardEvent, TNativeFocusViewProps, TNativeFocusViewRef } from "./types"
 
 const isKeyboardEvent = (event: NativeSyntheticEvent<NativeKeyData>): event is TNativeKeyboardEvent =>
   event.nativeEvent.kind === "keyboard"
 
-export const NativeFocusView = forwardRef<TNativeFocusViewRef, TNativeFocusViewProps>((props, forwardedRef) => {
-  const { onKeyDown, onKeyUp, onFocus, onBlur, focusable, tabIndex, ...rest } = props
+export const NativeFocusHost = forwardRef<
+  TNativeFocusViewRef,
+  TNativeFocusViewProps & { capturedKeys?: readonly string[]; onClick?: (event: GestureResponderEvent) => void }
+>((props, forwardedRef) => {
+  const { onKeyDown, onKeyUp, onFocus, onBlur, focusable, tabIndex, capturedKeys, ...rest } = props
   const ownerId = useId()
   const attached = useRef(false)
   const release = useRef<(() => void) | undefined>(undefined)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
   const keyboardFocusable = tabIndex === -1 ? false : (focusable ?? true)
+  const focusEligibility = useRef(keyboardFocusable)
+  useInsertionEffect(() => {
+    focusEligibility.current = keyboardFocusable
+  }, [keyboardFocusable])
   const setRef = useCallback(
     (target: ElementRef<typeof FocusHost> | null) => {
       attached.current = target !== null
@@ -23,7 +31,7 @@ export const NativeFocusView = forwardRef<TNativeFocusViewRef, TNativeFocusViewP
       releaseForwardedRef.current = undefined
       release.current = target
         ? registerNativeFocusTarget(target, {
-            canFocus: () => keyboardFocusable,
+            canFocus: () => focusEligibility.current,
             focus: () => Commands.requestKeyboardFocus(target, ownerId),
             blur: () => Commands.requestKeyboardBlur(target, ownerId),
           })
@@ -35,28 +43,34 @@ export const NativeFocusView = forwardRef<TNativeFocusViewRef, TNativeFocusViewP
         }
       } else if (forwardedRef) forwardedRef.current = target
     },
-    [forwardedRef, keyboardFocusable, ownerId],
+    [forwardedRef, ownerId],
   )
   return (
-    <FocusHost
-      {...rest}
-      ref={setRef}
-      ownerId={ownerId}
-      focusable={keyboardFocusable}
-      tabIndex={tabIndex}
-      keyboardFocusable={keyboardFocusable}
-      onNativeKey={(event) => {
-        if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return
-        if (event.nativeEvent.phase === "down") {
-          if (keyboardFocusable) onKeyDown?.(event)
-        } else onKeyUp?.(event)
-      }}
-      onNativeFocusChange={(event) => {
-        if (!attached.current || event.nativeEvent.ownerId !== ownerId) return
-        if (event.nativeEvent.isFocused) onFocus?.(event)
-        else onBlur?.(event)
-      }}
-    />
+    <NativeViewContextBoundary>
+      <FocusHost
+        {...nativeViewProps(rest)}
+        ref={setRef}
+        ownerId={ownerId}
+        focusable={keyboardFocusable}
+        keyboardFocusable={keyboardFocusable}
+        capturedKeys={capturedKeys}
+        onNativeKey={(event) => {
+          if (!attached.current || event.nativeEvent.ownerId !== ownerId || !isKeyboardEvent(event)) return
+          if (event.nativeEvent.phase === "down") {
+            if (keyboardFocusable) onKeyDown?.(event)
+          } else onKeyUp?.(event)
+        }}
+        onNativeFocusChange={(event) => {
+          if (!attached.current || event.nativeEvent.ownerId !== ownerId) return
+          if (event.nativeEvent.isFocused) onFocus?.(event)
+          else onBlur?.(event)
+        }}
+      />
+    </NativeViewContextBoundary>
   )
 })
+NativeFocusHost.displayName = "NativeFocusHost"
+export const NativeFocusView = forwardRef<TNativeFocusViewRef, TNativeFocusViewProps>((props, ref) => (
+  <NativeFocusHost {...props} ref={ref} />
+))
 NativeFocusView.displayName = "NativeFocusView"

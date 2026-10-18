@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useRef, useState } from "react"
-import { Pressable, type GestureResponderEvent, type MouseEvent } from "react-native"
+import type { MouseEvent } from "react-native"
 
+import { NativePressable } from "../../input/NativePressable"
+import type { TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
 
@@ -9,11 +11,11 @@ import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
 
 type TPressCycle = {
-  event: GestureResponderEvent
+  event: TNativePressEvent
   cancelled: boolean
   endDelivered: boolean
   activationDelivered?: boolean
-  nativeEnd?: GestureResponderEvent
+  nativeEnd?: TNativePressEvent
 }
 
 export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, ref) => {
@@ -68,7 +70,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
   const pressCycle = useRef<TPressCycle | undefined>(undefined)
   const hoverEvent = useRef<MouseEvent | undefined>(undefined)
   const focusState = useRef(false)
-  const finishPress = (event: GestureResponderEvent) => {
+  const finishPress = (event: TNativePressEvent) => {
     const cycle = pressCycle.current
     if (!cycle || cycle.endDelivered) return
     cycle.endDelivered = true
@@ -113,12 +115,13 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
 
   return (
     <NativeContentContext.Provider value={{ foregroundColor: resolved.foregroundColor, isButton: true }}>
-      <Pressable
+      <NativePressable
         {...rest}
         ref={ref}
         accessible
         role="button"
         disabled={isDisabled}
+        activationBlocked={blocked}
         focusable={!isDisabled}
         aria-disabled={isDisabled}
         aria-busy={isPending}
@@ -145,6 +148,11 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
           onPressChange?.(true)
           onPressIn?.(event)
         }}
+        onPressCancel={(event) => {
+          if (pressCycle.current) pressCycle.current.cancelled = true
+          finishPress(event)
+        }}
+        onHoverCancel={finishHover}
         onPressOut={(event) => {
           const cycle = pressCycle.current
           if (cycle) {
@@ -204,7 +212,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
         }}
       >
         {content}
-      </Pressable>
+      </NativePressable>
     </NativeContentContext.Provider>
   )
 })

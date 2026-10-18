@@ -81,7 +81,14 @@ export const ValidButton = (
     geometry="round"
     isPending
     accessibilityState={{ selected: true }}
-    onPressStart={(event) => event.nativeEvent.pageX}
+    onPressStart={(event) => {
+      if ("kind" in event.nativeEvent) {
+        // @ts-expect-error Native keyboard events do not fabricate touch coordinates.
+        void event.nativeEvent.pageX
+        return event.nativeEvent.nativeCode
+      }
+      return event.nativeEvent.pageX
+    }}
     onHoverStart={(event) => event.nativeEvent.clientX}
     style={(state) => [state.defaultStyle, { color: state.isPressed ? "red" : "blue" }]}
   >

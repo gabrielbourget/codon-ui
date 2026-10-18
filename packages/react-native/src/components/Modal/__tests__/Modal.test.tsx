@@ -168,8 +168,12 @@ it.each(["ios", "android"] as const)(
   "serializes a root replacement even when the new root is declared first on %s",
   async (platformName) => {
     jest.replaceProperty(Platform, "OS", platformName)
+    let replaceRoot: () => void
     const Fixture = () => {
       const [next, setNext] = useState(false)
+      useLayoutEffect(() => {
+        replaceRoot = () => setNext(true)
+      }, [])
       return (
         <>
           <Button onPress={() => setNext(true)}>Replace root</Button>
@@ -181,6 +185,9 @@ it.each(["ios", "android"] as const)(
     await render(wrap(<Fixture />))
     await show("old")
     await userEvent.setup().press(screen.getByRole("button", { name: "Replace root" }))
+    expect(screen.queryByTestId("next-window")).toBeNull()
+    // A covered background action cannot fire; the owner may still replace the root programmatically.
+    await act(() => replaceRoot())
     if (Platform.OS === "ios") expect(screen.queryByTestId("next-window")).toBeNull()
     await dismiss("old")
     expect(screen.getByTestId("next-window")).toBeOnTheScreen()
