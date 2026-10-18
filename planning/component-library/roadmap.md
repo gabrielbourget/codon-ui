@@ -52,6 +52,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon U
     - [3.5.28. Installed Native Metadata Observer](#3528-installed-native-metadata-observer)
     - [3.5.29. Persisted Native Metadata Receipts](#3529-persisted-native-metadata-receipts)
     - [3.5.30. Native Menu Construction Contract](#3530-native-menu-construction-contract)
+    - [3.5.31. Native Menu Focus And Collection Acceptance](#3531-native-menu-focus-and-collection-acceptance)
   - [3.6. LinearProgress And Meter Contract](#36-linearprogress-and-meter-contract)
 - [4. Ownership And Accepted Contracts](#4-ownership-and-accepted-contracts)
 - [5. Native Runtime And Distribution](#5-native-runtime-and-distribution)
@@ -962,6 +963,25 @@ SelectionMode defaults none; undefined selectedKeys owns a distinct local empty 
 Native keyboard Enter/Space activates on key-down without duplicate key-up action; actual raw and semantic press callbacks retain their event identity/lifetimes. Native scoped arrows/Home/End/Page and locale typeahead use actual focused targets and measured scrolling; repeat/cancel/modifier/default-handling policy stays explicit. Trigger Enter/Space and first/last arrow focus, full Tab containment/restoration, native pointer-origin drag-release/submenus, description/keyboard-shortcut relationships and all applicable profiles remain required, with unsupported source/native forms OPEN rather than silently removed. Item styles preserve disabled/hover/pressed/focus-visible/selection state callbacks, semantic danger, icon-presence for null versus undefined, and independent root/text/native overrides. Separator retains independent computed/custom/final style and accessibility semantics.
 
 First construct typed selection/model/style contracts and their executable tests, then item/separator/list/floating composition with all 35 mapped root assertions and inherited source cases, then current consumer/private runtime proof and installed forms. The existing metadata receipts may support genuine native observations but cannot replace input/pointer/focus or full menu acceptance. No dependency, SDK flag, palette, public shared API, XCTest/LLDB/startup repair, signing, registry/publication or workflow modification is included. Use logical model/control/composition/proof commits. Goal PR ordinal 8 requires the full existing CI workflow at its final exact head under §9.1.
+
+#### 3.5.31. Native Menu Focus And Collection Acceptance
+
+Continue from PR #27's frozen head 8c7e9eb on feature/native-menu-focus. The audited pinned useListState focused-key reset walks forward through the previous collection for a surviving enabled item, then backward. Current private Menu instead falls back to the first item when its active item disappears. Correct that conventional collection behavior using committed Menu-local order and existing actual refs/focusNativeTarget; preserve caller-selected missing keys, callbacks and controlled values. No new shared architecture, public API, native schema, dependency or palette is needed.
+
+| Cell                                          | Required result                                                                                                                      |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| MENU.FOCUS.SOURCE.001                         | Removing the focused middle item requests the next surviving enabled item in the prior committed order.                              |
+| MENU.FOCUS.SOURCE.002                         | Removing the trailing item requests the previous surviving enabled item; skipped disabled/removed entries do not become targets.     |
+| MENU.FOCUS.SOURCE.003                         | Reordering before removal uses that committed order, preserves typed zero/empty IDs and leaves caller selection/iterables unchanged. |
+| MENU.FOCUS.SOURCE.004                         | Retired/unmounted/window-inactive work cannot request focus; request dispatch is distinct from native completion.                    |
+| MENU.FOCUS.{android,ios}.P01.initial-first    | Original native onFocus data identifies the actual first enabled MenuItem instance after the menu becomes ready.                     |
+| MENU.FOCUS.{android,ios}.P01.explicit-middle  | An existing registered-target focus request completes through original native onFocus data on the actual middle item.                |
+| MENU.FOCUS.{android,ios}.P01.removed-forward  | Removing that item completes native focus on the next retained item without changing owner selection.                                |
+| MENU.FOCUS.{android,ios}.P01.removed-backward | Removing the final focused item completes native focus on the previous retained item.                                                |
+
+Use the existing persisted-receipt transport for a minimal explicit private Menu fixture, with matching committed source, maps, native products and actual target/owner/session identities. Preserve original native focus packets and clocks; never invoke component handlers or manufacture focus events in the app. A helper's dispatch result, desired target, JS model, screenshot or completed fixture UI cannot pass a native focus cell. An actual callback mismatch/missing callback must remain distinguishable from boot/install/launch/receipt transport failure. Bound the first installed cohort to one build and one boot/install/launch per platform, with progress-aware existing generous caps and no automatic replay or XCTest/LLDB/startup repair.
+
+This cohort covers exactly the four P01 focus forms per platform. Empty-list focus, native host/href replacement, complete ordering/opaque/virtualized collection behavior, external pointer/key activation, Tab, relationships, roles/checked speech, broader profiles and all other Menu acceptance remain required OPEN. Keep the family private and every existing physical/ARM/fold/closer visual/signing deferral. Use coherent source/regression, fixture/validation and outcome commits; subsequent goal PR ordinal 9 may skip hosted CI under §9.1 while retaining meaningful local checks and normal hooks.
 
 <a id="linearprogress-and-meter-contract"></a>
 

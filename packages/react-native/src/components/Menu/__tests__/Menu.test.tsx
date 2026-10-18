@@ -585,6 +585,99 @@ it("CAP.menu.034 moves from the actual focused row, wraps/skips disabled and act
   await scopedKey("Home", c.current)
   expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(a.current, row("a").props.ownerId)
 })
+it.each([
+  { removed: "b", expected: "c", order: ["a", "b", "c"] },
+  { removed: "c", expected: "b", order: ["a", "b", "c"] },
+  { removed: "b", expected: "a", order: ["c", "a", "b"] },
+] as const)(
+  "recovers from removed focused $removed to retained $expected without changing owner selection",
+  async ({ removed, expected, order }) => {
+    const refs = { a: createRef<RN.View>(), b: createRef<RN.View>(), c: createRef<RN.View>() }
+    type TKey = keyof typeof refs
+    const content = (keys: readonly TKey[]) =>
+      keys.map((id) => (
+        <MenuItem key={id} id={id} ref={refs[id]} testID={id}>
+          {id}
+        </MenuItem>
+      ))
+    const owner = new Set(["missing", removed]),
+      changed = jest.fn()
+    const props = {
+      selectionMode: "multiple" as const,
+      selectedKeys: owner,
+      onSelectionChange: changed,
+      shouldCloseOnSelect: false,
+    }
+    const f = fixture(props, content(["a", "b", "c"]))
+    await render(f.node())
+    await f.ready()
+    await screen.rerender(f.node(props, content(order)))
+    await f.ready()
+    const native = row(removed).props
+    await act(() =>
+      native.onNativeFocusChange({
+        nativeEvent: {
+          ownerId: native.ownerId,
+          target: RN.findNodeHandle(refs[removed].current),
+          isFocused: true,
+          isFocusVisible: false,
+          origin: "programmatic",
+          timestamp: 200,
+        },
+      }),
+    )
+    jest.mocked(Commands.requestKeyboardFocus).mockClear()
+    await screen.rerender(f.node(props, content(order.filter((id) => id !== removed))))
+    await f.ready()
+    const lastRequest = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
+    expect(lastRequest?.[0] === refs[expected].current).toBe(true)
+    expect(lastRequest?.[1]).toBe(row(expected).props.ownerId)
+    expect([...owner]).toEqual(["missing", removed])
+    expect(changed).not.toHaveBeenCalled()
+    expect(f.action).not.toHaveBeenCalled()
+  },
+)
+
+it.each(["unmounted", "window-inactive"] as const)("retires pending collection focus when %s", async (reason) => {
+  const f = fixture(
+    {},
+    <MenuItem id="a" testID="a">
+      A
+    </MenuItem>,
+  )
+  await render(f.node())
+  await f.ready()
+  await screen.rerender(
+    f.node(
+      {},
+      <MenuItem id="b" testID="b">
+        B
+      </MenuItem>,
+    ),
+  )
+  const pending = [...frames.values()]
+  expect(pending.length).toBeGreaterThan(0)
+  if (reason === "unmounted") await screen.unmount()
+  else {
+    const host = row("host").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "menu-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready: true,
+          windowActive: false,
+        },
+      }),
+    )
+  }
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await act(() => pending.forEach((callback) => callback(400)))
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.length).toBe(0)
+})
+
 it("routes typeahead through current labels without executing an action", async () => {
   const a = createRef<RN.View>(),
     b = createRef<RN.View>()

@@ -92,3 +92,15 @@ export const equalNativeMenuSelection = (a: TNativeMenuSelection, b: TNativeMenu
   if (a === "all" || b === "all") return a === b
   return a.size === b.size && [...a].every((key) => b.has(key))
 }
+
+export const getNativeMenuRecoveryKey = (
+  previousOrder: readonly TNativeMenuKey[],
+  currentRows: readonly TNativeMenuRow[],
+  focusedKey: TNativeMenuKey | null,
+) => {
+  if (focusedKey === null) return undefined
+  const index = previousOrder.indexOf(focusedKey)
+  if (index < 0) return undefined
+  const enabled = new Set(currentRows.filter((row) => !row.disabled).map((row) => row.id))
+  return [...previousOrder.slice(index + 1), ...previousOrder.slice(0, index).reverse()].find((key) => enabled.has(key))
+}

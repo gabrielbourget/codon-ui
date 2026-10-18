@@ -80,6 +80,7 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
     - [3.31.27. Persisted Metadata Receipt Construction](#33127-persisted-metadata-receipt-construction)
     - [3.31.28. Persisted iOS Metadata Outcomes](#33128-persisted-ios-metadata-outcomes)
     - [3.31.29. Private Menu Construction And Consumer Checkpoint](#33129-private-menu-construction-and-consumer-checkpoint)
+    - [3.31.30. Menu Collection Focus Source Repair](#33130-menu-collection-focus-source-repair)
 - [4. Progress And Meter Delivery](#4-progress-and-meter-delivery)
 - [5. ComboBox Customization Coverage](#5-combobox-customization-coverage)
 - [6. RN Primitives Decision](#6-rn-primitives-decision)
@@ -1442,7 +1443,13 @@ The final immutable DATA ONLY source packet native-menu-ui-input-6103855 has 428
 
 Menu's complete collection reconciliation (including mixed generated/explicit keys and opaque custom-component reorder), hidden/virtualized composition, sections/submenus, native pointer-origin drag release, Tab containment/restoration, description/shortcut relationships, trigger long press, complete interaction/style states, maintained public usage and every applicable installed profile remain mandatory OPEN. No aggregate Menu gate, full family, public counterpart or goal completion is promoted; availability remains 35/53. Existing physical/ARM/fold/closer visual and iPhone-signing deferrals remain unchanged. The original text failures and sealed cohorts are untouched.
 
-[PR #27](https://github.com/gabrielbourget/codon-ui/pull/27) is stacked on #26's exact head 3e1f65a under feature/native-menu, at approximately 2,000 changed lines with logical model/composition/regression/ownership/proof commits. It is subsequent library-goal ordinal 8 and must run the full existing ci.yml workflow at its final exact head under roadmap §9.1; the PR records the resulting run/head identity. No workflow, dependency, palette, publication or merge policy changes. This review checkpoint does not finish the active 53-component goal.
+[PR #27](https://github.com/gabrielbourget/codon-ui/pull/27) is stacked on #26's exact head 3e1f65a under feature/native-menu, at approximately 2,000 changed lines with logical model/composition/regression/ownership/proof commits. It is subsequent library-goal ordinal 8. The full existing ci.yml workflow passes tooling, build and test jobs at final exact head 8c7e9eba3184f03bcf0a9b7232b8ace0627b30d7 ([run 39144735744](https://github.com/gabrielbourget/codon-ui/actions/runs/39144735744)); PR #27 is ready for review. No workflow, dependency, palette, publication or merge policy changes. This review checkpoint does not finish the active 53-component goal.
+
+#### 3.31.30. Menu Collection Focus Source Repair
+
+Roadmap §3.5.31 continues from PR #27's exact passing head on feature/native-menu-focus. Complete pinned useListState/useSelectableList/selection-manager inspection shows that removing the focused key should walk forward through the previous committed collection, then backward. Two rendered regressions reproduce the existing Menu fallback to the first item instead of the next/previous retained actual ref. The initial assertion spends sustained CPU formatting unequal native view objects; its verified Jest process group is stopped after the quiet-run diagnostic, and direct ref-identity assertions produce both failures in 3.57s. The aborted printer run is not a native/framework verdict.
+
+The private recovery helper preserves typed zero/empty keys and owner arrays, skips unavailable/disabled rows and leaves first/last fallback with the existing caller. Menu retains the last committed order containing its active key across removal and native-policy readiness changes, then requests the correct registered native instance. The focused suite passes 56 cases, including runtime reorder before removal, next/previous recovery, missing selected owner keys, no selection/action requests and retained callbacks after unmount/window loss. Verification is the focused source tier; dispatch identity is distinct from actual native focus completion. The planned four P01 focus forms per platform and every broader Menu native/profile/collection obligation remain OPEN pending matching private products and original native callbacks. No public export, dependency, palette, native schema, source-owned input backend, signing or frozen text fixture changes.
 
 ## 4. Progress And Meter Delivery
 
