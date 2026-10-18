@@ -47,6 +47,7 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
   const [renderChildren, setRenderChildren] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [selectable, setSelectable] = useState(true)
+  const [clearTextTypography, setClearTextTypography] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(true)
   const [closeActions, setCloseActions] = useState(0)
   const variant = AVAILABLE_FONT_VARIANTS[variantIndex]
@@ -98,6 +99,11 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
         <SceneControl label="Toggle library pending" selected={pending} onPress={() => setPending((value) => !value)} />
         <SceneControl label="Toggle library styles" selected={custom} onPress={() => setCustom((value) => !value)} />
         <SceneControl
+          label="Clear text typography"
+          selected={clearTextTypography}
+          onPress={() => setClearTextTypography((value) => !value)}
+        />
+        <SceneControl
           label="Toggle render children"
           selected={renderChildren}
           onPress={() => setRenderChildren((value) => !value)}
@@ -111,7 +117,18 @@ export const LibraryScene = ({ count, increment }: { count: number; increment: (
       <Text>
         Text variant {variant}; weight {weight}; button geometry {geometry}.
       </Text>
-      <Text testID="library-text-preview" variant={variant} fontWeight={weight} selectable={selectable}>
+      <Text
+        testID="library-text-preview"
+        variant={variant}
+        fontWeight={weight}
+        selectable={selectable}
+        customStyles={custom ? { fontSize: 18, fontWeight: "700", fontStyle: "italic", lineHeight: 26 } : undefined}
+        style={
+          clearTextTypography
+            ? { fontSize: undefined, fontWeight: undefined, fontStyle: undefined, lineHeight: undefined }
+            : undefined
+        }
+      >
         Native text remains readable: sélectionnez les paramètres et continuez lorsque vous êtes prêt.
       </Text>
       <Text>
