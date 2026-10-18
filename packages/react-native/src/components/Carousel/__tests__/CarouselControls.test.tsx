@@ -44,6 +44,7 @@ describe.each([
       borderRadius: 10000,
       minHeight: Platform.OS === "ios" ? 44 : 48,
     })
+    expect(StyleSheet.flatten(button.props.style).paddingHorizontal).toBeUndefined()
     const glyph = screen.getByTestId(`carousel-${icon}-icon`, hidden)
     expect(glyph.props).toMatchObject({
       bbWidth: 20,
@@ -133,10 +134,23 @@ describe.each([
     )
     const button = screen.getByRole("button")
     expect(button).toHaveStyle({ width: 0, height: 0, padding: 0 })
+    expect(StyleSheet.flatten(button.props.style).paddingHorizontal).toBeUndefined()
     expect(button).not.toBeDisabled()
     await fireEvent.press(button)
     expect(inner).toHaveBeenCalledTimes(1)
     expect(outer).not.toHaveBeenCalled()
+  })
+
+  it("preserves caller-owned axis insets after clearing the inherited round inset", async () => {
+    await render(
+      withContext(
+        <Component
+          customStyles={{ padding: 0, paddingHorizontal: 3 }}
+          customButtonProps={{ customStyles: { paddingVertical: 4 }, style: { paddingHorizontal: 1 } }}
+        />,
+      ),
+    )
+    expect(screen.getByRole("button")).toHaveStyle({ padding: 0, paddingHorizontal: 1, paddingVertical: 4 })
   })
 
   it("preserves disabled and pending press guards from the native Button", async () => {

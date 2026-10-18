@@ -33,7 +33,11 @@ const ControlSurface = forwardRef<TNativeButtonRef, TControlSurfaceProps>((props
       raisedOnHover
       {...rest}
       {...innerProps}
-      customStyles={[{ backgroundColor: "rgba(0,0,0,0.75)", padding: 5 }, customStyles, innerStyles]}
+      customStyles={[
+        { backgroundColor: "rgba(0,0,0,0.75)", padding: 5, paddingHorizontal: undefined },
+        customStyles,
+        innerStyles,
+      ]}
     >
       {children ?? <NativeCarouselControlIcon kind={kind} />}
     </Button>
