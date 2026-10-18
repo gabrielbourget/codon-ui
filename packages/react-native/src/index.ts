@@ -1,3 +1,25 @@
+export { CircularProgress } from "./components/CircularProgress/CircularProgress"
+export { AVAILABLE_NATIVE_STROKE_LINECAPS } from "./components/CircularProgress/types"
+export type {
+  TNativeCircularProgressProps,
+  TNativeCircularProgressProps as CircularProgressProps,
+  TNativeCircularProgressRef,
+  TNativeCircularProgressRenderState,
+  TNativeCircularProgressStyleState,
+  TNativeCircularProgressRootStyle,
+  TNativeCircularProgressSVGStyle,
+  TNativeCircularProgressPathStyle,
+  TNativeCircularProgressTextStyle,
+  TNativeCircularProgressBackgroundStyle,
+  TNativeStrokeLinecap,
+} from "./components/CircularProgress/types"
+export { Counter } from "./components/Counter/Counter"
+export type {
+  TNativeCounterProps,
+  TNativeCounterProps as CounterProps,
+  TNativeCounterRef,
+} from "./components/Counter/types"
+
 export { TypeaheadSearch } from "./components/TypeaheadSearch/TypeaheadSearch"
 export {
   AVAILABLE_TYPEAHEAD_SEARCH_STATUSES,
