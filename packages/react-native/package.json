@@ -18,7 +18,13 @@
   "files": [
     "dist",
     "src",
-    "!src/**/__tests__/**"
+    "!src/**/__tests__/**",
+    "ios",
+    "!ios/build",
+    "android/src",
+    "android/build.gradle",
+    "*.podspec",
+    "react-native.config.js"
   ],
   "scripts": {
     "build": "node clean-dist.mjs && tsc -p tsconfig.build.json",
@@ -60,5 +66,18 @@
   },
   "dependencies": {
     "@internationalized/number": "3.6.6"
+  },
+  "codegenConfig": {
+    "name": "CodonNativeInputSpec",
+    "type": "components",
+    "jsSrcsDir": "src/input/specs",
+    "android": {
+      "javaPackageName": "com.codonui.input"
+    },
+    "ios": {
+      "componentProvider": {
+        "CUIFocusView": "CUIFocusView"
+      }
+    }
   }
 }

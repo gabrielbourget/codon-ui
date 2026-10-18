@@ -18,6 +18,14 @@ pnpm -F @codon-ui/react-native typecheck:contracts
 pnpm -F @codon-ui/react-native test --runInBand
 ```
 
+## Native Keyboard Focus
+
+NativeFocusView provides a source-owned native View root with ordinary native props/styles and the actual View ref. It adds no layout wrapper. focusable defaults to true; focusable=false or tabIndex=-1 blocks keyboard focus requests. Use focusNativeTarget(target) and blurNativeTarget(target) for this host or a live registered core TextInput. A true return means request admission; onFocus/onBlur acknowledge actual native focus and include native origin metadata. Plain core Views retain upstream focus behavior. The helpers preserve editor values and do not move screen-reader focus.
+
+onKeyDown/onKeyUp receive original native synthetic keyboard events with logical key, platform code/characters, phase/repeat/cancellation, separate Shift/Alt/Control/Meta/Caps, raw modifiers and timestamp. TNativePressEvent is the declared touch-or-keyboard union; narrow nativeEvent by its keyboard kind before reading touch-only coordinates. Native default capture uses private declarative policy before JS delivery; later JS preventDefault cannot retroactively cancel a platform default.
+
+This package now includes native codegen/autolinking inputs and needs a consumer native rebuild. Raw source/type and compiler checks do not prove installed behavior. The per-window key scope, owned-control migration, native descriptions and viewport/scroll integration remain under construction. Tooltip/HoverPopover remain private: touch entry is ignored, with no automatic tap or long-press trigger. An explicit tap-triggered popover is a separate ClickPopover contract, also still under construction.
+
 ## Theme Contract
 
 ```tsx

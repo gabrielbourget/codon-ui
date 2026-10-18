@@ -54,6 +54,7 @@ Lifecycle: **Active evidence companion**. Owner: Gabriel Bourget. Reviewed: **20
     - [3.31.1. Private Measured Surface And Source Gate Disposition](#3311-private-measured-surface-and-source-gate-disposition)
     - [3.31.2. Tooltip Timing And Native Transport Audit](#3312-tooltip-timing-and-native-transport-audit)
     - [3.31.3. Private Tooltip Surfaces And Required Native Matrix](#3313-private-tooltip-surfaces-and-required-native-matrix)
+    - [3.31.4. Native Input Source Audit And Backend Proposal](#3314-native-input-source-audit-and-backend-proposal)
 - [4. Progress And Meter Delivery](#4-progress-and-meter-delivery)
 - [5. ComboBox Customization Coverage](#5-combobox-customization-coverage)
 - [6. RN Primitives Decision](#6-rn-primitives-decision)
@@ -1052,6 +1053,12 @@ All3910 inherited CP-44 cells/payloads and400 aliases remain unchanged, yielding
 Source cohort native-library-construction-2026-10-17/tooltip-surfaces-5ffa805 is sealed DATA ONLY:341 listed files,319 committed source/type/test/config inputs, producer5ffa8053835b74660ed41c3440c795888a6d21ac, manifest SHA-256 `17b0828415bd2687cf079002ee014829ae5599b78cb5f4bb98ab3bfdae4de4ab`. It holds final test/type/build/normal-hook logs, private source/public fixtures, pinned native filter source, exact inherited projection/aliases and the newly generated required form/cell payloads. The fresh generator runs only from /private/tmp before copying; its archived copy is DATA ONLY and must never execute. Every writer finishes before sealing. Current public exports remain unchanged, source availability stays35/53, and all nine aggregate Tooltip/HoverPopover gates remain OPEN pending remaining inherited capabilities, public composition and native acceptance. The full goal remains active.
 
 <a id="progress-and-meter-delivery"></a>
+
+#### 3.31.4. Native Input Source Audit And Backend Proposal
+
+The preimplementation source audit at76dbd72 inspects the published react-native-external-keyboard1.2.1 archive:561 file hashes, verified registry SHA-512 integrity, archive SHA-25608d770e8477c5196a4ff3c3a14e90249f5ca874ac2c17f24bf1644fb39d2591d and matching declared gitHead69b7435b49ce1dce55c199de1789119a2f3ba064. It does not assert a full archive/upstream tree byte comparison. Latest2.0.1 requires RN>=0.87 and is excluded;1.2.1 fits the existing pins but is not installed. Its native event loses Command/Meta, while canonical Carousel explicitly excludes meta-modified navigation. Its default Proxy ref couples keyboard and accessibility focus. Two tests executing the actual published Android hook reproduce a queued40ms callback after unmount and a replaced callback receiving the old action; both are FAIL for Codon's lifetime/current-owner contract, not passing library acceptance.
+
+Gabriel approved roadmap3.5.21/DEC.native-input.01 on2026-10-18, authorizing the source-owned codegen/autolinking, actual-ref NativeFocusView, explicit keyboard-focus helpers, original keyboard events, private window policy/description/viewport/scroll transport and coherent control migration. No external-keyboard dependency, SDK flags, version/palette changes or iPhone signing are authorized. The audit itself performs0 native actions, no candidate package install/scripts and no shipping-source changes. Its immutable DATA ONLY packet is `/Users/gabrielbourget/.codex/visualizations/2026/10/16/01a142c2-0db7-7d31-aa1f-53e3773a7870/native-library-construction-2026-10-17/native-input-audit-76dbd72`; SHA256SUMS manifest `bd1af6f6c4fb66bc8657d62f230f920a4ca18c9e8d3e8d306663273e514eada5` verifies10 listed files. Never execute/import packet contents or write beneath the seal. Raw-host source construction follows this decision; source compilation does not close any of the7306 required installed cells or a catalogue family.
 
 ## 4. Progress And Meter Delivery
 

@@ -464,3 +464,14 @@ export type {
   TPartialNativeAlertDialogLabels,
   TPartialNativeAlertDialogLabels as PartialAlertDialogLabels,
 } from "./components/AlertDialog/types"
+
+export { NativeFocusView } from "./input/NativeFocusView"
+export { focusNativeTarget, blurNativeTarget } from "./input/focus"
+export type {
+  TNativeKeyboardData,
+  TNativeKeyboardEvent,
+  TNativePressEvent,
+  TNativeFocusEvent,
+  TNativeFocusViewProps,
+  TNativeFocusViewRef,
+} from "./input/types"
