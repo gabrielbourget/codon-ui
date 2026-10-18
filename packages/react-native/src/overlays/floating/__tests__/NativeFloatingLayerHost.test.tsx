@@ -71,6 +71,7 @@ it("keeps each host name and layout independent, including nested native-window 
     </NativeFloatingLayerHost>,
   )
   expect(hosts.get("inner")?.name).not.toBe(hosts.get("outer")?.name)
+  expect(hosts.get("inner")?.tooltipTiming).not.toBe(hosts.get("outer")?.tooltipTiming)
   await fireEvent(screen.getByTestId("inner"), "layout", {
     nativeEvent: { layout: { x: 100, y: 200, width: 300, height: 400 } },
   })
@@ -135,9 +136,11 @@ it("retires the host generation and old layout callback after keyed replacement/
   )
   const result = await render(fixture("first"))
   const old = hosts[0]!
+  const dispose = jest.spyOn(old.tooltipTiming, "dispose")
   const stale = screen.getByTestId("root").props.onLayout
   await result.rerender(fixture("second"))
   expect(old.live.current).toBe(false)
+  expect(dispose).toHaveBeenCalledTimes(1)
   expect(old.generation.current).toBe(1)
   expect(hosts.at(-1)?.name).not.toBe(old.name)
   await act(() => stale({ nativeEvent: { layout: { x: 0, y: 0, width: 1, height: 1 } } }))

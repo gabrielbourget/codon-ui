@@ -32,6 +32,7 @@ import {
   type TNativeFloatingLayerRegistry,
 } from "./registry"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
+import { createNativeTooltipTiming } from "./tooltipTiming"
 
 export type TNativeFloatingLayerHostRef = View
 // Both pinned native base configs register these phases; RN0.86 ViewProps omits their capture spellings.
@@ -50,6 +51,7 @@ type TNativeFloatingHost = {
   live: RefObject<boolean>
   layers: TNativeFloatingLayerRegistry
   interactions: ReturnType<typeof createNativeFloatingInteractions>
+  tooltipTiming: ReturnType<typeof createNativeTooltipTiming>
   layout: Readonly<{ width: number; height: number }> | null
 }
 
@@ -97,7 +99,14 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
     const live = useRef(false)
     const [layers] = useState(createNativeFloatingLayerRegistry)
     const [interactions] = useState(() => createNativeFloatingInteractions(layers.captureOutside))
-    useInsertionEffect(() => () => interactions.dispose(), [interactions])
+    const [tooltipTiming] = useState(createNativeTooltipTiming)
+    useInsertionEffect(
+      () => () => {
+        interactions.dispose()
+        tooltipTiming.dispose()
+      },
+      [interactions, tooltipTiming],
+    )
     useSyncExternalStore(layers.subscribe, layers.snapshot, layers.snapshot)
     const windowActive = useContext(NativeFloatingWindowContext)
     const current = useRef({
@@ -135,8 +144,8 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
       return () => subscription.remove()
     }, [layers])
     const host = useMemo(
-      () => ({ name, root, generation, live, layers, interactions, layout }),
-      [name, layers, interactions, layout],
+      () => ({ name, root, generation, live, layers, interactions, tooltipTiming, layout }),
+      [name, layers, interactions, tooltipTiming, layout],
     )
     const scope = useMemo(
       () => ({
