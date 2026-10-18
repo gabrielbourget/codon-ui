@@ -182,14 +182,28 @@ it("NATIVE.toast.004 pauses for AppState inactivity and respects the explicit fa
   await unmount()
   expect(remove).toHaveBeenCalledTimes(1)
 })
-it("NATIVE.toast.005 cancels deadlines, retirement and stale control callbacks on unmount", async () => {
+it("NATIVE.toast.005 cancels deadlines and rejects actual stale native activation delivery on unmount", async () => {
   const props = base({ duration: 100, onAutoClose: jest.fn(), onDismiss: jest.fn() })
   const { unmount } = await render(node(props))
   const button = screen.getByRole("button", { name: "Close Toast" })
-  const click = button.props.onClick
+  const activate = button.props.onNativeActivation
+  const packet = {
+    nativeEvent: {
+      kind: "activation",
+      ownerId: button.props.ownerId,
+      activationId: 1,
+      source: "android-click",
+      observedAt: 1,
+      target: 1,
+      windowId: "toast-window",
+      scopeOwnerId: "",
+      epoch: 1,
+    },
+  }
+  expect(activate).toEqual(expect.any(Function))
   await unmount()
   await advance(1000)
-  await act(() => click?.({ nativeEvent: { timestamp: 1 }, target: 1, currentTarget: 1 }))
+  await act(() => activate(packet))
   expect(props.toast.onAutoClose).not.toHaveBeenCalled()
   expect(props.toast.onDismiss).not.toHaveBeenCalled()
   expect(props.removeToast).not.toHaveBeenCalled()
@@ -238,13 +252,31 @@ it("NATIVE.toast.006 rejects stale/invisible/modal-blocked actions", async () =>
   const onDismiss = jest.fn(),
     props = base({ onDismiss })
   const { rerender } = await render(node(props))
-  const click = screen.getByRole("button", { name: "Close Toast" }).props.onClick
+  const button = screen.getByRole("button", { name: "Close Toast" })
+  const activate = button.props.onNativeActivation
+  const packet = {
+    nativeEvent: {
+      kind: "activation",
+      ownerId: button.props.ownerId,
+      activationId: 1,
+      source: "android-click",
+      observedAt: 1,
+      target: 1,
+      windowId: "toast-window",
+      scopeOwnerId: "",
+      epoch: 1,
+    },
+  }
+  expect(activate).toEqual(expect.any(Function))
   await rerender(node({ ...props, index: 5 }))
-  await act(() => click?.({ nativeEvent: { timestamp: 1 }, target: 1, currentTarget: 1 }))
+  await act(() => activate(packet))
   expect(onDismiss).not.toHaveBeenCalled()
   await rerender(node(props, false))
   await userEvent.setup().press(screen.getByRole("button", { name: "Close Toast" }))
   expect(onDismiss).not.toHaveBeenCalled()
+  await rerender(node(props))
+  await act(() => activate({ nativeEvent: { ...packet.nativeEvent, activationId: 2 } }))
+  expect(onDismiss).toHaveBeenCalledTimes(1)
 })
 it("NATIVE.toast.007 measures the actual host and rejects stale layout delivery", async () => {
   const props = base(),
@@ -281,4 +313,14 @@ it("NATIVE.toast.008 only swipes outward with the owned pointer and does not dis
   await fireEvent(row(), "pointerMove", pointer(-40))
   await fireEvent(row(), "pointerUp", pointer(-40))
   expect(props.toast.onDismiss).toHaveBeenCalledTimes(1)
+})
+it("NATIVE.toast.009 cancels an already pending exit retirement on unmount", async () => {
+  const props = base({ onDismiss: jest.fn() })
+  const { unmount } = await render(node(props))
+  await userEvent.setup().press(screen.getByRole("button", { name: "Close Toast" }))
+  expect(props.toast.onDismiss).toHaveBeenCalledTimes(1)
+  expect(props.removeToast).not.toHaveBeenCalled()
+  await unmount()
+  await advance(1000)
+  expect(props.removeToast).not.toHaveBeenCalled()
 })
