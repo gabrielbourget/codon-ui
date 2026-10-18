@@ -43,6 +43,7 @@ export type TNativePressableProps = Omit<
     blockNativeResponder?: boolean
     onPressCancel?: (event: TNativePressEvent) => void
     onHoverCancel?: (event: MouseEvent) => void
+    onFocusVisibilityChange?: (visible: boolean) => void
   }
 type TCycle<E> = { event: E; cancelled: boolean; ended: boolean; upDelivered?: boolean }
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
@@ -83,6 +84,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onPointerLeave,
     onPressCancel,
     onHoverCancel,
+    onFocusVisibilityChange,
     accessibilityState,
     accessibilityLabel,
     "aria-busy": ariaBusy,
@@ -103,6 +105,13 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     [scope, window, input],
   )
   const eligible = useSyncExternalStore(input?.subscribe ?? subscribeNothing, canAct, canAct)
+  const inputOrigin = useSyncExternalStore(
+    input?.subscribe ?? subscribeNothing,
+    () => input?.lastInput()?.origin ?? null,
+    () => null,
+  )
+  const focused = useRef(false)
+  const observedOrigin = useRef(inputOrigin)
   const attached = useRef(false)
   const view = useRef<View>(null)
   const releaseRef = useRef<(() => void) | undefined>(undefined)
@@ -136,6 +145,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onPressMove,
     ripple,
     keyboardEnabled,
+    onFocusVisibilityChange,
   })
   useInsertionEffect(() => {
     current.current = {
@@ -159,6 +169,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       onPressMove,
       ripple,
       keyboardEnabled,
+      onFocusVisibilityChange,
     }
   })
   const admitted = () =>
@@ -192,6 +203,12 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     [clearHoverTimer],
   )
   useLayoutEffect(() => {
+    if (focused.current && inputOrigin !== observedOrigin.current)
+      current.current.onFocusVisibilityChange?.(inputOrigin === "keyboard")
+    observedOrigin.current = inputOrigin
+  }, [inputOrigin])
+  useLayoutEffect(() => {
+    if (!eligible || !keyboardEnabled) current.current.onFocusVisibilityChange?.(false)
     if (!eligible || disabled || activationBlocked) cancel()
     else if (!keyboardEnabled) cancel(true)
   })
@@ -316,6 +333,11 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         current.current.onActivation?.(event)
         if (admitted()) current.current.onPress?.(event)
       }}
+      onResponderGrant={(event) => {
+        observedOrigin.current = "pointer"
+        current.current.onFocusVisibilityChange?.(false)
+        handlers.onResponderGrant?.(event)
+      }}
       onResponderRelease={(event) => {
         releasingPointer.current = event
         try {
@@ -368,15 +390,23 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         else close()
       }}
       onFocus={(event) => {
-        if (attached.current && current.current.keyboardEnabled && current.current.canAct())
+        if (attached.current && current.current.keyboardEnabled && current.current.canAct()) {
+          focused.current = true
+          observedOrigin.current = input?.lastInput()?.origin ?? null
+          current.current.onFocusVisibilityChange?.(event?.nativeEvent?.isFocusVisible === true)
           current.current.onFocus?.(event)
+        }
       }}
       onBlur={(event) => {
+        focused.current = false
+        current.current.onFocusVisibilityChange?.(false)
         cancel(true)
         if (attached.current) current.current.onBlur?.(event)
       }}
       onKeyDown={(event) => {
         if (!attached.current || !current.current.keyboardEnabled || !current.current.canAct()) return
+        observedOrigin.current = "keyboard"
+        current.current.onFocusVisibilityChange?.(true)
         current.current.onKeyDown?.(event)
         const data = event.nativeEvent
         if (

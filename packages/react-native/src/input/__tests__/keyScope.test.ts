@@ -289,3 +289,27 @@ it("retires native rules when their target or composition guard changes and pres
   lease.update(policy({ targetTag: 17, excludeComposing: true }))
   expect(scope.policies()[0]!.id).not.toBe(target)
 })
+
+it("publishes admitted modality changes without retiring policies or native readiness and rejects older/foreign observations", () => {
+  const scope = createNativeKeyScope("window")
+  ready(scope)
+  const revision = scope.policyRevision(),
+    changed = jest.fn()
+  scope.subscribe(changed)
+  const session = scope.acknowledgedSession()
+  const keyboard = { ownerId: scope.ownerId, ...session, origin: "keyboard" as const, timestamp: 0 }
+  scope.recordInput(keyboard)
+  expect(changed).toHaveBeenCalledTimes(1)
+  expect(scope.lastInput()).toBe(keyboard)
+  scope.recordInput({ ...keyboard, timestamp: 1 })
+  expect(changed).toHaveBeenCalledTimes(1)
+  const pointer = { ...keyboard, origin: "pointer" as const, timestamp: 2 }
+  scope.recordInput(pointer)
+  expect(changed).toHaveBeenCalledTimes(2)
+  for (const extra of [{ timestamp: 1 }, { ownerId: "foreign" }, { windowId: "foreign" }, { epoch: session.epoch - 1 }])
+    scope.recordInput({ ...keyboard, timestamp: 3, ...extra })
+  expect(scope.lastInput()).toBe(pointer)
+  expect(changed).toHaveBeenCalledTimes(2)
+  expect(scope.policyRevision()).toBe(revision)
+  expect(scope.isNativeReady()).toBe(true)
+})

@@ -79,7 +79,14 @@ export const createNativeKeyScope = (ownerId: string) => {
             targetTag: policy.targetTag ?? 0,
           }))
   const flush = () => {
-    const signature = JSON.stringify([policies(), session, nativeReady, nativeRevision, physicalWindowActive])
+    const signature = JSON.stringify([
+      policies(),
+      session,
+      nativeReady,
+      nativeRevision,
+      physicalWindowActive,
+      input?.origin ?? null,
+    ])
     if (signature === published) return
     published = signature
     revision++
@@ -99,6 +106,7 @@ export const createNativeKeyScope = (ownerId: string) => {
         return
       if (input && next.timestamp < input.timestamp) return
       input = next
+      flush()
     },
     acceptNativeStatus: (status: NativeScopeStatus) => {
       if (disposed || status.ownerId !== ownerId || status.epoch < session.epoch) return false

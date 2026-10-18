@@ -1,10 +1,14 @@
-import { forwardRef, useEffect, useRef } from "react"
-import { Linking, Pressable, type GestureResponderEvent } from "react-native"
+import { forwardRef, useContext, useInsertionEffect, useRef, useState } from "react"
+import { Linking } from "react-native"
 
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { NativePressable } from "../../input/NativePressable"
+import type { TNativePressEvent } from "../../input/types"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
-import { useNativeControlHitSlop, useNativeSelectionInteraction } from "../selection"
+import { useNativeControlHitSlop } from "../selection"
 
 import { useNativeLinkColor } from "./motion"
 import { getNativeLinkStyle } from "./styles"
@@ -49,19 +53,34 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
   } = props
   if (typeof href !== "string") throw new TypeError("Link: href must be a string")
   const latest = useRef(props)
-  latest.current = props
+  const scope = useContext(NativeFloatingScopeContext)
+  const window = useContext(NativeFloatingWindowContext)
+  const input = useNativeKeyScope()
+  const canNavigate = () => scope?.canAct() !== false && window?.() !== false && input?.isWindowActive() !== false
+  const navigationAdmission = useRef(canNavigate)
+  useInsertionEffect(() => {
+    latest.current = props
+    navigationAdmission.current = canNavigate
+  })
   const mounted = useRef(true)
-  useEffect(() => {
+  useInsertionEffect(() => {
     mounted.current = true
     return () => {
       mounted.current = false
     }
   }, [])
-  const activate = (event: GestureResponderEvent) => {
-    if (!mounted.current || latest.current.isDisabled) return
+  const activate = (event: TNativePressEvent) => {
+    if (!mounted.current || latest.current.isDisabled || !navigationAdmission.current()) return
     const { href: destination, onPress, onNavigationError } = latest.current
     onPress?.(event)
-    if (!mounted.current || latest.current.isDisabled || event.defaultPrevented || event.isDefaultPrevented?.()) return
+    if (
+      !mounted.current ||
+      latest.current.isDisabled ||
+      !navigationAdmission.current() ||
+      event.defaultPrevented ||
+      event.isDefaultPrevented?.()
+    )
+      return
     const report = (error: unknown) => {
       if (!mounted.current) return
       if (onNavigationError) onNavigationError(error, destination)
@@ -73,40 +92,78 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
       report(error)
     }
   }
-  const interaction = useNativeSelectionInteraction(
-    { onPress: activate, onPressIn, onPressOut, onLongPress, onHoverIn, onHoverOut, onFocus, onBlur },
+  const [pressed, setPressed] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const [focused, setFocused] = useState(false)
+  const [focusVisible, setFocusVisible] = useState(false)
+  const keyboardFocusable = !isDisabled && focusable && rest.tabIndex !== -1
+  const flags = {
+    isPressed: pressed && !isDisabled,
+    isHovered: hovered && !isDisabled,
+    isFocused: focused && keyboardFocusable,
     isDisabled,
-    false,
-    () => undefined,
-  )
-  const { isReadOnly: _readOnly, ...interactionFlags } = interaction.flags
-  const flags = { ...interactionFlags, isVisited }
+    isVisited,
+  }
   const theme = useNativeTheme()
   const context = useNativeContentContext()
-  const resolved = getNativeLinkStyle(theme, props, flags, context?.foregroundColor ?? theme.colors.foreground)
+  const resolved = getNativeLinkStyle(
+    theme,
+    props,
+    flags,
+    context?.foregroundColor ?? theme.colors.foreground,
+    focusVisible,
+  )
   const foreground = useNativeLinkColor(resolved.foregroundColor)
   const target = useNativeControlHitSlop(onLayout, hitSlop)
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: true }}>
-      <Pressable
+      <NativePressable
         {...rest}
-        {...interaction.handlers}
         {...target}
         ref={ref}
         accessible
         role="link"
         accessibilityRole="link"
         disabled={isDisabled}
-        focusable={!isDisabled && focusable}
+        focusable={keyboardFocusable}
         aria-disabled={isDisabled}
         accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
         accessibilityLabel={accessibilityLabel ?? nativeLabel ?? ariaLabel}
         accessibilityLabelledBy={accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
         testID={testID ?? aliasID ?? "link"}
         style={resolved.view}
+        onPress={activate}
+        onPressIn={(event) => {
+          setPressed(true)
+          onPressIn?.(event)
+        }}
+        onPressOut={(event) => {
+          setPressed(false)
+          onPressOut?.(event)
+        }}
+        onPressCancel={() => setPressed(false)}
+        onLongPress={onLongPress}
+        onHoverIn={(event) => {
+          setHovered(true)
+          onHoverIn?.(event)
+        }}
+        onHoverOut={(event) => {
+          setHovered(false)
+          onHoverOut?.(event)
+        }}
+        onHoverCancel={() => setHovered(false)}
+        onFocusVisibilityChange={setFocusVisible}
+        onFocus={(event) => {
+          setFocused(true)
+          onFocus?.(event)
+        }}
+        onBlur={(event) => {
+          setFocused(false)
+          onBlur?.(event)
+        }}
       >
         {getNativeButtonContent(children, { ...resolved.text, color: foreground })}
-      </Pressable>
+      </NativePressable>
     </NativeContentContext.Provider>
   )
 })

@@ -135,7 +135,17 @@ it("CAP.toggle-button.008/.015/.016 uses semantic no-order selected and interact
 
 it("CAP.toggle-button.009/.010 preserves focus opt-outs, offset and raised false", async () => {
   const { rerender } = await render(<Example raised />)
-  await fireEvent(screen.getByRole("button"), "focus", {})
+  const root = screen.getByRole("button")
+  await fireEvent(root, "focus", {
+    nativeEvent: {
+      ownerId: root.props.ownerId,
+      target: 17,
+      isFocused: true,
+      isFocusVisible: true,
+      origin: "keyboard",
+      timestamp: 0,
+    },
+  })
   expect(screen.getByRole("button")).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5, shadowOpacity: 0.24 })
   await rerender(<Example raised={false} offsetFocusRing={false} />)
   expect(screen.getByRole("button")).toHaveStyle({ outlineOffset: 0 })

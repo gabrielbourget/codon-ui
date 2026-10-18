@@ -34,8 +34,19 @@ export const NullLinkDestination = <Link href={null} />
 export const DOMLinkEvent = <Link href="/" onClick={() => undefined} />
 // @ts-expect-error A native long press does not expose a browser context menu.
 export const DOMLinkContextMenu = <Link href="/" onContextMenu={() => undefined} />
-// @ts-expect-error Native keyboard/responder events replace DOM keyboard events.
-export const DOMLinkKeyboard = <Link href="/" onKeyDown={() => undefined} />
+export const NativeLinkKeyboard = <Link href="/" onKeyDown={(event) => event.nativeEvent.nativeCode.toFixed()} />
+export const NativeLinkActivation = (
+  <Link
+    href=""
+    onPress={(event) => {
+      if ("kind" in event.nativeEvent)
+        return event.nativeEvent.kind === "keyboard" ? event.nativeEvent.nativeCode : event.nativeEvent.observedAt
+      return event.nativeEvent.pageX
+    }}
+  />
+)
+// @ts-expect-error Native key callbacks do not receive DOM KeyboardEvents.
+export const DOMLinkKeyboard = <Link href="/" onKeyDown={(event: React.KeyboardEvent) => void event} />
 // @ts-expect-error Core Linking does not implement browser windows.
 export const DOMLinkTarget = <Link href="/" target="_blank" />
 // @ts-expect-error Core Linking does not implement browser referrer policy.

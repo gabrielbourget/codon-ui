@@ -108,3 +108,71 @@ it("exposes all orders, native text/custom/final controls and native zero layout
   expect(screen.getByTestId("link-example")).toHaveStyle({ width: 0, height: 0 })
   expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 0.*Frame: 0 x 0/)
 })
+
+it("keeps native key/activation requests caller-owned through empty URLs, disabled guards and scene retirement", async () => {
+  const { press } = await enter()
+  const root = () => screen.getByTestId("link-example")
+  const sendKey = async (phase: "down" | "up") => {
+    let prevented = false
+    return act(() =>
+      root().props.onNativeKey({
+        persist: jest.fn(),
+        isDefaultPrevented: () => prevented,
+        preventDefault: () => {
+          prevented = true
+        },
+        nativeEvent: {
+          kind: "keyboard",
+          ownerId: root().props.ownerId,
+          target: 17,
+          key: "Enter",
+          nativeCode: 40,
+          phase,
+          nativeDefaultHandled: true,
+          repeat: false,
+          cancelled: false,
+        },
+      }),
+    )
+  }
+  const activation = (activationId: number) => {
+    let prevented = false
+    return {
+      preventDefault: () => {
+        prevented = true
+      },
+      isDefaultPrevented: () => prevented,
+      nativeEvent: {
+        kind: "activation",
+        ownerId: root().props.ownerId,
+        target: 17,
+        source: "android-click",
+        observedAt: 0,
+        activationId,
+        scopeOwnerId: "",
+        windowId: "window",
+        epoch: 0,
+      },
+    }
+  }
+  await sendKey("down")
+  await sendKey("up")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 1/)
+  await press("Next link destination")
+  const first = activation(1)
+  await act(() => root().props.onNativeActivation(first))
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 2\. Last: ""/)
+  expect(Linking.openURL).not.toHaveBeenCalled()
+  await press("Toggle link disabled")
+  const blocked = activation(2)
+  await act(() => root().props.onNativeActivation(blocked))
+  await press("Toggle link disabled")
+  await act(() => root().props.onNativeActivation(blocked))
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Requests: 2/)
+  const retired = activation(3),
+    retained = root().props.onNativeActivation
+  await press("Reset scene")
+  await act(() => retained(retired))
+  await press("Link scene")
+  expect(screen.getByTestId("link-state")).toHaveTextContent(/Visited: false.*Requests: 0\. Last: none/)
+})
