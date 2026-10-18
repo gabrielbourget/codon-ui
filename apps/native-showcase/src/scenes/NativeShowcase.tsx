@@ -25,6 +25,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { DisplayScene } from "./DisplayScene"
+import { FormFieldScene } from "./FormFieldScene"
 import { GalleryScene } from "./GalleryScene"
 import { LibraryScene } from "./LibraryScene"
 import { LinkScene } from "./LinkScene"
@@ -171,6 +172,7 @@ export const NativeShowcase = () => {
     | "gallery"
     | "stepper"
     | "slider"
+    | "field"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -235,6 +237,7 @@ export const NativeShowcase = () => {
             />
             <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
             <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
+            <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
             <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
           </View>
           <View style={styles.controls}>
@@ -258,7 +261,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "slider" ? (
+            {scene === "field" ? (
+              <FormFieldScene />
+            ) : scene === "slider" ? (
               <SliderScene />
             ) : scene === "stepper" ? (
               <StepperScene />

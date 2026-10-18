@@ -72,6 +72,37 @@ The private decimal model limits precision to six fractional digits and represen
 
 Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
 
+## FormField
+
+FormField arranges a caller-owned control with a label/required marker, top/bottom right content, ordered error/warning/success messages and an italic description. It owns no control value, validation state, submission or child ref. An explicit empty message array still renders the bottom row. Zero/false bottom-right content alone does not create that row; zero is preserved when a message array creates it.
+
+```tsx
+import { useRef, useState } from "react"
+import type { TextInput } from "react-native"
+import { FormField, Input } from "@codon-ui/react-native"
+
+export const EmailField = () => {
+  const editor = useRef<TextInput>(null)
+  const [value, setValue] = useState("")
+  return (
+    <FormField
+      label="Email"
+      labelID="email-label"
+      labelFor={editor}
+      required
+      description="Where to send the requested information"
+      errorMessages={[]}
+    >
+      <Input ref={editor} accessibilityLabel="Email" value={value} onChangeText={setValue} />
+    </FormField>
+  )
+}
+```
+
+labelFor accepts a native focus ref; label activation requests only the current target's focus method. Replacing/removing a label or ref and unmounting retire old handlers. labelID maps to nativeID, while callers explicitly name their actual controls. accessibilityLabelledBy is an Android relationship; do not infer cross-platform spoken output from a source test. Supported native name/ID props precede native aria forms and aliases, including explicit empty strings. Native accessibilityHint is spoken text rather than a browser ID reference. Browser describedby/details relationships remain required OPEN capabilities and their props reject in types and at runtime.
+
+Eight independent native style owners cover root, top row, label, top right, bottom row, bottom right, validation and description. Computed → customStyles → final root style preserves zero dimensions, native arrays/registered styles and platform colors. Validation styles apply to the cradle and each message, with custom text color overriding the existing severity role. Root foreground reaches ordinary content without replacing an explicitly colored child. raised uses the canonical light/dark shadow values. Browser text transitions, independent validation-foreground theme aliases, exact inline marker spacing and full installed layout/accessibility/profile acceptance remain OPEN. Existing physical/device deferrals remain unchanged.
+
 ## Stepper
 
 Stepper uses the same approved decimal state, contextual incrementLabel/decrementLabel, native TextInput ref and inputProps observer/keyboard allowlist as NumberInput. It places decrement, editor and increment in a horizontal row or column-reverse group. Segmented/cohesive type, fill/outline mode, three geometries/sizes, all five action orders and independent root/group/input/button styles follow the audited web contract. Root final style callbacks receive numeric/focus/guard state and post-custom defaultStyle. Canonical default-type margin/button-mode quirks and falsy-to-default PlusIcon/MinusIcon behavior are retained; native dimensions preserve zero.
