@@ -114,6 +114,8 @@ export const InvalidButtonFontUnit = <Button customStyles={{ fontSize: "1.4rem" 
 export const InvalidButtonTextDecoration = <Button style={{ textDecorationLine: "overline" }} />
 // @ts-expect-error Button owns disabled state through isDisabled.
 export const InvalidButtonDisabled = <Button disabled />
+// @ts-expect-error Button's role adapter is private to owned native component compositions.
+export const InvalidButtonNativeRole = <Button nativeRole="menuitem" />
 // @ts-expect-error Button owns busy/disabled accessibility semantics.
 export const InvalidButtonBusy = <Button accessibilityState={{ busy: false }} />
 // @ts-expect-error Native Button has no DOM class plumbing.

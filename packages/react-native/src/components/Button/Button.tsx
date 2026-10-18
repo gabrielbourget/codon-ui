@@ -1,5 +1,5 @@
-import { forwardRef, useEffect, useRef, useState } from "react"
-import type { MouseEvent } from "react-native"
+import { forwardRef, useEffect, useRef, useState, type ForwardRefExoticComponent, type RefAttributes } from "react"
+import type { MouseEvent, ViewProps } from "react-native"
 
 import { NativePressable } from "../../input/NativePressable"
 import type { TNativePressEvent } from "../../input/types"
@@ -19,9 +19,12 @@ type TPressCycle = {
   nativeEnd?: TNativePressEvent
 }
 
-export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, ref) => {
+type TNativeButtonInternalProps = TNativeButtonProps & { nativeRole?: ViewProps["role"] }
+
+export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalProps>((props, ref) => {
   const {
     children,
+    nativeRole = "button",
     color,
     hoverColor,
     colorMode,
@@ -124,7 +127,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
         {...rest}
         ref={ref}
         accessible
-        role="button"
+        role={nativeRole}
         disabled={isDisabled}
         activationBlocked={blocked}
         focusable={keyboardFocusable}
@@ -251,4 +254,5 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
   )
 })
 
-Button.displayName = "Button"
+NativeButton.displayName = "Button"
+export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = NativeButton
