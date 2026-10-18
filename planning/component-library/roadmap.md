@@ -1192,6 +1192,8 @@ Map DOM classes to native style slots with executable type exclusions. Preserve 
 
 Add meaningful source/type/actual-ref/key/guard checks and a maintained private scene. Every inherited capability and all53 aggregate/matrix obligations stay required; the initial private counterpart does not close its public/native/closure gates. PR ordinal16 runs the full existing CI workflow at its final exact head; retain logical commits, normal hooks and the approximately2,000-line/significant-work cadence. No XCTest/LLDB/SystemUI/startup repair, dependency/palette change or iPhone signing is included.
 
+CP-58 verifies the738-file/239-source archive, compiled private/public declarations and current public/maintained private graphs atf1be62c. Public owned runtime/native inputs byte-match CP-57, so its existing public Release products are reused within that scope; private native acceptance is unexecuted. [PR #35](https://github.com/gabrielbourget/codon-ui/pull/35) is this ordinal16 construction checkpoint, with full CI required at the final exact head and all inherited/private/native/closure cells still OPEN.
+
 ### 3.6. LinearProgress And Meter Contract
 
 Status: **Approved by Gabriel on 2026-10-17 for paired implementation, tests, showcase, documentation and logical commits.** The audit covers both complete component/helper/CSS/root-suite/index files and the pinned React Aria ProgressBar/Meter render props, range clamping and formatting behavior. These display-only components need no text editor, overlay, collection, new runtime or new theme role. Counter is excluded because it additionally depends on CircularProgress.
