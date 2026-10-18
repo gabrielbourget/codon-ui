@@ -34,6 +34,17 @@ export const InvalidTextUnit = <Text style={{ fontSize: "1.4rem" }} />
 export const InvalidTextVariant = <Text variant="caption" />
 // @ts-expect-error A browser-shaped node is not an RN Text instance.
 export const InvalidTextRef = <Text ref={createRef<{ tagName: string; focus: () => void }>()} />
+export const ResetTextTypography = (
+  <Text
+    variant="h1"
+    fontWeight="bold"
+    fontStyle="italic"
+    customStyles={{ fontSize: 17, fontWeight: "400" }}
+    style={{ fontSize: undefined, fontWeight: undefined }}
+  >
+    Heading
+  </Text>
+)
 
 const mode: NativeThemeMode = "dark"
 const overrides: NativeThemeOverrides = {
