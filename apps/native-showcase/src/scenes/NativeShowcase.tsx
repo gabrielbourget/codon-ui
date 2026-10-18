@@ -24,6 +24,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
+import { CircularCounterScene } from "./CircularCounterScene"
 import { DisplayScene } from "./DisplayScene"
 import { FormFieldScene } from "./FormFieldScene"
 import { GalleryScene } from "./GalleryScene"
@@ -175,6 +176,7 @@ export const NativeShowcase = () => {
     | "slider"
     | "field"
     | "search"
+    | "circular"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -245,6 +247,11 @@ export const NativeShowcase = () => {
               selected={scene === "search"}
               onPress={() => setScene("search")}
             />
+            <FixtureAction
+              label="Circular/Counter scene"
+              selected={scene === "circular"}
+              onPress={() => setScene("circular")}
+            />
             <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
           </View>
           <View style={styles.controls}>
@@ -268,7 +275,9 @@ export const NativeShowcase = () => {
             ))}
           </View>
           <SceneShell fixture={fixture}>
-            {scene === "search" ? (
+            {scene === "circular" ? (
+              <CircularCounterScene />
+            ) : scene === "search" ? (
               <TypeaheadSearchScene />
             ) : scene === "field" ? (
               <FormFieldScene />

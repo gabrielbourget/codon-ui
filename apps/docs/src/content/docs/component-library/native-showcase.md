@@ -52,6 +52,8 @@ CNG regenerates ignored native directories from app.config.ts and declared depen
 
 The Toggle scene also presents a controlled ToggleSwitcher with independent request counts, repeated veto, read-only/group/member guards, item removal/reinsertion/reorder, an empty collection and an explicit empty key. Shared order/geometry/color/style controls cover the root, option and selected-option owners. Long English/French labels exercise wrapping; live host changes retain selection and reset remounts defaults. Source composition is separate from installed intrinsic sizing, target, motion and semantic acceptance.
 
+Circular/Counter scene composes controlled circular progress and raw counters with value0, rounded warning/danger thresholds, numeric/string max0, raw nonnumeric text, ratio/direction/caps/order, all six circular and three counter style owners, unknown semantics and reset. Global theme/fixture/window controls retain caller values. The exact react-native-svg15.15.4 host dependency requires a fresh linked Release binary before installed acceptance; existing binary receipts do not prove this module addition. Source/scene and packed-graph checks remain separate from native rendering.
+
 ## Adaptive Fixtures
 
 Use [Native Lab](/foundation/native-lab/) for host/tool requirements and actual build/reference capture. Source generation and JS export proof do not establish an installed app.

@@ -7,7 +7,7 @@ description: Private native foundation and explicit platform support limits.
 
 ## Host And Package Ownership
 
-The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native and react-native-safe-area-context 5.7.0 are exact package peers. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select, Modal and AlertDialog own safe-area handling inside their separate native windows. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
+The laboratory pins Expo SDK 57, React Native 0.86.3 and React 19.2.3 for iOS/Android. React, React Native, react-native-safe-area-context5.7.0 and react-native-svg15.15.4 are exact package peers. Hosts install/link the native peers and rebuild their native binaries after adding SVG. Expo, outer safe-area layout, app configuration and routing/fixtures belong to the showcase or consuming app; Select, Modal and AlertDialog own safe-area handling inside their separate native windows. Web CSS, React DOM and React Aria are absent from the library runtime graph. Public native registry/CLI distribution and publication remain separate gates.
 
 The root export has a react-native condition for canonical TypeScript source; declarations and compiled imports use dist. Build before consumer typechecks. The Text/Button pass includes a hashed local package archive and isolated Expo consumer; the ledger owns its exact proof receipt. Bare React Native, RN Web, other operating systems and earlier SDK combinations are unverified.
 
@@ -441,6 +441,45 @@ export const Loading = ({ stopped }: { stopped: boolean }) => (
 Both accept finite nonnegative numeric milliseconds and portable s/ms strings. Explicit zero stops motion without removing busy status. Reduce Motion changes stop/restart eligible motion; the first frame stays static while the preference query is pending or unavailable. Replaced/unmounted animations and preference subscriptions are cancelled. Layout and accessible-name aliases retain native precedence; refs expose the root View. Root style callbacks receive resolved duration, motion eligibility and post-custom defaultStyle. Native colors, arrays and registered styles remain supported without CSS variables/length units.
 
 Exposed loaders own an indeterminate progressbar role, busy state and polite live region with default name Loading; accessibilityLabel, aria-label or legacy ariaLabel may provide a localized name. The graphic is decorative and there is no numeric value. Inside owned Button content the loader is decorative by default; explicit accessible opt-in remains available. Native frame timing, Reduce Motion rendering, measured custom geometry and screen-reader output require their separate installed/physical matrix cells.
+
+## CircularProgress And Counter
+
+CircularProgress uses the approved native SVG peer with a100×100 viewBox and a native View ref. Required caller value and optional minValue/maxValue drive its clamped arc; circleRatio, counterClockwise, strokeWidth, butt/round/square strokeLineCap, optional background/padding and centered text retain separate controls. The default native root is100×100 logical units; explicit zero/percentage/auto dimensions remain authored. Rendered stroke defaults6 while the canonical radius helper defaults8. Root computed dimensions precede customStyles and final style/state callback; the callback receives percentage/valueText/isIndeterminate and post-custom defaultStyle. Six independent native style owners cover root, SVG, track, path, text and background, with computed dashes taking final precedence.
+
+```tsx
+import { CircularProgress, Counter } from "@codon-ui/react-native"
+
+export const Completion = ({ completed }: { completed: number }) => (
+  <>
+    <CircularProgress
+      value={completed}
+      aria-label="Completion"
+      text={`${completed}%`}
+      width={100}
+      height={100}
+      strokeLineCap="round"
+      customPathStyles={{ stroke: "#2f7d18" }}
+      customTrackStyles={{ stroke: "#efefef" }}
+      customTextStyles={{ fill: "#171717", fontSize: 18 }}
+    />
+    <Counter
+      value={completed}
+      maxValue={100}
+      showMaxValue
+      showProgressIndicator
+      warningPercentageThreshold={80}
+      errorOrDangerPercentageThreshold={90}
+      aria-label="Completed count"
+    />
+  </>
+)
+```
+
+Named pathColor/trackColor set SVG color; backgroundColor enables its circle and sets its background color. Canonical explicit stroke/fill defaults still own paint. Use customPathStyles.stroke/customTrackStyles.stroke/customBackgroundStyles.fill or SVG currentColor to choose actual paint. A truthy pathColor suppresses numbered order, preserving the source quirk. Slot paint accepts native colors and SVG none/currentColor, while CSS variables reject. No palette or public theme role changes; the track copies canonical neutral100 defaults privately and remains slot-overridable.
+
+Counter displays its raw string/number value and optional raw max suffix. Optional ring/suffix require a truthy max: numeric0 hides them, string0 retains them. Status converts finite numbers, excludes zero denominators and rounds percentage before danger-first thresholds. customStyles/final style own the root, customTextStyles override status/color text and customProgressIndicatorStyles own the12-unit ring root. Children follow the count and inherit final root foreground. Invalid numeric conversion never rewrites valid display text; only an invalid derived path is omitted at the native drawing boundary. Infinite values retain canonical clamped drawing where defined. Native progress semantics omit invalid numeric fields; isIndeterminate omits current value while keeping canonical value-driven drawing.
+
+Native semantic valueLabel accepts string/number and follows canonical falsy fallback formatting; locale/formatOptions control formatting. Root native names/labelledBy aliases and actual layout events/refs remain available.350ms dash and125ms inherited color transitions use existing core animation patterns, honor live Reduce Motion and clean up replacement/unmount. Rich ReactNode value labels, browser description/details/context, CSS empty-child behavior, global muted-role customization and vector text scaling remain required open capabilities. Source/scene/type/consumer checks do not certify installed rendering, baseline, timing or announcements; the roadmap retains those Android/iOS/profile gates.
 
 ## Progress And Measurement
 
