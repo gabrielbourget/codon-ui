@@ -12,7 +12,10 @@ import {
 import { AccessibilityInfo, Modal, Platform, Pressable, View, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
-import { NativeFloatingLayerHost } from "../../overlays/floating/NativeFloatingLayerHost"
+import {
+  NativeFloatingWindowHost,
+  type TNativeFloatingWindowDismiss,
+} from "../../overlays/floating/NativeFloatingLayerHost"
 import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
@@ -25,6 +28,7 @@ import type { TNativeSelectProps, TNativeSelectRef, TNativeSelectRenderState } f
 import { useSelectState } from "./useSelectState"
 
 const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNativeSelectRef>) => {
+  const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const {
     items,
     getKey,
@@ -263,6 +267,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
         allowSwipeDismissal={false}
         supportedOrientations={["portrait", "portrait-upside-down", "landscape-left", "landscape-right"]}
         onRequestClose={() => {
+          if (floatingDismiss.current?.("keyboard")) return
           if (overlay.isActive()) selection.requestOpen(false)
         }}
         onShow={() => {
@@ -276,7 +281,11 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
       >
         {overlay.mounted && (
           <SafeAreaProvider style={{ flex: 1 }}>
-            <NativeFloatingLayerHost testID={`${identity}-floating-host`}>
+            <NativeFloatingWindowHost
+              testID={`${identity}-floating-host`}
+              isWindowActive={() => shown && overlay.isActive()}
+              dismissRef={floatingDismiss}
+            >
               <SelectOptions
                 entries={selection.entries}
                 selectedKey={selection.selectedKey}
@@ -292,7 +301,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
                 }}
                 props={props}
               />
-            </NativeFloatingLayerHost>
+            </NativeFloatingWindowHost>
           </SafeAreaProvider>
         )}
       </Modal>

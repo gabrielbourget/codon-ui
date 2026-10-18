@@ -8,7 +8,7 @@ import {
   type TNativeDialogTriggerProps,
   type TNativeDialogTriggerRenderState,
 } from "../NativeDialogTrigger"
-import { NativeFloatingScopeContext } from "../scope"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../scope"
 
 const trigger = ({ triggerProps }: TNativeDialogTriggerRenderState) => <Button {...triggerProps}>Open</Button>
 const children = ({ isOpen }: TNativeDialogTriggerRenderState) => <Text testID="state">{String(isOpen)}</Text>
@@ -194,4 +194,20 @@ it.each([false, true])("rejects a controlled-ownership switch from %s", async (c
   await expect(result.rerender(fixture({ isOpen: controlled ? undefined : false }))).rejects.toThrow(
     "changing controlled/uncontrolled ownership",
   )
+})
+
+it("checks live native-window eligibility before delivering a retained trigger press", async () => {
+  let ready = false
+  const onOpenChange = jest.fn()
+  await render(
+    <NativeFloatingWindowContext.Provider value={() => ready}>
+      {fixture({ isOpen: false, onOpenChange })}
+    </NativeFloatingWindowContext.Provider>,
+  )
+  await fireEvent.press(screen.getByRole("button"))
+  expect(onOpenChange).not.toHaveBeenCalled()
+  ready = true
+  await fireEvent.press(screen.getByRole("button"))
+  expect(onOpenChange.mock.calls).toEqual([[true]])
+  expect(screen.getByTestId("state")).toHaveTextContent("false")
 })

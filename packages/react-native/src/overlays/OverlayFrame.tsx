@@ -16,7 +16,7 @@ import type { TNativeModalProps, TNativeModalRef } from "../components/Modal/typ
 import { NativeContentContext } from "../components/NativeContentContext"
 import { useNativeTheme } from "../theme"
 
-import { NativeFloatingLayerHost } from "./floating/NativeFloatingLayerHost"
+import { NativeFloatingWindowHost, type TNativeFloatingWindowDismiss } from "./floating/NativeFloatingLayerHost"
 import { OverlayParentContext } from "./NativeOverlayProvider"
 import { useOverlay } from "./useOverlay"
 
@@ -48,6 +48,7 @@ export const OverlayFrame = ({
   const scroll = useRef<ScrollView>(null)
   const scrollOffset = useRef(0)
   const measurement = useRef(0)
+  const floatingDismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const label = props.accessibilityLabel ?? props["aria-label"]
   if (typeof label !== "string" || !label.trim())
     throw new TypeError(`${componentName}: a nonempty native accessible name is required`)
@@ -105,6 +106,7 @@ export const OverlayFrame = ({
     if (overlay.isActive()) requestClose()
   }
   const systemClose = () => {
+    if (floatingDismiss.current?.("keyboard")) return
     if (!props.isKeyboardDismissDisabled) close()
   }
   const revealFocusedInput = () => {
@@ -150,7 +152,9 @@ export const OverlayFrame = ({
       {overlay.mounted && (
         <OverlayParentContext.Provider value={overlay.id}>
           <SafeAreaProvider style={{ flex: 1 }}>
-            <NativeFloatingLayerHost
+            <NativeFloatingWindowHost
+              isWindowActive={overlay.isActive}
+              dismissRef={floatingDismiss}
               testID={`${identity}-floating-host`}
               style={{ flex: 1 }}
               accessibilityViewIsModal
@@ -225,7 +229,7 @@ export const OverlayFrame = ({
                   </View>
                 </KeyboardAvoidingView>
               </SafeAreaView>
-            </NativeFloatingLayerHost>
+            </NativeFloatingWindowHost>
           </SafeAreaProvider>
         </OverlayParentContext.Provider>
       )}
