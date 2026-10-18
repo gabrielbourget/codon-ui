@@ -23,11 +23,16 @@ export const resolveNativeCircularStyle = <T extends ViewStyle>(style: StyleProp
     if (value !== "none" && value !== "currentColor" && value !== "context-fill" && value !== "context-stroke")
       validateNativeColor(value, "CircularProgress", `${field}.${key}`)
   }
+  const visited = new WeakSet<object>()
   const validateNumbers = (value: unknown) => {
     if (typeof value === "number" && !Number.isFinite(value))
       throw new TypeError(`CircularProgress: ${field} cannot contain nonfinite native drawing data`)
-    if (Array.isArray(value)) value.forEach(validateNumbers)
-    else if (value && typeof value === "object") Object.values(value).forEach(validateNumbers)
+    if (value && typeof value === "object") {
+      if (visited.has(value)) return
+      visited.add(value)
+      if (Array.isArray(value)) value.forEach(validateNumbers)
+      else Object.values(value).forEach(validateNumbers)
+    }
   }
   validateNumbers(resolved)
   return resolved

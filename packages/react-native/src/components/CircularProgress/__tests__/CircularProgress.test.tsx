@@ -343,3 +343,17 @@ it("retains explicit zero drawing dimensions and independent named stroke width"
     d: "M 50,50 m 0,-50 a 50,50 0 1 1 0,100 a 50,50 0 1 1 0,-100",
   })
 })
+
+it("retains a caller-owned animated native slot through controlled value rerenders", async () => {
+  const opacity = new Animated.Value(0.5)
+  const customPathStyles = { opacity }
+  const { rerender } = await render(<CircularProgress value={0} customPathStyles={customPathStyles} />)
+  await rerender(<CircularProgress value={25} customPathStyles={customPathStyles} />)
+  expect(part("path").props.opacity).toBe(0.5)
+  await act(async () => {
+    opacity.setValue(0.25)
+    jest.advanceTimersByTime(20)
+  })
+  expect(part("path").props.opacity).toBe(0.25)
+  expect(screen.getByRole("progressbar")).toHaveAccessibilityValue({ now: 25 })
+})
