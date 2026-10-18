@@ -92,6 +92,12 @@ export const getNativeCarouselDotVariant = (input: TNativeCarouselDotVariantInpu
   return "hidden"
 }
 
+export const getNativeCarouselDotMotionTarget = (variant: TNativeCarouselDotVariant) => ({
+  opacity: variant === "hidden" ? 0 : variant === "far" ? 0.9 : variant === "sentinel" ? 0.4 : 1,
+  scale:
+    variant === "active" ? 1.15 : variant === "near" ? 0.8 : variant === "far" ? 0.65 : variant === "hidden" ? 0.4 : 1,
+})
+
 export const getNativeCarouselDotStyle = (
   theme: TNativeTheme,
   variant: TNativeCarouselDotVariant,
@@ -106,21 +112,8 @@ export const getNativeCarouselDotStyle = (
       : variant === "active"
         ? theme.colors.controlSelectedBackground
         : theme.colors.controlBorder,
-  opacity: variant === "hidden" ? 0 : variant === "far" ? 0.9 : variant === "sentinel" ? 0.4 : 1,
-  transform: [
-    {
-      scale:
-        variant === "active"
-          ? 1.15
-          : variant === "near"
-            ? 0.8
-            : variant === "far"
-              ? 0.65
-              : variant === "hidden"
-                ? 0.4
-                : 1,
-    },
-  ],
+  opacity: getNativeCarouselDotMotionTarget(variant).opacity,
+  transform: [{ scale: getNativeCarouselDotMotionTarget(variant).scale }],
   ...(raised
     ? {
         shadowColor: "#000000",
