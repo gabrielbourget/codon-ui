@@ -202,8 +202,14 @@ describe("Button public native contract", () => {
       </Button>,
     )
     let button = screen.getByRole("button", { name: "States" })
-    await fireEvent(button, "focus", pressEvent)
-    await fireEvent(button, "focus", pressEvent)
+    await fireEvent(button, "focus", {
+      ...pressEvent,
+      nativeEvent: { ...pressEvent.nativeEvent, isFocusVisible: true },
+    })
+    await fireEvent(button, "focus", {
+      ...pressEvent,
+      nativeEvent: { ...pressEvent.nativeEvent, isFocusVisible: true },
+    })
     expect(onFocusChange.mock.calls).toEqual([[true]])
     expect(button).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5 })
     await fireEvent(button, "hoverIn", hoverEvent)

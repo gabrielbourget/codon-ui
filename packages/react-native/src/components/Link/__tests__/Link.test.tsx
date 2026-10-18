@@ -178,7 +178,9 @@ it("CAP.link.006 retains native focus controls and exact native focus payloads",
       Label
     </Link>,
   )
-  const payload = { nativeEvent: { target: 17 } }
+  const payload = {
+    nativeEvent: { target: 17, isFocused: true, isFocusVisible: true, origin: "keyboard", timestamp: 0 },
+  }
   await fireEvent(screen.getByTestId("link"), "focus", payload)
   expect(onFocus).toHaveBeenCalledWith(payload)
   expect(screen.getByTestId("link")).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 2, outlineColor: "#2563eb" })

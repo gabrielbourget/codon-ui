@@ -234,5 +234,5 @@ it("forwards actual native focus acknowledgment without inventing focus for a co
   expect(focus).not.toHaveBeenCalled()
   await act(() => root().props.onNativeFocusChange(event))
   expect(focus.mock.calls[0][0]).toBe(event)
-  expect(root()).toHaveStyle({ outlineWidth: 1.5 })
+  expect(root()).not.toHaveStyle({ outlineWidth: 1.5 })
 })

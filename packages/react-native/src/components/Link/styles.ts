@@ -50,6 +50,7 @@ export const getNativeLinkStyle = (
   props: TNativeLinkProps,
   flags: Omit<TNativeLinkRenderState, "foregroundColor">,
   inherited: ColorValue,
+  isFocusVisible = true,
 ) => {
   if (props.order !== undefined && !AVAILABLE_THEMING_ORDER_CODES.includes(props.order))
     throw new TypeError("Link: unsupported order")
@@ -83,7 +84,7 @@ export const getNativeLinkStyle = (
     textDecorationLine: props.textDecoration ?? (flags.isHovered && !flags.isVisited ? "underline" : "none"),
     cursor: flags.isDisabled || flags.isVisited ? "auto" : "pointer",
     opacity: flags.isDisabled ? theme.opacity.disabled : 1,
-    ...(props.enableFocusStyle !== false && flags.isFocused
+    ...(props.enableFocusStyle !== false && flags.isFocused && isFocusVisible
       ? {
           outlineColor: theme.colors.focusRing,
           outlineWidth: 1.5,

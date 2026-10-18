@@ -69,6 +69,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [focusVisible, setFocusVisible] = useState(false)
   const [bounds, setBounds] = useState<{ width: number; height: number }>()
   const pressCycle = useRef<TPressCycle | undefined>(undefined)
   const hoverEvent = useRef<MouseEvent | undefined>(undefined)
@@ -104,7 +105,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
     isDisabled,
     isPending,
   }
-  const resolved = getNativeButtonStyle(theme, props, flags)
+  const resolved = getNativeButtonStyle(theme, props, flags, focusVisible)
   const state: TNativeButtonRenderState = { ...flags, foregroundColor: resolved.foregroundColor }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const content = getNativeButtonContent(rendered, resolved.textStyle)
@@ -229,6 +230,7 @@ export const Button = forwardRef<TNativeButtonRef, TNativeButtonProps>((props, r
           finishHover(event)
           onHoverOut?.(event)
         }}
+        onFocusVisibilityChange={setFocusVisible}
         onFocus={(event) => {
           if (!keyboardFocusable) return
           setFocused(true)

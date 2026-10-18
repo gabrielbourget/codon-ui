@@ -33,6 +33,7 @@ export const getNativeButtonStyle = (
   theme: TNativeTheme,
   props: TNativeButtonProps,
   state: Omit<TNativeButtonRenderState, "foregroundColor">,
+  isFocusVisible = true,
 ) => {
   const {
     color,
@@ -110,7 +111,7 @@ export const getNativeButtonStyle = (
           elevation: 2,
         }
       : {}),
-    ...(enableFocusStyle && state.isFocused
+    ...(enableFocusStyle && state.isFocused && isFocusVisible
       ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
       : {}),
   }

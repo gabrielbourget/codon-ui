@@ -95,6 +95,7 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
+  const [focusVisible, setFocusVisible] = useState(false)
   const keyboardFocusable = !isDisabled && focusable && rest.tabIndex !== -1
   const flags = {
     isPressed: pressed && !isDisabled,
@@ -105,7 +106,13 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
   }
   const theme = useNativeTheme()
   const context = useNativeContentContext()
-  const resolved = getNativeLinkStyle(theme, props, flags, context?.foregroundColor ?? theme.colors.foreground)
+  const resolved = getNativeLinkStyle(
+    theme,
+    props,
+    flags,
+    context?.foregroundColor ?? theme.colors.foreground,
+    focusVisible,
+  )
   const foreground = useNativeLinkColor(resolved.foregroundColor)
   const target = useNativeControlHitSlop(onLayout, hitSlop)
   return (
@@ -145,6 +152,7 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
           onHoverOut?.(event)
         }}
         onHoverCancel={() => setHovered(false)}
+        onFocusVisibilityChange={setFocusVisible}
         onFocus={(event) => {
           setFocused(true)
           onFocus?.(event)
