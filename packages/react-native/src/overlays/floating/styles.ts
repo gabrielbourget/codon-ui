@@ -1,0 +1,224 @@
+import type { TextStyle, ViewStyle } from "react-native"
+
+import type { TNativeClickPopoverArrowStyle, TNativeClickPopoverProps } from "../../components/ClickPopover/types"
+import { resolveNativeStyle, validateNativeColor } from "../../components/colors"
+import { validateNativeDisplayDimension } from "../../components/displayDimensions"
+import type { TNativeTheme } from "../../theme/types"
+import { AVAILABLE_THEMING_ORDER_CODES } from "../../tokens/theme-order"
+
+const TEXT_FIELDS = [
+  "color",
+  "fontFamily",
+  "fontSize",
+  "fontStyle",
+  "fontWeight",
+  "fontVariant",
+  "letterSpacing",
+  "lineHeight",
+  "textAlign",
+  "textAlignVertical",
+  "verticalAlign",
+  "includeFontPadding",
+  "textDecorationLine",
+  "textDecorationStyle",
+  "textDecorationColor",
+  "textShadowColor",
+  "textShadowOffset",
+  "textShadowRadius",
+  "textTransform",
+  "writingDirection",
+  "userSelect",
+] as const
+const PAINT_FIELDS = [
+  "fill",
+  "fillOpacity",
+  "fillRule",
+  "stroke",
+  "strokeWidth",
+  "strokeOpacity",
+  "strokeLinecap",
+  "strokeLinejoin",
+  "strokeMiterlimit",
+  "strokeDasharray",
+  "strokeDashoffset",
+] as const
+const withoutUndefined = <T extends object>(value: T): T =>
+  Object.fromEntries(Object.entries(value).filter(([, field]) => field !== undefined)) as T
+const textAndView = (style: TextStyle) => {
+  const text: TextStyle = {}
+  const view = { ...style }
+  for (const field of TEXT_FIELDS) {
+    if (style[field] !== undefined) Object.assign(text, { [field]: style[field] })
+    delete view[field]
+  }
+  return { text, view: view as ViewStyle }
+}
+const marginKeys = (side: "top" | "bottom" | "left" | "right", rtl: boolean) => {
+  if (side === "top") return ["marginTop", "marginBlockStart", "marginVertical", "marginBlock", "margin"] as const
+  if (side === "bottom") return ["marginBottom", "marginBlockEnd", "marginVertical", "marginBlock", "margin"] as const
+  const start = side === (rtl ? "right" : "left")
+  return start
+    ? ([
+        "marginStart",
+        "marginInlineStart",
+        side === "left" ? "marginLeft" : "marginRight",
+        "marginHorizontal",
+        "marginInline",
+        "margin",
+      ] as const)
+    : ([
+        "marginEnd",
+        "marginInlineEnd",
+        side === "left" ? "marginLeft" : "marginRight",
+        "marginHorizontal",
+        "marginInline",
+        "margin",
+      ] as const)
+}
+const resolveMargin = (
+  style: TextStyle,
+  side: "top" | "bottom" | "left" | "right",
+  rtl: boolean,
+  hostWidth: number,
+  component: string,
+) => {
+  const value = marginKeys(side, rtl)
+    .map((key) => style[key])
+    .find((value) => value !== undefined)
+  if (value === undefined || value === "auto") return 0
+  const numeric =
+    typeof value === "string" && value.endsWith("%") ? (Number(value.slice(0, -1)) * hostWidth) / 100 : value
+  if (typeof numeric !== "number" || !Number.isFinite(numeric))
+    throw new TypeError(`${component}: margin must be a finite native dimension`)
+  // The canonical calculator reads computed CSS margins with parseInt; authored native style stays intact.
+  return Math.trunc(numeric)
+}
+
+export const NATIVE_FLOATING_STYLE_PROFILES = ["click-popover", "tooltip", "hover-popover"] as const
+export type TNativeFloatingStyleProfile = (typeof NATIVE_FLOATING_STYLE_PROFILES)[number]
+
+export const getNativeFloatingSurfaceStyles = (
+  theme: TNativeTheme,
+  props: TNativeClickPopoverProps,
+  side: "top" | "bottom" | "left" | "right",
+  direction: "ltr" | "rtl",
+  hostWidth: number,
+  profile: TNativeFloatingStyleProfile,
+) => {
+  const component = profile === "tooltip" ? "Tooltip" : profile === "hover-popover" ? "HoverPopover" : "ClickPopover"
+  const tooltip = profile === "tooltip"
+  validateNativeDisplayDimension(props.width, component, "width")
+  validateNativeDisplayDimension(props.height, component, "height")
+  validateNativeColor(props.color, component, "color")
+  if (props.order !== undefined && !AVAILABLE_THEMING_ORDER_CODES.includes(props.order))
+    throw new TypeError(`${component}: unsupported order`)
+  if (props.geometry !== undefined && props.geometry !== "rounded" && props.geometry !== "orthogonal")
+    throw new TypeError(`${component}: unsupported geometry`)
+  const colors = {
+    primary: theme.colors.controlSelectedBackground,
+    secondary: theme.colors.controlPressedBackground,
+    tertiary: theme.colors.statusSuccess,
+    quaternary: theme.colors.statusWarning,
+    quintenary: theme.colors.statusDanger,
+  }
+  const surface =
+    !props.color && props.order ? colors[props.order] : tooltip ? theme.colors.foreground : theme.colors.background
+  const dropShadow: NonNullable<ViewStyle["filter"]> = [
+    {
+      dropShadow: {
+        offsetX: 0,
+        offsetY: 2,
+        standardDeviation: theme.mode === "dark" ? 3.5 : 3,
+        color: theme.mode === "dark" ? "rgba(255,255,255,0.4)" : "rgba(0,0,0,0.12)",
+      },
+    },
+  ]
+  const boxShadow: NonNullable<ViewStyle["boxShadow"]> = [
+    { offsetX: 0, offsetY: 2, blurRadius: 3, color: theme.mode === "dark" ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.12)" },
+    { offsetX: 0, offsetY: 2, blurRadius: 2, color: theme.mode === "dark" ? "rgba(0,0,0,0.28)" : "rgba(0,0,0,0.24)" },
+  ]
+  const raised: ViewStyle = props.raised === false ? {} : tooltip ? { filter: dropShadow } : { boxShadow }
+  const rawInline = resolveNativeStyle(
+    [{ color: props.color, width: props.width, height: props.height }, props.customStyles, props.style],
+    component,
+    "style",
+  )
+  const inline = withoutUndefined(rawInline)
+  const frameworkFields = ["position", "top", "right", "bottom", "left", "start", "end", "zIndex", "maxHeight"] as const
+  const frameworkResets = Object.fromEntries(
+    frameworkFields
+      .filter((key) => Object.hasOwn(rawInline, key) && rawInline[key] === undefined)
+      .map((key) => [key, undefined]),
+  )
+  const priority = Object.hasOwn(rawInline, "zIndex") ? (rawInline.zIndex ?? 0) : 100000
+  if (!Number.isFinite(priority)) throw new TypeError(`${component}: zIndex must be finite`)
+  const rtl = direction === "rtl"
+  const marginSide = side === "bottom" ? "top" : side === "top" ? "bottom" : side === "right" ? "left" : "right"
+  const defaultMargin = marginKeys(marginSide, rtl).some((key) => inline[key] !== undefined)
+    ? {}
+    : { [`margin${marginSide[0].toUpperCase()}${marginSide.slice(1)}`]: theme.spacing.unit * 2 }
+  const root = resolveNativeStyle(
+    [
+      {
+        ...(profile === "hover-popover" ? { flexDirection: "column", gap: theme.spacing.unit * 3 } : {}),
+        padding: theme.spacing.unit * (tooltip ? 1 : 2),
+        color: tooltip ? theme.colors.background : theme.colors.foreground,
+        backgroundColor: surface,
+        borderRadius: props.geometry === "orthogonal" ? 0 : theme.radius.rounded,
+        ...defaultMargin,
+        ...raised,
+      },
+      inline,
+      frameworkResets,
+    ],
+    component,
+    "resolvedStyle",
+  )
+  const dialog = resolveNativeStyle(
+    [
+      { flexDirection: "column", flexShrink: 0, gap: theme.spacing.unit * 3, borderRadius: 0.5 },
+      withoutUndefined(resolveNativeStyle(props.customDialogStyles, component, "customDialogStyles")),
+    ],
+    component,
+    "dialogStyle",
+  )
+  const arrow = withoutUndefined(
+    resolveNativeStyle<TNativeClickPopoverArrowStyle>(
+      [profile === "click-popover" ? {} : raised, { color: props.color }, props.customOverlayArrowStyles],
+      component,
+      "customOverlayArrowStyles",
+    ),
+  )
+  const paint: Record<string, unknown> = { fill: surface }
+  const arrowView: Record<string, unknown> = { ...arrow }
+  for (const field of PAINT_FIELDS) {
+    if (arrow[field] !== undefined) paint[field] = arrow[field]
+    delete arrowView[field]
+  }
+  for (const field of ["fill", "stroke"] as const) {
+    const value = paint[field]
+    if (value !== "none" && value !== "currentColor" && value !== "context-fill" && value !== "context-stroke")
+      validateNativeColor(value, component, `arrow.${field}`)
+  }
+  delete arrowView.color
+  const rootSplit = textAndView(root)
+  const dialogSplit = textAndView(dialog)
+  const margins = {
+    top: resolveMargin(root, "top", rtl, hostWidth, component),
+    right: resolveMargin(root, "right", rtl, hostWidth, component),
+    bottom: resolveMargin(root, "bottom", rtl, hostWidth, component),
+    left: resolveMargin(root, "left", rtl, hostWidth, component),
+  }
+  return {
+    root: rootSplit.view,
+    rootText: rootSplit.text,
+    dialog: dialogSplit.view,
+    dialogText: { ...rootSplit.text, ...dialogSplit.text },
+    arrow: arrowView as ViewStyle,
+    arrowGraphic: tooltip ? { filter: dropShadow } : undefined,
+    arrowPaint: paint,
+    arrowColor: arrow.color ?? root.color,
+    margins,
+    priority,
+  }
+}

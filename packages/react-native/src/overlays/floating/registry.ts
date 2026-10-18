@@ -9,6 +9,7 @@ type TOptions = {
   isModal: boolean
   isKeyboardDismissDisabled: boolean
   priority?: number
+  capturesOutside?: boolean
   onDismiss: (reason: TNativeFloatingDismissReason) => void
   onOutside?: (interaction: TNativeFloatingOutsideInteraction) => void
 }
@@ -49,6 +50,10 @@ export const createNativeFloatingLayerRegistry = () => {
   const top = () =>
     stack()
       .filter(([id]) => !covered(id))
+      .at(-1)
+  const outsideTop = () =>
+    stack()
+      .filter(([id, entry]) => !covered(id) && entry.capturesOutside !== false)
       .at(-1)
   const reconcile = () => {
     for (const entry of entries.values()) {
@@ -113,7 +118,7 @@ export const createNativeFloatingLayerRegistry = () => {
     }
   }
   const requestDismiss = (reason: TNativeFloatingDismissReason) => {
-    const active = top()
+    const active = reason === "outside" ? outsideTop() : top()
     if (!active) return false
     const [id, entry] = active
     // A transitioning or keyboard-protected layer still shields the window beneath it.
@@ -135,12 +140,12 @@ export const createNativeFloatingLayerRegistry = () => {
     hasModal: () => stack().some(([, entry]) => entry.isModal),
     requestDismiss,
     captureOutside: () => {
-      const active = top()
+      const active = outsideTop()
       if (!active || !state(active[0]).active) return null
       const [id, entry] = active
       const token = entry.generation
       const isCurrent = () =>
-        entries.get(id) === entry && entry.generation === token && state(id).active && top()?.[0] === id
+        entries.get(id) === entry && entry.generation === token && state(id).active && outsideTop()?.[0] === id
       return {
         id,
         isCurrent,

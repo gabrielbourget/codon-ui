@@ -37,7 +37,13 @@ export type TNativeTooltipTriggerProps = Parameters<typeof useNativeTooltipTrigg
   children?: ReactNode | ((state: TNativeTooltipTriggerRenderState) => ReactNode)
 }
 
-const NativeTooltipTriggerContext = createContext<TNativeTooltipTriggerRenderState | null>(null)
+const NativeTooltipTriggerContext = createContext<
+  | (TNativeTooltipTriggerRenderState & {
+      openFromNative: (immediate: boolean, eligible: () => boolean) => void
+      closeFromNative: (immediate: boolean, eligible: () => boolean) => void
+    })
+  | null
+>(null)
 export const useNativeTooltipTrigger = () => useContext(NativeTooltipTriggerContext)
 
 export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
@@ -126,7 +132,15 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
     },
   }
   return (
-    <NativeTooltipTriggerContext.Provider value={rendered}>
+    <NativeTooltipTriggerContext.Provider
+      value={{
+        ...rendered,
+        openFromNative: (immediate, childEligible) =>
+          current.current.state.open(immediate, () => eligible() && childEligible()),
+        closeFromNative: (immediate, childEligible) =>
+          current.current.state.close(immediate, () => eligible() && childEligible()),
+      }}
+    >
       {props.trigger(rendered)}
       {typeof props.children === "function" ? props.children(rendered) : props.children}
     </NativeTooltipTriggerContext.Provider>

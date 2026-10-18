@@ -27,6 +27,40 @@ test("a nonmodal descendant preserves its modal parent's interaction", () => {
   expect(a.canAct(a.state().generation)).toBe(true)
 })
 
+it("keeps tooltip Escape ownership separate from its parent's outside interaction", () => {
+  const registry = createNativeFloatingLayerRegistry()
+  const parentDismiss = jest.fn(),
+    tooltipDismiss = jest.fn()
+  const parent = registry.register("parent", options({ onDismiss: parentDismiss }))
+  show(parent)
+  const tooltip = registry.register(
+    "tooltip",
+    options({ parent: "parent", isModal: false, capturesOutside: false, onDismiss: tooltipDismiss }),
+  )
+  show(tooltip)
+  expect(registry.captureOutside()?.id).toBe("parent")
+  expect(registry.requestDismiss("outside")).toBe(true)
+  expect(parentDismiss.mock.calls).toEqual([["outside"]])
+  expect(tooltipDismiss).not.toHaveBeenCalled()
+  expect(registry.requestDismiss("keyboard")).toBe(true)
+  expect(tooltipDismiss.mock.calls).toEqual([["keyboard"]])
+})
+
+it("keeps outside leases current across a tooltip opening but retires them behind a new modal", () => {
+  const registry = createNativeFloatingLayerRegistry()
+  const parent = registry.register("parent", options())
+  show(parent)
+  const capture = registry.captureOutside()!
+  const tooltip = registry.register("tooltip", options({ parent: "parent", isModal: false, capturesOutside: false }))
+  show(tooltip)
+  expect(capture.isCurrent()).toBe(true)
+  const modal = registry.register("modal", options())
+  expect(capture.isCurrent()).toBe(false)
+  expect(registry.captureOutside()).toBeNull()
+  show(modal)
+  expect(registry.captureOutside()?.id).toBe("modal")
+})
+
 it("keeps both nonmodal roots interactive while restoring focus only to the latest eligible owner", () => {
   const registry = createNativeFloatingLayerRegistry()
   const first = registry.register("first", options({ isModal: false }))

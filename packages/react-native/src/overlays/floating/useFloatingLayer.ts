@@ -13,6 +13,7 @@ type TOptions = {
   isModal: boolean
   isKeyboardDismissDisabled: boolean
   priority?: number
+  capturesOutside?: boolean
   onDismiss: (reason: TNativeFloatingDismissReason) => void
   onOutside?: (interaction: TNativeFloatingOutsideInteraction) => void
 }
@@ -21,7 +22,7 @@ const subscribeNone = () => () => undefined
 const zero = () => 0
 
 export const useNativeFloatingLayer = (options: TOptions) => {
-  const { registry, parent, isOpen, isModal, isKeyboardDismissDisabled, priority } = options
+  const { registry, parent, isOpen, isModal, isKeyboardDismissDisabled, priority, capturesOutside } = options
   const id = useId()
   const lease = useRef<TLease | null>(null)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -36,6 +37,7 @@ export const useNativeFloatingLayer = (options: TOptions) => {
     isModal,
     isKeyboardDismissDisabled,
     priority,
+    capturesOutside,
     onDismiss: (reason: TNativeFloatingDismissReason) => {
       if (current.current.windowActive?.() !== false) current.current.onDismiss(reason)
     },
@@ -64,13 +66,14 @@ export const useNativeFloatingLayer = (options: TOptions) => {
     isModal,
     isKeyboardDismissDisabled,
     priority,
+    capturesOutside,
     options.onDismiss,
     options.onOutside,
     windowActive,
   ])
   useLayoutEffect(() => {
     registry.flush()
-  }, [registry, id, parent, isOpen, isModal, isKeyboardDismissDisabled, priority])
+  }, [registry, id, parent, isOpen, isModal, isKeyboardDismissDisabled, priority, capturesOutside])
   useLayoutEffect(() => () => registry.flush(), [registry, id])
   const state = registry.state(id)
   const generation = state.generation

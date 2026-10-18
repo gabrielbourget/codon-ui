@@ -16,10 +16,11 @@ import {
   type GestureResponderEvent,
   type LayoutChangeEvent,
 } from "react-native"
-import Svg, { Path, type PathProps } from "react-native-svg"
+import type { PathProps } from "react-native-svg"
 
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { useNativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
+import { NativeFloatingArrow } from "../../overlays/floating/NativeFloatingArrow"
 import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeFloatingLayer } from "../../overlays/floating/useFloatingLayer"
@@ -229,16 +230,6 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
     onLayout?.(event)
   }
   const body = getNativeButtonContent(children, childIsDialog ? painted.dialogText : painted.rootText)
-  const arrowCenter = position ? position.arrowCrossOffset + position.arrowSize / 2 : 0
-  const vertical = (position?.placement ?? side) === "top" || (position?.placement ?? side) === "bottom"
-  const arrowWidth = arrowLayout?.width ?? 10,
-    arrowHeight = arrowLayout?.height ?? 10
-  const arrowPosition = vertical
-    ? { left: arrowCenter, transform: [{ translateX: -arrowWidth / 2 }] }
-    : { top: arrowCenter, transform: [{ translateY: -arrowHeight / 2 }] }
-  const rotation = ({ top: "0deg", bottom: "180deg", right: "90deg", left: "270deg" } as const)[
-    position?.placement ?? side
-  ]
   return (
     <NativeFloatingPortal layerId={layer.mounted ? layer.id : undefined}>
       <View
@@ -303,21 +294,15 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
                 value={{ foregroundColor: painted.rootText.color ?? theme.colors.foreground, isButton: false }}
               >
                 {showOverlayArrow && (
-                  <View
+                  <NativeFloatingArrow
+                    position={position}
+                    side={side}
+                    layout={arrowLayout}
+                    style={painted.arrow}
+                    graphicStyle={painted.arrowGraphic}
+                    paint={painted.arrowPaint as PathProps}
+                    color={painted.arrowColor}
                     testID={`${identity}-overlay-arrow`}
-                    accessible={false}
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                    style={[
-                      {
-                        position: "absolute",
-                        width: 10,
-                        height: 10,
-                        [position?.placement ?? side]: "100%",
-                        ...arrowPosition,
-                      },
-                      painted.arrow,
-                    ]}
                     onLayout={({ nativeEvent }) => {
                       if (!live.current || !layer.canMeasure()) return
                       const { width, height } = nativeEvent.layout
@@ -325,13 +310,7 @@ export const ClickPopover = forwardRef<TNativeClickPopoverRef, TNativeClickPopov
                         value?.width === width && value.height === height ? value : { width, height },
                       )
                     }}
-                  >
-                    <View style={{ width: 10, height: 10, transform: [{ rotate: rotation }] }}>
-                      <Svg width={10} height={10} viewBox="0 0 10 10" color={painted.arrowColor}>
-                        <Path {...(painted.arrowPaint as PathProps)} d="M0 0 L5 5 L10 0" />
-                      </Svg>
-                    </View>
-                  </View>
+                  />
                 )}
                 {childIsDialog ? (
                   <View
