@@ -73,7 +73,7 @@ export const useComboBoxState = <T>(props: TNativeComboBoxProps<T>) => {
       if (value === undefined) setLocalValue(key)
       props.onChange?.(key)
     }
-    requestInput(entry.text)
+    if (selectedKey === key || value === undefined || inputValue === undefined) requestInput(entry.text)
     requestOpen(false)
   }
   return { entries, selectedKey, disabledKeys, query, open, requestOpen, requestInput, activate }
