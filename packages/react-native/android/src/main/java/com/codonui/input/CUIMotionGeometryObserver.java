@@ -186,6 +186,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
       .put("untransformed", box(view, false)).put("model", model).put("presentation", model).put("presentationSource", "android-view-render-node-matrix")
       .put("ancestors", chain);
   }
+  @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
   private static final class MountCoordinator implements UIManagerListener {
     private final WeakReference<UIManager> manager;
     private final List<WeakReference<CUIMotionGeometryObserver>> observers = new ArrayList<>();

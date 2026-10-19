@@ -114,6 +114,19 @@ AttributedStringBox editorMeasurementText(const TEditor &node, const LayoutConte
 #endif
 }
 
+void requireIsolatedFontCache(const AttributedString &text) {
+#if defined(__ANDROID__)
+  if (!text.getBaseTextAttributes().fontFamily.empty())
+    throw std::runtime_error("Native motion: shared font-family cache isolation unavailable");
+  for (const auto &fragment : text.getFragments()) {
+    if (!fragment.textAttributes.fontFamily.empty())
+      throw std::runtime_error("Native motion: shared font-family cache isolation unavailable");
+  }
+#else
+  (void)text;
+#endif
+}
+
 class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
  public:
   TNativeFabricSnapshot snapshot;
@@ -147,6 +160,7 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
     BaseTextShadowNode::Attachments attachments;
     BaseTextShadowNode::buildAttributedString(attributes, node, result, attachments);
     result.setBaseTextAttributes(attributes);
+    requireIsolatedFontCache(result);
     auto local = constraints; local.minimumSize = {0, 0};
     for (const auto &attachment : attachments) {
       current();
@@ -217,14 +231,19 @@ class TIntrinsicState : public std::enable_shared_from_this<TIntrinsicState> {
             size = self->services.cachedEditor(*editor, context, textBounds);
           } else
 #endif
-          size = self->text->measure(editorMeasurementText(*editor, context), editor->getConcreteProps().paragraphAttributes,
-              {.pointScaleFactor = context.pointScaleFactor, .surfaceId = editor->getSurfaceId()}, textBounds).size;
+          {
+            auto content = editorMeasurementText(*editor, context);
+            if (content.getMode() == AttributedStringBox::Mode::Value) requireIsolatedFontCache(content.getValue());
+            size = self->text->measure(content, editor->getConcreteProps().paragraphAttributes,
+                {.pointScaleFactor = context.pointScaleFactor, .surfaceId = editor->getSurfaceId()}, textBounds).size;
+          }
           size = bounds.clamp(size); self->current();
           return YGSize{static_cast<float>(size.width), static_cast<float>(size.height)};
         },
         [self, editor, context](float width, float height, const auto &border, const auto &padding, YGDirection) {
           self->current();
           auto content = editorBaselineText(*editor, context);
+          requireIsolatedFontCache(content);
           TextLayoutManagerExtended extended(*self->text);
           Float baseline = 0;
           if constexpr (TextLayoutManagerExtended::supportsLineMeasurement())

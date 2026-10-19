@@ -401,6 +401,46 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.21",
+      "case": "named-family/native font registry retains source fidelity without unsafe shared-cache access",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.22",
+      "case": "actual text-manager postprocessing/callback ownership and no original mutation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.21",
+      "case": "named-family/native font registry retains source fidelity without unsafe shared-cache access",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.22",
+      "case": "actual text-manager postprocessing/callback ownership and no original mutation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

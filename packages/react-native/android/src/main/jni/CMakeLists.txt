@@ -9,6 +9,7 @@ include("${REACT_NATIVE_DIR}/ReactCommon/cmake-utils/react-native-flags.cmake")
 set(CODON_MOTION_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/motion")
 add_library(codon_motion SHARED
   MotionSnapshotJNI.cpp
+  MotionIntrinsicsJNI.cpp
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"
   "${CODON_MOTION_DIR}/FabricLayout.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"
@@ -16,7 +17,8 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/ScratchYoga.cpp"
   "${CODON_MOTION_DIR}/SnapshotQuery.cpp")
 target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN_DIR}"
-  "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/text/platform/android")
+  "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/text/platform/android"
+  "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/progressbar/android")
 target_compile_options(codon_motion PRIVATE ${folly_FLAGS})
 target_compile_reactnative_options(codon_motion PRIVATE)
 target_link_libraries(codon_motion ReactAndroid::reactnative ReactAndroid::jsi fbjni::fbjni android log)
