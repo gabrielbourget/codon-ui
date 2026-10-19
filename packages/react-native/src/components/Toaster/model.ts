@@ -1,4 +1,3 @@
-import type { TNativeKeyboardData } from "../../input/types"
 import { encodeCollectionKey } from "../collection"
 
 import {
@@ -92,38 +91,6 @@ export const getNativeToastStacks = (
     }
   })
 }
-export const nativeToastHotkey = (keys: readonly string[]) => {
-  const key = keys.find((key) => !["shiftKey", "altKey", "ctrlKey", "metaKey"].includes(key))
-  if (!key) return []
-  const nativeKey = /^Key/.test(key) ? key.slice(3).toLowerCase() : key.replace(/^Digit/, "")
-  return Array.from({ length: 16 }, (_, mask) => ({
-    shiftKey: !!(mask & 8),
-    altKey: !!(mask & 4),
-    ctrlKey: !!(mask & 2),
-    metaKey: !!(mask & 1),
-  }))
-    .filter((modifiers) =>
-      keys.every((key) =>
-        key === "shiftKey" || key === "altKey" || key === "ctrlKey" || key === "metaKey" ? modifiers[key] : true,
-      ),
-    )
-    .map(
-      (modifiers) =>
-        `${+modifiers.shiftKey}${+modifiers.altKey}${+modifiers.ctrlKey}${+modifiers.metaKey}:${nativeKey}`,
-    )
-}
-export const isNativeToastHotkey = (data: TNativeKeyboardData, keys: readonly string[]) =>
-  keys.length > 0 &&
-  keys.every((key) => {
-    if (key === "shiftKey" || key === "altKey" || key === "ctrlKey" || key === "metaKey") return data[key]
-    return (
-      data.key.toLowerCase() ===
-      key
-        .replace(/^Key/, "")
-        .replace(/^Digit/, "")
-        .toLowerCase()
-    )
-  })
 export const computeToastDateTimeString = (date = new Date()) => {
   const month = [
     "January",

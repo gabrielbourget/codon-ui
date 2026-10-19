@@ -19,9 +19,12 @@ final class CUIInputWindow {
     String modality = "unknown";
     long policyOrder;
     int pointerDispatches;
+    int keyDispatches;
+    long observedEventId;
+    long scopeOrder;
     long inputRevision;
     final Set<Integer> pointers = new HashSet<>();
-    final WeakHashMap<CUIKeyboardScope, Boolean> scopes = new WeakHashMap<>();
+    final WeakHashMap<CUIKeyboardScope, Long> scopes = new WeakHashMap<>();
   }
 
   private static State state(View view) {
@@ -45,9 +48,17 @@ final class CUIInputWindow {
     else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) state.pointers.remove(pointer);
     else if (action == MotionEvent.ACTION_CANCEL) state.pointers.clear();
   }
-  static void register(CUIKeyboardScope scope) { state(scope).scopes.put(scope, Boolean.TRUE); }
+  static void register(CUIKeyboardScope scope) { State value = state(scope); value.scopes.put(scope, ++value.scopeOrder); }
   static void unregister(View root, CUIKeyboardScope scope) { State value = states.get(root); if (value != null) value.scopes.remove(scope); }
-  static List<CUIKeyboardScope> scopes(View view) { return new ArrayList<>(state(view).scopes.keySet()); }
+  static List<CUIKeyboardScope> scopes(View view) {
+    State value = state(view);
+    List<CUIKeyboardScope> result = new ArrayList<>(value.scopes.keySet());
+    result.sort((left, right) -> Long.compare(value.scopes.get(left), value.scopes.get(right)));
+    return result;
+  }
+  static boolean beginKey(View view) { return state(view).keyDispatches++ == 0; }
+  static void endKey(View view) { State value = state(view); value.keyDispatches = Math.max(0, value.keyDispatches - 1); }
+  static long nextObservedEvent(View view) { return ++state(view).observedEventId; }
   static long nextPolicyOrder(View view) { return ++state(view).policyOrder; }
   static void beginPointer(View view) { state(view).pointerDispatches++; }
   static void endPointer(View view) { State value = state(view); value.pointerDispatches = Math.max(0, value.pointerDispatches - 1); }

@@ -45,6 +45,7 @@ import { SliderScene } from "./SliderScene"
 import { StepperScene } from "./StepperScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
+import { ToasterScene } from "./ToasterScene"
 import { ToggleScene } from "./ToggleScene"
 import { TooltipScene } from "./TooltipScene"
 import { TypeaheadSearchScene } from "./TypeaheadSearchScene"
@@ -186,6 +187,7 @@ export const NativeShowcase = () => {
     | "popover"
     | "breadcrumbs"
     | "pagination"
+    | "toaster"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -232,6 +234,7 @@ export const NativeShowcase = () => {
                 selected={scene === "breadcrumbs"}
                 onPress={() => setScene("breadcrumbs")}
               />
+              <FixtureAction label="Toaster scene" selected={scene === "toaster"} onPress={() => setScene("toaster")} />
               <FixtureAction
                 label="Pagination scene"
                 selected={scene === "pagination"}
@@ -309,7 +312,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "pagination" ? (
+              {scene === "toaster" ? (
+                <ToasterScene />
+              ) : scene === "pagination" ? (
                 <PaginationScene />
               ) : scene === "breadcrumbs" ? (
                 <BreadcrumbsScene />

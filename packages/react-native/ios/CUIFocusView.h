@@ -2,4 +2,5 @@
 #import <Accessibility/AXCustomContent.h>
 
 @interface CUIFocusView : RCTViewComponentView <AXCustomContentProvider>
+- (BOOL)capturesObservedKey:(UIKey *)key;
 @end

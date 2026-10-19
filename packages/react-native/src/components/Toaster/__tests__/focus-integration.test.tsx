@@ -12,6 +12,8 @@ import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays
 import { toast, ToasterObserver } from "../stateManagement"
 import { Toaster } from "../Toaster"
 
+import { acknowledgeToasterKeyboard, observeToasterKey } from "./keyboardPackets"
+
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -35,52 +37,9 @@ const observe = async (id: string, target: RN.View | RN.TextInput, isFocused = t
 }
 const bubble = async (target: RN.View | RN.TextInput) =>
   fireEvent(row("toaster"), "focus", { nativeEvent: { target: tag(target) } })
-const handshake = async (epoch = 1) => {
-  for (const ready of [false, true]) {
-    const host = row("host").props
-    await act(() =>
-      host.onNativeScopeStatus({
-        nativeEvent: {
-          ownerId: host.ownerId,
-          windowId: "focus-window",
-          epoch,
-          policyRevision: host.policyRevision,
-          ready,
-          windowActive: true,
-        },
-      }),
-    )
-  }
-}
+const handshake = async (epoch = 1) => acknowledgeToasterKeyboard("focus-window", epoch)
 const expand = async (target: RN.View | RN.TextInput) => {
-  const host = row("host").props
-  const policy = host.policies.find((entry: { tokens: string[] }) => entry.tokens.includes("0100:e"))
-  expect(policy).toBeDefined()
-  await act(() =>
-    host.onNativeScopedKey({
-      nativeEvent: {
-        kind: "keyboard",
-        ownerId: host.ownerId,
-        policyId: policy.id,
-        windowId: "focus-window",
-        epoch: 1,
-        policyRevision: host.policyRevision,
-        target: 17,
-        focusedTarget: tag(target),
-        key: "e",
-        phase: "down",
-        repeat: false,
-        cancelled: false,
-        shiftKey: false,
-        altKey: true,
-        ctrlKey: false,
-        metaKey: false,
-        nativeDefaultHandled: true,
-        nativeCode: 33,
-        timestamp: 100,
-      },
-    }),
-  )
+  await observeToasterKey({ focusedTarget: tag(target) })
   const calls = jest.mocked(Commands.requestKeyboardFocus).mock.calls
   return calls[calls.length - 1][0] as RN.View
 }

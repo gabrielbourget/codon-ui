@@ -264,6 +264,12 @@ using namespace facebook::react;
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeKey(value);
 }
 
+- (BOOL)capturesObservedKey:(UIKey *)key
+{
+  NSNumber *code = @(key.keyCode);
+  return _keyboardFocusable && (self.isFirstResponder || self.isFocused) && (_held[code] ? [_consumed containsObject:code] : [_capturedKeys containsObject:[self captureToken:key]]);
+}
+
 - (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled
 {
   NSMutableSet<UIPress *> *unhandled = [NSMutableSet set];

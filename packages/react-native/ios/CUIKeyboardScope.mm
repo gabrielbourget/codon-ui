@@ -1,6 +1,7 @@
 #import "CUIKeyboardScope.h"
 #import "CUIInputWindow.h"
 #import "CUIFloatingObserver.h"
+#import "CUIPhysicalKey.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -32,7 +33,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @class CUIKeyboardRecognizer;
-@interface CUIKeyboardScope () <UIGestureRecognizerDelegate>
+@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope>
 - (NSString *)policyForPress:(UIPress *)press;
 - (BOOL)hasPolicyForPress:(UIPress *)press;
 - (void)recordModality:(NSString *)origin;
@@ -126,6 +127,8 @@ static UIView *CUIFirstResponder(UIView *root)
   double _windowEpoch;
   double _acceptedEpoch;
   double _policyRevision;
+  double _observationRevision;
+  NSArray<NSDictionary *> *_observations;
   NSString *_acceptedWindowId;
   NSInteger _policyOrder;
   BOOL _applicationActive;
@@ -145,6 +148,7 @@ static UIView *CUIFirstResponder(UIView *root)
     _ownerId = @"";
     _captureEnabled = YES;
     _policies = @[];
+    _observations = @[];
     _acceptedWindowId = @"";
     _acceptedEpoch = -1;
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
@@ -194,6 +198,7 @@ static UIView *CUIFirstResponder(UIView *root)
 - (void)publishStatus
 {
   [_floating setTargets:_floatingTargets active:[self captureReady]];
+  CUIRefreshKeyboardObservation(self.window);
   if (!_eventEmitter) return;
   CUIKeyboardScopeEventEmitter::OnNativeScopeStatus data{};
   data.ownerId = _ownerId.UTF8String;
@@ -203,6 +208,40 @@ static UIView *CUIFirstResponder(UIView *root)
   data.ready = [self captureReady];
   data.windowActive = [self windowActive];
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeScopeStatus(data);
+  CUIKeyboardScopeEventEmitter::OnNativeObservationStatus observed{};
+  observed.ownerId = data.ownerId; observed.windowId = data.windowId; observed.epoch = _windowEpoch;
+  observed.observationRevision = _observationRevision; observed.ready = [self captureReady]; observed.windowActive = [self windowActive];
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeObservationStatus(observed);
+}
+- (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
+- (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
+- (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured
+{
+  if (!_eventEmitter || ![self hasKeyboardObservations] || press.window != self.window) return;
+  UIView *focused = CUIInputFocusedView(self.window);
+  CUIKeyboardScopeEventEmitter::OnNativeObservedKey data{};
+  for (NSDictionary *observation in _observations) {
+    NSInteger tag = [observation[@"targetTag"] integerValue];
+    BOOL matches = tag <= 0;
+    for (UIView *view = focused; view && !matches; view = view.superview) matches = view.tag == tag;
+    if (matches) data.observerIds.push_back([observation[@"id"] UTF8String]);
+  }
+  if (data.observerIds.empty()) return;
+  UIView *target = focused;
+  while (target && target.tag <= 0) target = target.superview;
+  UIKey *key = press.key;
+  UIKeyModifierFlags flags = key.modifierFlags;
+  data.ownerId = _ownerId.UTF8String; data.windowId = CUIInputWindowIdentity(self.window).UTF8String;
+  data.epoch = _windowEpoch; data.observationRevision = _observationRevision; data.eventId = eventId;
+  data.target = target ? (int)target.tag : (int)self.tag; data.focusedTarget = target ? (int)target.tag : -1;
+  data.key = CUIInputKeyName(key).UTF8String; data.code = CUIPhysicalKeyCode((int)key.keyCode); data.nativeCode = (int)key.keyCode;
+  data.legacyKeyCode = data.code == "Unidentified" ? 0 : (int)key.keyCode; data.location = CUIPhysicalKeyLocation((int)key.keyCode);
+  data.repeat = repeat; data.cancelled = false;
+  data.isComposing = [focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
+  data.shiftKey = flags & UIKeyModifierShift; data.altKey = flags & UIKeyModifierAlternate;
+  data.ctrlKey = flags & UIKeyModifierControl; data.metaKey = flags & UIKeyModifierCommand; data.capsLock = flags & UIKeyModifierAlphaShift;
+  data.nativeModifierData = std::to_string((unsigned long long)flags); data.defaultCaptured = captured; data.timestamp = press.timestamp * 1000;
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeObservedKey(data);
 }
 - (NSString *)policyForPress:(UIPress *)press
 {
@@ -316,6 +355,10 @@ static UIView *CUIFirstResponder(UIView *root)
   _acceptedWindowId = accepted;
   _acceptedEpoch = next.acceptedEpoch;
   _policyRevision = next.policyRevision;
+  _observationRevision = next.observationRevision;
+  NSMutableArray *observations = [NSMutableArray array];
+  for (const auto &observation : next.observations) [observations addObject:@{ @"id": [NSString stringWithUTF8String:observation.id.c_str()], @"targetTag": @(observation.targetTag) }];
+  _observations = observations;
   NSMutableArray *floating = [NSMutableArray array];
   for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
   _floatingTargets = floating;
@@ -367,6 +410,7 @@ static UIView *CUIFirstResponder(UIView *root)
   _boundWindow = nil;
   _ownerId = @"";
   _policies = @[];
+  _observations = @[];
   _captureEnabled = NO;
   _windowEpoch++;
   _acceptedEpoch = -1;

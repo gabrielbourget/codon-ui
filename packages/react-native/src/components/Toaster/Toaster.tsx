@@ -6,6 +6,7 @@ import {
   useInsertionEffect,
   useLayoutEffect,
   useRef,
+  useReducer,
   useState,
 } from "react"
 import { findNodeHandle, View, type ViewProps, type ViewStyle } from "react-native"
@@ -22,7 +23,7 @@ import {
   subscribeNativeFocus,
 } from "../../input/focus"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -30,7 +31,8 @@ import { OverlayRegistryContext } from "../../overlays/NativeOverlayProvider"
 import { encodeCollectionKey } from "../collection"
 
 import { createNativeToasterFocus, NativeToasterFocusContext } from "./focus"
-import { applyToastPublication, getNativeToastStacks, isNativeToastHotkey, nativeToastHotkey } from "./model"
+import { matchesNativeToastObservedHotkey } from "./keyboard"
+import { applyToastPublication, getNativeToastStacks } from "./model"
 import { ToasterObserver } from "./stateManagement"
 import { Toast } from "./Toast"
 import {
@@ -43,8 +45,24 @@ import {
   type TNativeToast,
   type TNativeToastHeight,
   type TNativeToastID,
+  type TNativeToastPublication,
   type TNativeToasterProps,
 } from "./types"
+
+type TToasterState = { toasts: TNativeToast[]; expanded: boolean }
+type TToasterAction =
+  | { type: "publication"; publication: TNativeToastPublication }
+  | { type: "remove"; id: TNativeToastID }
+  | { type: "expand"; expanded: boolean }
+const reduceToaster = (state: TToasterState, action: TToasterAction): TToasterState => {
+  if (action.type === "expand") return { ...state, expanded: action.expanded }
+  const toasts =
+    action.type === "publication"
+      ? applyToastPublication(state.toasts, action.publication)
+      : state.toasts.filter((toast) => toast.id !== action.id)
+  // Each canonical publication commits separately; preserve its collapse even when native React batches publications.
+  return { toasts, expanded: toasts.length > 1 && state.expanded }
+}
 
 export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((props, forwardedRef) => {
   const {
@@ -87,9 +105,9 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   const inputScope = useNativeKeyScope()
   const overlays = useContext(OverlayRegistryContext)
   const insets = useContext(SafeAreaInsetsContext)
-  const [toasts, setToasts] = useState<TNativeToast[]>([])
+  const [{ toasts, expanded }, dispatch] = useReducer(reduceToaster, { toasts: [], expanded: false })
+  const setExpanded = useCallback((expanded: boolean) => dispatch({ type: "expand", expanded }), [])
   const [heights, setHeights] = useState<TNativeToastHeight[]>([])
-  const [expanded, setExpanded] = useState(false)
   const [interacting, setInteracting] = useState(false)
   const live = useRef(true)
   const collapse = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -108,13 +126,10 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   useEffect(
     () =>
       ToasterObserver.subscribe((publication) => {
-        if (live.current) setToasts((current) => applyToastPublication(current, publication))
+        if (live.current) dispatch({ type: "publication", publication })
       }),
     [],
   )
-  useEffect(() => {
-    if (toasts.length <= 1) setExpanded(false)
-  }, [toasts.length])
   const canAct = () =>
     live.current &&
     host.live.current &&
@@ -160,23 +175,14 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   useLayoutEffect(() => {
     if (!canAct() || inputScope?.isWindowActive() === false) focus.invalidate()
   }, [focus, inputScope, scope, windowActive])
-  useNativeKeyPolicy({
-    tokens: nativeToastHotkey(expandToggleHotkey),
+  useNativeKeyboardObservation({
     targetTag: 0,
-    excludeEditable: false,
-    excludeComposing: true,
-    isEnabled: toasts.length > 0,
-    lifetimeKey: `${position}:${toasts.length > 0}`,
+    isEnabled: true,
+    lifetimeKey: "toaster",
     canAct,
-    onKey: (event) => {
+    onKeyDown: (event) => {
       const data = event.nativeEvent
-      if (
-        data.phase !== "down" ||
-        data.repeat ||
-        data.cancelled ||
-        !isNativeToastHotkey(data, current.current.expandToggleHotkey)
-      )
-        return
+      if (!matchesNativeToastObservedHotkey(data, current.current.expandToggleHotkey)) return
       const next = !current.current.expanded
       if (next && "focusedTarget" in data && typeof data.focusedTarget === "number" && data.focusedTarget > 0)
         focus.capture(data.focusedTarget)
@@ -186,7 +192,7 @@ export const Toaster = forwardRef<TNativeFocusViewRef, TNativeToasterProps>((pro
   })
   const removeToast = useCallback((toast: TNativeToast) => {
     if (!live.current) return
-    setToasts((current) => current.filter((entry) => entry.id !== toast.id))
+    dispatch({ type: "remove", id: toast.id })
     setHeights((current) => current.filter((entry) => entry.id !== toast.id))
   }, [])
   const requestExpand = () => {

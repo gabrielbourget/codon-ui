@@ -1,10 +1,12 @@
 import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
 import * as RN from "react-native"
 
-import { NativeThemeProvider, Text } from "../../.."
+import { NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../.."
 import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
 import { Toast } from "../Toast"
 import type { TNativeToast, TNativeToastProps } from "../types"
+
+import { acknowledgeToasterKeyboard } from "./keyboardPackets"
 
 const hidden = { includeHiddenElements: true }
 const row = (id = "toast-number-0") => screen.getByTestId(id, hidden)
@@ -25,9 +27,11 @@ const base = (toast: Partial<TNativeToast> = {}, props: Partial<TNativeToastProp
 })
 const node = (props: TNativeToastProps, canAct = true) => (
   <NativeThemeProvider>
-    <NativeFloatingScopeContext.Provider value={{ id: null, canAct: () => canAct }}>
-      <Toast {...props} />
-    </NativeFloatingScopeContext.Provider>
+    <NativeFloatingLayerHost testID="host">
+      <NativeFloatingScopeContext.Provider value={{ id: null, canAct: () => canAct }}>
+        <Toast {...props} />
+      </NativeFloatingScopeContext.Provider>
+    </NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
 beforeEach(() => {
@@ -252,6 +256,7 @@ it("NATIVE.toast.006 rejects stale/invisible/modal-blocked actions", async () =>
   const onDismiss = jest.fn(),
     props = base({ onDismiss })
   const { rerender } = await render(node(props))
+  await acknowledgeToasterKeyboard("toast-window")
   const button = screen.getByRole("button", { name: "Close Toast" })
   const activate = button.props.onNativeActivation
   const packet = {
@@ -263,7 +268,7 @@ it("NATIVE.toast.006 rejects stale/invisible/modal-blocked actions", async () =>
       observedAt: 1,
       target: 1,
       windowId: "toast-window",
-      scopeOwnerId: "",
+      scopeOwnerId: row("host").props.ownerId,
       epoch: 1,
     },
   }
