@@ -170,3 +170,5 @@ export type TPrivateNativeMotionValueFactory = TPublicNativeExports["nativeMotio
 export type TPrivateNativeMotionValueHook = TPublicNativeExports["useNativeMotionValue"]
 // @ts-expect-error Native event hooks remain private until the complete native motion contract is delivered.
 export type TPrivateNativeMotionValueEventHook = TPublicNativeExports["useNativeMotionValueEvent"]
+// @ts-expect-error Actual-view color queries stay private until the complete native motion contract is delivered.
+export type TPrivateNativeColorSampler = TPublicNativeExports["sampleNativeMotionColors"]

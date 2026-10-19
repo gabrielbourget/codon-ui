@@ -3,6 +3,7 @@
 #import "CUIInputWindow.h"
 #import "CUIKeyboardScope.h"
 #import "CUIFloatingScrollAnchor.h"
+#import "CUIMotionColorSampler.h"
 #import <react/featureflags/ReactNativeFeatureFlags.h>
 
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -33,6 +34,7 @@ using namespace facebook::react;
   NSString *_nativeDetailsLabel;
   NSArray<AXCustomContent *> *_callerAccessibilityContent;
   CUIFloatingScrollAnchor *_scrollAnchor;
+  CUIMotionColorSampler *_motionColors;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -54,6 +56,10 @@ using namespace facebook::react;
     _nativeDetailsLabel = @"Details";
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
     _scrollAnchor = [[CUIFloatingScrollAnchor alloc] initWithRoot:self];
+    __weak CUIFocusView *weakSelf = self;
+    _motionColors = [[CUIMotionColorSampler alloc] initWithRoot:self emit:^(NSDictionary *data) {
+      [weakSelf emitMotionColors:data];
+    }];
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
@@ -111,6 +117,42 @@ using namespace facebook::react;
   value.detailsAvailable = detailsAvailable;
   value.observedAt = NSProcessInfo.processInfo.systemUptime * 1000;
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeAccessibilitySnapshot(value);
+}
+
+- (void)emitMotionColors:(NSDictionary *)data
+{
+  if (!_eventEmitter) return;
+  CUIFocusViewEventEmitter::OnNativeMotionColors value{};
+  value.ownerId = [data[@"ownerId"] UTF8String];
+  value.target = [data[@"target"] intValue];
+  value.kind = [data[@"kind"] isEqual:@"sample"] ? CUIFocusViewEventEmitter::OnNativeMotionColorsKind::Sample : CUIFocusViewEventEmitter::OnNativeMotionColorsKind::Environment;
+  value.requestId = [data[@"requestId"] UTF8String];
+  value.windowId = [data[@"windowId"] UTF8String];
+  value.scopeOwnerId = [data[@"scopeOwnerId"] UTF8String];
+  value.epoch = [data[@"epoch"] doubleValue];
+  value.environmentRevision = [data[@"environmentRevision"] doubleValue];
+  value.attached = [data[@"attached"] boolValue];
+  value.colors = [data[@"colors"] UTF8String];
+  value.error = [data[@"error"] UTF8String];
+  value.observedAt = [data[@"observedAt"] doubleValue];
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeMotionColors(value);
+}
+
+- (void)sampleMotionColors:(NSString *)ownerId requestId:(NSString *)requestId request:(NSString *)request
+{
+  [_motionColors sampleOwner:ownerId requestId:requestId request:request];
+}
+
+- (void)traitCollectionDidChange:(UITraitCollection *)previousTraitCollection
+{
+  [super traitCollectionDidChange:previousTraitCollection];
+  [_motionColors synchronize];
+}
+
+- (void)tintColorDidChange
+{
+  [super tintColorDidChange];
+  [_motionColors synchronize];
 }
 
 - (BOOL)accessibilityActivate
@@ -365,11 +407,14 @@ using namespace facebook::react;
   _nativeDetailsLabel = [NSString stringWithUTF8String:next.nativeDetailsLabel.c_str()];
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
+  [_motionColors updateOwner:_ownerId enabled:next.nativeMotionColorObservation];
+  [_motionColors synchronize];
 }
 
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
+  [_motionColors synchronize];
   if (!self.window) {
     [_scrollAnchor invalidate];
     [self cancelHeldKeys];
@@ -380,6 +425,7 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
+  [_motionColors invalidate];
   [_scrollAnchor invalidate];
   [self cancelHeldKeys];
   [self resignFirstResponder];

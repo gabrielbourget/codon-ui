@@ -39,6 +39,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private List<String> nativeDetailsBy = new ArrayList<>();
   private int nativeDescriptionTag;
   private final CUIFloatingScrollAnchor scrollAnchor;
+  private final CUIMotionColorSampler motionColors;
+  private boolean nativeMotionColorObservation;
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
@@ -46,9 +48,18 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   public CUIFocusView(ThemedReactContext context) {
     super(context);
     scrollAnchor = new CUIFloatingScrollAnchor(this);
+    motionColors = new CUIMotionColorSampler(this, data -> emit("topNativeMotionColors", data));
     setFocusable(true);
     setFocusableInTouchMode(true);
   }
+
+  void setNativeMotionColorObservation(boolean enabled) { nativeMotionColorObservation = enabled; }
+  void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
+  void invalidateMotionColors() { motionColors.invalidate(); }
+  void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); }
+  @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
+  @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
   void setNativeLabelledBy(List<String> ids) { nativeLabelledBy = ids; }
   void setNativeDescribedBy(List<String> ids) { nativeDescribedBy = ids; }
@@ -299,6 +310,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    motionColors.detached();
     scrollAnchor.invalidate();
     cancelHeldKeys();
     clearFocus();
@@ -311,6 +323,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();
     super.onWindowFocusChanged(focused);
+    motionColors.synchronize();
   }
 
   private static final class InputEvent extends Event<InputEvent> {
