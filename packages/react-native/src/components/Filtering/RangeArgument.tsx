@@ -8,7 +8,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import { NumberInput } from "../NumberInput/NumberInput"
 import type { TTableFilterDraftArgumentValue } from "../Table/queryTypes"
 
-import { getFilterArrayArgument } from "./argumentValues"
+import { getFilterArrayArgument, getControlledFilterNumberArgument } from "./argumentValues"
 import { DEFAULT_FILTER_EDITOR_LABELS, type TFilterEditorLabels } from "./editorLabels"
 import type { TFilterArgumentChangeArgs } from "./OptionArguments"
 import { useFilterRequest, type TFilterAvailability } from "./requests"
@@ -64,7 +64,7 @@ export const RangeFilterArgument = (props: TRangeFilterArgumentProps) => {
             ) : (
               <NumberInput
                 accessibilityLabel={label}
-                value={(argument[index] ?? null) as number | null}
+                value={getControlledFilterNumberArgument(argument[index])}
                 placeholder={placeholder}
                 incrementLabel={index === 0 ? props.numberLabels.minimumIncrement : props.numberLabels.maximumIncrement}
                 decrementLabel={index === 0 ? props.numberLabels.minimumDecrement : props.numberLabels.maximumDecrement}

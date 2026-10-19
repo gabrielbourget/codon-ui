@@ -69,7 +69,7 @@ it.each([undefined, null, false])("keeps incomplete Boolean %s owned in both mod
     await unmount()
   }
 })
-it.each([undefined, null, 0])(
+it.each([undefined, null, 0, "", NaN])(
   "keeps numeric %s owned through repeated requests and echoes without remounting",
   async (argument) => {
     const change = jest.fn(),
@@ -113,27 +113,30 @@ it.each([undefined, null, []])("keeps incomplete range %s and empty list Add own
   expect(change).toHaveBeenCalledWith({ argument: [""] })
   expect(screen.queryAllByTestId("input")).toHaveLength(0)
 })
-it("controls numeric bounds, preserves raw siblings and emits blank for numeric clearing", async () => {
-  const change = jest.fn()
-  await render(
-    wrap(
-      <RangeFilterArgument
-        dataType="number"
-        numberLabels={rangeLabels}
-        argument={[undefined, 7]}
-        onArgumentChange={change}
-      />,
-    ),
-  )
-  await fireEvent.press(screen.getByRole("button", { name: "Increase minimum" }))
-  expect(change).toHaveBeenCalledWith({ argument: [0, 7] })
-  const inputs = screen.getAllByTestId("number-input-input")
-  expect(inputs[0]).toHaveDisplayValue("")
-  await fireEvent.changeText(inputs[1], "")
-  await fireEvent(inputs[1], "endEditing", { nativeEvent: { text: "" } })
-  expect(change).toHaveBeenLastCalledWith({ argument: [undefined, null] })
-  expect(inputs[1]).toHaveDisplayValue("7")
-})
+it.each([undefined, ""])(
+  "controls numeric bound %s, preserves raw siblings and emits blank for numeric clearing",
+  async (minimum) => {
+    const change = jest.fn()
+    await render(
+      wrap(
+        <RangeFilterArgument
+          dataType="number"
+          numberLabels={rangeLabels}
+          argument={[minimum, 7]}
+          onArgumentChange={change}
+        />,
+      ),
+    )
+    await fireEvent.press(screen.getByRole("button", { name: "Increase minimum" }))
+    expect(change).toHaveBeenCalledWith({ argument: [0, 7] })
+    const inputs = screen.getAllByTestId("number-input-input")
+    expect(inputs[0]).toHaveDisplayValue("")
+    await fireEvent.changeText(inputs[1], "")
+    await fireEvent(inputs[1], "endEditing", { nativeEvent: { text: "" } })
+    expect(change).toHaveBeenLastCalledWith({ argument: [minimum, null] })
+    expect(inputs[1]).toHaveDisplayValue("7")
+  },
+)
 it("keeps mixed list entries owned and preserves untouched types through edit/add/delete", async () => {
   const change = jest.fn(),
     argument = [0, 1, undefined, null]

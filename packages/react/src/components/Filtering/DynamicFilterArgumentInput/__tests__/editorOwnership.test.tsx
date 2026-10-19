@@ -27,21 +27,24 @@ it.each([undefined, null, false])("keeps incomplete Boolean %s owned in both mod
     unmount()
   }
 })
-it.each([undefined, null, 0])("keeps numeric %s owned through repeated increment requests", async (argument) => {
-  const change = vi.fn()
-  const { rerender } = render(<InputArgument dataType="number" argument={argument} onArgumentChange={change} />)
-  const input = screen.getByRole("textbox")
-  await userEvent.click(screen.getByRole("button", { name: /^Increase/ }))
-  await userEvent.click(screen.getByRole("button", { name: /^Increase/ }))
-  expect(input).toHaveValue(argument === 0 ? "0" : "")
-  expect(change.mock.calls).toEqual([[{ argument: argument === 0 ? 1 : 0 }], [{ argument: argument === 0 ? 1 : 0 }]])
-  rerender(<InputArgument dataType="number" argument={2} onArgumentChange={change} />)
-  expect(screen.getByRole("textbox")).toBe(input)
-  expect(input).toHaveValue("2")
-  await userEvent.clear(input)
-  await userEvent.tab()
-  expect(change).toHaveBeenLastCalledWith({ argument: null })
-})
+it.each([undefined, null, 0, "", NaN])(
+  "keeps numeric %s owned through repeated increment requests",
+  async (argument) => {
+    const change = vi.fn()
+    const { rerender } = render(<InputArgument dataType="number" argument={argument} onArgumentChange={change} />)
+    const input = screen.getByRole("textbox")
+    await userEvent.click(screen.getByRole("button", { name: /^Increase/ }))
+    await userEvent.click(screen.getByRole("button", { name: /^Increase/ }))
+    expect(input).toHaveValue(argument === 0 ? "0" : "")
+    expect(change.mock.calls).toEqual([[{ argument: argument === 0 ? 1 : 0 }], [{ argument: argument === 0 ? 1 : 0 }]])
+    rerender(<InputArgument dataType="number" argument={2} onArgumentChange={change} />)
+    expect(screen.getByRole("textbox")).toBe(input)
+    expect(input).toHaveValue("2")
+    await userEvent.clear(input)
+    await userEvent.tab()
+    expect(change).toHaveBeenLastCalledWith({ argument: null })
+  },
+)
 it.each([undefined, null, []])(
   "keeps empty array editors %s controlled and preserves zero-row Add",
   async (argument) => {
@@ -60,13 +63,16 @@ it.each([undefined, null, []])(
     expect(screen.queryAllByRole("textbox")).toHaveLength(0)
   },
 )
-it("controls incomplete numeric range bounds and preserves the untouched bound", async () => {
-  const change = vi.fn()
-  render(<RangeArgument dataType="number" argument={[undefined, 7]} onArgumentChange={change} />)
-  await userEvent.click(screen.getAllByRole("button", { name: /^Increase/ })[0])
-  expect(screen.getByRole("textbox", { name: "Min Value" })).toHaveValue("")
-  expect(change).toHaveBeenCalledWith({ argument: [0, 7] })
-})
+it.each([undefined, ""])(
+  "controls incomplete numeric range bound %s and preserves the untouched bound",
+  async (minimum) => {
+    const change = vi.fn()
+    render(<RangeArgument dataType="number" argument={[minimum, 7]} onArgumentChange={change} />)
+    await userEvent.click(screen.getAllByRole("button", { name: /^Increase/ })[0])
+    expect(screen.getByRole("textbox", { name: "Min Value" })).toHaveValue("")
+    expect(change).toHaveBeenCalledWith({ argument: [0, 7] })
+  },
+)
 it("keeps mixed list entries and missing entries owned without coercing untouched siblings", async () => {
   const change = vi.fn()
   const argument = [0, 1, undefined, null]

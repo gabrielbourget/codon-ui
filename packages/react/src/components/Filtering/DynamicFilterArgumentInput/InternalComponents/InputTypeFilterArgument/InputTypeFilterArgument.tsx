@@ -58,7 +58,7 @@ const InputTypeFilterArgument: FC<TInputTypeFilterArgumentProps> = (props) => {
         <NumberInput
           aria-labelledby="input-type-filter-argument"
           className={customInputClassName}
-          value={argument == null ? NaN : (argument as number)}
+          value={argument == null || argument === "" ? NaN : (argument as number)}
           placeholder={resolvedLabels.placeholder}
           labels={resolvedLabels.numberInput}
           customStyles={{ width: "100%", ...customInputStyles }}

@@ -97,3 +97,21 @@ it("composes owned list edits without coercing previously confirmed values", asy
   expect(state().lastRequest.filterGroups[1].clauses[0].argument).toEqual(["Next"])
   expect(state().confirmed.filterGroups[1].clauses[0].argument).toEqual(["Alpha"])
 })
+
+it("composes the actual blank numeric Between factory through both owned bounds and Apply", async () => {
+  await render(<FilterControlProbe />)
+  await select("filter-probe-status-clause", "Filter Criteria", "Amount")
+  await select("filter-probe-status-clause", "Filter Condition", "Between")
+  expect(state().draft.filterGroups.at(-1).clauses[0].argument).toEqual(["", ""])
+  const row = within(screen.getByTestId("filter-probe-status-clause"))
+  expect(row.getAllByTestId("number-input-input").map((input) => input.props.value)).toEqual(["", ""])
+  await fireEvent.press(row.getByRole("button", { name: "Increase minimum" }))
+  expect(state().draft.filterGroups.at(-1).clauses[0].argument).toEqual([0, ""])
+  await press("Apply filter draft")
+  expect(state().lastRequest.filterGroups.some((group: { criteriaID: string }) => group.criteriaID === "amount")).toBe(
+    false,
+  )
+  await fireEvent.press(row.getByRole("button", { name: "Increase maximum" }))
+  await press("Apply filter draft")
+  expect(state().lastRequest.filterGroups.at(-1).clauses[0].argument).toEqual([0, 0])
+})

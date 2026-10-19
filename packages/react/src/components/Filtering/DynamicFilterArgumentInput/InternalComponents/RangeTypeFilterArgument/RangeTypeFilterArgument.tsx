@@ -104,7 +104,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={rangeArgument[0] == null ? NaN : (rangeArgument[0] as number)}
+            value={rangeArgument[0] == null || rangeArgument[0] === "" ? NaN : (rangeArgument[0] as number)}
             placeholder={resolvedLabels.minValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
@@ -123,7 +123,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={rangeArgument[1] == null ? NaN : (rangeArgument[1] as number)}
+            value={rangeArgument[1] == null || rangeArgument[1] === "" ? NaN : (rangeArgument[1] as number)}
             placeholder={resolvedLabels.maxValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}

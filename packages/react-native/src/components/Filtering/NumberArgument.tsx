@@ -8,6 +8,7 @@ import { NumberInput } from "../NumberInput/NumberInput"
 import type { TNativeNumberInputRef } from "../NumberInput/types"
 import type { TTableFilterDraftArgumentValue } from "../Table/queryTypes"
 
+import { getControlledFilterNumberArgument } from "./argumentValues"
 import { DEFAULT_FILTER_EDITOR_LABELS } from "./editorLabels"
 import type { TFilterArgumentChangeArgs } from "./OptionArguments"
 import { useFilterRequest, type TFilterAvailability } from "./requests"
@@ -36,7 +37,7 @@ export const NumberFilterArgument = forwardRef<TNativeNumberInputRef, TNumberFil
     <FormField label={labels.label} customStyles={props.customFieldStyles}>
       <NumberInput
         ref={ref}
-        value={(props.argument ?? null) as number | null}
+        value={getControlledFilterNumberArgument(props.argument)}
         accessibilityLabel={labels.label}
         placeholder={labels.placeholder}
         incrementLabel={props.incrementLabel}
