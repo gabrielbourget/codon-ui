@@ -1,0 +1,30 @@
+{
+  "scope": "Authored private measurement/restore transaction prototype. No actual native atomic-layout provider is installed; production style publication fails before probes without one. Pinned source inputs define only comparison and scheduling intent.",
+  "package": "motion-dom",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../kernel/LICENSE.motion-dom.md",
+  "sourceInputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/DOMKeyframesResolver.ts",
+      "sha256": "5e0bd63209faf4991a35ff55ce1df027f3cf001a3d11fe3a1ef3896c299ccd43",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/KeyframesResolver.ts",
+      "sha256": "18a7c8b507ec3fc25c6359c5c13085b2394e91eca780132a8c3a318990fb144d",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/unit-conversion.ts",
+      "sha256": "6551fa122528dc8e00caaddfb24baa3e32156778c9723a7a7bf61ae22c4aa4d7",
+      "sourceKind": "npm-source-map-sourcesContent"
+    }
+  ],
+  "remaining": [
+    "Actual native before-paint isolation and rollback backend",
+    "Source-equivalent MotionValue internal notification/reset-velocity integration",
+    "Native style-to-metric mapping including content-box/borders, transforms, scroll and logical dimensions",
+    "Current consumers/products and actual layout/presentation/performance acceptance"
+  ]
+}

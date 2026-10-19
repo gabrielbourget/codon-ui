@@ -1,4 +1,12 @@
-import { forwardRef, useCallback, useLayoutEffect, useState, useSyncExternalStore } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useInsertionEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react"
 
 import { getNativeButtonContent } from "../../components/Button/content"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
@@ -8,39 +16,87 @@ import { useNativeTheme } from "../../theme"
 
 import { NativeMotionVisualState } from "./state"
 import { resolveNativeMotionVisualStyle } from "./styles"
-import type { TNativeMotionVisualHostProps } from "./types"
+import type { TNativeMotionVisualHostProps, TNativeMotionVisualValues } from "./types"
+
+const NO_MEASUREMENT = Object.freeze({ values: null, revision: undefined })
+const emptyMeasurement = () => NO_MEASUREMENT
+const noMeasurementSubscription = () => () => {}
 
 export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMotionVisualHostProps>(
   (
-    { computedStyles, customStyles, style, bindings, transformTemplate, onUpdate, children, ...props },
+    { computedStyles, customStyles, style, bindings, transformTemplate, onUpdate, children, measurement, ...props },
     forwardedRef,
   ) => {
     const [visual] = useState(() => new NativeMotionVisualState(bindings, onUpdate))
     const values = useSyncExternalStore(visual.subscribe, visual.getSnapshot, visual.getSnapshot)
+    const measured = useSyncExternalStore(
+      measurement?.subscribe ?? noMeasurementSubscription,
+      measurement?.getSnapshot ?? emptyMeasurement,
+      emptyMeasurement,
+    )
+    const actual = useRef<TNativeFocusViewRef | null>(null)
+    const latestRef = useRef(forwardedRef)
+    const publishedRef = useRef<{ ref: typeof forwardedRef; cleanup: void | (() => void) } | null>(null)
+    useInsertionEffect(() => {
+      latestRef.current = forwardedRef
+    }, [forwardedRef])
+    const releaseCaller = useCallback(() => {
+      const previous = publishedRef.current
+      publishedRef.current = null
+      if (!previous) return
+      if (typeof previous.cleanup === "function") previous.cleanup()
+      else if (typeof previous.ref === "function") previous.ref(null)
+      else if (previous.ref) previous.ref.current = null
+    }, [])
+    const publishCaller = useCallback(
+      (target: TNativeFocusViewRef) => {
+        const ref = latestRef.current
+        if (publishedRef.current?.ref === ref) return
+        releaseCaller()
+        let cleanup: void | (() => void) = undefined
+        if (typeof ref === "function") cleanup = ref(target)
+        else if (ref) ref.current = target
+        publishedRef.current = { ref, cleanup }
+      },
+      [releaseCaller],
+    )
+    useLayoutEffect(() => {
+      if (actual.current) publishCaller(actual.current)
+    }, [forwardedRef, publishCaller])
     const theme = useNativeTheme()
     const inherited = useNativeContentContext()
     useLayoutEffect(() => visual.configure(bindings, onUpdate), [visual, bindings, onUpdate])
     const setRef = useCallback(
       (target: TNativeFocusViewRef | null) => {
         if (!target) {
+          actual.current = null
           visual.detach()
-          if (forwardedRef && typeof forwardedRef !== "function") forwardedRef.current = null
+          measurement?.detach()
+          releaseCaller()
           return
         }
+        actual.current = target
         const retire = visual.attach()
-        let cleanup: void | (() => void)
-        if (typeof forwardedRef === "function") cleanup = forwardedRef(target)
-        else if (forwardedRef) forwardedRef.current = target
+        const retireMeasurement = measurement?.attach(target)
+        publishCaller(target)
         return () => {
           retire()
-          if (typeof cleanup === "function") cleanup()
-          else if (typeof forwardedRef === "function") forwardedRef(null)
-          else if (forwardedRef) forwardedRef.current = null
+          retireMeasurement?.()
+          if (actual.current === target) {
+            actual.current = null
+            releaseCaller()
+          }
         }
       },
-      [visual, forwardedRef],
+      [visual, measurement, publishCaller, releaseCaller],
     )
-    const resolved = resolveNativeMotionVisualStyle(computedStyles, customStyles, style, values, transformTemplate)
+    const resolved = resolveNativeMotionVisualStyle(
+      computedStyles,
+      customStyles,
+      style,
+      { ...values, ...measured.values } as TNativeMotionVisualValues,
+      transformTemplate,
+    )
     return (
       <NativeContentContext.Provider
         value={{
@@ -50,6 +106,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       >
         <NativeFocusHost
           {...props}
+          nativeMotionGeometryRevision={measured.revision ?? props.nativeMotionGeometryRevision}
           nativeMotionGeometryObservation
           nativeMotionColorObservation
           focusable={props.tabIndex === undefined ? (props.focusable ?? false) : !props.tabIndex}

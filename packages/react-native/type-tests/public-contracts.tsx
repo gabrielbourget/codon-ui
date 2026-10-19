@@ -184,3 +184,7 @@ export type TPrivateNativeGeometry = TPublicNativeExports["readNativeMotionGeome
 export type TPrivateNativeMountObserver = TPublicNativeExports["observeNativeMotionMountPairs"]
 // @ts-expect-error Native geometry opt-in is private to its actual owned motion host.
 export const InvalidPublicGeometryObservation = <NativeFocusView nativeMotionGeometryObservation />
+// @ts-expect-error Native measurement transactions remain private until the actual native atomic backend and full renderer exist.
+export type TPrivateNativeMeasurementState = TPublicNativeExports["NativeMotionMeasurementState"]
+// @ts-expect-error Measurement state is private to the motion visual host.
+export const InvalidPublicMeasurement = <NativeFocusView measurement={{}} />
