@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated intrinsic factory and Android request-owned cached-editor/progress services. Copied cached chars/span-container/TextPaint/state array use the exact pinned private layout helper; unknown spans, named-family shared font cache and live admission remain unresolved. No installed or full Card acceptance.",
+  "scope": "Private isolated intrinsic factory and Android request-owned cached-editor/progress services. Copied cached chars/span-container/TextPaint/state array use the exact pinned private layout helper; unknown spans, named-family shared font cache and live admission remain unresolved. No installed or full Card acceptance. Approved3.5.62 immutable synchronous pop-frame input capture; family style interposition, exact drawing and installed fidelity/performance remain incomplete.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -307,6 +307,36 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/jni/react/mapbuffer/react/common/mapbuffer/JReadableMapBuffer.h",
       "sha256": "b63739d035b63df31e9e614ca9731dfb76c9e053ec3e64edb0291e203604c4d0",
       "adaptation": "Use existing request-local JNI map-buffer wrappers and RAII references."
+    },
+    {
+      "path": "ReactCommon/react/renderer/dom/DOM.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/dom/DOM.h",
+      "sha256": "57ad6d70ac3e65136840aac10bf3516f6d9aa637087a068904688df3ee776b53",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/dom/DOM.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/dom/DOM.cpp",
+      "sha256": "6772e346e5c8c6b882150ff68bd81f660064f1777aff2922cb108cc51ac40077",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerBinding.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.h",
+      "sha256": "8fb51ebce77ff24658cd722e2f9c700aaaf9aeb8ae25dddf0047ad1b79b9524b",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp",
+      "sha256": "c9b31e0dacfce08c985dd4ecefa0bde29ec8b1acc6041e1e28b4aebe79687e4b",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sha256": "8ac69647304c4e91eb363384b015f309fe0ab4f38a929dd14e782a7a04416feb",
+      "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
     }
   ],
   "license": "LICENSE.react-native.md",
@@ -315,7 +345,8 @@
     "Actual cached-editor/progress service delivery, native span/paint non-mutation, named-family registry/cache isolation, actual text-manager custom callback audit and full native intrinsic/attachment/baseline fidelity",
     "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
     "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
-    "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance"
+    "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance",
+    "General pop root family/generation/window leases and persistent authored/presentation style restoration, exact owned elliptical/shadow drawing and actual synchronous read/frame cost proof"
   ],
   "authoredFiles": [
     {
@@ -369,6 +400,14 @@
     {
       "file": "SnapshotQuery.h",
       "sha256": "b9bb3b4c0fc7d0720c8f3384db610315920a60e2f9da3863ce0f01319c887833"
+    },
+    {
+      "file": "PopFrame.cpp",
+      "sha256": "2c0253a6a6ce264e1544923be6d4d9ef1a3e0fbcebd1791f8f0db4030f05bc1d"
+    },
+    {
+      "file": "PopFrame.h",
+      "sha256": "6ef4b5c826d7d0711a06bab1a96d72126ed428a73023b5269b9de574292f21ad"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -387,7 +426,7 @@
     },
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "b534167c45016cb3f4034987814b293c7a78d16f10d2c86e9557df96d148a20b"
+      "sha256": "9359ef5660590d9b228355120cbcec42f8c092748eeff8ff0e8a672a2c17213a"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
@@ -397,6 +436,14 @@
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
       "sha256": "7030bd805d4a7694fef8dcb7c1e84ca4bf6a8fa17757c82cb397b4ede13739d2",
       "scope": "Private mount observation and ordinary-view query snapshots, including actual native direction and projection-intent metadata."
+    },
+    {
+      "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
+      "sha256": "90a73707801f4860e663891408f90d74f61bb3a06d3cbb7430bc62fb4c406fd9"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
+      "sha256": "4866e764c8ee428bc2b389ede6c7295365deb2b9a1dd54117af8aca33ddcb0d2"
     }
   ],
   "cachedSpanPolicy": {
@@ -426,5 +473,15 @@
     "unknownCallbacks": "Explicit error, never a silent style fallback",
     "namedFamilyCache": "Mandatory open isolation/fidelity path, rejected before shared cache access",
     "installedProof": false
-  }
+  },
+  "popFrameFiles": [
+    {
+      "file": "ios/CUIMotionSnapshot.mm",
+      "sha256": "1bf6dccd676f1b57c2d5fe74767963f6a532e3cdb47cdc826e63077169acb3b1"
+    },
+    {
+      "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
+      "sha256": "8a88283da72de34badc50e01a2dcc7180394b452f6a2cdd762dfa03987e7a7d4"
+    }
+  ]
 }

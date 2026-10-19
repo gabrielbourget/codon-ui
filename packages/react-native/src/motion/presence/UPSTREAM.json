@@ -58,13 +58,18 @@
     {
       "file": "useNativeMotionPresence.ts",
       "sha256": "75573d13cdada2169697e52d83e81a5c8a3769b6b77c9bdd487770e8dd02e2f4"
+    },
+    {
+      "file": "nativePopFrame.ts",
+      "sha256": "06fdd9008a43de54ffb7f46d7835fe5f221630ee44cd57b98629f0d4ad72f3a4"
     }
   ],
   "nativeAdaptations": [
     "Unconditional presence hooks and committed exit-generation guards retire stale safeToRemove/animation completions while preserving live custom zero and original React state/refs",
     "Owned native pop frame snapshots use actual layout, parent dimensions, native direction and optional ancestor-ref membership; no CSS stylesheet, element mirror or editor mutation",
     "Native projection/pop styles publish only to the original owned root and clear removed native properties explicitly",
-    "Static previews complete without claiming native animation. Scope/ref interruption retires old exit generations; source restart/re-entry retains source state sequencing"
+    "Static previews complete without claiming native animation. Scope/ref interruption retires old exit generations; source restart/re-entry retains source state sequencing",
+    "Private synchronous nativePopFrame input reader validates connected original refs/documents/tags and native response identity. It does not activate a pop style layer or claim mounted publication."
   ],
   "remaining": [
     "General non-motion native pop roots and exact native before-paint/RTL/ref/keyboard/selection/pop/layout/performance evidence",
