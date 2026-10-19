@@ -2,6 +2,9 @@ package com.codonui.input;
 
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.MotionEvent;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.WeakHashMap;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +19,8 @@ final class CUIInputWindow {
     String modality = "unknown";
     long policyOrder;
     int pointerDispatches;
+    long inputRevision;
+    final Set<Integer> pointers = new HashSet<>();
     final WeakHashMap<CUIKeyboardScope, Boolean> scopes = new WeakHashMap<>();
   }
 
@@ -28,7 +33,18 @@ final class CUIInputWindow {
 
   static String identity(View view) { return state(view).identity; }
   static String modality(View view) { return state(view).modality; }
-  static void record(View view, String origin) { state(view).modality = origin; }
+  static void record(View view, String origin) { state(view).modality = origin; interacted(view); }
+  static long revision(View view) { return state(view).inputRevision; }
+  static void interacted(View view) { state(view).inputRevision++; }
+  static boolean pointerActive(View view) { return !state(view).pointers.isEmpty(); }
+  static void clearPointers(View view) { state(view).pointers.clear(); }
+  static void pointerEvent(View view, MotionEvent event) {
+    State state = state(view); state.inputRevision++;
+    int action = event.getActionMasked(), pointer = event.getPointerId(event.getActionIndex());
+    if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN) state.pointers.add(pointer);
+    else if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_POINTER_UP) state.pointers.remove(pointer);
+    else if (action == MotionEvent.ACTION_CANCEL) state.pointers.clear();
+  }
   static void register(CUIKeyboardScope scope) { state(scope).scopes.put(scope, Boolean.TRUE); }
   static void unregister(View root, CUIKeyboardScope scope) { State value = states.get(root); if (value != null) value.scopes.remove(scope); }
   static List<CUIKeyboardScope> scopes(View view) { return new ArrayList<>(state(view).scopes.keySet()); }

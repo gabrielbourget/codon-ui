@@ -12,6 +12,7 @@ import {
 import type { View } from "react-native"
 
 import type { TNativeButtonProps } from "../../components/Button/types"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
 
@@ -56,11 +57,20 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
   const isDisabled = props.isDisabled ?? false
   const scope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
+  const input = useNativeKeyScope()
   const triggerRef = useRef<View>(null)
   const id = useId()
   const live = useRef(false)
-  const current = useRef({ isOpen, isDisabled, controlled, scope, windowActive, onOpenChange: props.onOpenChange })
-  current.current = { isOpen, isDisabled, controlled, scope, windowActive, onOpenChange: props.onOpenChange }
+  const current = useRef({
+    isOpen,
+    isDisabled,
+    controlled,
+    scope,
+    windowActive,
+    input,
+    onOpenChange: props.onOpenChange,
+  })
+  current.current = { isOpen, isDisabled, controlled, scope, windowActive, input, onOpenChange: props.onOpenChange }
   useInsertionEffect(() => {
     live.current = true
     return () => {
@@ -87,7 +97,13 @@ export const NativeDialogTrigger = (props: TNativeDialogTriggerProps) => {
       accessibilityState: { expanded: isOpen },
       onPress: () => {
         const latest = current.current
-        if (latest.isDisabled || latest.scope?.canAct() === false || latest.windowActive?.() === false) return
+        if (
+          latest.isDisabled ||
+          latest.scope?.canAct() === false ||
+          latest.windowActive?.() === false ||
+          latest.input?.isWindowActive() === false
+        )
+          return
         request(!latest.isOpen)
       },
     },

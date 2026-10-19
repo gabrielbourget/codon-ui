@@ -77,6 +77,9 @@ export interface NativeProps extends ViewProps {
   nativeDescriptionTag?: WithDefault<Int32, 0>
   nativeDescriptionLabel?: WithDefault<string, "Description">
   nativeDetailsLabel?: WithDefault<string, "Details">
+  nativeScrollAnchorTag?: WithDefault<Int32, 0>
+  nativeScrollAnchorKey?: string
+  nativeScrollAnchorRevision?: string
   onNativeAccessibilitySnapshot?: DirectEventHandler<NativeAccessibilityData>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
@@ -87,11 +90,12 @@ type TNativeComponent = HostComponent<NativeProps>
 interface NativeCommands {
   inspectAccessibility: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
+  requestContainerFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardBlur: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ["requestKeyboardFocus", "requestKeyboardBlur", "inspectAccessibility"],
+  supportedCommands: ["requestKeyboardFocus", "requestContainerFocus", "requestKeyboardBlur", "inspectAccessibility"],
 })
 
 export default codegenNativeComponent<NativeProps>("CUIFocusView") as TNativeComponent

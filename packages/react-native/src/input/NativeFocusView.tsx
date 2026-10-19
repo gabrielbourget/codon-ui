@@ -46,6 +46,9 @@ export const NativeFocusHost = forwardRef<
     nativeDescriptionTag?: number
     nativeDescriptionLabel?: string
     nativeDetailsLabel?: string
+    nativeScrollAnchorTag?: number
+    nativeScrollAnchorKey?: string
+    nativeScrollAnchorRevision?: string
     onBubbledFocus?: ViewProps["onFocus"]
     onBubbledBlur?: ViewProps["onBlur"]
     onNativeAccessibilitySnapshot?: (event: NativeSyntheticEvent<NativeAccessibilityData>) => void
@@ -123,6 +126,7 @@ export const NativeFocusHost = forwardRef<
             canFocus,
             window: focusWindow,
             focus: () => Commands.requestKeyboardFocus(target, ownerId),
+            focusContainer: () => Commands.requestContainerFocus(target, ownerId),
             blur: () => Commands.requestKeyboardBlur(target, ownerId),
           })
         : undefined

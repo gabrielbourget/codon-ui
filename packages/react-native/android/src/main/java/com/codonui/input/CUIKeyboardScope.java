@@ -171,10 +171,15 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
 
   @Override public boolean dispatchTouchEvent(MotionEvent event) {
+    CUIInputWindow.pointerEvent(this, event);
     if (event.getActionMasked() == MotionEvent.ACTION_DOWN && hasWindowFocus()) recordModality("pointer", event.getEventTime());
     CUIInputWindow.beginPointer(this);
     try { return super.dispatchTouchEvent(event); }
     finally { CUIInputWindow.endPointer(this); }
+  }
+  @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);
+    return super.dispatchGenericMotionEvent(event);
   }
 
   private WritableMap baseData() {
@@ -210,7 +215,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
       hold.retired = true;
     }
   }
-  @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
+  @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);
     if (boundRoot != null) { retireHeld(); held.clear(); windowEpoch++; publishStatus(); }

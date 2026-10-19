@@ -6,6 +6,7 @@
 @property(nonatomic, copy) NSString *modality;
 @property(nonatomic, strong) NSHashTable<UIView *> *scopes;
 @property(nonatomic, assign) NSInteger policyOrder;
+@property(nonatomic, assign) NSUInteger inputRevision;
 @end
 @implementation CUIWindowInputState
 @end
@@ -26,8 +27,16 @@ static CUIWindowInputState *CUIWindowInput(UIWindow *window)
 }
 
 NSString *CUIInputWindowIdentity(UIWindow *window) { return CUIWindowInput(window).identity ?: @""; }
+static UIView *CUIFindInputFocus(UIView *root, BOOL responder) {
+  if (responder ? root.isFirstResponder : root.isFocused) return root;
+  for (UIView *child in root.subviews) { UIView *target = CUIFindInputFocus(child, responder); if (target) return target; }
+  return nil;
+}
+UIView *CUIInputFocusedView(UIView *root) { return CUIFindInputFocus(root, YES) ?: CUIFindInputFocus(root, NO); }
 NSString *CUIInputWindowModality(UIWindow *window) { return CUIWindowInput(window).modality ?: @"unknown"; }
-void CUIRecordWindowModality(UIWindow *window, NSString *modality) { CUIWindowInput(window).modality = modality; }
+NSUInteger CUIInputWindowRevision(UIWindow *window) { return CUIWindowInput(window).inputRevision; }
+void CUIAdvanceInputRevision(UIWindow *window) { CUIWindowInputState *state = CUIWindowInput(window); state.inputRevision++; }
+void CUIRecordWindowModality(UIWindow *window, NSString *modality) { CUIWindowInput(window).modality = modality; CUIAdvanceInputRevision(window); }
 void CUIRegisterInputScope(UIWindow *window, UIView *scope) { [CUIWindowInput(window).scopes addObject:scope]; }
 void CUIUnregisterInputScope(UIWindow *window, UIView *scope) { [CUIWindowInput(window).scopes removeObject:scope]; }
 NSArray<UIView *> *CUIInputScopes(UIWindow *window) { return CUIWindowInput(window).scopes.allObjects ?: @[]; }

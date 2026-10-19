@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -27,6 +27,21 @@ The owned host now resolves inherited labelled-by IDs against live targets in it
 onKeyDown/onKeyUp receive original native synthetic keyboard events with logical key, platform code/characters, phase/repeat/cancellation, separate Shift/Alt/Control/Meta/Caps, raw modifiers and timestamp. TNativeInteractionEvent is the touch-or-keyboard union. TNativePressEvent additionally admits native activation; narrow kind="keyboard" versus kind="activation", then read touch-only coordinates only in the remaining touch arm. Activation contains actual target/source and observedAt (native callback-observation time), without fictitious touch coordinates or a hardware timestamp. Native default capture uses private declarative policy before JS delivery; later JS preventDefault cannot retroactively cancel a platform default.
 
 This package now includes native codegen/autolinking inputs and needs a consumer native rebuild. Raw source/type and compiler checks do not prove installed behavior. The private per-window key scope now occupies the floating host’s existing native root and acknowledges actual window epochs and policy revisions before JS action admission. Native target/modifier/editable/composition policies, Escape child/shield routing and physical-window deactivation guards are implemented at source tier. NativeFocusView focus events include observed isFocusVisible metadata; a generic focus event alone does not establish keyboard-visible focus. The updated scope still requires matching consumer/native products and installed proof. Further owned-control migration and installed native hover/description/viewport acceptance remain open. Public Tooltip/HoverPopover ignore touch entry, with no automatic tap or long-press trigger. An explicit tap-triggered popover is a separate ClickPopover contract, also still under construction.
+
+## ClickPopover
+
+Mount NativeFloatingLayerHost at the native window root. NativeDialogTrigger exposes an explicit trigger render function; attach its original triggerProps/ref to a Button or supported native target. ClickPopover also accepts a real triggerRef for independent controlled ownership. Controlled isOpen/onOpenChange waits for owner echo, including declined close requests. Root, dialog and arrow each retain separate native style slots; childIsDialog=false keeps authored content directly under the root.
+
+```tsx
+import { Button, ClickPopover, NativeDialogTrigger } from "@codon-ui/react-native"
+;<NativeDialogTrigger trigger={(state) => <Button {...state.triggerProps}>Edit</Button>}>
+  <ClickPopover showOverlayArrow accessibilityLabel="Edit details">
+    Editable content
+  </ClickPopover>
+</NativeDialogTrigger>
+```
+
+Use scrollRef with the actual core ScrollView and initialFocusRef/restoreFocusRef with live NativeFocusView or core TextInput targets. Default entry preserves an already focused descendant. Native repositioning retains the focused descendant’s selected viewport edge while genuine input/focus/scroll/ref/window changes retire stale restoration. These operations preserve caller refs, scroll events and controlled values. Ordinary nonmodal outside touch remains interactive; outside focus requests closure and keeps the new focus. SubmenuTrigger retains its distinct outside-press, ancestor-scroll and pointer-entry policy. slot=null opts out of the nearest trigger context. Installed portal ordering, focus, keyboard resizing, accessibility and exact native rendering remain acceptance gates.
 
 ## Tooltip And HoverPopover
 
@@ -563,7 +578,7 @@ The maintained-scene iOS rapid-entry finding is resolved for the recorded instal
 
 ## Modal, AlertDialog And Window Ownership
 
-NativeFloatingLayerHost provides an explicit full-size floating-layer container per native window. Mount it around the application surface; its ref is the actual core View, its onLayout receives the original native event and its style supports native View styles. It uses box-none hit handling and unique named native portal hosts. Modal/AlertDialog/Select windows own private local hosts automatically. NativeOverlayProvider still coordinates the existing window chain independently. The current host foundation does not yet export ClickPopover or NativeDialogTrigger.
+NativeFloatingLayerHost provides an explicit full-size floating-layer container per native window. Mount it around the application surface; its ref is the actual core View, its onLayout receives the original native event and its style supports native View styles. It uses box-none hit handling and unique named native portal hosts. Modal/AlertDialog/Select windows own private local hosts automatically. NativeOverlayProvider still coordinates the existing window chain independently. ClickPopover and NativeDialogTrigger are public source exports; their native rendering, focus, timing and accessibility acceptance remain open.
 
 Host style owns the outer full-size container; put content layout in the child surface's own View. A private background surface lets modal floating layers isolate touches/accessibility without hiding their reparented portal content, while nonmodal layers retain background interaction. System Back and accessibility escape request dismissal of the eligible floating child first and keep window onShow/onDismiss barriers intact. Geometry readiness waits for the actual native window to become active. Source tests verify these policies; actual native routing, reparenting, clipping, accessibility and focus still require installed acceptance with matching identities.
 

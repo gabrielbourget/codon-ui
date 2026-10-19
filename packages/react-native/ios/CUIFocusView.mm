@@ -2,6 +2,7 @@
 #import "CUIAccessibilityReferences.h"
 #import "CUIInputWindow.h"
 #import "CUIKeyboardScope.h"
+#import "CUIFloatingScrollAnchor.h"
 #import <react/featureflags/ReactNativeFeatureFlags.h>
 
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -31,6 +32,7 @@ using namespace facebook::react;
   NSString *_nativeDescriptionLabel;
   NSString *_nativeDetailsLabel;
   NSArray<AXCustomContent *> *_callerAccessibilityContent;
+  CUIFloatingScrollAnchor *_scrollAnchor;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -51,6 +53,7 @@ using namespace facebook::react;
     _nativeDescriptionLabel = @"Description";
     _nativeDetailsLabel = @"Details";
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
+    _scrollAnchor = [[CUIFloatingScrollAnchor alloc] initWithRoot:self];
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
@@ -147,6 +150,7 @@ using namespace facebook::react;
 {
   if (_focusAcknowledged == focused) return;
   _focusAcknowledged = focused;
+  CUIAdvanceInputRevision(self.window);
   if (!focused) [self cancelHeldKeys];
   const auto origin = _origin;
   if (!focused) _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
@@ -212,6 +216,13 @@ using namespace facebook::react;
 - (void)requestKeyboardBlur:(NSString *)ownerId
 {
   if ([_ownerId isEqualToString:ownerId]) [self resignFirstResponder];
+}
+- (void)requestContainerFocus:(NSString *)ownerId
+{
+  if (![_ownerId isEqualToString:ownerId]) return;
+  UIView *focused = CUIInputFocusedView(self.window);
+  if (focused && [focused isDescendantOfView:self]) return;
+  [self requestKeyboardFocus:ownerId];
 }
 
 - (void)handleCommand:(const NSString *)commandName args:(const NSArray *)args
@@ -311,6 +322,7 @@ using namespace facebook::react;
 - (void)applicationWillResignActive:(NSNotification *)notification
 {
   [self cancelHeldKeys];
+  [_scrollAnchor invalidate];
 }
 
 - (void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
@@ -323,6 +335,7 @@ using namespace facebook::react;
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
   const auto &next = *std::static_pointer_cast<const CUIFocusViewProps>(props);
+  [_scrollAnchor prepareTag:next.nativeScrollAnchorTag key:[NSString stringWithUTF8String:next.nativeScrollAnchorKey.c_str()] revision:[NSString stringWithUTF8String:next.nativeScrollAnchorRevision.c_str()]];
   NSString *owner = [NSString stringWithUTF8String:next.ownerId.c_str()];
   NSMutableSet *capture = [NSMutableSet set];
   for (const auto &key : next.capturedKeys) [capture addObject:[NSString stringWithUTF8String:key.c_str()]];
@@ -352,6 +365,7 @@ using namespace facebook::react;
 {
   [super didMoveToWindow];
   if (!self.window) {
+    [_scrollAnchor invalidate];
     [self cancelHeldKeys];
     [self emitFocus:NO];
     _origin = CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin::Unknown;
@@ -360,6 +374,7 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
+  [_scrollAnchor invalidate];
   [self cancelHeldKeys];
   [self resignFirstResponder];
   _ownerId = @"";
@@ -381,6 +396,7 @@ using namespace facebook::react;
 
 - (void)dealloc
 {
+  [_scrollAnchor invalidate];
   [NSNotificationCenter.defaultCenter removeObserver:self];
 }
 

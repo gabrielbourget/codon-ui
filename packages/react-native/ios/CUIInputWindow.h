@@ -3,6 +3,9 @@
 NSString *CUIInputWindowIdentity(UIWindow *window);
 NSString *CUIInputWindowModality(UIWindow *window);
 void CUIRecordWindowModality(UIWindow *window, NSString *modality);
+NSUInteger CUIInputWindowRevision(UIWindow *window);
+void CUIAdvanceInputRevision(UIWindow *window);
+UIView *CUIInputFocusedView(UIView *root);
 NSString *CUIInputKeyName(UIKey *key);
 NSString *CUIInputKeyToken(UIKey *key);
 void CUIRegisterInputScope(UIWindow *window, UIView *scope);

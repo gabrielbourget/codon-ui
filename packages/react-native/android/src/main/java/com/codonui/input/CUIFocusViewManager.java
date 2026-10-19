@@ -24,7 +24,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -53,6 +53,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     // Keep native activation independent of keyboard focus eligibility.
     if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
     ((CUIFocusView) view).synchronizeKeyboardFocusability();
+    ((CUIFocusView) view).prepareScrollAnchor();
   }
 
   @Override @ReactProp(name = "capturedKeys")
@@ -79,13 +80,20 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   public void setNativeDescriptionLabel(ReactViewGroup view, String value) { /* Android exposes a typed tooltip field without a caption. */ }
   @Override @ReactProp(name = "nativeDetailsLabel")
   public void setNativeDetailsLabel(ReactViewGroup view, String value) { /* Android exposes a typed supplemental description without a caption. */ }
+  @Override @ReactProp(name = "nativeScrollAnchorTag", defaultInt = 0)
+  public void setNativeScrollAnchorTag(ReactViewGroup view, int value) { ((CUIFocusView) view).setNativeScrollAnchorTag(value); }
+  @Override @ReactProp(name = "nativeScrollAnchorKey")
+  public void setNativeScrollAnchorKey(ReactViewGroup view, String value) { ((CUIFocusView) view).setNativeScrollAnchorKey(value); }
+  @Override @ReactProp(name = "nativeScrollAnchorRevision")
+  public void setNativeScrollAnchorRevision(ReactViewGroup view, String value) { ((CUIFocusView) view).setNativeScrollAnchorRevision(value); }
   @Override public void inspectAccessibility(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).inspectAccessibility(ownerId); }
 
   @Override public void requestKeyboardFocus(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardFocus(ownerId); }
+  @Override public void requestContainerFocus(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestContainerFocus(ownerId); }
   @Override public void requestKeyboardBlur(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardBlur(ownerId); }
 
   @Override public void receiveCommand(ReactViewGroup view, String command, ReadableArray args) {
-    if ("requestKeyboardFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command)) delegate.receiveCommand(view, command, args);
+    if ("requestKeyboardFocus".equals(command) || "requestContainerFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command)) delegate.receiveCommand(view, command, args);
     else super.receiveCommand(view, command, args);
   }
 

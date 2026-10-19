@@ -38,9 +38,14 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private List<String> nativeDescribedBy = new ArrayList<>();
   private List<String> nativeDetailsBy = new ArrayList<>();
   private int nativeDescriptionTag;
+  private final CUIFloatingScrollAnchor scrollAnchor;
+  private int nativeScrollAnchorTag;
+  private String nativeScrollAnchorKey = "";
+  private String nativeScrollAnchorRevision = "";
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
+    scrollAnchor = new CUIFloatingScrollAnchor(this);
     setFocusable(true);
     setFocusableInTouchMode(true);
   }
@@ -49,6 +54,18 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void setNativeDescribedBy(List<String> ids) { nativeDescribedBy = ids; }
   void setNativeDetailsBy(List<String> ids) { nativeDetailsBy = ids; }
   void setNativeDescriptionTag(int tag) { nativeDescriptionTag = tag; }
+  void setNativeScrollAnchorTag(int tag) { nativeScrollAnchorTag = tag; }
+  void setNativeScrollAnchorKey(String key) { nativeScrollAnchorKey = key; }
+  void setNativeScrollAnchorRevision(String revision) { nativeScrollAnchorRevision = revision; }
+  void prepareScrollAnchor() { scrollAnchor.prepare(nativeScrollAnchorTag, nativeScrollAnchorKey, nativeScrollAnchorRevision); }
+  void requestContainerFocus(String owner) {
+    if (!ownerId.equals(owner)) return;
+    for (View view = getRootView().findFocus(); view != null;) {
+      if (view == this) return;
+      ViewParent parent = view.getParent(); view = parent instanceof View ? (View) parent : null;
+    }
+    requestKeyboardFocus(owner);
+  }
   void setNativeNavigation(boolean enabled) { nativeNavigation = enabled; }
   void setNativeNavigationLabel(String label) { nativeNavigationLabel = label == null ? "Navigation" : label; }
 
@@ -278,6 +295,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    scrollAnchor.invalidate();
     cancelHeldKeys();
     clearFocus();
     origin = "unknown";
@@ -286,6 +304,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   public void onWindowFocusChanged(boolean focused) {
+    if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();
     super.onWindowFocusChanged(focused);
   }
