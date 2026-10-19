@@ -6,6 +6,7 @@ import { Button, FormField, Input, Text, useNativeTheme } from "@codon-ui/react-
 const LABELS = ["Email", "Adresse courriel pour recevoir les renseignements demandés", ""] as const
 const MESSAGE_MODES = ["none", "all", "empty"] as const
 const RIGHT_MODES = ["actions", "zero", "none"] as const
+const ROOT_RELATIONSHIPS = ["none", "references", "empty"] as const
 type TFrame = { width: number; height: number }
 
 const FieldHelp = ({ onAction }: { onAction: () => void }) => {
@@ -39,6 +40,7 @@ export const FormFieldScene = () => {
   const [zero, setZero] = useState(false)
   const [target, setTarget] = useState(true)
   const [labelRelationship, setLabelRelationship] = useState(false)
+  const [rootRelationshipIndex, setRootRelationshipIndex] = useState(0)
   const [disabled, setDisabled] = useState(false)
   const [readOnly, setReadOnly] = useState(false)
   const [frames, setFrames] = useState<Record<string, TFrame>>({})
@@ -47,6 +49,7 @@ export const FormFieldScene = () => {
   const messages = MESSAGE_MODES[messageIndex]
   const right = RIGHT_MODES[rightIndex]
   const label = LABELS[labelIndex]
+  const rootRelationships = ROOT_RELATIONSHIPS[rootRelationshipIndex]
   const recordFrame =
     (name: string) =>
     ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
@@ -82,11 +85,24 @@ export const FormFieldScene = () => {
         <Button onPress={() => setLabelRelationship((current) => !current)}>
           Toggle field native label relationship
         </Button>
+        <Button onPress={() => setRootRelationshipIndex((current) => (current + 1) % ROOT_RELATIONSHIPS.length)}>
+          Next field root relationships
+        </Button>
         <Button onPress={() => setDisabled((current) => !current)}>Toggle field editor disabled</Button>
         <Button onPress={() => setReadOnly((current) => !current)}>Toggle field editor read only</Button>
       </View>
       <FormField
         testID="field-example"
+        ariaLabelledBy={
+          rootRelationships === "references" ? "field-root-name" : rootRelationships === "empty" ? "" : undefined
+        }
+        ariaDescribedBy={
+          rootRelationships === "references" ? "field-root-description" : rootRelationships === "empty" ? "" : undefined
+        }
+        ariaDetails={
+          rootRelationships === "references" ? "field-root-details" : rootRelationships === "empty" ? "" : undefined
+        }
+        labels={{ descriptionLabel: "Description du champ", detailsLabel: "Renseignements" }}
         label={label}
         labelID="field-example-label"
         labelFor={target ? editor : undefined}
@@ -147,13 +163,18 @@ export const FormFieldScene = () => {
           width="100%"
         />
       </FormField>
+      <Text nativeID="field-root-name">Field context / contexte du champ: {label || "Unlabelled / sans titre"}</Text>
+      {description ? (
+        <Text nativeID="field-root-description">Address guidance / renseignements sur l’adresse</Text>
+      ) : null}
+      <Text nativeID="field-root-details">Current validation / validation courante: {messages}</Text>
       <Text testID="field-state">
         Owner: {JSON.stringify(value)}. Request: {request === undefined ? "none" : JSON.stringify(request)}. Requests:{" "}
         {requests}. Veto: {String(veto)}. Messages: {messages}. Right: {right}. Label: {labelIndex}. Required:{" "}
         {String(required)}. Description: {String(description)}. Raised: {String(raised)}. Custom: {String(custom)}.
         Zero: {String(zero)}. Focus target: {String(target)}. Native label relationship: {String(labelRelationship)}.
-        Disabled: {String(disabled)}. Read only: {String(readOnly)}. Focus events: {focusEvents}. Help actions:{" "}
-        {helpActions}.
+        Root relationships: {rootRelationships}. Disabled: {String(disabled)}. Read only: {String(readOnly)}. Focus
+        events: {focusEvents}. Help actions: {helpActions}.
       </Text>
       <Text testID="field-frames">
         Last native frames:{" "}

@@ -469,15 +469,6 @@ it("rejects DOM label target IDs rather than silently failing native label activ
   )
 })
 
-it.each(["ariaDescribedBy", "ariaDetails", "aria-describedby", "aria-details"])(
-  "rejects unimplemented browser ID relationship %s rather than announcing an ID as hint text",
-  async (field) => {
-    await expect(render(<FormField {...({ [field]: "description-id" } as FormFieldProps)} />)).rejects.toThrow(
-      /ID relationships are not implemented/,
-    )
-  },
-)
-
 it("allows a normal native label user press to request focus once", async () => {
   jest.useFakeTimers()
   try {

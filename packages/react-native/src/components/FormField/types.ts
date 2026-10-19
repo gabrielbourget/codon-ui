@@ -27,9 +27,10 @@ export type TNativeFormFieldProps = Omit<ViewProps, "children" | "style"> & {
   customDescriptionStyles?: StyleProp<TextStyle>
   ariaLabel?: string
   ariaLabelledBy?: string
-  ariaDescribedBy?: never
-  ariaDetails?: never
-  "aria-describedby"?: never
-  "aria-details"?: never
+  ariaDescribedBy?: string
+  ariaDetails?: string
+  "aria-describedby"?: string
+  "aria-details"?: string
+  labels?: { descriptionLabel?: string; detailsLabel?: string }
   "data-testid"?: string
 }

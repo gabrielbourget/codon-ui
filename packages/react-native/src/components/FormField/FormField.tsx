@@ -1,6 +1,8 @@
 import { forwardRef, useEffect, useRef } from "react"
 import { Text as NativeText, View } from "react-native"
 
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
@@ -38,23 +40,21 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
     accessibilityLabelledBy,
     "aria-labelledby": nativeLabelledBy,
     ariaLabelledBy,
-    ariaDescribedBy: _ariaDescribedBy,
-    ariaDetails: _ariaDetails,
-    "aria-describedby": _nativeDescribedBy,
-    "aria-details": _nativeDetails,
+    ariaDescribedBy,
+    ariaDetails,
+    "aria-describedby": nativeDescribedBy,
+    "aria-details": nativeDetails,
+    labels,
+    onFocus,
+    onBlur,
+    focusable,
+    tabIndex,
     testID,
     "data-testid": aliasID,
     ...rootProps
   } = props
   if (labelFor !== undefined && (labelFor === null || typeof labelFor !== "object" || !("current" in labelFor)))
     throw new TypeError("FormField: labelFor must be a native focus ref")
-  if (
-    props.ariaDescribedBy !== undefined ||
-    props.ariaDetails !== undefined ||
-    props["aria-describedby"] !== undefined ||
-    props["aria-details"] !== undefined
-  )
-    throw new TypeError("FormField: browser description/details ID relationships are not implemented")
   const theme = useNativeTheme()
   const context = useNativeContentContext()
   const styles = getNativeFormFieldStyles(theme, props)
@@ -85,9 +85,18 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
         isButton: context?.isButton ?? false,
       }}
     >
-      <View
+      <NativeFocusHost
         {...rootProps}
         ref={ref}
+        focusable={tabIndex === undefined ? (focusable ?? false) : !tabIndex}
+        tabIndex={tabIndex}
+        onBubbledFocus={onFocus ?? undefined}
+        onBubbledBlur={onBlur ?? undefined}
+        nativeLabelledBy={nativeAccessibilityIDs(accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
+        nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
+        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+        nativeDescriptionLabel={labels?.descriptionLabel}
+        nativeDetailsLabel={labels?.detailsLabel}
         accessibilityLabel={accessibilityLabel ?? nativeLabel ?? ariaLabel}
         accessibilityLabelledBy={accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
         testID={testID ?? aliasID ?? "form-field"}
@@ -141,7 +150,7 @@ export const FormField = forwardRef<TNativeFormFieldRef, TNativeFormFieldProps>(
             {description}
           </Text>
         ) : null}
-      </View>
+      </NativeFocusHost>
     </NativeContentContext.Provider>
   )
 })
