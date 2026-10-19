@@ -4,6 +4,8 @@
 #import "CUIKeyboardScope.h"
 #import "CUIFloatingScrollAnchor.h"
 #import "CUIMotionColorSampler.h"
+#import "CUIMotionGeometryObserver.h"
+#import <React/RCTMountingTransactionObserving.h>
 #import <react/featureflags/ReactNativeFeatureFlags.h>
 
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -13,7 +15,7 @@
 
 using namespace facebook::react;
 
-@interface CUIFocusView () <RCTCUIFocusViewViewProtocol>
+@interface CUIFocusView () <RCTCUIFocusViewViewProtocol, RCTMountingTransactionObserving>
 @end
 
 @implementation CUIFocusView {
@@ -35,6 +37,7 @@ using namespace facebook::react;
   NSArray<AXCustomContent *> *_callerAccessibilityContent;
   CUIFloatingScrollAnchor *_scrollAnchor;
   CUIMotionColorSampler *_motionColors;
+  CUIMotionGeometryObserver *_motionGeometry;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -60,6 +63,7 @@ using namespace facebook::react;
     _motionColors = [[CUIMotionColorSampler alloc] initWithRoot:self emit:^(NSDictionary *data) {
       [weakSelf emitMotionColors:data];
     }];
+    _motionGeometry = [[CUIMotionGeometryObserver alloc] initWithRoot:self emit:^(NSDictionary *data) { [weakSelf emitMotionGeometry:data]; }];
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
@@ -117,6 +121,32 @@ using namespace facebook::react;
   value.detailsAvailable = detailsAvailable;
   value.observedAt = NSProcessInfo.processInfo.systemUptime * 1000;
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeAccessibilitySnapshot(value);
+}
+
+- (void)emitMotionGeometry:(NSDictionary *)data
+{
+  if (!_eventEmitter) return;
+  CUIFocusViewEventEmitter::OnNativeMotionGeometry value{};
+  value.ownerId = [data[@"ownerId"] UTF8String]; value.bindingId = [data[@"bindingId"] UTF8String]; value.target = [data[@"target"] intValue];
+  NSString *kind = data[@"kind"];
+  value.kind = [kind isEqual:@"mount-before"] ? CUIFocusViewEventEmitter::OnNativeMotionGeometryKind::MountBefore : [kind isEqual:@"mount-after"] ? CUIFocusViewEventEmitter::OnNativeMotionGeometryKind::MountAfter : [kind isEqual:@"frame"] ? CUIFocusViewEventEmitter::OnNativeMotionGeometryKind::Frame : [kind isEqual:@"detached"] ? CUIFocusViewEventEmitter::OnNativeMotionGeometryKind::Detached : CUIFocusViewEventEmitter::OnNativeMotionGeometryKind::Sample;
+  value.requestId = [data[@"requestId"] UTF8String]; value.windowId = [data[@"windowId"] UTF8String]; value.scopeOwnerId = [data[@"scopeOwnerId"] UTF8String];
+  value.epoch = [data[@"epoch"] doubleValue]; value.attachmentRevision = [data[@"attachmentRevision"] doubleValue]; value.geometryRevision = [data[@"geometryRevision"] doubleValue];
+  value.commitRevision = [data[@"commitRevision"] UTF8String]; value.transactionId = [data[@"transactionId"] UTF8String]; value.attached = [data[@"attached"] boolValue];
+  value.snapshot = [data[@"snapshot"] UTF8String]; value.error = [data[@"error"] UTF8String]; value.observedAt = [data[@"observedAt"] doubleValue];
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeMotionGeometry(value);
+}
+- (void)queryMotionGeometry:(NSString *)owner bindingId:(NSString *)binding requestId:(NSString *)requestId
+{
+  [_motionGeometry queryOwner:owner binding:binding requestId:requestId];
+}
+- (void)mountingTransactionWillMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
+{
+  [_motionGeometry captureKind:@"mount-before" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
+}
+- (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
+{
+  [_motionGeometry captureKind:@"mount-after" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
 }
 
 - (void)emitMotionColors:(NSDictionary *)data
@@ -407,6 +437,7 @@ using namespace facebook::react;
   _nativeDetailsLabel = [NSString stringWithUTF8String:next.nativeDetailsLabel.c_str()];
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
+  [_motionGeometry configureOwner:_ownerId binding:[NSString stringWithUTF8String:next.nativeMotionGeometryBinding.c_str()] revision:[NSString stringWithUTF8String:next.nativeMotionGeometryRevision.c_str()]];
   [_motionColors updateOwner:_ownerId enabled:next.nativeMotionColorObservation];
   [_motionColors synchronize];
 }
@@ -414,6 +445,7 @@ using namespace facebook::react;
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
+  [_motionGeometry windowChanged];
   [_motionColors synchronize];
   if (!self.window) {
     [_scrollAnchor invalidate];
@@ -425,6 +457,7 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
+  [_motionGeometry invalidate];
   [_motionColors invalidate];
   [_scrollAnchor invalidate];
   [self cancelHeldKeys];

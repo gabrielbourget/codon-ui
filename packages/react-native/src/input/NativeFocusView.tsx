@@ -16,6 +16,11 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../over
 import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
+import {
+  NativeMotionGeometryObserver,
+  nativeMotionGeometryHistory,
+  registerNativeMotionGeometryObserver,
+} from "./motionGeometry"
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
@@ -28,6 +33,7 @@ import FocusHost, {
 import type { TNativeKeyboardEvent, TNativeFocusViewProps, TNativeFocusViewRef } from "./types"
 
 export type TNativeActivationPacket = NativeSyntheticEvent<Omit<NativeActivationData, "kind"> & { kind: "activation" }>
+let motionGeometryBindings = 0
 const isActivationEvent = (event: NativeSyntheticEvent<NativeActivationData>): event is TNativeActivationPacket =>
   event.nativeEvent.kind === "activation" &&
   (event.nativeEvent.source === "android-click" || event.nativeEvent.source === "ios-accessibility-activate")
@@ -40,6 +46,8 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewProps & {
     nativePressable?: boolean
     nativeMotionColorObservation?: boolean
+    nativeMotionGeometryObservation?: boolean
+    nativeMotionGeometryRevision?: string
     nativeNavigation?: boolean
     nativeNavigationLabel?: string
     nativeLabelledBy?: readonly string[]
@@ -70,11 +78,14 @@ export const NativeFocusHost = forwardRef<
     onNativeActivation,
     onNativeAccessibilitySnapshot,
     nativeMotionColorObservation = false,
+    nativeMotionGeometryObservation = false,
+    nativeMotionGeometryRevision = "",
     onBubbledFocus,
     onBubbledBlur,
     ...rest
   } = props
   const ownerId = useId()
+  const [geometryBinding] = useState(() => `motion-geometry:${++motionGeometryBindings}`)
   const attached = useRef(false)
   const nativeTarget = useRef<ElementRef<typeof FocusHost> | null>(null)
   const observedFocusedTarget = useRef<{ target: ElementRef<typeof FocusHost>; window: string } | null>(null)
@@ -83,6 +94,8 @@ export const NativeFocusHost = forwardRef<
   const releaseInspector = useRef<(() => void) | undefined>(undefined)
   const motionColors = useRef<NativeMotionColorSampler | undefined>(undefined)
   const releaseMotionColors = useRef<(() => void) | undefined>(undefined)
+  const motionGeometry = useRef<NativeMotionGeometryObserver | undefined>(undefined)
+  const releaseMotionGeometry = useRef<(() => void) | undefined>(undefined)
   const releaseDescription = useRef<(() => void) | undefined>(undefined)
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
@@ -117,11 +130,17 @@ export const NativeFocusHost = forwardRef<
   }, [canFocus, focusWindow])
   useLayoutEffect(() => {
     motionColors.current?.refreshScope()
+    motionGeometry.current?.refreshScope()
   })
   useLayoutEffect(
     () =>
-      nativeMotionColorObservation ? inputScope?.subscribe(() => motionColors.current?.refreshScope()) : undefined,
-    [inputScope, nativeMotionColorObservation],
+      nativeMotionColorObservation || nativeMotionGeometryObservation
+        ? inputScope?.subscribe(() => {
+            motionColors.current?.refreshScope()
+            motionGeometry.current?.refreshScope()
+          })
+        : undefined,
+    [inputScope, nativeMotionColorObservation, nativeMotionGeometryObservation],
   )
   useLayoutEffect(retireObservation)
   useLayoutEffect(() => inputScope?.subscribe(retireObservation), [inputScope, retireObservation])
@@ -135,6 +154,9 @@ export const NativeFocusHost = forwardRef<
       releaseMotionColors.current?.()
       releaseMotionColors.current = undefined
       motionColors.current = undefined
+      releaseMotionGeometry.current?.()
+      releaseMotionGeometry.current = undefined
+      motionGeometry.current = undefined
       releaseForwardedRef.current?.()
       releaseForwardedRef.current = undefined
       release.current = target
@@ -168,6 +190,22 @@ export const NativeFocusHost = forwardRef<
         motionColors.current = sampler
         releaseMotionColors.current = registerNativeMotionColorSampler(target, sampler)
       }
+      if (target && nativeMotionGeometryObservation) {
+        const observer = new NativeMotionGeometryObserver({
+          ownerId,
+          bindingId: geometryBinding,
+          target: () => findNodeHandle(target),
+          scope: () => {
+            const scope = focusEligibility.current.inputScope
+            const session = scope?.acknowledgedSession()
+            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
+          },
+          dispatch: (requestId) => Commands.queryMotionGeometry(target, ownerId, geometryBinding, requestId),
+          ...nativeMotionGeometryHistory(target),
+        })
+        motionGeometry.current = observer
+        releaseMotionGeometry.current = registerNativeMotionGeometryObserver(target, observer)
+      }
       if (typeof forwardedRef === "function") {
         if (target) {
           const cleanup = forwardedRef(target)
@@ -175,7 +213,15 @@ export const NativeFocusHost = forwardRef<
         }
       } else if (forwardedRef) forwardedRef.current = target
     },
-    [forwardedRef, ownerId, canFocus, focusWindow, nativeMotionColorObservation],
+    [
+      forwardedRef,
+      ownerId,
+      canFocus,
+      focusWindow,
+      nativeMotionColorObservation,
+      nativeMotionGeometryObservation,
+      geometryBinding,
+    ],
   )
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
@@ -189,6 +235,15 @@ export const NativeFocusHost = forwardRef<
         ref={setRef}
         ownerId={ownerId}
         nativeMotionColorObservation={nativeMotionColorObservation}
+        nativeMotionGeometryBinding={nativeMotionGeometryObservation ? geometryBinding : ""}
+        nativeMotionGeometryRevision={nativeMotionGeometryRevision}
+        onNativeMotionGeometry={
+          nativeMotionGeometryObservation
+            ? (event) => {
+                if (attached.current) motionGeometry.current?.receive(event.nativeEvent)
+              }
+            : undefined
+        }
         onNativeMotionColors={
           nativeMotionColorObservation
             ? (event) => {

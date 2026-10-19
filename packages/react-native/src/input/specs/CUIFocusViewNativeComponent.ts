@@ -70,6 +70,25 @@ export type NativeMotionColors = Readonly<{
   observedAt: Double
 }>
 
+export type NativeMotionGeometry = Readonly<{
+  ownerId: string
+  bindingId: string
+  target: Int32
+  kind: "sample" | "mount-before" | "mount-after" | "frame" | "detached"
+  requestId: string
+  windowId: string
+  scopeOwnerId: string
+  epoch: Double
+  attachmentRevision: Double
+  geometryRevision: Double
+  commitRevision: string
+  transactionId: string
+  attached: boolean
+  snapshot: string
+  error: string
+  observedAt: Double
+}>
+
 export type NativeFocusData = Readonly<{
   ownerId: string
   target: Int32
@@ -83,6 +102,8 @@ export interface NativeProps extends ViewProps {
   ownerId: string
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
+  nativeMotionGeometryBinding?: string
+  nativeMotionGeometryRevision?: string
   nativeMotionColorObservation?: WithDefault<boolean, false>
   nativeNavigation?: WithDefault<boolean, false>
   nativeNavigationLabel?: WithDefault<string, "Navigation">
@@ -97,6 +118,7 @@ export interface NativeProps extends ViewProps {
   nativeScrollAnchorKey?: string
   nativeScrollAnchorRevision?: string
   onNativeAccessibilitySnapshot?: DirectEventHandler<NativeAccessibilityData>
+  onNativeMotionGeometry?: DirectEventHandler<NativeMotionGeometry>
   onNativeMotionColors?: DirectEventHandler<NativeMotionColors>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
@@ -105,6 +127,12 @@ export interface NativeProps extends ViewProps {
 
 type TNativeComponent = HostComponent<NativeProps>
 interface NativeCommands {
+  queryMotionGeometry: (
+    viewRef: React.ElementRef<TNativeComponent>,
+    ownerId: string,
+    bindingId: string,
+    requestId: string,
+  ) => void
   sampleMotionColors: (
     viewRef: React.ElementRef<TNativeComponent>,
     ownerId: string,
@@ -124,6 +152,7 @@ export const Commands = codegenNativeCommands<NativeCommands>({
     "requestKeyboardBlur",
     "inspectAccessibility",
     "sampleMotionColors",
+    "queryMotionGeometry",
   ],
 })
 

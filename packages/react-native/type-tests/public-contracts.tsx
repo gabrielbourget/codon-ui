@@ -3,6 +3,7 @@ import type { Text as RNText, View } from "react-native"
 
 import {
   Button,
+  NativeFocusView,
   NativeThemeProvider,
   Text,
   useNativeTheme,
@@ -176,3 +177,10 @@ export type TPrivateNativeColorSampler = TPublicNativeExports["sampleNativeMotio
 export type TPrivateNativeValueAnimation = TPublicNativeExports["NativeValueAnimation"]
 // @ts-expect-error Native keyframe providers remain private implementation contracts.
 export type TPrivateNativeValueContext = TPublicNativeExports["createNativeMotionValueContext"]
+
+// @ts-expect-error Actual geometry queries remain private until the complete native motion renderer is delivered.
+export type TPrivateNativeGeometry = TPublicNativeExports["readNativeMotionGeometry"]
+// @ts-expect-error Motion mount observers do not widen the public input API.
+export type TPrivateNativeMountObserver = TPublicNativeExports["observeNativeMotionMountPairs"]
+// @ts-expect-error Native geometry opt-in is private to its actual owned motion host.
+export const InvalidPublicGeometryObservation = <NativeFocusView nativeMotionGeometryObservation />
