@@ -226,7 +226,7 @@ it("keeps scroll closure live while positioning is frozen and retires a replaced
   const result = await render(f.node({ shouldUpdatePosition: false, onAncestorScroll: close }))
   await f.ready()
   await observeViewport({ x: 0, y: 0, width: 300, height: 400 })
-  await observeViewport({ x: 0, y: 0, width: 300, height: 100 }, 1)
+  await observeViewport({ x: 0, y: 0, width: 300, height: 400 }, 1)
   expect(close).toHaveBeenCalledTimes(1)
   expect(f.snapshot().position?.hostFrame.height).toBe(80)
   const props = screen.getByTestId("host").props
@@ -248,4 +248,33 @@ it("keeps scroll closure live while positioning is frozen and retires a replaced
   await result.unmount()
   await act(() => props.onNativeFloatingObservation({ nativeEvent: retired }))
   expect(close).toHaveBeenCalledTimes(1)
+})
+
+it("drops keyboard-resize scroll requests during the canonical500ms grace, then closes only on a later current scroll", async () => {
+  jest.useFakeTimers({ doNotFake: ["requestAnimationFrame", "cancelAnimationFrame"] })
+  try {
+    const f = setup(),
+      close = jest.fn()
+    await render(f.node({ onAncestorScroll: close }))
+    await f.ready()
+    await observeViewport({ x: 0, y: 0, width: 300, height: 400 })
+    await observeViewport({ x: 0, y: 0, width: 300, height: 200 }, 1)
+    expect(close).not.toHaveBeenCalled()
+    await act(() => jest.advanceTimersByTime(499))
+    await observeViewport({ x: 0, y: 0, width: 300, height: 200 }, 2)
+    expect(close).not.toHaveBeenCalled()
+    await act(() => jest.advanceTimersByTime(1))
+    await observeViewport({ x: 0, y: 0, width: 300, height: 200 }, 3)
+    expect(close).toHaveBeenCalledTimes(1)
+    await act(() => jest.advanceTimersByTime(500))
+    await observeViewport({ x: 0, y: 0, width: 300, height: 400 }, 3)
+    await act(() => jest.advanceTimersByTime(499))
+    await observeViewport({ x: 0, y: 0, width: 300, height: 400 }, 4)
+    expect(close).toHaveBeenCalledTimes(1)
+    await act(() => jest.advanceTimersByTime(1))
+    await observeViewport({ x: 0, y: 0, width: 300, height: 400 }, 5)
+    expect(close).toHaveBeenCalledTimes(2)
+  } finally {
+    jest.useRealTimers()
+  }
 })

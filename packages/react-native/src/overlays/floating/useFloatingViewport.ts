@@ -29,6 +29,15 @@ export const useNativeFloatingViewport = ({
     let scrollRevision: number | null = null
     let revision = -1
     let session = ""
+    let resizing = false
+    let resizeGeneration = 0
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null
+    const resetResize = () => {
+      resizeGeneration++
+      if (resizeTimer !== null) clearTimeout(resizeTimer)
+      resizeTimer = null
+      resizing = false
+    }
     let frame: ReturnType<typeof requestAnimationFrame> | null = null
     const update = () => {
       if (!live) return
@@ -40,6 +49,7 @@ export const useNativeFloatingViewport = ({
         scrollRevision = null
         revision = -1
         session = ""
+        resetResize()
         const tag = next ? findNodeHandle(next as View) : null
         release =
           tag === null
@@ -57,14 +67,34 @@ export const useNativeFloatingViewport = ({
                   session = nextSession
                   scrollRevision = null
                   revision = -1
+                  resetResize()
+                  viewport.current = null
                 }
                 if (data.revision <= revision) return
                 revision = data.revision
                 if (scrollRevision !== null && data.scrollRevision < scrollRevision) return
                 const scrolled = scrollRevision !== null && data.scrollRevision > scrollRevision
                 scrollRevision = data.scrollRevision
+                const prior = viewport.current
+                // Match the source visual-viewport grace: keyboard resizing may itself scroll an anchor ancestor.
+                if (
+                  prior &&
+                  (prior.width !== data.width ||
+                    prior.height !== data.height ||
+                    (resizing && (prior.x !== data.x || prior.y !== data.y)))
+                ) {
+                  resetResize()
+                  resizing = true
+                  const generation = resizeGeneration
+                  resizeTimer = setTimeout(() => {
+                    if (live && generation === resizeGeneration) {
+                      resizing = false
+                      resizeTimer = null
+                    }
+                  }, 500)
+                }
                 viewport.current = { x: data.x, y: data.y, width: data.width, height: data.height }
-                if (scrolled) current.current.onAncestorScroll?.()
+                if (scrolled && !resizing) current.current.onAncestorScroll?.()
               })
       }
       frame = requestAnimationFrame(update)
@@ -72,6 +102,7 @@ export const useNativeFloatingViewport = ({
     update()
     return () => {
       live = false
+      resetResize()
       if (frame !== null) cancelAnimationFrame(frame)
       release?.()
       viewport.current = null
