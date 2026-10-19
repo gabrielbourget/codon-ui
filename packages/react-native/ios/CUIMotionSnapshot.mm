@@ -7,7 +7,9 @@
 #import "CUIMotionGeometryObserver.h"
 #include "../cpp/motion/SnapshotQuery.h"
 #include "../cpp/motion/PopFrame.h"
+#include "../cpp/motion/PopPresentation.h"
 #include <react/renderer/uimanager/UIManagerBinding.h>
+#include <folly/json.h>
 #include <atomic>
 #include <cmath>
 #include <climits>
@@ -16,18 +18,56 @@
 @interface CUIMotionSnapshot : NativeCUIMotionSnapshotSpecBase <NativeCUIMotionSnapshotSpec, RCTInvalidating>
 @end
 
+struct CUIPopSession {
+  std::mutex mutex;
+  std::unique_ptr<codon::motion::NativePopPresentation> presentation;
+  bool retired{false};
+  void close() {
+    std::lock_guard lock(mutex);
+    retired = true;
+    presentation.reset();
+  }
+};
+
 // The generated Objective-C dispatch normally uses methodQueue. Frame capture
 // must run inside getSnapshotBeforeUpdate, so this private method uses the
 // serialized calling JSI runtime and reads immutable Fabric data directly.
 class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapshotSpecJSI {
  public:
   CUIMotionSnapshotJSI(const facebook::react::ObjCTurboModule::InitParams &params,
-                      std::shared_ptr<std::atomic<bool>> valid)
-      : NativeCUIMotionSnapshotSpecJSI(params), valid_(std::move(valid)) {
+                      std::shared_ptr<std::atomic<bool>> valid, std::shared_ptr<CUIPopSession> pop)
+      : NativeCUIMotionSnapshotSpecJSI(params), valid_(std::move(valid)), pop_(std::move(pop)) {
     methodMap_["getPopFrame"] = MethodMetadata{1, getPopFrame};
+    methodMap_["popPresentation"] = MethodMetadata{1, popPresentation};
   }
  private:
   std::shared_ptr<std::atomic<bool>> valid_;
+  std::shared_ptr<CUIPopSession> pop_;
+  static facebook::jsi::Value popPresentation(
+      facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *arguments, size_t count) {
+    auto &self = static_cast<CUIMotionSnapshotJSI &>(module);
+    if (count != 1 || !arguments[0].isString())
+      throw facebook::jsi::JSError(runtime, "Native popLayout: string request required");
+    try {
+      const auto encoded = arguments[0].getString(runtime).utf8(runtime);
+      const auto request = folly::parseJson(encoded);
+      std::lock_guard lock(self.pop_->mutex);
+      if (self.pop_->retired || !self.valid_->load()) {
+        if (request.at("action").asString() == "release" && !self.pop_->presentation)
+          return facebook::jsi::String::createFromUtf8(runtime,
+              folly::toJson(folly::dynamic::object("lease", request.at("lease"))("released", true)));
+        throw std::runtime_error("Native popLayout: module retired");
+      }
+      if (!self.pop_->presentation) {
+        const auto binding = facebook::react::UIManagerBinding::getBinding(runtime);
+        if (!binding) throw std::runtime_error("Native popLayout: calling Fabric binding unavailable");
+        auto manager = std::shared_ptr<facebook::react::UIManager>(binding, &binding->getUIManager());
+        self.pop_->presentation = std::make_unique<codon::motion::NativePopPresentation>(std::move(manager));
+      }
+      return facebook::jsi::String::createFromUtf8(runtime, self.pop_->presentation->request(encoded));
+    } catch (const std::exception &failure) { throw facebook::jsi::JSError(runtime, failure.what()); }
+  }
   static facebook::jsi::Value getPopFrame(
       facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
       const facebook::jsi::Value *arguments, size_t count) {
@@ -62,14 +102,21 @@ static BOOL CUISnapshotIdentityMatches(NSDictionary *request, NSDictionary *iden
 @implementation CUIMotionSnapshot {
   id<RCTSurfacePresenterStub> _presenter;
   std::shared_ptr<std::atomic<bool>> _valid;
+  std::shared_ptr<CUIPopSession> _pop;
 }
 RCT_EXPORT_MODULE(CUIMotionSnapshot)
 + (BOOL)requiresMainQueueSetup { return NO; }
-- (instancetype)init { if (self = [super init]) _valid = std::make_shared<std::atomic<bool>>(true); return self; }
+- (instancetype)init {
+  if (self = [super init]) {
+    _valid = std::make_shared<std::atomic<bool>>(true);
+    _pop = std::make_shared<CUIPopSession>();
+  }
+  return self;
+}
 - (dispatch_queue_t)methodQueue { return dispatch_get_main_queue(); }
 - (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)presenter { _presenter = presenter; }
 - (void)setBridge:(RCTBridge *)bridge { _presenter = bridge.surfacePresenter; }
-- (void)invalidate { _valid->store(false); }
+- (void)invalidate { _valid->store(false); _pop->close(); }
 
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   RCTAssertMainQueue();
@@ -105,11 +152,14 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
-  return std::make_shared<CUIMotionSnapshotJSI>(params, _valid);
+  return std::make_shared<CUIMotionSnapshotJSI>(params, _valid, _pop);
 }
 
 - (NSString *)getPopFrame:(NSString *)request {
   @throw [NSException exceptionWithName:@"CUI.PopFrame" reason:@"getPopFrame requires its calling JSI runtime" userInfo:nil];
+}
+- (NSString *)popPresentation:(NSString *)request {
+  @throw [NSException exceptionWithName:@"CUI.PopPresentation" reason:@"popPresentation requires its calling JSI runtime" userInfo:nil];
 }
 
 - (void)getTargetGeometry:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {

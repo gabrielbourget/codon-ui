@@ -5,6 +5,7 @@ export interface Spec extends TurboModule {
   getSnapshot(request: string): Promise<string>
   getTargetGeometry(request: string): Promise<string>
   getPopFrame(request: string): string
+  popPresentation(request: string): string
 }
 
 export default TurboModuleRegistry.get<Spec>("CUIMotionSnapshot")

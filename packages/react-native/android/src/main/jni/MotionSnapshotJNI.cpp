@@ -4,6 +4,7 @@
 #include <react/renderer/scheduler/Scheduler.h>
 #include "SnapshotQuery.h"
 #include "PopFrame.h"
+#include "PopPresentation.h"
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
@@ -40,10 +41,26 @@ static jni::local_ref<jstring> nativePopFrame(
   return jni::make_jstring(codon::motion::queryNativePopFrame(*uiManager, request->toStdString()));
 }
 
+static jlong nativeCreatePop(jni::alias_ref<jclass>,
+    jni::alias_ref<JFabricUIManager::javaobject> manager) {
+  return reinterpret_cast<jlong>(new codon::motion::NativePopPresentation(scopedManager(manager)));
+}
+static jni::local_ref<jstring> nativePopRequest(jni::alias_ref<jclass>, jlong handle,
+    jni::alias_ref<jstring> request) {
+  if (!handle || !request) throw std::runtime_error("Native popLayout: session retired");
+  return jni::make_jstring(reinterpret_cast<codon::motion::NativePopPresentation *>(handle)->request(request->toStdString()));
+}
+static void nativeClosePop(jni::alias_ref<jclass>, jlong handle) {
+  delete reinterpret_cast<codon::motion::NativePopPresentation *>(handle);
+}
+
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   return jni::initialize(vm, [] {
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
-        makeNativeMethod("nativePopFrame", nativePopFrame)});
+        makeNativeMethod("nativePopFrame", nativePopFrame),
+        makeNativeMethod("nativeCreatePop", nativeCreatePop),
+        makeNativeMethod("nativePopRequest", nativePopRequest),
+        makeNativeMethod("nativeClosePop", nativeClosePop)});
   });
 }

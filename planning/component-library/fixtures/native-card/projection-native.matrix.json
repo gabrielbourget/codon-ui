@@ -121,6 +121,46 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.07",
+      "case": "Actual explicit-family Fabric pop interposition; later React and imperative style edits; exact latest-authored restoration; original family/children/state/events and root/descendant editor text/selection/ref/method invariants",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.08",
+      "case": "Actual capture/activation/retirement across recycled families, parent/root/document/window/epoch changes, rapid re-entry and pending React branch promotion; module invalidation and all owned native hook/JNI/JSI lifetimes",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.07",
+      "case": "Actual explicit-family Fabric pop interposition; later React and imperative style edits; exact latest-authored restoration; original family/children/state/events and root/descendant editor text/selection/ref/method invariants",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.08",
+      "case": "Actual capture/activation/retirement across recycled families, parent/root/document/window/epoch changes, rapid re-entry and pending React branch promotion; module invalidation and all owned native hook/JNI/JSI lifetimes",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

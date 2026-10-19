@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated intrinsic factory and Android request-owned cached-editor/progress services. Copied cached chars/span-container/TextPaint/state array use the exact pinned private layout helper; unknown spans, named-family shared font cache and live admission remain unresolved. No installed or full Card acceptance. Approved3.5.62 immutable synchronous pop-frame input capture; family style interposition, exact drawing and installed fidelity/performance remain incomplete.",
+  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -337,6 +337,66 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/src/private/webapis/dom/nodes/ReadOnlyNode.js",
       "sha256": "8ac69647304c4e91eb363384b015f309fe0ab4f38a929dd14e782a7a04416feb",
       "adaptation": "Already-computed immutable Fabric metrics, positioned ancestor/inner-border offsets and serialized calling-runtime binding. No mounted view/Yoga/intrinsic callback is invoked."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManagerCommitHook.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManagerCommitHook.h",
+      "sha256": "a66ab1e4b3c462cf1952e03130f302945d8ba45f9f4b993626da97d762b70389",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManager.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManager.cpp",
+      "sha256": "3c4434b7e31ea3b14d3e69439b926dcf7a990aad2b40fbdfa1ca96d8788f3e19",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ComponentDescriptor.h",
+      "sha256": "c789542ab461fa8f17163cc8896b48a8a8545e79e3802c0bcac8a653966aa455",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ConcreteComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ConcreteComponentDescriptor.h",
+      "sha256": "658e0cb47155d56eb54e60abad71b216f96b28c12a995671e771997b32a95764",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNode.cpp",
+      "sha256": "4f14cde7e4f6639f36342adcea5c8f551fe6cfca442ab748108f28ea5f878174",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNodeFamily.h",
+      "sha256": "9a5ffe7ed4971167b434a766c46a9bf1afbeb8c8a7caa2760bc00265610f8569",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/Props.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/Props.cpp",
+      "sha256": "bb0a2436f530c626ea12556efcc8958abe9f0d56b7840ea5f481e2f15c54ee89",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaStylableProps.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp",
+      "sha256": "f77808c2f742e91589662cd6e1a0b6c91fd9870eae66d8670afe9118a21dc65a",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sha256": "5684dd39a8308811f23b3cc2497b365fbc790898efd05ac3a690dfa5f707215c",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/conversions.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/conversions.h",
+      "sha256": "5014fa79e018d2a3a4f82a50189c37a3a1d9c67bc584188d05f9cdbe50651acb",
+      "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
     }
   ],
   "license": "LICENSE.react-native.md",
@@ -346,7 +406,7 @@
     "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
     "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
     "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance",
-    "General pop root family/generation/window leases and persistent authored/presentation style restoration, exact owned elliptical/shadow drawing and actual synchronous read/frame cost proof"
+    "Actual general-pop family/generation/window/ref restoration and pending-branch/module teardown proof; exact owned elliptical/shadow drawing and actual frame costs remain required after the private source integration"
   ],
   "authoredFiles": [
     {
@@ -408,6 +468,22 @@
     {
       "file": "PopFrame.h",
       "sha256": "6ef4b5c826d7d0711a06bab1a96d72126ed428a73023b5269b9de574292f21ad"
+    },
+    {
+      "file": "PopStyle.cpp",
+      "sha256": "86ab0edac1499ce86f94729f26a511f81b89cdcd1aa7d04b22e305753ed9b7c9"
+    },
+    {
+      "file": "PopStyle.h",
+      "sha256": "f566b29ad791edcebf1289d441aa38e11e1877cd2c7a38d61e48e7896ba3597f"
+    },
+    {
+      "file": "PopPresentation.cpp",
+      "sha256": "f1ec5a7b396e707f59a4da32bc6510901f8e71fc13ece649637d4bec88c2663d"
+    },
+    {
+      "file": "PopPresentation.h",
+      "sha256": "07f7850ab3fcdb36e1a00872e465d9b99c9c4e76d582f725a3ab08c41edac4c2"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -426,7 +502,7 @@
     },
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "9359ef5660590d9b228355120cbcec42f8c092748eeff8ff0e8a672a2c17213a"
+      "sha256": "2d0121e6e2fa8364fe01f439bb1750fde4e3bd25ff344e05bb62d604429f0b5e"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
@@ -439,11 +515,11 @@
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "90a73707801f4860e663891408f90d74f61bb3a06d3cbb7430bc62fb4c406fd9"
+      "sha256": "9e0540c89313695e8276ff7901ecd45a86cd5e78b0049058fe406ac76a6363f0"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
-      "sha256": "4866e764c8ee428bc2b389ede6c7295365deb2b9a1dd54117af8aca33ddcb0d2"
+      "sha256": "9509439c2138482d7bdc2faf065ce88a1500d8a56b4119d5393e923dd689aa51"
     }
   ],
   "cachedSpanPolicy": {
@@ -477,11 +553,11 @@
   "popFrameFiles": [
     {
       "file": "ios/CUIMotionSnapshot.mm",
-      "sha256": "1bf6dccd676f1b57c2d5fe74767963f6a532e3cdb47cdc826e63077169acb3b1"
+      "sha256": "e2c228f206a7d2657838fb1235dc4869ade0de659511ef45e8d6f3b819a14fee"
     },
     {
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
-      "sha256": "8a88283da72de34badc50e01a2dcc7180394b452f6a2cdd762dfa03987e7a7d4"
+      "sha256": "dfcc04e2bd7e8447f42300eb0d764e87f70ab46c803d7ffc2e658d9bcf921bbe"
     }
   ]
 }

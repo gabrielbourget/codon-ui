@@ -1,5 +1,4 @@
 import type { RefObject } from "react"
-import { findNodeHandle } from "react-native"
 import type { View } from "react-native"
 
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
@@ -7,6 +6,7 @@ import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
 import { cancelFrame, frame } from "../kernel"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 import type { TNativePopFrame, TNativePopRoot } from "../presence/context"
+import { createNativePopRoot } from "../presence/nativePopFrame"
 import type { TNativeMotionTransformTemplate } from "../visual/types"
 
 import { getValueTransition } from "./native-transition"
@@ -157,7 +157,9 @@ export class NativeProjectionState implements TNativePopRoot {
   private wantsUpdate = true
   private authored: NativeProjectionStyle = {}
   private template?: TNativeMotionTransformTemplate
-  private pop?: NativeProjectionStyle
+  private readonly popRoot = createNativePopRoot(() => this.target, {
+    isCurrent: () => Boolean(this.target && this.owner.current === this.target && this.lease()),
+  })
   private writer?: (snapshot: TSnapshot) => void
   private safeToRemove?: () => void
   private readonly children = new Set<NativeProjectionState>()
@@ -184,7 +186,7 @@ export class NativeProjectionState implements TNativePopRoot {
   }
   private publish = (style: NativeProjectionStyle, visible = true, notify = true) => {
     if (!this.current()) return
-    this.snapshot = Object.freeze({ style: Object.freeze({ ...style, ...this.pop }), visible })
+    this.snapshot = Object.freeze({ style: Object.freeze({ ...style }), visible })
     this.writer?.(this.snapshot)
     if (notify) this.listeners.forEach((listener) => listener())
   }
@@ -228,6 +230,7 @@ export class NativeProjectionState implements TNativePopRoot {
     if (this.target && !this.lease()) {
       this.detachNode()
       this.record = undefined
+      this.popRoot.dispose()
       this.lease = this.owner.captureVisualLease()
     }
     this.wantsUpdate = Boolean(
@@ -278,11 +281,21 @@ export class NativeProjectionState implements TNativePopRoot {
     if (!record?.attached || !record.snapshot || !this.lease()) {
       if (this.node) this.detachNode()
       this.record = undefined
+      this.popRoot.dispose()
       return
     }
     const key = `${record.windowId}/${record.snapshot.rootIdentity}`
+    if (
+      this.record &&
+      (this.record.windowId !== record.windowId ||
+        this.record.epoch !== record.epoch ||
+        this.record.bindingId !== record.bindingId ||
+        this.record.attachmentRevision !== record.attachmentRevision)
+    )
+      this.popRoot.dispose()
     if (this.root && this.root.key !== key) this.detachNode()
     this.record = record
+    this.popRoot.retireIfChanged()
     this.ensureNode()
     this.root?.receive(this, record)
     for (const child of this.children) child.ensureNode()
@@ -413,44 +426,12 @@ export class NativeProjectionState implements TNativePopRoot {
     if (this.current()) this.error(error)
   }
   read = (root?: RefObject<View | null>): TNativePopFrame => {
-    if (!this.current() || !this.record?.snapshot) throw new Error("Native popLayout: actual native frame unavailable")
-    const snapshot = this.record.snapshot,
-      [left, top, width, height] = snapshot.layout,
-      parent = snapshot.ancestors[1]
-    const direction = snapshot.ancestors[0].layoutDirection
-    if (!parent || !direction) throw new Error("Native popLayout: actual native parent/direction unavailable")
-    if (
-      root &&
-      (!root.current || !snapshot.ancestors.some((ancestor) => ancestor.tag === findNodeHandle(root.current)))
-    )
-      throw new Error("Native popLayout: style root must be an actual containing native ref")
-    return {
-      left,
-      top,
-      width,
-      height,
-      right: parent.bounds[2] - width - left,
-      bottom: parent.bounds[3] - height - top,
-      direction,
-    }
+    return this.popRoot.read(root)
   }
   freeze = (frame: TNativePopFrame, anchorX: "left" | "right", anchorY: "top" | "bottom") => {
-    const x =
-      anchorX === "left" ? (frame.direction === "rtl" ? "right" : "left") : frame.direction === "rtl" ? "left" : "right"
-    this.pop = {
-      position: "absolute",
-      width: frame.width,
-      height: frame.height,
-      [x]: frame[x],
-      [anchorY]: frame[anchorY],
-    }
-    this.publish(this.snapshot.style, this.snapshot.visible, false)
-    return () => {
-      this.pop = undefined
-      this.publish({}, this.node?.isVisible ?? true, false)
-      this.render()
-    }
+    return this.popRoot.freeze(frame, anchorX, anchorY)
   }
+  isCurrent = (frame: TNativePopFrame) => this.popRoot.isCurrent(frame)
   private detachNode = () => {
     this.releaseGroup?.()
     this.releaseGroup = undefined
@@ -467,6 +448,7 @@ export class NativeProjectionState implements TNativePopRoot {
     cancelFrame(this.render)
   }
   detach = () => {
+    this.popRoot.dispose()
     this.parent?.children.delete(this)
     this.detachNode()
     this.stopGeometry?.()

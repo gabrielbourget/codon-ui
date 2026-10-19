@@ -1,7 +1,7 @@
 import { act, render, screen } from "@testing-library/react-native"
-import { createRef, useContext, useEffect, useRef, useState } from "react"
+import { createRef, forwardRef, useContext, useEffect, useRef, useState } from "react"
 import type { ContextType } from "react"
-import { AccessibilityInfo, Text, TextInput, View } from "react-native"
+import { AccessibilityInfo, Text, TextInput, TurboModuleRegistry, View } from "react-native"
 
 import { MotionGlobalConfig, frameData, time } from "../kernel"
 import { NativeMotionOwnerHost } from "../owner/NativeMotionOwnerHost"
@@ -264,6 +264,92 @@ it("captures pop frames before freezing the same registered root and releases on
   await act(() => removals.get("pop")!())
   expect(release).toHaveBeenCalledTimes(1)
   await screen.unmount()
+})
+it("preserves forwarded native refs, caller cleanup and a held-empty editor through authored updates and pop re-entry", async () => {
+  // Actual React/ref/state composition with explicit native document/tag and
+  // module response models; this does not execute a Fabric commit hook.
+  const document = {},
+    editor = createRef<TextInput>(),
+    request = jest.fn(),
+    firstCleanup = jest.fn(),
+    secondCleanup = jest.fn()
+  const first = jest.fn((target: View | null) => {
+      if (target) {
+        Object.assign(target, { isConnected: true, ownerDocument: document })
+        return firstCleanup
+      }
+    }),
+    second = jest.fn((target: View | null) => {
+      if (target) {
+        Object.assign(target, { isConnected: true, ownerDocument: document })
+        return secondCleanup
+      }
+    })
+  let updateWidth: (value: number) => void = () => {}
+  const Root = forwardRef<View>((_, ref) => {
+    const [width, setWidth] = useState(100)
+    updateWidth = setWidth
+    return (
+      <View ref={ref} testID="forwarded-pop" style={{ width }}>
+        <Probe id="forwarded-probe" />
+        <TextInput ref={editor} value="" onChangeText={request} />
+      </View>
+    )
+  })
+  const backend = jest.fn((encoded: string) => {
+    const input = JSON.parse(encoded)
+    return JSON.stringify(
+      input.action === "capture"
+        ? {
+            ...input,
+            kind: "native-pop-frame",
+            lease: input.requestId,
+            surfaceId: 1,
+            fabricRevision: "2",
+            positionedParent: 11,
+            left: 10,
+            top: 20,
+            width: 100,
+            height: 50,
+            right: 190,
+            bottom: 130,
+            direction: "rtl",
+          }
+        : { lease: input.lease, released: input.action === "release" },
+    )
+  })
+  jest.spyOn(TurboModuleRegistry, "get").mockReturnValue({ popPresentation: backend } as never)
+  jest.spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle").mockReturnValue(31)
+  await render(
+    <NativeAnimatePresence mode="popLayout">
+      <Root key="root" ref={first} />
+    </NativeAnimatePresence>,
+  )
+  const native = first.mock.calls[0][0],
+    originalEditor = editor.current
+  await screen.rerender(
+    <NativeAnimatePresence mode="popLayout">
+      <Root key="root" ref={second} />
+    </NativeAnimatePresence>,
+  )
+  expect(firstCleanup).toHaveBeenCalledTimes(1)
+  expect(second.mock.calls[0][0]).toBe(native)
+  await screen.rerender(<NativeAnimatePresence mode="popLayout" />)
+  await act(() => updateWidth(200))
+  expect(screen.getByTestId("forwarded-pop").props.style.width).toBe(200)
+  expect(editor.current).toBe(originalEditor)
+  expect(request).not.toHaveBeenCalled()
+  expect(backend.mock.calls.map(([encoded]) => JSON.parse(encoded).action)).toEqual(["capture", "activate"])
+  await screen.rerender(
+    <NativeAnimatePresence mode="popLayout">
+      <Root key="root" ref={second} />
+    </NativeAnimatePresence>,
+  )
+  expect(second).toHaveBeenCalledTimes(1)
+  expect(editor.current).toBe(originalEditor)
+  expect(backend.mock.calls.map(([encoded]) => JSON.parse(encoded).action)).toEqual(["capture", "activate", "release"])
+  await screen.unmount()
+  expect(secondCleanup).toHaveBeenCalledTimes(1)
 })
 it("namespaces layout IDs with stable inherited or independent groups", async () => {
   const captured: Record<string, ContextType<typeof NativeLayoutGroupContext>> = {}

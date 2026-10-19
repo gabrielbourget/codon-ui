@@ -22,6 +22,32 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   CUIMotionSnapshotModule(ReactApplicationContext context) { super(context); }
   private static native String nativeSnapshot(FabricUIManager manager, int target, String owner, String binding, String revision);
   private static native String nativePopFrame(FabricUIManager manager, String request);
+  // Access is serialized with invalidate; the C++ owner retains the manager
+  // and unregisters its hook before releasing that retained manager.
+  private long popHandle;
+  private static native long nativeCreatePop(FabricUIManager manager);
+  private static native String nativePopRequest(long handle, String request);
+  private static native void nativeClosePop(long handle);
+
+  @Override public synchronized String popPresentation(String encoded) {
+    try {
+      JSONObject request = new JSONObject(encoded);
+      if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) {
+        if ("release".equals(request.getString("action")) && popHandle == 0) return new JSONObject().put("lease", request.getString("lease")).put("released", true).toString();
+        throw new IllegalStateException("motion-module-retired");
+      }
+      if (popHandle == 0) {
+        Object value = request.get("target");
+        if (!(value instanceof Number)) throw new IllegalArgumentException("motion-target-invalid");
+        double target = ((Number)value).doubleValue();
+        if (!Double.isFinite(target) || target <= 0 || target > Integer.MAX_VALUE || target != Math.rint(target)) throw new IllegalArgumentException("motion-target-invalid");
+        UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), (int)target);
+        if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("motion-Fabric-unavailable");
+        popHandle = nativeCreatePop((FabricUIManager)manager);
+      }
+      return nativePopRequest(popHandle, encoded);
+    } catch (Exception failure) { throw new IllegalStateException("E_CUI_POP_PRESENTATION", failure); }
+  }
 
   @Override public String getPopFrame(String encoded) {
     try {
@@ -79,7 +105,11 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
     });
   }
 
-  @Override public void invalidate() { valid.set(false); super.invalidate(); }
+  @Override public synchronized void invalidate() {
+    valid.set(false);
+    if (popHandle != 0) { nativeClosePop(popHandle); popHandle = 0; }
+    super.invalidate();
+  }
 
   @Override public void getTargetGeometry(String encoded, Promise promise) {
     UiThreadUtil.runOnUiThread(() -> {
