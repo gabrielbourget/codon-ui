@@ -24,7 +24,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
+      if ("nativeMotionDrawingOwner".equals(name) || "nativeMotionProjectionRadii".equals(name) || "nativeMotionProjectionRevision".equals(name) || "nativeMotionVisible".equals(name) || "ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionGeometryBinding".equals(name) || "nativeMotionGeometryRevision".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -55,6 +55,15 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "nativeMotionProjectionRevision")
   public void setNativeMotionProjectionRevision(ReactViewGroup view, String revision) { ((CUIFocusView)view).setNativeMotionProjectionRevision(revision); }
+
+  @Override @ReactProp(name = "nativeMotionDrawingOwner", defaultBoolean = false)
+  public void setNativeMotionDrawingOwner(ReactViewGroup view, boolean enabled) {
+    if (enabled) throw new IllegalStateException("CUI exact Android drawing receiver is not installed");
+  }
+  @Override @ReactProp(name = "nativeMotionProjectionRadii")
+  public void setNativeMotionProjectionRadii(ReactViewGroup view, String radii) {
+    if (radii != null && !radii.isEmpty()) throw new IllegalStateException("CUI exact Android drawing receiver is not installed");
+  }
 
   @Override @ReactProp(name = "nativeNavigation", defaultBoolean = false)
   public void setNativeNavigation(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativeNavigation(value); }

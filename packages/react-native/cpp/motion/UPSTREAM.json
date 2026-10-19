@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete. Private immutable viewport traversal now binds actual Fabric inputs without enabling RN IntersectionObserver globals or SDK flags; actual geometry/timing/performance remains unaccepted.",
+  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete. Private immutable viewport traversal now binds actual Fabric inputs without enabling RN IntersectionObserver globals or SDK flags; actual geometry/timing/performance remains unaccepted. Approved CUI-owned iOS painting source port now has private host wiring and independent circular-corner axes; motion integration, Android, continuous ellipses and actual drawing/default/performance acceptance remain incomplete.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -615,5 +615,46 @@
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
       "sha256": "e2f6285a484b37730e01feaf6bf289093e764a1f38397dad798dbc409ba8e39b"
     }
-  ]
+  ],
+  "drawingAuthoredFiles": [
+    {
+      "file": "ios/CUIMotionDrawingView.h",
+      "sha256": "8d1fe9e866fc495fe033ccc8652f8218c3e9b54c0a40c30d92a6d0f504e0babb"
+    },
+    {
+      "file": "ios/CUIMotionDrawingView.mm",
+      "sha256": "db876b081bcbd0d30c1767ab2fd8dc994787a3e80dde220ceeff6a7567ab49e4"
+    },
+    {
+      "file": "ios/CUIFocusView.h",
+      "sha256": "963a3fd541f46f4b67fdfef5c68d69a31515b5c48d3f90e7daa69954251f0cd6"
+    },
+    {
+      "file": "ios/CUIFocusView.mm",
+      "sha256": "7967ff467f83bca5da209c509e4ba07aae649b788a582339df9af6b8fc9e1aac"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIFocusViewManager.java",
+      "sha256": "bba7d3ff336803b335ce6b40fda1433b3e2f44f1abf53a3052ffdadb9b6106d9"
+    },
+    {
+      "file": "src/input/NativeFocusView.tsx",
+      "sha256": "b95c4b12d32c3c29a8911944498dc92283c1bf94a482f922b1ed4b4e2fdd1bf7"
+    },
+    {
+      "file": "src/input/specs/CUIFocusViewNativeComponent.ts",
+      "sha256": "7b6c1e95872aaa6d70db0a9f4b485405c5364d4daeac77fa51d21388f4d757e0"
+    }
+  ],
+  "drawingSourceBoundary": {
+    "platform": "ios",
+    "nativeMode": "private immutable opt-in; ordinary hosts delegate to RN",
+    "ownedState": "Only CUI paint layers/containers/wrappers; no peer private ivar mutation",
+    "sourcePort": "RN0.86.3 native background/border/outline/box-shadow/filter/gradient/mask/overflow receivers and raw percent/RTL/corner overlap resolution",
+    "continuousEllipses": "Explicit unproved-path rejection; remains required",
+    "android": "Private capability rejects activation until its complete receiver is installed",
+    "motionProjectionBinding": false,
+    "nativeAssertionsExecuted": false,
+    "nativePixelsAccepted": false
+  }
 }

@@ -1,8 +1,9 @@
 import { useLayoutEffect, useRef, useState } from "react"
-import { Button, ScrollView, Text, TextInput, View } from "react-native"
+import { Button, Platform, ScrollView, Text, TextInput, View } from "react-native"
 
 import { readNativeMotionGeometry } from "../../../../packages/react-native/src/input/motionGeometry"
 import { NativeKeyboardScope } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
+import { NativeFocusHost } from "../../../../packages/react-native/src/input/NativeFocusView"
 import { useNativeAnimationControls } from "../../../../packages/react-native/src/motion/animation/hooks"
 import { NativeMotionConfig } from "../../../../packages/react-native/src/motion/config"
 import type { TNativeReducedMotionMode } from "../../../../packages/react-native/src/motion/config"
@@ -28,6 +29,7 @@ export const NativeMotionOwnerProbeScene = () => {
   const [interactions, setInteractions] = useState(false)
   const [dragEnabled, setDragEnabled] = useState(false)
   const [viewportEnabled, setViewportEnabled] = useState(false)
+  const [drawingWide, setDrawingWide] = useState(false)
   const [shifted, setShifted] = useState(false)
   const dragSamples = useRef<TNativeMotionPanInfo[]>([])
   const panSamples = useRef<{ identity: number | string; source: "pointer" | "touch"; info: TNativeMotionPanInfo }[]>(
@@ -95,6 +97,37 @@ export const NativeMotionOwnerProbeScene = () => {
         <Button title="Stop" onPress={() => controls.stop()} />
         <Button title="Toggle constrained drag" onPress={() => setDragEnabled((current) => !current)} />
         <Button title="Toggle viewport observation" onPress={() => setViewportEnabled((current) => !current)} />
+        {Platform.OS === "ios" && (
+          <>
+            <Button title="Change private drawing radii" onPress={() => setDrawingWide((current) => !current)} />
+            <NativeFocusHost
+              nativeMotionDrawingOwner
+              nativeMotionProjectionRadii={JSON.stringify({
+                topLeft: { x: drawingWide ? 32 : 16, y: 8 },
+                topRight: null,
+                bottomLeft: null,
+                bottomRight: { x: 10, y: drawingWide ? 24 : 12 },
+              })}
+              style={{
+                minHeight: 100,
+                padding: 16,
+                borderRadius: 20,
+                borderWidth: 4,
+                borderColor: "#2855aa",
+                backgroundColor: "#eef2f8",
+                shadowColor: "#161616",
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                shadowOffset: { width: 2, height: 4 },
+                boxShadow: [{ offsetX: 0, offsetY: 5, blurRadius: 8, color: "#16161660" }],
+                overflow: "hidden",
+              }}
+            >
+              <Text>Private iOS drawing probe; native pixels/defaults remain unverified.</Text>
+              <TextInput value="" onChangeText={() => {}} placeholder="Original held-empty drawing editor" />
+            </NativeFocusHost>
+          </>
+        )}
         <Button title="Move original layout" onPress={() => setShifted((current) => !current)} />
         <Button title="Stop drag with inertia" onPress={dragControls.stop} />
         <Button title="Cancel drag" onPress={dragControls.cancel} />

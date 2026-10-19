@@ -161,6 +161,26 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.09",
+      "case": "Actual private iOS owned renderer and ordinary-host delegation: dynamic/opaque colors, border widths/styles/RTL/percent radii, background gradients, shadows/filters/outline/masks/defaults, original root/children/editor refs/state/events, recycling and native cache ownership",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.10",
+      "case": "Actual circular and continuous independent-axis corner/shadow fidelity, projection wiring, mixed raw numeric/percentage overlap resolution, clip-mode transitions and large-tree/native frame costs; compiled unmounted assertions alone provide no result",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }
