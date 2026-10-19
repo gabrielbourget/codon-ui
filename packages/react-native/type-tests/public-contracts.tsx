@@ -146,3 +146,15 @@ export const InvalidButtonDimension = <Button width="2rem" />
 export const InvalidButtonRef = <Button ref={createRef<{ tagName: string }>()} />
 // @ts-expect-error Focus visibility needs a future native modality contract.
 export const InvalidButtonFocusVisible = <Button>{(state) => (state.isFocusVisible ? "Visible" : "Hidden")}</Button>
+
+type TPublicNativeExports = typeof import("../src")
+// @ts-expect-error The private kernel is not a public animation API.
+export type TPrivateCardAnimationKernel = TPublicNativeExports["JSAnimation"]
+// @ts-expect-error Card remains private until the complete native renderer exists.
+export type TPendingNativeCard = TPublicNativeExports["Card"]
+// @ts-expect-error The approved motion context still needs its complete native implementation.
+export type TPendingNativeMotionConfig = TPublicNativeExports["NativeMotionConfig"]
+// @ts-expect-error The approved presence API still needs its complete native implementation.
+export type TPendingNativeAnimatePresence = TPublicNativeExports["NativeAnimatePresence"]
+// @ts-expect-error The approved layout API still needs its complete native implementation.
+export type TPendingNativeLayoutGroup = TPublicNativeExports["NativeLayoutGroup"]
