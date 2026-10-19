@@ -56,7 +56,7 @@ const propertyValue = (name: string, data: TNativeObservedKeyData): unknown => {
     case "target":
     case "srcElement":
     case "currentTarget":
-      return data.target > 0
+      return data.target !== 0 && data.target !== -1
     case "view":
       return data.windowId.length > 0
     case "cancelBubble":

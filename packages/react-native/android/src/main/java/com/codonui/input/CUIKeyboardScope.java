@@ -180,7 +180,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     if (focused instanceof EditText) { Editable text = ((EditText) focused).getText(); composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0; }
     int code = event.getKeyCode();
     WritableMap data = baseData();
-    data.putInt("target", focused != null && focused.getId() > 0 ? focused.getId() : getId());
+    data.putInt("target", focused != null && focused.getId() != View.NO_ID ? focused.getId() : getId());
     data.putInt("focusedTarget", focused == null ? -1 : focused.getId());
     data.putString("windowId", CUIInputWindow.identity(this)); data.putDouble("epoch", windowEpoch);
     data.putDouble("observationRevision", observationRevision); data.putDouble("eventId", eventId); data.putArray("observerIds", ids);
