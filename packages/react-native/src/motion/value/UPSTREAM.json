@@ -1,0 +1,77 @@
+{
+  "status": "Private native value/keyframe backend; actual geometry, complete owner/renderer/Card and installed acceptance remain required",
+  "package": {
+    "name": "motion-dom",
+    "version": "12.40.0",
+    "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60"
+  },
+  "sources": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/AsyncMotionValueAnimation.ts",
+      "upstreamSha256": "53bc533ac7678ec48a22430ea26b6e97fcc833f159912a0cafe49f7c0073c9b3",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/motion-value.ts",
+      "upstreamSha256": "37ad21753cb52dd63f42ba5912c7e7569c35f499cf3be697f0e952c1b883dea1",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/KeyframesResolver.ts",
+      "upstreamSha256": "18a7c8b507ec3fc25c6359c5c13085b2394e91eca780132a8c3a318990fb144d",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/can-animate.ts",
+      "upstreamSha256": "5539f4e2bb4b9cd8b7d3d3f405669ef7872e1b66c3766322d54f8b1507a441a1",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/is-animatable.ts",
+      "upstreamSha256": "e276250232e5b15c52e347833890b04fd7a82c9ad43d6c9d192bdd9ff7a73e03",
+      "sourceKind": "npm-source-map-sourcesContent"
+    }
+  ],
+  "files": [
+    {
+      "file": "NativeValueAnimation.ts",
+      "receivedSha256": "83b9afd561f07fee7797b740c7566e82c11c072d5c17a9c8d9c7eb2bc97a5271",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "animateValue.ts",
+      "receivedSha256": "ed46d69f244a880ef2013e17353dabf588356bcdace63814ae2794c81e64af33",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "index.ts",
+      "receivedSha256": "17b0b823e3e4889b0048179f6c980d6d9aebef081ee8060b1860d8720f2251e7",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "keyframes.ts",
+      "receivedSha256": "94ca5620790e30b19a1fc0c3a5c36f6485298f77b64a1157094fcaf279ed3392",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "nativeContext.ts",
+      "receivedSha256": "7050223685d9c33bf0846a1af3e2ee331e6135c86573325cc193b0c846e4112c",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "types.ts",
+      "receivedSha256": "611130680183ab65955991155ccb710d8d5e5d5761f58d32ac8658cb40c7ffbc",
+      "kind": "authored-native-adapter"
+    }
+  ],
+  "adaptations": [
+    "Reuse the received JSAnimation driver and source transition/default/repeat/fast-path/playback semantics; no browser acceleration/handoff/DOM imports",
+    "Native transform/origin/shadow/filter/font-variant arrays are scalar native values; nested arrays represent their keyframe sequences",
+    "Native asynchronous initial reads, actual color samplers and required geometry providers are cancellation/owner-generation guarded; no guessed initial bounds or native color fallback",
+    "Static/single/instant endpoints retain original native representation; interpolated color/geometry results restore authored final values",
+    "Pending native measurement cannot be synchronously flushed as browser geometry can: private ready resolves before duration/iterationDuration/generator velocity are available, with explicit pending errors instead of invented metadata; time/speed/startTime/play/pause/complete requests queue in order",
+    "Resolution failures reject ready/early finished and retire only their currently owned value control; stopped/cancelled source promises remain pending",
+    "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged"
+  ],
+  "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
+}

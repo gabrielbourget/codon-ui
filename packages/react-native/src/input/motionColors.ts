@@ -14,6 +14,10 @@ export type TNativeMotionColorBatch = Readonly<{
   colors: readonly TNativeMotionColor[]
 }>
 type TScope = { ownerId: string; windowId?: string; epoch?: number }
+export type TNativeMotionColorCancellation = {
+  isCurrent: () => boolean
+  onCancel: (listener: () => void) => () => void
+}
 type TPending = {
   encoded: readonly unknown[]
   environment?: TNativeMotionColorEnvironment
@@ -21,6 +25,7 @@ type TPending = {
   resolve: (batch: TNativeMotionColorBatch) => void
   reject: (error: Error) => void
   timer: ReturnType<typeof setTimeout>
+  unsubscribe?: () => void
 }
 let samplerSequence = 0
 const samplers = new WeakMap<View, NativeMotionColorSampler>()
@@ -49,12 +54,20 @@ export class NativeMotionColorSampler {
     this.scopeSignature = JSON.stringify(options.scope())
   }
   private nextId = () => `${this.options.ownerId}:motion-color:${this.identity}:${++this.sequence}`
+  private release = (id: string) => {
+    const request = this.pending.get(id)
+    if (!request) return
+    this.pending.delete(id)
+    clearTimeout(request.timer)
+    request.unsubscribe?.()
+    if (!this.pending.size) this.environmentRequest = undefined
+    return request
+  }
   private invalidate = (reason: string, notify = true) => {
     this.context = undefined
     this.environmentRequest = undefined
     for (const [id, request] of this.pending) {
-      clearTimeout(request.timer)
-      this.pending.delete(id)
+      this.release(id)
       request.reject(failure(reason))
     }
     if (notify) this.listeners.forEach((listener) => listener())
@@ -82,8 +95,7 @@ export class NativeMotionColorSampler {
         } catch (error) {
           this.environmentRequest = undefined
           for (const [id, request] of this.pending) {
-            clearTimeout(request.timer)
-            this.pending.delete(id)
+            this.release(id)
             request.reject(error instanceof Error ? error : failure("native command rejected"))
           }
         }
@@ -96,14 +108,17 @@ export class NativeMotionColorSampler {
       try {
         this.options.dispatch(id, JSON.stringify({ ...this.context, colors: request.encoded }))
       } catch (error) {
-        clearTimeout(request.timer)
-        this.pending.delete(id)
+        this.release(id)
         request.reject(error instanceof Error ? error : failure("native command rejected"))
       }
     }
   }
-  sample = (colors: readonly ColorValue[]): Promise<TNativeMotionColorBatch> => {
+  sample = (
+    colors: readonly ColorValue[],
+    cancellation?: TNativeMotionColorCancellation,
+  ): Promise<TNativeMotionColorBatch> => {
     if (this.disposed) return Promise.reject(failure("native color sampler retired"))
+    if (cancellation && !cancellation.isCurrent()) return Promise.reject(failure("native color query cancelled"))
     this.refreshScope()
     const encoded: unknown[] = []
     for (const color of colors) {
@@ -120,19 +135,23 @@ export class NativeMotionColorSampler {
     const id = this.nextId()
     const result = new Promise<TNativeMotionColorBatch>((resolve, reject) => {
       const timer = setTimeout(() => {
-        this.pending.delete(id)
-        if (!this.pending.size) this.environmentRequest = undefined
+        this.release(id)
         reject(failure("native color query exceeded its 5000ms limit"))
       }, 5000)
       this.pending.set(id, { encoded: snapshot, scope: this.scopeSignature, resolve, reject, timer })
     })
+    const unsubscribe = cancellation?.onCancel(() => {
+      this.release(id)?.reject(failure("native color query cancelled"))
+    })
+    const request = this.pending.get(id)
+    if (request) request.unsubscribe = unsubscribe
+    else unsubscribe?.()
     try {
       this.dispatchPending()
     } catch (error) {
       const request = this.pending.get(id)
       if (request) {
-        clearTimeout(request.timer)
-        this.pending.delete(id)
+        this.release(id)
         request.reject(error instanceof Error ? error : failure("native command rejected"))
       }
     }
@@ -150,8 +169,7 @@ export class NativeMotionColorSampler {
       if (data.kind === "sample") {
         const stale = this.pending.get(data.requestId)
         if (stale) {
-          clearTimeout(stale.timer)
-          this.pending.delete(data.requestId)
+          this.release(data.requestId)
           stale.reject(failure("stale native color sample"))
         }
       }
@@ -170,8 +188,7 @@ export class NativeMotionColorSampler {
       if (data.kind === "sample") {
         const foreign = this.pending.get(data.requestId)
         if (foreign) {
-          clearTimeout(foreign.timer)
-          this.pending.delete(data.requestId)
+          this.release(data.requestId)
           foreign.reject(failure("native color report belongs to a different window/scope"))
         }
       }
@@ -200,8 +217,7 @@ export class NativeMotionColorSampler {
     if (data.kind !== "sample") return
     const request = this.pending.get(data.requestId)
     if (!request || request.scope !== this.scopeSignature || !request.environment) return
-    clearTimeout(request.timer)
-    this.pending.delete(data.requestId)
+    this.release(data.requestId)
     const expected = request.environment
     if (
       !data.attached ||
@@ -256,9 +272,15 @@ export const registerNativeMotionColorSampler = (target: View, sampler: NativeMo
     if (samplers.get(target) === sampler) samplers.delete(target)
   }
 }
-export const sampleNativeMotionColors = (target: View | null, colors: readonly ColorValue[]) => {
+export const sampleNativeMotionColors = (
+  target: View | null,
+  colors: readonly ColorValue[],
+  cancellation?: TNativeMotionColorCancellation,
+) => {
   const sampler = target && samplers.get(target)
-  return sampler ? sampler.sample(colors) : Promise.reject(failure("no sampler registered for the actual native view"))
+  return sampler
+    ? sampler.sample(colors, cancellation)
+    : Promise.reject(failure("no sampler registered for the actual native view"))
 }
 export const subscribeNativeMotionColorEnvironment = (target: View | null, listener: () => void) => {
   const sampler = target && samplers.get(target)

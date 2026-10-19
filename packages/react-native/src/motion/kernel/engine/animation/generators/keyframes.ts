@@ -4,13 +4,13 @@ import { easeInOut, easingDefinitionToFunction, isEasingArray } from "../../../u
 import { interpolate } from "../../utils/interpolate"
 import { defaultOffset } from "../keyframes/offsets/default"
 import { convertOffsetToTimes } from "../keyframes/offsets/time"
-import type { AnimationState, AnyResolvedKeyframe, KeyframeGenerator, ValueAnimationOptions } from "../types"
+import type { AnimationState, KeyframeGenerator, ValueAnimationOptions } from "../types"
 
 export function defaultEasing(values: unknown[], easing?: EasingFunction): EasingFunction[] {
   return values.map(() => easing || easeInOut).splice(0, values.length - 1)
 }
 
-export function keyframes<T extends AnyResolvedKeyframe>({
+export function keyframes<T>({
   duration = 300,
   keyframes: keyframeValues,
   times,

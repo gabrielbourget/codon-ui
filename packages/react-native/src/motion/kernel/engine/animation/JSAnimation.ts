@@ -25,7 +25,7 @@ import { WithPromise } from "./utils/WithPromise"
 
 const percentToProgress = (percent: number) => percent / 100
 
-export class JSAnimation<T extends number | string> extends WithPromise implements AnimationPlaybackControlsWithThen {
+export class JSAnimation<T> extends WithPromise implements AnimationPlaybackControlsWithThen {
   state: AnimationPlayState = "idle"
 
   startTime: number | null = null
@@ -489,6 +489,6 @@ export class JSAnimation<T extends number | string> extends WithPromise implemen
 }
 
 // Legacy function support
-export function animateValue<T extends number | string>(options: ValueAnimationOptions<T>) {
+export function animateValue<T>(options: ValueAnimationOptions<T>) {
   return new JSAnimation(options)
 }

@@ -520,8 +520,11 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/generators/keyframes.ts",
       "upstreamSha256": "39b65630420197905543ec20cb658114fadafaf7562c0947b584bf508c0cfd13",
       "sourceKind": "npm-source-map-sourcesContent",
-      "adaptations": ["local imports; repository formatting and type-only imports; native-safe strict types"],
-      "receivedSha256": "2619b75e74de5d12436b3e10ac68c988089ac5f3a6bc3241ad740b204c9d7d51"
+      "adaptations": [
+        "local imports; repository formatting and type-only imports; native-safe strict types",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
+      ],
+      "receivedSha256": "c034bac64843f743e24fae3981fe1ced8cb9a9608766d5f7727aaa23c9fa75d4"
     },
     {
       "file": "engine/animation/keyframes/get-final.ts",
@@ -554,9 +557,10 @@
       "sourceKind": "npm-source-map-sourcesContent",
       "adaptations": [
         "local imports; repository formatting and type-only imports; native-safe strict types",
-        "React Native __DEV__ replaces Node environment access"
+        "React Native __DEV__ replaces Node environment access",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
       ],
-      "receivedSha256": "2b8c159c71e30550e2cbe222163b5dbf20c8cc8c210cc68d893185c81416ea77"
+      "receivedSha256": "520b7b0ed10dba46989722ff827da435043ea80c71b58f0d9bcfffd9c1145910"
     },
     {
       "file": "engine/value/index.ts",
@@ -602,9 +606,10 @@
       "sourceKind": "immutable-git-type-source",
       "adaptations": [
         "local imports; repository formatting and type-only imports; native-safe strict types",
-        "pure kernel declarations only; DOM render declarations belong to the native renderer"
+        "pure kernel declarations only; DOM render declarations belong to the native renderer",
+        "Type-only generic widening for native recursive array/object values; pinned runtime algorithms unchanged"
       ],
-      "receivedSha256": "1e7c551a1eddbca75daee04684579840aaa1d79abb8ea304a166858bcae39a39"
+      "receivedSha256": "93fb8a6d68ffe8d41941dbbebd9d580bd5c966e6494e8b7d3c4965454c83e16d"
     },
     {
       "file": "engine/value/types/types.ts",

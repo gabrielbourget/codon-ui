@@ -270,3 +270,90 @@ it("does not let an older scope environment cancel a query waiting for the curre
   await expect(pending).resolves.toMatchObject({ environment: { windowId: "new-window", epoch: 3 } })
   h.sampler.dispose()
 })
+
+const cancellation = () => {
+  let current = true
+  const listeners = new Set<() => void>()
+  return {
+    isCurrent: () => current,
+    onCancel: (listener: () => void) => {
+      listeners.add(listener)
+      return () => {
+        listeners.delete(listener)
+      }
+    },
+    cancel: () => {
+      current = false
+      ;[...listeners].forEach((listener) => listener())
+    },
+    size: () => listeners.size,
+  }
+}
+it("rejects an already retired query before dispatch", async () => {
+  const h = harness(),
+    token = cancellation()
+  token.cancel()
+  await expect(h.sampler.sample(["red"], token)).rejects.toThrow(/cancelled/)
+  expect(h.dispatch).not.toHaveBeenCalled()
+  h.sampler.dispose()
+})
+it("releases a cancelled environment request and ignores its late reply during a fresh query", async () => {
+  jest.useFakeTimers()
+  const h = harness(),
+    token = cancellation(),
+    first = h.sampler.sample(["red"], token)
+  const failure = expect(first).rejects.toThrow(/cancelled/),
+    oldEnvironment = h.dispatch.mock.calls[0][0]
+  token.cancel()
+  await failure
+  expect(token.size()).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
+  const next = h.sampler.sample(["blue"])
+  const environment = h.dispatch.mock.calls[1][0]
+  expect(environment).not.toBe(oldEnvironment)
+  h.environment({ requestId: oldEnvironment })
+  expect(h.dispatch).toHaveBeenCalledTimes(2)
+  h.environment({ requestId: environment })
+  h.reply(h.dispatch.mock.calls[2][0], [[0, 0, 1, 1]])
+  await expect(next).resolves.toMatchObject({ colors: [{ blue: 1 }] })
+  expect(jest.getTimerCount()).toBe(0)
+  h.sampler.dispose()
+})
+it("cancels one in-flight batch without cancelling its sibling or accepting a stale result", async () => {
+  jest.useFakeTimers()
+  const h = harness(),
+    token = cancellation()
+  h.environment()
+  const first = h.sampler.sample(["red"], token),
+    nextToken = cancellation(),
+    second = h.sampler.sample(["blue"], nextToken)
+  const failure = expect(first).rejects.toThrow(/cancelled/)
+  const firstId = h.dispatch.mock.calls[0][0],
+    secondId = h.dispatch.mock.calls[1][0]
+  token.cancel()
+  await failure
+  h.reply(firstId, [[1, 0, 0, 1]])
+  h.reply(secondId, [[0, 0, 1, 1]])
+  await expect(second).resolves.toMatchObject({ colors: [{ blue: 1 }] })
+  expect(token.size()).toBe(0)
+  expect(nextToken.size()).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
+  nextToken.cancel()
+  h.sampler.dispose()
+})
+it.each(["timeout", "error", "dispose"])("releases cancellation listeners on %s", async (mode) => {
+  jest.useFakeTimers()
+  const h = harness(),
+    token = cancellation()
+  h.environment()
+  const result = h.sampler.sample(["red"], token),
+    failure = expect(result).rejects.toThrow()
+  expect(token.size()).toBe(1)
+  if (mode === "timeout") jest.advanceTimersByTime(5000)
+  if (mode === "error") h.reply(h.dispatch.mock.calls[0][0], [], { error: "native-reject" })
+  if (mode === "dispose") h.sampler.dispose()
+  await failure
+  expect(token.size()).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
+  h.sampler.dispose()
+})
