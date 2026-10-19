@@ -1,5 +1,5 @@
 {
-  "scope": "Private renderer-owner composition using actual NativeFocusHost refs and the source-owned value backend. Initial/window readiness, scoped config, bindings and lease retirement are implemented; this is not a complete/admitted Card renderer or native fidelity proof.",
+  "scope": "Private actual-host renderer-owner composition and default guarded native initial-value reader. Immutable/imperative view props, direct Paragraph authority and native trait colors now have source paths. Unsupported natural metrics/ambiguous authority, isolated geometry and full native/Card acceptance remain required.",
   "inputs": [
     {
       "package": "motion-dom",
@@ -60,7 +60,7 @@
     },
     {
       "file": "NativeMotionOwnerHost.tsx",
-      "sha256": "6b8b05476b9799364c38c9ac310bb7b867f5f4a674e3f656963e64d271462966"
+      "sha256": "a6b299055b3f3321aa57c98f60a68a48677a47e3f356f168361ce6d000d1d0fe"
     }
   ],
   "nativeAdaptations": [

@@ -58,11 +58,20 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "nativeMotionDrawingOwner", defaultBoolean = false)
   public void setNativeMotionDrawingOwner(ReactViewGroup view, boolean enabled) {
-    if (enabled) throw new IllegalStateException("CUI exact Android drawing receiver is not installed");
+    ((CUIFocusView)view).setNativeMotionDrawingOwner(enabled);
   }
   @Override @ReactProp(name = "nativeMotionProjectionRadii")
   public void setNativeMotionProjectionRadii(ReactViewGroup view, String radii) {
-    if (radii != null && !radii.isEmpty()) throw new IllegalStateException("CUI exact Android drawing receiver is not installed");
+    ((CUIFocusView)view).setNativeMotionProjectionRadii(radii);
+  }
+
+  @Override public void setBorderColor(ReactViewGroup view, int index, Integer color) {
+    super.setBorderColor(view, index, color);
+    ((CUIFocusView)view).captureMotionBorderColor(index, color);
+  }
+  @Override public void setBoxShadow(ReactViewGroup view, ReadableArray shadows) {
+    super.setBoxShadow(view, shadows);
+    ((CUIFocusView)view).captureMotionShadows(shadows);
   }
 
   @Override @ReactProp(name = "nativeNavigation", defaultBoolean = false)
@@ -77,6 +86,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
     ((CUIFocusView) view).synchronizeKeyboardFocusability();
     ((CUIFocusView) view).prepareScrollAnchor();
+    ((CUIFocusView) view).synchronizeMotionDrawing();
     ((CUIFocusView) view).synchronizeMotionColors();
     ((CUIFocusView) view).synchronizeMotionGeometry();
   }
@@ -137,7 +147,13 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     return events;
   }
 
+  @Override protected ReactViewGroup prepareToRecycleView(ThemedReactContext context, ReactViewGroup view) {
+    ((CUIFocusView)view).retireMotionDrawing();
+    return super.prepareToRecycleView(context, view);
+  }
+
   @Override public void onDropViewInstance(ReactViewGroup view) {
+    ((CUIFocusView) view).retireMotionDrawing();
     ((CUIFocusView) view).cancelHeldKeys();
     ((CUIFocusView) view).invalidateMotionColors();
     ((CUIFocusView) view).invalidateMotionGeometry();

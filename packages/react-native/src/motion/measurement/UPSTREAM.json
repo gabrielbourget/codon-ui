@@ -1,5 +1,5 @@
 {
-  "scope": "Authored private measurement/restore transaction prototype. No actual native atomic-layout provider is installed; production style publication fails before probes without one. Pinned source inputs define only comparison and scheduling intent.",
+  "scope": "Private guarded actual-host initial-value query plus measurement/restore transaction prototype. The isolated layout provider remains uninstalled; unsupported actual font/color/shorthand/matrix/imperative-layout authority rejects explicitly. Source/compiler proof does not establish native presentation, geometry fidelity or full Card.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -26,5 +26,11 @@
     "Source-equivalent MotionValue internal notification/reset-velocity integration",
     "Native style-to-metric mapping including content-box/borders, transforms, scroll and logical dimensions",
     "Current consumers/products and actual layout/presentation/performance acceptance"
+  ],
+  "authoredFiles": [
+    {
+      "file": "initialValue.ts",
+      "sha256": "1e3764ef76f53e863488fbe623b159990f0d4693a72a0a1ab55965f4c7ba743d"
+    }
   ]
 }

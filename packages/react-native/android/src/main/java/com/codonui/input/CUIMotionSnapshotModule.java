@@ -21,6 +21,7 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
 
   CUIMotionSnapshotModule(ReactApplicationContext context) { super(context); }
   private static native String nativeSnapshot(FabricUIManager manager, int target, String owner, String binding, String revision);
+  private static native String nativeInitialValue(FabricUIManager manager, int target, String owner, String binding, String revision, String name);
   private static native String nativePopFrame(FabricUIManager manager, String request);
   private static native String nativeViewport(FabricUIManager manager, String request);
   // Access is serialized with invalidate; the C++ owner retains the manager
@@ -79,6 +80,14 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   }
 
   @Override public void getSnapshot(String encoded, Promise promise) {
+    readOwnedSnapshot(encoded, promise, false);
+  }
+
+  @Override public void getInitialValue(String encoded, Promise promise) {
+    readOwnedSnapshot(encoded, promise, true);
+  }
+
+  private void readOwnedSnapshot(String encoded, Promise promise, boolean initialValue) {
     UiThreadUtil.runOnUiThread(() -> {
       try {
         if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("motion-module-retired");
@@ -96,15 +105,18 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
         if (!(view instanceof CUIFocusView)) throw new IllegalStateException("motion-actual-view-unavailable");
         JSONObject identity = ((CUIFocusView)view).motionSnapshotIdentity();
         validate(request, identity);
-        JSONObject result = new JSONObject(nativeSnapshot((FabricUIManager)manager, target,
-          identity.getString("ownerId"), identity.getString("bindingId"), identity.getString("nativeViewRevision")));
+        String name = initialValue ? request.getString("name") : null;
+        if (initialValue && name.isEmpty()) throw new IllegalArgumentException("motion-value-name-invalid");
+        JSONObject result = new JSONObject(initialValue ? nativeInitialValue((FabricUIManager)manager, target,
+          identity.getString("ownerId"), identity.getString("bindingId"), identity.getString("nativeViewRevision"), name) :
+          nativeSnapshot((FabricUIManager)manager, target, identity.getString("ownerId"), identity.getString("bindingId"), identity.getString("nativeViewRevision")));
         if (!valid.get() || manager.resolveView(target) != view) throw new IllegalStateException("motion-owner-retired");
         validate(identity, ((CUIFocusView)view).motionSnapshotIdentity());
         for (String key : strings) result.put(key, identity.get(key));
         for (String key : numbers) result.put(key, identity.get(key));
         result.put("requestId", nonce);
         promise.resolve(result.toString());
-      } catch (Exception failure) { promise.reject("E_CUI_MOTION_SNAPSHOT", failure); }
+      } catch (Exception failure) { promise.reject(initialValue ? "E_CUI_MOTION_INITIAL_VALUE" : "E_CUI_MOTION_SNAPSHOT", failure); }
     });
   }
 

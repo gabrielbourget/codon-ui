@@ -335,3 +335,73 @@ it("requires an exact native receiver for anisotropic corner correction instead 
   nativeProjectionStyles(f.actor.node!, { borderRadius: 10 }, undefined, receive)
   expect(receive).toHaveBeenCalledWith(expect.objectContaining({ topLeft: { x: 20, y: 10 } }))
 })
+it("publishes unequal-axis radii independently of styles and clears them when projection resets", async () => {
+  const f = create()
+  f.actor.configure(
+    "initial",
+    { borderTopLeftRadius: 10, borderTopRightRadius: "25%" },
+    undefined,
+    undefined,
+    undefined,
+  )
+  f.send("frame")
+  await turn()
+  f.actor.configure("size", { borderTopLeftRadius: 10, borderTopRightRadius: "25%" }, undefined, undefined, undefined)
+  f.send("mount-before", "size", 10, 100, "initial")
+  f.send("mount-after", "size", 10, 200, "size")
+  await turn()
+  expect(JSON.parse(f.actor.getSnapshot().radii)).toEqual({
+    topLeft: { x: 20, y: 10 },
+    topRight: null,
+    bottomLeft: null,
+    bottomRight: null,
+  })
+  expect(f.actor.getSnapshot().style).toMatchObject({ borderTopRightRadius: "25%" })
+  f.actor.node!.needsReset = true
+  f.actor.render()
+  expect(f.actor.getSnapshot().radii).toBe("")
+  f.actor.render()
+  expect(f.actor.getSnapshot().radii).not.toBe("")
+  f.window("replacement")
+  expect(f.actor.getSnapshot()).toEqual({ style: {}, visible: true, radii: "" })
+  expect(f.errors).not.toHaveBeenCalled()
+})
+it.each([
+  ["ios", "ltr", false, [5, 6, 7, 8]],
+  ["ios", "rtl", false, [6, 5, 8, 7]],
+  ["android", "ltr", false, [5, 6, 7, 8]],
+  ["android", "rtl", true, [6, 5, 8, 7]],
+  ["android", "rtl", false, [6, 5, 7, 8]],
+] as const)(
+  "preserves %s %s logical-corner precedence with swap=%s",
+  async (platform, direction, swapLeftAndRight, expected) => {
+    const f = create()
+    f.send("frame")
+    await turn()
+    f.actor.configure("size", {}, undefined, undefined, undefined)
+    f.send("mount-before", "size", 10, 100, "initial")
+    f.send("mount-after", "size", 10, 200, "size")
+    await turn()
+    const receive = jest.fn()
+    nativeProjectionStyles(
+      f.actor.node!,
+      {
+        borderTopStartRadius: 5,
+        borderTopEndRadius: 6,
+        borderBottomStartRadius: 7,
+        borderBottomEndRadius: 8,
+      },
+      undefined,
+      receive,
+      { platform, direction, swapLeftAndRight },
+    )
+    expect(receive).toHaveBeenCalledWith(
+      Object.fromEntries(
+        ["topLeft", "topRight", "bottomLeft", "bottomRight"].map((corner, index) => [
+          corner,
+          { x: expected[index] * 2, y: expected[index] },
+        ]),
+      ),
+    )
+  },
+)

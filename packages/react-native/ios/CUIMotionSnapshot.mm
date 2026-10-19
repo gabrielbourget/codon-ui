@@ -3,18 +3,24 @@
 #import <React/RCTAssert.h>
 #import <React/RCTSurfacePresenter.h>
 #import <React/RCTScheduler.h>
+#import <React/RCTConversions.h>
 #import "CUIFocusView.h"
 #import "CUIMotionGeometryObserver.h"
 #include "../cpp/motion/SnapshotQuery.h"
 #include "../cpp/motion/PopFrame.h"
 #include "../cpp/motion/PopPresentation.h"
 #include "../cpp/motion/ViewportQuery.h"
+#include "../cpp/motion/InitialValueQuery.h"
 #include <react/renderer/uimanager/UIManagerBinding.h>
 #include <folly/json.h>
 #include <atomic>
 #include <cmath>
 #include <climits>
 #include <stdexcept>
+#include <iomanip>
+#include <limits>
+#include <locale>
+#include <sstream>
 
 @interface CUIMotionSnapshot : NativeCUIMotionSnapshotSpecBase <NativeCUIMotionSnapshotSpec, RCTInvalidating>
 @end
@@ -132,6 +138,14 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
 - (void)invalidate { _valid->store(false); _pop->close(); }
 
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  [self readOwnedSnapshot:encoded initialValue:NO resolve:resolve reject:reject];
+}
+
+- (void)getInitialValue:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  [self readOwnedSnapshot:encoded initialValue:YES resolve:resolve reject:reject];
+}
+
+- (void)readOwnedSnapshot:(NSString *)encoded initialValue:(BOOL)initialValue resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
   RCTAssertMainQueue();
   @try {
     if (!_valid->load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class]) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-module-unavailable" userInfo:nil];
@@ -150,8 +164,33 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
     auto manager = scheduler.uiManager;
     if (!manager) @throw [NSException exceptionWithName:@"CUI.MotionSnapshot" reason:@"motion-Fabric-unavailable" userInfo:nil];
     try {
-      auto result = codon::motion::queryNativeFabricSnapshot(*manager, [rawTarget intValue],
-          [identity[@"ownerId"] UTF8String], [identity[@"bindingId"] UTF8String], [identity[@"nativeViewRevision"] UTF8String]);
+      NSString *name = initialValue ? request[@"name"] : nil;
+      if (initialValue && (![name isKindOfClass:NSString.class] || !name.length)) throw std::invalid_argument("motion-value-name-invalid");
+      __block std::string result;
+      if (initialValue) {
+        [view.traitCollection performAsCurrentTraitCollection:^{
+          const auto readColor = [view](facebook::react::SharedColor color) -> folly::dynamic {
+            UIColor *source = color ? RCTUIColorFromSharedColor(color) : UIColor.clearColor;
+            UIColor *resolved = [source resolvedColorWithTraitCollection:view.traitCollection];
+            CGFloat red, green, blue, alpha;
+            const BOOL available = resolved && [resolved getRed:&red green:&green blue:&blue alpha:&alpha];
+            const BOOL wide = resolved && CGColorSpaceIsWideGamutRGB(CGColorGetColorSpace(resolved.CGColor));
+            if (!available || wide || !std::isfinite(red) || !std::isfinite(green) || !std::isfinite(blue) || !std::isfinite(alpha) ||
+                red < 0 || red > 1 || green < 0 || green > 1 || blue < 0 || blue > 1 || alpha < 0 || alpha > 1)
+              throw std::runtime_error(wide ? "unsupported-native-color-space" : "unresolved-native-color");
+            std::ostringstream encodedColor;
+            encodedColor.imbue(std::locale::classic());
+            encodedColor << std::setprecision(std::numeric_limits<CGFloat>::max_digits10)
+                << "rgba(" << red * 255 << ", " << green * 255 << ", " << blue * 255 << ", " << alpha << ')';
+            return encodedColor.str();
+          };
+          result = codon::motion::queryNativeInitialValue(*manager, [rawTarget intValue],
+              [identity[@"ownerId"] UTF8String], [identity[@"bindingId"] UTF8String], [identity[@"nativeViewRevision"] UTF8String], [name UTF8String], readColor);
+        }];
+      } else {
+        result = codon::motion::queryNativeFabricSnapshot(*manager, [rawTarget intValue],
+            [identity[@"ownerId"] UTF8String], [identity[@"bindingId"] UTF8String], [identity[@"nativeViewRevision"] UTF8String]);
+      }
       if (!_valid->load() || [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[rawTarget integerValue]] != view || !CUISnapshotIdentityMatches(identity, [(CUIFocusView *)view motionSnapshotIdentity])) throw std::runtime_error("motion-owner-retired");
       NSData *data = [[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding];
       NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableContainers error:&parseError] mutableCopy];
@@ -160,8 +199,8 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
       NSData *serialized = [NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:&parseError];
       if (!serialized || parseError) throw std::runtime_error("motion-snapshot-invalid");
       resolve([[NSString alloc] initWithData:serialized encoding:NSUTF8StringEncoding]);
-    } catch (const std::exception &failure) { reject(@"E_CUI_MOTION_SNAPSHOT", [NSString stringWithUTF8String:failure.what()], nil); }
-  } @catch (NSException *failure) { reject(@"E_CUI_MOTION_SNAPSHOT", failure.reason, nil); }
+    } catch (const std::exception &failure) { reject(initialValue ? @"E_CUI_MOTION_INITIAL_VALUE" : @"E_CUI_MOTION_SNAPSHOT", [NSString stringWithUTF8String:failure.what()], nil); }
+  } @catch (NSException *failure) { reject(initialValue ? @"E_CUI_MOTION_INITIAL_VALUE" : @"E_CUI_MOTION_SNAPSHOT", failure.reason, nil); }
 }
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {

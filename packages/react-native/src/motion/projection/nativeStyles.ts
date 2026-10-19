@@ -1,4 +1,5 @@
 import type { ViewStyle } from "react-native"
+import { I18nManager, Platform } from "react-native"
 
 import { buildNativeMotionTransform } from "../visual/nativeTransform"
 import type { TNativeMotionTransform, TNativeMotionTransformTemplate } from "../visual/types"
@@ -36,14 +37,20 @@ export const buildNativeProjectionTransform = (
 }
 export type TNativeProjectionRadii = Record<
   "topLeft" | "topRight" | "bottomLeft" | "bottomRight",
-  { x: number; y: number }
+  { x: number; y: number } | null
 >
+type TRadiusContext = {
+  direction?: "ltr" | "rtl"
+  platform?: "ios" | "android"
+  swapLeftAndRight?: boolean
+}
 // Exact elliptical corrections need a native drawing receiver; scalar RN radii cannot represent unequal axes.
 export const nativeProjectionStyles = (
   node: IProjectionNode,
   authored: NativeProjectionStyle,
   template?: TNativeMotionTransformTemplate,
   elliptical?: (radii: TNativeProjectionRadii) => void,
+  radiusContext?: TRadiusContext,
 ): NativeProjectionStyle => {
   if (!node.isVisible) return {}
   if (node.needsReset) {
@@ -77,21 +84,90 @@ export const nativeProjectionStyles = (
   const sx = node.projectionDelta.x.scale * node.treeScale!.x,
     sy = node.projectionDelta.y.scale * node.treeScale!.y
   const radii = {} as TNativeProjectionRadii
+  const readRadius = (key: keyof ViewStyle) => values[key] ?? authored[key]
+  if (
+    radiusContext &&
+    !radiusContext.direction &&
+    Object.keys({ ...authored, ...values }).some(
+      (key) => key.startsWith("border") && key.endsWith("Radius") && readRadius(key as keyof ViewStyle) !== undefined,
+    )
+  )
+    throw new Error("Native projection: actual native layout direction unavailable")
+  const rtl = (radiusContext?.direction ?? (I18nManager.isRTL ? "rtl" : "ltr")) === "rtl"
+  const android = (radiusContext?.platform ?? Platform.OS) === "android"
+  const swap = rtl && (radiusContext?.swapLeftAndRight ?? I18nManager.doLeftAndRightSwapInRTL)
+  // Preserve each locked platform's precedence, including Android's RTL aliases.
+  const aliases = android
+    ? rtl
+      ? [
+          ["borderEndStartRadius", "borderTopEndRadius", swap ? "borderTopRightRadius" : "borderTopLeftRadius"],
+          ["borderStartStartRadius", "borderTopStartRadius", swap ? "borderTopLeftRadius" : "borderTopRightRadius"],
+          [
+            "borderEndEndRadius",
+            swap ? "borderBottomEndRadius" : "borderBottomStartRadius",
+            swap ? "borderBottomRightRadius" : "borderBottomLeftRadius",
+          ],
+          [
+            "borderStartEndRadius",
+            swap ? "borderBottomStartRadius" : "borderBottomEndRadius",
+            swap ? "borderBottomLeftRadius" : "borderBottomRightRadius",
+          ],
+        ]
+      : [
+          ["borderStartStartRadius", "borderTopStartRadius", "borderTopLeftRadius"],
+          ["borderEndStartRadius", "borderTopEndRadius", "borderTopRightRadius"],
+          ["borderStartEndRadius", "borderBottomStartRadius", "borderBottomLeftRadius"],
+          ["borderEndEndRadius", "borderBottomEndRadius", "borderBottomRightRadius"],
+        ]
+    : [
+        [
+          "borderTopLeftRadius",
+          rtl ? "borderTopEndRadius" : "borderTopStartRadius",
+          rtl ? "borderStartEndRadius" : "borderStartStartRadius",
+        ],
+        [
+          "borderTopRightRadius",
+          rtl ? "borderTopStartRadius" : "borderTopEndRadius",
+          rtl ? "borderStartStartRadius" : "borderStartEndRadius",
+        ],
+        [
+          "borderBottomLeftRadius",
+          rtl ? "borderBottomEndRadius" : "borderBottomStartRadius",
+          rtl ? "borderEndEndRadius" : "borderEndStartRadius",
+        ],
+        [
+          "borderBottomRightRadius",
+          rtl ? "borderBottomStartRadius" : "borderBottomEndRadius",
+          rtl ? "borderEndStartRadius" : "borderEndEndRadius",
+        ],
+      ]
+  const logicalRadius = aliases.some((keys) =>
+    keys.some(
+      (key) =>
+        !["borderTopLeftRadius", "borderTopRightRadius", "borderBottomLeftRadius", "borderBottomRightRadius"].includes(
+          key,
+        ) && readRadius(key as keyof ViewStyle) !== undefined,
+    ),
+  )
   let hasRadius = false
-  for (const [name, key] of [
-    ["topLeft", "borderTopLeftRadius"],
-    ["topRight", "borderTopRightRadius"],
-    ["bottomLeft", "borderBottomLeftRadius"],
-    ["bottomRight", "borderBottomRightRadius"],
-  ] as const) {
-    const value = values[key] ?? values.borderRadius ?? authored[key] ?? authored.borderRadius
+  for (const [index, [name, key]] of (
+    [
+      ["topLeft", "borderTopLeftRadius"],
+      ["topRight", "borderTopRightRadius"],
+      ["bottomLeft", "borderBottomLeftRadius"],
+      ["bottomRight", "borderBottomRightRadius"],
+    ] as const
+  ).entries()) {
+    const value =
+      aliases[index].map((alias) => readRadius(alias as keyof ViewStyle)).find((item) => item !== undefined) ??
+      readRadius("borderRadius")
     if (value === undefined) {
-      radii[name] = { x: 0, y: 0 }
+      radii[name] = null
       continue
     }
     if (typeof value === "string" && value.endsWith("%")) {
       style[key] = value as `${number}%`
-      radii[name] = { x: 0, y: 0 }
+      radii[name] = null
       continue
     }
     if (typeof value !== "number") throw new Error("Native projection: native numeric/percentage radius required")
@@ -99,7 +175,7 @@ export const nativeProjectionStyles = (
     radii[name] = { x: value / sx, y: value / sy }
     if (Math.abs(sx - sy) < 0.0000001) style[key] = value / sx
   }
-  if (hasRadius && Math.abs(sx - sy) >= 0.0000001) {
+  if (hasRadius && (logicalRadius || Math.abs(sx - sy) >= 0.0000001)) {
     if (!elliptical) throw new Error("Native projection: exact elliptical radius receiver unavailable")
     elliptical(radii)
   }

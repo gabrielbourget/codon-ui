@@ -1,5 +1,6 @@
 -keep class com.codonui.input.CUIMotionSnapshotModule { *; }
 -keep class com.codonui.input.CUIMotionIntrinsics { *; }
+-keep class com.codonui.input.CUIMotionDrawingDispatch { *; }
 -keepclassmembers class com.facebook.react.views.text.TextLayoutManager {
   private com.facebook.react.views.text.TextLayoutManager$CreateLayoutResult createLayout(android.text.Spannable, android.text.TextPaint, com.facebook.react.common.mapbuffer.MapBuffer, com.facebook.react.common.mapbuffer.MapBuffer, float, com.facebook.yoga.YogaMeasureMode, float, com.facebook.yoga.YogaMeasureMode);
 }

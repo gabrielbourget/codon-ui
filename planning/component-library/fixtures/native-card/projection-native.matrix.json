@@ -181,6 +181,26 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.09",
+      "case": "Actual owned Android drawing and original Composite holders: colors/alpha/gradients/borders/outline/RTL/percentage/defaults/shadows and JNI framework traversal with original virtual RN z-order/blend/child dispatch",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.10",
+      "case": "Actual independent-axis projection publication/clearing and root/editor/ref/state/default preservation through update/clear/recycle, empty/dirty values, native masks and large-tree/frame costs",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

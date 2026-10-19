@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete. Private immutable viewport traversal now binds actual Fabric inputs without enabling RN IntersectionObserver globals or SDK flags; actual geometry/timing/performance remains unaccepted. Approved CUI-owned iOS painting source port now has private host wiring and independent circular-corner axes; motion integration, Android, continuous ellipses and actual drawing/default/performance acceptance remain incomplete.",
+  "scope": "Private isolated measurement, scoped family presentation, viewport, CUI-owned platform drawing and actual-host initial-value source. Projection carries independent physical corner axes with pinned platform logical/RTL precedence. iOS native continuous paths cover uniform and non-overlapping mixed corners; mixed overlap rejects as unproved. Initial queries reconcile immutable and read-only imperative family props, direct Paragraph authority and native colors. Complete isolated geometry, native drawing/default/editor/performance admission and full Card remain required.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -445,6 +445,162 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BorderDrawable.kt",
       "sha256": "ba54e3aed46ea330b8c9ff8cc5d05ba4c59330c12acd22aa77c509eab156cb1a",
       "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundDrawable.kt",
+      "sha256": "fd24c337d541b2f80477eb7a7ce5a959bf3826e5e6a46ab143316f0b8b8dc978",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundImageDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BackgroundImageDrawable.kt",
+      "sha256": "ba39cec25c71f6c7da1f3ed88bb943e03220bb9a0967d8c2d35ca2c5a3da1cbc",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutlineDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutlineDrawable.kt",
+      "sha256": "5a930e020ac72f3db180605e0564effdadc3ae98179a408baf02a8f49e3908ba",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/InsetBoxShadowDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/InsetBoxShadowDrawable.kt",
+      "sha256": "f5bbed454d28a5e939771994e249b6862410880427067c37b7c16489525422c7",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutsetBoxShadowDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/OutsetBoxShadowDrawable.kt",
+      "sha256": "6168badcc4cdd8de0caf421d3c2746a65f50893c220cd98e3ec942fbb75ec472",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BoxShadowBorderRadius.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BoxShadowBorderRadius.kt",
+      "sha256": "e69ae31f034d084ffb34312e1f5d12172682b67c87e53129f03e6bcbfc3623a1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/CompositeBackgroundDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/CompositeBackgroundDrawable.kt",
+      "sha256": "0e46efe6fcf2e7340c039e200facd03ed85744d189e3f4886081930aa92b9cd1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderColors.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderColors.kt",
+      "sha256": "a1cabf0f54b0b0b282802b5d4ecf54e76935d3ab4f78e8910fe5c5c9dec9ea05",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/BackgroundStyleApplicator.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/BackgroundStyleApplicator.kt",
+      "sha256": "4101897ef1cc41b8b64b7ef5e1a9407bf538a62b01defff4598bd8330f899ff1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/FilterHelper.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/FilterHelper.kt",
+      "sha256": "6434f1052e9805e27f3d925b30c55f97397b3d2df09c763e79c6a23f9b7ba4b2",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/view/ReactViewGroup.kt",
+      "sha256": "2b363babe6afd375b8317a4e12c122b761e00629699a70cb08359fcb561ac243",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "React/Views/RCTBorderDrawing.m",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Views/RCTBorderDrawing.m",
+      "sha256": "9f2ee813a3c0fbb7bf8e5d3d45601933f935ee59128c748460bc1291a6cc01d0",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "React/Fabric/Utils/RCTBoxShadow.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Utils/RCTBoxShadow.mm",
+      "sha256": "90a749d484a831eb6bcbf91bb0bda3d0a94fca2735ca362c323adc65d08d4de8",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/primitives.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/primitives.h",
+      "sha256": "2814441f318b3328029cc124bf436de5e487fc5ad2565268b4af4b2e4e6d301d",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/BaseViewProps.h",
+      "sha256": "e208193ef8c6bfcaa2616aca1819c5d7c7774bfe33ad83f5adae7ef8555e2036",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/ParagraphShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/ParagraphShadowNode.h",
+      "sha256": "4e0ff7d33892d63438e2f2791ad95ffe1dc046f4f7d29cf2308e401098bb17d1",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/platform/cxx/react/renderer/components/text/ParagraphState.h",
+      "sha256": "cf46a0cdea725a26157d989d315fae7c10f6aa3acab9e6aaa3cc2e3e4fe2704c",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/platform/android/react/renderer/components/text/ParagraphState.h",
+      "sha256": "bb6e15660d5c8be8fe5f033b605c649282012c693e096fbf77ee1ff8eab8ce4b",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/BaseParagraphProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/BaseParagraphProps.h",
+      "sha256": "f3170f1a1c08364f65e74a15ac3651c4045a86fb37e13dafcdde87cb3c8590e6",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/attributedstring/TextAttributes.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.h",
+      "sha256": "ea17d04df275c541ef95ade3201b71cdd9603ad5e9be15dc4d322574e0fcd75e",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/attributedstring/TextAttributes.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/attributedstring/TextAttributes.cpp",
+      "sha256": "8a462eac4a9800d9ee3f769e82d883ef4f9d8541161f19ddbed28195b6bd82ff",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/Transform.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/Transform.h",
+      "sha256": "5c27dbee77cee4f2c0bd9398295e7af693e89581f15a0f67be2804313aad3cc4",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/Transform.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/Transform.cpp",
+      "sha256": "ae7718e1702be80d6d5075e7291ab21a355f67d6afdaeef02f9fbbb03732b00b",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/platform/ios/react/renderer/graphics/HostPlatformColor.h",
+      "sha256": "b47dbbd6e6073f78308a1b38970ef3ef11906b7bd1aece00ed32248315f8359e",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/graphics/platform/android/react/renderer/graphics/HostPlatformColor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/graphics/platform/android/react/renderer/graphics/HostPlatformColor.h",
+      "sha256": "3b6df50db13da1a12c12cc942912648295ecee14e3af504f88da321e46545b81",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/style/Style.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/style/Style.h",
+      "sha256": "9dbd735f6ecd1d8cfdf25a9fffaaa23f87d6114664828b6109b9b5bf979c7026",
+      "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
     }
   ],
   "license": "LICENSE.react-native.md",
@@ -540,6 +696,18 @@
     {
       "file": "ViewportQuery.h",
       "sha256": "e3e705e4d138e5a9205b2bfe2dd818155ca088a916b58a0dcccb1b4161e651f8"
+    },
+    {
+      "file": "InitialValueQuery.cpp",
+      "sha256": "b55679c0f8c780d0880070d5c2ad1907ef2ee5fa64cd09b2b6bc1981d036a5e1"
+    },
+    {
+      "file": "InitialValueQuery.h",
+      "sha256": "a6f92efcdf00d574b2bb4d011fb813d5fa4dc23569f3e1cc7c0d9ac2db67328d"
+    },
+    {
+      "file": "InitialValueStyle.cpp",
+      "sha256": "5a24e7ced7b3750788735d2b63319f8c830a23ffe3f634ffe52fa52ed11d6844"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -558,11 +726,11 @@
     },
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "eb5ef6b0da1002454bd4bdf8528328f3841be0b4847f567e7a011740260f285c"
+      "sha256": "a0c491d09f9d65d1351aadcd28ecce91d54d3240022c5886ef430afcb640b61b"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
-      "sha256": "2142d869b3e81f02e460b70c9da45d9116b9a867ea0e0ebca3dc821d8b326b7d"
+      "sha256": "43689d8f625ac2b1e71d39c9637c26ce5b941eb0cd05c9e9149dc2efbea10595"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
@@ -571,11 +739,11 @@
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "25023cdfdcb820de67e768c1092491037ff5ffe7b0347a53def6e0c3b42e2f96"
+      "sha256": "bd86b08015503b12a3db899c1e54f3bcc1a461c15c14041a3d5d752fadbe3484"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
-      "sha256": "86001f13cb62b8e68a89c99872a7c7bb5264d9f01530476d713b5148b6f13888"
+      "sha256": "0699141c5dc6f660d344477388c4afc791d15733b1219eb72a4bdcdbc05c0017"
     }
   ],
   "cachedSpanPolicy": {
@@ -609,11 +777,11 @@
   "popFrameFiles": [
     {
       "file": "ios/CUIMotionSnapshot.mm",
-      "sha256": "424bbba79b1842b87c01768d59e5b8a81fd3b6ecf2c76547bfa3f71280352095"
+      "sha256": "43c7c5185faaf16e9b79a9cb1cc37013b7c09c73d1d0870c4295878a3e050d49"
     },
     {
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
-      "sha256": "e2f6285a484b37730e01feaf6bf289093e764a1f38397dad798dbc409ba8e39b"
+      "sha256": "bf205a3d074e6ed5d35306db204edf68f6fc540df385e18faaa825595356802d"
     }
   ],
   "drawingAuthoredFiles": [
@@ -623,7 +791,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "db876b081bcbd0d30c1767ab2fd8dc994787a3e80dde220ceeff6a7567ab49e4"
+      "sha256": "60b7bf4262a7ed1cb5c30d8a9ea247cda5f23d869c91899ff5eac0ab7faa03a0"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -635,7 +803,7 @@
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIFocusViewManager.java",
-      "sha256": "bba7d3ff336803b335ce6b40fda1433b3e2f44f1abf53a3052ffdadb9b6106d9"
+      "sha256": "ffe255b46c7eaf7948334aa2ecaa0a86e51478b2d3f3b651621635da8a7d7c55"
     },
     {
       "file": "src/input/NativeFocusView.tsx",
@@ -644,17 +812,54 @@
     {
       "file": "src/input/specs/CUIFocusViewNativeComponent.ts",
       "sha256": "7b6c1e95872aaa6d70db0a9f4b485405c5364d4daeac77fa51d21388f4d757e0"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIFocusView.java",
+      "sha256": "67119c0985566c5374780ec1eb5e97a47cd01c41b3476cfa7d2305b45d301fae"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionDrawing.java",
+      "sha256": "c8a0e82f0b1e82e4f06081fb43f9cff49dc472c6d0b7d2f4b22e60bae9dfc86c"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionDrawingDispatch.java",
+      "sha256": "09a0a673d9c06def0627fc42788e0e48e799ee1e0a413e99bf9d9e816dff6808"
+    },
+    {
+      "file": "android/src/main/jni/MotionDrawingJNI.cpp",
+      "sha256": "a6e0eb7568796cda24eeef4010b76509b285ff5e05e3df10f9374c1a4de2471b"
+    },
+    {
+      "file": "android/src/main/jni/MotionDrawingJNI.h",
+      "sha256": "0bdf931cf052cdac90b844aeca75ff526b8edb39dc7c548e5b9a523fadfb38ac"
+    },
+    {
+      "file": "ios/CUIMotionDrawingGeometry.h",
+      "sha256": "5c0d6385d6123ef07b6e2b8a70a4cbd178ade904bfe1d63a1640e035c48cd567"
+    },
+    {
+      "file": "ios/CUIMotionDrawingGeometry.mm",
+      "sha256": "1cda485b0d76e99931d239cef98082a6315fe4b1079b65ef14bd3299f3c6aabc"
+    },
+    {
+      "file": "ios/CUIMotionContinuousCorners.swift",
+      "sha256": "00077c9846e9aa5c1bde741adda422d34080700e82c13103607a066236cd3356"
+    },
+    {
+      "file": "CodonNativeInput.podspec",
+      "sha256": "f5758a74a4693416e9f64e23075d82e1357e652f14f4eb0b9f7a8db8dc681206"
     }
   ],
   "drawingSourceBoundary": {
-    "platform": "ios",
+    "platform": "ios and android",
     "nativeMode": "private immutable opt-in; ordinary hosts delegate to RN",
     "ownedState": "Only CUI paint layers/containers/wrappers; no peer private ivar mutation",
     "sourcePort": "RN0.86.3 native background/border/outline/box-shadow/filter/gradient/mask/overflow receivers and raw percent/RTL/corner overlap resolution",
-    "continuousEllipses": "Explicit unproved-path rejection; remains required",
-    "android": "Private capability rejects activation until its complete receiver is installed",
-    "motionProjectionBinding": false,
+    "continuousEllipses": "Public SwiftUI Path bridge supports uniform and non-overlapping mixed corners. Mixed-span overlap explicitly rejects; full fidelity remains required.",
+    "android": "CUI adapters retain RN Composite style holders and scoped JNI framework child traversal; target runtime fidelity remains unproved",
+    "motionProjectionBinding": true,
     "nativeAssertionsExecuted": false,
-    "nativePixelsAccepted": false
+    "nativePixelsAccepted": false,
+    "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes"
   }
 }

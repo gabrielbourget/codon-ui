@@ -10,6 +10,7 @@ set(CODON_MOTION_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/motion")
 add_library(codon_motion SHARED
   MotionSnapshotJNI.cpp
   MotionIntrinsicsJNI.cpp
+  MotionDrawingJNI.cpp
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"
   "${CODON_MOTION_DIR}/FabricLayout.cpp"
   "${CODON_MOTION_DIR}/NativeStyle.cpp"
@@ -19,6 +20,8 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/PopStyle.cpp"
   "${CODON_MOTION_DIR}/PopPresentation.cpp"
   "${CODON_MOTION_DIR}/ViewportQuery.cpp"
+  "${CODON_MOTION_DIR}/InitialValueQuery.cpp"
+  "${CODON_MOTION_DIR}/InitialValueStyle.cpp"
   "${CODON_MOTION_DIR}/SnapshotQuery.cpp")
 target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"

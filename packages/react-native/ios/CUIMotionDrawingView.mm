@@ -1,5 +1,6 @@
 // CUI-owned rendering adaptation of RN0.86.3; see cpp/motion/UPSTREAM.json and its RN license.
 #import "CUIMotionDrawingView.h"
+#import "CUIMotionDrawingGeometry.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 #import <RCTSwiftUIWrapper/RCTSwiftUIContainerViewWrapper.h>
@@ -61,10 +62,11 @@ static void RCTAddContourEffectToLayer(
     const RCTCornerRadii &cornerRadii,
     const RCTBorderColors &contourColors,
     const UIEdgeInsets &contourInsets,
-    const RCTBorderStyle &contourStyle)
+    const RCTBorderStyle &contourStyle,
+    const CUIMotionCornerCurves &curves)
 {
-  UIImage *image = RCTGetBorderImage(
-      contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO);
+  UIImage *image = CUIGetBorderImage(
+      contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves);
 
   if (image == nil) {
     layer.contents = nil;
@@ -264,10 +266,6 @@ static BorderRadii CUIRadiiPercentToPoint(
   apply(@"topLeft", result.borderRadii.topLeft); apply(@"topRight", result.borderRadii.topRight);
   apply(@"bottomLeft", result.borderRadii.bottomLeft); apply(@"bottomRight", result.borderRadii.bottomRight);
   result.borderRadii = CUIEnsureNoOverlap(result.borderRadii, _layoutMetrics.frame.size);
-  if (!CUIRadiiAreCircular(result.borderRadii) &&
-      (result.borderCurves.topLeft == BorderCurve::Continuous || result.borderCurves.topRight == BorderCurve::Continuous ||
-       result.borderCurves.bottomLeft == BorderCurve::Continuous || result.borderCurves.bottomRight == BorderCurve::Continuous))
-    @throw [NSException exceptionWithName:@"CUI.MotionDrawing" reason:@"Exact continuous elliptical corner path remains unproved" userInfo:nil];
   return result;
 }
 
@@ -419,7 +417,7 @@ static BorderRadii CUIRadiiPercentToPoint(
       // If view has a solid background color, calculate shadow path from border.
       const RCTCornerInsets cornerInsets =
           RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero);
-      CGPathRef shadowPath = RCTPathCreateWithRoundedRect(self.bounds, cornerInsets, nil, NO);
+      CGPathRef shadowPath = CUIPathCreateWithRoundedRect(self.bounds, cornerInsets, borderMetrics.borderCurves);
       layer.shadowPath = shadowPath;
       CGPathRelease(shadowPath);
     } else {
@@ -444,9 +442,9 @@ static BorderRadii CUIRadiiPercentToPoint(
       // rendering incorrectly on iOS, iOS apps in compatibility mode on visionOS, but not on visionOS.
       // To work around this, for iOS, we can calculate the border path based on `view.frame` (the
       // superview's coordinate space) instead of view.bounds.
-      CGPathRef borderPath = RCTPathCreateWithRoundedRect(self.frame, cornerInsets, NULL, NO);
+      CGPathRef borderPath = CUIPathCreateWithRoundedRect(self.frame, cornerInsets, borderMetrics.borderCurves);
 #else // TARGET_OS_VISION
-      CGPathRef borderPath = RCTPathCreateWithRoundedRect(self.bounds, cornerInsets, NULL, NO);
+      CGPathRef borderPath = CUIPathCreateWithRoundedRect(self.bounds, cornerInsets, borderMetrics.borderCurves);
 #endif
       UIBezierPath *bezierPath = [UIBezierPath bezierPathWithCGPath:borderPath];
       CGPathRelease(borderPath);
@@ -524,7 +522,8 @@ static BorderRadii CUIRadiiPercentToPoint(
         RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
         borderColors,
         RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths),
-        RCTBorderStyleFromBorderStyle(borderMetrics.borderStyles.left));
+        RCTBorderStyleFromBorderStyle(borderMetrics.borderStyles.left),
+        borderMetrics.borderCurves);
   }
 
   // outline
@@ -555,7 +554,8 @@ static BorderRadii CUIRadiiPercentToPoint(
               borderMetrics.borderRadii, _props->outlineWidth, _props->outlineOffset),
           RCTBorderColors{outlineColor, outlineColor, outlineColor, outlineColor},
           UIEdgeInsets{_props->outlineWidth, _props->outlineWidth, _props->outlineWidth, _props->outlineWidth},
-          RCTBorderStyleFromOutlineStyle(_props->outlineStyle));
+          RCTBorderStyleFromOutlineStyle(_props->outlineStyle),
+          borderMetrics.borderCurves);
     }
   }
 
@@ -702,11 +702,12 @@ static BorderRadii CUIRadiiPercentToPoint(
       _cuiBoxShadowLayers = [NSMutableArray new];
     }
     for (auto it = _props->boxShadow.rbegin(); it != _props->boxShadow.rend(); ++it) {
-      CALayer *shadowLayer = RCTGetBoxShadowLayer(
+      CALayer *shadowLayer = CUIGetBoxShadowLayer(
           *it,
           RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
           RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths),
-          self.layer.bounds.size);
+          self.layer.bounds.size,
+          borderMetrics.borderCurves);
       shadowLayer.zPosition = _cuiBorderLayer.zPosition;
       [layer addSublayer:shadowLayer];
       [_cuiBoxShadowLayers addObject:shadowLayer];
@@ -721,11 +722,13 @@ static BorderRadii CUIRadiiPercentToPoint(
     if (!clipToPaddingBox) {
       if ((borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii))) {
         self.currentContainerView.layer.cornerRadius = borderMetrics.borderRadii.topLeft.horizontal;
+        self.currentContainerView.layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
       } else {
         CALayer *maskLayer =
             [self createCuiMaskLayer:self.bounds
                      cornerInsets:RCTGetCornerInsets(
-                                      RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)];
+                                      RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)
+                     cornerCurves:borderMetrics.borderCurves];
         self.currentContainerView.layer.mask = maskLayer;
       }
 
@@ -737,7 +740,7 @@ static BorderRadii CUIRadiiPercentToPoint(
 
           // If the subview is an image view, we have to apply the mask directly to the image view's layer,
           // otherwise the image might overflow with the border radius.
-          subview.layer.mask = [self createCuiMaskLayer:subview.bounds cornerInsets:cornerInsets];
+          subview.layer.mask = [self createCuiMaskLayer:subview.bounds cornerInsets:cornerInsets cornerCurves:borderMetrics.borderCurves];
         }
       }
     } else if (
@@ -746,10 +749,12 @@ static BorderRadii CUIRadiiPercentToPoint(
       CALayer *maskLayer = [self createCuiMaskLayer:RCTCGRectFromRect(_layoutMetrics.getPaddingFrame())
                                     cornerInsets:RCTGetCornerInsets(
                                                      RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
-                                                     RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths))];
+                                                     RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths))
+                                    cornerCurves:borderMetrics.borderCurves];
       self.currentContainerView.layer.mask = maskLayer;
     } else {
       self.currentContainerView.layer.cornerRadius = borderMetrics.borderRadii.topLeft.horizontal;
+      self.currentContainerView.layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
     }
   }
 }
@@ -768,15 +773,17 @@ static BorderRadii CUIRadiiPercentToPoint(
   } else {
     CAShapeLayer *maskLayer = [self
         createCuiMaskLayer:self.bounds
-           cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)];
+           cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)
+           cornerCurves:borderMetrics.borderCurves];
     layer.mask = maskLayer;
     layer.cornerRadius = 0;
   }
 }
 
 - (CAShapeLayer *)createCuiMaskLayer:(CGRect)bounds cornerInsets:(RCTCornerInsets)cornerInsets
+    cornerCurves:(CUIMotionCornerCurves)curves
 {
-  CGPathRef path = RCTPathCreateWithRoundedRect(bounds, cornerInsets, nil, NO);
+  CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves);
   CAShapeLayer *maskLayer = [CAShapeLayer layer];
   maskLayer.path = path;
   CGPathRelease(path);

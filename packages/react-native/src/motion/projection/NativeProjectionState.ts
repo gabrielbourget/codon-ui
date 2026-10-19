@@ -12,6 +12,7 @@ import type { TNativeMotionTransformTemplate } from "../visual/types"
 import { getValueTransition } from "./native-transition"
 import { cancelNativeProjectionMicrotask, microtask } from "./nativeRuntime"
 import { nativeProjectionStyles } from "./nativeStyles"
+import type { TNativeProjectionRadii } from "./nativeStyles"
 import { createProjectionNode } from "./node/create-projection-node"
 import type { IProjectionNode, ProjectionNodeOptions } from "./node/types"
 import type { Box, NativeProjectionInstance, NativeProjectionStyle, Transition, VisualElement } from "./types"
@@ -20,8 +21,8 @@ const NativeProjectionNode = createProjectionNode({
   measureScroll: (instance) => instance.measureScroll(),
   checkIsScrollRoot: (instance) => instance.isScrollRoot(),
 })
-type TSnapshot = Readonly<{ style: NativeProjectionStyle; visible: boolean }>
-export const EMPTY_NATIVE_PROJECTION: TSnapshot = Object.freeze({ style: Object.freeze({}), visible: true })
+type TSnapshot = Readonly<{ style: NativeProjectionStyle; visible: boolean; radii: string }>
+export const EMPTY_NATIVE_PROJECTION: TSnapshot = Object.freeze({ style: Object.freeze({}), visible: true, radii: "" })
 type TCohort = {
   before: Map<NativeProjectionState, TNativeMotionGeometryRecord>
   after: Map<NativeProjectionState, TNativeMotionGeometryRecord>
@@ -184,11 +185,15 @@ export class NativeProjectionState implements TNativePopRoot {
       if (this.writer === writer) this.writer = undefined
     }
   }
-  private publish = (style: NativeProjectionStyle, visible = true, notify = true) => {
+  private publish = (style: NativeProjectionStyle, visible = true, radii?: TNativeProjectionRadii) => {
     if (!this.current()) return
-    this.snapshot = Object.freeze({ style: Object.freeze({ ...style }), visible })
+    this.snapshot = Object.freeze({
+      style: Object.freeze({ ...style }),
+      visible,
+      radii: radii ? JSON.stringify(radii) : "",
+    })
     this.writer?.(this.snapshot)
-    if (notify) this.listeners.forEach((listener) => listener())
+    this.listeners.forEach((listener) => listener())
   }
   private updateValues = () => {
     const values = { ...this.authored, ...this.owner.latestValues }
@@ -326,7 +331,18 @@ export class NativeProjectionState implements TNativePopRoot {
       },
       isScrollRoot: () => Boolean(this.owner.getProps().layoutRoot),
       applyNativeProjection: (node) => {
-        this.publish(nativeProjectionStyles(node, this.authored, this.template), node.isVisible)
+        let radii: TNativeProjectionRadii | undefined
+        const direction = this.record!.snapshot!.ancestors[0].layoutDirection
+        const style = nativeProjectionStyles(
+          node,
+          this.authored,
+          this.template,
+          (correction) => {
+            radii = correction
+          },
+          { direction },
+        )
+        this.publish(style, node.isVisible, radii)
       },
     }
     const getStyle = () => this.authored
@@ -446,6 +462,8 @@ export class NativeProjectionState implements TNativePopRoot {
     if (this.owner.projection === node) this.owner.setProjection(undefined)
     root?.remove(this)
     cancelFrame(this.render)
+    this.snapshot = EMPTY_NATIVE_PROJECTION
+    this.listeners.forEach((listener) => listener())
   }
   detach = () => {
     this.popRoot.dispose()
