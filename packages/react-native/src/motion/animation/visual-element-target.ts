@@ -57,6 +57,7 @@ export const animateTarget = (
       continue
     }
     const shouldReduceMotion = reduceMotion ?? owner.shouldReduceMotion
+    owner.setReducedMotionPolicy?.(key, reduceMotion)
     value.start((complete) =>
       owner.animateValue(
         key,

@@ -9,6 +9,18 @@ export function animateVisualElement(
   definition: TNativeMotionDefinition,
   options: TNativeMotionAnimationOptions = {},
 ) {
+  const ready = visualElement.awaitAnimationReady?.()
+  if (ready instanceof Promise)
+    return ready.then((current) => (current() ? animateReady(visualElement, definition, options) : undefined))
+  if (ready && !ready()) return Promise.resolve()
+  return animateReady(visualElement, definition, options)
+}
+
+const animateReady = (
+  visualElement: TNativeMotionAnimationOwner,
+  definition: TNativeMotionDefinition,
+  options: TNativeMotionAnimationOptions,
+) => {
   const isCurrent = visualElement.captureAnimationLease()
   if (!isCurrent()) return Promise.resolve()
   visualElement.notify("AnimationStart", definition)

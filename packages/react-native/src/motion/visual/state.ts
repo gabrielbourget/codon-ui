@@ -20,10 +20,13 @@ export class NativeMotionVisualState {
   private attached = false
   private notifyFrame?: () => void
   private renderFrame?: () => void
+  private notifyLease?: () => boolean
+  private renderLease?: () => boolean
 
   constructor(
     bindings: TNativeMotionVisualBindings = EMPTY_BINDINGS,
     onUpdate?: (latest: Readonly<TNativeMotionVisualValues>) => void,
+    private readonly captureLease?: () => () => boolean,
   ) {
     this.onUpdate = onUpdate
     this.bindings = bindings
@@ -59,9 +62,10 @@ export class NativeMotionVisualState {
     bindings: TNativeMotionVisualBindings = EMPTY_BINDINGS,
     onUpdate?: (latest: Readonly<TNativeMotionVisualValues>) => void,
   ) => {
+    const replaced = this.bindings !== bindings
     this.onUpdate = onUpdate
     this.bindings = bindings
-    if (this.attached && this.bindValues()) this.publish()
+    if (this.attached && (this.bindValues() || replaced)) this.publish()
   }
 
   private bindValues = () => {
@@ -96,25 +100,39 @@ export class NativeMotionVisualState {
 
   private schedule = () => {
     const generation = this.generation
+    const current = this.captureLease?.() ?? (() => true)
+    if (!current()) return
+    if (this.notifyFrame && this.notifyLease?.() === false) {
+      cancelFrame(this.notifyFrame)
+      this.notifyFrame = undefined
+    }
+    if (this.renderFrame && this.renderLease?.() === false) {
+      cancelFrame(this.renderFrame)
+      this.renderFrame = undefined
+    }
     if (this.onUpdate && !this.notifyFrame) {
       const notify = () => {
-        if (!this.attached || generation !== this.generation || this.notifyFrame !== notify) return
+        if (this.notifyFrame !== notify) return
         this.notifyFrame = undefined
+        if (!this.attached || generation !== this.generation || !current()) return
         const callback:
           | ((latest: Readonly<TNativeMotionVisualValues>, unused?: undefined, other?: undefined) => void)
           | undefined = this.onUpdate
         callback?.(this.latest, undefined, undefined)
       }
       this.notifyFrame = notify
+      this.notifyLease = current
       frame.preRender(notify)
     }
     if (!this.renderFrame) {
       const render = () => {
-        if (!this.attached || generation !== this.generation || this.renderFrame !== render) return
+        if (this.renderFrame !== render) return
         this.renderFrame = undefined
+        if (!this.attached || generation !== this.generation || !current()) return
         this.publish()
       }
       this.renderFrame = render
+      this.renderLease = current
       frame.render(render, false, true)
     }
   }

@@ -119,7 +119,7 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/interfaces/visual-element.ts",
       "upstreamSha256": "4dcf75748c75d55d4961dabaa2c8bf07b8f4c8fa17971ded817449ed89e3b889",
       "sourceKind": "npm-source-map-sourcesContent",
-      "receivedSha256": "5f763b9f058953bbb24ccee8f9925eeb42091a5e4533e3cc3b0bf7d5abc8c05b"
+      "receivedSha256": "9d9212bf93c0c2c8e65dcc557911a232444f8474fb15e44e71c224da87e232d1"
     },
     {
       "file": "visual-element-variant.ts",
@@ -231,7 +231,8 @@
   "nativeLifetimeAdaptations": [
     "Capture the actual native owner lease for queued target/reassert/transition-end/sequence completion; reject retired owner work",
     "No browser optimized-appear handoff or CSS will-change import; native value backend, geometry, color and native tree order remain mandatory",
-    "Normal/static-preview native hook lifetimes and scoped configuration context are implemented privately; complete owner/transition/skip/reduction binding and all public/native Card acceptance remain required"
+    "Normal/static-preview native hook lifetimes and scoped configuration context are implemented privately; complete owner/transition/skip/reduction binding and all public/native Card acceptance remain required",
+    "A private owner can await a genuine initial source-window acknowledgment; returned leases prevent retired/ref-replaced requests starting later. An optional authored-reduction-policy hook does not add synthetic transition fields."
   ],
   "nativeAdapterInputs": [
     {
@@ -253,8 +254,8 @@
   "remaining": [
     "native owner/keyframe/color/unit/geometry backend",
     "actual native tree ordering",
-    "controller/visual host composition",
-    "Complete NativeMotionConfig owner/skip/transition/reduction integration; context/static-preview source is implemented",
+    "Full native renderer/gesture/projection/presence composition and admission; the private owner now links controller/value/visual/config source paths",
+    "Actual native scoped transition/skip/live-reduction fidelity; private owner/config source integration is implemented",
     "all gestures/viewport/layout/presence",
     "full public Card/types/scene/consumer/products/native adaptive/performance acceptance"
   ],
@@ -273,11 +274,15 @@
     },
     {
       "file": "types.ts",
-      "sha256": "9fa9facb7c3a4a3444ec1bbedf22051160c851ce7a99f3262c5076520c988fcd"
+      "sha256": "aff530c7a0718b05b60584fd83103255f826959be109edf41ef2b22f83395c4d"
     },
     {
       "file": "visual-element-target.ts",
-      "sha256": "7d7cdca10dc2204652a592b51b300073419ace82f0c968ce867d3fe1fc166468"
+      "sha256": "853e0c814fa9cadae9222222d9822a9f578a6545ed82eed70e73c5826089cd41"
+    },
+    {
+      "file": "visual-element.ts",
+      "sha256": "9d9212bf93c0c2c8e65dcc557911a232444f8474fb15e44e71c224da87e232d1"
     }
   ],
   "framerLicenseSha256": "5ff46083b88563822b0560dd6221ab89d2f74bc97a52d4c97a75020fd62c6f32"
