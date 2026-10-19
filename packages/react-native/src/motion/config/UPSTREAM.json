@@ -1,0 +1,53 @@
+{
+  "scope": "Private NativeMotionConfig context, static-preview hook integration and live native preference only. Complete owner/value/gesture/projection/presence/Card integration and all native acceptance remain required.",
+  "inputs": [
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/components/MotionConfig/index.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "54b170ecb485a72be80ea8a410f362e6ca0464befdd674aa68ca3f0081c7921e"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/context/MotionConfigContext.tsx",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "571d0ee56e47dd8abca8ed1c80ee3cf5e5d17af2aac4e9d3d2314f6773a13c87"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/value/use-motion-value.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "d14944e822984d8e7c05b06bc60de1cd27abc24ebfbb96ecf244f0d0c8b112f1"
+    }
+  ],
+  "license": "../animation/LICENSE.framer-motion.md",
+  "nativeAdaptations": [
+    "Native x/y page-point transform; no CSS nonce or DOM prop validator",
+    "Mounted static mode remains immutable and JSON transition memoization follows pinned source",
+    "Static value subscriptions use unconditional React hooks and store function data through value-returning state actions, avoiding the executed pinned static initializer/updater side effect",
+    "Native user preference follows live AccessibilityInfo events; newer events outrank the initial query; conservative reduced state persists on an unavailable initial query",
+    "Always/never/default-never config scopes preserve the pinned policy names and explicit undefined behavior"
+  ],
+  "authoredFiles": [
+    {
+      "file": "NativeMotionConfig.tsx",
+      "sha256": "5b4f67bd2d7d07e104bf4e67087eefa708206eed37f15527a9a1069918a47e08"
+    },
+    {
+      "file": "index.ts",
+      "sha256": "0a06cbff126e0ad250b97a57543ab4a84742dde432658227b8a8314d14a5e03d"
+    },
+    {
+      "file": "reducedMotion.ts",
+      "sha256": "1f33fde03f432e24ca4ab2dd12c8f89c4870ba5752fd64a2d2fe9fc02fba8edf"
+    }
+  ],
+  "remaining": [
+    "Actual animation-owner/default transition/skip/positional-reduction binding",
+    "Native point/gesture integration and original input/editor/ref behavior",
+    "Native static/Reduce Motion/lifetime/frame and complete Card/consumer/products/acceptance proof"
+  ]
+}
