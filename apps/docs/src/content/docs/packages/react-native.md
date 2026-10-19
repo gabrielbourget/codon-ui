@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -27,6 +27,29 @@ The owned host now resolves inherited labelled-by IDs against live targets in it
 onKeyDown/onKeyUp receive original native synthetic keyboard events with logical key, platform code/characters, phase/repeat/cancellation, separate Shift/Alt/Control/Meta/Caps, raw modifiers and timestamp. TNativeInteractionEvent is the touch-or-keyboard union. TNativePressEvent additionally admits native activation; narrow kind="keyboard" versus kind="activation", then read touch-only coordinates only in the remaining touch arm. Activation contains actual target/source and observedAt (native callback-observation time), without fictitious touch coordinates or a hardware timestamp. Native default capture uses private declarative policy before JS delivery; later JS preventDefault cannot retroactively cancel a platform default.
 
 This package now includes native codegen/autolinking inputs and needs a consumer native rebuild. Raw source/type and compiler checks do not prove installed behavior. The private per-window key scope now occupies the floating host’s existing native root and acknowledges actual window epochs and policy revisions before JS action admission. Native target/modifier/editable/composition policies, Escape child/shield routing and physical-window deactivation guards are implemented at source tier. NativeFocusView focus events include observed isFocusVisible metadata; a generic focus event alone does not establish keyboard-visible focus. The updated scope still requires matching consumer/native products and installed proof. Further owned-control migration and installed native hover/description/viewport acceptance remain open. Public Tooltip/HoverPopover ignore touch entry, with no automatic tap or long-press trigger. An explicit tap-triggered popover is a separate ClickPopover contract, also still under construction.
+
+## Breadcrumbs
+
+Breadcrumbs accepts caller-owned string IDs, hrefs, content and disabled flags. It preserves first/current entries and consolidates the middle of long trails; maxVisibleItems ranges from3 through8, with left/right placement. Mount NativeFloatingLayerHost around trails that can overflow. The root exposes its actual native View ref; names, ordered label/description IDs, navigation and current-page metadata use the owned native adapters.
+
+```tsx
+import { Breadcrumbs, NativeFloatingLayerHost } from "@codon-ui/react-native"
+
+export const Trail = () => (
+  <NativeFloatingLayerHost>
+    <Breadcrumbs
+      items={[
+        { id: "home", href: "https://example.com", content: "Home", disabled: false },
+        { id: "current", href: "", content: "Current", disabled: false },
+      ]}
+      maxVisibleItems={4}
+      consolidationPlacement="right"
+    />
+  </NativeFloatingLayerHost>
+)
+```
+
+Visible entries retain Link's native URL behavior. Overflow closes before one onNavigate request with the original item, href and target; omitted handling uses Linking. The browser target string is callback metadata for the native host to interpret. Popup ownership and native popup style/ref/event props remain available through customClickPopoverProps. Root, breadcrumb/link, overflow button, popup and options-list styles retain independent owners. Linked rows ignore Space selection; empty-href rows keep the canonical selection/action distinction. Native focus/keyboard/pointer completion, spoken relationships and exact rendering remain required acceptance work.
 
 ## ClickPopover
 

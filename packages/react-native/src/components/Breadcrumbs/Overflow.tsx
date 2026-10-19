@@ -9,6 +9,7 @@ type TProps = {
   label: string
   style: TextStyle
   disabled: boolean
+  autoFocus?: boolean
   onAction: (item: TNativeBreadcrumbItem) => void
 }
 export const NativeBreadcrumbOverflow = (props: TProps) => (

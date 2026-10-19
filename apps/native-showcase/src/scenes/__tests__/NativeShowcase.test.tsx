@@ -24,6 +24,13 @@ it("opens the public ClickPopover scene and returns to the foundation on reset",
   expect(screen.getByTestId("theme-preview")).toBeOnTheScreen()
 })
 
+it("opens the public Breadcrumbs scene through the normal navigation", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Breadcrumbs scene" }))
+  expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0/)
+})
+
 it("hands off a modal closed by body layout before native readiness", async () => {
   await renderShowcase()
   const user = userEvent.setup()

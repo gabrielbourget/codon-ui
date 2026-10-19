@@ -10,7 +10,6 @@ import {
 import { Linking, View } from "react-native"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
-import { focusNativeTarget } from "../../input/focus"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
@@ -34,7 +33,6 @@ import {
   type TNativeBreadcrumbsRef,
 } from "./types"
 
-// Private construction until the remaining native relationship and full acceptance cells are closed.
 export const Breadcrumbs = forwardRef<TNativeBreadcrumbsRef, TNativeBreadcrumbsProps>((props, ref) => {
   const {
     items,
@@ -232,13 +230,6 @@ const NativeBreadcrumbCollapsed = ({ props, items, labels, internalOpen, setInte
       }
     }
   }, [pending, internalOpen, open, mode, host.layers.snapshot(), props])
-  const wasOpen = useRef(false)
-  useLayoutEffect(() => {
-    const closed = wasOpen.current && !open
-    wasOpen.current = open
-    if (closed && !pending && host.layers.canRestore(parent?.id ?? null) && windowActive?.() !== false)
-      focusNativeTarget(anchor.current)
-  }, [open, pending, host.layers.snapshot(), parent?.id, windowActive])
   return (
     <View
       style={styles.item.view}
@@ -283,6 +274,7 @@ const NativeBreadcrumbCollapsed = ({ props, items, labels, internalOpen, setInte
               label={labels.overflowListAriaLabel}
               style={styles.list}
               disabled={isDisabled}
+              autoFocus={authored.initialFocusRef === undefined}
               onAction={act}
             />
           </ClickPopover>
