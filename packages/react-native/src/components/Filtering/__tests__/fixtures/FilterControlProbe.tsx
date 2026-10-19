@@ -4,15 +4,13 @@ import { ScrollView, View } from "react-native"
 import { Button, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
 import { useNativeQueryDraftController, type TNativeQueryApplyRequest } from "../../../SortAndFilterPanel/controller"
 import type { TAvailableFilterCriteria } from "../../../Table/filterMetadata"
-import { BooleanFilterArgument } from "../../BooleanArgument"
-import { ComboBoxFilterArgument } from "../../ComboBoxArgument"
 import { FilterClauseSelectors } from "../../FilterClauseSelectors"
-import { ListFilterArgument } from "../../ListArgument"
-import { computeFilterArgumentType } from "../../metadata"
-import { NumberFilterArgument } from "../../NumberArgument"
-import { MultiSelectFilterArgument, SelectFilterArgument } from "../../OptionArguments"
-import { RangeFilterArgument } from "../../RangeArgument"
-import { TextFilterArgument } from "../../TextArgument"
+import { computeFilterArgumentType, computeFilterArgumentAccessibleLabel } from "../../metadata"
+import {
+  renderNonTemporalFilterArgumentInput,
+  isNonTemporalFilterArgumentDataType,
+  type TNonTemporalFilterArgumentContext,
+} from "../../renderNonTemporalArgument"
 
 const criteria: TAvailableFilterCriteria[] = [
   {
@@ -30,13 +28,20 @@ const criteria: TAvailableFilterCriteria[] = [
     id: "names",
     name: "Names",
     dataType: "text",
-    allowedOperationCodes: ["in", "equal"],
+    allowedOperationCodes: ["in", "equal", "like", "similar-to"],
     availableCriteriaArguments: [
       { id: "alpha", name: "Alpha", argumentValue: false },
       { id: "beta", name: "Beta", argumentValue: 0 },
     ],
   },
   { id: "amount", name: "Amount", dataType: "number", allowedOperationCodes: ["equal", "between", "in"] },
+  {
+    id: "search",
+    name: "Search labels",
+    dataType: "text",
+    usesTypeAheadInput: true,
+    allowedOperationCodes: ["equal", "in"],
+  },
   { id: "enabled", name: "Enabled", dataType: "boolean", allowedOperationCodes: ["equal", "not-equal"] },
   {
     id: "suggested",
@@ -69,7 +74,7 @@ const initial = (): TNativeQueryApplyRequest => ({
   ],
 })
 
-// Nonshipping controls and non-temporal editors. Full row/dispatcher and date policy remain open.
+// Nonshipping controls and non-temporal editors. The root wrapper, Card row and date policy remain open.
 const FilterControlProbe = () => {
   const [confirmed, setConfirmed] = useState(initial)
   const [metadata, setMetadata] = useState(criteria)
@@ -118,7 +123,7 @@ const FilterControlProbe = () => {
           {controller.draft.filterGroups.map((group) =>
             group.clauses.map((clause) => {
               const kind = computeFilterArgumentType(group, clause)
-              const change: Parameters<typeof SelectFilterArgument>[0]["onArgumentChange"] = ({
+              const change: TNonTemporalFilterArgumentContext["onArgumentChange"] = ({
                 argument,
                 filterArgumentSelectedKey,
               }) =>
@@ -146,73 +151,35 @@ const FilterControlProbe = () => {
                     onModifyFilterClause={controller.modifyFilterClause}
                     onDeleteFilterClause={controller.removeFilterClause}
                   />
-                  {kind === "Select" ? (
-                    <SelectFilterArgument
-                      argument={clause.argument}
-                      filterArgumentSelectedKey={clause.filterArgumentSelectedKey ?? null}
-                      availableFilterArguments={group.availableFilterArguments}
-                      closeLabel="Close filter arguments"
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Multi Select" ? (
-                    <MultiSelectFilterArgument
-                      argument={clause.argument}
-                      availableFilterArguments={group.availableFilterArguments}
-                      inputLabel="Find filter arguments"
-                      closeLabel="Close filter arguments"
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Input" && group.dataType === "text" ? (
-                    <TextFilterArgument
-                      argument={clause.argument}
-                      filterArgumentAccessibleLabel={`Filter ${group.criteriaName}`}
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Input" && group.dataType === "number" ? (
-                    <NumberFilterArgument
-                      argument={clause.argument}
-                      incrementLabel="Increase argument"
-                      decrementLabel="Decrease argument"
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Boolean" ? (
-                    <BooleanFilterArgument
-                      argument={clause.argument}
-                      booleanArgumentComponent="Checkbox"
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Range" && (group.dataType === "text" || group.dataType === "number") ? (
-                    <RangeFilterArgument
-                      dataType={group.dataType}
-                      argument={clause.argument}
-                      numberLabels={{
-                        minimumIncrement: "Increase minimum",
-                        minimumDecrement: "Decrease minimum",
-                        maximumIncrement: "Increase maximum",
-                        maximumDecrement: "Decrease maximum",
-                      }}
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
-                  ) : kind === "Multi Input" ? (
-                    <ListFilterArgument argument={clause.argument} canAct={() => open} onArgumentChange={change} />
-                  ) : kind === "Combo Box" ? (
-                    <ComboBoxFilterArgument
-                      argument={clause.argument}
-                      availableFilterArguments={group.availableFilterArguments}
-                      filterArgumentSelectedKey={clause.filterArgumentSelectedKey}
-                      inputLabel="Edit filter argument"
-                      closeLabel="Close filter arguments"
-                      canAct={() => open}
-                      onArgumentChange={change}
-                    />
+                  {isNonTemporalFilterArgumentDataType(group.dataType) ? (
+                    renderNonTemporalFilterArgumentInput({
+                      dataType: group.dataType,
+                      filterArgumentType: kind,
+                      argument: clause.argument,
+                      filterArgumentSelectedKey: clause.filterArgumentSelectedKey ?? null,
+                      availableFilterArguments: group.availableFilterArguments,
+                      filterArgumentAccessibleLabel: computeFilterArgumentAccessibleLabel({
+                        criteriaName: group.criteriaName,
+                        operationCode: clause.operationCode,
+                      }),
+                      booleanArgumentComponent: "Checkbox",
+                      nativeLabels: {
+                        number: { incrementLabel: "Increase argument", decrementLabel: "Decrease argument" },
+                        range: {
+                          minimumIncrement: "Increase minimum",
+                          minimumDecrement: "Decrease minimum",
+                          maximumIncrement: "Increase maximum",
+                          maximumDecrement: "Decrease maximum",
+                        },
+                        options: { inputLabel: "Edit filter argument", closeLabel: "Close filter arguments" },
+                      },
+                      canAct: () => open,
+                      onArgumentChange: change,
+                    })
                   ) : (
-                    <Text>Argument renderer: {kind ?? "unset"}</Text>
+                    <Text>
+                      Unreceived temporal argument: {group.dataType} / {kind ?? "unset"}
+                    </Text>
                   )}
                 </View>
               )
