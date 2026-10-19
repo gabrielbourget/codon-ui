@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete.",
+  "scope": "Private isolated intrinsic services and approved3.5.62 immutable frame/family pop presentation source. Explicit family leases interpose only position/size style props, preserving actual state/children/events and latest authored React/imperative styles. Native drawing, isolated intrinsic admission, installed timing/fidelity/performance and full Card remain incomplete. Private immutable viewport traversal now binds actual Fabric inputs without enabling RN IntersectionObserver globals or SDK flags; actual geometry/timing/performance remains unaccepted.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -397,6 +397,54 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/conversions.h",
       "sha256": "5014fa79e018d2a3a4f82a50189c37a3a1d9c67bc584188d05f9cdbe50651acb",
       "adaptation": "Approved explicit-family commit hook, typed concrete props/style cloning, read-only imperative style keys and restoration across retained Fabric branches. Original families/state/children/events/editor values are never reconstructed."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/LayoutableShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.cpp",
+      "sha256": "79fd3d48a39acd6680710a505c87ec151a6db38b7ec9d5dc071e7578e6e56e60",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/renderer/observers/intersection/IntersectionObserver.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/observers/intersection/IntersectionObserver.cpp",
+      "sha256": "95667f1bc941aa2b28fc4f59e470fa16f6358e46c872bc7c35ffd4defcae3dad",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/nativemodule/defaults/DefaultTurboModules.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/nativemodule/defaults/DefaultTurboModules.cpp",
+      "sha256": "969b2e4756db054a45a9109bf5be7887153685a39ff4f9c26d78f6aa48417a1f",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/BaseViewProps.cpp",
+      "sha256": "040d7c7be7ace403677e771a3bbfe6411303ec16b02bc46e686daef5d90f4a64",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.h",
+      "sha256": "a882fba0cf16bc908580563ce938d56f0dc21d2db1612e2ceb4a279a42e678a5",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+      "sha256": "cbdbe8224168362cd14c2065691cb2548b873c5e51988f64ade50fa0173e51fa",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderRadiusStyle.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/style/BorderRadiusStyle.kt",
+      "sha256": "817334cedc07bc4c7a442fa7c8fad089c2bd2711b5a59c2902bf86dd005b6dd7",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BorderDrawable.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/uimanager/drawable/BorderDrawable.kt",
+      "sha256": "ba54e3aed46ea330b8c9ff8cc5d05ba4c59330c12acd22aa77c509eab156cb1a",
+      "adaptation": "Readonly Fabric viewport/scroll/transform traversal and existing observer audit; coupled native drawing/default clipping remains an unimplemented required receiver, with no private-field mutation or renderer fork."
     }
   ],
   "license": "LICENSE.react-native.md",
@@ -484,6 +532,14 @@
     {
       "file": "PopPresentation.h",
       "sha256": "07f7850ab3fcdb36e1a00872e465d9b99c9c4e76d582f725a3ab08c41edac4c2"
+    },
+    {
+      "file": "ViewportQuery.cpp",
+      "sha256": "77d64fcf4d6191e485c6c872e0932f3da8c8c8a3e7c407f5e48d366aee24ded4"
+    },
+    {
+      "file": "ViewportQuery.h",
+      "sha256": "e3e705e4d138e5a9205b2bfe2dd818155ca088a916b58a0dcccb1b4161e651f8"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -502,7 +558,7 @@
     },
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "2d0121e6e2fa8364fe01f439bb1750fde4e3bd25ff344e05bb62d604429f0b5e"
+      "sha256": "eb5ef6b0da1002454bd4bdf8528328f3841be0b4847f567e7a011740260f285c"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
@@ -515,11 +571,11 @@
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "9e0540c89313695e8276ff7901ecd45a86cd5e78b0049058fe406ac76a6363f0"
+      "sha256": "25023cdfdcb820de67e768c1092491037ff5ffe7b0347a53def6e0c3b42e2f96"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
-      "sha256": "9509439c2138482d7bdc2faf065ce88a1500d8a56b4119d5393e923dd689aa51"
+      "sha256": "86001f13cb62b8e68a89c99872a7c7bb5264d9f01530476d713b5148b6f13888"
     }
   ],
   "cachedSpanPolicy": {
@@ -553,11 +609,11 @@
   "popFrameFiles": [
     {
       "file": "ios/CUIMotionSnapshot.mm",
-      "sha256": "e2c228f206a7d2657838fb1235dc4869ade0de659511ef45e8d6f3b819a14fee"
+      "sha256": "424bbba79b1842b87c01768d59e5b8a81fd3b6ecf2c76547bfa3f71280352095"
     },
     {
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
-      "sha256": "dfcc04e2bd7e8447f42300eb0d764e87f70ab46c803d7ffc2e658d9bcf921bbe"
+      "sha256": "e2f6285a484b37730e01feaf6bf289093e764a1f38397dad798dbc409ba8e39b"
     }
   ]
 }

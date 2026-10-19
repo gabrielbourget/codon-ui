@@ -1,8 +1,9 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { AccessibilityInfo, StyleSheet, TextInput } from "react-native"
+import { AccessibilityInfo, StyleSheet, TextInput, TurboModuleRegistry } from "react-native"
 import type { View } from "react-native"
 
+import { geometryPacket } from "../../input/__tests__/motionGeometry.fixture"
 import type { TNativeKeyScope } from "../../input/keyScope"
 import { nativeAnimationControls } from "../animation"
 import { NativeMotionConfig } from "../config"
@@ -39,6 +40,69 @@ const flush = async (timestamp = 1016) => {
     pending.forEach((callback) => callback(timestamp))
   })
 }
+it("binds native viewport records to source animation without replacing the original held-empty editor", async () => {
+  // Preset refs, native receipt/query responses and the window are explicit
+  // models; actual React/source animation and ref composition execute.
+  const root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    change = jest.fn(),
+    enter = jest.fn()
+  jest.spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle").mockReturnValue(71)
+  const backend = jest.fn((encoded: string) => {
+    const request = JSON.parse(encoded)
+    return JSON.stringify({
+      ...request,
+      kind: "native-viewport",
+      surfaceId: 1,
+      fabricRevision: "2",
+      time: 1000,
+      isIntersecting: true,
+      intersectionRatio: 1,
+      rootBounds: [0, 0, 300, 200],
+      boundingClientRect: [10, 20, 100, 50],
+      intersectionRect: [10, 20, 100, 50],
+    })
+  })
+  jest.spyOn(TurboModuleRegistry, "get").mockReturnValue({ getViewportSnapshot: backend } as never)
+  await render(
+    <NativeMotionOwnerHost
+      ref={root}
+      testID="viewport-owner"
+      style={{ opacity: 1 }}
+      motion={{ whileInView: { opacity: 0.3 }, transition: { duration: 0.1, ease: "linear" }, onViewportEnter: enter }}
+    >
+      <TextInput ref={editor} testID="viewport-editor" value="" onChangeText={change} />
+    </NativeMotionOwnerHost>,
+  )
+  const originalRoot = root.current,
+    originalEditor = editor.current
+  Object.assign(originalRoot!, { isConnected: true, ownerDocument: {} })
+  const props = screen.getByTestId("viewport-owner").props
+  await act(() =>
+    props.onNativeMotionGeometry({
+      nativeEvent: geometryPacket({
+        ownerId: props.ownerId,
+        bindingId: props.nativeMotionGeometryBinding,
+        commitRevision: props.nativeMotionGeometryRevision ?? "",
+        scopeOwnerId: "",
+        epoch: 0,
+        kind: "frame",
+      }),
+    }),
+  )
+  await flush(1000)
+  await flush(1016)
+  await flush(1150)
+  await flush(1166)
+  expect(enter).toHaveBeenCalledTimes(1)
+  expect(enter.mock.calls[0][0].target).toBe(originalRoot)
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(screen.getByTestId("viewport-editor").props.value).toBe("")
+  expect(change).not.toHaveBeenCalled()
+  expect(StyleSheet.flatten(screen.getByTestId("viewport-owner").props.style).opacity).toBeCloseTo(0.3)
+  await screen.unmount()
+})
 beforeEach(() => {
   mockScope = null
   MotionGlobalConfig.useManualTiming = true

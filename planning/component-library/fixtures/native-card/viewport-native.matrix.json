@@ -1,0 +1,131 @@
+{
+  "scope": "Supplemental private native viewport acceptance obligations; all existing catalogue/profile gates remain required.",
+  "nativeActions": 0,
+  "browserReference": {
+    "status": "OPEN",
+    "observations": null,
+    "reason": "CLI browser transport returned no data; escalation approval review timed out; app-browser policy blocks local-file navigation and forbids workarounds. The maintained oracle uses explicit IO models only."
+  },
+  "rows": [
+    {
+      "id": "CARD.VIEWPORT.V01.android.01",
+      "case": "Actual native implicit/explicit root, clipping ancestors, borders/scroll, full transforms and matching browser geometry; positive/negative pixel/percentage margins and root resizing",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.android.02",
+      "case": "Actual threshold buckets/isIntersecting including partial initial amount=all, edge adjacency and zero-area geometry; native time/entry/target payload fidelity",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.android.03",
+      "case": "Actual once capture and root/margin/amount restarts; committed handlers, whileInView variant priority/initial sequencing, scoped skip/reduced/static behavior",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.android.04",
+      "case": "Actual original root/empty/dirty editor values/selection/refs/methods and default native focus/key/press/accessibility delivery through observation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.android.05",
+      "case": "Actual recycled/ref/root/document/window/epoch/surface removal/re-entry; stale in-flight and queued source delivery cannot activate another owner",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.android.06",
+      "case": "Actual foreground/background/rotation/large-tree native query/bridge/frame/memory costs and every required profile; no source model or compilation substitutes",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.01",
+      "case": "Actual native implicit/explicit root, clipping ancestors, borders/scroll, full transforms and matching browser geometry; positive/negative pixel/percentage margins and root resizing",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.02",
+      "case": "Actual threshold buckets/isIntersecting including partial initial amount=all, edge adjacency and zero-area geometry; native time/entry/target payload fidelity",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.03",
+      "case": "Actual once capture and root/margin/amount restarts; committed handlers, whileInView variant priority/initial sequencing, scoped skip/reduced/static behavior",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.04",
+      "case": "Actual original root/empty/dirty editor values/selection/refs/methods and default native focus/key/press/accessibility delivery through observation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.05",
+      "case": "Actual recycled/ref/root/document/window/epoch/surface removal/re-entry; stale in-flight and queued source delivery cannot activate another owner",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.VIEWPORT.V01.ios.06",
+      "case": "Actual foreground/background/rotation/large-tree native query/bridge/frame/memory costs and every required profile; no source model or compilation substitutes",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}

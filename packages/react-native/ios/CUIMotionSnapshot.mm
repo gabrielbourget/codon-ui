@@ -8,6 +8,7 @@
 #include "../cpp/motion/SnapshotQuery.h"
 #include "../cpp/motion/PopFrame.h"
 #include "../cpp/motion/PopPresentation.h"
+#include "../cpp/motion/ViewportQuery.h"
 #include <react/renderer/uimanager/UIManagerBinding.h>
 #include <folly/json.h>
 #include <atomic>
@@ -38,6 +39,7 @@ class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapsh
                       std::shared_ptr<std::atomic<bool>> valid, std::shared_ptr<CUIPopSession> pop)
       : NativeCUIMotionSnapshotSpecJSI(params), valid_(std::move(valid)), pop_(std::move(pop)) {
     methodMap_["getPopFrame"] = MethodMetadata{1, getPopFrame};
+    methodMap_["getViewportSnapshot"] = MethodMetadata{1, getViewportSnapshot};
     methodMap_["popPresentation"] = MethodMetadata{1, popPresentation};
   }
  private:
@@ -71,14 +73,25 @@ class CUIMotionSnapshotJSI final : public facebook::react::NativeCUIMotionSnapsh
   static facebook::jsi::Value getPopFrame(
       facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
       const facebook::jsi::Value *arguments, size_t count) {
+    return readImmutableFrame(runtime, module, arguments, count, false);
+  }
+  static facebook::jsi::Value getViewportSnapshot(
+      facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *arguments, size_t count) {
+    return readImmutableFrame(runtime, module, arguments, count, true);
+  }
+  static facebook::jsi::Value readImmutableFrame(
+      facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+      const facebook::jsi::Value *arguments, size_t count, bool viewport) {
     const auto &self = static_cast<CUIMotionSnapshotJSI &>(module);
     if (!self.valid_->load() || count != 1 || !arguments[0].isString())
       throw facebook::jsi::JSError(runtime, "Native popLayout: active module/string request required");
     try {
       const auto binding = facebook::react::UIManagerBinding::getBinding(runtime);
       if (!binding) throw std::runtime_error("Native popLayout: calling Fabric binding unavailable");
-      const auto response = codon::motion::queryNativePopFrame(
-          binding->getUIManager(), arguments[0].getString(runtime).utf8(runtime));
+      const auto encoded = arguments[0].getString(runtime).utf8(runtime);
+      const auto response = viewport ? codon::motion::queryNativeViewport(binding->getUIManager(), encoded) :
+          codon::motion::queryNativePopFrame(binding->getUIManager(), encoded);
       if (!self.valid_->load()) throw std::runtime_error("Native popLayout: module retired");
       return facebook::jsi::String::createFromUtf8(runtime, response);
     } catch (const std::exception &failure) {
@@ -160,6 +173,9 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
 }
 - (NSString *)popPresentation:(NSString *)request {
   @throw [NSException exceptionWithName:@"CUI.PopPresentation" reason:@"popPresentation requires its calling JSI runtime" userInfo:nil];
+}
+- (NSString *)getViewportSnapshot:(NSString *)request {
+  @throw [NSException exceptionWithName:@"CUI.Viewport" reason:@"getViewportSnapshot requires its calling JSI runtime" userInfo:nil];
 }
 
 - (void)getTargetGeometry:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {

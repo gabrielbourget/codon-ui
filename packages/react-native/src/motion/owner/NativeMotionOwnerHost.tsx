@@ -24,6 +24,7 @@ import { useNativeMotionPresence } from "../presence/useNativeMotionPresence"
 import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
 import { NativeProjectionState } from "../projection/NativeProjectionState"
 import type { NativeProjectionStyle } from "../projection/types"
+import { NativeMotionViewport } from "../viewport/NativeMotionViewport"
 import { NativeMotionVisualHost } from "../visual/NativeMotionVisualHost"
 import type { TNativeMotionVisualHostProps } from "../visual/types"
 
@@ -93,6 +94,7 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       : initialContext.animate
     const context = useMemo(() => ({ ...initialContext, owner }), [owner, initialDependency, animateDependency])
     const [failure, setFailure] = useState<{ error: unknown } | null>(null)
+    const [viewport] = useState(() => new NativeMotionViewport(owner, (error) => setFailure({ error })))
     const [projection] = useState(
       () => new NativeProjectionState(owner, parent?.nativeProjection, (error) => setFailure({ error })),
     )
@@ -123,7 +125,15 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
     })
     useLayoutEffect(() => {
       owner.configure(options)
+      viewport.refresh()
     })
+    useLayoutEffect(() => {
+      const stop = owner.subscribeBindings(viewport.refresh)
+      return () => {
+        stop()
+        viewport.detach()
+      }
+    }, [owner, viewport])
     useEffect(() => {
       const current = owner.captureAnimationLease()
       if (current())

@@ -5,6 +5,7 @@
 #include "SnapshotQuery.h"
 #include "PopFrame.h"
 #include "PopPresentation.h"
+#include "ViewportQuery.h"
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
@@ -40,6 +41,12 @@ static jni::local_ref<jstring> nativePopFrame(
   const auto uiManager = scopedManager(manager);
   return jni::make_jstring(codon::motion::queryNativePopFrame(*uiManager, request->toStdString()));
 }
+static jni::local_ref<jstring> nativeViewport(
+    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
+    jni::alias_ref<jstring> request) {
+  if (!request) throw std::invalid_argument("Native viewport: request required");
+  return jni::make_jstring(codon::motion::queryNativeViewport(*scopedManager(manager), request->toStdString()));
+}
 
 static jlong nativeCreatePop(jni::alias_ref<jclass>,
     jni::alias_ref<JFabricUIManager::javaobject> manager) {
@@ -59,6 +66,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
         makeNativeMethod("nativePopFrame", nativePopFrame),
+        makeNativeMethod("nativeViewport", nativeViewport),
         makeNativeMethod("nativeCreatePop", nativeCreatePop),
         makeNativeMethod("nativePopRequest", nativePopRequest),
         makeNativeMethod("nativeClosePop", nativeClosePop)});

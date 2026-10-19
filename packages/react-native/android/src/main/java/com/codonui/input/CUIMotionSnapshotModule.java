@@ -22,6 +22,7 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   CUIMotionSnapshotModule(ReactApplicationContext context) { super(context); }
   private static native String nativeSnapshot(FabricUIManager manager, int target, String owner, String binding, String revision);
   private static native String nativePopFrame(FabricUIManager manager, String request);
+  private static native String nativeViewport(FabricUIManager manager, String request);
   // Access is serialized with invalidate; the C++ owner retains the manager
   // and unregisters its hook before releasing that retained manager.
   private long popHandle;
@@ -49,7 +50,9 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
     } catch (Exception failure) { throw new IllegalStateException("E_CUI_POP_PRESENTATION", failure); }
   }
 
-  @Override public String getPopFrame(String encoded) {
+  @Override public String getPopFrame(String encoded) { return readImmutableFrame(encoded, false); }
+  @Override public String getViewportSnapshot(String encoded) { return readImmutableFrame(encoded, true); }
+  private String readImmutableFrame(String encoded, boolean viewport) {
     try {
       if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("motion-module-retired");
       JSONObject request = new JSONObject(encoded);
@@ -59,10 +62,10 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
       if (!Double.isFinite(value) || value <= 0 || value > Integer.MAX_VALUE || value != Math.rint(value)) throw new IllegalArgumentException("motion-target-invalid");
       UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), (int)value);
       if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("motion-Fabric-unavailable");
-      String result = nativePopFrame((FabricUIManager)manager, encoded);
+      String result = viewport ? nativeViewport((FabricUIManager)manager, encoded) : nativePopFrame((FabricUIManager)manager, encoded);
       if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("motion-module-retired");
       return result;
-    } catch (Exception failure) { throw new IllegalStateException("E_CUI_POP_FRAME", failure); }
+    } catch (Exception failure) { throw new IllegalStateException(viewport ? "E_CUI_VIEWPORT" : "E_CUI_POP_FRAME", failure); }
   }
 
   private static void validate(JSONObject request, JSONObject identity) throws Exception {

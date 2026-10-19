@@ -18,6 +18,7 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/PopFrame.cpp"
   "${CODON_MOTION_DIR}/PopStyle.cpp"
   "${CODON_MOTION_DIR}/PopPresentation.cpp"
+  "${CODON_MOTION_DIR}/ViewportQuery.cpp"
   "${CODON_MOTION_DIR}/SnapshotQuery.cpp")
 target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"

@@ -1,0 +1,46 @@
+{
+  "scope": "Private source viewport owner binding and immutable native query. Source models and SDK compilation do not prove actual native geometry, clipping, callback timing or performance. Browser comparison remains OPEN.",
+  "package": "framer-motion",
+  "version": "12.40.0",
+  "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+  "license": "../animation/LICENSE.framer-motion.md",
+  "inputs": [
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/viewport/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "ef968df5ebdeec5de3209dfa633ea682c61c5ac642fc5df4d80292511698fae2"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/viewport/observers.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "b0de46976abe4d41795f13a6dd66127f09370bb324def33e3e6fef7fd9412dfe"
+    }
+  ],
+  "authoredFiles": [
+    {
+      "file": "NativeMotionViewport.ts",
+      "sha256": "e98c0468894fbdbac97085b6cdb97bff4edc34a615d27d726b3d32929f1be88e"
+    },
+    {
+      "file": "nativeViewport.ts",
+      "sha256": "f758c949488ba2b0ff8930a6007f0e631012a362f1a65c54faee7a6bbfd4d182"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "e8909bba9086ad99abf24102350d9f989e180c6792a8531cec63a0b0ea26c483"
+    }
+  ],
+  "sourceOracle": {
+    "comparisons": 126,
+    "modeledRecords": 756,
+    "actualBrowser": false,
+    "actualNative": false
+  },
+  "adaptations": [
+    "Retain pinned isIntersecting/once/options/current-handler lifecycle; amount is an observer threshold and does not independently filter Motion isIntersecting transitions",
+    "Resolve root-margin percentages against actual root width, retain edge adjacency and zero-area ratios, and return native logical rectangle fields with original View targets",
+    "Private scoped module uses current immutable Fabric revision/family/props and existing native frame notifications; no RN global observer manager, SDK flag, mounted probe or editor write",
+    "Actual ancestor/default/window/ref/scroll/transform/first-frame/large-tree and installed fidelity remains required; existing native drawing receiver remains incomplete"
+  ],
+  "specification": "https://www.w3.org/TR/intersection-observer/"
+}
