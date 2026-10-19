@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
-import { AccessibilityInfo, type View } from "react-native"
+import { AccessibilityInfo, TextInput, View } from "react-native"
 
 import { Button, Input, NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
 import { NativeDialogTrigger } from "../../../overlays/floating/NativeDialogTrigger"
@@ -131,6 +131,55 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     expect(screen.queryByTestId(`${name}-dialog`, hidden)).toBeNull()
   })
 
+  it("requests closure on actual ancestor scroll while retaining a declined owner, and ignores internal scroll and foreign windows", async () => {
+    jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(91)
+    const f = setup({ shouldUpdatePosition: false })
+    const result = await render(f.node())
+    await f.ready()
+    await tick()
+    const acknowledge = screen.getByTestId("host").props
+    await act(() =>
+      acknowledge.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: acknowledge.ownerId,
+          windowId: "tooltip-scroll",
+          epoch: 1,
+          policyRevision: acknowledge.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      }),
+    )
+    const props = screen.getByTestId("host").props
+    const packet = {
+      ownerId: props.ownerId,
+      windowId: "tooltip-scroll",
+      epoch: 1,
+      ...props.floatingTargets[0],
+      x: 0,
+      y: 0,
+      width: 300,
+      height: 400,
+      scrollRevision: 0,
+      revision: 1,
+    }
+    await act(() => props.onNativeFloatingObservation({ nativeEvent: packet }))
+    // Internal content scrolling never changes the anchor-ancestor revision produced by the native observer.
+    await act(() => props.onNativeFloatingObservation({ nativeEvent: packet }))
+    await act(() =>
+      props.onNativeFloatingObservation({
+        nativeEvent: { ...packet, windowId: "foreign", revision: 2, scrollRevision: 1 },
+      }),
+    )
+    expect(f.onOpenChange).not.toHaveBeenCalled()
+    await act(() => props.onNativeFloatingObservation({ nativeEvent: { ...packet, revision: 2, scrollRevision: 1 } }))
+    expect(f.onOpenChange.mock.calls).toEqual([[false]])
+    expect(screen.getByTestId(name, hidden)).toBeOnTheScreen()
+    await result.rerender(f.node({ isOpen: false }))
+    await act(() => props.onNativeFloatingObservation({ nativeEvent: { ...packet, revision: 3, scrollRevision: 2 } }))
+    expect(f.onOpenChange).toHaveBeenCalledTimes(1)
+  })
+
   it("keeps background actions available and never takes or restores keyboard focus", async () => {
     const f = setup()
     const result = await render(f.node())
@@ -149,6 +198,97 @@ describe.each(variants)("$name measured native surface", ({ name, Component, arr
     expect(root.focus).not.toHaveBeenCalled()
     expect(trigger.focus).not.toHaveBeenCalled()
     expect(f.onOpenChange).not.toHaveBeenCalled()
+  })
+
+  it("routes raw View and core editor description leases to actual tags, preserves metadata/values and retires native window loss", async () => {
+    const anchor = createRef<View>(),
+      editor = createRef<TextInput>(),
+      root = createRef<View>(),
+      host = createRef<View>()
+    const change = jest.fn()
+    jest
+      .spyOn(ReactNative, "findNodeHandle")
+      .mockImplementation((target) =>
+        target === anchor.current ? 17 : target === editor.current ? 18 : target === root.current ? 91 : 92,
+      )
+    const node = (useEditor = false) => (
+      <NativeFloatingLayerHost testID="host" ref={host}>
+        <View
+          ref={anchor}
+          testID="generic-anchor"
+          accessibilityLabel="Authored label"
+          accessibilityHint="Authored hint"
+        />
+        <TextInput
+          ref={editor}
+          testID="generic-editor"
+          value=""
+          onChangeText={change}
+          accessibilityLabel="Editor label"
+          accessibilityHint="Editor hint"
+        />
+        <Component
+          isOpen
+          triggerRef={useEditor ? editor : anchor}
+          ref={root}
+          showOverlayArrow={false}
+          descriptionLabel=""
+          aria-labelledby="label-one label-two"
+          aria-describedby=""
+          aria-details="detail"
+          detailsLabel="More information"
+        >
+          Live description
+        </Component>
+      </NativeFloatingLayerHost>
+    )
+    const result = await render(node())
+    measure(host.current!, [0, 0, 300, 400])
+    measure(anchor.current!, [100, 200, 40, 20])
+    measure(editor.current!, [100, 250, 40, 20])
+    measure(root.current!, [0, 0, 100, 80])
+    await fireEvent(screen.getByTestId("host"), "layout", layout(300, 400))
+    await tick()
+    const descriptions = () =>
+      screen
+        .getByTestId("host")
+        .props.floatingTargets.filter((target: { descriptionTag: number }) => target.descriptionTag > 0)
+    expect(descriptions()).toEqual([
+      expect.objectContaining({ targetTag: 17, descriptionTag: 91, descriptionLabel: "" }),
+    ])
+    expect(screen.getByTestId(name, hidden).props).toMatchObject({
+      nativeLabelledBy: ["label-one", "label-two"],
+      nativeDescribedBy: [],
+      nativeDetailsBy: ["detail"],
+      nativeDetailsLabel: "More information",
+      keyboardFocusable: false,
+    })
+    expect(screen.getByTestId("generic-anchor").props).toMatchObject({
+      accessibilityLabel: "Authored label",
+      accessibilityHint: "Authored hint",
+    })
+    const retired = descriptions()[0].id
+    await result.rerender(node(true))
+    await tick()
+    expect(descriptions()).toEqual([expect.objectContaining({ targetTag: 18, descriptionTag: 91 })])
+    expect(descriptions()[0].id).not.toBe(retired)
+    expect(screen.getByTestId("generic-editor")).toHaveDisplayValue("")
+    expect(change).not.toHaveBeenCalled()
+    const scope = screen.getByTestId("host").props
+    await act(() =>
+      scope.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scope.ownerId,
+          windowId: "inactive-window",
+          epoch: 2,
+          policyRevision: scope.policyRevision,
+          ready: false,
+          windowActive: false,
+        },
+      }),
+    )
+    expect(descriptions()).toEqual([])
+    expect(change).not.toHaveBeenCalled()
   })
 
   it("retains caller-controlled empty children and independent vector/root styles through themes", async () => {

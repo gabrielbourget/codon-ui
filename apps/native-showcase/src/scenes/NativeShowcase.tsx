@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context"
 
 import {
   NativeOverlayProvider,
+  NativeFloatingLayerHost,
   NativeThemeProvider,
   useNativeTheme,
   type NativeThemeMode,
@@ -42,6 +43,7 @@ import { StepperScene } from "./StepperScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
 import { ToggleScene } from "./ToggleScene"
+import { TooltipScene } from "./TooltipScene"
 import { TypeaheadSearchScene } from "./TypeaheadSearchScene"
 
 const FixtureAction = ({
@@ -177,6 +179,7 @@ export const NativeShowcase = () => {
     | "field"
     | "search"
     | "circular"
+    | "tooltip"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -192,134 +195,147 @@ export const NativeShowcase = () => {
       overrides={customized ? { colors: { foreground: "#087f8c" }, typography: { fontSizes: { b10: 18 } } } : undefined}
     >
       <NativeOverlayProvider>
-        <ShowcaseSurface>
-          <ThemeHeading />
-          <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
-          <View style={styles.controls}>
-            <FixtureAction
-              label="Foundation scene"
-              selected={scene === "foundation"}
-              onPress={() => setScene("foundation")}
-            />
-            <FixtureAction
-              label="Text/Button scene"
-              selected={scene === "library"}
-              onPress={() => setScene("library")}
-            />
-            <FixtureAction
-              label="Basic controls scene"
-              selected={scene === "controls"}
-              onPress={() => setScene("controls")}
-            />
-            <FixtureAction
-              label="Multiline/Radio scene"
-              selected={scene === "multiline"}
-              onPress={() => setScene("multiline")}
-            />
-            <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
-            <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
-            <FixtureAction label="NumberInput scene" selected={scene === "number"} onPress={() => setScene("number")} />
-            <FixtureAction
-              label="Progress/Meter scene"
-              selected={scene === "range"}
-              onPress={() => setScene("range")}
-            />
-            <FixtureAction
-              label="Indicator/Segment scene"
-              selected={scene === "display"}
-              onPress={() => setScene("display")}
-            />
-            <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
-            <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
-            <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
-            <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
-            <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
-            <FixtureAction
-              label="Thumbnail scene"
-              selected={scene === "thumbnail"}
-              onPress={() => setScene("thumbnail")}
-            />
-            <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
-            <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
-            <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
-            <FixtureAction
-              label="Inline search scene"
-              selected={scene === "search"}
-              onPress={() => setScene("search")}
-            />
-            <FixtureAction
-              label="Circular/Counter scene"
-              selected={scene === "circular"}
-              onPress={() => setScene("circular")}
-            />
-            <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
-          </View>
-          <View style={styles.controls}>
-            <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
-            <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
-            <FixtureAction
-              label="Toggle customization"
-              selected={customized}
-              onPress={() => setCustomized((value) => !value)}
-            />
-            <FixtureAction label="Reset scene" onPress={reset} />
-          </View>
-          <View style={styles.controls}>
-            {AVAILABLE_LAYOUT_FIXTURES.map((value) => (
+        <NativeFloatingLayerHost testID="showcase-floating-host">
+          <ShowcaseSurface>
+            <ThemeHeading />
+            <WindowMetadata width={dimensions.width} height={dimensions.height} fontScale={dimensions.fontScale} />
+            <View style={styles.controls}>
               <FixtureAction
-                key={value}
-                label={LAYOUT_FIXTURE_LABELS[value]}
-                selected={fixture === value}
-                onPress={() => setFixture(value)}
+                label="Foundation scene"
+                selected={scene === "foundation"}
+                onPress={() => setScene("foundation")}
               />
-            ))}
-          </View>
-          <SceneShell fixture={fixture}>
-            {scene === "circular" ? (
-              <CircularCounterScene />
-            ) : scene === "search" ? (
-              <TypeaheadSearchScene />
-            ) : scene === "field" ? (
-              <FormFieldScene />
-            ) : scene === "slider" ? (
-              <SliderScene />
-            ) : scene === "stepper" ? (
-              <StepperScene />
-            ) : scene === "gallery" ? (
-              <GalleryScene />
-            ) : scene === "thumbnail" ? (
-              <ThumbnailScene />
-            ) : scene === "link" ? (
-              <LinkScene />
-            ) : scene === "tag" ? (
-              <TagScene />
-            ) : scene === "avatar" ? (
-              <AvatarScene />
-            ) : scene === "toggle" ? (
-              <ToggleScene />
-            ) : scene === "loading" ? (
-              <LoadingScene />
-            ) : scene === "display" ? (
-              <DisplayScene />
-            ) : scene === "range" ? (
-              <RangeScene />
-            ) : scene === "overlay" ? (
-              <OverlayScene toggleTheme={() => setMode((current) => (current === "light" ? "dark" : "light"))} />
-            ) : scene === "number" ? (
-              <NumberInputScene />
-            ) : scene === "multiline" ? (
-              <MultilineRadioScene />
-            ) : scene === "select" ? (
-              <SelectScene />
-            ) : scene === "controls" ? (
-              <BasicControlsScene />
-            ) : scene === "library" ? (
-              <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
-            ) : (
-              <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
-            )}
-          </SceneShell>
-        </ShowcaseSurface>
+              <FixtureAction
+                label="Text/Button scene"
+                selected={scene === "library"}
+                onPress={() => setScene("library")}
+              />
+              <FixtureAction
+                label="Basic controls scene"
+                selected={scene === "controls"}
+                onPress={() => setScene("controls")}
+              />
+              <FixtureAction
+                label="Multiline/Radio scene"
+                selected={scene === "multiline"}
+                onPress={() => setScene("multiline")}
+              />
+              <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+              <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
+              <FixtureAction
+                label="Tooltip/Hover scene"
+                selected={scene === "tooltip"}
+                onPress={() => setScene("tooltip")}
+              />
+              <FixtureAction
+                label="NumberInput scene"
+                selected={scene === "number"}
+                onPress={() => setScene("number")}
+              />
+              <FixtureAction
+                label="Progress/Meter scene"
+                selected={scene === "range"}
+                onPress={() => setScene("range")}
+              />
+              <FixtureAction
+                label="Indicator/Segment scene"
+                selected={scene === "display"}
+                onPress={() => setScene("display")}
+              />
+              <FixtureAction label="Loading scene" selected={scene === "loading"} onPress={() => setScene("loading")} />
+              <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
+              <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
+              <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
+              <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
+              <FixtureAction
+                label="Thumbnail scene"
+                selected={scene === "thumbnail"}
+                onPress={() => setScene("thumbnail")}
+              />
+              <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
+              <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
+              <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
+              <FixtureAction
+                label="Inline search scene"
+                selected={scene === "search"}
+                onPress={() => setScene("search")}
+              />
+              <FixtureAction
+                label="Circular/Counter scene"
+                selected={scene === "circular"}
+                onPress={() => setScene("circular")}
+              />
+              <FixtureAction label="Gallery scene" selected={scene === "gallery"} onPress={() => setScene("gallery")} />
+            </View>
+            <View style={styles.controls}>
+              <FixtureAction label="Light theme" selected={mode === "light"} onPress={() => setMode("light")} />
+              <FixtureAction label="Dark theme" selected={mode === "dark"} onPress={() => setMode("dark")} />
+              <FixtureAction
+                label="Toggle customization"
+                selected={customized}
+                onPress={() => setCustomized((value) => !value)}
+              />
+              <FixtureAction label="Reset scene" onPress={reset} />
+            </View>
+            <View style={styles.controls}>
+              {AVAILABLE_LAYOUT_FIXTURES.map((value) => (
+                <FixtureAction
+                  key={value}
+                  label={LAYOUT_FIXTURE_LABELS[value]}
+                  selected={fixture === value}
+                  onPress={() => setFixture(value)}
+                />
+              ))}
+            </View>
+            <SceneShell fixture={fixture}>
+              {scene === "tooltip" ? (
+                <TooltipScene />
+              ) : scene === "circular" ? (
+                <CircularCounterScene />
+              ) : scene === "search" ? (
+                <TypeaheadSearchScene />
+              ) : scene === "field" ? (
+                <FormFieldScene />
+              ) : scene === "slider" ? (
+                <SliderScene />
+              ) : scene === "stepper" ? (
+                <StepperScene />
+              ) : scene === "gallery" ? (
+                <GalleryScene />
+              ) : scene === "thumbnail" ? (
+                <ThumbnailScene />
+              ) : scene === "link" ? (
+                <LinkScene />
+              ) : scene === "tag" ? (
+                <TagScene />
+              ) : scene === "avatar" ? (
+                <AvatarScene />
+              ) : scene === "toggle" ? (
+                <ToggleScene />
+              ) : scene === "loading" ? (
+                <LoadingScene />
+              ) : scene === "display" ? (
+                <DisplayScene />
+              ) : scene === "range" ? (
+                <RangeScene />
+              ) : scene === "overlay" ? (
+                <OverlayScene toggleTheme={() => setMode((current) => (current === "light" ? "dark" : "light"))} />
+              ) : scene === "number" ? (
+                <NumberInputScene />
+              ) : scene === "multiline" ? (
+                <MultilineRadioScene />
+              ) : scene === "select" ? (
+                <SelectScene />
+              ) : scene === "controls" ? (
+                <BasicControlsScene />
+              ) : scene === "library" ? (
+                <LibraryScene count={count} increment={() => setCount((value) => value + 1)} />
+              ) : (
+                <ThemePreview count={count} increment={() => setCount((value) => value + 1)} />
+              )}
+            </SceneShell>
+          </ShowcaseSurface>
+        </NativeFloatingLayerHost>
       </NativeOverlayProvider>
     </NativeThemeProvider>
   )

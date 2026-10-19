@@ -25,7 +25,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -37,6 +37,13 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override @ReactProp(name = "acceptedWindowId") public void setAcceptedWindowId(ReactViewGroup view, String value) { ((CUIKeyboardScope) view).setAcceptedWindowId(value); }
   @Override @ReactProp(name = "acceptedEpoch") public void setAcceptedEpoch(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setAcceptedEpoch(value); }
   @Override @ReactProp(name = "policyRevision") public void setPolicyRevision(ReactViewGroup view, double value) { ((CUIKeyboardScope) view).setPolicyRevision(value); }
+  @Override @ReactProp(name = "floatingTargets") public void setFloatingTargets(ReactViewGroup view, ReadableArray value) {
+    List<CUIFloatingObserver.Target> targets = new ArrayList<>();
+    if (value != null) for (int index = 0; index < value.size(); index++) {
+      ReadableMap target = value.getMap(index); targets.add(new CUIFloatingObserver.Target(target.getString("id"), target.getInt("targetTag"), target.getInt("descriptionTag")));
+    }
+    ((CUIKeyboardScope) view).setFloatingTargets(targets);
+  }
   @Override @ReactProp(name = "policies") public void setPolicies(ReactViewGroup view, ReadableArray value) {
     List<CUIKeyboardScope.Policy> policies = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
@@ -52,6 +59,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     events.put("topNativeScopedKey", Collections.singletonMap("registrationName", "onNativeScopedKey"));
     events.put("topNativeInputModality", Collections.singletonMap("registrationName", "onNativeInputModality"));
     events.put("topNativeScopeStatus", Collections.singletonMap("registrationName", "onNativeScopeStatus"));
+    events.put("topNativeFloatingObservation", Collections.singletonMap("registrationName", "onNativeFloatingObservation"));
     return events;
   }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIKeyboardScope) view).retireHeld(); super.onDropViewInstance(view); }

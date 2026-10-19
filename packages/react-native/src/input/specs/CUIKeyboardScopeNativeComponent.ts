@@ -47,6 +47,20 @@ export type NativeScopeStatus = Readonly<{
   ready: boolean
   windowActive: boolean
 }>
+export type NativeFloatingObservation = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  id: string
+  targetTag: Int32
+  x: Double
+  y: Double
+  width: Double
+  height: Double
+  scrollRevision: Double
+  revision: Double
+}>
+type NativeFloatingTarget = Readonly<{ id: string; targetTag: Int32; descriptionTag: Int32; descriptionLabel: string }>
 
 export interface NativeProps extends ViewProps {
   ownerId: string
@@ -55,6 +69,8 @@ export interface NativeProps extends ViewProps {
   acceptedWindowId?: string
   acceptedEpoch?: Double
   policyRevision?: Double
+  floatingTargets?: ReadonlyArray<NativeFloatingTarget>
+  onNativeFloatingObservation?: DirectEventHandler<NativeFloatingObservation>
   onNativeScopedKey?: DirectEventHandler<NativeScopedKeyData>
   onNativeInputModality?: DirectEventHandler<NativeInputModalityData>
   onNativeScopeStatus?: DirectEventHandler<NativeScopeStatus>

@@ -1,8 +1,19 @@
-import { forwardRef, useContext, useId, useImperativeHandle, useLayoutEffect, useRef, useState } from "react"
+import {
+  forwardRef,
+  useContext,
+  useId,
+  useImperativeHandle,
+  useLayoutEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react"
 import { Animated, I18nManager, StyleSheet, View } from "react-native"
 import type { PathProps } from "react-native-svg"
 
-import { bindNativeDescription } from "../../input/nativeDescription"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
 import { NativeFloatingArrow } from "../../overlays/floating/NativeFloatingArrow"
 import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
@@ -11,12 +22,17 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { getNativeFloatingSurfaceStyles } from "../../overlays/floating/styles"
 import { useNativeFloatingLayer } from "../../overlays/floating/useFloatingLayer"
 import { useNativeFloatingPosition } from "../../overlays/floating/useFloatingPosition"
+import { useNativeTooltipDescription } from "../../overlays/floating/useTooltipDescription"
 import { useNativeTooltipTriggerState } from "../../overlays/floating/useTooltipTriggerState"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 
 import type { TNativeTooltipProps, TNativeTooltipRef } from "./types"
+
+const noSubscription = () => () => undefined
+const noRevision = () => 0
+const AnimatedDescriptionHost = Animated.createAnimatedComponent(NativeFocusHost)
 
 export const NativeTooltipSurface = forwardRef<
   TNativeTooltipRef,
@@ -56,13 +72,25 @@ export const NativeTooltipSurface = forwardRef<
     "aria-label": aliasLabel,
     accessibilityLabel,
     descriptionLabel = "Description",
+    detailsLabel = "Details",
+    "aria-labelledby": labelledBy,
+    "aria-describedby": describedBy,
+    "aria-details": detailsBy,
     onLayout,
+    onFocus,
+    onBlur,
     onPointerEnter,
     onPointerLeave,
     ...nativeProps
   } = props
   const theme = useNativeTheme()
   const host = useNativeFloatingHost()
+  const keyScope = useNativeKeyScope()
+  useSyncExternalStore(
+    keyScope?.subscribe ?? noSubscription,
+    keyScope?.snapshot ?? noRevision,
+    keyScope?.snapshot ?? noRevision,
+  )
   const parent = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
   const trigger = useNativeTooltipTrigger()
@@ -118,6 +146,9 @@ export const NativeTooltipSurface = forwardRef<
     arrowSize: showOverlayArrow ? (arrowLayout?.width ?? 10) : 0,
     margins: calibrated.margins,
     layoutRevision,
+    onAncestorScroll: () => {
+      if (layer.canAct()) currentOwner.current.close(true)
+    },
   })
   useLayoutEffect(() => {
     if (position) setSide(position.placement)
@@ -135,13 +166,12 @@ export const NativeTooltipSurface = forwardRef<
   if (geometryReady) positionedGeneration.current = layer.generation
   const transitionReady = geometryReady || positionedGeneration.current === layer.generation || (!open && isExiting)
   const motion = useNativeFloatingMotion(layer, transitionReady, open, isEntering, isExiting)
-  const ready = geometryReady && motion.preferenceReady && windowActive?.() !== false
+  const ready =
+    geometryReady && motion.preferenceReady && windowActive?.() !== false && keyScope?.isWindowActive() !== false
   useLayoutEffect(() => {
     if (ready && layer.phase === "entering") layer.entered()
   }, [ready, layer.phase, layer.generation])
-  useLayoutEffect(() => {
-    if (open && ready && layer.active) return bindNativeDescription(anchor.current, root.current, descriptionLabel)
-  }, [anchor, open, ready, layer.active, layer.generation, layoutRevision, descriptionLabel])
+  useNativeTooltipDescription(open && ready && layer.active, anchor, root, descriptionLabel)
   const contentHovered = useRef(false)
   useLayoutEffect(() => {
     contentHovered.current = false
@@ -158,16 +188,28 @@ export const NativeTooltipSurface = forwardRef<
         importantForAccessibility={!ready || !layer.active ? "no-hide-descendants" : "auto"}
       >
         <NativeFloatingScopeContext.Provider value={{ id: layer.id, canAct: layer.canAct }}>
-          <Animated.View
+          <AnimatedDescriptionHost
             {...nativeProps}
             ref={root}
             testID={identity}
             nativeID={nativeProps.nativeID ?? trigger?.tooltipProps.nativeID ?? `codon-tooltip-${standaloneId}`}
             collapsable={false}
             accessible={false}
+            focusable={false}
             role="tooltip"
             accessibilityLabel={accessibilityLabel ?? aliasLabel}
+            nativeLabelledBy={nativeAccessibilityIDs(nativeProps.accessibilityLabelledBy ?? labelledBy)}
+            nativeDescribedBy={nativeAccessibilityIDs(describedBy)}
+            nativeDetailsBy={nativeAccessibilityIDs(detailsBy)}
+            nativeDescriptionLabel={descriptionLabel}
+            nativeDetailsLabel={detailsLabel}
             accessibilityViewIsModal={false}
+            onBubbledFocus={(event) => {
+              if (layer.canAct()) onFocus?.(event)
+            }}
+            onBubbledBlur={(event) => {
+              if (layer.canAct()) onBlur?.(event)
+            }}
             style={[
               {
                 position: "absolute",
@@ -235,7 +277,7 @@ export const NativeTooltipSurface = forwardRef<
               )}
               {getNativeButtonContent(children, painted.rootText)}
             </NativeContentContext.Provider>
-          </Animated.View>
+          </AnimatedDescriptionHost>
         </NativeFloatingScopeContext.Provider>
       </View>
     </NativeFloatingPortal>

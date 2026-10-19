@@ -438,6 +438,22 @@ export type {
   TNativeFloatingLayerHostProps as NativeFloatingLayerHostProps,
   TNativeFloatingLayerHostRef,
 } from "./overlays/floating/NativeFloatingLayerHost"
+export { NativeTooltipTrigger, NATIVE_TOOLTIP_TRIGGER_MODES } from "./overlays/floating/NativeTooltipTrigger"
+export type {
+  TNativeTooltipTriggerProps,
+  TNativeTooltipTriggerRenderState,
+  TNativeTooltipTriggerMode,
+} from "./overlays/floating/NativeTooltipTrigger"
+export { Tooltip } from "./components/Tooltip/Tooltip"
+export { HoverPopover } from "./components/HoverPopover/HoverPopover"
+export type {
+  TNativeTooltipProps,
+  TNativeTooltipProps as TooltipProps,
+  TNativeTooltipRef,
+  TNativeHoverPopoverProps,
+  TNativeHoverPopoverProps as HoverPopoverProps,
+  TNativeHoverPopoverRef,
+} from "./components/Tooltip/types"
 export type {
   TNativeOverlayProviderProps,
   TNativeOverlayProviderProps as NativeOverlayProviderProps,

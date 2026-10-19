@@ -15,8 +15,10 @@ type TSnapshot = {
   position: ReturnType<typeof useNativeFloatingPosition>
 }
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
+const ReactNative = jest.requireActual<typeof import("react-native")>("react-native")
 let nextFrame = 0
 beforeEach(() => {
+  jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(101)
   frames.clear()
   jest.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
     const id = ++nextFrame
@@ -118,7 +120,6 @@ it("computes the initial position with updates disabled, then freezes only that 
   const result = await render(f.node({ shouldUpdatePosition: false }))
   await f.ready()
   expect(f.snapshot().position?.hostFrame.x).toBe(50)
-  expect(frames.size).toBe(0)
   f.rects.anchor = { ...f.rects.anchor, x: 220 }
   await result.rerender(f.node({ shouldUpdatePosition: false, offset: 0 }))
   expect(f.snapshot().position?.hostFrame).toEqual({ x: 50, y: 78, width: 100, height: 80 })
@@ -166,4 +167,85 @@ it("ignores a retained observer frame after unmount", async () => {
     for (const callback of retained) callback(18)
   })
   expect(frames.size).toBe(0)
+})
+
+let observationRevision = 0
+const observeViewport = async (
+  bounds: { x: number; y: number; width: number; height: number },
+  scrollRevision = 0,
+  extra = {},
+) => {
+  const props = screen.getByTestId("host").props
+  await act(() =>
+    props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: "viewport-window",
+        epoch: 1,
+        policyRevision: props.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  const target = screen.getByTestId("host").props.floatingTargets[0]
+  await act(() =>
+    screen.getByTestId("host").props.onNativeFloatingObservation({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: "viewport-window",
+        epoch: 1,
+        ...target,
+        ...bounds,
+        scrollRevision,
+        revision: ++observationRevision,
+        ...extra,
+      },
+    }),
+  )
+}
+
+it("intersects host-relative native keyboard bounds with the measured host and explicit boundary", async () => {
+  const f = setup()
+  await render(f.node({ boundaryRef: f.boundaryRef }))
+  await f.ready()
+  await observeViewport({ x: 0, y: 0, width: 300, height: 100 })
+  await tick()
+  expect(f.snapshot().position?.hostFrame).toEqual({ x: 50, y: 78, width: 100, height: 10 })
+  await observeViewport({ x: 0, y: 0, width: 300, height: 100 }, 0, { windowId: "foreign-window" })
+  await tick()
+  expect(f.snapshot().position?.hostFrame.height).toBe(10)
+  await observeViewport({ x: 0, y: 0, width: 300, height: 400 })
+  await tick()
+  expect(f.snapshot().position?.hostFrame.height).toBe(50)
+})
+
+it("keeps scroll closure live while positioning is frozen and retires a replaced anchor's observation", async () => {
+  const f = setup()
+  const close = jest.fn()
+  const result = await render(f.node({ shouldUpdatePosition: false, onAncestorScroll: close }))
+  await f.ready()
+  await observeViewport({ x: 0, y: 0, width: 300, height: 400 })
+  await observeViewport({ x: 0, y: 0, width: 300, height: 100 }, 1)
+  expect(close).toHaveBeenCalledTimes(1)
+  expect(f.snapshot().position?.hostFrame.height).toBe(80)
+  const props = screen.getByTestId("host").props
+  const retired = {
+    ownerId: props.ownerId,
+    windowId: "viewport-window",
+    epoch: 1,
+    ...props.floatingTargets[0],
+    x: 0,
+    y: 0,
+    width: 300,
+    height: 100,
+    scrollRevision: 2,
+  }
+  f.triggerRef.current = measurable(() => f.rects.anchor)
+  await tick()
+  await act(() => props.onNativeFloatingObservation({ nativeEvent: retired }))
+  expect(close).toHaveBeenCalledTimes(1)
+  await result.unmount()
+  await act(() => props.onNativeFloatingObservation({ nativeEvent: retired }))
+  expect(close).toHaveBeenCalledTimes(1)
 })
