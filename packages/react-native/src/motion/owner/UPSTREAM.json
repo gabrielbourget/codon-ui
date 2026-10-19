@@ -56,11 +56,11 @@
   "authoredFiles": [
     {
       "file": "NativeMotionOwner.ts",
-      "sha256": "abe112de6590fde38388d3d88042dfb543ae27ab67f57b2f65fec439bd3f6b6d"
+      "sha256": "e3b955360ef5495bddb7783b54c90fc6ee1d13e895bd949477d7a48777dc4ebe"
     },
     {
       "file": "NativeMotionOwnerHost.tsx",
-      "sha256": "3c2a8e567efb728113722ffe0f68909e0ba7b43e2266a20dfd676a5849e3c9ea"
+      "sha256": "07b958f531e87b8820e00a30d6f0bf76488614ba1aceb7a76d92d76e1b1976a2"
     }
   ],
   "nativeAdaptations": [
@@ -70,7 +70,8 @@
     "Native public compareDocumentPosition drives ordering; absent/disconnected native refs reject without JSX-order fallback",
     "Native initial-read/isolated geometry/color services remain required; newly hydrated unresolved bindings stay out of visual props and retire on cancellation",
     "Insertion-phase prop metadata updates do not publish stores; layout binding updates and ordinary passive animation startup follow committed React lifetimes",
-    "Caller values retain normal ownership; explicit initial requests/replays remain requests, and detach does not destroy values or stop unrelated externally started animations"
+    "Caller values retain normal ownership; explicit initial requests/replays remain requests, and detach does not destroy values or stop unrelated externally started animations",
+    "Private tap/hover/focus binding now reaches existing native responder/key/focus/pointer events on the unchanged host; global tap/propagation/cross-owner drag and full native gesture proof remain required."
   ],
   "remaining": [
     "Actual native readiness/window/epoch/source correspondence, cross-window/portaled hierarchy and native document-order proof",

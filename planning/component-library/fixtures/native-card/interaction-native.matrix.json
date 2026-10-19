@@ -1,0 +1,246 @@
+{
+  "scope": "Supplemental required native interaction cells. RNTL/rectangle/window models and DOM event oracles close no installed catalogue/profile/closure cells.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.INTERACTION.P01.android.01",
+      "case": "actual primary/secondary/multitouch responder admission and child-owned responder negotiation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.02",
+      "case": "original native down/move/release/cancel event objects, callback points and postRender order",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.03",
+      "case": "held hover leave/reentry and release outside the original root/window",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.04",
+      "case": "touch/mouse/stylus hover filtering under unchanged SDK flags",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.05",
+      "case": "Enter/Space/repeat/cancel/blur, native default delivery and physical property matching",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.06",
+      "case": "native accessibility activation rectangle and original activation object",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.07",
+      "case": "pointer release versus Android click produces one intended activation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.08",
+      "case": "visible-focus/hover/tap priority transitions with actual presentation and live Reduce Motion",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.09",
+      "case": "scope inactivity/epoch/window/attachment retirement and no stale callbacks",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.10",
+      "case": "original focused empty/dirty editor text/selection/ref/default delivery during prop changes",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.11",
+      "case": "global tap, authored propagation, cross-owner drag lock and full pan/drag composition",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.android.12",
+      "case": "matching consumer/app graphs, native frame costs and full profile/closure acceptance",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.01",
+      "case": "actual primary/secondary/multitouch responder admission and child-owned responder negotiation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.02",
+      "case": "original native down/move/release/cancel event objects, callback points and postRender order",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.03",
+      "case": "held hover leave/reentry and release outside the original root/window",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.04",
+      "case": "touch/mouse/stylus hover filtering under unchanged SDK flags",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.05",
+      "case": "Enter/Space/repeat/cancel/blur, native default delivery and physical property matching",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.06",
+      "case": "native accessibility activation rectangle and original activation object",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.07",
+      "case": "pointer release versus Android click produces one intended activation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.08",
+      "case": "visible-focus/hover/tap priority transitions with actual presentation and live Reduce Motion",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.09",
+      "case": "scope inactivity/epoch/window/attachment retirement and no stale callbacks",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.10",
+      "case": "original focused empty/dirty editor text/selection/ref/default delivery during prop changes",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.11",
+      "case": "global tap, authored propagation, cross-owner drag lock and full pan/drag composition",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTERACTION.P01.ios.12",
+      "case": "matching consumer/app graphs, native frame costs and full profile/closure acceptance",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}

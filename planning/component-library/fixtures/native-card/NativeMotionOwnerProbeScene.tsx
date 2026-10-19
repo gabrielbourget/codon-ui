@@ -17,6 +17,7 @@ export const NativeMotionOwnerProbeScene = () => {
   const original = useRef<{ root: View | null; editor: TextInput | null } | null>(null)
   const [visible, setVisible] = useState(true),
     [skip, setSkip] = useState(false)
+  const [interactions, setInteractions] = useState(false)
   const [reduced, setReduced] = useState<TNativeReducedMotionMode>("user")
   const [journal, setJournal] = useState<readonly unknown[]>([])
   const append = (data: unknown) => {
@@ -66,6 +67,10 @@ export const NativeMotionOwnerProbeScene = () => {
         <Button title="Set original root" onPress={() => controls.set({ x: 0, opacity: 1 })} />
         <Button title="Toggle scoped skip" onPress={() => setSkip((current) => !current)} />
         <Button
+          title="Toggle tap/hover/focus on original root"
+          onPress={() => setInteractions((current) => !current)}
+        />
+        <Button
           title={`Reduced motion: ${reduced}`}
           onPress={() =>
             setReduced((current) => (current === "user" ? "always" : current === "always" ? "never" : "user"))
@@ -84,8 +89,25 @@ export const NativeMotionOwnerProbeScene = () => {
               ref={root}
               style={{ padding: 16, minHeight: 120, borderWidth: 1 }}
               motion={{
-                initial: { x: 0, opacity: 1 },
+                initial: { x: 0, scale: 1, opacity: 1 },
                 animate: controls,
+                ...(interactions
+                  ? {
+                      whileTap: { scale: 0.95 },
+                      whileHover: { scale: 1.03 },
+                      whileFocus: { opacity: 0.7 },
+                      onTapStart: (event, info) =>
+                        append({ event: "source-tap-start", native: event.nativeEvent, info, ...identity() }),
+                      onTap: (event, info) =>
+                        append({ event: "source-tap", native: event.nativeEvent, info, ...identity() }),
+                      onTapCancel: (event, info) =>
+                        append({ event: "source-tap-cancel", native: event.nativeEvent, info, ...identity() }),
+                      onHoverStart: (event, info) =>
+                        append({ event: "source-hover-start", native: event.nativeEvent, info, ...identity() }),
+                      onHoverEnd: (event, info) =>
+                        append({ event: "source-hover-end", native: event.nativeEvent, info, ...identity() }),
+                    }
+                  : {}),
                 onAnimationStart: (definition) =>
                   append({ event: "source-animation-start", definition, ...identity() }),
                 onAnimationComplete: (definition) =>

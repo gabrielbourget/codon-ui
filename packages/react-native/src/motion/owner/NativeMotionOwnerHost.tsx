@@ -15,6 +15,7 @@ import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeMotionConfig, useNativeMotionReducedMotion } from "../config"
+import { useNativeMotionInteractions } from "../interactions/useNativeMotionInteractions"
 import { NativeMotionVisualHost } from "../visual/NativeMotionVisualHost"
 import type { TNativeMotionVisualHostProps } from "../visual/types"
 
@@ -77,6 +78,9 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       : initialContext.animate
     const context = useMemo(() => ({ ...initialContext, owner }), [owner, initialDependency, animateDependency])
     const [failure, setFailure] = useState<{ error: unknown } | null>(null)
+    const interactions = useNativeMotionInteractions(owner, motion, config.isStatic, visual, scope, (error) =>
+      setFailure({ error }),
+    )
     const [, refreshWindow] = useState(0)
     const bindings = useSyncExternalStore(owner.subscribeBindings, owner.getBindings, owner.getBindings)
     useInsertionEffect(() => owner.commitProps(options))
@@ -109,7 +113,7 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
     if (failure) throw failure.error
     return (
       <NativeMotionOwnerContext.Provider value={context}>
-        <NativeMotionVisualHost {...visual} bindings={bindings} motionOwner={owner} ref={ref} />
+        <NativeMotionVisualHost {...visual} {...interactions} bindings={bindings} motionOwner={owner} ref={ref} />
       </NativeMotionOwnerContext.Provider>
     )
   },

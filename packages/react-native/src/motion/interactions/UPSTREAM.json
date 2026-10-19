@@ -1,0 +1,109 @@
+{
+  "scope": "Private tap/hover/focus source binding on the same actual NativeFocusHost, using existing RN Pressability and original native key/focus/pointer/activation objects. No public Card or complete native gesture admission.",
+  "inputs": [
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/press.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "8123b3fb3c065883ed48e036206ac6b2ad760d6ae0842bce330ce89e4ef74f96"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/hover.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "02a3ab8e9f7df1935b8f607a128958cca5471053755cc10b04c5f2d55ec09d48"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/focus.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "48a883106b807454c7df7e37104495dfbcc74578c80730eb69eeb1275ba6ed6e"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/events/event-info.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "964fe89202c00596aada84f36b184401383e0ba24d196c5c29efc903ad552dac"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/press/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "6269900899e4f9d17b49a2a49f44ec23a037ddfc7ebbc447db410213d180b81a"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/press/utils/keyboard.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "9c4b753a1e8357e7b610baaaa96292b420c066c65a5b53c5cb74b1565299c649"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/hover.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "a718703c13329931571ce04fe67a220f6dfeb848f891a8b4ec1adde706006891"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/utils/is-primary-pointer.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "b5150c1c4ad259de034608e344b307ccc8376f2d314bfb54a94b3cd246362b57"
+    },
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/drag/state/is-active.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "8f30a57516ca8661b5bdbeeace1bf9da9a35de897faad6a4e2ff0860246e7bf1"
+    }
+  ],
+  "reactNativeInputs": [
+    {
+      "path": "Libraries/Pressability/Pressability.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Pressability/Pressability.js",
+      "sha256": "5f6bf8351cdcc3434312ca3aeb9859d37ac588284926524f4437b4433fcf8933"
+    },
+    {
+      "path": "Libraries/Pressability/usePressability.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Pressability/usePressability.js",
+      "sha256": "6ea47170258ee32adc3b66216c4ed31c09ebf42c07b4b403a3f9d02d82091a2a"
+    }
+  ],
+  "licenses": ["../kernel/LICENSE.motion-dom.md", "../animation/LICENSE.framer-motion.md"],
+  "authoredFiles": [
+    {
+      "file": "NativeMotionInteractions.ts",
+      "sha256": "9f212f5bd7065ed6f2269ffceb9cbf3894a5aec1dd484ca4a7d42d572caab762"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "10b4ca3db514e26680ab4f430979358e3967ceae6b5366d787d3d63c9cbbefb6"
+    },
+    {
+      "file": "useNativeMotionInteractions.ts",
+      "sha256": "0739c618ec0e79515746145cade8ffb873fef456af479228537e4e77dbdf28d0"
+    }
+  ],
+  "nativeAdaptations": [
+    "No synthetic PointerEvent or browser import: pointer/key/native activation retain original event objects; point metadata uses finite native page coordinates or requests the actual public native-ref rectangle for coordinate-free activation",
+    "Existing native Enter/Space capture/default-handled policy replaces browser Enter-to-synthetic-pointer dispatch. Actual key defaults, focus modality, bounds and native fidelity still require proof",
+    "Current source priority state drives the real value backend; callbacks run postRender and carry attachment/window/epoch leases; original native responder negotiation and caller callbacks are preserved",
+    "Held hover leave is deferred until native pointer release/cancel; reentry starts again and clears the deferral, matching the inspected pinned source",
+    "Same native root/ref/editor survives interaction prop changes; no accessible grouping, editor methods/values/selection changes or SDK flag changes are introduced"
+  ],
+  "remaining": [
+    "Actual native primary/secondary/multitouch/hover delivery and held release outside the native root/window",
+    "Native pointer-release versus Android-click arbitration without duplicate activation",
+    "Global tap target, authored tap propagation and cross-owner drag lock; current source only suppresses own active drag",
+    "Actual native Enter/Space/default delivery, accessibility activation, focus-visible modality, real rectangle and nested editor responder behavior",
+    "Full Pan/drag/viewport/layout/projection/presence and complete Card/API/current consumer/products/adaptive/performance/closure requirements"
+  ]
+}
