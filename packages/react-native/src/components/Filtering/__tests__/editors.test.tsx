@@ -233,3 +233,24 @@ it("blocks direct editors while their parent floating scope cannot act", async (
   await fireEvent.changeText(screen.getByLabelText("Filter Argument"), "covered")
   expect(change).not.toHaveBeenCalled()
 })
+
+it("preserves Boolean row defaults and independent custom row/field/input ownership", async () => {
+  await render(
+    wrap(
+      <BooleanFilterArgument
+        booleanArgumentComponent="Checkbox"
+        customRowStyles={{ gap: 13 }}
+        customFieldStyles={{ marginTop: 7 }}
+        customInputStyles={{ marginLeft: 9 }}
+        onArgumentChange={() => {}}
+      />,
+    ),
+  )
+  expect(StyleSheet.flatten(screen.getByTestId("filter-boolean").props.style)).toMatchObject({
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 13,
+  })
+  expect(StyleSheet.flatten(screen.getByTestId("form-field").props.style)).toMatchObject({ marginTop: 7 })
+  expect(StyleSheet.flatten(screen.getByRole("checkbox").props.style)).toMatchObject({ marginLeft: 9 })
+})
