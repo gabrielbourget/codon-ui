@@ -1,6 +1,7 @@
 import { forwardRef, useContext, useInsertionEffect, useRef, useState } from "react"
 import { Linking } from "react-native"
 
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativePressable } from "../../input/NativePressable"
 import type { TNativePressEvent } from "../../input/types"
@@ -47,6 +48,11 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
     accessibilityLabelledBy,
     "aria-labelledby": nativeLabelledBy,
     ariaLabelledBy,
+    ariaDescribedBy,
+    ariaDetails,
+    "aria-describedby": nativeDescribedBy,
+    "aria-details": nativeDetails,
+    labels,
     testID,
     "data-testid": aliasID,
     ...rest
@@ -130,6 +136,11 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
         accessibilityState={{ ...accessibilityState, disabled: isDisabled }}
         accessibilityLabel={accessibilityLabel ?? nativeLabel ?? ariaLabel}
         accessibilityLabelledBy={accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy}
+        nativeLabelledBy={nativeAccessibilityIDs(accessibilityLabelledBy ?? nativeLabelledBy ?? ariaLabelledBy)}
+        nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
+        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
+        nativeDescriptionLabel={labels?.descriptionLabel}
+        nativeDetailsLabel={labels?.detailsLabel}
         testID={testID ?? aliasID ?? "link"}
         style={resolved.view}
         onPress={activate}

@@ -4,6 +4,7 @@ import { StyleSheet, View } from "react-native"
 import { AVAILABLE_THEMING_ORDER_CODES, Button, Link, Text } from "@codon-ui/react-native"
 
 const DESTINATIONS = ["codon-lab-unhandled://destination?value=0&empty=", "", "#section", "/relative"] as const
+const RELATIONSHIP_MODES = ["none", "aliases", "attributes", "empty"] as const
 
 export const LinkScene = () => {
   const [destinationIndex, setDestinationIndex] = useState(0)
@@ -24,9 +25,14 @@ export const LinkScene = () => {
   const [zero, setZero] = useState(false)
   const [constrained, setConstrained] = useState(false)
   const [longLabel, setLongLabel] = useState(false)
+  const [relationshipIndex, setRelationshipIndex] = useState(0)
+  const [longRelationshipText, setLongRelationshipText] = useState(false)
+  const [descriptionTarget, setDescriptionTarget] = useState(true)
   const [frame, setFrame] = useState<{ width: number; height: number }>()
   const href = DESTINATIONS[destinationIndex]
   const order = AVAILABLE_THEMING_ORDER_CODES[orderIndex]
+  const relationships = RELATIONSHIP_MODES[relationshipIndex]
+  const related = relationships !== "none"
   return (
     <View style={styles.scene}>
       <Text elementType="h2" variant="h3">
@@ -35,8 +41,8 @@ export const LinkScene = () => {
       <Text testID="link-state">
         Visited: {String(visited)}. Echo: {String(echo)}. Handoff: {String(handoff)}. Disabled: {String(disabled)}.
         Requests: {requests}. Last: {last}. Errors: {errors}. Last error: {lastError}. Target: {JSON.stringify(href)}.
-        Order: {order}. Frame: {frame ? `${frame.width} x ${frame.height}` : "unmeasured"}. Armed guard: {String(armed)}
-        .
+        Relationships: {relationships}. Description target: {String(descriptionTarget)}. Order: {order}. Frame:{" "}
+        {frame ? `${frame.width} x ${frame.height}` : "unmeasured"}. Armed guard: {String(armed)}.
       </Text>
       <View style={styles.controls}>
         <Button onPress={() => setVisited((value) => !value)}>Toggle link owner visited</Button>
@@ -57,9 +63,27 @@ export const LinkScene = () => {
         <Button onPress={() => setZero((value) => !value)}>Toggle link zero dimensions</Button>
         <Button onPress={() => setConstrained((value) => !value)}>Toggle link width constraint</Button>
         <Button onPress={() => setLongLabel((value) => !value)}>Toggle long link label</Button>
+        <Button onPress={() => setRelationshipIndex((value) => (value + 1) % RELATIONSHIP_MODES.length)}>
+          Next link relationships
+        </Button>
+        <Button onPress={() => setLongRelationshipText((value) => !value)}>Toggle link relationship text</Button>
+        <Button onPress={() => setDescriptionTarget((value) => !value)}>Toggle link description target</Button>
       </View>
       <Link
         testID="link-example"
+        ariaLabelledBy={related ? "link-related-name" : undefined}
+        ariaDescribedBy={related ? "link-related-description" : undefined}
+        ariaDetails={related ? "link-related-details" : undefined}
+        aria-labelledby={
+          relationships === "attributes" ? "link-native-name" : relationships === "empty" ? "" : undefined
+        }
+        aria-describedby={
+          relationships === "attributes" ? "link-native-description" : relationships === "empty" ? "" : undefined
+        }
+        aria-details={
+          relationships === "attributes" ? "link-native-details" : relationships === "empty" ? "" : undefined
+        }
+        labels={{ descriptionLabel: "Description du lien", detailsLabel: "Renseignements" }}
         accessibilityLabel="Controlled native link"
         accessibilityHint="The owner intercepts navigation until URL handoff is enabled."
         href={href}
@@ -102,6 +126,22 @@ export const LinkScene = () => {
           ? "Lien long : les destinations, les couleurs et les valeurs restent sous le contrôle de la personne."
           : "Request destination / ouvrir"}
       </Link>
+      <Text nativeID="link-related-name">
+        {longRelationshipText ? "Destination liée : renseignements détaillés" : "Related destination"}
+      </Text>
+      <Text nativeID="link-native-name">Native attribute destination</Text>
+      {descriptionTarget ? (
+        <>
+          <Text nativeID="link-related-description">
+            {longRelationshipText
+              ? "Description française longue pour vérifier la mise à jour du texte natif."
+              : "Related guidance"}
+          </Text>
+          <Text nativeID="link-native-description">Native attribute guidance</Text>
+        </>
+      ) : null}
+      <Text nativeID="link-related-details">Related URL: {JSON.stringify(href)}</Text>
+      <Text nativeID="link-native-details">Native attribute details</Text>
       <Text>
         Visited state belongs to this scene. URL handoff uses the installed OS handler; browser history and routing
         remain separate contracts.
