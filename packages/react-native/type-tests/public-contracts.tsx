@@ -158,3 +158,5 @@ export type TPendingNativeMotionConfig = TPublicNativeExports["NativeMotionConfi
 export type TPendingNativeAnimatePresence = TPublicNativeExports["NativeAnimatePresence"]
 // @ts-expect-error The approved layout API still needs its complete native implementation.
 export type TPendingNativeLayoutGroup = TPublicNativeExports["NativeLayoutGroup"]
+// @ts-expect-error The visual receiver stays private until the complete Card renderer exists.
+export type TPrivateNativeMotionVisualHost = TPublicNativeExports["NativeMotionVisualHost"]
