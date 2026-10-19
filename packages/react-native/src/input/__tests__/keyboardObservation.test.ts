@@ -99,10 +99,10 @@ it("lets a listener retire itself without discarding another live listener from 
   f.scope.dispatch(f.packet())
   expect(calls).toEqual(["first", "second"])
   expect(f.scope.isNativeReady()).toBe(false)
-  expect(f.scope.dispatch(f.packet())).toBe(false)
+  expect(f.scope.dispatch(f.packet())).toBe(true)
   f.acknowledge()
   f.scope.dispatch(f.packet())
-  expect(calls).toEqual(["first", "second", "second"])
+  expect(calls).toEqual(["first", "second", "second", "second"])
 })
 
 it("skips retired siblings and defers registrations created inside an earlier callback", () => {
@@ -194,4 +194,99 @@ it("keeps delivery live across callback errors and checks each current owner bef
   const event = f.packet()
   expect(() => f.scope.dispatch(event)).toThrow(error)
   expect(callback.mock.calls).toEqual([[event]])
+})
+
+it("keeps acknowledged listeners live on the old native revision while a new registration awaits acknowledgment", () => {
+  const f = setup(),
+    stable = jest.fn(),
+    pending = jest.fn()
+  f.scope.register("stable", options(stable))
+  f.acknowledge()
+  const wire = f.packet()
+  f.scope.register("pending", options(pending))
+  expect(f.scope.isNativeReady()).toBe(false)
+  expect(
+    f.scope.dispatch(
+      f.packet({
+        observationRevision: wire.nativeEvent.observationRevision,
+        observerIds: wire.nativeEvent.observerIds,
+      }),
+    ),
+  ).toBe(true)
+  f.scope.dispatch(f.packet())
+  expect(stable).toHaveBeenCalledTimes(2)
+  expect(pending).not.toHaveBeenCalled()
+  f.acknowledge()
+  f.scope.dispatch(f.packet())
+  expect(pending).toHaveBeenCalledTimes(1)
+})
+it("admits a still-live registration from its native acknowledgment without acknowledging a later identity", () => {
+  const f = setup(),
+    stable = jest.fn(),
+    pending = jest.fn()
+  f.scope.register("stable", options(stable))
+  f.scope.acceptStatus({
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 1,
+    observationRevision: f.scope.revision(),
+    ready: false,
+    windowActive: true,
+  })
+  const wire = f.packet()
+  f.scope.register("pending", options(pending))
+  f.scope.acceptStatus({
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 1,
+    observationRevision: wire.nativeEvent.observationRevision,
+    ready: true,
+    windowActive: true,
+  })
+  f.scope.dispatch(
+    f.packet({ observationRevision: wire.nativeEvent.observationRevision, observerIds: wire.nativeEvent.observerIds }),
+  )
+  expect(stable).toHaveBeenCalledTimes(1)
+  expect(pending).not.toHaveBeenCalled()
+  expect(f.scope.isNativeReady()).toBe(false)
+})
+it("does not let an older ready status resurrect listeners after a newer native refusal", () => {
+  const f = setup(),
+    callback = jest.fn()
+  f.scope.register("stable", options(callback))
+  f.acknowledge()
+  const earlier = f.packet()
+  f.scope.register("sibling", options())
+  f.acknowledge()
+  const status = {
+    ownerId: "owner",
+    windowId: "window",
+    epoch: 1,
+    observationRevision: f.scope.revision(),
+    ready: false,
+    windowActive: true,
+  }
+  f.scope.acceptStatus(status)
+  f.scope.acceptStatus({ ...status, observationRevision: earlier.nativeEvent.observationRevision, ready: true })
+  expect(
+    f.scope.dispatch(
+      f.packet({
+        observationRevision: earlier.nativeEvent.observationRevision,
+        observerIds: earlier.nativeEvent.observerIds,
+      }),
+    ),
+  ).toBe(false)
+  expect(callback).not.toHaveBeenCalled()
+  f.acknowledge()
+  expect(f.scope.dispatch(f.packet())).toBe(true)
+})
+it("rejects event revisions predating a registration or claiming an unknown future wire state", () => {
+  const f = setup(),
+    callback = jest.fn()
+  f.scope.register("entry", options(callback))
+  f.acknowledge()
+  expect(f.scope.dispatch(f.packet({ observationRevision: 0 }))).toBe(false)
+  expect(f.scope.dispatch(f.packet({ observationRevision: f.scope.revision() + 1 }))).toBe(false)
+  expect(f.scope.dispatch(f.packet({ observationRevision: NaN }))).toBe(false)
+  expect(callback).not.toHaveBeenCalled()
 })

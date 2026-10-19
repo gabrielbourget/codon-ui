@@ -44,7 +44,14 @@ export type TNativeKeyboardObservation = Readonly<{
 }>
 
 export const createNativeKeyboardObservations = (ownerId: string) => {
-  type TEntry = { key: string; id: string; lease: symbol; options: TNativeKeyboardObservation }
+  type TEntry = {
+    key: string
+    id: string
+    lease: symbol
+    options: TNativeKeyboardObservation
+    bornRevision: number
+    acknowledged: boolean
+  }
   const entries = new Map<string, TEntry>()
   const listeners = new Set<() => void>()
   let serial = 0,
@@ -57,13 +64,18 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
     active = false
   let windowId = "",
     epoch = 0,
-    lastEventId = 0
+    lastEventId = 0,
+    statusRevision = -1
   const changed = () => {
     revision++
     ready = false
   }
   const retire = () => {
-    for (const entry of entries.values()) entry.id = `${ownerId}:observe:${++serial}`
+    for (const entry of entries.values()) {
+      entry.id = `${ownerId}:observe:${++serial}`
+      entry.bornRevision = revision + 1
+      entry.acknowledged = false
+    }
     changed()
   }
   const signature = (options: TNativeKeyboardObservation) =>
@@ -103,7 +115,14 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
     register: (key: string, options: TNativeKeyboardObservation) => {
       if (disposed) throw new Error("Native keyboard observation scope is disposed")
       if (entries.has(key)) throw new Error("Native keyboard observation identity is already registered")
-      const entry: TEntry = { key, id: `${ownerId}:observe:${++serial}`, lease: Symbol(key), options }
+      const entry: TEntry = {
+        key,
+        id: `${ownerId}:observe:${++serial}`,
+        lease: Symbol(key),
+        options,
+        bornRevision: revision + 1,
+        acknowledged: false,
+      }
       entries.set(key, entry)
       changed()
       return {
@@ -111,6 +130,8 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
           if (entries.get(key) !== entry) return
           if (signature(next) !== signature(entry.options)) {
             entry.id = `${ownerId}:observe:${++serial}`
+            entry.bornRevision = revision + 1
+            entry.acknowledged = false
             changed()
           }
           entry.options = next
@@ -128,6 +149,9 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
         disposed ||
         status.ownerId !== ownerId ||
         !Number.isSafeInteger(status.epoch) ||
+        !Number.isSafeInteger(status.observationRevision) ||
+        status.observationRevision < 0 ||
+        status.observationRevision > revision ||
         status.epoch < epoch ||
         (status.epoch === epoch && status.windowId !== windowId)
       )
@@ -136,11 +160,23 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
         windowId = status.windowId
         epoch = status.epoch
         lastEventId = 0
+        statusRevision = -1
         retire()
       }
+      if (status.observationRevision < statusRevision) return false
+      statusRevision = status.observationRevision
       if (active && !status.windowActive) retire()
       active = status.windowActive
-      ready = !!windowId && enabled && active && status.ready && status.observationRevision === revision
+      const nativeReady = !!windowId && enabled && active && status.ready
+      if (status.observationRevision === revision) {
+        ready = nativeReady
+        if (!nativeReady) for (const entry of entries.values()) entry.acknowledged = false
+      } else if (!enabled || !active) ready = false
+      // A native revision acknowledges every still-live identity born at or before that revision.
+      if (nativeReady) {
+        for (const entry of entries.values())
+          if (entry.options.isEnabled && entry.bornRevision <= status.observationRevision) entry.acknowledged = true
+      }
       flush()
       return ready
     },
@@ -149,12 +185,13 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
       if (
         disposed ||
         !enabled ||
-        !ready ||
         !active ||
         data.ownerId !== ownerId ||
         data.windowId !== windowId ||
         data.epoch !== epoch ||
-        data.observationRevision !== revision ||
+        !Number.isSafeInteger(data.observationRevision) ||
+        data.observationRevision < 0 ||
+        data.observationRevision > revision ||
         !Number.isSafeInteger(data.eventId) ||
         data.eventId <= lastEventId ||
         data.cancelled
@@ -164,7 +201,13 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
       const session = { windowId, epoch }
       const selected = new Set(data.observerIds)
       const initial = [...entries.values()]
-        .filter((entry) => selected.has(entry.id) && entry.options.isEnabled)
+        .filter(
+          (entry) =>
+            selected.has(entry.id) &&
+            entry.options.isEnabled &&
+            entry.acknowledged &&
+            data.observationRevision >= entry.bornRevision,
+        )
         .map((entry) => ({ entry, id: entry.id, lease: entry.lease }))
       let delivered = false
       const errors: unknown[] = []
@@ -178,7 +221,9 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
           entries.get(entry.key) !== entry ||
           entry.id !== id ||
           entry.lease !== lease ||
-          !entry.options.isEnabled
+          !entry.options.isEnabled ||
+          !entry.acknowledged ||
+          data.observationRevision < entry.bornRevision
         )
           continue
         try {
