@@ -71,7 +71,7 @@ class TNodeArena {
     auto &entry = *static_cast<TEntry *>(YGNodeGetContext(node));
     if (entry.failure) return {0, 0};
     try {
-      const auto size = entry.input.measure(width, widthMode, height, heightMode);
+      const auto size = entry.input.measure(width, widthMode, height, heightMode, YGNodeLayoutGetDirection(node));
       if (!std::isfinite(size.width) || !std::isfinite(size.height) ||
           size.width < 0 || size.height < 0)
         throw std::runtime_error("Native motion: invalid intrinsic measurement");
@@ -92,7 +92,7 @@ class TNodeArena {
         border[index] = YGNodeLayoutGetBorder(node, edges[index]);
         padding[index] = YGNodeLayoutGetPadding(node, edges[index]);
       }
-      const auto value = entry.input.baseline(width, height, border, padding);
+      const auto value = entry.input.baseline(width, height, border, padding, YGNodeLayoutGetDirection(node));
       if (!std::isfinite(value))
         throw std::runtime_error("Native motion: invalid intrinsic baseline");
       return value;

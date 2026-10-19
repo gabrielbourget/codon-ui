@@ -6,7 +6,7 @@
 namespace codon::motion {
 
 struct TNativeScratchIntrinsic {
-  std::function<YGSize(float, YGMeasureMode, float, YGMeasureMode)> measure;
+  TNativeScratchMeasure measure;
   TNativeScratchBaseline baseline;
 };
 
@@ -25,5 +25,11 @@ struct TNativeScratchInput {
 TNativeScratchInput createNativeScratchInput(
     const TNativeFabricSnapshot &snapshot,
     const TNativeScratchIntrinsicResolver &resolveIntrinsic = {});
+
+TNativeScratchNode copyNativeScratchSubtree(
+    const facebook::react::ShadowNode &node,
+    const facebook::react::LayoutContext &context,
+    const facebook::react::LayoutConstraints &constraints,
+    const TNativeScratchIntrinsicResolver &resolveIntrinsic);
 
 } // namespace codon::motion

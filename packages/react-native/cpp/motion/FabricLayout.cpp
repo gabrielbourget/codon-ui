@@ -49,6 +49,15 @@ TNativeScratchNode copyNode(
 }
 } // namespace
 
+TNativeScratchNode copyNativeScratchSubtree(
+    const ShadowNode &node, const LayoutContext &context,
+    const LayoutConstraints &constraints,
+    const TNativeScratchIntrinsicResolver &resolveIntrinsic) {
+  const bool swap = context.swapLeftAndRightInRTL &&
+      constraints.layoutDirection == LayoutDirection::RightToLeft;
+  return copyNode(node, context, swap, YGErrataAll, resolveIntrinsic);
+}
+
 TNativeScratchInput createNativeScratchInput(
     const TNativeFabricSnapshot &snapshot,
     const TNativeScratchIntrinsicResolver &resolveIntrinsic) {

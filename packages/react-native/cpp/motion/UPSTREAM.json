@@ -1,5 +1,5 @@
 {
-  "scope": "Private Fabric-input snapshot service binds actual native view/window leases to current immutable Fabric props/revisions. Scratch layout and live intrinsic providers remain separate and are not admitted as a motion measurement backend.",
+  "scope": "Private source-owned immutable Fabric/scratch intrinsic factory. Paragraph/attachment/editor algorithms use a fresh text manager; audited switch-only native measurement is explicit. Android cached editor/progress require isolated services and currently reject without them. No measured backend or Card/native acceptance is admitted.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -73,12 +73,114 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/MountingCoordinator.cpp",
       "sha256": "650b1f53b85676244bf26c4611447fc1e0fa69d9bbef9de1924f9dddde477e0a",
       "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactCommon/cmake-utils/react-native-flags.cmake",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/cmake-utils/react-native-flags.cmake",
+      "sha256": "66065e755145ef94067b5d5169ca80b1cda6e5fa5d136c2095967452685f13ee",
+      "adaptation": "Use the existing Android peer ABI definitions through target_compile_reactnative_options; do not change RN feature selection."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/Props.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/Props.h",
+      "sha256": "18b783d1a6219d0b012f3aa1b34313c918ef7ec367488932f2880682aab2ee01",
+      "adaptation": "RN_SERIALIZABLE_STATE changes Android Props layout; every owned props reader must compile with the pinned peer definition."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/BaseTextShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/BaseTextShadowNode.cpp",
+      "sha256": "a8478a32f7806b8f3890d58704bd8d7e113c2a8c971a364fa5d0e5ddfab8125d",
+      "adaptation": "Read-only public builder fills owned attributed-string/fragments/attachments without original node caches."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sha256": "22053df9c418b4580c546d3c9db7fe09ff7db39fb6def658ee8806fce5dbf849",
+      "adaptation": "Rebuild owned content and independently measure Yoga attachments; preserve rounding/prepared-layout/baseline semantics without original caches/layout/state/events."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/BaseTextInputShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/BaseTextInputShadowNode.h",
+      "sha256": "a8dc0d9636c148c053697f19239d14579842a209bc12f9824f93f06db4797b72",
+      "adaptation": "Retain state/props/placeholder/opaque input choice, single-line constraints and border-box baseline adjustment."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp",
+      "sha256": "1b378b01eaacd46adebee15606262776d93505418db5bb2245669a5793587134",
+      "adaptation": "Retain text attribute/state choice and cache-ID distinction; cached native editor spans require an isolated callback."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputComponentDescriptor.h",
+      "sha256": "5711c23eac50b005eb21387e990ed723181e7b1eab7e66431da8bfca3000fc65",
+      "adaptation": "Adoption stores native theme padding into committed props; original adopted state is not mutated by the factory."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/TextMeasureCache.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/TextMeasureCache.h",
+      "sha256": "14b83cc352edc47b40c9973ff29966f52aab6fa9916d1696ea6a97fb34390a66",
+      "adaptation": "Do not reuse an original node text manager or its mutable measured/line caches; instantiate a request-owned manager."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/android/react/renderer/textlayoutmanager/TextLayoutManager.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/android/react/renderer/textlayoutmanager/TextLayoutManager.cpp",
+      "sha256": "3a78f86cdcbce8d7662a3858aab35ce54cb06505f3083c3df5d792d45bb3fa82",
+      "adaptation": "Use actual platform text measurement APIs through a request-owned manager; cached editor service is separately isolated."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/TextLayoutManager.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/TextLayoutManager.mm",
+      "sha256": "6b0d91977e0a199246b4de60c6f3ce5c3207b54ab8eb12d4af2d8795d7777437",
+      "adaptation": "Value/opaque text forwards to fresh native text-storage/layout measurement; preserve actual input state."
+    },
+    {
+      "path": "ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/textlayoutmanager/platform/ios/react/renderer/textlayoutmanager/RCTTextLayoutManager.mm",
+      "sha256": "54afce45131efb07e62032a294dc7adf1efc62148261241c02fc4c9af2a30321",
+      "adaptation": "Opaque attributed text initializes owned NSTextStorage before font fitting; actual native non-mutation/fidelity remains unproved."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/TextLayoutManager.kt",
+      "sha256": "6dd95802eae01819bc96c64f920eab119c3dbac20a659e3ad8ef602eba47caf8",
+      "adaptation": "Non-cache-ID text constructs an owned Spannable; cached-ID retrieves original spans/paint and font fitting mutates them, so never use that original path."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt",
+      "sha256": "999d57fb8ce6713c88f0f8022c30fe877b319df65277d5b2939c18e2ab34d003",
+      "adaptation": "Native cached editor text/paint source ownership; preserve actual editor methods/ref/text/selection and cache lifetime."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTextPaintHolderSpan.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/ReactTextPaintHolderSpan.kt",
+      "sha256": "5de1b42dd0b0c1e72c565e0e486850398c297eb1bdbd10d17991737b76de3d0e",
+      "adaptation": "Cached editor paint is shared native input; isolated services must copy it."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/progressbar/ReactProgressBarViewManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/progressbar/ReactProgressBarViewManager.kt",
+      "sha256": "ccfe7581a7d213520baa688e8d00be64ea5e768a3fa837237cff8ffd62f4a4cb",
+      "adaptation": "Shared WeakHashMap measurement cache is not an isolated service; approved request-owned replacement remains to be implemented."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/views/switchview/ReactSwitchManager.kt",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/switchview/ReactSwitchManager.kt",
+      "sha256": "afef5aab22c90f2bff20355738f22a8a3ce825ba5c0e82424c7bdede03d2d155",
+      "adaptation": "Audited switch measurement creates an unmounted temporary switch rather than changing the original view."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/switch/iosswitch/react/renderer/components/switch/IOSSwitchShadowNode.mm",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/switch/iosswitch/react/renderer/components/switch/IOSSwitchShadowNode.mm",
+      "sha256": "4c71d739abcdf6b316135fc03692503232b8cc8c513cf95d41c43796ff2d1d5c",
+      "adaptation": "Switch intrinsic size reads the native size helper without original node state/layout mutation."
     }
   ],
   "license": "LICENSE.react-native.md",
   "remaining": [
     "Installed actual UIKit/Android owner/ref/window/revision delivery, lazy registration and shrinker proof",
-    "Audited isolated native intrinsic/baseline providers including text attachments and editor state",
+    "Actual platform-isolated cached editor/progress callbacks, native factory integration and installed text/attachment/baseline fidelity; the private factory alone does not admit measurement",
     "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
     "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
     "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance"
@@ -86,11 +188,11 @@
   "authoredFiles": [
     {
       "file": "FabricLayout.cpp",
-      "sha256": "68d41ce49a1f431c0c4ad487f9ede397d7f8d66765e11584709329cdaeeafb08"
+      "sha256": "0080028fe9e822f29a882ebde7ff973a91fa524c8f0700ec07712b39e3d84fdd"
     },
     {
       "file": "FabricLayout.h",
-      "sha256": "c43f02c2ac87730ff91d2d03f66bc48e509450bdf7643e7b8a2d4f6293d6a69f"
+      "sha256": "2242e4f4d568f2de123c434d6abd71f9d657f5f3a2fb612d6299ac05fa7f2ae7"
     },
     {
       "file": "FabricSnapshot.cpp",
@@ -98,7 +200,19 @@
     },
     {
       "file": "FabricSnapshot.h",
-      "sha256": "ad3f8c84e8391c02b299469a1c284e132ab27b2f6c94d8d3520d4272df12aab0"
+      "sha256": "16774822cecb23362449c2b6d0d7940679eada99e074a709a02c813a18f3db92"
+    },
+    {
+      "file": "NativeABI.h",
+      "sha256": "0f05827a1672dc097ca67f6685c02d61bc95e29f6bef732d1ef614b567fcc33d"
+    },
+    {
+      "file": "NativeIntrinsics.cpp",
+      "sha256": "3f189955f7180b13326ecd5d619f8196390cbcd34fa571f60604ebba87cace2b"
+    },
+    {
+      "file": "NativeIntrinsics.h",
+      "sha256": "84bdde43ac7ac18426e862eed68e89e5d6a4e95b30b9cfe0db76399c4e9539f4"
     },
     {
       "file": "NativeStyle.cpp",
@@ -106,15 +220,15 @@
     },
     {
       "file": "NativeStyle.h",
-      "sha256": "b8768a1719a2685113c24d35d9834c8b2f9127f2d97c40fa6cbc33f16fdbd3b5"
+      "sha256": "495b738d6db3e85efcf248d3bfdbd4d4068cc39809b4a403fecfb5153683e8e7"
     },
     {
       "file": "ScratchYoga.cpp",
-      "sha256": "970915702949780c071d90966044b3e15b4792c2940c8334110b0ea1d3e699b1"
+      "sha256": "873ee06f349d46dbe6629c087fcd2a13c9548c818fe87728a1f44ba0d16f1c27"
     },
     {
       "file": "ScratchYoga.h",
-      "sha256": "b99f06854b154578457758d52fbc7fdc99af8c79e1c861926077f7c95125ffc0"
+      "sha256": "f6c8d4fdb0046595cba5fbcd552fad68e1b776b1f19ca9abb9a74385ef95bca8"
     },
     {
       "file": "SnapshotQuery.cpp",

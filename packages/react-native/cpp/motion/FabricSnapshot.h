@@ -1,5 +1,7 @@
 #pragma once
 
+#include "NativeABI.h"
+
 #include <react/renderer/components/root/RootShadowNode.h>
 #include <react/renderer/core/LayoutContext.h>
 #include <react/renderer/mounting/ShadowTreeRevision.h>
