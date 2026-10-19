@@ -56,7 +56,7 @@
   "authoredFiles": [
     {
       "file": "NativeMotionOwner.ts",
-      "sha256": "6ed0b68df958506875692ac6bf98858bd370be83fa209817b59e4f1beb3c4d14"
+      "sha256": "14569999ae405dde159caf156ee36d8121e7380b7d419f269e6eff75171ecb18"
     },
     {
       "file": "NativeMotionOwnerHost.tsx",

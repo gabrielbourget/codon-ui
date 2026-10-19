@@ -7,6 +7,7 @@ import type {
 import { cancelFrame, frame } from "../kernel"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 
+import { nativeMotionIsDragging, nativeDragGestureRevision } from "./dragLock"
 import type { TNativeMotionHoverEvent, TNativeMotionPointInfo } from "./types"
 
 type TCycle = {
@@ -16,6 +17,7 @@ type TCycle = {
   cancelCurrent: () => boolean
   source: "pointer" | "keyboard"
   code?: number
+  dragRevision: number
 }
 type THover = { event: TNativeMotionHoverEvent; info: TNativeMotionPointInfo; cancelCurrent: () => boolean }
 const eventPoint = (event: { nativeEvent: unknown }): TNativeMotionPointInfo | undefined => {
@@ -50,7 +52,8 @@ export class NativeMotionInteractions {
     return Boolean(props.whileHover || props.onHoverStart || props.onHoverEnd)
   }
   private eligible = () => this.owner.captureAnimationLease()()
-  private admitted = () => this.eligible() && !this.owner.animationState.getState().whileDrag.isActive
+  private admitted = () =>
+    this.eligible() && !nativeMotionIsDragging() && !this.owner.animationState.getState().whileDrag.isActive
   private priority = (type: "whileTap" | "whileHover" | "whileFocus", active: boolean) => {
     if (active && !this.owner.getProps()[type]) return
     const current = this.owner.captureAnimationLease()
@@ -94,7 +97,15 @@ export class NativeMotionInteractions {
       const info = this.point(event)
       event.persist?.()
       const current = this.owner.captureAnimationLease()
-      this.cycle = { event, info, current, cancelCurrent: this.cancelLease(), source, code }
+      this.cycle = {
+        event,
+        info,
+        current,
+        cancelCurrent: this.cancelLease(),
+        source,
+        code,
+        dragRevision: nativeDragGestureRevision(),
+      }
       this.priority("whileTap", true)
       this.queue(event, info, this.owner.getProps().onTapStart, current)
     } catch (error) {
@@ -111,7 +122,12 @@ export class NativeMotionInteractions {
     if (!cycle || (source && cycle.source !== source)) return
     this.cycle = undefined
     this.priority("whileTap", false)
-    const accepted = success && this.admitted() && cycle.current() && !event.isDefaultPrevented?.()
+    const accepted =
+      success &&
+      this.admitted() &&
+      cycle.current() &&
+      cycle.dragRevision === nativeDragGestureRevision() &&
+      !event.isDefaultPrevented?.()
     event.persist?.()
     let info = cycle.info
     try {

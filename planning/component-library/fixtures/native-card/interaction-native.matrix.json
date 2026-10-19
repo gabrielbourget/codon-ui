@@ -281,6 +281,66 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.android.01",
+      "case": "Actual native drag direction/axis locks, propagation, manual handles through passive scope observation, pointer/touch identities and outside-root/window/default/editor responder delivery",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.android.02",
+      "case": "Actual ordinary View constraints, transforms/scroll/layout compensation, asynchronous query retirement, resize progress and large-tree query/frame costs",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.android.03",
+      "case": "Actual release inertia, snap axes/cursor, interruption, controls start/stop/cancel, whileDrag/tap arbitration, reduced/skip policies and original editor/ref/selection preservation with projection",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.ios.01",
+      "case": "Actual native drag direction/axis locks, propagation, manual handles through passive scope observation, pointer/touch identities and outside-root/window/default/editor responder delivery",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.ios.02",
+      "case": "Actual ordinary View constraints, transforms/scroll/layout compensation, asynchronous query retirement, resize progress and large-tree query/frame costs",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.DRAG.P01.ios.03",
+      "case": "Actual release inertia, snap axes/cursor, interruption, controls start/stop/cancel, whileDrag/tap arbitration, reduced/skip policies and original editor/ref/selection preservation with projection",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

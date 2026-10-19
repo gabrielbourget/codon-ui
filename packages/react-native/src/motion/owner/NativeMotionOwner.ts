@@ -11,6 +11,7 @@ import type {
   TNativeMotionDefinition,
 } from "../animation/types"
 import type { TNativeMotionConfig } from "../config"
+import type { TNativeMotionDragProps } from "../interactions/dragTypes"
 import type { TNativeMotionInteractionProps } from "../interactions/types"
 import { motionValue } from "../kernel"
 import type { AnimationPlaybackControlsWithThen, MotionValue } from "../kernel"
@@ -29,7 +30,7 @@ export type TNativeMotionOwnerProps = TNativeMotionAnimationProps &
   TNativeMotionInteractionProps & {
     onAnimationStart?: (definition: TNativeMotionDefinition) => void
     onAnimationComplete?: (definition: TNativeMotionDefinition) => void
-  }
+  } & TNativeMotionDragProps
 export type TNativeMotionInitialContext = Pick<TNativeMotionAnimationProps, "initial" | "animate">
 export const nativeInitialVariantContext = (
   props: TNativeMotionAnimationProps,
@@ -52,7 +53,7 @@ export type TNativeMotionOwnerOptions = {
   waitForInitialWindow?: () => boolean
   readValue?: TNativeMotionValueContext["readValue"]
   resolveGeometry?: TNativeMotionValueContext["resolveGeometry"]
-  presence?: { custom?: unknown; initial?: boolean }
+  presence?: { custom?: unknown; initial?: boolean; isPresent?: boolean }
   initialContext?: TNativeMotionInitialContext
 }
 
@@ -63,7 +64,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   latestValues: Record<string, unknown> = {}
   variantChildren?: Set<NativeMotionOwner>
   enteringChildren?: Set<NativeMotionOwner>
-  presenceContext?: { custom?: unknown }
+  presenceContext?: { custom?: unknown; isPresent?: boolean }
   readonly animationState = createAnimationState(this)
   readonly isControllingVariants: boolean
   readonly isVariantNode: boolean

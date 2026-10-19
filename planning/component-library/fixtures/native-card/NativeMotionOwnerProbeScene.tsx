@@ -7,12 +7,14 @@ import { useNativeAnimationControls } from "../../../../packages/react-native/sr
 import { NativeMotionConfig } from "../../../../packages/react-native/src/motion/config"
 import type { TNativeReducedMotionMode } from "../../../../packages/react-native/src/motion/config"
 import type { TNativeMotionPanInfo } from "../../../../packages/react-native/src/motion/interactions/types"
+import { useNativeDragControls } from "../../../../packages/react-native/src/motion/interactions/NativeDragControls"
 import { readNativeMotionTargetGeometry } from "../../../../packages/react-native/src/motion/measurement/targetGeometry"
 import { NativeMotionOwnerHost } from "../../../../packages/react-native/src/motion/owner/NativeMotionOwnerHost"
 
 // Non-shipping actual-owner scene. Source callbacks/settled promises are not native paint acknowledgments.
 export const NativeMotionOwnerProbeScene = () => {
   const controls = useNativeAnimationControls()
+  const dragControls = useNativeDragControls()
   const root = useRef<View>(null),
     constraint = useRef<View>(null),
     editor = useRef<TextInput>(null),
@@ -21,6 +23,8 @@ export const NativeMotionOwnerProbeScene = () => {
   const [visible, setVisible] = useState(true),
     [skip, setSkip] = useState(false)
   const [interactions, setInteractions] = useState(false)
+  const [dragEnabled, setDragEnabled] = useState(false)
+  const dragSamples = useRef<TNativeMotionPanInfo[]>([])
   const panSamples = useRef<{ identity: number | string; source: "pointer" | "touch"; info: TNativeMotionPanInfo }[]>(
     [],
   )
@@ -84,6 +88,21 @@ export const NativeMotionOwnerProbeScene = () => {
           }}
         />
         <Button title="Stop" onPress={() => controls.stop()} />
+        <Button title="Toggle constrained drag" onPress={() => setDragEnabled((current) => !current)} />
+        <Button title="Stop drag with inertia" onPress={dragControls.stop} />
+        <Button title="Cancel drag" onPress={dragControls.cancel} />
+        <Button
+          title="Inspect recent source drag samples"
+          onPress={() => append({ event: "recent-source-drag-samples", samples: [...dragSamples.current] })}
+        />
+        <View
+          onTouchStart={(event) => {
+            if (dragEnabled) dragControls.start(event, { snapToCursor: true })
+          }}
+          style={{ padding: 16, borderWidth: 1 }}
+        >
+          <Text>Manual drag handle: move this touch through the native scope.</Text>
+        </View>
         <Button
           title="Inspect recent source pan samples"
           onPress={() => append({ event: "recent-source-pan-samples", samples: [...panSamples.current] })}
@@ -117,6 +136,20 @@ export const NativeMotionOwnerProbeScene = () => {
                 motion={{
                   initial: { x: 0, scale: 1, opacity: 1 },
                   animate: controls,
+                  drag: dragEnabled,
+                  dragControls,
+                  dragConstraints: constraint,
+                  whileDrag: { scale: 1.03 },
+                  onDragStart: (event, info) => {
+                    dragSamples.current = []
+                    append({ event: "source-drag-start", native: event.nativeEvent, info, ...identity() })
+                  },
+                  onDrag: (_event, info) => {
+                    if (dragSamples.current.length < 256) dragSamples.current.push(info)
+                  },
+                  onDragEnd: (event, info) =>
+                    append({ event: "source-drag-end", native: event.nativeEvent, info, ...identity() }),
+                  onDragTransitionEnd: () => append({ event: "source-drag-transition-end", ...identity() }),
                   ...(interactions
                     ? {
                         whileTap: { scale: 0.95 },
