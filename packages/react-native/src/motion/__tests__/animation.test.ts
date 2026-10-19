@@ -189,7 +189,10 @@ it("preserves property protections, native reduced-motion routing and path owner
     delete target.x
   })
   animate.mockClear()
-  animateTarget(owner, { x: 30, transition: { path: { animateVisualElement: path } } })
+  animateTarget(owner, {
+    x: 30,
+    transition: { path: { animateVisualElement: path, interpolateProjection: () => undefined } },
+  })
   expect(path).toHaveBeenCalledTimes(1)
   expect(animate).not.toHaveBeenCalled()
   owner.retire()

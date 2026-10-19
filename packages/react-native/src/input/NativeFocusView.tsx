@@ -48,6 +48,8 @@ export const NativeFocusHost = forwardRef<
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
     nativeMotionGeometryRevision?: string
+    nativeMotionVisible?: boolean
+    nativeMotionProjectionRevision?: string
     nativeNavigation?: boolean
     nativeNavigationLabel?: string
     nativeLabelledBy?: readonly string[]
@@ -80,6 +82,8 @@ export const NativeFocusHost = forwardRef<
     nativeMotionColorObservation = false,
     nativeMotionGeometryObservation = false,
     nativeMotionGeometryRevision = "",
+    nativeMotionVisible = true,
+    nativeMotionProjectionRevision = "",
     onBubbledFocus,
     onBubbledBlur,
     ...rest
@@ -237,6 +241,8 @@ export const NativeFocusHost = forwardRef<
         nativeMotionColorObservation={nativeMotionColorObservation}
         nativeMotionGeometryBinding={nativeMotionGeometryObservation ? geometryBinding : ""}
         nativeMotionGeometryRevision={nativeMotionGeometryRevision}
+        nativeMotionVisible={nativeMotionVisible}
+        nativeMotionProjectionRevision={nativeMotionProjectionRevision}
         onNativeMotionGeometry={
           nativeMotionGeometryObservation
             ? (event) => {

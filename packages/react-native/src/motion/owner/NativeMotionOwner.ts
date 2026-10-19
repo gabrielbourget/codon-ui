@@ -15,6 +15,9 @@ import type { TNativeMotionDragProps } from "../interactions/dragTypes"
 import type { TNativeMotionInteractionProps } from "../interactions/types"
 import { motionValue } from "../kernel"
 import type { AnimationPlaybackControlsWithThen, MotionValue } from "../kernel"
+import type { TNativeMotionLayoutProps } from "../projection/layoutTypes"
+import type { NativeProjectionState } from "../projection/NativeProjectionState"
+import type { IProjectionNode } from "../projection/node/types"
 import { animateNativeMotionValue } from "../value/animateValue"
 import { nativeTargetKeyframes } from "../value/keyframes"
 import { createNativeMotionValueContext } from "../value/nativeContext"
@@ -30,7 +33,8 @@ export type TNativeMotionOwnerProps = TNativeMotionAnimationProps &
   TNativeMotionInteractionProps & {
     onAnimationStart?: (definition: TNativeMotionDefinition) => void
     onAnimationComplete?: (definition: TNativeMotionDefinition) => void
-  } & TNativeMotionDragProps
+  } & TNativeMotionDragProps &
+  TNativeMotionLayoutProps
 export type TNativeMotionInitialContext = Pick<TNativeMotionAnimationProps, "initial" | "animate">
 export const nativeInitialVariantContext = (
   props: TNativeMotionAnimationProps,
@@ -73,6 +77,10 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   shouldReduceMotion = false
   shouldSkipAnimations = false
   current: View | null = null
+  projection?: IProjectionNode
+  nativeProjection?: NativeProjectionState
+  private readonly projectionValues = new Set<() => void>()
+  private readonly projectionNodes = new Set<(node: IProjectionNode | undefined) => void>()
   private options: TNativeMotionOwnerOptions
   private configuredValues: TNativeMotionOwnerOptions["values"]
   private configuredReduced: boolean
@@ -163,6 +171,25 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   getVariant = (name: string) => this.props.variants?.[name]
   getDefaultTransition = () => this.props.transition
   getTransformPagePoint = () => this.options.config.transformPagePoint
+  isStatic = () => Boolean(this.options.config.isStatic)
+  getAuthoredStyle = () => this.options.base
+  subscribeProjectionValues = (listener: () => void) => {
+    this.projectionValues.add(listener)
+    return () => {
+      this.projectionValues.delete(listener)
+    }
+  }
+  setProjection = (node: IProjectionNode | undefined) => {
+    this.projection = node
+    this.projectionNodes.forEach((listener) => listener(node))
+  }
+  subscribeProjectionNode = (listener: (node: IProjectionNode | undefined) => void) => {
+    this.projectionNodes.add(listener)
+    listener(this.projection)
+    return () => {
+      this.projectionNodes.delete(listener)
+    }
+  }
   setReducedMotionPolicy = (key: string, override: boolean | undefined) => {
     this.reducedPolicies.set(key, override)
   }
@@ -189,6 +216,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
       value.on("change", (latest) => {
         if (this.values.get(key) !== value) return
         this.latestValues[key] = latest
+        this.projectionValues.forEach((listener) => listener())
         if (this.pendingBindings.get(key)?.failed) this.pendingBindings.delete(key)
         if (
           !this.snapshot[key as keyof TNativeMotionVisualBindings] &&

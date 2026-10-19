@@ -38,6 +38,10 @@ using namespace facebook::react;
   CUIFloatingScrollAnchor *_scrollAnchor;
   CUIMotionColorSampler *_motionColors;
   CUIMotionGeometryObserver *_motionGeometry;
+  BOOL _nativeMotionVisible;
+  BOOL _authoredHidden;
+  BOOL _motionVisibilityReady;
+  NSString *_motionProjectionRevision;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -51,6 +55,10 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIFocusViewProps>();
     _keyboardFocusable = YES;
+    _nativeMotionVisible = YES;
+    _authoredHidden = self.hidden;
+    _motionVisibilityReady = YES;
+    _motionProjectionRevision = @"";
     _ownerId = @"";
     _capturedKeys = [NSSet set];
     _held = [NSMutableDictionary dictionary];
@@ -438,10 +446,21 @@ using namespace facebook::react;
   _nativeDetailsLabel = [NSString stringWithUTF8String:next.nativeDetailsLabel.c_str()];
   if (!_keyboardFocusable) [self resignFirstResponder];
   [super updateProps:props oldProps:oldProps];
+  _nativeMotionVisible = next.nativeMotionVisible;
+  _motionProjectionRevision = [NSString stringWithUTF8String:next.nativeMotionProjectionRevision.c_str()];
+  [super setHidden:_authoredHidden || !_nativeMotionVisible];
   [_motionGeometry configureOwner:_ownerId binding:[NSString stringWithUTF8String:next.nativeMotionGeometryBinding.c_str()] revision:[NSString stringWithUTF8String:next.nativeMotionGeometryRevision.c_str()]];
   [_motionColors updateOwner:_ownerId enabled:next.nativeMotionColorObservation];
   [_motionColors synchronize];
 }
+
+- (void)setHidden:(BOOL)hidden {
+  if (!_motionVisibilityReady) { [super setHidden:hidden]; return; }
+  _authoredHidden = hidden;
+  [super setHidden:hidden || !_nativeMotionVisible];
+}
+
+- (NSString *)motionProjectionRevision { return _motionProjectionRevision ?: @""; }
 
 - (void)didMoveToWindow
 {

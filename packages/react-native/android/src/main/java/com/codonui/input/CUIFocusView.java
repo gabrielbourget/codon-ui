@@ -43,6 +43,9 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private final CUIMotionGeometryObserver motionGeometry;
   private String motionGeometryBinding = "", motionGeometryRevision = "";
   private boolean nativeMotionColorObservation;
+  private Boolean nativeMotionVisible = true;
+  private int authoredVisibility = View.VISIBLE;
+  private String motionProjectionRevision = "";
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
@@ -56,6 +59,17 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     setFocusable(true);
     setFocusableInTouchMode(true);
   }
+
+  @Override public void setVisibility(int visibility) {
+    authoredVisibility = visibility;
+    super.setVisibility(Boolean.FALSE.equals(nativeMotionVisible) && visibility == View.VISIBLE ? View.INVISIBLE : visibility);
+  }
+  void setNativeMotionVisible(boolean visible) {
+    nativeMotionVisible = visible;
+    super.setVisibility(!visible && authoredVisibility == View.VISIBLE ? View.INVISIBLE : authoredVisibility);
+  }
+  void setNativeMotionProjectionRevision(String revision) { motionProjectionRevision = revision == null ? "" : revision; }
+  String motionProjectionRevision() { return motionProjectionRevision; }
 
   void setNativeMotionGeometryBinding(String value) { motionGeometryBinding = value == null ? "" : value; }
   void setNativeMotionGeometryRevision(String value) { motionGeometryRevision = value == null ? "" : value; }

@@ -395,8 +395,8 @@
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
-      "sha256": "3ccd450b39d114e098a09180f51043de5a60f7fba4c0d6735198004c05c53de7",
-      "scope": "Local private mount-listener RN opt-in annotation only; runtime body unchanged."
+      "sha256": "7030bd805d4a7694fef8dcb7c1e84ca4bf6a8fa17757c82cb397b4ede13739d2",
+      "scope": "Private mount observation and ordinary-view query snapshots, including actual native direction and projection-intent metadata."
     }
   ],
   "cachedSpanPolicy": {
