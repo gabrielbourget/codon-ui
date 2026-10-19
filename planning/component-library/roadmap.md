@@ -1,6 +1,6 @@
 # Component Library Implementation Roadmap
 
-Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon UI owns the reusable React and React Native component library; Wavemap owns its later production mobile application. Native catalogue authority is the pinned React manifest at `ddc9f066f67af4742e05e04bd870726141c44129`: 74 registry items, including 53 components. Thirty-seven native counterparts have source implementation; that count does not certify complete installed or web-equivalent acceptance.
+Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-19**. Codon UI owns the reusable React and React Native component library; Wavemap owns its later production mobile application. Native catalogue authority is the pinned React manifest at `ddc9f066f67af4742e05e04bd870726141c44129`: 74 registry items, including 53 components. Forty-one native counterparts have source implementation; that count does not certify complete installed or web-equivalent acceptance.
 
 <a id="contents"></a>
 
@@ -98,7 +98,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon U
 | ---------------------------------------------------------------- | ----------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
 | M0: source catalogue, laboratory and foundation                  | Bounded foundation complete; owner/device product evidence remains separate   | Preserve exact source/runtime identities and the 53 stable catalogue IDs.                                                                            |
 | M1: reusable native foundation and basic controls                | Source and focused consumer/installed proofs completed through NumberInput    | Keep physical/ARM and closer owner visual review explicitly deferred to application integration.                                                     |
-| M2: complete native catalogue and customization parity           | Active; 37 source counterparts, with later families pending                   | Finish each family's contract, source, customization and installed gates before propagation.                                                         |
+| M2: complete native catalogue and customization parity           | Active;41 source counterparts,12 remaining                                    | Finish each family's contract, source, customization and installed gates before propagation.                                                         |
 | Modal/AlertDialog and Select                                     | Existing controlled implementation retained; RN Primitives migration rejected | Focused Select/Modal/Alert chain acceptance passes; broader expanded-overlay/long-content compositions remain open.                                  |
 | PlaceholderText/ComboBox                                         | Source implemented; original full installed family gate remains open          | First ComboBox N-only failure remains; later matched diagnostic passes do not replace first-result activation, Close/Back/nesting/layout acceptance. |
 | RN-TEXT-01                                                       | Frozen raw failures retained; further lab investigation deferred              | Keep native attribution and installed acceptance open; do not block independent component delivery or infer a production text workaround.            |
@@ -130,7 +130,7 @@ Lifecycle: **Active**. Owner: Gabriel Bourget. Reviewed: **2026-10-18**. Codon U
 - [x] Implement TypeaheadSearch with all twelve canonical mappings, controlled query/submit/status semantics, typed internal selection, six style owners and guarded native focus, 57 source cases, maintained scene/reference and immutable CP-33 proof; retain inherited/native/closure gaps. Repair shared bigint content separately with three public regressions and retain 41 FormField cases.
 - [x] Deliver independent LinearProgress/Meter source, public types, web-assertion customization coverage, maintained examples and curated reference without reopening XCTest startup.
 - [ ] Complete the original searchable-selection Android/iOS priority gate and maintained-scene propagation after its query prerequisite is reliable.
-- [ ] Complete broader overlay/long-content/large-text/rotation/removal acceptance and the remaining 18 native catalogue counterparts in dependency order.
+- [ ] Complete broader overlay/long-content/large-text/rotation/removal acceptance and the remaining12 native catalogue counterparts in dependency order.
 - [ ] Complete owner visual, physical accessibility/touch/keyboard, real fold and ARM proof in the application/device lane; keep iPhone signing deferred.
 
 <a id="delivery-goal"></a>
