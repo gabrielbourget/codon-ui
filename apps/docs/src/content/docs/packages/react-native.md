@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -27,6 +27,27 @@ The owned host now resolves inherited labelled-by IDs against live targets in it
 onKeyDown/onKeyUp receive original native synthetic keyboard events with logical key, platform code/characters, phase/repeat/cancellation, separate Shift/Alt/Control/Meta/Caps, raw modifiers and timestamp. TNativeInteractionEvent is the touch-or-keyboard union. TNativePressEvent additionally admits native activation; narrow kind="keyboard" versus kind="activation", then read touch-only coordinates only in the remaining touch arm. Activation contains actual target/source and observedAt (native callback-observation time), without fictitious touch coordinates or a hardware timestamp. Native default capture uses private declarative policy before JS delivery; later JS preventDefault cannot retroactively cancel a platform default.
 
 This package now includes native codegen/autolinking inputs and needs a consumer native rebuild. Raw source/type and compiler checks do not prove installed behavior. The private per-window key scope now occupies the floating host’s existing native root and acknowledges actual window epochs and policy revisions before JS action admission. Native target/modifier/editable/composition policies, Escape child/shield routing and physical-window deactivation guards are implemented at source tier. NativeFocusView focus events include observed isFocusVisible metadata; a generic focus event alone does not establish keyboard-visible focus. The updated scope still requires matching consumer/native products and installed proof. Further owned-control migration and installed native hover/description/viewport acceptance remain open. Public Tooltip/HoverPopover ignore touch entry, with no automatic tap or long-press trigger. An explicit tap-triggered popover is a separate ClickPopover contract, also still under construction.
+
+## Pagination
+
+Pagination requires currentPage, itemsPerPage, numberOfItems and both request callbacks. Owner values remain authoritative when requests are declined. Numeric counts use finite safe integers; page and size are positive, total may be zero. A temporarily out-of-range owner page stays unchanged. Size selection requests size before a page calculated from the caller’s current first-item index. The page-entry draft initializes separately to1, can be empty, and submits only through Go.
+
+```tsx
+import { Pagination } from "@codon-ui/react-native"
+
+export const Pager = () => (
+  <Pagination
+    currentPage={1}
+    itemsPerPage={10}
+    numberOfItems={200}
+    setCurrentPage={(page) => console.log(page)}
+    setItemsPerPage={(size) => console.log(size)}
+    chosenPaginationSubcomponents={["primary-controls", "page-counter", "page-input", "items-per-page"]}
+  />
+)
+```
+
+Mount NativeFloatingLayerHost around overflow presentations. Chosen groups retain caller order with duplicates removed; an empty group list selects the canonical primary default. RTL, both consolidation sides, geometry, independent native style/prop slots, grouped/legacy labels, custom icons and the actual root/editor/popup refs remain supported. The overflow shell defaults unraised and uses physical bottom-right placement. Explicit initial-focus ownership and slot=null popup control retain the ClickPopover contracts. Native keyboard/pointer/focus completion, measured rendering and accessibility profiles remain acceptance work.
 
 ## Breadcrumbs
 

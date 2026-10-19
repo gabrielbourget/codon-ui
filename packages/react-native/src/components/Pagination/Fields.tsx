@@ -69,7 +69,7 @@ export const NativePaginationInput = ({
     raw.current = undefined
   }, [draft, model.key, props.isDisabled, input.isReadOnly])
   return (
-    <View testID="page-input" style={{ flexDirection: "row", alignItems: "flex-end", gap: 5 }}>
+    <View testID="page-input" style={{ flexDirection: "row", alignItems: "flex-end", gap: styles.gap }}>
       <FormField
         {...field}
         label={labels.pageInput.label}

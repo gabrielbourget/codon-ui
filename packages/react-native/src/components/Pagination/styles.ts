@@ -41,6 +41,7 @@ export const getNativePaginationStyles = (
     root,
     foreground,
     target: Platform.OS === "ios" ? 44 : 48,
+    gap: theme.spacing.unit,
     separator: resolveNativeStyle<ViewStyle>(
       [{ alignSelf: "stretch", width: 0.75 }, props.customSeparatorStyles],
       "Pagination",
@@ -53,6 +54,20 @@ export const getNativePaginationStyles = (
           backgroundColor: theme.colors.background,
           padding: theme.spacing.unit,
           borderRadius: props.geometry === "orthogonal" ? 0 : theme.radius.rounded,
+          boxShadow: [
+            {
+              offsetX: 0,
+              offsetY: 2,
+              blurRadius: 3,
+              color: theme.mode === "dark" ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.12)",
+            },
+            {
+              offsetX: 0,
+              offsetY: 2,
+              blurRadius: 2,
+              color: theme.mode === "dark" ? "rgba(0,0,0,0.28)" : "rgba(0,0,0,0.24)",
+            },
+          ],
         },
         props.customOptionsListStyles,
       ],

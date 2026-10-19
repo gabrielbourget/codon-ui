@@ -107,7 +107,6 @@ const wrapperKeys = new Set<string>([
   "aria-labelledby",
 ])
 
-// Private construction until the native semantics/inherited capability and public acceptance obligations close.
 export const Pagination = forwardRef<TNativePaginationRef, TNativePaginationProps>((props, ref) => {
   const count = getNativePaginationPageCount(props),
     items = getNativePaginationWindow(props),
