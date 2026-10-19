@@ -5,12 +5,25 @@ import type { TNativeMotionInteractionProps } from "../interactions/types"
 import { NativeMotionOwnerHost } from "../owner/NativeMotionOwnerHost"
 
 export const callbacks: TNativeMotionInteractionProps = {
+  onPan: (event, info) => {
+    const data = event.nativeEvent
+    return [
+      "pointerId" in data ? [data.pointerId, data.buttons, data.altKey] : data.identifier,
+      info.delta.x,
+      info.offset.y,
+      info.velocity.x,
+    ]
+  },
   onTap: (event, info) => {
     const original: TNativePressEvent = event
     const horizontal: number = info.point.x
     return [original, horizontal]
   },
   onHoverStart: (event, info) => [event.nativeEvent.pointerType, info.point.y],
+}
+export const panEvent: TNativeMotionInteractionProps = {
+  // @ts-expect-error Pan requires the original native pointer event, not a keyboard event.
+  onPan: (event: TNativeKeyboardEvent) => event.nativeEvent.key,
 }
 export const host = <NativeMotionOwnerHost motion={{ whileTap: { opacity: 0.5 }, ...callbacks }} />
 export const browserCallback: TNativeMotionInteractionProps = {

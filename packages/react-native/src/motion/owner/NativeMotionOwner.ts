@@ -161,6 +161,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
     nativeInitialVariantContext(this.props, this.options.initialContext ?? this.parent?.getInitialVariantContext())
   getVariant = (name: string) => this.props.variants?.[name]
   getDefaultTransition = () => this.props.transition
+  getTransformPagePoint = () => this.options.config.transformPagePoint
   setReducedMotionPolicy = (key: string, override: boolean | undefined) => {
     this.reducedPolicies.set(key, override)
   }

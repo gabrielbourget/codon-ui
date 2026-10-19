@@ -241,6 +241,46 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.PAN.P01.android.01",
+      "case": "pan on actual default touch and available pointer streams, mixed-stream single activation, physical multitouch identity, child responder ownership and outside-root/window/native-scroll cancellation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PAN.P01.android.02",
+      "case": "pan threshold/session/start/update/end phase and original native point/delta/offset/velocity under transformed parents, scroll, hold/flick/current callbacks, live teardown and drag composition/performance",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PAN.P01.ios.01",
+      "case": "pan on actual default touch and available pointer streams, mixed-stream single activation, physical multitouch identity, child responder ownership and outside-root/window/native-scroll cancellation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PAN.P01.ios.02",
+      "case": "pan threshold/session/start/update/end phase and original native point/delta/offset/velocity under transformed parents, scroll, hold/flick/current callbacks, live teardown and drag composition/performance",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

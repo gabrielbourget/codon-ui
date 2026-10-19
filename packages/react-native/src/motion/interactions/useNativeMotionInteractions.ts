@@ -7,6 +7,7 @@ import type { NativeMotionOwner, TNativeMotionOwnerProps } from "../owner/Native
 import type { TNativeMotionVisualHostProps } from "../visual/types"
 
 import { NativeMotionInteractions } from "./NativeMotionInteractions"
+import { NativeMotionPan } from "./NativeMotionPan"
 
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
 export const useNativeMotionInteractions = (
@@ -41,6 +42,9 @@ export const useNativeMotionInteractions = (
       ),
   )
   const tapConfigured = Boolean(motion.whileTap || motion.onTap || motion.onTapStart || motion.onTapCancel)
+  const panEnabled =
+    !isStatic && Boolean(motion.onPan || motion.onPanStart || motion.onPanEnd || motion.onPanSessionStart)
+  const [pan] = useState(() => new NativeMotionPan(owner, (failure) => committed.current.error(failure)))
   const enabled = tapConfigured && !isStatic
   const keyboardEnabled =
     enabled && (visual.tabIndex === undefined ? visual.focusable !== false : visual.tabIndex === 0)
@@ -52,10 +56,44 @@ export const useNativeMotionInteractions = (
   })
   useLayoutEffect(() => {
     interaction.refresh()
-    return scope?.subscribe(interaction.refresh)
-  }, [interaction, scope, visual, enabled])
-  useInsertionEffect(() => () => interaction.retire(), [interaction])
+    pan.refresh()
+    return scope?.subscribe(() => {
+      interaction.refresh()
+      pan.refresh()
+    })
+  }, [interaction, pan, scope, visual, enabled])
+  useInsertionEffect(
+    () => () => {
+      interaction.retire()
+      pan.retire()
+    },
+    [interaction, pan],
+  )
   const result: Partial<TNativeMotionVisualHostProps> = {
+    onTouchStart: panEnabled
+      ? (event) => {
+          visual.onTouchStart?.(event)
+          pan.start(event)
+        }
+      : visual.onTouchStart,
+    onTouchMove: panEnabled
+      ? (event) => {
+          visual.onTouchMove?.(event)
+          pan.move(event)
+        }
+      : visual.onTouchMove,
+    onTouchEnd: panEnabled
+      ? (event) => {
+          visual.onTouchEnd?.(event)
+          pan.finish(event)
+        }
+      : visual.onTouchEnd,
+    onTouchCancel: panEnabled
+      ? (event) => {
+          visual.onTouchCancel?.(event)
+          pan.finish(event, true)
+        }
+      : visual.onTouchCancel,
     nativePressable: visual.nativePressable || enabled,
     focusable: visual.focusable ?? (tapConfigured ? true : undefined),
     capturedKeys: [...new Set([...(visual.capturedKeys ?? []), ...(keyboardEnabled ? activationKeys : [])])],
@@ -102,14 +140,21 @@ export const useNativeMotionInteractions = (
     onPointerDown: (event) => {
       visual.onPointerDown?.(event)
       interaction.hoverPointerDown()
+      pan.start(event)
+    },
+    onPointerMove: (event) => {
+      visual.onPointerMove?.(event)
+      pan.move(event)
     },
     onPointerUp: (event) => {
       visual.onPointerUp?.(event)
       interaction.hoverPointerUp(event)
+      pan.finish(event)
     },
     onPointerCancel: (event) => {
       visual.onPointerCancel?.(event)
       interaction.hoverPointerUp(event)
+      pan.finish(event, true)
     },
     onFocus: (event) => {
       visual.onFocus?.(event)

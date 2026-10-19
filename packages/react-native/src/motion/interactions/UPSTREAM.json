@@ -1,5 +1,5 @@
 {
-  "scope": "Private tap/hover/focus source binding on the same actual NativeFocusHost, using existing RN Pressability and original native key/focus/pointer/activation objects. No public Card or complete native gesture admission.",
+  "scope": "Private tap/hover/focus/pan source binding on the same actual NativeFocusHost. Default native bubbling touch and existing optional pointer events remain original objects; no public Card or complete native gesture admission.",
   "inputs": [
     {
       "package": "framer-motion",
@@ -63,6 +63,20 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/gestures/drag/state/is-active.ts",
       "sourceKind": "npm-source-map-sourcesContent",
       "sha256": "8f30a57516ca8661b5bdbeeace1bf9da9a35de897faad6a4e2ff0860246e7bf1"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/pan/PanSession.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "6f449ee251010db4032b3b3d9b59522da3be5098009c68050b0dba7c046e7ea0"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/gestures/pan/index.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "e48dc50d46ba5ba68e486bb57d98b3223618d60899c4ef12ba27053198c71cbf"
     }
   ],
   "reactNativeInputs": [
@@ -75,6 +89,36 @@
       "path": "Libraries/Pressability/usePressability.js",
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/Pressability/usePressability.js",
       "sha256": "6ea47170258ee32adc3b66216c4ed31c09ebf42c07b4b403a3f9d02d82091a2a"
+    },
+    {
+      "path": "Libraries/Types/CoreEventTypes.d.ts",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/Types/CoreEventTypes.d.ts",
+      "sha256": "cf1e23408bb2e38cb90d109cf8027c829f19424ad7a611c74edf39e1f195fe22"
+    },
+    {
+      "path": "React/Base/RCTConstants.m",
+      "packageArtifactRef": "react-native@0.86.3/React/Base/RCTConstants.m",
+      "sha256": "de12480a527e7319141c3414854e972ffaae84c8d880d4a18bbabd23fd88d37c"
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/config/ReactFeatureFlags.kt",
+      "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/config/ReactFeatureFlags.kt",
+      "sha256": "a7a507ec9aabdc95fd0bd605fcf6c36e3bc133fad4f1128b1ed5f735d416c1a2"
+    },
+    {
+      "path": "Libraries/Types/CoreEventTypes.js",
+      "packageArtifactRef": "react-native@0.86.3/Libraries/Types/CoreEventTypes.js",
+      "sha256": "e956142dfe27be7175d7676efebb036f01c0ff90c1d724ce366459db29c1d8b4"
+    },
+    {
+      "path": "React/Fabric/RCTSurfaceTouchHandler.mm",
+      "packageArtifactRef": "react-native@0.86.3/React/Fabric/RCTSurfaceTouchHandler.mm",
+      "sha256": "7326c79d3cbd91762a18e0d6e21744bd7520521ded318a8f8411391e336e5dd3"
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/uimanager/events/TouchesHelper.kt",
+      "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/uimanager/events/TouchesHelper.kt",
+      "sha256": "c23f4cecd710c5083d27f3c14fe166b1a7ade4879b9bf90a4065b17b51be20fb"
     }
   ],
   "licenses": ["../kernel/LICENSE.motion-dom.md", "../animation/LICENSE.framer-motion.md"],
@@ -84,12 +128,20 @@
       "sha256": "9f212f5bd7065ed6f2269ffceb9cbf3894a5aec1dd484ca4a7d42d572caab762"
     },
     {
+      "file": "NativeMotionPan.ts",
+      "sha256": "335c817140ef37047e90c7de63072a9c578812f297f1869acc2f751f019af539"
+    },
+    {
+      "file": "NativePanSession.ts",
+      "sha256": "cc0e90b7cdc0bd8ade9786752b1077102419164a430f63ec9880778beb7ab4bd"
+    },
+    {
       "file": "types.ts",
-      "sha256": "10b4ca3db514e26680ab4f430979358e3967ceae6b5366d787d3d63c9cbbefb6"
+      "sha256": "027119b59666f58ac6cee8d0a9188e86a3b43514839db5838faa16818aac4c0a"
     },
     {
       "file": "useNativeMotionInteractions.ts",
-      "sha256": "0739c618ec0e79515746145cade8ffb873fef456af479228537e4e77dbdf28d0"
+      "sha256": "67710e6639781a51a2c4b6c7e1310c4d34a1d0ecbcd5deec18965d409ae1bffa"
     }
   ],
   "nativeAdaptations": [
@@ -97,7 +149,12 @@
     "Existing native Enter/Space capture/default-handled policy replaces browser Enter-to-synthetic-pointer dispatch. Actual key defaults, focus modality, bounds and native fidelity still require proof",
     "Current source priority state drives the real value backend; callbacks run postRender and carry attachment/window/epoch leases; original native responder negotiation and caller callbacks are preserved",
     "Held hover leave is deferred until native pointer release/cancel; reentry starts again and clears the deferral, matching the inspected pinned source",
-    "Same native root/ref/editor survives interaction prop changes; no accessible grouping, editor methods/values/selection changes or SDK flag changes are introduced"
+    "Same native root/ref/editor survives interaction prop changes; no accessible grouping, editor methods/values/selection changes or SDK flag changes are introduced",
+    "Pan retains the pinned 3-unit threshold, frame-coalesced/retransformed movement, 100ms recent-history velocity, stale hold-origin handling, update/postRender callback phases and original cancel-event/last-point semantics",
+    "Locked RN0.86.3 defaults W3C pointer dispatch off on both platforms. Existing bubbling touch events supply native pan without responder capture or SDK flag changes; an available pointer stream and touch stream share one source-owned session without timing heuristics",
+    "Native admission keys source plus actual pointerId/touch identifier. Secondary starts/foreign IDs do not retire the original session. Source comparisons cover matching physical-pointer traces; native admission/deduplication guards are separate source assertions and still require actual native proof",
+    "The pan callbacks truthfully accept original native pointer or touch events. Pointer-only buttons/modifiers remain on their real event variant; no absent touch fields are fabricated",
+    "Pinned RN public declarations use string touch IDs while Flow and native emitters use numbers. The owned pan event type preserves string or number IDs; admission distinguishes their types without coercion or event mutation"
   ],
   "remaining": [
     "Actual native primary/secondary/multitouch/hover delivery and held release outside the native root/window",

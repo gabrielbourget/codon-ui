@@ -6,6 +6,7 @@ import { NativeKeyboardScope } from "../../../../packages/react-native/src/input
 import { useNativeAnimationControls } from "../../../../packages/react-native/src/motion/animation/hooks"
 import { NativeMotionConfig } from "../../../../packages/react-native/src/motion/config"
 import type { TNativeReducedMotionMode } from "../../../../packages/react-native/src/motion/config"
+import type { TNativeMotionPanInfo } from "../../../../packages/react-native/src/motion/interactions/types"
 import { NativeMotionOwnerHost } from "../../../../packages/react-native/src/motion/owner/NativeMotionOwnerHost"
 
 // Non-shipping actual-owner scene. Source callbacks/settled promises are not native paint acknowledgments.
@@ -18,6 +19,9 @@ export const NativeMotionOwnerProbeScene = () => {
   const [visible, setVisible] = useState(true),
     [skip, setSkip] = useState(false)
   const [interactions, setInteractions] = useState(false)
+  const panSamples = useRef<{ identity: number | string; source: "pointer" | "touch"; info: TNativeMotionPanInfo }[]>(
+    [],
+  )
   const [reduced, setReduced] = useState<TNativeReducedMotionMode>("user")
   const [journal, setJournal] = useState<readonly unknown[]>([])
   const append = (data: unknown) => {
@@ -64,10 +68,14 @@ export const NativeMotionOwnerProbeScene = () => {
           }}
         />
         <Button title="Stop" onPress={() => controls.stop()} />
+        <Button
+          title="Inspect recent source pan samples"
+          onPress={() => append({ event: "recent-source-pan-samples", samples: [...panSamples.current] })}
+        />
         <Button title="Set original root" onPress={() => controls.set({ x: 0, opacity: 1 })} />
         <Button title="Toggle scoped skip" onPress={() => setSkip((current) => !current)} />
         <Button
-          title="Toggle tap/hover/focus on original root"
+          title="Toggle tap/hover/focus/pan on original root"
           onPress={() => setInteractions((current) => !current)}
         />
         <Button
@@ -97,15 +105,68 @@ export const NativeMotionOwnerProbeScene = () => {
                       whileHover: { scale: 1.03 },
                       whileFocus: { opacity: 0.7 },
                       onTapStart: (event, info) =>
-                        append({ event: "source-tap-start", native: event.nativeEvent, info, ...identity() }),
+                        append({
+                          event: "source-tap-start",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
                       onTap: (event, info) =>
                         append({ event: "source-tap", native: event.nativeEvent, info, ...identity() }),
                       onTapCancel: (event, info) =>
-                        append({ event: "source-tap-cancel", native: event.nativeEvent, info, ...identity() }),
+                        append({
+                          event: "source-tap-cancel",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
                       onHoverStart: (event, info) =>
-                        append({ event: "source-hover-start", native: event.nativeEvent, info, ...identity() }),
+                        append({
+                          event: "source-hover-start",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
                       onHoverEnd: (event, info) =>
-                        append({ event: "source-hover-end", native: event.nativeEvent, info, ...identity() }),
+                        append({
+                          event: "source-hover-end",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
+                      onPanSessionStart: (event, info) => {
+                        panSamples.current = []
+                        append({
+                          event: "source-pan-session",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        })
+                      },
+                      onPanStart: (event, info) =>
+                        append({
+                          event: "source-pan-start",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
+                      onPan: (event, info) => {
+                        if (panSamples.current.length < 256) {
+                          const data = event.nativeEvent
+                          panSamples.current.push({
+                            identity: "pointerId" in data ? data.pointerId : data.identifier,
+                            source: "pointerId" in data ? "pointer" : "touch",
+                            info,
+                          })
+                        }
+                      },
+                      onPanEnd: (event, info) =>
+                        append({
+                          event: "source-pan-end",
+                          native: event.nativeEvent,
+                          info,
+                          ...identity(),
+                        }),
                     }
                   : {}),
                 onAnimationStart: (definition) =>
