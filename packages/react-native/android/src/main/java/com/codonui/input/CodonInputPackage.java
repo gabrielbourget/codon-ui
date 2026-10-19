@@ -1,17 +1,29 @@
 package com.codonui.input;
 
-import com.facebook.react.ReactPackage;
+import com.facebook.react.BaseReactPackage;
 import com.facebook.react.bridge.NativeModule;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
-import java.util.Collections;
+import com.facebook.react.module.model.ReactModuleInfo;
+import com.facebook.react.module.model.ReactModuleInfoProvider;
+import java.util.HashMap;
 import java.util.Arrays;
 import java.util.List;
 
-public final class CodonInputPackage implements ReactPackage {
+public final class CodonInputPackage extends BaseReactPackage {
   @Override
-  public List<NativeModule> createNativeModules(ReactApplicationContext context) {
-    return Collections.emptyList();
+  public NativeModule getModule(String name, ReactApplicationContext context) {
+    return CUIMotionSnapshotModule.NAME.equals(name) ? new CUIMotionSnapshotModule(context) : null;
+  }
+
+  @Override
+  public ReactModuleInfoProvider getReactModuleInfoProvider() {
+    return () -> {
+      HashMap<String, ReactModuleInfo> modules = new HashMap<>();
+      modules.put(CUIMotionSnapshotModule.NAME, new ReactModuleInfo(CUIMotionSnapshotModule.NAME,
+        CUIMotionSnapshotModule.class.getName(), false, false, false, true));
+      return modules;
+    };
   }
 
   @Override

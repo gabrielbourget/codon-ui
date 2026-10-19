@@ -62,6 +62,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionGeometry() { motionGeometry.configure(ownerId, motionGeometryBinding, motionGeometryRevision); }
   void invalidateMotionGeometry() { motionGeometry.invalidate(); }
   void queryMotionGeometry(String owner, String binding, String request) { synchronizeMotionGeometry(); motionGeometry.query(owner, binding, request); }
+  org.json.JSONObject motionSnapshotIdentity() throws org.json.JSONException { return motionGeometry.snapshotIdentity(); }
   void setNativeMotionColorObservation(boolean enabled) { nativeMotionColorObservation = enabled; }
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }

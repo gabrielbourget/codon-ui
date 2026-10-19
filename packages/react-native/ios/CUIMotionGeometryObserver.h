@@ -7,4 +7,5 @@
 - (void)queryOwner:(NSString *)owner binding:(NSString *)binding requestId:(NSString *)requestId;
 - (void)windowChanged;
 - (void)invalidate;
+- (NSDictionary *)snapshotIdentity;
 @end

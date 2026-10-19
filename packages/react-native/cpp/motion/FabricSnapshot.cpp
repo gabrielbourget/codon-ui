@@ -10,7 +10,7 @@ using namespace facebook::react;
 
 TNativeFabricSnapshot captureNativeFabricSnapshot(
     const UIManager &manager, SurfaceId surface, Tag tag,
-    const TNativeFabricOwnerCheck &owns) {
+    const TNativeFabricOwnerCheck &owns, const TNativeFabricReadGuard &check) {
   if (surface <= 0 || tag <= 0 || !owns)
     throw std::invalid_argument("Native motion: actual Fabric owner required");
   std::optional<TNativeFabricSnapshot> result;
@@ -19,6 +19,7 @@ TNativeFabricSnapshot captureNativeFabricSnapshot(
     if (!revision.rootShadowNode) return;
     std::vector<std::shared_ptr<const ShadowNode>> pending{revision.rootShadowNode};
     while (!pending.empty()) {
+      if (check) check();
       const auto node = pending.back();
       pending.pop_back();
       if (node->getTag() == tag) {

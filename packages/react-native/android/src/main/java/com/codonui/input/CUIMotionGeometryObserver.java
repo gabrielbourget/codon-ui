@@ -74,6 +74,20 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
   void query(String owner, String binding, String requestId) {
     if (enabled && this.owner.equals(owner) && this.binding.equals(binding) && !requestId.isEmpty()) capture("sample", requestId, "");
   }
+  JSONObject snapshotIdentity() throws JSONException {
+    View view = root.get();
+    if (!enabled || view == null || !view.isAttachedToWindow()) throw new IllegalStateException("motion-owner-detached");
+    WritableMap session = Arguments.createMap();
+    session.putString("windowId", CUIInputWindow.identity(view)); session.putString("scopeOwnerId", ""); session.putDouble("epoch", 0);
+    for (ViewParent parent = view.getParent(); parent != null; parent = parent.getParent()) {
+      if (parent instanceof CUIKeyboardScope) { ((CUIKeyboardScope)parent).writeActivationSession(session); break; }
+    }
+    String current = session.getString("windowId") + "|" + session.getString("scopeOwnerId") + "|" + session.getDouble("epoch");
+    if (!attachment.equals(current)) throw new IllegalStateException("motion-owner-awaiting-geometry");
+    return new JSONObject().put("ownerId", owner).put("bindingId", binding).put("target", view.getId())
+      .put("windowId", session.getString("windowId")).put("scopeOwnerId", session.getString("scopeOwnerId"))
+      .put("epoch", session.getDouble("epoch")).put("attachmentRevision", attachmentRevision).put("nativeViewRevision", revision);
+  }
   @Override public boolean onPreDraw() { capture("frame", "", ""); return true; }
 
   private WritableMap envelope(String kind, String requestId, String transaction) {

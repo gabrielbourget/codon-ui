@@ -126,6 +126,18 @@ static NSDictionary *CUIClip(CALayer *layer) {
 - (void)queryOwner:(NSString *)owner binding:(NSString *)binding requestId:(NSString *)requestId {
   if ([_owner isEqual:owner] && [_binding isEqual:binding] && requestId.length) [self captureKind:@"sample" requestId:requestId transaction:@""];
 }
+- (NSDictionary *)snapshotIdentity {
+  UIView *root = _root; UIWindow *window = root.window;
+  if (!_binding.length || !window) return nil;
+  NSString *scope = @""; double epoch = 0;
+  for (UIView *parent = root.superview; parent; parent = parent.superview) {
+    if ([parent isKindOfClass:CUIKeyboardScope.class]) { NSDictionary *session = [(CUIKeyboardScope *)parent activationSession]; scope = session[@"scopeOwnerId"] ?: @""; epoch = [session[@"epoch"] doubleValue]; break; }
+  }
+  NSString *windowId = CUIInputWindowIdentity(window);
+  NSString *attachment = [NSString stringWithFormat:@"%@|%@|%.0f", windowId, scope, epoch];
+  if (![_attachment isEqual:attachment]) return nil;
+  return @{@"ownerId": _owner, @"bindingId": _binding, @"target": @(root.tag), @"windowId": windowId, @"scopeOwnerId": scope, @"epoch": @(epoch), @"attachmentRevision": @(_attachmentRevision), @"nativeViewRevision": _revision};
+}
 - (void)windowChanged {
   [self synchronizeDisplayLink];
   [self captureKind:_root.window ? @"sample" : @"detached" requestId:@"" transaction:@""];

@@ -1,5 +1,5 @@
 {
-  "scope": "Private unlinked native Fabric snapshot and independently allocated Yoga core. No platform facade, production intrinsic resolver or installed native acceptance is supplied by this checkpoint.",
+  "scope": "Private Fabric-input snapshot service binds actual native view/window leases to current immutable Fabric props/revisions. Scratch layout and live intrinsic providers remain separate and are not admitted as a motion measurement backend.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -43,11 +43,41 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/LayoutConformanceShadowNode.h",
       "sha256": "272ca06bd9fc379b8db4918f47c2503afac1afcfcb4628d1c8d6b503607c8cf2",
       "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java",
+      "sha256": "7d2de088ca63afa0d38764dee2667a6bd64818b65c5c153fc5cf1270adb60829",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/jni/react/fabric/FabricUIManagerBinding.h",
+      "sha256": "be864948e9cca7b0034777d15d1c2ab12900b40f757500b1f3e0eef507bade79",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "React/Fabric/RCTSurfacePresenter.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/RCTSurfacePresenter.h",
+      "sha256": "fd812d2b38e2c997750d1114cf2215a8e4e3e7d1fc60301f4e50544f374567bd",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "React/Fabric/RCTScheduler.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/React/Fabric/RCTScheduler.h",
+      "sha256": "a1d581b33de850bc6bccc7a0ecc75beb97927438ccd1fc0cd4b9c1e974349beb",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/MountingCoordinator.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/MountingCoordinator.cpp",
+      "sha256": "650b1f53b85676244bf26c4611447fc1e0fa69d9bbef9de1924f9dddde477e0a",
+      "adaptation": "Locked native manager/scheduler access; Android JNI reads retained mBinding; mount transaction counters are not treated as Fabric revision numbers."
     }
   ],
   "license": "LICENSE.react-native.md",
   "remaining": [
-    "Actual UIKit/Android owner/ref/window/revision facade and compiled linkage",
+    "Installed actual UIKit/Android owner/ref/window/revision delivery, lazy registration and shrinker proof",
     "Audited isolated native intrinsic/baseline providers including text attachments and editor state",
     "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
     "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
@@ -64,11 +94,11 @@
     },
     {
       "file": "FabricSnapshot.cpp",
-      "sha256": "106fdbaee9709f6d05c35f63f0489df97372e8764e71cb330f36ccc233106cb2"
+      "sha256": "d00a9e3849673dbf0316ec9f6023a300657159e73b3bc47e91b4b7eb4f9afa71"
     },
     {
       "file": "FabricSnapshot.h",
-      "sha256": "ac7018527a6ceabab7185cbd6a087ce98b1b7bac0552c689a89af2c97582d442"
+      "sha256": "ad3f8c84e8391c02b299469a1c284e132ab27b2f6c94d8d3520d4272df12aab0"
     },
     {
       "file": "NativeStyle.cpp",
@@ -85,6 +115,14 @@
     {
       "file": "ScratchYoga.h",
       "sha256": "b99f06854b154578457758d52fbc7fdc99af8c79e1c861926077f7c95125ffc0"
+    },
+    {
+      "file": "SnapshotQuery.cpp",
+      "sha256": "b45229fd0786930319e537fb6a5fdde92912768b71bbe0e70c7a886906cfcb15"
+    },
+    {
+      "file": "SnapshotQuery.h",
+      "sha256": "b9bb3b4c0fc7d0720c8f3384db610315920a60e2f9da3863ce0f01319c887833"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
