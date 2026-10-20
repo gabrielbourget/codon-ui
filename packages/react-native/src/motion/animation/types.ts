@@ -1,4 +1,5 @@
 import type { AnimationPlaybackControlsWithThen, MotionValue, ValueAnimationTransition } from "../kernel"
+import type { Delta, PathInterpolator } from "../projection/types"
 
 import type { AnimationState } from "./animation-state"
 
@@ -37,6 +38,7 @@ export type TNativeMotionTransition = ValueAnimationTransition<unknown> & {
   default?: TNativeMotionTransition
   reduceMotion?: boolean
   path?: {
+    interpolateProjection: (delta: Delta) => PathInterpolator | undefined
     animateVisualElement: (
       owner: TNativeMotionAnimationOwner,
       target: TNativeMotionTarget,

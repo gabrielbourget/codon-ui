@@ -6,6 +6,8 @@ import {
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
+  useId,
+  useRef,
   useState,
   useSyncExternalStore,
 } from "react"
@@ -16,6 +18,12 @@ import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeMotionConfig, useNativeMotionReducedMotion } from "../config"
 import { useNativeMotionInteractions } from "../interactions/useNativeMotionInteractions"
+import { cancelFrame, frame } from "../kernel"
+import { NativePresenceContext, NativePopRootContext, useNativePresence } from "../presence/context"
+import { useNativeMotionPresence } from "../presence/useNativeMotionPresence"
+import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
+import { NativeProjectionState } from "../projection/NativeProjectionState"
+import type { NativeProjectionStyle } from "../projection/types"
 import { NativeMotionVisualHost } from "../visual/NativeMotionVisualHost"
 import type { TNativeMotionVisualHostProps } from "../visual/types"
 
@@ -39,6 +47,13 @@ export type TNativeMotionOwnerHostProps = Omit<TNativeMotionVisualHostProps, "bi
 export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMotionOwnerHostProps>(
   ({ motion, values, readValue, resolveGeometry, presence, ...visual }, ref) => {
     const inherited = useContext(NativeMotionOwnerContext)
+    const presenceContext = useContext(NativePresenceContext)
+    const popRoot = useContext(NativePopRootContext)
+    const layoutGroup = useContext(NativeLayoutGroupContext)
+    const [, safeToRemoveLayout] = useNativePresence(Boolean(motion.layout || motion.layoutId || motion.drag))
+    const projectionId = useId(),
+      projectionRevision = useRef(0)
+    const intent = `${projectionId}:${++projectionRevision.current}`
     const parent = inherited.owner
     const config = useNativeMotionConfig()
     const reduced = useNativeMotionReducedMotion()
@@ -52,7 +67,7 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       reduced,
       readValue,
       resolveGeometry,
-      presence,
+      presence: presence ?? presenceContext ?? undefined,
       initialContext: inherited,
       base: Object.fromEntries(
         Object.entries(resolveNativeStyle([visual.computedStyles, visual.customStyles, visual.style], "Card", "style")),
@@ -78,12 +93,34 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       : initialContext.animate
     const context = useMemo(() => ({ ...initialContext, owner }), [owner, initialDependency, animateDependency])
     const [failure, setFailure] = useState<{ error: unknown } | null>(null)
+    const [projection] = useState(
+      () => new NativeProjectionState(owner, parent?.nativeProjection, (error) => setFailure({ error })),
+    )
+    useNativeMotionPresence(owner, presenceContext, (error) => setFailure({ error }))
     const interactions = useNativeMotionInteractions(owner, motion, config.isStatic, visual, scope, (error) =>
       setFailure({ error }),
     )
     const [, refreshWindow] = useState(0)
     const bindings = useSyncExternalStore(owner.subscribeBindings, owner.getBindings, owner.getBindings)
     useInsertionEffect(() => owner.commitProps(options))
+    useInsertionEffect(() =>
+      projection.configure(
+        intent,
+        options.base as NativeProjectionStyle,
+        visual.transformTemplate,
+        layoutGroup.group,
+        layoutGroup.id,
+        safeToRemoveLayout,
+      ),
+    )
+    useLayoutEffect(() => popRoot?.(projection), [popRoot, projection])
+    useEffect(() => {
+      const check = () => {
+        if (projection.isSettled()) safeToRemoveLayout?.()
+      }
+      frame.postRender(check)
+      return () => cancelFrame(check)
+    })
     useLayoutEffect(() => {
       owner.configure(options)
     })
@@ -113,7 +150,15 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
     if (failure) throw failure.error
     return (
       <NativeMotionOwnerContext.Provider value={context}>
-        <NativeMotionVisualHost {...visual} {...interactions} bindings={bindings} motionOwner={owner} ref={ref} />
+        <NativeMotionVisualHost
+          {...visual}
+          {...interactions}
+          nativeMotionProjectionRevision={intent}
+          bindings={bindings}
+          motionOwner={owner}
+          projection={projection}
+          ref={ref}
+        />
       </NativeMotionOwnerContext.Provider>
     )
   },

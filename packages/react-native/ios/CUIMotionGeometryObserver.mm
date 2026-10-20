@@ -1,5 +1,6 @@
 #import "CUIMotionGeometryObserver.h"
 #import "CUIInputWindow.h"
+#import "CUIFocusView.h"
 #import "CUIKeyboardScope.h"
 #import <QuartzCore/QuartzCore.h>
 #import <cmath>
@@ -96,7 +97,7 @@ static NSDictionary *CUIClip(CALayer *layer) {
   NSMutableArray *ancestors = [NSMutableArray array], *layers = [NSMutableArray array];
   for (UIView *view = root; view; view = view.superview) {
     CALayer *layer = view.layer;
-    [ancestors addObject:@{@"tag": @(view.tag), @"identity": CUIIdentity(view), @"bounds": CUIRect(view.bounds), @"layout": CUIRect(CUILayout(layer)), @"visible": @(!view.hidden), @"opacity": @(view.alpha), @"scroll": @[@(view.bounds.origin.x), @(view.bounds.origin.y)], @"matrix": CUIMatrix(layer.transform), @"model": CUIBox(layer, window.layer), @"clip": CUIClip(layer)}];
+    [ancestors addObject:@{@"tag": @(view.tag), @"identity": CUIIdentity(view), @"projectionRevision": [view isKindOfClass:CUIFocusView.class] ? [(CUIFocusView *)view motionProjectionRevision] : @"", @"layoutDirection": view.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft ? @"rtl" : @"ltr", @"bounds": CUIRect(view.bounds), @"layout": CUIRect(CUILayout(layer)), @"visible": @(!view.hidden), @"opacity": @(view.alpha), @"scroll": @[@(view.bounds.origin.x), @(view.bounds.origin.y)], @"matrix": CUIMatrix(layer.transform), @"model": CUIBox(layer, window.layer), @"clip": CUIClip(layer)}];
     if (view == window) break;
   }
   for (CALayer *layer = root.layer; layer; layer = layer.superlayer) {

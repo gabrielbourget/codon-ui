@@ -10,6 +10,8 @@ import type { TNativeMotionPanInfo } from "../../../../packages/react-native/src
 import { useNativeDragControls } from "../../../../packages/react-native/src/motion/interactions/NativeDragControls"
 import { readNativeMotionTargetGeometry } from "../../../../packages/react-native/src/motion/measurement/targetGeometry"
 import { NativeMotionOwnerHost } from "../../../../packages/react-native/src/motion/owner/NativeMotionOwnerHost"
+import { NativeAnimatePresence } from "../../../../packages/react-native/src/motion/presence/NativeAnimatePresence"
+import { NativeLayoutGroup } from "../../../../packages/react-native/src/motion/projection/NativeLayoutGroup"
 
 // Non-shipping actual-owner scene. Source callbacks/settled promises are not native paint acknowledgments.
 export const NativeMotionOwnerProbeScene = () => {
@@ -24,6 +26,7 @@ export const NativeMotionOwnerProbeScene = () => {
     [skip, setSkip] = useState(false)
   const [interactions, setInteractions] = useState(false)
   const [dragEnabled, setDragEnabled] = useState(false)
+  const [shifted, setShifted] = useState(false)
   const dragSamples = useRef<TNativeMotionPanInfo[]>([])
   const panSamples = useRef<{ identity: number | string; source: "pointer" | "touch"; info: TNativeMotionPanInfo }[]>(
     [],
@@ -89,6 +92,7 @@ export const NativeMotionOwnerProbeScene = () => {
         />
         <Button title="Stop" onPress={() => controls.stop()} />
         <Button title="Toggle constrained drag" onPress={() => setDragEnabled((current) => !current)} />
+        <Button title="Move original layout" onPress={() => setShifted((current) => !current)} />
         <Button title="Stop drag with inertia" onPress={dragControls.stop} />
         <Button title="Cancel drag" onPress={dragControls.cancel} />
         <Button
@@ -129,111 +133,129 @@ export const NativeMotionOwnerProbeScene = () => {
         <Button title="Inspect ordinary constraint view" onPress={() => void inspectConstraint()} />
         <View ref={constraint} collapsable={false} style={{ padding: 12, minHeight: 180, borderWidth: 1 }}>
           <NativeMotionConfig skipAnimations={skip} reducedMotion={reduced} transition={{ duration: 0.4 }}>
-            {visible && (
-              <NativeMotionOwnerHost
-                ref={root}
-                style={{ padding: 16, minHeight: 120, borderWidth: 1 }}
-                motion={{
-                  initial: { x: 0, scale: 1, opacity: 1 },
-                  animate: controls,
-                  drag: dragEnabled,
-                  dragControls,
-                  dragConstraints: constraint,
-                  whileDrag: { scale: 1.03 },
-                  onDragStart: (event, info) => {
-                    dragSamples.current = []
-                    append({ event: "source-drag-start", native: event.nativeEvent, info, ...identity() })
-                  },
-                  onDrag: (_event, info) => {
-                    if (dragSamples.current.length < 256) dragSamples.current.push(info)
-                  },
-                  onDragEnd: (event, info) =>
-                    append({ event: "source-drag-end", native: event.nativeEvent, info, ...identity() }),
-                  onDragTransitionEnd: () => append({ event: "source-drag-transition-end", ...identity() }),
-                  ...(interactions
-                    ? {
-                        whileTap: { scale: 0.95 },
-                        whileHover: { scale: 1.03 },
-                        whileFocus: { opacity: 0.7 },
-                        onTapStart: (event, info) =>
-                          append({
-                            event: "source-tap-start",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                        onTap: (event, info) =>
-                          append({ event: "source-tap", native: event.nativeEvent, info, ...identity() }),
-                        onTapCancel: (event, info) =>
-                          append({
-                            event: "source-tap-cancel",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                        onHoverStart: (event, info) =>
-                          append({
-                            event: "source-hover-start",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                        onHoverEnd: (event, info) =>
-                          append({
-                            event: "source-hover-end",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                        onPanSessionStart: (event, info) => {
-                          panSamples.current = []
-                          append({
-                            event: "source-pan-session",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          })
-                        },
-                        onPanStart: (event, info) =>
-                          append({
-                            event: "source-pan-start",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                        onPan: (event, info) => {
-                          if (panSamples.current.length < 256) {
-                            const data = event.nativeEvent
-                            panSamples.current.push({
-                              identity: "pointerId" in data ? data.pointerId : data.identifier,
-                              source: "pointerId" in data ? "pointer" : "touch",
-                              info,
-                            })
-                          }
-                        },
-                        onPanEnd: (event, info) =>
-                          append({
-                            event: "source-pan-end",
-                            native: event.nativeEvent,
-                            info,
-                            ...identity(),
-                          }),
-                      }
-                    : {}),
-                  onAnimationStart: (definition) =>
-                    append({ event: "source-animation-start", definition, ...identity() }),
-                  onAnimationComplete: (definition) =>
-                    append({ event: "source-animation-complete", definition, ...identity() }),
-                }}
+            <NativeLayoutGroup id="owner-probe">
+              <NativeAnimatePresence
+                mode="sync"
+                onExitComplete={() => append({ event: "source-presence-exit-complete", ...identity() })}
               >
-                <TextInput
-                  ref={editor}
-                  value=""
-                  placeholder="Owner declines text requests"
-                  onChangeText={(text) => append({ event: "editor-request", text, authoredValue: "", ...identity() })}
-                />
-              </NativeMotionOwnerHost>
-            )}
+                {visible && (
+                  <NativeMotionOwnerHost
+                    key="original-owner"
+                    ref={root}
+                    style={{ padding: 16, minHeight: 120, borderWidth: 1, marginLeft: shifted ? 40 : 0 }}
+                    motion={{
+                      initial: { x: 0, scale: 1, opacity: 1 },
+                      animate: controls,
+                      exit: { opacity: 0, x: 30 },
+                      layout: "position",
+                      onBeforeLayoutMeasure: () => append({ event: "source-before-layout-measure", ...identity() }),
+                      onLayoutMeasure: (layout, previous) =>
+                        append({ event: "source-layout-measure", layout, previous, ...identity() }),
+                      onLayoutAnimationStart: () => append({ event: "source-layout-animation-start", ...identity() }),
+                      onLayoutAnimationComplete: () =>
+                        append({ event: "source-layout-animation-complete", ...identity() }),
+                      drag: dragEnabled,
+                      dragControls,
+                      dragConstraints: constraint,
+                      whileDrag: { scale: 1.03 },
+                      onDragStart: (event, info) => {
+                        dragSamples.current = []
+                        append({ event: "source-drag-start", native: event.nativeEvent, info, ...identity() })
+                      },
+                      onDrag: (_event, info) => {
+                        if (dragSamples.current.length < 256) dragSamples.current.push(info)
+                      },
+                      onDragEnd: (event, info) =>
+                        append({ event: "source-drag-end", native: event.nativeEvent, info, ...identity() }),
+                      onDragTransitionEnd: () => append({ event: "source-drag-transition-end", ...identity() }),
+                      ...(interactions
+                        ? {
+                            whileTap: { scale: 0.95 },
+                            whileHover: { scale: 1.03 },
+                            whileFocus: { opacity: 0.7 },
+                            onTapStart: (event, info) =>
+                              append({
+                                event: "source-tap-start",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                            onTap: (event, info) =>
+                              append({ event: "source-tap", native: event.nativeEvent, info, ...identity() }),
+                            onTapCancel: (event, info) =>
+                              append({
+                                event: "source-tap-cancel",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                            onHoverStart: (event, info) =>
+                              append({
+                                event: "source-hover-start",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                            onHoverEnd: (event, info) =>
+                              append({
+                                event: "source-hover-end",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                            onPanSessionStart: (event, info) => {
+                              panSamples.current = []
+                              append({
+                                event: "source-pan-session",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              })
+                            },
+                            onPanStart: (event, info) =>
+                              append({
+                                event: "source-pan-start",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                            onPan: (event, info) => {
+                              if (panSamples.current.length < 256) {
+                                const data = event.nativeEvent
+                                panSamples.current.push({
+                                  identity: "pointerId" in data ? data.pointerId : data.identifier,
+                                  source: "pointerId" in data ? "pointer" : "touch",
+                                  info,
+                                })
+                              }
+                            },
+                            onPanEnd: (event, info) =>
+                              append({
+                                event: "source-pan-end",
+                                native: event.nativeEvent,
+                                info,
+                                ...identity(),
+                              }),
+                          }
+                        : {}),
+                      onAnimationStart: (definition) =>
+                        append({ event: "source-animation-start", definition, ...identity() }),
+                      onAnimationComplete: (definition) =>
+                        append({ event: "source-animation-complete", definition, ...identity() }),
+                    }}
+                  >
+                    <TextInput
+                      ref={editor}
+                      value=""
+                      placeholder="Owner declines text requests"
+                      onChangeText={(text) =>
+                        append({ event: "editor-request", text, authoredValue: "", ...identity() })
+                      }
+                    />
+                  </NativeMotionOwnerHost>
+                )}
+              </NativeAnimatePresence>
+            </NativeLayoutGroup>
           </NativeMotionConfig>
         </View>
         <Text selectable>{JSON.stringify(journal, null, 2)}</Text>

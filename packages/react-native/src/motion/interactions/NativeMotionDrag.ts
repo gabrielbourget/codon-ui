@@ -8,6 +8,7 @@ import { cancelFrame, frame } from "../kernel"
 import type { MotionValue, AnimationPlaybackControlsWithThen } from "../kernel"
 import { readNativeMotionTargetGeometry } from "../measurement/targetGeometry"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
+import type { IProjectionNode } from "../projection/node/types"
 import type { TNativeMotionResolutionToken } from "../value"
 
 import {
@@ -79,6 +80,9 @@ export class NativeMotionDrag {
   private stopControls?: () => void
   private stopCancellation?: () => void
   private stopWindow?: () => void
+  private stopProjection?: () => void
+  private stopLayout?: () => void
+  private projection?: IProjectionNode
   private readonly animations = new Map<MotionValue<unknown>, AnimationPlaybackControlsWithThen>()
   private lease: () => boolean = () => false
   private readonly jobs = new Set<() => void>()
@@ -190,6 +194,10 @@ export class NativeMotionDrag {
       if (!this.releaseLock) return
     }
     this.isDragging = true
+    if (this.owner.projection) {
+      this.owner.projection.isAnimationBlocked = true
+      this.owner.projection.target = undefined
+    }
     this.onDragStarted()
     this.direction = null
     this.resolveConstraints(measurement)
@@ -346,6 +354,7 @@ export class NativeMotionDrag {
     this.stopWindow?.()
     this.stopWindow = undefined
     this.isDragging = false
+    if (this.projection) this.projection.isAnimationBlocked = false
     this.releaseLock?.()
     this.releaseLock = undefined
     this.active(false)
@@ -451,7 +460,7 @@ export class NativeMotionDrag {
       prior = this.measurement,
       changed = this.shape !== undefined && shape !== this.shape
     this.shape = shape
-    if (this.isDragging && changed && prior) {
+    if (this.isDragging && changed && prior && !this.owner.projection) {
       const next = transformedBox(box(record.snapshot.untransformed.box), this.owner)
       for (const axis of nativeDragAxes) {
         const delta = prior.layout[axis].min - next[axis].min,
@@ -488,6 +497,29 @@ export class NativeMotionDrag {
       if (this.owner.captureAnimationLease()()) this.error(failure)
     }
   }
+  private observeProjection = () => {
+    if (!this.stopProjection)
+      this.stopProjection = this.owner.subscribeProjectionNode((projection) => {
+        this.stopLayout?.()
+        this.stopLayout = undefined
+        if (this.projection) this.projection.isAnimationBlocked = false
+        this.projection = projection
+        if (this.isDragging && !this.lease()) this.cancel()
+        if (!projection) return
+        projection.isAnimationBlocked = this.isDragging
+        this.stopLayout = projection.addEventListener("didUpdate", ({ delta, hasLayoutChanged }) => {
+          if (!this.isDragging || !this.lease() || !hasLayoutChanged) return
+          for (const axis of nativeDragAxes) {
+            const value = this.axisValue(axis),
+              latest = value.get()
+            if (typeof latest === "number") {
+              this.origin[axis] += delta[axis].translate
+              value.set(latest + delta[axis].translate)
+            }
+          }
+        })
+      })
+  }
   refresh = () => {
     const props = this.owner.getProps(),
       current = this.owner.captureAnimationLease()
@@ -496,6 +528,7 @@ export class NativeMotionDrag {
       this.target = this.owner.current ?? undefined
       if (this.target) this.stopGeometry = observeNativeMotionGeometry(this.target, this.observeGeometry)
     }
+    this.observeProjection()
     if (this.controls !== props.dragControls) {
       this.stopControls?.()
       this.controls = props.dragControls
@@ -527,6 +560,11 @@ export class NativeMotionDrag {
     this.stopControls?.()
     this.stopControls = undefined
     this.controls = undefined
+    this.stopProjection?.()
+    this.stopProjection = undefined
+    this.stopLayout?.()
+    this.stopLayout = undefined
+    this.projection = undefined
     this.measurement = undefined
     this.measuring = undefined
     this.shape = undefined

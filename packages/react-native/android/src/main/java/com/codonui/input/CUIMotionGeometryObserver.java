@@ -168,7 +168,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
     // Preserve that distinction until the path is observed/resolved faithfully.
     if (view instanceof ReactViewGroup && !"visible".equals(((ReactViewGroup)view).getOverflow())) complete = false;
     clipping.put("complete", complete);
-    return new JSONObject().put("tag", view.getId()).put("identity", identity(view))
+    return new JSONObject().put("tag", view.getId()).put("identity", identity(view)).put("projectionRevision", view instanceof CUIFocusView ? ((CUIFocusView)view).motionProjectionRevision() : "").put("layoutDirection", view.getLayoutDirection() == View.LAYOUT_DIRECTION_RTL ? "rtl" : "ltr")
       .put("bounds", numbers(0, 0, view.getWidth() / density, view.getHeight() / density))
       .put("layout", numbers(view.getLeft() / density, view.getTop() / density, view.getWidth() / density, view.getHeight() / density))
       .put("visible", view.getVisibility() == View.VISIBLE).put("shown", view.isShown()).put("opacity", view.getAlpha())

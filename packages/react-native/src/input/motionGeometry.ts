@@ -10,6 +10,8 @@ export type TNativeMotionGeometryBox = Readonly<{
 export type TNativeMotionGeometryAncestor = Readonly<{
   tag: number
   identity: string
+  projectionRevision?: string
+  layoutDirection?: "ltr" | "rtl"
   bounds: readonly number[]
   layout: readonly number[]
   scroll: readonly number[]
@@ -119,6 +121,8 @@ export const decodeNativeMotionGeometry = (encoded: string): TNativeMotionGeomet
         object(item) &&
         typeof item.tag === "number" &&
         Number.isInteger(item.tag) &&
+        (item.projectionRevision === undefined || typeof item.projectionRevision === "string") &&
+        (item.layoutDirection === undefined || item.layoutDirection === "ltr" || item.layoutDirection === "rtl") &&
         typeof item.identity === "string" &&
         !!item.identity &&
         rect(item.bounds) &&

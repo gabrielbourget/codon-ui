@@ -1,0 +1,126 @@
+{
+  "scope": "Supplemental private native projection/presence obligations. Source/frame/ref/geometry models establish no installed catalogue/profile/closure acceptance.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.PROJECTION.P01.android.01",
+      "case": "Actual native pre/post matching cohort and before-paint publication, rapid commits/interruption and missing/stale/native-recycled/window revisions",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.02",
+      "case": "Same-window shared layout/group inheritance, parent/child transforms, x/y/position/size/aspect/anchor/dependency/scroll/root/portal and direction fidelity",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.03",
+      "case": "Exact border/radius/box-shadow correction, opaque colors and native visibility/accessibility/focus/default delivery across actual layouts",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.04",
+      "case": "sync/wait/pop presence, actual parent RTL anchors, generic/native refs, nested propagation, re-entry and original empty editor/ref/selection preservation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.05",
+      "case": "Scoped skip/reduced/static and custom path transitions, drag/projection blocking, scroll/layout compensation and current callbacks",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.android.06",
+      "case": "Actual large-tree/memory/bridge/native-frame/presentation costs, foreground/background/rotation/removal and every required profile",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.01",
+      "case": "Actual native pre/post matching cohort and before-paint publication, rapid commits/interruption and missing/stale/native-recycled/window revisions",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.02",
+      "case": "Same-window shared layout/group inheritance, parent/child transforms, x/y/position/size/aspect/anchor/dependency/scroll/root/portal and direction fidelity",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.03",
+      "case": "Exact border/radius/box-shadow correction, opaque colors and native visibility/accessibility/focus/default delivery across actual layouts",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.04",
+      "case": "sync/wait/pop presence, actual parent RTL anchors, generic/native refs, nested propagation, re-entry and original empty editor/ref/selection preservation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.05",
+      "case": "Scoped skip/reduced/static and custom path transitions, drag/projection blocking, scroll/layout compensation and current callbacks",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.PROJECTION.P01.ios.06",
+      "case": "Actual large-tree/memory/bridge/native-frame/presentation costs, foreground/background/rotation/removal and every required profile",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}
