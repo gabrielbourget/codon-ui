@@ -1,4 +1,4 @@
-"""Fresh, bounded UIKit primitive characterization; no app replay or drawing acceptance."""
+"""Bounded UIKit drawing/reference proof; no app replay or full Card verdict."""
 from pathlib import Path
 import argparse
 import hashlib
@@ -28,7 +28,8 @@ RECEIVER_SOURCES = ["packages/react-native/ios/CUIMotionDrawingView.mm", "packag
     "packages/react-native/ios/CUIMotionMaskGeometry.mm"]
 ASSERTION_SOURCES = ["planning/component-library/fixtures/native-card/NativeMotionDrawingAssertions.mm",
     "planning/component-library/fixtures/native-card/NativeMotionDrawingBranchAssertions.mm",
-    "planning/component-library/fixtures/native-card/NativeMotionMaskGeometryAssertions.mm"]
+    "planning/component-library/fixtures/native-card/NativeMotionMaskGeometryAssertions.mm",
+    "planning/component-library/fixtures/native-card/NativeMotionDrawingRasterAssertions.mm"]
 POD_ARGUMENTS = Path.home() / ".local/share/codon-native-lab/ios-app-derived-data/Build/Intermediates.noindex/Pods.build/Release-iphonesimulator/CodonNativeInput.build/Objects-normal/x86_64"
 PRODUCTION_ARGUMENTS = POD_ARGUMENTS / "af3fcb34312c57c0f52879cdce924b91-common-args.resp"
 ASSERTION_ARGUMENTS = POD_ARGUMENTS / "82b82416624d2658e5098eb0a28c15c5-common-args.resp"
@@ -40,6 +41,8 @@ FRAMEWORKS = {
 }
 PROFILE_NAMES = ["native-r4", "native-r20", "native-r30-overlap", "native-r40-overlap",
     "corrected-separate", "corrected-horizontal-overlap", "corrected-vertical-overlap"]
+DRAWING_PROFILES = [name + "-" + curve for curve in ["circular", "continuous"]
+    for name in ["solid", "native-border", "outline", "asymmetric", "outer", "inset", "dashed", "dotted", "percentage"]] + ["raised-default"]
 
 
 def digest(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -77,10 +80,13 @@ def validate_journal(rows, producer):
         assert [row["name"] for row in factory_candidates] == [name + "-factory-mask" for name in PROFILE_NAMES]
         assert len(factory_guards) == 1 and factory_guards[0]["outcome"] == "guards-complete"
         assert len(receivers) == 1 and receivers[0]["result"]["outcome"] == "receiver-assertions-complete"
-        assert receivers[0]["result"]["fixturesCompleted"] == 3
+        assert receivers[0]["result"]["fixturesCompleted"] == 4
         geometry = receivers[0]["result"]["maskGeometry"]
         assert geometry["assertions"] >= 20 and geometry["byteExactRaster"] is True
         assert [geometry[key] for key in ["rasterWidth", "rasterHeight", "rasterBytesPerPixel"]] == [360, 240, 4]
+        drawing = receivers[0]["result"]["drawingRaster"]
+        assert drawing["pairs"] == 36 and drawing["profileNames"] == DRAWING_PROFILES and drawing["byteExactRaster"] is True
+        assert [drawing[key] for key in ["rasterWidth", "rasterHeight", "rasterBytesPerPixel"]] == [504, 384, 4]
     elif outcome == "native-receiver-assertions-failed":
         assert len(receivers) == 1 and receivers[0]["result"]["outcome"] == "receiver-assertions-failed"
         assert not profiles and not raster_controls and not native_candidates and not mask_candidates and not factory_candidates
@@ -107,6 +113,8 @@ def prepare(root):
         "packages/react-native/ios/CUIMotionDrawingView.h", "packages/react-native/ios/CUIMotionDrawingGeometry.h",
         "packages/react-native/ios/CUIMotionMaskGeometry.h", "packages/react-native/ios/CUIMotionGeometryObserver.mm",
         "planning/component-library/fixtures/native-card/NativeMotionDrawingAssertionsEnabled.h",
+        "planning/component-library/fixtures/native-card/drawing_raster_validate.py",
+        "planning/component-library/fixtures/native-card/test_drawing_raster_validate.py",
         "packages/react-native/package.json", "packages/react-native/CodonNativeInput.podspec", "pnpm-lock.yaml", "AGENTS.md"]
     producer = git("rev-parse", "HEAD")
     fixture = (REPO / NATIVE_FIXTURE).read_text()
@@ -114,6 +122,8 @@ def prepare(root):
     (root / "main.swift").write_text((REPO / SOURCE).read_text() + "\n" + fixture.replace('"UNFROZEN"', json.dumps(producer)))
     native_build_files = [PRODUCTION_ARGUMENTS, ASSERTION_ARGUMENTS, POD_PREFIX,
         REPO / "packages/react-native/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+        REPO / "packages/react-native/node_modules/react-native/React/Views/RCTBorderDrawing.m",
+        REPO / "packages/react-native/node_modules/react-native/React/Fabric/Utils/RCTBoxShadow.mm",
         SDK / "System/Library/Frameworks/QuartzCore.framework/Headers/CALayer.h",
         *[folder / (name + ".framework") / name for name, folder in FRAMEWORKS.items()]]
     inputs = {"producer": producer, "sourceInputs": {name: digest(REPO / name) for name in names},

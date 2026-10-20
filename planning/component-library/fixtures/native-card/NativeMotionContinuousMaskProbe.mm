@@ -4,6 +4,7 @@
 void CUIAssertOwnedMotionDrawing();
 void CUIAssertPinnedDrawingBranches();
 NSDictionary *CUIAssertOwnedMaskGeometry(NSString *directory);
+NSDictionary *CUIAssertPinnedDrawingRaster(NSString *directory);
 
 CALayer *CUIProbeNativeContinuousMask(CGRect bounds, CGSize cornerSize, CGFloat scale) {
   return [CUIMotionContinuousCorners layerForBounds:bounds cornerSize:cornerSize contentsScale:scale];
@@ -16,7 +17,9 @@ NSDictionary *CUIProbeRunDrawingReceiverAssertions(NSString *artifactDirectory) 
     CUIAssertOwnedMotionDrawing();
     CUIAssertPinnedDrawingBranches();
     NSDictionary *maskGeometry = CUIAssertOwnedMaskGeometry(artifactDirectory);
-    return @{@"outcome": @"receiver-assertions-complete", @"fixturesCompleted": @3, @"maskGeometry": maskGeometry,
+    NSDictionary *drawingRaster = CUIAssertPinnedDrawingRaster(artifactDirectory);
+    return @{@"outcome": @"receiver-assertions-complete", @"fixturesCompleted": @4, @"maskGeometry": maskGeometry,
+        @"drawingRaster": drawingRaster,
         @"scope": @"Actual unmounted CUI/RN view props, paint, mask model geometry and original fixture-editor invariants only"};
   } @catch (NSException *exception) {
     return @{@"outcome": @"receiver-assertions-failed", @"name": exception.name,
