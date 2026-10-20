@@ -3,6 +3,7 @@ import {
   isValidElement,
   useCallback,
   useContext,
+  useId,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -28,7 +29,7 @@ import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext, useListState, UNSTABLE_useFilteredListState } from "../../collection/state"
 import type { Node } from "../../collection/state/types"
-import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -106,6 +107,7 @@ const NativeTagGroup = <T extends object>({
   collection: TNativeCollectionSnapshot<T>
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }) => {
+  const listID = `codon-tag-list-${useId()}`
   const list = useRef<View>(null)
   const { id, ...otherProps } = authoredProps
   const [props, listRef] = useNativeContextProps(otherProps, list, NativeSelectableCollectionContext)
@@ -644,13 +646,20 @@ const NativeTagGroup = <T extends object>({
   const theme = useNativeTheme(),
     styles = getNativeTagGroupStyles(theme, props)
   const listProps = {
+    ...nativeCompositeLabelProps(
+      {
+        id: props.id,
+        accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
+        nativeLabelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
+      },
+      listID,
+    ),
     ref: listRef,
     role: collection.size ? ("grid" as const) : ("group" as const),
     accessible: collection.size === 0,
     focusable: true,
     accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
     accessibilityLabelledBy: props.accessibilityLabelledBy,
-    nativeLabelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
     nativeDescribedBy: nativeAccessibilityIDs(props.ariaDescribedBy ?? props["aria-describedby"]),
     nativeDetailsBy: nativeAccessibilityIDs(props.ariaDetails ?? props["aria-details"]),
     nativeDescriptionLabel: labels.descriptionLabel,

@@ -47,7 +47,7 @@ static NSString *CUIReadAccessibilityText(UIView *view, BOOL bodyOnly)
   return children.count ? [children componentsJoinedByString:@" "] : view.accessibilityLabel;
 }
 
-NSString *CUIAccessibilityResolve(UIView *source, NSArray<NSString *> *ids, NSInteger tag, BOOL bodyOnly)
+static NSString *CUIResolveAccessibilityReferences(UIView *source, NSArray<NSString *> *ids, NSInteger tag, BOOL bodyOnly, NSString *ownLabel)
 {
   if (!ids.count && tag <= 0) return nil;
   UIWindow *window = source.window;
@@ -58,7 +58,11 @@ NSString *CUIAccessibilityResolve(UIView *source, NSArray<NSString *> *ids, NSIn
     NSMutableArray<NSString *> *values = [NSMutableArray array];
     for (NSString *nativeId in ids) {
       UIView *target = CUIFindAccessibilityTarget(window, nativeId, 0);
-      if (!target || target == source || target.window != window) continue;
+      if (!target || target.window != window) continue;
+      if (target == source) {
+        if (!bodyOnly && ownLabel != nil) [values addObject:ownLabel];
+        continue;
+      }
       NSString *text = CUIReadAccessibilityText(target, bodyOnly);
       if (text != nil) [values addObject:text];
     }
@@ -73,4 +77,14 @@ NSString *CUIAccessibilityResolve(UIView *source, NSArray<NSString *> *ids, NSIn
   } @finally {
     [resolving removeObject:source];
   }
+}
+
+NSString *CUIAccessibilityResolve(UIView *source, NSArray<NSString *> *ids, NSInteger tag, BOOL bodyOnly)
+{
+  return CUIResolveAccessibilityReferences(source, ids, tag, bodyOnly, nil);
+}
+
+NSString *CUIAccessibilityResolveLabel(UIView *source, NSArray<NSString *> *ids, NSString *ownLabel)
+{
+  return CUIResolveAccessibilityReferences(source, ids, 0, NO, ownLabel);
 }
