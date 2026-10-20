@@ -50,6 +50,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       >
         <NativeFocusHost
           {...props}
+          nativeMotionColorObservation
           focusable={props.tabIndex === undefined ? (props.focusable ?? false) : !props.tabIndex}
           ref={setRef}
           style={resolved.view}

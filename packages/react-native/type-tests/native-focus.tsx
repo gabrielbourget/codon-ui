@@ -56,3 +56,8 @@ export const privateActivation = <NativeFocusView onNativeActivation={() => unde
 export const privateNavigation = <NativeFocusView nativeNavigation />
 // @ts-expect-error Native inspection is not a new public focus API.
 export const privateInspection = <NativeFocusView onNativeAccessibilitySnapshot={() => undefined} />
+
+// @ts-expect-error Motion color observation is a private actual-host protocol, not a standalone primitive API.
+export const NoPublicMotionColorObservation = <NativeFocusView nativeMotionColorObservation />
+// @ts-expect-error Native color reports stay private rather than altering public focus/key/press events.
+export const NoPublicMotionColorEvent = <NativeFocusView onNativeMotionColors={() => {}} />

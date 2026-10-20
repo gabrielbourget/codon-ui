@@ -55,6 +55,21 @@ export type NativeAccessibilityData = Readonly<{
   observedAt: Double
 }>
 
+export type NativeMotionColors = Readonly<{
+  ownerId: string
+  target: Int32
+  kind: "environment" | "sample"
+  requestId: string
+  windowId: string
+  scopeOwnerId: string
+  epoch: Double
+  environmentRevision: Double
+  attached: boolean
+  colors: string
+  error: string
+  observedAt: Double
+}>
+
 export type NativeFocusData = Readonly<{
   ownerId: string
   target: Int32
@@ -68,6 +83,7 @@ export interface NativeProps extends ViewProps {
   ownerId: string
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
+  nativeMotionColorObservation?: WithDefault<boolean, false>
   nativeNavigation?: WithDefault<boolean, false>
   nativeNavigationLabel?: WithDefault<string, "Navigation">
   capturedKeys?: ReadonlyArray<string>
@@ -81,6 +97,7 @@ export interface NativeProps extends ViewProps {
   nativeScrollAnchorKey?: string
   nativeScrollAnchorRevision?: string
   onNativeAccessibilitySnapshot?: DirectEventHandler<NativeAccessibilityData>
+  onNativeMotionColors?: DirectEventHandler<NativeMotionColors>
   onNativeActivation?: DirectEventHandler<NativeActivationData>
   onNativeKey?: DirectEventHandler<NativeKeyData>
   onNativeFocusChange?: DirectEventHandler<NativeFocusData>
@@ -88,6 +105,12 @@ export interface NativeProps extends ViewProps {
 
 type TNativeComponent = HostComponent<NativeProps>
 interface NativeCommands {
+  sampleMotionColors: (
+    viewRef: React.ElementRef<TNativeComponent>,
+    ownerId: string,
+    requestId: string,
+    request: string,
+  ) => void
   inspectAccessibility: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestKeyboardFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
   requestContainerFocus: (viewRef: React.ElementRef<TNativeComponent>, ownerId: string) => void
@@ -95,7 +118,13 @@ interface NativeCommands {
 }
 
 export const Commands = codegenNativeCommands<NativeCommands>({
-  supportedCommands: ["requestKeyboardFocus", "requestContainerFocus", "requestKeyboardBlur", "inspectAccessibility"],
+  supportedCommands: [
+    "requestKeyboardFocus",
+    "requestContainerFocus",
+    "requestKeyboardBlur",
+    "inspectAccessibility",
+    "sampleMotionColors",
+  ],
 })
 
 export default codegenNativeComponent<NativeProps>("CUIFocusView") as TNativeComponent

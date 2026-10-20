@@ -15,6 +15,7 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../over
 
 import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
+import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
 import { registerNativeDescriptionSource, type TNativeDescriptionBinding } from "./nativeDescription"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
@@ -38,6 +39,7 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    nativeMotionColorObservation?: boolean
     nativeNavigation?: boolean
     nativeNavigationLabel?: string
     nativeLabelledBy?: readonly string[]
@@ -67,6 +69,7 @@ export const NativeFocusHost = forwardRef<
     capturedKeys,
     onNativeActivation,
     onNativeAccessibilitySnapshot,
+    nativeMotionColorObservation = false,
     onBubbledFocus,
     onBubbledBlur,
     ...rest
@@ -78,6 +81,8 @@ export const NativeFocusHost = forwardRef<
   const activationId = useRef(0)
   const release = useRef<(() => void) | undefined>(undefined)
   const releaseInspector = useRef<(() => void) | undefined>(undefined)
+  const motionColors = useRef<NativeMotionColorSampler | undefined>(undefined)
+  const releaseMotionColors = useRef<(() => void) | undefined>(undefined)
   const releaseDescription = useRef<(() => void) | undefined>(undefined)
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
@@ -110,6 +115,14 @@ export const NativeFocusHost = forwardRef<
       retireNativeFocusObservation(observed.target)
     }
   }, [canFocus, focusWindow])
+  useLayoutEffect(() => {
+    motionColors.current?.refreshScope()
+  })
+  useLayoutEffect(
+    () =>
+      nativeMotionColorObservation ? inputScope?.subscribe(() => motionColors.current?.refreshScope()) : undefined,
+    [inputScope, nativeMotionColorObservation],
+  )
   useLayoutEffect(retireObservation)
   useLayoutEffect(() => inputScope?.subscribe(retireObservation), [inputScope, retireObservation])
   const setRef = useCallback(
@@ -119,6 +132,9 @@ export const NativeFocusHost = forwardRef<
       release.current?.()
       releaseInspector.current?.()
       releaseDescription.current?.()
+      releaseMotionColors.current?.()
+      releaseMotionColors.current = undefined
+      motionColors.current = undefined
       releaseForwardedRef.current?.()
       releaseForwardedRef.current = undefined
       release.current = target
@@ -138,6 +154,20 @@ export const NativeFocusHost = forwardRef<
         ? registerNativeAccessibilityInspector(target, () => Commands.inspectAccessibility(target, ownerId))
         : undefined
       releaseDescription.current = target ? registerNativeDescriptionSource(target, setDescription) : undefined
+      if (target && nativeMotionColorObservation) {
+        const sampler = new NativeMotionColorSampler({
+          ownerId,
+          target: () => findNodeHandle(target),
+          scope: () => {
+            const scope = focusEligibility.current.inputScope
+            const session = scope?.acknowledgedSession()
+            return { ownerId: scope?.ownerId ?? "", windowId: session?.windowId, epoch: session?.epoch }
+          },
+          dispatch: (requestId, request) => Commands.sampleMotionColors(target, ownerId, requestId, request),
+        })
+        motionColors.current = sampler
+        releaseMotionColors.current = registerNativeMotionColorSampler(target, sampler)
+      }
       if (typeof forwardedRef === "function") {
         if (target) {
           const cleanup = forwardedRef(target)
@@ -145,7 +175,7 @@ export const NativeFocusHost = forwardRef<
         }
       } else if (forwardedRef) forwardedRef.current = target
     },
-    [forwardedRef, ownerId, canFocus, focusWindow],
+    [forwardedRef, ownerId, canFocus, focusWindow, nativeMotionColorObservation],
   )
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
@@ -158,6 +188,14 @@ export const NativeFocusHost = forwardRef<
         nativeDescriptionLabel={rest.nativeDescriptionLabel ?? description?.label}
         ref={setRef}
         ownerId={ownerId}
+        nativeMotionColorObservation={nativeMotionColorObservation}
+        onNativeMotionColors={
+          nativeMotionColorObservation
+            ? (event) => {
+                if (attached.current) motionColors.current?.receive(event.nativeEvent)
+              }
+            : undefined
+        }
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
         capturedKeys={capturedKeys}

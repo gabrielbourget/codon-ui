@@ -111,7 +111,7 @@ export interface KeyframeGenerator<V> {
   toString: () => string
 }
 
-export interface ValueAnimationOptions<V extends AnyResolvedKeyframe = number> extends ValueAnimationTransition<V> {
+export interface ValueAnimationOptions<V = number> extends ValueAnimationTransition<V> {
   keyframes: V[]
   element?: unknown
   name?: string

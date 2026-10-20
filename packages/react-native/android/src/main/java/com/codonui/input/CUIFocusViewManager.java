@@ -24,7 +24,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFocusViewManagerDelegate<ReactViewGroup, CUIFocusViewManager> delegate = new CUIFocusViewManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "keyboardFocusable".equals(name) || "nativePressable".equals(name) || "nativeMotionColorObservation".equals(name) || "nativeNavigation".equals(name) || "nativeNavigationLabel".equals(name) || "capturedKeys".equals(name) || "nativeLabelledBy".equals(name) || "nativeDescribedBy".equals(name) || "nativeDetailsBy".equals(name) || "nativeDescriptionTag".equals(name) || "nativeDescriptionLabel".equals(name) || "nativeDetailsLabel".equals(name) || "nativeScrollAnchorTag".equals(name) || "nativeScrollAnchorKey".equals(name) || "nativeScrollAnchorRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -42,6 +42,9 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override @ReactProp(name = "nativePressable", defaultBoolean = false)
   public void setNativePressable(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativePressable(value); }
 
+  @Override @ReactProp(name = "nativeMotionColorObservation", defaultBoolean = false)
+  public void setNativeMotionColorObservation(ReactViewGroup view, boolean enabled) { ((CUIFocusView) view).setNativeMotionColorObservation(enabled); }
+
   @Override @ReactProp(name = "nativeNavigation", defaultBoolean = false)
   public void setNativeNavigation(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativeNavigation(value); }
 
@@ -54,6 +57,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     if (((CUIFocusView) view).isNativePressable()) ((CUIFocusView) view).synchronizeNativeClick();
     ((CUIFocusView) view).synchronizeKeyboardFocusability();
     ((CUIFocusView) view).prepareScrollAnchor();
+    ((CUIFocusView) view).synchronizeMotionColors();
   }
 
   @Override @ReactProp(name = "capturedKeys")
@@ -86,6 +90,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   public void setNativeScrollAnchorKey(ReactViewGroup view, String value) { ((CUIFocusView) view).setNativeScrollAnchorKey(value); }
   @Override @ReactProp(name = "nativeScrollAnchorRevision")
   public void setNativeScrollAnchorRevision(ReactViewGroup view, String value) { ((CUIFocusView) view).setNativeScrollAnchorRevision(value); }
+  @Override public void sampleMotionColors(ReactViewGroup view, String ownerId, String requestId, String request) { ((CUIFocusView) view).sampleMotionColors(ownerId, requestId, request); }
   @Override public void inspectAccessibility(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).inspectAccessibility(ownerId); }
 
   @Override public void requestKeyboardFocus(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardFocus(ownerId); }
@@ -93,7 +98,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
   @Override public void requestKeyboardBlur(ReactViewGroup view, String ownerId) { ((CUIFocusView) view).requestKeyboardBlur(ownerId); }
 
   @Override public void receiveCommand(ReactViewGroup view, String command, ReadableArray args) {
-    if ("requestKeyboardFocus".equals(command) || "requestContainerFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command)) delegate.receiveCommand(view, command, args);
+    if ("requestKeyboardFocus".equals(command) || "requestContainerFocus".equals(command) || "requestKeyboardBlur".equals(command) || "inspectAccessibility".equals(command) || "sampleMotionColors".equals(command)) delegate.receiveCommand(view, command, args);
     else super.receiveCommand(view, command, args);
   }
 
@@ -101,6 +106,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     Map<String, Object> events = new HashMap<>();
     Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();
     if (inherited != null) events.putAll(inherited);
+    events.put("topNativeMotionColors", Collections.singletonMap("registrationName", "onNativeMotionColors"));
     events.put("topNativeActivation", Collections.singletonMap("registrationName", "onNativeActivation"));
     events.put("topNativeAccessibilitySnapshot", Collections.singletonMap("registrationName", "onNativeAccessibilitySnapshot"));
     events.put("topNativeKey", Collections.singletonMap("registrationName", "onNativeKey"));
@@ -110,6 +116,7 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override public void onDropViewInstance(ReactViewGroup view) {
     ((CUIFocusView) view).cancelHeldKeys();
+    ((CUIFocusView) view).invalidateMotionColors();
     super.onDropViewInstance(view);
   }
 }
