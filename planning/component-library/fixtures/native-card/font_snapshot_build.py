@@ -21,6 +21,8 @@ def verify(root):
     inputs = build.verify(root)
     for name, digest in inputs["nativeFixtureInputs"].items():
         assert build.digest(build.STAGE / name) == digest, name
+    actual = {path.relative_to(build.STAGE).as_posix() for path in (build.STAGE / "font-native").rglob("*") if path.is_file()}
+    assert actual == set(inputs["nativeFixtureInputs"]), "Unfrozen native fixture source"
     return inputs
 
 
@@ -36,6 +38,7 @@ def prepare(root):
     (stage / "index.ts").write_text((FIXTURE / "callback-index.ts").read_text().replace('"./CardCallbackApp"', '"./App"'))
     (stage / "callback-identity.ts").write_text("export const SOURCE_PRODUCER = " + json.dumps(producer) + "\n")
     native_stage = stage / "font-native"
+    if native_stage.exists(): shutil.rmtree(native_stage)
     native_stage.mkdir(exist_ok=True)
     for name in NATIVE:
         text = (FIXTURE / name).read_text()

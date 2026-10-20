@@ -39,7 +39,7 @@ public final class NativeFontSnapshotAndroidAssertions {
   private static Object read(Class<?> owner, String name, Object receiver) throws Exception {
     Field field = owner.getDeclaredField(name); field.setAccessible(true); return field.get(receiver);
   }
-  private static final class Cache {
+  static final class Cache {
     final Object fonts;
     final Object custom;
     final Map<Object, Object> families = new LinkedHashMap<>();

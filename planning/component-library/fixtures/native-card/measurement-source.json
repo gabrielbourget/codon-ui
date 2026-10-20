@@ -59,6 +59,18 @@
       }
     ],
     "nativeActions": 0,
-    "fullCard": false
+    "fullCard": false,
+    "focusedNativeProof": {
+      "producer": "f9be3cf82d9b87b156555f5b1de8007297714a11",
+      "platform": "android",
+      "sdk": 36,
+      "completeFontCases": 400,
+      "nativeAssertions": 12384,
+      "completeJournalRecords": 403,
+      "wholeRawRecords": 548,
+      "manifestSHA256": "531502f987ac500704be082f5fb760624a5f9cc5fada2bdc552dddc0291a8f27",
+      "scope": "First complete installed span/cache/layout journal only. Raw post-terminal second scene entry remains; owner/editor service, assets, API<28, consumer/profile/closure remain open.",
+      "fullCard": false
+    }
   }
 }
