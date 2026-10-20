@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs"
 
 import { fireEvent, render } from "@testing-library/react"
-import { motion } from "motion/react"
+import { MotionConfig, motion } from "motion/react"
 import { afterAll, expect, it, vi } from "vitest"
 
 const records: unknown[] = []
@@ -211,4 +211,101 @@ it("captures global targeting at feature mount while keeping callbacks current",
   await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1))
   expect(first).not.toHaveBeenCalled()
   records.push({ case: "mounted global option/latest callback", outside: 0, current: 1, first: 0 })
+})
+
+it("retains the mounted tap feature and local claim through absent tap props", async () => {
+  const parent = vi.fn(),
+    first = vi.fn(),
+    current = vi.fn()
+  const content = (phase: number) => (
+    <motion.div onTap={parent}>
+      <motion.div
+        data-testid="lifetime"
+        globalTapTarget={phase > 0}
+        propagate={{ tap: phase > 0 }}
+        {...(phase === 0 ? { onTap: first } : phase === 2 ? { onTap: current } : {})}
+      />
+    </motion.div>
+  )
+  const view = render(content(0))
+  const root = view.getByTestId("lifetime")
+  view.rerender(content(1))
+  expect(root.tabIndex).toBe(-1)
+  fireEvent(root, pointer("pointerdown"))
+  fireEvent(root, pointer("pointerup"))
+  await new Promise((resolve) => setTimeout(resolve, 50))
+  expect(parent).not.toHaveBeenCalled()
+  view.rerender(content(2))
+  fireEvent(document.body, pointer("pointerdown"))
+  fireEvent(document.body, pointer("pointerup"))
+  fireEvent(root, pointer("pointerdown"))
+  fireEvent(root, pointer("pointerup"))
+  await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1))
+  expect(first).not.toHaveBeenCalled()
+  expect(parent).not.toHaveBeenCalled()
+  records.push({
+    case: "tap props removed/restored without feature unmount",
+    localClaimRetained: true,
+    outside: 0,
+    current: 1,
+    tabIndex: root.tabIndex,
+  })
+})
+it("retains a live press cycle while tap callbacks disappear and return before release", async () => {
+  const started = vi.fn(),
+    current = vi.fn(),
+    cancelled = vi.fn()
+  const content = (phase: number) => (
+    <motion.div
+      data-testid="held-lifetime"
+      {...(phase === 0
+        ? { onTapStart: started, onTapCancel: cancelled }
+        : phase === 2
+          ? { onTap: current, onTapCancel: cancelled }
+          : {})}
+    />
+  )
+  const view = render(content(0)),
+    root = view.getByTestId("held-lifetime")
+  const down = pointer("pointerdown"),
+    up = pointer("pointerup")
+  fireEvent(root, down)
+  await vi.waitFor(() => expect(started).toHaveBeenCalledTimes(1))
+  view.rerender(content(1))
+  view.rerender(content(2))
+  fireEvent(root, up)
+  await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1))
+  expect(current.mock.calls[0][0]).toBe(up)
+  expect(cancelled).not.toHaveBeenCalled()
+  records.push({ case: "held tap props removed/restored", originalRelease: true, taps: 1, cancellations: 0 })
+})
+it("retains a mounted hover feature with current callbacks after a prop-free enter", async () => {
+  const first = vi.fn(),
+    current = vi.fn()
+  const content = (phase: number) => (
+    <motion.div
+      data-testid="hover-lifetime"
+      {...(phase === 0 ? { onHoverStart: first } : phase === 2 ? { onHoverEnd: current } : {})}
+    />
+  )
+  const view = render(content(0)),
+    root = view.getByTestId("hover-lifetime")
+  view.rerender(content(1))
+  fireEvent(root, pointer("pointerenter"))
+  view.rerender(content(2))
+  const leave = pointer("pointerleave")
+  fireEvent(root, leave)
+  await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1))
+  expect(current.mock.calls[0][0]).toBe(leave)
+  expect(first).not.toHaveBeenCalled()
+  records.push({ case: "hover props removed/restored", originalLeave: true, currentEnds: 1 })
+})
+it("retains source static-preview tab order without mounting pointer callbacks", () => {
+  const view = render(
+    <MotionConfig isStatic>
+      <motion.div data-testid="static-focus" onTap={() => {}} />
+    </MotionConfig>,
+  )
+  expect(view.getByTestId("static-focus").tabIndex).toBe(0)
+  records.push({ case: "static tap focus default", tabIndex: 0 })
 })

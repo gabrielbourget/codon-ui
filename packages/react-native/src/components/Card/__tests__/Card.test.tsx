@@ -284,3 +284,33 @@ it.each([
 ])("rejects invalid native Card inputs %p", (props) => {
   expect(() => getNativeCardStyle(props as unknown as TNativeCardProps, resolveNativeTheme("light"))).toThrow()
 })
+
+it("sets complete native array styles on the original Card while preserving the held editor", async () => {
+  const controls = nativeAnimationControls(),
+    stop = controls.mount(),
+    ref = createRef<View>(),
+    editor = createRef<TextInput>(),
+    change = jest.fn()
+  await render(
+    <Card ref={ref} testID="card" animate={controls}>
+      <TextInput ref={editor} testID="editor" value="" selection={{ start: 0, end: 0 }} onChangeText={change} />
+    </Card>,
+  )
+  const root = ref.current,
+    original = editor.current!,
+    focus = original.focus,
+    write = jest.spyOn(original, "setNativeProps")
+  const transform = Object.freeze([{ translateX: 25 }]),
+    origin = Object.freeze(["50%", "50%", 0])
+  await act(() => controls.set({ transform, transformOrigin: origin }))
+  await flush(1016)
+  expect(rootStyle()).toMatchObject({ transform, transformOrigin: origin })
+  expect(ref.current).toBe(root)
+  expect(editor.current).toBe(original)
+  expect(original.focus).toBe(focus)
+  expect(screen.getByTestId("editor").props).toMatchObject({ value: "", selection: { start: 0, end: 0 } })
+  expect(change).not.toHaveBeenCalled()
+  expect(write).not.toHaveBeenCalled()
+  await screen.unmount()
+  stop()
+})

@@ -1,5 +1,8 @@
+import type { Animated, ColorValue } from "react-native"
+
 import type { AnimationPlaybackControlsWithThen, MotionValue, ValueAnimationTransition } from "../kernel"
 import type { Delta, PathInterpolator } from "../projection/types"
+import type { TNativeMotionVisualValues } from "../visual/types"
 
 import type { AnimationState } from "./animation-state"
 
@@ -11,31 +14,55 @@ export type TNativeMotionAnimationType =
   | "whileTap"
   | "whileDrag"
   | "exit"
-export type TNativeMotionResolvedValues = Record<string, unknown>
+type TNativeMotionValue<Value> = Value extends Animated.AnimatedNode
+  ? never
+  : Value extends ColorValue
+    ? Value
+    : Value extends readonly unknown[]
+      ? { readonly [Key in keyof Value]: TNativeMotionValue<Value[Key]> }
+      : Value extends object
+        ? { [Key in keyof Value]: TNativeMotionValue<Value[Key]> }
+        : Value
+export type TNativeMotionStyleValues = {
+  [Key in keyof TNativeMotionVisualValues]?: TNativeMotionValue<Exclude<TNativeMotionVisualValues[Key], undefined>>
+}
+export type TNativeMotionResolvedValues = TNativeMotionStyleValues & Record<string, unknown>
+export type TNativeMotionVelocities = Partial<Record<keyof TNativeMotionStyleValues, number>> &
+  Record<string, number | undefined>
 export type TNativeMotionVariantLabels = string | string[]
 export type TNativeMotionDynamicOption<T> = (index: number, total: number) => T
-export type TNativeMotionTarget = Record<string, unknown> & {
+export type TNativeMotionTargetValues = {
+  [Key in keyof TNativeMotionStyleValues]?:
+    | Exclude<TNativeMotionStyleValues[Key], undefined>
+    | ReadonlyArray<Exclude<TNativeMotionStyleValues[Key], undefined> | null>
+}
+export type TNativeMotionTarget = TNativeMotionTargetValues & {
   transition?: TNativeMotionTransition
-  transitionEnd?: Record<string, unknown>
+  transitionEnd?: TNativeMotionStyleValues
 }
 export type TNativeMotionTargetResolver = (
   custom: unknown,
   current: TNativeMotionResolvedValues,
-  velocity: TNativeMotionResolvedValues,
+  velocity: TNativeMotionVelocities,
 ) => TNativeMotionTarget | string
 export type TNativeMotionDefinition = TNativeMotionTarget | TNativeMotionTargetResolver | TNativeMotionVariantLabels
 export type TNativeMotionAnimationProp = TNativeMotionDefinition | TNativeMotionAnimationControls | boolean
-export type TNativeMotionAnimationProps = Partial<
-  Record<"initial" | TNativeMotionAnimationType, TNativeMotionAnimationProp>
-> & {
+type TNativeMotionVariantTarget = TNativeMotionTarget | TNativeMotionVariantLabels
+export type TNativeMotionAnimationProps = {
+  initial?: TNativeMotionVariantTarget | boolean
+  animate?: TNativeMotionVariantTarget | TNativeMotionAnimationControls | boolean
+  exit?: TNativeMotionVariantTarget
+  whileInView?: TNativeMotionVariantTarget
+  whileFocus?: TNativeMotionVariantTarget
+  whileHover?: TNativeMotionVariantTarget
+  whileTap?: TNativeMotionVariantTarget
+  whileDrag?: TNativeMotionVariantTarget
   custom?: unknown
   inherit?: boolean
   variants?: Readonly<Record<string, TNativeMotionTarget | TNativeMotionTargetResolver>>
   transition?: TNativeMotionTransition
 }
-export type TNativeMotionTransition = ValueAnimationTransition<unknown> & {
-  [property: string]: unknown
-  default?: TNativeMotionTransition
+export type TNativeMotionValueTransition<Value = unknown> = ValueAnimationTransition<Value> & {
   reduceMotion?: boolean
   path?: {
     interpolateProjection: (delta: Delta) => PathInterpolator | undefined
@@ -48,7 +75,19 @@ export type TNativeMotionTransition = ValueAnimationTransition<unknown> & {
     ) => void
   }
 }
-export type TNativeMotionValueAnimationOptions = TNativeMotionTransition & { keyframes: unknown[] }
+type TNativeMotionPropertyTransitions = {
+  [Key in keyof TNativeMotionStyleValues]?: TNativeMotionValueTransition<
+    Exclude<TNativeMotionStyleValues[Key], undefined>
+  >
+}
+export interface TNativeMotionTransition extends TNativeMotionValueTransition, TNativeMotionPropertyTransitions {
+  default?: TNativeMotionValueTransition
+  layout?: TNativeMotionValueTransition
+}
+export type TNativeMotionValueAnimationOptions = TNativeMotionTransition & {
+  keyframes: unknown[]
+  allowFlatten?: boolean
+}
 export type TNativeMotionAnimationOptions = {
   delay?: number
   transitionOverride?: TNativeMotionTransition

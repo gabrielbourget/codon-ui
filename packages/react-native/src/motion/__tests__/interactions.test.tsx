@@ -10,7 +10,7 @@ import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers
 import type { TNativeActivationEvent, TNativeFocusEvent, TNativeKeyboardEvent } from "../../input/types"
 import { NativeMotionConfig } from "../config"
 import { NativeMotionInteractions } from "../interactions/NativeMotionInteractions"
-import type { TNativeMotionHoverEvent } from "../interactions/types"
+import type { TNativeMotionHoverEvent, TNativeMotionPanEvent } from "../interactions/types"
 import { MotionGlobalConfig, frameData, time } from "../kernel"
 import { NativeMotionOwner } from "../owner/NativeMotionOwner"
 import type { TNativeMotionOwnerOptions, TNativeMotionOwnerProps } from "../owner/NativeMotionOwner"
@@ -430,7 +430,7 @@ it("connects original window packets while preserving the held-empty editor, roo
   expect(screen.getByTestId("editor")).toBe(editor)
   expect(editor.props.value).toBe("")
   expect(change).not.toHaveBeenCalled()
-  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toEqual([])
+  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toHaveLength(1)
   await screen.unmount()
 })
 it("preserves caller responder negotiation and handles actual window cancellation independently", async () => {
@@ -619,4 +619,132 @@ it("preserves authored keys and existing tabIndex precedence without claiming ac
     expect(root.props.onStartShouldSetResponder).toBeUndefined()
   }
   await screen.unmount()
+})
+
+it("retains tap registration/options through absent props, including an in-flight original press", async () => {
+  const first = jest.fn(),
+    current = jest.fn(),
+    cancelled = jest.fn(),
+    ref = createRef<View>()
+  const content = (phase: number) => (
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost
+        ref={ref}
+        testID="root"
+        motion={{
+          globalTapTarget: phase === 0,
+          propagate: { tap: phase > 0 },
+          ...(phase === 0
+            ? { onTapStart: first, onTapCancel: cancelled }
+            : phase === 2
+              ? { onTap: current, onTapCancel: cancelled }
+              : {}),
+        }}
+      >
+        <TextInput testID="lifetime-editor" value="" />
+      </NativeMotionOwnerHost>
+    </NativeKeyboardScope>
+  )
+  await render(content(0))
+  await acknowledgePointers()
+  const original = ref.current,
+    editor = screen.getByTestId("lifetime-editor"),
+    registrations = screen.getByTestId("window-scope").props.pointerRegistrations
+  const down = windowPacket("start", -1),
+    up = windowPacket("end", -1)
+  await deliverWindow(down)
+  await flush()
+  await screen.rerender(content(1))
+  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toEqual(registrations)
+  expect(screen.getByTestId("root").props.keyboardFocusable).toBe(false)
+  await screen.rerender(content(2))
+  await deliverWindow(up)
+  await flush(1032)
+  expect(current).toHaveBeenCalledWith(up, { point: { x: 20, y: 30 } })
+  expect(cancelled).not.toHaveBeenCalled()
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("lifetime-editor")).toBe(editor)
+  expect(editor.props.value).toBe("")
+  await screen.unmount()
+})
+it("retains hover enter/end lifetime through absent callbacks", async () => {
+  const before = jest.fn(),
+    after = jest.fn()
+  const content = (phase: number) => (
+    <NativeMotionOwnerHost
+      testID="root"
+      motion={phase === 0 ? { onHoverStart: before } : phase === 2 ? { onHoverEnd: after } : {}}
+    />
+  )
+  await render(content(0))
+  await screen.rerender(content(1))
+  await act(() => screen.getByTestId("root").props.onPointerEnter(hover()))
+  await screen.rerender(content(2))
+  const leave = hover("mouse", 50)
+  await act(() => screen.getByTestId("root").props.onPointerLeave(leave))
+  await flush()
+  expect(before).not.toHaveBeenCalled()
+  expect(after).toHaveBeenCalledWith(leave, { point: { x: 50, y: 30 } })
+  await screen.unmount()
+})
+it("retains a mounted pan session started without callbacks for later current handlers", async () => {
+  const before = jest.fn(),
+    after = jest.fn()
+  const content = (phase: number) => (
+    <NativeMotionOwnerHost
+      testID="root"
+      motion={phase === 0 ? { onPan: before } : phase === 2 ? { onPan: after } : {}}
+    />
+  )
+  const pointer = (x: number) =>
+    event({
+      pointerId: 1,
+      pointerType: "mouse",
+      isPrimary: true,
+      button: 0,
+      buttons: 1,
+      pageX: x,
+      pageY: 30,
+      timestamp: x,
+    }) as unknown as TNativeMotionPanEvent
+  await render(content(0))
+  await screen.rerender(content(1))
+  await act(() => screen.getByTestId("root").props.onPointerDown(pointer(20)))
+  await act(() => screen.getByTestId("root").props.onPointerMove(pointer(40)))
+  await flush()
+  await screen.rerender(content(2))
+  const moved = pointer(60)
+  await act(() => screen.getByTestId("root").props.onPointerMove(moved))
+  await flush(1032)
+  expect(before).not.toHaveBeenCalled()
+  expect(after).toHaveBeenCalledWith(
+    moved,
+    expect.objectContaining({ point: { x: 60, y: 30 }, offset: { x: 40, y: 0 } }),
+  )
+  await screen.unmount()
+})
+it("retains source static-preview focus defaults without installing a tap observer", async () => {
+  await render(
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionConfig isStatic>
+        <NativeMotionOwnerHost testID="root" motion={{ onTap: jest.fn() }} />
+      </NativeMotionConfig>
+    </NativeKeyboardScope>,
+  )
+  expect(screen.getByTestId("root").props.keyboardFocusable).toBe(true)
+  expect(screen.getByTestId("root").props.nativePressable).toBe(false)
+  expect(screen.getByTestId("root").props.capturedKeys).toEqual([])
+  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toEqual([])
+  await screen.unmount()
+})
+
+it("keeps the mounted focus feature active through absent whileFocus props until an actual blur", async () => {
+  const f = fixture({ whileFocus: { opacity: 0.5 } })
+  f.owner.configure({ ...f.settings, props: {} })
+  f.interactions.focus(event({ isFocusVisible: true }) as unknown as TNativeFocusEvent)
+  f.interactions.refresh()
+  expect(f.owner.animationState.getState().whileFocus.isActive).toBe(true)
+  f.interactions.blur()
+  expect(f.owner.animationState.getState().whileFocus.isActive).toBe(false)
+  f.dispose()
 })

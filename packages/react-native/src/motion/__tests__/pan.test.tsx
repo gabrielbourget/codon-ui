@@ -337,7 +337,7 @@ it("connects the existing raw native pointer host while preserving child respond
   const original = ref.current,
     editor = screen.getByTestId("editor"),
     root = () => screen.getByTestId("root")
-  expect(root().props.onStartShouldSetResponder(pointer())).toBe(false)
+  expect(root().props.onStartShouldSetResponder).toBeUndefined()
   const first = pointer(),
     shifted = pointer(10),
     released = pointer(15)
@@ -447,7 +447,7 @@ it("uses bubbling touch events under the default SDK flags without taking the ed
   const down = touch(),
     shifted = touch(10, 5),
     cancelled = touch(999, 999, 7, [])
-  expect(root().props.onStartShouldSetResponder(down)).toBe(false)
+  expect(root().props.onStartShouldSetResponder).toBeUndefined()
   expect(root().props.onStartShouldSetResponderCapture).toBeUndefined()
   await act(() => root().props.onTouchStart(down))
   await act(() => root().props.onTouchMove(shifted))

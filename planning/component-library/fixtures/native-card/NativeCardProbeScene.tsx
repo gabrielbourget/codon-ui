@@ -41,6 +41,7 @@ export const NativeCardProbeScene = () => {
     original.current = { root: root.current, editor: editor.current }
     append({ event: "request", ...identity() })
     try {
+      controls.set({ transform: undefined, transformOrigin: undefined, fontVariant: undefined })
       await controls.start({
         opacity: [1, 0.3, 1],
         x: [0, 60, 0],
@@ -59,6 +60,17 @@ export const NativeCardProbeScene = () => {
           <Text>Private Card source probe. Native fidelity and performance remain unaccepted.</Text>
           <Button title="Animate Card" onPress={() => void animate()} />
           <Button title="Stop" onPress={controls.stop} />
+          <Button
+            title="Set native array styles"
+            onPress={() => {
+              controls.set({
+                transform: [{ translateX: 20 }, { rotate: "10deg" }],
+                transformOrigin: ["50%", "50%", 0],
+                fontVariant: ["tabular-nums"],
+              })
+              append({ event: "set-native-arrays", ...identity() })
+            }}
+          />
           <Button title="Toggle Card" onPress={() => setVisible((current) => !current)} />
           <Button title="Toggle layout width" onPress={() => setWide((current) => !current)} />
           <Button title="Toggle theme" onPress={() => setDark((current) => !current)} />

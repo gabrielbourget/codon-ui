@@ -133,7 +133,7 @@ const options = (overrides: Partial<TNativeMotionOwnerOptions> = {}): TNativeMot
 })
 
 it("applies ordered initial labels/custom zero and initial=false endpoints without mutating caller values", () => {
-  const definition = jest.fn((custom: unknown) => ({ x: custom, opacity: [1, 0] }))
+  const definition = jest.fn((custom: unknown) => ({ x: typeof custom === "number" ? custom : 0, opacity: [1, 0] }))
   const owner = new NativeMotionOwner(
     options({ props: { initial: ["first", "second"], custom: 0, variants: { first: { x: 10 }, second: definition } } }),
   )

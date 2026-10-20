@@ -12,6 +12,7 @@ const NATIVE_CARD_MOTION_FIELDS = {
   whileDrag: true,
   custom: true,
   inherit: true,
+  ignoreStrict: true,
   variants: true,
   transition: true,
   onAnimationStart: true,

@@ -39,18 +39,16 @@ export class NativeMotionInteractions {
     private readonly error: (error: unknown) => void,
   ) {}
   tapEnabled = () => {
-    const props = this.owner.getProps()
-    return Boolean(props.whileTap || props.onTap || props.onTapStart || props.onTapCancel)
+    return this.owner.hasFeature("tap")
   }
   hoverEnabled = () => {
-    const props = this.owner.getProps()
-    return Boolean(props.whileHover || props.onHoverStart || props.onHoverEnd)
+    return this.owner.hasFeature("hover")
   }
   private eligible = () => this.owner.captureAnimationLease()()
   private admitted = () =>
     this.eligible() && !nativeMotionIsDragging() && !this.owner.animationState.getState().whileDrag.isActive
   private priority = (type: "whileTap" | "whileHover" | "whileFocus", active: boolean) => {
-    if (active && !this.owner.getProps()[type]) return
+    if (active && type !== "whileFocus" && !this.owner.getProps()[type]) return
     const current = this.owner.captureAnimationLease()
     void this.owner.animationState.setActive(type, active).catch((error: unknown) => {
       if (current()) this.error(error)
@@ -124,7 +122,7 @@ export class NativeMotionInteractions {
     const cycle = this.cycle
     if (!cycle || (source && cycle.source !== source)) return
     this.cycle = undefined
-    this.priority("whileTap", false)
+    if (this.owner.getProps().whileTap) this.priority("whileTap", false)
     const accepted =
       success &&
       this.admitted() &&
@@ -149,7 +147,10 @@ export class NativeMotionInteractions {
     )
   }
   cancel = () => {
-    if (this.cycle) this.end(this.cycle.event, false)
+    if (this.cycle) {
+      this.end(this.cycle.event, false)
+      this.priority("whileTap", false)
+    }
   }
   keyDown = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
@@ -205,7 +206,7 @@ export class NativeMotionInteractions {
     if (!hover) return
     this.hover = undefined
     this.deferredHoverEnd = false
-    this.priority("whileHover", false)
+    if (!event || this.owner.getProps().whileHover) this.priority("whileHover", false)
     const original = event ?? hover.event
     original.persist?.()
     this.queue(
@@ -223,7 +224,7 @@ export class NativeMotionInteractions {
     if (this.deferredHoverEnd) this.finishHover(event)
   }
   focus = (event: TNativeFocusEvent) => {
-    if (!this.eligible() || event.nativeEvent.isFocusVisible !== true || !this.owner.getProps().whileFocus) return
+    if (!this.eligible() || event.nativeEvent.isFocusVisible !== true || !this.owner.hasFeature("focus")) return
     this.focused = true
     this.priority("whileFocus", true)
   }
@@ -243,7 +244,6 @@ export class NativeMotionInteractions {
     }
     if (!this.tapEnabled() || !this.admitted() || (this.cycle && !this.cycle.current())) this.cancel()
     if (!this.hoverEnabled() || !this.admitted() || (this.hover && !this.hover.cancelCurrent())) this.hoverEnd()
-    if (!this.owner.getProps().whileFocus) this.blur()
   }
   retire = () => {
     for (const job of this.jobs) cancelFrame(job)

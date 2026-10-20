@@ -12,6 +12,7 @@ import type { TNativeCardProps } from "../types"
 
 export const card: TNativeCardProps = {
   initial: false,
+  ignoreStrict: true,
   animate: ["visible", "settled"],
   exit: { opacity: 0 },
   custom: 0,
@@ -142,3 +143,8 @@ export const PrivateOwner = <Card nativeMotionDrawingOwner />
 export const Propagation = <Card propagate={{ tap: "false" }} />
 // @ts-expect-error Global tap targeting is boolean rather than a DOM window.
 export const GlobalTap = <Card globalTapTarget={globalThis} />
+
+// @ts-expect-error Complete native target types reject CSS dimension strings.
+export const AnimatedCSSWidth = <Card animate={{ width: "100px" }} />
+// @ts-expect-error Full native feature accounting does not change ignoreStrict's boolean type.
+export const InvalidStrict = <Card ignoreStrict="true" />

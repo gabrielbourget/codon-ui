@@ -34,12 +34,15 @@ import type {
   TNativeMotionVisualValues,
 } from "../visual/types"
 
+import { NativeMotionFeatures, type TNativeMotionFeature } from "./NativeMotionFeatures"
+
 const NATIVE_NODE_DISCONNECTED = 1
 const NATIVE_NODE_PRECEDING = 2
 const NATIVE_NODE_FOLLOWING = 4
 
 export type TNativeMotionOwnerProps = TNativeMotionAnimationProps &
   TNativeMotionInteractionProps & {
+    ignoreStrict?: boolean
     onAnimationStart?: (definition: TNativeMotionDefinition) => void
     onAnimationComplete?: (definition: TNativeMotionDefinition) => void
   } & TNativeMotionDragProps &
@@ -76,6 +79,7 @@ export type TNativeMotionOwnerOptions = {
 
 // Private renderer owner. Missing native reads/order/geometry reject; construction is not admission.
 export class NativeMotionOwner implements TNativeMotionAnimationOwner {
+  readonly features = new NativeMotionFeatures()
   props: TNativeMotionOwnerProps
   values = new Map<string, MotionValue<unknown>>()
   latestValues: Record<string, unknown> = {}
@@ -135,6 +139,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
     this.configuredSkip = Boolean(options.config.skipAnimations)
     this.eligible = options.canAct()
     this.props = { transition: options.config.transition, ...options.props }
+    this.features.update(this.props, Boolean(options.config.isStatic))
     this.isControllingVariants = isControllingVariants(this.props)
     this.isVariantNode = isVariantNode(this.props)
     if (this.isVariantNode) this.variantChildren = new Set()
@@ -166,12 +171,12 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
               ? targetValue[blocked ? targetValue.length - 1 : 0]
               : targetValue
           if (value !== null && value !== undefined) {
-            if (!this.values.has(key)) this.addValue(key, motionValue(value))
+            if (!this.values.has(key)) this.addValue(key, motionValue<unknown>(value))
             else this.values.get(key)!.set(value)
           }
         }
         for (const [key, value] of Object.entries(transitionEnd ?? {})) {
-          if (!this.values.has(key)) this.addValue(key, motionValue(value))
+          if (!this.values.has(key)) this.addValue(key, motionValue<unknown>(value))
           else this.values.get(key)!.set(value)
         }
       }
@@ -184,6 +189,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   }
 
   getProps = () => this.props
+  hasFeature = (feature: TNativeMotionFeature, props = this.props) => this.features.has(feature, props, this.isStatic())
   getInitialVariantContext = (): TNativeMotionInitialContext =>
     nativeInitialVariantContext(this.props, this.options.initialContext ?? this.parent?.getInitialVariantContext())
   getVariant = (name: string) => this.props.variants?.[name]
@@ -353,7 +359,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
       typeof initial === "string" || typeof initial === "object"
         ? resolveVariantFromProps(this.props, initial, this.presenceContext?.custom)
         : undefined
-    const fromInitial = variant?.[key]
+    const fromInitial = (variant as Readonly<Record<string, unknown>> | undefined)?.[key]
     if (initial && fromInitial !== undefined) return fromInitial
     const authored = this.options.base[key]
     if (authored !== undefined) return authored
@@ -434,6 +440,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   commitProps = (options: TNativeMotionOwnerOptions) => {
     this.options = options
     this.props = { transition: options.config.transition, ...options.props }
+    this.features.update(this.props, Boolean(options.config.isStatic))
     this.shouldReduceMotion = options.reduced
     this.shouldSkipAnimations = Boolean(options.config.skipAnimations)
     this.presenceContext = options.presence

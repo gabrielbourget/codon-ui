@@ -3,6 +3,8 @@ import { normalizeNativeMotionKeyframeUnits } from "../measurement/isolatedGeome
 
 import type { TNativeMotionResolutionToken, TNativeMotionValueOptions, TNativeResolvedKeyframes } from "./types"
 
+export { nativeTargetKeyframes } from "./targetKeyframes"
+
 const COLOR_FIELDS = new Set([
   "color",
   "backgroundColor",
@@ -21,7 +23,6 @@ const COLOR_FIELDS = new Set([
   "textDecorationColor",
   "textShadowColor",
 ])
-const ARRAY_FIELDS = new Set(["transform", "transformOrigin", "boxShadow", "filter", "fontVariant"])
 const percentageString = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i
 const PERCENTAGE_FIELDS = new Set([
   "width",
@@ -139,17 +140,6 @@ const normalizeZeroPercentages = (name: string, frames: unknown[]): unknown[] =>
     })
   }
   return changed ? result : frames
-}
-export const nativeTargetKeyframes = (name: string, target: unknown): unknown[] => {
-  if (!Array.isArray(target)) return [null, target]
-  const first = target.find((value) => value !== null && value !== undefined)
-  if (
-    ARRAY_FIELDS.has(name) &&
-    (target.length === 0 ||
-      (!Array.isArray(first) && (typeof first !== "string" || name === "fontVariant" || name === "transformOrigin")))
-  )
-    return [null, target]
-  return [...target]
 }
 const current = (token: TNativeMotionResolutionToken) => {
   if (!token.isCurrent()) throw new Error("Native motion: keyframe resolution retired")

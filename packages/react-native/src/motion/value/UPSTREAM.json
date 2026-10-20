@@ -80,7 +80,7 @@
     },
     {
       "file": "keyframes.ts",
-      "receivedSha256": "21360f33917be3c4a61992fe4b832d0d01e63f2bf1e53048734ac7aa8318d427",
+      "receivedSha256": "4675ef466e571dad9bd134222deb551d09406c1bba84cf109167059298863e48",
       "kind": "authored-native-adapter"
     },
     {
@@ -90,7 +90,7 @@
     },
     {
       "file": "types.ts",
-      "receivedSha256": "f5113eeaa06dd7c0ab18b7d24b23218897a795fd7bbaac1afcbd5d9a35bb920e",
+      "receivedSha256": "711b8071a39b8a2c3697b535a04e4aab7024caecc52338aa0c2e386016720d06",
       "kind": "authored-native-adapter"
     },
     {
@@ -101,6 +101,11 @@
     {
       "file": "resolution-batch.ts",
       "receivedSha256": "43a89c47e501cae0a40e054f1be1c44a185bb861bcad9638080cd0320e95df58",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "targetKeyframes.ts",
+      "receivedSha256": "5f2908983a2758f8dd5e8b6d1f21fbde48c83e4b6923a49bcc0bed36a94d6122",
       "kind": "authored-native-adapter"
     }
   ],
@@ -114,7 +119,8 @@
     "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged",
     "Cohort registration before asynchronous initial/color resolution holds animation start until every reserved live member is normalized and settled; cancellation invalidates captures without resetting the original deadline",
     "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style",
-    "Before geometry detection, numeric zero uses the existing pinned complex none-template algorithm only for valid native percentage fields and equivalent native translation/origin array leaves. Source-normalized zero endpoints remain normalized rather than restoring authored numeric zero; unsupported strings, CSS units, colors and unrelated structured fields retain their existing native authority guards."
+    "Before geometry detection, numeric zero uses the existing pinned complex none-template algorithm only for valid native percentage fields and equivalent native translation/origin array leaves. Source-normalized zero endpoints remain normalized rather than restoring authored numeric zero; unsupported strings, CSS units, colors and unrelated structured fields retain their existing native authority guards.",
+    "Native scalar-array/keyframe classification is shared by the resolver and imperative/final setters through a pure module, retaining frozen array identity while keeping the orchestration graph free of React Native and DOM imports."
   ],
   "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
 }

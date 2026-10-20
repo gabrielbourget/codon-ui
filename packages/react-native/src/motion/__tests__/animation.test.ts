@@ -198,7 +198,7 @@ it("preserves property protections, native reduced-motion routing and path owner
   owner.retire()
 })
 it("uses exit custom once and does not interrupt an active exit on later custom changes", async () => {
-  const resolve = jest.fn((custom: unknown) => ({ x: custom }))
+  const resolve = jest.fn((custom: unknown) => ({ x: typeof custom === "number" ? custom : 0 }))
   const owner = new AnimationOwnerFixture({ exit: "gone", variants: { gone: resolve } })
   owner.presenceContext.custom = 0
   const records: unknown[] = []
@@ -253,4 +253,28 @@ it("rejects child completion notifications from a retired child attachment", asy
   expect(child.events.map(({ event }) => event)).toEqual(["AnimationStart"])
   root.retire()
   child.retire()
+})
+
+it("keeps full native array/scalar values and identity in controls.set and transitionEnd", async () => {
+  const owner = new AnimationOwnerFixture(),
+    controls = nativeAnimationControls(),
+    stop = controls.mount()
+  controls.subscribe(owner)
+  const transform = Object.freeze([{ translateX: 10 }]),
+    origin = Object.freeze(["50%", "50%", 0]),
+    fonts = Object.freeze(["tabular-nums"] as const)
+  controls.set({ transform, transformOrigin: origin, fontVariant: fonts, includeFontPadding: false, fontFamily: "" })
+  expect(owner.getValue("transform")?.get()).toBe(transform)
+  expect(owner.getValue("transformOrigin")?.get()).toBe(origin)
+  expect(owner.getValue("fontVariant")?.get()).toBe(fonts)
+  expect(owner.getValue("includeFontPadding")?.get()).toBe(false)
+  expect(owner.getValue("fontFamily")?.get()).toBe("")
+  const empty = Object.freeze([])
+  animateTarget(owner, { transitionEnd: { transform: empty, fontVariant: empty } })
+  await flush()
+  expect(owner.getValue("transform")?.get()).toBe(empty)
+  expect(owner.getValue("fontVariant")?.get()).toBe(empty)
+  expect(transform).toEqual([{ translateX: 10 }])
+  stop()
+  owner.retire()
 })

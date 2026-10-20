@@ -14,8 +14,7 @@ export class NativeMotionPan {
     private readonly error: (error: unknown) => void,
   ) {}
   private configured = () => {
-    const props = this.owner.getProps()
-    return Boolean(props.onPan || props.onPanStart || props.onPanEnd || props.onPanSessionStart)
+    return this.owner.hasFeature("pan")
   }
   private queue = (
     phase: "update" | "postRender",

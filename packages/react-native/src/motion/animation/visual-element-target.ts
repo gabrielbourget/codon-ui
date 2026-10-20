@@ -33,7 +33,7 @@ export const animateTarget = (
   if (transition?.path) transition.path.animateVisualElement(owner, target, transition, delay, animations)
   for (const key in target) {
     const value = owner.getValue(key, owner.latestValues[key] ?? null)
-    const valueTarget = target[key]
+    const valueTarget = (target as Readonly<Record<string, unknown>>)[key]
     if (valueTarget === undefined) continue
     if (state) {
       const blocked =

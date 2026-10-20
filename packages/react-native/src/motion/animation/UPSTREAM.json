@@ -9,7 +9,7 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/animation-state.ts",
       "upstreamSha256": "6ee0ff1bde54d6d63a35a8433335638682746d60cc30b8228925d30ee4152de8",
       "sourceKind": "npm-source-map-sourcesContent",
-      "receivedSha256": "7f3a6648cd8e4cb625432bdff998e4ea970579b43e209da0a9ec5a9b1b7733e0"
+      "receivedSha256": "aa92b47c5ec22e3ae32e578687fc64f476d50dc3c4fa0ff83325924f6de7f83b"
     },
     {
       "file": "get-variant-context.ts",
@@ -69,7 +69,7 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/resolve-variants.ts",
       "upstreamSha256": "6bc4c16ee8ee04f2a1e8ea49e7cd7951afbc68c528acbbfce623ac5f12b914d0",
       "sourceKind": "npm-source-map-sourcesContent",
-      "receivedSha256": "5fedce85c086a7e5dab008c4d8305f403a7fc9ba0525555054b345b610526d94"
+      "receivedSha256": "c10846b7c6640948c755d7eec4999421480e3949677ca8f33866ba17e8f6d6e4"
     },
     {
       "file": "shallow-compare.ts",
@@ -99,7 +99,7 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/setters.ts",
       "upstreamSha256": "cf272569d7b927cb03e0bc635e6041f86a57a85b4c7d41556aad7499b5eda3dd",
       "sourceKind": "npm-source-map-sourcesContent",
-      "receivedSha256": "64011f7ccc19a881ea0df4c452bfbc703836dc6be0a20429c4a3951e742389d7"
+      "receivedSha256": "fe790bfd8a1ab292410bb242f01c768feb7b497aad5081b8452d1f25ab4d0903"
     },
     {
       "file": "is-controlling-variants.ts",
@@ -274,11 +274,11 @@
     },
     {
       "file": "types.ts",
-      "sha256": "aff530c7a0718b05b60584fd83103255f826959be109edf41ef2b22f83395c4d"
+      "sha256": "a87c72ec43f0021981c4f7274c32207da9c6352ba2cb7e2d038eff0feb763523"
     },
     {
       "file": "visual-element-target.ts",
-      "sha256": "853e0c814fa9cadae9222222d9822a9f578a6545ed82eed70e73c5826089cd41"
+      "sha256": "318c6a06553219e8816a60ead158d85c867c35f3ff535488f631b0e47e07c529"
     },
     {
       "file": "visual-element.ts",

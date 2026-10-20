@@ -44,8 +44,7 @@ export const useNativeMotionInteractions = (
       ),
   )
   const tapConfigured = Boolean(motion.whileTap || motion.onTap || motion.onTapStart || motion.onTapCancel)
-  const panEnabled =
-    !isStatic && Boolean(motion.onPan || motion.onPanStart || motion.onPanEnd || motion.onPanSessionStart)
+  const panEnabled = !isStatic && owner.hasFeature("pan", motion)
   const [pan] = useState(() => new NativeMotionPan(owner, (failure) => committed.current.error(failure)))
   const [drag] = useState(
     () =>
@@ -67,7 +66,7 @@ export const useNativeMotionInteractions = (
     }
     drag.start(event)
   }
-  const enabled = tapConfigured && !isStatic
+  const enabled = !isStatic && owner.hasFeature("tap", motion)
   const keyboardEnabled =
     enabled && (visual.tabIndex === undefined ? visual.focusable !== false : visual.tabIndex === 0)
   useNativeMotionWindowTap(owner, interaction, enabled, error)

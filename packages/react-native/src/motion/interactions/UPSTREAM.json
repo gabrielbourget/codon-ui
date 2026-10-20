@@ -176,11 +176,11 @@
     },
     {
       "file": "NativeMotionInteractions.ts",
-      "sha256": "182feb30b9c88c61a2041972a5318f56cc166fbf5ab8b541a616e02ff86e1ea0"
+      "sha256": "13e513744bb1eadbda66fd6c61cfddd6faf38e177e802a9ae10d8c9df65584f3"
     },
     {
       "file": "NativeMotionPan.ts",
-      "sha256": "335c817140ef37047e90c7de63072a9c578812f297f1869acc2f751f019af539"
+      "sha256": "1d135001f5abe911401bed480be41cdc7730facd1cea63c4794e3f57a184eafa"
     },
     {
       "file": "NativePanSession.ts",
@@ -204,7 +204,7 @@
     },
     {
       "file": "useNativeMotionInteractions.ts",
-      "sha256": "6f132ee2aabd391c96866f02600fb536fa51395aad502adbff9b7d3a4270aaa7"
+      "sha256": "cb32f581c07b01defaf3197e3a11a6f0780994c5153c848a09613bc1d43d208d"
     },
     {
       "file": "../../input/nativeGestureObservation.ts",
@@ -242,7 +242,8 @@
     "Cursor snapping preserves the pinned raw event point even when configured page transforms apply to pan points and measured boxes; an actual source differential caught and corrected the initial transformed-cursor divergence",
     "Private actual-window packets replace tap Pressability: Android delegates the matching Activity/RN-modal Window.Callback and observes captured hit paths after original dispatch; UIKit uses a non-delaying, non-cancelling, non-preventing passive window recognizer",
     "Exact same-window host registrations, native per-window sequence and scope/ref/epoch/revision leases order local descendants before ancestors and global registration order. propagate.tap=false claims only motion delivery; globalTapTarget and propagation are captured at feature mount while callbacks remain current",
-    "Genuine Android accessibility ACTION_CLICK and UIKit accessibilityActivate emit explicit virtual activation packets. Physical Android onClick remains on the unchanged standalone public path and cannot complete a second motion tap; keyboard capture uses its existing original native key path"
+    "Genuine Android accessibility ACTION_CLICK and UIKit accessibilityActivate emit explicit virtual activation packets. Physical Android onClick remains on the unchanged standalone public path and cannot complete a second motion tap; keyboard capture uses its existing original native key path",
+    "Committed feature lifetime is distinct from current rendered focus defaults: mounted tap/hover/pan sessions and claims survive absent props with current callbacks; static previews retain source tab-order defaults without an observer or captured activation keys."
   ],
   "remaining": [
     "Full native projection/shared-layout/presence integration, including transformed ancestor coordinate fidelity and projection animation blocking",
