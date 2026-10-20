@@ -53,10 +53,23 @@ export const DOMLinkTarget = <Link href="/" target="_blank" />
 export const DOMLinkReferrer = <Link href="/" referrerPolicy="no-referrer" />
 // @ts-expect-error Native style owners replace DOM class names.
 export const DOMLinkClass = <Link href="/" className="link" />
-// @ts-expect-error Core RN has no described-by ID relationship.
-export const UnsupportedLinkDescription = <Link href="/" ariaDescribedBy="description" />
-// @ts-expect-error Core RN has no details ID relationship.
-export const UnsupportedLinkDetails = <Link href="/" ariaDetails="details" />
+export const DescribedNativeLink = (
+  <Link
+    href=""
+    ariaDescribedBy="description second"
+    ariaDetails="details"
+    labels={{ descriptionLabel: "Description", detailsLabel: "Détails" }}
+  />
+)
+export const EmptyNativeLinkRelationships = (
+  <Link href="" aria-describedby="" aria-details="" labels={{ descriptionLabel: "", detailsLabel: "" }} />
+)
+// @ts-expect-error Relationship IDs are whitespace-separated strings, not arrays.
+export const NonStringLinkDescriptions = <Link href="" ariaDescribedBy={["description"]} />
+// @ts-expect-error Numeric native tags do not replace ID strings.
+export const NumericLinkDetails = <Link href="" ariaDetails={7} />
+// @ts-expect-error Supplementary captions are localizable strings.
+export const NonStringLinkCaption = <Link href="" labels={{ detailsLabel: false }} />
 // @ts-expect-error The root owns link semantics.
 export const ReplacedLinkRole = <Link href="/" role="button" />
 // @ts-expect-error The native owner uses isDisabled.
@@ -69,3 +82,6 @@ export const ReplacedLinkDisabledState = <Link href="/" accessibilityState={{ di
 export const UnsupportedLinkDecoration = <Link href="/" textDecoration="wavy" />
 // @ts-expect-error Actual native View refs are retained.
 export const DOMLinkRef = <Link href="/" ref={createRef<HTMLAnchorElement>()} />
+
+// @ts-expect-error The private pressable receiver is not a public package export.
+export { NativePressable } from "../src"

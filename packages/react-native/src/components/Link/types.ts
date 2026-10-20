@@ -50,6 +50,11 @@ export type TNativeLinkProps = Omit<
     accessibilityState?: Omit<NonNullable<PressableProps["accessibilityState"]>, "disabled">
     ariaLabel?: string
     ariaLabelledBy?: string
+    ariaDescribedBy?: string
+    ariaDetails?: string
+    "aria-describedby"?: string
+    "aria-details"?: string
+    labels?: { descriptionLabel?: string; detailsLabel?: string }
     "data-testid"?: string
     "aria-disabled"?: never
     onNavigationError?: (error: unknown, href: string) => void

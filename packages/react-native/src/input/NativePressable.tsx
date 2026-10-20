@@ -39,6 +39,11 @@ export type TNativePressableProps = Omit<
   Pick<TNativeFocusViewProps, "onFocus" | "onBlur" | "onKeyDown" | "onKeyUp"> & {
     children?: PressableProps["children"]
     style?: PressableProps["style"]
+    nativeLabelledBy?: readonly string[]
+    nativeDescribedBy?: readonly string[]
+    nativeDetailsBy?: readonly string[]
+    nativeDescriptionLabel?: string
+    nativeDetailsLabel?: string
     activationBlocked?: boolean
     blockNativeResponder?: boolean
     onPressCancel?: (event: TNativePressEvent) => void
