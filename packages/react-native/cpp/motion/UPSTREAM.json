@@ -6,7 +6,7 @@
       "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
       "sha256": "d60fa1ac40ea32692554f842567a9b85f98abe649f9a59d6b4604426db2ee030",
-      "adaptation": "Pure alias precedence and Yoga layout-edge RTL conversion; never mutate original props or original Yoga nodes. Configuration/root-constraint behavior follows the same source."
+      "adaptation": "Pure alias precedence and Yoga layout-edge RTL conversion; never mutate original props or original Yoga nodes. Configuration/root-constraint behavior follows the same source. Props access follows the actual Yoga node/type pairing used by updateYogaProps; reject mismatched source/captured/selected props before the cast rather than relying on duplicated Android props-base RTTI."
     },
     {
       "path": "ReactCommon/react/renderer/uimanager/UIManager.h",
@@ -681,7 +681,7 @@
   "authoredFiles": [
     {
       "file": "FabricLayout.cpp",
-      "sha256": "9f45b19ad614f319209142c26cb0ae1b40c930b834c474ec340bf6bfe9abd7e4"
+      "sha256": "d5a070ec9ce82e2d248acdcf2cfbfb9389e49cb82771405a5464c688525b4905"
     },
     {
       "file": "FabricLayout.h",
@@ -777,11 +777,11 @@
     },
     {
       "file": "NativeLayoutState.cpp",
-      "sha256": "110680ce9125ba05e26dcf33949a0595235cc089c052f4960aa6774d435163ea"
+      "sha256": "a376823e107e7a789f036d2c886e90accad26a792dce55168f6e928e167aa550"
     },
     {
       "file": "NativeLayoutState.h",
-      "sha256": "33a6905add87da09bb458a47e7f65e2c71c16a819e301a33a4fd82eb2df31f10"
+      "sha256": "08f7ac5a01742d1a1e08efe67d6580517fdd97a173ee948fde8503677cd3876b"
     },
     {
       "file": "GeometryQuery.cpp",
