@@ -1,8 +1,11 @@
 """Synthetic phase/custody rejection checks; none is native or displayed proof."""
 import copy
+import json
+from pathlib import Path
+import tempfile
 import unittest
 
-from ios_drawing_run import PROBE, validate_pixels, validate_ready
+from ios_drawing_run import APPROVED_RETRY, PROBE, consume_approved_retry, validate_pixels, validate_ready
 from ios_geometry_build import unchanged_native_integration_inputs
 
 
@@ -21,6 +24,21 @@ def pixels(row):
 
 
 class DrawingWindowCustody(unittest.TestCase):
+    def test_approved_retry_is_consumed_once_across_fresh_roots(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory) / "first"
+            self.assertIsNone(consume_approved_retry(root, {"producer": "source"}))
+            for invalid in ["", "other", True]:
+                with self.assertRaises(AssertionError):
+                    consume_approved_retry(root, {"producer": "source", "approvedDrawingRetry": invalid})
+            inputs = {"producer": "source", "approvedDrawingRetry": APPROVED_RETRY}
+            record = Path(consume_approved_retry(root, inputs))
+            original = record.read_bytes()
+            self.assertEqual(json.loads(original)["root"], str(root))
+            for candidate in [root, Path(directory) / "second"]:
+                with self.assertRaises(FileExistsError): consume_approved_retry(candidate, inputs)
+                self.assertEqual(record.read_bytes(), original)
+
     def test_original_bound_phase_and_pixel_records(self):
         row = ready(); validate_ready(row, "source", 0); validate_pixels(pixels(row), row)
 

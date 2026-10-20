@@ -46,7 +46,7 @@ def verify(root):
     return inputs
 
 
-def prepare(root, scene="geometry"):
+def prepare(root, scene="geometry", approved_drawing_retry=False):
     assert not root.exists() and not subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO)
     producer = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     names = subprocess.check_output(["git", "ls-files", "packages/react-native", "apps/native-showcase", "planning/component-library/fixtures/native-card", "planning/component-library/fixtures/native-collection", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "AGENTS.md"], cwd=REPO, text=True).splitlines()
@@ -74,6 +74,9 @@ def prepare(root, scene="geometry"):
         "nativeProjectInputs": native, "stageInputs": {name: digest(STAGE / name) for name in stage_names},
         "deadlineUnix": time.time() + 3600, "nativeActions": 0, "scope": "Mounted nested Card observer/clip/ref product only; no typing/GPU pixel/full Card verdict" if scene == "geometry"
             else "Displayed RN/owned drawing pairs and real-window screenshot correspondence only; no full Card/editor/input/performance verdict"}
+    if approved_drawing_retry:
+        assert scene == "drawing"
+        inputs["approvedDrawingRetry"] = "Gabriel2026-10-20-one-ios-drawing-install-retry"
     (root / "inputs.json").write_text(json.dumps(inputs, indent=2) + "\n")
     verify(root)
     print("Frozen matching UIKit Card producer", producer, len(names), "source and", len(native), "native-project inputs", flush=True)
@@ -196,8 +199,9 @@ if __name__ == "__main__":
     parser.add_argument("root", type=Path)
     parser.add_argument("--scene", choices=["geometry", "drawing"], default="geometry")
     parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--approved-drawing-retry", action="store_true")
     arguments = parser.parse_args()
-    if arguments.phase == "prepare": prepare(arguments.root.resolve(), arguments.scene)
+    if arguments.phase == "prepare": prepare(arguments.root.resolve(), arguments.scene, arguments.approved_drawing_retry)
     elif arguments.phase == "reuse-pods":
         assert arguments.baseline, "Exact sealed integration baseline required"
         reuse_pods(arguments.root.resolve(), arguments.baseline.resolve())

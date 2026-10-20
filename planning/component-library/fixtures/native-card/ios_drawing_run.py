@@ -14,6 +14,17 @@ from ios_geometry_build import REPO, command, digest, verify
 
 PROBE = "codon-native-card-drawing-v1"
 READER = "planning/component-library/fixtures/native-card/NativeDrawingScreenReadback.swift"
+APPROVED_RETRY = "Gabriel2026-10-20-one-ios-drawing-install-retry"
+
+
+def consume_approved_retry(root, inputs):
+    retry = inputs.get("approvedDrawingRetry")
+    if retry is None: return None
+    assert retry == APPROVED_RETRY, "Exact one-time drawing retry approval required"
+    consumed = root.parent / "ios-drawing-approved-retry-20261020-consumed.json"
+    with consumed.open("x") as record:
+        json.dump({"approval": retry, "root": str(root), "producer": inputs["producer"], "startedUnix": time.time()}, record, indent=2)
+    return str(consumed)
 
 
 def validate_ready(row, producer, step, nonce=None):
@@ -80,14 +91,24 @@ def run(root):
         return json.loads(value)
     save()
     try:
+        retry = consume_approved_retry(root, inputs)
+        if retry:
+            state["approvedRetryConsumption"] = retry
         devices = inventory("initial-devices")
         retained = [row for row in devices["devices"].get(RUNTIME, []) if row["udid"] == DEVICE]
         assert len(retained) == 1 and retained[0]["name"] == DEVICE_NAME and retained[0]["state"] == "Shutdown"
         assert not [row for group in devices["devices"].values() for row in group if row["state"] == "Booted"]
         state.update(ownedShutdownGuest=True, bootAttempts=1); save()
         sim("boot", ["boot", DEVICE]); sim("boot-status", ["bootstatus", DEVICE, "-b"], 180)
+        if retry:
+            _, registry = sim("original-app-registry-readiness", ["listapps", DEVICE], 20)
+            registry_path = root / "original-app-registry.plist"
+            registry_path.write_bytes(registry)
+            _, decoded = native_command(root, "original-app-registry-decode", ["/usr/bin/plutil", "-convert", "json", "-o", "-", registry_path], deadline, 5)
+            assert isinstance(json.loads(decoded), dict), "Original app registry readiness required"
+            state["appRegistryReadiness"] = True; save()
         state.update(installAttempts=1); save()
-        sim("install", ["install", DEVICE, app], 120)
+        sim("install", ["install", DEVICE, app], 180 if retry else 120)
         _, location = sim("installed-container", ["get_app_container", DEVICE, bundle, "app"])
         installed = Path(location.decode().strip())
         assert digest(installed / "CodonNativeShowcase") == product["binarySHA256"] and digest(installed / "main.jsbundle") == product["bundleSHA256"]
