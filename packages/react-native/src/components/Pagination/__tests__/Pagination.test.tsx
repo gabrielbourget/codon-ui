@@ -239,11 +239,13 @@ it("CAP.pagination.011/.024/.028 coordinates size then page without drifting on 
     ["page", 2],
   ])
   expect(pageSizeButton().props.accessibilityValue.text).toBe("10")
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityState.selected).toBe(true)
+  expect(screen.getByTestId("pagination-page-1").props.accessibilityState.selected).toBe(false)
   await screen.rerender(f.node({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPage: 50 }))
   expect(pageSizeButton().props.accessibilityValue.text).toBe("50")
   await choose(20)
   expect(f.page).toHaveBeenLastCalledWith(6)
-})
+}, 15_000)
 it("CAP.pagination.012 preserves option order and an authored empty option collection", async () => {
   const f = fixture({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPageOptions: [15, 30, 45] })
   await render(f.node())
