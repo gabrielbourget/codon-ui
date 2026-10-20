@@ -6,6 +6,8 @@
 #include "PopFrame.h"
 #include "PopPresentation.h"
 #include "ViewportQuery.h"
+#include "InitialValueQuery.h"
+#include "MotionDrawingJNI.h"
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
@@ -41,6 +43,14 @@ static jni::local_ref<jstring> nativePopFrame(
   const auto uiManager = scopedManager(manager);
   return jni::make_jstring(codon::motion::queryNativePopFrame(*uiManager, request->toStdString()));
 }
+static jni::local_ref<jstring> nativeInitialValue(
+    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
+    jint target, jni::alias_ref<jstring> owner, jni::alias_ref<jstring> binding,
+    jni::alias_ref<jstring> revision, jni::alias_ref<jstring> name) {
+  if (!owner || !binding || !revision || !name) throw std::invalid_argument("Native motion: initial value identity required");
+  return jni::make_jstring(codon::motion::queryNativeInitialValue(*scopedManager(manager), target,
+      owner->toStdString(), binding->toStdString(), revision->toStdString(), name->toStdString()));
+}
 static jni::local_ref<jstring> nativeViewport(
     jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
     jni::alias_ref<jstring> request) {
@@ -63,8 +73,10 @@ static void nativeClosePop(jni::alias_ref<jclass>, jlong handle) {
 
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   return jni::initialize(vm, [] {
+    codon::motion::registerMotionDrawingNatives(jni::Environment::current());
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
+        makeNativeMethod("nativeInitialValue", nativeInitialValue),
         makeNativeMethod("nativePopFrame", nativePopFrame),
         makeNativeMethod("nativeViewport", nativeViewport),
         makeNativeMethod("nativeCreatePop", nativeCreatePop),

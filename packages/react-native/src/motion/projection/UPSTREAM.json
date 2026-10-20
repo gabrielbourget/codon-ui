@@ -1,5 +1,5 @@
 {
-  "scope": "Private pinned projection state/geometry/shared-stack core and native owner/cohort/visibility/pop bindings. No public Card or full native rendering/viewport acceptance. Exact anisotropic radius receiver, general pop-root support and actual native before-paint/fidelity/performance remain required.",
+  "scope": "Private pinned projection/geometry/shared-stack source with native owner/cohort/visibility/pop and independent-corner drawing publication. Platform logical/RTL radius precedence and null native fallthrough are retained. Drawing fidelity, mixed continuous overlap, isolated value geometry, current products and full Card remain required.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -133,7 +133,7 @@
     },
     {
       "file": "NativeProjectionState.ts",
-      "sha256": "4af681a750e11374a9f70e7dbd9304d01cf95182d2b4b811b859486003272bea"
+      "sha256": "9e000e9035897d7bded85b9f8cbe22cd122634c1778792f5efa4b665417e51c5"
     },
     {
       "file": "animation/mix-values.ts",
@@ -181,7 +181,7 @@
     },
     {
       "file": "nativeStyles.ts",
-      "sha256": "fabdf1f59f35db9070ec813866774c73ea944077a8ab5b1f5aa460cc3e6eb7cd"
+      "sha256": "fa07628532592a59b25983080722d4850a14e23aac09778dc8564bdb00725c43"
     },
     {
       "file": "node/create-projection-node.ts",
@@ -229,7 +229,7 @@
     }
   ],
   "remaining": [
-    "Exact native elliptical border/shadow correction and complete native drawing receiver",
+    "Complete mixed continuous overlap and actual native corner/shadow/default/dispatch/editor fidelity; private platform receivers and transport alone do not establish it",
     "Actual before-paint/native-cohort/scroll/ancestor/rotation/viewport/shared-layout/presence/editor/focus/performance proof",
     "General native popLayout root support and current consumer/app products",
     "Complete Card/API and every original catalogue/profile/closure obligation"

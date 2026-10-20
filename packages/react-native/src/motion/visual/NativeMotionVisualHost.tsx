@@ -22,9 +22,10 @@ import type { TNativeMotionVisualHostProps, TNativeMotionVisualValues } from "./
 const NO_MEASUREMENT = Object.freeze({ values: null, revision: undefined })
 const emptyMeasurement = () => NO_MEASUREMENT
 const noMeasurementSubscription = () => () => {}
-const NO_PROJECTION: Readonly<{ style: NativeProjectionStyle; visible: boolean }> = Object.freeze({
+const NO_PROJECTION: Readonly<{ style: NativeProjectionStyle; visible: boolean; radii: string }> = Object.freeze({
   style: Object.freeze({}),
   visible: true,
+  radii: "",
 })
 const emptyProjection = () => NO_PROJECTION
 
@@ -134,7 +135,11 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           const currentFields = new Set(Object.keys(nextStyle))
           for (const key of previousProjectionFields) if (!currentFields.has(key)) nextStyle[key] = null
           previousProjectionFields = currentFields
-          target.setNativeProps({ style: nextStyle, nativeMotionVisible: snapshot.visible })
+          target.setNativeProps({
+            style: nextStyle,
+            nativeMotionVisible: snapshot.visible,
+            nativeMotionProjectionRadii: snapshot.radii,
+          })
         })
         const retire = visual.attach()
         const retireMeasurement = measurement?.attach(target)
@@ -172,6 +177,8 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           nativeMotionGeometryRevision={measured.revision ?? props.nativeMotionGeometryRevision}
           nativeMotionGeometryObservation
           nativeMotionColorObservation
+          nativeMotionDrawingOwner
+          nativeMotionProjectionRadii={projected.radii}
           nativeMotionVisible={projected.visible}
           focusable={props.tabIndex === undefined ? (props.focusable ?? false) : !props.tabIndex}
           ref={setRef}

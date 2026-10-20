@@ -1,7 +1,7 @@
-#import <React/RCTViewComponentView.h>
+#import "CUIMotionDrawingView.h"
 #import <Accessibility/AXCustomContent.h>
 
-@interface CUIFocusView : RCTViewComponentView <AXCustomContentProvider>
+@interface CUIFocusView : CUIMotionDrawingView <AXCustomContentProvider>
 - (BOOL)capturesObservedKey:(UIKey *)key;
 - (NSDictionary *)motionSnapshotIdentity;
 - (NSString *)motionProjectionRevision;

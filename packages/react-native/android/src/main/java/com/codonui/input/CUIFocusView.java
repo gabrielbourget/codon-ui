@@ -1,6 +1,7 @@
 package com.codonui.input;
 
 import android.graphics.Rect;
+import android.graphics.Canvas;
 import android.os.SystemClock;
 import android.util.SparseArray;
 import android.view.KeyEvent;
@@ -41,6 +42,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private final CUIFloatingScrollAnchor scrollAnchor;
   private final CUIMotionColorSampler motionColors;
   private final CUIMotionGeometryObserver motionGeometry;
+  private final CUIMotionDrawing motionDrawing;
   private String motionGeometryBinding = "", motionGeometryRevision = "";
   private boolean nativeMotionColorObservation;
   private Boolean nativeMotionVisible = true;
@@ -52,6 +54,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
+    motionDrawing = new CUIMotionDrawing(this);
     scrollAnchor = new CUIFloatingScrollAnchor(this);
     motionColors = new CUIMotionColorSampler(this, data -> emit("topNativeMotionColors", data));
     java.lang.ref.WeakReference<CUIFocusView> geometryRoot = new java.lang.ref.WeakReference<>(this);
@@ -67,6 +70,21 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void setNativeMotionVisible(boolean visible) {
     nativeMotionVisible = visible;
     super.setVisibility(!visible && authoredVisibility == View.VISIBLE ? View.INVISIBLE : authoredVisibility);
+  }
+  void setNativeMotionDrawingOwner(boolean enabled) { motionDrawing.setEnabled(enabled); }
+  void setNativeMotionProjectionRadii(String radii) { motionDrawing.setRadii(radii); }
+  void captureMotionBorderColor(int index, Integer color) { motionDrawing.setBorderColor(index, color); }
+  void captureMotionShadows(com.facebook.react.bridge.ReadableArray shadows) { motionDrawing.setShadows(shadows); }
+  void synchronizeMotionDrawing() { motionDrawing.synchronize(); }
+  void retireMotionDrawing() { motionDrawing.retire(); }
+  @Override public void draw(Canvas canvas) { motionDrawing.synchronize(); super.draw(canvas); }
+  @Override public void dispatchDraw(Canvas canvas) {
+    if (!motionDrawing.active()) { super.dispatchDraw(canvas); return; }
+    int saved = canvas.save();
+    try {
+      if (!"visible".equals(getOverflow()) || getTag(R.id.filter) != null) motionDrawing.clipChildren(canvas);
+      CUIMotionDrawingDispatch.dispatchChildren(this, canvas);
+    } finally { canvas.restoreToCount(saved); }
   }
   void setNativeMotionProjectionRevision(String revision) { motionProjectionRevision = revision == null ? "" : revision; }
   String motionProjectionRevision() { return motionProjectionRevision; }

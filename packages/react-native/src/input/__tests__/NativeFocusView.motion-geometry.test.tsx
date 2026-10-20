@@ -25,6 +25,34 @@ beforeEach(() => {
   jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(71)
 })
 afterEach(() => jest.restoreAllMocks())
+it("passes private owned-drawing data without replacing the original native root or controlled editor", async () => {
+  // Preset native refs/props only; no UIKit/CoreAnimation drawing executes.
+  const root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    change = jest.fn()
+  const radii = JSON.stringify({
+    topLeft: { x: 24, y: 8 },
+    topRight: null,
+    bottomLeft: null,
+    bottomRight: { x: 10, y: 20 },
+  })
+  const scene = (value: string) => (
+    <NativeFocusHost ref={root} testID="drawing" nativeMotionDrawingOwner nativeMotionProjectionRadii={value}>
+      <TextInput ref={editor} value="" selection={{ start: 0, end: 0 }} onChangeText={change} testID="drawing-editor" />
+    </NativeFocusHost>
+  )
+  await render(scene(radii))
+  const originalRoot = root.current,
+    originalEditor = editor.current
+  expect(screen.getByTestId("drawing").props.nativeMotionDrawingOwner).toBe(true)
+  expect(screen.getByTestId("drawing").props.nativeMotionProjectionRadii).toBe(radii)
+  await screen.rerender(scene("{}"))
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(screen.getByTestId("drawing-editor").props.value).toBe("")
+  expect(change).not.toHaveBeenCalled()
+  await screen.unmount()
+})
 it("registers the actual native owner before its caller ref and preserves root/editor state", async () => {
   const editor = createRef<TextInput>(),
     requests = jest.fn(),

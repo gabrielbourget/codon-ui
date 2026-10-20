@@ -361,6 +361,46 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.19",
+      "case": "Actual initial-value authority: immutable/imperative family props, layout and unanimous direct Paragraph state, aliases/matrix/unsupported fields, current trait/native color and original empty/dirty editors",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.android.20",
+      "case": "Actual initial-value delivery and ref/tag/window/epoch/revision/color cancellation, late replies/timeouts, module teardown, current consumer/products and frame/large-tree costs",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.19",
+      "case": "Actual initial-value authority: immutable/imperative family props, layout and unanimous direct Paragraph state, aliases/matrix/unsupported fields, current trait/native color and original empty/dirty editors",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.OWNER.P01.ios.20",
+      "case": "Actual initial-value delivery and ref/tag/window/epoch/revision/color cancellation, late replies/timeouts, module teardown, current consumer/products and frame/large-tree costs",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

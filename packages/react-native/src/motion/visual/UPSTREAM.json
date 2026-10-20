@@ -1,5 +1,5 @@
 {
-  "scope": "Private actual-host visual/value adapters plus optional renderer-owner lease guards. Source contracts do not establish native window/order/paint/full Card acceptance.",
+  "scope": "Private actual-host visual/value composition with stable drawing ownership and projection-corner publication. Original host/editor refs and public primitive payloads remain intact; target native fidelity/performance and full Card remain required.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -26,7 +26,7 @@
   "ownerAdapterInputs": [
     {
       "file": "NativeMotionVisualHost.tsx",
-      "sha256": "341d3c698144174cad1cc141f6d7bb28a7eb352807ccf2690518e5d2ec46f179"
+      "sha256": "29d960227b196030fd674309843e30c8ba37f7b100eaaee3b0291868746778d8"
     },
     {
       "file": "state.ts",
@@ -34,7 +34,7 @@
     },
     {
       "file": "types.ts",
-      "sha256": "fca87c095a08d3a48d3b7667cabd1ba501ee11d9951770616dd934664f387ef2"
+      "sha256": "504af89fa96206fd6905a2fa879e82a917b300cb4f1404d04d6e93f6faee0951"
     }
   ]
 }

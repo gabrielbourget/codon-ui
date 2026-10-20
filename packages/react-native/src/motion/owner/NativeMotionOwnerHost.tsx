@@ -19,6 +19,7 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { useNativeMotionConfig, useNativeMotionReducedMotion } from "../config"
 import { useNativeMotionInteractions } from "../interactions/useNativeMotionInteractions"
 import { cancelFrame, frame } from "../kernel"
+import { readNativeMotionInitialValue } from "../measurement/initialValue"
 import { NativePresenceContext, NativePopRootContext, useNativePresence } from "../presence/context"
 import { useNativeMotionPresence } from "../presence/useNativeMotionPresence"
 import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
@@ -66,7 +67,13 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
       values,
       config,
       reduced,
-      readValue,
+      readValue:
+        readValue ??
+        ((name, endpoint, token) => {
+          const target = owner.current
+          if (!target) throw new Error("Native motion: actual initial-value owner unavailable")
+          return readNativeMotionInitialValue(target, name, endpoint, token)
+        }),
       resolveGeometry,
       presence: presence ?? presenceContext ?? undefined,
       initialContext: inherited,

@@ -422,6 +422,8 @@ using namespace facebook::react;
 - (void)updateProps:(Props::Shared const &)props oldProps:(Props::Shared const &)oldProps
 {
   const auto &next = *std::static_pointer_cast<const CUIFocusViewProps>(props);
+  [self setCuiDrawingEnabled:next.nativeMotionDrawingOwner];
+  [self setCuiProjectionRadii:[NSString stringWithUTF8String:next.nativeMotionProjectionRadii.c_str()]];
   [_scrollAnchor prepareTag:next.nativeScrollAnchorTag key:[NSString stringWithUTF8String:next.nativeScrollAnchorKey.c_str()] revision:[NSString stringWithUTF8String:next.nativeScrollAnchorRevision.c_str()]];
   NSString *owner = [NSString stringWithUTF8String:next.ownerId.c_str()];
   NSMutableSet *capture = [NSMutableSet set];
