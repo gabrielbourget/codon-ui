@@ -13,6 +13,9 @@ using namespace facebook::react;
 @implementation CUICollectionRoot {
   NSString *_rootRevision;
   NSString *_lastSignature;
+  NSString *_inspectionRequest;
+  NSString *_inspectedRequest;
+  BOOL _lastComplete;
   __weak UIWindow *_boundWindow;
   NSString *_windowId;
   NSUInteger _epoch;
@@ -29,6 +32,7 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUICollectionRootProps>();
     _rootRevision = @""; _lastSignature = @""; _windowId = @""; _lastSurfaceId = -1;
+    _inspectionRequest = @""; _inspectedRequest = @"";
   }
   return self;
 }
@@ -38,6 +42,7 @@ using namespace facebook::react;
   self.ownerId = [NSString stringWithUTF8String:value.ownerId.c_str()];
   self.rootId = [NSString stringWithUTF8String:value.rootId.c_str()];
   _rootRevision = [NSString stringWithUTF8String:value.rootRevision.c_str()];
+  _inspectionRequest = [NSString stringWithUTF8String:value.inspectionRequest.c_str()];
   [super updateProps:props oldProps:oldProps];
 }
 - (void)didMoveToWindow
@@ -77,6 +82,7 @@ using namespace facebook::react;
   else error = attached ? @"metadata-root-hidden" : @"metadata-root-detached";
   if (surface < 0 || !_windowId.length) error = @"metadata-root-without-surface-or-window";
   complete &= !error.length;
+  _lastComplete = complete;
   NSData *hierarchyData = [NSJSONSerialization dataWithJSONObject:nodes options:NSJSONWritingSortedKeys error:nil];
   if (!hierarchyData) return;
   NSString *hierarchy = [[NSString alloc] initWithData:hierarchyData encoding:NSUTF8StringEncoding];
@@ -95,6 +101,63 @@ using namespace facebook::react;
   value.hierarchy = hierarchy.UTF8String; value.error = error.UTF8String;
   std::static_pointer_cast<const CUICollectionRootEventEmitter>(_eventEmitter)->onNativeCollectionCommit(value);
 }
+- (NSDictionary *)inspectView:(CUICollectionMetadataView *)view
+{
+  NSMutableArray *children = [NSMutableArray array];
+  for (UIView *child in view.subviews) {
+    if (![child isKindOfClass:CUICollectionNode.class]) return nil;
+    NSDictionary *inspection = [self inspectView:(CUICollectionNode *)child];
+    if (!inspection) return nil;
+    [children addObject:inspection];
+  }
+  UIView *hit = [view hitTest:CGPointZero withEvent:nil];
+  return @{@"target":@(view.tag), @"className":NSStringFromClass(view.class), @"descriptorId":view.descriptorId,
+    @"descriptorRevision":view.descriptorRevision, @"alpha":@(view.alpha), @"width":@(view.bounds.size.width),
+    @"height":@(view.bounds.size.height), @"hidden":@(view.hidden), @"userInteractionEnabled":@(view.userInteractionEnabled),
+    @"canBecomeFocused":@(view.canBecomeFocused), @"canBecomeFirstResponder":@(view.canBecomeFirstResponder),
+    @"isFirstResponder":@(view.isFirstResponder), @"hitTarget":@(hit ? hit.tag : -1),
+    @"isAccessibilityElement":@(view.isAccessibilityElement), @"accessibilityElementsHidden":@(view.accessibilityElementsHidden),
+    @"accessibilityElementCount":@(view.accessibilityElementCount), @"explicitAccessibilityElements":@(view.accessibilityElements.count),
+    @"children":children};
+}
+- (void)inspectRequested
+{
+  if (!_eventEmitter || !_inspectionRequest.length || [_inspectionRequest isEqual:_inspectedRequest]) return;
+  _inspectedRequest = _inspectionRequest;
+  NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[_inspectionRequest dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  NSString *requestId = [request isKindOfClass:NSDictionary.class] && [request[@"requestId"] isKindOfClass:NSString.class] ? request[@"requestId"] : @"";
+  BOOL valid = requestId.length && self.ownerId.length && self.rootId.length && _rootRevision.length && _lastComplete && self.window &&
+    [self.ownerId isEqual:request[@"ownerId"]] && [self.rootId isEqual:request[@"rootId"]] && [_rootRevision isEqual:request[@"rootRevision"]] &&
+    [_windowId isEqual:request[@"windowId"]];
+  NSDictionary *numbers = @{@"target":@(self.tag), @"surfaceId":@(_lastSurfaceId), @"epoch":@(_epoch), @"sequence":@(_sequence)};
+  for (NSString *key in numbers) {
+    id number = [request isKindOfClass:NSDictionary.class] ? request[key] : nil;
+    if (![number isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)number) == CFBooleanGetTypeID() || ![number isEqualToNumber:numbers[key]]) valid = NO;
+  }
+  NSString *error = valid ? @"" : @"metadata-inspection-stale";
+  NSDictionary *inspection = @{};
+  if (valid) {
+    NSDictionary *tree = [self inspectView:self];
+    if (!tree) { valid = NO; error = @"non-metadata-inspection-child"; }
+    else {
+      UIView *focusedBefore = CUIInputFocusedView(self.window);
+      NSInteger beforeTag = focusedBefore ? focusedBefore.tag : -1;
+      BOOL focusAccepted = [self becomeFirstResponder];
+      UIView *focusedAfter = CUIInputFocusedView(self.window);
+      inspection = @{@"tree":tree, @"focusRequestAccepted":@(focusAccepted), @"focusedBefore":@(beforeTag),
+        @"focusedAfter":@(focusedAfter ? focusedAfter.tag : -1)};
+    }
+  }
+  NSData *data = [NSJSONSerialization dataWithJSONObject:inspection options:NSJSONWritingSortedKeys error:nil];
+  if (!data) return;
+  NSString *serialized = [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding];
+  CUICollectionRootEventEmitter::OnNativeCollectionInspection value{};
+  value.requestId = requestId.UTF8String; value.ownerId = self.ownerId.UTF8String; value.rootId = self.rootId.UTF8String;
+  value.rootRevision = _rootRevision.UTF8String; value.target = (int)self.tag; value.surfaceId = _lastSurfaceId;
+  value.windowId = _windowId.UTF8String; value.epoch = _epoch; value.sequence = _sequence;
+  value.accepted = valid; value.inspection = serialized.UTF8String; value.error = error.UTF8String;
+  std::static_pointer_cast<const CUICollectionRootEventEmitter>(_eventEmitter)->onNativeCollectionInspection(value);
+}
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   if (!self.window) return;
@@ -103,10 +166,12 @@ using namespace facebook::react;
   if (_lastSurfaceId >= 0 && _lastSurfaceId != surface) { _epoch++; _lastSignature = @""; }
   _lastSurfaceId = surface;
   [self publishAttached:YES surface:surface mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", surface, (long long)transaction.getNumber()]];
+  [self inspectRequested];
 }
 - (void)prepareForRecycle
 {
   _epoch++; _boundWindow = nil; _windowId = @""; _rootRevision = @""; _lastSignature = @""; _lastSurfaceId = -1;
+  _inspectionRequest = @""; _inspectedRequest = @""; _lastComplete = NO;
   [super prepareForRecycle];
 }
 @end

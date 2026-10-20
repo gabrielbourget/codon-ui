@@ -18,11 +18,28 @@ export type NativeCollectionCommitData = Readonly<{
   error: string
 }>
 
+export type NativeCollectionInspectionData = Readonly<{
+  requestId: string
+  ownerId: string
+  rootId: string
+  rootRevision: string
+  target: Int32
+  surfaceId: Int32
+  windowId: string
+  epoch: Double
+  sequence: Double
+  accepted: boolean
+  inspection: string
+  error: string
+}>
+
 export interface NativeProps extends ViewProps {
   ownerId: string
   rootId: string
   rootRevision: string
+  inspectionRequest?: string
   onNativeCollectionCommit?: DirectEventHandler<NativeCollectionCommitData>
+  onNativeCollectionInspection?: DirectEventHandler<NativeCollectionInspectionData>
 }
 
 export default codegenNativeComponent<NativeProps>("CUICollectionRoot") as HostComponent<NativeProps>

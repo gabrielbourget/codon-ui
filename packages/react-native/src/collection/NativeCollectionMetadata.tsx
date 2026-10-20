@@ -17,7 +17,13 @@ const metadataProps = {
 
 type TRootProps = Pick<
   ComponentProps<typeof Root>,
-  "ownerId" | "rootId" | "rootRevision" | "children" | "onNativeCollectionCommit"
+  | "ownerId"
+  | "rootId"
+  | "rootRevision"
+  | "children"
+  | "inspectionRequest"
+  | "onNativeCollectionCommit"
+  | "onNativeCollectionInspection"
 >
 type TNodeProps = Pick<
   ComponentProps<typeof Node>,

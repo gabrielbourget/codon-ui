@@ -23,6 +23,7 @@ if (!outputRoot || !path.isAbsolute(outputRoot)) throw Error("Supply an absolute
   const rendererRequire = createRequire(nativePeerRequire.resolve("react-native/package.json"))
   config.resolver.extraNodeModules = {
     ...config.resolver.extraNodeModules,
+    expo: path.dirname(req.resolve("expo/package.json")),
     react: path.dirname(nativePeerRequire.resolve("react/package.json")),
     "react-native": path.dirname(nativePeerRequire.resolve("react-native/package.json")),
     "@babel/runtime": path.dirname(rendererRequire.resolve("@babel/runtime/package.json")),
@@ -47,7 +48,9 @@ if (!outputRoot || !path.isAbsolute(outputRoot)) throw Error("Supply an absolute
     content: map.sourcesContent[index],
   }))
   const banned = inputs.filter((input) =>
-    /(?:react-dom|react-aria|react-native-web|__tests__|test-renderer)/.test(input.source),
+    /\/node_modules\/(?:react-dom|react-aria|react-aria-components|react-native-web|test-renderer|@react-aria)(?:\/|$)|\/__tests__\//.test(
+      input.source,
+    ),
   )
   if (banned.length) throw Error("Unexpected runtime " + banned.map((item) => item.source))
   const stateSources = inputs.filter((input) => input.source.includes("/react-stately/"))
