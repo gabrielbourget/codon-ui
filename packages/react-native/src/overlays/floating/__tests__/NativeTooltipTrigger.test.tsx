@@ -229,6 +229,48 @@ it("keeps content hover alive across the trigger-to-content gap and closes after
   expect(f.onOpenChange.mock.calls).toEqual([[true], [false]])
 })
 
+it("preserves the source virtual-activation distinction and deduplicates a shared native touch start", async () => {
+  const f = setup({ isOpen: true })
+  await render(f.node())
+  const host = screen.getByTestId("native-floating-layer-host").props
+  await act(() =>
+    host.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host.ownerId,
+        windowId: "activation",
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  const action = screen.getByRole("button", { name: "Action" })
+  await act(() =>
+    action.props.onNativeActivation({
+      nativeEvent: {
+        kind: "activation",
+        source: "android-click",
+        ownerId: action.props.ownerId,
+        target: 17,
+        observedAt: 0,
+        activationId: 1,
+        scopeOwnerId: host.ownerId,
+        windowId: "activation",
+        epoch: 1,
+      },
+    }),
+  )
+  expect(f.onOpenChange).not.toHaveBeenCalled()
+  expect(f.action).toHaveBeenCalledTimes(1)
+  const touch = press()
+  await act(() => {
+    f.state().triggerProps.onPressStart(touch)
+    f.state().triggerProps.onPressIn(touch)
+  })
+  expect(f.onOpenChange.mock.calls).toEqual([[false]])
+})
+
 it("rechecks current window and parent eligibility for pending native opens and closes", async () => {
   const f = setup({ isOpen: false })
   const result = await render(f.node())

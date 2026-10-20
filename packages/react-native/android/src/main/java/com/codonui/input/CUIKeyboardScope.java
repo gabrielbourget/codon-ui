@@ -67,9 +67,19 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   private String acceptedWindowId = "";
   private long policyOrder;
   private View boundRoot;
+  private final CUIFloatingObserver floating;
+  private List<CUIFloatingObserver.Target> floatingTargets = new ArrayList<>();
   private final ViewCompat.OnUnhandledKeyEventListenerCompat unhandled = (view, event) -> dispatchCapturedKey(event);
 
-  public CUIKeyboardScope(ThemedReactContext context) { super(context); }
+  public CUIKeyboardScope(ThemedReactContext context) {
+    super(context);
+    floating = new CUIFloatingObserver(this, data -> {
+      if (!captureReady()) return;
+      data.putString("ownerId", ownerId); data.putString("windowId", CUIInputWindow.identity(this)); data.putDouble("epoch", windowEpoch);
+      emit("topNativeFloatingObservation", data);
+    });
+  }
+  void setFloatingTargets(List<CUIFloatingObserver.Target> next) { floatingTargets = next; }
   void setOwnerId(String next) {
     if (next == null) next = "";
     if (!ownerId.equals(next)) retireHeld();
@@ -94,6 +104,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
+    floating.update(floatingTargets, captureReady());
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
     data.putDouble("epoch", windowEpoch); data.putDouble("policyRevision", policyRevision); data.putBoolean("ready", captureReady()); data.putBoolean("windowActive", windowActive()); emit("topNativeScopeStatus", data);
   }
@@ -209,6 +220,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     ViewCompat.addOnUnhandledKeyEventListener(boundRoot, unhandled); windowEpoch++; publishStatus();
   }
   @Override protected void onDetachedFromWindow() {
+    floating.stop();
     retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); boundRoot = null; }
     windowEpoch++; super.onDetachedFromWindow(); publishStatus();
   }

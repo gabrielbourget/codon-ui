@@ -2,7 +2,7 @@ import { createContext, useContext, useId, useInsertionEffect, useRef, type Reac
 import type { PressableProps, View, ViewProps } from "react-native"
 
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
-import type { TNativeInteractionEvent } from "../../input/types"
+import type { TNativeInteractionEvent, TNativePressEvent, TNativeKeyboardEvent } from "../../input/types"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "./scope"
 import { useNativeTooltipTriggerState } from "./useTooltipTriggerState"
@@ -25,6 +25,8 @@ export type TNativeTooltipTriggerRenderState = Readonly<{
     onFocus: NonNullable<ViewProps["onFocus"]>
     onBlur: NonNullable<ViewProps["onBlur"]>
     onPressIn: (event: TNativeInteractionEvent) => void
+    onPressStart: (event: TNativePressEvent) => void
+    onKeyDown: (event: TNativeKeyboardEvent) => void
   }>
   tooltipProps: Readonly<{
     nativeID: string
@@ -62,6 +64,7 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
   const focused = useRef(false)
   const hovered = useRef(false)
   const contentHovered = useRef(false)
+  const closingPresses = useRef(new WeakSet<object>())
   const current = useRef({ state, isDisabled, triggerMode, shouldCloseOnPress, scope, windowActive })
   current.current = { state, isDisabled, triggerMode, shouldCloseOnPress, scope, windowActive }
   useInsertionEffect(() => {
@@ -90,6 +93,19 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
     hovered.current = false
     focused.current = false
     if (eligible()) current.current.state.close(false, eligible)
+  }
+  const closeFromPress = (event: TNativePressEvent) => {
+    if (
+      ("kind" in event.nativeEvent && event.nativeEvent.kind === "activation") ||
+      !eligible() ||
+      !current.current.shouldCloseOnPress ||
+      closingPresses.current.has(event.nativeEvent)
+    )
+      return
+    closingPresses.current.add(event.nativeEvent)
+    focused.current = false
+    hovered.current = false
+    current.current.state.close(true, eligible)
   }
   const rendered: TNativeTooltipTriggerRenderState = {
     isOpen: state.isOpen,
@@ -124,12 +140,9 @@ export const NativeTooltipTrigger = (props: TNativeTooltipTriggerProps) => {
         hovered.current = false
         if (eligible()) current.current.state.close(true, eligible)
       },
-      onPressIn: () => {
-        if (!eligible() || !current.current.shouldCloseOnPress) return
-        focused.current = false
-        hovered.current = false
-        current.current.state.close(true, eligible)
-      },
+      onPressIn: closeFromPress,
+      onPressStart: closeFromPress,
+      onKeyDown: closeFromPress,
     },
     tooltipProps: {
       nativeID: `codon-tooltip-${id}`,

@@ -2,8 +2,13 @@ import { useInsertionEffect, useLayoutEffect, useMemo, useRef, useState, type Re
 
 import { createNativeFloatingMeasurement, type TNativeFloatingMeasurable } from "./measurement"
 import { useNativeFloatingHost } from "./NativeFloatingLayerHost"
-import { getNativeFloatingPlacement, type TNativeFloatingPlacementInput } from "./placement"
+import {
+  getNativeFloatingPlacement,
+  intersectNativeFloatingRects,
+  type TNativeFloatingPlacementInput,
+} from "./placement"
 import type { useNativeFloatingLayer } from "./useFloatingLayer"
+import { useNativeFloatingViewport } from "./useFloatingViewport"
 
 type TPosition = ReturnType<typeof getNativeFloatingPlacement>
 type TGeometry = Omit<TNativeFloatingPlacementInput, "host" | "anchor" | "content" | "visibleBoundary">
@@ -14,6 +19,7 @@ type TOptions = TGeometry & {
   boundaryRef?: RefObject<TNativeFloatingMeasurable | null>
   shouldUpdatePosition?: boolean
   layoutRevision?: number
+  onAncestorScroll?: () => void
 }
 
 export const useNativeFloatingPosition = ({
@@ -23,6 +29,7 @@ export const useNativeFloatingPosition = ({
   boundaryRef,
   shouldUpdatePosition = true,
   layoutRevision = 0,
+  onAncestorScroll,
   placement,
   direction,
   offset,
@@ -78,6 +85,7 @@ export const useNativeFloatingPosition = ({
   const current = useRef({ geometry, triggerRef, contentRef, boundaryRef })
   current.current = { geometry, triggerRef, contentRef, boundaryRef }
   const enabled = host.layout !== null && layer.canMeasure()
+  const viewport = useNativeFloatingViewport({ enabled, triggerRef, onAncestorScroll })
   useInsertionEffect(() => () => controller.dispose(), [controller])
   useLayoutEffect(() => {
     controller.invalidate()
@@ -111,12 +119,18 @@ export const useNativeFloatingPosition = ({
           current.current.contentRef === contentRef &&
           current.current.boundaryRef === boundaryRef,
         (measured) => {
+          const visible = viewport.current
+            ? { ...viewport.current, x: measured.host.x + viewport.current.x, y: measured.host.y + viewport.current.y }
+            : undefined
           const next = getNativeFloatingPlacement({
             ...geometry,
             host: measured.host,
             anchor: measured.anchor,
             content: measured.content,
-            visibleBoundary: measured.boundary,
+            visibleBoundary:
+              measured.boundary && visible
+                ? intersectNativeFloatingRects(measured.boundary, visible)
+                : (measured.boundary ?? visible),
           })
           if (JSON.stringify(next) === JSON.stringify(established.current)) return
           established.current = next

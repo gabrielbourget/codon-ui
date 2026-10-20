@@ -1,5 +1,6 @@
 #import "CUIKeyboardScope.h"
 #import "CUIInputWindow.h"
+#import "CUIFloatingObserver.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -129,6 +130,8 @@ static UIView *CUIFirstResponder(UIView *root)
   NSInteger _policyOrder;
   BOOL _applicationActive;
   BOOL _sceneActive;
+  CUIFloatingObserver *_floating;
+  NSArray<NSDictionary *> *_floatingTargets;
 }
 
 + (ComponentDescriptorProvider)componentDescriptorProvider
@@ -146,6 +149,23 @@ static UIView *CUIFirstResponder(UIView *root)
     _acceptedEpoch = -1;
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
     _sceneActive = YES;
+    _floatingTargets = @[];
+    __weak CUIKeyboardScope *weakSelf = self;
+    _floating = [[CUIFloatingObserver alloc] initWithHost:self publish:^(NSDictionary *sample) {
+      CUIKeyboardScope *scope = weakSelf;
+      if (!scope || ![scope captureReady] || !scope->_eventEmitter) return;
+      CUIKeyboardScopeEventEmitter::OnNativeFloatingObservation data{};
+      data.ownerId = scope->_ownerId.UTF8String;
+      data.windowId = CUIInputWindowIdentity(scope.window).UTF8String;
+      data.epoch = scope->_windowEpoch;
+      data.id = [sample[@"id"] UTF8String];
+      data.targetTag = [sample[@"targetTag"] intValue];
+      data.x = [sample[@"x"] doubleValue]; data.y = [sample[@"y"] doubleValue];
+      data.width = [sample[@"width"] doubleValue]; data.height = [sample[@"height"] doubleValue];
+      data.scrollRevision = [sample[@"scrollRevision"] doubleValue];
+      data.revision = [sample[@"revision"] doubleValue];
+      std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(scope->_eventEmitter)->onNativeFloatingObservation(data);
+    }];
     _keyboard = [CUIKeyboardRecognizer new];
     _keyboard.scope = self;
     _keyboard.delegate = self;
@@ -173,6 +193,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)publishStatus
 {
+  [_floating setTargets:_floatingTargets active:[self captureReady]];
   if (!_eventEmitter) return;
   CUIKeyboardScopeEventEmitter::OnNativeScopeStatus data{};
   data.ownerId = _ownerId.UTF8String;
@@ -295,6 +316,9 @@ static UIView *CUIFirstResponder(UIView *root)
   _acceptedWindowId = accepted;
   _acceptedEpoch = next.acceptedEpoch;
   _policyRevision = next.policyRevision;
+  NSMutableArray *floating = [NSMutableArray array];
+  for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
+  _floatingTargets = floating;
   [super updateProps:props oldProps:oldProps];
   [self publishStatus];
 }
@@ -336,6 +360,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)prepareForRecycle
 {
+  [_floating invalidate]; _floatingTargets = @[];
   [_keyboard retireHeld];
   [_boundWindow removeGestureRecognizer:_keyboard];
   CUIUnregisterInputScope(_boundWindow, self);
@@ -350,6 +375,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)dealloc
 {
+  [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];
   CUIUnregisterInputScope(_boundWindow, self);
   [NSNotificationCenter.defaultCenter removeObserver:self];
