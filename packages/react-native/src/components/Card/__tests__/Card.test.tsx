@@ -114,6 +114,8 @@ it("maps canonical root assertion 3: consumes owned and inherited motion props b
         variants={{ ready: { opacity: 1 } }}
         onAnimationComplete={ended}
         onLayoutMeasure={measure}
+        globalTapTarget
+        propagate={{ tap: false }}
       />
     </NativeMotionConfig>,
   )
@@ -130,12 +132,16 @@ it("maps canonical root assertion 3: consumes owned and inherited motion props b
     "variants",
     "onAnimationComplete",
     "onLayoutMeasure",
+    "globalTapTarget",
+    "propagate",
   ])
     expect(screen.getByTestId("card").props).not.toHaveProperty(name)
   expect(owners[0].getProps()).toMatchObject({
     layout: "position",
     onAnimationComplete: ended,
     onLayoutMeasure: measure,
+    globalTapTarget: true,
+    propagate: { tap: false },
   })
 })
 it.each([true, "size", "position", false] as const)(

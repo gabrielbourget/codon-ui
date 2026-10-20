@@ -215,6 +215,13 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     setClickable(true);
   }
 
+  @Override public boolean performAccessibilityAction(int action, android.os.Bundle arguments) {
+    boolean handled = super.performAccessibilityAction(action, arguments);
+    if (handled && nativePressable && action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
+      CUIWindowPointers.activate(this);
+    return handled;
+  }
+
   @Override public void onClick(View view) {
     if (!nativePressable || !isAttachedToWindow() || !isShown() || !hasWindowFocus()) return;
     WritableMap data = baseData();

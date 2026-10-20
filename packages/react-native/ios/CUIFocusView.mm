@@ -221,6 +221,7 @@ using namespace facebook::react;
   }
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeActivation(value);
   [super accessibilityActivate];
+  CUIActivateWindowPointer(self);
   return YES;
 }
 

@@ -1,7 +1,7 @@
 import type { GestureResponderEvent } from "react-native"
 
-import type { TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
-import type { TNativeMotionInteractionProps } from "../interactions/types"
+import type { TNativeKeyboardEvent } from "../../input/types"
+import type { TNativeMotionInteractionProps, TNativeMotionTapEvent } from "../interactions/types"
 import { NativeMotionOwnerHost } from "../owner/NativeMotionOwnerHost"
 
 export const callbacks: TNativeMotionInteractionProps = {
@@ -15,7 +15,7 @@ export const callbacks: TNativeMotionInteractionProps = {
     ]
   },
   onTap: (event, info) => {
-    const original: TNativePressEvent = event
+    const original: TNativeMotionTapEvent = event
     const horizontal: number = info.point.x
     return [original, horizontal]
   },

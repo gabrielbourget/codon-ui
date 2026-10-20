@@ -20,6 +20,8 @@ export const card: TNativeCardProps = {
   transition: { duration: 0.1, delayChildren: 0.2, staggerChildren: 0.1, when: "beforeChildren" },
   whileHover: "hover",
   whileTap: { scale: 0.95 },
+  globalTapTarget: true,
+  propagate: { tap: false },
   whileFocus: "focus",
   whileInView: { opacity: 1 },
   whileDrag: { scale: 1.05 },
@@ -135,3 +137,8 @@ export const Key = <Card onKeyDown={(event: { key: string }) => event.key} />
 export const Measurement = <Card resolveGeometry={() => undefined} />
 // @ts-expect-error Private renderer state is not a Card caller prop.
 export const PrivateOwner = <Card nativeMotionDrawingOwner />
+
+// @ts-expect-error Propagation keeps the inherited tap option as a boolean.
+export const Propagation = <Card propagate={{ tap: "false" }} />
+// @ts-expect-error Global tap targeting is boolean rather than a DOM window.
+export const GlobalTap = <Card globalTapTarget={globalThis} />

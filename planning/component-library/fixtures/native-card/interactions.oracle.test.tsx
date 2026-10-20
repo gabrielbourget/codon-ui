@@ -108,3 +108,107 @@ it("filters touch hover and secondary mouse press at the actual pinned source bo
     nativePrimaryPointerFidelity: "OPEN",
   })
 })
+
+it.each([undefined, true, false])(
+  "retains nested tap delivery for propagate.tap=%s without stopping DOM defaults",
+  async (tapPropagation) => {
+    const order: string[] = [],
+      bubbled = vi.fn()
+    const view = render(
+      <motion.div
+        data-testid="parent"
+        onTapStart={() => order.push("parent-start")}
+        onTap={() => order.push("parent-end")}
+      >
+        <motion.div
+          data-testid="child"
+          propagate={{ tap: tapPropagation }}
+          onTapStart={() => order.push("child-start")}
+          onTap={() => order.push("child-end")}
+        />
+      </motion.div>,
+    )
+    window.addEventListener("pointerdown", bubbled)
+    const child = view.getByTestId("child"),
+      down = pointer("pointerdown"),
+      up = pointer("pointerup")
+    fireEvent(child, down)
+    fireEvent(child, up)
+    const expected =
+      tapPropagation === false
+        ? ["child-start", "child-end"]
+        : ["child-start", "parent-start", "child-end", "parent-end"]
+    await vi.waitFor(() => expect(order).toEqual(expected))
+    expect(bubbled).toHaveBeenCalledTimes(1)
+    expect(bubbled.mock.calls[0][0]).toBe(down)
+    expect(down.defaultPrevented).toBe(false)
+    window.removeEventListener("pointerdown", bubbled)
+    records.push({
+      case: "nested tap propagation",
+      tapPropagation: tapPropagation ?? "default",
+      order,
+      originalDefaultDelivery: true,
+    })
+  },
+)
+
+it("observes an outside press/release on the actual window for globalTapTarget", async () => {
+  const started = vi.fn(),
+    tapped = vi.fn(),
+    cancelled = vi.fn()
+  const view = render(
+    <>
+      <motion.div data-testid="global" globalTapTarget onTapStart={started} onTap={tapped} onTapCancel={cancelled} />
+      <button data-testid="outside">Outside</button>
+    </>,
+  )
+  const outside = view.getByTestId("outside"),
+    down = pointer("pointerdown", 41),
+    up = pointer("pointerup", 92)
+  fireEvent(outside, down)
+  fireEvent(document.body, up)
+  await vi.waitFor(() => expect(tapped).toHaveBeenCalledTimes(1))
+  expect(started.mock.calls[0][0]).toBe(down)
+  expect(tapped.mock.calls[0][0]).toBe(up)
+  expect(started.mock.calls[0][1]).toEqual({ point: { x: 41, y: 30 } })
+  expect(cancelled).not.toHaveBeenCalled()
+  expect(down.defaultPrevented).toBe(false)
+  records.push({
+    case: "global outside press/release",
+    originalEvents: true,
+    startPoint: started.mock.calls[0][1],
+    endPoint: tapped.mock.calls[0][1],
+  })
+})
+
+it("lets a nested local propagation claim suppress window-wide tap listeners", async () => {
+  const local = vi.fn(),
+    global = vi.fn()
+  const view = render(
+    <>
+      <motion.div globalTapTarget onTap={global} />
+      <motion.div data-testid="local" propagate={{ tap: false }} onTap={local} />
+    </>,
+  )
+  const target = view.getByTestId("local")
+  fireEvent(target, pointer("pointerdown"))
+  fireEvent(target, pointer("pointerup"))
+  await vi.waitFor(() => expect(local).toHaveBeenCalledTimes(1))
+  expect(global).not.toHaveBeenCalled()
+  records.push({ case: "local claim before global listener", local: 1, global: 0 })
+})
+
+it("captures global targeting at feature mount while keeping callbacks current", async () => {
+  const first = vi.fn(),
+    current = vi.fn()
+  const view = render(<motion.div data-testid="target" globalTapTarget={false} onTap={first} />)
+  view.rerender(<motion.div data-testid="target" globalTapTarget onTap={current} />)
+  fireEvent(document.body, pointer("pointerdown"))
+  fireEvent(document.body, pointer("pointerup"))
+  const target = view.getByTestId("target")
+  fireEvent(target, pointer("pointerdown"))
+  fireEvent(target, pointer("pointerup"))
+  await vi.waitFor(() => expect(current).toHaveBeenCalledTimes(1))
+  expect(first).not.toHaveBeenCalled()
+  records.push({ case: "mounted global option/latest callback", outside: 0, current: 1, first: 0 })
+})

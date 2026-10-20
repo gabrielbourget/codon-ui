@@ -1,6 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react"
-import { Button, ScrollView, Text, TextInput } from "react-native"
-import type { View } from "react-native"
+import { Button, Modal, ScrollView, Text, TextInput, View } from "react-native"
 
 import { Card } from "../../../../packages/react-native/src/components/Card/Card"
 import { NativeKeyboardScope } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
@@ -21,6 +20,7 @@ export const NativeCardProbeScene = () => {
     [wide, setWide] = useState(false),
     [dark, setDark] = useState(false),
     [skip, setSkip] = useState(false),
+    [modal, setModal] = useState(false),
     [value, setValue] = useState("")
   const [journal, setJournal] = useState<readonly unknown[]>([])
   const alive = useRef(true)
@@ -53,6 +53,7 @@ export const NativeCardProbeScene = () => {
   }
   return (
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
+      <Button title="Press outside observer scope" onPress={() => append({ event: "outside-native-press" })} />
       <NativeKeyboardScope captureEnabled>
         <ScrollView ref={viewport} keyboardShouldPersistTaps="always" contentContainerStyle={{ padding: 20, gap: 15 }}>
           <Text>Private Card source probe. Native fidelity and performance remain unaccepted.</Text>
@@ -62,7 +63,17 @@ export const NativeCardProbeScene = () => {
           <Button title="Toggle layout width" onPress={() => setWide((current) => !current)} />
           <Button title="Toggle theme" onPress={() => setDark((current) => !current)} />
           <Button title="Toggle skip" onPress={() => setSkip((current) => !current)} />
+          <Button title="Open native modal window" onPress={() => setModal(true)} />
           <NativeMotionConfig reducedMotion="user" skipAnimations={skip}>
+            <Card
+              testID="private-global-tap"
+              globalTapTarget
+              onTapStart={(event, info) => append({ event: "global-tap-start", native: event.nativeEvent, info })}
+              onTap={(event, info) => append({ event: "global-tap", native: event.nativeEvent, info })}
+              onTapCancel={(event, info) => append({ event: "global-tap-cancel", native: event.nativeEvent, info })}
+            >
+              <Text>Global tap observer: includes the button outside this scope, excludes the modal window.</Text>
+            </Card>
             <NativeLayoutGroup id="private-card-probe">
               <NativeAnimatePresence mode="popLayout" onExitComplete={() => append({ event: "exit-complete" })}>
                 {visible && (
@@ -79,6 +90,9 @@ export const NativeCardProbeScene = () => {
                     exit={{ opacity: 0, transition: { duration: 0.3 } }}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
+                    onTapStart={(event, info) => append({ event: "card-tap-start", native: event.nativeEvent, info })}
+                    onTap={(event, info) => append({ event: "card-tap", native: event.nativeEvent, info })}
+                    onTapCancel={(event, info) => append({ event: "card-tap-cancel", native: event.nativeEvent, info })}
                     whileFocus={{ opacity: 0.95 }}
                     viewport={{ root: viewport, amount: "some" }}
                     onViewportEnter={(entry) => append({ event: "viewport-enter", ratio: entry.intersectionRatio })}
@@ -100,6 +114,17 @@ export const NativeCardProbeScene = () => {
                     />
                     <Button title="Owner echoes empty" onPress={() => setValue("")} />
                     <Button title="Owner echoes dirty" onPress={() => setValue("dirty")} />
+                    <Card
+                      testID="private-claimed-tap"
+                      propagate={{ tap: false }}
+                      whileTap={{ opacity: 0.5 }}
+                      onTap={(event, info) => append({ event: "claimed-tap", native: event.nativeEvent, info })}
+                    >
+                      <Button
+                        title="Claim motion tap; preserve native press"
+                        onPress={() => append({ event: "claimed-native-press" })}
+                      />
+                    </Card>
                   </Card>
                 )}
               </NativeAnimatePresence>
@@ -108,6 +133,25 @@ export const NativeCardProbeScene = () => {
           <Text testID="private-card-journal">{JSON.stringify(journal)}</Text>
         </ScrollView>
       </NativeKeyboardScope>
+      <Modal visible={modal} onRequestClose={() => setModal(false)}>
+        <NativeKeyboardScope captureEnabled>
+          <View style={{ padding: 20, gap: 15 }}>
+            <Text>The modal owns a separate actual window and global tap registration.</Text>
+            <Card
+              globalTapTarget
+              onTap={(event, info) => append({ event: "modal-tap", native: event.nativeEvent, info })}
+            >
+              <Text>Modal global observer</Text>
+              <TextInput
+                accessibilityLabel="Modal held-empty editor"
+                value=""
+                onChangeText={(request) => append({ event: "modal-editor-request", request })}
+              />
+            </Card>
+            <Button title="Close native modal" onPress={() => setModal(false)} />
+          </View>
+        </NativeKeyboardScope>
+      </Modal>
     </NativeThemeProvider>
   )
 }

@@ -20,6 +20,8 @@ const NATIVE_CARD_MOTION_FIELDS = {
   onPanStart: true,
   onPan: true,
   onPanEnd: true,
+  globalTapTarget: true,
+  propagate: true,
   onTapStart: true,
   onTap: true,
   onTapCancel: true,

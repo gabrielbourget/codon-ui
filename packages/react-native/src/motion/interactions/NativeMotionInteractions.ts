@@ -1,17 +1,12 @@
-import type {
-  TNativeFocusEvent,
-  TNativeInteractionEvent,
-  TNativeKeyboardEvent,
-  TNativePressEvent,
-} from "../../input/types"
+import type { TNativeFocusEvent, TNativeKeyboardEvent } from "../../input/types"
 import { cancelFrame, frame } from "../kernel"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 
 import { nativeMotionIsDragging, nativeDragGestureRevision } from "./dragLock"
-import type { TNativeMotionHoverEvent, TNativeMotionPointInfo } from "./types"
+import type { TNativeMotionHoverEvent, TNativeMotionPointInfo, TNativeMotionTapEvent } from "./types"
 
 type TCycle = {
-  event: TNativeInteractionEvent
+  event: TNativeMotionTapEvent
   info: TNativeMotionPointInfo
   current: () => boolean
   cancelCurrent: () => boolean
@@ -61,7 +56,7 @@ export class NativeMotionInteractions {
       if (current()) this.error(error)
     })
   }
-  private point = (event: TNativePressEvent): TNativeMotionPointInfo => {
+  private point = (event: TNativeMotionTapEvent): TNativeMotionPointInfo => {
     const point = eventPoint(event)
     if (point) return point
     const target = this.owner.current
@@ -91,12 +86,18 @@ export class NativeMotionInteractions {
     this.jobs.add(job)
     frame.postRender(job)
   }
-  start = (event: TNativeInteractionEvent, source: TCycle["source"], code?: number) => {
-    if (!this.tapEnabled() || !this.admitted() || this.cycle || event.isDefaultPrevented?.()) return
+  start = (
+    event: TNativeMotionTapEvent,
+    source: TCycle["source"],
+    code?: number,
+    registrationCurrent: () => boolean = () => true,
+  ) => {
+    if (!this.tapEnabled() || !this.admitted() || this.cycle || event.isDefaultPrevented?.()) return false
     try {
       const info = this.point(event)
       event.persist?.()
-      const current = this.owner.captureAnimationLease()
+      const ownerCurrent = this.owner.captureAnimationLease()
+      const current = () => ownerCurrent() && registrationCurrent()
       this.cycle = {
         event,
         info,
@@ -108,16 +109,18 @@ export class NativeMotionInteractions {
       }
       this.priority("whileTap", true)
       this.queue(event, info, this.owner.getProps().onTapStart, current)
+      return true
     } catch (error) {
       this.error(error)
+      return false
     }
   }
-  move = (event: TNativeInteractionEvent) => {
+  move = (event: TNativeMotionTapEvent) => {
     if (this.cycle?.source !== "pointer") return
     const point = eventPoint(event)
     if (point) this.cycle.info = point
   }
-  end = (event: TNativePressEvent, success: boolean, source?: TCycle["source"]) => {
+  end = (event: TNativeMotionTapEvent, success: boolean, source?: TCycle["source"]) => {
     const cycle = this.cycle
     if (!cycle || (source && cycle.source !== source)) return
     this.cycle = undefined
@@ -158,7 +161,7 @@ export class NativeMotionInteractions {
     if (this.cycle?.source !== "keyboard" || this.cycle.code !== event.nativeEvent.nativeCode) return
     this.end(event, !event.nativeEvent.cancelled, "keyboard")
   }
-  activation = (event: TNativePressEvent) => {
+  activation = (event: TNativeMotionTapEvent) => {
     if (!this.tapEnabled() || !this.admitted() || this.cycle?.source === "keyboard" || event.isDefaultPrevented?.())
       return
     if (this.cycle) {

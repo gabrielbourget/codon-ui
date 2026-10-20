@@ -5,6 +5,8 @@ import type { GestureResponderEvent, View } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
 import type { TNativeKeyScope } from "../../input/keyScope"
+import { NativeKeyboardScope } from "../../input/NativeKeyboardScope"
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativeActivationEvent, TNativeFocusEvent, TNativeKeyboardEvent } from "../../input/types"
 import { NativeMotionConfig } from "../config"
 import { NativeMotionInteractions } from "../interactions/NativeMotionInteractions"
@@ -105,6 +107,7 @@ const fixture = (props: TNativeMotionOwnerProps = {}, more: Partial<TNativeMotio
 }
 beforeEach(() => {
   mockScope = null
+  jest.spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle").mockReturnValue(17)
   MotionGlobalConfig.useManualTiming = true
   frameData.timestamp = 1000
   time.set(1000)
@@ -313,7 +316,71 @@ it("uses current callbacks on cancellation and retains focus while own drag supp
   f.dispose()
 })
 
-it("connects original responder events through real RN Pressability and preserves the held-empty editor/root", async () => {
+// Window packets are explicit source models; no actual UIKit/Android dispatch is claimed.
+const acknowledgePointers = async () => {
+  const host = () => screen.getByTestId("window-scope")
+  await act(() =>
+    host().props.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host().props.ownerId,
+        windowId: "modeled-window",
+        epoch: 1,
+        policyRevision: host().props.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  await act(() =>
+    host().props.onNativePointerStatus({
+      nativeEvent: {
+        ownerId: host().props.ownerId,
+        windowId: "modeled-window",
+        epoch: 1,
+        revision: host().props.pointerRevision,
+        ready: true,
+        error: "",
+      },
+    }),
+  )
+}
+let windowSequence = 0
+const windowPacket = (phase: "start" | "end" | "cancel" | "activation", depth = 0) => {
+  const host = screen.getByTestId("window-scope")
+  return event({
+    ownerId: host.props.ownerId,
+    windowId: "modeled-window",
+    epoch: 1,
+    sequence: ++windowSequence,
+    phase,
+    pointerId: phase === "activation" ? -1 : 1,
+    pointerType: phase === "activation" ? "virtual" : "touch",
+    isPrimary: true,
+    button: 0,
+    buttons: phase === "start" ? 1 : 0,
+    nativeButtons: "0",
+    nativeModifiers: "0",
+    shiftKey: false,
+    altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    pageX: 20,
+    pageY: 30,
+    timestamp: windowSequence,
+    target: 17,
+    registrations: host.props.pointerRegistrations.map((entry: { id: string; targetTag: number }) => ({
+      ...entry,
+      ownerId: host.props.ownerId,
+      epoch: 1,
+      revision: host.props.pointerRevision,
+      depth,
+    })),
+  }) as unknown as TNativeWindowPointerEvent
+}
+const deliverWindow = async (packet: TNativeWindowPointerEvent) => {
+  await act(() => screen.getByTestId("window-scope").props.onNativeWindowPointer(packet))
+}
+it("connects original window packets while preserving the held-empty editor, root and caller responder behavior", async () => {
   const ref = createRef<View>(),
     start = jest.fn(),
     complete = jest.fn(),
@@ -322,76 +389,142 @@ it("connects original responder events through real RN Pressability and preserve
     release = jest.fn(),
     change = jest.fn()
   const content = (enabled: boolean) => (
-    <NativeMotionConfig skipAnimations>
-      <NativeMotionOwnerHost
-        ref={ref}
-        testID="root"
-        onResponderGrant={grant}
-        onResponderRelease={release}
-        motion={{
-          initial: { opacity: 1 },
-          ...(enabled ? { whileTap: { opacity: 0.2 }, onTapStart: start, onTap: complete, onTapCancel: cancel } : {}),
-        }}
-      >
-        <TextInput testID="editor" value="" onChangeText={change} />
-      </NativeMotionOwnerHost>
-    </NativeMotionConfig>
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionConfig skipAnimations>
+        <NativeMotionOwnerHost
+          ref={ref}
+          testID="root"
+          onResponderGrant={grant}
+          onResponderRelease={release}
+          motion={{
+            initial: { opacity: 1 },
+            ...(enabled ? { whileTap: { opacity: 0.2 }, onTapStart: start, onTap: complete, onTapCancel: cancel } : {}),
+          }}
+        >
+          <TextInput testID="editor" value="" onChangeText={change} />
+        </NativeMotionOwnerHost>
+      </NativeMotionConfig>
+    </NativeKeyboardScope>
   )
   await render(content(false))
   const original = ref.current,
     editor = screen.getByTestId("editor")
-  expect(screen.getByTestId("root").props.onStartShouldSetResponder(touch())).toBe(false)
+  expect(screen.getByTestId("root").props.onStartShouldSetResponder).toBeUndefined()
   await screen.rerender(content(true))
+  await acknowledgePointers()
   expect(ref.current).toBe(original)
-  const down = touch(),
-    up = touch(25, 35, 2)
-  expect(screen.getByTestId("root").props.onStartShouldSetResponder(down)).toBe(true)
-  await act(() => screen.getByTestId("root").props.onResponderGrant(down))
+  const down = windowPacket("start"),
+    up = windowPacket("end")
+  await deliverWindow(down)
   await flush()
   expect(StyleSheet.flatten(screen.getByTestId("root").props.style).opacity).toBe(0.2)
-  await act(() => screen.getByTestId("root").props.onResponderRelease(up))
+  await deliverWindow(up)
   await flush(1032)
   expect(start.mock.calls[0][0]).toBe(down)
   expect(complete.mock.calls[0][0]).toBe(up)
-  expect(grant).toHaveBeenCalledWith(down)
-  expect(release).toHaveBeenCalledWith(up)
+  expect(grant).not.toHaveBeenCalled()
+  expect(release).not.toHaveBeenCalled()
   expect(cancel).not.toHaveBeenCalled()
   await screen.rerender(content(false))
   expect(ref.current).toBe(original)
   expect(screen.getByTestId("editor")).toBe(editor)
   expect(editor.props.value).toBe("")
   expect(change).not.toHaveBeenCalled()
-  expect(screen.getByTestId("root").props.onStartShouldSetResponder(touch())).toBe(false)
+  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toEqual([])
   await screen.unmount()
 })
-
-it("preserves caller responder negotiation/default prevention and native termination cancellation", async () => {
+it("preserves caller responder negotiation and handles actual window cancellation independently", async () => {
   const start = jest.fn(),
     complete = jest.fn(),
     cancel = jest.fn(),
-    request = jest.fn(() => false)
+    request = jest.fn(() => false),
+    grant = jest.fn()
   await render(
-    <NativeMotionOwnerHost
-      testID="root"
-      onStartShouldSetResponder={request}
-      motion={{ onTapStart: start, onTap: complete, onTapCancel: cancel }}
-    />,
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost
+        testID="root"
+        onStartShouldSetResponder={request}
+        onResponderGrant={grant}
+        motion={{ onTapStart: start, onTap: complete, onTapCancel: cancel }}
+      />
+    </NativeKeyboardScope>,
   )
-  const root = () => screen.getByTestId("root")
-  const down = touch()
-  expect(root().props.onStartShouldSetResponder(down)).toBe(false)
-  expect(request).toHaveBeenCalledWith(down)
-  down.preventDefault()
-  await act(() => root().props.onResponderGrant(down))
+  await acknowledgePointers()
+  const root = screen.getByTestId("root"),
+    responder = touch()
+  expect(root.props.onStartShouldSetResponder(responder)).toBe(false)
+  expect(request).toHaveBeenCalledWith(responder)
+  await act(() => root.props.onResponderGrant(responder))
+  expect(grant).toHaveBeenCalledWith(responder)
   await flush()
   expect(start).not.toHaveBeenCalled()
-  const next = touch(),
-    terminated = touch(90)
-  await act(() => root().props.onResponderGrant(next))
-  await act(() => root().props.onResponderTerminate(terminated))
+  const down = windowPacket("start"),
+    cancelled = windowPacket("cancel")
+  await deliverWindow(down)
+  await deliverWindow(cancelled)
   await flush(1032)
-  expect(cancel).toHaveBeenCalledWith(terminated, { point: { x: 90, y: 30 } })
+  expect(start).toHaveBeenCalledWith(down, { point: { x: 20, y: 30 } })
+  expect(cancel).toHaveBeenCalledWith(cancelled, { point: { x: 20, y: 30 } })
   expect(complete).not.toHaveBeenCalled()
+  await screen.unmount()
+})
+it("keeps original Android click delivery separate from physical tap and genuine virtual activation", async () => {
+  const tap = jest.fn(),
+    nativeClick = jest.fn()
+  await render(
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost testID="root" onNativeActivation={nativeClick} motion={{ onTap: tap }} />
+    </NativeKeyboardScope>,
+  )
+  await acknowledgePointers()
+  await deliverWindow(windowPacket("start"))
+  await deliverWindow(windowPacket("end"))
+  await flush()
+  expect(tap).toHaveBeenCalledTimes(1)
+  const root = screen.getByTestId("root")
+  const physical = event({
+    kind: "activation",
+    ownerId: root.props.ownerId,
+    target: 17,
+    source: "android-click",
+    observedAt: 10,
+    activationId: 1,
+    scopeOwnerId: "",
+    windowId: "modeled-window",
+    epoch: 1,
+  })
+  await act(() => root.props.onNativeActivation(physical))
+  await flush(1032)
+  expect(nativeClick).toHaveBeenCalledWith(physical)
+  expect(tap).toHaveBeenCalledTimes(1)
+  const virtual = windowPacket("activation")
+  await deliverWindow(virtual)
+  await flush(1048)
+  expect(tap).toHaveBeenCalledTimes(2)
+  expect(tap.mock.calls[1][0]).toBe(virtual)
+  await screen.unmount()
+})
+it("captures tap targeting/propagation at feature mount while reading current callbacks", async () => {
+  const before = jest.fn(),
+    after = jest.fn()
+  const content = (changed: boolean) => (
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost
+        testID="root"
+        motion={{ globalTapTarget: !changed, propagate: { tap: changed }, onTapStart: changed ? after : before }}
+      />
+    </NativeKeyboardScope>
+  )
+  await render(content(false))
+  await acknowledgePointers()
+  const initial = screen.getByTestId("window-scope").props.pointerRegistrations
+  await screen.rerender(content(true))
+  expect(screen.getByTestId("window-scope").props.pointerRegistrations).toEqual(initial)
+  const outside = windowPacket("start", -1)
+  await deliverWindow(outside)
+  await flush()
+  expect(before).not.toHaveBeenCalled()
+  expect(after).toHaveBeenCalledWith(outside, { point: { x: 20, y: 30 } })
   await screen.unmount()
 })
 
@@ -412,10 +545,13 @@ it("cancels a modeled inactive scope but rejects cancellation callbacks after it
     cancel = jest.fn(),
     complete = jest.fn()
   await render(
-    <NativeMotionOwnerHost testID="root" motion={{ onTapStart: start, onTap: complete, onTapCancel: cancel }} />,
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost testID="root" motion={{ onTapStart: start, onTap: complete, onTapCancel: cancel }} />
+    </NativeKeyboardScope>,
   )
-  const down = touch()
-  await act(() => screen.getByTestId("root").props.onResponderGrant(down))
+  await acknowledgePointers()
+  const down = windowPacket("start")
+  await deliverWindow(down)
   await act(() => {
     active = false
     ;[...listeners].forEach((listener) => listener())
@@ -427,7 +563,7 @@ it("cancels a modeled inactive scope but rejects cancellation callbacks after it
     active = true
     ;[...listeners].forEach((listener) => listener())
   })
-  await act(() => screen.getByTestId("root").props.onResponderGrant(touch()))
+  await deliverWindow(windowPacket("start"))
   await act(() => {
     epoch++
     ;[...listeners].forEach((listener) => listener())
@@ -448,7 +584,7 @@ it("keeps static previews non-interactive without adding accessibility grouping 
     </NativeMotionConfig>,
   )
   const root = screen.getByTestId("root")
-  expect(root.props.onStartShouldSetResponder(touch())).toBe(false)
+  expect(root.props.onStartShouldSetResponder).toBeUndefined()
   expect(root.props.nativePressable).toBe(false)
   expect(root.props.keyboardFocusable).toBe(false)
   expect(root.props.accessible).not.toBe(true)
@@ -461,13 +597,15 @@ it("keeps static previews non-interactive without adding accessibility grouping 
 
 it("preserves authored keys and existing tabIndex precedence without claiming activation keys on a nonfocusable root", async () => {
   const content = (tabIndex?: -1 | 0) => (
-    <NativeMotionOwnerHost
-      testID="root"
-      focusable={false}
-      tabIndex={tabIndex}
-      capturedKeys={["KeyQ"]}
-      motion={{ onTap: jest.fn() }}
-    />
+    <NativeKeyboardScope testID="window-scope" captureEnabled>
+      <NativeMotionOwnerHost
+        testID="root"
+        focusable={false}
+        tabIndex={tabIndex}
+        capturedKeys={["KeyQ"]}
+        motion={{ onTap: jest.fn() }}
+      />
+    </NativeKeyboardScope>
   )
   await render(content())
   for (const tabIndex of [undefined, 0, -1] as const) {
@@ -478,7 +616,7 @@ it("preserves authored keys and existing tabIndex precedence without claiming ac
     expect(root.props.capturedKeys).toEqual(
       tabIndex === 0 ? ["KeyQ", ...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")] : ["KeyQ"],
     )
-    expect(root.props.onStartShouldSetResponder(touch())).toBe(true)
+    expect(root.props.onStartShouldSetResponder).toBeUndefined()
   }
   await screen.unmount()
 })

@@ -2,7 +2,6 @@ import { useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
 
 import { nativeKeyTokens } from "../../input/keyScope"
 import type { TNativeKeyScope } from "../../input/keyScope"
-import { useNativePressability } from "../../input/nativePressability"
 import type { NativeMotionOwner, TNativeMotionOwnerProps } from "../owner/NativeMotionOwner"
 import type { TNativeMotionVisualHostProps } from "../visual/types"
 
@@ -10,6 +9,7 @@ import { NativeMotionDrag } from "./NativeMotionDrag"
 import { NativeMotionInteractions } from "./NativeMotionInteractions"
 import { NativeMotionPan } from "./NativeMotionPan"
 import type { TNativeMotionPanEvent } from "./types"
+import { useNativeMotionWindowTap } from "./useNativeMotionWindowTap"
 
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
 export const useNativeMotionInteractions = (
@@ -70,12 +70,7 @@ export const useNativeMotionInteractions = (
   const enabled = tapConfigured && !isStatic
   const keyboardEnabled =
     enabled && (visual.tabIndex === undefined ? visual.focusable !== false : visual.tabIndex === 0)
-  const handlers = useNativePressability({
-    disabled: !enabled,
-    onPressIn: (event) => interaction.start(event, "pointer"),
-    onPressMove: interaction.move,
-    onPress: (event) => interaction.end(event, true, "pointer"),
-  })
+  useNativeMotionWindowTap(owner, interaction, enabled, error)
   useLayoutEffect(() => {
     interaction.refresh()
     pan.refresh()
@@ -130,38 +125,6 @@ export const useNativeMotionInteractions = (
     nativePressable: visual.nativePressable || enabled,
     focusable: visual.focusable ?? (tapConfigured ? true : undefined),
     capturedKeys: [...new Set([...(visual.capturedKeys ?? []), ...(keyboardEnabled ? activationKeys : [])])],
-    onStartShouldSetResponder: (event) =>
-      visual.onStartShouldSetResponder
-        ? visual.onStartShouldSetResponder(event)
-        : (handlers.onStartShouldSetResponder?.(event) ?? false),
-    onResponderGrant: (event) => {
-      visual.onResponderGrant?.(event)
-      if (!event.isDefaultPrevented?.()) handlers.onResponderGrant?.(event)
-    },
-    onResponderMove: (event) => {
-      visual.onResponderMove?.(event)
-      handlers.onResponderMove?.(event)
-    },
-    onResponderRelease: (event) => {
-      visual.onResponderRelease?.(event)
-      try {
-        handlers.onResponderRelease?.(event)
-      } finally {
-        interaction.end(event, false, "pointer")
-      }
-    },
-    onResponderTerminate: (event) => {
-      visual.onResponderTerminate?.(event)
-      try {
-        handlers.onResponderTerminate?.(event)
-      } finally {
-        interaction.end(event, false, "pointer")
-      }
-    },
-    onResponderTerminationRequest: (event) =>
-      visual.onResponderTerminationRequest
-        ? visual.onResponderTerminationRequest(event)
-        : (handlers.onResponderTerminationRequest?.(event) ?? true),
     onPointerEnter: (event) => {
       visual.onPointerEnter?.(event)
       interaction.hoverStart(event)
@@ -211,7 +174,6 @@ export const useNativeMotionInteractions = (
     },
     onNativeActivation: (event) => {
       visual.onNativeActivation?.(event)
-      interaction.activation(event)
     },
   }
   return result
