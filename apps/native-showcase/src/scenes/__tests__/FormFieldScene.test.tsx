@@ -102,3 +102,33 @@ it("exercises empty arrays, primitive content, eight styles, label ownership, ze
   expect(screen.getByTestId("field-state")).toHaveTextContent(/Focus events: 1/)
   expect(screen.getByTestId("field-state")).toHaveTextContent(/Owner: "".*Requests: 0/)
 })
+
+it("updates and clears root relationships while the actual child editor remains caller controlled", async () => {
+  const press = await enter()
+  await fireEvent.changeText(screen.getByTestId("field-editor"), "retained@example.test")
+  const editor = screen.getByTestId("field-editor")
+  await press("Next field root relationships")
+  expect(screen.getByTestId("field-example").props).toMatchObject({
+    nativeLabelledBy: ["field-root-name"],
+    nativeDescribedBy: ["field-root-description"],
+    nativeDetailsBy: ["field-root-details"],
+    nativeDescriptionLabel: "Description du champ",
+    nativeDetailsLabel: "Renseignements",
+  })
+  await press("Next field label")
+  expect(screen.getByText(/Field context \/ contexte du champ:/)).toHaveTextContent(/Adresse courriel/)
+  await press("Toggle field description")
+  expect(screen.queryByText("Address guidance / renseignements sur l’adresse")).toBeNull()
+  expect(screen.getByTestId("field-example").props.nativeDescribedBy).toEqual(["field-root-description"])
+  await press("Next field root relationships")
+  expect(screen.getByTestId("field-example").props).toMatchObject({
+    nativeLabelledBy: [],
+    nativeDescribedBy: [],
+    nativeDetailsBy: [],
+  })
+  await press("Next field root relationships")
+  expect(screen.getByTestId("field-example").props.nativeDescribedBy).toBeUndefined()
+  expect(screen.getByTestId("field-editor")).toBe(editor)
+  expect(editor).toHaveDisplayValue("retained@example.test")
+  expect(screen.getByTestId("field-state")).toHaveTextContent(/Requests: 1/)
+})

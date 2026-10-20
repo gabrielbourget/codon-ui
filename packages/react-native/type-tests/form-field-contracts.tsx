@@ -52,14 +52,22 @@ export const DOMFieldClass = <FormField className="field" />
 export const DOMLabelClass = <FormField customLabelClassName="label" />
 // @ts-expect-error Native events replace DOM click payloads.
 export const DOMFieldClick = <FormField onClick={() => undefined} />
-// @ts-expect-error Generic browser description-ID relationships remain an open capability, not an implemented native prop.
-export const DOMDescriptionAlias = <FormField ariaDescribedBy="description-id" />
-// @ts-expect-error Browser details-ID semantics have no implemented generic native equivalent.
-export const DOMDetailsAlias = <FormField ariaDetails="details-id" />
-// @ts-expect-error Hyphenated DOM ID-reference props are explicitly rejected too.
-export const DOMDescriptionAttribute = <FormField aria-describedby="description-id" />
-// @ts-expect-error Native type rejection must also cover the hyphenated details attribute.
-export const DOMDetailsAttribute = <FormField aria-details="details-id" />
+export const RelatedField = (
+  <FormField
+    ariaDescribedBy="description-id second"
+    ariaDetails="details-id"
+    labels={{ descriptionLabel: "Description", detailsLabel: "Détails" }}
+  />
+)
+export const EmptyRelationships = (
+  <FormField aria-describedby="" aria-details="" labels={{ descriptionLabel: "", detailsLabel: "" }} />
+)
+// @ts-expect-error ID relationships use whitespace-separated strings, not arrays.
+export const InvalidDescriptionIDs = <FormField ariaDescribedBy={["description-id"]} />
+// @ts-expect-error IDs remain strings rather than native numeric tags.
+export const InvalidDetailsID = <FormField ariaDetails={7} />
+// @ts-expect-error Supplementary content captions remain localizable strings.
+export const InvalidRelationshipCaption = <FormField labels={{ detailsLabel: false }} />
 // @ts-expect-error Canonical root style is a style value, not a render-state callback.
 export const ReplacedFieldStyle = <FormField style={() => ({ opacity: 0 })} />
 // @ts-expect-error Native font sizes use logical numbers.
