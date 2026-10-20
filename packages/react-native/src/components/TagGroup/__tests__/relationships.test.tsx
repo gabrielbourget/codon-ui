@@ -4,6 +4,7 @@ import * as RN from "react-native"
 
 import { NativeThemeProvider } from "../../.."
 import { renderWithNativeCollections as render } from "../../../collection/__tests__/nativeReceipts"
+import { NativeSelectableCollectionContext } from "../../../collection/context"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 
@@ -40,8 +41,9 @@ it("binds ordered names and descriptions to the actual focusable list", async ()
   })
 })
 
-it("retains explicit native name and empty relationship overrides", async () => {
+it("composes the owning name without mutating native references or empty overrides", async () => {
   const names = ["native-name"]
+  Object.freeze(names)
   await render(
     <NativeThemeProvider>
       <TagGroup
@@ -59,11 +61,28 @@ it("retains explicit native name and empty relationship overrides", async () => 
   const list = screen.getByTestId("tag-list")
   expect(list.props).toMatchObject({
     accessibilityLabel: "Original label",
-    nativeLabelledBy: names,
+    nativeLabelledBy: [list.props.nativeID, ...names],
     nativeDescribedBy: [],
     nativeDetailsBy: [],
     nativeDescriptionLabel: "",
     nativeDetailsLabel: "",
   })
-  expect(list.props.nativeLabelledBy).toBe(names)
+  expect(list.props.nativeID).toBeTruthy()
+  expect(names).toEqual(["native-name"])
+})
+
+it("keeps the outer group identity separate from the context-owned labelled field", async () => {
+  const listRef = createRef<RN.View>()
+  await render(
+    <NativeThemeProvider>
+      <NativeSelectableCollectionContext.Provider value={{ id: "field", ref: listRef }}>
+        <TagGroup id="wrapper" accessibilityLabel="Own" aria-labelledby="reference" />
+      </NativeSelectableCollectionContext.Provider>
+    </NativeThemeProvider>,
+  )
+  expect(screen.getByTestId("tag-group").props.nativeID).toBe("wrapper")
+  const list = screen.getByTestId("tag-list")
+  expect(list.props.nativeID).toBe("field")
+  expect(list.props.nativeLabelledBy).toEqual(["field", "reference"])
+  expect(listRef.current).not.toBeNull()
 })

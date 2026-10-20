@@ -232,7 +232,9 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (NSString *)accessibilityLabel
 {
   if (CUIAccessibilityIsResolving(self)) return nil;
-  NSString *label = CUIAccessibilityResolve(self, _nativeLabelledBy, 0, NO);
+  const auto &props = *std::static_pointer_cast<const CUIFocusViewProps>(_props);
+  NSString *ownLabel = props.accessibilityLabel.empty() ? nil : [NSString stringWithUTF8String:props.accessibilityLabel.c_str()];
+  NSString *label = CUIAccessibilityResolveLabel(self, _nativeLabelledBy, ownLabel);
   return label != nil ? label : [super accessibilityLabel];
 }
 

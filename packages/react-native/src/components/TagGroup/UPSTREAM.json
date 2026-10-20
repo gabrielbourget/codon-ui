@@ -46,17 +46,46 @@
       "sourcePath": "packages/react-aria-components/src/SelectionIndicator.tsx",
       "sourceContentSHA256": "64db61758eb3282b9fd9c0f19118b46fb13b6da79450acfc7dce793834851765",
       "adaptedInto": ["Tag.tsx", "../../collection/context.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/utils/useLabels.mjs",
+      "distributionSHA256": "39185368bf6a915a47c8a40971caef11285a9364c4316a2d05dd480acc32a052",
+      "sourceMapPath": "dist/private/utils/useLabels.mjs.map",
+      "sourceMapSHA256": "c4d0038e077917dd69e09038adfe032d350f02f534e03d4c8b9d62d52fe9c189",
+      "sourcePath": "packages/react-aria/src/utils/useLabels.ts",
+      "sourceContentSHA256": "6b31be099c544f50f852f01d11c398a21e8d6e16a418fd6ae5c3bacd79cbbc72",
+      "adaptedInto": ["TagGroup.tsx", "../../input/accessibilityReferences.ts"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/label/useField.mjs",
+      "distributionSHA256": "ef1db2d485644cf75591d3e9bceee5ca2668ae1797962a9f39afe59c52b3d584",
+      "sourceMapPath": "dist/private/label/useField.mjs.map",
+      "sourceMapSHA256": "3269c66826951c5b0c77787bd115c309d6dced5da3a0ba11f431ba8eb1a4187d",
+      "sourcePath": "packages/react-aria/src/label/useField.ts",
+      "sourceContentSHA256": "cb2924e4cc49d83bc4bf21603efef81073bfe18667272b8ba47d64b380ac458c",
+      "adaptedInto": ["TagGroup.tsx", "../../input/accessibilityReferences.ts"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
-    "TagGroup.tsx": "5d72d2e019cfa611a549dff2d034dedf20448f0aeaa1ef4766068c846d269382",
+    "TagGroup.tsx": "b87a0f30f73a439b7a11e9f8cb297e308ac30b1fd91326abf77859cdfd22a65f",
     "Tag.tsx": "777ad65de6d83cc3fa6442410a5bfa88500fdb59d0186ddd7f21d1bd73eea0a3",
     "context.ts": "3f9b4ade9c2b1c8b682e369e8596c22af40c1adeb939e0ef6497721bf2883f3c",
     "types.ts": "d5ca2b624a8ea37be113a2e70f7bd6f5880d0641e69d65f6855751de9090f67e",
     "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",
     "visualTypes.ts": "aaffbc57ed907c25323512d5be5d41681326e67a4152c12f68cf55ee81a04a49",
-    "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7"
+    "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
+    "../../input/accessibilityReferences.ts": "27bf3bfb31b4ef7c25fd880aa6316e627e4ffdb7ce3475e2d64bb0e2b25b02c1",
+    "../../../android/src/main/java/com/codonui/input/CUIAccessibilityReferences.java": "f77e2b4b053318d1e4fc3d6f9413b0ab105f85ad26091132e8b2841929385773",
+    "../../../ios/CUIAccessibilityReferences.h": "a9e281efde541bce9ef4cf6f5a2aa2649d77ad3bf641933af2d71e40503609df",
+    "../../../ios/CUIAccessibilityReferences.mm": "a6938606d47c9a85ac6e66925a510cf4e6808cb30636fd34546671f272113c07",
+    "../../../ios/CUIFocusView.mm": "d2e85f546bc25e7b131fbfb494b5f857f9ccb64b66289b584fe03ed14499108d"
   }
 }

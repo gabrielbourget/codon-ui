@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.RequiresApi;
 import androidx.core.view.accessibility.AccessibilityNodeInfoCompat;
 import com.facebook.react.uimanager.util.ReactFindViewUtil;
+import com.facebook.react.R;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -53,7 +54,12 @@ final class CUIAccessibilityReferences {
     } finally { active.remove(source); }
   }
   private static void append(View source, View target, boolean bodyOnly, List<String> values) {
-    if (target == null || target == source || !target.isAttachedToWindow() || target.getWindowToken() != source.getWindowToken()) return;
+    if (target == null || !target.isAttachedToWindow() || target.getWindowToken() != source.getWindowToken()) return;
+    if (target == source) {
+      Object ownLabel = source.getTag(R.id.accessibility_label);
+      if (!bodyOnly && ownLabel instanceof CharSequence && ((CharSequence) ownLabel).length() > 0) values.add(ownLabel.toString());
+      return;
+    }
     CharSequence text = read(target, bodyOnly, new HashSet<>());
     if (text != null) values.add(text.toString());
   }
