@@ -1,4 +1,5 @@
 #include "InitialValueQuery.h"
+#include "NativeYogaNames.h"
 #include "NativeStyle.h"
 
 #include <react/renderer/graphics/BlendMode.h>
@@ -201,16 +202,16 @@ folly::dynamic readNativeInitialViewValue(const ViewProps &props, const LayoutMe
 #endif
   }
   if (name == "direction") return rtl ? "rtl" : "ltr";
-  if (name == "boxSizing") return y::toString(style.boxSizing());
-  if (name == "position") return y::toString(style.positionType());
-  if (name == "display") return y::toString(style.display());
-  if (name == "overflow") return y::toString(style.overflow());
-  if (name == "flexDirection") return y::toString(style.flexDirection());
-  if (name == "flexWrap") return y::toString(style.flexWrap());
-  if (name == "justifyContent") return y::toString(style.justifyContent());
-  if (name == "alignItems") return y::toString(style.alignItems());
-  if (name == "alignSelf") return y::toString(style.alignSelf());
-  if (name == "alignContent") return y::toString(style.alignContent());
+  if (name == "boxSizing") return nativeYogaEnumName(y::unscopedEnum(style.boxSizing()));
+  if (name == "position") return nativeYogaEnumName(y::unscopedEnum(style.positionType()));
+  if (name == "display") return nativeYogaEnumName(y::unscopedEnum(style.display()));
+  if (name == "overflow") return nativeYogaEnumName(y::unscopedEnum(style.overflow()));
+  if (name == "flexDirection") return nativeYogaEnumName(y::unscopedEnum(style.flexDirection()));
+  if (name == "flexWrap") return nativeYogaEnumName(y::unscopedEnum(style.flexWrap()));
+  if (name == "justifyContent") return nativeYogaEnumName(y::unscopedEnum(style.justifyContent()));
+  if (name == "alignItems") return nativeYogaEnumName(y::unscopedEnum(style.alignItems()));
+  if (name == "alignSelf") return nativeYogaEnumName(y::unscopedEnum(style.alignSelf()));
+  if (name == "alignContent") return nativeYogaEnumName(y::unscopedEnum(style.alignContent()));
   if (name == "flex") return finite(style.flex().unwrapOrDefault(0));
   if (name == "flexGrow") return finite(style.flexGrow().unwrapOrDefault(style.flex().unwrapOrDefault(0) > 0 ? style.flex().unwrap() : y::Style::DefaultFlexGrow));
   if (name == "flexShrink") return finite(style.flexShrink().unwrapOrDefault(style.flex().unwrapOrDefault(0) < 0 ? -style.flex().unwrap() : y::Style::DefaultFlexShrink));

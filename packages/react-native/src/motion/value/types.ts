@@ -1,6 +1,8 @@
 import type { TNativeMotionTransition } from "../animation"
 import type { MotionValue } from "../kernel"
 
+import type { TNativeMotionResolutionTicket } from "./resolution-batch"
+
 export interface TNativeMotionResolutionToken {
   isCurrent: () => boolean
   onCancel: (listener: () => void) => () => void
@@ -12,10 +14,13 @@ export type TNativeResolvedKeyframes = {
 export type TNativeMotionValueContext = {
   isCurrent: () => boolean
   readValue: (name: string, target: unknown, token: TNativeMotionResolutionToken) => unknown | Promise<unknown>
+  beginResolution?: (name: string, token: TNativeMotionResolutionToken) => TNativeMotionResolutionTicket
+  resolutionTicket?: TNativeMotionResolutionTicket
   resolveGeometry?: (
     name: string,
     frames: readonly unknown[],
     token: TNativeMotionResolutionToken,
+    ticket?: TNativeMotionResolutionTicket,
   ) => TNativeResolvedKeyframes | Promise<TNativeResolvedKeyframes>
   resolveColors?: (
     colors: readonly unknown[],

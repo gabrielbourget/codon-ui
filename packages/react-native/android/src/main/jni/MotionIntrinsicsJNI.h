@@ -9,6 +9,7 @@ TNativeScratchIntrinsicResolver createAndroidIntrinsicResolver(
     const TNativeFabricSnapshot &snapshot,
     std::shared_ptr<const facebook::react::ContextContainer> contextContainer,
     facebook::jni::alias_ref<jobject> actualThemedViewContext,
-    TNativeFabricReadGuard check);
+    TNativeFabricReadGuard check,
+    TNativeScratchPropsResolver propsForNode = {});
 
 } // namespace codon::motion

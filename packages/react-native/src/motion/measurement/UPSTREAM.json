@@ -1,5 +1,5 @@
 {
-  "scope": "Private guarded actual-host initial-value query plus measurement/restore transaction prototype. The isolated layout provider remains uninstalled; unsupported actual font/color/shorthand/matrix/imperative-layout authority rejects explicitly. Source/compiler proof does not establish native presentation, geometry fidelity or full Card.",
+  "scope": "Private guarded actual-host initial values and isolated geometry queue bound to the native immutable Fabric evaluator. Cohort normalization precedes staging; evaluated data is not mounted observation. Source and compiler checks do not admit native fidelity or full Card.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -22,15 +22,18 @@
     }
   ],
   "remaining": [
-    "Actual native before-paint isolation and rollback backend",
-    "Source-equivalent MotionValue internal notification/reset-velocity integration",
-    "Native style-to-metric mapping including content-box/borders, transforms, scroll and logical dimensions",
-    "Current consumers/products and actual layout/presentation/performance acceptance"
+    "Actual installed geometry/probe/velocity/passive-effect scheduling and native presentation correspondence",
+    "Full native style-to-metric mapping, coupled intrinsic content, named-font/cache/custom callbacks and every unsupported authority gate",
+    "Matching current consumers/products and actual layout/drawing/presentation/performance acceptance"
   ],
   "authoredFiles": [
     {
       "file": "initialValue.ts",
       "sha256": "1e3764ef76f53e863488fbe623b159990f0d4693a72a0a1ab55965f4c7ba743d"
+    },
+    {
+      "file": "isolatedGeometry.ts",
+      "sha256": "5396a5806be4e0d6260542c6b204f81da165375dc0d507b61bbe708862165c1d"
     }
   ]
 }

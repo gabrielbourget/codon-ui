@@ -13,6 +13,7 @@ class NativePopPresentation final : public facebook::react::UIManagerCommitHook 
   explicit NativePopPresentation(std::shared_ptr<facebook::react::UIManager> manager);
   ~NativePopPresentation() noexcept override;
   std::string request(const std::string &encoded);
+  facebook::react::Props::Shared authoredProps(const facebook::react::ShadowNode &node);
   void close() noexcept;
   void commitHookWasRegistered(const facebook::react::UIManager &) noexcept override {}
   void commitHookWasUnregistered(const facebook::react::UIManager &) noexcept override {}

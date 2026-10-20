@@ -8,6 +8,8 @@
 #include "ViewportQuery.h"
 #include "InitialValueQuery.h"
 #include "MotionDrawingJNI.h"
+#include "MotionIntrinsicsJNI.h"
+#include "GeometryQuery.h"
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
@@ -57,6 +59,22 @@ static jni::local_ref<jstring> nativeViewport(
   if (!request) throw std::invalid_argument("Native viewport: request required");
   return jni::make_jstring(codon::motion::queryNativeViewport(*scopedManager(manager), request->toStdString()));
 }
+static jni::local_ref<jstring> nativeEvaluatedLayout(
+    jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
+    jint target, jni::alias_ref<jstring> owner, jni::alias_ref<jstring> binding,
+    jni::alias_ref<jstring> revision, jni::alias_ref<jobject> context, jni::alias_ref<jstring> request, jlong presentation) {
+  if (!owner || !binding || !revision || !context || !request)
+    throw std::invalid_argument("Native motion layout: actual owner/context required");
+  const auto factory = [context](const codon::motion::TNativeFabricSnapshot &snapshot,
+      const codon::motion::TNativeScratchPropsResolver &props, const codon::motion::TNativeFabricReadGuard &check) {
+    return codon::motion::createAndroidIntrinsicResolver(snapshot, snapshot.target->getContextContainer(), context, check, props);
+  };
+  const auto authored = [presentation](const ShadowNode &node) {
+    return presentation ? reinterpret_cast<codon::motion::NativePopPresentation *>(presentation)->authoredProps(node) : node.getProps();
+  };
+  return jni::make_jstring(codon::motion::queryNativeEvaluatedLayout(*scopedManager(manager), target,
+      owner->toStdString(), binding->toStdString(), revision->toStdString(), request->toStdString(), factory, {}, authored));
+}
 
 static jlong nativeCreatePop(jni::alias_ref<jclass>,
     jni::alias_ref<JFabricUIManager::javaobject> manager) {
@@ -77,6 +95,7 @@ extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
         makeNativeMethod("nativeInitialValue", nativeInitialValue),
+        makeNativeMethod("nativeEvaluatedLayout", nativeEvaluatedLayout),
         makeNativeMethod("nativePopFrame", nativePopFrame),
         makeNativeMethod("nativeViewport", nativeViewport),
         makeNativeMethod("nativeCreatePop", nativeCreatePop),

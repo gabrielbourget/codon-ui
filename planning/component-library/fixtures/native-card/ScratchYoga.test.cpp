@@ -1,4 +1,5 @@
 #include "ScratchYoga.h"
+#include "NativeYogaNames.h"
 #include <cmath>
 #include <algorithm>
 #include <yoga/event/event.h>
@@ -16,6 +17,12 @@ static void require(bool condition, const std::string &message) {
 static void near(float actual, float expected, const std::string &message) {
   require(std::abs(actual - expected) < 0.001f, message + ": " +
       std::to_string(actual) + " != " + std::to_string(expected));
+}
+template <typename TCpp, typename TEnum> static void enumNames(const char *(*upstream)(TEnum)) {
+  for (int32_t index = 0; index < y::ordinalCount<TCpp>(); index++) {
+    const auto value = static_cast<TEnum>(index);
+    require(std::string(nativeYogaEnumName(value)) == upstream(value), "actual pinned Yoga enum spelling");
+  }
 }
 template <typename F> static void rejects(F callback, const std::string &message) {
   try { callback(); } catch (const std::exception &error) {
@@ -53,6 +60,14 @@ int main() {
       if (type == y::Event::NodeDeallocation) retirements++;
     });
     auto input = tree();
+    enumNames<y::Align, YGAlign>(YGAlignToString);
+    enumNames<y::BoxSizing, YGBoxSizing>(YGBoxSizingToString);
+    enumNames<y::Display, YGDisplay>(YGDisplayToString);
+    enumNames<y::FlexDirection, YGFlexDirection>(YGFlexDirectionToString);
+    enumNames<y::Justify, YGJustify>(YGJustifyToString);
+    enumNames<y::Overflow, YGOverflow>(YGOverflowToString);
+    enumNames<y::PositionType, YGPositionType>(YGPositionTypeToString);
+    enumNames<y::Wrap, YGWrap>(YGWrapToString);
     auto style = input.children[0].style;
     std::vector<y::Style> stages;
     for (const auto width : {120.0f, 0.0f, 13.25f, 400.0f}) {
@@ -124,6 +139,29 @@ int main() {
     observedDirections.clear();
     evaluateNativeScratchYoga(directed, rightToLeft, 2, {directed.children[0].style});
     require(!observedDirections.empty() && observedDirections.back() == YGDirectionRTL, "measure receives current RTL direction");
+    auto firstStage = intrinsic;
+    firstStage.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode, YGDirection) { return YGSize{41, 17}; };
+    firstStage.children[0].style.setMargin(y::Edge::Left, y::StyleLength::points(5));
+    auto secondStage = firstStage;
+    secondStage.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode, YGDirection) { return YGSize{137, 29}; };
+    secondStage.children[0].formsContainingBlock = true;
+    const auto complete = evaluateNativeScratchStages({{firstStage, ltr}, {secondStage, rightToLeft}}, 2);
+    require(complete.size() == 2 && complete[0].size() == 2 && complete[1].size() == 2, "complete independent stage trees returned");
+    require(complete[0][0].tag == 1 && complete[0][0].parentTag == 0, "root identity and no parent retained");
+    require(complete[0][1].tag == 2 && complete[0][1].parentTag == 1, "target parent retained");
+    near(complete[0][1].layout.frame[2], 41, "first stage intrinsic authority");
+    near(complete[1][1].layout.frame[2], 137, "second stage intrinsic authority");
+    near(complete[0][1].layout.frame[3], 17, "first stage intrinsic height");
+    near(complete[1][1].layout.frame[3], 29, "second stage intrinsic height");
+    near(complete[0][1].layout.margin[0], 5, "evaluated physical margin retained");
+    require(complete[0][1].layout.direction == YGDirectionLTR && complete[1][1].layout.direction == YGDirectionRTL, "each stage retains actual Yoga direction");
+    require(!complete[0][1].formsContainingBlock && complete[1][1].formsContainingBlock, "containing-block state belongs to each stage");
+    near(firstStage.children[0].measure(0, YGMeasureModeUndefined, 0, YGMeasureModeUndefined, YGDirectionLTR).width, 41, "first input callback unchanged");
+    auto fixedUnknown = tree(); fixedUnknown.children[0].children.clear();
+    fixedUnknown.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode, YGDirection) -> YGSize { throw std::runtime_error("unsupported intrinsic"); };
+    near(evaluateNativeScratchStages({{fixedUnknown, ltr}}, 2)[0][1].layout.frame[2], 120, "fixed measured leaf needs no fabricated intrinsic");
+    fixedUnknown.children[0].style.setDimension(y::Dimension::Width, y::StyleSizeLength::ofAuto());
+    rejects([&] { evaluateNativeScratchStages({{fixedUnknown, ltr}}, 2); }, "unsupported intrinsic");
     auto duplicate = tree(); duplicate.children[0].children[0].tag = 2;
     rejects([&] { evaluateNativeScratchYoga(duplicate, constraints(), 2, {style}); }, "duplicate scratch tag");
     auto invalid = constraints(); invalid.pointScaleFactor = 0;

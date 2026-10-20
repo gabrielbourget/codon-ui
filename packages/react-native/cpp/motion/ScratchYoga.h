@@ -39,7 +39,28 @@ struct TNativeScratchMeasurement {
   std::array<float, 4> frame;
   std::array<float, 4> border;
   std::array<float, 4> padding;
+  std::array<float, 4> margin{};
+  YGDirection direction{YGDirectionInherit};
 };
+
+struct TNativeScratchNodeMeasurement {
+  int tag;
+  int parentTag;
+  YGDisplay display;
+  YGPositionType positionType;
+  bool formsContainingBlock;
+  TNativeScratchMeasurement layout;
+};
+
+struct TNativeScratchStage {
+  TNativeScratchNode root;
+  TNativeScratchConstraints constraints;
+};
+
+// Every stage owns its complete immutable input, including intrinsic callbacks
+// and containing-block state. The output is independent layout, never a mount.
+std::vector<std::vector<TNativeScratchNodeMeasurement>> evaluateNativeScratchStages(
+    const std::vector<TNativeScratchStage> &stages, int target);
 
 std::vector<TNativeScratchMeasurement> evaluateNativeScratchYoga(
     const TNativeScratchNode &root, const TNativeScratchConstraints &constraints,

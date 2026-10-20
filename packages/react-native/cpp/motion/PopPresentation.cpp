@@ -44,6 +44,19 @@ NativePopPresentation::NativePopPresentation(std::shared_ptr<UIManager> manager)
 }
 NativePopPresentation::~NativePopPresentation() noexcept { close(); }
 
+Props::Shared NativePopPresentation::authoredProps(const ShadowNode &node) {
+  std::lock_guard lock(mutex_);
+  if (closed_) throw std::runtime_error("Native motion layout: presentation session retired");
+  if (!failure_.empty()) throw std::runtime_error(failure_);
+  const auto incoming = node.getProps();
+  const auto found = authored_.find(incoming.get());
+  if (found == authored_.end() || found->second.presentation.lock() != incoming ||
+      found->second.family.lock() != node.getFamilyShared()) return incoming;
+  // Restore only the style fields owned by this presentation lease into a
+  // separate props object. Children, editor state and mounted props stay intact.
+  return patch(node, incoming, found->second.style);
+}
+
 void NativePopPresentation::prune() {
   const auto now = std::chrono::steady_clock::now();
   std::unordered_set<std::string> retained;

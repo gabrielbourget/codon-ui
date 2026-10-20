@@ -20,6 +20,7 @@ import { useNativeMotionConfig, useNativeMotionReducedMotion } from "../config"
 import { useNativeMotionInteractions } from "../interactions/useNativeMotionInteractions"
 import { cancelFrame, frame } from "../kernel"
 import { readNativeMotionInitialValue } from "../measurement/initialValue"
+import { NativeMotionIsolatedGeometryState } from "../measurement/isolatedGeometry"
 import { NativePresenceContext, NativePopRootContext, useNativePresence } from "../presence/context"
 import { useNativeMotionPresence } from "../presence/useNativeMotionPresence"
 import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
@@ -75,6 +76,15 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
           return readNativeMotionInitialValue(target, name, endpoint, token)
         }),
       resolveGeometry,
+      evaluateGeometry: (name, frames, token, ticket) => {
+        const target = owner.current
+        if (!target) throw new Error("Native motion: actual isolated geometry owner unavailable")
+        return geometry.resolve(target, name, frames, token, ticket, (value, phase) =>
+          owner.isolatedProbe(name, value, phase, token),
+        )
+      },
+      transformTemplate: visual.transformTemplate,
+      onMeasurementError: (error) => setFailure({ error }),
       presence: presence ?? presenceContext ?? undefined,
       initialContext: inherited,
       base: Object.fromEntries(
@@ -92,6 +102,10 @@ export const NativeMotionOwnerHost = forwardRef<TNativeFocusViewRef, TNativeMoti
         windowIsActive?.() !== false,
     }
     const [owner] = useState(() => new NativeMotionOwner(options, parent))
+    const [geometry] = useState(
+      () => new NativeMotionIsolatedGeometryState(owner.buildIsolatedStage, owner.beginIsolatedTransforms),
+    )
+    useLayoutEffect(() => () => geometry.cancel(), [geometry])
     const initialContext = nativeInitialVariantContext(motion, inherited)
     const initialDependency = Array.isArray(initialContext.initial)
       ? initialContext.initial.join(" ")

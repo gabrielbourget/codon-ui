@@ -1,5 +1,5 @@
 {
-  "scope": "Private actual-host renderer-owner composition and default guarded native initial-value reader. Immutable/imperative view props, direct Paragraph authority and native trait colors now have source paths. Unsupported natural metrics/ambiguous authority, isolated geometry and full native/Card acceptance remain required.",
+  "scope": "Private actual-host owner composition with guarded native initial values and default isolated geometry evaluator. Public MotionValue identity remains original while private visual subscriptions hold measurement probes. Native fidelity and full Card acceptance remain required.",
   "inputs": [
     {
       "package": "motion-dom",
@@ -56,11 +56,11 @@
   "authoredFiles": [
     {
       "file": "NativeMotionOwner.ts",
-      "sha256": "d4602e6ed79a86d4e5426199ef204f1f5819f09be0ccaf08faac1dfec266c7a1"
+      "sha256": "a315d3b4ea2425c1d8db2ce3a91c8529ee09568a9250ae92159637f20b47d906"
     },
     {
       "file": "NativeMotionOwnerHost.tsx",
-      "sha256": "a6b299055b3f3321aa57c98f60a68a48677a47e3f356f168361ce6d000d1d0fe"
+      "sha256": "aac6559298eb2358454ddef8ebb04a500de5298f48ea87bb6e78bb66e13fc01d"
     }
   ],
   "nativeAdaptations": [

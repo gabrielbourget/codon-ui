@@ -34,7 +34,7 @@ struct TServices {
     check();
   }
 
-  Size cached(const ShadowNode &source, const LayoutContext &, const LayoutConstraints &bounds) {
+  Size cached(const ShadowNode &source, const LayoutContext &, const LayoutConstraints &bounds, const Props::Shared &selected) {
     check();
     const auto *node = dynamic_cast<const AndroidTextInputShadowNode *>(&source);
     if (!node || node->getStateData().cachedAttributedStringId == 0)
@@ -42,7 +42,9 @@ struct TServices {
     MapBufferBuilder attributed;
     attributed.putInt(AS_KEY_CACHE_ID, static_cast<int32_t>(node->getStateData().cachedAttributedStringId));
     auto text = JReadableMapBuffer::createWithContents(attributed.build());
-    auto paragraph = JReadableMapBuffer::createWithContents(toMapBuffer(node->getConcreteProps().paragraphAttributes));
+    const auto *selectedProps = dynamic_cast<const AndroidTextInputProps *>(selected.get());
+    if (!selectedProps) throw std::invalid_argument("Native motion: actual selected editor props required");
+    auto paragraph = JReadableMapBuffer::createWithContents(toMapBuffer(selectedProps->paragraphAttributes));
     static auto measure = JIntrinsics::javaClassStatic()->getMethod<jlong(
         JReadableMapBuffer::javaobject, JReadableMapBuffer::javaobject, jfloat, jfloat, jfloat, jfloat)>("cachedEditor");
     auto result = yogaMeassureToSize(measure(service, text.get(), paragraph.get(), bounds.minimumSize.width,
@@ -50,11 +52,13 @@ struct TServices {
     check(); return result;
   }
 
-  Size progress(const ShadowNode &source, const LayoutContext &, const LayoutConstraints &bounds) {
+  Size progress(const ShadowNode &source, const LayoutContext &, const LayoutConstraints &bounds, const Props::Shared &selected) {
     check();
     const auto *node = dynamic_cast<const AndroidProgressBarShadowNode *>(&source);
     if (!node) throw std::invalid_argument("Native motion: actual Android progress node required");
-    auto props = ReadableNativeMap::newObjectCxxArgs(toDynamic(node->getConcreteProps()));
+    const auto *selectedProps = dynamic_cast<const AndroidProgressBarProps *>(selected.get());
+    if (!selectedProps) throw std::invalid_argument("Native motion: actual selected progress props required");
+    auto props = ReadableNativeMap::newObjectCxxArgs(toDynamic(*selectedProps));
     auto readable = jni::make_local(reinterpret_cast<ReadableMap::javaobject>(props.get()));
     static auto measure = JIntrinsics::javaClassStatic()->getMethod<jlong(
         ReadableMap::javaobject, jfloat, jfloat, jfloat, jfloat)>("progress");
@@ -67,11 +71,12 @@ struct TServices {
 
 TNativeScratchIntrinsicResolver createAndroidIntrinsicResolver(
     const TNativeFabricSnapshot &snapshot, std::shared_ptr<const ContextContainer> contextContainer,
-    jni::alias_ref<jobject> actualThemedViewContext, TNativeFabricReadGuard check) {
+    jni::alias_ref<jobject> actualThemedViewContext, TNativeFabricReadGuard check,
+    TNativeScratchPropsResolver propsForNode) {
   auto state = std::make_shared<TServices>(actualThemedViewContext, check);
   TNativeIsolatedIntrinsicServices services{
-      [state](const auto &node, const auto &context, const auto &bounds) { return state->cached(node, context, bounds); },
-      [state](const auto &node, const auto &context, const auto &bounds) { return state->progress(node, context, bounds); }};
-  return createNativeIntrinsicResolver(snapshot, std::move(contextContainer), std::move(services), std::move(check));
+      [state](const auto &node, const auto &context, const auto &bounds, const auto &props) { return state->cached(node, context, bounds, props); },
+      [state](const auto &node, const auto &context, const auto &bounds, const auto &props) { return state->progress(node, context, bounds, props); }};
+  return createNativeIntrinsicResolver(snapshot, std::move(contextContainer), std::move(services), std::move(check), std::move(propsForNode));
 }
 } // namespace codon::motion

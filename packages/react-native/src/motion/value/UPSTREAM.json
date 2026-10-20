@@ -30,12 +30,32 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/utils/is-animatable.ts",
       "upstreamSha256": "e276250232e5b15c52e347833890b04fd7a82c9ad43d6c9d192bdd9ff7a73e03",
       "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/DOMKeyframesResolver.ts",
+      "upstreamSha256": "5e0bd63209faf4991a35ff55ce1df027f3cf001a3d11fe3a1ef3896c299ccd43",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/unit-conversion.ts",
+      "upstreamSha256": "6551fa122528dc8e00caaddfb24baa3e32156778c9723a7a7bf61ae22c4aa4d7",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/utils/keys-transform.ts",
+      "upstreamSha256": "01fab321464304dfd8147b705f2f70e0b07d357105ad3e759d329d50110e91ab",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/index.ts",
+      "upstreamSha256": "6edffa9f7a6985ad29fbb9dcc7e3537082fd133f3b5825e0839cac57e0b95423",
+      "sourceKind": "npm-source-map-sourcesContent"
     }
   ],
   "files": [
     {
       "file": "NativeValueAnimation.ts",
-      "receivedSha256": "83b9afd561f07fee7797b740c7566e82c11c072d5c17a9c8d9c7eb2bc97a5271",
+      "receivedSha256": "adf9b18a048304fc1fcfee96d833cce7a8768d66bb513314c1f554a92c3e2a60",
       "kind": "authored-native-adapter"
     },
     {
@@ -50,7 +70,7 @@
     },
     {
       "file": "keyframes.ts",
-      "receivedSha256": "94ca5620790e30b19a1fc0c3a5c36f6485298f77b64a1157094fcaf279ed3392",
+      "receivedSha256": "8d837d1cff20f6814925261ce154085efeabcebe6d447c5a088bad1eec60cdca",
       "kind": "authored-native-adapter"
     },
     {
@@ -60,7 +80,17 @@
     },
     {
       "file": "types.ts",
-      "receivedSha256": "611130680183ab65955991155ccb710d8d5e5d5761f58d32ac8658cb40c7ffbc",
+      "receivedSha256": "f5113eeaa06dd7c0ab18b7d24b23218897a795fd7bbaac1afcbd5d9a35bb920e",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "isolated-probe.ts",
+      "receivedSha256": "51135fdb0512c1d5dd4c6d01c0d8304c5bb8405df8e8d6a665f8281c4c5ee41b",
+      "kind": "authored-native-adapter"
+    },
+    {
+      "file": "resolution-batch.ts",
+      "receivedSha256": "43a89c47e501cae0a40e054f1be1c44a185bb861bcad9638080cd0320e95df58",
       "kind": "authored-native-adapter"
     }
   ],
@@ -71,7 +101,9 @@
     "Static/single/instant endpoints retain original native representation; interpolated color/geometry results restore authored final values",
     "Pending native measurement cannot be synchronously flushed as browser geometry can: private ready resolves before duration/iterationDuration/generator velocity are available, with explicit pending errors instead of invented metadata; time/speed/startTime/play/pause/complete requests queue in order",
     "Resolution failures reject ready/early finished and retire only their currently owned value control; stopped/cancelled source promises remain pending",
-    "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged"
+    "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged",
+    "Cohort registration before asynchronous initial/color resolution holds animation start until every reserved live member is normalized and settled; cancellation invalidates captures without resetting the original deadline",
+    "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style"
   ],
   "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
 }

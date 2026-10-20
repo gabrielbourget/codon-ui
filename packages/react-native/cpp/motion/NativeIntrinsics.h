@@ -10,16 +10,19 @@ namespace codon::motion {
 struct TNativeIsolatedIntrinsicServices {
   std::function<facebook::react::Size(
       const facebook::react::ShadowNode &, const facebook::react::LayoutContext &,
-      const facebook::react::LayoutConstraints &)> cachedEditor;
+      const facebook::react::LayoutConstraints &,
+      const facebook::react::Props::Shared &)> cachedEditor;
   std::function<facebook::react::Size(
       const facebook::react::ShadowNode &, const facebook::react::LayoutContext &,
-      const facebook::react::LayoutConstraints &)> progress;
+      const facebook::react::LayoutConstraints &,
+      const facebook::react::Props::Shared &)> progress;
 };
 
 TNativeScratchIntrinsicResolver createNativeIntrinsicResolver(
     const TNativeFabricSnapshot &snapshot,
     std::shared_ptr<const facebook::react::ContextContainer> contextContainer,
     TNativeIsolatedIntrinsicServices services = {},
-    TNativeFabricReadGuard check = {});
+    TNativeFabricReadGuard check = {},
+    TNativeScratchPropsResolver propsForNode = {});
 
 } // namespace codon::motion
