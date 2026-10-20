@@ -111,36 +111,63 @@ it("composes native activation and press-up with owner state, guards, callback r
   const user = userEvent.setup()
   const press = async (name: string) => user.press(screen.getByRole("button", { name }))
   await press("Text/Button scene")
-  const activation = (activationId: number) => ({
+  const root = () => screen.getByTestId("library-button")
+  let scope = root().parent
+  while (scope && !scope.props.onNativeScopeStatus) scope = scope.parent
+  if (!scope) throw new Error("Expected the button's native keyboard scope in this source-model fixture")
+  const scopeHost = scope
+  const activation = (activationId: number, scoped = true) => ({
     nativeEvent: {
       kind: "activation",
       source: "ios-accessibility-activate",
-      ownerId: screen.getByTestId("library-button").props.ownerId,
+      ownerId: root().props.ownerId,
       target: 17,
       observedAt: 0,
       activationId,
-      scopeOwnerId: "",
-      windowId: "window-1",
-      epoch: 0,
+      scopeOwnerId: scoped ? scopeHost.props.ownerId : "",
+      windowId: scoped ? "button-scene-window" : "window-1",
+      epoch: scoped ? 1 : 0,
     },
   })
-  const send = async (event: ReturnType<typeof activation>) =>
-    act(() => screen.getByTestId("library-button").props.onNativeActivation(event))
-  await send(activation(1))
+  const send = async (event: ReturnType<typeof activation>) => act(() => root().props.onNativeActivation(event))
+  // Source-model handshake only; installed acknowledgments remain a separate acceptance tier.
+  const acknowledgeCurrentScope = async () =>
+    act(() =>
+      scopeHost.props.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scopeHost.props.ownerId,
+          windowId: "button-scene-window",
+          epoch: 1,
+          policyRevision: scopeHost.props.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      }),
+    )
+  await send(activation(1, false))
+  await send(activation(2))
+  expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 0/)
+  expect(screen.getByTestId("library-release")).toHaveTextContent("Last release: none")
+  await acknowledgeCurrentScope()
+  const first = activation(3)
+  await send(first)
+  await send(first)
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
   expect(screen.getByTestId("library-release")).toHaveTextContent("Last release: activation")
   await press("Toggle library pending")
-  const blocked = activation(2)
+  const blocked = activation(4)
   await send(blocked)
   await press("Toggle library pending")
+  await acknowledgeCurrentScope()
   await send(blocked)
   expect(screen.getByTestId("library-state")).toHaveTextContent(/count: 1/)
   await press("Toggle render children")
   await press("Dark theme")
-  await send(activation(3))
+  await acknowledgeCurrentScope()
+  await send(activation(5))
   expect(screen.getByText("Rendered library action 2")).toBeOnTheScreen()
   const retained = screen.getByTestId("library-button").props.onNativeActivation
-  const retired = activation(4)
+  const retired = activation(6)
   await press("Reset scene")
   await act(() => retained(retired))
   await press("Text/Button scene")
