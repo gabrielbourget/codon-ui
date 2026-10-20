@@ -1,0 +1,9 @@
+// Received from motion-utils 12.39.0. See UPSTREAM.json and LICENSE.motion-utils.md.
+// Accepts an easing function and returns a new one that outputs mirrored values for
+
+import type { EasingModifier } from "../types"
+
+// the second half of the animation. Turns easeIn into easeInOut.
+/*#__NO_SIDE_EFFECTS__*/
+export const mirrorEasing: EasingModifier = (easing) => (p) =>
+  p <= 0.5 ? easing(2 * p) / 2 : (2 - easing(2 * (1 - p))) / 2
