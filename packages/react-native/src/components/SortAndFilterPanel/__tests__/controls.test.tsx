@@ -1,7 +1,12 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
+import { act, screen, within } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, StyleSheet, type View } from "react-native"
 
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  rerenderWithNativeCollections,
+} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
@@ -74,7 +79,7 @@ it("uses current row IDs, labels and callbacks after a replacement rather than a
     parameter: { ...instruction("", "Descending"), criteriaName: "Renamed" },
     labels: { ...labels.sortEntry, sortAscendingButtonAriaLabel: "Monter", deleteButtonAriaLabel: "Supprimer" },
   }
-  await screen.rerender(wrap(<QuerySortEntry {...next} />))
+  await rerenderWithNativeCollections(wrap(<QuerySortEntry {...next} />))
   expect(screen.getByText("Renamed")).toBeOnTheScreen()
   await press("Sort Descending")
   await press("Monter")
@@ -178,7 +183,7 @@ it("renders current criteria and names without retaining deleted metadata", asyn
       />,
     ),
   )
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <QuerySortCriteriaField
         availableSortCriteria={[{ id: "new", name: "Nouveau" }]}
@@ -228,7 +233,7 @@ it("CAP.query-controls.004 retains active tags until the owner removes them, inc
   expect(onDelete.mock.calls).toEqual([[""], [""]])
   expect(sorts).toHaveLength(2)
   expect(screen.getByText("City")).toBeOnTheScreen()
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(<QueryActiveSorts sortParameterList={[]} labels={labels.activeSorts} onDeleteSortParameter={onDelete} />),
   )
   expect(screen.getByText("No sorting currently applied")).toBeOnTheScreen()
@@ -247,7 +252,7 @@ it("uses current active-sort tag metadata and removal callback after replacement
       />,
     ),
   )
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <QueryActiveSorts
         sortParameterList={[{ ...instruction("current"), criteriaName: "Nouveau" }]}
@@ -305,7 +310,7 @@ it("updates footer labels/callbacks and keeps a vetoed Apply separate from Cance
       />,
     ),
   )
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <QueryPanelFooter
         labels={{ clearAllButton: "Effacer", cancelButton: "Annuler", applyButton: "Valider" }}
@@ -348,7 +353,7 @@ it("retains the title and current close label/callback without mutating open own
   await press("Close Sort and Filter Panel")
   expect(previous).toHaveBeenCalledTimes(2)
   expect(screen.getByText("Events")).toBeOnTheScreen()
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <QueryPanelHeader
         title="Événements"
@@ -387,7 +392,7 @@ it("CAP.query-controls.006 updates existing theme spacing, surface and radius wi
     backgroundColor: resolveNativeTheme("light").colors.controlHoverBackground,
     borderRadius: resolveNativeTheme("light").radius.rounded,
   })
-  await screen.rerender(wrap(<QuerySortEntry {...props} />, "dark"))
+  await rerenderWithNativeCollections(wrap(<QuerySortEntry {...props} />, "dark"))
   expect(StyleSheet.flatten(screen.getByTestId("query-sort-entry").props.style).backgroundColor).toBe(
     resolveNativeTheme("dark").colors.controlHoverBackground,
   )

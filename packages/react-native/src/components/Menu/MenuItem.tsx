@@ -8,13 +8,22 @@ import {
   useMemo,
   useRef,
 } from "react"
-import { View } from "react-native"
+import { View, type TextStyle } from "react-native"
 
-import { focusNativeTarget } from "../../input/focus"
+import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionItemBindingContext } from "../../collection/binding"
+import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  NativeCollectionCellFocusContext,
+} from "../../collection/renderer"
+import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
+import { getNativeButtonContent } from "../Button/content"
 
-import { NativeMenuContext, type TNativeMenuRegistration } from "./context"
+import { NativeMenuActionsContext, type TNativeMenuRegistration } from "./context"
 import { encodeNativeMenuKey, validateNativeMenuKey } from "./model"
 import { getNativeMenuItemStyles } from "./styles"
 import { NATIVE_MENU_ITEM_VARIANTS, type TNativeMenuItemProps, type TNativeMenuItemRef } from "./types"
@@ -24,8 +33,12 @@ const textContent = (value: TNativeMenuItemProps["children"]): string => {
   if (Array.isArray(value)) return value.map(textContent).join("")
   return ""
 }
-export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((props, ref) => {
+const MenuItemReceiver = forwardRef<
+  TNativeMenuItemRef,
+  TNativeMenuItemProps & { collectionNode: TNativeCollectionNode<unknown> }
+>((props, ref) => {
   const {
+    collectionNode,
     id: authoredId,
     children,
     textValue,
@@ -50,7 +63,8 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
     "data-testid": aliasTestID,
     ...native
   } = props
-  const context = useContext(NativeMenuContext)
+  const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
+  const context = useContext(NativeMenuActionsContext)
   if (!context) throw new Error("MenuItem requires a native Menu")
   const generated = useId(),
     id = authoredId ?? generated
@@ -58,6 +72,7 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
   if (!NATIVE_MENU_ITEM_VARIANTS.includes(variant)) throw new TypeError("MenuItem: unsupported variant")
   const theme = useNativeTheme()
   const view = useRef<View>(null)
+  const textStyle = useRef<TextStyle>({})
   const current = useRef(props)
   useInsertionEffect(() => {
     current.current = props
@@ -65,11 +80,12 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
   const row = useMemo<TNativeMenuRegistration>(
     () => ({
       id,
+      node: collectionNode,
       view,
       props: () => current.current,
       text: () => current.current.textValue ?? textContent(current.current.children),
     }),
-    [id],
+    [id, collectionNode],
   )
   const register = context.register,
     refresh = context.refresh
@@ -112,6 +128,7 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
           },
           context.text,
         )
+        textStyle.current = style.text
         return [style.view, style.text]
       }}
       onLayout={(event) => {
@@ -119,11 +136,12 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
         onLayout?.(event)
       }}
       onFocus={(event) => {
+        nativeCellFocus?.(event)
         context.focus(row)
         onFocus?.(event)
       }}
       onHoverStart={(event) => {
-        if (context.focus(row)) focusNativeTarget(view.current)
+        context.requestFocus(row)
         onHoverStart?.(event)
       }}
       onKeyDown={(event) => {
@@ -141,13 +159,29 @@ export const MenuItem = forwardRef<TNativeMenuItemRef, TNativeMenuItemProps>((pr
         if (!("kind" in event.nativeEvent && event.nativeEvent.kind === "keyboard")) context.activate(row, event)
       }}
     >
-      {icon !== undefined ? (
-        <View testID="menu-item-icon" style={{ flexShrink: 0, flexDirection: "row", alignItems: "center" }}>
-          {icon}
-        </View>
-      ) : null}
-      {children}
+      {() => (
+        <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
+          {icon !== undefined ? (
+            <View testID="menu-item-icon" style={{ flexShrink: 0, flexDirection: "row", alignItems: "center" }}>
+              {icon}
+            </View>
+          ) : null}
+          {getNativeButtonContent(children, textStyle.current)}
+        </NativeCollectionRendererContext.Provider>
+      )}
     </NativeButton>
   )
 })
+MenuItemReceiver.displayName = "MenuItemReceiver"
+export const MenuItem = createNativeCollectionLeaf<unknown, TNativeMenuItemProps, TNativeMenuItemRef>(
+  "item",
+  (props, ref, node) => {
+    const actions = useContext(NativeCollectionActionsContext)
+    return (
+      <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
+        <MenuItemReceiver {...props} id={node.key} textValue={node.textValue} collectionNode={node} ref={ref} />
+      </NativeCollectionItemBindingContext.Provider>
+    )
+  },
+)
 MenuItem.displayName = "MenuItem"

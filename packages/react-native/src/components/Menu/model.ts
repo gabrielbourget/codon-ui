@@ -31,7 +31,7 @@ export const normalizeNativeMenuKeys = (keys: Iterable<TNativeMenuKey>): TNative
   }
   const metadata = keys as Iterable<TNativeMenuKey> & { anchorKey?: TNativeMenuKey; currentKey?: TNativeMenuKey }
   for (const field of ["anchorKey", "currentKey"] as const) {
-    if (metadata[field] !== undefined) {
+    if (metadata[field] != null) {
       const key = metadata[field]
       validateNativeMenuKey(key)
       result[field] = key

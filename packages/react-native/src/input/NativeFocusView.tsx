@@ -11,6 +11,8 @@ import {
 } from "react"
 import { findNodeHandle, type GestureResponderEvent, type NativeSyntheticEvent, type ViewProps } from "react-native"
 
+import { NativeCollectionItemBindingContext } from "../collection/binding"
+import { NativeCollectionSemanticsContext } from "../collection/semantics"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
@@ -91,6 +93,8 @@ export const NativeFocusHost = forwardRef<
     ...rest
   } = props
   const ownerId = useId()
+  const collectionBinding = useContext(NativeCollectionItemBindingContext)
+  const collectionSemantics = useContext(NativeCollectionSemanticsContext)
   const [geometryBinding] = useState(() => `motion-geometry:${++motionGeometryBindings}`)
   const attached = useRef(false)
   const nativeTarget = useRef<ElementRef<typeof FocusHost> | null>(null)
@@ -240,6 +244,8 @@ export const NativeFocusHost = forwardRef<
         nativeDescriptionLabel={rest.nativeDescriptionLabel ?? description?.label}
         ref={setRef}
         ownerId={ownerId}
+        nativeCollectionBinding={collectionBinding}
+        nativeCollectionSemantics={collectionSemantics}
         nativeMotionColorObservation={nativeMotionColorObservation}
         nativeMotionGeometryBinding={nativeMotionGeometryObservation ? geometryBinding : ""}
         nativeMotionGeometryRevision={nativeMotionGeometryRevision}

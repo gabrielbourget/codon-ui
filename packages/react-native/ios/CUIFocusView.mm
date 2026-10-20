@@ -25,6 +25,8 @@ using namespace facebook::react;
   double _activationId;
   BOOL _focusAcknowledged;
   NSString *_ownerId;
+  NSString *_nativeCollectionBinding;
+  NSDictionary *_nativeCollectionSemantics;
   NSSet<NSString *> *_capturedKeys;
   NSMutableDictionary<NSNumber *, UIPress *> *_held;
   NSMutableSet<NSNumber *> *_consumed;
@@ -60,6 +62,7 @@ using namespace facebook::react;
     _motionVisibilityReady = YES;
     _motionProjectionRevision = @"";
     _ownerId = @"";
+    _nativeCollectionBinding = @"";
     _capturedKeys = [NSSet set];
     _held = [NSMutableDictionary dictionary];
     _consumed = [NSMutableSet set];
@@ -77,6 +80,155 @@ using namespace facebook::react;
   return self;
 }
 
+- (NSString *)nativeCollectionBinding { return _nativeCollectionBinding; }
+
+static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
+{
+  id value = fields[key];
+  if (![value isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)value) == CFBooleanGetTypeID()) return -1;
+  double number = [value doubleValue];
+  return isfinite(number) && number >= 0 && number <= INT_MAX && number == floor(number) ? (NSInteger)number : -1;
+}
+
+- (BOOL)isCollectionRoot
+{
+  NSString *mode = _nativeCollectionSemantics[@"selectionMode"];
+  return self.window && _nativeCollectionBinding.length && [_nativeCollectionSemantics[@"kind"] isEqual:@"root"]
+    && CUICollectionInteger(_nativeCollectionSemantics, @"rowCount") >= 0 && CUICollectionInteger(_nativeCollectionSemantics, @"columnCount") >= 0
+    && [@[@"none", @"single", @"multiple"] containsObject:mode ?: @""];
+}
+
+- (BOOL)conformsToProtocol:(Protocol *)protocol
+{
+  if (protocol == @protocol(UIAccessibilityContainerDataTable)) return [self isCollectionRoot];
+  if (protocol == @protocol(UIAccessibilityContainerDataTableCell)) return [self collectionParent] != nil;
+  return [super conformsToProtocol:protocol];
+}
+
+- (BOOL)respondsToSelector:(SEL)selector
+{
+  if (selector == @selector(accessibilityRowRange) || selector == @selector(accessibilityColumnRange)) return [self collectionParent] != nil;
+  if (selector == @selector(accessibilityDataTableCellElementForRow:column:) || selector == @selector(accessibilityRowCount)
+    || selector == @selector(accessibilityColumnCount) || selector == @selector(accessibilityHeaderElementsForRow:)
+    || selector == @selector(accessibilityHeaderElementsForColumn:)) return [self isCollectionRoot];
+  return [super respondsToSelector:selector];
+}
+
+- (CUIFocusView *)collectionParent
+{
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"cell"] || !self.window) return nil;
+  UIView *candidate = [self.window viewWithTag:CUICollectionInteger(_nativeCollectionSemantics, @"parentTarget")];
+  if (![candidate isKindOfClass:CUIFocusView.class] || candidate == self || ![self isDescendantOfView:candidate]) return nil;
+  CUIFocusView *parent = (CUIFocusView *)candidate;
+  if (![parent isCollectionRoot] || parent.window != self.window) return nil;
+  NSDictionary *own = [NSJSONSerialization JSONObjectWithData:[_nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  NSDictionary *root = [NSJSONSerialization JSONObjectWithData:[parent.nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  if (![own isKindOfClass:NSDictionary.class] || ![root isKindOfClass:NSDictionary.class]) return nil;
+  for (NSString *key in @[@"ownerId", @"rootId", @"rootRevision", @"target", @"surfaceId", @"windowId", @"epoch", @"sequence"])
+    if (!own[key] || ![own[key] isEqual:root[key]]) return nil;
+  NSInteger row = CUICollectionInteger(_nativeCollectionSemantics, @"rowIndex"), column = CUICollectionInteger(_nativeCollectionSemantics, @"columnIndex");
+  NSInteger rows = CUICollectionInteger(_nativeCollectionSemantics, @"rowSpan"), columns = CUICollectionInteger(_nativeCollectionSemantics, @"columnSpan");
+  if (row < 0 || column < 0 || rows < 1 || columns < 1 || row + rows > [parent accessibilityRowCount] || column + columns > [parent accessibilityColumnCount]) return nil;
+  return parent;
+}
+
+- (NSArray<CUIFocusView *> *)collectionCells
+{
+  if (![self isCollectionRoot]) return @[];
+  NSMutableArray<CUIFocusView *> *cells = [NSMutableArray array];
+  NSMutableArray<UIView *> *pending = [self.subviews mutableCopy];
+  while (pending.count) {
+    UIView *view = pending.firstObject;
+    [pending removeObjectAtIndex:0];
+    if (view.hidden || view.alpha <= 0) continue;
+    if ([view isKindOfClass:CUIFocusView.class]) {
+      CUIFocusView *cell = (CUIFocusView *)view;
+      if ([cell collectionParent] == self) [cells addObject:cell];
+      if ([cell isCollectionRoot]) continue;
+    }
+    [pending addObjectsFromArray:view.subviews];
+  }
+  return cells;
+}
+
+- (NSUInteger)accessibilityRowCount { return [self isCollectionRoot] ? CUICollectionInteger(_nativeCollectionSemantics, @"rowCount") : 0; }
+- (NSUInteger)accessibilityColumnCount { return [self isCollectionRoot] ? CUICollectionInteger(_nativeCollectionSemantics, @"columnCount") : 0; }
+- (NSRange)accessibilityRowRange
+{
+  return [self collectionParent] ? NSMakeRange(CUICollectionInteger(_nativeCollectionSemantics, @"rowIndex"), CUICollectionInteger(_nativeCollectionSemantics, @"rowSpan")) : NSMakeRange(NSNotFound, 0);
+}
+- (NSRange)accessibilityColumnRange
+{
+  return [self collectionParent] ? NSMakeRange(CUICollectionInteger(_nativeCollectionSemantics, @"columnIndex"), CUICollectionInteger(_nativeCollectionSemantics, @"columnSpan")) : NSMakeRange(NSNotFound, 0);
+}
+- (id<UIAccessibilityContainerDataTableCell>)accessibilityDataTableCellElementForRow:(NSUInteger)row column:(NSUInteger)column
+{
+  for (CUIFocusView *cell in [self collectionCells])
+    if (NSLocationInRange(row, cell.accessibilityRowRange) && NSLocationInRange(column, cell.accessibilityColumnRange)) return cell;
+  return nil;
+}
+
+- (NSArray<id<UIAccessibilityContainerDataTableCell>> *)collectionHeadersForIndex:(NSUInteger)index row:(BOOL)row
+{
+  NSMutableOrderedSet<CUIFocusView *> *headers = [NSMutableOrderedSet orderedSet];
+  for (CUIFocusView *cell in [self collectionCells]) {
+    if (!NSLocationInRange(index, row ? cell.accessibilityRowRange : cell.accessibilityColumnRange)) continue;
+    if (cell.accessibilityTraits & UIAccessibilityTraitHeader) [headers addObject:cell];
+    id references = cell->_nativeCollectionSemantics[row ? @"rowHeaderTargets" : @"columnHeaderTargets"];
+    if (![references isKindOfClass:NSArray.class]) continue;
+    for (id target in references) {
+      NSInteger tag = CUICollectionInteger(@{@"target":target}, @"target");
+      UIView *view = tag > 0 ? [self.window viewWithTag:tag] : nil;
+      if ([view isKindOfClass:CUIFocusView.class]) {
+        CUIFocusView *header = (CUIFocusView *)view;
+        if ([header collectionParent] == self && (header.accessibilityTraits & UIAccessibilityTraitHeader)) [headers addObject:header];
+      }
+    }
+  }
+  return (NSArray<id<UIAccessibilityContainerDataTableCell>> *)headers.array;
+}
+- (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForRow:(NSUInteger)row { return [self collectionHeadersForIndex:row row:YES]; }
+- (NSArray<id<UIAccessibilityContainerDataTableCell>> *)accessibilityHeaderElementsForColumn:(NSUInteger)column { return [self collectionHeadersForIndex:column row:NO]; }
+
+- (UIAccessibilityTraits)accessibilityTraits
+{
+  UIAccessibilityTraits traits = [super accessibilityTraits];
+  if ([self collectionParent]) {
+    traits = [_nativeCollectionSemantics[@"selected"] boolValue] ? traits | UIAccessibilityTraitSelected : traits & ~UIAccessibilityTraitSelected;
+    traits = [_nativeCollectionSemantics[@"heading"] boolValue] ? traits | UIAccessibilityTraitHeader : traits & ~UIAccessibilityTraitHeader;
+  }
+  return traits;
+}
+
+- (NSString *)collectionAccessibilitySnapshot
+{
+  NSMutableDictionary *snapshot = [NSMutableDictionary dictionary];
+  if ([self isCollectionRoot]) {
+    snapshot[@"kind"] = @"root";
+    snapshot[@"rowCount"] = @([self accessibilityRowCount]); snapshot[@"columnCount"] = @([self accessibilityColumnCount]);
+    NSMutableArray *cells = [NSMutableArray array];
+    for (CUIFocusView *cell in [self collectionCells]) {
+      NSRange row = [cell accessibilityRowRange], column = [cell accessibilityColumnRange];
+      id resolved = [self accessibilityDataTableCellElementForRow:row.location column:column.location];
+      NSMutableArray *rowHeaders = [NSMutableArray array], *columnHeaders = [NSMutableArray array];
+      for (CUIFocusView *header in [self accessibilityHeaderElementsForRow:row.location]) [rowHeaders addObject:@(header.tag)];
+      for (CUIFocusView *header in [self accessibilityHeaderElementsForColumn:column.location]) [columnHeaders addObject:@(header.tag)];
+      [cells addObject:@{@"target":@(cell.tag), @"resolved":@(resolved == cell), @"rowIndex":@(row.location), @"rowSpan":@(row.length),
+        @"columnIndex":@(column.location), @"columnSpan":@(column.length), @"rowHeaderTargets":rowHeaders, @"columnHeaderTargets":columnHeaders}];
+    }
+    snapshot[@"materializedCells"] = cells;
+  } else if ([self collectionParent]) {
+    NSRange row = [self accessibilityRowRange], column = [self accessibilityColumnRange];
+    snapshot[@"kind"] = @"cell"; snapshot[@"parentTarget"] = @([self collectionParent].tag);
+    snapshot[@"rowIndex"] = @(row.location); snapshot[@"rowSpan"] = @(row.length);
+    snapshot[@"columnIndex"] = @(column.location); snapshot[@"columnSpan"] = @(column.length);
+    snapshot[@"selected"] = @((self.accessibilityTraits & UIAccessibilityTraitSelected) != 0);
+    snapshot[@"heading"] = @((self.accessibilityTraits & UIAccessibilityTraitHeader) != 0);
+  }
+  NSData *data = [NSJSONSerialization dataWithJSONObject:snapshot options:NSJSONWritingSortedKeys error:nil];
+  return data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : @"{}";
+}
+
 - (NSString *)accessibilityLabel
 {
   if (CUIAccessibilityIsResolving(self)) return nil;
@@ -86,6 +238,7 @@ using namespace facebook::react;
 
 - (UIAccessibilityContainerType)accessibilityContainerType
 {
+  if ([self isCollectionRoot]) return UIAccessibilityContainerTypeDataTable;
   return _nativeNavigation ? UIAccessibilityContainerTypeLandmark : [super accessibilityContainerType];
 }
 
@@ -127,6 +280,7 @@ using namespace facebook::react;
   value.details = detailsAvailable ? content[index].value.UTF8String : "";
   value.descriptionAvailable = descriptionAvailable;
   value.detailsAvailable = detailsAvailable;
+  value.collection = [self collectionAccessibilitySnapshot].UTF8String;
   value.observedAt = NSProcessInfo.processInfo.systemUptime * 1000;
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeAccessibilitySnapshot(value);
 }
@@ -431,6 +585,9 @@ using namespace facebook::react;
   for (const auto &key : next.capturedKeys) [capture addObject:[NSString stringWithUTF8String:key.c_str()]];
   if (![_ownerId isEqualToString:owner] || !next.keyboardFocusable || ![_capturedKeys isEqual:capture]) [self cancelHeldKeys];
   _ownerId = owner;
+  _nativeCollectionBinding = [NSString stringWithUTF8String:next.nativeCollectionBinding.c_str()];
+  id collection = [NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:next.nativeCollectionSemantics.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  _nativeCollectionSemantics = [collection isKindOfClass:NSDictionary.class] ? collection : nil;
   _keyboardFocusable = next.keyboardFocusable;
   _nativePressable = next.nativePressable;
   _nativeNavigation = next.nativeNavigation;
@@ -486,6 +643,8 @@ using namespace facebook::react;
   [self cancelHeldKeys];
   [self resignFirstResponder];
   _ownerId = @"";
+  _nativeCollectionBinding = @"";
+  _nativeCollectionSemantics = nil;
   _capturedKeys = [NSSet set];
   _keyboardFocusable = YES;
   _nativePressable = NO;

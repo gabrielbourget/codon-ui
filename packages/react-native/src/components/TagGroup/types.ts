@@ -1,24 +1,15 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { View } from "react-native"
 
+import type { TNativeSlotProps } from "../../collection/context"
+import type { TNativeListState as ListState } from "../../collection/state"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeButtonProps } from "../Button/types"
 
-import type {
-  TNativeTagGroupKey,
-  TNativeTagGroupSelection,
-  TNativeTagGroupSelectionBehavior,
-  TNativeTagGroupSelectionMode,
-} from "./model"
+import type { TNativeTagGroupKey, TNativeTagGroupSelectionBehavior, TNativeTagGroupSelectionMode } from "./model"
 import type { TNativeGroupedTagState, TNativeGroupedTagVisualProps, TNativeTagGroupVisualProps } from "./visualTypes"
 
-export type TNativeTagGroupSnapshot = Readonly<{
-  keys: readonly TNativeTagGroupKey[]
-  selectedKeys: TNativeTagGroupSelection
-  focusedKey: TNativeTagGroupKey | null
-  selectionMode: TNativeTagGroupSelectionMode
-  selectionBehavior: TNativeTagGroupSelectionBehavior
-}>
+export type TNativeTagGroupSnapshot = ListState<object>
 export type TNativeTagGroupEmptyState = Readonly<{
   isEmpty: boolean
   isFocused: boolean
@@ -34,6 +25,8 @@ export type TNativeTagGroupProps<T extends object = object> = Omit<
   "children" | "style" | "role" | "accessibilityRole" | "accessible"
 > &
   TNativeTagGroupVisualProps & {
+    slot?: TNativeSlotProps["slot"]
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: undefined) => ReactElement
     children?: ReactNode | ((item: T) => ReactNode)
     items?: Iterable<T>
     getKey?: (item: T) => TNativeTagGroupKey

@@ -35,7 +35,7 @@ export const normalizeNativeTagGroupKeys = (keys: Iterable<TNativeTagGroupKey>):
     currentKey?: TNativeTagGroupKey
   }
   for (const field of ["anchorKey", "currentKey"] as const) {
-    if (metadata[field] !== undefined) {
+    if (metadata[field] != null) {
       validateCollectionKey(metadata[field], field, "TagGroup")
       result[field] = metadata[field]
     }

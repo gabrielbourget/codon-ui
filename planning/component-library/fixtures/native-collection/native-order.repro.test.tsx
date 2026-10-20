@@ -1,6 +1,12 @@
+import {
+  actWithNativeCollections as act,
+  confirmNativeCollections,
+  fireEvent,
+  screen,
+  renderWithNativeCollections as render,
+} from "../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
 import { writeFileSync } from "node:fs"
 
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, useState, type ReactNode } from "react"
 import * as RN from "react-native"
 
@@ -116,6 +122,7 @@ it("requires Home to follow an opaque parent's committed reorder", async () => {
   const view = await render(node(<Opaque order={["a", "b", "c"]} />))
   await ready()
   await view.rerender(node(<Opaque order={["b", "c", "a"]} />))
+  await ready()
   expect(screen.getAllByRole("row").map((item) => item.props.testID)).toEqual(["b", "c", "a"])
   verdict("opaque parent reorder", await home(refs.c.current), refs, "b")
 })
@@ -131,6 +138,8 @@ it("requires Home to follow child-local reorder without parent props changing", 
   await render(node(<Opaque />))
   await ready()
   await act(() => update(["c", "a", "b"]))
+  await confirmNativeCollections()
+  await ready()
   verdict("opaque local reorder", await home(refs.b.current), refs, "c")
 })
 

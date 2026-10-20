@@ -1,5 +1,6 @@
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
+#import "CUIFocusView.h"
 #import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -14,6 +15,8 @@ using namespace facebook::react;
   NSString *_rootRevision;
   NSString *_lastSignature;
   NSString *_inspectionRequest;
+  NSString *_actionRequests;
+  NSUInteger _lastActionSequence;
   NSString *_inspectedRequest;
   BOOL _lastComplete;
   __weak UIWindow *_boundWindow;
@@ -32,7 +35,7 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUICollectionRootProps>();
     _rootRevision = @""; _lastSignature = @""; _windowId = @""; _lastSurfaceId = -1;
-    _inspectionRequest = @""; _inspectedRequest = @"";
+    _inspectionRequest = @""; _inspectedRequest = @""; _actionRequests = @"[]";
   }
   return self;
 }
@@ -43,6 +46,7 @@ using namespace facebook::react;
   self.rootId = [NSString stringWithUTF8String:value.rootId.c_str()];
   _rootRevision = [NSString stringWithUTF8String:value.rootRevision.c_str()];
   _inspectionRequest = [NSString stringWithUTF8String:value.inspectionRequest.c_str()];
+  _actionRequests = [NSString stringWithUTF8String:value.actionRequests.c_str()];
   [super updateProps:props oldProps:oldProps];
 }
 - (void)didMoveToWindow
@@ -161,6 +165,58 @@ using namespace facebook::react;
   value.accepted = valid; value.inspection = serialized.UTF8String; value.error = error.UTF8String;
   std::static_pointer_cast<const CUICollectionRootEventEmitter>(_eventEmitter)->onNativeCollectionInspection(value);
 }
+- (BOOL)binding:(NSDictionary *)binding matchesNumber:(NSString *)key value:(double)expected
+{
+  id number = binding[key];
+  return [number isKindOfClass:NSNumber.class] && CFGetTypeID((__bridge CFTypeRef)number) != CFBooleanGetTypeID() && [number doubleValue] == expected;
+}
+- (BOOL)acceptsAction:(NSDictionary *)binding serialized:(NSString *)serialized visibleTarget:(NSInteger)target
+{
+  if (![binding isKindOfClass:NSDictionary.class] || !_lastComplete || !self.window.isKeyWindow || self.hidden ||
+    !self.ownerId.length || !self.rootId.length || !_rootRevision.length ||
+    ![self.ownerId isEqual:binding[@"ownerId"]] || ![self.rootId isEqual:binding[@"rootId"]] || ![_rootRevision isEqual:binding[@"rootRevision"]] ||
+    ![_windowId isEqual:binding[@"windowId"]] || ![_windowId isEqual:CUIInputWindowIdentity(self.window)]) return NO;
+  NSDictionary *numbers = @{@"target":@(self.tag), @"surfaceId":@(_lastSurfaceId), @"epoch":@(_epoch), @"sequence":@(_sequence)};
+  for (NSString *key in numbers) if (![self binding:binding matchesNumber:key value:[numbers[key] doubleValue]]) return NO;
+  UIView *visible = [self.window viewWithTag:target];
+  if (![visible isKindOfClass:CUIFocusView.class] || visible.window != self.window || ![serialized isEqual:((CUIFocusView *)visible).nativeCollectionBinding]) return NO;
+  for (UIView *ancestor = visible; ancestor; ancestor = ancestor.superview) if (ancestor.hidden || ancestor.alpha <= 0) return NO;
+  NSMutableArray *nodes = [NSMutableArray array]; BOOL metadataOnly = YES;
+  NSString *error = [self collect:self parentId:@"" nodes:nodes ids:[NSMutableSet set] metadataOnly:&metadataOnly];
+  if (error.length || !metadataOnly || ![binding[@"descriptorId"] isKindOfClass:NSString.class]) return NO;
+  NSString *descriptor = binding[@"descriptorId"];
+  if (!descriptor.length) return [binding[@"descriptorRevision"] isEqual:@""] && [self binding:binding matchesNumber:@"metadataTarget" value:self.tag];
+  for (NSDictionary *node in nodes) {
+    if ([descriptor isEqual:node[@"descriptorId"]] && [binding[@"descriptorRevision"] isEqual:node[@"descriptorRevision"]] &&
+      [self binding:binding matchesNumber:@"metadataTarget" value:[node[@"target"] doubleValue]]) return YES;
+  }
+  return NO;
+}
+- (void)admitRequestedActions
+{
+  id requests = [NSJSONSerialization JSONObjectWithData:[_actionRequests dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  if (![requests isKindOfClass:NSArray.class] || !_eventEmitter) return;
+  for (id request in requests) {
+    if (![request isKindOfClass:NSDictionary.class]) continue;
+    id number = request[@"actionSequence"];
+    if (![number isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)number) == CFBooleanGetTypeID()) continue;
+    double sequence = [number doubleValue];
+    if (!isfinite(sequence) || sequence != floor(sequence) || sequence <= _lastActionSequence || sequence > 9007199254740991.0) continue;
+    NSString *requestId = [NSString stringWithFormat:@"%@:action:%llu", _rootRevision, (unsigned long long)sequence];
+    if (![requestId isEqual:request[@"requestId"]] || ![request[@"binding"] isKindOfClass:NSString.class]) continue;
+    _lastActionSequence = (NSUInteger)sequence;
+    NSInteger target = [request[@"visibleTarget"] isKindOfClass:NSNumber.class] ? [request[@"visibleTarget"] integerValue] : -1;
+    NSString *serialized = request[@"binding"];
+    id binding = [NSJSONSerialization JSONObjectWithData:[serialized dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    BOOL accepted = target > 0 && [self acceptsAction:binding serialized:serialized visibleTarget:target];
+    CUICollectionRootEventEmitter::OnNativeCollectionAction value{};
+    value.requestId = requestId.UTF8String; value.ownerId = self.ownerId.UTF8String; value.rootId = self.rootId.UTF8String;
+    value.rootRevision = _rootRevision.UTF8String; value.target = (int)self.tag; value.surfaceId = _lastSurfaceId;
+    value.windowId = _windowId.UTF8String; value.epoch = _epoch; value.sequence = _sequence; value.visibleTarget = (int)target;
+    value.accepted = accepted;
+    std::static_pointer_cast<const CUICollectionRootEventEmitter>(_eventEmitter)->onNativeCollectionAction(value);
+  }
+}
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   if (!self.window) return;
@@ -170,11 +226,13 @@ using namespace facebook::react;
   _lastSurfaceId = surface;
   [self publishAttached:YES surface:surface mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", surface, (long long)transaction.getNumber()]];
   [self inspectRequested];
+  [self admitRequestedActions];
 }
 - (void)prepareForRecycle
 {
   _epoch++; _boundWindow = nil; _windowId = @""; _rootRevision = @""; _lastSignature = @""; _lastSurfaceId = -1;
   _inspectionRequest = @""; _inspectedRequest = @""; _lastComplete = NO;
+  _actionRequests = @"[]"; _lastActionSequence = 0;
   [super prepareForRecycle];
 }
 @end

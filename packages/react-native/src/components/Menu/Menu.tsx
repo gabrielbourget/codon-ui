@@ -1,7 +1,5 @@
 import {
-  Children,
   forwardRef,
-  isValidElement,
   useCallback,
   useContext,
   useInsertionEffect,
@@ -9,11 +7,21 @@ import {
   useMemo,
   useRef,
   useState,
-  type ReactNode,
   type RefObject,
 } from "react"
 import { findNodeHandle, Linking, ScrollView, type View } from "react-native"
 
+import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionItemBindingContext } from "../../collection/binding"
+import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import {
+  NativeCollectionRendererContext,
+  useNativePersistedKeys,
+  type TNativeCollectionScrollHost,
+} from "../../collection/renderer"
+import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
+import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
+import { useTreeState } from "../../collection/state"
 import { focusNativeTarget } from "../../input/focus"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusView } from "../../input/NativeFocusView"
@@ -25,35 +33,18 @@ import { useNativeTheme } from "../../theme"
 import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
 import { NativeContentContext } from "../NativeContentContext"
 
-import { NativeMenuContext, type TNativeMenuRegistration } from "./context"
-import { MenuItem } from "./MenuItem"
+import { NativeMenuActionsContext, NativeMenuStateContext, type TNativeMenuRegistration } from "./context"
 import {
-  equalNativeMenuSelection,
   getNativeMenuRecoveryKey,
-  getNativeMenuSelectionRequest,
-  nativeMenuSelected,
   normalizeNativeMenuKeys,
   NATIVE_MENU_SELECTION_MODES,
   type TNativeMenuKey,
   type TNativeMenuRow,
-  type TNativeMenuSelection,
 } from "./model"
 import { useNativeMenuFocusStrategy } from "./NativeMenuTrigger"
 import { getNativeMenuStyles } from "./styles"
 import type { TNativeMenuProps, TNativeMenuRef } from "./types"
 
-const orderHints = (children: ReactNode) => {
-  const keys: TNativeMenuKey[] = []
-  const visit = (nodes: ReactNode) =>
-    Children.forEach(nodes, (node) => {
-      if (!isValidElement<{ children?: ReactNode; id?: TNativeMenuKey }>(node)) return
-      if (node.type === MenuItem) {
-        if (node.props.id !== undefined) keys.push(node.props.id)
-      } else if (node.props.children !== undefined) visit(node.props.children)
-    })
-  visit(children)
-  return new Map(keys.map((key, index) => [key, index]))
-}
 const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .flatMap((key) => nativeKeyTokens(key).filter((token) => token.startsWith("0000:") || token.startsWith("1000:")))
   .concat(nativeKeyTokens("a").filter((token) => token.startsWith("0010:") || token.startsWith("0001:")))
@@ -111,23 +102,29 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) =>
       initialFocusRef={props.initialFocusRef ?? initialTarget}
       style={styles.root}
     >
-      <NativeMenuList
-        {...{
-          props,
-          children,
-          menuAriaLabel,
-          selectionMode,
-          selectedKeys,
-          onSelectionChange,
-          disabledKeys,
-          onAction,
-          shouldCloseOnSelect,
-          styles,
-        }}
-        root={list}
-        initialTarget={initialTarget}
-        close={() => request(false)}
-      />
+      <NativeCollectionBuilder<object> content={children}>
+        {(collection, receipt) => (
+          <NativeMenuList
+            collection={collection}
+            receipt={receipt}
+            {...{
+              props,
+              children,
+              menuAriaLabel,
+              selectionMode,
+              selectedKeys,
+              onSelectionChange,
+              disabledKeys,
+              onAction,
+              shouldCloseOnSelect,
+              styles,
+            }}
+            root={list}
+            initialTarget={initialTarget}
+            close={() => request(false)}
+          />
+        )}
+      </NativeCollectionBuilder>
     </NativeFloatingSurface>
   )
 })
@@ -141,6 +138,8 @@ type TListProps = Pick<
   selectionMode: NonNullable<TNativeMenuProps["selectionMode"]>
   shouldCloseOnSelect: boolean
   styles: ReturnType<typeof getNativeMenuStyles>
+  collection: TNativeCollectionSnapshot<object>
+  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
   root: RefObject<View | null>
   initialTarget: RefObject<View | null>
   close: () => void
@@ -149,46 +148,105 @@ const NativeMenuList = (props: TListProps) => {
   const theme = useNativeTheme()
   const strategy = useNativeMenuFocusStrategy()
   const [rows, setRows] = useState(new Map<TNativeMenuKey, TNativeMenuRegistration>())
-  const [localSelection, setLocalSelection] = useState<TNativeMenuSelection>(new Set())
-  const [active, setActive] = useState<TNativeMenuKey | null>(null)
   const [targetTag, setTargetTag] = useState(0)
   const live = useRef(false),
     scroll = useRef<ScrollView>(null)
   const frames = useRef(new Map<TNativeMenuKey, { y: number; height: number }>())
   const recoveryOrder = useRef<readonly TNativeMenuKey[]>([])
+  const observedFocusKey = useRef<TNativeMenuKey | null>(null)
   const viewport = useRef(0),
     offset = useRef(0),
     search = useRef({ value: "", time: 0 })
   const scope = useContext(NativeFloatingScopeContext),
     window = useContext(NativeFloatingWindowContext),
     input = useNativeKeyScope()
-  const selectedKeys = useMemo(
-    () =>
-      props.selectedKeys === undefined || props.selectedKeys === "all"
-        ? (props.selectedKeys as "all" | undefined)
-        : normalizeNativeMenuKeys(props.selectedKeys),
-    [props.selectedKeys],
-  )
-  const normalized = selectedKeys ?? localSelection
+  const selectedKeys = useMemo(() => {
+    if (props.selectedKeys === undefined || props.selectedKeys === "all") return props.selectedKeys
+    const keys = normalizeNativeMenuKeys(props.selectedKeys)
+    return props.selectedKeys instanceof Set ? props.selectedKeys : keys
+  }, [props.selectedKeys])
   const disabledKeys = useMemo(() => normalizeNativeMenuKeys(props.disabledKeys ?? []), [props.disabledKeys])
-  const hints = orderHints(props.children)
-  const ordered = [...rows.values()].sort(
-    (a, b) => (hints.get(a.id) ?? Number.MAX_SAFE_INTEGER) - (hints.get(b.id) ?? Number.MAX_SAFE_INTEGER),
-  )
+  const collection = props.collection
+  const renderer = useContext(NativeCollectionRendererContext)
+  const CollectionRoot = renderer.CollectionRoot
+  const actions = useContext(NativeCollectionActionsContext)
+  const state = useTreeState({
+    collection,
+    selectionMode: props.selectionMode,
+    selectedKeys,
+    disabledKeys,
+    onSelectionChange: props.onSelectionChange,
+  })
+  const manager = state.selectionManager
+  const normalized = manager.rawSelection
+  const active = manager.focusedKey
+  const [requestedFocusKey, setRequestedFocusKey] = useState<TNativeMenuKey | null>(null)
+  const persistedKeys = useNativePersistedKeys(active, requestedFocusKey)
+  const rendererScroll = useRef<TNativeCollectionScrollHost | null>(null)
+  const pendingFocus = useRef<{
+    key: TNativeMenuKey
+    node: NonNullable<ReturnType<TNativeCollectionSnapshot<object>["getItem"]>>
+    window: string
+    commandedTarget: View | null
+    commandedLease: TListProps["receipt"]["lease"]
+  } | null>(null)
+  const setActive = (key: TNativeMenuKey | null) => manager.setFocusedKey(key)
+  const logicalMembers = []
+  let logicalKey = collection.getFirstKey()
+  while (logicalKey !== null) {
+    const node = collection.getItem(logicalKey)!
+    if (node.type === "item") logicalMembers.push(node)
+    logicalKey = collection.getKeyAfter(logicalKey)
+  }
+  const ordered = logicalMembers.flatMap((node) => {
+    const row = rows.get(node.key)
+    return row ? [row] : []
+  })
   const disabled = (row: TNativeMenuRegistration) => row.props().isDisabled ?? disabledKeys.has(row.id)
-  const model = ordered.map(
-    (row): TNativeMenuRow => ({
-      id: row.id,
-      text: row.text(),
-      disabled: disabled(row),
-      selectionDisabled: disabledKeys.has(row.id),
-      href: row.props().href,
+  const model = logicalMembers.map(
+    (node): TNativeMenuRow => ({
+      id: node.key,
+      text: node.textValue,
+      disabled: node.props.isDisabled ?? disabledKeys.has(node.key),
+      selectionDisabled: disabledKeys.has(node.key),
+      href: node.props.href,
     }),
   )
-  const current = useRef({ props, rows, ordered, model, disabled, normalized, active, scope, window, input })
+  const current = useRef({
+    props,
+    rows,
+    ordered,
+    model,
+    disabled,
+    normalized,
+    active,
+    scope,
+    window,
+    input,
+    collection,
+    receipt: props.receipt,
+    manager,
+    renderer,
+  })
   useInsertionEffect(() => {
-    current.current = { props, rows, ordered, model, disabled, normalized, active, scope, window, input }
-    if (active === null || rows.has(active)) recoveryOrder.current = ordered.map((row) => row.id)
+    current.current = {
+      props,
+      rows,
+      ordered,
+      model,
+      disabled,
+      normalized,
+      active,
+      scope,
+      window,
+      input,
+      collection,
+      receipt: props.receipt,
+      manager,
+      renderer,
+    }
+    if (observedFocusKey.current === null || model.some((row) => row.id === observedFocusKey.current))
+      recoveryOrder.current = model.map((row) => row.id)
   })
   useInsertionEffect(() => {
     live.current = true
@@ -219,10 +277,15 @@ const NativeMenuList = (props: TListProps) => {
   }, [])
   const admitted = (row?: TNativeMenuRegistration) =>
     live.current &&
+    current.current.receipt.status === "confirmed" &&
     current.current.scope?.canAct() !== false &&
     current.current.window?.() !== false &&
     current.current.input?.isWindowActive() !== false &&
-    (!row || (current.current.rows.get(row.id) === row && !current.current.disabled(row)))
+    (!row ||
+      (current.current.collection.getItem(row.id) !== null &&
+        row.view.current !== null &&
+        current.current.rows.get(row.id) === row &&
+        !current.current.disabled(row)))
   const reveal = (row: TNativeMenuRegistration) => {
     const frame = frames.current.get(row.id)
     if (!frame || viewport.current <= 0) return
@@ -236,50 +299,104 @@ const NativeMenuList = (props: TListProps) => {
   }
   const focus = (row: TNativeMenuRegistration) => {
     if (!admitted(row)) return false
+    pendingFocus.current = null
+    observedFocusKey.current = row.id
+    setRequestedFocusKey(null)
+    manager.setFocused(true)
     setActive(row.id)
     reveal(row)
     return true
   }
-  const requestFocus = (row: TNativeMenuRegistration) => {
-    if (admitted(row)) {
-      reveal(row)
-      focusNativeTarget(row.view.current)
+  const focusWindowStamp = () =>
+    JSON.stringify([
+      current.current.receipt.lease?.rootRevision,
+      current.current.receipt.lease?.target,
+      current.current.receipt.lease?.windowId,
+      current.current.receipt.lease?.epoch,
+      current.current.input?.acknowledgedSession()?.windowId,
+      current.current.input?.acknowledgedSession()?.epoch,
+    ])
+  const cancelFocusRequest = () => {
+    pendingFocus.current = null
+    if (live.current) setRequestedFocusKey(null)
+  }
+  const attemptFocus = () => {
+    const pending = pendingFocus.current
+    if (!pending || !admitted() || current.current.input?.isNativeReady() === false) return
+    if (pending.window !== focusWindowStamp() || !actions?.bindingFor(pending.node)) {
+      cancelFocusRequest()
+      return
+    }
+    if (pending.commandedLease !== current.current.receipt.lease) pending.commandedTarget = null
+    const row = current.current.rows.get(pending.key),
+      host = row?.view.current
+    if (!row || !host || host === pending.commandedTarget) return
+    if (
+      withNativeAdmission(row, () => {
+        if (pendingFocus.current === pending) {
+          reveal(row)
+          focusNativeTarget(host)
+        }
+      })
+    ) {
+      pending.commandedTarget = host
+      pending.commandedLease = current.current.receipt.lease
     }
   }
+  const requestFocus = (key: TNativeMenuKey) => {
+    const node = current.current.collection.getItem(key)
+    if (!node || !admitted()) return
+    pendingFocus.current = { key, node, window: focusWindowStamp(), commandedTarget: null, commandedLease: null }
+    setRequestedFocusKey(key)
+    current.current.renderer.layoutDelegate?.requestRendering?.(key)
+    void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
+    attemptFocus()
+  }
+  useLayoutEffect(attemptFocus)
+  useLayoutEffect(
+    () =>
+      input?.subscribe(() => {
+        if (current.current.input?.isWindowActive() === false) cancelFocusRequest()
+        else attemptFocus()
+      }),
+    [input, actions],
+  )
   const lifetime = JSON.stringify(model.map((row) => [row.id, row.text, row.disabled, row.href]))
   useLayoutEffect(() => {
-    const registered = current.current.ordered.filter((row) => !current.current.disabled(row))
+    const registered = current.current.model.filter((row) => !row.disabled)
     const initial = strategy === "last" ? registered[registered.length - 1] : registered[0]
-    props.initialTarget.current = initial?.view.current ?? props.root.current
+    props.initialTarget.current = (initial && current.current.rows.get(initial.id)?.view.current) ?? props.root.current
     const frame = requestAnimationFrame(() => {
       if (!admitted() || current.current.input?.isNativeReady() === false) return
       if (current.current.props.props.initialFocusRef !== undefined && current.current.active === null) return
-      const available = current.current.ordered.filter((row) => !current.current.disabled(row))
-      const recovered = getNativeMenuRecoveryKey(recoveryOrder.current, current.current.model, current.current.active)
+      const available = current.current.model.filter((row) => !row.disabled)
+      const recovered = getNativeMenuRecoveryKey(
+        recoveryOrder.current,
+        current.current.model,
+        observedFocusKey.current ?? current.current.active,
+      )
       const target =
         available.find((row) => row.id === current.current.active) ??
         available.find((row) => row.id === recovered) ??
         (strategy === "last" ? available[available.length - 1] : available[0])
       if (target && !available.some((row) => row.id === current.current.active)) {
-        setActive(target.id)
-        requestFocus(target)
+        requestFocus(target.id)
       }
     })
     return () => cancelAnimationFrame(frame)
   }, [lifetime, scope, strategy, props.initialTarget, props.root])
-  const activate = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
+  const activateAdmitted = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
     if (!admitted(row) || event.defaultPrevented || event.isDefaultPrevented?.()) return
     const owner = current.current
-    const next = getNativeMenuSelectionRequest(
-      owner.props.selectionMode,
-      owner.normalized,
-      owner.model,
-      row.id,
-      "kind" in event.nativeEvent && event.nativeEvent.kind === "keyboard" && event.nativeEvent.shiftKey,
-    )
-    if (next !== null && !equalNativeMenuSelection(owner.normalized, next)) {
-      if (owner.props.selectedKeys === undefined) setLocalSelection(next)
-      owner.props.onSelectionChange?.(next)
+    if (!owner.manager.isLink(row.id)) {
+      if (
+        "kind" in event.nativeEvent &&
+        event.nativeEvent.kind === "keyboard" &&
+        event.nativeEvent.shiftKey &&
+        owner.props.selectionMode === "multiple"
+      )
+        owner.manager.extendSelection(row.id)
+      else owner.manager.select(row.id)
     }
     if (!admitted(row)) return
     row.props().onAction?.()
@@ -305,7 +422,21 @@ const NativeMenuList = (props: TListProps) => {
     if (admitted(row) && (row.props().shouldCloseOnSelect ?? current.current.props.shouldCloseOnSelect))
       current.current.props.close()
   }
-  const move = (event: TNativeKeyboardEvent) => {
+  const withNativeAdmission = (row: TNativeMenuRegistration, operation: () => void) => {
+    const host = row.view.current,
+      target = host && findNodeHandle(host)
+    if (!admitted(row) || !host || !target) return false
+    return (
+      actions?.request(row.node, target, () => {
+        if (admitted(row) && row.view.current === host) operation()
+      }) ?? false
+    )
+  }
+  const activate = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
+    event.persist?.()
+    withNativeAdmission(row, () => activateAdmitted(row, event))
+  }
+  const moveAdmitted = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (
       admitted() &&
@@ -318,15 +449,7 @@ const NativeMenuList = (props: TListProps) => {
       data.key.toLocaleLowerCase() === "a" &&
       current.current.props.selectionMode === "multiple"
     ) {
-      const owner = current.current
-      const selectable = owner.model.filter((item) => !item.disabled && !item.selectionDisabled)
-      const all =
-        owner.normalized === "all" ||
-        (selectable.length > 0 &&
-          selectable.every((item) => owner.normalized !== "all" && owner.normalized.has(item.id)))
-      const next = all ? new Set<TNativeMenuKey>() : "all"
-      if (owner.props.selectedKeys === undefined) setLocalSelection(next)
-      owner.props.onSelectionChange?.(next)
+      current.current.manager.selectAll()
       return
     }
     if (
@@ -339,9 +462,10 @@ const NativeMenuList = (props: TListProps) => {
       data.metaKey
     )
       return
-    const available = current.current.ordered.filter((row) => !current.current.disabled(row))
+    const available = current.current.model.filter((row) => !row.disabled)
     const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
-    const index = available.findIndex((row) => findNodeHandle(row.view.current) === tag)
+    const focusedRow = current.current.ordered.find((row) => findNodeHandle(row.view.current) === tag)
+    const index = available.findIndex((row) => row.id === focusedRow?.id)
     if (index < 0 || !available.length) return
     let next = index
     if (data.key === "Home") next = 0
@@ -349,34 +473,34 @@ const NativeMenuList = (props: TListProps) => {
     else if (data.key === "ArrowDown") next = (index + 1) % available.length
     else if (data.key === "ArrowUp") next = (index - 1 + available.length) % available.length
     else {
-      const frame = frames.current.get(available[index].id)
-      if (!frame || !viewport.current) return
+      const frameFor = (key: TNativeMenuKey) =>
+        current.current.renderer.layoutDelegate?.getItemRect(key) ?? frames.current.get(key)
+      const frame = frameFor(available[index].id)
+      const visibleHeight = current.current.renderer.layoutDelegate?.getVisibleRect().height ?? viewport.current
+      if (!frame || !visibleHeight) return
       const destination =
         data.key === "PageDown"
-          ? frame.y - frame.height + viewport.current
-          : Math.max(0, frame.y + frame.height - viewport.current)
+          ? frame.y - frame.height + visibleHeight
+          : Math.max(0, frame.y + frame.height - visibleHeight)
       if (data.key === "PageDown")
-        while (next < available.length - 1 && (frames.current.get(available[next].id)?.y ?? Infinity) < destination)
-          next++
+        while (next < available.length - 1 && (frameFor(available[next].id)?.y ?? Infinity) < destination) next++
       else if (data.key === "PageUp")
-        while (next > 0 && (frames.current.get(available[next].id)?.y ?? -Infinity) > destination) next--
+        while (next > 0 && (frameFor(available[next].id)?.y ?? -Infinity) > destination) next--
       else return
     }
-    setActive(available[next].id)
-    requestFocus(available[next])
+    requestFocus(available[next].id)
     if (data.shiftKey && current.current.props.selectionMode === "multiple") {
-      const selection = getNativeMenuSelectionRequest(
-        "multiple",
-        current.current.normalized,
-        current.current.model,
-        available[next].id,
-        true,
-      )
-      if (selection && !equalNativeMenuSelection(selection, current.current.normalized)) {
-        if (current.current.props.selectedKeys === undefined) setLocalSelection(selection)
-        current.current.props.onSelectionChange?.(selection)
-      }
+      current.current.manager.extendSelection(available[next].id)
     }
+  }
+  const move = (event: TNativeKeyboardEvent) => {
+    const data = event.nativeEvent
+    const target = "focusedTarget" in data ? data.focusedTarget : data.target
+    const row = current.current.ordered.find((row) => findNodeHandle(row.view.current) === target)
+    event.persist?.()
+    if (row) withNativeAdmission(row, () => moveAdmitted(event))
+    else if (target === findNodeHandle(props.root.current) && typeof target === "number")
+      actions?.request(null, target, () => moveAdmitted(event))
   }
   useNativeKeyPolicy({
     tokens: keyTokens,
@@ -393,8 +517,8 @@ const NativeMenuList = (props: TListProps) => {
     const before = time - search.current.time < 1000 ? search.current.value : ""
     const text = before && [...before].every((char) => char === key) ? key : before + key
     search.current = { value: text, time }
-    const available = current.current.ordered.filter((item) => !current.current.disabled(item))
-    const index = available.indexOf(row),
+    const available = current.current.model.filter((item) => !item.disabled)
+    const index = available.findIndex((item) => item.id === row.id),
       choices = [...available.slice(index + 1), ...available.slice(0, index + 1)]
     const fold = (value: string) =>
       value
@@ -406,66 +530,67 @@ const NativeMenuList = (props: TListProps) => {
         ? new Intl.Collator(undefined, { usage: "search", sensitivity: "base" })
         : null
     const match = choices.find((item) =>
-      collator
-        ? collator.compare(item.text().slice(0, text.length), text) === 0
-        : fold(item.text()).startsWith(fold(text)),
+      collator ? collator.compare(item.text.slice(0, text.length), text) === 0 : fold(item.text).startsWith(fold(text)),
     )
     if (match) {
-      setActive(match.id)
-      requestFocus(match)
+      requestFocus(match.id)
     }
   }
   return (
-    <NativeMenuContext.Provider
-      value={{
-        register,
-        refresh,
-        mode: props.selectionMode,
-        text: props.styles.list.text,
-        disabled,
-        selected: (row) =>
-          props.selectionMode !== "none" &&
-          nativeMenuSelected(
-            normalized,
-            model.find((item) => item.id === row.id) ?? { id: row.id, text: row.text(), disabled: disabled(row) },
-          ),
-        focus,
-        activate,
-        layout: (row, frame) => frames.current.set(row.id, frame),
-        typeahead,
-      }}
-    >
-      <NativeContentContext.Provider
-        value={{ foregroundColor: props.styles.list.text.color ?? theme.colors.foreground, isButton: false }}
-      >
-        <NativeFocusView
-          ref={props.root}
-          role="menu"
-          accessible={rows.size === 0}
-          focusable
-          accessibilityLabel={props.menuAriaLabel}
-          testID="menu-list"
-          onLayout={() => setTargetTag(findNodeHandle(props.root.current) ?? 0)}
+    <NativeMenuStateContext.Provider value={state}>
+      <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+        <NativeMenuActionsContext.Provider
+          value={{
+            register,
+            refresh,
+            mode: props.selectionMode,
+            text: props.styles.list.text,
+            disabled,
+            selected: (row) => manager.isSelected(row.id),
+            requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
+            focus,
+            activate,
+            layout: (row, frame) => frames.current.set(row.id, frame),
+            typeahead,
+          }}
         >
-          <ScrollView
-            ref={scroll}
-            testID="menu-scroll"
-            style={{ flexShrink: 1 }}
-            contentContainerStyle={props.styles.list.view}
-            keyboardShouldPersistTaps="always"
-            scrollEventThrottle={16}
-            onLayout={(event) => {
-              viewport.current = event.nativeEvent.layout.height
-            }}
-            onScroll={(event) => {
-              offset.current = event.nativeEvent.contentOffset.y
-            }}
+          <NativeContentContext.Provider
+            value={{ foregroundColor: props.styles.list.text.color ?? theme.colors.foreground, isButton: false }}
           >
-            {props.children}
-          </ScrollView>
-        </NativeFocusView>
-      </NativeContentContext.Provider>
-    </NativeMenuContext.Provider>
+            <NativeFocusView
+              ref={props.root}
+              role="menu"
+              accessible={collection.size === 0}
+              focusable
+              accessibilityLabel={props.menuAriaLabel}
+              testID="menu-list"
+              onLayout={() => setTargetTag(findNodeHandle(props.root.current) ?? 0)}
+            >
+              {renderer.isVirtualized ? (
+                <CollectionRoot collection={collection} scrollRef={rendererScroll} persistedKeys={persistedKeys} />
+              ) : (
+                <ScrollView
+                  ref={scroll}
+                  testID="menu-scroll"
+                  style={{ flexShrink: 1 }}
+                  contentContainerStyle={props.styles.list.view}
+                  keyboardShouldPersistTaps="always"
+                  scrollEventThrottle={16}
+                  onLayout={(event) => {
+                    viewport.current = event.nativeEvent.layout.height
+                  }}
+                  onScroll={(event) => {
+                    offset.current = event.nativeEvent.contentOffset.y
+                  }}
+                >
+                  <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
+                </ScrollView>
+              )}
+            </NativeFocusView>
+          </NativeContentContext.Provider>
+        </NativeMenuActionsContext.Provider>
+      </NativeCollectionItemBindingContext.Provider>
+    </NativeMenuStateContext.Provider>
   )
 }
 

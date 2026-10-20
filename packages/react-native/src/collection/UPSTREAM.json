@@ -1,5 +1,5 @@
 {
-  "status": "Private React authoring, committed descriptor/native receipt joining and immutable snapshots; no native business-action, full shared renderer/state context or family acceptance",
+  "status": "Private committed collection action admission, complete native state, renderer/default/slot contexts and TagGroup migration; complete family delivery and installed acceptance remain open",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "package": {
     "name": "react-aria",
@@ -54,20 +54,53 @@
     "Actual native preorder plus retained sibling indices/children supply node links without registration or layout ordering.",
     "Owned nodes/maps are immutable; original value, rendered content, props, renderer and caller ref identities remain in JavaScript.",
     "Preserve lookup membership versus linked navigation, item-only size, source duplicate-key replacement and changed-ID rejection, source at/childNodes exceptions and numeric-zero filtering edge.",
-    "Private React authoring/generated IDs/item caching/id scope are source-checked; native runtime confirmation, full contexts/renderers/current-lease acknowledgement and complete family adoption remain required.",
     "No react-aria, DOM, browser or test runtime import is added to native.",
     "Private descriptor owners allocate generated keys/revisions only in committed effects and expose wire revisions in a subsequent native commit; discarded render drafts publish nothing.",
     "An independently committed native root ref binds receipt authority. Previous complete renderer membership survives pending receipts and whole-Activity rebinding; it grants no native business-action authority.",
     "Private metadata identities/targets live in a WeakMap sidecar and are absent from renderer-facing node objects.",
     "The source object cache, dependency/id-scope precedence, original values/renderers/refs, one-shot iteration, and retained node-label behavior are preserved.",
-    "Actual state/renderer/default/slot contexts, native current-lease acknowledgement, virtualization/visible semantics and complete family adoption still require construction and acceptance."
+    "Visible business operations require an original current native acknowledgement of the exact metadata lease, retained descriptor and actual visible host binding; queued stale leases retire without business callbacks.",
+    "Full source state uses the separately recorded native-owned stately backend. Native renderer root/branch contexts retain complete membership, actual scroll refs, persisted keys, layout/drop delegates and source drop-indicator recursion.",
+    "Pinned slot lookup, null-slot isolation, callback order, caller precedence and style/ref merging use native styles and original actual native refs. Typed business keys retain their identity while private React reconciliation keys distinguish numeric and string siblings.",
+    "TagGroup uses the logical collection independently of visible row registration; offscreen requests wait for materialization and only original focus callbacks establish observed native focus. Native semantics bind actual SDK collection/table/cell properties; installed virtualization, profiles and whole-family acceptance remain open."
   ],
   "authoredFilesSHA256": {
     "snapshot.ts": "3501c95d629e42d7aee73d33fa712e126cc5481072a64df4a52147700018e700",
     "admission.ts": "900fb805507e169405a2304aa88ce3d1ae51668a1c27181412a60581342b35c2",
     "session.ts": "b26f538594ce8a5b22033311e48aece9f1731602818146144dac91d9779520d9",
-    "cachedChildren.tsx": "2816ffb14c61d3596ba22ff3f4747cc65b282812571a0a0fd6615123e9e9548f",
-    "CollectionBuilder.tsx": "e1c1a76f19be038392f9c23980009bd7d23b3bcfa6aee83962cf33cf39c8b815",
-    "NativeCollectionMetadata.tsx": "880400d6318d8ac1297bd43f19914cf03de5e53efc18eaa2b00508663cf2d416"
-  }
+    "cachedChildren.tsx": "498f1bd4a056dee457ec408b5ccee3e3bbdc36e8f3648854b5718d75e8e58667",
+    "CollectionBuilder.tsx": "18326feed0e184d2f1877609c5a49348421fcbedb8c4e1c58314217fbfbc85e4",
+    "NativeCollectionMetadata.tsx": "5f3672aa40676bcbd16a30b9f54625396814304b97960fbf38be7be62e8fa8eb",
+    "actions.ts": "0755d68097194647dc65e11390f9991828347f943d3fc4f94951d71497505bb9",
+    "binding.ts": "9a05102944460279be06a053f4f8ad0d18c45fc9a4bd0da053239392bb9c9952",
+    "context.tsx": "2083739c188f2458d878efa42d06cedc22c82c7342dcb063ac7aed5d5e0ba099",
+    "renderer.tsx": "ccdc0aee7f704b01e411969e68adff757cbc8adf5804e1bd9592f5f8a6b87e39",
+    "semantics.ts": "03069dd3d1e550def516c38eab8f42bb63642e0aecb0d9f133e7fdd1675b1945"
+  },
+  "additionalSources": [
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Collection.mjs",
+      "distributionSHA256": "b7eb628ddc66ac081afdc6f4fbf722ff6687cbe97228b51017e465597539d86f",
+      "sourceMapPath": "dist/private/Collection.mjs.map",
+      "sourceMapSHA256": "51e158c012abc022ba2cb8c55a4919c8ea25ed0f7f5106a50af028101db457c8",
+      "sourcePath": "packages/react-aria-components/src/Collection.tsx",
+      "sourceContentSHA256": "617f2c4143bb2f3c8ff086fd1d3b3a9a076c47173d46cd936842a4b9dd9fd076",
+      "adaptedInto": ["renderer.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/utils.mjs",
+      "distributionSHA256": "64ca97af570b65abac12b2fedc19c6a3cee60cfd90a9d15f400c2449350bd1e5",
+      "sourceMapPath": "dist/private/utils.mjs.map",
+      "sourceMapSHA256": "9a61b5ed040106aa1b67a824f94aa9be26362d1533fd005b649d4d45e3012f5b",
+      "sourcePath": "packages/react-aria-components/src/utils.tsx",
+      "sourceContentSHA256": "a9673bbf34e101e3beff978883f6a533721162ede406ccc7fb350c78d190d589",
+      "adaptedInto": ["context.tsx"]
+    }
+  ]
 }

@@ -1,7 +1,11 @@
-import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
+import { act, screen, within } from "@testing-library/react-native"
 import { useContext } from "react"
 import { Platform } from "react-native"
 
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays/NativeOverlayProvider"
 
 import QueryProbe from "./fixtures/QueryProbe"

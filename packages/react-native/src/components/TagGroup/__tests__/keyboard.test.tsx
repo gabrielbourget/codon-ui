@@ -1,10 +1,22 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createRef, type ReactNode } from "react"
+import { fireEvent, screen } from "@testing-library/react-native"
+import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import * as RN from "react-native"
 
 import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "../../.."
+import {
+  actWithNativeCollections as act,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  type TNativeCollectionRenderer,
+  type TNativeCollectionRootProps,
+} from "../../../collection/renderer"
+import { NativeListStateContext, type TNativeListState } from "../../../collection/state"
 import { nativeKeyToken } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { encodeCollectionKey } from "../../collection"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 import type { TNativeTagGroupProps } from "../types"
@@ -20,14 +32,20 @@ beforeEach(() => {
   jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
 })
 afterEach(() => jest.restoreAllMocks())
-const fixture = async (props: TNativeTagGroupProps, children: ReactNode) => {
+const fixture = async (
+  props: TNativeTagGroupProps,
+  children: ReactNode,
+  renderer = DefaultNativeCollectionRenderer,
+) => {
   const view = await render(
     <NativeThemeProvider>
-      <NativeOverlayProvider>
-        <NativeFloatingLayerHost testID="host">
-          <TagGroup {...props}>{children}</TagGroup>
-        </NativeFloatingLayerHost>
-      </NativeOverlayProvider>
+      <NativeCollectionRendererContext.Provider value={renderer}>
+        <NativeOverlayProvider>
+          <NativeFloatingLayerHost testID="host">
+            <TagGroup {...props}>{children}</TagGroup>
+          </NativeFloatingLayerHost>
+        </NativeOverlayProvider>
+      </NativeCollectionRendererContext.Provider>
     </NativeThemeProvider>,
   )
   await fireEvent(row("tag-list"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 300, height: 80 } } })
@@ -48,6 +66,127 @@ const fixture = async (props: TNativeTagGroupProps, children: ReactNode) => {
   }
   return view
 }
+
+it("keeps complete state behind a partial renderer and waits for an actual offscreen focus target", async () => {
+  const first = createRef<RN.View>(),
+    second = createRef<RN.View>(),
+    third = createRef<RN.View>()
+  const requestRendering = jest.fn(),
+    scrollToKey = jest.fn(),
+    focus = jest.fn()
+  let materialize!: (keys: (string | number)[]) => void
+  let state!: TNativeListState<object>
+  let renderedProps!: TNativeCollectionRootProps
+  const Root = (props: TNativeCollectionRootProps) => {
+    const [visible, setVisible] = useState<(string | number)[]>([0])
+    materialize = setVisible
+    state = useContext(NativeListStateContext)!
+    renderedProps = props
+    return [...props.collection]
+      .filter((node) => visible.includes(node.key))
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+  }
+  const renderer: TNativeCollectionRenderer = {
+    ...DefaultNativeCollectionRenderer,
+    isVirtualized: true,
+    layoutDelegate: {
+      getItemRect: (key) => ({ x: key === 0 ? 0 : key === "0" ? 100 : 200, y: 0, width: 100, height: 80 }),
+      getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 80 }),
+      getContentSize: () => ({ width: 300, height: 80 }),
+      requestRendering,
+      scrollToKey,
+    },
+    CollectionRoot: Root,
+  }
+  const change = jest.fn()
+  await fixture(
+    { selectionMode: "multiple", selectedKeys: [], onSelectionChange: change },
+    <>
+      <Tag id={0} ref={first} testID="first">
+        First
+      </Tag>
+      <Tag id="0" ref={second} testID="second" onFocus={focus}>
+        Second
+      </Tag>
+      <Tag id="third" ref={third}>
+        Third
+      </Tag>
+    </>,
+    renderer,
+  )
+  expect([...state.collection].map((node) => node.key)).toEqual([0, "0", "third"])
+  expect(renderedProps.collection === state.collection).toBe(true)
+  expect(renderedProps.scrollRef).toBeDefined()
+  expect(second.current).toBeNull()
+  await scoped("a", first.current, "0010:a", { ctrlKey: true })
+  expect(change.mock.calls[0][0]).toBe("all")
+  await scoped("ArrowDown", first.current)
+  expect(requestRendering).toHaveBeenLastCalledWith("0")
+  expect(scrollToKey).toHaveBeenLastCalledWith("0")
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(focus).not.toHaveBeenCalled()
+  expect(state.selectionManager.focusedKey).toBeNull()
+  expect(renderedProps.persistedKeys?.has("0")).toBe(true)
+  await act(() => materialize([0, "0"]))
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
+  expect(state.selectionManager.focusedKey).toBeNull()
+  const host = row("second")
+  const event = {
+    nativeEvent: {
+      ownerId: host.props.ownerId,
+      target: RN.findNodeHandle(second.current),
+      isFocused: true,
+      isFocusVisible: true,
+      origin: "keyboard",
+      timestamp: 101,
+    },
+  }
+  await act(() => host.props.onNativeFocusChange(event))
+  expect(focus.mock.calls[0][0] === event).toBe(true)
+  expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it("rejects a pending offscreen focus request after its native window retires", async () => {
+  const first = createRef<RN.View>(),
+    second = createRef<RN.View>()
+  let materialize!: () => void
+  const Root = ({ collection }: TNativeCollectionRootProps) => {
+    const [all, setAll] = useState(false)
+    materialize = () => setAll(true)
+    return [...collection]
+      .filter((node) => all || node.key === "first")
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+  }
+  await fixture(
+    {},
+    <>
+      <Tag id="first" ref={first}>
+        First
+      </Tag>
+      <Tag id="second" ref={second}>
+        Second
+      </Tag>
+    </>,
+    { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
+  )
+  await scoped("ArrowDown", first.current)
+  const host = row("host").props
+  await act(() =>
+    host.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host.ownerId,
+        windowId: "tags-window",
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        ready: false,
+        windowActive: false,
+      },
+    }),
+  )
+  await act(materialize)
+  expect(second.current).not.toBeNull()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
 const scoped = async (
   value: string,
   focused: RN.View | null,
@@ -207,7 +346,7 @@ const navigationFixture = async (props: TNativeTagGroupProps = {}, links = false
     last = createRef<RN.View>(),
     change = jest.fn(),
     owner = new Set<string | number>([0])
-  await fixture(
+  const view = await fixture(
     {
       selectionMode: "multiple",
       selectionBehavior: "replace",
@@ -230,7 +369,7 @@ const navigationFixture = async (props: TNativeTagGroupProps = {}, links = false
       </Tag>
     </>,
   )
-  return { first, middle, last, change, owner }
+  return { first, middle, last, change, owner, view }
 }
 it.each([
   { key: "ArrowDown", target: "middle" },
@@ -281,7 +420,10 @@ it("preserves arrow link override while Home/End follows the selection manager",
   expect([...f.owner]).toEqual([0])
 })
 it("extends an echoed anchor across enabled rows without changing the owner request", async () => {
-  const owner = Object.assign(new Set<string | number>(["tail"]), { anchorKey: "tail", currentKey: "tail" })
+  const initial = await navigationFixture()
+  await scoped("End", initial.first.current)
+  const owner = initial.change.mock.calls[0][0]
+  await initial.view.unmount()
   const f = await navigationFixture({ selectedKeys: owner })
   await scoped("Home", f.last.current, "1010:Home", { ctrlKey: true, shiftKey: true })
   expect([...f.change.mock.calls[0][0]]).toEqual([0, "", "tail"])
@@ -290,6 +432,7 @@ it("extends an echoed anchor across enabled rows without changing the owner requ
   expect([...owner]).toEqual(["tail"])
   expect(owner.currentKey).toBe("tail")
 })
+
 it.each([
   { key: "ArrowRight", target: "last" },
   { key: "ArrowLeft", target: "middle" },

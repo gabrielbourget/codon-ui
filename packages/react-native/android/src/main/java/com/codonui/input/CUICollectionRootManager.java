@@ -19,7 +19,7 @@ public final class CUICollectionRootManager extends ReactViewManager implements 
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUICollectionRootManagerDelegate<ReactViewGroup, CUICollectionRootManager> delegate = new CUICollectionRootManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "rootId".equals(name) || "rootRevision".equals(name) || "inspectionRequest".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "rootId".equals(name) || "rootRevision".equals(name) || "inspectionRequest".equals(name) || "actionRequests".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -30,12 +30,14 @@ public final class CUICollectionRootManager extends ReactViewManager implements 
   @Override @ReactProp(name = "rootId") public void setRootId(ReactViewGroup view, String value) { ((CUICollectionRoot)view).rootId = value == null ? "" : value; }
   @Override @ReactProp(name = "rootRevision") public void setRootRevision(ReactViewGroup view, String value) { ((CUICollectionRoot)view).rootRevision = value == null ? "" : value; }
   @Override @ReactProp(name = "inspectionRequest") public void setInspectionRequest(ReactViewGroup view, String value) { ((CUICollectionRoot)view).inspectionRequest = value == null ? "" : value; }
+  @Override @ReactProp(name = "actionRequests") public void setActionRequests(ReactViewGroup view, String value) { ((CUICollectionRoot)view).actionRequests = value == null ? "[]" : value; }
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUICollectionRoot)view).enforceMetadata(); }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUICollectionRoot)view).retire(); super.onDropViewInstance(view); }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();
     if (inherited != null) events.putAll(inherited);
     events.put("topNativeCollectionCommit", Collections.singletonMap("registrationName", "onNativeCollectionCommit"));
+    events.put("topNativeCollectionAction", Collections.singletonMap("registrationName", "onNativeCollectionAction"));
     events.put("topNativeCollectionInspection", Collections.singletonMap("registrationName", "onNativeCollectionInspection")); return events;
   }
 }

@@ -29,6 +29,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private final Set<Integer> consumed = new HashSet<>();
   private Set<String> capturedKeys = new HashSet<>();
   private String ownerId = "";
+  String nativeCollectionBinding = "";
+  final CUICollectionAccessibility collectionAccessibility = new CUICollectionAccessibility(this);
   private String origin = "unknown";
   private boolean keyboardFocusable = true;
   private boolean nativePressable = false;
@@ -154,6 +156,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
       node.setRoleDescription(nativeNavigationLabel);
       node.setContainerTitle(node.getContentDescription());
     }
+    collectionAccessibility.apply(info);
     return info;
   }
   void inspectAccessibility(String owner) {
@@ -182,6 +185,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     data.putString("details", nativeDetails == null ? "" : nativeDetails.toString());
     data.putBoolean("descriptionAvailable", description.available);
     data.putBoolean("detailsAvailable", details.available);
+    data.putString("collection", collectionAccessibility.inspect(info));
     data.putDouble("observedAt", SystemClock.uptimeMillis());
     emit("topNativeAccessibilitySnapshot", data);
   }

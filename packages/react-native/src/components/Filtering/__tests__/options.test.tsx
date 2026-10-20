@@ -1,7 +1,12 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { act, screen } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { Platform, StyleSheet, type View } from "react-native"
 
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  rerenderWithNativeCollections,
+} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider, OverlayRegistryContext } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -56,14 +61,14 @@ it("retains exact array argument identity and repeated owner vetoes", async () =
   await pick("Filter Argument", "Range")
   expect(jest.mocked(props.onArgumentChange).mock.calls[0][0].argument).toBe(value)
   expect(props.onArgumentChange).toHaveBeenCalledTimes(2)
-  await screen.rerender(wrap(<SelectFilterArgument {...props} filterArgumentSelectedKey="range" />))
+  await rerenderWithNativeCollections(wrap(<SelectFilterArgument {...props} filterArgumentSelectedKey="range" />))
   expect(screen.getByRole("button", { name: "Filter Argument" }).props.accessibilityValue.text).toBe("Range")
 })
 it("refreshes current option payloads/callbacks without emitting on metadata changes", async () => {
   const old = propsFor([{ id: "a", name: "Old", argumentValue: 0 }]),
     current = propsFor([{ id: "a", name: "Current", argumentValue: false }])
   await render(wrap(<SelectFilterArgument {...old} />))
-  await screen.rerender(wrap(<SelectFilterArgument {...current} />))
+  await rerenderWithNativeCollections(wrap(<SelectFilterArgument {...current} />))
   expect(current.onArgumentChange).not.toHaveBeenCalled()
   await pick("Filter Argument", "Current")
   expect(current.onArgumentChange).toHaveBeenCalledWith({ argument: false, filterArgumentSelectedKey: "a" })
@@ -154,7 +159,7 @@ it("CAP.filter-selectors.005 projects names in metadata order, ignoring argument
   await fireEvent.press(screen.getByRole("button", { name: "Remove Beta" }))
   expect(onArgumentChange).toHaveBeenCalledWith({ argument: ["Alpha"], filterArgumentSelectedKey: "a" })
   expect(screen.getByRole("button", { name: "Remove Beta" })).toBeOnTheScreen()
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <MultiSelectFilterArgument
         argument={[0]}
@@ -186,7 +191,7 @@ it("emits the next name and last ID when adding and null when removing the final
   )
   await pick("Show filter argument suggestions", "Alpha")
   expect(onArgumentChange).toHaveBeenCalledWith({ argument: ["Alpha"], filterArgumentSelectedKey: "" })
-  await screen.rerender(
+  await rerenderWithNativeCollections(
     wrap(
       <MultiSelectFilterArgument
         argument={["Alpha"]}

@@ -23,6 +23,8 @@ import org.json.JSONObject;
 final class CUICollectionRoot extends CUICollectionNode implements UIManagerListener {
   String rootRevision = "";
   String inspectionRequest = "";
+  String actionRequests = "[]";
+  private long lastActionSequence;
   private UIManager manager;
   private String boundWindow = "", lastSignature = "";
   private String inspectedRequest = "";
@@ -54,6 +56,7 @@ final class CUICollectionRoot extends CUICollectionNode implements UIManagerList
     if (isAttachedToWindow()) publish(false, "retired");
     disconnect(); epoch++; ownerId = ""; rootId = ""; rootRevision = ""; lastSignature = "";
     inspectionRequest = ""; inspectedRequest = ""; lastComplete = false;
+    actionRequests = "[]"; lastActionSequence = 0;
   }
 
   private boolean collect(CUICollectionNode parent, String parentId, JSONArray nodes, Set<String> ids) throws JSONException {
@@ -171,13 +174,68 @@ final class CUICollectionRoot extends CUICollectionNode implements UIManagerList
     if (dispatcher != null) dispatcher.dispatchEvent(new CommitEvent(surface, getId(), "topNativeCollectionInspection", data));
   }
 
+  private boolean acceptsAction(JSONObject binding, String serialized, int visibleTarget) throws JSONException {
+    int surface = UIManagerHelper.getSurfaceId(this);
+    if (!lastComplete || !isAttachedToWindow() || !hasWindowFocus() || getVisibility() != View.VISIBLE
+      || ownerId.isEmpty() || rootId.isEmpty() || rootRevision.isEmpty()
+      || !ownerId.equals(binding.getString("ownerId")) || !rootId.equals(binding.getString("rootId"))
+      || !rootRevision.equals(binding.getString("rootRevision")) || !matchesNumber(binding, "target", getId())
+      || !matchesNumber(binding, "surfaceId", surface) || !boundWindow.equals(binding.getString("windowId"))
+      || !boundWindow.equals(CUIInputWindow.identity(this)) || !matchesNumber(binding, "epoch", epoch)
+      || !matchesNumber(binding, "sequence", sequence)) return false;
+    View visible = getRootView().findViewById(visibleTarget);
+    if (!(visible instanceof CUIFocusView) || !visible.isAttachedToWindow() || !visible.isShown()
+      || !boundWindow.equals(CUIInputWindow.identity(visible)) || !serialized.equals(((CUIFocusView)visible).nativeCollectionBinding)) return false;
+    JSONArray nodes = new JSONArray();
+    if (!collect(this, "", nodes, new HashSet<>())) return false;
+    String descriptor = binding.getString("descriptorId");
+    if (descriptor.isEmpty()) return binding.getString("descriptorRevision").isEmpty() && matchesNumber(binding, "metadataTarget", getId());
+    for (int index = 0; index < nodes.length(); index++) {
+      JSONObject node = nodes.getJSONObject(index);
+      if (descriptor.equals(node.getString("descriptorId")) && binding.getString("descriptorRevision").equals(node.getString("descriptorRevision"))
+        && matchesNumber(binding, "metadataTarget", node.getInt("target"))) return true;
+    }
+    return false;
+  }
+
+  private void admitRequestedActions() {
+    JSONArray requests;
+    try { requests = new JSONArray(actionRequests); } catch (JSONException exception) { return; }
+    for (int index = 0; index < requests.length(); index++) {
+      try {
+        JSONObject request = requests.getJSONObject(index);
+        Object rawSequence = request.opt("actionSequence");
+        if (!(rawSequence instanceof Number)) continue;
+        double number = ((Number)rawSequence).doubleValue();
+        if (!Double.isFinite(number) || number != Math.floor(number) || number <= lastActionSequence || number > 9007199254740991d) continue;
+        long actionSequence = (long)number;
+        String requestId = request.getString("requestId");
+        if (!requestId.equals(rootRevision + ":action:" + actionSequence)) continue;
+        lastActionSequence = actionSequence;
+        int visibleTarget = request.getInt("visibleTarget");
+        String binding = request.getString("binding");
+        boolean accepted = false;
+        try { accepted = visibleTarget > 0 && acceptsAction(new JSONObject(binding), binding, visibleTarget); }
+        catch (JSONException | IllegalStateException exception) { accepted = false; }
+        WritableMap data = Arguments.createMap();
+        data.putString("requestId", requestId); data.putString("ownerId", ownerId); data.putString("rootId", rootId);
+        data.putString("rootRevision", rootRevision); data.putInt("target", getId());
+        data.putInt("surfaceId", UIManagerHelper.getSurfaceId(this)); data.putString("windowId", boundWindow);
+        data.putDouble("epoch", epoch); data.putDouble("sequence", sequence); data.putInt("visibleTarget", visibleTarget);
+        data.putBoolean("accepted", accepted);
+        EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ReactContext)getContext(), getId());
+        if (dispatcher != null) dispatcher.dispatchEvent(new CommitEvent(UIManagerHelper.getSurfaceId(this), getId(), "topNativeCollectionAction", data));
+      } catch (JSONException exception) { /* Malformed private requests never admit an action. */ }
+    }
+  }
+
   private static boolean matchesNumber(JSONObject request, String key, long expected) {
     Object value = request.opt(key);
     return value instanceof Number && Double.isFinite(((Number)value).doubleValue()) && ((Number)value).doubleValue() == expected;
   }
 
   @Override public void didMountItems(UIManager manager) {
-    if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); inspectRequested(); }
+    if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); inspectRequested(); admitRequestedActions(); }
   }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}

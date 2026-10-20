@@ -1,7 +1,12 @@
-import { fireEvent, render, screen } from "@testing-library/react-native"
+import { screen } from "@testing-library/react-native"
 import { isValidElement } from "react"
 import { StyleSheet } from "react-native"
 
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+  rerenderWithNativeCollections,
+} from "../../../collection/__tests__/nativeReceipts"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeThemeProvider } from "../../../theme"
 import { AVAILABLE_FILTER_ARGUMENT_TYPES } from "../../Table/filterMetadata"
@@ -121,7 +126,7 @@ it("keeps numeric factory blanks controlled through repeated requests and owner 
   await fireEvent.press(screen.getByRole("button", { name: "Increase argument" }))
   expect(jest.mocked(props.onArgumentChange).mock.calls).toEqual([[{ argument: 0 }], [{ argument: 0 }]])
   expect(screen.getByTestId("number-input-input")).toHaveDisplayValue("")
-  await screen.rerender(wrap({ ...props, argument: 0 }))
+  await rerenderWithNativeCollections(wrap({ ...props, argument: 0 }))
   expect(screen.getByTestId("number-input-input")).toHaveDisplayValue("0")
 })
 it("routes current labels, current callbacks and independent field/input slots through scalar composition", async () => {
@@ -135,7 +140,7 @@ it("routes current labels, current callbacks and independent field/input slots t
   await render(wrap(old))
   const input = screen.getByLabelText("Filter Argument"),
     saved = input.props.onChangeText
-  await screen.rerender(wrap(current))
+  await rerenderWithNativeCollections(wrap(current))
   expect(screen.getByLabelText("Filter Name")).toBe(input)
   expect(StyleSheet.flatten(screen.getByTestId("form-field").props.style)).toMatchObject({ marginTop: 7 })
   expect(StyleSheet.flatten(input.props.style)).toMatchObject({ marginBottom: 9, width: "70%" })
@@ -184,7 +189,7 @@ it.each(["Typeahead Search", "Multi-Typeahead Search"] as const)(
     for (const value of [undefined, null]) {
       const labels = { ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS }
       Object.assign(labels, { [key]: value })
-      await screen.rerender(wrap({ ...props, labels }))
+      await rerenderWithNativeCollections(wrap({ ...props, labels }))
       expect(
         screen.getByTestId(
           filterArgumentType === "Typeahead Search"
@@ -205,7 +210,7 @@ it("preserves Select argumentValue versus ComboBox name request semantics", asyn
   await fireEvent.press(screen.getByRole("button", { name: "Filter Argument" }))
   await fireEvent.press(screen.getByRole("radio", { name: "Alpha" }))
   expect(props.onArgumentChange).toHaveBeenLastCalledWith({ argument: false, filterArgumentSelectedKey: "" })
-  await screen.rerender(wrap({ ...props, filterArgumentType: "Combo Box" }))
+  await rerenderWithNativeCollections(wrap({ ...props, filterArgumentType: "Combo Box" }))
   await fireEvent.press(screen.getByRole("button", { name: "Show filter argument suggestions" }))
   await fireEvent.press(screen.getByRole("radio", { name: "Alpha" }))
   expect(props.onArgumentChange).toHaveBeenLastCalledWith({ argument: "Alpha", filterArgumentSelectedKey: "" })

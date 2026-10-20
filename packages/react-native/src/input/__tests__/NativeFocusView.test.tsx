@@ -146,6 +146,7 @@ it("forwards the original native accessibility snapshot only to its current live
     details: "Native details",
     descriptionAvailable: true,
     detailsAvailable: true,
+    collection: "{}",
     observedAt: 0,
   })
   await act(() => host().props.onNativeAccessibilitySnapshot(record))
@@ -379,6 +380,7 @@ it.each(["android", "ios"] as const)(
       details: "",
       descriptionAvailable: false,
       detailsAvailable: false,
+      collection: "{}",
       observedAt: 0,
     })
     await act(() => host().props.onNativeAccessibilitySnapshot(record))
