@@ -14,6 +14,8 @@ export type TNativeContextValue<P, R> =
   | null
   | undefined
 
+export const NativeSelectionIndicatorContext = createContext<Readonly<{ isSelected: boolean }>>({ isSelected: false })
+
 export type TNativeSelectableCollectionContextValue = TNativeFocusViewProps &
   TNativeSlotProps & {
     filter?: (textValue: string, node: TNativeCollectionNode<unknown>) => boolean

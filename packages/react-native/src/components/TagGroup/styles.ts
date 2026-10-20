@@ -21,13 +21,11 @@ export const getNativeTagGroupStyles = (theme: TNativeTheme, props: TNativeTagGr
   validateNativeDisplayDimension(props.width, "TagGroup", "width")
   validateNativeDisplayDimension(props.height, "TagGroup", "height")
   const dimensions = { width: props.width ?? ("auto" as const), height: props.height ?? ("auto" as const) }
-  return {
-    root: resolveNativeStyle(
-      [{ ...dimensions, flexDirection: "row" }, props.customStyles, props.style],
-      "TagGroup",
-      "root",
-    ),
-    list: resolveNativeStyle(
+  const root = splitNativeTextStyle(
+    resolveNativeStyle([{ ...dimensions, flexDirection: "row" }, props.customStyles, props.style], "TagGroup", "root"),
+  )
+  const list = splitNativeTextStyle(
+    resolveNativeStyle(
       [
         {
           ...dimensions,
@@ -41,6 +39,11 @@ export const getNativeTagGroupStyles = (theme: TNativeTheme, props: TNativeTagGr
       "TagGroup",
       "list",
     ),
+  )
+  return {
+    root: root.view,
+    list: list.view,
+    text: { ...root.text, ...list.text },
   }
 }
 
@@ -131,12 +134,14 @@ export const getNativeGroupedTagStyles = (
   theme: TNativeTheme,
   props: TNativeGroupedTagVisualProps,
   state: TNativeGroupedTagState,
+  inherited?: TextStyle,
 ) => {
   const geometry = props.geometry ?? "rounded"
   if (!AVAILABLE_CORNER_GEOMETRY_CODES.includes(geometry)) throw new TypeError("TagGroup.Tag: unsupported geometry")
   validateNativeDisplayDimension(props.width, "TagGroup.Tag", "width")
   validateNativeDisplayDimension(props.height, "TagGroup.Tag", "height")
   const computed: TextStyle = {
+    ...inherited,
     width: props.width,
     height: props.height,
     flexDirection: "row",

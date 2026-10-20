@@ -15,6 +15,7 @@ import Svg, { Path } from "react-native-svg"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { NativeSelectionIndicatorContext } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -203,47 +204,55 @@ const TagReceiver = forwardRef<
     return (
       <NativeCollectionSemanticsContext.Provider value="">
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
-            <View
-              role="cell"
-              accessible={false}
-              style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
-            >
-              {getNativeButtonContent(rendered, textStyle.current)}
-              {group.allowsRemoving ? (
-                <Button
-                  ref={removeView}
-                  testID="tag-remove-button"
-                  accessibilityLabel={removeLabel === "" ? "" : `${removeLabel} ${row.text()}`}
-                  isDisabled={disabled}
-                  geometry="orthogonal"
-                  raised={false}
-                  customStyles={{ backgroundColor: "transparent", borderWidth: 0, padding: 0, color: foreground }}
-                  onFocus={(event) => {
-                    nativeCellFocus?.(event)
-                    group.focus(row, true, event.nativeEvent.isFocusVisible)
-                  }}
-                  onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
-                  onPress={(event) => group.remove(row, "button", event)}
-                  onKeyDown={(event) => group.keyCapture(row, event)}
-                >
-                  {closeIcon || (
-                    <Svg
-                      testID="tag-default-close-icon"
-                      width={15}
-                      height={15}
-                      viewBox="0 0 24 24"
-                      fill={foreground}
-                      accessible={false}
-                      aria-hidden
-                    >
-                      <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                    </Svg>
-                  )}
-                </Button>
-              ) : null}
-            </View>
-          </NativeContentContext.Provider>
+          <NativeSelectionIndicatorContext.Provider value={{ isSelected: state.isSelected }}>
+            <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
+              <View
+                role="cell"
+                accessible={false}
+                style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
+              >
+                {getNativeButtonContent(rendered, textStyle.current)}
+                {group.allowsRemoving ? (
+                  <Button
+                    ref={removeView}
+                    testID="tag-remove-button"
+                    accessibilityLabel={removeLabel === "" ? "" : `${removeLabel} ${row.text()}`}
+                    isDisabled={disabled}
+                    geometry="orthogonal"
+                    raised={false}
+                    customStyles={{
+                      ...textStyle.current,
+                      backgroundColor: "transparent",
+                      borderWidth: 0,
+                      padding: 0,
+                      color: foreground,
+                    }}
+                    onFocus={(event) => {
+                      nativeCellFocus?.(event)
+                      group.focus(row, true, event.nativeEvent.isFocusVisible)
+                    }}
+                    onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
+                    onPress={(event) => group.remove(row, "button", event)}
+                    onKeyDown={(event) => group.keyCapture(row, event)}
+                  >
+                    {closeIcon || (
+                      <Svg
+                        testID="tag-default-close-icon"
+                        width={15}
+                        height={15}
+                        viewBox="0 0 24 24"
+                        fill={foreground}
+                        accessible={false}
+                        aria-hidden
+                      >
+                        <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                      </Svg>
+                    )}
+                  </Button>
+                ) : null}
+              </View>
+            </NativeContentContext.Provider>
+          </NativeSelectionIndicatorContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </NativeCollectionSemanticsContext.Provider>
     )
@@ -280,7 +289,7 @@ const TagReceiver = forwardRef<
             : undefined)
         }
         nativeStyle={(flags) => {
-          const style = getNativeGroupedTagStyles(theme, props, stateFor(flags))
+          const style = getNativeGroupedTagStyles(theme, props, stateFor(flags), group.text)
           textStyle.current = style.text
           return {
             viewStyle: style.view,

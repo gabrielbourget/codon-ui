@@ -1,14 +1,15 @@
 import { createContext, type RefObject } from "react"
-import type { View } from "react-native"
+import type { View, TextStyle } from "react-native"
 
-import type { TNativeContextValue, TNativeSlotProps } from "../../collection/context"
+import type { TNativeContextValue } from "../../collection/context"
+import type { TNativeCollectionScrollHost } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { TNativeListState as ListState } from "../../collection/state"
-import type { TNativeFocusViewProps, TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
+import type { TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 
 import type { TNativeTagGroupActionState, TNativeTagGroupPointerType, TNativeTagGroupPressPhase } from "./intent"
 import type { TNativeTagGroupKey, TNativeTagGroupSelectionBehavior, TNativeTagGroupSelectionMode } from "./model"
-import type { TNativeGroupedTagProps, TNativeTagGroupLabels, TNativeTagGroupProps } from "./types"
+import type { TNativeGroupedTagProps, TNativeTagGroupLabels, TNativeTagGroupProps, TNativeTagListProps } from "./types"
 
 export type TNativeTagRegistration = Readonly<{
   key: TNativeTagGroupKey
@@ -34,6 +35,7 @@ export const NativeTagItemValueContext = createContext<{
   value?: unknown
 } | null>(null)
 export const NativeTagGroupActionsContext = createContext<{
+  text: TextStyle
   register: (row: TNativeTagRegistration) => () => void
   refresh: (row: TNativeTagRegistration) => void
   mode: TNativeTagGroupSelectionMode
@@ -59,12 +61,16 @@ export const NativeTagGroupStateContext = createContext<ListState<object> | null
 
 export const NativeTagGroupContext =
   createContext<TNativeContextValue<Partial<Omit<TNativeTagGroupProps, "children" | "items" | "getKey">>, View>>(null)
-export type TNativeTagListContextProps = TNativeFocusViewProps &
-  TNativeSlotProps & {
-    nativeLabelledBy?: readonly string[]
-    nativeDescribedBy?: readonly string[]
-    nativeDetailsBy?: readonly string[]
-    nativeDescriptionLabel?: string
-    nativeDetailsLabel?: string
-  }
+export type TNativeTagListContextProps = Partial<TNativeTagListProps> & {
+  nativeLabelledBy?: readonly string[]
+  nativeDescribedBy?: readonly string[]
+  nativeDetailsBy?: readonly string[]
+  nativeDescriptionLabel?: string
+  nativeDetailsLabel?: string
+}
 export const NativeTagListContext = createContext<TNativeContextValue<TNativeTagListContextProps, View>>(null)
+export const NativeTagListRenderContext = createContext<{
+  persistedKeys: Set<TNativeTagGroupKey> | null
+  scrollRef: RefObject<TNativeCollectionScrollHost | null>
+  defaultStyle: TextStyle
+} | null>(null)
