@@ -7,6 +7,7 @@
 
 // Drawing-only adaptation of RN0.86.3 border and box-shadow painters; native curves replace circular paths.
 #import "CUIMotionDrawingGeometry.h"
+#import "CUIMotionContinuousCorners.h"
 #import <React/RCTLog.h>
 #import <React/RCTUtils.h>
 #import <React/RCTConversions.h>
@@ -14,12 +15,6 @@
 #include <array>
 #include <cmath>
 #include <vector>
-
-// The private Swift implementation uses public SwiftUI Path APIs available since iOS13.
-@interface CUIMotionContinuousCorners : NSObject
-+ (nullable UIBezierPath *)pathForBounds:(CGRect)bounds topLeft:(CGSize)topLeft topRight:(CGSize)topRight
-    bottomLeft:(CGSize)bottomLeft bottomRight:(CGSize)bottomRight continuousCorners:(NSUInteger)continuousCorners;
-@end
 
 static BOOL CUIHasContinuous(const CUIMotionCornerCurves &curves) {
   using facebook::react::BorderCurve;

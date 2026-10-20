@@ -8,10 +8,12 @@ from continuous_uikit_probe import PROFILE_NAMES, validate_journal
 def journal():
     return [{"kind": "begin", "producer": "source", "pid": 123},
         {"kind": "reference-control", "producer": "source", "metrics": {"binaryCoverageDifferences": 10}},
+        {"kind": "factory-guards", "producer": "source", "outcome": "guards-complete"},
         *[{"kind": "profile", "producer": "source", "name": name} for name in PROFILE_NAMES],
         *[{"kind": "raster-control", "producer": "source", "name": name + "-circular"} for name in PROFILE_NAMES],
         *[{"kind": "native-layer-candidate", "producer": "source", "name": name + "-native-layer"} for name in PROFILE_NAMES],
         *[{"kind": "native-mask-candidate", "producer": "source", "name": name + "-native-mask"} for name in PROFILE_NAMES],
+        *[{"kind": "factory-mask-candidate", "producer": "source", "name": name + "-factory-mask"} for name in PROFILE_NAMES],
         {"kind": "terminal", "producer": "source", "outcome": "native-reference-characterization-complete", "fullCard": False, "fullGoal": False}]
 
 
@@ -31,7 +33,7 @@ class ReferenceCustody(unittest.TestCase):
 
     def test_duplicate_profile_cannot_replace_missing_profile(self):
         rows = journal()
-        rows[3] = copy.deepcopy(rows[2])
+        rows[4] = copy.deepcopy(rows[3])
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
 
     def test_foreign_identity_and_acceptance_promotion_reject(self):

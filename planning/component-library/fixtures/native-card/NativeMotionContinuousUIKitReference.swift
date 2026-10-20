@@ -91,6 +91,23 @@ if control["binaryCoverageDifferences"]! == 0 {
   exit(2)
 }
 
+let guardMask = CUIProbeNativeContinuousMask(CGRect(origin: .zero, size: controlSize), CGSize(width: 10, height: 40), pixelScale)!
+precondition(CUIProbeNativeContinuousMaskDescription(guardMask) != nil)
+precondition(CUIProbeNativeContinuousMaskDescription(CALayer()) == nil, "Foreign native mask must not gain description authority")
+guardMask.opacity = 0.5
+precondition(CUIProbeNativeContinuousMaskDescription(guardMask) == nil, "Modified mask opacity must reject")
+guardMask.opacity = 1
+precondition(CUIProbeNativeContinuousMaskDescription(guardMask) != nil)
+precondition(CUIProbeNativeContinuousMask(CGRect(x: 0, y: 0, width: -1, height: 80), CGSize(width: 10, height: 40), pixelScale) == nil)
+precondition(CUIProbeNativeContinuousMask(CGRect(origin: .zero, size: controlSize), CGSize(width: CGFloat.nan, height: 40), pixelScale) == nil)
+precondition(CUIProbeNativeContinuousMask(CGRect(origin: .zero, size: controlSize), CGSize(width: 10, height: 40), 0) == nil)
+let emptyMask = CUIProbeNativeContinuousMask(.zero, CGSize(width: 10, height: 40), pixelScale)!
+precondition(CUIProbeNativeContinuousMaskDescription(emptyMask) != nil, "Empty native bounds remain supported")
+let squareMask = CUIProbeNativeContinuousMask(CGRect(origin: .zero, size: controlSize), CGSize(width: 0, height: 40), pixelScale)!
+precondition(squareMask.cornerRadius == 0 && CUIProbeNativeContinuousMaskDescription(squareMask) != nil)
+emit(["kind": "factory-guards", "producer": sourceProducer, "outcome": "guards-complete",
+  "scope": "Actual private ObjC-to-Swift factory/describer only; no receiver or clipping admission"])
+
 struct DrawingProfile {
   let name: String
   let radius: CGFloat
@@ -164,8 +181,22 @@ for profile in profiles {
   emit(["kind": "native-mask-candidate", "producer": sourceProducer, "name": maskName,
     "referenceImage": profile.name + "-native.png", "ownedImage": maskName + "-owned.png",
     "metrics": differences(reference, maskActual), "scope": "Unaccepted four public corner-mask composition candidate only"])
+
+  let factoryRoot = nativeLayer(size: controlSize, radius: 0, continuous: true)
+  let factoryMask = CUIProbeNativeContinuousMask(CGRect(origin: .zero, size: controlSize), corrected, pixelScale)!
+  let factoryDescription = CUIProbeNativeContinuousMaskDescription(factoryMask)!
+  factoryRoot.mask = factoryMask
+  let factoryActual = raster(factoryRoot, size: size, transform: profile.projection)
+  precondition((CUIProbeNativeContinuousMaskDescription(factoryMask)! as NSDictionary).isEqual(factoryDescription),
+    "Native mask description must survive attachment and rasterization unchanged")
+  let factoryName = profile.name + "-factory-mask"
+  try save(factoryActual, name: factoryName + "-owned.png")
+  emit(["kind": "factory-mask-candidate", "producer": sourceProducer, "name": factoryName,
+    "referenceImage": profile.name + "-native.png", "ownedImage": factoryName + "-owned.png",
+    "description": factoryDescription, "metrics": differences(reference, factoryActual),
+    "scope": "Actual unwired private mask factory through its typed ObjC bridge only"])
 }
 CATransaction.commit()
 emit(["kind": "terminal", "producer": sourceProducer, "outcome": "native-reference-characterization-complete",
-  "profiles": profiles.count, "rasterControls": profiles.count, "nativeLayerCandidates": profiles.count, "nativeMaskCandidates": profiles.count,
+  "profiles": profiles.count, "rasterControls": profiles.count, "nativeLayerCandidates": profiles.count, "nativeMaskCandidates": profiles.count, "factoryMaskCandidates": profiles.count,
   "fullCard": false, "fullGoal": false])

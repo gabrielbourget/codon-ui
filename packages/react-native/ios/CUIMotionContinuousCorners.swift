@@ -1,9 +1,59 @@
 import SwiftUI
 import UIKit
 
+@objc(CUIOwnedContinuousMaskLayer)
+final class CUIOwnedContinuousMaskLayer: CALayer {}
+
 // System-generated curves are retained verbatim; no fitted control points or private drawing APIs.
 @objc(CUIMotionContinuousCorners)
 final class CUIMotionContinuousCorners: NSObject {
+  @objc(layerForBounds:cornerSize:contentsScale:)
+  static func layer(bounds: CGRect, cornerSize: CGSize, contentsScale: CGFloat) -> CALayer? {
+    guard Thread.isMainThread,
+      [bounds.origin.x, bounds.origin.y, bounds.size.width, bounds.size.height, cornerSize.width, cornerSize.height, contentsScale].allSatisfy({ $0.isFinite }),
+      bounds.size.width >= 0, bounds.size.height >= 0, cornerSize.width >= 0, cornerSize.height >= 0, contentsScale > 0 else { return nil }
+    let square = cornerSize.width == 0 || cornerSize.height == 0
+    // Preserve native scalar-corner rasterization while independently scaling its axes.
+    let scale = square ? CGSize(width: 1, height: 1) : cornerSize
+    let normalized = CGSize(width: bounds.size.width / scale.width, height: bounds.size.height / scale.height)
+    guard normalized.width.isFinite, normalized.height.isFinite else { return nil }
+    let layer = CUIOwnedContinuousMaskLayer()
+    layer.anchorPoint = .zero
+    layer.bounds = CGRect(origin: .zero, size: normalized)
+    layer.position = bounds.origin
+    layer.setAffineTransform(CGAffineTransform(scaleX: scale.width, y: scale.height))
+    layer.backgroundColor = UIColor.white.cgColor
+    layer.cornerRadius = square ? 0 : 1
+    layer.cornerCurve = .continuous
+    layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner]
+    layer.masksToBounds = true
+    layer.contentsScale = contentsScale
+    return layer
+  }
+
+  @objc(nativeMaskDescriptionForLayer:)
+  static func nativeMaskDescription(layer: CALayer) -> NSDictionary? {
+    // Describe the factory's closed opaque shape from public layer properties.
+    guard Thread.isMainThread, let owned = layer as? CUIOwnedContinuousMaskLayer,
+      let color = owned.backgroundColor, color == UIColor.white.cgColor,
+      owned.delegate == nil, owned.mask == nil, owned.contents == nil, owned.sublayers?.isEmpty ?? true,
+      owned.animationKeys()?.isEmpty ?? true, owned.filters?.isEmpty ?? true, owned.backgroundFilters?.isEmpty ?? true,
+      owned.compositingFilter == nil, owned.borderWidth == 0, owned.shadowOpacity == 0,
+      owned.opacity == 1, !owned.isHidden, !owned.shouldRasterize, !owned.isGeometryFlipped,
+      owned.cornerRadius == 0 || owned.cornerRadius == 1, owned.cornerCurve == .continuous,
+      owned.maskedCorners == [.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner],
+      owned.masksToBounds, owned.anchorPoint == .zero, owned.anchorPointZ == 0, owned.zPosition == 0,
+      owned.bounds.origin == .zero, owned.bounds.width >= 0, owned.bounds.height >= 0,
+      [owned.bounds.width, owned.bounds.height, owned.position.x, owned.position.y, owned.contentsScale].allSatisfy({ $0.isFinite }),
+      owned.contentsScale > 0, CATransform3DIsAffine(owned.transform) else { return nil }
+    let transform = owned.affineTransform()
+    guard [transform.a, transform.d].allSatisfy({ $0.isFinite && $0 > 0 }),
+      transform.b == 0, transform.c == 0, transform.tx == 0, transform.ty == 0 else { return nil }
+    return ["kind": "cui-owned-native-continuous", "cornerRadius": owned.cornerRadius,
+      "cornerCurve": owned.cornerCurve.rawValue, "maskedCorners": owned.maskedCorners.rawValue,
+      "contentsScale": owned.contentsScale]
+  }
+
   private struct Segment {
     let kind: CGPathElementType
     let start: CGPoint

@@ -20,6 +20,9 @@ RUNTIME = "com.apple.CoreSimulator.SimRuntime.iOS-26-5"
 SOURCE = "packages/react-native/ios/CUIMotionContinuousCorners.swift"
 NATIVE_FIXTURE = "planning/component-library/fixtures/native-card/NativeMotionContinuousUIKitReference.swift"
 HELPER = "planning/component-library/fixtures/native-card/continuous_uikit_probe.py"
+BRIDGE = "planning/component-library/fixtures/native-card/NativeMotionContinuousMaskProbe.mm"
+BRIDGE_HEADER = "planning/component-library/fixtures/native-card/NativeMotionContinuousMaskProbe.h"
+PRODUCTION_HEADER = "packages/react-native/ios/CUIMotionContinuousCorners.h"
 PROFILE_NAMES = ["native-r4", "native-r20", "native-r30-overlap", "native-r40-overlap",
     "corrected-separate", "corrected-horizontal-overlap", "corrected-vertical-overlap"]
 
@@ -37,7 +40,9 @@ def validate_journal(rows, producer):
     raster_controls = [row for row in rows if row["kind"] == "raster-control"]
     native_candidates = [row for row in rows if row["kind"] == "native-layer-candidate"]
     mask_candidates = [row for row in rows if row["kind"] == "native-mask-candidate"]
-    assert all(row["kind"] in ["begin", "reference-control", "profile", "raster-control", "native-layer-candidate", "native-mask-candidate", "terminal"] for row in rows)
+    factory_candidates = [row for row in rows if row["kind"] == "factory-mask-candidate"]
+    factory_guards = [row for row in rows if row["kind"] == "factory-guards"]
+    assert all(row["kind"] in ["begin", "reference-control", "profile", "raster-control", "native-layer-candidate", "native-mask-candidate", "factory-mask-candidate", "factory-guards", "terminal"] for row in rows)
     assert len(controls) == 1
     outcome = rows[-1]["outcome"]
     if outcome == "native-reference-characterization-complete":
@@ -46,8 +51,10 @@ def validate_journal(rows, producer):
         assert [row["name"] for row in raster_controls] == [name + "-circular" for name in PROFILE_NAMES]
         assert [row["name"] for row in native_candidates] == [name + "-native-layer" for name in PROFILE_NAMES]
         assert [row["name"] for row in mask_candidates] == [name + "-native-mask" for name in PROFILE_NAMES]
+        assert [row["name"] for row in factory_candidates] == [name + "-factory-mask" for name in PROFILE_NAMES]
+        assert len(factory_guards) == 1 and factory_guards[0]["outcome"] == "guards-complete"
     else:
-        assert outcome == "native-reference-capability-unavailable" and not profiles and not raster_controls and not native_candidates and not mask_candidates
+        assert outcome == "native-reference-capability-unavailable" and not profiles and not raster_controls and not native_candidates and not mask_candidates and not factory_candidates and not factory_guards
         assert controls[0]["metrics"]["binaryCoverageDifferences"] == 0
     return {"outcome": outcome, "nativeProfileCount": len(profiles), "nativePID": rows[0]["pid"], "fullCard": False, "fullGoal": False}
 
@@ -64,7 +71,7 @@ def verify(root):
 def prepare(root):
     assert not root.exists() and not git("status", "--porcelain")
     root.mkdir(parents=True)
-    names = [SOURCE, NATIVE_FIXTURE, HELPER, "packages/react-native/package.json", "packages/react-native/CodonNativeInput.podspec", "pnpm-lock.yaml", "AGENTS.md"]
+    names = [SOURCE, NATIVE_FIXTURE, HELPER, BRIDGE, BRIDGE_HEADER, PRODUCTION_HEADER, "packages/react-native/package.json", "packages/react-native/CodonNativeInput.podspec", "pnpm-lock.yaml", "AGENTS.md"]
     producer = git("rev-parse", "HEAD")
     fixture = (REPO / NATIVE_FIXTURE).read_text()
     assert fixture.count('"UNFROZEN"') == 1
@@ -79,7 +86,12 @@ def prepare(root):
 def build(root):
     inputs = verify(root)
     binary = root / "CUIContinuousUIKitReference"
-    command(root, "swift-build", [SWIFT, "-target", inputs["target"], "-sdk", SDK, "-O", "-module-cache-path", "/private/tmp/codon-native-card-continuous-uikit-modules", root / "main.swift", "-o", binary], 90)
+    bridge_object = root / "native-mask-bridge.o"
+    command(root, "objc-bridge-build", [SWIFT.parent / "clang++", "-target", inputs["target"], "-isysroot", SDK,
+        "-fobjc-arc", "-fmodules", "-fmodules-cache-path=/private/tmp/codon-native-card-continuous-uikit-objc-modules",
+        "-O2", "-c", REPO / BRIDGE, "-o", bridge_object], 90)
+    command(root, "swift-build", [SWIFT, "-target", inputs["target"], "-sdk", SDK, "-O", "-module-cache-path", "/private/tmp/codon-native-card-continuous-uikit-modules",
+        "-import-objc-header", REPO / BRIDGE_HEADER, root / "main.swift", bridge_object, "-o", binary], 90)
     verify(root)
     command(root, "binary-kind", ["/usr/bin/file", binary])
     _, load_commands = command(root, "binary-load-commands", ["/usr/bin/otool", "-l", binary])

@@ -60,7 +60,7 @@ for (width,height,seeds) in [(7,9,[0,21,62]),(9,5,[10,34]),(1,8,[2,7])] {
 let root=URL(fileURLWithPath:CommandLine.arguments[1],isDirectory:true)
 let journal=try JSONSerialization.jsonObject(with:Data(contentsOf:root.appendingPathComponent("original-native-journal.json"))) as! [[String:Any]]
 var results:[[String:Any]]=[]
-for row in journal where ["profile","raster-control","native-layer-candidate","native-mask-candidate"].contains(row["kind"] as? String ?? "") {
+for row in journal where ["profile","raster-control","native-layer-candidate","native-mask-candidate","factory-mask-candidate"].contains(row["kind"] as? String ?? "") {
  let name=row["name"] as! String
  let a=load(root.appendingPathComponent(row["referenceImage"] as? String ?? name+"-native.png")),b=load(root.appendingPathComponent(row["ownedImage"] as? String ?? name+"-owned.png"))
  precondition(a.width==b.width && a.height==b.height)
