@@ -1,5 +1,5 @@
 {
-  "status": "Private TagGroup field/button context construction; virtual/input/native/full-family acceptance remains open.",
+  "status": "Private TagGroup field/button context construction; final source/input/native/full-family acceptance remains open.",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "canonicalInputsSHA256": {
     "packages/react/src/components/TagGroup/TagGroup.tsx": "59139db329054a51d68f6148aa4ba1c16a7d94c069083d327b39aea0d407aed2",
@@ -144,10 +144,10 @@
       "adaptedInto": ["Tag.tsx"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
-    "TagGroup.tsx": "2ddc1ccd9a7d42e82c968d55d4a363c26549040b7ad36adb1eb6059ac140dc8e",
+    "TagGroup.tsx": "35a6cfd428bebbb4d540d77a3468586ca94435ad0826a83101528e4d8f8ea652",
     "Tag.tsx": "bc847b7d775081455054d446d4fefa91b848d86db779dfc29824113a2fd4c991",
     "context.ts": "71bc746294035e4f886740dd864825a1685c6a303e23651fd273824030952c2f",
     "types.ts": "a5644175e839987929b2beda68bd5c6e1db5fcee339b5cb9bfb36098e50a50fa",

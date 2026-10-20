@@ -7,6 +7,7 @@ import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeSelectableCollectionContext } from "../../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -36,13 +37,18 @@ const fixture = async (
   props: TNativeTagGroupProps,
   children: ReactNode,
   renderer = DefaultNativeCollectionRenderer,
+  virtualFocusContext = false,
 ) => {
   const view = await render(
     <NativeThemeProvider>
       <NativeCollectionRendererContext.Provider value={renderer}>
         <NativeOverlayProvider>
           <NativeFloatingLayerHost testID="host">
-            <TagGroup {...props}>{children}</TagGroup>
+            <NativeSelectableCollectionContext.Provider
+              value={virtualFocusContext ? { shouldUseVirtualFocus: true } : null}
+            >
+              <TagGroup {...props}>{children}</TagGroup>
+            </NativeSelectableCollectionContext.Provider>
           </NativeFloatingLayerHost>
         </NativeOverlayProvider>
       </NativeCollectionRendererContext.Provider>
@@ -66,6 +72,29 @@ const fixture = async (
   }
   return view
 }
+
+it("matches the source TagGroup's physical-focus policy when the collection context requests virtual focus", async () => {
+  let state!: TNativeListState<object>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeListStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const target = createRef<RN.View>()
+  await fixture(
+    {},
+    <Tag id="a" ref={target}>
+      Alpha
+    </Tag>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+    true,
+  )
+  await act(() => {
+    state.selectionManager.setFocused(true)
+    state.selectionManager.setFocusedKey("a")
+  })
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(target.current, expect.any(String))
+})
 
 it("keeps complete state behind a partial renderer and waits for an actual offscreen focus target", async () => {
   const first = createRef<RN.View>(),

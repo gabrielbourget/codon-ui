@@ -143,6 +143,7 @@ const NativeTagGroup = <T extends object>({
     render,
     slot: _slot,
     filter,
+    // Pinned TagGroupInner strips this context option and retains physical item focus.
     shouldUseVirtualFocus: _virtualFocus,
     disallowTypeAhead: _disallowTypeAhead,
     width: _width,
