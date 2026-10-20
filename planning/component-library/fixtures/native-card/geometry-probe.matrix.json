@@ -573,6 +573,36 @@
       "product": null,
       "inspector": null,
       "observations": null
+    },
+    {
+      "id": "CAT.card.android.P01.S07.NGEO013",
+      "evidenceKey": "NGEO.013",
+      "platform": "android",
+      "profile": "3.3.1",
+      "scenario": "S07",
+      "name": "ordinary-view-constraint-query",
+      "setup": "Use a matching current product and the actual owner scene with its ordinary non-collapsible View.",
+      "action": "Inspect both actual views, transform/scroll the ancestor and retire or replace either ref while querying.",
+      "expected": "Scoped native resolution samples both actual views in one UI-thread query, agrees with independent geometry inspection and rejects retired or foreign-window owners. Original editor value, selection, methods and refs remain intact.",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CAT.card.ios.P01.S07.NGEO013",
+      "evidenceKey": "NGEO.013",
+      "platform": "ios",
+      "profile": "3.3.1",
+      "scenario": "S07",
+      "name": "ordinary-view-constraint-query",
+      "setup": "Use a matching current product and the actual owner scene with its ordinary non-collapsible View.",
+      "action": "Inspect both actual views, transform/scroll the ancestor and retire or replace either ref while querying.",
+      "expected": "Scoped native resolution samples both actual views in one UI-thread query, agrees with independent geometry inspection and rejects retired or foreign-window owners. Original editor value, selection, methods and refs remain intact.",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
     }
   ]
 }

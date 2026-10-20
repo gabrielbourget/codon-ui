@@ -4,6 +4,7 @@
 #import <React/RCTSurfacePresenter.h>
 #import <React/RCTScheduler.h>
 #import "CUIFocusView.h"
+#import "CUIMotionGeometryObserver.h"
 #include "../cpp/motion/SnapshotQuery.h"
 #include <atomic>
 #include <cmath>
@@ -72,5 +73,36 @@ RCT_EXPORT_MODULE(CUIMotionSnapshot)
 
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<facebook::react::NativeCUIMotionSnapshotSpecJSI>(params);
+}
+
+- (void)getTargetGeometry:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject {
+  RCTAssertMainQueue();
+  @try {
+    if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class]) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-module-unavailable" userInfo:nil];
+    NSError *error = nil;
+    id request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:&error];
+    if (error || ![request isKindOfClass:NSDictionary.class]) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-request-invalid" userInfo:nil];
+    for (NSString *key in @[@"target", @"sampleTarget"]) {
+      id value = request[key];
+      if (![value isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)value) == CFBooleanGetTypeID() || !std::isfinite([value doubleValue]) || [value doubleValue] <= 0 || [value doubleValue] > INT_MAX || [value doubleValue] != std::floor([value doubleValue])) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-target-invalid" userInfo:nil];
+    }
+    id nonce = request[@"requestId"];
+    if (![nonce isKindOfClass:NSString.class] || ![nonce length]) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-request-invalid" userInfo:nil];
+    RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_presenter;
+    UIView *owner = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"target"] integerValue]];
+    UIView *target = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"sampleTarget"] integerValue]];
+    if (![owner isKindOfClass:CUIFocusView.class] || !target.window || target.window != owner.window) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-actual-target-window-unavailable" userInfo:nil];
+    NSDictionary *identity = [(CUIFocusView *)owner motionSnapshotIdentity];
+    if (!CUISnapshotIdentityMatches(request, identity)) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-owner-mismatch" userInfo:nil];
+    NSDictionary *ownerSnapshot = [CUIMotionGeometryObserver querySnapshotForView:owner], *targetSnapshot = [CUIMotionGeometryObserver querySnapshotForView:target];
+    NSString *nativeOwnerIdentity = [ownerSnapshot[@"ancestors"] firstObject][@"identity"];
+    if (![request[@"nativeOwnerIdentity"] isKindOfClass:NSString.class] || ![request[@"nativeOwnerIdentity"] isEqual:nativeOwnerIdentity]) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-owner-retired" userInfo:nil];
+    if (!_valid.load() || [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"target"] integerValue]] != owner || [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"sampleTarget"] integerValue]] != target || !target.window || target.window != owner.window || !CUISnapshotIdentityMatches(identity, [(CUIFocusView *)owner motionSnapshotIdentity])) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-target-retired" userInfo:nil];
+    NSMutableDictionary *result = [identity mutableCopy];
+    [result addEntriesFromDictionary:@{@"kind": @"native-target-geometry", @"requestId": nonce, @"sampleTarget": request[@"sampleTarget"], @"nativeOwnerIdentity": nativeOwnerIdentity, @"ownerSnapshot": ownerSnapshot, @"targetSnapshot": targetSnapshot, @"observedAt": @(NSProcessInfo.processInfo.systemUptime * 1000)}];
+    NSData *data = [NSJSONSerialization isValidJSONObject:result] ? [NSJSONSerialization dataWithJSONObject:result options:NSJSONWritingSortedKeys error:&error] : nil;
+    if (!data || error) @throw [NSException exceptionWithName:@"CUI.MotionGeometry" reason:@"motion-geometry-invalid" userInfo:nil];
+    resolve([[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
+  } @catch (NSException *failure) { reject(@"E_CUI_MOTION_TARGET_GEOMETRY", failure.reason, nil); }
 }
 @end

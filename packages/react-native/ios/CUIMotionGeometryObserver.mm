@@ -91,8 +91,8 @@ static NSDictionary *CUIClip(CALayer *layer) {
   if (![_attachment isEqual:attachment]) { _attachment = attachment; _attachmentRevision++; _lastFrame = nil; }
   return [@{@"ownerId": _owner, @"bindingId": _binding, @"target": @(root.tag), @"windowId": windowId, @"scopeOwnerId": scopeOwner, @"epoch": @(epoch), @"attachmentRevision": @(_attachmentRevision), @"geometryRevision": @(++CUIGeometrySequence), @"commitRevision": _revision, @"transactionId": transaction, @"kind": kind, @"requestId": requestId, @"attached": @(window != nil), @"observedAt": @(NSProcessInfo.processInfo.systemUptime * 1000)} mutableCopy];
 }
-- (NSDictionary *)snapshot {
-  UIView *root = _root; UIWindow *window = root.window;
++ (NSDictionary *)querySnapshotForView:(UIView *)root {
+  UIWindow *window = root.window;
   NSMutableArray *ancestors = [NSMutableArray array], *layers = [NSMutableArray array];
   for (UIView *view = root; view; view = view.superview) {
     CALayer *layer = view.layer;
@@ -105,7 +105,12 @@ static NSDictionary *CUIClip(CALayer *layer) {
   }
   CALayer *presentation = root.layer.presentationLayer, *presentationWindow = window.layer.presentationLayer;
   UIEdgeInsets safe = window.safeAreaInsets;
-  return @{@"platform": @"ios", @"coordinateSpace": @"window", @"units": @"points", @"density": @(window.screen.scale), @"matrixFormat": @"core-animation-4x4", @"rootTag": @(window.tag), @"rootIdentity": CUIIdentity(window), @"root": CUIBox(window.layer, window.layer), @"safeArea": @[@(safe.left), @(safe.top), @(safe.right), @(safe.bottom)], @"layout": CUIRect(CUILayout(root.layer)), @"untransformed": CUIUntransformed(root.layer, window.layer), @"model": CUIBox(root.layer, window.layer), @"presentation": presentation && presentationWindow ? CUIBox(presentation, presentationWindow) : (id)NSNull.null, @"presentationSource": @"core-animation-presentation-layer", @"ancestors": ancestors, @"layers": layers, @"mountObservationAvailable": @YES};
+  return @{@"platform": @"ios", @"coordinateSpace": @"window", @"units": @"points", @"density": @(window.screen.scale), @"matrixFormat": @"core-animation-4x4", @"rootTag": @(window.tag), @"rootIdentity": CUIIdentity(window), @"root": CUIBox(window.layer, window.layer), @"safeArea": @[@(safe.left), @(safe.top), @(safe.right), @(safe.bottom)], @"layout": CUIRect(CUILayout(root.layer)), @"untransformed": CUIUntransformed(root.layer, window.layer), @"model": CUIBox(root.layer, window.layer), @"presentation": presentation && presentationWindow ? CUIBox(presentation, presentationWindow) : (id)NSNull.null, @"presentationSource": @"core-animation-presentation-layer", @"ancestors": ancestors, @"layers": layers, @"mountObservationAvailable": @NO};
+}
+- (NSDictionary *)snapshot {
+  NSMutableDictionary *value = [[CUIMotionGeometryObserver querySnapshotForView:_root] mutableCopy];
+  value[@"mountObservationAvailable"] = @YES;
+  return value;
 }
 - (void)captureKind:(NSString *)kind requestId:(NSString *)requestId transaction:(NSString *)transaction {
   if (!_binding.length) return;

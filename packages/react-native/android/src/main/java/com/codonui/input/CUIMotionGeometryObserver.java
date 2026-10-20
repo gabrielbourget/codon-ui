@@ -186,6 +186,9 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
       .put("untransformed", box(view, false)).put("model", model).put("presentation", model).put("presentationSource", "android-view-render-node-matrix")
       .put("ancestors", chain);
   }
+  static JSONObject querySnapshot(View view) throws JSONException {
+    return snapshot(view).put("mountObservationAvailable", false);
+  }
   @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
   private static final class MountCoordinator implements UIManagerListener {
     private final WeakReference<UIManager> manager;

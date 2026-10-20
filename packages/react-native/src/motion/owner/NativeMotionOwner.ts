@@ -11,6 +11,8 @@ import type {
   TNativeMotionDefinition,
 } from "../animation/types"
 import type { TNativeMotionConfig } from "../config"
+import type { TNativeMotionDragProps } from "../interactions/dragTypes"
+import type { TNativeMotionInteractionProps } from "../interactions/types"
 import { motionValue } from "../kernel"
 import type { AnimationPlaybackControlsWithThen, MotionValue } from "../kernel"
 import { animateNativeMotionValue } from "../value/animateValue"
@@ -24,10 +26,11 @@ const NATIVE_NODE_DISCONNECTED = 1
 const NATIVE_NODE_PRECEDING = 2
 const NATIVE_NODE_FOLLOWING = 4
 
-export type TNativeMotionOwnerProps = TNativeMotionAnimationProps & {
-  onAnimationStart?: (definition: TNativeMotionDefinition) => void
-  onAnimationComplete?: (definition: TNativeMotionDefinition) => void
-}
+export type TNativeMotionOwnerProps = TNativeMotionAnimationProps &
+  TNativeMotionInteractionProps & {
+    onAnimationStart?: (definition: TNativeMotionDefinition) => void
+    onAnimationComplete?: (definition: TNativeMotionDefinition) => void
+  } & TNativeMotionDragProps
 export type TNativeMotionInitialContext = Pick<TNativeMotionAnimationProps, "initial" | "animate">
 export const nativeInitialVariantContext = (
   props: TNativeMotionAnimationProps,
@@ -50,7 +53,7 @@ export type TNativeMotionOwnerOptions = {
   waitForInitialWindow?: () => boolean
   readValue?: TNativeMotionValueContext["readValue"]
   resolveGeometry?: TNativeMotionValueContext["resolveGeometry"]
-  presence?: { custom?: unknown; initial?: boolean }
+  presence?: { custom?: unknown; initial?: boolean; isPresent?: boolean }
   initialContext?: TNativeMotionInitialContext
 }
 
@@ -61,7 +64,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   latestValues: Record<string, unknown> = {}
   variantChildren?: Set<NativeMotionOwner>
   enteringChildren?: Set<NativeMotionOwner>
-  presenceContext?: { custom?: unknown }
+  presenceContext?: { custom?: unknown; isPresent?: boolean }
   readonly animationState = createAnimationState(this)
   readonly isControllingVariants: boolean
   readonly isVariantNode: boolean
@@ -159,6 +162,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
     nativeInitialVariantContext(this.props, this.options.initialContext ?? this.parent?.getInitialVariantContext())
   getVariant = (name: string) => this.props.variants?.[name]
   getDefaultTransition = () => this.props.transition
+  getTransformPagePoint = () => this.options.config.transformPagePoint
   setReducedMotionPolicy = (key: string, override: boolean | undefined) => {
     this.reducedPolicies.set(key, override)
   }
@@ -238,6 +242,11 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
     const target = this.current,
       generation = this.generation
     return () => this.isCurrent() && this.current === target && this.generation === generation
+  }
+  captureAttachmentLease = () => {
+    const target = this.current,
+      attachment = this.attachment
+    return () => target !== null && this.current === target && this.attachment === attachment
   }
   captureAnimationLease = () => {
     const current = this.captureVisualLease()

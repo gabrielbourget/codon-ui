@@ -20,6 +20,7 @@ import {
   type TNativeKeyboardObservations,
 } from "./keyboardObservation"
 import { createNativeKeyScope, type TNativeKeyPolicy, type TNativeKeyScope } from "./keyScope"
+import { dispatchNativeGestureWindow } from "./nativeGestureObservation"
 import { nativeViewProps, NativeViewContextBoundary } from "./nativeViewProps"
 import ScopeHost, { type NativeScopedKeyData } from "./specs/CUIKeyboardScopeNativeComponent"
 import type { TNativeKeyboardData } from "./types"
@@ -122,6 +123,30 @@ export const NativeKeyboardScope = forwardRef<View, ViewProps & { captureEnabled
             <NativeViewContextBoundary>
               <ScopeHost
                 {...nativeViewProps(props)}
+                onTouchMove={(event) => {
+                  props.onTouchMove?.(event)
+                  dispatchNativeGestureWindow(scope, event, "move")
+                }}
+                onTouchEnd={(event) => {
+                  props.onTouchEnd?.(event)
+                  dispatchNativeGestureWindow(scope, event, "end")
+                }}
+                onTouchCancel={(event) => {
+                  props.onTouchCancel?.(event)
+                  dispatchNativeGestureWindow(scope, event, "cancel")
+                }}
+                onPointerMove={(event) => {
+                  props.onPointerMove?.(event)
+                  dispatchNativeGestureWindow(scope, event, "move")
+                }}
+                onPointerUp={(event) => {
+                  props.onPointerUp?.(event)
+                  dispatchNativeGestureWindow(scope, event, "end")
+                }}
+                onPointerCancel={(event) => {
+                  props.onPointerCancel?.(event)
+                  dispatchNativeGestureWindow(scope, event, "cancel")
+                }}
                 ref={setRef}
                 ownerId={ownerId}
                 enabled={captureEnabled}

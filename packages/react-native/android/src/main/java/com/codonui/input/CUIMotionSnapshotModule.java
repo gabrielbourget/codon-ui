@@ -1,6 +1,7 @@
 package com.codonui.input;
 
 import android.view.View;
+import android.os.SystemClock;
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.UIManager;
@@ -62,4 +63,33 @@ public final class CUIMotionSnapshotModule extends NativeCUIMotionSnapshotSpec {
   }
 
   @Override public void invalidate() { valid.set(false); super.invalidate(); }
+
+  @Override public void getTargetGeometry(String encoded, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      try {
+        if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("motion-module-retired");
+        JSONObject request = new JSONObject(encoded);
+        Object rawOwner = request.get("target"), rawSample = request.get("sampleTarget"), nonce = request.get("requestId");
+        if (!(rawOwner instanceof Number) || !(rawSample instanceof Number) || !(nonce instanceof String) || ((String)nonce).isEmpty()) throw new IllegalArgumentException("motion-request-invalid");
+        double ownerNumber = ((Number)rawOwner).doubleValue(), sampleNumber = ((Number)rawSample).doubleValue();
+        if (!Double.isFinite(ownerNumber) || ownerNumber <= 0 || ownerNumber > Integer.MAX_VALUE || ownerNumber != Math.rint(ownerNumber) || !Double.isFinite(sampleNumber) || sampleNumber <= 0 || sampleNumber > Integer.MAX_VALUE || sampleNumber != Math.rint(sampleNumber)) throw new IllegalArgumentException("motion-target-invalid");
+        int ownerTag = (int)ownerNumber, sampleTag = (int)sampleNumber;
+        UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), ownerTag);
+        if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("motion-Fabric-unavailable");
+        View ownerView = manager.resolveView(ownerTag), sampleView = manager.resolveView(sampleTag);
+        if (!(ownerView instanceof CUIFocusView) || sampleView == null || !sampleView.isAttachedToWindow() || sampleView.getWindowToken() != ownerView.getWindowToken() || sampleView.getRootView() != ownerView.getRootView()) throw new IllegalStateException("motion-actual-target-window-unavailable");
+        JSONObject identity = ((CUIFocusView)ownerView).motionSnapshotIdentity();
+        validate(request, identity);
+        JSONObject ownerSnapshot = CUIMotionGeometryObserver.querySnapshot(ownerView), sampleSnapshot = CUIMotionGeometryObserver.querySnapshot(sampleView);
+        String nativeOwnerIdentity = ownerSnapshot.getJSONArray("ancestors").getJSONObject(0).getString("identity");
+        if (!(request.get("nativeOwnerIdentity") instanceof String) || !nativeOwnerIdentity.equals(request.getString("nativeOwnerIdentity"))) throw new IllegalStateException("motion-owner-retired");
+        if (!valid.get() || manager.resolveView(ownerTag) != ownerView || manager.resolveView(sampleTag) != sampleView || !sampleView.isAttachedToWindow() || sampleView.getWindowToken() != ownerView.getWindowToken()) throw new IllegalStateException("motion-target-retired");
+        validate(identity, ((CUIFocusView)ownerView).motionSnapshotIdentity());
+        JSONObject result = new JSONObject().put("kind", "native-target-geometry").put("requestId", nonce).put("sampleTarget", sampleTag).put("nativeOwnerIdentity", nativeOwnerIdentity).put("ownerSnapshot", ownerSnapshot).put("targetSnapshot", sampleSnapshot).put("observedAt", SystemClock.uptimeMillis());
+        for (String key : strings) result.put(key, identity.get(key));
+        for (String key : numbers) result.put(key, identity.get(key));
+        promise.resolve(result.toString());
+      } catch (Exception failure) { promise.reject("E_CUI_MOTION_TARGET_GEOMETRY", failure); }
+    });
+  }
 }
