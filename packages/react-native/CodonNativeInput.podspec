@@ -11,8 +11,8 @@ Pod::Spec.new do |s|
   s.author = "Tendril Systems"
   s.platforms = { :ios => min_ios_version_supported }
   s.source = { :git => "https://github.com/gabrielbourget/codon-ui.git", :tag => s.version.to_s }
-  s.source_files = "ios/**/*.{h,mm}"
-  s.private_header_files = "ios/**/*.h"
+  s.source_files = "ios/**/*.{h,mm}", "cpp/**/*.{h,cpp}"
+  s.private_header_files = "ios/**/*.h", "cpp/**/*.h"
   s.frameworks = "Accessibility"
   install_modules_dependencies(s)
 end

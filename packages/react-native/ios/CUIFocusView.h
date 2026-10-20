@@ -3,4 +3,5 @@
 
 @interface CUIFocusView : RCTViewComponentView <AXCustomContentProvider>
 - (BOOL)capturesObservedKey:(UIKey *)key;
+- (NSDictionary *)motionSnapshotIdentity;
 @end

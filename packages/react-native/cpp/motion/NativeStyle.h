@@ -1,5 +1,6 @@
 #pragma once
 
+#include "NativeABI.h"
 #include <react/renderer/components/view/YogaStylableProps.h>
 
 namespace codon::motion {

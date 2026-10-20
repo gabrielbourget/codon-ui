@@ -1,0 +1,426 @@
+{
+  "scope": "Required actual-native Fabric-input service proof. Source/SDK/AAR checks close none of these cells and supply no mounted/measurement/full Card acceptance.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.FABRIC.P01.android.01",
+      "case": "lazy native module and actual first registry load",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.02",
+      "case": "same actual view/tag/owner/binding",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.03",
+      "case": "actual window/scope/epoch/attachment",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.04",
+      "case": "current CUI props revision versus native view",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.05",
+      "case": "Fabric revision remains distinct from mount transaction",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.06",
+      "case": "current containing layout and Fabric-parent coordinates",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.07",
+      "case": "window/modal movement rejects old leases",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.08",
+      "case": "owner removal/replacement rejects old results",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.09",
+      "case": "cancelled request ignores delayed native reply",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.10",
+      "case": "baseline/module five-second deadlines release work",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.11",
+      "case": "held-empty editor keeps original ref/methods/value/selection",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.12",
+      "case": "real release module/JNI/provider and shrinker registration",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.13",
+      "case": "query leaves original geometry/input event delivery unchanged",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.android.14",
+      "case": "repeated large-tree cost and UI-frame profiling",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P02.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.2",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P03.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.3",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P04.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.4",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P05.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.5",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P06.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.6",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P07.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.7",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P08.android.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.8",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.01",
+      "case": "lazy native module and actual first registry load",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.02",
+      "case": "same actual view/tag/owner/binding",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.03",
+      "case": "actual window/scope/epoch/attachment",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.04",
+      "case": "current CUI props revision versus native view",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.05",
+      "case": "Fabric revision remains distinct from mount transaction",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.06",
+      "case": "current containing layout and Fabric-parent coordinates",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.07",
+      "case": "window/modal movement rejects old leases",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.08",
+      "case": "owner removal/replacement rejects old results",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.09",
+      "case": "cancelled request ignores delayed native reply",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.10",
+      "case": "baseline/module five-second deadlines release work",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.11",
+      "case": "held-empty editor keeps original ref/methods/value/selection",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.12",
+      "case": "real release module/JNI/provider and shrinker registration",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.13",
+      "case": "query leaves original geometry/input event delivery unchanged",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P01.ios.14",
+      "case": "repeated large-tree cost and UI-frame profiling",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P02.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.2",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P03.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.3",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P04.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.4",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P05.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.5",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P06.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.6",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P07.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.7",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.FABRIC.P08.ios.01",
+      "case": "actual owner/window/query/ref/editor/retirement behavior under required profile",
+      "profile": "3.3.8",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}

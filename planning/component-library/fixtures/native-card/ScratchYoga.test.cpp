@@ -104,15 +104,26 @@ int main() {
     intrinsic.children[0].style.setDimension(y::Dimension::Width, y::StyleSizeLength::ofAuto());
     intrinsic.children[0].style.setDimension(y::Dimension::Height, y::StyleSizeLength::ofAuto());
     int calls = 0;
-    intrinsic.children[0].measure = [&](float, YGMeasureMode, float, YGMeasureMode) { calls++; return YGSize{137, 23}; };
+    intrinsic.children[0].measure = [&](float, YGMeasureMode, float, YGMeasureMode, YGDirection) { calls++; return YGSize{137, 23}; };
     const auto measured = evaluateNativeScratchYoga(intrinsic, constraints(), 2, {intrinsic.children[0].style})[0];
     require(calls > 0, "owned intrinsic callback invoked");
     near(measured.frame[2], 137, "intrinsic width");
     near(measured.frame[3], 23, "intrinsic height");
-    intrinsic.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode) -> YGSize { throw std::runtime_error("intrinsic retired"); };
+    intrinsic.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode, YGDirection) -> YGSize { throw std::runtime_error("intrinsic retired"); };
     rejects([&] { evaluateNativeScratchYoga(intrinsic, constraints(), 2, {intrinsic.children[0].style}); }, "intrinsic retired");
-    intrinsic.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode) { return YGSize{NAN, -1}; };
+    intrinsic.children[0].measure = [](float, YGMeasureMode, float, YGMeasureMode, YGDirection) { return YGSize{NAN, -1}; };
     rejects([&] { evaluateNativeScratchYoga(intrinsic, constraints(), 2, {intrinsic.children[0].style}); }, "invalid intrinsic measurement");
+    auto directed = intrinsic;
+    std::vector<YGDirection> observedDirections;
+    directed.children[0].measure = [&](float, YGMeasureMode, float, YGMeasureMode, YGDirection direction) {
+      observedDirections.push_back(direction); return YGSize{137, 23};
+    };
+    auto ltr = constraints(), rightToLeft = ltr; rightToLeft.direction = YGDirectionRTL;
+    evaluateNativeScratchYoga(directed, ltr, 2, {directed.children[0].style});
+    require(!observedDirections.empty() && observedDirections.back() == YGDirectionLTR, "measure receives current LTR direction");
+    observedDirections.clear();
+    evaluateNativeScratchYoga(directed, rightToLeft, 2, {directed.children[0].style});
+    require(!observedDirections.empty() && observedDirections.back() == YGDirectionRTL, "measure receives current RTL direction");
     auto duplicate = tree(); duplicate.children[0].children[0].tag = 2;
     rejects([&] { evaluateNativeScratchYoga(duplicate, constraints(), 2, {style}); }, "duplicate scratch tag");
     auto invalid = constraints(); invalid.pointScaleFactor = 0;
@@ -120,7 +131,7 @@ int main() {
     rejects([&] { evaluateNativeScratchYoga(input, constraints(), 99, {style}); }, "scratch target unavailable");
     auto coupled = tree();
     coupled.children[0].children.clear();
-    coupled.children[0].measure = [](float width, YGMeasureMode mode, float, YGMeasureMode) {
+    coupled.children[0].measure = [](float width, YGMeasureMode mode, float, YGMeasureMode, YGDirection) {
       const auto resolved = mode == YGMeasureModeUndefined ? 240 : std::min(width, 240.0f);
       return YGSize{resolved, resolved / 2 + 20};
     };
@@ -143,12 +154,12 @@ int main() {
     baselineTree.style.setFlexDirection(y::FlexDirection::Row);
     baselineTree.style.setAlignItems(y::Align::Baseline);
     baselineTree.children[0].children.clear();
-    baselineTree.children[0].baseline = [](float, float, const auto &, const auto &) { return 10.0f; };
+    baselineTree.children[0].baseline = [](float, float, const auto &, const auto &, YGDirection) { return 10.0f; };
     auto next = baselineTree.children[0]; next.tag = 4;
-    next.baseline = [](float, float, const auto &, const auto &) { return 3.0f; };
+    next.baseline = [](float, float, const auto &, const auto &, YGDirection) { return 3.0f; };
     baselineTree.children.push_back(next);
     near(evaluateNativeScratchYoga(baselineTree, constraints(), 4, {next.style})[0].frame[1], 7, "owned baseline alignment");
-    baselineTree.children[1].baseline = [](float, float, const auto &, const auto &) -> float { throw std::runtime_error("baseline retired"); };
+    baselineTree.children[1].baseline = [](float, float, const auto &, const auto &, YGDirection) -> float { throw std::runtime_error("baseline retired"); };
     rejects([&] { evaluateNativeScratchYoga(baselineTree, constraints(), 4, {next.style}); }, "baseline retired");
     for (int i = 0; i < 200; i++) {
       near(evaluateNativeScratchYoga(input, constraints(), 2, {input.children[0].style})[0].frame[2], 120, "repeat allocation/retirement");

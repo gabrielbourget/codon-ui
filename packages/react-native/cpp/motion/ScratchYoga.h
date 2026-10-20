@@ -10,14 +10,16 @@
 namespace codon::motion {
 
 using TNativeScratchBaseline = std::function<float(
-    float, float, const std::array<float, 4> &, const std::array<float, 4> &)>;
+    float, float, const std::array<float, 4> &, const std::array<float, 4> &, YGDirection)>;
+using TNativeScratchMeasure = std::function<YGSize(
+    float, YGMeasureMode, float, YGMeasureMode, YGDirection)>;
 
 struct TNativeScratchNode {
   int tag;
   facebook::yoga::Style style;
   YGErrata errata{YGErrataAll};
   bool formsContainingBlock{false};
-  std::function<YGSize(float, YGMeasureMode, float, YGMeasureMode)> measure;
+  TNativeScratchMeasure measure;
   TNativeScratchBaseline baseline;
   std::vector<TNativeScratchNode> children;
 };

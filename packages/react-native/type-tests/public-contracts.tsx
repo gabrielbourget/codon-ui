@@ -188,3 +188,5 @@ export const InvalidPublicGeometryObservation = <NativeFocusView nativeMotionGeo
 export type TPrivateNativeMeasurementState = TPublicNativeExports["NativeMotionMeasurementState"]
 // @ts-expect-error Measurement state is private to the motion visual host.
 export const InvalidPublicMeasurement = <NativeFocusView measurement={{}} />
+// @ts-expect-error Fabric input capture is private until the full motion renderer is delivered.
+export type TPrivateNativeFabricInput = TPublicNativeExports["captureNativeMotionFabricInput"]

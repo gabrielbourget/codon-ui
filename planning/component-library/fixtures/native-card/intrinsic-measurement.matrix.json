@@ -1,0 +1,446 @@
+{
+  "scope": "Supplemental required actual-native intrinsic-factory proof. All original catalogue/profile/closure obligations remain required; this matrix and SDK/Yoga source checks admit no measured backend. Platform-specific cases retain OPEN until disposition is evidenced.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.INTRINSIC.P01.android.01",
+      "case": "plain/nested multiline text with exact native line breaks",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.02",
+      "case": "LTR/RTL baseline with owned padding/border and fractional constraints",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.03",
+      "case": "current font scale and prepared-layout feature selection",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.04",
+      "case": "font fitting and empty/placeholder text",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.05",
+      "case": "inline Yoga attachments including nested text/editor/widget",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.06",
+      "case": "held-empty/dirty editor chooses native state without prop echo",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.07",
+      "case": "single-line horizontal expansion and outer clamp",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.08",
+      "case": "UIKit opaque attributed text and original text storage remain unchanged",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.09",
+      "case": "Android copied cached spans/paint remain unchanged after fitting",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.10",
+      "case": "Android request-owned progress cache and actual themed context",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.11",
+      "case": "switch intrinsic size uses actual pinned native measurement",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.12",
+      "case": "conformance/RTL/percentage/zero-axis coupled stages",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.13",
+      "case": "source events/React state/editor methods/ref/text/selection remain unchanged",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.14",
+      "case": "owner/window/scope/revision cancellation during nested callbacks",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.15",
+      "case": "every failure/unknown intrinsic releases request caches and scratch allocations",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.16",
+      "case": "actual resolver scheduling/MotionValue probe and velocity semantics",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.17",
+      "case": "layout/presentation never exposes temporary endpoint",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.18",
+      "case": "concurrent requests preserve cache/data ownership and stable native results",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.19",
+      "case": "large text/tree allocations, frame costs and interruption",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.20",
+      "case": "current outside-consumer/app products and Release/shrinker linkage",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.01",
+      "case": "plain/nested multiline text with exact native line breaks",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.02",
+      "case": "LTR/RTL baseline with owned padding/border and fractional constraints",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.03",
+      "case": "current font scale and prepared-layout feature selection",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.04",
+      "case": "font fitting and empty/placeholder text",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.05",
+      "case": "inline Yoga attachments including nested text/editor/widget",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.06",
+      "case": "held-empty/dirty editor chooses native state without prop echo",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.07",
+      "case": "single-line horizontal expansion and outer clamp",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.08",
+      "case": "UIKit opaque attributed text and original text storage remain unchanged",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.09",
+      "case": "Android copied cached spans/paint remain unchanged after fitting",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.10",
+      "case": "Android request-owned progress cache and actual themed context",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.11",
+      "case": "switch intrinsic size uses actual pinned native measurement",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.12",
+      "case": "conformance/RTL/percentage/zero-axis coupled stages",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.13",
+      "case": "source events/React state/editor methods/ref/text/selection remain unchanged",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.14",
+      "case": "owner/window/scope/revision cancellation during nested callbacks",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.15",
+      "case": "every failure/unknown intrinsic releases request caches and scratch allocations",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.16",
+      "case": "actual resolver scheduling/MotionValue probe and velocity semantics",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.17",
+      "case": "layout/presentation never exposes temporary endpoint",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.18",
+      "case": "concurrent requests preserve cache/data ownership and stable native results",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.19",
+      "case": "large text/tree allocations, frame costs and interruption",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.20",
+      "case": "current outside-consumer/app products and Release/shrinker linkage",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.21",
+      "case": "named-family/native font registry retains source fidelity without unsafe shared-cache access",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.android.22",
+      "case": "actual text-manager postprocessing/callback ownership and no original mutation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.21",
+      "case": "named-family/native font registry retains source fidelity without unsafe shared-cache access",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.INTRINSIC.P01.ios.22",
+      "case": "actual text-manager postprocessing/callback ownership and no original mutation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}

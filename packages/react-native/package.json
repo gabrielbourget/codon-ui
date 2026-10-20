@@ -23,6 +23,7 @@
     "!ios/build",
     "android/src",
     "android/build.gradle",
+    "cpp",
     "*.podspec",
     "react-native.config.js"
   ],
@@ -69,12 +70,15 @@
   },
   "codegenConfig": {
     "name": "CodonNativeInputSpec",
-    "type": "components",
+    "type": "all",
     "jsSrcsDir": "src/input/specs",
     "android": {
       "javaPackageName": "com.codonui.input"
     },
     "ios": {
+      "modulesProvider": {
+        "CUIMotionSnapshot": "CUIMotionSnapshot"
+      },
       "componentProvider": {
         "CUIFocusView": "CUIFocusView",
         "CUIKeyboardScope": "CUIKeyboardScope"

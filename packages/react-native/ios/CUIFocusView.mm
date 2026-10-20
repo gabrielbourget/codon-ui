@@ -140,6 +140,7 @@ using namespace facebook::react;
 {
   [_motionGeometry queryOwner:owner binding:binding requestId:requestId];
 }
+- (NSDictionary *)motionSnapshotIdentity { return [_motionGeometry snapshotIdentity]; }
 - (void)mountingTransactionWillMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   [_motionGeometry captureKind:@"mount-before" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
