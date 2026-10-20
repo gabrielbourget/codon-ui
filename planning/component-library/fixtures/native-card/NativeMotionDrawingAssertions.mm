@@ -1,4 +1,5 @@
 #import <UIKit/UIKit.h>
+#import "NativeMotionDrawingAssertionsEnabled.h"
 #import "../../../../packages/react-native/ios/CUIMotionDrawingView.h"
 #import "../../../../packages/react-native/ios/CUIMotionDrawingGeometry.h"
 #include <folly/dynamic.h>

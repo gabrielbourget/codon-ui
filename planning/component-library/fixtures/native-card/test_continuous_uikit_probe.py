@@ -9,6 +9,7 @@ def journal():
     return [{"kind": "begin", "producer": "source", "pid": 123},
         {"kind": "reference-control", "producer": "source", "metrics": {"binaryCoverageDifferences": 10}},
         {"kind": "factory-guards", "producer": "source", "outcome": "guards-complete"},
+        {"kind": "receiver-assertions", "producer": "source", "result": {"outcome": "receiver-assertions-complete", "fixturesCompleted": 2}},
         *[{"kind": "profile", "producer": "source", "name": name} for name in PROFILE_NAMES],
         *[{"kind": "raster-control", "producer": "source", "name": name + "-circular"} for name in PROFILE_NAMES],
         *[{"kind": "native-layer-candidate", "producer": "source", "name": name + "-native-layer"} for name in PROFILE_NAMES],
@@ -33,7 +34,8 @@ class ReferenceCustody(unittest.TestCase):
 
     def test_duplicate_profile_cannot_replace_missing_profile(self):
         rows = journal()
-        rows[4] = copy.deepcopy(rows[3])
+        indices = [index for index, row in enumerate(rows) if row["kind"] == "profile"]
+        rows[indices[1]] = copy.deepcopy(rows[indices[0]])
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
 
     def test_foreign_identity_and_acceptance_promotion_reject(self):
@@ -43,6 +45,15 @@ class ReferenceCustody(unittest.TestCase):
         rows = journal()
         rows[-1]["fullCard"] = True
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
+
+    def test_receiver_failure_cannot_be_hidden_by_primitive_results(self):
+        rows = journal()
+        receiver = next(row for row in rows if row["kind"] == "receiver-assertions")
+        receiver["result"] = {"outcome": "receiver-assertions-failed", "reason": "Original CUI view assertion"}
+        with self.assertRaises(AssertionError): validate_journal(rows, "source")
+        failed = rows[:rows.index(receiver) + 1] + [rows[-1]]
+        failed[-1]["outcome"] = "native-receiver-assertions-failed"
+        self.assertEqual(validate_journal(failed, "source")["outcome"], "native-receiver-assertions-failed")
 
 
 if __name__ == "__main__": unittest.main()

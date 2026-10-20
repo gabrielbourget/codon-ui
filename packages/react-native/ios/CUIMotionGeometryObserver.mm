@@ -2,6 +2,7 @@
 #import "CUIInputWindow.h"
 #import "CUIFocusView.h"
 #import "CUIKeyboardScope.h"
+#import "CUIMotionContinuousCorners.h"
 #import <QuartzCore/QuartzCore.h>
 #import <cmath>
 
@@ -44,7 +45,8 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
 }
 static NSDictionary *CUIClip(CALayer *layer) {
   CALayer *mask = layer.mask; NSMutableArray *path = [NSMutableArray array];
-  BOOL complete = mask == nil;
+  NSDictionary *nativePrimitive = mask ? [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:mask] : nil;
+  BOOL complete = mask == nil || nativePrimitive != nil;
   if ([mask isKindOfClass:CAShapeLayer.class]) {
     CGPathRef shape = ((CAShapeLayer *)mask).path;
     if (shape) CGPathApplyWithBlock(shape, ^(const CGPathElement *element) {
@@ -54,7 +56,7 @@ static NSDictionary *CUIClip(CALayer *layer) {
       [path addObject:command];
     });
   }
-  return @{@"bounds": @(layer.masksToBounds), @"cornerRadius": @(layer.cornerRadius), @"maskedCorners": @(layer.maskedCorners), @"cornerCurve": layer.cornerCurve ?: @"", @"mask": mask ? @{@"bounds": CUIRect(mask.bounds), @"layout": CUIRect(CUILayout(mask)), @"matrix": CUIMatrix(mask.transform), @"path": path, @"fillRule": [mask isKindOfClass:CAShapeLayer.class] ? ((CAShapeLayer *)mask).fillRule : @""} : NSNull.null, @"complete": @(complete)};
+  return @{@"bounds": @(layer.masksToBounds), @"cornerRadius": @(layer.cornerRadius), @"maskedCorners": @(layer.maskedCorners), @"cornerCurve": layer.cornerCurve ?: @"", @"mask": mask ? @{@"bounds": CUIRect(mask.bounds), @"layout": CUIRect(CUILayout(mask)), @"matrix": CUIMatrix(mask.transform), @"path": path, @"fillRule": [mask isKindOfClass:CAShapeLayer.class] ? ((CAShapeLayer *)mask).fillRule : @"", @"nativePrimitive": nativePrimitive ?: NSNull.null} : NSNull.null, @"complete": @(complete)};
 }
 
 @interface CUIMotionGeometryDisplayTarget : NSObject

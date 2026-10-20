@@ -893,7 +893,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "aa63c76d5d5b8948813e9d59b62c8db9876a245a1592f7ee1c93170c0a6a3404"
+      "sha256": "f0627a8c0f86a4255dc29173db91940656887313d8033cf65da87685151a10e4"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -967,7 +967,7 @@
     "nativeAssertionsExecuted": false,
     "nativePixelsAccepted": false,
     "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes",
-    "nativeMaskFactory": "Private public-CALayer normalization factory and closed read-only descriptor are constructed but not used by the drawing receiver. Actual composed-mask/ObjC bridge and integration proof remain required; direct primitive characterization alone is not acceptance."
+    "nativeMaskFactory": "The owned native scalar-layer mask factory now supplies uniform continuous corrected masks in the private receiver. Only its strict closed public-layer descriptor is complete geometry; arbitrary/CAShape masks remain incomplete. Direct native composed-mask proof covers seven CPU profiles; actual receiver/observer/GPU/mixed/border/profile/closure proof remains required."
   },
   "peerStateInputs": [
     {

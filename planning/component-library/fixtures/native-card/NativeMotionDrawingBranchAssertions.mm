@@ -1,4 +1,6 @@
 #import <UIKit/UIKit.h>
+#import "NativeMotionDrawingAssertionsEnabled.h"
+#import "../../../../packages/react-native/ios/CUIMotionContinuousCorners.h"
 #import <React/RCTBorderDrawing.h>
 #import "../../../../packages/react-native/ios/CUIMotionDrawingView.h"
 #import <react/renderer/components/view/ViewProps.h>
@@ -61,11 +63,12 @@ void CUIAssertPinnedDrawingBranches() {
   [owned setCuiProjectionRadii:@"{\"topLeft\":{\"x\":40,\"y\":8},\"topRight\":{\"x\":40,\"y\":8},\"bottomLeft\":{\"x\":40,\"y\":8},\"bottomRight\":{\"x\":40,\"y\":8}}"];
   [owned shapeCuiLayerToMatchView:ownedLayer borderMetrics:[owned cuiBorderMetrics]];
   const RCTCornerRadii elliptical{40, 8, 40, 8, 40, 8, 40, 8};
-  CGPathRef circular = RCTPathCreateWithRoundedRect(owned.bounds, RCTGetCornerInsets(elliptical, UIEdgeInsetsZero), nil, NO);
+  NSDictionary *nativeMask = [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:ownedLayer.mask];
   NSCAssert(ownedLayer.mask && ownedLayer.cornerRadius == 0 &&
-      !CGPathEqualToPath(((CAShapeLayer *)ownedLayer.mask).path, circular),
-      @"Unequal-axis correction of a source continuous CA layer must retain continuous geometry");
-  CGPathRelease(circular);
+      [nativeMask[@"kind"] isEqual:@"cui-owned-native-continuous"] &&
+      CGRectEqualToRect(ownedLayer.mask.frame, owned.bounds),
+      @"Unequal-axis correction must use the owned native continuous primitive at the original bounds");
+  CGPathRef circular;
   auto mixed = std::make_shared<const ViewProps>(context, *original, RawProps(
       folly::dynamic::object("borderTopLeftRadius", 30)("borderTopRightRadius", 12)
           ("borderBottomLeftRadius", 5)("borderBottomRightRadius", 22)("borderCurve", "continuous")

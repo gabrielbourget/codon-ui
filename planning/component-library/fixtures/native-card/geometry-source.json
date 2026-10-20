@@ -59,7 +59,7 @@
     },
     {
       "path": "packages/react-native/ios/CUIMotionGeometryObserver.mm",
-      "sha256": "f409839df42b095086dad4c743ac56d3dab5b63b2f56fab8489abdef0cce00bd"
+      "sha256": "d92ffbc259e3b85c8eb947572219cf35341676f0f9f8fb03d078b25d0ce0c7e7"
     },
     {
       "path": "packages/react-native/src/input/motionGeometry.ts",

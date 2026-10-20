@@ -108,6 +108,15 @@ precondition(squareMask.cornerRadius == 0 && CUIProbeNativeContinuousMaskDescrip
 emit(["kind": "factory-guards", "producer": sourceProducer, "outcome": "guards-complete",
   "scope": "Actual private ObjC-to-Swift factory/describer only; no receiver or clipping admission"])
 
+let receiverAssertions = CUIProbeRunDrawingReceiverAssertions()
+emit(["kind": "receiver-assertions", "producer": sourceProducer, "result": receiverAssertions])
+if receiverAssertions["outcome"] as? String != "receiver-assertions-complete" {
+  emit(["kind": "terminal", "producer": sourceProducer, "outcome": "native-receiver-assertions-failed",
+    "fullCard": false, "fullGoal": false])
+  CATransaction.commit()
+  exit(3)
+}
+
 struct DrawingProfile {
   let name: String
   let radius: CGFloat
