@@ -158,3 +158,15 @@ export type TPendingNativeMotionConfig = TPublicNativeExports["NativeMotionConfi
 export type TPendingNativeAnimatePresence = TPublicNativeExports["NativeAnimatePresence"]
 // @ts-expect-error The approved layout API still needs its complete native implementation.
 export type TPendingNativeLayoutGroup = TPublicNativeExports["NativeLayoutGroup"]
+// @ts-expect-error The visual receiver stays private until the complete Card renderer exists.
+export type TPrivateNativeMotionVisualHost = TPublicNativeExports["NativeMotionVisualHost"]
+// @ts-expect-error Native controls remain private until the complete renderer exists.
+export type TPrivateNativeAnimationControls = TPublicNativeExports["nativeAnimationControls"]
+// @ts-expect-error The controller hook remains private until full native owner/context composition exists.
+export type TPrivateNativeAnimationControlsHook = TPublicNativeExports["useNativeAnimationControls"]
+// @ts-expect-error The native value factory remains private until its complete public contract is verified.
+export type TPrivateNativeMotionValueFactory = TPublicNativeExports["nativeMotionValue"]
+// @ts-expect-error Native value hooks remain private while configuration integration is incomplete.
+export type TPrivateNativeMotionValueHook = TPublicNativeExports["useNativeMotionValue"]
+// @ts-expect-error Native event hooks remain private until the complete native motion contract is delivered.
+export type TPrivateNativeMotionValueEventHook = TPublicNativeExports["useNativeMotionValueEvent"]
