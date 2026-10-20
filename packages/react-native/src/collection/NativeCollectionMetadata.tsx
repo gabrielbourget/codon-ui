@@ -23,8 +23,10 @@ type TRootProps = Pick<
   | "rootRevision"
   | "children"
   | "inspectionRequest"
+  | "actionRequests"
   | "onNativeCollectionCommit"
   | "onNativeCollectionInspection"
+  | "onNativeCollectionAction"
 > & { metadataRef?: Ref<TNativeMetadataRootRef> }
 type TNodeProps = Pick<
   ComponentProps<typeof Node>,

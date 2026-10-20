@@ -52,6 +52,7 @@ export type NativeAccessibilityData = Readonly<{
   details: string
   descriptionAvailable: boolean
   detailsAvailable: boolean
+  collection: string
   observedAt: Double
 }>
 
@@ -100,6 +101,8 @@ export type NativeFocusData = Readonly<{
 
 export interface NativeProps extends ViewProps {
   ownerId: string
+  nativeCollectionBinding?: string
+  nativeCollectionSemantics?: string
   keyboardFocusable?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
   nativeMotionGeometryBinding?: string

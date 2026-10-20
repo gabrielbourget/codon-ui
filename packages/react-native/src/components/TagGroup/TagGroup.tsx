@@ -1,5 +1,4 @@
 import {
-  Children,
   forwardRef,
   isValidElement,
   useCallback,
@@ -15,16 +14,41 @@ import {
 } from "react"
 import { findNodeHandle, I18nManager, Linking, Platform, type View } from "react-native"
 
+import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionItemBindingContext } from "../../collection/binding"
+import { NativeCollection, NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import {
+  NativeSelectableCollectionContext,
+  useNativeContextProps,
+  type TNativeSlotProps,
+} from "../../collection/context"
+import {
+  NativeCollectionRendererContext,
+  useNativePersistedKeys,
+  type TNativeCollectionScrollHost,
+} from "../../collection/renderer"
+import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
+import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
+import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
+import { NativeListStateContext, useListState, UNSTABLE_useFilteredListState } from "../../collection/state"
+import type { Node } from "../../collection/state/types"
 import { focusNativeTarget } from "../../input/focus"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
-import type { TNativeKeyboardEvent } from "../../input/types"
+import type { TNativeFocusViewProps, TNativeKeyboardEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 
-import { NativeTagGroupContext, NativeTagItemValueContext, type TNativeTagRegistration } from "./context"
+import {
+  NativeTagGroupActionsContext,
+  NativeTagGroupContext,
+  NativeTagListContext,
+  NativeTagGroupStateContext,
+  NativeTagItemValueContext,
+  type TNativeTagRegistration,
+} from "./context"
 import {
   getNativeTagGroupActionState,
   getNativeTagGroupPressIntent,
@@ -37,32 +61,17 @@ import {
   isNativeTagGroupNavigationKey,
 } from "./keyboard"
 import {
-  equalNativeTagGroupSelection,
   getNativeTagGroupRemovalRequest,
-  getNativeTagGroupSelectAllRequest,
-  getNativeTagGroupSelectionRequest,
-  nativeTagGroupSelected,
   normalizeNativeTagGroupKeys,
   NATIVE_TAG_GROUP_SELECTION_BEHAVIORS,
   NATIVE_TAG_GROUP_SELECTION_MODES,
   type TNativeTagGroupKey,
   type TNativeTagGroupRow,
-  type TNativeTagGroupSelection,
+  type TNativeTagGroupSelectionOperation,
 } from "./model"
 import { getNativeTagGroupStyles } from "./styles"
 import type { TNativeTagGroupProps, TNativeTagGroupRef } from "./types"
 
-const hintsFor = (children: ReactNode) => {
-  const result = new Map<TNativeTagGroupKey, number>()
-  const visit = (nodes: ReactNode) =>
-    Children.forEach(nodes, (node) => {
-      if (!isValidElement<{ id?: TNativeTagGroupKey; children?: ReactNode }>(node)) return
-      if (node.props.id !== undefined) result.set(node.props.id, result.size)
-      else if (node.props.children !== undefined) visit(node.props.children)
-    })
-  visit(children)
-  return result
-}
 const KeyBindings = ({
   targetTag,
   lifetime,
@@ -87,11 +96,24 @@ const KeyBindings = ({
   return null
 }
 
-const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: ForwardedRef<TNativeTagGroupRef>) => {
+const NativeTagGroup = <T extends object>({
+  props: authoredProps,
+  forwardedRef: ref,
+  collection: unfilteredCollection,
+  receipt,
+}: {
+  props: TNativeTagGroupProps<T>
+  forwardedRef: ForwardedRef<TNativeTagGroupRef>
+  collection: TNativeCollectionSnapshot<T>
+  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+}) => {
+  const list = useRef<View>(null)
+  const { id, ...otherProps } = authoredProps
+  const [props, listRef] = useNativeContextProps(otherProps, list, NativeSelectableCollectionContext)
   const {
-    children,
-    items,
-    getKey,
+    children: _children,
+    items: _items,
+    getKey: _getKey,
     selectedKeys,
     defaultSelectedKeys,
     disabledKeys,
@@ -106,6 +128,11 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
     emptyListMessage,
     renderEmptyState,
     labels = {},
+    render,
+    slot: _slot,
+    filter,
+    shouldUseVirtualFocus: _virtualFocus,
+    disallowTypeAhead: _disallowTypeAhead,
     width: _width,
     height: _height,
     orientation: _orientation,
@@ -121,36 +148,59 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
     !NATIVE_TAG_GROUP_SELECTION_BEHAVIORS.includes(selectionBehavior)
   )
     throw new TypeError("TagGroup: unsupported selection mode/behavior")
-  const [localSelection, setLocalSelection] = useState<TNativeTagGroupSelection>(() =>
-    defaultSelectedKeys === "all" ? "all" : normalizeNativeTagGroupKeys(defaultSelectedKeys ?? []),
-  )
-  const controlled = useMemo<TNativeTagGroupSelection | undefined>(
-    () =>
-      selectedKeys === undefined
-        ? undefined
-        : selectedKeys === "all"
-          ? "all"
-          : normalizeNativeTagGroupKeys(selectedKeys),
-    [selectedKeys],
-  )
-  const selection = controlled ?? localSelection
+  const controlled = useMemo(() => {
+    if (selectedKeys === undefined || selectedKeys === "all") return selectedKeys
+    const keys = normalizeNativeTagGroupKeys(selectedKeys)
+    return selectedKeys instanceof Set ? selectedKeys : keys
+  }, [selectedKeys])
+  const defaults = useMemo(() => {
+    if (defaultSelectedKeys === "all") return "all" as const
+    const keys = normalizeNativeTagGroupKeys(defaultSelectedKeys ?? [])
+    return defaultSelectedKeys instanceof Set ? defaultSelectedKeys : keys
+  }, [defaultSelectedKeys])
   const disabled = useMemo(() => normalizeNativeTagGroupKeys(disabledKeys ?? []), [disabledKeys])
-  const [behavior, setBehavior] = useState(selectionBehavior)
-  const previousBehavior = useRef(selectionBehavior)
-  if (previousBehavior.current !== selectionBehavior) {
-    previousBehavior.current = selectionBehavior
-    setBehavior(selectionBehavior)
-  }
-  if (selectionBehavior === "replace" && behavior === "toggle" && selection !== "all" && selection.size === 0)
-    setBehavior("replace")
+  const renderer = useContext(NativeCollectionRendererContext)
+  const unfilteredState = useListState({
+    collection: unfilteredCollection,
+    layoutDelegate: renderer.layoutDelegate,
+    selectionMode,
+    selectionBehavior,
+    selectedKeys: controlled,
+    defaultSelectedKeys: defaults,
+    disabledKeys: disabled,
+    disallowEmptySelection: props.disallowEmptySelection,
+    onSelectionChange: props.onSelectionChange,
+  })
+  const filterNode = useMemo(
+    () => (filter ? (text: string, node: Node<T>) => filter(text, node as TNativeCollectionNode<T>) : undefined),
+    [filter],
+  )
+  const state = UNSTABLE_useFilteredListState(unfilteredState, filterNode)
+  const collection = state.collection as TNativeCollectionSnapshot<T>
+  const actions = useContext(NativeCollectionActionsContext)
+  const manager = state.selectionManager
+  const selection = manager.rawSelection,
+    behavior = manager.selectionBehavior,
+    focusedKey = manager.focusedKey
   const [rows, setRows] = useState(new Map<TNativeTagGroupKey, TNativeTagRegistration>())
-  const [focusedKey, setFocusedKey] = useState<TNativeTagGroupKey | null>(null),
-    [focusWithin, setFocusWithin] = useState(false),
-    [focusVisible, setFocusVisible] = useState(false),
+  const focusWithin = manager.isFocused
+  const setFocusWithin = (value: boolean) => manager.setFocused(value)
+  const setFocusedKey = (key: TNativeTagGroupKey | null) => manager.setFocusedKey(key)
+  const [focusVisible, setFocusVisible] = useState(false),
     [targetTag, setTargetTag] = useState(0)
-  const list = useRef<View>(null),
-    live = useRef(false),
-    previousOrder = useRef<readonly TNativeTagGroupKey[]>([])
+  const scroll = useRef<TNativeCollectionScrollHost | null>(null)
+  const [requestedFocusKey, setRequestedFocusKey] = useState<TNativeTagGroupKey | null>(null)
+  const pendingFocus = useRef<{
+    key: TNativeTagGroupKey | null
+    node: ReturnType<TNativeCollectionSnapshot<T>["getItem"]>
+    window: string
+    commandedTarget: View | null
+    commandedLease: TNativeCollectionSessionSnapshot<unknown>["receipt"]["lease"]
+  } | null>(null)
+  const observedFocus = useRef<TNativeTagGroupKey | null>(null)
+  const persistedKeys = useNativePersistedKeys(observedFocus.current ?? focusedKey, requestedFocusKey)
+  const CollectionRoot = renderer.CollectionRoot
+  const live = useRef(false)
   const typeahead = useRef<{
     search: string
     timer: ReturnType<typeof setTimeout> | null
@@ -167,50 +217,28 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
   const scope = useContext(NativeFloatingScopeContext),
     window = useContext(NativeFloatingWindowContext),
     input = useNativeKeyScope()
-  const supplied = useMemo(() => (items === undefined ? undefined : Array.from(items)), [items])
-  const content =
-    supplied === undefined
-      ? typeof children === "function"
-        ? null
-        : children
-      : (() => {
-          if (typeof children !== "function") throw new TypeError("TagGroup: items require render children")
-          const seen = new Set<string>()
-          return supplied.map((item, order) => {
-            const rendered = children(item)
-            const authored = isValidElement<{ id?: TNativeTagGroupKey }>(rendered) ? rendered.props.id : undefined
-            const value = item as { id?: TNativeTagGroupKey; key?: TNativeTagGroupKey }
-            const key = getKey ? getKey(item) : (authored ?? value.id ?? value.key)
-            validateCollectionKey(key as TNativeTagGroupKey, "item key", "TagGroup")
-            const encoded = encodeCollectionKey(key!)
-            if (seen.has(encoded)) throw new TypeError("TagGroup: duplicate item key")
-            seen.add(encoded)
-            return (
-              <NativeTagItemValueContext.Provider key={encoded} value={{ key: key!, order }}>
-                {rendered}
-              </NativeTagItemValueContext.Provider>
-            )
-          })
-        })()
-  const hints = supplied === undefined ? hintsFor(content) : new Map<TNativeTagGroupKey, number>()
-  const ordered = [...rows.values()].sort(
-    (a, b) =>
-      (a.order ?? hints.get(a.key) ?? Number.MAX_SAFE_INTEGER) -
-      (b.order ?? hints.get(b.key) ?? Number.MAX_SAFE_INTEGER),
-  )
+  const members = [...collection].filter((node) => node.type === "item")
+  const ordered = members.flatMap((node) => {
+    const row = rows.get(node.key)
+    return row ? [row] : []
+  })
   const isDisabled = (row: TNativeTagRegistration, item = row.props()) =>
     disabled.has(row.key) || item.isDisabled === true
-  const model = ordered.map(
-    (row): TNativeTagGroupRow => ({
-      key: row.key,
-      textValue: row.text(),
-      isDisabled: isDisabled(row),
-      hasAction: !!(row.props().onAction || props.onAction),
-      href: row.props().href,
+  const model = members.map(
+    (node): TNativeTagGroupRow => ({
+      key: node.key,
+      textValue: node.textValue,
+      isDisabled: disabled.has(node.key) || node.props.isDisabled === true,
+      hasAction: !!(node.props.onAction || props.onAction),
+      href: node.props.href,
     }),
   )
   const current = useRef({
     props,
+    collection,
+    receipt,
+    manager,
+    renderer,
     ordered,
     rows,
     model,
@@ -223,8 +251,23 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
     isDisabled,
   })
   useInsertionEffect(() => {
-    current.current = { props, ordered, rows, model, selection, behavior, focusedKey, scope, window, input, isDisabled }
-    if (focusedKey === null || rows.has(focusedKey)) previousOrder.current = ordered.map((row) => row.key)
+    current.current = {
+      props,
+      collection,
+      receipt,
+      manager,
+      renderer,
+      ordered,
+      rows,
+      model,
+      selection,
+      behavior,
+      focusedKey,
+      scope,
+      window,
+      input,
+      isDisabled,
+    }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -253,22 +296,18 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
   }, [])
   const admitted = (row?: TNativeTagRegistration) =>
     live.current &&
+    current.current.receipt.status === "confirmed" &&
     current.current.scope?.canAct() !== false &&
     current.current.window?.() !== false &&
     current.current.input?.isWindowActive() !== false &&
-    (!row || (current.current.rows.get(row.key) === row && !current.current.isDisabled(row)))
-  const selected = (row: TNativeTagRegistration) =>
-    nativeTagGroupSelected(
-      selectionMode,
-      selection,
-      model.find((item) => item.key === row.key) ?? {
-        key: row.key,
-        textValue: row.text(),
-        isDisabled: isDisabled(row),
-        hasAction: false,
-      },
-    )
+    (!row ||
+      (current.current.collection.getItem(row.key) !== null &&
+        row.view.current !== null &&
+        current.current.rows.get(row.key) === row &&
+        !current.current.isDisabled(row)))
+  const selected = (row: TNativeTagRegistration) => manager.isSelected(row.key)
   const keyCapture = (row: TNativeTagRegistration, event: TNativeKeyboardEvent) => {
+    if (current.current.props.disallowTypeAhead) return
     if (!admitted(row)) {
       clearTypeahead()
       return
@@ -299,7 +338,7 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
       }
     }, 1000)
   }
-  const actionState: NonNullable<React.ContextType<typeof NativeTagGroupContext>>["actionState"] = (
+  const actionState: NonNullable<React.ContextType<typeof NativeTagGroupActionsContext>>["actionState"] = (
     row,
     item = row.props(),
   ) =>
@@ -311,11 +350,113 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
       hasAction: !!(item.onAction || props.onAction),
       isLink: !!item.href,
     })
-  const requestSelection = (next: TNativeTagGroupSelection | null) => {
-    if (!admitted() || next === null || equalNativeTagGroupSelection(current.current.selection, next)) return
-    if (current.current.props.selectedKeys === undefined) setLocalSelection(next)
-    current.current.props.onSelectionChange?.(next === "all" ? next : normalizeNativeTagGroupKeys(next))
+  const requestSelection = (
+    key: TNativeTagGroupKey,
+    operation: TNativeTagGroupSelectionOperation,
+    allowLinkSelection = false,
+  ) => {
+    if (!admitted()) return
+    const manager = current.current.manager
+    if (manager.isLink(key) && !allowLinkSelection) return
+    if (operation === "toggle") manager.toggleSelection(key)
+    else if (operation === "replace") manager.replaceSelection(key)
+    else manager.extendSelection(key)
   }
+  const withNativeAdmission = (row: TNativeTagRegistration, operation: () => void) => {
+    if (!admitted(row)) return false
+    const node = row.node
+    const host = row.view.current
+    const target = host && findNodeHandle(host)
+    if (!node || !target) return false
+    return (
+      actions?.request(node, target, () => {
+        if (admitted(row) && row.view.current === host) operation()
+      }) ?? false
+    )
+  }
+  const focusWindowStamp = () => {
+    const lease = current.current.receipt.lease,
+      session = current.current.input?.acknowledgedSession()
+    return JSON.stringify([
+      lease?.rootRevision,
+      lease?.target,
+      lease?.surfaceId,
+      lease?.windowId,
+      lease?.epoch,
+      session?.windowId,
+      session?.epoch,
+    ])
+  }
+  const cancelFocusRequest = () => {
+    pendingFocus.current = null
+    if (live.current) setRequestedFocusKey(null)
+  }
+  const attemptFocusRequest = () => {
+    const request = pendingFocus.current
+    if (!request || !admitted() || current.current.input?.isNativeReady() === false) return
+    const window = focusWindowStamp()
+    if (request.window !== window || !actions?.bindingFor(request.node)) {
+      cancelFocusRequest()
+      return
+    }
+    if (request.commandedLease !== current.current.receipt.lease) request.commandedTarget = null
+    if (request.key === null) {
+      const host = list.current
+      const target = host && findNodeHandle(host)
+      if (
+        target &&
+        host !== request.commandedTarget &&
+        actions.request(null, target, () => {
+          if (pendingFocus.current === request && admitted() && list.current === host) focusNativeTarget(host)
+        })
+      ) {
+        request.commandedTarget = host
+        request.commandedLease = current.current.receipt.lease
+      }
+    } else {
+      const row = current.current.rows.get(request.key)
+      const host = row?.view.current
+      if (
+        row &&
+        host &&
+        host !== request.commandedTarget &&
+        withNativeAdmission(row, () => {
+          if (pendingFocus.current === request) focusNativeTarget(host)
+        })
+      ) {
+        request.commandedTarget = host
+        request.commandedLease = current.current.receipt.lease
+      }
+    }
+  }
+  const requestFocus = (key: TNativeTagGroupKey) => {
+    const node = current.current.collection.getItem(key)
+    if (!node || !admitted()) return
+    pendingFocus.current = {
+      key,
+      node,
+      window: focusWindowStamp(),
+      commandedTarget: null,
+      commandedLease: null,
+    }
+    setRequestedFocusKey(key)
+    current.current.renderer.layoutDelegate?.requestRendering?.(key)
+    void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
+    attemptFocusRequest()
+  }
+  useLayoutEffect(attemptFocusRequest)
+  useLayoutEffect(
+    () =>
+      input?.subscribe(() => {
+        if (current.current.input?.isWindowActive() === false) cancelFocusRequest()
+        else attemptFocusRequest()
+      }),
+    [input, actions],
+  )
+  useLayoutEffect(() => {
+    if (manager.isFocused && focusedKey !== null && observedFocus.current !== focusedKey && !pendingFocus.current)
+      requestFocus(focusedKey)
+  }, [focusedKey, manager.isFocused, receipt])
   const action = (row: TNativeTagRegistration) => {
     if (!admitted(row)) return
     row.props().onAction?.()
@@ -338,7 +479,11 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
       }
     }
   }
-  const remove: NonNullable<React.ContextType<typeof NativeTagGroupContext>>["remove"] = (row, source, event) => {
+  const removeAdmitted: NonNullable<React.ContextType<typeof NativeTagGroupActionsContext>>["remove"] = (
+    row,
+    source,
+    event,
+  ) => {
     if (!admitted(row) || event.defaultPrevented || event.isDefaultPrevented?.() || !current.current.props.onRemove)
       return
     const keys = getNativeTagGroupRemovalRequest(
@@ -350,7 +495,7 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
     )
     if (keys) current.current.props.onRemove(keys)
   }
-  const press: NonNullable<React.ContextType<typeof NativeTagGroupContext>>["press"] = (
+  const pressAdmitted: NonNullable<React.ContextType<typeof NativeTagGroupActionsContext>>["press"] = (
     row,
     phase,
     event,
@@ -379,45 +524,43 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
         isSelected: selected(row),
         disallowEmptySelection: owner.props.disallowEmptySelection ?? false,
       })
-      requestSelection(
-        getNativeTagGroupSelectionRequest(
-          owner.props.selectionMode ?? "none",
-          owner.selection,
-          owner.model,
-          row.key,
-          operation,
-          {
-            disallowEmptySelection: owner.props.disallowEmptySelection,
-            allowLinkSelection: metadata.pointerType === "keyboard" && metadata.nonContiguousModifier,
-          },
-        ),
-      )
+      requestSelection(row.key, operation, metadata.pointerType === "keyboard" && metadata.nonContiguousModifier)
     }
-    if (intent.enterToggle && admitted(row)) setBehavior("toggle")
+    if (intent.enterToggle && admitted(row)) current.current.manager.setSelectionBehavior("toggle")
     if (intent.action) action(row)
+  }
+  const remove: NonNullable<React.ContextType<typeof NativeTagGroupActionsContext>>["remove"] = (
+    row,
+    source,
+    event,
+  ) => {
+    event.persist?.()
+    withNativeAdmission(row, () => removeAdmitted(row, source, event))
+  }
+  const press: NonNullable<React.ContextType<typeof NativeTagGroupActionsContext>>["press"] = (
+    row,
+    phase,
+    event,
+    metadata,
+  ) => {
+    event.persist?.()
+    withNativeAdmission(row, () => pressAdmitted(row, phase, event, metadata))
   }
   const lifetime = JSON.stringify(model.map((row) => [row.key, row.isDisabled, row.textValue, row.href]))
   useLayoutEffect(() => {
-    if (focusedKey === null || (rows.has(focusedKey) && !isDisabled(rows.get(focusedKey)!))) return
-    const prior = previousOrder.current,
-      index = prior.indexOf(focusedKey)
-    const keys = index < 0 ? [] : [...prior.slice(index + 1), ...prior.slice(0, index).reverse()]
-    const frame = requestAnimationFrame(() => {
-      if (!admitted() || current.current.input?.isNativeReady() === false) return
-      const target = keys
-        .map((key) => current.current.rows.get(key))
-        .find((row) => row && !current.current.isDisabled(row))
-      if (target) {
-        setFocusedKey(target.key)
-        focusNativeTarget(target.view.current)
-      } else if (current.current.rows.size === 0) {
-        setFocusedKey(null)
-        focusNativeTarget(list.current)
-      }
-    })
-    return () => cancelAnimationFrame(frame)
-  }, [lifetime, focusedKey, scope])
-  const onKey = (event: TNativeKeyboardEvent) => {
+    if (collection.size !== 0 || observedFocus.current === null || !manager.isFocused) return
+    observedFocus.current = null
+    pendingFocus.current = {
+      key: null,
+      node: null,
+      window: focusWindowStamp(),
+      commandedTarget: null,
+      commandedLease: null,
+    }
+    setRequestedFocusKey(null)
+    attemptFocusRequest()
+  }, [collection.size, receipt])
+  const onKeyAdmitted = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (!admitted() || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled) return
     const owner = current.current
@@ -431,129 +574,210 @@ const NativeTagGroup = <T extends object>(props: TNativeTagGroupProps<T>, ref: F
         owner.props.escapeKeyBehavior !== "none" &&
         !owner.props.disallowEmptySelection
       )
-        requestSelection(new Set())
+        owner.manager.clearSelection()
       return
     }
     if (data.key === "a" && (Platform.OS === "ios" ? data.metaKey : data.ctrlKey)) {
-      requestSelection(
-        getNativeTagGroupSelectAllRequest(owner.props.selectionMode ?? "none", owner.selection, owner.model),
-      )
+      owner.manager.selectAll()
       return
     }
     if (data.key === "Delete" || data.key === "Backspace") {
-      if (row) remove(row, "keyboard", event)
+      if (row) removeAdmitted(row, "keyboard", event)
       return
     }
     if (!isNativeTagGroupNavigationKey(data.key) || (!row && tag !== findNodeHandle(list.current))) return
     if (!row && data.shiftKey && (data.key === "Home" || data.key === "End")) return
     const nextKey = getNativeTagGroupNavigationKey(owner.model, row?.key ?? null, data.key, I18nManager.isRTL)
-    const target = nextKey === null ? undefined : owner.rows.get(nextKey)
-    if (!target) return
-    focusNativeTarget(target.view.current)
+    if (nextKey === null) return
+    requestFocus(nextKey)
     const operation = getNativeTagGroupNavigationSelection({
       key: data.key,
       mode: owner.props.selectionMode ?? "none",
       behavior: owner.behavior,
-      isLink: !!target.props().href,
+      isLink: owner.manager.isLink(nextKey),
       isApple: Platform.OS === "ios",
       modifiers: data,
     })
-    if (operation)
-      requestSelection(
-        getNativeTagGroupSelectionRequest(
-          owner.props.selectionMode ?? "none",
-          owner.selection,
-          owner.model,
-          target.key,
-          operation,
-          {
-            disallowEmptySelection: owner.props.disallowEmptySelection,
-            allowLinkSelection: data.key === "Home" || data.key === "End",
-          },
-        ),
-      )
+    if (operation) requestSelection(nextKey, operation, data.key === "Home" || data.key === "End")
+  }
+  const onKey = (event: TNativeKeyboardEvent) => {
+    const data = event.nativeEvent
+    if (!admitted() || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled) return
+    const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
+    const row = current.current.ordered.find(
+      (entry) => findNodeHandle(entry.view.current) === tag || findNodeHandle(entry.removeView.current) === tag,
+    )
+    event.persist?.()
+    if (row) withNativeAdmission(row, () => onKeyAdmitted(event))
+    else if (tag === findNodeHandle(list.current))
+      actions?.request(null, tag, () => {
+        if (admitted()) onKeyAdmitted(event)
+      })
   }
   const theme = useNativeTheme(),
     styles = getNativeTagGroupStyles(theme, props)
-  const snapshot = {
-    keys: ordered.map((row) => row.key),
-    selectedKeys: selection === "all" ? ("all" as const) : normalizeNativeTagGroupKeys(selection),
-    focusedKey,
-    selectionMode,
-    selectionBehavior: behavior,
-  }
   const empty =
-    rows.size === 0
+    collection.size === 0
       ? (renderEmptyState?.({
           isEmpty: true,
           isFocused: focusWithin,
           isFocusVisible: focusVisible,
-          state: snapshot,
+          state,
         }) ?? (renderEmptyState ? null : emptyListMessage))
       : null
+  const listProps = {
+    ref: listRef,
+    role: collection.size ? ("grid" as const) : ("group" as const),
+    accessible: collection.size === 0,
+    focusable: true,
+    accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
+    accessibilityLabelledBy: props.accessibilityLabelledBy,
+    style: styles.list,
+    onLayout: () => setTargetTag(findNodeHandle(list.current) ?? 0),
+    accessibilityLiveRegion: focusWithin ? ("polite" as const) : ("none" as const),
+    onFocus: (event: Parameters<NonNullable<TNativeFocusViewProps["onFocus"]>>[0]) => {
+      if (pendingFocus.current?.key === null) pendingFocus.current = null
+      setFocusWithin(true)
+      setFocusVisible(event.nativeEvent.isFocusVisible)
+    },
+    onBlur: () => {
+      setFocusWithin(false)
+      setFocusVisible(false)
+    },
+  }
   return (
-    <NativeFocusView
-      {...native}
-      ref={ref}
-      accessible={false}
-      focusable={false}
-      testID={testID ?? aliasTestID ?? "tag-group"}
-      style={styles.root}
-    >
-      <NativeTagGroupContext.Provider
-        value={{
-          register,
-          refresh,
-          mode: selectionMode,
-          behavior,
-          labels,
-          allowsRemoving: !!props.onRemove,
-          disabled: isDisabled,
-          selected,
-          actionState,
-          keyCapture,
-          focus: (row, value, visible) => {
-            if (value && admitted(row)) {
-              setFocusWithin(true)
-              setFocusedKey(row.key)
-              setFocusVisible(visible)
-            } else if (!value) {
-              setFocusWithin(false)
-              setFocusVisible(false)
-            }
-          },
-          press,
-          remove,
-        }}
+    <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+      <TagGroupRoot
+        {...native}
+        id={id}
+        render={render}
+        ref={ref}
+        accessible={false}
+        focusable={false}
+        testID={testID ?? aliasTestID ?? "tag-group"}
+        style={styles.root}
       >
-        <NativeFocusView
-          ref={list}
-          role={rows.size ? "grid" : "group"}
-          accessible={rows.size === 0}
-          focusable
-          accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
-          accessibilityLabelledBy={props.accessibilityLabelledBy}
-          testID="tag-list"
-          style={styles.list}
-          onLayout={() => setTargetTag(findNodeHandle(list.current) ?? 0)}
-          accessibilityLiveRegion={focusWithin ? "polite" : "none"}
-          onFocus={(event) => {
-            setFocusWithin(true)
-            setFocusVisible(event.nativeEvent.isFocusVisible)
-          }}
-          onBlur={() => {
-            setFocusWithin(false)
-            setFocusVisible(false)
-          }}
-        >
-          {content}
-          {rows.size === 0 ? getNativeButtonContent(empty, { color: theme.colors.controlPlaceholder }) : null}
-        </NativeFocusView>
-        {input ? <KeyBindings targetTag={targetTag} lifetime={lifetime} canAct={admitted} onKey={onKey} /> : null}
-      </NativeTagGroupContext.Provider>
-    </NativeFocusView>
+        <NativeListStateContext.Provider value={state}>
+          <NativeTagGroupStateContext.Provider value={state}>
+            <NativeTagGroupActionsContext.Provider
+              value={{
+                register,
+                refresh,
+                mode: selectionMode,
+                behavior,
+                labels,
+                allowsRemoving: !!props.onRemove,
+                disabled: isDisabled,
+                selected,
+                semantics: (row) =>
+                  JSON.stringify({
+                    kind: "cell",
+                    parentTarget: targetTag,
+                    rowIndex: members.findIndex((node) => node.key === row.key),
+                    columnIndex: 0,
+                    rowSpan: 1,
+                    columnSpan: 1,
+                    heading: false,
+                    selected: selected(row),
+                    rowHeaderTargets: [],
+                    columnHeaderTargets: [],
+                  } satisfies TNativeCollectionSemantics),
+                actionState,
+                keyCapture,
+                focus: (row, value, visible) => {
+                  if (value && admitted(row)) {
+                    observedFocus.current = row.key
+                    pendingFocus.current = null
+                    setRequestedFocusKey(null)
+                    setFocusWithin(true)
+                    setFocusedKey(row.key)
+                    setFocusVisible(visible)
+                  } else if (!value) {
+                    setFocusWithin(false)
+                    setFocusVisible(false)
+                  }
+                },
+                press,
+                remove,
+              }}
+            >
+              <NativeTagListContext.Provider value={listProps}>
+                <NativeCollectionSemanticsContext.Provider
+                  value={JSON.stringify({
+                    kind: "root",
+                    rowCount: members.length,
+                    columnCount: 1,
+                    hierarchical: false,
+                    selectionMode,
+                  } satisfies TNativeCollectionSemantics)}
+                >
+                  <NativeTagList testID="tag-list">
+                    <NativeCollectionSemanticsContext.Provider value="">
+                      <CollectionRoot collection={collection} persistedKeys={persistedKeys} scrollRef={scroll} />
+                      {collection.size === 0
+                        ? getNativeButtonContent(empty, { color: theme.colors.controlPlaceholder })
+                        : null}
+                    </NativeCollectionSemanticsContext.Provider>
+                  </NativeTagList>
+                </NativeCollectionSemanticsContext.Provider>
+              </NativeTagListContext.Provider>
+              {input ? <KeyBindings targetTag={targetTag} lifetime={lifetime} canAct={admitted} onKey={onKey} /> : null}
+            </NativeTagGroupActionsContext.Provider>
+          </NativeTagGroupStateContext.Provider>
+        </NativeListStateContext.Provider>
+      </TagGroupRoot>
+    </NativeCollectionItemBindingContext.Provider>
   )
 }
-export const TagGroup = forwardRef(NativeTagGroup) as <T extends object>(
-  props: TNativeTagGroupProps<T> & RefAttributes<TNativeTagGroupRef>,
-) => ReactNode
+
+const TagGroupRoot = forwardRef<TNativeTagGroupRef, TNativeFocusViewProps & Pick<TNativeTagGroupProps, "render">>(
+  ({ render, ...props }, ref) =>
+    render ? render({ ...props, ref }, undefined) : <NativeFocusView {...props} ref={ref} />,
+)
+export const NativeTagList = forwardRef<TNativeTagGroupRef, TNativeFocusViewProps & TNativeSlotProps>((props, ref) => {
+  const [merged, mergedRef] = useNativeContextProps(props, ref, NativeTagListContext)
+  const { slot: _slot, ...native } = merged
+  return <NativeFocusView {...native} ref={mergedRef} />
+})
+const TagGroupAuthoring = <T extends object>({ props }: { props: TNativeTagGroupProps<T> }) => {
+  const { items, children, getKey } = props
+  const supplied = useMemo(() => (items === undefined ? undefined : Array.from(items)), [items])
+  if (!getKey) return <NativeCollection items={supplied}>{children}</NativeCollection>
+  return supplied === undefined
+    ? typeof children === "function"
+      ? null
+      : children
+    : (() => {
+        if (typeof children !== "function") throw new TypeError("TagGroup: items require render children")
+        const seen = new Set<string>()
+        return supplied.map((item, order) => {
+          const rendered = children(item)
+          const authored = isValidElement<{ id?: TNativeTagGroupKey }>(rendered) ? rendered.props.id : undefined
+          const value = item as { id?: TNativeTagGroupKey; key?: TNativeTagGroupKey }
+          const key = getKey ? getKey(item) : (authored ?? value.id ?? value.key)
+          validateCollectionKey(key as TNativeTagGroupKey, "item key", "TagGroup")
+          const encoded = encodeCollectionKey(key!)
+          if (seen.has(encoded)) throw new TypeError("TagGroup: duplicate item key")
+          seen.add(encoded)
+          return (
+            <NativeTagItemValueContext.Provider key={encoded} value={{ key: key!, order, value: item }}>
+              {rendered}
+            </NativeTagItemValueContext.Provider>
+          )
+        })
+      })()
+}
+export const TagGroup = forwardRef(
+  <T extends object>(authoredProps: TNativeTagGroupProps<T>, forwardedRef: ForwardedRef<TNativeTagGroupRef>) => {
+    const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeTagGroupContext)
+    return (
+      <NativeListStateContext.Provider value={null}>
+        <NativeCollectionBuilder<T> content={<TagGroupAuthoring props={props} />}>
+          {(collection, receipt) => (
+            <NativeTagGroup props={props} forwardedRef={ref} collection={collection} receipt={receipt} />
+          )}
+        </NativeCollectionBuilder>
+      </NativeListStateContext.Provider>
+    )
+  },
+) as <T extends object>(props: TNativeTagGroupProps<T> & RefAttributes<TNativeTagGroupRef>) => ReactNode

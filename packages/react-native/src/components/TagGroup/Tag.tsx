@@ -12,6 +12,16 @@ import {
 import { Platform, View, type PointerEvent, type TextStyle } from "react-native"
 import Svg, { Path } from "react-native-svg"
 
+import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionItemBindingContext } from "../../collection/binding"
+import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  NativeCollectionCellFocusContext,
+} from "../../collection/renderer"
+import { NativeCollectionSemanticsContext } from "../../collection/semantics"
+import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import type { TNativeFocusEvent, TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -22,7 +32,7 @@ import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
 
 import {
-  NativeTagGroupContext,
+  NativeTagGroupActionsContext,
   NativeTagItemValueContext,
   type TNativeTagPressMetadata,
   type TNativeTagRegistration,
@@ -38,8 +48,12 @@ const textContent = (value: TNativeGroupedTagProps["children"]): string =>
     : Array.isArray(value)
       ? value.map(textContent).join("")
       : ""
-export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((props, ref) => {
+const TagReceiver = forwardRef<
+  TNativeGroupedTagRef,
+  TNativeGroupedTagProps & { collectionNode: TNativeCollectionNode<unknown> }
+>((props, ref) => {
   const {
+    collectionNode,
     id: authoredId,
     textValue,
     children,
@@ -89,7 +103,8 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
     "data-testid": aliasTestID,
     ...native
   } = props
-  const group = useContext(NativeTagGroupContext),
+  const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
+  const group = useContext(NativeTagGroupActionsContext),
     value = useContext(NativeTagItemValueContext),
     generated = useId()
   if (!group) throw new Error("TagGroup.Tag requires a native TagGroup")
@@ -105,6 +120,7 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
   const row = useMemo<TNativeTagRegistration>(
     () => ({
       key,
+      node: collectionNode,
       view,
       removeView,
       order: value?.order,
@@ -115,7 +131,7 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
         current.current["aria-label"] ??
         textContent(current.current.children),
     }),
-    [key, value?.order],
+    [key, value?.order, collectionNode],
   )
   const register = group.register,
     refresh = group.refresh
@@ -171,6 +187,7 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
   const focus = (next: boolean, event: TNativeFocusEvent) => {
     setFocused(next)
     setVisible(next && event.nativeEvent.isFocusVisible)
+    if (next) nativeCellFocus?.(event)
     group.focus(row, next, event.nativeEvent.isFocusVisible)
     if (next) onFocus?.(event)
     else onBlur?.(event)
@@ -183,44 +200,48 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
     const removeLabel =
       typeof authoredRemove === "function" ? authoredRemove(row.text(), key) : (authoredRemove ?? "Remove")
     return (
-      <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
-        <View
-          role="cell"
-          accessible={false}
-          style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
-        >
-          {getNativeButtonContent(rendered, textStyle.current)}
-          {group.allowsRemoving ? (
-            <Button
-              ref={removeView}
-              testID="tag-remove-button"
-              accessibilityLabel={removeLabel === "" ? "" : `${removeLabel} ${row.text()}`}
-              isDisabled={disabled}
-              geometry="orthogonal"
-              raised={false}
-              customStyles={{ backgroundColor: "transparent", borderWidth: 0, padding: 0, color: foreground }}
-              onFocus={(event) => group.focus(row, true, event.nativeEvent.isFocusVisible)}
-              onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
-              onPress={(event) => group.remove(row, "button", event)}
-              onKeyDown={(event) => group.keyCapture(row, event)}
+      <NativeCollectionSemanticsContext.Provider value="">
+        <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
+          <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
+            <View
+              role="cell"
+              accessible={false}
+              style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
             >
-              {closeIcon || (
-                <Svg
-                  testID="tag-default-close-icon"
-                  width={15}
-                  height={15}
-                  viewBox="0 0 24 24"
-                  fill={foreground}
-                  accessible={false}
-                  aria-hidden
+              {getNativeButtonContent(rendered, textStyle.current)}
+              {group.allowsRemoving ? (
+                <Button
+                  ref={removeView}
+                  testID="tag-remove-button"
+                  accessibilityLabel={removeLabel === "" ? "" : `${removeLabel} ${row.text()}`}
+                  isDisabled={disabled}
+                  geometry="orthogonal"
+                  raised={false}
+                  customStyles={{ backgroundColor: "transparent", borderWidth: 0, padding: 0, color: foreground }}
+                  onFocus={(event) => group.focus(row, true, event.nativeEvent.isFocusVisible)}
+                  onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
+                  onPress={(event) => group.remove(row, "button", event)}
+                  onKeyDown={(event) => group.keyCapture(row, event)}
                 >
-                  <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                </Svg>
-              )}
-            </Button>
-          ) : null}
-        </View>
-      </NativeContentContext.Provider>
+                  {closeIcon || (
+                    <Svg
+                      testID="tag-default-close-icon"
+                      width={15}
+                      height={15}
+                      viewBox="0 0 24 24"
+                      fill={foreground}
+                      accessible={false}
+                      aria-hidden
+                    >
+                      <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                    </Svg>
+                  )}
+                </Button>
+              ) : null}
+            </View>
+          </NativeContentContext.Provider>
+        </NativeCollectionRendererContext.Provider>
+      </NativeCollectionSemanticsContext.Provider>
     )
   }
   const owned = {
@@ -239,110 +260,139 @@ export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((pro
       style = getNativeGroupedTagStyles(theme, props, state)
     textStyle.current = style.text
     return (
-      <NativeFocusView
+      <NativeCollectionSemanticsContext.Provider value={group.semantics(row)}>
+        <NativeFocusView
+          {...native}
+          {...owned}
+          key={lifetime}
+          ref={view}
+          role="row"
+          accessible={!group.allowsRemoving}
+          focusable={!disabled && props.focusable !== false && props.tabIndex !== -1}
+          style={style.view}
+          onKeyDown={(event) => {
+            group.keyCapture(row, event)
+            onKeyDown?.(event)
+          }}
+          onKeyUp={onKeyUp}
+        >
+          {content(state, style.foregroundColor)}
+        </NativeFocusView>
+      </NativeCollectionSemanticsContext.Provider>
+    )
+  }
+  return (
+    <NativeCollectionSemanticsContext.Provider value={group.semantics(row)}>
+      <NativeButton
         {...native}
         {...owned}
         key={lifetime}
         ref={view}
-        role="row"
-        accessible={!group.allowsRemoving}
-        focusable={!disabled && props.focusable !== false && props.tabIndex !== -1}
-        style={style.view}
+        nativeRole="row"
+        isDisabled={disabled}
+        aria-selected={undefined}
+        aria-checked={undefined}
+        aria-expanded={undefined}
+        accessibilityHint={
+          props.accessibilityHint ??
+          (group.allowsRemoving && visible
+            ? (group.labels.removeDescription ?? "Press Delete or Backspace to remove.")
+            : undefined)
+        }
+        style={(flags) => {
+          const style = getNativeGroupedTagStyles(theme, props, stateFor(flags))
+          textStyle.current = style.text
+          return [style.view, style.text]
+        }}
+        onPointerDown={(event: PointerEvent) => {
+          onPointerDown?.(event)
+          const data = event.nativeEvent
+          pointer.current = {
+            pointerType: NATIVE_TAG_GROUP_POINTER_TYPES.includes(data.pointerType as never)
+              ? (data.pointerType as TNativeTagPressMetadata["pointerType"])
+              : "unknown",
+            shiftKey: data.shiftKey,
+            selectionModifier: Platform.OS === "ios" ? data.metaKey : data.ctrlKey,
+            nonContiguousModifier: Platform.OS === "ios" ? data.altKey : data.ctrlKey,
+            suppressed: event.defaultPrevented || event.isDefaultPrevented?.(),
+          }
+        }}
+        onPressStart={(event) => {
+          cycle.current = { primary: actions.hasPrimaryAction, long: false }
+          group.press(row, "start", event, eventMetadata(event))
+          onPressStart?.(event)
+        }}
+        onPress={(event) => {
+          const data = eventMetadata(event),
+            timestamp = "timestamp" in event.nativeEvent ? event.nativeEvent.timestamp : undefined
+          group.press(row, "release", event, {
+            ...data,
+            primaryAtStart: cycle.current?.primary,
+            suppressed: data.suppressed || cycle.current?.long,
+          })
+          if (data.pointerType === "mouse" && typeof timestamp === "number") {
+            if (
+              lastMouse.current !== undefined &&
+              timestamp >= lastMouse.current &&
+              timestamp - lastMouse.current <= 500
+            ) {
+              group.press(row, "double", event, data)
+              lastMouse.current = undefined
+            } else lastMouse.current = timestamp
+          }
+          onPress?.(event)
+          cycle.current = null
+        }}
+        onLongPress={(event) => {
+          const data = eventMetadata(event)
+          if (cycle.current && data.pointerType === "touch" && actions.longPressEnabled) cycle.current.long = true
+          group.press(row, "long", event, data)
+          onLongPress?.(event)
+        }}
+        onPressEnd={onPressEnd}
+        onPressChange={onPressChange}
+        onPressUp={onPressUp}
+        onPressIn={onPressIn}
+        onPressOut={onPressOut}
         onKeyDown={(event) => {
           group.keyCapture(row, event)
           onKeyDown?.(event)
         }}
         onKeyUp={onKeyUp}
+        onHoverStart={onHoverStart}
+        onHoverEnd={onHoverEnd}
+        onHoverChange={onHoverChange}
+        onHoverIn={onHoverIn}
+        onHoverOut={onHoverOut}
       >
-        {content(state, style.foregroundColor)}
-      </NativeFocusView>
+        {(flags) => content(stateFor(flags), flags.foregroundColor)}
+      </NativeButton>
+    </NativeCollectionSemanticsContext.Provider>
+  )
+})
+TagReceiver.displayName = "TagGroup.TagReceiver"
+type TCollectionTagProps = TNativeGroupedTagProps & { value?: unknown }
+const CollectionTag = createNativeCollectionLeaf<unknown, TCollectionTagProps, TNativeGroupedTagRef>(
+  "item",
+  (props, ref, node) => {
+    const actions = useContext(NativeCollectionActionsContext)
+    return (
+      <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
+        <TagReceiver {...props} id={node.key} collectionNode={node} ref={ref} />
+      </NativeCollectionItemBindingContext.Provider>
     )
-  }
+  },
+)
+export const Tag = forwardRef<TNativeGroupedTagRef, TNativeGroupedTagProps>((props, ref) => {
+  const value = useContext(NativeTagItemValueContext)
   return (
-    <NativeButton
-      {...native}
-      {...owned}
-      key={lifetime}
-      ref={view}
-      nativeRole="row"
-      isDisabled={disabled}
-      aria-selected={undefined}
-      aria-checked={undefined}
-      aria-expanded={undefined}
-      accessibilityHint={
-        props.accessibilityHint ??
-        (group.allowsRemoving && visible
-          ? (group.labels.removeDescription ?? "Press Delete or Backspace to remove.")
-          : undefined)
-      }
-      style={(flags) => {
-        const style = getNativeGroupedTagStyles(theme, props, stateFor(flags))
-        textStyle.current = style.text
-        return [style.view, style.text]
-      }}
-      onPointerDown={(event: PointerEvent) => {
-        onPointerDown?.(event)
-        const data = event.nativeEvent
-        pointer.current = {
-          pointerType: NATIVE_TAG_GROUP_POINTER_TYPES.includes(data.pointerType as never)
-            ? (data.pointerType as TNativeTagPressMetadata["pointerType"])
-            : "unknown",
-          shiftKey: data.shiftKey,
-          selectionModifier: Platform.OS === "ios" ? data.metaKey : data.ctrlKey,
-          nonContiguousModifier: Platform.OS === "ios" ? data.altKey : data.ctrlKey,
-          suppressed: event.defaultPrevented || event.isDefaultPrevented?.(),
-        }
-      }}
-      onPressStart={(event) => {
-        cycle.current = { primary: actions.hasPrimaryAction, long: false }
-        group.press(row, "start", event, eventMetadata(event))
-        onPressStart?.(event)
-      }}
-      onPress={(event) => {
-        const data = eventMetadata(event),
-          timestamp = "timestamp" in event.nativeEvent ? event.nativeEvent.timestamp : undefined
-        group.press(row, "release", event, {
-          ...data,
-          primaryAtStart: cycle.current?.primary,
-          suppressed: data.suppressed || cycle.current?.long,
-        })
-        if (data.pointerType === "mouse" && typeof timestamp === "number") {
-          if (
-            lastMouse.current !== undefined &&
-            timestamp >= lastMouse.current &&
-            timestamp - lastMouse.current <= 500
-          ) {
-            group.press(row, "double", event, data)
-            lastMouse.current = undefined
-          } else lastMouse.current = timestamp
-        }
-        onPress?.(event)
-        cycle.current = null
-      }}
-      onLongPress={(event) => {
-        const data = eventMetadata(event)
-        if (cycle.current && data.pointerType === "touch" && actions.longPressEnabled) cycle.current.long = true
-        group.press(row, "long", event, data)
-        onLongPress?.(event)
-      }}
-      onPressEnd={onPressEnd}
-      onPressChange={onPressChange}
-      onPressUp={onPressUp}
-      onPressIn={onPressIn}
-      onPressOut={onPressOut}
-      onKeyDown={(event) => {
-        group.keyCapture(row, event)
-        onKeyDown?.(event)
-      }}
-      onKeyUp={onKeyUp}
-      onHoverStart={onHoverStart}
-      onHoverEnd={onHoverEnd}
-      onHoverChange={onHoverChange}
-      onHoverIn={onHoverIn}
-      onHoverOut={onHoverOut}
-    >
-      {(flags) => content(stateFor(flags), flags.foregroundColor)}
-    </NativeButton>
+    <CollectionTag
+      {...props}
+      value={(props as TCollectionTagProps).value ?? value?.value}
+      id={props.id ?? value?.key}
+      textValue={props.textValue ?? props.accessibilityLabel ?? props["aria-label"] ?? textContent(props.children)}
+      ref={ref}
+    />
   )
 })
 Tag.displayName = "TagGroup.Tag"

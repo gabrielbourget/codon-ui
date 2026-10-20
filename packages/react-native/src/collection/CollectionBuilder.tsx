@@ -16,6 +16,9 @@ import {
 } from "react"
 import { findNodeHandle } from "react-native"
 
+import { encodeCollectionKey } from "../components/collection"
+
+import { NativeCollectionActions, NativeCollectionActionsContext } from "./actions"
 import { useNativeCachedChildren, type TNativeCachedChildrenOptions } from "./cachedChildren"
 import {
   NativeCollectionMetadataNode,
@@ -79,11 +82,14 @@ const CollectionBuilderRoot = <T,>({
         rootRevision: `cui-collection-revision:${id}`,
       }),
   )
+  const [actions] = useState(() => new NativeCollectionActions(session))
+  const actionRequests = useSyncExternalStore(actions.subscribe, actions.getSnapshot, actions.getSnapshot)
   const metadataRef = useCallback(
     (host: TNativeMetadataRootRef | null) => {
+      if (!host) actions.reset()
       session.bindRootTarget(host ? findNodeHandle(host) : null)
     },
-    [session],
+    [session, actions],
   )
   const receive = useCallback<NonNullable<TMetadataRootProps["onNativeCollectionCommit"]>>(
     (event) => {
@@ -99,11 +105,17 @@ const CollectionBuilderRoot = <T,>({
         {...session.scope}
         {...inspection}
         metadataRef={metadataRef}
+        actionRequests={actionRequests}
+        onNativeCollectionAction={(event) => {
+          actions.receive(event.nativeEvent)
+        }}
         onNativeCollectionCommit={receive}
       >
         <AuthoringContext.Provider value={session}>{content}</AuthoringContext.Provider>
       </NativeCollectionMetadataRoot>
-      <CollectionReceiver session={session}>{children}</CollectionReceiver>
+      <NativeCollectionActionsContext.Provider value={actions}>
+        <CollectionReceiver session={session}>{children}</CollectionReceiver>
+      </NativeCollectionActionsContext.Provider>
     </>
   )
 }
@@ -113,11 +125,17 @@ export const NativeCollectionBuilder = <T,>(props: TBuilderProps<T>) => {
   return existing ? props.content : <CollectionBuilderRoot {...props} />
 }
 
-export const NativeCollection = <T extends object>(props: TNativeCachedChildrenOptions<T>) => {
+export const NativeCollection = <T extends object>(props: Omit<TNativeCachedChildrenOptions<T>, "getReactKey">) => {
   const parent = useContext(CollectionContext)
   const dependencies = (parent?.dependencies ?? []).concat(props.dependencies)
   const idScope = props.idScope ?? parent?.idScope
-  const children = useNativeCachedChildren({ ...props, dependencies, idScope, addIdAndValue: true })
+  const children = useNativeCachedChildren({
+    ...props,
+    dependencies,
+    idScope,
+    addIdAndValue: true,
+    getReactKey: encodeCollectionKey,
+  })
   const context = useMemo(() => ({ dependencies, idScope }), [idScope, ...dependencies])
   return <CollectionContext.Provider value={context}>{children}</CollectionContext.Provider>
 }
@@ -224,7 +242,7 @@ export const createNativeCollectionLeaf = <T, P extends object, E>(
 }
 
 const useBranchChildren = <T extends object>(props: TNativeCachedChildrenOptions<T>) =>
-  useNativeCachedChildren({ ...props, addIdAndValue: true })
+  useNativeCachedChildren({ ...props, addIdAndValue: true, getReactKey: encodeCollectionKey })
 export const createNativeCollectionBranch = <T extends object, P extends object, E>(
   type: string,
   render: TRenderer<T, P, E>,

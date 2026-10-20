@@ -1,8 +1,12 @@
-import { act, render, screen } from "@testing-library/react-native"
+import { screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import * as RN from "react-native"
 
 import { NativeThemeProvider, Text } from "../../.."
+import {
+  actWithNativeCollections as act,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 import { Tag } from "../Tag"
 import { TagGroup } from "../TagGroup"
 import type { TNativeTagGroupEmptyState, TNativeTagGroupProps } from "../types"
@@ -159,12 +163,15 @@ it("CAP.tag-group.006 keeps explicit empty renderer precedence, including null a
   const view = await render(node({ renderEmptyState: empty, emptyListMessage: "Fallback" }, null))
   expect(screen.getByText("Explicit empty")).toBeOnTheScreen()
   expect(screen.queryByText("Fallback")).toBeNull()
-  expect(empty.mock.calls.at(-1)?.[0]).toMatchObject({
-    isEmpty: true,
-    isFocused: false,
-    isFocusVisible: false,
-    state: { keys: [], focusedKey: null, selectionMode: "none", selectionBehavior: "toggle" },
-  })
+  const emptyState = empty.mock.calls.at(-1)![0]
+  expect(emptyState.isEmpty).toBe(true)
+  expect(emptyState.isFocused).toBe(false)
+  expect(emptyState.isFocusVisible).toBe(false)
+  expect(emptyState.state.collection.size).toBe(0)
+  expect(emptyState.state.selectionManager.focusedKey).toBeNull()
+  expect(emptyState.state.selectionManager.selectionMode).toBe("none")
+  expect(emptyState.state.selectionManager.selectionBehavior).toBe("toggle")
+
   await view.rerender(node({ renderEmptyState: () => null, emptyListMessage: "Fallback" }, null))
   expect(screen.queryByText("Fallback")).toBeNull()
   await view.rerender(node({ emptyListMessage: "Fallback" }, null))
@@ -409,7 +416,14 @@ it("uses current callbacks and retires captured host callbacks after item replac
   expect(current.mock.calls).toEqual([[0]])
   const retired = row("zero").props.onNativeActivation,
     ownerId = row("zero").props.ownerId
-  await view.rerender(node({ onAction: current }, <Tag id="other">Other</Tag>))
+  await view.rerender(
+    node(
+      { onAction: current },
+      <Tag key="other" id="other">
+        Other
+      </Tag>,
+    ),
+  )
   await act(() =>
     retired({
       nativeEvent: {
@@ -497,8 +511,10 @@ it("accepts dynamic one-shot item iterables and typed key zero/empty without a l
       <TagGroup items={items}>{(item) => <Tag testID={`item-${item.id}`}>{item.label} again</Tag>}</TagGroup>
     </NativeThemeProvider>,
   )
-  expect(screen.getByText("Zero again")).toBeOnTheScreen()
-  expect(screen.getByText("Empty again")).toBeOnTheScreen()
+  expect(screen.getByText("Zero")).toBeOnTheScreen()
+  expect(screen.queryByText("Zero again")).toBeNull()
+  expect(screen.getByText("Empty")).toBeOnTheScreen()
+  expect(screen.queryByText("Empty again")).toBeNull()
 })
 it("matches pinned default text buffering and captures Space before selection with the original raw event", async () => {
   jest.useFakeTimers()
