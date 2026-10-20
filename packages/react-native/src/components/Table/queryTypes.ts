@@ -1,0 +1,108 @@
+export const TABLE_SORT_DIRECTION__ASCENDING = "Ascending"
+export const TABLE_SORT_DIRECTION__DESCENDING = "Descending"
+export const AVAILABLE_TABLE_SORT_DIRECTION_CODES = [
+  TABLE_SORT_DIRECTION__ASCENDING,
+  TABLE_SORT_DIRECTION__DESCENDING,
+] as const
+
+export type TTableSortDirection = (typeof AVAILABLE_TABLE_SORT_DIRECTION_CODES)[number]
+
+export const TABLE_FILTER_OPERATION_CODE__GREATER_THAN = "greater-than"
+export const TABLE_FILTER_OPERATION_CODE__GREATER_THAN_EQUAL = "greater-than-equal"
+export const TABLE_FILTER_OPERATION_CODE__LESS_THAN = "less-than"
+export const TABLE_FILTER_OPERATION_CODE__LESS_THAN_EQUAL = "less-than-equal"
+export const TABLE_FILTER_OPERATION_CODE__EQUAL = "equal"
+export const TABLE_FILTER_OPERATION_CODE__LIKE = "like"
+export const TABLE_FILTER_OPERATION_CODE__SIMILAR_TO = "similar-to"
+export const TABLE_FILTER_OPERATION_CODE__IN = "in"
+export const TABLE_FILTER_OPERATION_CODE__BETWEEN = "between"
+export const TABLE_FILTER_OPERATION_CODE__NOT_GREATER_THAN = "not-greater-than"
+export const TABLE_FILTER_OPERATION_CODE__NOT_GREATER_THAN_EQUAL = "not-greater-than-equal"
+export const TABLE_FILTER_OPERATION_CODE__NOT_LESS_THAN = "not-less-than"
+export const TABLE_FILTER_OPERATION_CODE__NOT_LESS_THAN_EQUAL = "not-less-than-equal"
+export const TABLE_FILTER_OPERATION_CODE__NOT_EQUAL = "not-equal"
+export const TABLE_FILTER_OPERATION_CODE__NOT_LIKE = "not-like"
+export const TABLE_FILTER_OPERATION_CODE__NOT_IN = "not-in"
+export const AVAILABLE_TABLE_FILTER_OPERATION_CODES = [
+  TABLE_FILTER_OPERATION_CODE__GREATER_THAN,
+  TABLE_FILTER_OPERATION_CODE__GREATER_THAN_EQUAL,
+  TABLE_FILTER_OPERATION_CODE__LESS_THAN,
+  TABLE_FILTER_OPERATION_CODE__LESS_THAN_EQUAL,
+  TABLE_FILTER_OPERATION_CODE__EQUAL,
+  TABLE_FILTER_OPERATION_CODE__LIKE,
+  TABLE_FILTER_OPERATION_CODE__SIMILAR_TO,
+  TABLE_FILTER_OPERATION_CODE__IN,
+  TABLE_FILTER_OPERATION_CODE__BETWEEN,
+  TABLE_FILTER_OPERATION_CODE__NOT_GREATER_THAN,
+  TABLE_FILTER_OPERATION_CODE__NOT_GREATER_THAN_EQUAL,
+  TABLE_FILTER_OPERATION_CODE__NOT_LESS_THAN,
+  TABLE_FILTER_OPERATION_CODE__NOT_LESS_THAN_EQUAL,
+  TABLE_FILTER_OPERATION_CODE__NOT_EQUAL,
+  TABLE_FILTER_OPERATION_CODE__NOT_LIKE,
+  TABLE_FILTER_OPERATION_CODE__NOT_IN,
+] as const
+
+export type TTableFilterOperationCode = (typeof AVAILABLE_TABLE_FILTER_OPERATION_CODES)[number]
+
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT = "text"
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__NUMBER = "number"
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__DATE = "date"
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__DATETIME = "date-time"
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__TIME = "time"
+export const TABLE_FILTER_ARGUMENT_DATA_TYPE__BOOLEAN = "boolean"
+export const AVAILABLE_TABLE_FILTER_ARGUMENT_DATA_TYPES = [
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__TEXT,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__NUMBER,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__DATE,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__DATETIME,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__TIME,
+  TABLE_FILTER_ARGUMENT_DATA_TYPE__BOOLEAN,
+] as const
+
+export type TTableFilterArgumentDataType = (typeof AVAILABLE_TABLE_FILTER_ARGUMENT_DATA_TYPES)[number]
+
+export const TABLE_FILTER_JOIN_OPERATOR__AND = "and"
+export const TABLE_FILTER_JOIN_OPERATOR__OR = "or"
+export const AVAILABLE_TABLE_FILTER_JOIN_OPERATORS = [
+  TABLE_FILTER_JOIN_OPERATOR__AND,
+  TABLE_FILTER_JOIN_OPERATOR__OR,
+] as const
+
+export type TTableFilterJoinOperator = (typeof AVAILABLE_TABLE_FILTER_JOIN_OPERATORS)[number]
+
+export const TABLE_FILTER_CONDITION_TYPE__RANGE = "Range"
+export const TABLE_FILTER_CONDITION_TYPE__LIST = "List"
+export const TABLE_FILTER_CONDITION_TYPE__MULTI_SELECT = "Multi-Select"
+export const AVAILABLE_TABLE_FILTER_CONDITION_TYPES = [
+  TABLE_FILTER_CONDITION_TYPE__RANGE,
+  TABLE_FILTER_CONDITION_TYPE__LIST,
+  TABLE_FILTER_CONDITION_TYPE__MULTI_SELECT,
+] as const
+
+export type TTableFilterConditionType = (typeof AVAILABLE_TABLE_FILTER_CONDITION_TYPES)[number]
+
+export type TTableFilterArgumentValue = string | string[] | number | number[] | boolean | null | undefined
+
+export type TTableFilterClause = {
+  id: string
+  operationCode: TTableFilterOperationCode
+  argument?: TTableFilterArgumentValue
+}
+
+export type TTableFilterGroup = {
+  id: string
+  criteriaID: string
+  criteriaName: string
+  queryKey?: string
+  dataType: TTableFilterArgumentDataType
+  joinOperator: TTableFilterJoinOperator
+  clauses: TTableFilterClause[]
+}
+
+export type TTableSortInstruction = {
+  id: string
+  criteriaID: string
+  criteriaName: string
+  queryKey?: string
+  sortDirection: TTableSortDirection
+}
