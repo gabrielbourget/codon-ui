@@ -22,6 +22,7 @@ import android.graphics.PixelFormat;
 import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.view.View;
@@ -355,13 +356,14 @@ final class CUIMotionDrawing {
       float maskRadius = blurRadius(blur * 0.5f);
       if (maskRadius > 0) paint.setMaskFilter(new BlurMaskFilter(maskRadius, BlurMaskFilter.Blur.NORMAL));
       int saved = canvas.save();
-      if (!Boolean.TRUE.equals(shadow.getInset())) {
+      boolean insetShadow = Boolean.TRUE.equals(shadow.getInset());
+      if (!insetShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
         RectF shadowBounds = new RectF(bounds); shadowBounds.inset(-spread, -spread); shadowBounds.offset(x, y);
         if (rounded(radii)) { RectF clip = new RectF(bounds); clip.inset(0.4f, 0.4f); canvas.clipOutPath(rounded(clip, radii)); }
         else canvas.clipOutRect(bounds);
         if (rounded(radii)) { for (int axis = 0; axis < 8; axis++) radii[axis] = spreadRadius(radii[axis], spread); canvas.drawPath(rounded(shadowBounds, radii), paint); }
         else canvas.drawRect(shadowBounds, paint);
-      } else {
+      } else if (insetShadow && Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         RectF padding = inset(bounds, widths, 1); float[] paddingRadii = innerRadii(radii, widths, 1);
         RectF hole = new RectF(padding);
         if (2 * spread > padding.width()) hole.setEmpty(); else hole.inset(spread, spread);
@@ -375,6 +377,7 @@ final class CUIMotionDrawing {
       canvas.restoreToCount(saved);
     }
 
+    @SuppressWarnings("deprecation")
     private void border(Canvas canvas, RectF bounds, float[] radii, RectF widths) {
       BorderDrawable source = (BorderDrawable)original;
       BorderStyle style = source.getBorderStyle();
@@ -400,7 +403,9 @@ final class CUIMotionDrawing {
         paint.setStyle(Paint.Style.FILL);
         boolean visible = Color.alpha(colors[0]) != 0 || Color.alpha(colors[1]) != 0 || Color.alpha(colors[2]) != 0 || Color.alpha(colors[3]) != 0;
         RectF inner = visible ? inset(bounds, widths, 1) : new RectF(bounds); float[] innerRadii = innerRadii(radii, widths, 1);
-        canvas.clipOutPath(rounded(inner, innerRadii));
+        Path innerClip = rounded(inner, innerRadii);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) canvas.clipOutPath(innerClip);
+        else canvas.clipPath(innerClip, Region.Op.DIFFERENCE);
         PointF tl = intersection(inner.left, inner.top, inner.left + 2 * innerRadii[0], inner.top + 2 * innerRadii[1], bounds.left, bounds.top, inner.left, inner.top);
         PointF tr = intersection(inner.right - 2 * innerRadii[2], inner.top, inner.right, inner.top + 2 * innerRadii[3], bounds.right, bounds.top, inner.right, inner.top);
         PointF br = intersection(inner.right - 2 * innerRadii[4], inner.bottom - 2 * innerRadii[5], inner.right, inner.bottom, bounds.right, bounds.bottom, inner.right, inner.bottom);

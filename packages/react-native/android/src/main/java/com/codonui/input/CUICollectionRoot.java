@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUICollectionRoot extends CUICollectionNode implements UIManagerListener {
   String rootRevision = "";
   private UIManager manager;

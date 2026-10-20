@@ -1,6 +1,5 @@
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
-#import <React/RCTComponent.h>
 #import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -40,12 +39,6 @@ using namespace facebook::react;
   self.rootId = [NSString stringWithUTF8String:value.rootId.c_str()];
   _rootRevision = [NSString stringWithUTF8String:value.rootRevision.c_str()];
   [super updateProps:props oldProps:oldProps];
-}
-- (SurfaceId)currentSurfaceId
-{
-  // Use the same actual root-view identity rule as the locked mounting manager.
-  for (UIView *view = self; view; view = view.superview) if (RCTIsReactRootView(@(view.tag))) return (SurfaceId)view.tag;
-  return -1;
 }
 - (void)didMoveToWindow
 {
@@ -104,8 +97,10 @@ using namespace facebook::react;
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
-  SurfaceId surface = [self currentSurfaceId];
-  if (!self.window || surface != transaction.getSurfaceId()) return;
+  if (!self.window) return;
+  // The locked coordinator dispatches only to descriptors registered on this exact surface, including modal children.
+  SurfaceId surface = transaction.getSurfaceId();
+  if (_lastSurfaceId >= 0 && _lastSurfaceId != surface) { _epoch++; _lastSignature = @""; }
   _lastSurfaceId = surface;
   [self publishAttached:YES surface:surface mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", surface, (long long)transaction.getNumber()]];
 }

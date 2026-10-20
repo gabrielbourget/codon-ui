@@ -917,7 +917,7 @@
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionDrawing.java",
-      "sha256": "c8a0e82f0b1e82e4f06081fb43f9cff49dc472c6d0b7d2f4b22e60bae9dfc86c"
+      "sha256": "bbd0ffe68a185c80fdc0b5c139f4b9005dba63a5577834bfb7d888a9fd0d0830"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionDrawingDispatch.java",
