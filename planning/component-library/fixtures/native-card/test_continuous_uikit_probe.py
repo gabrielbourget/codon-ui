@@ -55,5 +55,9 @@ class ReferenceCustody(unittest.TestCase):
         failed[-1]["outcome"] = "native-receiver-assertions-failed"
         self.assertEqual(validate_journal(failed, "source")["outcome"], "native-receiver-assertions-failed")
 
+    def test_partial_crash_journal_rejects_with_diagnostic(self):
+        with self.assertRaisesRegex(AssertionError, "missing terminal"):
+            validate_journal(journal()[:3], "source")
+
 
 if __name__ == "__main__": unittest.main()

@@ -4,6 +4,7 @@
 #import <React/RCTBorderDrawing.h>
 #import "../../../../packages/react-native/ios/CUIMotionDrawingView.h"
 #import <react/renderer/components/view/ViewProps.h>
+#include <react/renderer/components/view/ViewComponentDescriptor.h>
 #import <react/utils/ContextContainer.h>
 #include <folly/dynamic.h>
 
@@ -22,10 +23,16 @@
 void CUIAssertPinnedDrawingBranches() {
   using namespace facebook::react;
   NSCAssert(NSThread.isMainThread, @"Run drawing assertions on the main thread");
-  ContextContainer container;
-  PropsParserContext context{1, container};
-  auto original = std::make_shared<const ViewProps>();
-  auto percent = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto container = std::make_shared<const ContextContainer>();
+  PropsParserContext context{1, *container};
+  ComponentDescriptorParameters parameters;
+  parameters.contextContainer = container;
+  ViewComponentDescriptor descriptor(parameters);
+  auto cloneProps = [&](const Props::Shared &previous, RawProps raw) {
+    return std::static_pointer_cast<const ViewProps>(descriptor.cloneProps(context, previous, std::move(raw)));
+  };
+  auto original = cloneProps(nullptr, RawProps{});
+  auto percent = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", "25%")("borderCurve", "continuous")
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   LayoutMetrics layout;
@@ -69,7 +76,7 @@ void CUIAssertPinnedDrawingBranches() {
       CGRectEqualToRect(ownedLayer.mask.frame, owned.bounds),
       @"Unequal-axis correction must use the owned native continuous primitive at the original bounds");
   CGPathRef circular;
-  auto mixed = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto mixed = cloneProps(original, RawProps(
       folly::dynamic::object("borderTopLeftRadius", 30)("borderTopRightRadius", 12)
           ("borderBottomLeftRadius", 5)("borderBottomRightRadius", 22)("borderCurve", "continuous")
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))("outlineWidth", 2)));
@@ -90,7 +97,7 @@ void CUIAssertPinnedDrawingBranches() {
       @"Corrected axes cannot promote a source circular fallback into continuous overlap");
   CGPathRelease(circular);
   [owned finalizeUpdates:RNComponentViewUpdateMaskProps];
-  auto clipped = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto clipped = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderCurve", "continuous")("overflow", "hidden")
           ("outlineWidth", 2)("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   [owned updateProps:clipped oldProps:mixed];
@@ -108,7 +115,7 @@ void CUIAssertPinnedDrawingBranches() {
 
   // A percentage corner and numeric corners can resolve to the same native
   // radius at a square size. Percentage fallthrough then makes correction mixed.
-  auto reachableProps = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto reachableProps = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 20)("borderTopLeftRadius", "25%")
           ("borderCurve", "continuous")("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   CUIMotionDrawingView *reachable = [[CUIMotionDrawingView alloc] initWithFrame:CGRectMake(0, 0, 80, 80)];

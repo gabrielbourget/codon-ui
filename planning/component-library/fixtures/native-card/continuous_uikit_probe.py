@@ -47,7 +47,7 @@ def git(*arguments): return subprocess.check_output(["git", *arguments], cwd=REP
 def validate_journal(rows, producer):
     assert rows and rows[0]["kind"] == "begin" and all(row["producer"] == producer for row in rows), "Original native identity journal missing"
     assert type(rows[0]["pid"]) is int and rows[0]["pid"] > 0
-    assert rows[-1]["kind"] == "terminal" and rows[-1]["fullCard"] is False and rows[-1]["fullGoal"] is False
+    assert rows[-1]["kind"] == "terminal" and rows[-1]["fullCard"] is False and rows[-1]["fullGoal"] is False, "Original native journal missing terminal or scope boundary"
     controls = [row for row in rows if row["kind"] == "reference-control"]
     profiles = [row for row in rows if row["kind"] == "profile"]
     raster_controls = [row for row in rows if row["kind"] == "raster-control"]
@@ -180,10 +180,11 @@ def run(root):
         (root / "original-native-journal.json").write_text(json.dumps(rows, indent=2) + "\n")
         verify(root)
         assert digest(root / "CUIContinuousUIKitReference") == product["binarySHA256"]
+        assert code == 0 or rows and rows[-1].get("kind") == "terminal", "Original native process exited " + str(code) + " before its terminal journal"
         observation = validate_journal(rows, inputs["producer"])
         state["nativeOutcome"] = observation["outcome"]
         state["nativePID"] = observation["nativePID"]
-        assert code == 0 and rows[-1]["outcome"] == "native-reference-characterization-complete", "Native reference capability or process failed"
+        assert code == 0 and rows[-1]["outcome"] == "native-reference-characterization-complete", "Original native process exited " + str(code) + ": " + rows[-1]["outcome"]
         state["status"] = "NATIVE_PRIMITIVE_CHARACTERIZATION_COMPLETE"
     except BaseException as error:
         state["status"] = "FAIL_OR_BLOCKED"

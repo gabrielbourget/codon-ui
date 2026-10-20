@@ -4,6 +4,7 @@
 #import "../../../../packages/react-native/ios/CUIMotionDrawingGeometry.h"
 #include <folly/dynamic.h>
 #include <react/renderer/components/view/ViewProps.h>
+#include <react/renderer/components/view/ViewComponentDescriptor.h>
 #include <react/utils/ContextContainer.h>
 #include <cmath>
 
@@ -22,10 +23,16 @@ void CUIAssertOwnedMotionDrawing() {
   [view addSubview:editor];
   [view setCuiDrawingEnabled:YES];
   [view setCuiProjectionRadii:@"{\"topLeft\":{\"x\":40,\"y\":8},\"topRight\":null}"];
-  ContextContainer container;
-  PropsParserContext context{1, container};
-  auto original = std::make_shared<const ViewProps>();
-  auto props = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto container = std::make_shared<const ContextContainer>();
+  PropsParserContext context{1, *container};
+  ComponentDescriptorParameters parameters;
+  parameters.contextContainer = container;
+  ViewComponentDescriptor descriptor(parameters);
+  auto cloneProps = [&](const Props::Shared &previous, RawProps raw) {
+    return std::static_pointer_cast<const ViewProps>(descriptor.cloneProps(context, previous, std::move(raw)));
+  };
+  auto original = cloneProps(nullptr, RawProps{});
+  auto props = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderTopStartRadius", 7)
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))("overflow", "hidden")));
   [view updateProps:props oldProps:original];
@@ -49,7 +56,7 @@ void CUIAssertOwnedMotionDrawing() {
   NSCAssert(invalidRejected, @"Invalid radius data must reject before drawing mutation");
   auto unchanged = [view cuiBorderMetrics];
   NSCAssert(unchanged.borderRadii.topLeft.horizontal == 40, @"Invalid data cannot replace the last valid receiver data");
-  auto percent = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto percent = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", "25%")("overflow", "hidden")));
   [view updateProps:percent oldProps:props];
   [view setCuiProjectionRadii:@"{\"topLeft\":{\"x\":10,\"y\":5}}"];
@@ -57,7 +64,7 @@ void CUIAssertOwnedMotionDrawing() {
   NSCAssert(mixed.borderRadii.topRight.horizontal == 30 && mixed.borderRadii.topRight.vertical == 20,
       @"Percentage corners must resolve against the actual current width and height");
   NSCAssert([editor isDescendantOfView:view] && editor.text.length == 0, @"Style changes must retain the original editor");
-  auto continuous = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto continuous = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderCurve", "continuous")
           ("borderWidth", 3)("borderColor", static_cast<int64_t>(0xff102030))
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))("overflow", "hidden")
