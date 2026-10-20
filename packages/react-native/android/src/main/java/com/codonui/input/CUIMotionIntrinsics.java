@@ -26,6 +26,7 @@ import com.facebook.yoga.YogaMeasureMode;
 import com.facebook.yoga.YogaMeasureOutput;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 // Private RN0.86.3 adapter. Native layout/fidelity and cache concurrency need installed proof.
 final class CUIMotionIntrinsics {
@@ -60,16 +61,17 @@ final class CUIMotionIntrinsics {
     boolean audited = false;
     for (Class<?> type : auditedSpans) if (span.getClass() == type) { audited = true; break; }
     if (!audited) throw new IllegalStateException("Native motion: unaudited cached span " + span.getClass().getName());
-    if (span instanceof CustomStyleSpan && ((CustomStyleSpan)span).getFontFamily() != null)
-      throw new IllegalStateException("Native motion: shared font-family cache isolation unavailable");
     return span;
   }
 
   static SpannableString copyCachedText(Spannable original) {
+    UiThreadUtil.assertOnUiThread();
     if (original.getClass() != SpannableStringBuilder.class && original.getClass() != SpannableString.class)
       throw new IllegalStateException("Native motion: unaudited cached text container " + original.getClass().getName());
     // Start from characters only: copying a Spanned constructor can retain original watchers.
     SpannableString copied = new SpannableString(original.toString());
+    Map<CustomStyleSpan, MetricAffectingSpan> fonts = CUIMotionFontSnapshot.capture(
+      original.getSpans(0, original.length(), CustomStyleSpan.class));
     for (Object span : original.getSpans(0, original.length(), Object.class)) {
       Object owned;
       if (span.getClass() == ReactTextPaintHolderSpan.class) {
@@ -78,7 +80,10 @@ final class CUIMotionIntrinsics {
         paint.set(source);
         paint.drawableState = source.drawableState == null ? null : source.drawableState.clone();
         owned = new ReactTextPaintHolderSpan(paint);
-      } else owned = measurementSpan(span);
+      } else {
+        owned = measurementSpan(span);
+        if (span instanceof CustomStyleSpan && fonts.containsKey(span)) owned = fonts.get(span);
+      }
       if (owned != null) copied.setSpan(owned, original.getSpanStart(span), original.getSpanEnd(span), original.getSpanFlags(span));
     }
     return copied;

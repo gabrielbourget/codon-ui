@@ -133,8 +133,14 @@ afterEach(async () => {
 it("projects a matched actual before/after cohort and finishes the real source-owned animation", async () => {
   const start = jest.fn(),
     complete = jest.fn(),
+    before = jest.fn(),
     measure = jest.fn(),
-    f = create({ onLayoutAnimationStart: start, onLayoutAnimationComplete: complete, onLayoutMeasure: measure })
+    f = create({
+      onLayoutAnimationStart: start,
+      onLayoutAnimationComplete: complete,
+      onBeforeLayoutMeasure: before,
+      onLayoutMeasure: measure,
+    })
   f.send("frame")
   await turn()
   f.actor.configure("move", {}, undefined, undefined, undefined)
@@ -148,6 +154,11 @@ it("projects a matched actual before/after cohort and finishes the real source-o
   expect(start).toHaveBeenCalledTimes(1)
   expect(complete).toHaveBeenCalledTimes(1)
   expect(measure).toHaveBeenCalled()
+  expect(before.mock.calls.length).toBeGreaterThan(0)
+  expect(
+    before.mock.calls.every((args) => args.length === 3 && args.every((value: unknown) => value === undefined)),
+  ).toBe(true)
+  expect(measure.mock.calls.every((args) => args.length === 3 && args[2] === undefined)).toBe(true)
   expect(f.errors).not.toHaveBeenCalled()
 })
 it("waits for all members of the same window and rejects an older React intent", async () => {
@@ -252,6 +263,25 @@ it("retires pending frame work and leaves a replacement native ref untouched", a
   await flush(1200)
   expect(writer).not.toHaveBeenCalled()
   expect(f.actor.node).toBeUndefined()
+})
+it("rejects retired visual callback dispatch after a new projection attaches to the same owner", async () => {
+  const callback = jest.fn()
+  const f = create({ onBeforeLayoutMeasure: callback, onLayoutMeasure: callback })
+  f.send("frame")
+  await turn()
+  const retired = f.actor.node!.options.visualElement!
+  f.actor.detach()
+  f.actor.attach(f.target)
+  f.send("frame")
+  await turn()
+  const current = f.actor.node!.options.visualElement!
+  expect(current).not.toBe(retired)
+  callback.mockClear()
+  retired.notify("BeforeLayoutMeasure")
+  retired.notify("LayoutMeasure", { x: { min: 0, max: 1 }, y: { min: 0, max: 1 } })
+  expect(callback).not.toHaveBeenCalled()
+  current.notify("BeforeLayoutMeasure")
+  expect(callback.mock.calls).toEqual([[undefined, undefined, undefined]])
 })
 it("does not mutate frozen native boxes while calculating projection", async () => {
   const f = create()

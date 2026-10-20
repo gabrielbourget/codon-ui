@@ -17,9 +17,12 @@ export const layout = (
           layoutCrossfade: false,
           initial: { opacity: 1 },
           exit: { opacity: 0 },
+          onBeforeLayoutMeasure: (box) => {
+            void box.x.min
+          },
           onLayoutMeasure: (box, previous) => {
             void box.x.min
-            void previous?.y.max
+            void previous.y.max
           },
         }}
       />

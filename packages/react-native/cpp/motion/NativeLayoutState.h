@@ -111,7 +111,7 @@ TNativeLayoutState captureNativeLayoutState(
     const facebook::react::ShadowNode &node, const std::function<void()> &check = {});
 
 facebook::yoga::Style applyNativeLayoutState(
-    const TNativeLayoutState &state,
+    const facebook::react::ShadowNode &source, const TNativeLayoutState &state,
     const std::shared_ptr<const facebook::react::Props> &selectedProps, bool swapLeftAndRight);
 
 } // namespace codon::motion

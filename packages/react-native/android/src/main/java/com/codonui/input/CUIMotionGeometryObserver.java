@@ -90,8 +90,7 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
   }
   @Override public boolean onPreDraw() { capture("frame", "", ""); return true; }
 
-  private WritableMap envelope(String kind, String requestId, String transaction) {
-    View view = root.get(); boolean attached = view != null && view.isAttachedToWindow() && !"detached".equals(kind);
+  private WritableMap envelope(String kind, String requestId, String transaction, View view, boolean attached) {
     WritableMap data = Arguments.createMap();
     data.putString("ownerId", owner); data.putString("bindingId", binding); data.putInt("target", view == null ? View.NO_ID : view.getId());
     data.putString("windowId", attached ? CUIInputWindow.identity(view) : ""); data.putString("scopeOwnerId", ""); data.putDouble("epoch", 0);
@@ -109,10 +108,13 @@ final class CUIMotionGeometryObserver implements ViewTreeObserver.OnPreDrawListe
   }
   private void capture(String kind, String requestId, String transaction) {
     if (!enabled) return;
-    WritableMap data = envelope(kind, requestId, transaction);
+    View view = root.get();
+    boolean attached = view != null && view.isAttachedToWindow() && !"detached".equals(kind);
+    WritableMap data = envelope(kind, requestId, transaction, view, attached);
     String snapshot = "", error = "";
-    if (!data.getBoolean("attached")) error = "native-geometry-view-detached";
-    else try { snapshot = snapshot(root.get()).put("mountObservationAvailable", coordinator != null).toString(); } catch (JSONException | RuntimeException failure) { error = "invalid-native-geometry"; }
+    // ReadableNativeMap caches its first imported keys; retain capture facts outside the write-only payload.
+    if (!attached) error = "native-geometry-view-detached";
+    else try { snapshot = snapshot(view).put("mountObservationAvailable", coordinator != null).toString(); } catch (JSONException | RuntimeException failure) { error = "invalid-native-geometry"; }
     if ("frame".equals(kind) && snapshot.equals(lastFrame) && error.isEmpty()) return;
     if ("frame".equals(kind)) lastFrame = snapshot;
     data.putString("snapshot", snapshot); data.putString("error", error); emit.accept(data);

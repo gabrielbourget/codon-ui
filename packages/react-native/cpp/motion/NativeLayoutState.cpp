@@ -8,6 +8,7 @@
 #include <react/renderer/components/safeareacontext/RNCSafeAreaViewState.h>
 #include <react/renderer/components/TeleportViewSpec/Props.h>
 #include <react/renderer/components/TeleportViewSpec/RNTPortalViewState.h>
+#include <react/renderer/components/view/YogaLayoutableShadowNode.h>
 #include <react/renderer/core/ConcreteState.h>
 #include <react/renderer/core/ShadowNode.h>
 #include <typeinfo>
@@ -70,15 +71,18 @@ TNativeLayoutState captureNativeLayoutState(const ShadowNode &node, const std::f
   return result;
 }
 
-facebook::yoga::Style applyNativeLayoutState(const TNativeLayoutState &state,
+facebook::yoga::Style applyNativeLayoutState(const ShadowNode &source, const TNativeLayoutState &state,
     const std::shared_ptr<const Props> &selectedProps, bool swapLeftAndRight) {
+  if (!dynamic_cast<const YogaLayoutableShadowNode *>(&source) || source.getProps() != state.originalProps)
+    throw std::runtime_error("Native motion: actual Yoga node/props pair unavailable");
   const auto *selectedType = selectedProps.get();
   const auto *originalType = state.originalProps.get();
   if (!selectedType || !originalType || typeid(*selectedType) != typeid(*originalType))
     throw std::runtime_error("Native motion: independent stage props belong to another component");
-  const auto *props = dynamic_cast<const YogaStylableProps *>(selectedProps.get());
-  if (!props) throw std::runtime_error("Native motion: actual Yoga props unavailable");
-  auto style = state.kind == TNativeLayoutStateKind::SafeAreaContext ? props->yogaStyle : copyNativeYogaStyle(*props, false);
+  // Match the pinned Yoga node's props contract. Props-base RTTI is duplicated
+  // across Android libraries; the exported node type supplies the authority.
+  const auto &props = static_cast<const YogaStylableProps &>(*selectedProps);
+  auto style = state.kind == TNativeLayoutStateKind::SafeAreaContext ? props.yogaStyle : copyNativeYogaStyle(props, false);
   if (state.kind == TNativeLayoutStateKind::AndroidEditor) {
     const auto &original = static_cast<const YogaStylableProps &>(*state.originalProps);
     requireNativeEditorLayoutAuthority(style, copyNativeYogaStyle(original, false));

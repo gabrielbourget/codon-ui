@@ -10,3 +10,15 @@
 -keepclassmembers class com.facebook.react.fabric.FabricUIManager {
   com.facebook.react.fabric.FabricUIManagerBinding mBinding;
 }
+-keepclassmembers class com.facebook.react.common.assets.ReactFontManager {
+  private final java.util.Map fontCache;
+  private final java.util.Map customTypefaceCache;
+}
+-keep class com.facebook.react.common.assets.ReactFontManager$AssetFontFamily {
+  private final android.util.SparseArray typefaceSparseArray;
+}
+-keepclassmembers class com.facebook.react.views.text.internal.span.CustomStyleSpan {
+  private final android.content.res.AssetManager assetManager;
+  private final int privateStyle;
+  private final int privateWeight;
+}

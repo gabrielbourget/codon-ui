@@ -30,5 +30,47 @@
   ],
   "finding": "ShadowNodeFragment cannot replace the family event emitter; ParagraphShadowNode.layout updates state and can emit onTextLayout. Ordinary clone/layout is not an isolated measurement backend. Its const measureContent can mutate measuredLayouts_ caches, so the declaration alone does not prove runtime isolation.",
   "nativeActions": 0,
-  "productionNativeChanges": false
+  "productionNativeChanges": false,
+  "fontCacheSnapshotProposal": {
+    "roadmap": "3.5.68",
+    "evidence": "3.31.103",
+    "approval": "APPROVED by Gabriel 2026-10-20; original four descriptors and two raw style/weight descriptors",
+    "scope": "Six read-only pinned descriptors, immutable Typeface/asset identities, request-owned manager and copied named-family spans; native proof pending",
+    "descriptors": [
+      "ReactFontManager.fontCache:Map",
+      "ReactFontManager.customTypefaceCache:Map",
+      "ReactFontManager$AssetFontFamily.typefaceSparseArray:SparseArray",
+      "CustomStyleSpan.assetManager:AssetManager",
+      "CustomStyleSpan.privateStyle:int",
+      "CustomStyleSpan.privateWeight:int"
+    ],
+    "sources": [
+      {
+        "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/common/assets/ReactFontManager.kt",
+        "sha256": "38abb17464b9e6b7a214a002d6e144e6fed391cdb0134773a5abf336aa21efaf"
+      },
+      {
+        "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt",
+        "sha256": "eb7944b1a97a2325ec37d4656f8e415ca1feb2900e651208d6c600b5c1e7280c"
+      },
+      {
+        "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt",
+        "sha256": "a48f82ec8c8cc72233e3d8720934ffc04350876293b10770f9c02fc9861da8aa"
+      }
+    ],
+    "nativeActions": 0,
+    "fullCard": false,
+    "focusedNativeProof": {
+      "producer": "f9be3cf82d9b87b156555f5b1de8007297714a11",
+      "platform": "android",
+      "sdk": 36,
+      "completeFontCases": 400,
+      "nativeAssertions": 12384,
+      "completeJournalRecords": 403,
+      "wholeRawRecords": 548,
+      "manifestSHA256": "531502f987ac500704be082f5fb760624a5f9cc5fada2bdc552dddc0291a8f27",
+      "scope": "First complete installed span/cache/layout journal only. Raw post-terminal second scene entry remains; owner/editor service, assets, API<28, consumer/profile/closure remain open.",
+      "fullCard": false
+    }
+  }
 }

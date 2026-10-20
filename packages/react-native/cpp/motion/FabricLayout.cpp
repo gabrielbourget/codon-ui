@@ -17,10 +17,8 @@ TNativeScratchNode copyNode(
     const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
   if (check) check();
   const auto selectedProps = resolveProps ? resolveProps(source) : source.getProps();
-  const auto *props = dynamic_cast<const YogaStylableProps *>(selectedProps.get());
-  if (!props) throw std::runtime_error("Native motion: actual Yoga props unavailable");
   const auto layoutState = captureNativeLayoutState(source, check);
-  auto style = applyNativeLayoutState(layoutState, selectedProps, swap);
+  auto style = applyNativeLayoutState(source, layoutState, selectedProps, swap);
   auto errata = inheritedErrata;
   if (dynamic_cast<const LayoutConformanceShadowNode *>(&source)) {
     const auto &conformance = static_cast<const LayoutConformanceShadowNode::ConcreteProps &>(*selectedProps);
@@ -30,7 +28,7 @@ TNativeScratchNode copyNode(
   TNativeScratchNode result{source.getTag(), std::move(style)};
   result.errata = errata;
   if (source.getTraits().check(ShadowNodeTraits::ViewKind)) {
-    const auto &view = static_cast<const ViewProps &>(*props);
+    const auto &view = static_cast<const ViewProps &>(*selectedProps);
     result.formsContainingBlock = view.transform != Transform::Identity() || !view.filter.empty();
   }
   const bool measures = source.getTraits().check(ShadowNodeTraits::MeasurableYogaNode);
