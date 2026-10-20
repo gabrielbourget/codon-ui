@@ -34,13 +34,15 @@
   "fontCacheSnapshotProposal": {
     "roadmap": "3.5.68",
     "evidence": "3.31.103",
-    "approval": "PENDING",
-    "scope": "Four additional read-only private descriptors; no production access implemented",
+    "approval": "APPROVED by Gabriel 2026-10-20; original four descriptors and two raw style/weight descriptors",
+    "scope": "Six read-only pinned descriptors, immutable Typeface/asset identities, request-owned manager and copied named-family spans; native proof pending",
     "descriptors": [
       "ReactFontManager.fontCache:Map",
       "ReactFontManager.customTypefaceCache:Map",
       "ReactFontManager$AssetFontFamily.typefaceSparseArray:SparseArray",
-      "CustomStyleSpan.assetManager:AssetManager"
+      "CustomStyleSpan.assetManager:AssetManager",
+      "CustomStyleSpan.privateStyle:int",
+      "CustomStyleSpan.privateWeight:int"
     ],
     "sources": [
       {

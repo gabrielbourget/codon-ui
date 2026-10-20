@@ -70,7 +70,8 @@ public final class NativeIntrinsicAndroidAssertions {
     original.removeSpan(metric);
     CustomStyleSpan family = new CustomStyleSpan(0,400,null,"custom-family",context.getAssets());
     original.setSpan(family,0,1,Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
-    try { CUIMotionIntrinsics.copyCachedText(original); throw new AssertionError("shared font cache accepted"); }
-    catch (IllegalStateException expected) { require(expected.getMessage().contains("shared font-family cache"), "exact unproved font cache"); }
+    SpannableString named = CUIMotionIntrinsics.copyCachedText(original);
+    require(named.getSpans(0,1,CustomStyleSpan.class).length == 0, "named-family callback replaced");
+    require(original.getSpans(0,1,CustomStyleSpan.class)[0] == family, "original named-family span retained");
   }
 }

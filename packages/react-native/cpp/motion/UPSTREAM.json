@@ -198,7 +198,7 @@
       "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt",
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt",
       "sha256": "eb7944b1a97a2325ec37d4656f8e415ca1feb2900e651208d6c600b5c1e7280c",
-      "adaptation": "Exact-class cached span audit: immutable data/paint-argument-only measurement or draw-only metadata. Copy TextPaint and drawable state; reject CustomStyleSpan named-family cache access and unknown callbacks. Native equivalence is not proved by source/SDK checks."
+      "adaptation": "Approved six-descriptor RN0.86.3 font snapshot reads original asset manager/raw constructor style/weight. Named spans use an owned metric span and request-owned actual pinned font manager; preserve span flags/order/features and null-family behavior. Native proof is separate."
     },
     {
       "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/TextInlineViewPlaceholderSpan.kt",
@@ -270,13 +270,13 @@
       "path": "ReactAndroid/src/main/java/com/facebook/react/common/assets/ReactFontManager.kt",
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/common/assets/ReactFontManager.kt",
       "sha256": "38abb17464b9e6b7a214a002d6e144e6fed391cdb0134773a5abf336aa21efaf",
-      "adaptation": "Named-family lookup mutates ordinary shared maps/SparseArray; reject until isolated actual registry/font semantics are implemented. No unsafe shared-cache fallback."
+      "adaptation": "Read only the approved fontCache/customTypefaceCache/AssetFontFamily.typefaceSparseArray descriptors on the UI thread. Copy immutable registration handles, reject an observed capture race, seed only a request-owned pinned manager and keep lookup/cache-miss order with the layout engine. Never populate the original manager."
     },
     {
       "path": "ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt",
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/ReactTypefaceUtils.kt",
       "sha256": "a48f82ec8c8cc72233e3d8720934ffc04350876293b10770f9c02fc9861da8aa",
-      "adaptation": "Null-family CustomStyleSpan uses immutable system Typeface conversion; named-family path reaches the shared manager and remains unavailable."
+      "adaptation": "Null-family spans retain source immutable Typeface conversion. Named-family replacements pass exact original privateStyle/privateWeight to the request-owned actual manager; public getters lose UNSET weight information."
     },
     {
       "path": "ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/LayoutMetricsConversions.kt",
@@ -808,7 +808,7 @@
   "androidAuthoredFiles": [
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionIntrinsics.java",
-      "sha256": "f5001f1ae13a69479b377618b2326f33f3b5c25adb00259751147e0f3cfa405d"
+      "sha256": "2038b51d9345491690645e2780408e5555fd48ce78ba2b5af72ab2c625e53019"
     },
     {
       "file": "android/src/main/jni/MotionIntrinsicsJNI.cpp",
@@ -824,7 +824,7 @@
     },
     {
       "file": "android/src/main/consumer-rules.pro",
-      "sha256": "43689d8f625ac2b1e71d39c9637c26ce5b941eb0cd05c9e9149dc2efbea10595"
+      "sha256": "6ce8ffc472dd1292431c63cbab62ce199eeb3516bde28d67b8a62c14495f0bae"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
@@ -842,6 +842,10 @@
     {
       "file": "android/build.gradle",
       "sha256": "48a0e840e33b981e3f21500b750e6b02d7cce114ddef9109d9e65eda788f5249"
+    },
+    {
+      "file": "android/src/main/java/com/codonui/input/CUIMotionFontSnapshot.java",
+      "sha256": "b4c7c194b2724891219fee04d2de75c6952d292cbfdc3e71f588d7b43d77627d"
     }
   ],
   "cachedSpanPolicy": {
