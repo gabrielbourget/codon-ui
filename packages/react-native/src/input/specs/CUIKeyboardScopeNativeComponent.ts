@@ -61,6 +61,41 @@ export type NativeFloatingObservation = Readonly<{
   revision: Double
 }>
 type NativeFloatingTarget = Readonly<{ id: string; targetTag: Int32; descriptionTag: Int32; descriptionLabel: string }>
+type NativeKeyObservation = Readonly<{ id: string; targetTag: Int32 }>
+export type NativeObservedKeyData = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  observationRevision: Double
+  eventId: Double
+  observerIds: string[]
+  target: Int32
+  focusedTarget: Int32
+  key: string
+  code: string
+  nativeCode: Int32
+  legacyKeyCode: Int32
+  location: Int32
+  repeat: boolean
+  cancelled: boolean
+  isComposing: boolean
+  shiftKey: boolean
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  capsLock: boolean
+  nativeModifierData: string
+  defaultCaptured: boolean
+  timestamp: Double
+}>
+type NativeObservationStatus = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  observationRevision: Double
+  ready: boolean
+  windowActive: boolean
+}>
 
 export interface NativeProps extends ViewProps {
   ownerId: string
@@ -70,6 +105,10 @@ export interface NativeProps extends ViewProps {
   acceptedEpoch?: Double
   policyRevision?: Double
   floatingTargets?: ReadonlyArray<NativeFloatingTarget>
+  observations?: ReadonlyArray<NativeKeyObservation>
+  observationRevision?: Double
+  onNativeObservedKey?: DirectEventHandler<NativeObservedKeyData>
+  onNativeObservationStatus?: DirectEventHandler<NativeObservationStatus>
   onNativeFloatingObservation?: DirectEventHandler<NativeFloatingObservation>
   onNativeScopedKey?: DirectEventHandler<NativeScopedKeyData>
   onNativeInputModality?: DirectEventHandler<NativeInputModalityData>

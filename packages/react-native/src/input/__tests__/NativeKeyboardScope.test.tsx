@@ -2,6 +2,7 @@ import { act, render, screen } from "@testing-library/react-native"
 import { useLayoutEffect } from "react"
 
 import { NativeFloatingLayerHost, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
+import { useNativeKeyboardObservation } from "../NativeKeyboardScope"
 
 type THost = ReturnType<typeof useNativeFloatingHost>
 type TLease = ReturnType<THost["layers"]["register"]>
@@ -196,4 +197,69 @@ it("rejects retired native windows and retained callbacks after unmount", async 
   await f.result.unmount()
   await act(() => callback(fresh))
   expect(f.dismiss).not.toHaveBeenCalled()
+})
+
+it("keeps passive delivery independent of consuming policy revisions and retains the original event", async () => {
+  const observed = jest.fn()
+  const Observer = () => {
+    useNativeKeyboardObservation({ isEnabled: true, lifetimeKey: "live", canAct: () => true, onKeyDown: observed })
+    return null
+  }
+  let host: THost | undefined
+  await render(
+    <NativeFloatingLayerHost testID="host">
+      <Observer />
+      <Probe
+        observe={(next) => {
+          host = next
+        }}
+      />
+    </NativeFloatingLayerHost>,
+  )
+  await acknowledge()
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await act(() => {
+      const props = root().props
+      props.onNativeObservationStatus({
+        nativeEvent: {
+          ownerId: props.ownerId,
+          windowId: props.acceptedWindowId,
+          epoch: props.acceptedEpoch,
+          observationRevision: props.observationRevision,
+          ready: true,
+          windowActive: true,
+        },
+      })
+    })
+  }
+  const before = root().props.observationRevision
+  await act(() => {
+    host!.layers.register("new-consuming-policy", {
+      parent: null,
+      isOpen: true,
+      isModal: false,
+      isKeyboardDismissDisabled: false,
+      onDismiss: jest.fn(),
+    })
+  })
+  const props = root().props
+  expect(props.observationRevision).toBe(before)
+  const event = {
+    nativeEvent: {
+      ownerId: props.ownerId,
+      windowId: props.acceptedWindowId,
+      epoch: props.acceptedEpoch,
+      observationRevision: props.observationRevision,
+      eventId: 1,
+      observerIds: props.observations.map(({ id }: { id: string }) => id),
+      cancelled: false,
+      code: "KeyE",
+      key: "q",
+      repeat: true,
+      defaultCaptured: false,
+    },
+  }
+  await act(() => props.onNativeObservedKey(event))
+  expect(observed).toHaveBeenCalledWith(event)
+  expect(observed.mock.calls[0][0]).toBe(event)
 })

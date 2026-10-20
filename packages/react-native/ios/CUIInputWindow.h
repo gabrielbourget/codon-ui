@@ -1,5 +1,11 @@
 #import <UIKit/UIKit.h>
 
+@protocol CUIKeyboardObservationScope
+- (BOOL)hasKeyboardObservations;
+- (BOOL)capturesObservedPress:(UIPress *)press;
+- (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured;
+@end
+
 NSString *CUIInputWindowIdentity(UIWindow *window);
 NSString *CUIInputWindowModality(UIWindow *window);
 void CUIRecordWindowModality(UIWindow *window, NSString *modality);
@@ -12,3 +18,4 @@ void CUIRegisterInputScope(UIWindow *window, UIView *scope);
 void CUIUnregisterInputScope(UIWindow *window, UIView *scope);
 NSArray<UIView *> *CUIInputScopes(UIWindow *window);
 NSInteger CUINextInputPolicyOrder(UIWindow *window);
+void CUIRefreshKeyboardObservation(UIWindow *window);

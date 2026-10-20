@@ -1,8 +1,8 @@
 import { useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
-import { Animated, View, type PointerEvent } from "react-native"
+import { Animated, findNodeHandle, View, type PointerEvent } from "react-native"
 
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusViewRef } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
@@ -13,7 +13,8 @@ import { Text } from "../Text/Text"
 
 import { NativeToasterFocusContext } from "./focus"
 import { createNativeToastGesture } from "./gesture"
-import { computeToastDateTimeString, isNativeToastHotkey, resolveToastLabels } from "./model"
+import { matchesNativeToastObservedHotkey } from "./keyboard"
+import { computeToastDateTimeString, resolveToastLabels } from "./model"
 import { useNativeToastMotion } from "./motion"
 import { NativeToastIcon } from "./NativeToastIcon"
 import { getNativeToastStyles } from "./styles"
@@ -27,7 +28,7 @@ const buttonSlot = (props?: Partial<TNativeButtonProps>, customStyles?: TNativeB
 })
 
 export const Toast = (props: TNativeToastProps) => {
-  const { toast, index, maxVisibleToasts, onHeight, dismissalHotkey = ["Escape"] } = props
+  const { toast, index, maxVisibleToasts, onHeight } = props
   const {
     titleText = "Placeholder Title Text",
     bodyText = "Placeholder body text",
@@ -46,12 +47,14 @@ export const Toast = (props: TNativeToastProps) => {
   const visible = index < maxVisibleToasts
   const keyScope = useNativeKeyScope()
   const focus = useContext(NativeToasterFocusContext)
+  const [rootTag, setRootTag] = useState<number | null>(null)
   const current = useRef({ scope, windowActive, keyScope, lifecycle, visible, dismissable, props })
   useInsertionEffect(() => {
     current.current = { scope, windowActive, keyScope, lifecycle, visible, dismissable, props }
   })
   const setFocusRef = useCallback(
     (target: TNativeFocusViewRef | null) => {
+      setRootTag(target ? findNodeHandle(target) : null)
       if (target) return focus?.register(target, () => current.current.dismissable)
     },
     [focus],
@@ -69,6 +72,16 @@ export const Toast = (props: TNativeToastProps) => {
     )
   }
   const [naturalHeight, setNaturalHeight] = useState(0)
+  useNativeKeyboardObservation({
+    isEnabled: visible && !lifecycle.removed && rootTag !== null,
+    targetTag: rootTag ?? 0,
+    lifetimeKey: `${typeof toast.id}:${toast.id}:${props.position}`,
+    canAct,
+    onKeyDown: (event) => {
+      if (matchesNativeToastObservedHotkey(event.nativeEvent, current.current.props.dismissalHotkey ?? ["Escape"]))
+        current.current.lifecycle.retire("programmatic")
+    },
+  })
   const [dragging, setDragging] = useState(false)
   const [swiped, setSwiped] = useState(false)
   const [dragAmount] = useState(() => new Animated.Value(0))
@@ -130,11 +143,6 @@ export const Toast = (props: TNativeToastProps) => {
         accessibilityElementsHidden={!visible}
         importantForAccessibility={visible ? "auto" : "no-hide-descendants"}
         pointerEvents={visible && !lifecycle.removed ? "auto" : "none"}
-        onKeyDown={(event) => {
-          const data = event.nativeEvent
-          if (canAct() && visible && !data.repeat && !data.cancelled && isNativeToastHotkey(data, dismissalHotkey))
-            lifecycle.retire("programmatic")
-        }}
         onPointerDown={gesture.down}
         onPointerMove={gesture.move}
         onPointerUp={gesture.up}

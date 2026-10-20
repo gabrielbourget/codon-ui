@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import * as RN from "react-native"
 
-import { NativeThemeProvider } from "../../.."
+import { NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
 import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
 import { NativeContentContext } from "../../NativeContentContext"
 import { Toast } from "../Toast"
@@ -24,9 +24,11 @@ const props = (extra: Partial<TNativeToastProps> = {}): TNativeToastProps => ({
 })
 const node = (value: TNativeToastProps, enabled = true) => (
   <NativeThemeProvider>
-    <NativeFloatingScopeContext.Provider value={{ id: null, canAct: () => enabled }}>
-      <Toast {...value} />
-    </NativeFloatingScopeContext.Provider>
+    <NativeFloatingLayerHost>
+      <NativeFloatingScopeContext.Provider value={{ id: null, canAct: () => enabled }}>
+        <Toast {...value} />
+      </NativeFloatingScopeContext.Provider>
+    </NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
 const pointer = (y: number, nativeEvent = { pointerId: 1, pageX: 0, pageY: y, pointerType: "touch" }) => ({
@@ -134,7 +136,9 @@ it("CAP.toast.003/.017/.018 owns the surface foreground and preserves root/slot 
   const { rerender } = await render(
     <NativeThemeProvider>
       <NativeContentContext.Provider value={{ foregroundColor: "pink", isButton: true }}>
-        <Toast {...value} />
+        <NativeFloatingLayerHost>
+          <Toast {...value} />
+        </NativeFloatingLayerHost>
       </NativeContentContext.Provider>
     </NativeThemeProvider>,
   )
@@ -148,14 +152,18 @@ it("CAP.toast.003 owns existing light/dark surface roles across provider updates
   const value = props({ toast: { id: 0, duration: "persistent", customBodyTextProps: { testID: "body" } } })
   const { rerender } = await render(
     <NativeThemeProvider>
-      <Toast {...value} />
+      <NativeFloatingLayerHost>
+        <Toast {...value} />
+      </NativeFloatingLayerHost>
     </NativeThemeProvider>,
   )
   expect(row()).toHaveStyle({ backgroundColor: "#ffffff" })
   expect(row("body")).toHaveStyle({ color: "#171717" })
   await rerender(
     <NativeThemeProvider mode="dark">
-      <Toast {...value} />
+      <NativeFloatingLayerHost>
+        <Toast {...value} />
+      </NativeFloatingLayerHost>
     </NativeThemeProvider>,
   )
   expect(row()).toHaveStyle({ backgroundColor: "#171717" })

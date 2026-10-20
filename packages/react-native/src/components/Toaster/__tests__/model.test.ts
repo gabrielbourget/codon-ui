@@ -1,10 +1,8 @@
-import { nativeKeyToken } from "../../../input/keyScope"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import {
   applyToastPublication,
   computeToastDateTimeString,
   getNativeToastStacks,
-  nativeToastHotkey,
   resolveToastDuration,
   resolveToastLabels,
 } from "../model"
@@ -112,15 +110,6 @@ it("CAP.toaster.004/.008/.009/.013 derives independently positioned measured off
   expect(bottom.toasts.map(({ id }) => id)).toEqual(["bottom"])
   expect(getNativeToastStacks(toasts, heights, "top-right", 0, 0)[0].bridges).toEqual([])
   expect(getNativeToastStacks(toasts, heights, "top-right", 0, 0)[0].stackHeight).toBe(0)
-})
-it("CAP.toaster.006 maps physical key tokens and mandatory modifiers while retaining extra modifiers", () => {
-  const tokens = nativeToastHotkey(["altKey", "KeyE"])
-  expect(tokens).toContain("0100:e")
-  expect(tokens).toContain("1101:e")
-  expect(tokens).not.toContain("0000:e")
-  expect(nativeToastHotkey(["Escape"])).toHaveLength(16)
-  expect(nativeToastHotkey([])).toEqual([])
-  expect(nativeKeyToken({ key: "e", shiftKey: false, altKey: true, ctrlKey: false, metaKey: false })).toBe("0100:e")
 })
 it("NATIVE.toast.001 formats the canonical timestamp without a new date dependency", () => {
   expect(computeToastDateTimeString(new Date(2026, 0, 2, 3, 4, 5))).toBe("January 2, 2026 | 03:04:05")

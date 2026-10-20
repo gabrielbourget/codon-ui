@@ -11,6 +11,7 @@ import android.view.inputmethod.BaseInputConnection;
 import android.widget.EditText;
 import androidx.core.view.ViewCompat;
 import com.facebook.react.bridge.Arguments;
+import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIManagerHelper;
@@ -24,6 +25,11 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup {
+  static final class Observation {
+    final String id;
+    final int targetTag;
+    Observation(String id, int targetTag) { this.id = id; this.targetTag = targetTag; }
+  }
   static final class Policy {
     final String id;
     final Set<String> tokens;
@@ -64,6 +70,8 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   private double windowEpoch;
   private double acceptedEpoch = -1;
   private double policyRevision;
+  private double observationRevision;
+  private List<Observation> observations = new ArrayList<>();
   private String acceptedWindowId = "";
   private long policyOrder;
   private View boundRoot;
@@ -96,6 +104,8 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   void setAcceptedWindowId(String next) { if (next == null) next = ""; if (!acceptedWindowId.equals(next)) retireHeld(); acceptedWindowId = next; }
   void setAcceptedEpoch(double next) { if (acceptedEpoch != next) retireHeld(); acceptedEpoch = next; }
   void setPolicyRevision(double next) { if (policyRevision != next) retireHeld(); policyRevision = next; }
+  void setObservations(List<Observation> next) { observations = next; }
+  void setObservationRevision(double next) { observationRevision = next; }
   private boolean windowActive() { return isAttachedToWindow() && hasWindowFocus() && getWindowVisibility() == View.VISIBLE; }
   void writeActivationSession(WritableMap data) {
     data.putString("scopeOwnerId", ownerId);
@@ -107,6 +117,9 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     floating.update(floatingTargets, captureReady());
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
     data.putDouble("epoch", windowEpoch); data.putDouble("policyRevision", policyRevision); data.putBoolean("ready", captureReady()); data.putBoolean("windowActive", windowActive()); emit("topNativeScopeStatus", data);
+    WritableMap observed = baseData(); observed.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
+    observed.putDouble("epoch", windowEpoch); observed.putDouble("observationRevision", observationRevision);
+    observed.putBoolean("ready", captureReady()); observed.putBoolean("windowActive", windowActive()); emit("topNativeObservationStatus", observed);
   }
 
   private Policy localPolicyFor(KeyEvent event, View focused) {
@@ -138,7 +151,45 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
     if (down) recordModality("keyboard", event.getEventTime());
-    return dispatchCapturedKey(event) || super.dispatchKeyEvent(event);
+    boolean outer = CUIInputWindow.beginKey(this);
+    try {
+      if (outer && down) {
+        View focused = getRootView().findFocus();
+        List<CUIKeyboardScope> scopes = CUIInputWindow.scopes(this);
+        boolean captured = focused instanceof CUIFocusView && ((CUIFocusView) focused).capturesObservedKey(event);
+        for (CUIKeyboardScope candidate : scopes) captured |= candidate.held.get(event.getKeyCode()) != null || candidate.localPolicyFor(event, focused) != null;
+        long eventId = CUIInputWindow.nextObservedEvent(this);
+        for (CUIKeyboardScope candidate : scopes) candidate.observeKey(event, focused, eventId, captured);
+      }
+      return dispatchCapturedKey(event) || super.dispatchKeyEvent(event);
+    } finally { CUIInputWindow.endKey(this); }
+  }
+  private void observeKey(KeyEvent event, View focused, long eventId, boolean captured) {
+    if (!captureReady() || event.isCanceled() || observations.isEmpty()) return;
+    WritableArray ids = Arguments.createArray();
+    for (Observation observation : observations) {
+      boolean matches = observation.targetTag <= 0;
+      for (View view = focused; !matches && view != null;) {
+        matches = view.getId() == observation.targetTag;
+        ViewParent parent = view.getParent(); view = parent instanceof View ? (View) parent : null;
+      }
+      if (matches) ids.pushString(observation.id);
+    }
+    if (ids.size() == 0) return;
+    boolean composing = false;
+    if (focused instanceof EditText) { Editable text = ((EditText) focused).getText(); composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0; }
+    int code = event.getKeyCode();
+    WritableMap data = baseData();
+    data.putInt("target", focused != null && focused.getId() != View.NO_ID ? focused.getId() : getId());
+    data.putInt("focusedTarget", focused == null ? -1 : focused.getId());
+    data.putString("windowId", CUIInputWindow.identity(this)); data.putDouble("epoch", windowEpoch);
+    data.putDouble("observationRevision", observationRevision); data.putDouble("eventId", eventId); data.putArray("observerIds", ids);
+    data.putString("key", CUIInputWindow.keyName(event)); data.putString("code", CUIPhysicalKey.code(code)); data.putInt("nativeCode", code);
+    data.putInt("legacyKeyCode", "Unidentified".equals(CUIPhysicalKey.code(code)) ? 0 : code);
+    data.putInt("location", CUIPhysicalKey.location(code)); data.putBoolean("repeat", event.getRepeatCount() > 0); data.putBoolean("cancelled", false); data.putBoolean("isComposing", composing);
+    data.putBoolean("shiftKey", event.isShiftPressed()); data.putBoolean("altKey", event.isAltPressed()); data.putBoolean("ctrlKey", event.isCtrlPressed()); data.putBoolean("metaKey", event.isMetaPressed()); data.putBoolean("capsLock", event.isCapsLockOn());
+    data.putString("nativeModifierData", Integer.toUnsignedString(event.getMetaState())); data.putBoolean("defaultCaptured", captured); data.putDouble("timestamp", event.getEventTime());
+    emit("topNativeObservedKey", data);
   }
   private boolean dispatchCapturedKey(KeyEvent event) {
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return false;

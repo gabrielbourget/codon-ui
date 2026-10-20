@@ -5,6 +5,7 @@ import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { ToasterObserver } from "../stateManagement"
 
 import { ToasterInteractionFixture } from "./fixtures/ToasterInteractionFixture"
+import { acknowledgeToasterKeyboard, observeToasterKey } from "./keyboardPackets"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -111,22 +112,7 @@ it("SCENE.toaster.007 restores the maintained scene's actual button after pointe
   const request = jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
   await render(<ToasterInteractionFixture />)
   await press("Publish notification")
-  const scope = () => row("toaster-fixture-host").props
-  for (const ready of [false, true]) {
-    const host = scope()
-    await act(() =>
-      host.onNativeScopeStatus({
-        nativeEvent: {
-          ownerId: host.ownerId,
-          windowId: "scene-window",
-          epoch: 1,
-          policyRevision: host.policyRevision,
-          ready,
-          windowActive: true,
-        },
-      }),
-    )
-  }
+  await acknowledgeToasterKeyboard("scene-window", 1, "toaster-fixture-host")
   await press("Request return-target focus")
   const target = request.mock.calls.at(-1)![0]
   const notify = (id: string, target: RN.View, isFocused: boolean) =>
@@ -146,33 +132,7 @@ it("SCENE.toaster.007 restores the maintained scene's actual button after pointe
   expect(row("toaster-fixture-events")).toHaveTextContent(/focus:return-target/)
   await act(() => row("toaster").props.onTouchStartCapture({ nativeEvent: { target: 17 } }))
   await notify("toaster-fixture-return", target, false)
-  const host = scope()
-  const policy = host.policies.find((entry: { tokens: string[] }) => entry.tokens.includes("0100:e"))
-  await act(() =>
-    host.onNativeScopedKey({
-      nativeEvent: {
-        kind: "keyboard",
-        ownerId: host.ownerId,
-        policyId: policy.id,
-        windowId: "scene-window",
-        epoch: 1,
-        policyRevision: host.policyRevision,
-        target: 17,
-        focusedTarget: 0,
-        key: "e",
-        phase: "down",
-        repeat: false,
-        cancelled: false,
-        shiftKey: false,
-        altKey: true,
-        ctrlKey: false,
-        metaKey: false,
-        nativeDefaultHandled: true,
-        nativeCode: 33,
-        timestamp: 101,
-      },
-    }),
-  )
+  await observeToasterKey({ focusedTarget: 0 }, 0, "toaster-fixture-host")
   const stack = request.mock.calls.at(-1)![0]
   await notify("toaster-stack-top-right", stack, true)
   await fireEvent(row("toaster"), "focus", { nativeEvent: { target: RN.findNodeHandle(stack) } })

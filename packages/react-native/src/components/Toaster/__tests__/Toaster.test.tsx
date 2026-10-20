@@ -8,6 +8,8 @@ import { toast, ToasterObserver } from "../stateManagement"
 import { Toaster } from "../Toaster"
 import { AVAILABLE_TOAST_POSITIONS, type TNativeExternalToast, type TNativeToasterProps } from "../types"
 
+import { acknowledgeToasterKeyboard, observeToasterKey } from "./keyboardPackets"
+
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
@@ -161,74 +163,38 @@ it("CAP.toaster.005 native focused dismissal uses current key configuration with
   await render(node({ dismissalHotkey: ["KeyQ"] }))
   const onDismiss = jest.fn()
   await publish({ id: 0, onDismiss })
-  const target = row("toast-number-0").props
-  await act(() =>
-    target.onNativeKey({
-      nativeEvent: {
-        kind: "keyboard",
-        ownerId: target.ownerId,
-        key: "q",
-        phase: "down",
-        repeat: false,
-        cancelled: false,
-      },
-    }),
-  )
+  await acknowledgeToasterKeyboard()
+  const observer = row("host").props.observations.find((entry: { targetTag: number }) => entry.targetTag > 0)
+  expect(observer).toBeDefined()
+  await observeToasterKey({ key: "a", code: "KeyQ", altKey: false, repeat: true }, observer.targetTag)
   expect(row("toast-number-0").props.pointerEvents).toBe("none")
   await advance(250)
   expect(screen.queryByTestId("toaster")).toBeNull()
   expect(onDismiss).not.toHaveBeenCalled()
 })
-it("CAP.toaster.006 registers the actual same-window expand policy and focuses a native stack on accepted input", async () => {
+it("CAP.toaster.006 observes physical expand keys and repeats without requesting native capture", async () => {
   await render(node())
   await publish({ id: 0 }, { id: "" })
-  for (const ready of [false, true]) {
-    const host = row("host").props
-    await act(() =>
-      host.onNativeScopeStatus({
-        nativeEvent: {
-          ownerId: host.ownerId,
-          windowId: "toaster-window",
-          epoch: 1,
-          policyRevision: host.policyRevision,
-          ready,
-          windowActive: true,
-        },
-      }),
-    )
-  }
-  const host = row("host").props
-  const policy = host.policies.find((entry: { tokens: string[] }) => entry.tokens.includes("0100:e"))
-  expect(policy).toBeDefined()
-  await act(() =>
-    host.onNativeScopedKey({
-      nativeEvent: {
-        kind: "keyboard",
-        ownerId: host.ownerId,
-        policyId: policy.id,
-        windowId: "toaster-window",
-        epoch: 1,
-        policyRevision: host.policyRevision,
-        target: 17,
-        focusedTarget: 17,
-        key: "e",
-        phase: "down",
-        repeat: false,
-        cancelled: false,
-        shiftKey: false,
-        altKey: true,
-        ctrlKey: false,
-        metaKey: false,
-        observedAt: 20,
-        nativeCode: 33,
-        nativeDefaultHandled: true,
-        timestamp: 20,
-      },
-    }),
-  )
+  await acknowledgeToasterKeyboard()
+  expect(row("host").props.policies.some((entry: { tokens: string[] }) => entry.tokens.includes("0100:e"))).toBe(false)
+  await observeToasterKey({ key: "e", code: "KeyQ" })
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await observeToasterKey()
   expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
   expect(RN.StyleSheet.flatten(row("toast-number-0").props.style).transform[1]).toEqual({ scale: 1 })
+  await observeToasterKey({ repeat: true })
+  expect(RN.StyleSheet.flatten(row("toast-number-0").props.style).transform[1]).toEqual({ scale: 0.95 })
 })
+it.each([{ expandToggleHotkey: [] }, { expandToggleHotkey: ["altKey"] }, { expandToggleHotkey: ["constructor"] }])(
+  "keeps the complete hotkey predicate live with an empty queue: %j",
+  async ({ expandToggleHotkey }) => {
+    await render(node({ expandToggleHotkey }))
+    await acknowledgeToasterKeyboard()
+    await observeToasterKey()
+    await publish({ id: 0 }, { id: "" })
+    expect(RN.StyleSheet.flatten(row("toast-number-0").props.style).transform[1]).toEqual({ scale: 0.95 })
+  },
+)
 it("NATIVE.toaster.004 unmount retires subscriptions and pending collapse before later publications", async () => {
   const { unmount } = await render(node())
   await publish({ id: 0 }, { id: "" })

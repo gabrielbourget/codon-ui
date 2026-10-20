@@ -56,6 +56,8 @@ Circular/Counter scene composes controlled circular progress and raw counters wi
 
 The Text/Button scene also includes a standalone CarouselCloseButton preview. Visibility and close-action count are caller-owned and independent of the Library action count; disabled/pending and custom-style controls exercise the actual wrapper. Restore preview reopens it without resetting the count. Theme/window/fixture changes retain state; global reset remounts defaults. This partial-family fixture proves source composition only; complete Carousel construction and installed acceptance remain open.
 
+The Toaster scene uses public Toaster/toast exports to publish and update numeric/string/empty IDs, cycle all six positions and visible limits, and exercise zero duration/gap, importance, localized labels, style slots, mount/retirement and native focus return. Its raw TextInput remains controlled by its owner without ref replacement or value/selection writes. Normal scene navigation and reset include the family. Injected callback tests do not certify installed observation, native default delivery, editor retention, gestures or measured rendering.
+
 ## Adaptive Fixtures
 
 Use [Native Lab](/foundation/native-lab/) for host/tool requirements and actual build/reference capture. Source generation and JS export proof do not establish an installed app.

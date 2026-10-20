@@ -478,3 +478,9 @@ it("retains radio values through removal, themes, fixtures and rotation and rese
     await act(() => Dimensions.set(previous))
   }
 })
+
+it("opens the public Toaster scene through normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "Toaster scene" }))
+  expect(screen.getByTestId("toaster-fixture-state")).toHaveTextContent(/ID number:0.*Position top-right/)
+})

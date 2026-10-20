@@ -14,8 +14,20 @@ export const AVAILABLE_TOAST_POSITIONS = [
   "bottom-left",
 ] as const
 export type TNativeToastPosition = (typeof AVAILABLE_TOAST_POSITIONS)[number]
+export const TOAST_POSITION__TOP_LEFT = AVAILABLE_TOAST_POSITIONS[0]
+export const TOAST_POSITION__TOP_CENTER = AVAILABLE_TOAST_POSITIONS[1]
+export const TOAST_POSITION__TOP_RIGHT = AVAILABLE_TOAST_POSITIONS[2]
+export const TOAST_POSITION__BOTTOM_RIGHT = AVAILABLE_TOAST_POSITIONS[3]
+export const TOAST_POSITION__BOTTOM_CENTER = AVAILABLE_TOAST_POSITIONS[4]
+export const TOAST_POSITION__BOTTOM_LEFT = AVAILABLE_TOAST_POSITIONS[5]
 export const AVAILABLE_TOAST_TYPES = ["info", "warning", "error", "danger", "delete", "success"] as const
 export type TNativeToastType = (typeof AVAILABLE_TOAST_TYPES)[number]
+export const TOAST_TYPE__INFO = AVAILABLE_TOAST_TYPES[0]
+export const TOAST_TYPE__WARNING = AVAILABLE_TOAST_TYPES[1]
+export const TOAST_TYPE__ERROR = AVAILABLE_TOAST_TYPES[2]
+export const TOAST_TYPE__DANGER = AVAILABLE_TOAST_TYPES[3]
+export const TOAST_TYPE__DELETE = AVAILABLE_TOAST_TYPES[4]
+export const TOAST_TYPE__SUCCESS = AVAILABLE_TOAST_TYPES[5]
 export type TNativeToastID = number | string
 export const DEFAULT_TOAST_DURATION = 4000
 export const DEFAULT_TOAST_WIDTH = 325
@@ -33,6 +45,7 @@ export type TNativeToastLabels = {
   confirmActionButton: string
   confirmActionButtonAriaLabel: string
 }
+export type TNativePartialToastLabels = Partial<TNativeToastLabels>
 export type TNativeToast = {
   id: TNativeToastID
   height?: ViewStyle["height"]
