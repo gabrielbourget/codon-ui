@@ -104,3 +104,21 @@ it("keeps all-selection and synchronous focus state with current callbacks", asy
   expect([...current.mock.calls[0][0]]).toEqual(["b"])
   expect(result.current.selectedKeys).toBe("all")
 })
+
+it("repeats controlled all-selection requests after owner veto in the native React environment", async () => {
+  const owner = new Set(["a"]),
+    request = jest.fn()
+  const { result } = await renderHook(() =>
+    useListState({
+      collection: collection(),
+      selectionMode: "multiple",
+      selectedKeys: owner,
+      onSelectionChange: request,
+    }),
+  )
+  await act(() => result.current.selectionManager.selectAll())
+  await act(() => result.current.selectionManager.selectAll())
+  expect(request.mock.calls.map(([keys]) => keys)).toEqual(["all", "all"])
+  expect(result.current.selectionManager.rawSelection).not.toBe("all")
+  expect([...owner]).toEqual(["a"])
+})
