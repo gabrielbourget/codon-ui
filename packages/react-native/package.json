@@ -66,7 +66,8 @@
     "react-dom": "19.2.3"
   },
   "dependencies": {
-    "@internationalized/number": "3.6.6"
+    "@internationalized/number": "3.6.6",
+    "react-stately": "3.46.0"
   },
   "codegenConfig": {
     "name": "CodonNativeInputSpec",
