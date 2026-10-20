@@ -4,6 +4,7 @@ import type { StyleProp, TextStyle, ViewStyle } from "react-native"
 
 import type { NativeFocusHost } from "../../input/NativeFocusView"
 import type { NativeMotionMeasurementState } from "../measurement"
+import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 
 export const NATIVE_MOTION_TRANSFORM_ORDER = [
   "transformPerspective",
@@ -67,6 +68,7 @@ export type TNativeMotionVisualBindings = {
   readonly [Key in keyof TNativeMotionVisualValues]?: TNativeMotionValueBinding<TNativeMotionVisualValues[Key]>
 }
 export type TNativeMotionVisualHostProps = Omit<ComponentProps<typeof NativeFocusHost>, "style"> & {
+  motionOwner?: NativeMotionOwner
   measurement?: NativeMotionMeasurementState
   computedStyles?: StyleProp<TextStyle>
   customStyles?: StyleProp<TextStyle>

@@ -90,6 +90,8 @@ export interface TNativeMotionAnimationOwner {
   notify: (event: "AnimationStart" | "AnimationComplete", definition: TNativeMotionDefinition) => void
   sortNodePosition: (other: TNativeMotionAnimationOwner) => number
   captureAnimationLease: () => () => boolean
+  awaitAnimationReady?: () => (() => boolean) | Promise<() => boolean>
+  setReducedMotionPolicy?: (key: string, override: boolean | undefined) => void
   animateValue: (
     key: string,
     value: MotionValue<unknown>,

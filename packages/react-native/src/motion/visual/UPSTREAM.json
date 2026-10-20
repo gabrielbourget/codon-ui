@@ -1,5 +1,5 @@
 {
-  "scope": "Native visual adapters are authored for the approved motion foundation. These immutable pinned source inputs define transform/origin and binding behavior; the VisualElement subclass exists only in the non-shipping oracle.",
+  "scope": "Private actual-host visual/value adapters plus optional renderer-owner lease guards. Source contracts do not establish native window/order/paint/full Card acceptance.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -22,5 +22,19 @@
       "sha256": "e88474ad37ee3a64d5ffe94f51697e506afde4818973cbf2cb3c7c7497771208"
     }
   ],
-  "nativeBoundary": "Actual NativeFocusHost/React19 refs and source-owned MotionValue subscriptions; local runtime imports only. No upstream renderer or private package import in production. Opaque native color interpolation and complete Card remain required."
+  "nativeBoundary": "Actual NativeFocusHost/React19 refs and source-owned MotionValue subscriptions; local runtime imports only. No upstream renderer or private package import in production. Opaque native color interpolation and complete Card remain required.",
+  "ownerAdapterInputs": [
+    {
+      "file": "NativeMotionVisualHost.tsx",
+      "sha256": "341d3c698144174cad1cc141f6d7bb28a7eb352807ccf2690518e5d2ec46f179"
+    },
+    {
+      "file": "state.ts",
+      "sha256": "116026aace77831cc0142fe607ccf7e04d442f4debc5e23328e7ab59ea941c17"
+    },
+    {
+      "file": "types.ts",
+      "sha256": "fca87c095a08d3a48d3b7667cabd1ba501ee11d9951770616dd934664f387ef2"
+    }
+  ]
 }

@@ -1,0 +1,81 @@
+{
+  "scope": "Private renderer-owner composition using actual NativeFocusHost refs and the source-owned value backend. Initial/window readiness, scoped config, bindings and lease retirement are implemented; this is not a complete/admitted Card renderer or native fidelity proof.",
+  "inputs": [
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/VisualElement.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "e88474ad37ee3a64d5ffe94f51697e506afde4818973cbf2cb3c7c7497771208"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/utils/use-visual-state.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "149edc2e5cc6f5a8603493743a21cbeb2a355bbca8d106b5fb46cdddeeb3ba9a"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/utils/use-visual-element.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "06aae61e89bb668292ab96a55632700245d9d15be35a6f34816a54dc26164bc3"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/context/MotionContext/utils.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "15986915c93ea9393c6c41de952f36b176cc7544c41a197de3212b1c7df341a1"
+    }
+  ],
+  "reactNativeInputs": [
+    {
+      "path": "Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricPublicInstance.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactFabricPublicInstance.js",
+      "sha256": "703b4e2426855e5689b0e004a1ab1f4f49ea5045161883d67c33df82381872a0"
+    },
+    {
+      "path": "src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/src/private/webapis/dom/nodes/ReadOnlyNode.js",
+      "sha256": "8ac69647304c4e91eb363384b015f309fe0ab4f38a929dd14e782a7a04416feb"
+    },
+    {
+      "path": "src/private/webapis/dom/nodes/specs/NativeDOM.js",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/src/private/webapis/dom/nodes/specs/NativeDOM.js",
+      "sha256": "c5353f80daba22e3a9acb45f61b6fd2a45ce66c618dc31399b7c298468611341"
+    },
+    {
+      "path": "types_generated/src/private/types/HostInstance.d.ts",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/types_generated/src/private/types/HostInstance.d.ts",
+      "sha256": "30bb13948d825671031fdc1d9fa98ed605c9e21584686e160ece7acd4b404181"
+    }
+  ],
+  "licenses": ["../kernel/LICENSE.motion-dom.md", "../animation/LICENSE.framer-motion.md"],
+  "authoredFiles": [
+    {
+      "file": "NativeMotionOwner.ts",
+      "sha256": "abe112de6590fde38388d3d88042dfb543ae27ab67f57b2f65fec439bd3f6b6d"
+    },
+    {
+      "file": "NativeMotionOwnerHost.tsx",
+      "sha256": "3c2a8e567efb728113722ffe0f68909e0ba7b43e2266a20dfd676a5849e3c9ea"
+    }
+  ],
+  "nativeAdaptations": [
+    "Actual owned ref, current scope eligibility and separate attachment/animation leases; no view/editor method replacement",
+    "Existing scope acknowledgment can defer a first request under its fixed5000ms deadline; wire-policy metadata does not reset the lease",
+    "Root scoped config reaches the real value backend, with positional live reduction and scoped skip completing only matching owned animations",
+    "Native public compareDocumentPosition drives ordering; absent/disconnected native refs reject without JSX-order fallback",
+    "Native initial-read/isolated geometry/color services remain required; newly hydrated unresolved bindings stay out of visual props and retire on cancellation",
+    "Insertion-phase prop metadata updates do not publish stores; layout binding updates and ordinary passive animation startup follow committed React lifetimes",
+    "Caller values retain normal ownership; explicit initial requests/replays remain requests, and detach does not destroy values or stop unrelated externally started animations"
+  ],
+  "remaining": [
+    "Actual native readiness/window/epoch/source correspondence, cross-window/portaled hierarchy and native document-order proof",
+    "Complete native initial-value/isolated geometry evaluator and value probe/velocity integration",
+    "Named-font/shared-cache/custom callback intrinsic fidelity",
+    "Interaction/drag/viewport/layout/projection/presence/public Card/types/scene/consumer/products/adaptive/performance/closure acceptance"
+  ]
+}

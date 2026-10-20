@@ -24,10 +24,32 @@ const noMeasurementSubscription = () => () => {}
 
 export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMotionVisualHostProps>(
   (
-    { computedStyles, customStyles, style, bindings, transformTemplate, onUpdate, children, measurement, ...props },
+    {
+      computedStyles,
+      customStyles,
+      style,
+      bindings,
+      transformTemplate,
+      onUpdate,
+      children,
+      measurement,
+      motionOwner,
+      ...props
+    },
     forwardedRef,
   ) => {
-    const [visual] = useState(() => new NativeMotionVisualState(bindings, onUpdate))
+    const committedOwner = useRef(motionOwner)
+    useInsertionEffect(() => {
+      committedOwner.current = motionOwner
+    }, [motionOwner])
+    const [visual] = useState(
+      () =>
+        new NativeMotionVisualState(
+          bindings,
+          onUpdate,
+          () => committedOwner.current?.captureVisualLease() ?? (() => true),
+        ),
+    )
     const values = useSyncExternalStore(visual.subscribe, visual.getSnapshot, visual.getSnapshot)
     const measured = useSyncExternalStore(
       measurement?.subscribe ?? noMeasurementSubscription,
@@ -71,16 +93,19 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
         if (!target) {
           actual.current = null
           visual.detach()
+          motionOwner?.detach()
           measurement?.detach()
           releaseCaller()
           return
         }
         actual.current = target
+        const retireOwner = motionOwner?.attach(target)
         const retire = visual.attach()
         const retireMeasurement = measurement?.attach(target)
         publishCaller(target)
         return () => {
           retire()
+          retireOwner?.()
           retireMeasurement?.()
           if (actual.current === target) {
             actual.current = null
@@ -88,7 +113,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           }
         }
       },
-      [visual, measurement, publishCaller, releaseCaller],
+      [visual, measurement, motionOwner, publishCaller, releaseCaller],
     )
     const resolved = resolveNativeMotionVisualStyle(
       computedStyles,

@@ -1,0 +1,166 @@
+{
+  "scope": "Supplemental actual-native scoped configuration proof. Source/DOM runtime tests close none of these cells or any original catalogue/profile/native obligations.",
+  "nativeActions": 0,
+  "rows": [
+    {
+      "id": "CARD.CONFIG.P01.android.01",
+      "case": "nested default/inheriting/replacing transition scopes drive actual native animation",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.02",
+      "case": "skip true/false changes remain local and preserve original controlled content",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.03",
+      "case": "actual native point conversion uses current configuration and original gesture ownership",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.04",
+      "case": "static value updates preserve actual view/editor/ref and mounted lifetime",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.05",
+      "case": "live system Reduce Motion updates and always/never/user policies",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.06",
+      "case": "initial preference query/event race and unavailable preference delivery",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.07",
+      "case": "provider/owner removal retires native listeners and queued animation work",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.android.08",
+      "case": "matching current packed graphs/app products and actual timing/frame fidelity",
+      "profile": "3.3.1",
+      "platform": "android",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.01",
+      "case": "nested default/inheriting/replacing transition scopes drive actual native animation",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.02",
+      "case": "skip true/false changes remain local and preserve original controlled content",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.03",
+      "case": "actual native point conversion uses current configuration and original gesture ownership",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.04",
+      "case": "static value updates preserve actual view/editor/ref and mounted lifetime",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.05",
+      "case": "live system Reduce Motion updates and always/never/user policies",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.06",
+      "case": "initial preference query/event race and unavailable preference delivery",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.07",
+      "case": "provider/owner removal retires native listeners and queued animation work",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    },
+    {
+      "id": "CARD.CONFIG.P01.ios.08",
+      "case": "matching current packed graphs/app products and actual timing/frame fidelity",
+      "profile": "3.3.1",
+      "platform": "ios",
+      "status": "OPEN",
+      "product": null,
+      "inspector": null,
+      "observations": null
+    }
+  ]
+}
