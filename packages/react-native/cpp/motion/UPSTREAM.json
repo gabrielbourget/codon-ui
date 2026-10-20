@@ -893,7 +893,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "aa63c76d5d5b8948813e9d59b62c8db9876a245a1592f7ee1c93170c0a6a3404"
+      "sha256": "66ce9030a3afd29a62961e635f3ad3d2dd2cd38fba2440ba4b5a8e4b6ef93efd"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -941,15 +941,27 @@
     },
     {
       "file": "ios/CUIMotionDrawingGeometry.mm",
-      "sha256": "1cda485b0d76e99931d239cef98082a6315fe4b1079b65ef14bd3299f3c6aabc"
+      "sha256": "3c3cba9fc9c52ec86eb8b1e5910f9c7e6470fe8ed85991945c65950d37477251"
     },
     {
       "file": "ios/CUIMotionContinuousCorners.swift",
-      "sha256": "00077c9846e9aa5c1bde741adda422d34080700e82c13103607a066236cd3356"
+      "sha256": "9e2cbdbfab82a36faee3f4f93f5bb42ccbf9e7c0c8a5db1286a8a1a6e0072dc8"
     },
     {
       "file": "CodonNativeInput.podspec",
       "sha256": "cbfef0472dd05abacb2b9cfe246a633b4f839ec1c4e8b62edb84765a6d24493f"
+    },
+    {
+      "file": "ios/CUIMotionContinuousCorners.h",
+      "sha256": "ad70f51f1dad97e529ba7a70df5670447a359744ddb3f44da793a72f1ced0d52"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.h",
+      "sha256": "059a5bd255982f6c4fea3ca1e28e46fce0026070152ea4bf571256c0bfef980f"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.mm",
+      "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
     }
   ],
   "drawingSourceBoundary": {
@@ -962,7 +974,8 @@
     "motionProjectionBinding": true,
     "nativeAssertionsExecuted": false,
     "nativePixelsAccepted": false,
-    "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes"
+    "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes",
+    "nativeMaskFactory": "Private continuous/path mask factories retain exact drawing defaults and strict closed public-layer descriptors. Owned path commands are immutable and identity guarded; foreign/modified masks remain incomplete and unknown paths explicitly unavailable. Three unmounted iOS fixtures,24 mask assertions and byte-exact CPU shape/reference raster pass at0c37cb4; full observer/window/GPU/mixed/fidelity/performance/current consumer/profile/closure proof remains required."
   },
   "peerStateInputs": [
     {

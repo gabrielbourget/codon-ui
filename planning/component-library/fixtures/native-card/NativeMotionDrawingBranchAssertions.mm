@@ -1,7 +1,10 @@
 #import <UIKit/UIKit.h>
+#import "NativeMotionDrawingAssertionsEnabled.h"
+#import "../../../../packages/react-native/ios/CUIMotionContinuousCorners.h"
 #import <React/RCTBorderDrawing.h>
 #import "../../../../packages/react-native/ios/CUIMotionDrawingView.h"
 #import <react/renderer/components/view/ViewProps.h>
+#include <react/renderer/components/view/ViewComponentDescriptor.h>
 #import <react/utils/ContextContainer.h>
 #include <folly/dynamic.h>
 
@@ -10,9 +13,12 @@
 - (facebook::react::BorderMetrics)cuiUniformLayerBorderMetrics;
 - (void)shapeCuiLayerToMatchView:(CALayer *)layer borderMetrics:(facebook::react::BorderMetrics)metrics;
 - (UIView *)currentContainerView;
+- (void)invalidateLayer;
 @end
 @interface RCTViewComponentView (CUIPinnedDrawingBranchAssertions)
 - (void)shapeLayerToMatchView:(CALayer *)layer borderMetrics:(facebook::react::BorderMetrics)metrics;
+- (UIView *)currentContainerView;
+- (void)invalidateLayer;
 @end
 
 // Non-shipping, unmounted UIKit assertions. Compilation does not execute them,
@@ -20,10 +26,16 @@
 void CUIAssertPinnedDrawingBranches() {
   using namespace facebook::react;
   NSCAssert(NSThread.isMainThread, @"Run drawing assertions on the main thread");
-  ContextContainer container;
-  PropsParserContext context{1, container};
-  auto original = std::make_shared<const ViewProps>();
-  auto percent = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto container = std::make_shared<const ContextContainer>();
+  PropsParserContext context{1, *container};
+  ComponentDescriptorParameters parameters;
+  parameters.contextContainer = container;
+  ViewComponentDescriptor descriptor(parameters);
+  auto cloneProps = [&](const Props::Shared &previous, RawProps raw) {
+    return std::static_pointer_cast<const ViewProps>(descriptor.cloneProps(context, previous, std::move(raw)));
+  };
+  auto original = cloneProps(nullptr, RawProps{});
+  auto percent = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", "25%")("borderCurve", "continuous")
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   LayoutMetrics layout;
@@ -61,12 +73,13 @@ void CUIAssertPinnedDrawingBranches() {
   [owned setCuiProjectionRadii:@"{\"topLeft\":{\"x\":40,\"y\":8},\"topRight\":{\"x\":40,\"y\":8},\"bottomLeft\":{\"x\":40,\"y\":8},\"bottomRight\":{\"x\":40,\"y\":8}}"];
   [owned shapeCuiLayerToMatchView:ownedLayer borderMetrics:[owned cuiBorderMetrics]];
   const RCTCornerRadii elliptical{40, 8, 40, 8, 40, 8, 40, 8};
-  CGPathRef circular = RCTPathCreateWithRoundedRect(owned.bounds, RCTGetCornerInsets(elliptical, UIEdgeInsetsZero), nil, NO);
+  NSDictionary *nativeMask = [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:ownedLayer.mask];
   NSCAssert(ownedLayer.mask && ownedLayer.cornerRadius == 0 &&
-      !CGPathEqualToPath(((CAShapeLayer *)ownedLayer.mask).path, circular),
-      @"Unequal-axis correction of a source continuous CA layer must retain continuous geometry");
-  CGPathRelease(circular);
-  auto mixed = std::make_shared<const ViewProps>(context, *original, RawProps(
+      [nativeMask[@"kind"] isEqual:@"cui-owned-native-continuous"] &&
+      CGRectEqualToRect(ownedLayer.mask.frame, owned.bounds),
+      @"Unequal-axis correction must use the owned native continuous primitive at the original bounds");
+  CGPathRef circular;
+  auto mixed = cloneProps(original, RawProps(
       folly::dynamic::object("borderTopLeftRadius", 30)("borderTopRightRadius", 12)
           ("borderBottomLeftRadius", 5)("borderBottomRightRadius", 22)("borderCurve", "continuous")
           ("backgroundColor", static_cast<int64_t>(0xffe0e8f0))("outlineWidth", 2)));
@@ -87,25 +100,71 @@ void CUIAssertPinnedDrawingBranches() {
       @"Corrected axes cannot promote a source circular fallback into continuous overlap");
   CGPathRelease(circular);
   [owned finalizeUpdates:RNComponentViewUpdateMaskProps];
-  auto clipped = std::make_shared<const ViewProps>(context, *original, RawProps(
+  [source finalizeUpdates:RNComponentViewUpdateMaskProps];
+  auto clipped = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderCurve", "continuous")("overflow", "hidden")
           ("outlineWidth", 2)("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   [owned updateProps:clipped oldProps:mixed];
+  [source updateProps:clipped oldProps:mixed];
   [owned setCuiProjectionRadii:@"{\"topLeft\":{\"x\":40,\"y\":8},\"topRight\":{\"x\":40,\"y\":8},\"bottomLeft\":{\"x\":40,\"y\":8},\"bottomRight\":{\"x\":40,\"y\":8}}"];
   [owned finalizeUpdates:RNComponentViewUpdateMaskProps];
+  [source finalizeUpdates:RNComponentViewUpdateMaskProps];
   UIView *clipContainer = [owned currentContainerView];
+  UIView *sourceClipContainer = [source currentContainerView];
   circular = RCTPathCreateWithRoundedRect(owned.bounds, RCTGetCornerInsets(elliptical, UIEdgeInsetsZero), nil, NO);
-  NSCAssert(clipContainer != owned && [owned.layer.cornerCurve isEqualToString:kCACornerCurveContinuous] &&
-      [clipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] && clipContainer.layer.mask &&
+  const BOOL shapeMask = [clipContainer.layer.mask isKindOfClass:CAShapeLayer.class];
+  const BOOL matchingMaskPath = shapeMask && ((CAShapeLayer *)clipContainer.layer.mask).path &&
+      CGPathEqualToPath(((CAShapeLayer *)clipContainer.layer.mask).path, circular);
+  NSDictionary *clipFacts = @{
+    @"authoredClip": @(clipped->getClipsContentToBounds()),
+    @"ownedSeparateContainer": @(clipContainer != owned), @"sourceSeparateContainer": @(sourceClipContainer != source),
+    @"ownedRootCurve": owned.layer.cornerCurve ?: NSNull.null, @"sourceRootCurve": source.layer.cornerCurve ?: NSNull.null,
+    @"ownedContainerCurve": clipContainer.layer.cornerCurve ?: NSNull.null,
+    @"sourceContainerCurve": sourceClipContainer.layer.cornerCurve ?: NSNull.null,
+    @"ownedClips": @(clipContainer.clipsToBounds), @"sourceClips": @(sourceClipContainer.clipsToBounds),
+    @"ownedMaskClass": clipContainer.layer.mask ? NSStringFromClass(clipContainer.layer.mask.class) : NSNull.null,
+    @"ownedMaskPathMatches": @(matchingMaskPath), @"sourceClipRadius": @(sourceClipContainer.layer.cornerRadius),
+    @"ownedBounds": NSStringFromCGRect(owned.bounds), @"ownedClipBounds": NSStringFromCGRect(clipContainer.bounds)
+  };
+  NSCAssert(sourceClipContainer != source && sourceClipContainer.clipsToBounds &&
+      sourceClipContainer.layer.mask == nil && sourceClipContainer.layer.cornerRadius == 16,
+      @"Pinned scalar overflow clipping must establish the actual reference branch: %@", clipFacts);
+  NSString *sourceClipCurve = sourceClipContainer.layer.cornerCurve ?: kCACornerCurveCircular;
+  NSString *ownedClipCurve = clipContainer.layer.cornerCurve ?: kCACornerCurveCircular;
+  const BOOL sourceContinuousClip = [sourceClipCurve isEqualToString:kCACornerCurveContinuous];
+  const BOOL sourceCircularClip = [sourceClipCurve isEqualToString:kCACornerCurveCircular];
+  NSDictionary *clipPrimitive = clipContainer.layer.mask
+      ? [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:clipContainer.layer.mask] : nil;
+  const BOOL matchingContinuousClip = [clipPrimitive[@"kind"] isEqual:@"cui-owned-native-continuous"] &&
+      CGRectEqualToRect(clipContainer.layer.mask.bounds, CGRectMake(0, 0, 3, 10)) &&
+      CGRectEqualToRect(clipContainer.layer.mask.frame, owned.bounds) &&
+      CGAffineTransformEqualToTransform(clipContainer.layer.mask.affineTransform, CGAffineTransformMakeScale(40, 8)) &&
+      clipContainer.layer.mask.cornerRadius == 1 && clipContainer.layer.mask.contentsScale == owned.layer.contentsScale;
+  NSCAssert(clipContainer != owned && clipContainer.clipsToBounds &&
+      [owned.layer.cornerCurve isEqualToString:source.layer.cornerCurve] && [ownedClipCurve isEqualToString:sourceClipCurve] &&
+      ((sourceContinuousClip && matchingContinuousClip) || (sourceCircularClip && matchingMaskPath)),
+      @"Corrected overflow clipping must retain the actual pinned container curve and exact primitive: %@", clipFacts);
+
+  // Fixture-owned public layer state supplies an explicit circular control even
+  // when this UIKit runtime creates both normal containers with a continuous curve.
+  clipContainer.layer.cornerCurve = kCACornerCurveCircular;
+  sourceClipContainer.layer.cornerCurve = kCACornerCurveCircular;
+  [owned invalidateLayer];
+  [source invalidateLayer];
+  NSCAssert(sourceClipContainer.layer.mask == nil && sourceClipContainer.layer.cornerRadius == 16 &&
+      [sourceClipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] &&
+      [clipContainer.layer.cornerCurve isEqualToString:sourceClipContainer.layer.cornerCurve] &&
+      [owned.layer.cornerCurve isEqualToString:source.layer.cornerCurve] &&
+      [clipContainer.layer.mask isKindOfClass:CAShapeLayer.class] && ((CAShapeLayer *)clipContainer.layer.mask).path &&
       CGPathEqualToPath(((CAShapeLayer *)clipContainer.layer.mask).path, circular),
-      @"An overflow container retains its actual inherited circular clip around a continuous root");
+      @"An explicit circular container must retain the exact pinned circular mask around a continuous root");
   CGPathRelease(circular);
   [owned prepareForRecycle];
   [source prepareForRecycle];
 
   // A percentage corner and numeric corners can resolve to the same native
   // radius at a square size. Percentage fallthrough then makes correction mixed.
-  auto reachableProps = std::make_shared<const ViewProps>(context, *original, RawProps(
+  auto reachableProps = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 20)("borderTopLeftRadius", "25%")
           ("borderCurve", "continuous")("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   CUIMotionDrawingView *reachable = [[CUIMotionDrawingView alloc] initWithFrame:CGRectMake(0, 0, 80, 80)];

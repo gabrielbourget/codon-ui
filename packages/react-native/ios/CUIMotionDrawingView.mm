@@ -1,6 +1,8 @@
 // CUI-owned rendering adaptation of RN0.86.3; see cpp/motion/UPSTREAM.json and its RN license.
 #import "CUIMotionDrawingView.h"
 #import "CUIMotionDrawingGeometry.h"
+#import "CUIMotionContinuousCorners.h"
+#import "CUIMotionMaskGeometry.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 #import <RCTSwiftUIWrapper/RCTSwiftUIContainerViewWrapper.h>
@@ -808,12 +810,24 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
   }
 }
 
-- (CAShapeLayer *)createCuiMaskLayer:(CGRect)bounds cornerInsets:(RCTCornerInsets)cornerInsets
+- (CALayer *)createCuiMaskLayer:(CGRect)bounds cornerInsets:(RCTCornerInsets)cornerInsets
     cornerCurves:(CUIMotionCornerCurves)curves
 {
+  const BOOL uniformContinuous = curves.topLeft == BorderCurve::Continuous && curves.topRight == BorderCurve::Continuous &&
+      curves.bottomLeft == BorderCurve::Continuous && curves.bottomRight == BorderCurve::Continuous &&
+      CGSizeEqualToSize(cornerInsets.topLeft, cornerInsets.topRight) &&
+      CGSizeEqualToSize(cornerInsets.topLeft, cornerInsets.bottomLeft) &&
+      CGSizeEqualToSize(cornerInsets.topLeft, cornerInsets.bottomRight);
+  if (uniformContinuous) {
+    CALayer *mask = [CUIMotionContinuousCorners layerForBounds:bounds cornerSize:cornerInsets.topLeft
+        contentsScale:self.layer.contentsScale];
+    if (!mask)
+      @throw [NSException exceptionWithName:@"CUI.MotionDrawing"
+          reason:@"Native continuous mask parameters unavailable" userInfo:nil];
+    return mask;
+  }
   CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves);
-  CAShapeLayer *maskLayer = [CAShapeLayer layer];
-  maskLayer.path = path;
+  CAShapeLayer *maskLayer = CUICreateOwnedShapeMask(path);
   CGPathRelease(path);
   return maskLayer;
 }
