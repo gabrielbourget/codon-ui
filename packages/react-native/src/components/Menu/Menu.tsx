@@ -14,6 +14,7 @@ import { findNodeHandle, Linking, ScrollView, type View } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { useNativeContextProps } from "../../collection/context"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
@@ -33,7 +34,14 @@ import { useNativeTheme } from "../../theme"
 import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
 import { NativeContentContext } from "../NativeContentContext"
 
-import { NativeMenuActionsContext, NativeMenuStateContext, type TNativeMenuRegistration } from "./context"
+import {
+  NativeMenuActionsContext,
+  NativeMenuContext,
+  NativeMenuItemContext,
+  NativeMenuSelectionManagerContext,
+  NativeMenuStateContext,
+  type TNativeMenuRegistration,
+} from "./context"
 import {
   getNativeMenuRecoveryKey,
   normalizeNativeMenuKeys,
@@ -49,8 +57,10 @@ const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .flatMap((key) => nativeKeyTokens(key).filter((token) => token.startsWith("0000:") || token.startsWith("1000:")))
   .concat(nativeKeyTokens("a").filter((token) => token.startsWith("0010:") || token.startsWith("0001:")))
 
-export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) => {
+export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps, forwardedRef) => {
+  const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuContext)
   const {
+    slot: _slot,
     children,
     menuAriaLabel,
     selectionMode = "none",
@@ -202,7 +212,7 @@ const NativeMenuList = (props: TListProps) => {
     const row = rows.get(node.key)
     return row ? [row] : []
   })
-  const disabled = (row: TNativeMenuRegistration) => row.props().isDisabled ?? disabledKeys.has(row.id)
+  const disabled = (row: TNativeMenuRegistration) => row.props().isDisabled ?? row.selectionManager().isDisabled(row.id)
   const model = logicalMembers.map(
     (node): TNativeMenuRow => ({
       id: node.key,
@@ -390,16 +400,16 @@ const NativeMenuList = (props: TListProps) => {
   }, [lifetime, scope, strategy, props.initialTarget, props.root])
   const activateAdmitted = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
     if (!admitted(row) || event.defaultPrevented || event.isDefaultPrevented?.()) return
-    const owner = current.current
-    if (!owner.manager.isLink(row.id)) {
+    const selectionManager = row.selectionManager()
+    if (!selectionManager.isLink(row.id)) {
       if (
         "kind" in event.nativeEvent &&
         event.nativeEvent.kind === "keyboard" &&
         event.nativeEvent.shiftKey &&
-        owner.props.selectionMode === "multiple"
+        selectionManager.selectionMode === "multiple"
       )
-        owner.manager.extendSelection(row.id)
-      else owner.manager.select(row.id)
+        selectionManager.extendSelection(row.id)
+      else selectionManager.select(row.id)
     }
     if (!admitted(row)) return
     row.props().onAction?.()
@@ -542,58 +552,62 @@ const NativeMenuList = (props: TListProps) => {
   }
   return (
     <NativeMenuStateContext.Provider value={state}>
-      <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
-        <NativeMenuActionsContext.Provider
-          value={{
-            register,
-            refresh,
-            mode: props.selectionMode,
-            text: props.styles.list.text,
-            disabled,
-            selected: (row) => manager.isSelected(row.id),
-            requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
-            focus,
-            activate,
-            layout: (row, frame) => frames.current.set(row.id, frame),
-            typeahead,
-          }}
-        >
-          <NativeContentContext.Provider
-            value={{ foregroundColor: props.styles.list.text.color ?? theme.colors.foreground, isButton: false }}
-          >
-            <NativeFocusView
-              ref={props.root}
-              role="menu"
-              accessible={collection.size === 0}
-              focusable
-              accessibilityLabel={props.menuAriaLabel}
-              testID="menu-list"
-              onLayout={() => setTargetTag(findNodeHandle(props.root.current) ?? 0)}
+      <NativeMenuSelectionManagerContext.Provider value={manager}>
+        <NativeMenuItemContext.Provider value={{ shouldCloseOnSelect: props.shouldCloseOnSelect }}>
+          <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+            <NativeMenuActionsContext.Provider
+              value={{
+                register,
+                refresh,
+                mode: props.selectionMode,
+                text: props.styles.list.text,
+                disabled,
+                selected: (row) => row.selectionManager().isSelected(row.id),
+                requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
+                focus,
+                activate,
+                layout: (row, frame) => frames.current.set(row.id, frame),
+                typeahead,
+              }}
             >
-              {renderer.isVirtualized ? (
-                <CollectionRoot collection={collection} scrollRef={rendererScroll} persistedKeys={persistedKeys} />
-              ) : (
-                <ScrollView
-                  ref={scroll}
-                  testID="menu-scroll"
-                  style={{ flexShrink: 1 }}
-                  contentContainerStyle={props.styles.list.view}
-                  keyboardShouldPersistTaps="always"
-                  scrollEventThrottle={16}
-                  onLayout={(event) => {
-                    viewport.current = event.nativeEvent.layout.height
-                  }}
-                  onScroll={(event) => {
-                    offset.current = event.nativeEvent.contentOffset.y
-                  }}
+              <NativeContentContext.Provider
+                value={{ foregroundColor: props.styles.list.text.color ?? theme.colors.foreground, isButton: false }}
+              >
+                <NativeFocusView
+                  ref={props.root}
+                  role="menu"
+                  accessible={collection.size === 0}
+                  focusable
+                  accessibilityLabel={props.menuAriaLabel}
+                  testID="menu-list"
+                  onLayout={() => setTargetTag(findNodeHandle(props.root.current) ?? 0)}
                 >
-                  <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
-                </ScrollView>
-              )}
-            </NativeFocusView>
-          </NativeContentContext.Provider>
-        </NativeMenuActionsContext.Provider>
-      </NativeCollectionItemBindingContext.Provider>
+                  {renderer.isVirtualized ? (
+                    <CollectionRoot collection={collection} scrollRef={rendererScroll} persistedKeys={persistedKeys} />
+                  ) : (
+                    <ScrollView
+                      ref={scroll}
+                      testID="menu-scroll"
+                      style={{ flexShrink: 1 }}
+                      contentContainerStyle={props.styles.list.view}
+                      keyboardShouldPersistTaps="always"
+                      scrollEventThrottle={16}
+                      onLayout={(event) => {
+                        viewport.current = event.nativeEvent.layout.height
+                      }}
+                      onScroll={(event) => {
+                        offset.current = event.nativeEvent.contentOffset.y
+                      }}
+                    >
+                      <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
+                    </ScrollView>
+                  )}
+                </NativeFocusView>
+              </NativeContentContext.Provider>
+            </NativeMenuActionsContext.Provider>
+          </NativeCollectionItemBindingContext.Provider>
+        </NativeMenuItemContext.Provider>
+      </NativeMenuSelectionManagerContext.Provider>
     </NativeMenuStateContext.Provider>
   )
 }

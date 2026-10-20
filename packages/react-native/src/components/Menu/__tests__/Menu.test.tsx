@@ -7,6 +7,7 @@ import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -15,9 +16,11 @@ import {
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { encodeCollectionKey } from "../../collection"
-import { NativeMenuStateContext } from "../context"
+import { NativeMenuContext, NativeMenuStateContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
+import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
+import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
 import type { TNativeMenuProps } from "../types"
 
@@ -152,6 +155,171 @@ const press = async (id: string) => {
   await act(() => native.props.onResponderGrant(e))
   await act(() => native.props.onResponderRelease(e))
 }
+
+it("keeps section owner selection independent while forwarding focus through the full parent state", async () => {
+  const sectionChange = jest.fn(),
+    owner = new Set<string | number>([0]),
+    header = createRef<RN.View>(),
+    section = createRef<RN.View>(),
+    item = createRef<RN.View>()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "none" },
+    <>
+      <MenuSection
+        id="section"
+        testID="section"
+        ref={section}
+        selectionMode="multiple"
+        selectedKeys={owner}
+        onSelectionChange={sectionChange}
+        shouldCloseOnSelect={false}
+      >
+        <MenuHeader ref={header} nativeID="section-name" testID="section-name">
+          Section name
+        </MenuHeader>
+        <MenuItem id={0} testID="section-number" ref={item}>
+          Zero
+        </MenuItem>
+        <MenuItem id="0" testID="section-string">
+          String zero
+        </MenuItem>
+      </MenuSection>
+      <MenuItem id="outside" testID="outside">
+        Outside
+      </MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(header.current).not.toBeNull()
+  expect(section.current).not.toBeNull()
+  expect(item.current).not.toBeNull()
+  expect(state.collection.getItem(0)?.parentKey).toBe("section")
+  expect(state.collection.size).toBe(3)
+  expect(row("section").props.nativeLabelledBy).toEqual(["section-name"])
+  expect(row("section-number").props.role).toBe("checkbox")
+  expect(row("section-number").props.accessibilityState.checked).toBe(true)
+  expect(row("outside").props.role).toBe("menuitem")
+  const initial = row("section-number").props
+  await act(() =>
+    initial.onNativeFocusChange({
+      nativeEvent: { ownerId: initial.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+    }),
+  )
+  await press("section-string")
+  await press("section-string")
+  expect(sectionChange).toHaveBeenCalledTimes(2)
+  expect([...sectionChange.mock.calls[0][0]]).toEqual([0, "0"])
+  expect([...owner]).toEqual([0])
+  expect(row("section-string").props.accessibilityState.checked).toBe(false)
+  expect(f.close).not.toHaveBeenCalled()
+  const native = row("section-string").props
+  await act(() =>
+    native.onNativeFocusChange({
+      nativeEvent: { ownerId: native.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 1 },
+    }),
+  )
+  expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it("inherits section selection and close defaults with item override and dynamic original values", async () => {
+  const values = [
+    { id: "one", label: "One" },
+    { id: "two", label: "Two" },
+  ]
+  const change = jest.fn()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "multiple", onSelectionChange: change, shouldCloseOnSelect: false },
+    <MenuSection id="dynamic" items={values} style={{ color: "red", fontSize: 19 }}>
+      {(value) => (
+        <MenuItem id={value.id} testID={value.id} shouldCloseOnSelect={value.id === "two" ? true : undefined}>
+          {value.label}
+        </MenuItem>
+      )}
+    </MenuSection>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(state.collection.getItem("one")?.value === values[0]).toBe(true)
+  expect(screen.getByText("One", hidden)).toHaveStyle({ color: "red", fontSize: 19 })
+  await press("one")
+  expect([...change.mock.calls[0][0]]).toEqual(["one"])
+  expect(f.close).not.toHaveBeenCalled()
+  await press("two")
+  expect(f.close).toHaveBeenLastCalledWith(false)
+})
+
+it("retires and restores the actual section header relationship without replacing an item ref", async () => {
+  const header = createRef<RN.View>(),
+    item = createRef<RN.View>()
+  let setHeader!: (visible: boolean) => void
+  const Opaque = () => {
+    const [visible, setVisible] = useState(true)
+    setHeader = setVisible
+    return (
+      <MenuSection id="section" testID="section">
+        {visible ? (
+          <MenuHeader ref={header} nativeID="header-name">
+            Header
+          </MenuHeader>
+        ) : null}
+        <MenuItem id="item" ref={item}>
+          Item
+        </MenuItem>
+      </MenuSection>
+    )
+  }
+  const f = fixture({}, <Opaque />)
+  await render(f.node())
+  const original = item.current
+  expect(header.current).not.toBeNull()
+  expect(row("section").props.nativeLabelledBy).toEqual(["header-name"])
+  await act(() => setHeader(false))
+  expect(header.current).toBeNull()
+  expect(row("section").props.nativeLabelledBy).toBeUndefined()
+  expect(item.current === original).toBe(true)
+  await act(() => setHeader(true))
+  expect(header.current).not.toBeNull()
+  expect(row("section").props.nativeLabelledBy).toEqual(["header-name"])
+  expect(item.current === original).toBe(true)
+})
+
+it("merges default, named and null Menu slots with actual root refs and caller precedence", async () => {
+  const inherited = createRef<RN.View>()
+  const f = fixture({ slot: "named", customStyles: { opacity: 0.8 } })
+  const node = (slot: string | null | undefined) => (
+    <NativeMenuContext.Provider
+      value={{
+        slots: {
+          [NATIVE_DEFAULT_SLOT]: { menuAriaLabel: "Default menu" },
+          named: { ref: inherited, menuAriaLabel: "Named menu", customStyles: { opacity: 0.5 } },
+        },
+      }}
+    >
+      {f.node({ slot, customStyles: { opacity: 0.8 } })}
+    </NativeMenuContext.Provider>
+  )
+  await render(node("named"))
+  expect(inherited.current === f.root.current).toBe(true)
+  expect(row("menu-list").props.accessibilityLabel).toBe("Named menu")
+  expect(RN.StyleSheet.flatten(row("menu").props.style).opacity).toBe(0.8)
+  await rerender(node(undefined))
+  expect(row("menu-list").props.accessibilityLabel).toBe("Default menu")
+  await rerender(node(null))
+  expect(row("menu-list").props.accessibilityLabel).toBeUndefined()
+})
 
 it("CAP.menu.001/.002 renders the actual menu/list/item/separator structure with the native root ref", async () => {
   const f = fixture()

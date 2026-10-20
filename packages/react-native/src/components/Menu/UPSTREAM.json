@@ -1,0 +1,22 @@
+{
+  "sourcePackages": {
+    "react-aria-components": "1.17.0",
+    "react-aria": "3.48.0",
+    "react-stately": "3.46.0"
+  },
+  "sourceSHA256": {
+    "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Menu.mjs": "12242046384db49df6f36c8db1713c81610cef011bd89118b29803842cad1008",
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useMenuSection.mjs": "d38abdfda1f8e2ddae18040301800daf95885b529276197fb18d2169d223ccbb"
+  },
+  "license": "../../collection/LICENSE.react-aria.md",
+  "scope": "Complete pinned GroupSelectionManager subclass with parent focus delegation; MenuSection/header/close/selection context adaptation to existing native hosts, owned state hooks and original visible refs. Private family construction; complete submenu/list-context/public/native acceptance remains open.",
+  "authoredFilesSHA256": {
+    "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
+    "MenuSection.tsx": "37aaa4e86e6a9fa0fa661980dc231ae2fe43f217916c6c629a155a4ff83b5613",
+    "MenuHeader.tsx": "9c32e40d56137da4a84b86cd3cd9b055a0d38c8157a87fbd4709c08284c85ef8",
+    "Menu.tsx": "dc6584570291e9fa2f8f8b95650d0b63f476954bc2c8c26e9a656e50caf1858a",
+    "MenuItem.tsx": "3803ce6409f7cf9cda603daa74149c9c4477741b182df9c406566df32cdc152e",
+    "context.ts": "7cf618842b4c871c680505d6f50f7523caa83a8a75e26ddde5ab2c8996d0db09",
+    "types.ts": "5b85c23b6e16927eb228c639aee74e4b7f7511718f0f78c35d03e39a64204fce"
+  }
+}

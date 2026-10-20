@@ -3,7 +3,9 @@ import type { View } from "react-native"
 
 import { Button } from "../../.."
 import { Menu, NativeMenuTrigger } from "../Menu"
+import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
+import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
 const ref = createRef<View>()
 export const menu = (
@@ -39,3 +41,23 @@ export const domClass = <Menu className="ignored" />
 export const domRef = <Menu ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Public Button cannot override its owned role through the private adapter.
 export const role = <Button nativeRole="menuitem">Invalid</Button>
+
+export const section = (
+  <MenuSection
+    ref={ref}
+    id={0}
+    selectionMode="multiple"
+    selectedKeys={new Set([0, "0"])}
+    items={[{ id: "item", label: "Item" }]}
+    style={{ fontSize: 18 }}
+  >
+    {(item) => <MenuItem id={item.id}>{item.label}</MenuItem>}
+  </MenuSection>
+)
+export const header = <MenuHeader ref={ref} nativeID="header" style={{ fontWeight: "bold" }} />
+// @ts-expect-error Section keys retain the same string/number identity as item keys.
+export const invalidSection = <MenuSection id={false} />
+// @ts-expect-error Section refs expose the original native view.
+export const invalidSectionRef = <MenuSection ref={createRef<HTMLElement>()} />
+// @ts-expect-error Header styles are native values.
+export const invalidHeaderStyles = <MenuHeader style={{ fontSize: "18px" }} />

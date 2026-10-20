@@ -13,6 +13,7 @@ import { View, type TextStyle } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { useNativeContextProps } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -23,7 +24,12 @@ import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 
-import { NativeMenuActionsContext, type TNativeMenuRegistration } from "./context"
+import {
+  NativeMenuActionsContext,
+  NativeMenuItemContext,
+  NativeMenuSelectionManagerContext,
+  type TNativeMenuRegistration,
+} from "./context"
 import { encodeNativeMenuKey, validateNativeMenuKey } from "./model"
 import { getNativeMenuItemStyles } from "./styles"
 import { NATIVE_MENU_ITEM_VARIANTS, type TNativeMenuItemProps, type TNativeMenuItemRef } from "./types"
@@ -36,9 +42,11 @@ const textContent = (value: TNativeMenuItemProps["children"]): string => {
 const MenuItemReceiver = forwardRef<
   TNativeMenuItemRef,
   TNativeMenuItemProps & { collectionNode: TNativeCollectionNode<unknown> }
->((props, ref) => {
+>((authoredProps, forwardedRef) => {
+  const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuItemContext)
   const {
     collectionNode,
+    slot: _slot,
     id: authoredId,
     children,
     textValue,
@@ -65,7 +73,8 @@ const MenuItemReceiver = forwardRef<
   } = props
   const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
   const context = useContext(NativeMenuActionsContext)
-  if (!context) throw new Error("MenuItem requires a native Menu")
+  const selectionManager = useContext(NativeMenuSelectionManagerContext)
+  if (!context || !selectionManager) throw new Error("MenuItem requires a native Menu")
   const generated = useId(),
     id = authoredId ?? generated
   validateNativeMenuKey(id)
@@ -74,8 +83,10 @@ const MenuItemReceiver = forwardRef<
   const view = useRef<View>(null)
   const textStyle = useRef<TextStyle>({})
   const current = useRef(props)
+  const currentManager = useRef(selectionManager)
   useInsertionEffect(() => {
     current.current = props
+    currentManager.current = selectionManager
   })
   const row = useMemo<TNativeMenuRegistration>(
     () => ({
@@ -84,6 +95,7 @@ const MenuItemReceiver = forwardRef<
       view,
       props: () => current.current,
       text: () => current.current.textValue ?? textContent(current.current.children),
+      selectionManager: () => currentManager.current,
     }),
     [id, collectionNode],
   )
@@ -94,9 +106,10 @@ const MenuItemReceiver = forwardRef<
   useLayoutEffect(() => refresh(row), [refresh, row, metadata])
   const lifetime = JSON.stringify([encodeNativeMenuKey(id), href])
   useImperativeHandle(ref, () => view.current!, [lifetime])
-  const disabled = authoredDisabled ?? context.disabled(row)
-  const selected = context.selected(row)
-  const role = context.mode === "single" ? "radio" : context.mode === "multiple" ? "checkbox" : "menuitem"
+  const disabled = authoredDisabled ?? selectionManager.isDisabled(id)
+  const selected = selectionManager.isSelected(id)
+  const mode = selectionManager.selectionMode
+  const role = mode === "single" ? "radio" : mode === "multiple" ? "checkbox" : "menuitem"
   return (
     <NativeButton
       {...native}
@@ -106,7 +119,7 @@ const MenuItemReceiver = forwardRef<
       isDisabled={disabled}
       testID={testID ?? aliasTestID ?? "menu-item"}
       accessibilityLabel={props.accessibilityLabel ?? props["aria-label"] ?? textValue ?? textContent(children)}
-      accessibilityState={{ ...accessibilityState, ...(context.mode === "none" ? {} : { checked: selected }) }}
+      accessibilityState={{ ...accessibilityState, ...(mode === "none" ? {} : { checked: selected }) }}
       aria-checked={undefined}
       aria-selected={undefined}
       aria-expanded={undefined}
@@ -121,8 +134,8 @@ const MenuItemReceiver = forwardRef<
             isPressed: state.isPressed,
             isFocused: state.isFocused,
             isFocusVisible: state.isFocused && Number(state.defaultStyle.outlineWidth ?? 0) > 0,
-            selectionMode: context.mode,
-            selectionBehavior: "toggle",
+            selectionMode: mode,
+            selectionBehavior: selectionManager.selectionBehavior,
             hasSubmenu: false,
             isOpen: false,
           },

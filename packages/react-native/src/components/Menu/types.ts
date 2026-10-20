@@ -1,6 +1,7 @@
-import type { ReactNode } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { StyleProp, TextStyle, View, ViewProps, ViewStyle } from "react-native"
 
+import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeButtonProps } from "../Button/types"
 import type { TNativeClickPopoverProps } from "../ClickPopover/types"
 
@@ -12,6 +13,7 @@ export type TNativeMenuProps = Omit<
   TNativeClickPopoverProps,
   "children" | "childIsDialog" | "showOverlayArrow" | "customDialogStyles"
 > & {
+  slot?: string | null
   children?: ReactNode
   menuAriaLabel?: string
   selectionMode?: TNativeMenuSelectionMode
@@ -30,7 +32,7 @@ export type TNativeMenuItemState = Readonly<{
   isFocused: boolean
   isFocusVisible: boolean
   selectionMode: TNativeMenuSelectionMode
-  selectionBehavior: "toggle"
+  selectionBehavior: "toggle" | "replace"
   hasSubmenu: boolean
   isOpen: boolean
 }>
@@ -54,6 +56,7 @@ export type TNativeMenuItemProps = Omit<
   | "enableFocusStyle"
   | "offsetFocusRing"
 > & {
+  slot?: string | null
   id?: TNativeMenuKey
   children?: ReactNode
   textValue?: string
@@ -77,3 +80,28 @@ export type TNativeMenuSeparatorProps = Omit<
 }
 export type TNativeMenuRef = View
 export type TNativeMenuItemRef = View
+
+export type TNativeMenuHeaderProps = Omit<
+  TNativeFocusViewProps,
+  "style" | "role" | "accessibilityRole" | "accessible"
+> & { style?: StyleProp<TextStyle> }
+
+export type TNativeMenuSectionProps<T extends object = object> = Omit<
+  TNativeFocusViewProps,
+  "children" | "style" | "id" | "role" | "accessibilityRole" | "accessible"
+> & {
+  id?: TNativeMenuKey
+  value?: T
+  items?: Iterable<T>
+  children?: ReactNode | ((item: T) => ReactNode)
+  dependencies?: readonly unknown[]
+  selectionMode?: TNativeMenuSelectionMode
+  selectedKeys?: "all" | Iterable<TNativeMenuKey>
+  defaultSelectedKeys?: "all" | Iterable<TNativeMenuKey>
+  onSelectionChange?: (keys: "all" | Set<TNativeMenuKey>) => void
+  disabledKeys?: Iterable<TNativeMenuKey>
+  disallowEmptySelection?: boolean
+  shouldCloseOnSelect?: boolean
+  style?: StyleProp<TextStyle>
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: undefined) => ReactElement
+}
