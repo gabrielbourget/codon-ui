@@ -23,6 +23,7 @@ import { nativeTargetKeyframes } from "../value/keyframes"
 import { createNativeMotionValueContext } from "../value/nativeContext"
 import { NativeValueAnimation } from "../value/NativeValueAnimation"
 import type { TNativeMotionValueContext } from "../value/types"
+import type { TNativeMotionViewportProps } from "../viewport/types"
 import type { TNativeMotionVisualBindings } from "../visual/types"
 
 const NATIVE_NODE_DISCONNECTED = 1
@@ -34,7 +35,8 @@ export type TNativeMotionOwnerProps = TNativeMotionAnimationProps &
     onAnimationStart?: (definition: TNativeMotionDefinition) => void
     onAnimationComplete?: (definition: TNativeMotionDefinition) => void
   } & TNativeMotionDragProps &
-  TNativeMotionLayoutProps
+  TNativeMotionLayoutProps &
+  TNativeMotionViewportProps
 export type TNativeMotionInitialContext = Pick<TNativeMotionAnimationProps, "initial" | "animate">
 export const nativeInitialVariantContext = (
   props: TNativeMotionAnimationProps,

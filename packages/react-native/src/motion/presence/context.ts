@@ -14,6 +14,7 @@ export type TNativePopFrame = {
 export type TNativePopRoot = {
   read: (root?: RefObject<View | null>) => TNativePopFrame
   freeze: (frame: TNativePopFrame, anchorX: "left" | "right", anchorY: "top" | "bottom") => () => void
+  isCurrent?: (frame: TNativePopFrame) => boolean
 }
 export type TNativePresence = {
   id: string

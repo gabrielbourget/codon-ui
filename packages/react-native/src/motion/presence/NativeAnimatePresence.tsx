@@ -1,7 +1,9 @@
 // Native ownership adaptation of Motion 12.40.0 AnimatePresence. See UPSTREAM.json.
 import {
   Children,
+  Fragment,
   Component,
+  cloneElement,
   isValidElement,
   useContext,
   useEffect,
@@ -12,13 +14,16 @@ import {
   useRef,
   useState,
 } from "react"
-import type { ReactElement, ReactNode, RefObject } from "react"
+import type { ReactElement, ReactNode, Ref, RefObject } from "react"
 import type { View } from "react-native"
 
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { NativeLayoutGroupContext } from "../projection/NativeLayoutGroup"
 
 import { NativePresenceContext, NativePopRootContext, useNativePresence } from "./context"
 import type { TNativePopFrame, TNativePopRoot, TNativePresence } from "./context"
+import { createNativePopRoot } from "./nativePopFrame"
 
 export type TNativeAnimatePresenceProps = {
   children?: ReactNode
@@ -37,15 +42,23 @@ type TPopMeasureProps = {
   present: boolean
   pop: boolean
   roots: Set<TNativePopRoot>
+  nativeRoot: TNativePopRoot
+  childRef: RefObject<View | null>
   frame: { current?: { owner: TNativePopRoot; frame: TNativePopFrame } }
   root?: RefObject<View | null>
 }
 class NativePopMeasure extends Component<TPopMeasureProps> {
   override getSnapshotBeforeUpdate(previous: TPopMeasureProps) {
-    if (previous.present && !this.props.present && this.props.pop) {
-      if (this.props.roots.size !== 1) throw new Error("Native popLayout: one actual owned native root is required")
-      const owner = [...this.props.roots][0]
-      this.props.frame.current = { owner, frame: owner.read(this.props.root) }
+    if (!this.props.present && this.props.pop && (previous.present || !previous.pop)) {
+      const actual = this.props.childRef.current as (View & { isConnected?: boolean }) | null
+      const owner =
+        actual && typeof actual.isConnected === "boolean"
+          ? this.props.nativeRoot
+          : this.props.roots.size === 1
+            ? [...this.props.roots][0]
+            : undefined
+      if (owner) this.props.frame.current = { owner, frame: owner.read(this.props.root) }
+      else if (this.props.roots.size > 1) throw new Error("Native popLayout: one actual native root is required")
     }
     return null
   }
@@ -82,6 +95,85 @@ const NativePresenceChild = ({
   const frame = useRef<{ owner: TNativePopRoot; frame: TNativePopFrame }>(undefined)
   const id = useId(),
     generation = useMemo(() => ({}), [isPresent])
+  const actual = useRef<View | null>(null),
+    scope = useNativeKeyScope(),
+    floating = useContext(NativeFloatingScopeContext),
+    windowActive = useContext(NativeFloatingWindowContext)
+  const latestScope = useRef({ scope, floating, windowActive })
+  useInsertionEffect(() => {
+    latestScope.current = { scope, floating, windowActive }
+  })
+  const [nativeRoot] = useState(() =>
+    createNativePopRoot(() => actual.current, {
+      isCurrent: () => {
+        const value = latestScope.current
+        return (
+          (!value.scope || Boolean(value.scope.acknowledgedSession().windowId)) &&
+          value.scope?.isWindowActive() !== false &&
+          value.floating?.canAct() !== false &&
+          value.windowActive?.() !== false
+        )
+      },
+      scope: () => {
+        const value = latestScope.current,
+          session = value.scope?.acknowledgedSession()
+        return JSON.stringify([value.scope?.ownerId, session?.windowId, session?.epoch, value.floating?.id])
+      },
+    }),
+  )
+  const callerRef = (children.props as { ref?: Ref<View> }).ref,
+    latestRef = useRef(callerRef),
+    published = useRef<{ ref: Ref<View> | undefined; cleanup: void | (() => void) } | null>(null)
+  useInsertionEffect(() => {
+    latestRef.current = callerRef
+  }, [callerRef])
+  const releaseCaller = useMemo(
+    () => () => {
+      const value = published.current
+      published.current = null
+      if (typeof value?.cleanup === "function") value.cleanup()
+      else if (typeof value?.ref === "function") value.ref(null)
+      else if (value?.ref) value.ref.current = null
+    },
+    [],
+  )
+  const publishCaller = useMemo(
+    () => (target: View) => {
+      if (published.current?.ref === latestRef.current) return
+      releaseCaller()
+      const ref = latestRef.current
+      let cleanup: void | (() => void) = undefined
+      if (typeof ref === "function") cleanup = ref(target)
+      else if (ref) ref.current = target
+      published.current = { ref, cleanup }
+    },
+    [releaseCaller],
+  )
+  const composedRef = useMemo(
+    () => (target: View | null) => {
+      if (!target) {
+        nativeRoot.dispose()
+        actual.current = null
+        releaseCaller()
+        return
+      }
+      actual.current = target
+      publishCaller(target)
+      return () => {
+        nativeRoot.dispose()
+        if (actual.current === target) actual.current = null
+        releaseCaller()
+      }
+    },
+    [nativeRoot, publishCaller, releaseCaller],
+  )
+  useLayoutEffect(() => {
+    if (mode === "popLayout" && actual.current) publishCaller(actual.current)
+  }, [callerRef, mode, publishCaller])
+  useLayoutEffect(() => scope?.subscribe(nativeRoot.retireIfChanged), [scope, nativeRoot])
+  useLayoutEffect(() => {
+    nativeRoot.retireIfChanged()
+  })
   const committed = useRef({ generation, isPresent, onExitComplete })
   useInsertionEffect(() => {
     committed.current = { generation, isPresent, onExitComplete }
@@ -115,9 +207,16 @@ const NativePresenceChild = ({
   }, [isPresent, participants])
   useInsertionEffect(() => {
     const snapshot = frame.current
-    if (!isPresent && mode === "popLayout" && snapshot && snapshot.frame.width && snapshot.frame.height)
+    if (
+      !isPresent &&
+      mode === "popLayout" &&
+      snapshot &&
+      snapshot.frame.width &&
+      snapshot.frame.height &&
+      snapshot.owner.isCurrent?.(snapshot.frame) !== false
+    )
       return snapshot.owner.freeze(snapshot.frame, anchorX, anchorY)
-  }, [isPresent, mode, anchorX, anchorY])
+  }, [isPresent, mode])
   const registerRoot = useMemo(
     () => (owner: TNativePopRoot) => {
       roots.add(owner)
@@ -130,8 +229,18 @@ const NativePresenceChild = ({
   return (
     <NativePresenceContext.Provider value={presenceAffectsLayout ? { ...context } : context}>
       <NativePopRootContext.Provider value={registerRoot}>
-        <NativePopMeasure present={isPresent} pop={mode === "popLayout"} roots={roots} frame={frame} root={root}>
-          {children}
+        <NativePopMeasure
+          present={isPresent}
+          pop={mode === "popLayout"}
+          roots={roots}
+          nativeRoot={nativeRoot}
+          childRef={actual}
+          frame={frame}
+          root={root}
+        >
+          {mode === "popLayout" && children.type !== Fragment
+            ? cloneElement(children as ReactElement<{ ref?: Ref<View> }>, { ref: composedRef })
+            : children}
         </NativePopMeasure>
       </NativePopRootContext.Provider>
     </NativePresenceContext.Provider>

@@ -1,3 +1,4 @@
+import { TurboModuleRegistry } from "react-native"
 import type { View } from "react-native"
 
 import { geometryPacket, geometrySnapshot } from "../../input/__tests__/motionGeometry.fixture"
@@ -183,20 +184,56 @@ it("preserves size/position modes and default reduced/skip completion policies",
   await flush(1040)
   expect(f.actor.node?.currentAnimation).toBeUndefined()
 })
-it("returns actual native pop anchors and freezes only owned presentation fields", async () => {
+it("routes owned pop roots through the native family lease without writing pop fields through the visual host", async () => {
   const f = create(),
     writer = jest.fn()
   f.actor.attachWriter(writer)
+  Object.assign(f.target, { ownerDocument: {} })
+  jest.spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle").mockReturnValue(31)
+  const backend = jest.fn((encoded: string) => {
+    const request = JSON.parse(encoded)
+    return JSON.stringify(
+      request.action === "capture"
+        ? {
+            ...request,
+            kind: "native-pop-frame",
+            lease: "projection-pop",
+            surfaceId: 1,
+            fabricRevision: "2",
+            positionedParent: 11,
+            left: 10,
+            top: 20,
+            width: 100,
+            height: 50,
+            right: 190,
+            bottom: 130,
+            direction: "rtl",
+          }
+        : { lease: request.lease, released: request.action === "release" },
+    )
+  })
+  jest.spyOn(TurboModuleRegistry, "get").mockReturnValue({ popPresentation: backend } as never)
   f.send("frame", "", 10, 100, "initial", "rtl")
   await turn()
   const measured = f.actor.read()
-  expect(measured).toEqual({ left: 10, top: 20, width: 100, height: 50, right: 190, bottom: 130, direction: "rtl" })
+  expect(measured).toMatchObject({
+    left: 10,
+    top: 20,
+    width: 100,
+    height: 50,
+    right: 190,
+    bottom: 130,
+    direction: "rtl",
+  })
+  writer.mockClear()
   const release = f.actor.freeze(measured, "left", "bottom")
-  expect(writer).toHaveBeenCalledWith(
-    expect.objectContaining({
-      style: expect.objectContaining({ position: "absolute", right: 190, bottom: 130, width: 100, height: 50 }),
-    }),
-  )
+  expect(writer).not.toHaveBeenCalled()
+  expect(JSON.parse(backend.mock.calls[1][0])).toMatchObject({
+    action: "activate",
+    lease: "projection-pop",
+    anchorX: "left",
+    anchorY: "bottom",
+  })
   release()
   expect(f.actor.getSnapshot().style.position).toBeUndefined()
 })

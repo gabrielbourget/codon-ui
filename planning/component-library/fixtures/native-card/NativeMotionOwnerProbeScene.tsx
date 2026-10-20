@@ -12,6 +12,7 @@ import { readNativeMotionTargetGeometry } from "../../../../packages/react-nativ
 import { NativeMotionOwnerHost } from "../../../../packages/react-native/src/motion/owner/NativeMotionOwnerHost"
 import { NativeAnimatePresence } from "../../../../packages/react-native/src/motion/presence/NativeAnimatePresence"
 import { NativeLayoutGroup } from "../../../../packages/react-native/src/motion/projection/NativeLayoutGroup"
+import type { TNativeViewportEntry } from "../../../../packages/react-native/src/motion/viewport/types"
 
 // Non-shipping actual-owner scene. Source callbacks/settled promises are not native paint acknowledgments.
 export const NativeMotionOwnerProbeScene = () => {
@@ -26,6 +27,7 @@ export const NativeMotionOwnerProbeScene = () => {
     [skip, setSkip] = useState(false)
   const [interactions, setInteractions] = useState(false)
   const [dragEnabled, setDragEnabled] = useState(false)
+  const [viewportEnabled, setViewportEnabled] = useState(false)
   const [shifted, setShifted] = useState(false)
   const dragSamples = useRef<TNativeMotionPanInfo[]>([])
   const panSamples = useRef<{ identity: number | string; source: "pointer" | "touch"; info: TNativeMotionPanInfo }[]>(
@@ -92,6 +94,7 @@ export const NativeMotionOwnerProbeScene = () => {
         />
         <Button title="Stop" onPress={() => controls.stop()} />
         <Button title="Toggle constrained drag" onPress={() => setDragEnabled((current) => !current)} />
+        <Button title="Toggle viewport observation" onPress={() => setViewportEnabled((current) => !current)} />
         <Button title="Move original layout" onPress={() => setShifted((current) => !current)} />
         <Button title="Stop drag with inertia" onPress={dragControls.stop} />
         <Button title="Cancel drag" onPress={dragControls.cancel} />
@@ -155,6 +158,31 @@ export const NativeMotionOwnerProbeScene = () => {
                       onLayoutAnimationComplete: () =>
                         append({ event: "source-layout-animation-complete", ...identity() }),
                       drag: dragEnabled,
+                      ...(viewportEnabled
+                        ? {
+                            whileInView: { opacity: 0.65 },
+                            viewport: { root: constraint, margin: "12% 0px", amount: "all" as const },
+                            onViewportEnter: (entry: TNativeViewportEntry) =>
+                              append({
+                                event: "source-viewport-enter",
+                                time: entry.time,
+                                ratio: entry.intersectionRatio,
+                                targetIsOriginal: entry.target === root.current,
+                                bounds: entry.boundingClientRect.toJSON(),
+                                rootBounds: entry.rootBounds?.toJSON(),
+                                intersection: entry.intersectionRect.toJSON(),
+                                ...identity(),
+                              }),
+                            onViewportLeave: (entry: TNativeViewportEntry) =>
+                              append({
+                                event: "source-viewport-leave",
+                                time: entry.time,
+                                ratio: entry.intersectionRatio,
+                                targetIsOriginal: entry.target === root.current,
+                                ...identity(),
+                              }),
+                          }
+                        : {}),
                       dragControls,
                       dragConstraints: constraint,
                       whileDrag: { scale: 1.03 },
