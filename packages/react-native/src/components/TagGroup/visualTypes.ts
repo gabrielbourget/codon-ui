@@ -1,4 +1,4 @@
-import type { ColorValue, StyleProp, TextStyle, ViewStyle } from "react-native"
+import type { ColorValue, StyleProp, TextStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -12,9 +12,9 @@ export type TNativeTagGroupVisualProps = {
   width?: TNativeDisplayDimension
   height?: TNativeDisplayDimension
   orientation?: TNativeTagGroupOrientation
-  customStyles?: StyleProp<ViewStyle>
-  customTagListStyles?: StyleProp<ViewStyle>
-  style?: StyleProp<ViewStyle>
+  customStyles?: StyleProp<TextStyle>
+  customTagListStyles?: StyleProp<TextStyle>
+  style?: StyleProp<TextStyle>
 }
 export type TNativeGroupedTagState = Readonly<{
   isSelected: boolean

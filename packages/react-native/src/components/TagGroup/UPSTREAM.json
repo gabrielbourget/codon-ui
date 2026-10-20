@@ -1,0 +1,62 @@
+{
+  "status": "Private TagList source construction; native/full-family acceptance remains open.",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "canonicalInputsSHA256": {
+    "packages/react/src/components/TagGroup/TagGroup.tsx": "59139db329054a51d68f6148aa4ba1c16a7d94c069083d327b39aea0d407aed2",
+    "packages/react/src/components/TagGroup/helpers.ts": "445935fe5b352a5b9a6b068efb7a4e542c16c983850199602eea12f8ab4b3767",
+    "packages/react/src/components/TagGroup/TagGroupStyles.module.css": "6915ce6930446380022f1bb10e0038e40cef67aaef571b6e9ef51de2ea6d689c",
+    "packages/react/src/components/TagGroup/AdobeTag/AdobeTag.tsx": "6037f5b238503466b0d7362b723c552b5f244687dd2373bf1ca303ca78ee8a47",
+    "packages/react/src/components/TagGroup/AdobeTag/helpers.tsx": "198bae75b75aa43f4c6f95a9d7f25bd0c0e403a4e032b41be68d8a697948cfaf",
+    "packages/react/src/components/TagGroup/AdobeTag/AdobeTagStyles.module.css": "9a70b449bbfad6d29a868dca282a25478580b8fae1feedff0a4f107d92c77d8f"
+  },
+  "license": "../../collection/LICENSE.react-aria.md",
+  "sources": [
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/TagGroup.mjs",
+      "distributionSHA256": "65986252c3b392ac3b43fd7b55d0410db3cd813da4fb8caa741592449278e8c4",
+      "sourceMapPath": "dist/private/TagGroup.mjs.map",
+      "sourceMapSHA256": "5847b13f732cba44295488e1f7016d07e8bf2d9c8faa44a9d3c8b1b86c1a9746",
+      "sourcePath": "packages/react-aria-components/src/TagGroup.tsx",
+      "sourceContentSHA256": "52affe47bbfd495fb6b55e51b8cd963fe72a05a97c89946edd71a14455962692",
+      "adaptedInto": ["TagList.tsx", "TagGroup.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/tag/useTagGroup.mjs",
+      "distributionSHA256": "533114f2925c90ca1f71a993ff5e59325c50c65813a999f3aeaf42cf478362c4",
+      "sourceMapPath": "dist/private/tag/useTagGroup.mjs.map",
+      "sourceMapSHA256": "a434001f08a304e6b03449e63da5826d81cefa929166949481f4981ca026ceda",
+      "sourcePath": "packages/react-aria/src/tag/useTagGroup.ts",
+      "sourceContentSHA256": "a69ecb056710091230321f057053ca4b18e22e776610283910b607dd3212142f",
+      "adaptedInto": ["TagGroup.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/SelectionIndicator.mjs",
+      "distributionSHA256": "51a317cc5699c0e14dc16d30893d0ed39f66a8877a81399f3bd55246580bf780",
+      "sourceMapPath": "dist/private/SelectionIndicator.mjs.map",
+      "sourceMapSHA256": "9f57ea137ba05331840b54edaf0764248d2efcad23f3102a8d0a8b28046ed5f3",
+      "sourcePath": "packages/react-aria-components/src/SelectionIndicator.tsx",
+      "sourceContentSHA256": "64db61758eb3282b9fd9c0f19118b46fb13b6da79450acfc7dce793834851765",
+      "adaptedInto": ["Tag.tsx", "../../collection/context.tsx"]
+    }
+  ],
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required.",
+  "authoredFilesSHA256": {
+    "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
+    "TagGroup.tsx": "5d72d2e019cfa611a549dff2d034dedf20448f0aeaa1ef4766068c846d269382",
+    "Tag.tsx": "59b349d353f0cda089b446fdbc7974071aff04aaab249be14d2be2d1b652a210",
+    "context.ts": "3f9b4ade9c2b1c8b682e369e8596c22af40c1adeb939e0ef6497721bf2883f3c",
+    "types.ts": "d5ca2b624a8ea37be113a2e70f7bd6f5880d0641e69d65f6855751de9090f67e",
+    "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",
+    "visualTypes.ts": "aaffbc57ed907c25323512d5be5d41681326e67a4152c12f68cf55ee81a04a49",
+    "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7"
+  }
+}

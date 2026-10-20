@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { View } from "react-native"
+import type { View, StyleProp, TextStyle } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeListState as ListState } from "../../collection/state"
@@ -16,6 +16,19 @@ export type TNativeTagGroupEmptyState = Readonly<{
   isFocusVisible: boolean
   state: TNativeTagGroupSnapshot
 }>
+type TNativeTagListItemRenderer<T> = { render(item: T): ReactNode }["render"]
+export type TNativeTagListProps<T extends object = object> = Omit<TNativeFocusViewProps, "children" | "style"> &
+  TNativeSlotProps & {
+    items?: Iterable<T>
+    children?: ReactNode | TNativeTagListItemRenderer<T>
+    dependencies?: readonly unknown[]
+    idScope?: TNativeTagGroupKey
+    renderEmptyState?: (state: TNativeTagGroupEmptyState) => ReactNode
+    style?:
+      | StyleProp<TextStyle>
+      | ((state: TNativeTagGroupEmptyState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTagGroupEmptyState) => ReactElement
+  }
 export type TNativeTagGroupLabels = Readonly<{
   removeButtonAriaLabel?: string | ((textValue: string, key: TNativeTagGroupKey) => string)
   removeDescription?: string

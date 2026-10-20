@@ -16,12 +16,8 @@ import { findNodeHandle, I18nManager, Linking, Platform, type View } from "react
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { NativeCollection, NativeCollectionBuilder } from "../../collection/CollectionBuilder"
-import {
-  NativeSelectableCollectionContext,
-  useNativeContextProps,
-  type TNativeSlotProps,
-} from "../../collection/context"
+import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeSelectableCollectionContext, useNativeContextProps } from "../../collection/context"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
@@ -39,13 +35,13 @@ import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboar
 import type { TNativeFocusViewProps, TNativeKeyboardEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
-import { getNativeButtonContent } from "../Button/content"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 
 import {
   NativeTagGroupActionsContext,
   NativeTagGroupContext,
   NativeTagListContext,
+  NativeTagListRenderContext,
   NativeTagGroupStateContext,
   NativeTagItemValueContext,
   type TNativeTagRegistration,
@@ -72,6 +68,7 @@ import {
   type TNativeTagGroupSelectionOperation,
 } from "./model"
 import { getNativeTagGroupStyles } from "./styles"
+import { NativeTagList } from "./TagList"
 import type { TNativeTagGroupProps, TNativeTagGroupRef } from "./types"
 
 const KeyBindings = ({
@@ -192,8 +189,7 @@ const NativeTagGroup = <T extends object>({
   const focusWithin = manager.isFocused
   const setFocusWithin = (value: boolean) => manager.setFocused(value)
   const setFocusedKey = (key: TNativeTagGroupKey | null) => manager.setFocusedKey(key)
-  const [focusVisible, setFocusVisible] = useState(false),
-    [targetTag, setTargetTag] = useState(0)
+  const [targetTag, setTargetTag] = useState(0)
   const scroll = useRef<TNativeCollectionScrollHost | null>(null)
   const [requestedFocusKey, setRequestedFocusKey] = useState<TNativeTagGroupKey | null>(null)
   const pendingFocus = useRef<{
@@ -206,7 +202,6 @@ const NativeTagGroup = <T extends object>({
   const observedFocus = useRef<TNativeTagGroupKey | null>(null)
   const retiredFocusIntent = useRef<TNativeTagGroupKey | null>(null)
   const persistedKeys = useNativePersistedKeys(focusedKey, requestedFocusKey, observedFocus.current)
-  const CollectionRoot = renderer.CollectionRoot
   const live = useRef(false)
   const typeahead = useRef<{
     search: string
@@ -224,7 +219,11 @@ const NativeTagGroup = <T extends object>({
   const scope = useContext(NativeFloatingScopeContext),
     window = useContext(NativeFloatingWindowContext),
     input = useNativeKeyScope()
-  const members = [...collection].filter((node) => node.type === "item")
+  const members: TNativeCollectionNode<T>[] = []
+  for (let key = collection.getFirstKey(); key !== null; key = collection.getKeyAfter(key)) {
+    const node = collection.getItem(key)!
+    if (node.type === "item") members.push(node)
+  }
   const ordered = members.flatMap((node) => {
     const row = rows.get(node.key)
     return row ? [row] : []
@@ -644,15 +643,6 @@ const NativeTagGroup = <T extends object>({
   }
   const theme = useNativeTheme(),
     styles = getNativeTagGroupStyles(theme, props)
-  const empty =
-    collection.size === 0
-      ? (renderEmptyState?.({
-          isEmpty: true,
-          isFocused: focusWithin,
-          isFocusVisible: focusVisible,
-          state,
-        }) ?? (renderEmptyState ? null : emptyListMessage))
-      : null
   const listProps = {
     ref: listRef,
     role: collection.size ? ("grid" as const) : ("group" as const),
@@ -666,17 +656,15 @@ const NativeTagGroup = <T extends object>({
     nativeDescriptionLabel: labels.descriptionLabel,
     nativeDetailsLabel: labels.detailsLabel,
     accessibilityHint: props.accessibilityHint,
-    style: styles.list,
+    style: { ...styles.list, ...styles.text },
     onLayout: () => setTargetTag(findNodeHandle(list.current) ?? 0),
     accessibilityLiveRegion: focusWithin ? ("polite" as const) : ("none" as const),
-    onFocus: (event: Parameters<NonNullable<TNativeFocusViewProps["onFocus"]>>[0]) => {
+    onFocus: () => {
       if (pendingFocus.current?.key === null) pendingFocus.current = null
       setFocusWithin(true)
-      setFocusVisible(event.nativeEvent.isFocusVisible)
     },
     onBlur: () => {
       setFocusWithin(false)
-      setFocusVisible(false)
     },
   }
   return (
@@ -695,6 +683,7 @@ const NativeTagGroup = <T extends object>({
           <NativeTagGroupStateContext.Provider value={state}>
             <NativeTagGroupActionsContext.Provider
               value={{
+                text: styles.text,
                 register,
                 refresh,
                 mode: selectionMode,
@@ -718,7 +707,7 @@ const NativeTagGroup = <T extends object>({
                   } satisfies TNativeCollectionSemantics),
                 actionState,
                 keyCapture,
-                focus: (row, value, visible) => {
+                focus: (row, value) => {
                   if (value && admitted(row)) {
                     observedFocus.current = row.key
                     retiredFocusIntent.current = null
@@ -728,10 +717,8 @@ const NativeTagGroup = <T extends object>({
                       setFocusedKey(row.key)
                     }
                     setFocusWithin(true)
-                    setFocusVisible(visible)
                   } else if (!value) {
                     setFocusWithin(false)
-                    setFocusVisible(false)
                   }
                 },
                 press,
@@ -748,14 +735,14 @@ const NativeTagGroup = <T extends object>({
                     selectionMode,
                   } satisfies TNativeCollectionSemantics)}
                 >
-                  <NativeTagList testID="tag-list">
-                    <NativeCollectionSemanticsContext.Provider value="">
-                      <CollectionRoot collection={collection} persistedKeys={persistedKeys} scrollRef={scroll} />
-                      {collection.size === 0
-                        ? getNativeButtonContent(empty, { color: theme.colors.controlPlaceholder })
-                        : null}
-                    </NativeCollectionSemanticsContext.Provider>
-                  </NativeTagList>
+                  <NativeTagListRenderContext.Provider
+                    value={{ persistedKeys, scrollRef: scroll, defaultStyle: { ...styles.list, ...styles.text } }}
+                  >
+                    <NativeTagList
+                      testID="tag-list"
+                      renderEmptyState={renderEmptyState ?? (emptyListMessage ? () => emptyListMessage : undefined)}
+                    />
+                  </NativeTagListRenderContext.Provider>
                 </NativeCollectionSemanticsContext.Provider>
               </NativeTagListContext.Provider>
               {input ? <KeyBindings targetTag={targetTag} lifetime={lifetime} canAct={admitted} onKey={onKey} /> : null}
@@ -771,15 +758,11 @@ const TagGroupRoot = forwardRef<TNativeTagGroupRef, TNativeFocusViewProps & Pick
   ({ render, ...props }, ref) =>
     render ? render({ ...props, ref }, undefined) : <NativeFocusView {...props} ref={ref} />,
 )
-export const NativeTagList = forwardRef<TNativeTagGroupRef, TNativeFocusViewProps & TNativeSlotProps>((props, ref) => {
-  const [merged, mergedRef] = useNativeContextProps(props, ref, NativeTagListContext)
-  const { slot: _slot, ...native } = merged
-  return <NativeFocusView {...native} ref={mergedRef} />
-})
+export { NativeTagList } from "./TagList"
 const TagGroupAuthoring = <T extends object>({ props }: { props: TNativeTagGroupProps<T> }) => {
   const { items, children, getKey } = props
   const supplied = useMemo(() => (items === undefined ? undefined : Array.from(items)), [items])
-  if (!getKey) return <NativeCollection items={supplied}>{children}</NativeCollection>
+  if (!getKey) return <NativeTagList items={supplied}>{children}</NativeTagList>
   return supplied === undefined
     ? typeof children === "function"
       ? null

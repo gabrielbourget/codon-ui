@@ -74,7 +74,7 @@
     "NativeCollectionMetadata.tsx": "5f3672aa40676bcbd16a30b9f54625396814304b97960fbf38be7be62e8fa8eb",
     "actions.ts": "0755d68097194647dc65e11390f9991828347f943d3fc4f94951d71497505bb9",
     "binding.ts": "9a05102944460279be06a053f4f8ad0d18c45fc9a4bd0da053239392bb9c9952",
-    "context.tsx": "2083739c188f2458d878efa42d06cedc22c82c7342dcb063ac7aed5d5e0ba099",
+    "context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
     "renderer.tsx": "2ce56fa5c45eba872feebda2a71579e4cd106fb184a4456e16d39e6e2e9f84e6",
     "semantics.ts": "03069dd3d1e550def516c38eab8f42bb63642e0aecb0d9f133e7fdd1675b1945",
     "../components/TagGroup/keyboard.ts": "f6fef3924ef1638b8311465bfbcc74843a7f8abfc1c531d8528b36082547a626"
@@ -116,6 +116,18 @@
       "sourceContentSHA256": "a399d1a4b6df3313444d45765b2c6300c4c4ef1554de15f45370773aa8c19fba",
       "adaptedInto": ["../components/TagGroup/keyboard.ts"],
       "scope": "Horizontal PageUp/PageDown traversal with supplied actual native layout rectangles; source full collection order/disabled skipping and missing-target behavior retained."
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/SelectionIndicator.mjs",
+      "distributionSHA256": "51a317cc5699c0e14dc16d30893d0ed39f66a8877a81399f3bd55246580bf780",
+      "sourceMapPath": "dist/private/SelectionIndicator.mjs.map",
+      "sourceMapSHA256": "9f57ea137ba05331840b54edaf0764248d2efcad23f3102a8d0a8b28046ed5f3",
+      "sourcePath": "packages/react-aria-components/src/SelectionIndicator.tsx",
+      "sourceContentSHA256": "64db61758eb3282b9fd9c0f19118b46fb13b6da79450acfc7dce793834851765",
+      "adaptedInto": ["context.tsx"]
     }
   ]
 }

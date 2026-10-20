@@ -20,9 +20,7 @@ export const NativeMenuTextContext =
   createContext<TNativeContextValue<Partial<TNativeMenuTextProps>, TNativeTextRef>>(null)
 export const NativeMenuKeyboardShortcutContext =
   createContext<TNativeContextValue<Partial<TNativeMenuTextProps>, TNativeTextRef>>(null)
-export const NativeMenuSelectionIndicatorContext = createContext<Readonly<{ isSelected: boolean }>>({
-  isSelected: false,
-})
+export { NativeSelectionIndicatorContext as NativeMenuSelectionIndicatorContext } from "../../collection/context"
 export const NATIVE_MENU_TEXT_SLOTS = ["label", "description", "keyboard"] as const
 export type TNativeMenuTextSlot = (typeof NATIVE_MENU_TEXT_SLOTS)[number]
 export const NativeMenuTextBindingContext = createContext<

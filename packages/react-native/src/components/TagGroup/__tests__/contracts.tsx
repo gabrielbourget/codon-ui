@@ -1,8 +1,11 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
+import { NativeFocusView } from "../../.."
+import { NativeTagListContext } from "../context"
 import { Tag } from "../Tag"
-import { TagGroup } from "../TagGroup"
+import { TagGroup, NativeTagList } from "../TagGroup"
+import type { TNativeTagListProps } from "../types"
 
 const ref = createRef<View>()
 export const controlled = (
@@ -61,3 +64,25 @@ export const relationships = (
 )
 // @ts-expect-error Native relationship identities are strings, not collection keys.
 export const invalidRelationship = <TagGroup ariaDescribedBy={[0]} />
+
+type TTagValue = { id: string; label: string }
+const listDefaults: TNativeTagListProps<TTagValue> = {
+  items: [{ id: "a", label: "Alpha" }],
+  children: (item) => <Tag id={item.id}>{item.label}</Tag>,
+  style: (state) => ({ ...state.defaultStyle, fontSize: state.isFocused ? 20 : 18 }),
+  render: (props, state) => {
+    state.state.selectionManager.isSelected(0)
+    return <NativeFocusView {...props} />
+  },
+  renderEmptyState: (state) => (state.isEmpty ? "No tags" : null),
+}
+export const listContext = (
+  <NativeTagListContext.Provider value={listDefaults}>
+    <NativeTagList ref={ref} slot={null} />
+  </NativeTagListContext.Provider>
+)
+export const inheritedTypography = <TagGroup style={{ fontSize: 18 }} customTagListStyles={{ fontWeight: "700" }} />
+// @ts-expect-error List refs remain original native View instances.
+export const invalidListRef = <NativeTagList ref={createRef<HTMLDivElement>()} />
+// @ts-expect-error Native list typography does not accept browser pixel strings.
+export const invalidListStyle = <NativeTagList style={{ fontSize: "18px" }} />
