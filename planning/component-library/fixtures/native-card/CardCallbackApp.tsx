@@ -1,5 +1,15 @@
 import { requireNativeModule } from "expo"
-import { Component, useCallback, useEffect, useInsertionEffect, useMemo, useRef, useState, type ReactNode } from "react"
+import {
+  Component,
+  useCallback,
+  useEffect,
+  useInsertionEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ReactNode,
+} from "react"
 import { findNodeHandle, Text, View } from "react-native"
 
 import { Card } from "../../../../packages/react-native/src/components/Card/Card"
@@ -132,18 +142,17 @@ const Gate = () => {
       setStage(phase.current)
     }, 0)
   }
-  useEffect(
-    () =>
-      observeNativeMotionGeometry(root.current, (value) => {
-        if (!value?.attached || !value.snapshot) return
-        if (value.kind !== "frame" || !frames.current.has(phase.current)) {
-          capture(value)
-          if (value.kind === "frame") frames.current.add(phase.current)
-        }
-        advance.current(value)
-      }),
-    [record],
-  )
+  useLayoutEffect(() => {
+    record({ kind: "fixture-ready", actualTarget: root.current ? findNodeHandle(root.current) : null })
+    return observeNativeMotionGeometry(root.current, (value) => {
+      if (!value?.attached || !value.snapshot) return
+      if (value.kind !== "frame" || !frames.current.has(phase.current)) {
+        capture(value)
+        if (value.kind === "frame") frames.current.add(phase.current)
+      }
+      advance.current(value)
+    })
+  }, [record])
   const motion = useMemo(
     () => ({
       transition: { duration: 0.1, ease: "linear" as const },

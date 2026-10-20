@@ -828,8 +828,8 @@
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionGeometryObserver.java",
-      "sha256": "7030bd805d4a7694fef8dcb7c1e84ca4bf6a8fa17757c82cb397b4ede13739d2",
-      "scope": "Private mount observation and ordinary-view query snapshots, including actual native direction and projection-intent metadata."
+      "sha256": "dc92fd3cc56e33435e3d295ad7c62ffa11b86058ff5bbd6ef430905eee0e93f2",
+      "scope": "Private actual native geometry/mount observation. Capture retains its actual View/attached bit outside WritableNativeMap; no read of a late-appended attached key after the bridge read cache materializes."
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
@@ -1056,5 +1056,10 @@
     "autoMargins": "explicit unsupported distributed-value authority",
     "initialMarginRead": "same guarded independent evaluator, no mounted probe",
     "nativeAcceptance": false
+  },
+  "bridgeReadCacheInput": {
+    "packageArtifactRef": "react-native@0.86.3/ReactAndroid/src/main/java/com/facebook/react/bridge/ReadableNativeMap.kt",
+    "sha256": "4c80db0b298f8cdad23bc0eff746100118351c109ee90fccb2d7b7b232bfef0b",
+    "behavior": "First Java read memoizes keys/local values; later native writes do not invalidate that Java cache. Actual original Card crash in evidence3.31.103."
   }
 }
