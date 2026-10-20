@@ -30,7 +30,12 @@ def advance(device, records, sdk, state):
         assert editor["tag"] == tags[field]
         x, y, width, height = editor["screenPixels"]
         assert width > 0 and height > 0
-        device(f"input-tap-{field}", ["shell", "input", "tap", str(round(x + width / 2)), str(round(y + height / 2))])
+        assert editor["shown"] and editor["enabled"] and editor["focusable"]
+        center_x, center_y = x + width / 2, y + height / 2
+        for parent in editor["parents"]:
+            left, top, parent_width, parent_height = parent["screenPixels"]
+            assert left <= center_x < left + parent_width and top <= center_y < top + parent_height, ("Editor input point outside native ancestor", field, parent)
+        device(f"input-tap-{field}", ["shell", "input", "tap", str(round(center_x)), str(round(center_y))])
         time.sleep(0.4)
         device(f"input-text-{field}", ["shell", "input", "text", text])
         if clear: device("input-empty-delete", ["shell", "input", "keyevent", "KEYCODE_DEL"])

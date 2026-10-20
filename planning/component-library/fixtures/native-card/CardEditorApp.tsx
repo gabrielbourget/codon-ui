@@ -319,7 +319,7 @@ const Gate = () => {
 
 export default () => (
   <NativeThemeProvider>
-    <NativeKeyboardScope captureEnabled={true}>
+    <NativeKeyboardScope captureEnabled={true} style={{ flex: 1 }}>
       <NativeMotionConfig reducedMotion="never">
         <Gate />
       </NativeMotionConfig>

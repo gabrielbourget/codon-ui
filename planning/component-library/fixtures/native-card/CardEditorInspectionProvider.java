@@ -163,8 +163,21 @@ public final class CardEditorInspectionProvider extends ContentProvider {
             View view = current.getWindow().getDecorView().findViewById(tag);
             require(view instanceof ReactEditText && view.isAttachedToWindow(), "actual visible editor target required");
             int[] location = new int[2]; view.getLocationOnScreen(location);
+            JSONArray parents = new JSONArray();
+            android.view.ViewParent parent = view.getParent();
+            while (parent instanceof View) {
+              require(parents.length() < 256, "native input ancestry limit");
+              View ancestor = (View)parent;
+              int[] position = new int[2]; ancestor.getLocationOnScreen(position);
+              parents.put(new JSONObject().put("tag", ancestor.getId()).put("screenPixels", new JSONArray()
+                .put(position[0]).put(position[1]).put(ancestor.getWidth()).put(ancestor.getHeight())));
+              parent = ancestor.getParent();
+            }
+            ReactEditText editor = (ReactEditText)view;
             observations.put(new JSONObject().put("tag", tag).put("nativeRef", System.identityHashCode(view))
-              .put("screenPixels", new JSONArray().put(location[0]).put(location[1]).put(view.getWidth()).put(view.getHeight())));
+              .put("screenPixels", new JSONArray().put(location[0]).put(location[1]).put(view.getWidth()).put(view.getHeight()))
+              .put("text", editor.getText().toString()).put("focused", editor.hasFocus())
+              .put("enabled", editor.isEnabled()).put("focusable", editor.isFocusable()).put("shown", editor.isShown()).put("parents", parents));
           }
         } else if ("before".equals(mode)) {
           require(!held.containsKey(phase), "repeated native baseline");
