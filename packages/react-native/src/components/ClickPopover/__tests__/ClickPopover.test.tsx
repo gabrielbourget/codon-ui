@@ -1,16 +1,31 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
-import { AccessibilityInfo, TextInput, type View, type GestureResponderEvent } from "react-native"
+import {
+  AccessibilityInfo,
+  findNodeHandle,
+  ScrollView,
+  TextInput,
+  type View,
+  type GestureResponderEvent,
+} from "react-native"
 
-import { Button, Input, NativeFloatingLayerHost, NativeFocusView, NativeThemeProvider, Text } from "../../.."
+import {
+  Button,
+  ClickPopover,
+  Input,
+  NativeDialogTrigger,
+  NativeFloatingLayerHost,
+  NativeFocusView,
+  NativeThemeProvider,
+  Text,
+  type TNativeDialogTriggerRenderState,
+  type TNativeClickPopoverProps,
+} from "../../.."
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import type { TNativeFloatingFocusEvent } from "../../../overlays/floating/interaction"
-import {
-  NativeDialogTrigger,
-  type TNativeDialogTriggerRenderState,
-} from "../../../overlays/floating/NativeDialogTrigger"
-import { ClickPopover } from "../ClickPopover"
-import type { TNativeClickPopoverProps } from "../types"
+
+jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
+jest.unmock("react-native/Libraries/Components/ScrollView/ScrollView")
 
 const hidden = { includeHiddenElements: true }
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
@@ -18,6 +33,7 @@ let frameId = 0
 beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
+  jest.spyOn(Commands, "requestContainerFocus").mockImplementation(() => {})
   frames.clear()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   jest.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
@@ -44,12 +60,18 @@ const focus = () =>
     persist: jest.fn(),
     isPropagationStopped: () => false,
   }) as unknown as TNativeFloatingFocusEvent
+const tick = async () =>
+  act(() => {
+    const pending = [...frames.values()]
+    frames.clear()
+    pending.forEach((callback) => callback(0))
+  })
 const setup = (initial: Partial<TNativeClickPopoverProps> = {}, body: ReactNode = "Popover body") => {
   const root = createRef<View>(),
     host = createRef<View>()
   const onOpenChange = jest.fn()
   let trigger: TNativeDialogTriggerRenderState
-  const node = (props = initial, theme: "light" | "dark" = "light") => (
+  const node = (props = initial, theme: "light" | "dark" = "light", mounted = true) => (
     <NativeThemeProvider mode={theme}>
       <NativeFloatingLayerHost ref={host} testID="host">
         <NativeDialogTrigger
@@ -64,9 +86,11 @@ const setup = (initial: Partial<TNativeClickPopoverProps> = {}, body: ReactNode 
             )
           }}
         >
-          <ClickPopover {...props} ref={root}>
-            {body}
-          </ClickPopover>
+          {mounted && (
+            <ClickPopover {...props} ref={root}>
+              {body}
+            </ClickPopover>
+          )}
         </NativeDialogTrigger>
       </NativeFloatingLayerHost>
     </NativeThemeProvider>
@@ -188,9 +212,9 @@ it("renders childIsDialog false with root foreground and preserves authored cont
   await f.ready()
   expect(screen.queryByTestId("click-popover-dialog", hidden)).toBeNull()
   expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ width: 0 })
-  expect(screen.getByLabelText("Draft", hidden)).toHaveDisplayValue("")
+  expect(screen.getByLabelText("Draft", hidden).props.text).toBe("")
   await result.rerender(f.node({ childIsDialog: false, color: "red", style: { width: 0 } }, "dark"))
-  expect(screen.getByLabelText("Draft", hidden)).toHaveDisplayValue("")
+  expect(screen.getByLabelText("Draft", hidden).props.text).toBe("")
   expect(change).not.toHaveBeenCalled()
 })
 
@@ -289,7 +313,7 @@ it.each([true, false])(
     const onFocus = jest.fn()
     const f = setup({ childIsDialog, onFocus })
     await render(f.node())
-    expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+    expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
     await f.ready()
     await act(() => {
       const pending = [...frames.values()]
@@ -297,9 +321,9 @@ it.each([true, false])(
       pending.forEach((callback) => callback(0))
     })
     const node = screen.getByTestId(childIsDialog ? "click-popover-dialog" : "click-popover", hidden)
-    expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
-    expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(expect.anything(), node.props.ownerId)
-    if (!childIsDialog) expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls[0][0]).toBe(f.root.current)
+    expect(Commands.requestContainerFocus).toHaveBeenCalledTimes(1)
+    expect(Commands.requestContainerFocus).toHaveBeenCalledWith(expect.anything(), node.props.ownerId)
+    if (!childIsDialog) expect(jest.mocked(Commands.requestContainerFocus).mock.calls[0][0]).toBe(f.root.current)
     expect(onFocus).not.toHaveBeenCalled()
   },
 )
@@ -327,10 +351,10 @@ it("retires captured entry frames on close and unmount, even if a cancelled call
   const pending = [...frames.values()]
   await screen.rerender(f.node({ isOpen: false }))
   await act(() => pending.forEach((callback) => callback(0)))
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
   await screen.unmount()
   await act(() => pending.forEach((callback) => callback(0)))
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
 })
 
 it("does not move focus for a ready nonmodal surface without a dialog or explicit target", async () => {
@@ -342,7 +366,7 @@ it("does not move focus for a ready nonmodal surface without a dialog or explici
     frames.clear()
     pending.forEach((callback) => callback(0))
   })
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
 })
 
 it("restores the actual owned trigger after close and refuses a cancelled restoration after reopen", async () => {
@@ -387,27 +411,19 @@ it("uses a registered core editor's unchanged focus method without writing its c
   )
   await render(f.node())
   const actual = target.current!
-  const state = jest.requireActual<{
-    default: { registerInput: (view: TextInput) => void; unregisterInput: (view: TextInput) => void }
-  }>("react-native/Libraries/Components/TextInput/TextInputState").default
-  state.registerInput(actual)
   const focus = jest.spyOn(actual, "focus"),
     write = jest.spyOn(actual, "setNativeProps")
-  try {
-    await f.ready()
-    await act(() => {
-      const pending = [...frames.values()]
-      frames.clear()
-      pending.forEach((callback) => callback(0))
-    })
-    expect(focus).toHaveBeenCalledTimes(1)
-    expect(write).not.toHaveBeenCalled()
-    expect(change).not.toHaveBeenCalled()
-    expect(screen.getByTestId("editor", hidden).props.value).toBe("")
-    expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
-  } finally {
-    state.unregisterInput(actual)
-  }
+  await f.ready()
+  await act(() => {
+    const pending = [...frames.values()]
+    frames.clear()
+    pending.forEach((callback) => callback(0))
+  })
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(write).not.toHaveBeenCalled()
+  expect(change).not.toHaveBeenCalled()
+  expect(screen.getByTestId("editor", hidden).props.value).toBe("")
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
 })
 
 it("recaptures modal outside focus through the owned backend while forwarding the original owner event", async () => {
@@ -416,7 +432,7 @@ it("recaptures modal outside focus through the owned backend while forwarding th
   await f.ready()
   const event = focus()
   await act(() => screen.getByTestId("host").props.onFocusCapture(event))
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(
+  expect(Commands.requestContainerFocus).toHaveBeenLastCalledWith(
     expect.anything(),
     screen.getByTestId("click-popover-dialog", hidden).props.ownerId,
   )
@@ -447,7 +463,7 @@ it("preserves explicit root focusable=false and zero dimensions without admittin
   })
   expect(screen.getByTestId("click-popover", hidden).props.keyboardFocusable).toBe(false)
   expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ width: 0, height: 0 })
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
 })
 
 it("uses a replacement restore ref before its queued frame without losing the close request", async () => {
@@ -494,20 +510,20 @@ it("waits for native readiness and retires entry frames from earlier window epoc
     frames.clear()
     pending.forEach((callback) => callback(0))
   })
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
   await f.acknowledge()
   const stale = [...frames.values()]
   expect(stale.length).toBeGreaterThan(0)
   await f.acknowledge(2, false)
   await f.acknowledge(3, true)
   await act(() => stale.forEach((callback) => callback(0)))
-  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(Commands.requestContainerFocus).not.toHaveBeenCalled()
   await act(() => {
     const pending = [...frames.values()]
     frames.clear()
     pending.forEach((callback) => callback(0))
   })
-  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  expect(Commands.requestContainerFocus).toHaveBeenCalledTimes(1)
 })
 
 it("does not replay a close restoration in a later native window epoch", async () => {
@@ -532,4 +548,174 @@ it("does not replay a close restoration in a later native window epoch", async (
     ;[...stale, ...pending].forEach((callback) => callback(0))
   })
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("restores the actual trigger after an open owner unmounts while the host remains", async () => {
+  const f = setup()
+  await render(f.node())
+  await f.ready()
+  await tick()
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await screen.rerender(f.node({}, "light", false))
+  await f.acknowledge()
+  await tick()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(
+    f.trigger().triggerRef.current,
+    screen.getByTestId("trigger").props.ownerId,
+  )
+})
+
+it("preserves outside nonmodal focus after the owner confirms closure", async () => {
+  const f = setup({ isNonModal: true })
+  await render(f.node())
+  await f.ready()
+  await tick()
+  await act(() => screen.getByTestId("host").props.onFocusCapture(focus()))
+  await screen.rerender(f.node({ isNonModal: true, isOpen: false }))
+  await f.acknowledge()
+  await tick()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("forwards inherited relationships to the native root without leaking owned props", async () => {
+  const f = setup({
+    "aria-label": "Owned label",
+    "aria-labelledby": "title",
+    "aria-describedby": "description",
+    "aria-details": "details",
+    descriptionLabel: "Explanation",
+    detailsLabel: "More",
+  })
+  await render(f.node())
+  const root = screen.getByTestId("click-popover", hidden)
+  expect(root.props).toMatchObject({
+    accessibilityLabel: "Owned label",
+    nativeLabelledBy: ["title"],
+    nativeDescribedBy: ["description"],
+    nativeDetailsBy: ["details"],
+    nativeDescriptionLabel: "Explanation",
+    nativeDetailsLabel: "More",
+  })
+  expect(root.props.descriptionLabel).toBeUndefined()
+  expect(root.props.scrollRef).toBeUndefined()
+})
+
+it("binds the actual scroll ref, follows ref replacement and forwards the original owner scroll event", async () => {
+  const first = createRef<ScrollView>(),
+    second = createRef<ScrollView>(),
+    onScroll = jest.fn()
+  const f = setup(
+    { scrollRef: first },
+    <>
+      <ScrollView ref={first} testID="scroll-first" onScroll={onScroll} />
+      <ScrollView ref={second} testID="scroll-second" />
+    </>,
+  )
+  await render(f.node())
+  await f.ready()
+  await tick()
+  expect(screen.getByTestId("click-popover", hidden).props.nativeScrollAnchorTag).toBe(findNodeHandle(first.current))
+  const nativeHandler = screen.getByTestId("scroll-first", hidden).props.onScroll
+  const event = {
+    nativeEvent: {
+      contentOffset: { x: 0, y: 12 },
+      contentSize: { width: 100, height: 500 },
+      layoutMeasurement: { width: 100, height: 80 },
+    },
+  }
+  await act(() => nativeHandler(event))
+  expect(onScroll.mock.calls[0][0]).toBe(event)
+  await screen.rerender(f.node({ scrollRef: second }))
+  await tick()
+  expect(screen.getByTestId("scroll-first", hidden).props.onScroll).toBe(nativeHandler)
+  expect(screen.getByTestId("click-popover", hidden).props.nativeScrollAnchorTag).toBe(findNodeHandle(second.current))
+  await screen.rerender(f.node({ scrollRef: second, shouldUpdatePosition: false }))
+  expect(screen.getByTestId("click-popover", hidden).props.nativeScrollAnchorTag).toBe(0)
+})
+
+it("opts out of the trigger context when slot=null", async () => {
+  const f = setup({ slot: null })
+  await render(f.node())
+  expect(screen.queryByTestId("click-popover", hidden)).toBeNull()
+  expect(f.onOpenChange).not.toHaveBeenCalled()
+})
+
+it("gives nonmodal SubmenuTrigger its dialog root and outside-press veto", async () => {
+  const veto = jest.fn().mockReturnValue(false)
+  const f = setup({
+    isNonModal: true,
+    childIsDialog: false,
+    trigger: "SubmenuTrigger",
+    shouldCloseOnInteractOutside: veto,
+  })
+  await render(f.node())
+  await f.ready()
+  expect(screen.getByTestId("click-popover", hidden).props.role).toBe("dialog")
+  await f.outside()
+  expect(veto).toHaveBeenCalledTimes(1)
+  expect(f.onOpenChange).not.toHaveBeenCalled()
+  await screen.rerender(f.node({ isNonModal: true, childIsDialog: false, trigger: "SubmenuTrigger" }))
+  await f.outside()
+  expect(f.onOpenChange.mock.calls).toEqual([[false]])
+})
+
+it("rejects retained outside and trigger handlers while the physical input window is inactive", async () => {
+  const veto = jest.fn().mockReturnValue(true)
+  const f = setup({ shouldCloseOnInteractOutside: veto })
+  await render(f.node())
+  await f.ready()
+  const trigger = f.trigger().triggerProps.onPress
+  await f.acknowledge(2, false)
+  await f.outside()
+  await act(() => trigger(touch()))
+  expect(f.onOpenChange).not.toHaveBeenCalled()
+  expect(veto).not.toHaveBeenCalled()
+})
+
+it.each([
+  [{ isNonModal: false }, false],
+  [{ isNonModal: true }, true],
+  [{ isNonModal: true, trigger: "SubmenuTrigger" }, false],
+] as const)("preserves ancestor-scroll dismissal policy for %j", async (props, closes) => {
+  const ReactNative = jest.requireActual<typeof import("react-native")>("react-native")
+  jest.spyOn(ReactNative, "findNodeHandle").mockReturnValue(91)
+  const f = setup(props)
+  await render(f.node())
+  await f.ready()
+  await tick()
+  await f.acknowledge()
+  const host = screen.getByTestId("host").props
+  expect(host.floatingTargets).toHaveLength(1)
+  const packet = {
+    ownerId: host.ownerId,
+    windowId: "focus-window",
+    epoch: 1,
+    ...host.floatingTargets[0],
+    x: 0,
+    y: 0,
+    width: 300,
+    height: 400,
+    scrollRevision: 0,
+    revision: 1,
+  }
+  await act(() => host.onNativeFloatingObservation({ nativeEvent: packet }))
+  await act(() => host.onNativeFloatingObservation({ nativeEvent: { ...packet, revision: 2, scrollRevision: 1 } }))
+  expect(f.onOpenChange.mock.calls).toEqual(closes ? [[false]] : [])
+})
+
+it.each(["pointer", "keyboard"] as const)("uses %s entry intent for a nonmodal SubmenuTrigger", async (origin) => {
+  const props = { isNonModal: true, childIsDialog: false, trigger: "SubmenuTrigger" }
+  const f = setup({ ...props, isOpen: false })
+  await render(f.node())
+  await f.acknowledge()
+  const host = screen.getByTestId("host").props
+  await act(() =>
+    host.onNativeInputModality({
+      nativeEvent: { ownerId: host.ownerId, windowId: "focus-window", epoch: 1, origin, timestamp: 1 },
+    }),
+  )
+  await screen.rerender(f.node({ ...props, isOpen: true }))
+  await f.ready()
+  await tick()
+  expect(Commands.requestContainerFocus).toHaveBeenCalledTimes(origin === "keyboard" ? 1 : 0)
 })

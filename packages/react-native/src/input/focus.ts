@@ -7,7 +7,13 @@ const textInputState: Readonly<{
   isTextInput: (target: TTarget) => boolean
   currentlyFocusedInput: () => TextInput | null
 }> = upstreamTextInputState
-type TBinding = Readonly<{ focus: () => void; blur: () => void; canFocus: () => boolean; window?: () => string }>
+type TBinding = Readonly<{
+  focus: () => void
+  focusContainer?: () => void
+  blur: () => void
+  canFocus: () => boolean
+  window?: () => string
+}>
 const bindings = new WeakMap<TTarget, TBinding>()
 const focusObservers = new Set<() => void>()
 let observedFocus: TTarget | null = null
@@ -87,4 +93,12 @@ const request = (target: TTarget | null, action: "focus" | "blur") => {
 
 // Admission is synchronous; completion is acknowledged by the target's native focus event.
 export const focusNativeTarget = (target: TTarget | null): boolean => request(target, "focus")
+export const focusNativeContainer = (target: TTarget | null): boolean => {
+  if (!target) return false
+  const binding = bindings.get(target)
+  if (!binding || !binding.canFocus()) return false
+  const requestFocus = binding.focusContainer ?? binding.focus
+  requestFocus()
+  return true
+}
 export const blurNativeTarget = (target: TTarget | null): boolean => request(target, "blur")

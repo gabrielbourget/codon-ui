@@ -14,6 +14,16 @@ const renderShowcase = async () =>
     </SafeAreaInsetsContext.Provider>,
   )
 
+it("opens the public ClickPopover scene and returns to the foundation on reset", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "ClickPopover scene" }))
+  expect(screen.getByTestId("popover-scene-state")).toHaveTextContent(/Open: false.*Requests: 0/)
+  await user.press(screen.getByRole("button", { name: "Reset scene" }))
+  expect(screen.queryByTestId("popover-scene-state")).toBeNull()
+  expect(screen.getByTestId("theme-preview")).toBeOnTheScreen()
+})
+
 it("hands off a modal closed by body layout before native readiness", async () => {
   await renderShowcase()
   const user = userEvent.setup()

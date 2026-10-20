@@ -22,7 +22,8 @@ import {
 } from "react-native"
 import type { PathProps } from "react-native-svg"
 
-import { focusNativeTarget, isNativeFocusTarget } from "../../input/focus"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { focusNativeContainer, focusNativeTarget } from "../../input/focus"
 import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { useNativeFloatingMotion } from "../../overlays/floating/motion"
@@ -32,6 +33,7 @@ import { NativeFloatingPortal, useNativeFloatingHost } from "../../overlays/floa
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeFloatingLayer } from "../../overlays/floating/useFloatingLayer"
 import { useNativeFloatingPosition } from "../../overlays/floating/useFloatingPosition"
+import { useNativeFloatingScrollAnchor } from "../../overlays/floating/useFloatingScrollAnchor"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
@@ -76,7 +78,8 @@ export const NativeFloatingSurface = forwardRef<
     shouldCloseOnInteractOutside,
     isEntering = false,
     isExiting = false,
-    trigger: _trigger,
+    trigger: triggerName,
+    slot,
     childIsDialog = true,
     showOverlayArrow = false,
     raised: _raised,
@@ -93,6 +96,11 @@ export const NativeFloatingSurface = forwardRef<
     "data-testid": aliasTestID,
     "aria-label": aliasLabel,
     accessibilityLabel,
+    "aria-labelledby": labelledBy,
+    "aria-describedby": describedBy,
+    "aria-details": detailsBy,
+    descriptionLabel = "Description",
+    detailsLabel = "Details",
     onLayout,
     onFocus,
     onBlur,
@@ -107,16 +115,18 @@ export const NativeFloatingSurface = forwardRef<
   const inputSession = getFocusSessionKey(input)
   const inputReady = input?.isNativeReady() ?? true
   const trigger = useNativeDialogTrigger()
-  const contextOwned = isOpen === undefined && defaultOpen === undefined && trigger !== null
+  const boundTrigger = slot === null ? null : trigger
+  const contextOwned = isOpen === undefined && defaultOpen === undefined && boundTrigger !== null
   const mode = contextOwned ? "trigger" : isOpen !== undefined ? "controlled" : "local"
   const ownership = useRef(mode)
   if ((mode === "local") !== (ownership.current === "local"))
     throw new TypeError("ClickPopover: changing controlled/uncontrolled ownership is unsupported")
   const [local, setLocal] = useState(() => defaultOpen ?? false)
-  const open = contextOwned ? trigger!.isOpen : (isOpen ?? local)
+  const open = contextOwned ? boundTrigger!.isOpen : (isOpen ?? local)
+  const submenu = triggerName === "SubmenuTrigger"
   const fallbackTrigger = useRef<View>(null)
-  const anchor = authoredTrigger ?? trigger?.triggerRef ?? fallbackTrigger
-  if (open && authoredTrigger === undefined && trigger === null)
+  const anchor = authoredTrigger ?? boundTrigger?.triggerRef ?? fallbackTrigger
+  if (open && authoredTrigger === undefined && boundTrigger === null)
     throw new TypeError("ClickPopover: supply a native triggerRef or NativeDialogTrigger")
   const root = useRef<View>(null)
   const dialog = useRef<View>(null)
@@ -130,9 +140,13 @@ export const NativeFloatingSurface = forwardRef<
   }, [])
   const current = useRef({ open, contextOwned, trigger, onOpenChange, shouldCloseOnInteractOutside })
   current.current = { open, contextOwned, trigger, onOpenChange, shouldCloseOnInteractOutside }
+  const suppressRestore = useRef(false)
+  const priorOpen = useRef(open)
+  if (open && !priorOpen.current) suppressRestore.current = false
+  priorOpen.current = open
   const close = () => {
     const owner = current.current
-    if (!live.current || !owner.open) return
+    if (!live.current || !owner.open || input?.isWindowActive() === false || windowActive?.() === false) return
     if (owner.contextOwned) owner.trigger!.request(false)
     else {
       if (ownership.current === "local") setLocal(false)
@@ -164,13 +178,15 @@ export const NativeFloatingSurface = forwardRef<
     priority: calibrated.priority,
     onDismiss: close,
     onOutside: (interaction) => {
+      if (!live.current || input?.isWindowActive() === false || windowActive?.() === false) return
       if (interaction.kind === "focus") {
         if (isNonModal) {
+          suppressRestore.current = true
           if (current.current.shouldCloseOnInteractOutside?.(interaction) !== false) close()
-        } else if (input?.isNativeReady() !== false) focusNativeTarget((childIsDialog ? dialog : root).current)
+        } else if (input?.isNativeReady() !== false) focusNativeContainer((childIsDialog ? dialog : root).current)
         return
       }
-      if (!isNonModal && current.current.shouldCloseOnInteractOutside?.(interaction) !== false) close()
+      if ((!isNonModal || submenu) && current.current.shouldCloseOnInteractOutside?.(interaction) !== false) close()
     },
   })
   const position = useNativeFloatingPosition({
@@ -190,6 +206,9 @@ export const NativeFloatingSurface = forwardRef<
     arrowSize: showOverlayArrow ? (arrowLayout?.width ?? 10) : 0,
     margins: calibrated.margins,
     layoutRevision,
+    onAncestorScroll: () => {
+      if (isNonModal && !submenu && layer.canAct()) close()
+    },
   })
   useLayoutEffect(() => {
     if (position) setSide(position.placement)
@@ -206,18 +225,30 @@ export const NativeFloatingSurface = forwardRef<
   if (geometryReady) positionedGeneration.current = layer.generation
   const transitionReady = geometryReady || positionedGeneration.current === layer.generation || (!open && isExiting)
   const motion = useNativeFloatingMotion(layer, transitionReady, open, isEntering, isExiting)
-  const ready = geometryReady && motion.preferenceReady && windowActive?.() !== false
+  const ready =
+    geometryReady && motion.preferenceReady && windowActive?.() !== false && input?.isWindowActive() !== false
+  const scrollAnchorTag = useNativeFloatingScrollAnchor(
+    open && layer.active && shouldUpdatePosition !== false,
+    scrollRef,
+  )
+  const scrollAnchorKey = JSON.stringify([layer.id, layer.generation, inputSession, host.generation.current])
+  const scrollAnchorRevision = JSON.stringify([position?.frame, position?.positionStyle, position?.maxHeight])
   useLayoutEffect(() => {
     if (ready && layer.phase === "entering") layer.entered()
   }, [ready, layer.phase, layer.generation])
-  const focused = useRef<number | null>(null)
+  const focused = useRef<{ generation: number; target: View | null; explicit: boolean } | null>(null)
+  const entryIntent = useRef({ generation: -1, pointer: false })
+  if (entryIntent.current.generation !== layer.generation)
+    entryIntent.current = { generation: layer.generation, pointer: input?.lastInput()?.origin === "pointer" }
   useLayoutEffect(() => {
     if (
       !ready ||
       !inputReady ||
       !layer.active ||
-      focused.current === layer.generation ||
-      (isNonModal && !childIsDialog && !initialFocusRef)
+      (focused.current?.generation === layer.generation &&
+        (focused.current.explicit || focused.current.target === (childIsDialog ? dialog : root).current)) ||
+      (isNonModal && !submenu && !childIsDialog && !initialFocusRef) ||
+      (submenu && !childIsDialog && !initialFocusRef && entryIntent.current.pointer)
     )
       return
     let retired = false
@@ -231,7 +262,12 @@ export const NativeFloatingSurface = forwardRef<
       )
         return
       const target = (initialFocusRef ?? (childIsDialog ? dialog : root)).current
-      if (focusNativeTarget(target)) focused.current = layer.generation
+      if (initialFocusRef ? focusNativeTarget(target) : focusNativeContainer(target))
+        focused.current = {
+          generation: layer.generation,
+          target: (childIsDialog ? dialog : root).current,
+          explicit: initialFocusRef !== undefined,
+        }
     })
     return () => {
       retired = true
@@ -244,47 +280,48 @@ export const NativeFloatingSurface = forwardRef<
     initialFocusRef,
     childIsDialog,
     isNonModal,
+    submenu,
     input,
     inputSession,
     inputReady,
   ])
-  type TRestoreSession = { input: typeof input; session: string; parent: string | null }
-  const wasMounted = useRef<TRestoreSession | null>(null)
-  const pendingRestore = useRef<TRestoreSession | null>(null)
+  const returnSnapshot = useRef<{
+    mounted: boolean
+    parent: string | null
+    input: typeof input
+    target: typeof anchor
+  } | null>(null)
+  const returnLease = useRef<ReturnType<typeof host.focusReturns.request>>(undefined)
+  const latestReturn = useRef({ parent: parent?.id ?? null, input, target: restoreFocusRef ?? anchor })
+  latestReturn.current = { parent: parent?.id ?? null, input, target: restoreFocusRef ?? anchor }
   useLayoutEffect(() => {
     if (layer.mounted) {
-      wasMounted.current = { input, session: inputSession, parent: parent?.id ?? null }
-      pendingRestore.current = null
+      host.focusReturns.cancel(layer.id)
+      returnLease.current = undefined
+      returnSnapshot.current = { mounted: true, ...latestReturn.current }
       return
     }
-    if (wasMounted.current) pendingRestore.current = wasMounted.current
-    wasMounted.current = null
-    const restore = pendingRestore.current
-    if (!restore) return
-    if (restore.input !== input || restore.session !== inputSession || restore.parent !== (parent?.id ?? null)) {
-      pendingRestore.current = null
-      return
-    }
-    if (!inputReady) return
-    let retired = false
-    const frame = requestAnimationFrame(() => {
-      if (retired || !live.current) return
-      if (input?.isNativeReady() === false) return
-      pendingRestore.current = null
-      if (
-        windowActive?.() === false ||
-        getFocusSessionKey(input) !== restore.session ||
-        !host.layers.canRestore(parent?.id ?? null)
-      )
-        return
-      const target = (restoreFocusRef ?? anchor).current
-      if (isNativeFocusTarget(target)) focusNativeTarget(target)
-    })
-    return () => {
-      retired = true
-      cancelAnimationFrame(frame)
-    }
-  }, [layer.mounted, host.layers, parent?.id, restoreFocusRef, anchor, windowActive, input, inputSession, inputReady])
+    const snapshot = returnSnapshot.current
+    if (snapshot?.mounted) {
+      snapshot.mounted = false
+      if (!suppressRestore.current)
+        returnLease.current = host.focusReturns.request(
+          layer.id,
+          snapshot.parent,
+          snapshot.input,
+          latestReturn.current.target,
+        )
+    } else returnLease.current?.updateTarget(latestReturn.current.target)
+  }, [layer.mounted, layer.id, host.focusReturns, restoreFocusRef, anchor, parent?.id, input])
+  useLayoutEffect(
+    () => () => {
+      if (returnSnapshot.current?.mounted && !suppressRestore.current) {
+        const snapshot = latestReturn.current
+        host.focusReturns.request(layer.id, snapshot.parent, snapshot.input, snapshot.target)
+      }
+    },
+    [host.focusReturns, layer.id],
+  )
   const [dialogFocused, setDialogFocused] = useState(false)
   if (!layer.mounted && !isExiting) return null
   const identity = testID ?? aliasTestID ?? "click-popover"
@@ -328,10 +365,18 @@ export const NativeFloatingSurface = forwardRef<
               accessible={false}
               focusable={nativeProps.focusable !== false && !childIsDialog && ready && layer.active}
               accessibilityLabel={accessibilityLabel ?? aliasLabel}
+              nativeLabelledBy={nativeAccessibilityIDs(nativeProps.accessibilityLabelledBy ?? labelledBy)}
+              nativeDescribedBy={nativeAccessibilityIDs(describedBy)}
+              nativeDetailsBy={nativeAccessibilityIDs(detailsBy)}
+              nativeDescriptionLabel={descriptionLabel}
+              nativeDetailsLabel={detailsLabel}
+              nativeScrollAnchorTag={ready ? scrollAnchorTag : 0}
+              nativeScrollAnchorKey={scrollAnchorKey}
+              nativeScrollAnchorRevision={scrollAnchorRevision}
               role={
                 nativeRootRole === null
                   ? undefined
-                  : (nativeRootRole ?? (!childIsDialog && !isNonModal ? "dialog" : undefined))
+                  : (nativeRootRole ?? (!childIsDialog && (!isNonModal || submenu) ? "dialog" : undefined))
               }
               accessibilityViewIsModal={!isNonModal}
               style={[
@@ -348,7 +393,10 @@ export const NativeFloatingSurface = forwardRef<
                 onTouchStartCapture: mark,
                 onTouchEndCapture: mark,
                 onFocusCapture: (event: Parameters<NonNullable<TNativeClickPopoverProps["onFocus"]>>[0]) => {
-                  if (layer.canAct()) host.interactions.mark(layer.id, event)
+                  if (layer.canAct()) {
+                    suppressRestore.current = false
+                    host.interactions.mark(layer.id, event)
+                  }
                 },
               }}
               onLayout={updateLayout}

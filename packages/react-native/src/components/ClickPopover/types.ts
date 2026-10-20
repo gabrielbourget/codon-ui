@@ -3,7 +3,6 @@ import type { ColorValue, ScrollView, StyleProp, TextInput, TextStyle, View, Vie
 import type { PathProps } from "react-native-svg"
 
 import type { TNativeFloatingOutsideInteraction } from "../../overlays/floating/interaction"
-import type { TNativeFloatingMeasurable } from "../../overlays/floating/measurement"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
 import type { TNativeDisplayDimension } from "../displayDimensions"
@@ -34,8 +33,8 @@ export type TNativeClickPopoverProps = Omit<
   isOpen?: boolean
   defaultOpen?: boolean
   onOpenChange?: (open: boolean) => void
-  triggerRef?: RefObject<TNativeFloatingMeasurable | null>
-  boundaryRef?: RefObject<TNativeFloatingMeasurable | null>
+  triggerRef?: RefObject<View | TextInput | null>
+  boundaryRef?: RefObject<View | TextInput | null>
   scrollRef?: RefObject<ScrollView | null>
   initialFocusRef?: RefObject<View | TextInput | null>
   restoreFocusRef?: RefObject<View | TextInput | null>
@@ -54,6 +53,7 @@ export type TNativeClickPopoverProps = Omit<
   isEntering?: boolean
   isExiting?: boolean
   trigger?: string
+  slot?: string | null
   childIsDialog?: boolean
   showOverlayArrow?: boolean
   raised?: boolean
@@ -68,4 +68,8 @@ export type TNativeClickPopoverProps = Omit<
   customDialogStyles?: StyleProp<TextStyle>
   "data-testid"?: string
   "aria-label"?: string
+  "aria-describedby"?: string
+  "aria-details"?: string
+  descriptionLabel?: string
+  detailsLabel?: string
 }

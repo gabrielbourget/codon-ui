@@ -26,6 +26,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { CircularCounterScene } from "./CircularCounterScene"
+import { ClickPopoverScene } from "./ClickPopoverScene"
 import { DisplayScene } from "./DisplayScene"
 import { FormFieldScene } from "./FormFieldScene"
 import { GalleryScene } from "./GalleryScene"
@@ -180,6 +181,7 @@ export const NativeShowcase = () => {
     | "search"
     | "circular"
     | "tooltip"
+    | "popover"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -222,6 +224,11 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
               <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
+              <FixtureAction
+                label="ClickPopover scene"
+                selected={scene === "popover"}
+                onPress={() => setScene("popover")}
+              />
               <FixtureAction
                 label="Tooltip/Hover scene"
                 selected={scene === "tooltip"}
@@ -288,7 +295,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "tooltip" ? (
+              {scene === "popover" ? (
+                <ClickPopoverScene />
+              ) : scene === "tooltip" ? (
                 <TooltipScene />
               ) : scene === "circular" ? (
                 <CircularCounterScene />

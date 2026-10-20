@@ -28,6 +28,7 @@ import { Portal, PortalHost, PortalProvider } from "react-native-teleport"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeKeyboardScope, useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 
+import { createNativeFloatingFocusReturns } from "./focusReturn"
 import { createNativeFloatingInteractions } from "./interaction"
 import {
   createNativeFloatingLayerRegistry,
@@ -55,6 +56,7 @@ type TNativeFloatingHost = {
   layers: TNativeFloatingLayerRegistry
   interactions: ReturnType<typeof createNativeFloatingInteractions>
   tooltipTiming: ReturnType<typeof createNativeTooltipTiming>
+  focusReturns: ReturnType<typeof createNativeFloatingFocusReturns>
   layout: Readonly<{ width: number; height: number }> | null
 }
 
@@ -149,6 +151,14 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
       onTouchCancelCapture,
       onFocusCapture,
     }
+    const [focusReturns] = useState(() =>
+      createNativeFloatingFocusReturns({
+        layers,
+        live: () => live.current,
+        windowActive: () => current.current.windowActive?.() !== false,
+      }),
+    )
+    useInsertionEffect(() => () => focusReturns.dispose(), [focusReturns])
     const [layout, setLayout] = useState<TNativeFloatingHost["layout"]>(null)
     useImperativeHandle(ref, () => root.current!)
     useLayoutEffect(() => {
@@ -166,8 +176,8 @@ export const NativeFloatingLayerHost = forwardRef<TNativeFloatingLayerHostRef, T
       return () => subscription.remove()
     }, [layers])
     const host = useMemo(
-      () => ({ name, root, generation, live, layers, interactions, tooltipTiming, layout }),
-      [name, layers, interactions, tooltipTiming, layout],
+      () => ({ name, root, generation, live, layers, interactions, tooltipTiming, focusReturns, layout }),
+      [name, layers, interactions, tooltipTiming, focusReturns, layout],
     )
     const scope = useMemo(
       () => ({

@@ -171,8 +171,10 @@ export const createNativeFloatingLayerRegistry = () => {
         },
       }
     },
-    canRestore: (parent: string | null) =>
-      parent === null ? stack().length === 0 : state(parent).active && top()?.[0] === parent,
+    canRestore: (parent: string | null) => {
+      const focusLayers = stack().filter(([, entry]) => entry.isModal || entry.capturesOutside !== false)
+      return parent === null ? focusLayers.length === 0 : state(parent).active && focusLayers.at(-1)?.[0] === parent
+    },
     register: (id: string, options: TOptions, notify = true) => {
       assertParent(id, options.parent)
       if (entries.has(id)) throw new Error("Floating layer identity is already registered")

@@ -445,6 +445,20 @@ export type {
   TNativeTooltipTriggerMode,
 } from "./overlays/floating/NativeTooltipTrigger"
 export { Tooltip } from "./components/Tooltip/Tooltip"
+export { ClickPopover } from "./components/ClickPopover/ClickPopover"
+export type {
+  TNativeClickPopoverProps,
+  TNativeClickPopoverProps as ClickPopoverProps,
+  TNativeClickPopoverRef,
+  TNativeClickPopoverRootStyle,
+  TNativeClickPopoverArrowStyle,
+  TNativeFloatingOutsideInteraction,
+} from "./components/ClickPopover/types"
+export { NativeDialogTrigger } from "./overlays/floating/NativeDialogTrigger"
+export type {
+  TNativeDialogTriggerProps,
+  TNativeDialogTriggerRenderState,
+} from "./overlays/floating/NativeDialogTrigger"
 export { HoverPopover } from "./components/HoverPopover/HoverPopover"
 export type {
   TNativeTooltipProps,
