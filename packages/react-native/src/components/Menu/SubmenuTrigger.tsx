@@ -10,6 +10,8 @@ import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
 import {
   NativeMenuItemContext,
   NativeMenuDirectionContext,
+  NativeMenuActionsContext,
+  NativeMenuListContext,
   NativeMenuStateContext,
   NativeRootMenuTriggerStateContext,
   NativeSubmenuContext,
@@ -26,11 +28,13 @@ export const SubmenuTrigger = createNativeCollectionBranch<object, TNativeSubmen
   (props, ref, node) => {
     const root = useContext(NativeRootMenuTriggerStateContext)
     const parent = useContext(NativeMenuStateContext)
+    const actions = useContext(NativeMenuActionsContext)
     const inherited = useNativeSlottedContext(NativeMenuItemContext)
     const { CollectionBranch } = useContext(NativeCollectionRendererContext)
-    if (!root || !parent) throw new Error("SubmenuTrigger requires a native Menu")
+    if (!root || !parent || !actions) throw new Error("SubmenuTrigger requires a native Menu")
     const state = useNativeSubmenuTriggerState(node.key, root)
     const triggerRef = useRef<View>(null)
+    const submenuRef = useRef<View>(null)
     const mergedRef = useNativeCollectionRefs(ref, triggerRef)
     const triggerID = useId(),
       menuID = useId()
@@ -77,9 +81,22 @@ export const SubmenuTrigger = createNativeCollectionBranch<object, TNativeSubmen
             <CollectionBranch collection={collection} parent={node} />
           </NativeMenuItemContext.Provider>
         </NativeSubmenuItemContext.Provider>
-        <NativeSubmenuContext.Provider value={{ state, triggerRef, triggerID, menuID, direction }}>
-          {props.children[1]}
-        </NativeSubmenuContext.Provider>
+        <NativeMenuListContext.Provider
+          value={{ ref: submenuRef, autoFocus: state.focusStrategy ?? undefined, onClose: state.closeAll }}
+        >
+          <NativeSubmenuContext.Provider
+            value={{
+              state,
+              triggerRef,
+              triggerID,
+              menuID,
+              direction,
+              restoreRef: actions.virtualFocus ? actions.root : triggerRef,
+            }}
+          >
+            {props.children[1]}
+          </NativeSubmenuContext.Provider>
+        </NativeMenuListContext.Provider>
       </>
     )
   },

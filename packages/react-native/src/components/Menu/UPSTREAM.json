@@ -10,21 +10,25 @@
     "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/menu/useMenuTriggerState.mjs": "a14690c656625a381bd8b020ecd21fed4de14318e172dd79ef6b5efcff6d68f5",
     "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/menu/useSubmenuTriggerState.mjs": "dade0eac995f0a1184135d6d43190ee5ad97926ce88b0758424092837afe6cfa",
     "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/overlays/useOverlayTriggerState.mjs": "1a9f51c754274199f3929d08b1c62dd032a41cd6ddf74adb202d3791346c26b8",
-    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSubmenuTrigger.mjs": "080bedb8024558d644c52fda1bcb835b3d118b7163fcbcdd565b08c9e01f149f"
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSubmenuTrigger.mjs": "080bedb8024558d644c52fda1bcb835b3d118b7163fcbcdd565b08c9e01f149f",
+    "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Text.mjs": "fb01ac529c2dabb759476e391a8d5472cf967e91553b7918d9122d6a2f37e116",
+    "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Keyboard.mjs": "1b5f03bb4a3811c68de738d14bd7824c0b4869066d568471284213087f22bc0d",
+    "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/SelectionIndicator.mjs": "51a317cc5699c0e14dc16d30893d0ed39f66a8877a81399f3bd55246580bf780"
   },
   "license": "../../collection/LICENSE.react-aria.md",
-  "scope": "Private section and submenu construction: complete pinned group/root/submenu state APIs, committed branches and original visible refs, scoped forward/back keys, delayed hover and existing floating-layer close/restoration. Mouse-travel grace, complete inner-list/content contexts, maintained family scene, public and native acceptance remain open.",
+  "scope": "Private section/submenu and inner-list/content context construction: complete group/root/submenu state APIs, original dynamic values and visible refs, tree/filter/default/slot/render contracts, virtual keyboard focus, current text IDs and existing floating close/restoration. Pointer-travel grace, native active-descendant/AT binding, maintained scene, public/native acceptance remain open.",
   "authoredFilesSHA256": {
     "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
     "MenuSection.tsx": "37aaa4e86e6a9fa0fa661980dc231ae2fe43f217916c6c629a155a4ff83b5613",
     "MenuHeader.tsx": "9c32e40d56137da4a84b86cd3cd9b055a0d38c8157a87fbd4709c08284c85ef8",
-    "Menu.tsx": "e3472fa3cff8e92e5ce14f5cbaeba700569c0f0bd6ac4ff35d604349d7f07ee1",
-    "MenuItem.tsx": "079ab38a51409961dd45d2acf3acc7395366ddc85661e45198de17fc0f5e113e",
-    "context.ts": "a9feaed3ac51cb15bf86763de99ee5903b0be5c6bca2083f89aa1fab52770bb9",
-    "types.ts": "5b85c23b6e16927eb228c639aee74e4b7f7511718f0f78c35d03e39a64204fce",
+    "Menu.tsx": "7375f94b227809d1fa703a4a2fdeb3f2a642bc47c11cd3fc914db753eeb0736f",
+    "MenuItem.tsx": "6749fc2f5cfde5f99a549d56c3666b91f5a8de4fd89a898f58a4e36567c558f3",
+    "context.ts": "2057dcc9c603300e8c1b97dd16bf10abe297571ec80fdcd1ca495026d69f9fbf",
+    "types.ts": "b1431e11ef9e549314b13db35f26d818bd07e14c6f3e9516b72047c1c34c44cb",
     "NativeMenuTrigger.tsx": "a4cc2b234ff3f44a54e471978e316ac33fbd5a3719a804a9f25b6031b04dd52c",
     "triggerState.ts": "4059f13ad23ea183850525bf023ce9d3b07801478b17077f9a29217a54a83b43",
-    "SubmenuTrigger.tsx": "81e04eb37f84144e047597ca07d8cd0a329773052999427f032d1c7f6dcb9f7f",
-    "../../collection/snapshot.ts": "eb2eb9bd6be41f56d57504f34300300bf1f4a18ebf2daee2495709981c8ba2f5"
+    "SubmenuTrigger.tsx": "12366419c91e989eecbcb2005fc914a85b14331c7a027db99d7c246feead3c28",
+    "../../collection/snapshot.ts": "eb2eb9bd6be41f56d57504f34300300bf1f4a18ebf2daee2495709981c8ba2f5",
+    "content.tsx": "9db62dd2557cf6fa6ec958f0222f2b7505c20004ddb8e97a3b24e6e1f56495c7"
   }
 }

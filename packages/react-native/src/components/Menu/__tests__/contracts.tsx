@@ -1,13 +1,16 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
-import { Button } from "../../.."
+import { Button, NativeFocusView } from "../../.."
+import { MenuText, MenuKeyboardShortcut } from "../content"
+import { NativeMenuListContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
 import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
 import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
 import { SubmenuTrigger } from "../SubmenuTrigger"
+import type { TNativeMenuListProps } from "../types"
 const ref = createRef<View>()
 export const menu = (
   <NativeMenuTrigger trigger={(state) => <Button {...state.triggerProps}>Open</Button>}>
@@ -83,3 +86,33 @@ export const domSubmenuRef = (
     <Menu />
   </SubmenuTrigger>
 )
+type TActionValue = { id: string; label: string }
+const listDefaults: TNativeMenuListProps<TActionValue> = {
+  items: [{ id: "a", label: "Alpha" }],
+  children: (item) => <MenuItem id={item.id}>{item.label}</MenuItem>,
+  selectionMode: "multiple",
+  disabledBehavior: "selection",
+  defaultSelectedKeys: [0, "0"],
+  shouldUseVirtualFocus: true,
+  render: (props, state) => {
+    state.isEmpty.valueOf()
+    return <NativeFocusView {...props} />
+  },
+}
+export const inheritedList = (
+  <NativeMenuListContext.Provider value={listDefaults}>
+    <Menu menuListSlot={null} />
+  </NativeMenuListContext.Provider>
+)
+export const contentSlots = (
+  <>
+    <MenuText ref={createRef<import("react-native").Text>()} slot="description">
+      Description
+    </MenuText>
+    <MenuKeyboardShortcut slot={null}>⌘K</MenuKeyboardShortcut>
+  </>
+)
+// @ts-expect-error Native list style callbacks return actual native typography values.
+export const invalidListStyle: TNativeMenuListProps = { style: () => ({ fontSize: "18px" }) }
+// @ts-expect-error Original native text refs cannot be DOM spans.
+export const invalidContentRef = <MenuText ref={createRef<HTMLSpanElement>()} />

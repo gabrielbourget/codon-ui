@@ -8,26 +8,36 @@ import {
   useMemo,
   useRef,
   useState,
+  useCallback,
 } from "react"
 import { findNodeHandle, View, type TextStyle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { useNativeContextProps } from "../../collection/context"
+import { NATIVE_DEFAULT_SLOT, useNativeContextProps } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
   NativeCollectionCellFocusContext,
 } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import type { TNativeTextRef } from "../Text/types"
 
+import {
+  NativeMenuTextContext,
+  NativeMenuKeyboardShortcutContext,
+  NativeMenuSelectionIndicatorContext,
+  NativeMenuTextBindingContext,
+  type TNativeMenuTextSlot,
+} from "./content"
 import {
   NativeMenuActionsContext,
   NativeMenuItemContext,
@@ -102,6 +112,9 @@ const MenuItemReceiver = forwardRef<
     isDisabled: authoredDisabled,
     testID,
     "data-testid": aliasTestID,
+    ariaDescribedBy,
+    "aria-describedby": describedByAlias,
+    descriptionLabel,
     ...native
   } = props
   const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
@@ -111,6 +124,40 @@ const MenuItemReceiver = forwardRef<
   if (!context || !selectionManager) throw new Error("MenuItem requires a native Menu")
   const generated = useId(),
     id = authoredId ?? generated
+  const labelID = useId(),
+    descriptionID = useId(),
+    keyboardID = useId()
+  const textBindingLive = useRef(false)
+  const [textBindings, setTextBindings] = useState(
+    new Map<object, { slot: TNativeMenuTextSlot; target: TNativeTextRef; nativeID: string }>(),
+  )
+  useInsertionEffect(() => {
+    textBindingLive.current = true
+    return () => {
+      textBindingLive.current = false
+    }
+  }, [])
+  const registerText = useCallback(
+    (token: object, slot: TNativeMenuTextSlot, target: TNativeTextRef | null, nativeID: string | undefined) => {
+      if (!textBindingLive.current) return
+      setTextBindings((old) => {
+        const previous = old.get(token)
+        if (
+          target && nativeID
+            ? previous?.target === target && previous.nativeID === nativeID && previous.slot === slot
+            : !previous
+        )
+          return old
+        const next = new Map(old)
+        if (target && nativeID) next.set(token, { slot, target, nativeID })
+        else next.delete(token)
+        return next
+      })
+    },
+    [],
+  )
+  const textID = (slot: TNativeMenuTextSlot, fallback: string) =>
+    [...textBindings.values()].reverse().find((value) => value.slot === slot)?.nativeID ?? fallback
   validateNativeMenuKey(id)
   if (!NATIVE_MENU_ITEM_VARIANTS.includes(variant)) throw new TypeError("MenuItem: unsupported variant")
   const theme = useNativeTheme()
@@ -184,11 +231,22 @@ const MenuItemReceiver = forwardRef<
         />
       ) : null}
       <NativeButton
+        {...{
+          nativeLabelledBy: [textID("label", labelID)],
+          nativeDescribedBy: [
+            ...(nativeAccessibilityIDs(ariaDescribedBy ?? describedByAlias) ?? []),
+            textID("description", descriptionID),
+            textID("keyboard", keyboardID),
+          ],
+          nativeDescriptionLabel: descriptionLabel,
+        }}
         {...native}
         key={lifetime}
         ref={view}
         nativeID={submenu?.triggerID ?? props.nativeID}
         nativeRole={role}
+        focusable={context.virtualFocus ? false : props.focusable}
+        tabIndex={context.virtualFocus ? -1 : props.tabIndex}
         isDisabled={disabled}
         testID={testID ?? aliasTestID ?? "menu-item"}
         accessibilityLabel={props.accessibilityLabel ?? props["aria-label"] ?? textValue ?? textContent(children)}
@@ -209,8 +267,12 @@ const MenuItemReceiver = forwardRef<
               isDisabled: disabled,
               isHovered: state.isHovered,
               isPressed: state.isPressed,
-              isFocused: state.isFocused,
-              isFocusVisible: state.isFocused && Number(state.defaultStyle.outlineWidth ?? 0) > 0,
+              isFocused: context.virtualFocus
+                ? selectionManager.isFocused && selectionManager.focusedKey === id
+                : state.isFocused,
+              isFocusVisible: context.virtualFocus
+                ? selectionManager.isFocused && selectionManager.focusedKey === id && context.focusVisible
+                : state.isFocused && Number(state.defaultStyle.outlineWidth ?? 0) > 0,
               selectionMode: mode,
               selectionBehavior: selectionManager.selectionBehavior,
               hasSubmenu: !!submenu,
@@ -258,12 +320,33 @@ const MenuItemReceiver = forwardRef<
       >
         {() => (
           <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-            {icon !== undefined ? (
-              <View testID="menu-item-icon" style={{ flexShrink: 0, flexDirection: "row", alignItems: "center" }}>
-                {icon}
-              </View>
-            ) : null}
-            {getNativeButtonContent(children, textStyle.current)}
+            <NativeMenuTextBindingContext.Provider value={registerText}>
+              <NativeMenuTextContext.Provider
+                value={{
+                  slots: {
+                    [NATIVE_DEFAULT_SLOT]: { nativeID: labelID, accessible: false, style: textStyle.current },
+                    label: { nativeID: labelID, accessible: false, style: textStyle.current },
+                    description: { nativeID: descriptionID, accessible: false, style: textStyle.current },
+                  },
+                }}
+              >
+                <NativeMenuKeyboardShortcutContext.Provider
+                  value={{ nativeID: keyboardID, accessible: false, style: textStyle.current }}
+                >
+                  <NativeMenuSelectionIndicatorContext.Provider value={{ isSelected: selected }}>
+                    {icon !== undefined ? (
+                      <View
+                        testID="menu-item-icon"
+                        style={{ flexShrink: 0, flexDirection: "row", alignItems: "center" }}
+                      >
+                        {icon}
+                      </View>
+                    ) : null}
+                    {getNativeButtonContent(children, textStyle.current)}
+                  </NativeMenuSelectionIndicatorContext.Provider>
+                </NativeMenuKeyboardShortcutContext.Provider>
+              </NativeMenuTextContext.Provider>
+            </NativeMenuTextBindingContext.Provider>
           </NativeCollectionRendererContext.Provider>
         )}
       </NativeButton>

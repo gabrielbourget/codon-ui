@@ -10,7 +10,7 @@ import type { TNativePressEvent } from "../../input/types"
 
 import type { TNativeMenuKey, TNativeMenuSelectionMode } from "./model"
 import type { TNativeRootMenuTriggerState, TNativeSubmenuTriggerState } from "./triggerState"
-import type { TNativeMenuItemProps, TNativeMenuProps } from "./types"
+import type { TNativeMenuItemProps, TNativeMenuListProps, TNativeMenuProps } from "./types"
 
 export type TNativeMenuRegistration = {
   id: TNativeMenuKey
@@ -22,10 +22,13 @@ export type TNativeMenuRegistration = {
   submenu: () => TNativeSubmenuTriggerState | null
 }
 export type TNativeMenuContext = {
+  root: RefObject<View | null>
   register: (row: TNativeMenuRegistration) => () => void
   refresh: (row: TNativeMenuRegistration) => void
   mode: TNativeMenuSelectionMode
   text: TextStyle
+  virtualFocus: boolean
+  focusVisible: boolean
   disabled: (row: TNativeMenuRegistration) => boolean
   selected: (row: TNativeMenuRegistration) => boolean
   focus: (row: TNativeMenuRegistration) => boolean
@@ -40,6 +43,7 @@ export const NativeMenuActionsContext = createContext<TNativeMenuContext | null>
 export const NativeMenuStateContext = createContext<TNativeTreeState<object> | null>(null)
 export const NativeMenuContext =
   createContext<TNativeContextValue<Partial<Omit<TNativeMenuProps, "children">>, View>>(null)
+export const NativeMenuListContext = createContext<TNativeContextValue<Partial<TNativeMenuListProps>, View>>(null)
 export const NativeMenuItemContext = createContext<TNativeContextValue<Partial<TNativeMenuItemProps>, View>>(null)
 export const NativeMenuSelectionManagerContext = createContext<SelectionManager | null>(null)
 export const NativeMenuHeaderContext = createContext<{
@@ -55,6 +59,7 @@ export const NativeSubmenuContext = createContext<{
   triggerID: string
   menuID: string
   direction: "ltr" | "rtl"
+  restoreRef: RefObject<View | null>
 } | null>(null)
 export const NativeSubmenuItemContext = createContext<{
   state: TNativeSubmenuTriggerState
