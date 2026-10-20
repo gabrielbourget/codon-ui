@@ -43,7 +43,7 @@ export type VisualElement = {
   projection?: IProjectionNode
   shouldReduceMotion?: boolean
   getProps: () => {
-    onBeforeLayoutMeasure?: () => void
+    onBeforeLayoutMeasure?: (layout: Box) => void
     onLayoutAnimationStart?: () => void
     onLayoutAnimationComplete?: () => void
     layoutDependency?: unknown

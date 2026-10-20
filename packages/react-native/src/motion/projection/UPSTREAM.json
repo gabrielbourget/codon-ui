@@ -124,7 +124,8 @@
     "The native value wrapper drives real numeric projection animation and scoped skip/reduced policies. Queued starts/frames retire with their actual native owner",
     "Source events use an explicit typed event map. Null native style resets release removed projection/pop fields. Actual platform visibility is separate from authored hidden/visibility state",
     "Native point/dp geometry is not WebKit-rounded. Browser SVG/WAAPI/style-variable paths are absent from the native View backend",
-    "Scalar native radii cannot express general two-axis correction. An exact receiver is required and deliberately unavailable until implemented; a test recorder is not a native drawing acknowledgment"
+    "Scalar native radii cannot express general two-axis correction. An exact receiver is required and deliberately unavailable until implemented; a test recorder is not a native drawing acknowledgment",
+    "Layout lifecycle public box signatures retain the pinned declarations; actual VisualElement/SubscriptionManager delivery keeps three argument slots and original/undefined boxes, including the source before-measure declaration/runtime discrepancy. Retired projection receivers cannot dispatch through a replacement node."
   ],
   "authoredFiles": [
     {
@@ -133,7 +134,7 @@
     },
     {
       "file": "NativeProjectionState.ts",
-      "sha256": "9e000e9035897d7bded85b9f8cbe22cd122634c1778792f5efa4b665417e51c5"
+      "sha256": "f02c2857a1a4ff6e8fa647b167eb934e0934be83b326073a781ce1c288d2ec5c"
     },
     {
       "file": "animation/mix-values.ts",
@@ -169,7 +170,7 @@
     },
     {
       "file": "layoutTypes.ts",
-      "sha256": "4bee1348aa21199d51e94c8bff3b0a27235967456912111d769de16ffe9bb34d"
+      "sha256": "70aa92bb2e9f7da78d6bd51c0a5389de8a15058d7fd734571ea935c91a83ceaa"
     },
     {
       "file": "native-transition.ts",
@@ -205,7 +206,7 @@
     },
     {
       "file": "types.ts",
-      "sha256": "0bdce61d689c95619070a07a4a4a5e13d37205c62648701d4a5b153a58872242"
+      "sha256": "2c88e2c609418df6c52f6f478d6a7ab687d5a41727193bb9b68781f1f8b1a923"
     },
     {
       "file": "utils/compare-by-depth.ts",
@@ -226,6 +227,10 @@
     {
       "file": "windowGroup.ts",
       "sha256": "eb39cbaacdbb463d2a9d2b948c4531862e61614c35ddf86ac6af537d43e007f9"
+    },
+    {
+      "file": "layoutCallbacks.ts",
+      "sha256": "773b3a3b7ce30808316c8c498bd10afc7a9ef95a679c3505c597374861cc8e72"
     }
   ],
   "remaining": [
@@ -261,5 +266,15 @@
     "sourceKind": "npm-declaration",
     "sha256": "06b9fcb4e529bfa1e604002324923329ba760aabfe975baf72ea7bf5749079a7",
     "scope": "Measurements, scroll/layout/projection configuration and native-adapted node protocol"
-  }
+  },
+  "callbackInputs": [
+    {
+      "packageArtifactRef": "motion-dom/dist/es/render/VisualElement.mjs",
+      "sha256": "7ac53c2cedf6c214d62b115a084255a69cd300eca619c99e6fb24f3c9ea0bcc5"
+    },
+    {
+      "packageArtifactRef": "motion-utils/dist/es/subscription-manager.mjs",
+      "sha256": "463917e7f9ec5fc58495bf20eb697d8e1912b84a5deae55f0e374c534228b4a8"
+    }
+  ]
 }

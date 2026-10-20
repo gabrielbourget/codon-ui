@@ -148,7 +148,7 @@
     "data-framer-appear-id": "Existing roadmap 3.5.6 browser-marker host boundary disposition; not forwarded to native"
   },
   "declarationLimits": [
-    "Current callback source equivalence, including before-layout box arguments, remains required",
+    "Layout before/measure declaration signatures and actual three-slot/undefined/box identity delivery are compared in evidence3.31.103; actual native delivery and all other callback/gesture fidelity remain required",
     "View/ScrollView source ref mapping received in evidence3.31.89; actual native root fidelity remains required",
     "All inherited group positive/negative examples here cover current private mappings only, not a complete public Card claim"
   ],
@@ -194,5 +194,12 @@
     "transition": "Value options plus typed native per-property/default/layout overrides and native path protocol",
     "sourceRuntime": "Actual array-value setter mapping and retained source fallback; native fidelity remains OPEN",
     "publicExport": false
+  },
+  "layoutCallbackSource": {
+    "evidence": "3.31.103",
+    "publicDeclarations": "Canonical required Box and previous-Box handler signatures",
+    "runtime": "Actual pinned VisualElement/SubscriptionManager three-slot delivery, including undefined before/previous boxes",
+    "nativeProof": false,
+    "fullCard": false
   }
 }

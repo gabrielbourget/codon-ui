@@ -9,6 +9,7 @@ import type { TNativePopFrame, TNativePopRoot } from "../presence/context"
 import { createNativePopRoot } from "../presence/nativePopFrame"
 import type { TNativeMotionTransformTemplate } from "../visual/types"
 
+import { NativeMotionLayoutCallbacks } from "./layoutCallbacks"
 import { getValueTransition } from "./native-transition"
 import { cancelNativeProjectionMicrotask, microtask } from "./nativeRuntime"
 import { nativeProjectionStyles } from "./nativeStyles"
@@ -138,6 +139,7 @@ class NativeProjectionWindow {
 }
 
 export class NativeProjectionState implements TNativePopRoot {
+  private readonly layoutCallbacks = new NativeMotionLayoutCallbacks()
   record?: TNativeMotionGeometryRecord
   node?: IProjectionNode
   bornIn?: string
@@ -371,10 +373,9 @@ export class NativeProjectionState implements TNativePopRoot {
         frame.render(this.render)
       },
       notify: (event, ...args) => {
-        if (!this.current()) return
-        const props = this.owner.getProps()
-        if (event === "BeforeLayoutMeasure") props.onBeforeLayoutMeasure?.()
-        if (event === "LayoutMeasure") props.onLayoutMeasure?.(args[0] as Box, args[1] as Box | undefined)
+        if (!this.current() || this.node?.options.visualElement !== visual) return
+        this.layoutCallbacks.update(this.owner.getProps())
+        this.layoutCallbacks.notify(event, ...args)
       },
     }
     this.node = new NativeProjectionNode(this.latest, nativeParent ?? this.root.node)
@@ -449,6 +450,7 @@ export class NativeProjectionState implements TNativePopRoot {
   }
   isCurrent = (frame: TNativePopFrame) => this.popRoot.isCurrent(frame)
   private detachNode = () => {
+    this.layoutCallbacks.clear()
     this.releaseGroup?.()
     this.releaseGroup = undefined
     const node = this.node,

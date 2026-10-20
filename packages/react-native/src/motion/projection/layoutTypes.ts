@@ -9,8 +9,8 @@ export type TNativeMotionLayoutProps = {
   layoutAnchor?: Point | false
   layoutCrossfade?: boolean
   nativeLayoutPortal?: boolean
-  onBeforeLayoutMeasure?: () => void
-  onLayoutMeasure?: (layout: Box, previous?: Box) => void
+  onBeforeLayoutMeasure?: (layout: Box) => void
+  onLayoutMeasure?: (layout: Box, previous: Box) => void
   onLayoutAnimationStart?: () => void
   onLayoutAnimationComplete?: () => void
 }
