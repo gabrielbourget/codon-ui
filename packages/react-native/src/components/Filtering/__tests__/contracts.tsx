@@ -7,6 +7,10 @@ import { ListFilterArgument } from "../ListArgument"
 import { NumberFilterArgument } from "../NumberArgument"
 import { SelectFilterArgument, MultiSelectFilterArgument, type TSelectFilterArgumentProps } from "../OptionArguments"
 import { RangeFilterArgument } from "../RangeArgument"
+import {
+  renderNonTemporalFilterArgumentInput,
+  type TNonTemporalFilterArgumentContext,
+} from "../renderNonTemporalArgument"
 import { TextFilterArgument } from "../TextArgument"
 
 const props: TSelectFilterArgumentProps = {
@@ -58,3 +62,29 @@ export const privateFilterEditorContracts = [
   // @ts-expect-error Temporal range policy is not received by this private renderer.
   <RangeFilterArgument dataType="date" onArgumentChange={() => {}} />,
 ]
+
+export const nativeDispatchContext: TNonTemporalFilterArgumentContext = {
+  dataType: "text",
+  filterArgumentType: "Input",
+  argument: undefined,
+  onArgumentChange: () => {},
+  nativeLabels: {
+    number: { incrementLabel: "Increase", decrementLabel: "Decrease" },
+    range: {
+      minimumIncrement: "More min",
+      minimumDecrement: "Less min",
+      maximumIncrement: "More max",
+      maximumDecrement: "Less max",
+    },
+    options: { inputLabel: "Find", closeLabel: "Close" },
+  },
+}
+export const privateDispatchContract = renderNonTemporalFilterArgumentInput(nativeDispatchContext)
+// @ts-expect-error Temporal editor APIs remain outside this named private renderer.
+export const temporalDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, dataType: "date" })
+// @ts-expect-error Root DOM and generic motion props are not advertised by a renderer function.
+export const rootDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, role: "group" })
+// @ts-expect-error The dispatcher owns no default-value mirror.
+export const defaultDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, defaultValue: "" })
+// @ts-expect-error Native editor name contracts are required.
+export const unnamedDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, nativeLabels: {} })

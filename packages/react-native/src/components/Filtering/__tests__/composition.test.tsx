@@ -115,3 +115,42 @@ it("composes the actual blank numeric Between factory through both owned bounds 
   await press("Apply filter draft")
   expect(state().lastRequest.filterGroups.at(-1).clauses[0].argument).toEqual([0, 0])
 })
+
+it("composes contained/similar argument labels through operation, metadata and theme changes", async () => {
+  await render(<FilterControlProbe />)
+  await select("filter-probe-names-clause", "Filter Condition", "Contains")
+  const input = screen.getByLabelText("Filter Names by contained text")
+  await fireEvent.changeText(input, "draft")
+  expect(state().draft.filterGroups[1].clauses[0].argument).toBe("draft")
+  await select("filter-probe-names-clause", "Filter Condition", "Similar to")
+  expect(screen.getByLabelText("Filter Names by similar text")).toBe(input)
+  expect(input).toHaveDisplayValue("")
+  await fireEvent.changeText(input, "similar draft")
+  await press("Refresh filter metadata")
+  await press("Toggle filter theme")
+  expect(screen.getByLabelText("Filter Names refreshed by similar text")).toBe(input)
+  expect(input).toHaveDisplayValue("similar draft")
+  await press("Apply filter draft")
+  expect(state().lastRequest.filterGroups[1].clauses[0]).toMatchObject({
+    operationCode: "similar-to",
+    argument: "similar draft",
+  })
+  expect(state().confirmed.filterGroups[1].clauses[0].argument).toEqual(["Alpha"])
+})
+
+it("keeps the canonical typeahead placeholders explicit through actual criterion/operation changes", async () => {
+  await render(<FilterControlProbe />)
+  await select("filter-probe-status-clause", "Filter Criteria", "Search labels")
+  expect(screen.getByTestId("filter-typeahead-placeholder")).toHaveTextContent(
+    "placeholder: typeahead search not implemented yet",
+  )
+  await select("filter-probe-status-clause", "Filter Condition", "Included in")
+  expect(screen.getByTestId("filter-multi-typeahead-placeholder")).toHaveTextContent(
+    "placeholder: multi-typeahead search not implemented yet",
+  )
+  expect(state().draft.filterGroups.at(-1).clauses[0].argument).toEqual([])
+  await press("Apply filter draft")
+  expect(state().lastRequest.filterGroups.some((group: { criteriaID: string }) => group.criteriaID === "search")).toBe(
+    false,
+  )
+})
