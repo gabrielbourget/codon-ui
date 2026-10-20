@@ -34,13 +34,20 @@ def validate_journal(rows, producer):
     assert rows[-1]["kind"] == "terminal" and rows[-1]["fullCard"] is False and rows[-1]["fullGoal"] is False
     controls = [row for row in rows if row["kind"] == "reference-control"]
     profiles = [row for row in rows if row["kind"] == "profile"]
+    raster_controls = [row for row in rows if row["kind"] == "raster-control"]
+    native_candidates = [row for row in rows if row["kind"] == "native-layer-candidate"]
+    mask_candidates = [row for row in rows if row["kind"] == "native-mask-candidate"]
+    assert all(row["kind"] in ["begin", "reference-control", "profile", "raster-control", "native-layer-candidate", "native-mask-candidate", "terminal"] for row in rows)
     assert len(controls) == 1
     outcome = rows[-1]["outcome"]
     if outcome == "native-reference-characterization-complete":
         assert controls[0]["metrics"]["binaryCoverageDifferences"] > 0, "Native raster reference did not distinguish corner curves"
         assert [row["name"] for row in profiles] == PROFILE_NAMES
+        assert [row["name"] for row in raster_controls] == [name + "-circular" for name in PROFILE_NAMES]
+        assert [row["name"] for row in native_candidates] == [name + "-native-layer" for name in PROFILE_NAMES]
+        assert [row["name"] for row in mask_candidates] == [name + "-native-mask" for name in PROFILE_NAMES]
     else:
-        assert outcome == "native-reference-capability-unavailable" and not profiles
+        assert outcome == "native-reference-capability-unavailable" and not profiles and not raster_controls and not native_candidates and not mask_candidates
         assert controls[0]["metrics"]["binaryCoverageDifferences"] == 0
     return {"outcome": outcome, "nativeProfileCount": len(profiles), "nativePID": rows[0]["pid"], "fullCard": False, "fullGoal": False}
 

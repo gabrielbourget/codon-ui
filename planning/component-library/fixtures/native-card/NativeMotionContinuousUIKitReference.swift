@@ -123,7 +123,49 @@ for profile in profiles {
   emit(["kind": "profile", "producer": sourceProducer, "name": profile.name,
     "radius": profile.radius, "projection": [profile.projection.width, profile.projection.height],
     "metrics": differences(reference, actual), "scope": "Characterization only; no pixel tolerance or full drawing acceptance"])
+
+  let circularReference = raster(nativeLayer(size: size, radius: profile.radius, continuous: false), size: size)
+  let circularPath = CUIMotionContinuousCorners.path(bounds: CGRect(origin: .zero, size: controlSize),
+    topLeft: corrected, topRight: corrected, bottomLeft: corrected, bottomRight: corrected, continuousCorners: 0)!
+  let circularOwned = CAShapeLayer()
+  circularOwned.frame = CGRect(origin: .zero, size: controlSize)
+  circularOwned.path = circularPath.cgPath
+  circularOwned.fillColor = UIColor.white.cgColor
+  circularOwned.contentsScale = pixelScale
+  let circularActual = raster(circularOwned, size: size, transform: profile.projection)
+  let circularName = profile.name + "-circular"
+  try save(circularReference, name: circularName + "-native.png")
+  try save(circularActual, name: circularName + "-owned.png")
+  emit(["kind": "raster-control", "producer": sourceProducer, "name": circularName,
+    "metrics": differences(circularReference, circularActual), "scope": "Known circular geometry raster baseline only"])
+
+  let normalizedSize = CGSize(width: controlSize.width / corrected.width, height: controlSize.height / corrected.height)
+  let nativeCandidate = nativeLayer(size: normalizedSize, radius: 1, continuous: true)
+  let candidateActual = raster(nativeCandidate, size: size,
+    transform: CGSize(width: corrected.width * profile.projection.width, height: corrected.height * profile.projection.height))
+  let candidateName = profile.name + "-native-layer"
+  try save(candidateActual, name: candidateName + "-owned.png")
+  emit(["kind": "native-layer-candidate", "producer": sourceProducer, "name": candidateName,
+    "referenceImage": profile.name + "-native.png", "ownedImage": candidateName + "-owned.png",
+    "metrics": differences(reference, candidateActual), "scope": "Unaccepted public CALayer normalization candidate only"])
+
+  let maskCandidate = nativeLayer(size: normalizedSize, radius: 0, continuous: true)
+  var holder = maskCandidate
+  for corner in [CACornerMask.layerMinXMinYCorner, .layerMaxXMinYCorner, .layerMaxXMaxYCorner, .layerMinXMaxYCorner] {
+    let mask = nativeLayer(size: normalizedSize, radius: 1, continuous: true)
+    mask.maskedCorners = corner
+    holder.mask = mask
+    holder = mask
+  }
+  let maskActual = raster(maskCandidate, size: size,
+    transform: CGSize(width: corrected.width * profile.projection.width, height: corrected.height * profile.projection.height))
+  let maskName = profile.name + "-native-mask"
+  try save(maskActual, name: maskName + "-owned.png")
+  emit(["kind": "native-mask-candidate", "producer": sourceProducer, "name": maskName,
+    "referenceImage": profile.name + "-native.png", "ownedImage": maskName + "-owned.png",
+    "metrics": differences(reference, maskActual), "scope": "Unaccepted four public corner-mask composition candidate only"])
 }
 CATransaction.commit()
 emit(["kind": "terminal", "producer": sourceProducer, "outcome": "native-reference-characterization-complete",
-  "profiles": profiles.count, "fullCard": false, "fullGoal": false])
+  "profiles": profiles.count, "rasterControls": profiles.count, "nativeLayerCandidates": profiles.count, "nativeMaskCandidates": profiles.count,
+  "fullCard": false, "fullGoal": false])

@@ -9,6 +9,9 @@ def journal():
     return [{"kind": "begin", "producer": "source", "pid": 123},
         {"kind": "reference-control", "producer": "source", "metrics": {"binaryCoverageDifferences": 10}},
         *[{"kind": "profile", "producer": "source", "name": name} for name in PROFILE_NAMES],
+        *[{"kind": "raster-control", "producer": "source", "name": name + "-circular"} for name in PROFILE_NAMES],
+        *[{"kind": "native-layer-candidate", "producer": "source", "name": name + "-native-layer"} for name in PROFILE_NAMES],
+        *[{"kind": "native-mask-candidate", "producer": "source", "name": name + "-native-mask"} for name in PROFILE_NAMES],
         {"kind": "terminal", "producer": "source", "outcome": "native-reference-characterization-complete", "fullCard": False, "fullGoal": False}]
 
 
