@@ -22,6 +22,124 @@ const COLOR_FIELDS = new Set([
   "textShadowColor",
 ])
 const ARRAY_FIELDS = new Set(["transform", "transformOrigin", "boxShadow", "filter", "fontVariant"])
+const percentageString = /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i
+const PERCENTAGE_FIELDS = new Set([
+  "width",
+  "height",
+  "minWidth",
+  "minHeight",
+  "maxWidth",
+  "maxHeight",
+  "flexBasis",
+  "top",
+  "right",
+  "bottom",
+  "left",
+  "start",
+  "end",
+  "inset",
+  "insetBlock",
+  "insetBlockEnd",
+  "insetBlockStart",
+  "insetInline",
+  "insetInlineEnd",
+  "insetInlineStart",
+  "gap",
+  "rowGap",
+  "columnGap",
+  "x",
+  "y",
+  "translateX",
+  "translateY",
+  "borderRadius",
+  ...["margin", "padding"].flatMap((prefix) =>
+    [
+      "",
+      "Top",
+      "Right",
+      "Bottom",
+      "Left",
+      "Start",
+      "End",
+      "Horizontal",
+      "Vertical",
+      "Block",
+      "BlockStart",
+      "BlockEnd",
+      "Inline",
+      "InlineStart",
+      "InlineEnd",
+    ].map((suffix) => `${prefix}${suffix}`),
+  ),
+  ...[
+    "TopLeft",
+    "TopRight",
+    "BottomLeft",
+    "BottomRight",
+    "TopStart",
+    "TopEnd",
+    "BottomStart",
+    "BottomEnd",
+    "StartStart",
+    "StartEnd",
+    "EndStart",
+    "EndEnd",
+  ].map((corner) => `border${corner}Radius`),
+])
+// Pinned none-template normalization precedes geometry. Native numeric zero may use a valid
+// percentage template; native-invalid strings, colors and unrelated structured fields stay intact.
+const normalizeZeroPercentages = (name: string, frames: unknown[]): unknown[] => {
+  const scalar = (field: string, values: unknown[]) => {
+    if (!PERCENTAGE_FIELDS.has(field) || !values.some((value) => value === 0)) return values
+    const template = values.find(
+      (value) =>
+        typeof value === "string" && percentageString.test(value) && Number.isFinite(Number(value.slice(0, -1))),
+    )
+    if (typeof template !== "string") return values
+    const zero = complex.getAnimatableNone(template)
+    return values.map((value) => (value === 0 ? zero : value))
+  }
+  if (PERCENTAGE_FIELDS.has(name)) return scalar(name, frames)
+  if ((name !== "transform" && name !== "transformOrigin") || !frames.every(Array.isArray)) return frames
+  const arrays = frames as unknown[][]
+  const length = arrays[0]?.length ?? 0
+  if (!arrays.every((frame) => frame.length === length)) return frames
+  let changed = false
+  const result = [...arrays]
+  const replace = (frame: number, index: number, value: unknown) => {
+    if (result[frame] === arrays[frame]) result[frame] = [...arrays[frame]]
+    result[frame]![index] = value
+    changed = true
+  }
+  for (let index = 0; index < length; index++) {
+    if (name === "transformOrigin") {
+      if (index > 1 || length > 3) continue
+      const values = arrays.map((frame) => frame[index])
+      scalar("translateX", values).forEach((value, frame) => {
+        if (value !== values[frame]) replace(frame, index, value)
+      })
+      continue
+    }
+    const descriptors = arrays.map((frame) => frame[index])
+    if (
+      !descriptors.every(
+        (value) => value && typeof value === "object" && !Array.isArray(value) && Object.keys(value).length === 1,
+      )
+    )
+      continue
+    const key = Object.keys(descriptors[0] as object)[0]!
+    if (
+      (key !== "translateX" && key !== "translateY") ||
+      !descriptors.every((value) => Object.hasOwn(value as object, key))
+    )
+      continue
+    const values = descriptors.map((value) => (value as Record<string, unknown>)[key])
+    scalar(key, values).forEach((value, frame) => {
+      if (value !== values[frame]) replace(frame, index, { [key]: value })
+    })
+  }
+  return changed ? result : frames
+}
 export const nativeTargetKeyframes = (name: string, target: unknown): unknown[] => {
   if (!Array.isArray(target)) return [null, target]
   const first = target.find((value) => value !== null && value !== undefined)
@@ -44,7 +162,7 @@ const isThenable = (value: unknown): value is PromiseLike<unknown> =>
 const unit = (value: unknown) =>
   typeof value === "number"
     ? "number"
-    : typeof value === "string" && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?%$/i.test(value)
+    : typeof value === "string" && percentageString.test(value)
       ? "percent"
       : value === "auto"
         ? "auto"
@@ -129,7 +247,7 @@ const resolveLeaves = (
     current(token)
     const normalized = normalizeNativeMotionKeyframeUnits(options.name, resolved)
     transformed ||= normalized.some((value, index) => value !== resolved[index])
-    resolved = normalized
+    resolved = normalizeZeroPercentages(options.name, normalized)
     options.context.resolutionTicket?.normalized(resolved)
     if (needsGeometry(resolved)) {
       if (!options.context.resolveGeometry)

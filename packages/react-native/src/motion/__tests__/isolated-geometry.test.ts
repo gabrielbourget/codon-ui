@@ -4,11 +4,13 @@ import type { View } from "react-native"
 import { geometryPacket } from "../../input/__tests__/motionGeometry.fixture"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "../../input/motionColors"
 import { NativeMotionGeometryObserver, registerNativeMotionGeometryObserver } from "../../input/motionGeometry"
+import { motionValue } from "../kernel"
 import {
   NativeMotionIsolatedGeometryState,
   normalizeNativeMotionKeyframeUnits,
   resolveNativeMotionIsolatedLayout,
 } from "../measurement/isolatedGeometry"
+import { resolveNativeMotionKeyframes } from "../value/keyframes"
 import { NativeMotionResolutionBatch } from "../value/resolution-batch"
 
 import { measurementToken } from "./measurement.fixture"
@@ -324,37 +326,60 @@ it("normalizes native angles locally while preserving native font-weight string 
   expect(h.backend).not.toHaveBeenCalled()
   h.release()
 })
-it("waits for async normalization then batches only properties that actually need geometry", async () => {
-  const h = harness(),
-    state = new NativeMotionIsolatedGeometryState(),
-    batch = new NativeMotionResolutionBatch()
-  const width = batch.begin("width", h.token),
-    height = batch.begin("height", h.token)
-  width.normalized([100, 200])
-  width.settled()
-  let widthReady = false
-  void width.ready.then(() => {
-    widthReady = true
-  })
-  await turn()
-  expect(widthReady).toBe(false)
-  expect(h.backend).not.toHaveBeenCalled()
-  height.normalized([40, "auto"])
-  const pending = state.resolve(h.target, "height", [40, "auto"], h.token, height)
-  await turn()
-  await expect(pending).resolves.toEqual({ keyframes: [40, 50], finalKeyframe: "auto" })
-  height.settled()
-  await width.ready
-  const request = JSON.parse(h.backend.mock.calls[0][0])
-  expect(request.properties).toEqual(["height"])
-  expect(request.stages).toEqual([
-    { index: 0, nativeView: {} },
-    { index: 1, nativeView: { height: "auto" } },
-  ])
-  expect(request.stages.every((stage: { nativeView: object }) => !Object.hasOwn(stage.nativeView, "width"))).toBe(true)
-  expect(jest.getTimerCount()).toBe(0)
-  h.release()
-})
+it.each([
+  [100, 200],
+  [0, "50%"],
+])(
+  "waits for async normalization and keeps unmeasured width %p -> %p out of auto-height stages",
+  async (origin, target) => {
+    const h = harness(),
+      state = new NativeMotionIsolatedGeometryState(),
+      batch = new NativeMotionResolutionBatch()
+    const width = batch.begin("width", h.token),
+      height = batch.begin("height", h.token)
+    const widthValue = motionValue<unknown>(100)
+    const readValue = jest.fn(),
+      resolveGeometry = jest.fn()
+    const result = resolveNativeMotionKeyframes(
+      {
+        name: "width",
+        keyframes: [origin, target],
+        motionValue: widthValue,
+        context: { isCurrent: h.token.isCurrent, readValue, resolveGeometry, resolutionTicket: width },
+      },
+      h.token,
+    )
+    expect(result).toEqual({ keyframes: origin === 0 ? ["0%", "50%"] : [100, 200] })
+    expect(widthValue.get()).toBe(100)
+    expect(readValue).not.toHaveBeenCalled()
+    expect(resolveGeometry).not.toHaveBeenCalled()
+    width.settled()
+    let widthReady = false
+    void width.ready.then(() => {
+      widthReady = true
+    })
+    await turn()
+    expect(widthReady).toBe(false)
+    expect(h.backend).not.toHaveBeenCalled()
+    height.normalized([40, "auto"])
+    const pending = state.resolve(h.target, "height", [40, "auto"], h.token, height)
+    await turn()
+    await expect(pending).resolves.toEqual({ keyframes: [40, 50], finalKeyframe: "auto" })
+    height.settled()
+    await width.ready
+    const request = JSON.parse(h.backend.mock.calls[0][0])
+    expect(request.properties).toEqual(["height"])
+    expect(request.stages).toEqual([
+      { index: 0, nativeView: {} },
+      { index: 1, nativeView: { height: "auto" } },
+    ])
+    expect(request.stages.every((stage: { nativeView: object }) => !Object.hasOwn(stage.nativeView, "width"))).toBe(
+      true,
+    )
+    expect(jest.getTimerCount()).toBe(0)
+    h.release()
+  },
+)
 it("couples actual geometry jobs and emits source target/restoration notifications in grouped order", async () => {
   const h = harness(),
     state = new NativeMotionIsolatedGeometryState(),

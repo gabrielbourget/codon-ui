@@ -1,3 +1,7 @@
+import { motionValue } from "../kernel"
+import { resolveNativeMotionKeyframes } from "../value/keyframes"
+import type { TNativeResolvedKeyframes } from "../value/types"
+
 const { execFileSync } = jest.requireActual<{
   execFileSync: (file: string, args: string[], options: { encoding: "utf8"; timeout: number }) => string
 }>("node:child_process")
@@ -83,4 +87,44 @@ it("records the pinned zero-none template exception before numeric-string dimens
   expect(actual.needsMeasurement).toEqual([false])
   expect(actual.renders).toEqual([])
   expect(actual.results.width).toEqual({ frames: ["0", "10"] })
+})
+
+it.each([
+  ["width", [0, "50%"]],
+  ["height", ["50%", 0]],
+  ["x", [0, "-50%"]],
+  ["width", [0, "1e2%"]],
+  ["width", [0, "+.25%"]],
+  ["marginInlineStart", [0, "25%", 0]],
+] as const)(
+  "matches actual pinned %s zero-template values and final semantics without a geometry read",
+  (name, frames) => {
+    const original = [...frames]
+    const actual = runPinned({ [name]: original })
+    const readValue = jest.fn(),
+      resolveGeometry = jest.fn()
+    const result = resolveNativeMotionKeyframes(
+      {
+        name,
+        keyframes: original,
+        motionValue: motionValue<unknown>(0),
+        context: { isCurrent: () => true, readValue, resolveGeometry },
+      },
+      { isCurrent: () => true, onCancel: () => () => {} },
+    ) as TNativeResolvedKeyframes
+    expect(actual.needsMeasurement).toEqual([false])
+    expect(actual.renders).toEqual([])
+    expect(result.keyframes).toEqual(actual.results[name].frames)
+    expect(result.finalKeyframe).toBe(actual.results[name].final)
+    expect(readValue).not.toHaveBeenCalled()
+    expect(resolveGeometry).not.toHaveBeenCalled()
+    expect(original).toEqual([...frames])
+  },
+)
+
+it("keeps the actual pinned current width while a normalized zero/percentage sibling waits for auto-height measurement", () => {
+  const actual = runPinned({ width: [0, "50%"], height: [40, "auto"] })
+  expect(actual.needsMeasurement).toEqual([false, true])
+  expect(actual.renders.at(-1)).toEqual({ width: 100, height: "auto" })
+  expect(actual.results).toEqual({ width: { frames: ["0%", "50%"] }, height: { frames: [40, 50], final: "auto" } })
 })

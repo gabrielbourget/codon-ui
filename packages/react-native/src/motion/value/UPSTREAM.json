@@ -50,6 +50,16 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/value/index.ts",
       "upstreamSha256": "6edffa9f7a6985ad29fbb9dcc7e3537082fd133f3b5825e0839cac57e0b95423",
       "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/make-none-animatable.ts",
+      "upstreamSha256": "d3c396a9661ec802ba33fac6bdd6006abec9c220f02b1e29630fb9c19d250387",
+      "sourceKind": "npm-source-map-sourcesContent"
+    },
+    {
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/animation/keyframes/utils/is-none.ts",
+      "upstreamSha256": "a220bc5c1ddbca5e8990863ab20007a58fb52e896317cecf0d33ec4885d23475",
+      "sourceKind": "npm-source-map-sourcesContent"
     }
   ],
   "files": [
@@ -70,7 +80,7 @@
     },
     {
       "file": "keyframes.ts",
-      "receivedSha256": "8d837d1cff20f6814925261ce154085efeabcebe6d447c5a088bad1eec60cdca",
+      "receivedSha256": "21360f33917be3c4a61992fe4b832d0d01e63f2bf1e53048734ac7aa8318d427",
       "kind": "authored-native-adapter"
     },
     {
@@ -103,7 +113,8 @@
     "Resolution failures reject ready/early finished and retire only their currently owned value control; stopped/cancelled source promises remain pending",
     "Actual native color queries release their timeout and cancellation listener on every terminal path; protocol/schema and public primitive APIs unchanged",
     "Cohort registration before asynchronous initial/color resolution holds animation start until every reserved live member is normalized and settled; cancellation invalidates captures without resetting the original deadline",
-    "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style"
+    "Original MotionValue public probes retain source callbacks and zero-velocity jumps while private render bindings mask temporary probe values; no cloned MotionValue or mounted target style",
+    "Before geometry detection, numeric zero uses the existing pinned complex none-template algorithm only for valid native percentage fields and equivalent native translation/origin array leaves. Source-normalized zero endpoints remain normalized rather than restoring authored numeric zero; unsupported strings, CSS units, colors and unrelated structured fields retain their existing native authority guards."
   ],
   "verificationBoundary": "Pinned executable source models plus source-only bridge packets; no installed native color/geometry/sample/frame or complete Card acceptance claim"
 }
