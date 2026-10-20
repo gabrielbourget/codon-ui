@@ -1,4 +1,5 @@
 import { complex } from "../kernel/engine/value/types/complex"
+import { normalizeNativeMotionKeyframeUnits } from "../measurement/isolatedGeometry"
 
 import type { TNativeMotionResolutionToken, TNativeMotionValueOptions, TNativeResolvedKeyframes } from "./types"
 
@@ -126,10 +127,16 @@ const resolveLeaves = (
   })
   const afterColors = (): TNativeResolvedKeyframes | Promise<TNativeResolvedKeyframes> => {
     current(token)
+    const normalized = normalizeNativeMotionKeyframeUnits(options.name, resolved)
+    transformed ||= normalized.some((value, index) => value !== resolved[index])
+    resolved = normalized
+    options.context.resolutionTicket?.normalized(resolved)
     if (needsGeometry(resolved)) {
       if (!options.context.resolveGeometry)
         throw new Error(`Native motion: ${options.name} requires actual native keyframe geometry`)
-      const measured = options.context.resolveGeometry(options.name, resolved, token)
+      const measured = options.context.resolutionTicket
+        ? options.context.resolveGeometry(options.name, resolved, token, options.context.resolutionTicket)
+        : options.context.resolveGeometry(options.name, resolved, token)
       const accept = (result: TNativeResolvedKeyframes) => {
         current(token)
         result.keyframes.forEach(requireFinite)
@@ -176,6 +183,7 @@ export const resolveNativeMotionKeyframes = (
       (!hasVelocity && frames.every((value) => value === frames[0]))
     ) {
       frames.forEach(requireFinite)
+      options.context.resolutionTicket?.normalized(frames)
       return { keyframes: frames }
     }
     return resolveLeaves(frames, options, token)

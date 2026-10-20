@@ -1,5 +1,5 @@
 {
-  "scope": "Private isolated measurement, scoped family presentation, viewport, CUI-owned platform drawing and actual-host initial-value source. Projection carries independent physical corner axes with pinned platform logical/RTL precedence. iOS native continuous paths cover uniform and non-overlapping mixed corners; mixed overlap rejects as unproved. Initial queries reconcile immutable and read-only imperative family props, direct Paragraph authority and native colors. Complete isolated geometry, native drawing/default/editor/performance admission and full Card remain required.",
+  "scope": "Private immutable Fabric isolated-layout query with independently owned Yoga stages, state-adopted layouts and audited intrinsic callbacks; scoped authored/presentation separation, CUI drawing and actual initial values. No mounted measurement styles or editor/ref replacement. Complete native fidelity, unsupported authority, continuous overlap, current consumers/products and full Card remain required.",
   "reactNative": "0.86.3",
   "sourceInputs": [
     {
@@ -601,13 +601,79 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/style/Style.h",
       "sha256": "9dbd735f6ecd1d8cfdf25a9fffaaa23f87d6114664828b6109b9b5bf979c7026",
       "adaptation": "Approved CUI-owned drawing and immutable initial-value adaptation; no peer source/private-field mutation. Target native fidelity remains open."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.h",
+      "sha256": "7a024060c09c1d36fccf9570731eb0b39e34b2dcf6c05823e4fb69f57a79a89a",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/safeareaview/SafeAreaViewComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/safeareaview/SafeAreaViewComponentDescriptor.h",
+      "sha256": "bf8b143497bff1cca8080a704d23bb9ad82aacac9b837b413dc399a6d80bc19c",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/safeareaview/SafeAreaViewState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/safeareaview/SafeAreaViewState.h",
+      "sha256": "9e2aae6927f8d6246069b4f55e895e67f6ffe8f9b6eaa5e09478759f2544bead",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/modal/ModalHostViewComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/modal/ModalHostViewComponentDescriptor.h",
+      "sha256": "257eb658668d0c4f6d4036df47cb22de18392183c315c5aa39a823fac4bd26be",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/modal/ModalHostViewState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/modal/ModalHostViewState.h",
+      "sha256": "df6e7067e9f52df811850b2ae5f28bc70a7c201b087df6368aff5cd370eb7716",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/inputaccessory/InputAccessoryComponentDescriptor.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/inputaccessory/InputAccessoryComponentDescriptor.h",
+      "sha256": "bff7996cf34e6904af346acd87c550485d8bbf4e622c54f211a09b68c3cf978a",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/inputaccessory/InputAccessoryState.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/inputaccessory/InputAccessoryState.h",
+      "sha256": "aee44e113bf70d1ce46f887e3db1c8f906968980eff9f291c581a9c3c76a5883",
+      "adaptation": "Read-only actual state adoption and isolated stage style port; no original Yoga nodes or mutable global registry."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/YGEnums.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/YGEnums.cpp",
+      "sha256": "54faf384700ec973c8c213bd2cf56a55bb916d5606e16ad55965737b40e38079",
+      "adaptation": "Readable eight-enum string port avoids symbols not exported by the pinned Android Release library. Host checks compare all valid enum spellings with this exact source."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/style/StyleLength.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/style/StyleLength.h",
+      "sha256": "66024c4515836c7254a6bd301e021583114d9bb6a2769caa4cec84eee05b7445",
+      "adaptation": "Pinned public position-length resolution and existing pod config merge; no new dependency, SDK flag, renderer mutation or unexported Yoga symbol."
+    },
+    {
+      "path": "scripts/cocoapods/new_architecture.rb",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/scripts/cocoapods/new_architecture.rb",
+      "sha256": "4a0b5aeb3fac4924474b758e581f44a15370aba5a16ab94a1dce182e8af5bd28",
+      "adaptation": "Pinned public position-length resolution and existing pod config merge; no new dependency, SDK flag, renderer mutation or unexported Yoga symbol."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sha256": "c4645e1ebbaa4c607ba92dd53bf8bb18ec1ed289e7dfdc7c5de9968d8b981487",
+      "adaptation": "Read separately evaluated physical margins; original Yoga nodes are never accessed. Native edge spelling follows reported child RTL metadata independently from root configuration."
     }
   ],
   "license": "LICENSE.react-native.md",
   "remaining": [
     "Installed actual UIKit/Android owner/ref/window/revision delivery, lazy registration and shrinker proof",
     "Actual cached-editor/progress service delivery, native span/paint non-mutation, named-family registry/cache isolation, actual text-manager custom callback audit and full native intrinsic/attachment/baseline fidelity",
-    "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
+    "Actual native adopted-state/constructor/RTL layout correspondence, zero-size named Teleport registry authority and editor themed-layout override authority remain required after source ports",
     "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
     "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance",
     "Actual general-pop family/generation/window/ref restoration and pending-branch/module teardown proof; exact owned elliptical/shadow drawing and actual frame costs remain required after the private source integration"
@@ -615,11 +681,11 @@
   "authoredFiles": [
     {
       "file": "FabricLayout.cpp",
-      "sha256": "0080028fe9e822f29a882ebde7ff973a91fa524c8f0700ec07712b39e3d84fdd"
+      "sha256": "9f45b19ad614f319209142c26cb0ae1b40c930b834c474ec340bf6bfe9abd7e4"
     },
     {
       "file": "FabricLayout.h",
-      "sha256": "2242e4f4d568f2de123c434d6abd71f9d657f5f3a2fb612d6299ac05fa7f2ae7"
+      "sha256": "1875ab01b5f4b5e67e9637b8ce434548ff76bc16f1954b6d69e7d8dcd207372c"
     },
     {
       "file": "FabricSnapshot.cpp",
@@ -635,11 +701,11 @@
     },
     {
       "file": "NativeIntrinsics.cpp",
-      "sha256": "baaa7c87e8027e05df439bb97ae426e09381f8136c6c785179cc8d69782b481f"
+      "sha256": "4b619e56cae3b3062fef3446f9458b1301184feafc09ef59e8ac7ec3f9a9f5fe"
     },
     {
       "file": "NativeIntrinsics.h",
-      "sha256": "84bdde43ac7ac18426e862eed68e89e5d6a4e95b30b9cfe0db76399c4e9539f4"
+      "sha256": "2bac2439662bf631277b08c2032afa59468a4d590e2d79083e28b732290558f7"
     },
     {
       "file": "NativeStyle.cpp",
@@ -651,11 +717,11 @@
     },
     {
       "file": "ScratchYoga.cpp",
-      "sha256": "873ee06f349d46dbe6629c087fcd2a13c9548c818fe87728a1f44ba0d16f1c27"
+      "sha256": "0abf678e399afdb24cda6ead61102ebdf7f5b76b98ef805e7ee191549baee39a"
     },
     {
       "file": "ScratchYoga.h",
-      "sha256": "f6c8d4fdb0046595cba5fbcd552fad68e1b776b1f19ca9abb9a74385ef95bca8"
+      "sha256": "8678da9e00ccaf6c90de2f862998db95bbe6d7d5c4390261406cd21aef394846"
     },
     {
       "file": "SnapshotQuery.cpp",
@@ -683,11 +749,11 @@
     },
     {
       "file": "PopPresentation.cpp",
-      "sha256": "f1ec5a7b396e707f59a4da32bc6510901f8e71fc13ece649637d4bec88c2663d"
+      "sha256": "80952e1fbffe37bd5afd62c5d6d5678f396efadb6a79c55f3af3d463b0ab5323"
     },
     {
       "file": "PopPresentation.h",
-      "sha256": "07f7850ab3fcdb36e1a00872e465d9b99c9c4e76d582f725a3ab08c41edac4c2"
+      "sha256": "66a0fccf4c87a98547bc2cb9c9304a5006d166acdef70cb4ffa2e01a6cecdcd8"
     },
     {
       "file": "ViewportQuery.cpp",
@@ -707,7 +773,35 @@
     },
     {
       "file": "InitialValueStyle.cpp",
-      "sha256": "5a24e7ced7b3750788735d2b63319f8c830a23ffe3f634ffe52fa52ed11d6844"
+      "sha256": "a749a239a85ff5ac570b986708f55177d887c92b46f1ccbd83af608e14971d36"
+    },
+    {
+      "file": "NativeLayoutState.cpp",
+      "sha256": "110680ce9125ba05e26dcf33949a0595235cc089c052f4960aa6774d435163ea"
+    },
+    {
+      "file": "NativeLayoutState.h",
+      "sha256": "33a6905add87da09bb458a47e7f65e2c71c16a819e301a33a4fd82eb2df31f10"
+    },
+    {
+      "file": "GeometryQuery.cpp",
+      "sha256": "0092c87b2f8e47d4f7c6f3afe608244464de00b80691a63fb495b4b444b0aa98"
+    },
+    {
+      "file": "GeometryQuery.h",
+      "sha256": "402fb6354c467b2a24997e3776a238ab55e4ccf73786cbcc5d396e39ec04e433"
+    },
+    {
+      "file": "NativeYogaNames.h",
+      "sha256": "6b068f2e95f8ea27a301ee89634789d06ec6e91bedaace5ee892faf02be27fb3"
+    },
+    {
+      "file": "NativeMeasuredEdges.h",
+      "sha256": "5a9a1c6ce8242810e7f081228dd5dc3245cab48ccff9f30b437bfc5155d7cac3"
+    },
+    {
+      "file": "NativeTransformValue.h",
+      "sha256": "99665f3ffd8a7afb658240e1ec755a008f399c30447e27604f2d4cf02c61bf63"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -718,15 +812,15 @@
     },
     {
       "file": "android/src/main/jni/MotionIntrinsicsJNI.cpp",
-      "sha256": "dbac07fd6e0016cedca5a720b09c77e1fef8986ffa58eaedc5930bd12896d9fb"
+      "sha256": "cecdf658f38c2293a4f1d47e129b4dc19ed6cf651d2649efcb8acfb688ae98da"
     },
     {
       "file": "android/src/main/jni/MotionIntrinsicsJNI.h",
-      "sha256": "1fd5e2c18a25eae88d1c4fdff657ae2931755d028a03586c3b5dcc57a009faef"
+      "sha256": "57bd097049066a8f1e48fa63b6165fe9837d4eefe1d79eb942d4857a44c06d49"
     },
     {
       "file": "android/src/main/jni/CMakeLists.txt",
-      "sha256": "a0c491d09f9d65d1351aadcd28ecce91d54d3240022c5886ef430afcb640b61b"
+      "sha256": "3f483bf3645db9b27fa25f7fe8fbb45cbe937a9318ed19dc4fab41223ef6297b"
     },
     {
       "file": "android/src/main/consumer-rules.pro",
@@ -739,11 +833,15 @@
     },
     {
       "file": "android/src/main/jni/MotionSnapshotJNI.cpp",
-      "sha256": "bd86b08015503b12a3db899c1e54f3bcc1a461c15c14041a3d5d752fadbe3484"
+      "sha256": "73da6357a49618531bdac13c471852f273b3eddcfcf8c8ae6221e61ba072712d"
     },
     {
       "file": "android/src/main/java/com/codonui/input/CUIMotionSnapshotModule.java",
-      "sha256": "0699141c5dc6f660d344477388c4afc791d15733b1219eb72a4bdcdbc05c0017"
+      "sha256": "e5adb10d11d08c70313cd5d24f1585f93396435c569dd505ef51d36fca4c984c"
+    },
+    {
+      "file": "android/build.gradle",
+      "sha256": "48a0e840e33b981e3f21500b750e6b02d7cce114ddef9109d9e65eda788f5249"
     }
   ],
   "cachedSpanPolicy": {
@@ -777,11 +875,11 @@
   "popFrameFiles": [
     {
       "file": "ios/CUIMotionSnapshot.mm",
-      "sha256": "43c7c5185faaf16e9b79a9cb1cc37013b7c09c73d1d0870c4295878a3e050d49"
+      "sha256": "51ca1be6e1ee2d79d5388106bb52ecf4245e12cfe8990bdfbc5c99c25d7c30a9"
     },
     {
       "file": "src/input/specs/NativeCUIMotionSnapshot.ts",
-      "sha256": "bf205a3d074e6ed5d35306db204edf68f6fc540df385e18faaa825595356802d"
+      "sha256": "5f5133d0396e988629d2b54e59f2c3156e46ebb693e116951f6d0bc451224f80"
     }
   ],
   "drawingAuthoredFiles": [
@@ -791,7 +889,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "60b7bf4262a7ed1cb5c30d8a9ea247cda5f23d869c91899ff5eac0ab7faa03a0"
+      "sha256": "aa63c76d5d5b8948813e9d59b62c8db9876a245a1592f7ee1c93170c0a6a3404"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -847,7 +945,7 @@
     },
     {
       "file": "CodonNativeInput.podspec",
-      "sha256": "f5758a74a4693416e9f64e23075d82e1357e652f14f4eb0b9f7a8db8dc681206"
+      "sha256": "cbfef0472dd05abacb2b9cfe246a633b4f839ec1c4e8b62edb84765a6d24493f"
     }
   ],
   "drawingSourceBoundary": {
@@ -861,5 +959,102 @@
     "nativeAssertionsExecuted": false,
     "nativePixelsAccepted": false,
     "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes"
+  },
+  "peerStateInputs": [
+    {
+      "package": "react-native-safe-area-context",
+      "version": "5.7.0",
+      "path": "common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewShadowNode.cpp",
+      "sourceRef": "npm:react-native-safe-area-context@5.7.0/common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewShadowNode.cpp",
+      "sha256": "0bd31bad405554d89c6a5cceac5cf224a76b667b7fdb0e8a0c782aab8bfcf66b"
+    },
+    {
+      "package": "react-native-safe-area-context",
+      "version": "5.7.0",
+      "path": "common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewState.h",
+      "sourceRef": "npm:react-native-safe-area-context@5.7.0/common/cpp/react/renderer/components/safeareacontext/RNCSafeAreaViewState.h",
+      "sha256": "4f18e086699d2be4aa58d67eb30cdb2ba09e44d53dae8459c012d5ac9399adb2"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGLayoutableShadowNode.cpp",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGLayoutableShadowNode.cpp",
+      "sha256": "e8a5b35520647e5576f120ddae6da8db3c0b9ffd7dd06ee8d0c4b35fff27b435"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGShadowNodes.h",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGShadowNodes.h",
+      "sha256": "785e9e36176c470003ad3b5e11b274d40bfb20ff5c3ced59035cd5eb88ab5efd"
+    },
+    {
+      "package": "react-native-svg",
+      "version": "15.15.4",
+      "path": "common/cpp/react/renderer/components/rnsvg/RNSVGConcreteShadowNode.h",
+      "sourceRef": "npm:react-native-svg@15.15.4/common/cpp/react/renderer/components/rnsvg/RNSVGConcreteShadowNode.h",
+      "sha256": "e8eeae9864f8829f4144bbf495dfc1386d77d6ef0abc3ca396869444eaa1cb1f"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewComponentDescriptor.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewComponentDescriptor.h",
+      "sha256": "98a248e191fc8d13e556ced67555eb810bfad258fcbff6a23b51dcaafde93478"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewState.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewState.h",
+      "sha256": "09044f400229f59a58c27047d015cc0afe7c010c90c151327395b7ab7c9bd1c1"
+    },
+    {
+      "package": "react-native-teleport",
+      "version": "1.2.2",
+      "path": "common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewShadowNode.h",
+      "sourceRef": "npm:react-native-teleport@1.2.2/common/cpp/react/renderer/components/TeleportViewSpec/RNTPortalViewShadowNode.h",
+      "sha256": "69be2b399d6257317ac949e6c87bf18c4982459a214574348eddf6441fb59e74"
+    }
+  ],
+  "peerStateLicenses": [
+    {
+      "file": "LICENSE.native-layout-peers.md",
+      "sha256": "dd69fc5f603ce780eadf088650696b4812bb67f4a114036a8ab3478fffeb7f3d"
+    }
+  ],
+  "isolatedGeometryBoundary": {
+    "immutableActualInputs": true,
+    "independentYogaStages": true,
+    "actualEditorCallbacks": false,
+    "mountedProbeWrites": false,
+    "hostGeometryTests": "synthetic trees against actual pinned Yoga",
+    "AndroidReleaseLibraryBuilt": true,
+    "installedNativeFidelityAccepted": false,
+    "fullCard": false
+  },
+  "motionSourceInputs": [
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/dom/parse-transform.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "c0e21cc5d0151a3f0d5e76c762c6eee24a659d74b5ede1be04133562f721714c",
+      "executedModuleSha256": "73ce14c6622f4aa9d039bc8a7563862000f5ee2d57eef61106ce86d49395cde7"
+    }
+  ],
+  "motionLicense": {
+    "file": "../../src/motion/kernel/LICENSE.motion-dom.md",
+    "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+  },
+  "computedValuesBoundary": {
+    "nativeTransformInput": "resolved4x4; explicit matrix3d formulas",
+    "authoredMatrixScalarAmbiguityRemoved": true,
+    "evaluatedMargins": true,
+    "autoMargins": "explicit unsupported distributed-value authority",
+    "initialMarginRead": "same guarded independent evaluator, no mounted probe",
+    "nativeAcceptance": false
   }
 }

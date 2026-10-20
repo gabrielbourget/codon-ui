@@ -7,6 +7,8 @@ import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
 import type { Spec } from "../../input/specs/NativeCUIMotionSnapshot"
 import type { TNativeMotionResolutionToken } from "../value/types"
 
+import { resolveNativeMotionIsolatedLayout } from "./isolatedGeometry"
+
 const failure = (message: string) => new Error(`Native motion initial value: ${message}`)
 const identity = (record: TNativeMotionGeometryRecord) => ({
   ownerId: record.ownerId,
@@ -58,8 +60,18 @@ export const readNativeMotionInitialValue = (
   name: string,
   endpoint: unknown,
   token: TNativeMotionResolutionToken,
-): Promise<unknown> =>
-  new Promise((resolve, reject) => {
+): Promise<unknown> => {
+  if (
+    /^margin(?:Left|Right|Top|Bottom|Start|End|InlineStart|InlineEnd|BlockStart|BlockEnd|Horizontal|Vertical|Inline|Block)?$/.test(
+      name,
+    )
+  )
+    return resolveNativeMotionIsolatedLayout(target, [{ index: 0, nativeView: {} }], [name], token).then((result) => {
+      const value = result.results[0].metrics[name]
+      if (typeof value !== "number" || !Number.isFinite(value)) throw failure("evaluated margin remains unresolved")
+      return value
+    })
+  return new Promise((resolve, reject) => {
     let settled = false,
       expected: ReturnType<typeof identity> | undefined,
       latest: TNativeMotionGeometryRecord | undefined
@@ -165,3 +177,4 @@ export const readNativeMotionInitialValue = (
       (error: unknown) => finish(error),
     )
   })
+}

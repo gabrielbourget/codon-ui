@@ -9,6 +9,7 @@ import { getFinalKeyframe } from "../kernel/engine/animation/keyframes/get-final
 import { nativeMotionRuntime } from "../kernel/nativeRuntime"
 
 import { canAnimateNativeKeyframes, resolveNativeMotionKeyframes } from "./keyframes"
+import type { TNativeMotionResolutionTicket } from "./resolution-batch"
 import type { TNativeMotionResolutionToken, TNativeMotionValueOptions, TNativeResolvedKeyframes } from "./types"
 
 export class NativeMotionResolutionPendingError extends Error {
@@ -36,6 +37,7 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
   private reject!: (error: unknown) => void
   private resolveReady!: () => void
   private rejectReady!: (error: unknown) => void
+  private resolutionTicket?: TNativeMotionResolutionTicket
   private readonly pendingFinished: Promise<void>
   readonly ready: Promise<void>
   constructor(private readonly options: TNativeMotionValueOptions) {
@@ -69,14 +71,29 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
   private resolve = () => {
     const generation = ++this.generation
     try {
-      const resolved = resolveNativeMotionKeyframes(this.options, this.token(generation))
+      const token = this.token(generation)
+      const ticket = this.options.context.beginResolution?.(this.options.name, token)
+      this.resolutionTicket = ticket
+      const options = ticket
+        ? { ...this.options, context: { ...this.options.context, resolutionTicket: ticket } }
+        : this.options
+      const resolved = resolveNativeMotionKeyframes(options, token)
+      const accept = (result: TNativeResolvedKeyframes) => {
+        ticket?.settled()
+        if (ticket) return ticket.ready.then(() => this.accept(result, generation))
+        this.accept(result, generation)
+      }
       if (resolved instanceof Promise)
-        void resolved
-          .then((result) => this.accept(result, generation))
-          .catch((error) => {
+        void resolved.then(accept).catch((error) => {
+          if (this.current(generation)) this.fail(error)
+        })
+      else {
+        const pending = accept(resolved)
+        if (pending)
+          void pending.catch((error: unknown) => {
             if (this.current(generation)) this.fail(error)
           })
-      else this.accept(resolved, generation)
+      }
     } catch (error) {
       if (this.current(generation)) this.fail(error)
     }
@@ -149,6 +166,7 @@ export class NativeValueAnimation implements AnimationPlaybackControlsWithThen {
     getFinalKeyframe(resolved.keyframes, this.options, resolved.finalKeyframe)
   private fail = (error: unknown) => {
     this.failed = true
+    this.resolutionTicket?.settled(error)
     this.inner?.stop()
     this.cancellation.forEach((listener) => listener())
     this.cancellation.clear()

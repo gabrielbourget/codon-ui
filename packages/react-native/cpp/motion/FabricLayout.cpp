@@ -1,5 +1,5 @@
 #include "FabricLayout.h"
-#include "NativeStyle.h"
+#include "NativeLayoutState.h"
 
 #include <react/featureflags/ReactNativeFeatureFlags.h>
 #include <react/renderer/components/view/LayoutConformanceShadowNode.h>
@@ -13,15 +13,21 @@ using namespace facebook::react;
 namespace {
 TNativeScratchNode copyNode(
     const ShadowNode &source, const LayoutContext &context, bool swap,
-    YGErrata inheritedErrata, const TNativeScratchIntrinsicResolver &resolveIntrinsic) {
-  const auto *props = dynamic_cast<const YogaStylableProps *>(source.getProps().get());
+    YGErrata inheritedErrata, const TNativeScratchIntrinsicResolver &resolveIntrinsic,
+    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
+  if (check) check();
+  const auto selectedProps = resolveProps ? resolveProps(source) : source.getProps();
+  const auto *props = dynamic_cast<const YogaStylableProps *>(selectedProps.get());
   if (!props) throw std::runtime_error("Native motion: actual Yoga props unavailable");
+  const auto layoutState = captureNativeLayoutState(source, check);
+  auto style = applyNativeLayoutState(layoutState, selectedProps, swap);
   auto errata = inheritedErrata;
-  if (const auto *conformance = dynamic_cast<const LayoutConformanceShadowNode *>(&source)) {
-    errata = conformance->getConcreteProps().mode == LayoutConformance::Strict
+  if (dynamic_cast<const LayoutConformanceShadowNode *>(&source)) {
+    const auto &conformance = static_cast<const LayoutConformanceShadowNode::ConcreteProps &>(*selectedProps);
+    errata = conformance.mode == LayoutConformance::Strict
         ? YGErrataNone : YGErrataAll;
   }
-  TNativeScratchNode result{source.getTag(), copyNativeYogaStyle(*props, swap)};
+  TNativeScratchNode result{source.getTag(), std::move(style)};
   result.errata = errata;
   if (source.getTraits().check(ShadowNodeTraits::ViewKind)) {
     const auto &view = static_cast<const ViewProps &>(*props);
@@ -33,7 +39,7 @@ TNativeScratchNode copyNode(
     if (!resolveIntrinsic)
       throw std::runtime_error(std::string("Native motion: isolated intrinsic backend unavailable for ") +
                                source.getComponentName());
-    auto intrinsic = resolveIntrinsic(source, context);
+    auto intrinsic = resolveIntrinsic(source, context, selectedProps);
     if ((measures && !intrinsic.measure) || (hasBaseline && !intrinsic.baseline))
       throw std::runtime_error("Native motion: complete isolated intrinsic callbacks required");
     if (measures) result.measure = std::move(intrinsic.measure);
@@ -42,9 +48,10 @@ TNativeScratchNode copyNode(
   if (!source.getTraits().check(ShadowNodeTraits::LeafYogaNode)) {
     for (const auto &child : source.getChildren()) {
       if (dynamic_cast<const YogaLayoutableShadowNode *>(child.get()))
-        result.children.push_back(copyNode(*child, context, swap, errata, resolveIntrinsic));
+        result.children.push_back(copyNode(*child, context, swap, errata, resolveIntrinsic, resolveProps, check));
     }
   }
+  if (check) check();
   return result;
 }
 } // namespace
@@ -52,15 +59,17 @@ TNativeScratchNode copyNode(
 TNativeScratchNode copyNativeScratchSubtree(
     const ShadowNode &node, const LayoutContext &context,
     const LayoutConstraints &constraints,
-    const TNativeScratchIntrinsicResolver &resolveIntrinsic) {
+    const TNativeScratchIntrinsicResolver &resolveIntrinsic,
+    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
   const bool swap = context.swapLeftAndRightInRTL &&
       constraints.layoutDirection == LayoutDirection::RightToLeft;
-  return copyNode(node, context, swap, YGErrataAll, resolveIntrinsic);
+  return copyNode(node, context, swap, YGErrataAll, resolveIntrinsic, resolveProps, check);
 }
 
 TNativeScratchInput createNativeScratchInput(
     const TNativeFabricSnapshot &snapshot,
-    const TNativeScratchIntrinsicResolver &resolveIntrinsic) {
+    const TNativeScratchIntrinsicResolver &resolveIntrinsic,
+    const TNativeScratchPropsResolver &resolveProps, const TNativeFabricReadGuard &check) {
   if (!snapshot.root || !snapshot.target)
     throw std::invalid_argument("Native motion: actual Fabric snapshot required");
   const auto &context = snapshot.context;
@@ -76,7 +85,7 @@ TNativeScratchInput createNativeScratchInput(
       constraints.layoutDirection == LayoutDirection::LeftToRight ? YGDirectionLTR :
           constraints.layoutDirection == LayoutDirection::RightToLeft ? YGDirectionRTL : YGDirectionInherit,
       ReactNativeFeatureFlags::fixYogaFlexBasisFitContentInMainAxis()};
-  return {snapshot, copyNode(*snapshot.root, context, swap, YGErrataAll, resolveIntrinsic), scratch};
+  return {snapshot, copyNode(*snapshot.root, context, swap, YGErrataAll, resolveIntrinsic, resolveProps, check), scratch};
 }
 
 } // namespace codon::motion

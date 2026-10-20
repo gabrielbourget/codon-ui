@@ -15,9 +15,10 @@ struct TEntry {
   YGConfigRef config;
   YGNodeRef node;
   const TNativeScratchNode &input;
+  int parentTag;
   std::exception_ptr &failure;
-  TEntry(const TNativeScratchNode &source, std::exception_ptr &error)
-      : config(YGConfigNew()), node(nullptr), input(source), failure(error) {}
+  TEntry(const TNativeScratchNode &source, int parent, std::exception_ptr &error)
+      : config(YGConfigNew()), node(nullptr), input(source), parentTag(parent), failure(error) {}
   TEntry(const TEntry &) = delete;
   TEntry &operator=(const TEntry &) = delete;
   ~TEntry() {
@@ -38,12 +39,12 @@ class TNodeArena {
 
   YGNodeRef append(const TNativeScratchNode &input,
                    const TNativeScratchConstraints &constraints,
-                   int target, const yoga::Style &stage) {
+                   int target, const yoga::Style *stage, int parentTag = 0) {
     if (tags.contains(input.tag))
       throw std::invalid_argument("Native motion: duplicate scratch tag");
     if (input.measure && !input.children.empty())
       throw std::invalid_argument("Native motion: measured scratch leaf has children");
-    auto entry = std::make_unique<TEntry>(input, failure);
+    auto entry = std::make_unique<TEntry>(input, parentTag, failure);
     YGConfigSetErrata(entry->config, input.errata);
     YGConfigSetPointScaleFactor(entry->config, constraints.pointScaleFactor);
     YGConfigSetExperimentalFeatureEnabled(
@@ -51,7 +52,7 @@ class TNodeArena {
         constraints.fixFlexBasisFitContent);
     entry->node = YGNodeNewWithConfig(entry->config);
     const auto node = entry->node;
-    static_cast<yoga::Node *>(node)->setStyle(input.tag == target ? stage : input.style);
+    static_cast<yoga::Node *>(node)->setStyle(input.tag == target && stage ? *stage : input.style);
     YGNodeSetAlwaysFormsContainingBlock(node, input.formsContainingBlock);
     YGNodeSetContext(node, entry.get());
     if (input.measure) YGNodeSetMeasureFunc(node, measure);
@@ -59,7 +60,7 @@ class TNodeArena {
     tags.emplace(input.tag, node);
     nodes.push_back(std::move(entry));
     for (const auto &child : input.children) {
-      const auto childNode = append(child, constraints, target, stage);
+      const auto childNode = append(child, constraints, target, stage, input.tag);
       YGNodeInsertChild(node, childNode, YGNodeGetChildCount(node));
     }
     return node;
@@ -114,7 +115,61 @@ void validate(const TNativeScratchConstraints &constraints) {
     throw std::invalid_argument("Native motion: invalid actual layout constraints");
 }
 
+std::vector<TNativeScratchNodeMeasurement> evaluateStage(
+    const TNativeScratchNode &input, const TNativeScratchConstraints &constraints,
+    int target, const yoga::Style *targetStyle) {
+  validate(constraints);
+  TNodeArena arena;
+  const auto root = arena.append(input, constraints, target, targetStyle);
+  if (!arena.tags.contains(target))
+    throw std::invalid_argument("Native motion: scratch target unavailable");
+  auto &rootStyle = static_cast<yoga::Node *>(root)->style();
+  rootStyle.setMinDimension(yoga::Dimension::Width,
+                           yoga::StyleSizeLength::points(constraints.minimumWidth));
+  rootStyle.setMinDimension(yoga::Dimension::Height,
+                           yoga::StyleSizeLength::points(constraints.minimumHeight));
+  rootStyle.setMaxDimension(yoga::Dimension::Width,
+                           yoga::StyleSizeLength::points(constraints.maximumWidth));
+  rootStyle.setMaxDimension(yoga::Dimension::Height,
+                           yoga::StyleSizeLength::points(constraints.maximumHeight));
+  YGNodeCalculateLayout(root,
+      std::isfinite(constraints.maximumWidth) ? constraints.maximumWidth : YGUndefined,
+      std::isfinite(constraints.maximumHeight) ? constraints.maximumHeight : YGUndefined,
+      constraints.direction);
+  if (arena.failure) std::rethrow_exception(arena.failure);
+  std::vector<TNativeScratchNodeMeasurement> results;
+  results.reserve(arena.nodes.size());
+  constexpr YGEdge edges[]{YGEdgeLeft, YGEdgeTop, YGEdgeRight, YGEdgeBottom};
+  for (const auto &entry : arena.nodes) {
+    const auto node = entry->node;
+    TNativeScratchMeasurement layout{
+        {YGNodeLayoutGetLeft(node), YGNodeLayoutGetTop(node),
+         YGNodeLayoutGetWidth(node), YGNodeLayoutGetHeight(node)}, {}, {}};
+    layout.direction = YGNodeLayoutGetDirection(node);
+    for (size_t index = 0; index < 4; index++) {
+      layout.border[index] = YGNodeLayoutGetBorder(node, edges[index]);
+      layout.padding[index] = YGNodeLayoutGetPadding(node, edges[index]);
+      layout.margin[index] = YGNodeLayoutGetMargin(node, edges[index]);
+      if (!std::isfinite(layout.frame[index]) || !std::isfinite(layout.border[index]) ||
+          !std::isfinite(layout.padding[index]) || !std::isfinite(layout.margin[index]))
+        throw std::runtime_error("Native motion: non-finite scratch result");
+    }
+    results.push_back({entry->input.tag, entry->parentTag, YGNodeStyleGetDisplay(node),
+        YGNodeStyleGetPositionType(node), entry->input.formsContainingBlock, layout});
+  }
+  return results;
+}
+
 } // namespace
+
+std::vector<std::vector<TNativeScratchNodeMeasurement>> evaluateNativeScratchStages(
+    const std::vector<TNativeScratchStage> &stages, int target) {
+  std::vector<std::vector<TNativeScratchNodeMeasurement>> results;
+  results.reserve(stages.size());
+  for (const auto &stage : stages)
+    results.push_back(evaluateStage(stage.root, stage.constraints, target, nullptr));
+  return results;
+}
 
 std::vector<TNativeScratchMeasurement> evaluateNativeScratchYoga(
     const TNativeScratchNode &input, const TNativeScratchConstraints &constraints,
@@ -122,37 +177,9 @@ std::vector<TNativeScratchMeasurement> evaluateNativeScratchYoga(
   validate(constraints);
   std::vector<TNativeScratchMeasurement> results;
   for (const auto &stage : stages) {
-    TNodeArena arena;
-    const auto root = arena.append(input, constraints, target, stage);
-    if (!arena.tags.contains(target))
-      throw std::invalid_argument("Native motion: scratch target unavailable");
-    auto &rootStyle = static_cast<yoga::Node *>(root)->style();
-    rootStyle.setMinDimension(yoga::Dimension::Width,
-                             yoga::StyleSizeLength::points(constraints.minimumWidth));
-    rootStyle.setMinDimension(yoga::Dimension::Height,
-                             yoga::StyleSizeLength::points(constraints.minimumHeight));
-    rootStyle.setMaxDimension(yoga::Dimension::Width,
-                             yoga::StyleSizeLength::points(constraints.maximumWidth));
-    rootStyle.setMaxDimension(yoga::Dimension::Height,
-                             yoga::StyleSizeLength::points(constraints.maximumHeight));
-    YGNodeCalculateLayout(root,
-        std::isfinite(constraints.maximumWidth) ? constraints.maximumWidth : YGUndefined,
-        std::isfinite(constraints.maximumHeight) ? constraints.maximumHeight : YGUndefined,
-        constraints.direction);
-    if (arena.failure) std::rethrow_exception(arena.failure);
-    const auto node = arena.tags.at(target);
-    TNativeScratchMeasurement result{
-        {YGNodeLayoutGetLeft(node), YGNodeLayoutGetTop(node),
-         YGNodeLayoutGetWidth(node), YGNodeLayoutGetHeight(node)}, {}, {}};
-    constexpr YGEdge edges[]{YGEdgeLeft, YGEdgeTop, YGEdgeRight, YGEdgeBottom};
-    for (size_t index = 0; index < 4; index++) {
-      result.border[index] = YGNodeLayoutGetBorder(node, edges[index]);
-      result.padding[index] = YGNodeLayoutGetPadding(node, edges[index]);
-      if (!std::isfinite(result.frame[index]) ||
-          !std::isfinite(result.border[index]) || !std::isfinite(result.padding[index]))
-        throw std::runtime_error("Native motion: non-finite scratch result");
-    }
-    results.push_back(result);
+    const auto measured = evaluateStage(input, constraints, target, &stage);
+    for (const auto &node : measured)
+      if (node.tag == target) { results.push_back(node.layout); break; }
   }
   return results;
 }

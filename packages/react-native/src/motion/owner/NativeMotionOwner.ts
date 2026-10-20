@@ -1,10 +1,10 @@
-import type { View } from "react-native"
+import type { TextStyle, View } from "react-native"
 
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
 import { createAnimationState, isControllingVariants, isVariantNode, resolveVariantFromProps } from "../animation"
 import { isAnimationControls } from "../animation/is-animation-controls"
 import { isVariantLabel } from "../animation/is-variant-label"
-import { positionalKeys } from "../animation/transform-keys"
+import { positionalKeys, transformProps } from "../animation/transform-keys"
 import type {
   TNativeMotionAnimationOwner,
   TNativeMotionAnimationProps,
@@ -19,12 +19,20 @@ import type { TNativeMotionLayoutProps } from "../projection/layoutTypes"
 import type { NativeProjectionState } from "../projection/NativeProjectionState"
 import type { IProjectionNode } from "../projection/node/types"
 import { animateNativeMotionValue } from "../value/animateValue"
+import { NativeMotionProbeIsolation } from "../value/isolated-probe"
 import { nativeTargetKeyframes } from "../value/keyframes"
 import { createNativeMotionValueContext } from "../value/nativeContext"
 import { NativeValueAnimation } from "../value/NativeValueAnimation"
+import { NativeMotionResolutionBatch } from "../value/resolution-batch"
 import type { TNativeMotionValueContext } from "../value/types"
 import type { TNativeMotionViewportProps } from "../viewport/types"
-import type { TNativeMotionVisualBindings } from "../visual/types"
+import { resolveNativeMotionVisualStyle } from "../visual/styles"
+import { NATIVE_MOTION_TRANSFORM_ORDER } from "../visual/types"
+import type {
+  TNativeMotionTransformTemplate,
+  TNativeMotionVisualBindings,
+  TNativeMotionVisualValues,
+} from "../visual/types"
 
 const NATIVE_NODE_DISCONNECTED = 1
 const NATIVE_NODE_PRECEDING = 2
@@ -59,6 +67,9 @@ export type TNativeMotionOwnerOptions = {
   waitForInitialWindow?: () => boolean
   readValue?: TNativeMotionValueContext["readValue"]
   resolveGeometry?: TNativeMotionValueContext["resolveGeometry"]
+  evaluateGeometry?: TNativeMotionValueContext["resolveGeometry"]
+  transformTemplate?: TNativeMotionTransformTemplate
+  onMeasurementError?: (error: unknown) => void
   presence?: { custom?: unknown; initial?: boolean; isPresent?: boolean }
   initialContext?: TNativeMotionInitialContext
 }
@@ -103,6 +114,11 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   private readonly animations = new Map<MotionValue<unknown>, AnimationPlaybackControlsWithThen>()
   private readonly pendingBindings = new Map<string, { value: MotionValue<unknown>; failed: boolean }>()
   private readonly listeners = new Set<() => void>()
+  private readonly resolutionBatch = new NativeMotionResolutionBatch()
+  private readonly probes = new NativeMotionProbeIsolation({
+    canAct: () => this.isCurrent(),
+    onError: (error) => this.options.onMeasurementError?.(error),
+  })
   private snapshot: TNativeMotionVisualBindings = Object.freeze({})
   private stopGeometry?: () => void
   private stopControls?: () => void
@@ -206,28 +222,104 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
   private publishBindings = () => {
     this.snapshot = Object.freeze(
       Object.fromEntries(
-        [...this.values].filter(([key, value]) => value.get() !== undefined && !this.pendingBindings.has(key)),
+        [...this.values]
+          .filter(([key, value]) => value.get() !== undefined && !this.pendingBindings.has(key))
+          .map(([key, value]) => [key, this.probes.binding(value)]),
       ),
     ) as TNativeMotionVisualBindings
     if (this.current) this.listeners.forEach((listener) => listener())
   }
   private bind = (key: string, value: MotionValue<unknown>) => {
     this.subscriptions.get(key)?.()
-    this.subscriptions.set(
-      key,
-      value.on("change", (latest) => {
-        if (this.values.get(key) !== value) return
-        this.latestValues[key] = latest
-        this.projectionValues.forEach((listener) => listener())
-        if (this.pendingBindings.get(key)?.failed) this.pendingBindings.delete(key)
-        if (
-          !this.snapshot[key as keyof TNativeMotionVisualBindings] &&
-          !this.pendingBindings.has(key) &&
-          latest !== undefined
-        )
-          this.publishBindings()
-      }),
+    const receive = (latest: unknown) => {
+      if (this.values.get(key) !== value || this.probes.isProbing(value)) return
+      this.latestValues[key] = latest
+      this.projectionValues.forEach((listener) => listener())
+      if (this.pendingBindings.get(key)?.failed) this.pendingBindings.delete(key)
+      if (
+        !this.snapshot[key as keyof TNativeMotionVisualBindings] &&
+        !this.pendingBindings.has(key) &&
+        latest !== undefined
+      )
+        this.publishBindings()
+    }
+    const stopChange = value.on("change", receive)
+    const stopRestored = this.probes.observeRestored(value, () => receive(value.get()))
+    this.subscriptions.set(key, () => {
+      stopChange()
+      stopRestored()
+    })
+  }
+  isolatedProbe = (
+    name: string,
+    value: unknown,
+    phase: "target" | "restored",
+    token: Parameters<TNativeMotionValueContext["readValue"]>[2],
+  ) => {
+    const current = this.values.get(name)
+    if (!current) throw new Error("Native motion: isolated probe value unavailable")
+    this.probes.probe(name, current, value, phase, token)
+  }
+  beginIsolatedTransforms = (token: Parameters<TNativeMotionValueContext["readValue"]>[2]) => {
+    const removed: Array<{ name: string; value: MotionValue<unknown>; original: unknown }> = []
+    let restored = false
+    const restore = () => {
+      if (restored) return
+      restored = true
+      let failure: unknown,
+        failed = false
+      for (const { name, value, original } of removed) {
+        try {
+          this.probes.setProbe(name, value, original, "restored", token)
+        } catch (error) {
+          if (!failed) failure = error
+          failed = true
+        }
+      }
+      if (failed) throw failure
+    }
+    try {
+      for (const name of NATIVE_MOTION_TRANSFORM_ORDER) {
+        if (name === "x" || name === "y" || name === "z") continue
+        const value = this.values.get(name)
+        if (!value) continue
+        removed.push({ name, value, original: value.get() })
+        this.probes.setProbe(name, value, name.startsWith("scale") ? 1 : 0, "target", token)
+      }
+    } catch (error) {
+      try {
+        restore()
+      } catch (restorationError) {
+        this.options.onMeasurementError?.(restorationError)
+      }
+      throw error
+    }
+    return restore
+  }
+  buildIsolatedStage = (patch: Readonly<Record<string, unknown>>): Readonly<Record<string, unknown>> => {
+    const values = { ...this.latestValues }
+    for (const name of NATIVE_MOTION_TRANSFORM_ORDER) {
+      const value = this.values.get(name)
+      if (value && this.probes.isProbing(value)) values[name] = value.get()
+    }
+    Object.assign(values, patch)
+    const resolved = resolveNativeMotionVisualStyle(
+      this.options.base as TextStyle,
+      undefined,
+      undefined,
+      values as TNativeMotionVisualValues,
+      this.options.transformTemplate,
+    ).view
+    const result = { ...patch }
+    for (const name of Object.keys(result))
+      if (transformProps.has(name) || ["originX", "originY", "originZ"].includes(name)) delete result[name]
+    if (
+      resolved.transform !== undefined &&
+      (Object.keys(values).some((name) => transformProps.has(name)) || "transform" in patch)
     )
+      result.transform = resolved.transform
+    if (resolved.transformOrigin !== undefined) result.transformOrigin = resolved.transformOrigin
+    return result
   }
   addValue = (key: string, value: MotionValue<unknown>) => {
     if (this.values.get(key) === value) return
@@ -305,6 +397,8 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
     this.waiting.clear()
   }
   invalidate = () => {
+    this.resolutionBatch.cancel()
+    this.probes.cancel()
     this.generation++
     const animations = [...this.animations]
     this.animations.clear()
@@ -438,6 +532,7 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
       target: () => this.current,
       isCurrent: () => this.isCurrent() && isCurrent(),
       shouldSkipAnimations: this.shouldSkipAnimations,
+      beginResolution: this.resolutionBatch.begin,
       readValue: (name, endpoint, token) => {
         const authored = this.options.base[name]
         if (authored !== undefined) {
@@ -457,10 +552,11 @@ export class NativeMotionOwner implements TNativeMotionAnimationOwner {
           ? Promise.resolve(result).then(remember)
           : remember(result)
       },
-      resolveGeometry: (name, frames, token) => {
-        if (!this.options.resolveGeometry)
+      resolveGeometry: (name, frames, token, ticket) => {
+        if (this.options.resolveGeometry) return this.options.resolveGeometry(name, frames, token)
+        if (!this.options.evaluateGeometry)
           throw new Error("Native motion: actual isolated geometry resolver unavailable")
-        return this.options.resolveGeometry(name, frames, token)
+        return this.options.evaluateGeometry(name, frames, token, ticket)
       },
     })
     const animation = animateNativeMotionValue(key, value, target, transition, nativeContext)(complete)
