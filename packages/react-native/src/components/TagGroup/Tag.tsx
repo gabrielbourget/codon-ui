@@ -220,7 +220,13 @@ const TagReceiver = forwardRef<
                     isDisabled={disabled}
                     geometry="orthogonal"
                     raised={false}
-                    customStyles={{ backgroundColor: "transparent", borderWidth: 0, padding: 0, color: foreground }}
+                    customStyles={{
+                      ...textStyle.current,
+                      backgroundColor: "transparent",
+                      borderWidth: 0,
+                      padding: 0,
+                      color: foreground,
+                    }}
                     onFocus={(event) => {
                       nativeCellFocus?.(event)
                       group.focus(row, true, event.nativeEvent.isFocusVisible)

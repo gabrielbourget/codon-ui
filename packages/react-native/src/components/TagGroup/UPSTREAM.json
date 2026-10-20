@@ -52,7 +52,7 @@
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
     "TagGroup.tsx": "5d72d2e019cfa611a549dff2d034dedf20448f0aeaa1ef4766068c846d269382",
-    "Tag.tsx": "59b349d353f0cda089b446fdbc7974071aff04aaab249be14d2be2d1b652a210",
+    "Tag.tsx": "777ad65de6d83cc3fa6442410a5bfa88500fdb59d0186ddd7f21d1bd73eea0a3",
     "context.ts": "3f9b4ade9c2b1c8b682e369e8596c22af40c1adeb939e0ef6497721bf2883f3c",
     "types.ts": "d5ca2b624a8ea37be113a2e70f7bd6f5880d0641e69d65f6855751de9090f67e",
     "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",

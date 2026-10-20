@@ -119,12 +119,13 @@ it("inherits root/list native typography while item styles retain final preceden
   await render(
     <NativeThemeProvider>
       <TagGroup
+        onRemove={jest.fn()}
         customStyles={{ fontSize: 15 }}
         style={{ fontSize: 17 }}
         customTagListStyles={{ fontSize: 19, fontWeight: "700" }}
       >
         <Tag id="a">Inherited</Tag>
-        <Tag id="b" style={final}>
+        <Tag id="b" style={final} closeIcon="×">
           Final
         </Tag>
       </TagGroup>
@@ -135,6 +136,7 @@ it("inherits root/list native typography while item styles retain final preceden
     fontWeight: "700",
   })
   expect(RN.StyleSheet.flatten(screen.getByText("Final", hidden).props.style).fontSize).toBe(23)
+  expect(RN.StyleSheet.flatten(screen.getByText("×", hidden).props.style).fontSize).toBe(23)
   expect(final.mock.calls.at(-1)?.[0].defaultStyle).toMatchObject({ fontSize: 19, fontWeight: "700" })
   expect(RN.StyleSheet.flatten(screen.getByTestId("tag-group", hidden).props.style).fontSize).toBeUndefined()
   expect(RN.StyleSheet.flatten(screen.getByTestId("tag-list", hidden).props.style).fontSize).toBeUndefined()
