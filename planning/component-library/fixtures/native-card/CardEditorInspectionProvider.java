@@ -10,12 +10,14 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
 import android.os.Process;
 import android.text.Editable;
 import android.text.Spannable;
 import android.text.TextPaint;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowInsets;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.common.mapbuffer.WritableMapBuffer;
 import com.facebook.react.uimanager.StateWrapper;
@@ -174,9 +176,12 @@ public final class CardEditorInspectionProvider extends ContentProvider {
               parent = ancestor.getParent();
             }
             ReactEditText editor = (ReactEditText)view;
+            WindowInsets insets = editor.getRootWindowInsets();
             observations.put(new JSONObject().put("tag", tag).put("nativeRef", System.identityHashCode(view))
               .put("screenPixels", new JSONArray().put(location[0]).put(location[1]).put(view.getWidth()).put(view.getHeight()))
               .put("text", editor.getText().toString()).put("focused", editor.hasFocus())
+              .put("windowFocused", editor.hasWindowFocus())
+              .put("imeVisible", Build.VERSION.SDK_INT >= 30 && insets != null && insets.isVisible(WindowInsets.Type.ime()))
               .put("enabled", editor.isEnabled()).put("focusable", editor.isFocusable()).put("shown", editor.isShown()).put("parents", parents));
           }
         } else if ("before".equals(mode)) {

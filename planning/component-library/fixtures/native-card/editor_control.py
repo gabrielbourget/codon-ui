@@ -25,7 +25,7 @@ def advance(device, records, sdk, state):
         assert len(values) <= 1
         return values[0] if values else None
 
-    def type_into(field, location, text, clear=False):
+    def tap_into(field, location):
         editor = location["editors"][field]
         assert editor["tag"] == tags[field]
         x, y, width, height = editor["screenPixels"]
@@ -36,29 +36,65 @@ def advance(device, records, sdk, state):
             left, top, parent_width, parent_height = parent["screenPixels"]
             assert left <= center_x < left + parent_width and top <= center_y < top + parent_height, ("Editor input point outside native ancestor", field, parent)
         device(f"input-tap-{field}", ["shell", "input", "tap", str(round(center_x)), str(round(center_y))])
-        time.sleep(0.4)
+        state["externalTestInputActions"] += 1
+
+    latest = {}
+    for row in records:
+        if row["kind"] == "change-text": latest[row["field"]] = row["value"]
+
+    def observed(label, field, ready):
+        waits = state.setdefault("editorInputWaits", {})
+        wait = waits.setdefault(label, {"started": time.monotonic(), "attempt": 0})
+        assert time.monotonic() - wait["started"] < 45, ("Native editor input acknowledgment did not arrive", label)
+        request = label + "-" + str(wait["attempt"])
+        if request not in actions: inspect("locate", request); return None
+        response = native_response(request)
+        if response is None: return None
+        assert [row["nativeRef"] for row in response["editors"]] == state["editorOriginalRefs"], "Original input editors replaced"
+        editor = response["editors"][field]
+        assert editor["tag"] == tags[field]
+        if ready(editor): return response
+        wait["attempt"] += 1
+        inspect("locate", label + "-" + str(wait["attempt"]))
+        return None
+
+    def focused(editor):
+        return editor["focused"] and editor["windowFocused"] and editor["imeVisible"]
+
+    def text_input(field, text):
         device(f"input-text-{field}", ["shell", "input", "text", text])
-        if clear: device("input-empty-delete", ["shell", "input", "keyevent", "KEYCODE_DEL"])
-        state["externalTestInputActions"] += 3 if clear else 2
+        state["externalTestInputActions"] += 1
 
     if phase == "initial" and "typed-initial" not in actions:
         if "locate-empty" not in actions: inspect("locate", "locate-empty"); return
         empty_location = native_response("locate-empty")
         if empty_location is None: return
+        state.setdefault("editorOriginalRefs", [row["nativeRef"] for row in empty_location["editors"]])
+        if "tap-empty" not in actions:
+            tap_into(0, empty_location); actions.append("tap-empty"); return
         if "typed-empty" not in actions:
-            type_into(0, empty_location, "x", True); actions.append("typed-empty"); return
+            if observed("focus-empty", 0, focused) is None: return
+            text_input(0, "x"); actions.append("typed-empty"); return
+        if "deleted-empty" not in actions:
+            if observed("typed-empty", 0, lambda editor: focused(editor) and editor["text"] == "x" and latest.get(0) == "x") is None: return
+            device("input-empty-delete", ["shell", "input", "keyevent", "KEYCODE_DEL"])
+            state["externalTestInputActions"] += 1
+            actions.append("deleted-empty"); return
+        if observed("cleared-empty", 0, lambda editor: focused(editor) and editor["text"] == "" and latest.get(0) == "") is None: return
         if "locate-dirty" not in actions: inspect("locate", "locate-dirty"); return
         dirty_location = native_response("locate-dirty")
         if dirty_location is None: return
-        type_into(1, dirty_location, "native_input")
+        if "tap-dirty" not in actions:
+            tap_into(1, dirty_location); actions.append("tap-dirty"); return
+        if "typed-dirty" not in actions:
+            if observed("focus-dirty", 1, focused) is None: return
+            text_input(1, "native_input"); actions.append("typed-dirty"); return
+        if observed("typed-dirty", 1, lambda editor: focused(editor) and "native_input" in editor["text"] and "native_input" in latest.get(1, "")) is None: return
         actions.append("typed-initial")
         state["editorInputCompletedMonotonic"] = time.monotonic()
         return
     if phase == "initial":
         elapsed = time.monotonic() - state["editorInputCompletedMonotonic"]
-        latest = {}
-        for row in records:
-            if row["kind"] == "change-text": latest[row["field"]] = row["value"]
         assert elapsed < 25 or latest.get(0) == "" and "native_input" in latest.get(1, ""), "Original native editor input callbacks did not arrive"
         if elapsed < 1 or latest.get(0) != "" or "native_input" not in latest.get(1, ""): return
     before = "before-" + phase
