@@ -59,6 +59,7 @@ const Pair = ({ step, nonce, advance }: { step: number; nonce: string; advance: 
   const left = useRef<View>(null),
     right = useRef<View>(null),
     marker = useRef<View>(null)
+  const layouts = useRef(new Set<string>())
   const start = Math.floor((Dimensions.get("window").width - 360) / 2)
   const common: ViewStyle = { position: "absolute", top: 184, width: 120, height: 80, padding: 0, gap: 0 }
   const rightStyle: ViewStyle = { ...item.profile.style, ...common, left: start + 216 }
@@ -66,6 +67,11 @@ const Pair = ({ step, nonce, advance }: { step: number; nonce: string; advance: 
   useEffect(() => {
     let live = true
     const run = async () => {
+      const layoutDeadline = Date.now() + 10000
+      while (live && layouts.current.size !== 3 && Date.now() < layoutDeadline)
+        await new Promise<void>((resolve) => setTimeout(resolve, 10))
+      if (!live) return
+      if (layouts.current.size !== 3) throw new Error("Original native layout callbacks did not arrive")
       await nextFrame()
       await nextFrame()
       const original = [left.current, right.current, marker.current] as const
@@ -129,6 +135,9 @@ const Pair = ({ step, nonce, advance }: { step: number; nonce: string; advance: 
       <View
         ref={marker}
         collapsable={false}
+        onLayout={() => {
+          layouts.current.add("marker")
+        }}
         style={{ position: "absolute", top: 104, left: 16, width: 32, height: 8, flexDirection: "row" }}
       >
         {Array.from({ length: 8 }, (_, bit) => (
@@ -138,14 +147,31 @@ const Pair = ({ step, nonce, advance }: { step: number; nonce: string; advance: 
           />
         ))}
       </View>
-      <View ref={left} collapsable={false} style={{ ...item.profile.style, ...common, left: start + 24 }} />
+      <View
+        ref={left}
+        collapsable={false}
+        onLayout={() => {
+          layouts.current.add("left")
+        }}
+        style={{ ...item.profile.style, ...common, left: start + 24 }}
+      />
       {item.kind === "calibration" ? (
-        <View ref={right} collapsable={false} style={rightStyle} />
+        <View
+          ref={right}
+          collapsable={false}
+          onLayout={() => {
+            layouts.current.add("right")
+          }}
+          style={rightStyle}
+        />
       ) : item.mode === "identity" ? (
         <NativeFocusHost
           ref={right}
           nativeMotionDrawingOwner
           nativeMotionProjectionRadii={identityRadii(item.profile.style)}
+          onLayout={() => {
+            layouts.current.add("right")
+          }}
           style={rightStyle}
         />
       ) : (
@@ -154,6 +180,9 @@ const Pair = ({ step, nonce, advance }: { step: number; nonce: string; advance: 
           width={120}
           height={80}
           raised={item.profile.defaultRaised ? undefined : false}
+          onLayout={() => {
+            layouts.current.add("right")
+          }}
           style={rightStyle}
         />
       )}

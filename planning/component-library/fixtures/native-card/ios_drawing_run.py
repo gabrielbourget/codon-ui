@@ -69,6 +69,8 @@ def run(root):
         "bootAttempts": 0, "installAttempts": 0, "launchAttempts": 0, "externalInputActions": 0, "capturedSteps": 0,
         "scope": inputs["scope"], "status": "RUNNING"}
     results = []
+    ready = None
+    raw = None
     def save(): (root / "native-run.json").write_text(json.dumps(state, indent=2) + "\n")
     def sim(name, arguments, cap=30, required=True):
         return native_command(root, name, ["/usr/bin/xcrun", "simctl", *arguments], deadline, cap, required)
@@ -145,6 +147,8 @@ def run(root):
         state.update(status="SCOPED_DISPLAYED_DRAWING_PASS", comparedOwnedPairs=len(PAIRS), referenceCalibrations=len(PAIRS), fullCard=False, fullGoal=False)
     except BaseException as error:
         state.update(status="FAIL_OR_BLOCKED", firstFailure=str(error))
+        if raw is not None: (root / "original-last-cache-read.json").write_bytes(raw)
+        if ready is not None and ready.exists(): (root / "original-failure-cache.json").write_bytes(ready.read_bytes())
         if state["installAttempts"] and deadline - time.monotonic() > 21:
             try: sim("failure-screen", ["io", DEVICE, "screenshot", root / "failure-screen.png"], 8, False)
             except Exception as capture: state["failureCapture"] = str(capture)
