@@ -6,17 +6,25 @@
   },
   "sourceSHA256": {
     "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Menu.mjs": "12242046384db49df6f36c8db1713c81610cef011bd89118b29803842cad1008",
-    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useMenuSection.mjs": "d38abdfda1f8e2ddae18040301800daf95885b529276197fb18d2169d223ccbb"
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useMenuSection.mjs": "d38abdfda1f8e2ddae18040301800daf95885b529276197fb18d2169d223ccbb",
+    "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/menu/useMenuTriggerState.mjs": "a14690c656625a381bd8b020ecd21fed4de14318e172dd79ef6b5efcff6d68f5",
+    "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/menu/useSubmenuTriggerState.mjs": "dade0eac995f0a1184135d6d43190ee5ad97926ce88b0758424092837afe6cfa",
+    "node_modules/.pnpm/react-stately@3.46.0_react@19.2.3/node_modules/react-stately/dist/private/overlays/useOverlayTriggerState.mjs": "1a9f51c754274199f3929d08b1c62dd032a41cd6ddf74adb202d3791346c26b8",
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSubmenuTrigger.mjs": "080bedb8024558d644c52fda1bcb835b3d118b7163fcbcdd565b08c9e01f149f"
   },
   "license": "../../collection/LICENSE.react-aria.md",
-  "scope": "Complete pinned GroupSelectionManager subclass with parent focus delegation; MenuSection/header/close/selection context adaptation to existing native hosts, owned state hooks and original visible refs. Private family construction; complete submenu/list-context/public/native acceptance remains open.",
+  "scope": "Private section and submenu construction: complete pinned group/root/submenu state APIs, committed branches and original visible refs, scoped forward/back keys, delayed hover and existing floating-layer close/restoration. Mouse-travel grace, complete inner-list/content contexts, maintained family scene, public and native acceptance remain open.",
   "authoredFilesSHA256": {
     "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
     "MenuSection.tsx": "37aaa4e86e6a9fa0fa661980dc231ae2fe43f217916c6c629a155a4ff83b5613",
     "MenuHeader.tsx": "9c32e40d56137da4a84b86cd3cd9b055a0d38c8157a87fbd4709c08284c85ef8",
-    "Menu.tsx": "dc6584570291e9fa2f8f8b95650d0b63f476954bc2c8c26e9a656e50caf1858a",
-    "MenuItem.tsx": "3803ce6409f7cf9cda603daa74149c9c4477741b182df9c406566df32cdc152e",
-    "context.ts": "7cf618842b4c871c680505d6f50f7523caa83a8a75e26ddde5ab2c8996d0db09",
-    "types.ts": "5b85c23b6e16927eb228c639aee74e4b7f7511718f0f78c35d03e39a64204fce"
+    "Menu.tsx": "e3472fa3cff8e92e5ce14f5cbaeba700569c0f0bd6ac4ff35d604349d7f07ee1",
+    "MenuItem.tsx": "079ab38a51409961dd45d2acf3acc7395366ddc85661e45198de17fc0f5e113e",
+    "context.ts": "a9feaed3ac51cb15bf86763de99ee5903b0be5c6bca2083f89aa1fab52770bb9",
+    "types.ts": "5b85c23b6e16927eb228c639aee74e4b7f7511718f0f78c35d03e39a64204fce",
+    "NativeMenuTrigger.tsx": "a4cc2b234ff3f44a54e471978e316ac33fbd5a3719a804a9f25b6031b04dd52c",
+    "triggerState.ts": "4059f13ad23ea183850525bf023ce9d3b07801478b17077f9a29217a54a83b43",
+    "SubmenuTrigger.tsx": "81e04eb37f84144e047597ca07d8cd0a329773052999427f032d1c7f6dcb9f7f",
+    "../../collection/snapshot.ts": "eb2eb9bd6be41f56d57504f34300300bf1f4a18ebf2daee2495709981c8ba2f5"
   }
 }

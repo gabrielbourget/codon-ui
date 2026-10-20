@@ -22,6 +22,7 @@ import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
 import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
+import { SubmenuTrigger } from "../SubmenuTrigger"
 import type { TNativeMenuProps } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -155,6 +156,210 @@ const press = async (id: string) => {
   await act(() => native.props.onResponderGrant(e))
   await act(() => native.props.onResponderRelease(e))
 }
+
+it("keeps submenu children out of the parent collection and opens without selecting or firing trigger actions", async () => {
+  const selected = new Set(["other"]),
+    selection = jest.fn(),
+    triggerAction = jest.fn()
+  const trigger = createRef<RN.View>()
+  let parent!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    const state = useContext(NativeMenuStateContext)!
+    if (state.collection.getItem("trigger")) parent = state
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "multiple", selectedKeys: selected, onSelectionChange: selection },
+    <>
+      <SubmenuTrigger ref={trigger}>
+        <MenuItem id="trigger" testID="trigger" onAction={triggerAction}>
+          More
+        </MenuItem>
+        <Menu testID="submenu" menuAriaLabel="More actions">
+          <MenuItem id="child" testID="child">
+            Child
+          </MenuItem>
+        </Menu>
+      </SubmenuTrigger>
+      <MenuItem id="other">Other</MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(parent.collection.getItem("child")).toBeNull()
+  expect(parent.collection.size).toBe(2)
+  expect(trigger.current).not.toBeNull()
+  expect(row("trigger").props.role).toBe("menuitem")
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await rawKey("trigger", "Enter")
+  expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+  expect(row("child")).toBeDefined()
+  expect(selection).not.toHaveBeenCalled()
+  expect(triggerAction).not.toHaveBeenCalled()
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  expect([...selected]).toEqual(["other"])
+  const lists = screen.getAllByTestId("menu-list", hidden)
+  expect(lists[1].props.nativeLabelledBy).toEqual([row("trigger").props.nativeID])
+})
+
+it("cancels delayed submenu hover on leave and closes it when actual parent focus moves", async () => {
+  const trigger = createRef<RN.View>(),
+    other = createRef<RN.View>()
+  const f = fixture(
+    {},
+    <>
+      <SubmenuTrigger ref={trigger} delay={200}>
+        <MenuItem id="trigger" testID="trigger">
+          More
+        </MenuItem>
+        <Menu testID="submenu">
+          <MenuItem id="child" testID="child">
+            Child
+          </MenuItem>
+        </Menu>
+      </SubmenuTrigger>
+      <MenuItem ref={other} id="other" testID="other">
+        Other
+      </MenuItem>
+    </>,
+  )
+  await render(f.node())
+  await f.ready()
+  await act(() =>
+    row("trigger").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("trigger").props.ownerId,
+        target: RN.findNodeHandle(trigger.current),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  await rawKey("trigger", "Enter")
+  await act(() =>
+    row("other").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("other").props.ownerId,
+        target: RN.findNodeHandle(other.current),
+        isFocused: true,
+        isFocusVisible: false,
+      },
+    }),
+  )
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  const hoverEvent = {
+    ...event(),
+    nativeEvent: { target: RN.findNodeHandle(trigger.current), timestamp: 0, pointerType: "mouse" },
+  }
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => jest.advanceTimersByTime(199))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerLeave(hoverEvent))
+  await act(() => jest.advanceTimersByTime(1))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => {
+    jest.advanceTimersByTime(200)
+    row("trigger").props.onPointerLeave(hoverEvent)
+  })
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => jest.advanceTimersByTime(200))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+})
+
+it("closes the complete submenu stack after a child action while a controlled root owner vetoes closing", async () => {
+  const childSurface = createRef<RN.View>(),
+    trigger = createRef<RN.View>(),
+    childAction = jest.fn()
+  const f = fixture(
+    {},
+    <SubmenuTrigger ref={trigger}>
+      <MenuItem id="trigger" testID="trigger">
+        More
+      </MenuItem>
+      <Menu ref={childSurface} testID="submenu" onAction={childAction} menuAriaLabel="Child actions">
+        <MenuItem id="child" testID="child">
+          Child
+        </MenuItem>
+      </Menu>
+    </SubmenuTrigger>,
+  )
+  await render(f.node())
+  await f.ready()
+  Object.defineProperty(trigger.current!, "measureInWindow", {
+    configurable: true,
+    value: (callback: (x: number, y: number, width: number, height: number) => void) => callback(100, 100, 40, 40),
+  })
+  await rawKey("trigger", "Enter")
+  Object.defineProperty(childSurface.current!, "measureInWindow", {
+    configurable: true,
+    value: (callback: (x: number, y: number, width: number, height: number) => void) => callback(130, 100, 150, 100),
+  })
+  await fireEvent(row("submenu"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 150, height: 100 } } })
+  await fireEvent(screen.getAllByTestId("menu-list", hidden)[1], "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 150, height: 100 } },
+  })
+  const host = row("host").props
+  await act(() =>
+    host.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host.ownerId,
+        windowId: "menu-window",
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  for (let i = 0; i < 3; i++) await tick()
+  await press("child")
+  expect(childAction.mock.calls).toEqual([["child"]])
+  expect(f.close.mock.calls).toEqual([[false]])
+  expect(f.action).not.toHaveBeenCalled()
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  expect(row("menu")).toBeDefined()
+})
+
+it.each([
+  ["ltr", "ArrowRight", "ArrowLeft"],
+  ["rtl", "ArrowLeft", "ArrowRight"],
+] as const)(
+  "opens the submenu on the actual %s forward key while retaining caller veto",
+  async (direction, forward, backward) => {
+    let veto = true
+    const f = fixture(
+      { direction },
+      <SubmenuTrigger>
+        <MenuItem
+          id="trigger"
+          testID="trigger"
+          onKeyDown={(event) => {
+            if (veto) event.preventDefault()
+          }}
+        >
+          More
+        </MenuItem>
+        <Menu>
+          <MenuItem id="child">Child</MenuItem>
+        </Menu>
+      </SubmenuTrigger>,
+    )
+    await render(f.node())
+    await f.ready()
+    await rawKey("trigger", forward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+    veto = false
+    await rawKey("trigger", backward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+    await rawKey("trigger", forward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+    expect(f.action).not.toHaveBeenCalled()
+  },
+)
 
 it("keeps section owner selection independent while forwarding focus through the full parent state", async () => {
   const sectionChange = jest.fn(),

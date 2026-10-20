@@ -7,6 +7,7 @@ import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
 import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
+import { SubmenuTrigger } from "../SubmenuTrigger"
 const ref = createRef<View>()
 export const menu = (
   <NativeMenuTrigger trigger={(state) => <Button {...state.triggerProps}>Open</Button>}>
@@ -61,3 +62,24 @@ export const invalidSection = <MenuSection id={false} />
 export const invalidSectionRef = <MenuSection ref={createRef<HTMLElement>()} />
 // @ts-expect-error Header styles are native values.
 export const invalidHeaderStyles = <MenuHeader style={{ fontSize: "18px" }} />
+export const submenu = (
+  <SubmenuTrigger ref={ref} delay={0}>
+    <MenuItem id={0}>More</MenuItem>
+    <Menu>
+      <MenuItem id="child">Child</MenuItem>
+    </Menu>
+  </SubmenuTrigger>
+)
+export const missingSubmenu = (
+  // @ts-expect-error Submenu authoring requires both its original trigger and its separate child overlay.
+  <SubmenuTrigger>
+    <MenuItem id="trigger">More</MenuItem>
+  </SubmenuTrigger>
+)
+export const domSubmenuRef = (
+  // @ts-expect-error Submenu refs remain the actual native trigger view.
+  <SubmenuTrigger ref={createRef<HTMLDivElement>()}>
+    <MenuItem id="trigger">More</MenuItem>
+    <Menu />
+  </SubmenuTrigger>
+)

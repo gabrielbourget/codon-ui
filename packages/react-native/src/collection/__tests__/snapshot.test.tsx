@@ -81,6 +81,33 @@ it("separates lookup membership from linked order across reorder, removal and re
   expect([...restored].map((node) => node.key)).toEqual(["a", "b", "c"])
 })
 
+it("filters a submenu by its trigger label and retains the original whole branch only on a match", () => {
+  const branch = descriptor("submenu", "submenutrigger"),
+    trigger = { ...descriptor(0), textValue: "More actions" },
+    sibling = descriptor("other")
+  const descriptors = [branch, trigger, sibling]
+  const hierarchy = entries(descriptors).map((entry, index) => ({
+    ...entry,
+    parentDescriptorId: index === 1 ? branch.descriptorId : "",
+    index: index === 2 ? 1 : 0,
+    retainedIndex: index === 2 ? 1 : 0,
+    hasRetainedChildren: index === 0,
+  }))
+  const original = createNativeCollectionSnapshot(
+    hierarchy,
+    new Map(descriptors.map((node) => [node.descriptorId, node])),
+  )
+  const filter = jest.fn((text: string) => text === "More actions")
+  const matched = original.filter(filter)
+  expect([...matched].map((node) => node.key)).toEqual(["submenu"])
+  expect([...matched.getChildren("submenu")].map((node) => node.key)).toEqual([0])
+  expect(matched.getItem(0)?.value).toBe(trigger.value)
+  expect(getNativeCollectionMetadataIdentity(matched.getItem(0)!)?.metadataTarget).toBe(11)
+  expect(filter.mock.calls.map(([text]) => text)).toEqual(["More actions", "other"])
+  expect(original.filter(() => false).size).toBe(0)
+  expect(original.getItem(0)?.value).toBe(trigger.value)
+})
+
 it("treats a replacement descriptor with the same business key as a new lookup lifetime", () => {
   const a = descriptor("a"),
     b = descriptor("b")

@@ -150,6 +150,12 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
           if (lastChildKey != null && this.getItem(lastChildKey)?.type !== "header") {
             filtered = { ...node, firstChildKey, lastChildKey }
           }
+        } else if (node.type === "submenutrigger") {
+          const trigger = node.firstChildKey == null ? null : this.getItem(node.firstChildKey)
+          if (trigger && predicate(trigger.textValue, node)) {
+            filtered = { ...node }
+            addDescendants(filtered)
+          }
         } else if (node.type !== "item" || predicate(node.textValue, node)) {
           filtered = { ...node }
           addDescendants(filtered)
