@@ -1,10 +1,15 @@
-import { createRef, useMemo, useRef, useState } from "react"
+import { createContext, createRef, useContext, useMemo, useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
 import { Button, Text, useNativeTheme } from "@codon-ui/react-native"
 
 import { NativeCollection } from "../../../../packages/react-native/src/collection/CollectionBuilder"
-import { NativeCollectionRendererContext } from "../../../../packages/react-native/src/collection/renderer"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  type TNativeCollectionRootProps,
+} from "../../../../packages/react-native/src/collection/renderer"
+import { TagGroupLabel, TagGroupText } from "../../../../packages/react-native/src/components/TagGroup/field"
 import { Tag } from "../../../../packages/react-native/src/components/TagGroup/Tag"
 import { TagGroup } from "../../../../packages/react-native/src/components/TagGroup/TagGroup"
 import type { TNativeTagGroupProps } from "../../../../packages/react-native/src/components/TagGroup/types"
@@ -29,6 +34,28 @@ const describeKey = (key: TKey) => `${typeof key}:${JSON.stringify(key)}`
 const describeKeys = (keys: "all" | Iterable<TKey>) =>
   keys === "all" ? "all" : [...keys].map(describeKey).join(", ") || "empty"
 
+const FieldRendererContext = createContext({ renderer: DefaultNativeCollectionRenderer, fields: false })
+const FieldRoot = (props: TNativeCollectionRootProps) => {
+  const { renderer, fields } = useContext(FieldRendererContext)
+  const Root = renderer.CollectionRoot
+  return (
+    <>
+      {fields && (
+        <>
+          <TagGroupLabel testID="tag-group-owner-label">Visible owner label</TagGroupLabel>
+          <TagGroupText slot="description" testID="tag-group-owner-description">
+            Owner instructions
+          </TagGroupText>
+          <TagGroupText slot="errorMessage" testID="tag-group-owner-error">
+            Owner error description
+          </TagGroupText>
+        </>
+      )}
+      <Root {...props} />
+    </>
+  )
+}
+
 // Private family construction scene; no public counterpart or installed acceptance is implied.
 export const TagGroupScene = () => {
   const theme = useNativeTheme()
@@ -37,6 +64,8 @@ export const TagGroupScene = () => {
   const [modeIndex, setModeIndex] = useState(0)
   const [virtual, setVirtual] = useState(false)
   const renderer = useTagGroupVirtualRenderer(virtual)
+  const [fieldSlots, setFieldSlots] = useState(false)
+  const fieldRenderer = useMemo(() => ({ ...renderer, CollectionRoot: FieldRoot }), [renderer])
   const [replace, setReplace] = useState(false)
   const [veto, setVeto] = useState(false)
   const [disabled, setDisabled] = useState(false)
@@ -112,6 +141,7 @@ export const TagGroupScene = () => {
           Toggle 69-item native virtualization
         </Button>
         <Button onPress={inspectRefs}>Inspect grouped-tag refs</Button>
+        <Button onPress={() => setFieldSlots((value) => !value)}>Toggle tag-group field slots</Button>
       </View>
       <TextInput
         ref={editor}
@@ -121,52 +151,59 @@ export const TagGroupScene = () => {
         onChangeText={setDraft}
         style={{ color: theme.colors.foreground, borderWidth: 1, borderColor: theme.colors.controlBorder, padding: 8 }}
       />
-      <NativeCollectionRendererContext.Provider value={renderer}>
-        <NativeCollection dependencies={[custom, raised]}>
-          <TagGroup<TValue>
-            ref={root}
-            items={items}
-            selectedKeys={selected}
-            selectionMode={MODES[modeIndex]}
-            selectionBehavior={replace ? "replace" : "toggle"}
-            disabledKeys={disabled ? [0] : []}
-            onSelectionChange={requestSelection}
-            onRemove={removable ? requestRemove : undefined}
-            onAction={(key) => {
-              setRequests((count) => count + 1)
-              setLast(`action ${describeKey(key)}`)
-            }}
-            accessibilityLabel="Owner-controlled tags"
-            orientation={vertical ? "vertical" : "horizontal"}
-            width="100%"
-            customStyles={custom ? { borderWidth: 1, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
-            customTagListStyles={custom ? { gap: 12 } : undefined}
-            renderEmptyState={({ state }) => (
-              <Text testID="tag-group-owner-empty">
-                No owner items. Logical count: {state.collection.size}. Selection:{" "}
-                {describeKeys(state.selectionManager.rawSelection)}.
-              </Text>
-            )}
-            onLayout={({ nativeEvent }) => setFrame(`${nativeEvent.layout.width} x ${nativeEvent.layout.height}`)}
-          >
-            {(item) => (
-              <Tag
-                id={item.id}
-                ref={itemRefs.get(item.id)}
-                textValue={item.label}
-                testID={`grouped-${describeKey(item.id)}`}
-                raised={raised}
-                geometry="rounded"
-                customStyles={custom ? { fontSize: 18 } : undefined}
-                href={item.id === "link" ? "https://example.test/tag-group" : undefined}
-                onNavigate={() => setLast("original navigation callback")}
-              >
-                {item.label}
-              </Tag>
-            )}
-          </TagGroup>
-        </NativeCollection>
-      </NativeCollectionRendererContext.Provider>
+      <FieldRendererContext.Provider value={{ renderer, fields: fieldSlots }}>
+        <NativeCollectionRendererContext.Provider value={fieldRenderer}>
+          <NativeCollection dependencies={[custom, raised, fieldSlots]}>
+            <TagGroup<TValue>
+              ref={root}
+              items={items}
+              selectedKeys={selected}
+              selectionMode={MODES[modeIndex]}
+              selectionBehavior={replace ? "replace" : "toggle"}
+              disabledKeys={disabled ? [0] : []}
+              onSelectionChange={requestSelection}
+              onRemove={removable ? requestRemove : undefined}
+              onAction={(key) => {
+                setRequests((count) => count + 1)
+                setLast(`action ${describeKey(key)}`)
+              }}
+              accessibilityLabel="Owner-controlled tags"
+              orientation={vertical ? "vertical" : "horizontal"}
+              width="100%"
+              customStyles={custom ? { borderWidth: 1, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
+              customTagListStyles={custom ? { gap: 12 } : undefined}
+              renderEmptyState={({ state }) => (
+                <Text testID="tag-group-owner-empty">
+                  No owner items. Logical count: {state.collection.size}. Selection:{" "}
+                  {describeKeys(state.selectionManager.rawSelection)}.
+                </Text>
+              )}
+              onLayout={({ nativeEvent }) => setFrame(`${nativeEvent.layout.width} x ${nativeEvent.layout.height}`)}
+            >
+              {(item) => (
+                <Tag
+                  id={item.id}
+                  ref={itemRefs.get(item.id)}
+                  textValue={item.label}
+                  testID={`grouped-${describeKey(item.id)}`}
+                  raised={raised}
+                  geometry="rounded"
+                  customStyles={custom ? { fontSize: 18 } : undefined}
+                  href={item.id === "link" ? "https://example.test/tag-group" : undefined}
+                  onNavigate={() => setLast("original navigation callback")}
+                >
+                  {item.label}
+                  {item.id === 0 && fieldSlots ? (
+                    <Button slot="remove" testID="tag-group-authored-remove">
+                      Authored removal
+                    </Button>
+                  ) : null}
+                </Tag>
+              )}
+            </TagGroup>
+          </NativeCollection>
+        </NativeCollectionRendererContext.Provider>
+      </FieldRendererContext.Provider>
       <Button onPress={() => editor.current?.focus()}>Focus original draft editor</Button>
       <TextInput
         accessibilityLabel="Draft after tag group"

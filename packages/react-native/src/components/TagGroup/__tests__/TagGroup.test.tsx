@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import * as RN from "react-native"
 
-import { NativeThemeProvider, Text } from "../../.."
+import { Button, NativeThemeProvider, Text } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
@@ -47,6 +47,44 @@ const press = async (id: string) => {
   await act(() => target.props.onResponderRelease(event))
   return event
 }
+
+it("binds an authored remove-slot button to the current tag and preserves the original caller event", async () => {
+  const remove = jest.fn(),
+    caller = jest.fn()
+  await render(
+    node(
+      { onRemove: remove },
+      <Tag id="a" textValue="Alpha">
+        <Button slot="remove" testID="custom-remove" onPress={caller}>
+          Custom removal
+        </Button>
+      </Tag>,
+    ),
+  )
+  expect(row("custom-remove").props.accessibilityLabel).toBe("Remove Alpha")
+  const event = await press("custom-remove")
+  expect(remove.mock.calls).toEqual([[new Set(["a"])]])
+  expect(caller).toHaveBeenCalledTimes(1)
+  expect(caller.mock.calls[0][0]).toBe(event)
+})
+
+it("retains a null-slot button's own action independently of tag removal", async () => {
+  const remove = jest.fn(),
+    caller = jest.fn()
+  await render(
+    node(
+      { onRemove: remove },
+      <Tag id="a" textValue="Alpha">
+        <Button slot={null} testID="independent-action" onPress={caller}>
+          Independent
+        </Button>
+      </Tag>,
+    ),
+  )
+  await press("independent-action")
+  expect(caller).toHaveBeenCalledTimes(1)
+  expect(remove).not.toHaveBeenCalled()
+})
 const key = async (id: string, value: string, phase: "down" | "up", extra: Record<string, unknown> = {}) => {
   const target = row(id)
   let prevented = false

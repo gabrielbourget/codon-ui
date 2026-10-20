@@ -1,5 +1,5 @@
 {
-  "status": "Private TagList source construction; native/full-family acceptance remains open.",
+  "status": "Private TagGroup field/button context construction; virtual/input/native/full-family acceptance remains open.",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "canonicalInputsSHA256": {
     "packages/react/src/components/TagGroup/TagGroup.tsx": "59139db329054a51d68f6148aa4ba1c16a7d94c069083d327b39aea0d407aed2",
@@ -69,16 +69,88 @@
       "sourceMapSHA256": "3269c66826951c5b0c77787bd115c309d6dced5da3a0ba11f431ba8eb1a4187d",
       "sourcePath": "packages/react-aria/src/label/useField.ts",
       "sourceContentSHA256": "cb2924e4cc49d83bc4bf21603efef81073bfe18667272b8ba47d64b380ac458c",
-      "adaptedInto": ["TagGroup.tsx", "../../input/accessibilityReferences.ts"]
+      "adaptedInto": ["TagGroup.tsx", "../../input/accessibilityReferences.ts", "field.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Button.mjs",
+      "distributionSHA256": "c5455d643393b01ae693ee19151896141c59c2298287abfeb224083a2668510e",
+      "sourceMapPath": "dist/private/Button.mjs.map",
+      "sourceMapSHA256": "551edd3751117abf1750cf961f53561697dbf678781ff68254442e3f9ffc6e8e",
+      "sourcePath": "packages/react-aria-components/src/Button.tsx",
+      "sourceContentSHA256": "82a5206e8ca98ebd7a4cc6f63919111d25abfd52c6a086272334e24661c75b28",
+      "adaptedInto": ["../Button/Button.tsx", "../Button/context.ts"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Label.mjs",
+      "distributionSHA256": "69b6509135de6d1f6f1ce4d71edc9e7362c7c39f2b75289ef3fa0cdb8d7c0c72",
+      "sourceMapPath": "dist/private/Label.mjs.map",
+      "sourceMapSHA256": "d12445f6939d35b56238da77f2d4dc8440f332fff6dc4c99da7ab689bfef6913",
+      "sourcePath": "packages/react-aria-components/src/Label.tsx",
+      "sourceContentSHA256": "4adad8964de54129b3e79ff9d11f68e99c617339f997120038eeadbd89836fa7",
+      "adaptedInto": ["field.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Text.mjs",
+      "distributionSHA256": "fb01ac529c2dabb759476e391a8d5472cf967e91553b7918d9122d6a2f37e116",
+      "sourceMapPath": "dist/private/Text.mjs.map",
+      "sourceMapSHA256": "22ee393649b5fabc2085a735442571754e2f0f4b4ee6d8c66917243cefe3ffd0",
+      "sourcePath": "packages/react-aria-components/src/Text.tsx",
+      "sourceContentSHA256": "b2995f9f6b6216c9d15a9eb25455293c53da57ba86e8bc45d193fae10ba413f6",
+      "adaptedInto": ["field.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/utils.mjs",
+      "distributionSHA256": "64ca97af570b65abac12b2fedc19c6a3cee60cfd90a9d15f400c2449350bd1e5",
+      "sourceMapPath": "dist/private/utils.mjs.map",
+      "sourceMapSHA256": "9a61b5ed040106aa1b67a824f94aa9be26362d1533fd005b649d4d45e3012f5b",
+      "sourcePath": "packages/react-aria-components/src/utils.tsx",
+      "sourceContentSHA256": "a9673bbf34e101e3beff978883f6a533721162ede406ccc7fb350c78d190d589",
+      "adaptedInto": ["field.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/label/useLabel.mjs",
+      "distributionSHA256": "f25cff544bd05864bb86db455c4259662bc0dc46d5838330b7d06b777dfe3be6",
+      "sourceMapPath": "dist/private/label/useLabel.mjs.map",
+      "sourceMapSHA256": "32b5135c14593962f01d883ebff02957f1b734389e66c843e55a7cbcccd728cf",
+      "sourcePath": "packages/react-aria/src/label/useLabel.ts",
+      "sourceContentSHA256": "7227c8bbadfe5a895cbdfe4e42c5a5cfedbead80e052924b12b6d2e0943aa8bb",
+      "adaptedInto": ["field.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/tag/useTag.mjs",
+      "distributionSHA256": "a2151148d68c3d99ba97a4032c3ae8101c257d600fbb564b26f2d5531095d858",
+      "sourceMapPath": "dist/private/tag/useTag.mjs.map",
+      "sourceMapSHA256": "ff07f6aba801f7b51d9a77c7c111a652a9b8edb00d6dc05875f4b5a5795f5558",
+      "sourcePath": "packages/react-aria/src/tag/useTag.ts",
+      "sourceContentSHA256": "fd3185353cea29dd69a65fffbf9432e0feea664d69af5ade1a8f6e2e1d352f0a",
+      "adaptedInto": ["Tag.tsx"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
-    "TagGroup.tsx": "b87a0f30f73a439b7a11e9f8cb297e308ac30b1fd91326abf77859cdfd22a65f",
-    "Tag.tsx": "777ad65de6d83cc3fa6442410a5bfa88500fdb59d0186ddd7f21d1bd73eea0a3",
-    "context.ts": "3f9b4ade9c2b1c8b682e369e8596c22af40c1adeb939e0ef6497721bf2883f3c",
-    "types.ts": "d5ca2b624a8ea37be113a2e70f7bd6f5880d0641e69d65f6855751de9090f67e",
+    "TagGroup.tsx": "2ddc1ccd9a7d42e82c968d55d4a363c26549040b7ad36adb1eb6059ac140dc8e",
+    "Tag.tsx": "bc847b7d775081455054d446d4fefa91b848d86db779dfc29824113a2fd4c991",
+    "context.ts": "71bc746294035e4f886740dd864825a1685c6a303e23651fd273824030952c2f",
+    "types.ts": "a5644175e839987929b2beda68bd5c6e1db5fcee339b5cb9bfb36098e50a50fa",
     "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",
     "visualTypes.ts": "aaffbc57ed907c25323512d5be5d41681326e67a4152c12f68cf55ee81a04a49",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
@@ -86,6 +158,11 @@
     "../../../android/src/main/java/com/codonui/input/CUIAccessibilityReferences.java": "f77e2b4b053318d1e4fc3d6f9413b0ab105f85ad26091132e8b2841929385773",
     "../../../ios/CUIAccessibilityReferences.h": "a9e281efde541bce9ef4cf6f5a2aa2649d77ad3bf641933af2d71e40503609df",
     "../../../ios/CUIAccessibilityReferences.mm": "a6938606d47c9a85ac6e66925a510cf4e6808cb30636fd34546671f272113c07",
-    "../../../ios/CUIFocusView.mm": "d2e85f546bc25e7b131fbfb494b5f857f9ccb64b66289b584fe03ed14499108d"
+    "../../../ios/CUIFocusView.mm": "d2e85f546bc25e7b131fbfb494b5f857f9ccb64b66289b584fe03ed14499108d",
+    "field.tsx": "f0c7ccd4be6add8e8d971427dfe47f735efcd47a9dde54ee2589347d057c60c3",
+    "../Button/Button.tsx": "6c6384cceb343ec61d5b152aa00d1304748773995b40614d82df75897fa7766e",
+    "../Button/context.ts": "4500bd3c05baa8cc7ab41d72870d0023833fa607a897e833bb9e270610449ac9",
+    "../Button/types.ts": "125da42f05231b5e2bf9fd760e007e3308774bc7342997a82297c3580bafb17f",
+    "../ToggleButton/types.ts": "e772c65136afa96b7a1804d0fe75b1edf01ce341b5053a5d9995120059dd84fc"
   }
 }

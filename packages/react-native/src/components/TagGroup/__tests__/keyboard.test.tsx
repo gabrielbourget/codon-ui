@@ -2,7 +2,7 @@ import { fireEvent, screen } from "@testing-library/react-native"
 import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import * as RN from "react-native"
 
-import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "../../.."
+import { Button, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
@@ -278,6 +278,38 @@ const scoped = async (
   await act(() => host.onNativeScopedKey(event))
   return { host, event }
 }
+
+it("routes a captured deletion from an authored remove-slot target through its current row", async () => {
+  const custom = createRef<RN.View>(),
+    remove = jest.fn()
+  let retire!: () => void
+  const Authored = () => {
+    const [visible, setVisible] = useState(true)
+    retire = () => setVisible(false)
+    return visible ? (
+      <Button slot="remove" ref={custom}>
+        Custom removal
+      </Button>
+    ) : null
+  }
+  await fixture(
+    { selectionMode: "multiple", selectedKeys: ["a", "b"], onRemove: remove },
+    <>
+      <Tag id="a" textValue="Alpha">
+        <Authored />
+      </Tag>
+      <Tag id="b">Beta</Tag>
+    </>,
+  )
+  const target = RN.findNodeHandle(custom.current)
+  expect(target).not.toBeNull()
+  await scoped("Backspace", custom.current)
+  expect(remove.mock.calls).toEqual([[new Set(["a", "b"])]])
+  await act(retire)
+  expect(custom.current).toBeNull()
+  await scoped("Backspace", null, "0000:Backspace", { focusedTarget: target })
+  expect(remove).toHaveBeenCalledTimes(1)
+})
 it("Delete/Backspace requests selected owner membership, while the remove button remains item-only", async () => {
   const ref = createRef<RN.View>(),
     remove = jest.fn(),

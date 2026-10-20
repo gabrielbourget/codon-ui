@@ -48,6 +48,12 @@ import {
   type TNativeTagRegistration,
 } from "./context"
 import {
+  NativeTagGroupFieldProvider,
+  NativeTagGroupLabelContext,
+  NativeTagGroupTextContext,
+  useNativeTagGroupField,
+} from "./field"
+import {
   getNativeTagGroupActionState,
   getNativeTagGroupPressIntent,
   getNativeTagGroupSelectionOperation,
@@ -108,6 +114,7 @@ const NativeTagGroup = <T extends object>({
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }) => {
   const listID = `codon-tag-list-${useId()}`
+  const field = useNativeTagGroupField()
   const list = useRef<View>(null)
   const { id, ...otherProps } = authoredProps
   const [props, listRef] = useNativeContextProps(otherProps, list, NativeSelectableCollectionContext)
@@ -583,7 +590,9 @@ const NativeTagGroup = <T extends object>({
     const owner = current.current
     const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
     const row = owner.ordered.find(
-      (entry) => findNodeHandle(entry.view.current) === tag || findNodeHandle(entry.removeView.current) === tag,
+      (entry) =>
+        findNodeHandle(entry.view.current) === tag ||
+        [...entry.removeViews].some((view) => findNodeHandle(view) === tag),
     )
     if (data.key === "Escape") {
       if (
@@ -634,7 +643,9 @@ const NativeTagGroup = <T extends object>({
     if (!admitted() || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled) return
     const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
     const row = current.current.ordered.find(
-      (entry) => findNodeHandle(entry.view.current) === tag || findNodeHandle(entry.removeView.current) === tag,
+      (entry) =>
+        findNodeHandle(entry.view.current) === tag ||
+        [...entry.removeViews].some((view) => findNodeHandle(view) === tag),
     )
     event.persist?.()
     if (row) withNativeAdmission(row, () => onKeyAdmitted(event))
@@ -645,12 +656,14 @@ const NativeTagGroup = <T extends object>({
   }
   const theme = useNativeTheme(),
     styles = getNativeTagGroupStyles(theme, props)
+  const labelledBy = nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"])
+  const describedBy = nativeAccessibilityIDs(props.ariaDescribedBy ?? props["aria-describedby"])
   const listProps = {
     ...nativeCompositeLabelProps(
       {
         id: props.id,
         accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
-        nativeLabelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
+        nativeLabelledBy: field.labelID ? [field.labelID, ...(labelledBy ?? [])] : labelledBy,
       },
       listID,
     ),
@@ -660,7 +673,10 @@ const NativeTagGroup = <T extends object>({
     focusable: true,
     accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
     accessibilityLabelledBy: props.accessibilityLabelledBy,
-    nativeDescribedBy: nativeAccessibilityIDs(props.ariaDescribedBy ?? props["aria-describedby"]),
+    nativeDescribedBy:
+      field.descriptionID || field.errorID
+        ? [field.descriptionID, field.errorID, ...(describedBy ?? [])].filter((id): id is string => id !== undefined)
+        : describedBy,
     nativeDetailsBy: nativeAccessibilityIDs(props.ariaDetails ?? props["aria-details"]),
     nativeDescriptionLabel: labels.descriptionLabel,
     nativeDetailsLabel: labels.detailsLabel,
@@ -690,72 +706,82 @@ const NativeTagGroup = <T extends object>({
       >
         <NativeListStateContext.Provider value={state}>
           <NativeTagGroupStateContext.Provider value={state}>
-            <NativeTagGroupActionsContext.Provider
-              value={{
-                text: styles.text,
-                register,
-                refresh,
-                mode: selectionMode,
-                behavior,
-                labels,
-                allowsRemoving: !!props.onRemove,
-                disabled: isDisabled,
-                selected,
-                semantics: (row) =>
-                  JSON.stringify({
-                    kind: "cell",
-                    parentTarget: targetTag,
-                    rowIndex: members.findIndex((node) => node.key === row.key),
-                    columnIndex: 0,
-                    rowSpan: 1,
-                    columnSpan: 1,
-                    heading: false,
-                    selected: selected(row),
-                    rowHeaderTargets: [],
-                    columnHeaderTargets: [],
-                  } satisfies TNativeCollectionSemantics),
-                actionState,
-                keyCapture,
-                focus: (row, value) => {
-                  if (value && admitted(row)) {
-                    observedFocus.current = row.key
-                    retiredFocusIntent.current = null
-                    if (!pendingFocus.current || pendingFocus.current.key === row.key) {
-                      pendingFocus.current = null
-                      setRequestedFocusKey(null)
-                      setFocusedKey(row.key)
-                    }
-                    setFocusWithin(true)
-                  } else if (!value) {
-                    setFocusWithin(false)
-                  }
-                },
-                press,
-                remove,
-              }}
-            >
-              <NativeTagListContext.Provider value={listProps}>
-                <NativeCollectionSemanticsContext.Provider
-                  value={JSON.stringify({
-                    kind: "root",
-                    rowCount: members.length,
-                    columnCount: 1,
-                    hierarchical: false,
-                    selectionMode,
-                  } satisfies TNativeCollectionSemantics)}
-                >
-                  <NativeTagListRenderContext.Provider
-                    value={{ persistedKeys, scrollRef: scroll, defaultStyle: { ...styles.list, ...styles.text } }}
+            <NativeTagGroupFieldProvider value={field.report}>
+              <NativeTagGroupLabelContext.Provider value={field.labelProps}>
+                <NativeTagGroupTextContext.Provider value={field.textProps}>
+                  <NativeTagGroupActionsContext.Provider
+                    value={{
+                      text: styles.text,
+                      register,
+                      refresh,
+                      mode: selectionMode,
+                      behavior,
+                      labels,
+                      allowsRemoving: !!props.onRemove,
+                      disabled: isDisabled,
+                      selected,
+                      semantics: (row) =>
+                        JSON.stringify({
+                          kind: "cell",
+                          parentTarget: targetTag,
+                          rowIndex: members.findIndex((node) => node.key === row.key),
+                          columnIndex: 0,
+                          rowSpan: 1,
+                          columnSpan: 1,
+                          heading: false,
+                          selected: selected(row),
+                          rowHeaderTargets: [],
+                          columnHeaderTargets: [],
+                        } satisfies TNativeCollectionSemantics),
+                      actionState,
+                      keyCapture,
+                      focus: (row, value) => {
+                        if (value && admitted(row)) {
+                          observedFocus.current = row.key
+                          retiredFocusIntent.current = null
+                          if (!pendingFocus.current || pendingFocus.current.key === row.key) {
+                            pendingFocus.current = null
+                            setRequestedFocusKey(null)
+                            setFocusedKey(row.key)
+                          }
+                          setFocusWithin(true)
+                        } else if (!value) {
+                          setFocusWithin(false)
+                        }
+                      },
+                      press,
+                      remove,
+                    }}
                   >
-                    <NativeTagList
-                      testID="tag-list"
-                      renderEmptyState={renderEmptyState ?? (emptyListMessage ? () => emptyListMessage : undefined)}
-                    />
-                  </NativeTagListRenderContext.Provider>
-                </NativeCollectionSemanticsContext.Provider>
-              </NativeTagListContext.Provider>
-              {input ? <KeyBindings targetTag={targetTag} lifetime={lifetime} canAct={admitted} onKey={onKey} /> : null}
-            </NativeTagGroupActionsContext.Provider>
+                    <NativeTagListContext.Provider value={listProps}>
+                      <NativeCollectionSemanticsContext.Provider
+                        value={JSON.stringify({
+                          kind: "root",
+                          rowCount: members.length,
+                          columnCount: 1,
+                          hierarchical: false,
+                          selectionMode,
+                        } satisfies TNativeCollectionSemantics)}
+                      >
+                        <NativeTagListRenderContext.Provider
+                          value={{ persistedKeys, scrollRef: scroll, defaultStyle: { ...styles.list, ...styles.text } }}
+                        >
+                          <NativeTagList
+                            testID="tag-list"
+                            renderEmptyState={
+                              renderEmptyState ?? (emptyListMessage ? () => emptyListMessage : undefined)
+                            }
+                          />
+                        </NativeTagListRenderContext.Provider>
+                      </NativeCollectionSemanticsContext.Provider>
+                    </NativeTagListContext.Provider>
+                    {input ? (
+                      <KeyBindings targetTag={targetTag} lifetime={lifetime} canAct={admitted} onKey={onKey} />
+                    ) : null}
+                  </NativeTagGroupActionsContext.Provider>
+                </NativeTagGroupTextContext.Provider>
+              </NativeTagGroupLabelContext.Provider>
+            </NativeTagGroupFieldProvider>
           </NativeTagGroupStateContext.Provider>
         </NativeListStateContext.Provider>
       </TagGroupRoot>

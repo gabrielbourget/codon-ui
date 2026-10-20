@@ -9,6 +9,7 @@ import type {
   ViewStyle,
 } from "react-native"
 
+import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeFocusViewProps, TNativeInteractionEvent, TNativePressEvent } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TThemingOrderCode } from "../../tokens/theme-order"
@@ -47,6 +48,7 @@ export type TNativeButtonProps = Omit<
   | "aria-label"
 > &
   Pick<TNativeFocusViewProps, "onFocus" | "onBlur" | "onKeyDown" | "onKeyUp"> & {
+    slot?: TNativeSlotProps["slot"]
     onPress?: (event: TNativePressEvent) => void
     onPressIn?: (event: TNativeInteractionEvent) => void
     onPressOut?: (event: TNativeInteractionEvent) => void
