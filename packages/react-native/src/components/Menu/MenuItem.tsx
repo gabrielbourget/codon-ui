@@ -179,7 +179,7 @@ export const MenuItem = createNativeCollectionLeaf<unknown, TNativeMenuItemProps
     const actions = useContext(NativeCollectionActionsContext)
     return (
       <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
-        <MenuItemReceiver {...props} id={node.key} collectionNode={node} ref={ref} />
+        <MenuItemReceiver {...props} id={node.key} textValue={node.textValue} collectionNode={node} ref={ref} />
       </NativeCollectionItemBindingContext.Provider>
     )
   },

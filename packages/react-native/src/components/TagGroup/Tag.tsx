@@ -378,7 +378,7 @@ const CollectionTag = createNativeCollectionLeaf<unknown, TCollectionTagProps, T
     const actions = useContext(NativeCollectionActionsContext)
     return (
       <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
-        <TagReceiver {...props} id={node.key} collectionNode={node} ref={ref} />
+        <TagReceiver {...props} id={node.key} textValue={node.textValue} collectionNode={node} ref={ref} />
       </NativeCollectionItemBindingContext.Provider>
     )
   },

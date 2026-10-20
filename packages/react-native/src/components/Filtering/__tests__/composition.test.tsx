@@ -1,4 +1,9 @@
-import { fireEvent, render, screen, within } from "@testing-library/react-native"
+import { screen, within } from "@testing-library/react-native"
+
+import {
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 
 import FilterControlProbe from "./fixtures/FilterControlProbe"
 

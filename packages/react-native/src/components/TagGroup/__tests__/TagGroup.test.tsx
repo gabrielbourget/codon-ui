@@ -100,6 +100,24 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
+it("retains explicit text values on composed items and their removal labels after collection reception", async () => {
+  const remove = jest.fn()
+  await render(
+    node(
+      { onRemove: remove },
+      <Tag id={0} testID="composed" textValue="Alpha">
+        <Text>Visual content</Text>
+      </Tag>,
+    ),
+  )
+  expect(row("composed").props.accessibilityLabel).toBe("Alpha")
+  expect(row("tag-remove-button").props.accessibilityLabel).toBe("Remove Alpha")
+  expect(screen.getByText("Visual content")).toBeOnTheScreen()
+  await press("tag-remove-button")
+  expect([...remove.mock.calls[0][0]]).toEqual([0])
+  expect(row("composed")).toBeOnTheScreen()
+})
+
 it("CAP.tag-group.001 and item.001 forwards actual root and grouped-item native refs", async () => {
   const root = createRef<RN.View>(),
     item = createRef<RN.View>()

@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import type { ReactElement } from "react"
 import * as RN from "react-native"
 import type { TestInstance } from "test-renderer"
@@ -33,15 +33,17 @@ jest.mock("../../input/specs/CUICollectionNodeNativeComponent", () => ({
   default: jest.requireActual("react-native").View,
 }))
 
+let restoreFindNodeHandle: (() => void) | undefined
 beforeEach(() => {
   const native = jest.requireActual<typeof import("react-native")>("react-native")
   const original = native.findNodeHandle
-  jest
-    .spyOn(native, "findNodeHandle")
-    .mockImplementation((host) =>
-      host && typeof host === "object" && mockTargets.has(host) ? mockTargets.get(host)! : original(host),
-    )
+  const spy = jest.spyOn(native, "findNodeHandle")
+  spy.mockImplementation((host) =>
+    host && typeof host === "object" && mockTargets.has(host) ? mockTargets.get(host)! : original(host),
+  )
+  restoreFindNodeHandle = () => spy.mockRestore()
 })
+afterEach(() => restoreFindNodeHandle?.())
 const sequences = new Map<string, number>()
 const signatures = new Map<string, string>()
 type TView = Awaited<ReturnType<typeof render>>
@@ -154,6 +156,19 @@ export const actWithNativeCollections = async <T,>(callback: () => T | Promise<T
   }
   throw new Error("Synthetic collection actions did not settle")
 }
+
+// Composition tests still deliver their original event; only the private synthetic native receipts are settled here.
+export const fireEventWithNativeCollections: typeof fireEvent = Object.assign(
+  (...args: Parameters<typeof fireEvent>) => actWithNativeCollections(() => fireEvent(...args)),
+  {
+    press: (...args: Parameters<typeof fireEvent.press>) => actWithNativeCollections(() => fireEvent.press(...args)),
+    changeText: (...args: Parameters<typeof fireEvent.changeText>) =>
+      actWithNativeCollections(() => fireEvent.changeText(...args)),
+    scroll: (...args: Parameters<typeof fireEvent.scroll>) => actWithNativeCollections(() => fireEvent.scroll(...args)),
+  },
+)
+export const rerenderWithNativeCollections = (...args: Parameters<typeof screen.rerender>) =>
+  actWithNativeCollections(() => screen.rerender(...args))
 
 export const renderWithNativeCollections: typeof render = async (element: ReactElement, options) => {
   const view = await render(element, options)
