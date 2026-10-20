@@ -3,15 +3,17 @@ import copy
 import unittest
 from unittest.mock import patch
 
-from continuous_uikit_probe import PROFILE_NAMES, native_command, validate_journal
+from continuous_uikit_probe import DRAWING_PROFILES, PROFILE_NAMES, native_command, validate_journal
 
 
 def journal():
     return [{"kind": "begin", "producer": "source", "pid": 123},
         {"kind": "reference-control", "producer": "source", "metrics": {"binaryCoverageDifferences": 10}},
         {"kind": "factory-guards", "producer": "source", "outcome": "guards-complete"},
-        {"kind": "receiver-assertions", "producer": "source", "result": {"outcome": "receiver-assertions-complete", "fixturesCompleted": 3,
-            "maskGeometry": {"assertions": 21, "byteExactRaster": True, "rasterWidth": 360, "rasterHeight": 240, "rasterBytesPerPixel": 4}}},
+        {"kind": "receiver-assertions", "producer": "source", "result": {"outcome": "receiver-assertions-complete", "fixturesCompleted": 4,
+            "maskGeometry": {"assertions": 21, "byteExactRaster": True, "rasterWidth": 360, "rasterHeight": 240, "rasterBytesPerPixel": 4},
+            "drawingRaster": {"pairs": 36, "profileNames": DRAWING_PROFILES, "byteExactRaster": True,
+                "rasterWidth": 504, "rasterHeight": 384, "rasterBytesPerPixel": 4}}},
         *[{"kind": "profile", "producer": "source", "name": name} for name in PROFILE_NAMES],
         *[{"kind": "raster-control", "producer": "source", "name": name + "-circular"} for name in PROFILE_NAMES],
         *[{"kind": "native-layer-candidate", "producer": "source", "name": name + "-native-layer"} for name in PROFILE_NAMES],
@@ -66,9 +68,16 @@ class ReferenceCustody(unittest.TestCase):
         receiver = next(row for row in rows if row["kind"] == "receiver-assertions")
         receiver["result"]["fixturesCompleted"] = 2
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
-        receiver["result"]["fixturesCompleted"] = 3
+        receiver["result"]["fixturesCompleted"] = 4
         receiver["result"]["maskGeometry"]["byteExactRaster"] = False
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
+
+    def test_complete_receiver_rasters_cannot_be_omitted_or_relabelled(self):
+        for key, invalid in [("pairs", 35), ("byteExactRaster", False), ("profileNames", DRAWING_PROFILES[:-1]), ("rasterWidth", 360)]:
+            rows = journal()
+            receiver = next(row for row in rows if row["kind"] == "receiver-assertions")
+            receiver["result"]["drawingRaster"][key] = invalid
+            with self.assertRaises(AssertionError): validate_journal(rows, "source")
 
     def test_native_command_termination_stays_inside_work_allowance(self):
         with patch("continuous_uikit_probe.time.monotonic", return_value=400), patch("continuous_uikit_probe.command", return_value=(0, b"")) as run:
