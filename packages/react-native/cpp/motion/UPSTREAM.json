@@ -1,0 +1,91 @@
+{
+  "scope": "Private unlinked native Fabric snapshot and independently allocated Yoga core. No platform facade, production intrinsic resolver or installed native acceptance is supplied by this checkpoint.",
+  "reactNative": "0.86.3",
+  "sourceInputs": [
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sha256": "d60fa1ac40ea32692554f842567a9b85f98abe649f9a59d6b4604426db2ee030",
+      "adaptation": "Pure alias precedence and Yoga layout-edge RTL conversion; never mutate original props or original Yoga nodes. Configuration/root-constraint behavior follows the same source."
+    },
+    {
+      "path": "ReactCommon/react/renderer/uimanager/UIManager.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/uimanager/UIManager.h",
+      "sha256": "a6a21f5646aa3c51678a65787b2f83c2992dcf4ff9ce449ab699ea28216586c7",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTreeRegistry.h",
+      "sha256": "300686335def506318cd237b37eda23812db66b8c64fc1d5a94a7bea7e336677",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/mounting/ShadowTree.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/mounting/ShadowTree.cpp",
+      "sha256": "9ecd16bc4180abecb3b04900458bfe14306ccc576a2b1e3b5cc69ce1185ecf2e",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/root/RootProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/root/RootProps.h",
+      "sha256": "1d93121898133e5c5fc00b57bcb71e1be3b12ba2825616af90fc7a9113c32dd8",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/LayoutContext.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/LayoutContext.h",
+      "sha256": "89c372c6dc5a325bc35eca1f01f795e96057398cbf19260dca5d828d00e6936e",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/LayoutConformanceShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/LayoutConformanceShadowNode.h",
+      "sha256": "272ca06bd9fc379b8db4918f47c2503afac1afcfcb4628d1c8d6b503607c8cf2",
+      "adaptation": "Read-only Fabric revision/props/context and copied Yoga conformance inputs; no original node layout or state mutation."
+    }
+  ],
+  "license": "LICENSE.react-native.md",
+  "remaining": [
+    "Actual UIKit/Android owner/ref/window/revision facade and compiled linkage",
+    "Audited isolated native intrinsic/baseline providers including text attachments and editor state",
+    "Native state-adopted Yoga style/padding as well as isolated intrinsic callbacks must be audited before live admission",
+    "Full style/keyframe/value adapter and source-equivalent MotionValue notifications",
+    "Matching consumer/products, actual mounted/presentation fidelity, large-tree and frame performance"
+  ],
+  "authoredFiles": [
+    {
+      "file": "FabricLayout.cpp",
+      "sha256": "68d41ce49a1f431c0c4ad487f9ede397d7f8d66765e11584709329cdaeeafb08"
+    },
+    {
+      "file": "FabricLayout.h",
+      "sha256": "c43f02c2ac87730ff91d2d03f66bc48e509450bdf7643e7b8a2d4f6293d6a69f"
+    },
+    {
+      "file": "FabricSnapshot.cpp",
+      "sha256": "106fdbaee9709f6d05c35f63f0489df97372e8764e71cb330f36ccc233106cb2"
+    },
+    {
+      "file": "FabricSnapshot.h",
+      "sha256": "ac7018527a6ceabab7185cbd6a087ce98b1b7bac0552c689a89af2c97582d442"
+    },
+    {
+      "file": "NativeStyle.cpp",
+      "sha256": "07464b5711b4b8725706ccd6b5271b2820fb43462a0741164d6b4cc63f027cb4"
+    },
+    {
+      "file": "NativeStyle.h",
+      "sha256": "b8768a1719a2685113c24d35d9834c8b2f9127f2d97c40fa6cbc33f16fdbd3b5"
+    },
+    {
+      "file": "ScratchYoga.cpp",
+      "sha256": "970915702949780c071d90966044b3e15b4792c2940c8334110b0ea1d3e699b1"
+    },
+    {
+      "file": "ScratchYoga.h",
+      "sha256": "b99f06854b154578457758d52fbc7fdc99af8c79e1c861926077f7c95125ffc0"
+    }
+  ],
+  "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+}

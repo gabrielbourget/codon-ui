@@ -40,6 +40,8 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private int nativeDescriptionTag;
   private final CUIFloatingScrollAnchor scrollAnchor;
   private final CUIMotionColorSampler motionColors;
+  private final CUIMotionGeometryObserver motionGeometry;
+  private String motionGeometryBinding = "", motionGeometryRevision = "";
   private boolean nativeMotionColorObservation;
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
@@ -49,15 +51,22 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     super(context);
     scrollAnchor = new CUIFloatingScrollAnchor(this);
     motionColors = new CUIMotionColorSampler(this, data -> emit("topNativeMotionColors", data));
+    java.lang.ref.WeakReference<CUIFocusView> geometryRoot = new java.lang.ref.WeakReference<>(this);
+    motionGeometry = new CUIMotionGeometryObserver(this, data -> { CUIFocusView view = geometryRoot.get(); if (view != null) view.emit("topNativeMotionGeometry", data); });
     setFocusable(true);
     setFocusableInTouchMode(true);
   }
 
+  void setNativeMotionGeometryBinding(String value) { motionGeometryBinding = value == null ? "" : value; }
+  void setNativeMotionGeometryRevision(String value) { motionGeometryRevision = value == null ? "" : value; }
+  void synchronizeMotionGeometry() { motionGeometry.configure(ownerId, motionGeometryBinding, motionGeometryRevision); }
+  void invalidateMotionGeometry() { motionGeometry.invalidate(); }
+  void queryMotionGeometry(String owner, String binding, String request) { synchronizeMotionGeometry(); motionGeometry.query(owner, binding, request); }
   void setNativeMotionColorObservation(boolean enabled) { nativeMotionColorObservation = enabled; }
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -310,6 +319,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    motionGeometry.detached();
     motionColors.detached();
     scrollAnchor.invalidate();
     cancelHeldKeys();

@@ -1,0 +1,34 @@
+{
+  "scope": "Locked RN declaration and source audit only. The C++ fixture compiles style-copy/const-measure declarations and the absence of an eventEmitter replacement field. No ShadowNode tree is cloned, laid out or mounted, and measureContent runtime isolation is unproven.",
+  "reactNative": "0.86.3",
+  "sources": [
+    {
+      "path": "ReactCommon/react/renderer/core/ShadowNodeFragment.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/ShadowNodeFragment.h",
+      "sha256": "6a275b7e059e9c6b37eb65db801e85abc6292c3cf86b3fc2cd41c0bc645a7868"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/text/ParagraphShadowNode.cpp",
+      "sha256": "22053df9c418b4580c546d3c9db7fe09ff7db39fb6def658ee8806fce5dbf849"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaStylableProps.h",
+      "sha256": "5684dd39a8308811f23b3cc2497b365fbc790898efd05ac3a690dfa5f707215c"
+    },
+    {
+      "path": "ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/components/view/YogaLayoutableShadowNode.cpp",
+      "sha256": "d60fa1ac40ea32692554f842567a9b85f98abe649f9a59d6b4604426db2ee030"
+    },
+    {
+      "path": "ReactCommon/react/renderer/core/LayoutableShadowNode.h",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/react/renderer/core/LayoutableShadowNode.h",
+      "sha256": "c5d363442fc2a57fe3378d9ad1b346bd679a21ec937aa22753057232ec089ea8"
+    }
+  ],
+  "finding": "ShadowNodeFragment cannot replace the family event emitter; ParagraphShadowNode.layout updates state and can emit onTextLayout. Ordinary clone/layout is not an isolated measurement backend. Its const measureContent can mutate measuredLayouts_ caches, so the declaration alone does not prove runtime isolation.",
+  "nativeActions": 0,
+  "productionNativeChanges": false
+}
