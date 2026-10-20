@@ -13,14 +13,23 @@ const { getDefaultConfig } = req("expo/metro-config")
 const sha = (content) => crypto.createHash("sha256").update(content).digest("hex")
 const platform = process.argv[2]
 const outputRoot = process.argv[3]
+const entry = process.argv[4] ? path.resolve(process.argv[4]) : native + "/src/collection/state.ts"
 if (!outputRoot || !path.isAbsolute(outputRoot)) throw Error("Supply an absolute output directory")
 ;(async () => {
   if (!["android", "ios"].includes(platform)) throw Error("Expected android or ios")
   const config = await getDefaultConfig(showcase)
   config.maxWorkers = 2
+  const nativePeerRequire = createRequire(native + "/package.json")
+  const rendererRequire = createRequire(nativePeerRequire.resolve("react-native/package.json"))
+  config.resolver.extraNodeModules = {
+    ...config.resolver.extraNodeModules,
+    react: path.dirname(nativePeerRequire.resolve("react/package.json")),
+    "react-native": path.dirname(nativePeerRequire.resolve("react-native/package.json")),
+    "@babel/runtime": path.dirname(rendererRequire.resolve("@babel/runtime/package.json")),
+  }
   config.watchFolders = [...new Set([...config.watchFolders, repo])]
   const result = await Metro.runBuild(config, {
-    entry: native + "/src/collection/state.ts",
+    entry,
     platform,
     dev: false,
     minify: false,
@@ -42,7 +51,7 @@ if (!outputRoot || !path.isAbsolute(outputRoot)) throw Error("Supply an absolute
   )
   if (banned.length) throw Error("Unexpected runtime " + banned.map((item) => item.source))
   const stateSources = inputs.filter((input) => input.source.includes("/react-stately/"))
-  if (!stateSources.length) throw Error("State runtime absent")
+  if (entry.endsWith("/collection/state.ts") && !stateSources.length) throw Error("State runtime absent")
   const reactRoots = [
     ...new Set(
       inputs
@@ -83,7 +92,7 @@ if (!outputRoot || !path.isAbsolute(outputRoot)) throw Error("Supply an absolute
     versions,
     scope: "Metro runtime source graph only; native actions0; no family or SDK acceptance",
     platform,
-    entry: "packages/react-native/src/collection/state.ts",
+    entry: path.relative(repo, entry),
     reactRoots,
     moduleCount: inputs.length,
     statelyModules: stateSources.length,

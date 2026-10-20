@@ -82,7 +82,9 @@
       },
       "componentProvider": {
         "CUIFocusView": "CUIFocusView",
-        "CUIKeyboardScope": "CUIKeyboardScope"
+        "CUIKeyboardScope": "CUIKeyboardScope",
+        "CUICollectionRoot": "CUICollectionRoot",
+        "CUICollectionNode": "CUICollectionNode"
       }
     }
   }
