@@ -1,5 +1,6 @@
 import {
   forwardRef,
+  useCallback,
   useContext,
   useId,
   useImperativeHandle,
@@ -27,6 +28,7 @@ import type { TNativeFocusEvent, TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton, Button } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import { NativeButtonContext } from "../Button/context"
 import type { TNativeButtonRenderState } from "../Button/types"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
@@ -114,6 +116,14 @@ const TagReceiver = forwardRef<
     view = useRef<View>(null),
     removeView = useRef<View>(null),
     current = useRef(props)
+  const removeViews = useRef(new Set<View>())
+  const bindRemove = useCallback((target: View | null) => {
+    if (!target) return
+    removeViews.current.add(target)
+    return () => {
+      removeViews.current.delete(target)
+    }
+  }, [])
   useInsertionEffect(() => {
     current.current = props
   })
@@ -123,6 +133,7 @@ const TagReceiver = forwardRef<
       node: collectionNode,
       view,
       removeView,
+      removeViews: removeViews.current,
       order: value?.order,
       props: () => current.current,
       text: () =>
@@ -201,57 +212,64 @@ const TagReceiver = forwardRef<
     const authoredRemove = group.labels.removeButtonAriaLabel
     const removeLabel =
       typeof authoredRemove === "function" ? authoredRemove(row.text(), key) : (authoredRemove ?? "Remove")
+    const removeButtonProps = {
+      ref: bindRemove,
+      accessibilityLabel: removeLabel === "" ? "" : `${removeLabel} ${row.text()}`,
+      isDisabled: disabled,
+      onFocus: (event: TNativeFocusEvent) => {
+        nativeCellFocus?.(event)
+        group.focus(row, true, event.nativeEvent.isFocusVisible)
+      },
+      onBlur: (event: TNativeFocusEvent) => group.focus(row, false, event.nativeEvent.isFocusVisible),
+      onPress: (event: TNativePressEvent) => group.remove(row, "button", event),
+      onKeyDown: (event: Parameters<NonNullable<TNativeGroupedTagProps["onKeyDown"]>>[0]) =>
+        group.keyCapture(row, event),
+    }
     return (
       <NativeCollectionSemanticsContext.Provider value="">
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
           <NativeSelectionIndicatorContext.Provider value={{ isSelected: state.isSelected }}>
-            <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
-              <View
-                role="cell"
-                accessible={false}
-                style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
-              >
-                {getNativeButtonContent(rendered, textStyle.current)}
-                {group.allowsRemoving ? (
-                  <Button
-                    ref={removeView}
-                    testID="tag-remove-button"
-                    accessibilityLabel={removeLabel === "" ? "" : `${removeLabel} ${row.text()}`}
-                    isDisabled={disabled}
-                    geometry="orthogonal"
-                    raised={false}
-                    customStyles={{
-                      ...textStyle.current,
-                      backgroundColor: "transparent",
-                      borderWidth: 0,
-                      padding: 0,
-                      color: foreground,
-                    }}
-                    onFocus={(event) => {
-                      nativeCellFocus?.(event)
-                      group.focus(row, true, event.nativeEvent.isFocusVisible)
-                    }}
-                    onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
-                    onPress={(event) => group.remove(row, "button", event)}
-                    onKeyDown={(event) => group.keyCapture(row, event)}
-                  >
-                    {closeIcon || (
-                      <Svg
-                        testID="tag-default-close-icon"
-                        width={15}
-                        height={15}
-                        viewBox="0 0 24 24"
-                        fill={foreground}
-                        accessible={false}
-                        aria-hidden
-                      >
-                        <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
-                      </Svg>
-                    )}
-                  </Button>
-                ) : null}
-              </View>
-            </NativeContentContext.Provider>
+            <NativeButtonContext.Provider value={{ slots: { remove: removeButtonProps } }}>
+              <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: false }}>
+                <View
+                  role="cell"
+                  accessible={false}
+                  style={{ flexDirection: "row", alignItems: "center", gap: theme.spacing.unit }}
+                >
+                  {getNativeButtonContent(rendered, textStyle.current)}
+                  {group.allowsRemoving ? (
+                    <Button
+                      slot="remove"
+                      ref={removeView}
+                      testID="tag-remove-button"
+                      geometry="orthogonal"
+                      raised={false}
+                      customStyles={{
+                        ...textStyle.current,
+                        backgroundColor: "transparent",
+                        borderWidth: 0,
+                        padding: 0,
+                        color: foreground,
+                      }}
+                    >
+                      {closeIcon || (
+                        <Svg
+                          testID="tag-default-close-icon"
+                          width={15}
+                          height={15}
+                          viewBox="0 0 24 24"
+                          fill={foreground}
+                          accessible={false}
+                          aria-hidden
+                        >
+                          <Path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
+                        </Svg>
+                      )}
+                    </Button>
+                  ) : null}
+                </View>
+              </NativeContentContext.Provider>
+            </NativeButtonContext.Provider>
           </NativeSelectionIndicatorContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </NativeCollectionSemanticsContext.Provider>

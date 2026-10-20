@@ -16,6 +16,7 @@ export type TNativeTagRegistration = Readonly<{
   node: TNativeCollectionNode<unknown>
   view: RefObject<View | null>
   removeView: RefObject<View | null>
+  removeViews: ReadonlySet<View>
   props: () => TNativeGroupedTagProps
   text: () => string
   order?: number

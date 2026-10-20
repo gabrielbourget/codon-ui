@@ -25,6 +25,7 @@ export type TNativeToggleButtonChildrenState = TNativeToggleButtonRenderState & 
 export type TNativeToggleButtonProps = Omit<
   TNativeButtonProps,
   | "children"
+  | "slot"
   | "style"
   | "width"
   | "height"

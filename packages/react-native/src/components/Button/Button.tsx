@@ -1,12 +1,14 @@
 import { forwardRef, useEffect, useRef, useState, type ForwardRefExoticComponent, type RefAttributes } from "react"
 import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
 
+import { useNativeContextProps } from "../../collection/context"
 import { NativePressable } from "../../input/NativePressable"
 import type { TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
 
 import { getNativeButtonContent } from "./content"
+import { NativeButtonContext } from "./context"
 import { getNativeButtonStyle } from "./styles"
 import type { TNativeButtonProps, TNativeButtonRef, TNativeButtonRenderState } from "./types"
 
@@ -274,4 +276,11 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
 })
 
 NativeButton.displayName = "Button"
-export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = NativeButton
+export const Button: ForwardRefExoticComponent<TNativeButtonProps & RefAttributes<TNativeButtonRef>> = forwardRef(
+  (props, ref) => {
+    const [merged, mergedRef] = useNativeContextProps(props, ref, NativeButtonContext)
+    const { slot: _slot, ...native } = merged
+    return <NativeButton {...native} ref={mergedRef} />
+  },
+)
+Button.displayName = "Button"

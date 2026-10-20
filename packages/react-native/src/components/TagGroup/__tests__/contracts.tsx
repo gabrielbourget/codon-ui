@@ -2,7 +2,10 @@ import { createRef } from "react"
 import type { View } from "react-native"
 
 import { NativeFocusView } from "../../.."
+import { Button } from "../../Button/Button"
+import { NativeButtonContext } from "../../Button/context"
 import { NativeTagListContext } from "../context"
+import { NativeTagGroupLabelContext, NativeTagGroupTextContext, TagGroupLabel, TagGroupText } from "../field"
 import { Tag } from "../Tag"
 import { TagGroup, NativeTagList } from "../TagGroup"
 import type { TNativeTagListProps } from "../types"
@@ -86,3 +89,21 @@ export const inheritedTypography = <TagGroup style={{ fontSize: 18 }} customTagL
 export const invalidListRef = <NativeTagList ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Native list typography does not accept browser pixel strings.
 export const invalidListStyle = <NativeTagList style={{ fontSize: "18px" }} />
+
+export const fieldContexts = (
+  <NativeTagGroupLabelContext.Provider value={{ ref: createRef<import("react-native").Text>(), nativeID: "label" }}>
+    <TagGroupLabel slot={null} />
+    <NativeTagGroupTextContext.Provider value={{ slots: { description: { nativeID: "description" } } }}>
+      <TagGroupText slot="description" />
+    </NativeTagGroupTextContext.Provider>
+    <NativeButtonContext.Provider value={{ slots: { remove: { onPress: (event) => event.nativeEvent.target } } }}>
+      <Button slot="remove">Remove</Button>
+    </NativeButtonContext.Provider>
+  </NativeTagGroupLabelContext.Provider>
+)
+// @ts-expect-error Field labels retain native text refs.
+export const invalidFieldLabelRef = <TagGroupLabel ref={createRef<HTMLSpanElement>()} />
+// @ts-expect-error Field description styles remain native text styles.
+export const invalidFieldTextStyle = <TagGroupText style={{ fontSize: "18px" }} />
+// @ts-expect-error Native slot names are strings or null.
+export const invalidButtonSlot = <Button slot={0}>Remove</Button>
