@@ -1,5 +1,5 @@
-import type { ReactNode } from "react"
-import type { ColorValue, StyleProp, TextStyle, ViewStyle } from "react-native"
+import type { ReactNode, RefObject } from "react"
+import type { ColorValue, StyleProp, TextInput, TextStyle, View, ViewStyle } from "react-native"
 
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeDisplayDimension } from "../displayDimensions"
@@ -19,6 +19,8 @@ export type TNativePanelProps = TName & {
   onOpenChange?: (open: boolean) => void
   isDismissable?: boolean
   isKeyboardDismissDisabled?: boolean
+  initialFocusRef?: RefObject<View | TextInput | null>
+  restoreFocusRef?: RefObject<View | TextInput | null>
   height?: TNativeDisplayDimension
   width?: TNativeDisplayDimension
   horizontalGap?: number

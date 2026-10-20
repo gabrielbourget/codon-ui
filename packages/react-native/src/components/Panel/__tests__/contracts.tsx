@@ -1,3 +1,6 @@
+import { createRef } from "react"
+import type { TextInput, View } from "react-native"
+
 import { Panel } from "../Panel"
 import type { TNativePanelProps } from "../types"
 
@@ -16,6 +19,18 @@ const props: TNativePanelProps = {
   },
 }
 export const ValidPanel = <Panel {...props} />
+export const NativeFocusPanel = (
+  <Panel
+    {...props}
+    ref={createRef<View>()}
+    initialFocusRef={createRef<TextInput>()}
+    restoreFocusRef={createRef<View>()}
+  />
+)
+// @ts-expect-error only actual native view refs are accepted
+export const DOMPanel = <Panel {...props} ref={createRef<HTMLDivElement>()} />
+// @ts-expect-error an arbitrary focus-shaped object is not a native target
+export const FakeFocusPanel = <Panel {...props} initialFocusRef={createRef<{ focus: () => void }>()} />
 // @ts-expect-error there is no default/uncontrolled open value in the canonical contract
 export const UncontrolledPanel = <Panel {...props} defaultOpen />
 // @ts-expect-error require an explicit native accessible name

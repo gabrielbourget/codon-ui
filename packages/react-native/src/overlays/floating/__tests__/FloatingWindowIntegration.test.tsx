@@ -250,3 +250,30 @@ it("owns and retires the Android Back subscription without swallowing an empty h
   expect(remove).toHaveBeenCalledTimes(1)
   expect(retained(event)).toBe(false)
 })
+
+it.each([
+  { label: "Modal", Component: Modal },
+  { label: "AlertDialog", Component: AlertDialog },
+])(
+  "updates the application host when $label admission and native dismissal change the active window",
+  async ({ Component }) => {
+    jest.replaceProperty(Platform, "OS", "ios")
+    const node = (open: boolean) => (
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost testID="application-host">
+          <Component testID="window-owner" accessibilityLabel="Owner" titleText="Title" bodyText="Body" isOpen={open} />
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>
+    )
+    const { rerender } = await render(node(false))
+    expect(screen.getByTestId("application-host").props.enabled).toBe(true)
+    await rerender(node(true))
+    expect(screen.getByTestId("application-host").props.enabled).toBe(false)
+    await fireEvent(screen.getByTestId("window-owner-window"), "show")
+    const dismissed = screen.getByTestId("window-owner-window").props.onDismiss
+    await rerender(node(false))
+    expect(screen.getByTestId("application-host").props.enabled).toBe(false)
+    await act(() => dismissed())
+    expect(screen.getByTestId("application-host").props.enabled).toBe(true)
+  },
+)

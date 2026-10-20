@@ -1,5 +1,5 @@
-import { useContext, useInsertionEffect, useRef, useState } from "react"
-import { Animated, Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions } from "react-native"
+import { forwardRef, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
+import { Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, type View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import { NativeBackdropSourceContext } from "../../overlays/backdrop/context"
@@ -15,20 +15,24 @@ import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 
+import { useNativePanelReturnFocus } from "./focus"
 import { useNativePanelMotion } from "./motion"
+import { NativePanelSurface } from "./PanelSurface"
 import { getNativePanelStyles } from "./styles"
 import type { TNativePanelProps } from "./types"
 
 // Private until the complete inherited contract and real backdrop renderer have passed acceptance.
-export const Panel = (props: TNativePanelProps) => {
+export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const theme = useNativeTheme()
   const window = useWindowDimensions()
   const [viewportWidth, setViewportWidth] = useState<number | null>(null)
   const [width, setWidth] = useState<number | null>(null)
   const source = useContext(NativeBackdropSourceContext)
   const open = props.isOpen ?? false
+  const returnFocus = useNativePanelReturnFocus(open, props.restoreFocusRef)
   const motion = useNativePanelMotion(open, width)
   const overlay = useOverlay(motion.present, true)
+  useLayoutEffect(() => returnFocus(overlay.mounted))
   const dismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const styles = getNativePanelStyles(props, theme, viewportWidth ?? window.width)
   const identity = props.testID ?? props["data-testid"] ?? "panel"
@@ -97,7 +101,14 @@ export const Panel = (props: TNativePanelProps) => {
                     if (current.current.props.isDismissable !== false) close()
                   }}
                 />
-                <Animated.View
+                <NativePanelSurface
+                  ref={ref}
+                  open={open}
+                  ready={width !== null && overlay.active}
+                  isActive={isActive}
+                  systemClose={systemClose}
+                  keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
+                  initialFocusRef={props.initialFocusRef}
                   testID={identity}
                   collapsable={false}
                   accessible={false}
@@ -132,7 +143,7 @@ export const Panel = (props: TNativePanelProps) => {
                   >
                     {getNativeButtonContent(props.children, styles.text)}
                   </NativeContentContext.Provider>
-                </Animated.View>
+                </NativePanelSurface>
               </NativeFloatingWindowHost>
             </NativeBackdropWindow>
           </SafeAreaProvider>
@@ -140,4 +151,5 @@ export const Panel = (props: TNativePanelProps) => {
       )}
     </NativeModal>
   )
-}
+})
+Panel.displayName = "Panel"
