@@ -70,6 +70,20 @@ export const getNativeBreadcrumbStyles = (
       backgroundColor: theme.colors.background,
       padding: theme.spacing.unit,
       borderRadius: theme.radius.rounded,
+      boxShadow: [
+        {
+          offsetX: 0,
+          offsetY: 2,
+          blurRadius: 3,
+          color: theme.mode === "dark" ? "rgba(0,0,0,0.35)" : "rgba(0,0,0,0.12)",
+        },
+        {
+          offsetX: 0,
+          offsetY: 2,
+          blurRadius: 2,
+          color: theme.mode === "dark" ? "rgba(0,0,0,0.28)" : "rgba(0,0,0,0.24)",
+        },
+      ],
       ...resolveNativeStyle(props.customOptionsListStyles, "Breadcrumbs", "customOptionsListStyles"),
     },
   }

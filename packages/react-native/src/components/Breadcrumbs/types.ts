@@ -20,6 +20,7 @@ export const DEFAULT_NATIVE_BREADCRUMBS_LABELS = {
   detailsLabel: "Details",
 } as const
 export type TNativeBreadcrumbsLabels = { [K in keyof typeof DEFAULT_NATIVE_BREADCRUMBS_LABELS]: string }
+export type TNativePartialBreadcrumbsLabels = Partial<TNativeBreadcrumbsLabels>
 export type TNativeBreadcrumbsProps = Omit<ViewProps, "children" | "style" | "role" | "accessibilityRole"> & {
   items: readonly TNativeBreadcrumbItem[]
   color?: ColorValue

@@ -446,6 +446,24 @@ export type {
 } from "./overlays/floating/NativeTooltipTrigger"
 export { Tooltip } from "./components/Tooltip/Tooltip"
 export { ClickPopover } from "./components/ClickPopover/ClickPopover"
+export { Breadcrumbs } from "./components/Breadcrumbs/Breadcrumbs"
+export type {
+  TNativeBreadcrumbsProps,
+  TNativeBreadcrumbsProps as BreadcrumbsProps,
+  TNativeBreadcrumbsRef,
+  TNativeBreadcrumbsLabels,
+  TNativeBreadcrumbsLabels as BreadcrumbsLabels,
+  TNativePartialBreadcrumbsLabels,
+  TNativePartialBreadcrumbsLabels as PartialBreadcrumbsLabels,
+  TNativeBreadcrumbNavigateDetails,
+  TNativeBreadcrumbNavigateDetails as BreadcrumbNavigateDetails,
+} from "./components/Breadcrumbs/types"
+export type {
+  TNativeBreadcrumbItem,
+  TNativeBreadcrumbItem as BreadcrumbItemData,
+  TNativeBreadcrumbConsolidationSide,
+  TNativeBreadcrumbConsolidationSide as BreadcrumbsConsolidationPlacementSide,
+} from "./components/Breadcrumbs/model"
 export type {
   TNativeClickPopoverProps,
   TNativeClickPopoverProps as ClickPopoverProps,

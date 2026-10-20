@@ -2,13 +2,16 @@ import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, type RefObject } from "react"
 import { AccessibilityInfo, Linking, StyleSheet, View } from "react-native"
 
-import { NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
+import {
+  Breadcrumbs,
+  NativeFloatingLayerHost,
+  NativeThemeProvider,
+  type TNativeBreadcrumbItem,
+  type TNativeBreadcrumbsProps,
+} from "../../.."
 import { useNativeFloatingHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import type { TNativeClickPopoverProps } from "../../ClickPopover/types"
-import { Breadcrumbs } from "../Breadcrumbs"
-import type { TNativeBreadcrumbItem } from "../model"
-import type { TNativeBreadcrumbsProps } from "../types"
 
 const hidden = { includeHiddenElements: true }
 const items: readonly TNativeBreadcrumbItem[] = ["A", "B", "C", "D", "E", "F"].map((content) => ({
@@ -280,6 +283,10 @@ it("CAP.breadcrumbs applies independent overflow/list/popover/dialog overrides a
   expect(screen.getByTestId("breadcrumb-overflow-scroll", hidden).props.contentContainerStyle).toMatchObject({
     backgroundColor: "blue",
   })
+  expect(StyleSheet.flatten(screen.getByTestId("breadcrumb-overflow-list", hidden).props.style).boxShadow).toHaveLength(
+    2,
+  )
+  expect(screen.getByTestId("breadcrumb-overflow-scroll", hidden).props.contentContainerStyle.boxShadow).toBeUndefined()
   await pressOption("C")
   await f.tick()
   expect(onNavigate.mock.calls).toEqual([[{ href: "#C", item: items[2], target: "_self" }]])

@@ -25,6 +25,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
+import { BreadcrumbsScene } from "./BreadcrumbsScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
 import { DisplayScene } from "./DisplayScene"
@@ -182,6 +183,7 @@ export const NativeShowcase = () => {
     | "circular"
     | "tooltip"
     | "popover"
+    | "breadcrumbs"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -223,6 +225,11 @@ export const NativeShowcase = () => {
                 onPress={() => setScene("multiline")}
               />
               <FixtureAction label="Select scene" selected={scene === "select"} onPress={() => setScene("select")} />
+              <FixtureAction
+                label="Breadcrumbs scene"
+                selected={scene === "breadcrumbs"}
+                onPress={() => setScene("breadcrumbs")}
+              />
               <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
               <FixtureAction
                 label="ClickPopover scene"
@@ -295,7 +302,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "popover" ? (
+              {scene === "breadcrumbs" ? (
+                <BreadcrumbsScene />
+              ) : scene === "popover" ? (
                 <ClickPopoverScene />
               ) : scene === "tooltip" ? (
                 <TooltipScene />

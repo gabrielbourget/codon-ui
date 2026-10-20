@@ -159,6 +159,12 @@ it("selects on Space down without navigation and acts once on actual Enter relea
   expect(onAction).not.toHaveBeenCalled()
   await raw("", "Enter")
   expect(onAction).not.toHaveBeenCalled()
+  await raw("", "Enter", "up")
+  expect(onAction).not.toHaveBeenCalled()
+  await raw("", " ")
+  await raw("", " ", "up")
+  expect(row("").props.accessibilityState.checked).toBe(false)
+  await raw("", "Enter")
   const up = await raw("", "Enter", "up")
   expect(onAction.mock.calls).toEqual([[data[0]]])
   expect(up.nativeEvent).not.toHaveProperty("pageX")
@@ -169,11 +175,11 @@ it("type-selects accent-insensitively, skips disabled matches and retires remove
   await raw("", "e", "down", { nativeDefaultHandled: false })
   expect(row("d").props.keyboardFocusable).toBe(true)
   await raw("d", " ")
-  expect(row("d").props.accessibilityState.checked).toBe(true)
+  expect(row("d").props.accessibilityState.checked).toBe(false)
   await screen.rerender(setup(data.slice(0, 3)))
-  expect(row("").props.keyboardFocusable).toBe(true)
+  expect(row("c").props.keyboardFocusable).toBe(true)
   await screen.rerender(setup(data))
-  expect(row("").props.keyboardFocusable).toBe(true)
+  expect(row("c").props.keyboardFocusable).toBe(true)
   expect(row("d").props.accessibilityState.checked).toBe(false)
 })
 it("rejects foreign native focus targets and inactive/retired policy packets without changing the roving stop", async () => {
@@ -239,4 +245,126 @@ it("uses measured row/viewport geometry for PageDown/PageUp and reveals the requ
   await move("PageUp")
   expect(row("c").props.keyboardFocusable).toBe(true)
   expect(scrollTo).toHaveBeenLastCalledWith({ y: 120, animated: false })
+})
+
+const activate = async (id: string) => {
+  const target = row(id)
+  await act(() =>
+    target.props.onNativeActivation({
+      nativeEvent: {
+        kind: "activation",
+        source: "android-click",
+        ownerId: target.props.ownerId,
+        target: 17,
+        activationId: 1,
+        scopeOwnerId: host().ownerId,
+        windowId: "window",
+        epoch: 1,
+        observedAt: 0,
+      },
+    }),
+  )
+}
+it.each(["#destination", ""])("matches canonical Space/pointer/Enter action policy for href=%j", async (href) => {
+  const onAction = jest.fn(),
+    item = { id: "", href, content: "A", disabled: false }
+  await render(
+    <NativeFloatingLayerHost testID="host">
+      <NativeBreadcrumbOverflow items={[item]} disabled={false} label="Pages" style={{}} onAction={onAction} />
+    </NativeFloatingLayerHost>,
+  )
+  await ready()
+  await raw("", " ")
+  await raw("", " ", "up")
+  expect(row("").props.accessibilityState.checked).toBe(!href)
+  await raw("", "Enter")
+  await raw("", "Enter", "up")
+  expect(onAction).toHaveBeenCalledTimes(href ? 1 : 0)
+  await activate("")
+  expect(row("").props.accessibilityState.checked).toBe(false)
+  expect(onAction).toHaveBeenCalledTimes(href ? 2 : 0)
+  await raw("", "Enter")
+  await raw("", "Enter", "up")
+  expect(onAction).toHaveBeenCalledTimes(href ? 3 : 1)
+  for (const [value] of onAction.mock.calls) expect(value).toBe(item)
+})
+
+it("waits for current native readiness and does not refocus on label-only changes", async () => {
+  await render(setup())
+  await tick()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await ready()
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await screen.rerender(setup(data.map((item) => ({ ...item, content: item.content + " updated" }))))
+  await ready()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("keeps an explicit caller's initial-focus ownership without inventing a list target", async () => {
+  await render(
+    <NativeFloatingLayerHost testID="host">
+      <NativeBreadcrumbOverflow
+        autoFocus={false}
+        items={data}
+        disabled={false}
+        label="Pages"
+        style={{}}
+        onAction={jest.fn()}
+      />
+    </NativeFloatingLayerHost>,
+  )
+  await ready()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("recovers removal from actual native focus and keeps request admission separate from completion", async () => {
+  await render(setup())
+  await ready()
+  await move("ArrowDown")
+  const target = row("c")
+  await act(() =>
+    target.props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: target.props.ownerId,
+        target: ReactNative.findNodeHandle(focusView()),
+        isFocused: true,
+        isFocusVisible: true,
+        origin: "keyboard",
+        timestamp: 1,
+      },
+    }),
+  )
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await screen.rerender(setup(data.filter((item) => item.id !== "c")))
+  await ready()
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(focusView(), row("d").props.ownerId)
+  const { getNativeFocusedTarget } = jest.requireActual<typeof import("../../../input/focus")>("../../../input/focus")
+  expect(getNativeFocusedTarget()).toBeNull()
+})
+
+it("retains the actual focused ref through metadata-only updates without a second focus request", async () => {
+  await render(setup())
+  await ready()
+  const target = row(""),
+    native = focusView()
+  await act(() =>
+    target.props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: target.props.ownerId,
+        target: ReactNative.findNodeHandle(native),
+        isFocused: true,
+        isFocusVisible: true,
+        origin: "keyboard",
+        timestamp: 1,
+      },
+    }),
+  )
+  const { getNativeFocusedTarget } = jest.requireActual<typeof import("../../../input/focus")>("../../../input/focus")
+  expect(getNativeFocusedTarget()).toBe(native)
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await screen.rerender(setup(data.map((item) => ({ ...item, content: item.content + " updated" }))))
+  await ready()
+  expect(getNativeFocusedTarget()).toBe(native)
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
 })
