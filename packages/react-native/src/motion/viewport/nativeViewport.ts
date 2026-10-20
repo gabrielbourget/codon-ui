@@ -1,13 +1,23 @@
 import { findNodeHandle, TurboModuleRegistry } from "react-native"
-import type { View } from "react-native"
+import type { HostInstance, ScrollView, View } from "react-native"
 
 import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
 import type { Spec } from "../../input/specs/NativeCUIMotionSnapshot"
 
 import type { TNativeViewportEntry, TNativeViewportMargin, TNativeViewportRect } from "./types"
 
-const connected = (view: View) => (view as View & { readonly isConnected?: boolean }).isConnected === true
+const connected = (view: HostInstance) => view.isConnected === true
 const failure = (message: string) => new Error(`Native viewport: ${message}`)
+export const resolveNativeViewportRoot = (
+  root: View | ScrollView | null | undefined,
+): HostInstance | null | undefined => {
+  if (!root || !("getNativeScrollRef" in root)) return root
+  const host = root.getNativeScrollRef()
+  if (!host) throw failure("actual mounted ScrollView host required")
+  return host
+}
+// The locked public accessor returns HostInstance; the legacy handle overload still names View/component types.
+const nativeTag = (view: HostInstance) => findNodeHandle(view as View)
 let sequence = 0
 const rectangle = (value: unknown): TNativeViewportRect => {
   if (
@@ -24,7 +34,7 @@ const rectangle = (value: unknown): TNativeViewportRect => {
 }
 export const readNativeViewport = (
   target: View,
-  root: View | null | undefined,
+  root: HostInstance | null | undefined,
   record: TNativeMotionGeometryRecord,
   margins: readonly TNativeViewportMargin[],
   current: () => boolean,
@@ -40,7 +50,7 @@ export const readNativeViewport = (
     (target as TDocumentView).ownerDocument === document &&
     (!root || (root as TDocumentView).ownerDocument === document)
   const tag = findNodeHandle(target),
-    rootTag = root ? findNodeHandle(root) : 0
+    rootTag = root ? nativeTag(root) : 0
   if (
     !valid() ||
     tag !== record.target ||
@@ -100,7 +110,7 @@ export const readNativeViewport = (
     boundingClientRect: rectangle(response.boundingClientRect),
     intersectionRect: rectangle(response.intersectionRect),
   })
-  if (!valid() || findNodeHandle(target) !== tag || (root && findNodeHandle(root) !== rootTag))
+  if (!valid() || findNodeHandle(target) !== tag || (root && nativeTag(root) !== rootTag))
     throw failure("owner/root retired during query")
   return entry
 }

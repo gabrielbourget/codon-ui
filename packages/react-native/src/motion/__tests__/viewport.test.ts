@@ -1,5 +1,5 @@
 import { TurboModuleRegistry } from "react-native"
-import type { View } from "react-native"
+import type { HostInstance, ScrollView, View } from "react-native"
 
 import { geometryPacket } from "../../input/__tests__/motionGeometry.fixture"
 import { NativeMotionGeometryObserver, registerNativeMotionGeometryObserver } from "../../input/motionGeometry"
@@ -196,6 +196,64 @@ it("captures the actual root ref at observer start instead of following uncommit
     root: 72,
     margins: nativeViewportMargins("10% 2px"),
   })
+})
+it("captures the actual ScrollView host once through its unchanged public accessor", async () => {
+  const root = { current: null as ScrollView | null },
+    enter = jest.fn(),
+    f = setup({ viewport: { root }, onViewportEnter: enter })
+  const getNativeScrollRef = jest.fn(() => f.root as unknown as HostInstance)
+  const original = { getNativeScrollRef } as unknown as ScrollView
+  root.current = original
+  f.update({ viewport: { root, margin: "1px" }, onViewportEnter: enter })
+  f.send(true)
+  await flush()
+  expect(getNativeScrollRef).toHaveBeenCalledTimes(1)
+  expect(root.current).toBe(original)
+  expect(root.current.getNativeScrollRef).toBe(getNativeScrollRef)
+  expect(JSON.parse(f.native.mock.calls.at(-1)![0]).root).toBe(72)
+  expect(enter).toHaveBeenCalledTimes(1)
+  getNativeScrollRef.mockReturnValue({ isConnected: false } as HostInstance)
+  f.feature.refresh()
+  f.send(false)
+  await flush()
+  expect(getNativeScrollRef).toHaveBeenCalledTimes(1)
+  expect(f.error).not.toHaveBeenCalled()
+})
+it("rejects an unavailable mounted ScrollView host instead of observing the window, and can recapture on refresh", async () => {
+  const root = { current: null as ScrollView | null },
+    enter = jest.fn(),
+    f = setup({ viewport: { root }, onViewportEnter: enter })
+  const getNativeScrollRef = jest.fn<HostInstance | null, []>(() => null)
+  root.current = { getNativeScrollRef } as unknown as ScrollView
+  const props = { viewport: { root, margin: "1px" }, onViewportEnter: enter }
+  f.update(props)
+  f.send(true)
+  await flush()
+  expect(f.error).toHaveBeenCalledWith(expect.objectContaining({ message: expect.stringContaining("ScrollView host") }))
+  expect(f.native).not.toHaveBeenCalled()
+  expect(enter).not.toHaveBeenCalled()
+  getNativeScrollRef.mockReturnValue(f.root as unknown as HostInstance)
+  f.feature.refresh()
+  f.send(true)
+  await flush()
+  expect(JSON.parse(f.native.mock.calls[0][0]).root).toBe(72)
+  expect(enter).toHaveBeenCalledTimes(1)
+})
+it("rejects a detached captured ScrollView host without substituting its replacement", async () => {
+  const root = { current: null as ScrollView | null },
+    enter = jest.fn(),
+    f = setup({ viewport: { root }, onViewportEnter: enter })
+  const getNativeScrollRef = jest.fn(() => f.root as unknown as HostInstance)
+  root.current = { getNativeScrollRef } as unknown as ScrollView
+  f.update({ viewport: { root, margin: "1px" }, onViewportEnter: enter })
+  f.root.isConnected = false
+  getNativeScrollRef.mockReturnValue({ ...f.root, isConnected: true } as HostInstance)
+  f.send(true)
+  await flush()
+  expect(f.error).toHaveBeenCalled()
+  expect(f.native).not.toHaveBeenCalled()
+  expect(enter).not.toHaveBeenCalled()
+  expect(getNativeScrollRef).toHaveBeenCalledTimes(1)
 })
 it.each(["owner", "window", "detach"])("retires queued entries after %s lifetime changes", async (kind) => {
   const enter = jest.fn(),

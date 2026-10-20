@@ -73,6 +73,53 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   private double observationRevision;
   private List<Observation> observations = new ArrayList<>();
   private String acceptedWindowId = "";
+  private List<CUIWindowPointers.Registration> pointerRegistrations = new ArrayList<>();
+  private double pointerRevision;
+  private String pointerStatus = "";
+  void setPointerRegistrations(List<CUIWindowPointers.Registration> next) {
+    for (CUIWindowPointers.Registration registration : next) for (CUIWindowPointers.Registration previous : pointerRegistrations)
+      if (registration.id.equals(previous.id) && registration.targetTag == previous.targetTag) registration.target = previous.target;
+    pointerRegistrations = next;
+  }
+  void setPointerRevision(double next) { pointerRevision = next; }
+  boolean hasPointerRegistrations() { return captureReady() && !pointerRegistrations.isEmpty(); }
+  private View pointerTarget(CUIWindowPointers.Registration registration) {
+    if (registration.target == null) {
+      View found = getRootView().findViewById(registration.targetTag);
+      if (found != null) registration.target = new java.lang.ref.WeakReference<>(found);
+    }
+    View target = registration.target == null ? null : registration.target.get();
+    if (target == null || target.getId() != registration.targetTag || !target.isAttachedToWindow() || target.getRootView() != getRootView()) return null;
+    for (View view = target; view != null; view = view.getParent() instanceof View ? (View) view.getParent() : null) if (view == this) return target;
+    return null;
+  }
+  void writePointerSession(WritableMap data) {
+    data.putString("ownerId", ownerId); data.putString("windowId", CUIInputWindow.identity(this)); data.putDouble("epoch", windowEpoch);
+  }
+  boolean appendPointerRegistrations(WritableArray result, List<Integer> ancestry) {
+    if (!hasPointerRegistrations()) return false;
+    boolean added = false;
+    for (CUIWindowPointers.Registration registration : pointerRegistrations) {
+      if (pointerTarget(registration) == null) continue;
+      WritableMap entry = Arguments.createMap();
+      entry.putString("id", registration.id); entry.putString("ownerId", ownerId); entry.putDouble("epoch", windowEpoch);
+      entry.putDouble("revision", pointerRevision); entry.putInt("targetTag", registration.targetTag); entry.putInt("depth", ancestry.indexOf(registration.targetTag));
+      result.pushMap(entry); added = true;
+    }
+    return added;
+  }
+  void publishPointerStatus(boolean available, String error) {
+    boolean ready = available && hasPointerRegistrations();
+    for (CUIWindowPointers.Registration registration : pointerRegistrations) ready &= pointerTarget(registration) != null;
+    String signature = ownerId + ":" + CUIInputWindow.identity(this) + ":" + windowEpoch + ":" + pointerRevision + ":" + ready + ":" + error;
+    if (signature.equals(pointerStatus)) return;
+    pointerStatus = signature;
+    WritableMap data = Arguments.createMap(); writePointerSession(data);
+    data.putDouble("revision", pointerRevision); data.putBoolean("ready", ready); data.putString("error", error);
+    emit("topNativePointerStatus", data);
+  }
+  void emitPointer(WritableMap data) { if (hasPointerRegistrations()) emit("topNativeWindowPointer", data); }
+
   private long policyOrder;
   private View boundRoot;
   private final CUIFloatingObserver floating;
@@ -114,6 +161,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
+    CUIWindowPointers.refresh(this);
     floating.update(floatingTargets, captureReady());
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
     data.putDouble("epoch", windowEpoch); data.putDouble("policyRevision", policyRevision); data.putBoolean("ready", captureReady()); data.putBoolean("windowActive", windowActive()); emit("topNativeScopeStatus", data);
@@ -277,7 +325,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
   @Override protected void onDetachedFromWindow() {
     floating.stop();
-    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); boundRoot = null; }
+    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); boundRoot = null; }
     windowEpoch++; super.onDetachedFromWindow(); publishStatus();
   }
 

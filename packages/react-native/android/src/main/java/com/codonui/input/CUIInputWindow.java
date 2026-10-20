@@ -21,6 +21,7 @@ final class CUIInputWindow {
     int pointerDispatches;
     int keyDispatches;
     long observedEventId;
+    long windowPointerSequence;
     long scopeOrder;
     long inputRevision;
     final Set<Integer> pointers = new HashSet<>();
@@ -58,6 +59,7 @@ final class CUIInputWindow {
   }
   static boolean beginKey(View view) { return state(view).keyDispatches++ == 0; }
   static void endKey(View view) { State value = state(view); value.keyDispatches = Math.max(0, value.keyDispatches - 1); }
+  static long nextWindowPointer(View view) { return ++state(view).windowPointerSequence; }
   static long nextObservedEvent(View view) { return ++state(view).observedEventId; }
   static long nextPolicyOrder(View view) { return ++state(view).policyOrder; }
   static void beginPointer(View view) { state(view).pointerDispatches++; }

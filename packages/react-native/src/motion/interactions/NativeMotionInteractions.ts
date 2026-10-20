@@ -1,17 +1,12 @@
-import type {
-  TNativeFocusEvent,
-  TNativeInteractionEvent,
-  TNativeKeyboardEvent,
-  TNativePressEvent,
-} from "../../input/types"
+import type { TNativeFocusEvent, TNativeKeyboardEvent } from "../../input/types"
 import { cancelFrame, frame } from "../kernel"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 
 import { nativeMotionIsDragging, nativeDragGestureRevision } from "./dragLock"
-import type { TNativeMotionHoverEvent, TNativeMotionPointInfo } from "./types"
+import type { TNativeMotionHoverEvent, TNativeMotionPointInfo, TNativeMotionTapEvent } from "./types"
 
 type TCycle = {
-  event: TNativeInteractionEvent
+  event: TNativeMotionTapEvent
   info: TNativeMotionPointInfo
   current: () => boolean
   cancelCurrent: () => boolean
@@ -44,24 +39,22 @@ export class NativeMotionInteractions {
     private readonly error: (error: unknown) => void,
   ) {}
   tapEnabled = () => {
-    const props = this.owner.getProps()
-    return Boolean(props.whileTap || props.onTap || props.onTapStart || props.onTapCancel)
+    return this.owner.hasFeature("tap")
   }
   hoverEnabled = () => {
-    const props = this.owner.getProps()
-    return Boolean(props.whileHover || props.onHoverStart || props.onHoverEnd)
+    return this.owner.hasFeature("hover")
   }
   private eligible = () => this.owner.captureAnimationLease()()
   private admitted = () =>
     this.eligible() && !nativeMotionIsDragging() && !this.owner.animationState.getState().whileDrag.isActive
   private priority = (type: "whileTap" | "whileHover" | "whileFocus", active: boolean) => {
-    if (active && !this.owner.getProps()[type]) return
+    if (active && type !== "whileFocus" && !this.owner.getProps()[type]) return
     const current = this.owner.captureAnimationLease()
     void this.owner.animationState.setActive(type, active).catch((error: unknown) => {
       if (current()) this.error(error)
     })
   }
-  private point = (event: TNativePressEvent): TNativeMotionPointInfo => {
+  private point = (event: TNativeMotionTapEvent): TNativeMotionPointInfo => {
     const point = eventPoint(event)
     if (point) return point
     const target = this.owner.current
@@ -91,12 +84,18 @@ export class NativeMotionInteractions {
     this.jobs.add(job)
     frame.postRender(job)
   }
-  start = (event: TNativeInteractionEvent, source: TCycle["source"], code?: number) => {
-    if (!this.tapEnabled() || !this.admitted() || this.cycle || event.isDefaultPrevented?.()) return
+  start = (
+    event: TNativeMotionTapEvent,
+    source: TCycle["source"],
+    code?: number,
+    registrationCurrent: () => boolean = () => true,
+  ) => {
+    if (!this.tapEnabled() || !this.admitted() || this.cycle || event.isDefaultPrevented?.()) return false
     try {
       const info = this.point(event)
       event.persist?.()
-      const current = this.owner.captureAnimationLease()
+      const ownerCurrent = this.owner.captureAnimationLease()
+      const current = () => ownerCurrent() && registrationCurrent()
       this.cycle = {
         event,
         info,
@@ -108,20 +107,22 @@ export class NativeMotionInteractions {
       }
       this.priority("whileTap", true)
       this.queue(event, info, this.owner.getProps().onTapStart, current)
+      return true
     } catch (error) {
       this.error(error)
+      return false
     }
   }
-  move = (event: TNativeInteractionEvent) => {
+  move = (event: TNativeMotionTapEvent) => {
     if (this.cycle?.source !== "pointer") return
     const point = eventPoint(event)
     if (point) this.cycle.info = point
   }
-  end = (event: TNativePressEvent, success: boolean, source?: TCycle["source"]) => {
+  end = (event: TNativeMotionTapEvent, success: boolean, source?: TCycle["source"]) => {
     const cycle = this.cycle
     if (!cycle || (source && cycle.source !== source)) return
     this.cycle = undefined
-    this.priority("whileTap", false)
+    if (this.owner.getProps().whileTap) this.priority("whileTap", false)
     const accepted =
       success &&
       this.admitted() &&
@@ -146,7 +147,10 @@ export class NativeMotionInteractions {
     )
   }
   cancel = () => {
-    if (this.cycle) this.end(this.cycle.event, false)
+    if (this.cycle) {
+      this.end(this.cycle.event, false)
+      this.priority("whileTap", false)
+    }
   }
   keyDown = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
@@ -158,7 +162,7 @@ export class NativeMotionInteractions {
     if (this.cycle?.source !== "keyboard" || this.cycle.code !== event.nativeEvent.nativeCode) return
     this.end(event, !event.nativeEvent.cancelled, "keyboard")
   }
-  activation = (event: TNativePressEvent) => {
+  activation = (event: TNativeMotionTapEvent) => {
     if (!this.tapEnabled() || !this.admitted() || this.cycle?.source === "keyboard" || event.isDefaultPrevented?.())
       return
     if (this.cycle) {
@@ -202,7 +206,7 @@ export class NativeMotionInteractions {
     if (!hover) return
     this.hover = undefined
     this.deferredHoverEnd = false
-    this.priority("whileHover", false)
+    if (!event || this.owner.getProps().whileHover) this.priority("whileHover", false)
     const original = event ?? hover.event
     original.persist?.()
     this.queue(
@@ -220,7 +224,7 @@ export class NativeMotionInteractions {
     if (this.deferredHoverEnd) this.finishHover(event)
   }
   focus = (event: TNativeFocusEvent) => {
-    if (!this.eligible() || event.nativeEvent.isFocusVisible !== true || !this.owner.getProps().whileFocus) return
+    if (!this.eligible() || event.nativeEvent.isFocusVisible !== true || !this.owner.hasFeature("focus")) return
     this.focused = true
     this.priority("whileFocus", true)
   }
@@ -240,7 +244,6 @@ export class NativeMotionInteractions {
     }
     if (!this.tapEnabled() || !this.admitted() || (this.cycle && !this.cycle.current())) this.cancel()
     if (!this.hoverEnabled() || !this.admitted() || (this.hover && !this.hover.cancelCurrent())) this.hoverEnd()
-    if (!this.owner.getProps().whileFocus) this.blur()
   }
   retire = () => {
     for (const job of this.jobs) cancelFrame(job)

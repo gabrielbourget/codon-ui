@@ -28,6 +28,13 @@
       "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/context/MotionContext/utils.ts",
       "sourceKind": "npm-source-map-sourcesContent",
       "sha256": "15986915c93ea9393c6c41de952f36b176cc7544c41a197de3212b1c7df341a1"
+    },
+    {
+      "package": "framer-motion",
+      "version": "12.40.0",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/framer-motion/src/motion/features/definitions.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "sha256": "ffa48f7e01e8b92cce03ed479a1f868bd3d0f4181b9d6596436541b13292ea88"
     }
   ],
   "reactNativeInputs": [
@@ -56,11 +63,15 @@
   "authoredFiles": [
     {
       "file": "NativeMotionOwner.ts",
-      "sha256": "a315d3b4ea2425c1d8db2ce3a91c8529ee09568a9250ae92159637f20b47d906"
+      "sha256": "7f63e295ad37053567ee295083bd6305b18455df4cae0594bd2d47fbd74d4e68"
     },
     {
       "file": "NativeMotionOwnerHost.tsx",
       "sha256": "aac6559298eb2358454ddef8ebb04a500de5298f48ea87bb6e78bb66e13fc01d"
+    },
+    {
+      "file": "NativeMotionFeatures.ts",
+      "sha256": "934cf17b270e9d1c2213580fa7748b40e90948dccbf65ee3d7bf672ff44f09fe"
     }
   ],
   "nativeAdaptations": [
@@ -71,7 +82,8 @@
     "Native initial-read/isolated geometry/color services remain required; newly hydrated unresolved bindings stay out of visual props and retire on cancellation",
     "Insertion-phase prop metadata updates do not publish stores; layout binding updates and ordinary passive animation startup follow committed React lifetimes",
     "Caller values retain normal ownership; explicit initial requests/replays remain requests, and detach does not destroy values or stop unrelated externally started animations",
-    "Private tap/hover/focus binding now reaches existing native responder/key/focus/pointer events on the unchanged host; global tap/propagation/cross-owner drag and full native gesture proof remain required."
+    "Private tap/hover/focus binding reaches the owned host original native key/focus/pointer and private actual-window transport; actual global/nested/default/drag native fidelity remains required.",
+    "All nine pinned full-renderer feature predicates are tracked with committed lifetime; tap/hover/pan/focus behavior survives temporary prop removal. ignoreStrict is consumed under the full native renderer with no LazyMotion/strict-loading boundary or generic renderer API."
   ],
   "remaining": [
     "Actual native readiness/window/epoch/source correspondence, cross-window/portaled hierarchy and native document-order proof",

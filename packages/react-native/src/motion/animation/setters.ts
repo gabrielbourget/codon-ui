@@ -1,7 +1,7 @@
 // Received from pinned Motion 12.40.0; see UPSTREAM.json and ../kernel/LICENSE.motion-dom.md.
 import { motionValue } from "../kernel"
+import { nativeTargetKeyframes } from "../value/targetKeyframes"
 
-import { isKeyframesTarget } from "./is-keyframes-target"
 import { resolveVariant } from "./resolve-dynamic-variants"
 import type { TNativeMotionAnimationOwner, TNativeMotionDefinition } from "./types"
 
@@ -17,9 +17,11 @@ function setMotionValue(visualElement: TNativeMotionAnimationOwner, key: string,
   }
 }
 
-function resolveFinalValueInKeyframes(v: unknown): unknown {
-  // TODO maybe throw if v.length - 1 is placeholder token?
-  return isKeyframesTarget(v) ? v[v.length - 1] || 0 : v
+function resolveFinalValueInKeyframes(key: string, value: unknown): unknown {
+  if (!Array.isArray(value)) return value
+  // Native array values retain their identity; actual keyframes keep the pinned final-value fallback.
+  const frames = nativeTargetKeyframes(key, value)
+  return frames[frames.length - 1] || 0
 }
 
 export function setTarget(visualElement: TNativeMotionAnimationOwner, definition: TNativeMotionDefinition) {
@@ -29,7 +31,7 @@ export function setTarget(visualElement: TNativeMotionAnimationOwner, definition
   const target = { ...initialTarget, ...transitionEnd }
 
   for (const key in target) {
-    const value = resolveFinalValueInKeyframes(target[key as keyof typeof target])
+    const value = resolveFinalValueInKeyframes(key, target[key as keyof typeof target])
     setMotionValue(visualElement, key, value as unknown)
   }
 }

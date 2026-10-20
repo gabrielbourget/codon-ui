@@ -1,4 +1,4 @@
-import type { TNativeMotionTransition } from "../animation"
+import type { TNativeMotionValueAnimationOptions } from "../animation"
 import type { MotionValue } from "../kernel"
 
 import type { TNativeMotionResolutionTicket } from "./resolution-batch"
@@ -28,8 +28,7 @@ export type TNativeMotionValueContext = {
   ) => readonly string[] | Promise<readonly string[]>
   shouldSkipAnimations?: boolean
 }
-export type TNativeMotionValueOptions = TNativeMotionTransition & {
-  keyframes: unknown[]
+export type TNativeMotionValueOptions = TNativeMotionValueAnimationOptions & {
   name: string
   motionValue: MotionValue<unknown>
   context: TNativeMotionValueContext

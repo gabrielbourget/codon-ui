@@ -1,9 +1,10 @@
 import type { GestureResponderEvent, ViewProps } from "react-native"
 
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeMotionPoint } from "../config"
 
-export type TNativeMotionTapEvent = TNativePressEvent
+export type TNativeMotionTapEvent = TNativePressEvent | TNativeWindowPointerEvent
 export type TNativeMotionHoverEvent = Parameters<NonNullable<ViewProps["onPointerEnter"]>>[0]
 export type TNativeMotionPointerEvent = Parameters<NonNullable<ViewProps["onPointerDown"]>>[0]
 // Pinned RN emits numeric IDs but its published declaration says string. Original events remain untouched.
@@ -26,6 +27,8 @@ export type TNativeMotionPanInfo = TNativeMotionPointInfo & {
   velocity: TNativeMotionPoint
 }
 export type TNativeMotionInteractionProps = {
+  globalTapTarget?: boolean
+  propagate?: { tap?: boolean }
   onPanSessionStart?: (event: TNativeMotionPanEvent, info: TNativeMotionPanInfo) => void
   onPanStart?: (event: TNativeMotionPanEvent, info: TNativeMotionPanInfo) => void
   onPan?: (event: TNativeMotionPanEvent, info: TNativeMotionPanInfo) => void

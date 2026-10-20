@@ -388,7 +388,7 @@ export function createAnimationState(visualElement: TNativeMotionAnimationOwner)
         const motionValue = visualElement.getValue(key)
         if (motionValue) motionValue.liveStyle = true
 
-        fallbackAnimation[key] = fallbackTarget ?? null
+        Object.assign(fallbackAnimation, { [key]: fallbackTarget ?? null })
       })
 
       animations.push({ animation: fallbackAnimation })

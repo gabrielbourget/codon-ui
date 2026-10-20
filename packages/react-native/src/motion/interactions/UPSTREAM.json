@@ -176,11 +176,11 @@
     },
     {
       "file": "NativeMotionInteractions.ts",
-      "sha256": "d7241bc41ddcc7044d42480c5362344d9a06d6b31d32f413dfdc4e1802ce3101"
+      "sha256": "13e513744bb1eadbda66fd6c61cfddd6faf38e177e802a9ae10d8c9df65584f3"
     },
     {
       "file": "NativeMotionPan.ts",
-      "sha256": "335c817140ef37047e90c7de63072a9c578812f297f1869acc2f751f019af539"
+      "sha256": "1d135001f5abe911401bed480be41cdc7730facd1cea63c4794e3f57a184eafa"
     },
     {
       "file": "NativePanSession.ts",
@@ -200,11 +200,11 @@
     },
     {
       "file": "types.ts",
-      "sha256": "027119b59666f58ac6cee8d0a9188e86a3b43514839db5838faa16818aac4c0a"
+      "sha256": "da4568437890548b6f132a13e0288e21014950e666bf74997a98fde801b70688"
     },
     {
       "file": "useNativeMotionInteractions.ts",
-      "sha256": "e395f0b8bbb41a1b24ea6b43a9c44c1ea064021df1b67381556222faf125f822"
+      "sha256": "cb32f581c07b01defaf3197e3a11a6f0780994c5153c848a09613bc1d43d208d"
     },
     {
       "file": "../../input/nativeGestureObservation.ts",
@@ -212,7 +212,15 @@
     },
     {
       "file": "../../input/NativeKeyboardScope.tsx",
-      "sha256": "2fe606e27f9831d8c2ad3a35c4d44d43261d08c9e308d5451c94400b25cf84cf"
+      "sha256": "3f7815702570705b23b189dbc946a5df1a699970fa0342b3f055e35d6d2c4796"
+    },
+    {
+      "file": "useNativeMotionWindowTap.ts",
+      "sha256": "8db959a2bf683138531eda7ac63ab7467bf1ee1dc85732c696c1da32cc4c96fc"
+    },
+    {
+      "file": "../../input/nativeWindowPointers.ts",
+      "sha256": "35da10cbc055a46dc4afc6a21d23eafd859e0f61b78d3f00a78616704abb58cf"
     }
   ],
   "nativeAdaptations": [
@@ -231,12 +239,16 @@
     "Axis locks are owned per actual native window and always released on retirement. Global drag admission/revision prevents a tap after an intervening drag; propagated drag also cancels its own tap cycle",
     "Native public nodeName/parentElement reads identify RN:TextInput descendants. The locked native DOM implementation normalizes AndroidTextInput to that name; TextInput.State intentionally does not export its private isTextInput helper",
     "Native geometry streams and actual ref rectangle reads trigger layout/scroll compensation and constraint resize progress without resetting editor values, refs or methods",
-    "Cursor snapping preserves the pinned raw event point even when configured page transforms apply to pan points and measured boxes; an actual source differential caught and corrected the initial transformed-cursor divergence"
+    "Cursor snapping preserves the pinned raw event point even when configured page transforms apply to pan points and measured boxes; an actual source differential caught and corrected the initial transformed-cursor divergence",
+    "Private actual-window packets replace tap Pressability: Android delegates the matching Activity/RN-modal Window.Callback and observes captured hit paths after original dispatch; UIKit uses a non-delaying, non-cancelling, non-preventing passive window recognizer",
+    "Exact same-window host registrations, native per-window sequence and scope/ref/epoch/revision leases order local descendants before ancestors and global registration order. propagate.tap=false claims only motion delivery; globalTapTarget and propagation are captured at feature mount while callbacks remain current",
+    "Genuine Android accessibility ACTION_CLICK and UIKit accessibilityActivate emit explicit virtual activation packets. Physical Android onClick remains on the unchanged standalone public path and cannot complete a second motion tap; keyboard capture uses its existing original native key path",
+    "Committed feature lifetime is distinct from current rendered focus defaults: mounted tap/hover/pan sessions and claims survive absent props with current callbacks; static previews retain source tab-order defaults without an observer or captured activation keys."
   ],
   "remaining": [
     "Full native projection/shared-layout/presence integration, including transformed ancestor coordinate fidelity and projection animation blocking",
     "Actual native touch/pointer/multitouch/manual-handle/outside-root/window/default routing, editor invariants, cancellation and held hover/drag/tap arbitration",
     "Actual constraint measurement/resize/scroll/inertia/snap/Reduce Motion/skip/frame/load fidelity on both native platforms and required profiles",
-    "Global authored tap target/propagation, viewport, complete Card/public APIs, fresh consumers/products and full catalogue/profile/closure acceptance"
+    "Actual global tap/propagation/default/activation/performance fidelity, complete inherited types/renderer/Card/public APIs, fresh consumers/products and full catalogue/profile/closure acceptance"
   ]
 }

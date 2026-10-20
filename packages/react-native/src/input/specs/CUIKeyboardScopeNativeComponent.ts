@@ -97,6 +97,46 @@ type NativeObservationStatus = Readonly<{
   windowActive: boolean
 }>
 
+type NativePointerRegistration = Readonly<{ id: string; targetTag: Int32 }>
+export type NativeWindowPointerData = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  sequence: Double
+  phase: "start" | "move" | "end" | "cancel" | "activation"
+  pointerId: Int32
+  pointerType: "touch" | "mouse" | "pen" | "virtual"
+  isPrimary: boolean
+  button: Int32
+  buttons: Int32
+  nativeButtons: string
+  shiftKey: boolean
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  nativeModifiers: string
+  pageX: Double
+  pageY: Double
+  timestamp: Double
+  target: Int32
+  registrations: {
+    id: string
+    ownerId: string
+    epoch: Double
+    revision: Double
+    targetTag: Int32
+    depth: Int32
+  }[]
+}>
+export type NativePointerStatus = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  revision: Double
+  ready: boolean
+  error: string
+}>
+
 export interface NativeProps extends ViewProps {
   ownerId: string
   enabled?: WithDefault<boolean, true>
@@ -107,6 +147,10 @@ export interface NativeProps extends ViewProps {
   floatingTargets?: ReadonlyArray<NativeFloatingTarget>
   observations?: ReadonlyArray<NativeKeyObservation>
   observationRevision?: Double
+  pointerRegistrations?: ReadonlyArray<NativePointerRegistration>
+  pointerRevision?: Double
+  onNativeWindowPointer?: DirectEventHandler<NativeWindowPointerData>
+  onNativePointerStatus?: DirectEventHandler<NativePointerStatus>
   onNativeObservedKey?: DirectEventHandler<NativeObservedKeyData>
   onNativeObservationStatus?: DirectEventHandler<NativeObservationStatus>
   onNativeFloatingObservation?: DirectEventHandler<NativeFloatingObservation>

@@ -33,7 +33,7 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @class CUIKeyboardRecognizer;
-@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope>
+@interface CUIKeyboardScope () <UIGestureRecognizerDelegate, CUIKeyboardObservationScope, CUIWindowPointerScope>
 - (NSString *)policyForPress:(UIPress *)press;
 - (BOOL)hasPolicyForPress:(UIPress *)press;
 - (void)recordModality:(NSString *)origin;
@@ -129,6 +129,11 @@ static UIView *CUIFirstResponder(UIView *root)
   double _policyRevision;
   double _observationRevision;
   NSArray<NSDictionary *> *_observations;
+  NSArray<NSDictionary *> *_pointerRegistrations;
+  NSMapTable<NSString *, UIView *> *_pointerTargets;
+  NSMutableSet<NSString *> *_resolvedPointerTargets;
+  double _pointerRevision;
+  NSString *_pointerStatus;
   NSString *_acceptedWindowId;
   NSInteger _policyOrder;
   BOOL _applicationActive;
@@ -149,6 +154,9 @@ static UIView *CUIFirstResponder(UIView *root)
     _captureEnabled = YES;
     _policies = @[];
     _observations = @[];
+    _pointerRegistrations = @[];
+    _pointerTargets = NSMapTable.strongToWeakObjectsMapTable;
+    _resolvedPointerTargets = [NSMutableSet set];
     _acceptedWindowId = @"";
     _acceptedEpoch = -1;
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
@@ -199,6 +207,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
+  CUIRefreshWindowPointerObservation(self.window);
   if (!_eventEmitter) return;
   CUIKeyboardScopeEventEmitter::OnNativeScopeStatus data{};
   data.ownerId = _ownerId.UTF8String;
@@ -212,6 +221,70 @@ static UIView *CUIFirstResponder(UIView *root)
   observed.ownerId = data.ownerId; observed.windowId = data.windowId; observed.epoch = _windowEpoch;
   observed.observationRevision = _observationRevision; observed.ready = [self captureReady]; observed.windowActive = [self windowActive];
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeObservationStatus(observed);
+}
+- (NSArray<NSDictionary *> *)windowPointerRegistrationsForAncestry:(NSArray<NSNumber *> *)ancestry
+{
+  if (![self captureReady]) return @[];
+  NSMutableArray *result = [NSMutableArray array];
+  for (NSDictionary *entry in _pointerRegistrations) {
+    NSString *identity = entry[@"id"];
+    if (![_resolvedPointerTargets containsObject:identity]) {
+      UIView *found = [self.window viewWithTag:[entry[@"targetTag"] integerValue]];
+      if (found && [found isDescendantOfView:self]) {
+        [_pointerTargets setObject:found forKey:identity];
+        [_resolvedPointerTargets addObject:identity];
+      }
+    }
+    UIView *target = [_pointerTargets objectForKey:identity];
+    if (!target || target.tag != [entry[@"targetTag"] integerValue] || target.window != self.window || ![target isDescendantOfView:self]) continue;
+    NSUInteger depth = [ancestry indexOfObject:entry[@"targetTag"]];
+    [result addObject:@{ @"id": identity, @"targetTag": entry[@"targetTag"], @"ownerId": _ownerId,
+      @"epoch": @(_windowEpoch), @"revision": @(_pointerRevision), @"depth": @(depth == NSNotFound ? -1 : (NSInteger)depth) }];
+  }
+  return result;
+}
+- (void)publishWindowPointerStatus:(BOOL)available error:(NSString *)error
+{
+  BOOL ready = available && [self captureReady] && _pointerRegistrations.count > 0 && [self windowPointerRegistrationsForAncestry:@[]].count == _pointerRegistrations.count;
+  NSString *signature = [NSString stringWithFormat:@"%@:%@:%g:%g:%d:%@", _ownerId, CUIInputWindowIdentity(self.window), _windowEpoch, _pointerRevision, ready, error];
+  if (!_eventEmitter || [_pointerStatus isEqualToString:signature]) return;
+  _pointerStatus = signature;
+  CUIKeyboardScopeEventEmitter::OnNativePointerStatus data{};
+  data.ownerId = _ownerId.UTF8String; data.windowId = CUIInputWindowIdentity(self.window).UTF8String;
+  data.epoch = _windowEpoch; data.revision = _pointerRevision; data.ready = ready; data.error = error.UTF8String;
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativePointerStatus(data);
+}
+- (void)emitWindowPointer:(NSDictionary *)packet
+{
+  if (!_eventEmitter || ![self captureReady]) return;
+  CUIKeyboardScopeEventEmitter::OnNativeWindowPointer data{};
+  data.ownerId = _ownerId.UTF8String; data.windowId = [packet[@"windowId"] UTF8String]; data.epoch = _windowEpoch;
+  data.sequence = [packet[@"sequence"] doubleValue];
+  NSString *phase = packet[@"phase"];
+  data.phase = [phase isEqualToString:@"start"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPhase::Start
+    : [phase isEqualToString:@"move"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPhase::Move
+    : [phase isEqualToString:@"end"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPhase::End
+    : [phase isEqualToString:@"cancel"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPhase::Cancel
+    : CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPhase::Activation;
+  NSString *type = packet[@"pointerType"];
+  data.pointerType = [type isEqualToString:@"touch"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPointerType::Touch
+    : [type isEqualToString:@"mouse"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPointerType::Mouse
+    : [type isEqualToString:@"pen"] ? CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPointerType::Pen
+    : CUIKeyboardScopeEventEmitter::OnNativeWindowPointerPointerType::Virtual;
+  data.pointerId = [packet[@"pointerId"] intValue]; data.isPrimary = [packet[@"isPrimary"] boolValue];
+  data.button = [packet[@"button"] intValue]; data.buttons = [packet[@"buttons"] intValue]; data.nativeButtons = [packet[@"nativeButtons"] UTF8String];
+  data.shiftKey = [packet[@"shiftKey"] boolValue]; data.altKey = [packet[@"altKey"] boolValue];
+  data.ctrlKey = [packet[@"ctrlKey"] boolValue]; data.metaKey = [packet[@"metaKey"] boolValue]; data.nativeModifiers = [packet[@"nativeModifiers"] UTF8String];
+  data.pageX = [packet[@"pageX"] doubleValue]; data.pageY = [packet[@"pageY"] doubleValue];
+  data.timestamp = [packet[@"timestamp"] doubleValue]; data.target = [packet[@"target"] intValue];
+  for (NSDictionary *entry in packet[@"registrations"]) {
+    CUIKeyboardScopeEventEmitter::OnNativeWindowPointerRegistrations registration{};
+    registration.id = [entry[@"id"] UTF8String]; registration.ownerId = [entry[@"ownerId"] UTF8String];
+    registration.epoch = [entry[@"epoch"] doubleValue]; registration.revision = [entry[@"revision"] doubleValue];
+    registration.targetTag = [entry[@"targetTag"] intValue]; registration.depth = [entry[@"depth"] intValue];
+    data.registrations.push_back(registration);
+  }
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeWindowPointer(data);
 }
 - (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
 - (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
@@ -359,6 +432,15 @@ static UIView *CUIFirstResponder(UIView *root)
   NSMutableArray *observations = [NSMutableArray array];
   for (const auto &observation : next.observations) [observations addObject:@{ @"id": [NSString stringWithUTF8String:observation.id.c_str()], @"targetTag": @(observation.targetTag) }];
   _observations = observations;
+  _pointerRevision = next.pointerRevision;
+  NSMutableArray *pointers = [NSMutableArray array];
+  NSMutableSet *identities = [NSMutableSet set];
+  for (const auto &entry : next.pointerRegistrations) {
+    NSString *identity = [NSString stringWithUTF8String:entry.id.c_str()];
+    [pointers addObject:@{ @"id": identity, @"targetTag": @(entry.targetTag) }]; [identities addObject:identity];
+  }
+  for (NSString *identity in _resolvedPointerTargets.copy) if (![identities containsObject:identity]) { [_pointerTargets removeObjectForKey:identity]; [_resolvedPointerTargets removeObject:identity]; }
+  _pointerRegistrations = pointers;
   NSMutableArray *floating = [NSMutableArray array];
   for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
   _floatingTargets = floating;
@@ -383,6 +465,7 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
+- (void)layoutSubviews { [super layoutSubviews]; CUIRefreshWindowPointerObservation(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
@@ -411,6 +494,7 @@ static UIView *CUIFirstResponder(UIView *root)
   _ownerId = @"";
   _policies = @[];
   _observations = @[];
+  _pointerRegistrations = @[]; [_pointerTargets removeAllObjects]; [_resolvedPointerTargets removeAllObjects]; _pointerStatus = nil;
   _captureEnabled = NO;
   _windowEpoch++;
   _acceptedEpoch = -1;

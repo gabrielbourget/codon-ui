@@ -6,6 +6,12 @@
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured;
 @end
 
+@protocol CUIWindowPointerScope
+- (NSArray<NSDictionary *> *)windowPointerRegistrationsForAncestry:(NSArray<NSNumber *> *)ancestry;
+- (void)publishWindowPointerStatus:(BOOL)available error:(NSString *)error;
+- (void)emitWindowPointer:(NSDictionary *)packet;
+@end
+
 NSString *CUIInputWindowIdentity(UIWindow *window);
 NSString *CUIInputWindowModality(UIWindow *window);
 void CUIRecordWindowModality(UIWindow *window, NSString *modality);
@@ -19,3 +25,5 @@ void CUIUnregisterInputScope(UIWindow *window, UIView *scope);
 NSArray<UIView *> *CUIInputScopes(UIWindow *window);
 NSInteger CUINextInputPolicyOrder(UIWindow *window);
 void CUIRefreshKeyboardObservation(UIWindow *window);
+void CUIRefreshWindowPointerObservation(UIWindow *window);
+void CUIActivateWindowPointer(UIView *target);

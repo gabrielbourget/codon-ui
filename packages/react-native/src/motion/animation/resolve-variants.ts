@@ -8,12 +8,13 @@ import type {
   TNativeMotionResolvedValues,
   TNativeMotionTarget,
   TNativeMotionTargetResolver,
+  TNativeMotionVelocities,
 } from "./types"
 
 function getValueState(
   visualElement?: TNativeMotionAnimationOwner,
-): [TNativeMotionResolvedValues, TNativeMotionResolvedValues] {
-  const state: [TNativeMotionResolvedValues, TNativeMotionResolvedValues] = [{}, {}]
+): [TNativeMotionResolvedValues, TNativeMotionVelocities] {
+  const state: [TNativeMotionResolvedValues, TNativeMotionVelocities] = [{}, {}]
 
   visualElement?.values.forEach((value: MotionValue<unknown>, key: string) => {
     state[0][key] = value.get()
