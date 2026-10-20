@@ -46,13 +46,14 @@ def verify(root):
     return inputs
 
 
-def prepare(root):
+def prepare(root, scene="geometry", approved_drawing_retry=False):
     assert not root.exists() and not subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO)
     producer = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     names = subprocess.check_output(["git", "ls-files", "packages/react-native", "apps/native-showcase", "planning/component-library/fixtures/native-card", "planning/component-library/fixtures/native-collection", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "AGENTS.md"], cwd=REPO, text=True).splitlines()
     root.mkdir(parents=True)
     STAGE.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(FIXTURE / "CardGeometryApp.tsx", STAGE / "App.tsx")
+    assert scene in ["geometry", "drawing"]
+    shutil.copyfile(FIXTURE / ("CardGeometryApp.tsx" if scene == "geometry" else "CardDrawingApp.tsx"), STAGE / "App.tsx")
     (STAGE / "index.ts").write_text((FIXTURE / "geometry-index.ts").read_text().replace('"./CardGeometryApp"', '"./App"'))
     (STAGE / "geometry-identity.ts").write_text("export const SOURCE_PRODUCER = " + json.dumps(producer) + "\n")
     native = {}
@@ -65,12 +66,53 @@ def prepare(root):
             destination = root / "native-inputs" / name
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, destination)
-    inputs = {"producer": producer, "profile": "card-ios-geometry", "sourceInputs": {name: digest(REPO / name) for name in names},
-        "nativeProjectInputs": native, "stageInputs": {name: digest(STAGE / name) for name in ["App.tsx", "index.ts", "geometry-identity.ts"]},
-        "deadlineUnix": time.time() + 3600, "nativeActions": 0, "scope": "Mounted nested Card observer/clip/ref product only; no typing/GPU pixel/full Card verdict"}
+    stage_names = ["App.tsx", "index.ts", "geometry-identity.ts"]
+    if scene == "drawing":
+        shutil.copyfile(FIXTURE / "drawing-profiles.ts", STAGE / "drawing-profiles.ts")
+        stage_names.append("drawing-profiles.ts")
+    inputs = {"producer": producer, "profile": "card-ios-" + scene, "sourceInputs": {name: digest(REPO / name) for name in names},
+        "nativeProjectInputs": native, "stageInputs": {name: digest(STAGE / name) for name in stage_names},
+        "deadlineUnix": time.time() + 3600, "nativeActions": 0, "scope": "Mounted nested Card observer/clip/ref product only; no typing/GPU pixel/full Card verdict" if scene == "geometry"
+            else "Displayed RN/owned drawing pairs and real-window screenshot correspondence only; no full Card/editor/input/performance verdict"}
+    if approved_drawing_retry:
+        assert scene == "drawing"
+        inputs["approvedDrawingRetry"] = "Gabriel2026-10-20-one-ios-drawing-install-retry"
     (root / "inputs.json").write_text(json.dumps(inputs, indent=2) + "\n")
     verify(root)
     print("Frozen matching UIKit Card producer", producer, len(names), "source and", len(native), "native-project inputs", flush=True)
+
+
+def unchanged_native_integration_inputs(inputs, previous):
+    def names(value):
+        return {name for name in value["sourceInputs"] if name.startswith(("packages/react-native/ios/", "packages/react-native/cpp/", "packages/react-native/android/", "packages/react-native/src/input/specs/"))
+            or name in ["packages/react-native/package.json", "packages/react-native/CodonNativeInput.podspec", "packages/react-native/react-native.config.js", "pnpm-lock.yaml", "package.json", "pnpm-workspace.yaml"]}
+    native_sources = names(inputs)
+    assert native_sources == names(previous), "Native integration source membership changed"
+    for name in native_sources: assert inputs["sourceInputs"][name] == previous["sourceInputs"][name], name
+    assert inputs["nativeProjectInputs"] == previous["nativeProjectInputs"]
+    return native_sources
+
+
+def reuse_pods(root, baseline):
+    inputs = verify(root)
+    assert not inputs.get("podsChecked") and (baseline / "SHA256.json").exists()
+    for name, expected in json.loads((baseline / "SHA256.json").read_text()).items(): assert digest(baseline / name) == expected, name
+    previous = json.loads((baseline / "inputs.json").read_text())
+    proof = json.loads((baseline / "integration-proof.json").read_text())
+    assert previous.get("podsChecked") and proof["podVersionsAndOtherLockSectionsUnchanged"] and proof["ownedMaskSourceInActualPodTarget"]
+    native_sources = unchanged_native_integration_inputs(inputs, previous)
+    generated = REPO / "apps/native-showcase/ios/build/generated/ios"
+    assert provider_file(generated).relative_to(generated).as_posix() == proof["actualProviderPath"]
+    for name, expected in proof["freshOwnedGeneratedAndProviderSHA256"].items(): assert digest(generated / name) == expected, name
+    assert digest(REPO / "apps/native-showcase/ios/Pods/Pods.xcodeproj/project.pbxproj") == proof["podProjectSHA256"]
+    assert digest(REPO / "apps/native-showcase/ios/Podfile.lock") == digest(baseline / "Podfile-after.lock")
+    proof.update(producer=inputs["producer"], reuseBaselineProducer=previous["producer"], reuseBaselineManifestSHA256=digest(baseline / "SHA256.json"), verifiedNativeSourceInputs=len(native_sources))
+    (root / "integration-proof.json").write_text(json.dumps(proof, indent=2) + "\n")
+    shutil.copyfile(baseline / "Podfile-after.lock", root / "Podfile-after.lock")
+    inputs["podsChecked"] = True
+    (root / "inputs.json").write_text(json.dumps(inputs, indent=2) + "\n")
+    verify(root)
+    print("Reused exact native integration after", len(native_sources), "source and all project/generated/provider checks", flush=True)
 
 
 def pods(root):
@@ -153,7 +195,14 @@ def product(root):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("phase", choices=["prepare", "pods", "build", "product"])
+    parser.add_argument("phase", choices=["prepare", "pods", "reuse-pods", "build", "product"])
     parser.add_argument("root", type=Path)
+    parser.add_argument("--scene", choices=["geometry", "drawing"], default="geometry")
+    parser.add_argument("--baseline", type=Path)
+    parser.add_argument("--approved-drawing-retry", action="store_true")
     arguments = parser.parse_args()
-    globals()[arguments.phase](arguments.root.resolve())
+    if arguments.phase == "prepare": prepare(arguments.root.resolve(), arguments.scene, arguments.approved_drawing_retry)
+    elif arguments.phase == "reuse-pods":
+        assert arguments.baseline, "Exact sealed integration baseline required"
+        reuse_pods(arguments.root.resolve(), arguments.baseline.resolve())
+    else: globals()[arguments.phase](arguments.root.resolve())
