@@ -110,7 +110,7 @@ const getFilterArgumentValue = (item: TAvailableListItem) => item.argumentValue 
 
 const inferFilterArgumentSelectedKey = (
   availableFilterArguments: TAvailableListItem[] | undefined,
-  argument: TSortAndFilterPanelFilterGroup["clauses"][number]["argument"],
+  argument: TQueryFilterGroupDraft["clauses"][number]["argument"],
 ) => {
   if (!availableFilterArguments?.length) return null
 

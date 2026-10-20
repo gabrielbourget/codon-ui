@@ -17,6 +17,12 @@ import styles from "./MultiInputTypeFilterArgumentStyles.module.css"
 
 const { multiInputTypeFilterArgument__iconColor, multiInputTypeFilterArgument__inputRow } = styles
 
+const getFilterArrayArgument = (argument: TFilterArgumentInputContext["argument"]) => {
+  if (argument == null) return []
+  if (!Array.isArray(argument)) throw new TypeError("Filter range/list argument must be an array or nullish")
+  return argument
+}
+
 export type TMultiInputTypeFilterArgumentProps = TFilterArgumentInputContext
 
 const MultiInputTypeFilterArgument: FC<TMultiInputTypeFilterArgumentProps> = (props) => {
@@ -33,7 +39,7 @@ const MultiInputTypeFilterArgument: FC<TMultiInputTypeFilterArgumentProps> = (pr
     labels,
     onArgumentChange,
   } = props
-  const argument = rawArgument as string[]
+  const argument = getFilterArrayArgument(rawArgument)
   const resolvedLabels = labels ?? DEFAULT_TABLE_FILTERING_LABELS.argumentInput
 
   return (
@@ -74,7 +80,7 @@ const MultiInputTypeFilterArgument: FC<TMultiInputTypeFilterArgumentProps> = (pr
             key={index}
             aria-label={resolvedLabels.multiInputItemAriaLabel({ index })}
             className={customInputClassName}
-            value={item}
+            value={item == null ? "" : String(item)}
             placeholder={resolvedLabels.multiInputItemPlaceholder({ position: index + 1 })}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(event) => {
@@ -105,42 +111,7 @@ const MultiInputTypeFilterArgument: FC<TMultiInputTypeFilterArgumentProps> = (pr
             />
           </Button>
         </div>
-      )) || (
-        <div
-          className={classNames(multiInputTypeFilterArgument__inputRow, customRowClassName)}
-          style={customRowStyles}
-          key={0}
-        >
-          <Input
-            key={0}
-            aria-label={resolvedLabels.multiInputItemAriaLabel({ index: 1 })}
-            className={customInputClassName}
-            value={argument[0]}
-            placeholder={resolvedLabels.multiInputFallbackPlaceholder({ position: 1 })}
-            customStyles={{ width: "100%", ...customInputStyles }}
-            onChange={(event) => {
-              onArgumentChange({ argument: [event.target.value] })
-            }}
-          />
-          <Button
-            aria-label={resolvedLabels.deleteMultiInputItemButtonAriaLabel}
-            geometry={ROUND}
-            order={THEME_ORDER_CODE__PRIMARY}
-            raised={false}
-            transparent
-            isDisabled={true}
-            customClassName={customActionButtonClassName}
-            customStyles={{ paddingRight: 0, ...customActionButtonStyles }}
-            onPress={() => onArgumentChange({ argument: [] })}
-          >
-            <MultiInputTypeFilterArgumentDefaultDeleteIcon
-              size={15}
-              customClassName={multiInputTypeFilterArgument__iconColor}
-              data-testid="multi-input-filter-argument-default-delete-icon"
-            />
-          </Button>
-        </div>
-      )}
+      ))}
     </FormField>
   )
 }

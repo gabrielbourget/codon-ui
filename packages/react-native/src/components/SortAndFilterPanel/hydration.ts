@@ -1,12 +1,12 @@
 import type { TQueryFilterGroupDraft } from "../Table/filterDraft"
 import type { TAvailableFilterCriteria, TAvailableListItem } from "../Table/filterMetadata"
-import type { TTableFilterArgumentValue, TTableFilterGroup } from "../Table/queryTypes"
+import type { TTableFilterDraftArgumentValue, TTableFilterGroup } from "../Table/queryTypes"
 
 const getFilterArgumentValue = (item: TAvailableListItem) => item.argumentValue ?? item.name
 
 const inferFilterArgumentSelectedKey = (
   availableFilterArguments: TAvailableListItem[] | undefined,
-  argument: TTableFilterArgumentValue,
+  argument: TTableFilterDraftArgumentValue,
 ) => {
   if (!availableFilterArguments?.length) return null
   const matchedArgument = availableFilterArguments.find((item) => getFilterArgumentValue(item) === argument)

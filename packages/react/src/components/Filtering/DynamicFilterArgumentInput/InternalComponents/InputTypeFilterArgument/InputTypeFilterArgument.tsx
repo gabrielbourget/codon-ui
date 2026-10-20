@@ -58,12 +58,12 @@ const InputTypeFilterArgument: FC<TInputTypeFilterArgumentProps> = (props) => {
         <NumberInput
           aria-labelledby="input-type-filter-argument"
           className={customInputClassName}
-          value={argument as number}
+          value={argument == null || argument === "" ? NaN : (argument as number)}
           placeholder={resolvedLabels.placeholder}
           labels={resolvedLabels.numberInput}
           customStyles={{ width: "100%", ...customInputStyles }}
           onChange={(value) => {
-            onArgumentChange({ argument: value })
+            onArgumentChange({ argument: Number.isNaN(value) ? null : value })
           }}
         />
       </FormField>

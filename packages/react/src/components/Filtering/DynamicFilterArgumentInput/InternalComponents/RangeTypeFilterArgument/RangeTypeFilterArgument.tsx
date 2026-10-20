@@ -14,6 +14,12 @@ import styles from "./RangeTypeFilterArgumentStyles.module.css"
 
 const { rangeTypeFilterArgument, rangeTypeFilterArgument__row, rangeTypeFilterArgument__column } = styles
 
+const getFilterArrayArgument = (argument: TFilterArgumentInputContext["argument"]) => {
+  if (argument == null) return []
+  if (!Array.isArray(argument)) throw new TypeError("Filter range/list argument must be an array or nullish")
+  return argument
+}
+
 export type TRangeTypeFilterArgumentProps = TFilterArgumentInputContext
 
 const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
@@ -33,7 +39,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
   let ComputedFilterArgumentInput: React.ReactElement | undefined = undefined
 
   if (dataType === "text") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -49,7 +55,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <Input
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={rangeArgument[0]}
+            value={rangeArgument[0] == null ? "" : String(rangeArgument[0])}
             placeholder={resolvedLabels.minValuePlaceholder}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(event) => {
@@ -69,7 +75,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <Input
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={rangeArgument[1]}
+            value={rangeArgument[1] == null ? "" : String(rangeArgument[1])}
             placeholder={resolvedLabels.maxValuePlaceholder}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(event) => {
@@ -82,7 +88,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "number") {
-    const rangeArgument = argument as number[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -98,12 +104,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={rangeArgument[0]}
+            value={rangeArgument[0] == null || rangeArgument[0] === "" ? NaN : (rangeArgument[0] as number)}
             placeholder={resolvedLabels.minValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(value) => {
-              onArgumentChange({ argument: [value, rangeArgument[1]] })
+              onArgumentChange({ argument: [Number.isNaN(value) ? null : value, rangeArgument[1]] })
             }}
           />
         </FormField>
@@ -117,19 +123,19 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
           <NumberInput
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={rangeArgument[1]}
+            value={rangeArgument[1] == null || rangeArgument[1] === "" ? NaN : (rangeArgument[1] as number)}
             placeholder={resolvedLabels.maxValuePlaceholder}
             labels={resolvedLabels.numberInput}
             customStyles={{ flex: 1, display: "flex", ...customInputStyles }}
             onChange={(value) => {
-              onArgumentChange({ argument: [rangeArgument[0], value] })
+              onArgumentChange({ argument: [rangeArgument[0], Number.isNaN(value) ? null : value] })
             }}
           />
         </FormField>
       </div>
     )
   } else if (dataType === "date") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -147,7 +153,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0])}
+            value={parseDate(rangeArgument[0] as string)}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
@@ -171,7 +177,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1])}
+            value={parseDate(rangeArgument[1] as string)}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
@@ -186,7 +192,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "date-time") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -204,7 +210,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0])}
+            value={parseDate(rangeArgument[0] as string)}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
@@ -228,7 +234,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1])}
+            value={parseDate(rangeArgument[1] as string)}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
@@ -243,7 +249,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
       </div>
     )
   } else if (dataType === "time") {
-    const rangeArgument = argument as string[]
+    const rangeArgument = getFilterArrayArgument(argument)
 
     ComputedFilterArgumentInput = (
       <div
@@ -260,7 +266,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[0])}
+            value={parseTime(rangeArgument[0] as string)}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
@@ -283,7 +289,7 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[1])}
+            value={parseTime(rangeArgument[1] as string)}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
