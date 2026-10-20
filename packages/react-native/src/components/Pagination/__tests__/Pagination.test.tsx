@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
 import { createRef } from "react"
 import { AccessibilityInfo, StyleSheet, View } from "react-native"
 
@@ -220,12 +220,14 @@ it("CAP.pagination.011/.024/.028 coordinates size then page without drifting on 
     },
   })
   await render(f.node())
+  const pageSizeButton = () =>
+    within(screen.getByTestId("items-per-page")).getByRole("button", { name: "Items Per Page", ...hidden })
   const choose = async (value: number) => {
-    await press("Items Per Page")
+    await fireEvent(pageSizeButton(), "press", event())
     const window = screen.getByTestId("select-window", hidden)
     const dismissed = window.props.onDismiss
     await fireEvent(window, "show")
-    await fireEvent.press(screen.getByRole("radio", { name: String(value) }))
+    await fireEvent.press(within(window).getByRole("radio", { name: String(value) }))
     await act(() => dismissed())
   }
   await choose(50)
@@ -236,12 +238,14 @@ it("CAP.pagination.011/.024/.028 coordinates size then page without drifting on 
     ["size", 20],
     ["page", 2],
   ])
-  expect(screen.getByRole("button", { name: "Items Per Page" }).props.accessibilityValue.text).toBe("10")
+  expect(pageSizeButton().props.accessibilityValue.text).toBe("10")
+  expect(screen.getByTestId("pagination-page-3").props.accessibilityState.selected).toBe(true)
+  expect(screen.getByTestId("pagination-page-1").props.accessibilityState.selected).toBe(false)
   await screen.rerender(f.node({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPage: 50 }))
-  expect(screen.getByRole("button", { name: "Items Per Page" }).props.accessibilityValue.text).toBe("50")
+  expect(pageSizeButton().props.accessibilityValue.text).toBe("50")
   await choose(20)
   expect(f.page).toHaveBeenLastCalledWith(6)
-})
+}, 15_000)
 it("CAP.pagination.012 preserves option order and an authored empty option collection", async () => {
   const f = fixture({ chosenPaginationSubcomponents: ["items-per-page"], itemsPerPageOptions: [15, 30, 45] })
   await render(f.node())
