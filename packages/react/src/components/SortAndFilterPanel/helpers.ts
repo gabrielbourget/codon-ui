@@ -1,4 +1,12 @@
-import { useEffect, useMemo, type CSSProperties, type Dispatch, type RefObject, type SetStateAction } from "react"
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  type CSSProperties,
+  type Dispatch,
+  type RefObject,
+  type SetStateAction,
+} from "react"
 import type {
   DraggableCollectionStartEvent,
   DroppableCollectionInsertDropEvent,
@@ -147,6 +155,42 @@ export const buildFilterGroupDraftsFromQueryFilterGroups = (
   })
 }
 
+export const rebaseFilterGroupDrafts = (
+  filterGroups: TQueryFilterGroupDraft[],
+  possibleFilterCriteria: TAvailableFilterCriteria[],
+): TQueryFilterGroupDraft[] => {
+  let changed = false
+  const groups = filterGroups.map((group) => {
+    const criteria = possibleFilterCriteria.find((item) => item.id === group.criteriaID)
+    if (!criteria) return group
+    const metadata = {
+      criteriaName: criteria.name,
+      queryKey: criteria.queryKey,
+      dataType: criteria.dataType,
+      usesTypeAheadInput: criteria.usesTypeAheadInput,
+      typeAheadInputOnChange: criteria.typeAheadInputOnChange,
+      usesSelectInput: criteria.usesSelectInput,
+      usesComboBoxInput: criteria.usesComboBoxInput,
+      availableFilterArguments: criteria.availableCriteriaArguments,
+    }
+    let clausesChanged = false
+    const clauses = group.clauses.map((clause) => {
+      const selectedKey = inferFilterArgumentSelectedKey(criteria.availableCriteriaArguments, clause.argument)
+      if (clause.filterArgumentSelectedKey === selectedKey) return clause
+      clausesChanged = true
+      return { ...clause, filterArgumentSelectedKey: selectedKey }
+    })
+    if (
+      !clausesChanged &&
+      (Object.keys(metadata) as (keyof typeof metadata)[]).every((key) => group[key] === metadata[key])
+    )
+      return group
+    changed = true
+    return { ...group, ...metadata, clauses: clausesChanged ? clauses : group.clauses }
+  })
+  return changed ? groups : filterGroups
+}
+
 const DEFAULT_ACTIVE_SORTS: NonNullable<TSortAndFilterPanelProps["activeSorts"]> = []
 const DEFAULT_ACTIVE_FILTERS: NonNullable<TSortAndFilterPanelProps["activeFilters"]> = []
 
@@ -182,17 +226,26 @@ export const useCalibratedComponent = ({
     applyPendingSortAndFilterChanges,
     labels,
   } = props
+  const synchronizedOwner = useRef<{
+    activeSorts: typeof activeSorts
+    activeFilters: typeof activeFilters
+    open: boolean
+  } | null>(null)
 
   useEffect(() => {
+    const previous = synchronizedOwner.current
+    synchronizedOwner.current = { activeSorts, activeFilters, open: isOpen }
     if (!isOpen) return
-
     const nextFilterGroupDrafts = buildFilterGroupDraftsFromQueryFilterGroups(activeFilters, possibleFilterCriteria)
-
+    const ownerChanged =
+      !previous?.open || previous.activeSorts !== activeSorts || previous.activeFilters !== activeFilters
     setState((previousState) => ({
       ...previousState,
-      sortParameterList: activeSorts,
+      sortParameterList: ownerChanged ? activeSorts : previousState.sortParameterList,
       previouslyAppliedSortParameterList: activeSorts,
-      filterGroupDrafts: nextFilterGroupDrafts,
+      filterGroupDrafts: ownerChanged
+        ? nextFilterGroupDrafts
+        : rebaseFilterGroupDrafts(previousState.filterGroupDrafts, possibleFilterCriteria),
       previouslyAppliedFilterGroupDrafts: nextFilterGroupDrafts,
       sortCriteriaSelectedKey: null,
       filterCriteriaSelectedKey: null,
@@ -223,23 +276,19 @@ export const useCalibratedComponent = ({
   }, [initialFocusTarget, isOpen, selectNewFilterCriteriaRef, selectNewSortCriteriaRef])
 
   const onSortParameterDrop = (event: DroppableCollectionReorderEvent | DroppableCollectionInsertDropEvent) => {
-    const { sortParameterList, draggedID } = state
-    const targetID = event.target.key
-
-    if (draggedID === targetID) return
-
-    const draggedIndex = sortParameterList.findIndex((item) => item.id === draggedID)
-    const targetIndex = sortParameterList.findIndex((item) => item.id === targetID)
-    const updatedSortItems = [...sortParameterList]
-    const [movedItem] = updatedSortItems.splice(draggedIndex, 1)
-
-    if (event.target.dropPosition === "before") {
-      updatedSortItems.splice(targetIndex === 0 ? 0 : targetIndex, 0, movedItem)
-    } else if (event.target.dropPosition === "after") {
-      updatedSortItems.splice(targetIndex, 0, movedItem)
-    }
-
-    setState((previousState) => ({ ...previousState, sortParameterList: updatedSortItems }))
+    setState((previousState) => {
+      const { sortParameterList, draggedID } = previousState
+      const targetID = event.target.key
+      if (draggedID === targetID || (event.target.dropPosition !== "before" && event.target.dropPosition !== "after"))
+        return previousState
+      const draggedIndex = sortParameterList.findIndex((item) => item.id === draggedID)
+      if (draggedIndex < 0 || !sortParameterList.some((item) => item.id === targetID)) return previousState
+      const updatedSortItems = [...sortParameterList]
+      const [movedItem] = updatedSortItems.splice(draggedIndex, 1)
+      const targetIndex = updatedSortItems.findIndex((item) => item.id === targetID)
+      updatedSortItems.splice(targetIndex + (event.target.dropPosition === "after" ? 1 : 0), 0, movedItem)
+      return { ...previousState, sortParameterList: updatedSortItems }
+    })
   }
 
   const onSortParameterDragStart = (event: DraggableCollectionStartEvent) => {
@@ -356,6 +405,20 @@ export const useCalibratedComponent = ({
     setState((previousState) => ({
       ...previousState,
       filterGroupDrafts: (() => {
+        const sourceGroup = previousState.filterGroupDrafts.find((group) =>
+          group.clauses.some((clause) => clause.id === updatedClause.id),
+        )
+        const selectedCriteria = possibleFilterCriteria.find((criteria) => criteria.id === newCriteriaID)
+        if (!sourceGroup || !selectedCriteria) return previousState.filterGroupDrafts
+        if (sourceGroup.criteriaID === newCriteriaID)
+          return previousState.filterGroupDrafts.map((group) =>
+            group === sourceGroup
+              ? {
+                  ...group,
+                  clauses: group.clauses.map((clause) => (clause.id === updatedClause.id ? updatedClause : clause)),
+                }
+              : group,
+          )
         const groupsWithoutClause = removeEmptyFilterGroups(
           previousState.filterGroupDrafts.map((group) => ({
             ...group,
@@ -370,9 +433,6 @@ export const useCalibratedComponent = ({
             return { ...group, clauses: [...group.clauses, updatedClause] }
           })
         }
-
-        const selectedCriteria = possibleFilterCriteria.find((criteria) => criteria.id === newCriteriaID)
-        if (!selectedCriteria) return previousState.filterGroupDrafts
 
         return [
           ...groupsWithoutClause,
@@ -422,10 +482,13 @@ export const useCalibratedComponent = ({
   }
 
   const onCancelPendingChanges = (closePanel: TClosePanel) => {
+    const confirmedFilters = buildFilterGroupDraftsFromQueryFilterGroups(activeFilters, possibleFilterCriteria)
     setState((previousState) => ({
       ...previousState,
-      sortParameterList: previousState.previouslyAppliedSortParameterList,
-      filterGroupDrafts: previousState.previouslyAppliedFilterGroupDrafts,
+      sortParameterList: activeSorts,
+      filterGroupDrafts: confirmedFilters,
+      previouslyAppliedSortParameterList: activeSorts,
+      previouslyAppliedFilterGroupDrafts: confirmedFilters,
     }))
     closePanel()
   }
@@ -437,11 +500,6 @@ export const useCalibratedComponent = ({
       sortInstructions: sortParameterList,
       filterGroups: normalizeDraftToQueryFilterGroups(filterGroupDrafts),
     })
-    setState((previousState) => ({
-      ...previousState,
-      previouslyAppliedSortParameterList: sortParameterList,
-      previouslyAppliedFilterGroupDrafts: filterGroupDrafts,
-    }))
     closePanel()
   }
 

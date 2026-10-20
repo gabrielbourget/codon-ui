@@ -45,3 +45,39 @@ export const buildFilterGroupDraftsFromQueryFilterGroups = (
       },
     ]
   })
+
+export const rebaseFilterGroupDrafts = (
+  filterGroups: TQueryFilterGroupDraft[],
+  possibleFilterCriteria: TAvailableFilterCriteria[],
+): TQueryFilterGroupDraft[] => {
+  let changed = false
+  const groups = filterGroups.map((group) => {
+    const criteria = possibleFilterCriteria.find((item) => item.id === group.criteriaID)
+    if (!criteria) return group
+    const metadata = {
+      criteriaName: criteria.name,
+      queryKey: criteria.queryKey,
+      dataType: criteria.dataType,
+      usesTypeAheadInput: criteria.usesTypeAheadInput,
+      typeAheadInputOnChange: criteria.typeAheadInputOnChange,
+      usesSelectInput: criteria.usesSelectInput,
+      usesComboBoxInput: criteria.usesComboBoxInput,
+      availableFilterArguments: criteria.availableCriteriaArguments,
+    }
+    let clausesChanged = false
+    const clauses = group.clauses.map((clause) => {
+      const selectedKey = inferFilterArgumentSelectedKey(criteria.availableCriteriaArguments, clause.argument)
+      if (clause.filterArgumentSelectedKey === selectedKey) return clause
+      clausesChanged = true
+      return { ...clause, filterArgumentSelectedKey: selectedKey }
+    })
+    if (
+      !clausesChanged &&
+      (Object.keys(metadata) as (keyof typeof metadata)[]).every((key) => group[key] === metadata[key])
+    )
+      return group
+    changed = true
+    return { ...group, ...metadata, clauses: clausesChanged ? clauses : group.clauses }
+  })
+  return changed ? groups : filterGroups
+}
