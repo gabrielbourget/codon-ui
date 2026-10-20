@@ -43,6 +43,7 @@ import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 import { SliderScene } from "./SliderScene"
 import { StepperScene } from "./StepperScene"
+import { TagGroupScene } from "./TagGroupScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
 import { ToasterScene } from "./ToasterScene"
@@ -175,6 +176,7 @@ export const NativeShowcase = () => {
     | "toggle"
     | "avatar"
     | "tag"
+    | "tag-group"
     | "link"
     | "thumbnail"
     | "gallery"
@@ -270,6 +272,11 @@ export const NativeShowcase = () => {
               <FixtureAction label="Toggle scene" selected={scene === "toggle"} onPress={() => setScene("toggle")} />
               <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
               <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
+              <FixtureAction
+                label="Private TagGroup scene"
+                selected={scene === "tag-group"}
+                onPress={() => setScene("tag-group")}
+              />
               <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
               <FixtureAction
                 label="Thumbnail scene"
@@ -340,6 +347,8 @@ export const NativeShowcase = () => {
                 <LinkScene />
               ) : scene === "tag" ? (
                 <TagScene />
+              ) : scene === "tag-group" ? (
+                <TagGroupScene />
               ) : scene === "avatar" ? (
                 <AvatarScene />
               ) : scene === "toggle" ? (

@@ -8,7 +8,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react"
-import type { ScrollView } from "react-native"
+import type { ScrollView, VirtualizedList } from "react-native"
 
 import { encodeCollectionKey } from "../components/collection"
 import type { TNativeFocusEvent, TNativeFocusViewProps } from "../input/types"
@@ -30,13 +30,15 @@ export type TNativeCollectionLayoutDelegate = LayoutDelegate & {
   requestRendering?: (key: TNativeCollectionKey) => void
   scrollToKey?: (key: TNativeCollectionKey) => void | Promise<void>
 }
-export type TNativeCollectionScrollHost = {
-  getScrollableNode: () => unknown
-  getNativeScrollRef: () => unknown
-  scrollTo?: ScrollView["scrollTo"]
-  scrollToIndex?: (options: { index: number; animated?: boolean; viewOffset?: number; viewPosition?: number }) => void
-  scrollToOffset?: (options: { offset: number; animated?: boolean }) => void
-}
+type TScrollViewHost = Pick<ScrollView, "getScrollableNode" | "getNativeScrollRef">
+type TVirtualizedScrollHost = Pick<
+  VirtualizedList<unknown>,
+  "getScrollRef" | "getScrollResponder" | "scrollToIndex" | "scrollToOffset"
+>
+export type TNativeCollectionScrollHost = Partial<
+  TScrollViewHost & TVirtualizedScrollHost & Pick<ScrollView, "scrollTo">
+> &
+  (TScrollViewHost | TVirtualizedScrollHost)
 export type TNativeCollectionRootProps = Omit<TNativeFocusViewProps, "children"> & {
   collection: TNativeCollectionSnapshot<unknown>
   persistedKeys?: Set<TNativeCollectionKey> | null
@@ -121,11 +123,12 @@ export const NativeCollectionCellFocusContext = createContext<((event: TNativeFo
 export const useNativePersistedKeys = (
   focusedKey: TNativeCollectionKey | null,
   requestedKey?: TNativeCollectionKey | null,
+  observedKey?: TNativeCollectionKey | null,
 ): Set<TNativeCollectionKey> | null =>
   useMemo(
     () =>
-      focusedKey == null && requestedKey == null
+      focusedKey == null && requestedKey == null && observedKey == null
         ? null
-        : new Set([focusedKey, requestedKey].filter((key): key is TNativeCollectionKey => key != null)),
-    [focusedKey, requestedKey],
+        : new Set([focusedKey, requestedKey, observedKey].filter((key): key is TNativeCollectionKey => key != null)),
+    [focusedKey, requestedKey, observedKey],
   )

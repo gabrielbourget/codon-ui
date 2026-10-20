@@ -58,6 +58,7 @@ import {
   getNativeTagGroupKeyTokens,
   getNativeTagGroupNavigationKey,
   getNativeTagGroupNavigationSelection,
+  getNativeTagGroupPageKey,
   isNativeTagGroupNavigationKey,
 } from "./keyboard"
 import {
@@ -198,7 +199,8 @@ const NativeTagGroup = <T extends object>({
     commandedLease: TNativeCollectionSessionSnapshot<unknown>["receipt"]["lease"]
   } | null>(null)
   const observedFocus = useRef<TNativeTagGroupKey | null>(null)
-  const persistedKeys = useNativePersistedKeys(observedFocus.current ?? focusedKey, requestedFocusKey)
+  const retiredFocusIntent = useRef<TNativeTagGroupKey | null>(null)
+  const persistedKeys = useNativePersistedKeys(focusedKey, requestedFocusKey, observedFocus.current)
   const CollectionRoot = renderer.CollectionRoot
   const live = useRef(false)
   const typeahead = useRef<{
@@ -388,6 +390,7 @@ const NativeTagGroup = <T extends object>({
     ])
   }
   const cancelFocusRequest = () => {
+    if (pendingFocus.current?.key != null) retiredFocusIntent.current = pendingFocus.current.key
     pendingFocus.current = null
     if (live.current) setRequestedFocusKey(null)
   }
@@ -439,6 +442,8 @@ const NativeTagGroup = <T extends object>({
       commandedTarget: null,
       commandedLease: null,
     }
+    retiredFocusIntent.current = null
+    current.current.manager.setFocusedKey(key)
     setRequestedFocusKey(key)
     current.current.renderer.layoutDelegate?.requestRendering?.(key)
     void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
@@ -454,7 +459,13 @@ const NativeTagGroup = <T extends object>({
     [input, actions],
   )
   useLayoutEffect(() => {
-    if (manager.isFocused && focusedKey !== null && observedFocus.current !== focusedKey && !pendingFocus.current)
+    if (
+      manager.isFocused &&
+      focusedKey !== null &&
+      retiredFocusIntent.current !== focusedKey &&
+      observedFocus.current !== focusedKey &&
+      !pendingFocus.current
+    )
       requestFocus(focusedKey)
   }, [focusedKey, manager.isFocused, receipt])
   const action = (row: TNativeTagRegistration) => {
@@ -587,7 +598,19 @@ const NativeTagGroup = <T extends object>({
     }
     if (!isNativeTagGroupNavigationKey(data.key) || (!row && tag !== findNodeHandle(list.current))) return
     if (!row && data.shiftKey && (data.key === "Home" || data.key === "End")) return
-    const nextKey = getNativeTagGroupNavigationKey(owner.model, row?.key ?? null, data.key, I18nManager.isRTL)
+    const navigationKey = pendingFocus.current?.key ?? row?.key ?? null
+    const nextKey =
+      data.key === "PageUp" || data.key === "PageDown"
+        ? row
+          ? getNativeTagGroupPageKey(
+              owner.model,
+              navigationKey ?? row.key,
+              data.key,
+              owner.renderer.layoutDelegate,
+              scroll.current !== null,
+            )
+          : null
+        : getNativeTagGroupNavigationKey(owner.model, navigationKey, data.key, I18nManager.isRTL)
     if (nextKey === null) return
     requestFocus(nextKey)
     const operation = getNativeTagGroupNavigationSelection({
@@ -687,10 +710,13 @@ const NativeTagGroup = <T extends object>({
                 focus: (row, value, visible) => {
                   if (value && admitted(row)) {
                     observedFocus.current = row.key
-                    pendingFocus.current = null
-                    setRequestedFocusKey(null)
+                    retiredFocusIntent.current = null
+                    if (!pendingFocus.current || pendingFocus.current.key === row.key) {
+                      pendingFocus.current = null
+                      setRequestedFocusKey(null)
+                      setFocusedKey(row.key)
+                    }
                     setFocusWithin(true)
-                    setFocusedKey(row.key)
                     setFocusVisible(visible)
                   } else if (!value) {
                     setFocusWithin(false)

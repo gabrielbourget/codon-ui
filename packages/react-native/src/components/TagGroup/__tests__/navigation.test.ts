@@ -2,6 +2,7 @@ import {
   getNativeTagGroupKeyTokens,
   getNativeTagGroupNavigationKey,
   getNativeTagGroupNavigationSelection,
+  getNativeTagGroupPageKey,
 } from "../keyboard"
 import type { TNativeTagGroupRow } from "../model"
 
@@ -71,4 +72,33 @@ it("keeps Apple Home/End range selection distinct from arrows and never selects 
   expect(getNativeTagGroupNavigationSelection({ ...base, key: "Home" })).toBe("extend")
   expect(getNativeTagGroupNavigationSelection({ ...base, key: "ArrowDown" })).toBeNull()
   expect(getNativeTagGroupNavigationSelection({ ...base, key: "End", mode: "none" })).toBeNull()
+})
+
+it("pages with actual native horizontal rectangles and preserves unmaterialized typed targets", () => {
+  const layout = {
+    getItemRect: (key: string | number) => ({
+      x: key === 0 ? 0 : key === "0" ? 200 : 300,
+      y: 0,
+      width: 50,
+      height: 40,
+    }),
+    getVisibleRect: () => ({ x: 0, y: 0, width: 180, height: 40 }),
+    getContentSize: () => ({ width: 400, height: 40 }),
+  }
+  expect(getNativeTagGroupPageKey(rows, 0, "PageDown", layout, true)).toBe("0")
+  expect(getNativeTagGroupPageKey(rows, "", "PageUp", layout, true)).toBe(0)
+  expect(getNativeTagGroupPageKey(rows, "", "PageDown", layout, true)).toBe("")
+  expect(getNativeTagGroupPageKey(rows, 0, "PageUp", layout, true)).toBe(0)
+  expect(
+    getNativeTagGroupPageKey(
+      rows,
+      0,
+      "PageDown",
+      { ...layout, getItemRect: (key) => (key === 0 ? layout.getItemRect(key) : null) },
+      true,
+    ),
+  ).toBe("0")
+  expect(getNativeTagGroupPageKey(rows, 0, "PageDown", { ...layout, getItemRect: () => null }, true)).toBeNull()
+  expect(getNativeTagGroupPageKey(rows, 0, "PageDown", undefined, false)).toBe("")
+  expect(getNativeTagGroupPageKey(rows, "", "PageUp", undefined, false)).toBe(0)
 })

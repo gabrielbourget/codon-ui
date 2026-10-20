@@ -181,7 +181,7 @@ const NativeMenuList = (props: TListProps) => {
   const normalized = manager.rawSelection
   const active = manager.focusedKey
   const [requestedFocusKey, setRequestedFocusKey] = useState<TNativeMenuKey | null>(null)
-  const persistedKeys = useNativePersistedKeys(active, requestedFocusKey)
+  const persistedKeys = useNativePersistedKeys(active, requestedFocusKey, observedFocusKey.current)
   const rendererScroll = useRef<TNativeCollectionScrollHost | null>(null)
   const pendingFocus = useRef<{
     key: TNativeMenuKey
@@ -299,11 +299,13 @@ const NativeMenuList = (props: TListProps) => {
   }
   const focus = (row: TNativeMenuRegistration) => {
     if (!admitted(row)) return false
-    pendingFocus.current = null
     observedFocusKey.current = row.id
-    setRequestedFocusKey(null)
     manager.setFocused(true)
-    setActive(row.id)
+    if (!pendingFocus.current || pendingFocus.current.key === row.id) {
+      pendingFocus.current = null
+      setRequestedFocusKey(null)
+      setActive(row.id)
+    }
     reveal(row)
     return true
   }
@@ -347,6 +349,7 @@ const NativeMenuList = (props: TListProps) => {
     const node = current.current.collection.getItem(key)
     if (!node || !admitted()) return
     pendingFocus.current = { key, node, window: focusWindowStamp(), commandedTarget: null, commandedLease: null }
+    current.current.manager.setFocusedKey(key)
     setRequestedFocusKey(key)
     current.current.renderer.layoutDelegate?.requestRendering?.(key)
     void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
@@ -465,7 +468,8 @@ const NativeMenuList = (props: TListProps) => {
     const available = current.current.model.filter((row) => !row.disabled)
     const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
     const focusedRow = current.current.ordered.find((row) => findNodeHandle(row.view.current) === tag)
-    const index = available.findIndex((row) => row.id === focusedRow?.id)
+    const navigationKey = pendingFocus.current?.key ?? focusedRow?.id
+    const index = available.findIndex((row) => row.id === navigationKey)
     if (index < 0 || !available.length) return
     let next = index
     if (data.key === "Home") next = 0

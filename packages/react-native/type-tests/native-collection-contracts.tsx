@@ -84,7 +84,7 @@ export const NativeRendererContract: TNativeCollectionRenderer = {
   CollectionRoot: ({ collection, persistedKeys, scrollRef, renderDropIndicator }) => {
     void collection.getItem(0)?.rendered
     persistedKeys?.has(0)
-    scrollRef?.current?.getNativeScrollRef()
+    scrollRef?.current?.getNativeScrollRef?.()
     return renderDropIndicator?.({ type: "item", key: "0", dropPosition: "after" })
   },
 }

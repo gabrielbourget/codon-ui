@@ -1,5 +1,5 @@
 import { forwardRef, useEffect, useRef, useState, type ForwardRefExoticComponent, type RefAttributes } from "react"
-import type { MouseEvent, ViewProps } from "react-native"
+import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
 
 import { NativePressable } from "../../input/NativePressable"
 import type { TNativePressEvent } from "../../input/types"
@@ -19,12 +19,24 @@ type TPressCycle = {
   nativeEnd?: TNativePressEvent
 }
 
-type TNativeButtonInternalProps = TNativeButtonProps & { nativeRole?: ViewProps["role"] }
+type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState"> & {
+  accessibilityState?: Omit<AccessibilityState, "disabled">
+  nativeRole?: ViewProps["role"]
+  nativeAccessible?: boolean
+  nativeInteraction?: boolean
+  nativeStyle?: (
+    state: Omit<TNativeButtonRenderState, "foregroundColor">,
+    focusVisible: boolean,
+  ) => ReturnType<typeof getNativeButtonStyle>
+}
 
 export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalProps>((props, ref) => {
   const {
     children,
     nativeRole = "button",
+    nativeAccessible = true,
+    nativeInteraction = true,
+    nativeStyle,
     color,
     hoverColor,
     colorMode,
@@ -68,7 +80,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     ...rest
   } = props
   const theme = useNativeTheme()
-  const blocked = isDisabled || isPending
+  const blocked = isDisabled || isPending || !nativeInteraction
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const [focused, setFocused] = useState(false)
@@ -108,7 +120,9 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     isDisabled,
     isPending,
   }
-  const resolved = getNativeButtonStyle(theme, props, flags, focusVisible)
+  const resolved = nativeStyle
+    ? nativeStyle(flags, focusVisible)
+    : getNativeButtonStyle(theme, props, flags, focusVisible)
   const state: TNativeButtonRenderState = { ...flags, foregroundColor: resolved.foregroundColor }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const content = getNativeButtonContent(rendered, resolved.textStyle)
@@ -126,14 +140,19 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
       <NativePressable
         {...rest}
         ref={ref}
-        accessible
+        accessible={nativeAccessible}
+        nativeInteraction={nativeInteraction}
         role={nativeRole}
         disabled={isDisabled}
         activationBlocked={blocked}
         focusable={keyboardFocusable}
         aria-disabled={isDisabled}
-        aria-busy={isPending}
-        accessibilityState={{ ...accessibilityState, disabled: isDisabled, busy: isPending }}
+        aria-busy={nativeInteraction ? isPending : accessibilityState?.busy}
+        accessibilityState={{
+          ...accessibilityState,
+          disabled: isDisabled,
+          busy: nativeInteraction ? isPending : accessibilityState?.busy,
+        }}
         accessibilityLabel={accessibilityLabel ?? aliasLabel}
         testID={testID ?? aliasTestID ?? "button"}
         style={resolved.viewStyle}
