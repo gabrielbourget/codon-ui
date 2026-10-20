@@ -893,7 +893,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "f0627a8c0f86a4255dc29173db91940656887313d8033cf65da87685151a10e4"
+      "sha256": "66ce9030a3afd29a62961e635f3ad3d2dd2cd38fba2440ba4b5a8e4b6ef93efd"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -954,6 +954,14 @@
     {
       "file": "ios/CUIMotionContinuousCorners.h",
       "sha256": "ad70f51f1dad97e529ba7a70df5670447a359744ddb3f44da793a72f1ced0d52"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.h",
+      "sha256": "059a5bd255982f6c4fea3ca1e28e46fce0026070152ea4bf571256c0bfef980f"
+    },
+    {
+      "file": "ios/CUIMotionMaskGeometry.mm",
+      "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
     }
   ],
   "drawingSourceBoundary": {
@@ -967,7 +975,7 @@
     "nativeAssertionsExecuted": false,
     "nativePixelsAccepted": false,
     "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes",
-    "nativeMaskFactory": "The owned native scalar-layer mask factory now supplies uniform continuous corrected masks in the private receiver. Only its strict closed public-layer descriptor is complete geometry; arbitrary/CAShape masks remain incomplete. Direct native composed-mask proof covers seven CPU profiles; actual receiver/observer/GPU/mixed/border/profile/closure proof remains required."
+    "nativeMaskFactory": "Private owned continuous masks retain their strict native-layer descriptor. The new owned shape-mask factory copies and registers immutable CGPath commands, keeps drawing defaults and admits only its unchanged closed public-layer state. The observer uses the shared clip-description helper; foreign/modified masks remain incomplete and unknown paths are explicitly unavailable. New path-mask native proof, full observer/window/GPU/mixed/fidelity/performance/consumer/profile/closure acceptance remain required."
   },
   "peerStateInputs": [
     {

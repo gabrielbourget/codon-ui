@@ -2,7 +2,7 @@
 #import "CUIInputWindow.h"
 #import "CUIFocusView.h"
 #import "CUIKeyboardScope.h"
-#import "CUIMotionContinuousCorners.h"
+#import "CUIMotionMaskGeometry.h"
 #import <QuartzCore/QuartzCore.h>
 #import <cmath>
 
@@ -43,22 +43,6 @@ static NSDictionary *CUIUntransformed(CALayer *layer, CALayer *window) {
   CGFloat width = layer.bounds.size.width, height = layer.bounds.size.height;
   return @{@"quad": @[@(point.x), @(point.y), @(point.x + width), @(point.y), @(point.x + width), @(point.y + height), @(point.x), @(point.y + height)], @"box": CUIRect(CGRectMake(point.x, point.y, width, height))};
 }
-static NSDictionary *CUIClip(CALayer *layer) {
-  CALayer *mask = layer.mask; NSMutableArray *path = [NSMutableArray array];
-  NSDictionary *nativePrimitive = mask ? [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:mask] : nil;
-  BOOL complete = mask == nil || nativePrimitive != nil;
-  if ([mask isKindOfClass:CAShapeLayer.class]) {
-    CGPathRef shape = ((CAShapeLayer *)mask).path;
-    if (shape) CGPathApplyWithBlock(shape, ^(const CGPathElement *element) {
-      NSUInteger count = element->type == kCGPathElementAddCurveToPoint ? 3 : element->type == kCGPathElementAddQuadCurveToPoint ? 2 : element->type == kCGPathElementCloseSubpath ? 0 : 1;
-      NSMutableArray *command = [NSMutableArray arrayWithObject:@(element->type)];
-      for (NSUInteger index = 0; index < count; index++) [command addObjectsFromArray:@[@(element->points[index].x), @(element->points[index].y)]];
-      [path addObject:command];
-    });
-  }
-  return @{@"bounds": @(layer.masksToBounds), @"cornerRadius": @(layer.cornerRadius), @"maskedCorners": @(layer.maskedCorners), @"cornerCurve": layer.cornerCurve ?: @"", @"mask": mask ? @{@"bounds": CUIRect(mask.bounds), @"layout": CUIRect(CUILayout(mask)), @"matrix": CUIMatrix(mask.transform), @"path": path, @"fillRule": [mask isKindOfClass:CAShapeLayer.class] ? ((CAShapeLayer *)mask).fillRule : @"", @"nativePrimitive": nativePrimitive ?: NSNull.null} : NSNull.null, @"complete": @(complete)};
-}
-
 @interface CUIMotionGeometryDisplayTarget : NSObject
 @property (nonatomic, weak) CUIMotionGeometryObserver *observer;
 - (void)tick:(CADisplayLink *)link;
@@ -99,11 +83,11 @@ static NSDictionary *CUIClip(CALayer *layer) {
   NSMutableArray *ancestors = [NSMutableArray array], *layers = [NSMutableArray array];
   for (UIView *view = root; view; view = view.superview) {
     CALayer *layer = view.layer;
-    [ancestors addObject:@{@"tag": @(view.tag), @"identity": CUIIdentity(view), @"projectionRevision": [view isKindOfClass:CUIFocusView.class] ? [(CUIFocusView *)view motionProjectionRevision] : @"", @"layoutDirection": view.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft ? @"rtl" : @"ltr", @"bounds": CUIRect(view.bounds), @"layout": CUIRect(CUILayout(layer)), @"visible": @(!view.hidden), @"opacity": @(view.alpha), @"scroll": @[@(view.bounds.origin.x), @(view.bounds.origin.y)], @"matrix": CUIMatrix(layer.transform), @"model": CUIBox(layer, window.layer), @"clip": CUIClip(layer)}];
+    [ancestors addObject:@{@"tag": @(view.tag), @"identity": CUIIdentity(view), @"projectionRevision": [view isKindOfClass:CUIFocusView.class] ? [(CUIFocusView *)view motionProjectionRevision] : @"", @"layoutDirection": view.effectiveUserInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft ? @"rtl" : @"ltr", @"bounds": CUIRect(view.bounds), @"layout": CUIRect(CUILayout(layer)), @"visible": @(!view.hidden), @"opacity": @(view.alpha), @"scroll": @[@(view.bounds.origin.x), @(view.bounds.origin.y)], @"matrix": CUIMatrix(layer.transform), @"model": CUIBox(layer, window.layer), @"clip": CUIGetLayerClipDescription(layer)}];
     if (view == window) break;
   }
   for (CALayer *layer = root.layer; layer; layer = layer.superlayer) {
-    [layers addObject:@{@"identity": CUIIdentity(layer), @"bounds": CUIRect(layer.bounds), @"position": @[@(layer.position.x), @(layer.position.y)], @"zPosition": @(layer.zPosition), @"anchor": @[@(layer.anchorPoint.x), @(layer.anchorPoint.y), @(layer.anchorPointZ)], @"matrix": CUIMatrix(layer.transform), @"sublayerMatrix": CUIMatrix(layer.sublayerTransform), @"clip": CUIClip(layer)}];
+    [layers addObject:@{@"identity": CUIIdentity(layer), @"bounds": CUIRect(layer.bounds), @"position": @[@(layer.position.x), @(layer.position.y)], @"zPosition": @(layer.zPosition), @"anchor": @[@(layer.anchorPoint.x), @(layer.anchorPoint.y), @(layer.anchorPointZ)], @"matrix": CUIMatrix(layer.transform), @"sublayerMatrix": CUIMatrix(layer.sublayerTransform), @"clip": CUIGetLayerClipDescription(layer)}];
     if (layer == window.layer) break;
   }
   CALayer *presentation = root.layer.presentationLayer, *presentationWindow = window.layer.presentationLayer;

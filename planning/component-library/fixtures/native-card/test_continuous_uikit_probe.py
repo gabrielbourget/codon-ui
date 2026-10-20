@@ -9,7 +9,8 @@ def journal():
     return [{"kind": "begin", "producer": "source", "pid": 123},
         {"kind": "reference-control", "producer": "source", "metrics": {"binaryCoverageDifferences": 10}},
         {"kind": "factory-guards", "producer": "source", "outcome": "guards-complete"},
-        {"kind": "receiver-assertions", "producer": "source", "result": {"outcome": "receiver-assertions-complete", "fixturesCompleted": 2}},
+        {"kind": "receiver-assertions", "producer": "source", "result": {"outcome": "receiver-assertions-complete", "fixturesCompleted": 3,
+            "maskGeometry": {"assertions": 21, "byteExactRaster": True, "rasterWidth": 360, "rasterHeight": 240, "rasterBytesPerPixel": 4}}},
         *[{"kind": "profile", "producer": "source", "name": name} for name in PROFILE_NAMES],
         *[{"kind": "raster-control", "producer": "source", "name": name + "-circular"} for name in PROFILE_NAMES],
         *[{"kind": "native-layer-candidate", "producer": "source", "name": name + "-native-layer"} for name in PROFILE_NAMES],
@@ -58,6 +59,15 @@ class ReferenceCustody(unittest.TestCase):
     def test_partial_crash_journal_rejects_with_diagnostic(self):
         with self.assertRaisesRegex(AssertionError, "missing terminal"):
             validate_journal(journal()[:3], "source")
+
+    def test_mask_geometry_fixture_cannot_be_omitted(self):
+        rows = journal()
+        receiver = next(row for row in rows if row["kind"] == "receiver-assertions")
+        receiver["result"]["fixturesCompleted"] = 2
+        with self.assertRaises(AssertionError): validate_journal(rows, "source")
+        receiver["result"]["fixturesCompleted"] = 3
+        receiver["result"]["maskGeometry"]["byteExactRaster"] = False
+        with self.assertRaises(AssertionError): validate_journal(rows, "source")
 
 
 if __name__ == "__main__": unittest.main()

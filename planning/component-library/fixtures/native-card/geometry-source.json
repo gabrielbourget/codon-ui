@@ -43,7 +43,7 @@
   ],
   "limits": [
     "UIKit class registration invokes disabled hooks which return before capture; actual observer/bridge/large-tree cost remains unproven",
-    "Android RN rounded padding/overflow paths and UIKit layer masks are not yet certified complete clipping; recorded mask path/outline data does not override this gap",
+    "Current CUI-owned continuous/path mask model descriptions are constructed; scoped native proof for the new path mask and full observer/window/clipping fidelity remain required. Foreign/modified masks and Android RN rounded padding/overflow paths remain unaccepted; pathAvailable=false explicitly omits unknown mask paths.",
     "Android presentation provenance is actual View/RenderNode matrix state, not GPU display timestamps",
     "A React-owned keyframe measurement/restore transaction still needs composition; the new sampler does not implement auto or mixed-unit animation by itself",
     "All38 installed probe cells and all full Card native/profile/performance/closure obligations remain OPEN"
@@ -59,11 +59,19 @@
     },
     {
       "path": "packages/react-native/ios/CUIMotionGeometryObserver.mm",
-      "sha256": "d92ffbc259e3b85c8eb947572219cf35341676f0f9f8fb03d078b25d0ce0c7e7"
+      "sha256": "299519f3072808d6216962ab31f6d0fbfcfc2a5080e048051faf43da9561274d"
     },
     {
       "path": "packages/react-native/src/input/motionGeometry.ts",
       "sha256": "dded3651e2fd779f8404e0780f87e339b163509b7ecac0bb362ddb7729169056"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionMaskGeometry.h",
+      "sha256": "059a5bd255982f6c4fea3ca1e28e46fce0026070152ea4bf571256c0bfef980f"
+    },
+    {
+      "path": "packages/react-native/ios/CUIMotionMaskGeometry.mm",
+      "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
     }
   ],
   "actualNativeActions": 0

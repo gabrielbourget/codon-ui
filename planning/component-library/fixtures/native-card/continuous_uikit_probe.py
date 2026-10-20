@@ -24,9 +24,11 @@ HELPER = "planning/component-library/fixtures/native-card/continuous_uikit_probe
 BRIDGE = "planning/component-library/fixtures/native-card/NativeMotionContinuousMaskProbe.mm"
 BRIDGE_HEADER = "planning/component-library/fixtures/native-card/NativeMotionContinuousMaskProbe.h"
 PRODUCTION_HEADER = "packages/react-native/ios/CUIMotionContinuousCorners.h"
-RECEIVER_SOURCES = ["packages/react-native/ios/CUIMotionDrawingView.mm", "packages/react-native/ios/CUIMotionDrawingGeometry.mm"]
+RECEIVER_SOURCES = ["packages/react-native/ios/CUIMotionDrawingView.mm", "packages/react-native/ios/CUIMotionDrawingGeometry.mm",
+    "packages/react-native/ios/CUIMotionMaskGeometry.mm"]
 ASSERTION_SOURCES = ["planning/component-library/fixtures/native-card/NativeMotionDrawingAssertions.mm",
-    "planning/component-library/fixtures/native-card/NativeMotionDrawingBranchAssertions.mm"]
+    "planning/component-library/fixtures/native-card/NativeMotionDrawingBranchAssertions.mm",
+    "planning/component-library/fixtures/native-card/NativeMotionMaskGeometryAssertions.mm"]
 POD_ARGUMENTS = Path.home() / ".local/share/codon-native-lab/ios-app-derived-data/Build/Intermediates.noindex/Pods.build/Release-iphonesimulator/CodonNativeInput.build/Objects-normal/x86_64"
 PRODUCTION_ARGUMENTS = POD_ARGUMENTS / "af3fcb34312c57c0f52879cdce924b91-common-args.resp"
 ASSERTION_ARGUMENTS = POD_ARGUMENTS / "82b82416624d2658e5098eb0a28c15c5-common-args.resp"
@@ -68,7 +70,10 @@ def validate_journal(rows, producer):
         assert [row["name"] for row in factory_candidates] == [name + "-factory-mask" for name in PROFILE_NAMES]
         assert len(factory_guards) == 1 and factory_guards[0]["outcome"] == "guards-complete"
         assert len(receivers) == 1 and receivers[0]["result"]["outcome"] == "receiver-assertions-complete"
-        assert receivers[0]["result"]["fixturesCompleted"] == 2
+        assert receivers[0]["result"]["fixturesCompleted"] == 3
+        geometry = receivers[0]["result"]["maskGeometry"]
+        assert geometry["assertions"] >= 20 and geometry["byteExactRaster"] is True
+        assert [geometry[key] for key in ["rasterWidth", "rasterHeight", "rasterBytesPerPixel"]] == [360, 240, 4]
     elif outcome == "native-receiver-assertions-failed":
         assert len(receivers) == 1 and receivers[0]["result"]["outcome"] == "receiver-assertions-failed"
         assert not profiles and not raster_controls and not native_candidates and not mask_candidates and not factory_candidates
@@ -93,6 +98,7 @@ def prepare(root):
     root.mkdir(parents=True)
     names = [SOURCE, NATIVE_FIXTURE, HELPER, BRIDGE, BRIDGE_HEADER, PRODUCTION_HEADER, *RECEIVER_SOURCES, *ASSERTION_SOURCES,
         "packages/react-native/ios/CUIMotionDrawingView.h", "packages/react-native/ios/CUIMotionDrawingGeometry.h",
+        "packages/react-native/ios/CUIMotionMaskGeometry.h", "packages/react-native/ios/CUIMotionGeometryObserver.mm",
         "planning/component-library/fixtures/native-card/NativeMotionDrawingAssertionsEnabled.h",
         "packages/react-native/package.json", "packages/react-native/CodonNativeInput.podspec", "pnpm-lock.yaml", "AGENTS.md"]
     producer = git("rev-parse", "HEAD")

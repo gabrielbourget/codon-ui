@@ -2,6 +2,7 @@
 #import "CUIMotionDrawingView.h"
 #import "CUIMotionDrawingGeometry.h"
 #import "CUIMotionContinuousCorners.h"
+#import "CUIMotionMaskGeometry.h"
 #import <CoreGraphics/CoreGraphics.h>
 #import <QuartzCore/QuartzCore.h>
 #import <RCTSwiftUIWrapper/RCTSwiftUIContainerViewWrapper.h>
@@ -826,8 +827,7 @@ static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
     return mask;
   }
   CGPathRef path = CUIPathCreateWithRoundedRect(bounds, cornerInsets, curves);
-  CAShapeLayer *maskLayer = [CAShapeLayer layer];
-  maskLayer.path = path;
+  CAShapeLayer *maskLayer = CUICreateOwnedShapeMask(path);
   CGPathRelease(path);
   return maskLayer;
 }
