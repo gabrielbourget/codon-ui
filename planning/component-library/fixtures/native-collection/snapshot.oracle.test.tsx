@@ -7,6 +7,7 @@ import type * as TSource from "../../../../packages/react/node_modules/react-ari
 import type * as TDocument from "../../../../packages/react/node_modules/react-aria/dist/types/src/collections/Document"
 import {
   createNativeCollectionSnapshot,
+  getNativeCollectionMetadataIdentity,
   type TNativeCollectionDescriptor,
   type TNativeCollectionHierarchyEntry,
   type TNativeCollectionSnapshot,
@@ -53,6 +54,7 @@ const observe = (collection: TCollection) => ({
       after: collection.getKeyAfter(key),
       children: Array.from(collection.getChildren(key), (child) => child.key),
       text: node.textValue,
+      ariaLabel: node["aria-label"],
       colSpan: "colSpan" in node ? node.colSpan : null,
       colIndex: "colIndex" in node ? node.colIndex : null,
     }
@@ -229,7 +231,7 @@ it("matches actual duplicate business-key map replacement independently from uni
   f.add("c", "c")
   const logical = f.native(["first", "b", "last", "c"])
   f.compare("duplicate business-key replacement", logical)
-  expect(logical.getItem("x")?.descriptorId).toBe("last")
+  expect(getNativeCollectionMetadataIdentity(logical.getItem("x")!)?.descriptorId).toBe("last")
   expect([...logical].map((node) => node.key)).toEqual(["x", "c"])
   expect([...logical.getKeys()]).toEqual(["x", "b", "c"])
 })
@@ -242,4 +244,40 @@ it("retains the actual source changed-ID and unimplemented-at contracts", () => 
   expect(() => a.setProps({ id: "changed" }, null, source.ItemNode)).toThrow("Cannot change the id of an item")
   expect(() => canonical.at()).toThrow("Not implemented")
   expect(() => logical.at(0)).toThrow("Not implemented")
+})
+
+it("preserves the source's retained nonempty node label after its authored prop clears", () => {
+  const f = fixture()
+  const element = f.add("a", "a"),
+    descriptor = f.descriptors.get("a")!
+  element.setProps(
+    { id: "a", value: descriptor.value, textValue: "a", "aria-label": "Original" },
+    descriptor.props.ref,
+    source.ItemNode,
+    descriptor.rendered,
+    descriptor.render,
+  )
+  f.descriptors.set("a", {
+    ...descriptor,
+    "aria-label": "Original",
+    props: { ...descriptor.props, "aria-label": "Original" },
+  })
+  const initial = f.native(["a"])
+  f.compare("authored node label", initial)
+  element.setProps(
+    { id: "a", value: descriptor.value, textValue: "a", "aria-label": undefined },
+    descriptor.props.ref,
+    source.ItemNode,
+    descriptor.rendered,
+    descriptor.render,
+  )
+  f.descriptors.set("a", {
+    ...descriptor,
+    "aria-label": undefined,
+    props: { ...descriptor.props, "aria-label": undefined },
+  })
+  const cleared = f.native(["a"], initial)
+  f.compare("cleared authored/retained node label", cleared)
+  expect(cleared.getItem("a")?.["aria-label"]).toBe("Original")
+  expect(cleared.getItem("a")?.props["aria-label"]).toBeUndefined()
 })

@@ -4,6 +4,7 @@ import type { View } from "react-native"
 
 import {
   createNativeCollectionSnapshot,
+  getNativeCollectionMetadataIdentity,
   type TNativeCollectionDescriptor,
   type TNativeCollectionHierarchyEntry,
 } from "../snapshot"
@@ -44,6 +45,11 @@ it("keeps typed keys, original payload/ref/renderer identities and immutable own
   expect(node.props).toBe(numeric.props)
   expect(node.props.ref).toBe(numeric.props.ref)
   expect(node.render).toBe(render)
+  expect(
+    Object.keys(node).filter((key) => ["descriptorId", "descriptorRevision", "metadataTarget"].includes(key)),
+  ).toEqual([])
+  expect(getNativeCollectionMetadataIdentity(node)?.metadataTarget).toBe(10)
+  expect(getNativeCollectionMetadataIdentity(logical.filter(() => true).getItem(0)!)?.metadataTarget).toBe(10)
   expect(render).not.toHaveBeenCalled()
   expect(node.nextKey).toBe("0")
   expect(logical.getKeyBefore("0")).toBe(0)
@@ -89,8 +95,8 @@ it("treats a replacement descriptor with the same business key as a new lookup l
     initial,
   )
   expect([...next.getKeys()]).toEqual(["b", "a"])
-  expect(next.getItem("a")?.descriptorId).toBe("replacement")
-  expect(initial.getItem("a")?.descriptorId).toBe(a.descriptorId)
+  expect(getNativeCollectionMetadataIdentity(next.getItem("a")!)?.descriptorId).toBe("replacement")
+  expect(getNativeCollectionMetadataIdentity(initial.getItem("a")!)?.descriptorId).toBe(a.descriptorId)
 })
 
 it("feeds the actual list selection manager with full membership and controlled veto", async () => {

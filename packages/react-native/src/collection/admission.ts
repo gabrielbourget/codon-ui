@@ -80,11 +80,12 @@ export class NativeCollectionAdmission<T> {
     error: "awaiting-native-commit",
   })
 
-  constructor(root: TRootIdentity) {
+  constructor(root: TRootIdentity, previous?: TNativeCollectionSnapshot<T>) {
     if (!root.ownerId || !root.rootId || !root.rootRevision || !integer(root.target, 1)) {
       throw new Error("invalid-collection-root")
     }
     this.#root = Object.freeze({ ...root })
+    this.#previous = previous ?? null
   }
 
   getSnapshot = () => this.#state

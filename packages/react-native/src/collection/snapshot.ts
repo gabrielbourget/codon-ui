@@ -31,9 +31,6 @@ export type TNativeCollectionHierarchyEntry = Readonly<{
 
 export type TNativeCollectionNode<T> = Readonly<
   Omit<TSourceNode<T>, "childNodes"> & {
-    descriptorId: string
-    descriptorRevision: string
-    metadataTarget: number
     parentKey: TNativeCollectionKey | null
     prevKey: TNativeCollectionKey | null
     nextKey: TNativeCollectionKey | null
@@ -46,17 +43,24 @@ export type TNativeCollectionNode<T> = Readonly<
 >
 
 type TFilter<T> = (textValue: string, node: TSourceNode<T>) => boolean
+type TMetadataIdentity = Readonly<{ descriptorId: string; descriptorRevision: string; metadataTarget: number }>
+const metadataIdentities = new WeakMap<object, TMetadataIdentity>()
+export const getNativeCollectionMetadataIdentity = (node: object): TMetadataIdentity | undefined =>
+  metadataIdentities.get(node)
 type TNodeFields<T> = {
   -readonly [P in keyof Omit<TNativeCollectionNode<T>, "childNodes">]: TNativeCollectionNode<T>[P]
 }
-const ownedNode = <T>(fields: TNodeFields<T>): TNativeCollectionNode<T> =>
-  Object.freeze(
+const ownedNode = <T>(fields: TNodeFields<T>, identity?: TMetadataIdentity): TNativeCollectionNode<T> => {
+  const node = Object.freeze(
     Object.defineProperty(fields, "childNodes", {
       get: () => {
         throw new Error("childNodes is not supported")
       },
     }),
   ) as TNativeCollectionNode<T>
+  if (identity) metadataIdentities.set(node, identity)
+  return node
+}
 
 // Navigation follows react-aria 3.48.0 collections/BaseCollection (Apache-2.0, Copyright 2024 Adobe).
 // The owned shell is immutable; caller values, props, renderers and refs retain their original identities.
@@ -126,8 +130,10 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
 
   filter = (predicate: TFilter<T>): NativeCollectionSnapshot<T> => {
     const membership = new Map<TNativeCollectionKey, TNodeFields<T>>()
+    const identities = new Map<TNativeCollectionKey, TMetadataIdentity | undefined>()
     const addDescendants = (node: TNodeFields<T>) => {
       membership.set(node.key, { ...node })
+      identities.set(node.key, metadataIdentities.get(node))
       for (const child of this.getChildren(node.key)) addDescendants(child)
     }
     const filterSiblings = (
@@ -149,6 +155,7 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
           addDescendants(filtered)
         }
         if (filtered) {
+          identities.set(filtered.key, metadataIdentities.get(node))
           filtered = { ...filtered, nextKey: null }
           if (last) {
             last.nextKey = filtered.key
@@ -169,7 +176,7 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
       return [first?.key ?? null, last?.key ?? null]
     }
     const [first, last] = filterSiblings(this.#firstKey)
-    const nodes = new Map([...membership].map(([key, fields]) => [key, ownedNode(fields)]))
+    const nodes = new Map([...membership].map(([key, fields]) => [key, ownedNode(fields, identities.get(key))]))
     return new NativeCollectionSnapshot(nodes, first, last)
   }
 }
@@ -225,29 +232,33 @@ export const createNativeCollectionSnapshot = <T>(
       siblings.map((entry, index) => {
         const descriptor = descriptors.get(entry.descriptorId)!
         const prior = previous?.getItem(descriptor.key)
-        const retained = prior?.descriptorId === descriptor.descriptorId ? prior : null
+        const retained = prior && metadataIdentities.get(prior)?.descriptorId === descriptor.descriptorId ? prior : null
         const descendants = buildSiblings(entry.descriptorId, level + (descriptor.type === "item" ? 1 : 0))
         const keyAt = (position: number) => {
           const sibling = siblings[position]
           return sibling ? descriptors.get(sibling.descriptorId)!.key : null
         }
-        const node = ownedNode<T>({
-          ...descriptor,
-          metadataTarget: entry.target,
-          level,
-          index: entry.retainedIndex,
-          parentKey: parentId === "" ? null : descriptors.get(parentId)!.key,
-          prevKey: keyAt(index - 1),
-          nextKey: keyAt(index + 1),
-          hasChildNodes: entry.hasRetainedChildren,
-          firstChildKey: descendants[0]?.key ?? null,
-          lastChildKey: descendants.at(-1)?.key ?? null,
-          colSpan: descriptor.colSpan ?? retained?.colSpan ?? null,
-          colIndex:
-            previousSibling && (previousSibling.colSpan != null || previousSibling.colIndex != null)
-              ? (previousSibling.colIndex ?? previousSibling.index) + (previousSibling.colSpan ?? 1)
-              : (descriptor.colIndex ?? retained?.colIndex ?? null),
-        })
+        const { descriptorId, descriptorRevision, ...content } = descriptor
+        const node = ownedNode<T>(
+          {
+            ...content,
+            "aria-label": descriptor["aria-label"] || retained?.["aria-label"],
+            level,
+            index: entry.retainedIndex,
+            parentKey: parentId === "" ? null : descriptors.get(parentId)!.key,
+            prevKey: keyAt(index - 1),
+            nextKey: keyAt(index + 1),
+            hasChildNodes: entry.hasRetainedChildren,
+            firstChildKey: descendants[0]?.key ?? null,
+            lastChildKey: descendants.at(-1)?.key ?? null,
+            colSpan: descriptor.colSpan ?? retained?.colSpan ?? null,
+            colIndex:
+              previousSibling && (previousSibling.colSpan != null || previousSibling.colIndex != null)
+                ? (previousSibling.colIndex ?? previousSibling.index) + (previousSibling.colSpan ?? 1)
+                : (descriptor.colIndex ?? retained?.colIndex ?? null),
+          },
+          Object.freeze({ descriptorId, descriptorRevision, metadataTarget: entry.target }),
+        )
         built.set(node.key, node)
         previousSibling = node
         return node
@@ -259,7 +270,9 @@ export const createNativeCollectionSnapshot = <T>(
   if (previous) {
     for (const key of previous.getKeys()) {
       const node = built.get(key)
-      if (node && previous.getItem(key)?.descriptorId === node.descriptorId) membership.set(key, node)
+      const prior = previous.getItem(key)
+      if (node && prior && metadataIdentities.get(prior)?.descriptorId === metadataIdentities.get(node)?.descriptorId)
+        membership.set(key, node)
     }
   }
   for (const [key, node] of built) if (!membership.has(key)) membership.set(key, node)
