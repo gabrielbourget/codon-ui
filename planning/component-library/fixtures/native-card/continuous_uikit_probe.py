@@ -100,6 +100,8 @@ def prepare(root):
     assert fixture.count('"UNFROZEN"') == 1
     (root / "main.swift").write_text((REPO / SOURCE).read_text() + "\n" + fixture.replace('"UNFROZEN"', json.dumps(producer)))
     native_build_files = [PRODUCTION_ARGUMENTS, ASSERTION_ARGUMENTS, POD_PREFIX,
+        REPO / "packages/react-native/node_modules/react-native/React/Fabric/Mounting/ComponentViews/View/RCTViewComponentView.mm",
+        SDK / "System/Library/Frameworks/QuartzCore.framework/Headers/CALayer.h",
         *[folder / (name + ".framework") / name for name, folder in FRAMEWORKS.items()]]
     inputs = {"producer": producer, "sourceInputs": {name: digest(REPO / name) for name in names},
         "nativeBuildInputs": {str(path): digest(path) for path in native_build_files},

@@ -16,6 +16,7 @@
 @end
 @interface RCTViewComponentView (CUIPinnedDrawingBranchAssertions)
 - (void)shapeLayerToMatchView:(CALayer *)layer borderMetrics:(facebook::react::BorderMetrics)metrics;
+- (UIView *)currentContainerView;
 @end
 
 // Non-shipping, unmounted UIKit assertions. Compilation does not execute them,
@@ -97,18 +98,38 @@ void CUIAssertPinnedDrawingBranches() {
       @"Corrected axes cannot promote a source circular fallback into continuous overlap");
   CGPathRelease(circular);
   [owned finalizeUpdates:RNComponentViewUpdateMaskProps];
+  [source finalizeUpdates:RNComponentViewUpdateMaskProps];
   auto clipped = cloneProps(original, RawProps(
       folly::dynamic::object("borderRadius", 16)("borderCurve", "continuous")("overflow", "hidden")
           ("outlineWidth", 2)("backgroundColor", static_cast<int64_t>(0xffe0e8f0))));
   [owned updateProps:clipped oldProps:mixed];
+  [source updateProps:clipped oldProps:mixed];
   [owned setCuiProjectionRadii:@"{\"topLeft\":{\"x\":40,\"y\":8},\"topRight\":{\"x\":40,\"y\":8},\"bottomLeft\":{\"x\":40,\"y\":8},\"bottomRight\":{\"x\":40,\"y\":8}}"];
   [owned finalizeUpdates:RNComponentViewUpdateMaskProps];
+  [source finalizeUpdates:RNComponentViewUpdateMaskProps];
   UIView *clipContainer = [owned currentContainerView];
+  UIView *sourceClipContainer = [source currentContainerView];
   circular = RCTPathCreateWithRoundedRect(owned.bounds, RCTGetCornerInsets(elliptical, UIEdgeInsetsZero), nil, NO);
+  const BOOL shapeMask = [clipContainer.layer.mask isKindOfClass:CAShapeLayer.class];
+  const BOOL matchingMaskPath = shapeMask && ((CAShapeLayer *)clipContainer.layer.mask).path &&
+      CGPathEqualToPath(((CAShapeLayer *)clipContainer.layer.mask).path, circular);
+  NSDictionary *clipFacts = @{
+    @"authoredClip": @(clipped->getClipsContentToBounds()),
+    @"ownedSeparateContainer": @(clipContainer != owned), @"sourceSeparateContainer": @(sourceClipContainer != source),
+    @"ownedRootCurve": owned.layer.cornerCurve ?: NSNull.null, @"sourceRootCurve": source.layer.cornerCurve ?: NSNull.null,
+    @"ownedContainerCurve": clipContainer.layer.cornerCurve ?: NSNull.null,
+    @"sourceContainerCurve": sourceClipContainer.layer.cornerCurve ?: NSNull.null,
+    @"ownedClips": @(clipContainer.clipsToBounds), @"sourceClips": @(sourceClipContainer.clipsToBounds),
+    @"ownedMaskClass": clipContainer.layer.mask ? NSStringFromClass(clipContainer.layer.mask.class) : NSNull.null,
+    @"ownedMaskPathMatches": @(matchingMaskPath), @"sourceClipRadius": @(sourceClipContainer.layer.cornerRadius),
+    @"ownedBounds": NSStringFromCGRect(owned.bounds), @"ownedClipBounds": NSStringFromCGRect(clipContainer.bounds)
+  };
+  NSCAssert(sourceClipContainer != source && sourceClipContainer.clipsToBounds &&
+      sourceClipContainer.layer.mask == nil && sourceClipContainer.layer.cornerRadius == 16,
+      @"Pinned scalar overflow clipping must establish the actual reference branch: %@", clipFacts);
   NSCAssert(clipContainer != owned && [owned.layer.cornerCurve isEqualToString:kCACornerCurveContinuous] &&
-      [clipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] && clipContainer.layer.mask &&
-      CGPathEqualToPath(((CAShapeLayer *)clipContainer.layer.mask).path, circular),
-      @"An overflow container retains its actual inherited circular clip around a continuous root");
+      [clipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] && matchingMaskPath,
+      @"An overflow container retains its actual inherited circular clip around a continuous root: %@", clipFacts);
   CGPathRelease(circular);
   [owned prepareForRecycle];
   [source prepareForRecycle];
