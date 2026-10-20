@@ -1,5 +1,6 @@
 package com.codonui.input;
 
+import android.os.Build;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.KeyEvent;
@@ -125,5 +126,7 @@ final class CUIWindowPointerCallback implements Window.Callback, AutoCloseable {
   @Override public void onActionModeStarted(ActionMode mode) { original.onActionModeStarted(mode); }
   @Override public void onActionModeFinished(ActionMode mode) { original.onActionModeFinished(mode); }
   @Override public void onProvideKeyboardShortcuts(List<KeyboardShortcutGroup> groups, Menu menu, int deviceId) { original.onProvideKeyboardShortcuts(groups, menu, deviceId); }
-  @Override public void onPointerCaptureChanged(boolean captured) { original.onPointerCaptureChanged(captured); }
+  @Override public void onPointerCaptureChanged(boolean captured) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) original.onPointerCaptureChanged(captured);
+  }
 }

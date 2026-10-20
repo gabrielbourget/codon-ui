@@ -28,6 +28,6 @@ public final class CodonInputPackage extends BaseReactPackage {
 
   @Override
   public List<ViewManager> createViewManagers(ReactApplicationContext context) {
-    return Arrays.asList(new CUIFocusViewManager(), new CUIKeyboardScopeManager());
+    return Arrays.asList(new CUIFocusViewManager(), new CUIKeyboardScopeManager(), new CUICollectionRootManager(), new CUICollectionNodeManager());
   }
 }

@@ -392,6 +392,9 @@ importers:
       '@internationalized/number':
         specifier: 3.6.6
         version: 3.6.6
+      react-stately:
+        specifier: 3.46.0
+        version: 3.46.0(react@19.2.3)
     devDependencies:
       '@babel/core':
         specifier: 7.29.0
@@ -9806,6 +9809,10 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.2.2
 
+  '@react-types/shared@3.34.0(react@19.2.3)':
+    dependencies:
+      react: 19.2.3
+
   '@react-types/shared@3.34.0(react@19.2.7)':
     dependencies:
       react: 19.2.7
@@ -15016,6 +15023,16 @@ snapshots:
 
   react-refresh@0.14.2: {}
 
+  react-stately@3.46.0(react@19.2.3):
+    dependencies:
+      '@internationalized/date': 3.12.1
+      '@internationalized/number': 3.6.6
+      '@internationalized/string': 3.2.8
+      '@react-types/shared': 3.34.0(react@19.2.3)
+      '@swc/helpers': 0.5.2
+      react: 19.2.3
+      use-sync-external-store: 1.6.0(react@19.2.3)
+
   react-stately@3.46.0(react@19.2.7):
     dependencies:
       '@internationalized/date': 3.12.1
@@ -16276,6 +16293,10 @@ snapshots:
     dependencies:
       querystringify: 2.2.0
       requires-port: 1.0.0
+
+  use-sync-external-store@1.6.0(react@19.2.3):
+    dependencies:
+      react: 19.2.3
 
   use-sync-external-store@1.6.0(react@19.2.7):
     dependencies:
