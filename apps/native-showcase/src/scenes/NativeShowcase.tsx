@@ -37,6 +37,7 @@ import { LoadingScene } from "./LoadingScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
 import { OverlayScene } from "./OverlayScene"
+import { PaginationScene } from "./PaginationScene"
 import { RangeScene } from "./RangeScene"
 import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
@@ -184,6 +185,7 @@ export const NativeShowcase = () => {
     | "tooltip"
     | "popover"
     | "breadcrumbs"
+    | "pagination"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -229,6 +231,11 @@ export const NativeShowcase = () => {
                 label="Breadcrumbs scene"
                 selected={scene === "breadcrumbs"}
                 onPress={() => setScene("breadcrumbs")}
+              />
+              <FixtureAction
+                label="Pagination scene"
+                selected={scene === "pagination"}
+                onPress={() => setScene("pagination")}
               />
               <FixtureAction label="Overlay scene" selected={scene === "overlay"} onPress={() => setScene("overlay")} />
               <FixtureAction
@@ -302,7 +309,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "breadcrumbs" ? (
+              {scene === "pagination" ? (
+                <PaginationScene />
+              ) : scene === "breadcrumbs" ? (
                 <BreadcrumbsScene />
               ) : scene === "popover" ? (
                 <ClickPopoverScene />

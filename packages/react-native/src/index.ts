@@ -447,6 +447,23 @@ export type {
 export { Tooltip } from "./components/Tooltip/Tooltip"
 export { ClickPopover } from "./components/ClickPopover/ClickPopover"
 export { Breadcrumbs } from "./components/Breadcrumbs/Breadcrumbs"
+export { Pagination } from "./components/Pagination/Pagination"
+export { NATIVE_PAGINATION_SUBCOMPONENTS, NATIVE_PAGINATION_CONSOLIDATION_SIDES } from "./components/Pagination/model"
+export type {
+  TNativePaginationProps,
+  TNativePaginationProps as PaginationProps,
+  TNativePaginationRef,
+  TNativePaginationPageSizeOption,
+  TNativePaginationButtonProps,
+  TNativePaginationFieldProps,
+} from "./components/Pagination/types"
+export type {
+  TNativePaginationLabels,
+  TNativePaginationLabels as PaginationLabels,
+  TNativePartialPaginationLabels,
+  TNativePartialPaginationLabels as PartialPaginationLabels,
+} from "./components/Pagination/labels"
+export type { TNativePaginationSubcomponent, TNativePaginationConsolidationSide } from "./components/Pagination/model"
 export type {
   TNativeBreadcrumbsProps,
   TNativeBreadcrumbsProps as BreadcrumbsProps,

@@ -31,6 +31,12 @@ it("opens the public Breadcrumbs scene through the normal navigation", async () 
   expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0/)
 })
 
+it("opens the public Pagination scene through the normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "Pagination scene" }))
+  expect(screen.getByTestId("pagination-scene-state")).toHaveTextContent(/Page: 3.*Size: 10/)
+})
+
 it("hands off a modal closed by body layout before native readiness", async () => {
   await renderShowcase()
   const user = userEvent.setup()

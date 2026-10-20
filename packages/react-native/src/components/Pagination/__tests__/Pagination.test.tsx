@@ -3,15 +3,16 @@ import { createRef } from "react"
 import { AccessibilityInfo, StyleSheet, View } from "react-native"
 
 import {
+  Pagination,
+  type TNativePaginationProps,
   NativeFloatingLayerHost,
   NativeOverlayProvider,
   NativeThemeProvider,
   Text,
   type TNativePressEvent,
 } from "../../.."
+import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { resolveNativeTheme } from "../../../theme/defaults"
-import { Pagination } from "../Pagination"
-import type { TNativePaginationProps } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -714,4 +715,47 @@ it("NAV.003 retains the numeric accessibility value map when current status move
   })
   expect(screen.getByTestId("pagination-page-2").props.accessibilityValue).toEqual({ text: "Current page" })
   expect(f.page).not.toHaveBeenCalled()
+})
+
+it("retains explicit controlled popup state when slot=null opts out of trigger context", async () => {
+  const f = fixture(),
+    popup = createRef<View>()
+  await render(
+    f.node({
+      currentPage: 1,
+      maxVisiblePages: 4,
+      customClickPopoverProps: { ref: popup, triggerRef: f.anchor, isOpen: true, slot: null },
+    }),
+  )
+  expect(screen.getByTestId("click-popover", hidden)).toBeOnTheScreen()
+  await f.ready(popup.current!)
+  expect(screen.getByTestId("pagination-overflow-list", hidden)).toBeOnTheScreen()
+})
+
+it("uses physical bottom-right alignment in RTL and respects explicit initial-focus ownership", async () => {
+  jest.spyOn(Commands, "requestKeyboardFocus").mockImplementation(() => {})
+  const f = fixture(),
+    popup = createRef<View>(),
+    initialFocusRef = createRef<View>()
+  await render(
+    f.node({
+      currentPage: 1,
+      maxVisiblePages: 4,
+      customClickPopoverProps: {
+        ref: popup,
+        triggerRef: f.anchor,
+        isOpen: true,
+        direction: "rtl",
+        containerPadding: 0,
+        shouldFlip: false,
+        initialFocusRef,
+      },
+    }),
+  )
+  await f.ready(popup.current!)
+  expect(screen.getByTestId("click-popover", hidden)).toHaveStyle({ left: 0 })
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(StyleSheet.flatten(screen.getByTestId("pagination-overflow-list", hidden).props.style).boxShadow).toHaveLength(
+    2,
+  )
 })

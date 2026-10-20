@@ -131,7 +131,7 @@ export const NativePaginationPrimary = ({ props, count, items, labels, styles, r
           flexShrink: 1,
           justifyContent: "center",
           alignItems: "center",
-          gap: 5,
+          gap: styles.gap,
           maxWidth: width < 450 ? 200 : 350,
         }}
       >
@@ -211,7 +211,7 @@ const NativePaginationOverflow = ({
     defaultOpen,
     onOpenChange,
     raised = false,
-    placement = "bottom end",
+    placement = "bottom right",
     customStyles,
     ...popover
   } = props.customClickPopoverProps ?? {}
@@ -241,6 +241,7 @@ const NativePaginationOverflow = ({
     >
       <ClickPopover
         {...popover}
+        {...(popover.slot === null ? { isOpen, defaultOpen, onOpenChange } : {})}
         raised={raised}
         placement={placement}
         accessibilityLabel={popover.accessibilityLabel ?? popover["aria-label"] ?? label}
@@ -259,6 +260,7 @@ const NativePaginationOverflow = ({
           style={styles.list}
           disabled={!!props.isDisabled}
           selectionOnly
+          autoFocus={popover.initialFocusRef === undefined}
           onSelectionChange={(item) => {
             if (item) requestPage(item.value)
           }}
