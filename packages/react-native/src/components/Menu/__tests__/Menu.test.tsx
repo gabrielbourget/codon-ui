@@ -1,10 +1,21 @@
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createRef, type ReactNode } from "react"
+import { act as rendererAct, fireEvent, screen } from "@testing-library/react-native"
+import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import * as RN from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../.."
+import {
+  actWithNativeCollections as act,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  type TNativeCollectionRootProps,
+} from "../../../collection/renderer"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { resolveNativeTheme } from "../../../theme/defaults"
+import { encodeCollectionKey } from "../../collection"
+import { NativeMenuStateContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
 import { MenuItem } from "../MenuItem"
 import { MenuSeparator } from "../MenuSeparator"
@@ -14,6 +25,7 @@ jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
+const rerender = (...args: Parameters<typeof screen.rerender>) => act(() => screen.rerender(...args))
 const hidden = { includeHiddenElements: true }
 const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
 let frameId = 0
@@ -72,7 +84,11 @@ const sample = () => (
     </MenuItem>
   </>
 )
-const fixture = (initial: Partial<TNativeMenuProps> = {}, children: ReactNode = sample()) => {
+const fixture = (
+  initial: Partial<TNativeMenuProps> = {},
+  children: ReactNode = sample(),
+  renderer = DefaultNativeCollectionRenderer,
+) => {
   const root = createRef<RN.View>(),
     host = createRef<RN.View>(),
     anchor = createRef<RN.View>()
@@ -80,14 +96,16 @@ const fixture = (initial: Partial<TNativeMenuProps> = {}, children: ReactNode = 
     close = jest.fn()
   const node = (props: Partial<TNativeMenuProps> = initial, content = children, mode: "light" | "dark" = "light") => (
     <NativeThemeProvider mode={mode}>
-      <NativeOverlayProvider>
-        <NativeFloatingLayerHost ref={host} testID="host">
-          <RN.View ref={anchor} />
-          <Menu ref={root} triggerRef={anchor} isOpen onAction={action} onOpenChange={close} {...props}>
-            {content}
-          </Menu>
-        </NativeFloatingLayerHost>
-      </NativeOverlayProvider>
+      <NativeCollectionRendererContext.Provider value={renderer}>
+        <NativeOverlayProvider>
+          <NativeFloatingLayerHost ref={host} testID="host">
+            <RN.View ref={anchor} />
+            <Menu ref={root} triggerRef={anchor} isOpen onAction={action} onOpenChange={close} {...props}>
+              {content}
+            </Menu>
+          </NativeFloatingLayerHost>
+        </NativeOverlayProvider>
+      </NativeCollectionRendererContext.Provider>
     </NativeThemeProvider>
   )
   const ready = async (flushBeforeAcknowledgment = false) => {
@@ -208,9 +226,9 @@ it("CAP.menu.005–.010 uses all five existing native action backgrounds and exp
   const f = fixture()
   await render(f.node())
   for (const order of ["primary", "secondary", "tertiary", "quaternary", "quintenary"] as const) {
-    await screen.rerender(f.node({ order }))
+    await rerender(f.node({ order }))
     expect(row("menu")).toHaveStyle({ backgroundColor: resolveNativeTheme("light").actions[order].background })
-    await screen.rerender(f.node({ order, color: "teal" }))
+    await rerender(f.node({ order, color: "teal" }))
     expect(row("menu")).toHaveStyle({ backgroundColor: resolveNativeTheme("light").colors.background })
   }
 })
@@ -247,7 +265,7 @@ it("CAP.menu.011–.014 preserves both geometries and raised false independently
   await render(f.node())
   expect(row("menu")).toHaveStyle({ borderRadius: resolveNativeTheme("light").radius.rounded })
   expect(RN.StyleSheet.flatten(row("menu").props.style).boxShadow).toBeDefined()
-  await screen.rerender(f.node({ geometry: "orthogonal", raised: false }))
+  await rerender(f.node({ geometry: "orthogonal", raised: false }))
   expect(row("menu")).toHaveStyle({ borderRadius: 0 })
   expect(RN.StyleSheet.flatten(row("menu").props.style).boxShadow).toBeUndefined()
 })
@@ -369,9 +387,7 @@ it("keeps selected typed zero/empty keys authoritative through repeated veto and
   expect(selection.mock.calls.map(([keys]) => [...keys])).toEqual([[""], [""]])
   expect(row("zero").props.accessibilityState.checked).toBe(true)
   expect([...owner]).toEqual([0])
-  await screen.rerender(
-    f.node({ selectionMode: "single", selectedKeys: new Set([""]), shouldCloseOnSelect: false }, content),
-  )
+  await rerender(f.node({ selectionMode: "single", selectedKeys: new Set([""]), shouldCloseOnSelect: false }, content))
   expect(row("empty").props.accessibilityState.checked).toBe(true)
   expect(row("zero").props.accessibilityState.checked).toBe(false)
 })
@@ -406,10 +422,10 @@ it("retains one-shot controlled selection and disabled iterators across internal
   await press("zero")
   expect(selected.mock.calls.map(([keys]) => [...keys])).toEqual([[]])
   expect(row("zero").props.accessibilityState.checked).toBe(true)
-  await screen.rerender(f.node())
+  await rerender(f.node())
   expect(row("zero").props.accessibilityState.checked).toBe(true)
   expect(row("blocked").props.accessibilityState.disabled).toBe(true)
-  await screen.rerender(
+  await rerender(
     f.node({ ...props, selectedKeys: new Set<number>().values(), disabledKeys: new Set<string>().values() }),
   )
   expect(row("zero").props.accessibilityState.checked).toBe(false)
@@ -504,7 +520,7 @@ it("handles caller empty collections and forwards actual item refs", async () =>
     )
   await render(f.node())
   expect(ref.current).not.toBeNull()
-  await screen.rerender(f.node({}, null))
+  await rerender(f.node({}, null))
   expect(ref.current).toBeNull()
   expect(row("menu-list").props.accessible).toBe(true)
 })
@@ -646,7 +662,7 @@ it.each([
     const f = fixture(props, content(["a", "b", "c"]))
     await render(f.node())
     await f.ready()
-    await screen.rerender(f.node(props, content(order)))
+    await rerender(f.node(props, content(order)))
     await f.ready()
     const native = row(removed).props
     await act(() =>
@@ -662,7 +678,7 @@ it.each([
       }),
     )
     jest.mocked(Commands.requestKeyboardFocus).mockClear()
-    await screen.rerender(f.node(props, content(order.filter((id) => id !== removed))))
+    await rerender(f.node(props, content(order.filter((id) => id !== removed))))
     await f.ready()
     const lastRequest = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
     expect(lastRequest?.[0] === refs[expected].current).toBe(true)
@@ -676,16 +692,16 @@ it.each([
 it.each(["unmounted", "window-inactive"] as const)("retires pending collection focus when %s", async (reason) => {
   const f = fixture(
     {},
-    <MenuItem id="a" testID="a">
+    <MenuItem key="a" id="a" testID="a">
       A
     </MenuItem>,
   )
   await render(f.node())
   await f.ready()
-  await screen.rerender(
+  await rerender(
     f.node(
       {},
-      <MenuItem id="b" testID="b">
+      <MenuItem key="b" id="b" testID="b">
         B
       </MenuItem>,
     ),
@@ -709,7 +725,8 @@ it.each(["unmounted", "window-inactive"] as const)("retires pending collection f
     )
   }
   jest.mocked(Commands.requestKeyboardFocus).mockClear()
-  await act(() => pending.forEach((callback) => callback(400)))
+  if (reason === "unmounted") await rendererAct(() => pending.forEach((callback) => callback(400)))
+  else await act(() => pending.forEach((callback) => callback(400)))
   expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.length).toBe(0)
 })
 
@@ -917,10 +934,10 @@ it("keeps controlled all derived from the latest collection and waits for owner 
   await press("profile")
   expect(selected.mock.calls.map(([keys]) => [...keys])).toEqual([["gallery", "remove"]])
   expect(row("profile").props.accessibilityState.checked).toBe(true)
-  await screen.rerender(
+  await rerender(
     f.node(
       { selectionMode: "multiple", selectedKeys: "all", shouldCloseOnSelect: false },
-      <MenuItem id="new" testID="new">
+      <MenuItem key="new" id="new" testID="new">
         New
       </MenuItem>,
     ),
@@ -939,7 +956,7 @@ it("uses current item/root callbacks after replacement, including an empty typed
   )
   await render(f.node())
   await f.ready()
-  await screen.rerender(
+  await rerender(
     f.node(
       { onAction: next, shouldCloseOnSelect: false },
       <MenuItem id="" testID="a" onAction={item}>
@@ -970,7 +987,7 @@ it("retires pending URL failures after the item is removed", async () => {
   await render(f.node())
   await f.ready()
   await press("a")
-  await screen.rerender(f.node({ shouldCloseOnSelect: false }, null))
+  await rerender(f.node({ shouldCloseOnSelect: false }, null))
   await act(async () => reject(new Error("retired")))
   expect(failure).not.toHaveBeenCalled()
 })
@@ -985,7 +1002,7 @@ it.each(["light", "dark"] as const)("keeps mounted theme updates and all style o
   expect(row("menu")).toHaveStyle({ backgroundColor: resolveNativeTheme(mode).actions.primary.background })
   expect(screen.getByText("A", hidden)).toHaveStyle({ color: resolveNativeTheme(mode).colors.statusDanger })
   const next = mode === "light" ? "dark" : "light"
-  await screen.rerender(f.node({ order: "secondary" }, undefined, next))
+  await rerender(f.node({ order: "secondary" }, undefined, next))
   expect(row("menu")).toHaveStyle({ backgroundColor: resolveNativeTheme(next).actions.secondary.background })
   expect(screen.getByText("A", hidden)).toHaveStyle({ color: resolveNativeTheme(next).colors.statusDanger })
 })
@@ -1011,4 +1028,71 @@ it("preserves all 16 native key modifier combinations and original press records
     await rawKey("a", "Enter", "up")
   }
   expect(f.action.mock.calls).toEqual(Array.from({ length: 16 }, () => ["a"]))
+})
+
+it("uses opaque child-local logical order with stable actual refs", async () => {
+  const refs = { a: createRef<RN.View>(), b: createRef<RN.View>(), c: createRef<RN.View>() }
+  let reorder!: () => void
+  const Opaque = () => {
+    const [keys, setKeys] = useState<(keyof typeof refs)[]>(["a", "b", "c"])
+    reorder = () => setKeys(["c", "a", "b"])
+    return keys.map((id) => (
+      <MenuItem key={id} id={id} ref={refs[id]} testID={id}>
+        {id}
+      </MenuItem>
+    ))
+  }
+  const f = fixture({}, <Opaque />)
+  await render(f.node())
+  await f.ready()
+  const original = refs.c.current
+  await act(reorder)
+  await f.ready()
+  await scopedKey("Home", refs.a.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === refs.c.current).toBe(true)
+  expect(refs.c.current === original).toBe(true)
+})
+
+it("keeps offscreen members in actual tree state and defers native focus until materialization", async () => {
+  const first = createRef<RN.View>(),
+    second = createRef<RN.View>()
+  let materialize!: () => void
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = ({ collection, persistedKeys, scrollRef }: TNativeCollectionRootProps) => {
+    const [all, setAll] = useState(false)
+    materialize = () => setAll(true)
+    state = useContext(NativeMenuStateContext)!
+    expect(scrollRef).toBeDefined()
+    if (persistedKeys?.has("0")) expect(state.collection.size).toBe(2)
+    return [...collection]
+      .filter((node) => all || node.key === 0)
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+  }
+  const selected = jest.fn()
+  const f = fixture(
+    { selectionMode: "multiple", selectedKeys: [], onSelectionChange: selected, shouldCloseOnSelect: false },
+    <>
+      <MenuItem id={0} ref={first} testID="first">
+        First
+      </MenuItem>
+      <MenuItem id="0" ref={second} testID="second">
+        Second
+      </MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(state.collection.size).toBe(2)
+  expect(second.current).toBeNull()
+  await scopedKey("a", first.current, "0010:a", { ctrlKey: true })
+  await scopedKey("a", first.current, "0010:a", { ctrlKey: true })
+  expect(selected.mock.calls.map(([keys]) => keys)).toEqual(["all", "all"])
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await scopedKey("ArrowDown", first.current)
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(state.selectionManager.focusedKey).toBeNull()
+  await act(materialize)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
+  expect(state.selectionManager.focusedKey).toBeNull()
 })

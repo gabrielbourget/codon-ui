@@ -74,7 +74,7 @@
     "actions.ts": "0755d68097194647dc65e11390f9991828347f943d3fc4f94951d71497505bb9",
     "binding.ts": "9a05102944460279be06a053f4f8ad0d18c45fc9a4bd0da053239392bb9c9952",
     "context.tsx": "2083739c188f2458d878efa42d06cedc22c82c7342dcb063ac7aed5d5e0ba099",
-    "renderer.tsx": "84f2c190c67a2af9c3dcd0442a513ac0be22ef6809f4277c2f9d4f8a1d27bad8",
+    "renderer.tsx": "ccdc0aee7f704b01e411969e68adff757cbc8adf5804e1bd9592f5f8a6b87e39",
     "semantics.ts": "03069dd3d1e550def516c38eab8f42bb63642e0aecb0d9f133e7fdd1675b1945"
   },
   "additionalSources": [

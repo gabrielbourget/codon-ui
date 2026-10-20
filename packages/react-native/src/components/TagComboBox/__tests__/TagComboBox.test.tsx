@@ -1,8 +1,12 @@
-import { act, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import { fireEvent, screen, userEvent } from "@testing-library/react-native"
 import { createRef, useState } from "react"
 import * as RN from "react-native"
 
 import { NativeThemeProvider, Text } from "../../.."
+import {
+  actWithNativeCollections as act,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { getNativeTagComboBoxStyles } from "../styles"
 import { TagComboBox } from "../TagComboBox"
@@ -32,7 +36,7 @@ const node = (props: Partial<TNativeTagComboBoxProps<TItem>> = {}) => (
     <TagComboBox {...base} {...props} />
   </NativeThemeProvider>
 )
-const choose = (label = "Empty") => userEvent.setup().press(screen.getByRole("radio", { name: label }))
+const choose = (label = "Empty") => act(() => userEvent.setup().press(screen.getByRole("radio", { name: label })))
 const remove = async () => {
   const target = row("tag-remove-button")
   const event = {

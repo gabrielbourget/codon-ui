@@ -121,7 +121,7 @@ export const NativeCollectionCellFocusContext = createContext<((event: TNativeFo
 export const useNativePersistedKeys = (
   focusedKey: TNativeCollectionKey | null,
   requestedKey?: TNativeCollectionKey | null,
-) =>
+): Set<TNativeCollectionKey> | null =>
   useMemo(
     () =>
       focusedKey == null && requestedKey == null
