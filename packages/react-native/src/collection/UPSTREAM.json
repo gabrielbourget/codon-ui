@@ -1,0 +1,73 @@
+{
+  "status": "Private React authoring, committed descriptor/native receipt joining and immutable snapshots; no native business-action, full shared renderer/state context or family acceptance",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "package": {
+    "name": "react-aria",
+    "version": "3.48.0",
+    "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae"
+  },
+  "license": {
+    "file": "LICENSE.react-aria.md",
+    "sourceSHA256": "7dfe6526888bac51759c99f9a51262ba2711a8c12a067f2181609dd9a4066b84",
+    "receivedSHA256": "ea8f3f8859324a75512a4692854dfc03d82c5f47bfdb59ac94a7269855a80405",
+    "format": "Verbatim upstream license inside a Markdown text fence; interior bytes match sourceSHA256"
+  },
+  "sources": [
+    {
+      "distributionPath": "dist/private/collections/BaseCollection.mjs",
+      "distributionSHA256": "bf807ec81435d654a088141a09f1d45d50cbbf8292ab582eda8792465c755a42",
+      "sourceMapPath": "dist/private/collections/BaseCollection.mjs.map",
+      "sourceMapSHA256": "650aa95dcb8dbea933b6a44b0d512816a0ee587f611a6c617ddbfc07f0d950a8",
+      "sourcePath": "packages/react-aria/src/collections/BaseCollection.ts",
+      "sourceContentSHA256": "4c3ae423f7f347d2d29581bc356d09b77e38db9a2bbb75cc185f72db7e2c0912",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/BaseCollection.ts"
+    },
+    {
+      "distributionPath": "dist/private/collections/Document.mjs",
+      "distributionSHA256": "768478c03c66a0acd8b630783a25df9d4c1f20caedf97407b75d1ed1b7a85f14",
+      "sourceMapPath": "dist/private/collections/Document.mjs.map",
+      "sourceMapSHA256": "112d55f9006c96229bcb9f75ab536b292098054e8328952ae22cafd87c4bc293",
+      "sourcePath": "packages/react-aria/src/collections/Document.ts",
+      "sourceContentSHA256": "4cef688f844142271d3e37180e2d403129002b1152b56af37b4d8a28c687489e",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/Document.ts"
+    },
+    {
+      "distributionPath": "dist/private/collections/CollectionBuilder.mjs",
+      "distributionSHA256": "97204dd01891641c6099c58d451d8bd0084146c47e6291f0a729ad3f1abb4553",
+      "sourceMapPath": "dist/private/collections/CollectionBuilder.mjs.map",
+      "sourceMapSHA256": "6bf9a0e89d4238137eba575c7f162dcda657554b84835aa1b6441ca64c48c916",
+      "sourcePath": "packages/react-aria/src/collections/CollectionBuilder.tsx",
+      "sourceContentSHA256": "f2003132d95af80416274c8753123dd6068e2602664cbd121175a6699967d67d",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/CollectionBuilder.tsx"
+    },
+    {
+      "distributionPath": "dist/private/collections/useCachedChildren.mjs",
+      "distributionSHA256": "b5c51edce40ecb915d7f4db8490a8e5cd053e361f3a048fad1d1aa95e58c16fa",
+      "sourceMapPath": "dist/private/collections/useCachedChildren.mjs.map",
+      "sourceMapSHA256": "f474478c6102fb1def0b093b8e94d315d343c3907a69ff4a997ae47d0f570e2d",
+      "sourcePath": "packages/react-aria/src/collections/useCachedChildren.ts",
+      "sourceContentSHA256": "deda1ffb028b0aba126b0cd53c8ce5340ae75c94f219b41aef216bc5a66f455f",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/useCachedChildren.ts"
+    }
+  ],
+  "adaptations": [
+    "Actual native preorder plus retained sibling indices/children supply node links without registration or layout ordering.",
+    "Owned nodes/maps are immutable; original value, rendered content, props, renderer and caller ref identities remain in JavaScript.",
+    "Preserve lookup membership versus linked navigation, item-only size, source duplicate-key replacement and changed-ID rejection, source at/childNodes exceptions and numeric-zero filtering edge.",
+    "Private React authoring/generated IDs/item caching/id scope are source-checked; native runtime confirmation, full contexts/renderers/current-lease acknowledgement and complete family adoption remain required.",
+    "No react-aria, DOM, browser or test runtime import is added to native.",
+    "Private descriptor owners allocate generated keys/revisions only in committed effects and expose wire revisions in a subsequent native commit; discarded render drafts publish nothing.",
+    "An independently committed native root ref binds receipt authority. Previous complete renderer membership survives pending receipts and whole-Activity rebinding; it grants no native business-action authority.",
+    "Private metadata identities/targets live in a WeakMap sidecar and are absent from renderer-facing node objects.",
+    "The source object cache, dependency/id-scope precedence, original values/renderers/refs, one-shot iteration, and retained node-label behavior are preserved.",
+    "Actual state/renderer/default/slot contexts, native current-lease acknowledgement, virtualization/visible semantics and complete family adoption still require construction and acceptance."
+  ],
+  "authoredFilesSHA256": {
+    "snapshot.ts": "3501c95d629e42d7aee73d33fa712e126cc5481072a64df4a52147700018e700",
+    "admission.ts": "900fb805507e169405a2304aa88ce3d1ae51668a1c27181412a60581342b35c2",
+    "session.ts": "b26f538594ce8a5b22033311e48aece9f1731602818146144dac91d9779520d9",
+    "cachedChildren.tsx": "2816ffb14c61d3596ba22ff3f4747cc65b282812571a0a0fd6615123e9e9548f",
+    "CollectionBuilder.tsx": "e1c1a76f19be038392f9c23980009bd7d23b3bcfa6aee83962cf33cf39c8b815",
+    "NativeCollectionMetadata.tsx": "880400d6318d8ac1297bd43f19914cf03de5e53efc18eaa2b00508663cf2d416"
+  }
+}

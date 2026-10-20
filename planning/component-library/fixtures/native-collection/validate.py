@@ -20,26 +20,29 @@ ORDERS = {
 }
 
 
-def parse(text):
+def parse(text, probe=PROBE, prefix="CUI_COLLECTION_GATE"):
     records, chunks = {}, {}
     for line in text.splitlines():
-        if "CUI_COLLECTION_GATE_CHUNK " in line:
-            value = json.loads(line.split("CUI_COLLECTION_GATE_CHUNK ", 1)[1])
-            assert value["probe"] == PROBE
+        if prefix + "_CHUNK " in line:
+            value = json.loads(line.split(prefix + "_CHUNK ", 1)[1])
+            assert value["probe"] == probe
             key = value["recordSequence"]
             assert isinstance(key, int) and key > 0 and 0 <= value["part"] < value["parts"] <= 100
             group = chunks.setdefault(key, {"parts": value["parts"], "values": {}})
             assert group["parts"] == value["parts"]
             assert value["part"] not in group["values"] or group["values"][value["part"]] == value["content"]
             group["values"][value["part"]] = value["content"]
-        elif "CUI_COLLECTION_GATE " in line:
-            value = json.loads(line.split("CUI_COLLECTION_GATE ", 1)[1])
+        elif prefix + " " in line:
+            value = json.loads(line.split(prefix + " ", 1)[1])
+            assert value["probe"] == probe
+            assert value["sequence"] not in records or records[value["sequence"]] == value
             records[value["sequence"]] = value
     for key, group in chunks.items():
         assert set(group["values"]) == set(range(group["parts"])), ("missing-journal-chunk", key)
         line = "".join(group["values"][part] for part in range(group["parts"]))
-        assert line.startswith("CUI_COLLECTION_GATE ")
-        value = json.loads(line.removeprefix("CUI_COLLECTION_GATE "))
+        assert line.startswith(prefix + " ")
+        value = json.loads(line.removeprefix(prefix + " "))
+        assert value["probe"] == probe
         assert value["sequence"] == key
         assert key not in records or records[key] == value
         records[key] = value
@@ -69,6 +72,21 @@ def sdk_tree(tree, platform, native_targets):
         assert tree["accessibilityElementCount"] == 0 and tree["explicitAccessibilityElements"] == 0
     for child in tree["children"]:
         sdk_tree(child, platform, native_targets)
+
+
+def retained_positions(nodes, tree):
+    actual = {}
+    def visit(parent):
+        for index, child in enumerate(parent["children"]):
+            actual[child["target"]] = (parent["target"], index, bool(child["children"]))
+            visit(child)
+    visit(tree)
+    targets = {node["descriptorId"]: node["target"] for node in nodes}
+    for node in nodes:
+        parent = targets[node["parentDescriptorId"]] if node["parentDescriptorId"] else tree["target"]
+        assert type(node.get("retainedIndex")) is int and node["retainedIndex"] >= node["index"]
+        assert type(node.get("hasRetainedChildren")) is bool
+        assert actual[node["target"]] == (parent, node["retainedIndex"], node["hasRetainedChildren"]), "retained-index-without-sdk-correspondence"
 
 
 def validate(records, platform, producer):
@@ -128,6 +146,7 @@ def validate(records, platform, producer):
         facts = json.loads(actual["inspection"])
         assert not facts["focusRequestAccepted"] and facts["focusedBefore"] == facts["focusedAfter"]
         sdk_tree(facts["tree"], platform, all_native_targets)
+        retained_positions(nodes, facts["tree"])
         phase_inspections.append(phase)
     first_nodes = {node["descriptorId"]: node["target"] for node in json.loads(selected["initial"]["hierarchy"])}
     for phase in ["parent-reorder", "local-reorder", "restored", "context"]:

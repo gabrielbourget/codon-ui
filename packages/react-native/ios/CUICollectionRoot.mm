@@ -57,7 +57,9 @@ using namespace facebook::react;
 {
   *metadataOnly &= parent.isMetadataOnly;
   NSInteger position = 0;
+  NSInteger retainedIndex = -1;
   for (UIView *child in parent.subviews) {
+    retainedIndex++;
     if (![child isKindOfClass:CUICollectionNode.class]) return @"non-metadata-child";
     CUICollectionNode *node = (CUICollectionNode *)child;
     *metadataOnly &= node.isMetadataOnly;
@@ -66,7 +68,8 @@ using namespace facebook::react;
     if (!node.descriptorId.length || !node.descriptorRevision.length || [ids containsObject:node.descriptorId]) return @"invalid-descriptor-identity";
     [ids addObject:node.descriptorId];
     [nodes addObject:@{@"descriptorId":node.descriptorId, @"descriptorRevision":node.descriptorRevision,
-      @"parentDescriptorId":parentId, @"target":@(node.tag), @"index":@(position++)}];
+      @"parentDescriptorId":parentId, @"target":@(node.tag), @"index":@(position++), @"retainedIndex":@(retainedIndex),
+      @"hasRetainedChildren":@(node.subviews.count > 0)}];
     NSString *error = [self collect:node parentId:node.descriptorId nodes:nodes ids:ids metadataOnly:metadataOnly];
     if (error.length) return error;
   }

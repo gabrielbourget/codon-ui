@@ -10,6 +10,7 @@ import time
 
 from build import LAB, command, digest, environment, verify
 from validate import parse, validate
+from validate_authoring import parse as parse_authoring, validate as validate_authoring
 
 ADB = LAB / "sdk/platform-tools/adb"
 SERIAL = "emulator-5568"
@@ -84,24 +85,34 @@ def run(root):
         assert re.fullmatch(rb"\d+", pid.strip())
         state.update({"appPID": pid.decode().strip(), "stage": "original-native-records"})
         save()
-        deadline = min(time.time() + 90, state["deadlineUnix"])
-        records = None
+        deadline = min(time.time() + (180 if inputs.get("profile") == "authoring" else 90), state["deadlineUnix"])
+        records, authoring_records = None, None
         while time.time() < deadline:
             assert emulator.poll() is None and monitor.poll() is None, "Owned guest or original-log transport stopped"
             data = (root / "native.log").read_text(errors="replace")
             if not data.endswith("\n"): data = data.rsplit("\n", 1)[0]
             try: candidate = parse(data)
             except (AssertionError, json.JSONDecodeError): candidate = []
-            if candidate and candidate[-1].get("kind") == "terminal": records = candidate; break
+            if candidate and candidate[-1].get("kind") == "terminal":
+                records = candidate
+                if inputs.get("profile") != "authoring" or candidate[-1].get("outcome") != "native-records-complete": break
+                try: authoring_candidate = parse_authoring(data)
+                except (AssertionError, json.JSONDecodeError): authoring_candidate = []
+                if authoring_candidate and authoring_candidate[-1].get("kind") == "terminal": authoring_records = authoring_candidate; break
             time.sleep(1)
         assert records is not None, "Original native gate journal did not complete"
         (root / "original-native-journal.json").write_text(json.dumps(records, indent=2) + "\n")
+        if authoring_records is not None: (root / "original-authoring-journal.json").write_text(json.dumps(authoring_records, indent=2) + "\n")
         state["nativeCallbackCount"] = sum(row["kind"].startswith("native-") for row in records)
         state["acceptedSdkInspections"] = sum(row["kind"] == "native-inspection" and row["actual"]["accepted"] for row in records)
         state["stage"] = "validate-sdk-observations"
         save()
         verdict = validate(records, "android", inputs["producer"])
         (root / "native-sdk-verdict.json").write_text(json.dumps(verdict, indent=2) + "\n")
+        if inputs.get("profile") == "authoring":
+            assert authoring_records is not None, "Original React authoring/native join journal did not complete"
+            authoring_verdict = validate_authoring(authoring_records, "android", inputs["producer"])
+            (root / "native-authoring-verdict.json").write_text(json.dumps(authoring_verdict, indent=2) + "\n")
         device("final-window", ["shell", "dumpsys", "window", "windows"], required=False)
         state.update({"status": "SDK_JOURNAL_PASS", "stage": "complete", "inspectorIdentity": {"kind": "actual native host public SDK inspection", "producer": inputs["producer"], "installedAPK": product["apkSHA256"]}})
     except BaseException as error:

@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs"
 
 import { act, render, screen } from "@testing-library/react"
-import { Activity, createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { Activity, createContext, createRef, useContext, useEffect, useState, type ReactNode } from "react"
 import { CollectionRendererContext, DefaultCollectionRenderer, I18nProvider } from "react-aria-components"
 import { afterAll, expect, it, vi } from "vitest"
 
@@ -179,4 +179,48 @@ it("updates opaque collection props through the original ancestor context", asyn
   await act(() => view.rerender(node(["b", "c", "a"])))
   expect(current.keys).toEqual(["b", "c", "a"])
   records.push({ case: "ancestor context", logical: current.keys })
+})
+
+it("retains the whole builder's Activity state and records exact restored lookup/ref behavior", async () => {
+  const { current, renderer } = observer(),
+    ref = createRef<HTMLDivElement>()
+  const identities: object[] = []
+  const Content = ({ order }: { order: string[] }) => {
+    const [identity] = useState(() => ({}))
+    useEffect(() => {
+      identities.push(identity)
+    }, [])
+    return (
+      <>
+        {order.map((id) => (
+          <Tag key={id} id={id} ref={id === "a" ? ref : undefined} textValue={id}>
+            {id}
+          </Tag>
+        ))}
+      </>
+    )
+  }
+  const node = (hidden: boolean, order: string[]) => (
+    <Activity mode={hidden ? "hidden" : "visible"}>{fixture(<Content order={order} />, renderer)}</Activity>
+  )
+  const view = render(node(false, ["a", "b", "c"]))
+  await act(() => view.rerender(node(false, ["b", "c", "a"])))
+  const beforeLookup = [...current.lookupKeys],
+    beforeRef = ref.current
+  await act(() => view.rerender(node(true, ["b", "c", "a"])))
+  const hiddenLookup = [...current.lookupKeys],
+    hiddenRef = ref.current
+  await act(() => view.rerender(node(false, ["b", "c", "a"])))
+  expect(current.keys).toEqual(["b", "c", "a"])
+  expect(identities).toHaveLength(2)
+  expect(identities[1]).toBe(identities[0])
+  records.push({
+    case: "whole builder Activity",
+    beforeLookup,
+    hiddenLookup,
+    restoredLookup: current.lookupKeys,
+    hiddenRefDetached: hiddenRef === null,
+    sameRestoredRef: ref.current === beforeRef,
+    opaqueStateRetained: identities[1] === identities[0],
+  })
 })
