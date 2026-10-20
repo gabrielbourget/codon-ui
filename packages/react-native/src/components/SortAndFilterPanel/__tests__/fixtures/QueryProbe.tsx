@@ -1,11 +1,19 @@
-import { useState } from "react"
-import { ScrollView } from "react-native"
+import { useRef, useState } from "react"
+import { ScrollView, type View } from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
 import { normalizeDraftToQueryFilterGroups } from "../../../Table/filterDraft"
 import type { TAvailableFilterCriteria } from "../../../Table/filterMetadata"
 import type { TTableFilterGroup } from "../../../Table/queryTypes"
+import { DEFAULT_QUERY_CONTROL_LABELS } from "../../controlLabels"
 import { useNativeQueryDraftController, type TNativeQueryApplyRequest } from "../../controller"
+import {
+  QueryActiveSorts,
+  QueryPanelFooter,
+  QueryPanelHeader,
+  QuerySortCriteriaField,
+  QuerySortEntry,
+} from "../../QueryControls"
 
 const criteria: TAvailableFilterCriteria[] = [
   {
@@ -48,8 +56,9 @@ const sortCriteria = [
 ]
 const initialApplied = (): TNativeQueryApplyRequest => ({ sortInstructions: [], filterGroups: applied })
 
-// Nonshipping controller probe. Full query controls, gestures and installed acceptance remain separate work.
+// Nonshipping query control composition. Complete filtering, gestures and installed acceptance remain separate work.
 const ControllerProbe = () => {
+  const criteriaRef = useRef<View>(null)
   const [confirmed, setConfirmed] = useState(initialApplied)
   const [echo, setEcho] = useState(false)
   const [isOpen, setOpen] = useState(true)
@@ -101,6 +110,48 @@ const ControllerProbe = () => {
           <Button onPress={controller.apply}>Apply request</Button>
           <Button onPress={controller.cancel}>Cancel to owner</Button>
           <Button onPress={reset}>Reset probe</Button>
+          <QueryPanelHeader
+            title="Events"
+            labels={DEFAULT_QUERY_CONTROL_LABELS.header}
+            canAct={() => isOpen}
+            onCloseSortAndFilterPanel={() => setCloseRequests((count) => count + 1)}
+          />
+          <QuerySortCriteriaField
+            ref={criteriaRef}
+            labels={DEFAULT_QUERY_CONTROL_LABELS.form}
+            closeLabel="Close sort criteria"
+            availableSortCriteria={controller.availableSortCriteria}
+            canAct={() => isOpen}
+            onAddSortParameter={controller.addSort}
+          />
+          <QueryActiveSorts
+            sortParameterList={controller.draft.sortInstructions}
+            labels={DEFAULT_QUERY_CONTROL_LABELS.activeSorts}
+            canAct={() => isOpen}
+            onDeleteSortParameter={controller.removeSort}
+          />
+          {controller.draft.sortInstructions.map((parameter) => (
+            <QuerySortEntry
+              key={parameter.id}
+              parameter={parameter}
+              availableSortCriteria={controller.availableSortCriteria}
+              labels={DEFAULT_QUERY_CONTROL_LABELS.sortEntry}
+              canAct={() => isOpen}
+              onModifySortParameter={({ listItemID, sortCriteriaID }) =>
+                controller.modifySort(listItemID, sortCriteriaID)
+              }
+              onSortAscending={(id) => controller.setSortDirection(id, "Ascending")}
+              onSortDescending={(id) => controller.setSortDirection(id, "Descending")}
+              onDeleteSortParameter={controller.removeSort}
+            />
+          ))}
+          <QueryPanelFooter
+            labels={DEFAULT_QUERY_CONTROL_LABELS.footer}
+            canAct={() => isOpen}
+            onClearAllSortAndFilterParameters={controller.clear}
+            onCancelPendingChanges={controller.cancel}
+            onApplyPendingChanges={controller.apply}
+          />
           <Text testID="native-query-draft-proof">
             {JSON.stringify({
               confirmed,
