@@ -1,0 +1,46 @@
+{
+  "status": "Private immutable snapshots and native receipt joining only; no whole-family, React authoring or native business-action acceptance",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "package": {
+    "name": "react-aria",
+    "version": "3.48.0",
+    "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae"
+  },
+  "license": {
+    "file": "LICENSE.react-aria.md",
+    "sourceSHA256": "7dfe6526888bac51759c99f9a51262ba2711a8c12a067f2181609dd9a4066b84",
+    "receivedSHA256": "ea8f3f8859324a75512a4692854dfc03d82c5f47bfdb59ac94a7269855a80405",
+    "format": "Verbatim upstream license inside a Markdown text fence; interior bytes match sourceSHA256"
+  },
+  "sources": [
+    {
+      "distributionPath": "dist/private/collections/BaseCollection.mjs",
+      "distributionSHA256": "bf807ec81435d654a088141a09f1d45d50cbbf8292ab582eda8792465c755a42",
+      "sourceMapPath": "dist/private/collections/BaseCollection.mjs.map",
+      "sourceMapSHA256": "650aa95dcb8dbea933b6a44b0d512816a0ee587f611a6c617ddbfc07f0d950a8",
+      "sourcePath": "packages/react-aria/src/collections/BaseCollection.ts",
+      "sourceContentSHA256": "4c3ae423f7f347d2d29581bc356d09b77e38db9a2bbb75cc185f72db7e2c0912",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/BaseCollection.ts"
+    },
+    {
+      "distributionPath": "dist/private/collections/Document.mjs",
+      "distributionSHA256": "768478c03c66a0acd8b630783a25df9d4c1f20caedf97407b75d1ed1b7a85f14",
+      "sourceMapPath": "dist/private/collections/Document.mjs.map",
+      "sourceMapSHA256": "112d55f9006c96229bcb9f75ab536b292098054e8328952ae22cafd87c4bc293",
+      "sourcePath": "packages/react-aria/src/collections/Document.ts",
+      "sourceContentSHA256": "4cef688f844142271d3e37180e2d403129002b1152b56af37b4d8a28c687489e",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/collections/Document.ts"
+    }
+  ],
+  "adaptations": [
+    "Actual native preorder plus retained sibling indices/children supply node links without registration or layout ordering.",
+    "Owned nodes/maps are immutable; original value, rendered content, props, renderer and caller ref identities remain in JavaScript.",
+    "Preserve lookup membership versus linked navigation, item-only size, source duplicate-key replacement and changed-ID rejection, source at/childNodes exceptions and numeric-zero filtering edge.",
+    "React authoring, generated IDs, item caching/id scope, full contexts/renderers, native acknowledgement and full family adoption remain separate required construction.",
+    "No react-aria, DOM, browser or test runtime import is added to native."
+  ],
+  "authoredFilesSHA256": {
+    "snapshot.ts": "8d03d3c6ec39e93a7394732770bbbd112c0c6f269dc906c94e5e2f98003820bf",
+    "admission.ts": "21e6eef0c22e7d3b603ff9c4e73f61daccfb0ab9cab23867d6c9d2cc949bf630"
+  }
+}

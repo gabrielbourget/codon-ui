@@ -22,6 +22,22 @@ def ios():
 
 
 class Guards(unittest.TestCase):
+    def test_retained_indices_include_hidden_sdk_siblings(self):
+        tree = {"target": 20, "children": [{"target": 21, "children": []}, {"target": 22, "children": []}]}
+        node = {"descriptorId": "visible", "parentDescriptorId": "", "target": 22, "index": 0, "retainedIndex": 1, "hasRetainedChildren": False}
+        validate.retained_positions([node], tree)
+        node["retainedIndex"] = 0
+        with self.assertRaises(AssertionError): validate.retained_positions([node], tree)
+        del node["retainedIndex"]
+        with self.assertRaises(AssertionError): validate.retained_positions([node], tree)
+
+    def test_hidden_retained_children_are_not_reported_as_an_empty_physical_node(self):
+        tree = {"target": 20, "children": [{"target": 21, "children": [{"target": 22, "children": []}]}]}
+        node = {"descriptorId": "parent", "parentDescriptorId": "", "target": 21, "index": 0, "retainedIndex": 0, "hasRetainedChildren": True}
+        validate.retained_positions([node], tree)
+        node["hasRetainedChildren"] = False
+        with self.assertRaises(AssertionError): validate.retained_positions([node], tree)
+
     def test_sdk_configurations_are_checked_in_both_platform_forms(self):
         validate.sdk_tree(android(), "android", {2})
         validate.sdk_tree(ios(), "ios", {2})

@@ -71,6 +71,21 @@ def sdk_tree(tree, platform, native_targets):
         sdk_tree(child, platform, native_targets)
 
 
+def retained_positions(nodes, tree):
+    actual = {}
+    def visit(parent):
+        for index, child in enumerate(parent["children"]):
+            actual[child["target"]] = (parent["target"], index, bool(child["children"]))
+            visit(child)
+    visit(tree)
+    targets = {node["descriptorId"]: node["target"] for node in nodes}
+    for node in nodes:
+        parent = targets[node["parentDescriptorId"]] if node["parentDescriptorId"] else tree["target"]
+        assert type(node.get("retainedIndex")) is int and node["retainedIndex"] >= node["index"]
+        assert type(node.get("hasRetainedChildren")) is bool
+        assert actual[node["target"]] == (parent, node["retainedIndex"], node["hasRetainedChildren"]), "retained-index-without-sdk-correspondence"
+
+
 def validate(records, platform, producer):
     assert records[0]["kind"] == "begin" and records[0]["sourceProducer"] == producer and len(producer) == 40
     assert all(row["probe"] == PROBE for row in records)
@@ -128,6 +143,7 @@ def validate(records, platform, producer):
         facts = json.loads(actual["inspection"])
         assert not facts["focusRequestAccepted"] and facts["focusedBefore"] == facts["focusedAfter"]
         sdk_tree(facts["tree"], platform, all_native_targets)
+        retained_positions(nodes, facts["tree"])
         phase_inspections.append(phase)
     first_nodes = {node["descriptorId"]: node["target"] for node in json.loads(selected["initial"]["hierarchy"])}
     for phase in ["parent-reorder", "local-reorder", "restored", "context"]:

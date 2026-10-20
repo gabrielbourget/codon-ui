@@ -69,7 +69,8 @@ final class CUICollectionRoot extends CUICollectionNode implements UIManagerList
       if (node.getVisibility() != View.VISIBLE) continue;
       if (node.descriptorId.isEmpty() || node.descriptorRevision.isEmpty() || !ids.add(node.descriptorId)) throw new IllegalStateException("invalid-descriptor-identity");
       nodes.put(new JSONObject().put("descriptorId", node.descriptorId).put("descriptorRevision", node.descriptorRevision)
-        .put("parentDescriptorId", parentId).put("target", node.getId()).put("index", position++));
+        .put("parentDescriptorId", parentId).put("target", node.getId()).put("index", position++).put("retainedIndex", index)
+        .put("hasRetainedChildren", node.getChildCount() > 0));
       metadataOnly &= collect(node, node.descriptorId, nodes, ids);
     }
     return metadataOnly;
