@@ -19,6 +19,8 @@ export type TNativeTagGroupEmptyState = Readonly<{
 export type TNativeTagGroupLabels = Readonly<{
   removeButtonAriaLabel?: string | ((textValue: string, key: TNativeTagGroupKey) => string)
   removeDescription?: string
+  descriptionLabel?: string
+  detailsLabel?: string
 }>
 export type TNativeTagGroupProps<T extends object = object> = Omit<
   TNativeFocusViewProps,
@@ -44,6 +46,10 @@ export type TNativeTagGroupProps<T extends object = object> = Omit<
     emptyListMessage?: string
     renderEmptyState?: (state: TNativeTagGroupEmptyState) => ReactNode
     labels?: TNativeTagGroupLabels
+    ariaDescribedBy?: string | readonly string[]
+    ariaDetails?: string | readonly string[]
+    "aria-describedby"?: string
+    "aria-details"?: string
     "data-testid"?: string
   }
 export type TNativeGroupedTagProps = Omit<

@@ -32,6 +32,7 @@ import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext, useListState, UNSTABLE_useFilteredListState } from "../../collection/state"
 import type { Node } from "../../collection/state/types"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -129,6 +130,10 @@ const NativeTagGroup = <T extends object>({
     emptyListMessage,
     renderEmptyState,
     labels = {},
+    ariaDescribedBy: _describedBy,
+    ariaDetails: _details,
+    "aria-describedby": _describedAlias,
+    "aria-details": _detailsAlias,
     render,
     slot: _slot,
     filter,
@@ -655,6 +660,12 @@ const NativeTagGroup = <T extends object>({
     focusable: true,
     accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
     accessibilityLabelledBy: props.accessibilityLabelledBy,
+    nativeLabelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
+    nativeDescribedBy: nativeAccessibilityIDs(props.ariaDescribedBy ?? props["aria-describedby"]),
+    nativeDetailsBy: nativeAccessibilityIDs(props.ariaDetails ?? props["aria-details"]),
+    nativeDescriptionLabel: labels.descriptionLabel,
+    nativeDetailsLabel: labels.detailsLabel,
+    accessibilityHint: props.accessibilityHint,
     style: styles.list,
     onLayout: () => setTargetTag(findNodeHandle(list.current) ?? 0),
     accessibilityLiveRegion: focusWithin ? ("polite" as const) : ("none" as const),
