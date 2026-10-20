@@ -1,5 +1,6 @@
 #include "GeometryQuery.h"
 #include "NativeStyle.h"
+#include "NativeMeasuredEdges.h"
 
 #include <folly/json.h>
 #include <react/renderer/components/CodonNativeInputSpec/Props.h>
@@ -166,10 +167,33 @@ double leadingInset(bool horizontal, int target, const TLayouts &layouts,
   throw std::runtime_error("Native motion layout: auto relative computed inset unavailable");
 }
 folly::dynamic metric(const std::string &name, int target, const TLayouts &layouts, const TNodes &nodes,
-                      const TNativeInitialColorReader &readColor, bool swapLeftAndRight) {
+                      const TNativeInitialColorReader &readColor, bool swapLeftAndRight, bool swapLeftAndRightInRTL) {
   const auto &record = layoutFor(target, layouts);
-  const auto layout = metrics(record);
+  auto layout = metrics(record);
+  // RN configures the whole Yoga tree from root constraints, but reports the
+  // child layout flag from that child's resolved direction after layout.
+  layout.wasLeftAndRightSwapped = swapLeftAndRightInRTL && layout.layoutDirection == LayoutDirection::RightToLeft;
   const auto &props = static_cast<const ViewProps &>(*nodes.at(target).props);
+  if (const auto selected = nativeMeasuredEdgeSelection(name, "margin", "",
+      layout.layoutDirection == LayoutDirection::RightToLeft, layout.wasLeftAndRightSwapped)) {
+    const auto style = copyNativeYogaStyle(props, swapLeftAndRight);
+    constexpr facebook::yoga::Edge edges[]{facebook::yoga::Edge::Left, facebook::yoga::Edge::Top,
+        facebook::yoga::Edge::Right, facebook::yoga::Edge::Bottom};
+    for (size_t index = 0; index < selected->size(); index++) {
+      if (!(*selected)[index]) continue;
+      const bool horizontal = index == 0 || index == 2;
+      auto value = style.margin(edges[index]);
+      if (horizontal) {
+        const auto logical = style.margin((index == 2) != (layout.layoutDirection == LayoutDirection::RightToLeft)
+            ? facebook::yoga::Edge::End : facebook::yoga::Edge::Start);
+        if (logical.isDefined()) value = logical;
+      }
+      if (value.isUndefined()) value = style.margin(horizontal ? facebook::yoga::Edge::Horizontal : facebook::yoga::Edge::Vertical);
+      if (value.isUndefined()) value = style.margin(facebook::yoga::Edge::All);
+      if (value.isAuto()) throw std::runtime_error("Native motion layout: distributed auto margin authority unavailable");
+    }
+    return nativeMeasuredEdgeValue(record.layout.margin, *selected);
+  }
   if (name == "width" || name == "height") {
     const auto box = rootBox(target, layouts, nodes, true);
     const bool width = name == "width";
@@ -272,7 +296,8 @@ std::string queryNativeEvaluatedLayout(
     for (const auto &layout : layouts) byTag.emplace(layout.tag, &layout);
     folly::dynamic values = folly::dynamic::object();
     for (const auto &name : names) { check(); values[name] = metric(name, target, byTag, selected, readColor,
-        snapshot.context.swapLeftAndRightInRTL && snapshot.constraints.layoutDirection == LayoutDirection::RightToLeft); }
+        snapshot.context.swapLeftAndRightInRTL && snapshot.constraints.layoutDirection == LayoutDirection::RightToLeft,
+        snapshot.context.swapLeftAndRightInRTL); }
     const auto &layout = byTag.at(target)->layout;
     results.push_back(folly::dynamic::object("index", static_cast<int64_t>(index))("metrics", std::move(values))
         ("evaluatedFrame", array(layout.frame))("evaluatedBorder", array(layout.border))

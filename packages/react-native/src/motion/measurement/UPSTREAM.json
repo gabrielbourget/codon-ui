@@ -1,5 +1,5 @@
 {
-  "scope": "Private guarded actual-host initial values and isolated geometry queue bound to the native immutable Fabric evaluator. Cohort normalization precedes staging; evaluated data is not mounted observation. Source and compiler checks do not admit native fidelity or full Card.",
+  "scope": "Private guarded actual-host initial values and isolated geometry. Initial margin scalars use the same immutable-input evaluator because mounted LayoutMetrics omits margin; unresolved/auto/ambiguous values reject. Original refs and native packet identities are retained. Source/compiler checks do not admit native fidelity or full Card.",
   "package": "motion-dom",
   "version": "12.40.0",
   "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
@@ -29,7 +29,7 @@
   "authoredFiles": [
     {
       "file": "initialValue.ts",
-      "sha256": "1e3764ef76f53e863488fbe623b159990f0d4693a72a0a1ab55965f4c7ba743d"
+      "sha256": "26344165e780f4984eab66a29158c84dd3ff0b58fea948a12ae26ee1e2db425f"
     },
     {
       "file": "isolatedGeometry.ts",

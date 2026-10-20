@@ -661,6 +661,12 @@
       "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/scripts/cocoapods/new_architecture.rb",
       "sha256": "4a0b5aeb3fac4924474b758e581f44a15370aba5a16ab94a1dce182e8af5bd28",
       "adaptation": "Pinned public position-length resolution and existing pod config merge; no new dependency, SDK flag, renderer mutation or unexported Yoga symbol."
+    },
+    {
+      "path": "ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sourceRef": "https://github.com/facebook/react-native/blob/v0.86.3/packages/react-native/ReactCommon/yoga/yoga/YGNodeLayout.cpp",
+      "sha256": "c4645e1ebbaa4c607ba92dd53bf8bb18ec1ed289e7dfdc7c5de9968d8b981487",
+      "adaptation": "Read separately evaluated physical margins; original Yoga nodes are never accessed. Native edge spelling follows reported child RTL metadata independently from root configuration."
     }
   ],
   "license": "LICENSE.react-native.md",
@@ -767,7 +773,7 @@
     },
     {
       "file": "InitialValueStyle.cpp",
-      "sha256": "55514abd5eec5afa4ab536e6e7d6d908d3d192179ec610e1fc7435ef688ed28f"
+      "sha256": "a749a239a85ff5ac570b986708f55177d887c92b46f1ccbd83af608e14971d36"
     },
     {
       "file": "NativeLayoutState.cpp",
@@ -779,7 +785,7 @@
     },
     {
       "file": "GeometryQuery.cpp",
-      "sha256": "0538bf12681f2002a65915e69edba7fa9587daa03f91730bceed10c28ac66bfc"
+      "sha256": "0092c87b2f8e47d4f7c6f3afe608244464de00b80691a63fb495b4b444b0aa98"
     },
     {
       "file": "GeometryQuery.h",
@@ -788,6 +794,14 @@
     {
       "file": "NativeYogaNames.h",
       "sha256": "6b068f2e95f8ea27a301ee89634789d06ec6e91bedaace5ee892faf02be27fb3"
+    },
+    {
+      "file": "NativeMeasuredEdges.h",
+      "sha256": "5a9a1c6ce8242810e7f081228dd5dc3245cab48ccff9f30b437bfc5155d7cac3"
+    },
+    {
+      "file": "NativeTransformValue.h",
+      "sha256": "99665f3ffd8a7afb658240e1ec755a008f399c30447e27604f2d4cf02c61bf63"
     }
   ],
   "licenseSha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93",
@@ -875,7 +889,7 @@
     },
     {
       "file": "ios/CUIMotionDrawingView.mm",
-      "sha256": "60b7bf4262a7ed1cb5c30d8a9ea247cda5f23d869c91899ff5eac0ab7faa03a0"
+      "sha256": "aa63c76d5d5b8948813e9d59b62c8db9876a245a1592f7ee1c93170c0a6a3404"
     },
     {
       "file": "ios/CUIFocusView.h",
@@ -1019,5 +1033,28 @@
     "AndroidReleaseLibraryBuilt": true,
     "installedNativeFidelityAccepted": false,
     "fullCard": false
+  },
+  "motionSourceInputs": [
+    {
+      "package": "motion-dom",
+      "version": "12.40.0",
+      "gitHead": "38ebb9480e5b25a51e09e2ec866c101d01d82c60",
+      "sourceRef": "https://github.com/motiondivision/motion/blob/38ebb9480e5b25a51e09e2ec866c101d01d82c60/packages/motion-dom/src/render/dom/parse-transform.ts",
+      "sourceKind": "npm-source-map-sourcesContent",
+      "upstreamSha256": "c0e21cc5d0151a3f0d5e76c762c6eee24a659d74b5ede1be04133562f721714c",
+      "executedModuleSha256": "73ce14c6622f4aa9d039bc8a7563862000f5ee2d57eef61106ce86d49395cde7"
+    }
+  ],
+  "motionLicense": {
+    "file": "../../src/motion/kernel/LICENSE.motion-dom.md",
+    "sha256": "1bf0dc3f7727723e5a032ed12164a47cf92c05204cb1a3485f123c24e2833ed1"
+  },
+  "computedValuesBoundary": {
+    "nativeTransformInput": "resolved4x4; explicit matrix3d formulas",
+    "authoredMatrixScalarAmbiguityRemoved": true,
+    "evaluatedMargins": true,
+    "autoMargins": "explicit unsupported distributed-value authority",
+    "initialMarginRead": "same guarded independent evaluator, no mounted probe",
+    "nativeAcceptance": false
   }
 }

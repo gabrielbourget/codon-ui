@@ -73,6 +73,15 @@ const harness = (acknowledge = true) => {
     registry,
     listeners,
     response,
+    evaluated: jest.fn(async (encoded: string) =>
+      JSON.stringify({
+        ...JSON.parse(encoded),
+        kind: "evaluated-layout",
+        surfaceId: 1,
+        fabricRevision: "9",
+        results: [{ index: 0, metrics: { [JSON.parse(encoded).properties[0]]: 34 } }],
+      }),
+    ),
     release: () => {
       releaseGeometry()
       releaseColors()
@@ -116,6 +125,70 @@ beforeEach(() => jest.useFakeTimers())
 afterEach(() => {
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it.each([
+  "margin",
+  "marginLeft",
+  "marginTop",
+  "marginStart",
+  "marginInlineEnd",
+  "marginBlockStart",
+  "marginHorizontal",
+  "marginVertical",
+])("reads computed %s from independently evaluated actual inputs rather than unresolved props", async (name) => {
+  const h = harness()
+  h.registry.mockReturnValue({ getInitialValue: h.backend, evaluateLayout: h.evaluated } as never)
+  await expect(readNativeMotionInitialValue(h.target, name, 50, h.token)).resolves.toBe(34)
+  expect(h.backend).not.toHaveBeenCalled()
+  expect(JSON.parse(h.evaluated.mock.calls[0][0])).toMatchObject({
+    target: 71,
+    ownerId: "owner",
+    properties: [name],
+    stages: [{ index: 0, nativeView: {} }],
+  })
+  expect(h.listeners.size).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
+  h.release()
+})
+
+it.each([0, "10%", []])("accepts only a finite evaluated margin scalar: %p", async (value) => {
+  const h = harness()
+  h.evaluated.mockImplementation(async (encoded) =>
+    JSON.stringify({
+      ...JSON.parse(encoded),
+      kind: "evaluated-layout",
+      surfaceId: 1,
+      fabricRevision: "9",
+      results: [{ index: 0, metrics: { marginLeft: value } }],
+    }),
+  )
+  h.registry.mockReturnValue({ evaluateLayout: h.evaluated } as never)
+  const pending = readNativeMotionInitialValue(h.target, "marginLeft", 50, h.token)
+  if (value === 0) await expect(pending).resolves.toBe(0)
+  else await expect(pending).rejects.toThrow(/margin remains unresolved/)
+  h.release()
+})
+
+it("retires an initial margin evaluation and ignores its late reply without publishing a value", async () => {
+  const h = harness()
+  let accept!: (encoded: string) => void
+  h.evaluated.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        accept = resolve
+      }),
+  )
+  h.registry.mockReturnValue({ evaluateLayout: h.evaluated } as never)
+  const pending = readNativeMotionInitialValue(h.target, "marginLeft", 50, h.token)
+  await turn()
+  h.retire()
+  await expect(pending).rejects.toThrow(/cancelled/)
+  accept(JSON.stringify({}))
+  await turn()
+  expect(h.listeners.size).toBe(0)
+  expect(jest.getTimerCount()).toBe(0)
+  h.release()
 })
 
 it("queries the actual original registered owner and releases every request resource", async () => {

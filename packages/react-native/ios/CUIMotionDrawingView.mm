@@ -65,8 +65,11 @@ static void RCTAddContourEffectToLayer(
     const RCTBorderStyle &contourStyle,
     const CUIMotionCornerCurves &curves)
 {
-  UIImage *image = CUIGetBorderImage(
-      contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves);
+  const bool circular = curves.topLeft == BorderCurve::Circular && curves.topRight == BorderCurve::Circular &&
+      curves.bottomLeft == BorderCurve::Circular && curves.bottomRight == BorderCurve::Circular;
+  UIImage *image = circular
+      ? RCTGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO)
+      : CUIGetBorderImage(contourStyle, layer.bounds.size, cornerRadii, contourInsets, contourColors, [UIColor clearColor], NO, curves);
 
   if (image == nil) {
     layer.contents = nil;
@@ -212,6 +215,20 @@ static BorderRadii CUIRadiiPercentToPoint(
 }
 
 
+static void CUIApplyProjectionRadii(NSDictionary *values, BorderRadii &radii) {
+  const auto apply = [&](NSString *key, CornerRadii &corner) {
+    id value = values[key];
+    if (value && value != NSNull.null) { corner.horizontal = [value[@"x"] doubleValue]; corner.vertical = [value[@"y"] doubleValue]; }
+  };
+  apply(@"topLeft", radii.topLeft); apply(@"topRight", radii.topRight);
+  apply(@"bottomLeft", radii.bottomLeft); apply(@"bottomRight", radii.bottomRight);
+}
+
+static CUIMotionCornerCurves CUIUniformCornerCurve(BorderCurve curve) {
+  return {curve, curve, curve, curve};
+}
+
+
 @implementation CUIMotionDrawingView {
   BOOL _cuiDrawingEnabled;
   BOOL _cuiModeDecided;
@@ -255,17 +272,32 @@ static BorderRadii CUIRadiiPercentToPoint(
   if (![_cuiRadii isEqual:value]) { _cuiRadii = [value copy]; _cuiDrawingDirty = YES; }
 }
 
+- (BOOL)cuiHasProjectionRadii {
+  for (NSString *key in @[@"topLeft", @"topRight", @"bottomLeft", @"bottomRight"])
+    if (_cuiRadii[key] && _cuiRadii[key] != NSNull.null) return YES;
+  return NO;
+}
+
 - (BorderMetrics)cuiBorderMetrics {
   auto result = _props->resolveBorderMetrics(_layoutMetrics);
+  if (![self cuiHasProjectionRadii]) return result;
   result.borderRadii = CUIRadiiPercentToPoint(_props->borderRadii.resolve(
       _layoutMetrics.layoutDirection == LayoutDirection::RightToLeft, ValueUnit{0, UnitType::Point}), _layoutMetrics.frame.size);
-  const auto apply = [&](NSString *key, CornerRadii &corner) {
-    id value = _cuiRadii[key];
-    if (value && value != NSNull.null) { corner.horizontal = [value[@"x"] doubleValue]; corner.vertical = [value[@"y"] doubleValue]; }
-  };
-  apply(@"topLeft", result.borderRadii.topLeft); apply(@"topRight", result.borderRadii.topRight);
-  apply(@"bottomLeft", result.borderRadii.bottomLeft); apply(@"bottomRight", result.borderRadii.bottomRight);
+  CUIApplyProjectionRadii(_cuiRadii, result.borderRadii);
   result.borderRadii = CUIEnsureNoOverlap(result.borderRadii, _layoutMetrics.frame.size);
+  return result;
+}
+
+- (BorderMetrics)cuiUniformLayerBorderMetrics {
+  auto result = _props->resolveBorderMetrics(_layoutMetrics);
+  // RN's uniform CALayer primitive uses its horizontal radius on both axes,
+  // including percentage radii. Null corrections retain that actual primitive.
+  const auto radius = result.borderRadii.topLeft.horizontal;
+  result.borderRadii = {{radius, radius}, {radius, radius}, {radius, radius}, {radius, radius}};
+  if ([self cuiHasProjectionRadii]) {
+    CUIApplyProjectionRadii(_cuiRadii, result.borderRadii);
+    result.borderRadii = CUIEnsureNoOverlap(result.borderRadii, _layoutMetrics.frame.size);
+  }
   return result;
 }
 
@@ -409,6 +441,8 @@ static BorderRadii CUIRadiiPercentToPoint(
   }
 
   const auto borderMetrics = [self cuiBorderMetrics];
+  const auto nativeBorderMetrics = _props->resolveBorderMetrics(_layoutMetrics);
+  const auto uniformLayerMetrics = [self cuiUniformLayerBorderMetrics];
 
   // Stage 1. Shadow Path
   BOOL const layerHasShadow = layer.shadowOpacity > 0 && CGColorGetAlpha(layer.shadowColor) > 0;
@@ -417,7 +451,7 @@ static BorderRadii CUIRadiiPercentToPoint(
       // If view has a solid background color, calculate shadow path from border.
       const RCTCornerInsets cornerInsets =
           RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero);
-      CGPathRef shadowPath = CUIPathCreateWithRoundedRect(self.bounds, cornerInsets, borderMetrics.borderCurves);
+      CGPathRef shadowPath = RCTPathCreateWithRoundedRect(self.bounds, cornerInsets, nil, NO);
       layer.shadowPath = shadowPath;
       CGPathRelease(shadowPath);
     } else {
@@ -442,9 +476,9 @@ static BorderRadii CUIRadiiPercentToPoint(
       // rendering incorrectly on iOS, iOS apps in compatibility mode on visionOS, but not on visionOS.
       // To work around this, for iOS, we can calculate the border path based on `view.frame` (the
       // superview's coordinate space) instead of view.bounds.
-      CGPathRef borderPath = CUIPathCreateWithRoundedRect(self.frame, cornerInsets, borderMetrics.borderCurves);
+      CGPathRef borderPath = RCTPathCreateWithRoundedRect(self.frame, cornerInsets, nil, NO);
 #else // TARGET_OS_VISION
-      CGPathRef borderPath = CUIPathCreateWithRoundedRect(self.bounds, cornerInsets, borderMetrics.borderCurves);
+      CGPathRef borderPath = RCTPathCreateWithRoundedRect(self.bounds, cornerInsets, nil, NO);
 #endif
       UIBezierPath *bezierPath = [UIBezierPath bezierPathWithCGPath:borderPath];
       CGPathRelease(borderPath);
@@ -455,17 +489,16 @@ static BorderRadii CUIRadiiPercentToPoint(
     [self setHoverStyle:hoverStyle];
   }
 #endif
-  const bool useCoreAnimationBorderRendering =
-      borderMetrics.borderColors.isUniform() && borderMetrics.borderWidths.isUniform() &&
-      borderMetrics.borderStyles.isUniform() && borderMetrics.borderStyles.left == BorderStyle::Solid &&
-      (borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii)) &&
+  const bool sourceUsesCoreAnimationBorderRendering =
+      nativeBorderMetrics.borderColors.isUniform() && nativeBorderMetrics.borderWidths.isUniform() &&
+      nativeBorderMetrics.borderStyles.isUniform() && nativeBorderMetrics.borderStyles.left == BorderStyle::Solid &&
+      nativeBorderMetrics.borderRadii.isUniform() &&
       (
-          // iOS draws borders in front of the content whereas CSS draws them behind
-          // the content. For this reason, only use iOS border drawing when clipping
-          // or when the border is hidden.
-          borderMetrics.borderWidths.left == 0 || self.currentContainerView.clipsToBounds ||
-          (colorComponentsFromColor(borderMetrics.borderColors.left).alpha == 0 &&
-           (*borderMetrics.borderColors.left).getUIColor() != nullptr));
+          nativeBorderMetrics.borderWidths.left == 0 || self.currentContainerView.clipsToBounds ||
+          (colorComponentsFromColor(nativeBorderMetrics.borderColors.left).alpha == 0 &&
+           (*nativeBorderMetrics.borderColors.left).getUIColor() != nullptr));
+  const bool useCoreAnimationBorderRendering = sourceUsesCoreAnimationBorderRendering &&
+      uniformLayerMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(uniformLayerMetrics.borderRadii);
 
   // background color
   UIColor *backgroundColor = [self.backgroundColor resolvedColorWithTraitCollection:self.traitCollection];
@@ -499,8 +532,8 @@ static BorderRadii CUIRadiiPercentToPoint(
     layer.borderWidth = (CGFloat)borderMetrics.borderWidths.left;
     UIColor *borderColor = RCTUIColorFromSharedColor(borderMetrics.borderColors.left);
     layer.borderColor = borderColor.CGColor;
-    layer.cornerRadius = (CGFloat)borderMetrics.borderRadii.topLeft.horizontal;
-    layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
+    layer.cornerRadius = (CGFloat)uniformLayerMetrics.borderRadii.topLeft.horizontal;
+    layer.cornerCurve = CornerCurveFromBorderCurve(nativeBorderMetrics.borderCurves.topLeft);
   } else {
     if (!_cuiBorderLayer) {
       CALayer *borderLayer = [CALayer new];
@@ -514,16 +547,18 @@ static BorderRadii CUIRadiiPercentToPoint(
     layer.borderWidth = 0;
     layer.borderColor = nil;
     layer.cornerRadius = 0;
+    if (sourceUsesCoreAnimationBorderRendering)
+      layer.cornerCurve = CornerCurveFromBorderCurve(nativeBorderMetrics.borderCurves.topLeft);
 
     RCTBorderColors borderColors = RCTCreateRCTBorderColorsFromBorderColors(borderMetrics.borderColors);
 
     RCTAddContourEffectToLayer(
         _cuiBorderLayer,
-        RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
+        RCTCornerRadiiFromBorderRadii(sourceUsesCoreAnimationBorderRendering ? uniformLayerMetrics.borderRadii : borderMetrics.borderRadii),
         borderColors,
         RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths),
         RCTBorderStyleFromBorderStyle(borderMetrics.borderStyles.left),
-        borderMetrics.borderCurves);
+        sourceUsesCoreAnimationBorderRendering ? CUIUniformCornerCurve(nativeBorderMetrics.borderCurves.topLeft) : CUIMotionCornerCurves{});
   }
 
   // outline
@@ -541,7 +576,7 @@ static BorderRadii CUIRadiiPercentToPoint(
     _cuiOutlineLayer.frame = CGRectInset(
         layer.bounds, -_props->outlineOffset - _props->outlineWidth, -_props->outlineOffset - _props->outlineWidth);
 
-    if ((borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii)) && borderMetrics.borderRadii.topLeft.horizontal == 0) {
+    if (borderMetrics.borderRadii.isUniform() && borderMetrics.borderRadii.topLeft.horizontal == 0) {
       UIColor *outlineColor = RCTUIColorFromSharedColor(_props->outlineColor);
       _cuiOutlineLayer.borderWidth = _props->outlineWidth;
       _cuiOutlineLayer.borderColor = outlineColor.CGColor;
@@ -555,7 +590,7 @@ static BorderRadii CUIRadiiPercentToPoint(
           RCTBorderColors{outlineColor, outlineColor, outlineColor, outlineColor},
           UIEdgeInsets{_props->outlineWidth, _props->outlineWidth, _props->outlineWidth, _props->outlineWidth},
           RCTBorderStyleFromOutlineStyle(_props->outlineStyle),
-          borderMetrics.borderCurves);
+          CUIMotionCornerCurves{});
     }
   }
 
@@ -702,12 +737,11 @@ static BorderRadii CUIRadiiPercentToPoint(
       _cuiBoxShadowLayers = [NSMutableArray new];
     }
     for (auto it = _props->boxShadow.rbegin(); it != _props->boxShadow.rend(); ++it) {
-      CALayer *shadowLayer = CUIGetBoxShadowLayer(
+      CALayer *shadowLayer = RCTGetBoxShadowLayer(
           *it,
           RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
           RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths),
-          self.layer.bounds.size,
-          borderMetrics.borderCurves);
+          self.layer.bounds.size);
       shadowLayer.zPosition = _cuiBorderLayer.zPosition;
       [layer addSublayer:shadowLayer];
       [_cuiBoxShadowLayers addObject:shadowLayer];
@@ -715,46 +749,40 @@ static BorderRadii CUIRadiiPercentToPoint(
   }
 
   // clipping
-  self.currentContainerView.layer.mask = nil;
+  CALayer *containerLayer = self.currentContainerView.layer;
+  containerLayer.mask = nil;
   if (self.currentContainerView.clipsToBounds) {
-    self.currentContainerView.layer.cornerRadius = 0;
-    BOOL clipToPaddingBox = ReactNativeFeatureFlags::enableIOSViewClipToPaddingBox();
-    if (!clipToPaddingBox) {
-      if ((borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii))) {
-        self.currentContainerView.layer.cornerRadius = borderMetrics.borderRadii.topLeft.horizontal;
-        self.currentContainerView.layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
+    const BOOL clipToPaddingBox = ReactNativeFeatureFlags::enableIOSViewClipToPaddingBox();
+    const BOOL sourceUsesScalarClip = nativeBorderMetrics.borderRadii.isUniform() &&
+        (!clipToPaddingBox || (nativeBorderMetrics.borderWidths.isUniform() && nativeBorderMetrics.borderWidths.left == 0));
+    if (sourceUsesScalarClip) {
+      if (uniformLayerMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(uniformLayerMetrics.borderRadii)) {
+        containerLayer.cornerRadius = uniformLayerMetrics.borderRadii.topLeft.horizontal;
       } else {
-        CALayer *maskLayer =
-            [self createCuiMaskLayer:self.bounds
-                     cornerInsets:RCTGetCornerInsets(
-                                      RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)
-                     cornerCurves:borderMetrics.borderCurves];
-        self.currentContainerView.layer.mask = maskLayer;
+        // RN does not assign cornerCurve here. Preserve the actual inherited
+        // curve, including a circular overflow container around a continuous root.
+        const auto curve = [containerLayer.cornerCurve isEqualToString:kCACornerCurveContinuous]
+            ? BorderCurve::Continuous : BorderCurve::Circular;
+        containerLayer.cornerRadius = 0;
+        containerLayer.mask = [self createCuiMaskLayer:self.bounds
+            cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(uniformLayerMetrics.borderRadii), UIEdgeInsetsZero)
+            cornerCurves:CUIUniformCornerCurve(curve)];
       }
-
+    } else {
+      const CGRect clipBounds = clipToPaddingBox ? RCTCGRectFromRect(_layoutMetrics.getPaddingFrame()) : self.bounds;
+      const UIEdgeInsets clipInsets = clipToPaddingBox ? RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths) : UIEdgeInsetsZero;
+      containerLayer.mask = [self createCuiMaskLayer:clipBounds
+          cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), clipInsets)
+          cornerCurves:CUIMotionCornerCurves{}];
+    }
+    if (!clipToPaddingBox) {
       for (UIView *subview in self.currentContainerView.subviews) {
         if ([subview isKindOfClass:[UIImageView class]]) {
-          RCTCornerInsets cornerInsets = RCTGetCornerInsets(
-              RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
+          RCTCornerInsets cornerInsets = RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
               RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths));
-
-          // If the subview is an image view, we have to apply the mask directly to the image view's layer,
-          // otherwise the image might overflow with the border radius.
-          subview.layer.mask = [self createCuiMaskLayer:subview.bounds cornerInsets:cornerInsets cornerCurves:borderMetrics.borderCurves];
+          subview.layer.mask = [self createCuiMaskLayer:subview.bounds cornerInsets:cornerInsets cornerCurves:CUIMotionCornerCurves{}];
         }
       }
-    } else if (
-        !borderMetrics.borderWidths.isUniform() || borderMetrics.borderWidths.left != 0 ||
-        !(borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii))) {
-      CALayer *maskLayer = [self createCuiMaskLayer:RCTCGRectFromRect(_layoutMetrics.getPaddingFrame())
-                                    cornerInsets:RCTGetCornerInsets(
-                                                     RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii),
-                                                     RCTUIEdgeInsetsFromEdgeInsets(borderMetrics.borderWidths))
-                                    cornerCurves:borderMetrics.borderCurves];
-      self.currentContainerView.layer.mask = maskLayer;
-    } else {
-      self.currentContainerView.layer.cornerRadius = borderMetrics.borderRadii.topLeft.horizontal;
-      self.currentContainerView.layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
     }
   }
 }
@@ -763,19 +791,19 @@ static BorderRadii CUIRadiiPercentToPoint(
 // basically just accounting for size, position, and border radius.
 - (void)shapeCuiLayerToMatchView:(CALayer *)layer borderMetrics:(BorderMetrics)borderMetrics
 {
-  // Bounds is needed here to account for scaling transforms properly and ensure
-  // we do not scale twice
   layer.frame = CGRectMake(0, 0, self.layer.bounds.size.width, self.layer.bounds.size.height);
-  if ((borderMetrics.borderRadii.isUniform() && CUIRadiiAreCircular(borderMetrics.borderRadii))) {
+  const auto nativeBorderMetrics = _props->resolveBorderMetrics(_layoutMetrics);
+  const BOOL sourceUsesUniformLayer = nativeBorderMetrics.borderRadii.isUniform();
+  const auto resolved = sourceUsesUniformLayer ? [self cuiUniformLayerBorderMetrics] : borderMetrics;
+  if (sourceUsesUniformLayer && resolved.borderRadii.isUniform() && CUIRadiiAreCircular(resolved.borderRadii)) {
     layer.mask = nil;
-    layer.cornerRadius = borderMetrics.borderRadii.topLeft.horizontal;
-    layer.cornerCurve = CornerCurveFromBorderCurve(borderMetrics.borderCurves.topLeft);
+    layer.cornerRadius = resolved.borderRadii.topLeft.horizontal;
+    layer.cornerCurve = CornerCurveFromBorderCurve(nativeBorderMetrics.borderCurves.topLeft);
   } else {
-    CAShapeLayer *maskLayer = [self
-        createCuiMaskLayer:self.bounds
-           cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(borderMetrics.borderRadii), UIEdgeInsetsZero)
-           cornerCurves:borderMetrics.borderCurves];
-    layer.mask = maskLayer;
+    const auto curves = sourceUsesUniformLayer ? CUIUniformCornerCurve(nativeBorderMetrics.borderCurves.topLeft) : CUIMotionCornerCurves{};
+    layer.mask = [self createCuiMaskLayer:self.bounds
+        cornerInsets:RCTGetCornerInsets(RCTCornerRadiiFromBorderRadii(resolved.borderRadii), UIEdgeInsetsZero)
+        cornerCurves:curves];
     layer.cornerRadius = 0;
   }
 }

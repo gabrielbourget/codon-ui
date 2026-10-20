@@ -1,6 +1,7 @@
 #include "InitialValueQuery.h"
 #include "NativeYogaNames.h"
 #include "NativeStyle.h"
+#include "NativeTransformValue.h"
 
 #include <react/renderer/graphics/BlendMode.h>
 #include <cmath>
@@ -109,38 +110,14 @@ folly::dynamic transformArray(const Transform &transform) {
   return result;
 }
 folly::dynamic transformComponent(const ViewProps &props, const LayoutMetrics &metrics, const std::string &name) {
-  const bool scale = name == "scale" || name == "scaleX" || name == "scaleY";
-  const bool angle = name.starts_with("rotate") || name.starts_with("skew") || name == "pathRotation" || name == "rotation";
+  const bool nativeRotationAlias = name == "pathRotation" || name == "rotation";
+  if (!hasNativeMotionMatrixScalar(name) && !nativeRotationAlias && name != "transformPerspective") return nullptr;
   const auto matrix = BaseViewProps::resolveTransform(metrics.frame.size, props.transform, {}).matrix;
-  if (name == "x" || name == "translateX") return finite(matrix[12]);
-  if (name == "y" || name == "translateY") return finite(matrix[13]);
-  if (name == "z" || name == "translateZ") return finite(matrix[14]);
+  // These three native aliases are not parser keys in pinned Motion. Retain
+  // the native perspective coefficient and existing Z-rotation alias contract.
   if (name == "transformPerspective") return matrix[11] == 0 ? 0 : finite(-1 / matrix[11]);
-  if (scale || angle) {
-    // Preserve the exact independent RN operation when it exists. A matrix or
-    // repeated component has no unique authored scalar decomposition.
-    std::optional<double> result;
-    for (const auto &operation : props.transform.operations) {
-      if (operation.type == TransformOperationType::Arbitrary)
-        unavailable(name, "native-transform-component-ambiguous");
-      std::optional<double> candidate;
-      if (scale && operation.type == TransformOperationType::Scale) {
-        if (name == "scale") candidate = unanimous<double>({operation.x.value, operation.y.value}, name);
-        else candidate = name == "scaleX" ? operation.x.value : operation.y.value;
-      } else if (angle && operation.type == TransformOperationType::Rotate && !name.starts_with("skew")) {
-        candidate = name == "rotateX" ? operation.x.value : name == "rotateY" ? operation.y.value : operation.z.value;
-      } else if (name.starts_with("skew") && operation.type == TransformOperationType::Skew) {
-        candidate = name == "skewY" ? operation.y.value : operation.x.value;
-      }
-      if (candidate && *candidate != (scale ? 1 : 0)) {
-        if (result) unavailable(name, "native-transform-component-ambiguous");
-        result = candidate;
-      }
-    }
-    const auto value = finite(result.value_or(scale ? 1 : 0));
-    return angle ? folly::dynamic(value * 180 / std::acos(-1)) : folly::dynamic(value);
-  }
-  return nullptr;
+  const auto result = readNativeMotionMatrixScalar(matrix, nativeRotationAlias ? std::string_view("rotateZ") : std::string_view(name));
+  return result ? folly::dynamic(finite(*result)) : folly::dynamic(nullptr);
 }
 folly::dynamic gradientStops(const std::vector<ColorStop> &stops, const TNativeInitialColorReader &readColor) {
   auto result = folly::dynamic::array();
