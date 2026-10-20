@@ -118,7 +118,7 @@ const Opaque = ({
   )
 }
 
-const Gate = () => {
+export const MetadataGate = ({ onComplete }: { onComplete?: () => void }) => {
   const id = useId()
   const [controls, setControls] = useState<TControls>({
     order: INITIAL,
@@ -173,8 +173,9 @@ const Gate = () => {
         rows.current.join("\n") + "\n",
         { encoding: "utf8" },
       )
+      if (outcome === "native-records-complete") onComplete?.()
     },
-    [record],
+    [record, onComplete],
   )
   const fail = useCallback(
     (error: unknown) => {
@@ -324,6 +325,6 @@ const Gate = () => {
 
 export default () => (
   <NativeThemeProvider>
-    <Gate />
+    <MetadataGate />
   </NativeThemeProvider>
 )

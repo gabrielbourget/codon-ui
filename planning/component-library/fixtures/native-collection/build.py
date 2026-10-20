@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[4]
 FIXTURE = Path(__file__).resolve().parent
 LAB = Path.home() / ".local/share/codon-native-lab"
 STAGE = REPO / "apps/native-showcase/.expo/codon-collection-gate"
-FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "validate.py", "test_validate.py", "build.py", "run.py"]
+FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py"]
 
 
 def digest(path):
@@ -66,14 +66,19 @@ def verify(root):
     return inputs
 
 
-def prepare(root):
+def prepare(root, profile="metadata"):
     assert not root.exists()
     assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO)
     producer = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
     names = subprocess.check_output(["git", "ls-files", "packages/react-native", "apps/native-showcase", "planning/component-library/fixtures/native-collection", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "AGENTS.md"], cwd=REPO, text=True).splitlines()
     root.mkdir(parents=True)
     STAGE.mkdir(parents=True, exist_ok=True)
-    for name in ["App.tsx", "gate.ts", "index.ts"]: shutil.copyfile(FIXTURE / name, STAGE / name)
+    stage_names = ["App.tsx", "gate.ts", "index.ts", "identity.ts"]
+    if profile == "authoring": stage_names += ["AuthoringApp.tsx", "authoring.ts"]
+    for name in stage_names:
+        if name == "identity.ts": continue
+        source_name = "authoring-index.ts" if profile == "authoring" and name == "index.ts" else name
+        shutil.copyfile(FIXTURE / source_name, STAGE / name)
     (STAGE / "identity.ts").write_text('export const SOURCE_PRODUCER = ' + json.dumps(producer) + '\n')
     native = {}
     for platform in ["android", "ios"]:
@@ -85,7 +90,7 @@ def prepare(root):
             target = root / "native-inputs" / name
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(path, target)
-    inputs = {"producer": producer, "sourceInputs": {name: digest(REPO / name) for name in names}, "nativeProjectInputs": native, "fixtureInputs": {name: digest(FIXTURE / name) for name in FIXTURE_FILES}, "stageInputs": {name: digest(STAGE / name) for name in ["App.tsx", "gate.ts", "identity.ts", "index.ts"]}, "deadlineUnix": time.time() + 3600, "nativeActions": 0, "scope": "Private SDK hierarchy gate; no family/installed-profile/full-goal acceptance"}
+    inputs = {"producer": producer, "profile": profile, "sourceInputs": {name: digest(REPO / name) for name in names}, "nativeProjectInputs": native, "fixtureInputs": {name: digest(FIXTURE / name) for name in FIXTURE_FILES}, "stageInputs": {name: digest(STAGE / name) for name in stage_names}, "deadlineUnix": time.time() + 3600, "nativeActions": 0, "scope": "Private SDK hierarchy/authoring gate; no family/installed-profile/full-goal acceptance"}
     (root / "inputs.json").write_text(json.dumps(inputs, indent=2) + "\n")
     entry = json.dumps(str(STAGE / "index.ts"))
     (root / "entry.gradle").write_text('gradle.beforeProject { project ->\n if (project.path == ":app") project.afterEvaluate { project.extensions.getByName("react").entryFile.set(new File(' + entry + ')) }\n}\n')
@@ -117,6 +122,8 @@ def prove_android(root):
             fixture[source_name] = inputs["stageInputs"][source_name]
     assert len(react) == 1 and "react@19.2.3" in next(iter(react))
     assert set(fixture) == set(inputs["stageInputs"])
+    if inputs.get("profile") == "authoring":
+        assert all("packages/react-native/src/collection/" + name in library for name in ["CollectionBuilder.tsx", "session.ts", "cachedChildren.tsx", "admission.ts", "snapshot.ts", "NativeCollectionMetadata.tsx"])
     artifacts = {}
     for name, path in [("app-release.apk", apk), ("index.android.bundle", bundle), ("index.android.bundle.map", mapping)]:
         shutil.copyfile(path, root / name)
@@ -130,9 +137,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=["prepare", "android", "prove-android"])
     parser.add_argument("root", type=Path)
+    parser.add_argument("--profile", choices=["metadata", "authoring"], default="metadata")
     args = parser.parse_args()
     root = args.root.resolve()
-    if args.phase == "prepare": prepare(root)
+    if args.phase == "prepare": prepare(root, args.profile)
     elif args.phase == "prove-android": prove_android(root)
     else:
         inputs = verify(root)
