@@ -43,7 +43,7 @@
   ],
   "limits": [
     "UIKit class registration invokes disabled hooks which return before capture; actual observer/bridge/large-tree cost remains unproven",
-    "Current CUI-owned continuous/path mask model descriptions are constructed; scoped native proof for the new path mask and full observer/window/clipping fidelity remain required. Foreign/modified masks and Android RN rounded padding/overflow paths remain unaccepted; pathAvailable=false explicitly omits unknown mask paths.",
+    "Current CUI-owned continuous/path mask model descriptions pass scoped native assertions and CPU raster proof at0c37cb4; full observer/window/clipping fidelity remains required. Foreign/modified masks and Android RN rounded padding/overflow paths remain unaccepted; pathAvailable=false explicitly omits unknown mask paths.",
     "Android presentation provenance is actual View/RenderNode matrix state, not GPU display timestamps",
     "A React-owned keyframe measurement/restore transaction still needs composition; the new sampler does not implement auto or mixed-unit animation by itself",
     "All38 installed probe cells and all full Card native/profile/performance/closure obligations remain OPEN"
@@ -74,5 +74,11 @@
       "sha256": "3105b8f7bdee738bf4dbf298e49b2e5c139dbcb470f6a62e25281d6c14f3d4c8"
     }
   ],
-  "actualNativeActions": 0
+  "actualNativeActions": 0,
+  "ownedMaskProof": {
+    "producer": "0c37cb40d41ea95fdf3be02bc1cca8985ab45e04",
+    "manifestSHA256": "45118b56ffb5c00d7a060b8eca1278276e697bd0043937b6c40ad6b9d1ebd99c",
+    "scope": "Three unmounted native fixtures,24 owned mask assertions and exact CPU bytes; no actual observer/window/frame/consumer/Card acceptance",
+    "observerNativeActions": 0
+  }
 }

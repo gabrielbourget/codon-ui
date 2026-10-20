@@ -975,7 +975,7 @@
     "nativeAssertionsExecuted": false,
     "nativePixelsAccepted": false,
     "swiftIntegration": "Existing system Swift compiler via ios source glob only; no dependency, version, SDK flag or compiler setting changes",
-    "nativeMaskFactory": "Private owned continuous masks retain their strict native-layer descriptor. The new owned shape-mask factory copies and registers immutable CGPath commands, keeps drawing defaults and admits only its unchanged closed public-layer state. The observer uses the shared clip-description helper; foreign/modified masks remain incomplete and unknown paths are explicitly unavailable. New path-mask native proof, full observer/window/GPU/mixed/fidelity/performance/consumer/profile/closure acceptance remain required."
+    "nativeMaskFactory": "Private continuous/path mask factories retain exact drawing defaults and strict closed public-layer descriptors. Owned path commands are immutable and identity guarded; foreign/modified masks remain incomplete and unknown paths explicitly unavailable. Three unmounted iOS fixtures,24 mask assertions and byte-exact CPU shape/reference raster pass at0c37cb4; full observer/window/GPU/mixed/fidelity/performance/current consumer/profile/closure proof remains required."
   },
   "peerStateInputs": [
     {

@@ -46,6 +46,13 @@ def digest(path): return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 def git(*arguments): return subprocess.check_output(["git", *arguments], cwd=REPO, text=True).strip()
 
 
+def native_command(root, name, arguments, deadline, cap=30, required=True):
+    remaining = deadline - time.monotonic()
+    assert remaining > 11, "Native work cutoff reached; reserved cleanup starts"
+    # The shared command controller permits ten seconds for child termination.
+    return command(root, name, arguments, min(cap, remaining - 10), required=required)
+
+
 def validate_journal(rows, producer):
     assert rows and rows[0]["kind"] == "begin" and all(row["producer"] == producer for row in rows), "Original native identity journal missing"
     assert type(rows[0]["pid"]) is int and rows[0]["pid"] > 0
@@ -160,11 +167,9 @@ def run(root):
 
     def save(): state_path.write_text(json.dumps(state, indent=2) + "\n")
     def device_command(name, arguments, cap=30, required=True):
-        remaining = deadline - time.monotonic()
-        assert remaining > 0, "Native diagnostic bound reached"
-        return command(root, name, ["/usr/bin/xcrun", "simctl", *arguments], min(cap, remaining), required=required)
+        return native_command(root, name, ["/usr/bin/xcrun", "simctl", *arguments], deadline, cap, required)
     def devices(name, cleanup=False):
-        if cleanup: _, data = command(root, name, ["/usr/bin/xcrun", "simctl", "list", "devices", "available", "--json"], 15)
+        if cleanup: _, data = command(root, name, ["/usr/bin/xcrun", "simctl", "list", "devices", "available", "--json"], 10)
         else: _, data = device_command(name, ["list", "devices", "available", "--json"])
         entries = [row for row in json.loads(data)["devices"].get(RUNTIME, []) if row["udid"] == DEVICE]
         assert len(entries) == 1 and entries[0]["name"] == DEVICE_NAME and entries[0]["isAvailable"]
@@ -201,7 +206,7 @@ def run(root):
     finally:
         if state.get("ownedShutdownGuest") and state.get("bootCommandSucceeded"):
             try:
-                command(root, "owned-guest-stop", ["/usr/bin/xcrun", "simctl", "shutdown", DEVICE], 30, required=False)
+                command(root, "owned-guest-stop", ["/usr/bin/xcrun", "simctl", "shutdown", DEVICE], 20, required=False)
                 state["ownedGuestStopped"] = devices("final-devices", True)["state"] == "Shutdown"
             except BaseException as error:
                 state["ownedGuestStopped"] = False

@@ -1,8 +1,9 @@
 """Synthetic custody guards; none executes UIKit or proves native drawing."""
 import copy
 import unittest
+from unittest.mock import patch
 
-from continuous_uikit_probe import PROFILE_NAMES, validate_journal
+from continuous_uikit_probe import PROFILE_NAMES, native_command, validate_journal
 
 
 def journal():
@@ -68,6 +69,18 @@ class ReferenceCustody(unittest.TestCase):
         receiver["result"]["fixturesCompleted"] = 3
         receiver["result"]["maskGeometry"]["byteExactRaster"] = False
         with self.assertRaises(AssertionError): validate_journal(rows, "source")
+
+    def test_native_command_termination_stays_inside_work_allowance(self):
+        with patch("continuous_uikit_probe.time.monotonic", return_value=400), patch("continuous_uikit_probe.command", return_value=(0, b"")) as run:
+            native_command("root", "observe", ["native-command"], 420, 30)
+        requested_cap = run.call_args.args[3]
+        self.assertLessEqual(requested_cap + 10, 20)
+
+    def test_native_cutoff_starts_no_command(self):
+        with patch("continuous_uikit_probe.time.monotonic", return_value=411), patch("continuous_uikit_probe.command") as run:
+            with self.assertRaisesRegex(AssertionError, "reserved cleanup"):
+                native_command("root", "observe", ["native-command"], 420)
+        run.assert_not_called()
 
 
 if __name__ == "__main__": unittest.main()
