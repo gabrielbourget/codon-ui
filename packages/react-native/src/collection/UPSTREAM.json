@@ -66,7 +66,7 @@
     "Logical focusedKey records the source navigation intent before materialization; native command completion remains an original focus callback. Persist logical/requested/last-observed keys and cancel retired-window requests without replay."
   ],
   "authoredFilesSHA256": {
-    "snapshot.ts": "3501c95d629e42d7aee73d33fa712e126cc5481072a64df4a52147700018e700",
+    "snapshot.ts": "eb2eb9bd6be41f56d57504f34300300bf1f4a18ebf2daee2495709981c8ba2f5",
     "admission.ts": "900fb805507e169405a2304aa88ce3d1ae51668a1c27181412a60581342b35c2",
     "session.ts": "b26f538594ce8a5b22033311e48aece9f1731602818146144dac91d9779520d9",
     "cachedChildren.tsx": "498f1bd4a056dee457ec408b5ccee3e3bbdc36e8f3648854b5718d75e8e58667",
@@ -128,6 +128,19 @@
       "sourcePath": "packages/react-aria-components/src/SelectionIndicator.tsx",
       "sourceContentSHA256": "64db61758eb3282b9fd9c0f19118b46fb13b6da79450acfc7dce793834851765",
       "adaptedInto": ["context.tsx"]
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Menu.mjs",
+      "distributionSHA256": "12242046384db49df6f36c8db1713c81610cef011bd89118b29803842cad1008",
+      "sourceMapPath": "dist/private/Menu.mjs.map",
+      "sourceMapSHA256": "36a7f82732fcecb6b5917855df2583d534ce6564ca06f451d3e702fcb9de16b0",
+      "sourcePath": "packages/react-aria-components/src/Menu.tsx",
+      "sourceContentSHA256": "922a6be34293c439851d8ea9644ee1c0278429445ef0a8d3d393388aaff75db6",
+      "adaptedInto": ["snapshot.ts"],
+      "scope": "Submenu branch filtering tests its first trigger label and retains that complete branch on a match."
     }
   ]
 }
