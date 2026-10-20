@@ -13,10 +13,12 @@
 - (facebook::react::BorderMetrics)cuiUniformLayerBorderMetrics;
 - (void)shapeCuiLayerToMatchView:(CALayer *)layer borderMetrics:(facebook::react::BorderMetrics)metrics;
 - (UIView *)currentContainerView;
+- (void)invalidateLayer;
 @end
 @interface RCTViewComponentView (CUIPinnedDrawingBranchAssertions)
 - (void)shapeLayerToMatchView:(CALayer *)layer borderMetrics:(facebook::react::BorderMetrics)metrics;
 - (UIView *)currentContainerView;
+- (void)invalidateLayer;
 @end
 
 // Non-shipping, unmounted UIKit assertions. Compilation does not execute them,
@@ -127,9 +129,35 @@ void CUIAssertPinnedDrawingBranches() {
   NSCAssert(sourceClipContainer != source && sourceClipContainer.clipsToBounds &&
       sourceClipContainer.layer.mask == nil && sourceClipContainer.layer.cornerRadius == 16,
       @"Pinned scalar overflow clipping must establish the actual reference branch: %@", clipFacts);
-  NSCAssert(clipContainer != owned && [owned.layer.cornerCurve isEqualToString:kCACornerCurveContinuous] &&
-      [clipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] && matchingMaskPath,
-      @"An overflow container retains its actual inherited circular clip around a continuous root: %@", clipFacts);
+  NSString *sourceClipCurve = sourceClipContainer.layer.cornerCurve ?: kCACornerCurveCircular;
+  NSString *ownedClipCurve = clipContainer.layer.cornerCurve ?: kCACornerCurveCircular;
+  const BOOL sourceContinuousClip = [sourceClipCurve isEqualToString:kCACornerCurveContinuous];
+  const BOOL sourceCircularClip = [sourceClipCurve isEqualToString:kCACornerCurveCircular];
+  NSDictionary *clipPrimitive = clipContainer.layer.mask
+      ? [CUIMotionContinuousCorners nativeMaskDescriptionForLayer:clipContainer.layer.mask] : nil;
+  const BOOL matchingContinuousClip = [clipPrimitive[@"kind"] isEqual:@"cui-owned-native-continuous"] &&
+      CGRectEqualToRect(clipContainer.layer.mask.bounds, CGRectMake(0, 0, 3, 10)) &&
+      CGRectEqualToRect(clipContainer.layer.mask.frame, owned.bounds) &&
+      CGAffineTransformEqualToTransform(clipContainer.layer.mask.affineTransform, CGAffineTransformMakeScale(40, 8)) &&
+      clipContainer.layer.mask.cornerRadius == 1 && clipContainer.layer.mask.contentsScale == owned.layer.contentsScale;
+  NSCAssert(clipContainer != owned && clipContainer.clipsToBounds &&
+      [owned.layer.cornerCurve isEqualToString:source.layer.cornerCurve] && [ownedClipCurve isEqualToString:sourceClipCurve] &&
+      ((sourceContinuousClip && matchingContinuousClip) || (sourceCircularClip && matchingMaskPath)),
+      @"Corrected overflow clipping must retain the actual pinned container curve and exact primitive: %@", clipFacts);
+
+  // Fixture-owned public layer state supplies an explicit circular control even
+  // when this UIKit runtime creates both normal containers with a continuous curve.
+  clipContainer.layer.cornerCurve = kCACornerCurveCircular;
+  sourceClipContainer.layer.cornerCurve = kCACornerCurveCircular;
+  [owned invalidateLayer];
+  [source invalidateLayer];
+  NSCAssert(sourceClipContainer.layer.mask == nil && sourceClipContainer.layer.cornerRadius == 16 &&
+      [sourceClipContainer.layer.cornerCurve isEqualToString:kCACornerCurveCircular] &&
+      [clipContainer.layer.cornerCurve isEqualToString:sourceClipContainer.layer.cornerCurve] &&
+      [owned.layer.cornerCurve isEqualToString:source.layer.cornerCurve] &&
+      [clipContainer.layer.mask isKindOfClass:CAShapeLayer.class] && ((CAShapeLayer *)clipContainer.layer.mask).path &&
+      CGPathEqualToPath(((CAShapeLayer *)clipContainer.layer.mask).path, circular),
+      @"An explicit circular container must retain the exact pinned circular mask around a continuous root");
   CGPathRelease(circular);
   [owned prepareForRecycle];
   [source prepareForRecycle];
