@@ -11,6 +11,9 @@ import {
 } from "../../overlays/floating/NativeDialogTrigger"
 import type { TNativeButtonProps } from "../Button/types"
 
+import { NativeRootMenuTriggerStateContext } from "./context"
+import { useNativeMenuTriggerState } from "./triggerState"
+
 const StrategyContext = createContext<RefObject<"first" | "last"> | null>(null)
 export const useNativeMenuFocusStrategy = () => useContext(StrategyContext)?.current ?? "first"
 export type TNativeMenuTriggerState = Omit<TNativeDialogTriggerRenderState, "triggerProps"> & {
@@ -75,12 +78,17 @@ const TriggerBinding = ({
 }
 export const NativeMenuTrigger = ({ trigger, ...props }: TNativeMenuTriggerProps) => {
   const strategy = useRef<"first" | "last">("first")
+  const state = useNativeMenuTriggerState(props)
   return (
-    <StrategyContext.Provider value={strategy}>
-      <NativeDialogTrigger
-        {...props}
-        trigger={(state) => <TriggerBinding state={state} render={trigger} strategy={strategy} />}
-      />
-    </StrategyContext.Provider>
+    <NativeRootMenuTriggerStateContext.Provider value={state}>
+      <StrategyContext.Provider value={strategy}>
+        <NativeDialogTrigger
+          {...props}
+          isOpen={state.isOpen}
+          onOpenChange={(next) => (next ? state.open(strategy.current) : state.close())}
+          trigger={(state) => <TriggerBinding state={state} render={trigger} strategy={strategy} />}
+        />
+      </StrategyContext.Provider>
+    </NativeRootMenuTriggerStateContext.Provider>
   )
 }

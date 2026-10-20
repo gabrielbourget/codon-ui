@@ -1,10 +1,16 @@
 import { createRef } from "react"
 import type { View } from "react-native"
 
-import { Button } from "../../.."
+import { Button, NativeFocusView } from "../../.."
+import { MenuText, MenuKeyboardShortcut } from "../content"
+import { NativeMenuListContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
+import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
+import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
+import { SubmenuTrigger } from "../SubmenuTrigger"
+import type { TNativeMenuListProps } from "../types"
 const ref = createRef<View>()
 export const menu = (
   <NativeMenuTrigger trigger={(state) => <Button {...state.triggerProps}>Open</Button>}>
@@ -39,3 +45,74 @@ export const domClass = <Menu className="ignored" />
 export const domRef = <Menu ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Public Button cannot override its owned role through the private adapter.
 export const role = <Button nativeRole="menuitem">Invalid</Button>
+
+export const section = (
+  <MenuSection
+    ref={ref}
+    id={0}
+    selectionMode="multiple"
+    selectedKeys={new Set([0, "0"])}
+    items={[{ id: "item", label: "Item" }]}
+    style={{ fontSize: 18 }}
+  >
+    {(item) => <MenuItem id={item.id}>{item.label}</MenuItem>}
+  </MenuSection>
+)
+export const header = <MenuHeader ref={ref} nativeID="header" style={{ fontWeight: "bold" }} />
+// @ts-expect-error Section keys retain the same string/number identity as item keys.
+export const invalidSection = <MenuSection id={false} />
+// @ts-expect-error Section refs expose the original native view.
+export const invalidSectionRef = <MenuSection ref={createRef<HTMLElement>()} />
+// @ts-expect-error Header styles are native values.
+export const invalidHeaderStyles = <MenuHeader style={{ fontSize: "18px" }} />
+export const submenu = (
+  <SubmenuTrigger ref={ref} delay={0}>
+    <MenuItem id={0}>More</MenuItem>
+    <Menu>
+      <MenuItem id="child">Child</MenuItem>
+    </Menu>
+  </SubmenuTrigger>
+)
+export const missingSubmenu = (
+  // @ts-expect-error Submenu authoring requires both its original trigger and its separate child overlay.
+  <SubmenuTrigger>
+    <MenuItem id="trigger">More</MenuItem>
+  </SubmenuTrigger>
+)
+export const domSubmenuRef = (
+  // @ts-expect-error Submenu refs remain the actual native trigger view.
+  <SubmenuTrigger ref={createRef<HTMLDivElement>()}>
+    <MenuItem id="trigger">More</MenuItem>
+    <Menu />
+  </SubmenuTrigger>
+)
+type TActionValue = { id: string; label: string }
+const listDefaults: TNativeMenuListProps<TActionValue> = {
+  items: [{ id: "a", label: "Alpha" }],
+  children: (item) => <MenuItem id={item.id}>{item.label}</MenuItem>,
+  selectionMode: "multiple",
+  disabledBehavior: "selection",
+  defaultSelectedKeys: [0, "0"],
+  shouldUseVirtualFocus: true,
+  render: (props, state) => {
+    state.isEmpty.valueOf()
+    return <NativeFocusView {...props} />
+  },
+}
+export const inheritedList = (
+  <NativeMenuListContext.Provider value={listDefaults}>
+    <Menu menuListSlot={null} />
+  </NativeMenuListContext.Provider>
+)
+export const contentSlots = (
+  <>
+    <MenuText ref={createRef<import("react-native").Text>()} slot="description">
+      Description
+    </MenuText>
+    <MenuKeyboardShortcut slot={null}>⌘K</MenuKeyboardShortcut>
+  </>
+)
+// @ts-expect-error Native list style callbacks return actual native typography values.
+export const invalidListStyle: TNativeMenuListProps = { style: () => ({ fontSize: "18px" }) }
+// @ts-expect-error Original native text refs cannot be DOM spans.
+export const invalidContentRef = <MenuText ref={createRef<HTMLSpanElement>()} />

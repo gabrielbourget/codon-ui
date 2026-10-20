@@ -8,32 +8,57 @@ import {
   useRef,
   useState,
   type RefObject,
+  type Ref,
 } from "react"
-import { findNodeHandle, Linking, ScrollView, type View } from "react-native"
+import {
+  findNodeHandle,
+  I18nManager,
+  Linking,
+  ScrollView,
+  type View,
+  type TextStyle,
+  type StyleProp,
+} from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
-import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeCollection, NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { NativeSelectableCollectionContext, useNativeContextProps } from "../../collection/context"
 import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
-import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
+import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useTreeState } from "../../collection/state"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { focusNativeTarget } from "../../input/focus"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent, TNativePressEvent } from "../../input/types"
 import { useNativeDialogTrigger } from "../../overlays/floating/NativeDialogTrigger"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
+import { getNativeButtonContent } from "../Button/content"
 import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
+import { resolveNativeStyle } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle } from "../nativeTextStyle"
 
-import { NativeMenuActionsContext, NativeMenuStateContext, type TNativeMenuRegistration } from "./context"
+import {
+  NativeMenuActionsContext,
+  NativeMenuContext,
+  NativeMenuDirectionContext,
+  NativeMenuItemContext,
+  NativeMenuListContext,
+  NativeMenuSelectionManagerContext,
+  NativeMenuStateContext,
+  NativeRootMenuTriggerStateContext,
+  NativeSubmenuContext,
+  type TNativeMenuRegistration,
+} from "./context"
 import {
   getNativeMenuRecoveryKey,
   normalizeNativeMenuKeys,
@@ -43,22 +68,26 @@ import {
 } from "./model"
 import { useNativeMenuFocusStrategy } from "./NativeMenuTrigger"
 import { getNativeMenuStyles } from "./styles"
-import type { TNativeMenuProps, TNativeMenuRef } from "./types"
+import { useNativeMenuTriggerState } from "./triggerState"
+import type { TNativeMenuListProps, TNativeMenuProps, TNativeMenuRef } from "./types"
 
 const keyTokens = ["ArrowDown", "ArrowUp", "Home", "End", "PageDown", "PageUp"]
   .flatMap((key) => nativeKeyTokens(key).filter((token) => token.startsWith("0000:") || token.startsWith("1000:")))
   .concat(nativeKeyTokens("a").filter((token) => token.startsWith("0010:") || token.startsWith("0001:")))
 
-export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) => {
+export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((authoredProps, forwardedRef) => {
+  const [props, ref] = useNativeContextProps(authoredProps, forwardedRef, NativeMenuContext)
   const {
+    slot: _slot,
+    menuListSlot,
     children,
     menuAriaLabel,
-    selectionMode = "none",
+    selectionMode,
     selectedKeys,
     onSelectionChange,
     disabledKeys,
     onAction,
-    shouldCloseOnSelect = true,
+    shouldCloseOnSelect,
     customMenuStyles,
     isOpen,
     defaultOpen,
@@ -67,65 +96,122 @@ export const Menu = forwardRef<TNativeMenuRef, TNativeMenuProps>((props, ref) =>
     style,
     ...surface
   } = props
-  if (!NATIVE_MENU_SELECTION_MODES.includes(selectionMode)) throw new TypeError("Menu: unsupported selectionMode")
   const trigger = useNativeDialogTrigger()
+  const submenu = useContext(NativeSubmenuContext)
+  const inheritedDirection = useContext(NativeMenuDirectionContext)
+  const direction = props.direction ?? submenu?.direction ?? inheritedDirection ?? (I18nManager.isRTL ? "rtl" : "ltr")
+  const inheritedRootState = useContext(NativeRootMenuTriggerStateContext)
   const contextOwned = isOpen === undefined && defaultOpen === undefined && trigger !== null
   const [local, setLocal] = useState(defaultOpen ?? false)
-  const open = contextOwned ? trigger!.isOpen : (isOpen ?? local)
-  const current = useRef({ open, contextOwned, trigger, isOpen, onOpenChange })
+  const submenuOwned = submenu !== null && isOpen === undefined && defaultOpen === undefined
+  const open = submenuOwned ? submenu.state.isOpen : contextOwned ? trigger!.isOpen : (isOpen ?? local)
+  const current = useRef({ open, contextOwned, trigger, isOpen, onOpenChange, submenuOwned, submenu })
   useInsertionEffect(() => {
-    current.current = { open, contextOwned, trigger, isOpen, onOpenChange }
+    current.current = { open, contextOwned, trigger, isOpen, onOpenChange, submenuOwned, submenu }
   })
   const request = useCallback((next: boolean) => {
     const owner = current.current
     if (owner.open === next) return
-    if (owner.contextOwned) owner.trigger!.request(next)
+    if (owner.submenuOwned) {
+      if (next) owner.submenu!.state.open()
+      else owner.submenu!.state.close()
+    } else if (owner.contextOwned) owner.trigger!.request(next)
     else {
       if (owner.isOpen === undefined) setLocal(next)
       owner.onOpenChange?.(next)
     }
   }, [])
+  const localRootState = useNativeMenuTriggerState({ isOpen: open, onOpenChange: request })
+  const rootState = ((contextOwned || submenu) && inheritedRootState) || localRootState
   const theme = useNativeTheme()
-  const styles = getNativeMenuStyles(theme, props)
+  const styles = getNativeMenuStyles(theme, { ...props, customMenuStyles: undefined })
   const list = useRef<View>(null)
+  const [listDefaults, defaultsRef] = useNativeContextProps<TNativeMenuListProps, View, Partial<TNativeMenuListProps>>(
+    {
+      children,
+      slot: menuListSlot,
+      selectionMode,
+      selectedKeys,
+      onSelectionChange,
+      disabledKeys,
+      onAction,
+      shouldCloseOnSelect,
+      accessibilityLabel: menuAriaLabel,
+      style: customMenuStyles,
+    },
+    list,
+    NativeMenuListContext,
+  )
+  const [listProps, listRef] = useNativeContextProps(listDefaults, defaultsRef, NativeSelectableCollectionContext)
   const initialTarget = useRef<View>(null)
   return (
-    <NativeFloatingSurface
-      {...surface}
-      ref={ref}
-      testID={props.testID ?? props["data-testid"] ?? "menu"}
-      isOpen={open}
-      onOpenChange={request}
-      childIsDialog={false}
-      nativeRootRole={null}
-      showOverlayArrow={false}
-      initialFocusRef={props.initialFocusRef ?? initialTarget}
-      style={styles.root}
-    >
-      <NativeCollectionBuilder<object> content={children}>
-        {(collection, receipt) => (
-          <NativeMenuList
-            collection={collection}
-            receipt={receipt}
-            {...{
-              props,
-              children,
-              menuAriaLabel,
-              selectionMode,
-              selectedKeys,
-              onSelectionChange,
-              disabledKeys,
-              onAction,
-              shouldCloseOnSelect,
-              styles,
-            }}
-            root={list}
-            initialTarget={initialTarget}
-            close={() => request(false)}
-          />
-        )}
-      </NativeCollectionBuilder>
-    </NativeFloatingSurface>
+    <NativeRootMenuTriggerStateContext.Provider value={rootState}>
+      <NativeMenuDirectionContext.Provider value={direction}>
+        <NativeFloatingSurface
+          {...surface}
+          ref={ref}
+          testID={props.testID ?? props["data-testid"] ?? "menu"}
+          isOpen={open}
+          onOpenChange={request}
+          childIsDialog={false}
+          nativeRootRole={null}
+          showOverlayArrow={false}
+          triggerRef={props.triggerRef ?? submenu?.triggerRef}
+          trigger={props.trigger ?? (submenu ? "SubmenuTrigger" : undefined)}
+          placement={props.placement ?? (submenu ? "end top" : undefined)}
+          direction={direction}
+          isNonModal={props.isNonModal ?? !!submenu}
+          initialFocusRef={
+            props.initialFocusRef ??
+            (listProps.shouldUseVirtualFocus
+              ? list
+              : submenu && submenu.state.focusStrategy === null
+                ? undefined
+                : initialTarget)
+          }
+          restoreFocusRef={props.restoreFocusRef ?? submenu?.restoreRef}
+          style={styles.root}
+        >
+          <NativeSubmenuContext.Provider value={null}>
+            <NativeCollectionBuilder<object>
+              content={
+                <NativeCollection
+                  items={listProps.items}
+                  dependencies={listProps.dependencies}
+                  idScope={listProps.idScope}
+                >
+                  {listProps.children}
+                </NativeCollection>
+              }
+            >
+              {(collection, receipt) => (
+                <NativeMenuList
+                  collection={collection}
+                  receipt={receipt}
+                  {...{
+                    props,
+                    menuAriaLabel: listProps.accessibilityLabel ?? listProps["aria-label"],
+                    selectionMode: listProps.selectionMode ?? "none",
+                    selectedKeys: listProps.selectedKeys,
+                    onSelectionChange: listProps.onSelectionChange,
+                    disabledKeys: listProps.disabledKeys,
+                    onAction: listProps.onAction,
+                    shouldCloseOnSelect: listProps.shouldCloseOnSelect ?? true,
+                    styles,
+                  }}
+                  listProps={listProps}
+                  listRef={listRef}
+                  root={list}
+                  initialTarget={initialTarget}
+                  submenu={submenu}
+                  close={listProps.onClose ?? (() => rootState.close())}
+                />
+              )}
+            </NativeCollectionBuilder>
+          </NativeSubmenuContext.Provider>
+        </NativeFloatingSurface>
+      </NativeMenuDirectionContext.Provider>
+    </NativeRootMenuTriggerStateContext.Provider>
   )
 })
 Menu.displayName = "Menu"
@@ -135,6 +221,8 @@ type TListProps = Pick<
   "children" | "menuAriaLabel" | "selectedKeys" | "onSelectionChange" | "disabledKeys" | "onAction"
 > & {
   props: TNativeMenuProps
+  listProps: TNativeMenuListProps
+  listRef: Ref<View>
   selectionMode: NonNullable<TNativeMenuProps["selectionMode"]>
   shouldCloseOnSelect: boolean
   styles: ReturnType<typeof getNativeMenuStyles>
@@ -143,12 +231,22 @@ type TListProps = Pick<
   root: RefObject<View | null>
   initialTarget: RefObject<View | null>
   close: () => void
+  submenu: React.ContextType<typeof NativeSubmenuContext>
 }
 const NativeMenuList = (props: TListProps) => {
   const theme = useNativeTheme()
-  const strategy = useNativeMenuFocusStrategy()
+  const direction = useContext(NativeMenuDirectionContext) ?? (I18nManager.isRTL ? "rtl" : "ltr")
+  const rootStrategy = useNativeMenuFocusStrategy()
+  const autoFocus = props.listProps.autoFocus
+  const strategy =
+    autoFocus === false
+      ? null
+      : autoFocus === true
+        ? "first"
+        : (autoFocus ?? (props.submenu ? props.submenu.state.focusStrategy : rootStrategy))
   const [rows, setRows] = useState(new Map<TNativeMenuKey, TNativeMenuRegistration>())
   const [targetTag, setTargetTag] = useState(0)
+  const [focusVisible, setFocusVisible] = useState(false)
   const live = useRef(false),
     scroll = useRef<ScrollView>(null)
   const frames = useRef(new Map<TNativeMenuKey, { y: number; height: number }>())
@@ -166,11 +264,19 @@ const NativeMenuList = (props: TListProps) => {
     return props.selectedKeys instanceof Set ? props.selectedKeys : keys
   }, [props.selectedKeys])
   const disabledKeys = useMemo(() => normalizeNativeMenuKeys(props.disabledKeys ?? []), [props.disabledKeys])
-  const collection = props.collection
+  const collection = useMemo(
+    () =>
+      props.listProps.filter
+        ? props.collection.filter((text, node) => props.listProps.filter!(text, node as TNativeCollectionNode<object>))
+        : props.collection,
+    [props.collection, props.listProps.filter],
+  )
   const renderer = useContext(NativeCollectionRendererContext)
   const CollectionRoot = renderer.CollectionRoot
   const actions = useContext(NativeCollectionActionsContext)
   const state = useTreeState({
+    ...props.listProps,
+    children: undefined,
     collection,
     selectionMode: props.selectionMode,
     selectedKeys,
@@ -178,6 +284,14 @@ const NativeMenuList = (props: TListProps) => {
     onSelectionChange: props.onSelectionChange,
   })
   const manager = state.selectionManager
+  if (!NATIVE_MENU_SELECTION_MODES.includes(manager.selectionMode))
+    throw new TypeError("Menu: unsupported selectionMode")
+  const defaultListStyle = { ...props.styles.list.view, ...props.styles.list.text }
+  const authoredListStyle =
+    typeof props.listProps.style === "function"
+      ? props.listProps.style({ isEmpty: collection.size === 0, defaultStyle: defaultListStyle })
+      : props.listProps.style
+  const listStyles = splitNativeTextStyle(resolveNativeStyle([defaultListStyle, authoredListStyle], "Menu", "list"))
   const normalized = manager.rawSelection
   const active = manager.focusedKey
   const [requestedFocusKey, setRequestedFocusKey] = useState<TNativeMenuKey | null>(null)
@@ -202,12 +316,12 @@ const NativeMenuList = (props: TListProps) => {
     const row = rows.get(node.key)
     return row ? [row] : []
   })
-  const disabled = (row: TNativeMenuRegistration) => row.props().isDisabled ?? disabledKeys.has(row.id)
+  const disabled = (row: TNativeMenuRegistration) => row.props().isDisabled ?? row.selectionManager().isDisabled(row.id)
   const model = logicalMembers.map(
     (node): TNativeMenuRow => ({
       id: node.key,
       text: node.textValue,
-      disabled: node.props.isDisabled ?? disabledKeys.has(node.key),
+      disabled: node.props.isDisabled ?? manager.isDisabled(node.key),
       selectionDisabled: disabledKeys.has(node.key),
       href: node.props.href,
     }),
@@ -348,12 +462,15 @@ const NativeMenuList = (props: TListProps) => {
   const requestFocus = (key: TNativeMenuKey) => {
     const node = current.current.collection.getItem(key)
     if (!node || !admitted()) return
-    pendingFocus.current = { key, node, window: focusWindowStamp(), commandedTarget: null, commandedLease: null }
+    const virtual = current.current.props.listProps.shouldUseVirtualFocus
+    pendingFocus.current = virtual
+      ? null
+      : { key, node, window: focusWindowStamp(), commandedTarget: null, commandedLease: null }
     current.current.manager.setFocusedKey(key)
-    setRequestedFocusKey(key)
+    setRequestedFocusKey(virtual ? null : key)
     current.current.renderer.layoutDelegate?.requestRendering?.(key)
     void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
-    attemptFocus()
+    if (!virtual) attemptFocus()
   }
   useLayoutEffect(attemptFocus)
   useLayoutEffect(
@@ -368,10 +485,13 @@ const NativeMenuList = (props: TListProps) => {
   useLayoutEffect(() => {
     const registered = current.current.model.filter((row) => !row.disabled)
     const initial = strategy === "last" ? registered[registered.length - 1] : registered[0]
-    props.initialTarget.current = (initial && current.current.rows.get(initial.id)?.view.current) ?? props.root.current
+    props.initialTarget.current = props.listProps.shouldUseVirtualFocus
+      ? props.root.current
+      : ((initial && current.current.rows.get(initial.id)?.view.current) ?? props.root.current)
     const frame = requestAnimationFrame(() => {
       if (!admitted() || current.current.input?.isNativeReady() === false) return
       if (current.current.props.props.initialFocusRef !== undefined && current.current.active === null) return
+      if (strategy === null && current.current.active === null) return
       const available = current.current.model.filter((row) => !row.disabled)
       const recovered = getNativeMenuRecoveryKey(
         recoveryOrder.current,
@@ -390,16 +510,21 @@ const NativeMenuList = (props: TListProps) => {
   }, [lifetime, scope, strategy, props.initialTarget, props.root])
   const activateAdmitted = (row: TNativeMenuRegistration, event: TNativePressEvent) => {
     if (!admitted(row) || event.defaultPrevented || event.isDefaultPrevented?.()) return
-    const owner = current.current
-    if (!owner.manager.isLink(row.id)) {
+    const submenu = row.submenu()
+    if (submenu) {
+      submenu.open("kind" in event.nativeEvent && event.nativeEvent.kind === "keyboard" ? "first" : undefined)
+      return
+    }
+    const selectionManager = row.selectionManager()
+    if (!selectionManager.isLink(row.id)) {
       if (
         "kind" in event.nativeEvent &&
         event.nativeEvent.kind === "keyboard" &&
         event.nativeEvent.shiftKey &&
-        owner.props.selectionMode === "multiple"
+        selectionManager.selectionMode === "multiple"
       )
-        owner.manager.extendSelection(row.id)
-      else owner.manager.select(row.id)
+        selectionManager.extendSelection(row.id)
+      else selectionManager.select(row.id)
     }
     if (!admitted(row)) return
     row.props().onAction?.()
@@ -442,6 +567,49 @@ const NativeMenuList = (props: TListProps) => {
   const moveAdmitted = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (
+      current.current.props.listProps.shouldUseVirtualFocus &&
+      admitted() &&
+      data.phase === "down" &&
+      !data.cancelled &&
+      !data.repeat &&
+      data.nativeDefaultHandled &&
+      data.key === (direction === "rtl" ? "ArrowLeft" : "ArrowRight")
+    ) {
+      const row = current.current.active === null ? null : current.current.rows.get(current.current.active)
+      if (row?.submenu()) {
+        withNativeAdmission(row, () => row.submenu()?.open("first"))
+        event.preventDefault()
+      }
+      return
+    }
+    if (
+      current.current.props.listProps.shouldUseVirtualFocus &&
+      admitted() &&
+      data.phase === "down" &&
+      !data.cancelled &&
+      !data.repeat &&
+      data.nativeDefaultHandled &&
+      (data.key === "Enter" || data.key === " ")
+    ) {
+      const row = current.current.active === null ? null : current.current.rows.get(current.current.active)
+      if (row) activate(row, event)
+      return
+    }
+    const submenu = current.current.props.submenu
+    if (
+      submenu &&
+      admitted() &&
+      data.phase === "down" &&
+      !data.cancelled &&
+      data.nativeDefaultHandled &&
+      data.key === (submenu.direction === "rtl" ? "ArrowRight" : "ArrowLeft")
+    ) {
+      event.preventDefault()
+      event.stopPropagation?.()
+      submenu.state.close()
+      return
+    }
+    if (
       admitted() &&
       data.phase === "down" &&
       !data.cancelled &&
@@ -468,14 +636,24 @@ const NativeMenuList = (props: TListProps) => {
     const available = current.current.model.filter((row) => !row.disabled)
     const tag = "focusedTarget" in data && typeof data.focusedTarget === "number" ? data.focusedTarget : data.target
     const focusedRow = current.current.ordered.find((row) => findNodeHandle(row.view.current) === tag)
-    const navigationKey = pendingFocus.current?.key ?? focusedRow?.id
+    const navigationKey = current.current.props.listProps.shouldUseVirtualFocus
+      ? current.current.active
+      : (pendingFocus.current?.key ?? focusedRow?.id)
     const index = available.findIndex((row) => row.id === navigationKey)
     if (index < 0 || !available.length) return
     let next = index
     if (data.key === "Home") next = 0
     else if (data.key === "End") next = available.length - 1
-    else if (data.key === "ArrowDown") next = (index + 1) % available.length
-    else if (data.key === "ArrowUp") next = (index - 1 + available.length) % available.length
+    else if (data.key === "ArrowDown")
+      next =
+        current.current.props.listProps.shouldFocusWrap === false
+          ? Math.min(index + 1, available.length - 1)
+          : (index + 1) % available.length
+    else if (data.key === "ArrowUp")
+      next =
+        current.current.props.listProps.shouldFocusWrap === false
+          ? Math.max(index - 1, 0)
+          : (index - 1 + available.length) % available.length
     else {
       const frameFor = (key: TNativeMenuKey) =>
         current.current.renderer.layoutDelegate?.getItemRect(key) ?? frames.current.get(key)
@@ -498,6 +676,8 @@ const NativeMenuList = (props: TListProps) => {
     }
   }
   const move = (event: TNativeKeyboardEvent) => {
+    current.current.props.listProps.onKeyDown?.(event)
+    if (event.defaultPrevented || event.isDefaultPrevented?.()) return
     const data = event.nativeEvent
     const target = "focusedTarget" in data ? data.focusedTarget : data.target
     const row = current.current.ordered.find((row) => findNodeHandle(row.view.current) === target)
@@ -507,7 +687,14 @@ const NativeMenuList = (props: TListProps) => {
       actions?.request(null, target, () => moveAdmitted(event))
   }
   useNativeKeyPolicy({
-    tokens: keyTokens,
+    tokens: [
+      ...(props.submenu
+        ? [...keyTokens, ...nativeKeyTokens(props.submenu.direction === "rtl" ? "ArrowRight" : "ArrowLeft")]
+        : keyTokens),
+      ...(props.listProps.shouldUseVirtualFocus
+        ? ["Enter", " ", direction === "rtl" ? "ArrowLeft" : "ArrowRight"].flatMap(nativeKeyTokens)
+        : []),
+    ],
     targetTag,
     excludeEditable: true,
     excludeComposing: true,
@@ -516,13 +703,13 @@ const NativeMenuList = (props: TListProps) => {
     canAct: admitted,
     onKey: move,
   })
-  const typeahead = (row: TNativeMenuRegistration, key: string, time: number) => {
-    if (!admitted(row)) return
+  const typeaheadFrom = (from: TNativeMenuKey, key: string, time: number) => {
+    if (!admitted() || current.current.props.listProps.disallowTypeAhead) return
     const before = time - search.current.time < 1000 ? search.current.value : ""
     const text = before && [...before].every((char) => char === key) ? key : before + key
     search.current = { value: text, time }
     const available = current.current.model.filter((item) => !item.disabled)
-    const index = available.findIndex((item) => item.id === row.id),
+    const index = available.findIndex((item) => item.id === from),
       choices = [...available.slice(index + 1), ...available.slice(0, index + 1)]
     const fold = (value: string) =>
       value
@@ -542,60 +729,202 @@ const NativeMenuList = (props: TListProps) => {
   }
   return (
     <NativeMenuStateContext.Provider value={state}>
-      <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
-        <NativeMenuActionsContext.Provider
-          value={{
-            register,
-            refresh,
-            mode: props.selectionMode,
-            text: props.styles.list.text,
-            disabled,
-            selected: (row) => manager.isSelected(row.id),
-            requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
-            focus,
-            activate,
-            layout: (row, frame) => frames.current.set(row.id, frame),
-            typeahead,
-          }}
-        >
-          <NativeContentContext.Provider
-            value={{ foregroundColor: props.styles.list.text.color ?? theme.colors.foreground, isButton: false }}
-          >
-            <NativeFocusView
-              ref={props.root}
-              role="menu"
-              accessible={collection.size === 0}
-              focusable
-              accessibilityLabel={props.menuAriaLabel}
-              testID="menu-list"
-              onLayout={() => setTargetTag(findNodeHandle(props.root.current) ?? 0)}
+      <NativeMenuSelectionManagerContext.Provider value={manager}>
+        <NativeMenuItemContext.Provider value={{ shouldCloseOnSelect: props.shouldCloseOnSelect }}>
+          <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+            <NativeMenuActionsContext.Provider
+              value={{
+                root: props.root,
+                register,
+                refresh,
+                mode: props.selectionMode,
+                text: listStyles.text,
+                virtualFocus: props.listProps.shouldUseVirtualFocus ?? false,
+                focusVisible,
+                disabled,
+                selected: (row) => row.selectionManager().isSelected(row.id),
+                requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
+                focus,
+                activate,
+                openSubmenu: (row, strategy, isCurrent) => {
+                  withNativeAdmission(row, () => {
+                    if (isCurrent?.() !== false) row.submenu()?.open(strategy)
+                  })
+                },
+                layout: (row, frame) => frames.current.set(row.id, frame),
+                typeahead: (row, key, time) => {
+                  if (admitted(row)) typeaheadFrom(row.id, key, time)
+                },
+              }}
             >
-              {renderer.isVirtualized ? (
-                <CollectionRoot collection={collection} scrollRef={rendererScroll} persistedKeys={persistedKeys} />
-              ) : (
-                <ScrollView
-                  ref={scroll}
-                  testID="menu-scroll"
-                  style={{ flexShrink: 1 }}
-                  contentContainerStyle={props.styles.list.view}
-                  keyboardShouldPersistTaps="always"
-                  scrollEventThrottle={16}
-                  onLayout={(event) => {
-                    viewport.current = event.nativeEvent.layout.height
+              <NativeContentContext.Provider
+                value={{ foregroundColor: listStyles.text.color ?? theme.colors.foreground, isButton: false }}
+              >
+                <MenuListHost
+                  {...props.listProps}
+                  ref={props.listRef}
+                  render={props.listProps.render}
+                  isEmpty={collection.size === 0}
+                  nativeID={props.listProps.nativeID ?? props.listProps.id ?? props.submenu?.menuID}
+                  nativeLabelledBy={
+                    nativeAccessibilityIDs(
+                      props.listProps.accessibilityLabelledBy ?? props.listProps["aria-labelledby"],
+                    ) ?? (props.submenu ? [props.submenu.triggerID] : undefined)
+                  }
+                  nativeDescribedBy={nativeAccessibilityIDs(
+                    props.listProps.ariaDescribedBy ?? props.listProps["aria-describedby"],
+                  )}
+                  nativeDetailsBy={nativeAccessibilityIDs(
+                    props.listProps.ariaDetails ?? props.listProps["aria-details"],
+                  )}
+                  nativeDescriptionLabel={props.listProps.descriptionLabel}
+                  nativeDetailsLabel={props.listProps.detailsLabel}
+                  role="menu"
+                  accessible={collection.size === 0 && !props.listProps.renderEmptyState}
+                  focusable
+                  accessibilityLabel={props.menuAriaLabel}
+                  testID={props.listProps.testID ?? "menu-list"}
+                  style={listStyles.view}
+                  onFocus={(event) => {
+                    manager.setFocused(true)
+                    setFocusVisible(event.nativeEvent.isFocusVisible)
+                    props.listProps.onFocus?.(event)
                   }}
-                  onScroll={(event) => {
-                    offset.current = event.nativeEvent.contentOffset.y
+                  onBlur={(event) => {
+                    manager.setFocused(false)
+                    setFocusVisible(false)
+                    props.listProps.onBlur?.(event)
+                  }}
+                  onKeyDown={(event) => {
+                    props.listProps.onKeyDown?.(event)
+                    const data = event.nativeEvent
+                    if (
+                      props.listProps.shouldUseVirtualFocus &&
+                      !event.defaultPrevented &&
+                      !event.isDefaultPrevented?.() &&
+                      !data.cancelled &&
+                      !data.altKey &&
+                      !data.ctrlKey &&
+                      !data.metaKey &&
+                      [...data.key].length === 1 &&
+                      current.current.active !== null
+                    ) {
+                      const from = current.current.active
+                      event.persist?.()
+                      actions?.request(null, findNodeHandle(props.root.current) ?? 0, () =>
+                        typeaheadFrom(from, data.key, data.timestamp),
+                      )
+                    }
+                  }}
+                  onLayout={(event) => {
+                    setTargetTag(findNodeHandle(props.root.current) ?? 0)
+                    props.listProps.onLayout?.(event)
                   }}
                 >
-                  <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
-                </ScrollView>
-              )}
-            </NativeFocusView>
-          </NativeContentContext.Provider>
-        </NativeMenuActionsContext.Provider>
-      </NativeCollectionItemBindingContext.Provider>
+                  <NativeSelectableCollectionContext.Provider value={null}>
+                    {collection.size === 0 && props.listProps.renderEmptyState ? (
+                      <NativeFocusHost role="menuitem" accessible focusable={false} testID="menu-empty-state">
+                        {getNativeButtonContent(props.listProps.renderEmptyState(), listStyles.text)}
+                      </NativeFocusHost>
+                    ) : renderer.isVirtualized ? (
+                      <CollectionRoot
+                        collection={collection}
+                        scrollRef={rendererScroll}
+                        persistedKeys={persistedKeys}
+                      />
+                    ) : (
+                      <ScrollView
+                        ref={scroll}
+                        testID="menu-scroll"
+                        style={{ flexShrink: 1 }}
+                        contentContainerStyle={{
+                          flexDirection: listStyles.view.flexDirection,
+                          flexWrap: listStyles.view.flexWrap,
+                          alignItems: listStyles.view.alignItems,
+                          justifyContent: listStyles.view.justifyContent,
+                          alignContent: listStyles.view.alignContent,
+                          gap: listStyles.view.gap,
+                          rowGap: listStyles.view.rowGap,
+                          columnGap: listStyles.view.columnGap,
+                        }}
+                        keyboardShouldPersistTaps="always"
+                        scrollEventThrottle={16}
+                        onLayout={(event) => {
+                          viewport.current = event.nativeEvent.layout.height
+                        }}
+                        onScroll={(event) => {
+                          offset.current = event.nativeEvent.contentOffset.y
+                        }}
+                      >
+                        <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
+                      </ScrollView>
+                    )}
+                  </NativeSelectableCollectionContext.Provider>
+                </MenuListHost>
+              </NativeContentContext.Provider>
+            </NativeMenuActionsContext.Provider>
+          </NativeCollectionItemBindingContext.Provider>
+        </NativeMenuItemContext.Provider>
+      </NativeMenuSelectionManagerContext.Provider>
     </NativeMenuStateContext.Provider>
   )
 }
+
+const MenuListHost = forwardRef<
+  View,
+  Omit<TNativeMenuListProps, "children"> & {
+    children?: React.ReactNode
+    isEmpty: boolean
+    nativeLabelledBy?: readonly string[]
+    nativeDescribedBy?: readonly string[]
+    nativeDetailsBy?: readonly string[]
+    nativeDescriptionLabel?: string
+    nativeDetailsLabel?: string
+  }
+>((props, ref) => {
+  const {
+    render,
+    slot: _slot,
+    isEmpty,
+    items: _items,
+    dependencies: _dependencies,
+    idScope: _idScope,
+    filter: _filter,
+    shouldUseVirtualFocus: _virtual,
+    disallowTypeAhead: _ahead,
+    autoFocus: _auto,
+    shouldFocusWrap: _wrap,
+    selectionMode: _mode,
+    selectionBehavior: _behavior,
+    selectedKeys: _selected,
+    defaultSelectedKeys: _defaults,
+    disabledKeys: _disabled,
+    disabledBehavior: _disabledBehavior,
+    onSelectionChange: _selection,
+    disallowEmptySelection: _empty,
+    allowDuplicateSelectionEvents: _duplicates,
+    expandedKeys: _expanded,
+    defaultExpandedKeys: _defaultExpanded,
+    onExpandedChange: _expansion,
+    onAction: _action,
+    onClose: _close,
+    shouldCloseOnSelect: _closeSelect,
+    renderEmptyState: _emptyRender,
+    ariaDescribedBy: _described,
+    ariaDetails: _details,
+    "aria-describedby": _describedAlias,
+    "aria-details": _detailsAlias,
+    descriptionLabel: _descriptionLabel,
+    detailsLabel: _detailsLabel,
+    style,
+    ...native
+  } = props
+  const hostProps = {
+    ...native,
+    style: style as StyleProp<TextStyle>,
+    ref,
+  }
+  return render ? render(hostProps, { isEmpty }) : <NativeFocusHost {...hostProps} />
+})
 
 export { NativeMenuTrigger } from "./NativeMenuTrigger"

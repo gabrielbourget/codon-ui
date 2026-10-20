@@ -7,18 +7,24 @@ import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NATIVE_DEFAULT_SLOT, NativeSelectableCollectionContext } from "../../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
   type TNativeCollectionRootProps,
 } from "../../../collection/renderer"
+import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { encodeCollectionKey } from "../../collection"
-import { NativeMenuStateContext } from "../context"
+import { MenuText, MenuKeyboardShortcut, NativeMenuSelectionIndicatorContext } from "../content"
+import { NativeMenuContext, NativeMenuListContext, NativeMenuStateContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
+import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
+import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
+import { SubmenuTrigger } from "../SubmenuTrigger"
 import type { TNativeMenuProps } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -88,6 +94,7 @@ const fixture = (
   initial: Partial<TNativeMenuProps> = {},
   children: ReactNode = sample(),
   renderer = DefaultNativeCollectionRenderer,
+  inheritedChildren = false,
 ) => {
   const root = createRef<RN.View>(),
     host = createRef<RN.View>(),
@@ -100,9 +107,15 @@ const fixture = (
         <NativeOverlayProvider>
           <NativeFloatingLayerHost ref={host} testID="host">
             <RN.View ref={anchor} />
-            <Menu ref={root} triggerRef={anchor} isOpen onAction={action} onOpenChange={close} {...props}>
-              {content}
-            </Menu>
+            <Menu
+              ref={root}
+              triggerRef={anchor}
+              isOpen
+              onAction={action}
+              onOpenChange={close}
+              {...props}
+              children={inheritedChildren ? undefined : content}
+            />
           </NativeFloatingLayerHost>
         </NativeOverlayProvider>
       </NativeCollectionRendererContext.Provider>
@@ -152,6 +165,702 @@ const press = async (id: string) => {
   await act(() => native.props.onResponderGrant(e))
   await act(() => native.props.onResponderRelease(e))
 }
+
+it("applies full list context to dynamic authoring, original values and default owner selection", async () => {
+  const values = [
+    { id: 0, label: "Zero" },
+    { id: "0", label: "String zero" },
+  ]
+  const items = (function* () {
+    yield* values
+  })()
+  const change = jest.fn(),
+    listRef = createRef<RN.View>()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture({}, null, { ...DefaultNativeCollectionRenderer, CollectionRoot: Root }, true)
+  await render(
+    <NativeMenuListContext.Provider
+      value={{
+        ref: listRef,
+        items,
+        children: (value) => {
+          const item = value as (typeof values)[number]
+          return (
+            <MenuItem id={item.id} testID={typeof item.id === "number" ? "numeric" : "string"}>
+              {item.label}
+            </MenuItem>
+          )
+        },
+        selectionMode: "multiple",
+        defaultSelectedKeys: [0],
+        onSelectionChange: change,
+        shouldCloseOnSelect: false,
+      }}
+    >
+      {f.node()}
+    </NativeMenuListContext.Provider>,
+  )
+  await f.ready()
+  expect(state.collection.getItem(0)?.value).toBe(values[0])
+  expect(state.collection.getItem("0")?.value).toBe(values[1])
+  expect(listRef.current).not.toBe(f.root.current)
+  expect(row("numeric").props.accessibilityState.checked).toBe(true)
+  await press("string")
+  expect([...change.mock.calls[0][0]]).toEqual([0, "0"])
+  expect(row("string").props.accessibilityState.checked).toBe(true)
+  expect(state.collection.size).toBe(2)
+  expect(f.close).not.toHaveBeenCalled()
+})
+
+it("separates named/null list slots and actual inner styles/refs from the outer surface", async () => {
+  const list = createRef<RN.View>(),
+    renderHost = jest.fn((props: React.ComponentProps<typeof NativeFocusHost>, _state: { isEmpty: boolean }) => (
+      <NativeFocusHost {...props} />
+    ))
+  const f = fixture({ customMenuStyles: { padding: 7, fontSize: 21 } })
+  const node = (slot?: string | null) => (
+    <NativeMenuListContext.Provider
+      value={{
+        slots: {
+          [NATIVE_DEFAULT_SLOT]: { ref: list, accessibilityLabel: "Default menu", style: { padding: 3, fontSize: 17 } },
+          named: {
+            ref: list,
+            accessibilityLabel: "Named menu",
+            render: renderHost,
+            style: { padding: 5, fontSize: 19 },
+          },
+        },
+      }}
+    >
+      {f.node({ menuListSlot: slot, customMenuStyles: { padding: 7, fontSize: 21 } })}
+    </NativeMenuListContext.Provider>
+  )
+  await render(node())
+  expect(row("menu-list").props.accessibilityLabel).toBe("Default menu")
+  expect(RN.StyleSheet.flatten(row("menu-list").props.style).padding).toBe(7)
+  expect(row("menu-scroll").props.contentContainerStyle.padding).toBeUndefined()
+  expect(list.current).not.toBe(f.root.current)
+  await rerender(node("named"))
+  expect(renderHost).toHaveBeenCalled()
+  expect(row("menu-list").props.accessibilityLabel).toBe("Named menu")
+  expect(renderHost.mock.calls.at(-1)?.[1]).toEqual({ isEmpty: false })
+  await rerender(node(null))
+  expect(row("menu-list").props.accessibilityLabel).toBeUndefined()
+  expect(list.current).toBeNull()
+})
+
+it("keeps item text/description/shortcut refs and selection context attached to actual visible content", async () => {
+  const label = createRef<RN.Text>(),
+    description = createRef<RN.Text>(),
+    shortcut = createRef<RN.Text>()
+  let indicator = false
+  const Indicator = () => {
+    indicator = useContext(NativeMenuSelectionIndicatorContext).isSelected
+    return null
+  }
+  const f = fixture(
+    { selectionMode: "multiple", selectedKeys: [0] },
+    <MenuItem id={0} testID="item" textValue="Canonical label">
+      <MenuText ref={label} testID="label" nativeID="owner-label">
+        Original label
+      </MenuText>
+      <MenuText ref={description} slot="description" testID="description">
+        Original description
+      </MenuText>
+      <MenuKeyboardShortcut ref={shortcut} testID="shortcut">
+        ⌘K
+      </MenuKeyboardShortcut>
+      <Indicator />
+    </MenuItem>,
+  )
+  await render(f.node())
+  expect(indicator).toBe(true)
+  expect(row("item").props.nativeLabelledBy).toEqual([row("label").props.nativeID])
+  expect(row("item").props.nativeDescribedBy).toEqual([
+    row("description").props.nativeID,
+    row("shortcut").props.nativeID,
+  ])
+  expect(label.current).not.toBeNull()
+  expect(description.current).not.toBeNull()
+  expect(shortcut.current).not.toBeNull()
+  expect(row("description").props.accessible).toBe(false)
+})
+
+it("updates an opaque text slot ID without replacing its original native ref or fabricating cleanup", async () => {
+  const targets: (RN.Text | null)[] = [],
+    cleanup = jest.fn()
+  const ref = (target: RN.Text | null) => {
+    targets.push(target)
+    return cleanup
+  }
+  let changeID!: () => void
+  const Opaque = () => {
+    const [id, setID] = useState("label-one")
+    changeID = () => setID("label-two")
+    return (
+      <MenuText ref={ref} nativeID={id}>
+        Original
+      </MenuText>
+    )
+  }
+  const f = fixture(
+    {},
+    <MenuItem id="item" testID="item" textValue="Original">
+      <Opaque />
+    </MenuItem>,
+  )
+  await render(f.node())
+  const original = targets[0]
+  expect(original).not.toBeNull()
+  expect(row("item").props.nativeLabelledBy).toEqual(["label-one"])
+  await act(changeID)
+  expect(row("item").props.nativeLabelledBy).toEqual(["label-two"])
+  expect(targets).toEqual([original])
+  expect(cleanup).not.toHaveBeenCalled()
+})
+
+it("filters the complete collection and clears inherited selectable context below the actual list", async () => {
+  let inherited: React.ContextType<typeof NativeSelectableCollectionContext> = undefined
+  const Probe = () => {
+    inherited = useContext(NativeSelectableCollectionContext)
+    return null
+  }
+  const f = fixture(
+    {},
+    <>
+      <MenuItem id="a" testID="a" textValue="Alpha">
+        Alpha
+      </MenuItem>
+      <MenuItem id="b" testID="b" textValue="Beta">
+        Beta
+        <Probe />
+      </MenuItem>
+    </>,
+  )
+  await render(
+    <NativeSelectableCollectionContext.Provider value={{ filter: (text) => text === "Beta" }}>
+      {f.node()}
+    </NativeSelectableCollectionContext.Provider>,
+  )
+  expect(screen.queryByTestId("a", hidden)).toBeNull()
+  expect(row("b")).toBeDefined()
+  expect(inherited).toBeNull()
+})
+
+it("renders the owned empty state under a virtualized renderer without inventing an item", async () => {
+  const Root = jest.fn((props: TNativeCollectionRootProps) => (
+    <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  ))
+  const f = fixture({}, null, { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root })
+  await render(
+    <NativeMenuListContext.Provider value={{ renderEmptyState: () => <Text testID="empty-copy">No actions</Text> }}>
+      {f.node()}
+    </NativeMenuListContext.Provider>,
+  )
+  expect(row("empty-copy")).toBeDefined()
+  expect(row("menu-empty-state").props.role).toBe("menuitem")
+  expect(row("menu-list").props.accessible).toBe(false)
+  expect(Root).not.toHaveBeenCalled()
+  expect(f.action).not.toHaveBeenCalled()
+})
+
+it("keeps selection-only disabled items navigable and honors an explicit non-wrapping list", async () => {
+  const a = createRef<RN.View>(),
+    b = createRef<RN.View>()
+  const f = fixture(
+    {},
+    <>
+      <MenuItem ref={a} id="a">
+        Alpha
+      </MenuItem>
+      <MenuItem ref={b} id="b" testID="b">
+        Beta
+      </MenuItem>
+    </>,
+  )
+  await render(
+    <NativeMenuListContext.Provider
+      value={{ disabledKeys: ["b"], disabledBehavior: "selection", shouldFocusWrap: false }}
+    >
+      {f.node()}
+    </NativeMenuListContext.Provider>,
+  )
+  await f.ready()
+  await scopedKey("ArrowDown", a.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(b.current)
+  expect(row("b").props.accessibilityState.disabled).toBe(false)
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await scopedKey("ArrowDown", b.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(b.current)
+})
+
+it("keeps actual focus on the virtual-focus list while logical navigation advances without item callbacks", async () => {
+  const list = createRef<RN.View>(),
+    first = createRef<RN.View>(),
+    second = createRef<RN.View>(),
+    itemFocus = jest.fn()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    {},
+    <>
+      <MenuItem ref={first} id="a" testID="a" onFocus={itemFocus}>
+        Alpha
+      </MenuItem>
+      <MenuItem ref={second} id="b" testID="b" onFocus={itemFocus}>
+        Beta
+      </MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(
+    <NativeMenuListContext.Provider value={{ ref: list, shouldUseVirtualFocus: true }}>
+      {f.node()}
+    </NativeMenuListContext.Provider>,
+  )
+  await f.ready()
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(list.current)
+  const native = row("menu-list").props
+  await act(() =>
+    native.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: native.ownerId,
+        target: RN.findNodeHandle(list.current),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  expect(state.selectionManager.focusedKey).toBe("a")
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await scopedKey("ArrowDown", list.current)
+  expect(state.selectionManager.focusedKey).toBe("b")
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(itemFocus).not.toHaveBeenCalled()
+  expect(row("b").props.keyboardFocusable).toBe(false)
+  expect(RN.StyleSheet.flatten(row("b").props.style).outlineWidth).toBe(1.5)
+})
+
+it("retains original list key vetoes before admitted navigation", async () => {
+  const ref = createRef<RN.View>(),
+    onKeyDown = jest.fn((event) => event.preventDefault())
+  const f = fixture(
+    {},
+    <>
+      <MenuItem id="a" ref={ref}>
+        Alpha
+      </MenuItem>
+      <MenuItem id="b">Beta</MenuItem>
+    </>,
+  )
+  await render(<NativeMenuListContext.Provider value={{ onKeyDown }}>{f.node()}</NativeMenuListContext.Provider>)
+  await f.ready()
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await scopedKey("ArrowDown", ref.current)
+  expect(onKeyDown).toHaveBeenCalledTimes(1)
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("resets parent list defaults at a submenu boundary while retaining explicit child authoring", async () => {
+  const f = fixture(
+    {},
+    <SubmenuTrigger>
+      <MenuItem id="trigger" testID="trigger">
+        More
+      </MenuItem>
+      <Menu>
+        <MenuItem id="child" testID="child">
+          Child
+        </MenuItem>
+      </Menu>
+    </SubmenuTrigger>,
+  )
+  await render(
+    <NativeMenuListContext.Provider value={{ selectionMode: "multiple", disabledKeys: ["child"] }}>
+      {f.node()}
+    </NativeMenuListContext.Provider>,
+  )
+  await f.ready()
+  await rawKey("trigger", "Enter")
+  expect(row("child").props.role).toBe("menuitem")
+  expect(row("child").props.accessibilityState.disabled).toBe(false)
+})
+
+it("keeps submenu children out of the parent collection and opens without selecting or firing trigger actions", async () => {
+  const selected = new Set(["other"]),
+    selection = jest.fn(),
+    triggerAction = jest.fn()
+  const trigger = createRef<RN.View>()
+  let parent!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    const state = useContext(NativeMenuStateContext)!
+    if (state.collection.getItem("trigger")) parent = state
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "multiple", selectedKeys: selected, onSelectionChange: selection },
+    <>
+      <SubmenuTrigger ref={trigger}>
+        <MenuItem id="trigger" testID="trigger" onAction={triggerAction}>
+          More
+        </MenuItem>
+        <Menu testID="submenu" menuAriaLabel="More actions">
+          <MenuItem id="child" testID="child">
+            Child
+          </MenuItem>
+        </Menu>
+      </SubmenuTrigger>
+      <MenuItem id="other">Other</MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(parent.collection.getItem("child")).toBeNull()
+  expect(parent.collection.size).toBe(2)
+  expect(trigger.current).not.toBeNull()
+  expect(row("trigger").props.role).toBe("menuitem")
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await rawKey("trigger", "Enter")
+  expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+  expect(row("child")).toBeDefined()
+  expect(selection).not.toHaveBeenCalled()
+  expect(triggerAction).not.toHaveBeenCalled()
+  expect(f.action).not.toHaveBeenCalled()
+  expect(f.close).not.toHaveBeenCalled()
+  expect([...selected]).toEqual(["other"])
+  const lists = screen.getAllByTestId("menu-list", hidden)
+  expect(lists[1].props.nativeLabelledBy).toEqual([row("trigger").props.nativeID])
+})
+
+it("cancels delayed submenu hover on leave and closes it when actual parent focus moves", async () => {
+  const trigger = createRef<RN.View>(),
+    other = createRef<RN.View>()
+  const f = fixture(
+    {},
+    <>
+      <SubmenuTrigger ref={trigger} delay={200}>
+        <MenuItem id="trigger" testID="trigger">
+          More
+        </MenuItem>
+        <Menu testID="submenu">
+          <MenuItem id="child" testID="child">
+            Child
+          </MenuItem>
+        </Menu>
+      </SubmenuTrigger>
+      <MenuItem ref={other} id="other" testID="other">
+        Other
+      </MenuItem>
+    </>,
+  )
+  await render(f.node())
+  await f.ready()
+  await act(() =>
+    row("trigger").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("trigger").props.ownerId,
+        target: RN.findNodeHandle(trigger.current),
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  await rawKey("trigger", "Enter")
+  await act(() =>
+    row("other").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("other").props.ownerId,
+        target: RN.findNodeHandle(other.current),
+        isFocused: true,
+        isFocusVisible: false,
+      },
+    }),
+  )
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  const hoverEvent = {
+    ...event(),
+    nativeEvent: { target: RN.findNodeHandle(trigger.current), timestamp: 0, pointerType: "mouse" },
+  }
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => jest.advanceTimersByTime(199))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerLeave(hoverEvent))
+  await act(() => jest.advanceTimersByTime(1))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => {
+    jest.advanceTimersByTime(200)
+    row("trigger").props.onPointerLeave(hoverEvent)
+  })
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  await act(() => row("trigger").props.onPointerEnter(hoverEvent))
+  await act(() => jest.advanceTimersByTime(200))
+  expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+})
+
+it("closes the complete submenu stack after a child action while a controlled root owner vetoes closing", async () => {
+  const childSurface = createRef<RN.View>(),
+    trigger = createRef<RN.View>(),
+    childAction = jest.fn()
+  const f = fixture(
+    {},
+    <SubmenuTrigger ref={trigger}>
+      <MenuItem id="trigger" testID="trigger">
+        More
+      </MenuItem>
+      <Menu ref={childSurface} testID="submenu" onAction={childAction} menuAriaLabel="Child actions">
+        <MenuItem id="child" testID="child">
+          Child
+        </MenuItem>
+      </Menu>
+    </SubmenuTrigger>,
+  )
+  await render(f.node())
+  await f.ready()
+  Object.defineProperty(trigger.current!, "measureInWindow", {
+    configurable: true,
+    value: (callback: (x: number, y: number, width: number, height: number) => void) => callback(100, 100, 40, 40),
+  })
+  await rawKey("trigger", "Enter")
+  Object.defineProperty(childSurface.current!, "measureInWindow", {
+    configurable: true,
+    value: (callback: (x: number, y: number, width: number, height: number) => void) => callback(130, 100, 150, 100),
+  })
+  await fireEvent(row("submenu"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 150, height: 100 } } })
+  await fireEvent(screen.getAllByTestId("menu-list", hidden)[1], "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 150, height: 100 } },
+  })
+  const host = row("host").props
+  await act(() =>
+    host.onNativeScopeStatus({
+      nativeEvent: {
+        ownerId: host.ownerId,
+        windowId: "menu-window",
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        ready: true,
+        windowActive: true,
+      },
+    }),
+  )
+  for (let i = 0; i < 3; i++) await tick()
+  await press("child")
+  expect(childAction.mock.calls).toEqual([["child"]])
+  expect(f.close.mock.calls).toEqual([[false]])
+  expect(f.action).not.toHaveBeenCalled()
+  expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  expect(row("menu")).toBeDefined()
+})
+
+it.each([
+  ["ltr", "ArrowRight", "ArrowLeft"],
+  ["rtl", "ArrowLeft", "ArrowRight"],
+] as const)(
+  "opens the submenu on the actual %s forward key while retaining caller veto",
+  async (direction, forward, backward) => {
+    let veto = true
+    const f = fixture(
+      { direction },
+      <SubmenuTrigger>
+        <MenuItem
+          id="trigger"
+          testID="trigger"
+          onKeyDown={(event) => {
+            if (veto) event.preventDefault()
+          }}
+        >
+          More
+        </MenuItem>
+        <Menu>
+          <MenuItem id="child">Child</MenuItem>
+        </Menu>
+      </SubmenuTrigger>,
+    )
+    await render(f.node())
+    await f.ready()
+    await rawKey("trigger", forward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+    veto = false
+    await rawKey("trigger", backward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+    await rawKey("trigger", forward)
+    expect(row("trigger").props.accessibilityState.expanded).toBe(true)
+    expect(f.action).not.toHaveBeenCalled()
+  },
+)
+
+it("keeps section owner selection independent while forwarding focus through the full parent state", async () => {
+  const sectionChange = jest.fn(),
+    owner = new Set<string | number>([0]),
+    header = createRef<RN.View>(),
+    section = createRef<RN.View>(),
+    item = createRef<RN.View>()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "none" },
+    <>
+      <MenuSection
+        id="section"
+        testID="section"
+        ref={section}
+        selectionMode="multiple"
+        selectedKeys={owner}
+        onSelectionChange={sectionChange}
+        shouldCloseOnSelect={false}
+      >
+        <MenuHeader ref={header} nativeID="section-name" testID="section-name">
+          Section name
+        </MenuHeader>
+        <MenuItem id={0} testID="section-number" ref={item}>
+          Zero
+        </MenuItem>
+        <MenuItem id="0" testID="section-string">
+          String zero
+        </MenuItem>
+      </MenuSection>
+      <MenuItem id="outside" testID="outside">
+        Outside
+      </MenuItem>
+    </>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(header.current).not.toBeNull()
+  expect(section.current).not.toBeNull()
+  expect(item.current).not.toBeNull()
+  expect(state.collection.getItem(0)?.parentKey).toBe("section")
+  expect(state.collection.size).toBe(3)
+  expect(row("section").props.nativeLabelledBy).toEqual(["section-name"])
+  expect(row("section-number").props.role).toBe("checkbox")
+  expect(row("section-number").props.accessibilityState.checked).toBe(true)
+  expect(row("outside").props.role).toBe("menuitem")
+  const initial = row("section-number").props
+  await act(() =>
+    initial.onNativeFocusChange({
+      nativeEvent: { ownerId: initial.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+    }),
+  )
+  await press("section-string")
+  await press("section-string")
+  expect(sectionChange).toHaveBeenCalledTimes(2)
+  expect([...sectionChange.mock.calls[0][0]]).toEqual([0, "0"])
+  expect([...owner]).toEqual([0])
+  expect(row("section-string").props.accessibilityState.checked).toBe(false)
+  expect(f.close).not.toHaveBeenCalled()
+  const native = row("section-string").props
+  await act(() =>
+    native.onNativeFocusChange({
+      nativeEvent: { ownerId: native.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 1 },
+    }),
+  )
+  expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it("inherits section selection and close defaults with item override and dynamic original values", async () => {
+  const values = [
+    { id: "one", label: "One" },
+    { id: "two", label: "Two" },
+  ]
+  const change = jest.fn()
+  let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+  const Root = (props: TNativeCollectionRootProps) => {
+    state = useContext(NativeMenuStateContext)!
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const f = fixture(
+    { selectionMode: "multiple", onSelectionChange: change, shouldCloseOnSelect: false },
+    <MenuSection id="dynamic" items={values} style={{ color: "red", fontSize: 19 }}>
+      {(value) => (
+        <MenuItem id={value.id} testID={value.id} shouldCloseOnSelect={value.id === "two" ? true : undefined}>
+          {value.label}
+        </MenuItem>
+      )}
+    </MenuSection>,
+    { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
+  )
+  await render(f.node())
+  await f.ready()
+  expect(state.collection.getItem("one")?.value === values[0]).toBe(true)
+  expect(screen.getByText("One", hidden)).toHaveStyle({ color: "red", fontSize: 19 })
+  await press("one")
+  expect([...change.mock.calls[0][0]]).toEqual(["one"])
+  expect(f.close).not.toHaveBeenCalled()
+  await press("two")
+  expect(f.close).toHaveBeenLastCalledWith(false)
+})
+
+it("retires and restores the actual section header relationship without replacing an item ref", async () => {
+  const header = createRef<RN.View>(),
+    item = createRef<RN.View>()
+  let setHeader!: (visible: boolean) => void
+  const Opaque = () => {
+    const [visible, setVisible] = useState(true)
+    setHeader = setVisible
+    return (
+      <MenuSection id="section" testID="section">
+        {visible ? (
+          <MenuHeader ref={header} nativeID="header-name">
+            Header
+          </MenuHeader>
+        ) : null}
+        <MenuItem id="item" ref={item}>
+          Item
+        </MenuItem>
+      </MenuSection>
+    )
+  }
+  const f = fixture({}, <Opaque />)
+  await render(f.node())
+  const original = item.current
+  expect(header.current).not.toBeNull()
+  expect(row("section").props.nativeLabelledBy).toEqual(["header-name"])
+  await act(() => setHeader(false))
+  expect(header.current).toBeNull()
+  expect(row("section").props.nativeLabelledBy).toBeUndefined()
+  expect(item.current === original).toBe(true)
+  await act(() => setHeader(true))
+  expect(header.current).not.toBeNull()
+  expect(row("section").props.nativeLabelledBy).toEqual(["header-name"])
+  expect(item.current === original).toBe(true)
+})
+
+it("merges default, named and null Menu slots with actual root refs and caller precedence", async () => {
+  const inherited = createRef<RN.View>()
+  const f = fixture({ slot: "named", customStyles: { opacity: 0.8 } })
+  const node = (slot: string | null | undefined) => (
+    <NativeMenuContext.Provider
+      value={{
+        slots: {
+          [NATIVE_DEFAULT_SLOT]: { menuAriaLabel: "Default menu" },
+          named: { ref: inherited, menuAriaLabel: "Named menu", customStyles: { opacity: 0.5 } },
+        },
+      }}
+    >
+      {f.node({ slot, customStyles: { opacity: 0.8 } })}
+    </NativeMenuContext.Provider>
+  )
+  await render(node("named"))
+  expect(inherited.current === f.root.current).toBe(true)
+  expect(row("menu-list").props.accessibilityLabel).toBe("Named menu")
+  expect(RN.StyleSheet.flatten(row("menu").props.style).opacity).toBe(0.8)
+  await rerender(node(undefined))
+  expect(row("menu-list").props.accessibilityLabel).toBe("Default menu")
+  await rerender(node(null))
+  expect(row("menu-list").props.accessibilityLabel).toBeUndefined()
+})
 
 it("CAP.menu.001/.002 renders the actual menu/list/item/separator structure with the native root ref", async () => {
   const f = fixture()
@@ -566,9 +1275,12 @@ const scopedKey = async (
   const host = row("host").props
   const policy = host.policies.find((p: { tokens: string[] }) => p.tokens.includes(token))
   expect(policy).toBeDefined()
+  let prevented = false
   const e = {
-    preventDefault: jest.fn(),
-    isDefaultPrevented: () => false,
+    preventDefault: jest.fn(() => {
+      prevented = true
+    }),
+    isDefaultPrevented: () => prevented,
     nativeEvent: {
       kind: "keyboard",
       ownerId: host.ownerId,
