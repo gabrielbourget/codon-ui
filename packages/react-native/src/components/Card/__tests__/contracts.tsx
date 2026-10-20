@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import type { View } from "react-native"
+import type { ScrollView, View } from "react-native"
 
 import { nativeAnimationControls } from "../../../motion/animation"
 import { NativeMotionConfig } from "../../../motion/config"
@@ -98,6 +98,7 @@ export const ComposedPrivateCard = (
   </NativeMotionConfig>
 )
 export const Controls = <Card animate={nativeAnimationControls()} values={{ opacity: motionValue(1) }} />
+export const ScrollViewport = <Card viewport={{ root: createRef<ScrollView>() }} whileInView={{ opacity: 1 }} />
 // @ts-expect-error Owned style retains its static native style contract.
 export const MotionStyle = <Card style={{ opacity: motionValue(0) }} />
 // @ts-expect-error Owned children retain their ReactNode contract.

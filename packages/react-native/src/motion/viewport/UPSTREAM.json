@@ -19,15 +19,15 @@
   "authoredFiles": [
     {
       "file": "NativeMotionViewport.ts",
-      "sha256": "e98c0468894fbdbac97085b6cdb97bff4edc34a615d27d726b3d32929f1be88e"
+      "sha256": "161ea4d91394368da08cf4ef9b9106d00660be29345b82708dc4efa7953e65fc"
     },
     {
       "file": "nativeViewport.ts",
-      "sha256": "f758c949488ba2b0ff8930a6007f0e631012a362f1a65c54faee7a6bbfd4d182"
+      "sha256": "9ab6ae0ac4caf9afdbb4a527a7d3fef3114f6376a41d94cb76c919ecf38f2d3b"
     },
     {
       "file": "types.ts",
-      "sha256": "e8909bba9086ad99abf24102350d9f989e180c6792a8531cec63a0b0ea26c483"
+      "sha256": "4709c5c0ca3293fb4dbe34bba0b11abe1e82e027845d4953689f8c6a5f2dd5f4"
     }
   ],
   "sourceOracle": {
@@ -40,7 +40,32 @@
     "Retain pinned isIntersecting/once/options/current-handler lifecycle; amount is an observer threshold and does not independently filter Motion isIntersecting transitions",
     "Resolve root-margin percentages against actual root width, retain edge adjacency and zero-area ratios, and return native logical rectangle fields with original View targets",
     "Private scoped module uses current immutable Fabric revision/family/props and existing native frame notifications; no RN global observer manager, SDK flag, mounted probe or editor write",
-    "Actual ancestor/default/window/ref/scroll/transform/first-frame/large-tree and installed fidelity remains required; existing native drawing receiver remains incomplete"
+    "Actual ancestor/default/window/ref/scroll/transform/first-frame/large-tree and installed fidelity remains required; existing native drawing receiver remains incomplete",
+    "Resolve actual ScrollView hosts once with the existing public accessor, preserve pinned root capture and View/default-window behavior, and reject unavailable or retired native hosts"
   ],
-  "specification": "https://www.w3.org/TR/intersection-observer/"
+  "specification": "https://www.w3.org/TR/intersection-observer/",
+  "nativeRootAccessor": {
+    "package": "react-native",
+    "version": "0.86.3",
+    "accessor": "ScrollView.getNativeScrollRef",
+    "inputs": [
+      {
+        "path": "Libraries/Components/ScrollView/ScrollView.js",
+        "sha256": "8c6abb530799ce37215f1c49590d6dbe7c0ed0184c41025560f5c3f679f847fa"
+      },
+      {
+        "path": "Libraries/Components/ScrollView/ScrollView.d.ts",
+        "sha256": "71ea55d90792c303eb5d653a5d11ffb9b887ec9735d64f466ad64d0509cde883"
+      },
+      {
+        "path": "types/public/ReactNativeTypes.d.ts",
+        "sha256": "2d31b150324b256cc50654ee6c7d59c1762f60bdcc50e779e2fcd447e620cb6a"
+      },
+      {
+        "path": "Libraries/ReactNative/RendererProxy.d.ts",
+        "sha256": "cd2156bc8e4d54d52a2817d1b6f4629a5dd3173b1d8bb0fc893ee678d6a78ecd"
+      }
+    ],
+    "nativeProof": false
+  }
 }

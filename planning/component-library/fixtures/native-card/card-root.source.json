@@ -150,7 +150,7 @@
   "declarationLimits": [
     "Private orchestration target/transition types retain broad dictionary members; complete truthful native definition types remain required",
     "Current callback source equivalence, including before-layout box arguments, remains required",
-    "The current viewport receiver accepts actual View refs; full approved ScrollView-ref mapping remains required",
+    "View/ScrollView source ref mapping received in evidence3.31.89; actual native root fidelity remains required",
     "All inherited group positive/negative examples here cover current private mappings only, not a complete public Card claim"
   ],
   "rootAssertionMappings": {
@@ -162,5 +162,13 @@
   "nativeActions": 0,
   "nativeAcceptance": false,
   "fullCard": false,
-  "fullGoal": false
+  "fullGoal": false,
+  "nativeRootAccessor": {
+    "evidence": "3.31.89",
+    "package": "react-native",
+    "version": "0.86.3",
+    "accessor": "getNativeScrollRef",
+    "firstCapture": "Pinned feature lifecycle; captures the actual root once at observation start",
+    "actualNativeProof": false
+  }
 }

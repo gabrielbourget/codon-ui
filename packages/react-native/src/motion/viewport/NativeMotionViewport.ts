@@ -1,12 +1,12 @@
 // Motion12.40 InViewFeature lifecycle adapted to immutable native Fabric input.
-import type { View } from "react-native"
+import type { HostInstance, View } from "react-native"
 
 import { observeNativeMotionGeometry } from "../../input/motionGeometry"
 import type { TNativeMotionGeometryRecord } from "../../input/motionGeometry"
 import { cancelFrame, frame } from "../kernel"
 import type { NativeMotionOwner } from "../owner/NativeMotionOwner"
 
-import { readNativeViewport } from "./nativeViewport"
+import { readNativeViewport, resolveNativeViewportRoot } from "./nativeViewport"
 import { nativeViewportMargins, nativeViewportThreshold } from "./types"
 import type { TNativeViewportEntry, TNativeViewportOptions } from "./types"
 
@@ -15,7 +15,7 @@ export class NativeMotionViewport {
   private stop?: () => void
   private lease: () => boolean = () => false
   private options?: TNativeViewportOptions
-  private root?: View | null
+  private root?: HostInstance | null
   private threshold = 0
   private margins = nativeViewportMargins()
   private once = false
@@ -63,8 +63,15 @@ export class NativeMotionViewport {
     this.started = true
     this.target = this.owner.current
     this.lease = this.owner.captureVisualLease()
+    try {
+      this.root = resolveNativeViewportRoot(next.root?.current)
+    } catch (error) {
+      this.options = undefined
+      this.root = undefined
+      this.error(error)
+      return
+    }
     this.options = { ...next }
-    this.root = next.root?.current
     this.once = next.once ?? false
     this.threshold = nativeViewportThreshold(next.amount)
     this.margins = nativeViewportMargins(next.margin)

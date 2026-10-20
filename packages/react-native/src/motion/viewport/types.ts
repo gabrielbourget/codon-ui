@@ -1,5 +1,5 @@
 import type { RefObject } from "react"
-import type { View } from "react-native"
+import type { ScrollView, View } from "react-native"
 
 type TNativeViewportRectData = Readonly<{
   x: number
@@ -22,7 +22,7 @@ export type TNativeViewportEntry = Readonly<{
   isIntersecting: boolean
 }>
 export type TNativeViewportOptions = {
-  root?: RefObject<View | null>
+  root?: RefObject<View | ScrollView | null>
   margin?: string
   amount?: "some" | "all" | number
   once?: boolean
