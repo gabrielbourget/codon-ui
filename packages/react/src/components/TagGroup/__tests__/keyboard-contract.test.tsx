@@ -1,5 +1,11 @@
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
-import { I18nProvider } from "react-aria-components"
+import { createRef, Fragment, useContext } from "react"
+import {
+  CollectionRendererContext,
+  DefaultCollectionRenderer,
+  I18nProvider,
+  ListStateContext,
+} from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
 
 import Tag from "../AdobeTag/AdobeTag"
@@ -49,6 +55,51 @@ const send = (key: string, modifiers: TModifiers = {}) =>
   fireEvent.keyDown(document.activeElement!, { key, ...modifiers })
 
 describe("native TagGroup keyboard contract oracle", () => {
+  it("keeps logical focusedKey ahead of native materialization without fabricating target focus", async () => {
+    let state: React.ContextType<typeof ListStateContext>
+    const focus = vi.fn()
+    const renderer: React.ContextType<typeof CollectionRendererContext> = {
+      ...DefaultCollectionRenderer,
+      isVirtualized: true,
+      CollectionRoot: ({ collection }) => {
+        state = useContext(ListStateContext)
+        return [...collection].slice(0, 1).map((node) => <Fragment key={node.key}>{node.render?.(node)}</Fragment>)
+      },
+    }
+    render(
+      <CollectionRendererContext.Provider value={renderer}>
+        <TagGroup aria-label="Virtual tags">
+          <Tag id="a" data-testid="virtual-a">
+            Alpha
+          </Tag>
+          <Tag id="b" onFocus={focus}>
+            Beta
+          </Tag>
+          <Tag id="c">Charlie</Tag>
+        </TagGroup>
+      </CollectionRendererContext.Provider>,
+    )
+    await act(async () => screen.getByTestId("virtual-a").focus())
+    send("ArrowDown")
+    await waitFor(() => expect(state!.selectionManager.focusedKey).toBe("b"))
+    expect(state!.collection.size).toBe(3)
+    expect(document.activeElement).toBe(screen.getByTestId("virtual-a"))
+    expect(focus).not.toHaveBeenCalled()
+  })
+  it("retains the actual item ref across changes between passive and selectable modes", () => {
+    const ref = createRef<HTMLDivElement>()
+    const item = (
+      <Tag id="a" ref={ref}>
+        Alpha
+      </Tag>
+    )
+    const view = render(<TagGroup selectionMode="none">{item}</TagGroup>)
+    const original = ref.current
+    view.rerender(<TagGroup selectionMode="multiple">{item}</TagGroup>)
+    expect(ref.current).toBe(original)
+    view.rerender(<TagGroup selectionMode="none">{item}</TagGroup>)
+    expect(ref.current).toBe(original)
+  })
   it.each([
     { key: "ArrowDown", target: "b" },
     { key: "ArrowUp", target: "c" },
@@ -56,10 +107,19 @@ describe("native TagGroup keyboard contract oracle", () => {
     { key: "ArrowLeft", target: "c" },
     { key: "Home", target: "a" },
     { key: "End", target: "c" },
+    { key: "PageUp", target: "a" },
+    { key: "PageDown", target: "c" },
   ])("$key focuses $target with disabled skipping and wrapping", async ({ key, target }) => {
     await fixture()
     send(key)
     await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId(target)))
+  })
+  it("PageDown extends an unanchored owner with the same source range semantics as arrows", async () => {
+    const { change, owner } = await fixture()
+    send("PageDown", { shiftKey: true })
+    await waitFor(() => expect(document.activeElement).toBe(screen.getByTestId("c")))
+    expect(change.mock.calls.map(([keys]) => [...keys])).toEqual([["a", "c"]])
+    expect([...owner]).toEqual(["a"])
   })
   it.each([
     { behavior: "toggle" as const, modifiers: { shiftKey: true }, expected: ["a", "b"] },

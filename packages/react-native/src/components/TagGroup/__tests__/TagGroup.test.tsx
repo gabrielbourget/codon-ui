@@ -100,6 +100,43 @@ afterEach(() => {
   jest.restoreAllMocks()
 })
 
+it("retains the actual native item ref across passive and selectable modes", async () => {
+  const ref = createRef<RN.View>()
+  const item = (
+    <Tag id="a" ref={ref}>
+      Alpha
+    </Tag>
+  )
+  const view = await render(node({ selectionMode: "none" }, item))
+  const original = ref.current
+  await view.rerender(node({ selectionMode: "multiple" }, item))
+  expect(ref.current === original).toBe(true)
+  await view.rerender(node({ selectionMode: "none" }, item))
+  expect(ref.current === original).toBe(true)
+})
+it("cancels a held press when the same native row becomes passive", async () => {
+  const ref = createRef<RN.View>(),
+    change = jest.fn(),
+    end = jest.fn()
+  const item = (
+    <Tag id={0} testID="zero" ref={ref} onPressEnd={end}>
+      Zero
+    </Tag>
+  )
+  const view = await render(node({ selectionMode: "multiple", selectedKeys: [], onSelectionChange: change }, item))
+  const original = ref.current
+  const active = row("zero").props
+  const event = gesture()
+  await act(() => active.onResponderGrant(event))
+  await view.rerender(node({ selectionMode: "none", selectedKeys: [], onSelectionChange: change }, item))
+  await act(() => active.onResponderRelease(event))
+  expect(ref.current === original).toBe(true)
+  expect(change).not.toHaveBeenCalled()
+  expect(end).toHaveBeenCalledTimes(1)
+  expect(end.mock.calls[0][0] === event).toBe(true)
+  expect(row("zero").props.onResponderGrant).toBeUndefined()
+})
+
 it("retains explicit text values on composed items and their removal labels after collection reception", async () => {
   const remove = jest.fn()
   await render(

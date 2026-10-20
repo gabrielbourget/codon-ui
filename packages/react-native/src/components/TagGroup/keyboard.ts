@@ -1,3 +1,4 @@
+import type { TNativeCollectionLayoutDelegate } from "../../collection/renderer"
 import { nativeKeyTokens } from "../../input/keyScope"
 import type { TNativeKeyboardData } from "../../input/types"
 
@@ -16,6 +17,8 @@ export const NATIVE_TAG_GROUP_NAVIGATION_KEYS = [
   "ArrowDown",
   "Home",
   "End",
+  "PageUp",
+  "PageDown",
 ] as const
 export type TNativeTagGroupNavigationKey = (typeof NATIVE_TAG_GROUP_NAVIGATION_KEYS)[number]
 export const isNativeTagGroupNavigationKey = (key: string): key is TNativeTagGroupNavigationKey =>
@@ -34,8 +37,8 @@ export const getNativeTagGroupNavigationKey = (
 ): TNativeTagGroupKey | null => {
   const enabled = rows.filter((row) => !row.isDisabled)
   if (!enabled.length) return null
-  if (key === "Home") return enabled[0].key
-  if (key === "End") return enabled[enabled.length - 1].key
+  if (key === "Home" || key === "PageUp") return enabled[0].key
+  if (key === "End" || key === "PageDown") return enabled[enabled.length - 1].key
   const index = rows.findIndex((row) => row.key === focusedKey)
   if (index < 0) return key === "ArrowUp" ? enabled[enabled.length - 1].key : enabled[0].key
   const forward = key === "ArrowDown" || key === (isRTL ? "ArrowLeft" : "ArrowRight")
@@ -44,6 +47,36 @@ export const getNativeTagGroupNavigationKey = (
     if (!candidate.isDisabled) return candidate.key
   }
   return null
+}
+
+// Adapted from react-aria3.48.0 ListKeyboardDelegate (Copyright 2020 Adobe, Apache-2.0).
+// See ../../collection/LICENSE.react-aria.md. Rectangles come from the actual native renderer.
+export const getNativeTagGroupPageKey = (
+  rows: readonly TNativeTagGroupRow[],
+  focusedKey: TNativeTagGroupKey,
+  key: "PageUp" | "PageDown",
+  layout: TNativeCollectionLayoutDelegate | undefined,
+  hasScrollHost: boolean,
+): TNativeTagGroupKey | null => {
+  const enabled = rows.filter((row) => !row.isDisabled)
+  const boundary = key === "PageUp" ? enabled[0]?.key : enabled[enabled.length - 1]?.key
+  if (boundary === undefined) return null
+  if (!layout && !hasScrollHost) return boundary
+  let rect = layout?.getItemRect(focusedKey)
+  if (!rect || !layout) return null
+  if (!hasScrollHost) return boundary
+  let index = enabled.findIndex((row) => row.key === focusedKey)
+  if (index < 0) return null
+  const backwards = key === "PageUp"
+  const page = backwards
+    ? Math.max(0, rect.x + rect.width - layout.getVisibleRect().width)
+    : Math.min(layout.getContentSize().width, rect.x - rect.width + layout.getVisibleRect().width)
+  while (rect && (backwards ? rect.x > page : rect.x < page)) {
+    index += backwards ? -1 : 1
+    if (index < 0 || index >= enabled.length) return boundary
+    rect = layout.getItemRect(enabled[index].key)
+  }
+  return enabled[index].key
 }
 
 export const getNativeTagGroupNavigationSelection = (options: {

@@ -22,7 +22,6 @@ import {
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
-import { NativeFocusView } from "../../input/NativeFocusView"
 import type { TNativeFocusEvent, TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton, Button } from "../Button/Button"
@@ -143,13 +142,15 @@ const TagReceiver = forwardRef<
   const disabled = group.disabled(row, props),
     actions = group.actionState(row, props)
   const interactive = actions.allowsSelection || actions.hasPrimaryAction
-  const lifetime = JSON.stringify([encodeCollectionKey(key), href, interactive])
+  const lifetime = JSON.stringify([encodeCollectionKey(key), href])
   useImperativeHandle(ref, () => view.current!, [lifetime])
   const pointer = useRef<TNativeTagPressMetadata | null>(null),
     cycle = useRef<{ primary: boolean; long: boolean } | null>(null),
     lastMouse = useRef<number | undefined>(undefined),
     textStyle = useRef<TextStyle>({})
-  const stateFor = (flags?: TNativeButtonRenderState): TNativeGroupedTagState => ({
+  const stateFor = (
+    flags?: Pick<TNativeButtonRenderState, "isPressed" | "isHovered" | "isFocused">,
+  ): TNativeGroupedTagState => ({
     isSelected: group.selected(row),
     isDisabled: disabled,
     isHovered: flags?.isHovered ?? false,
@@ -218,7 +219,10 @@ const TagReceiver = forwardRef<
                   geometry="orthogonal"
                   raised={false}
                   customStyles={{ backgroundColor: "transparent", borderWidth: 0, padding: 0, color: foreground }}
-                  onFocus={(event) => group.focus(row, true, event.nativeEvent.isFocusVisible)}
+                  onFocus={(event) => {
+                    nativeCellFocus?.(event)
+                    group.focus(row, true, event.nativeEvent.isFocusVisible)
+                  }}
                   onBlur={(event) => group.focus(row, false, event.nativeEvent.isFocusVisible)}
                   onPress={(event) => group.remove(row, "button", event)}
                   onKeyDown={(event) => group.keyCapture(row, event)}
@@ -255,32 +259,6 @@ const TagReceiver = forwardRef<
     onFocus: (event: TNativeFocusEvent) => focus(true, event),
     onBlur: (event: TNativeFocusEvent) => focus(false, event),
   }
-  if (!interactive) {
-    const state = stateFor(),
-      style = getNativeGroupedTagStyles(theme, props, state)
-    textStyle.current = style.text
-    return (
-      <NativeCollectionSemanticsContext.Provider value={group.semantics(row)}>
-        <NativeFocusView
-          {...native}
-          {...owned}
-          key={lifetime}
-          ref={view}
-          role="row"
-          accessible={!group.allowsRemoving}
-          focusable={!disabled && props.focusable !== false && props.tabIndex !== -1}
-          style={style.view}
-          onKeyDown={(event) => {
-            group.keyCapture(row, event)
-            onKeyDown?.(event)
-          }}
-          onKeyUp={onKeyUp}
-        >
-          {content(state, style.foregroundColor)}
-        </NativeFocusView>
-      </NativeCollectionSemanticsContext.Provider>
-    )
-  }
   return (
     <NativeCollectionSemanticsContext.Provider value={group.semantics(row)}>
       <NativeButton
@@ -289,6 +267,8 @@ const TagReceiver = forwardRef<
         key={lifetime}
         ref={view}
         nativeRole="row"
+        nativeAccessible={interactive || !group.allowsRemoving}
+        nativeInteraction={interactive}
         isDisabled={disabled}
         aria-selected={undefined}
         aria-checked={undefined}
@@ -299,10 +279,15 @@ const TagReceiver = forwardRef<
             ? (group.labels.removeDescription ?? "Press Delete or Backspace to remove.")
             : undefined)
         }
-        style={(flags) => {
+        nativeStyle={(flags) => {
           const style = getNativeGroupedTagStyles(theme, props, stateFor(flags))
           textStyle.current = style.text
-          return [style.view, style.text]
+          return {
+            viewStyle: style.view,
+            textStyle: style.text,
+            foregroundColor: style.foregroundColor,
+            target: interactive ? (Platform.OS === "ios" ? 44 : 48) : 0,
+          }
         }}
         onPointerDown={(event: PointerEvent) => {
           onPointerDown?.(event)

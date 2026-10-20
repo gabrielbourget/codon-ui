@@ -59,5 +59,12 @@ export const NativeTagGroupStateContext = createContext<ListState<object> | null
 
 export const NativeTagGroupContext =
   createContext<TNativeContextValue<Partial<Omit<TNativeTagGroupProps, "children" | "items" | "getKey">>, View>>(null)
-export const NativeTagListContext =
-  createContext<TNativeContextValue<TNativeFocusViewProps & TNativeSlotProps, View>>(null)
+export type TNativeTagListContextProps = TNativeFocusViewProps &
+  TNativeSlotProps & {
+    nativeLabelledBy?: readonly string[]
+    nativeDescribedBy?: readonly string[]
+    nativeDetailsBy?: readonly string[]
+    nativeDescriptionLabel?: string
+    nativeDetailsLabel?: string
+  }
+export const NativeTagListContext = createContext<TNativeContextValue<TNativeTagListContextProps, View>>(null)

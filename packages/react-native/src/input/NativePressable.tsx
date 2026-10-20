@@ -45,6 +45,7 @@ export type TNativePressableProps = Omit<
     nativeDescriptionLabel?: string
     nativeDetailsLabel?: string
     activationBlocked?: boolean
+    nativeInteraction?: boolean
     blockNativeResponder?: boolean
     onPressCancel?: (event: TNativePressEvent) => void
     onHoverCancel?: (event: MouseEvent) => void
@@ -56,7 +57,8 @@ const subscribeNothing = () => () => {}
 
 export const NativePressable = forwardRef<View, TNativePressableProps>((props, forwardedRef) => {
   const {
-    activationBlocked = false,
+    activationBlocked: authoredActivationBlocked = false,
+    nativeInteraction = true,
     disabled,
     children,
     style,
@@ -101,6 +103,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     "aria-live": ariaLive,
     ...rest
   } = props
+  const activationBlocked = authoredActivationBlocked || !nativeInteraction
   const keyboardEnabled = !disabled && focusable !== false && rest.tabIndex !== -1
   const scope = useContext(NativeFloatingScopeContext)
   const window = useContext(NativeFloatingWindowContext)
@@ -257,7 +260,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   }
   const handlers = useNativePressability({
     cancelable,
-    disabled: !!disabled,
+    disabled: !!disabled || !nativeInteraction,
     hitSlop,
     pressRectOffset: pressRetentionOffset,
     android_disableSound,
@@ -299,7 +302,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     <NativeFocusHost
       {...rest}
       {...ripple?.viewProps}
-      {...handlers}
+      {...(nativeInteraction ? handlers : {})}
       ref={setRef}
       accessible={rest.accessible !== false}
       accessibilityLabel={ariaLabel ?? accessibilityLabel}
@@ -312,10 +315,10 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         selected: ariaSelected ?? accessibilityState?.selected,
       }}
       collapsable={false}
-      nativePressable
+      nativePressable={nativeInteraction ? true : undefined}
       focusable={keyboardEnabled}
       hitSlop={hitSlop}
-      capturedKeys={activationKeys}
+      capturedKeys={nativeInteraction ? activationKeys : []}
       style={typeof style === "function" ? style({ pressed: pressed || testOnly_pressed === true }) : style}
       onClick={undefined}
       onNativeActivation={(event) => {
@@ -338,28 +341,40 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         current.current.onActivation?.(event)
         if (admitted()) current.current.onPress?.(event)
       }}
-      onResponderGrant={(event) => {
-        observedOrigin.current = "pointer"
-        current.current.onFocusVisibilityChange?.(false)
-        handlers.onResponderGrant?.(event)
-      }}
-      onResponderRelease={(event) => {
-        releasingPointer.current = event
-        try {
-          deliverPointerUp(event)
-          handlers.onResponderRelease?.(event)
-        } finally {
-          releasingPointer.current = null
-          pointer.current = null
-        }
-      }}
-      onResponderTerminate={(event) => {
-        try {
-          handlers.onResponderTerminate?.(event)
-        } finally {
-          pointer.current = null
-        }
-      }}
+      onResponderGrant={
+        nativeInteraction
+          ? (event) => {
+              observedOrigin.current = "pointer"
+              current.current.onFocusVisibilityChange?.(false)
+              handlers.onResponderGrant?.(event)
+            }
+          : undefined
+      }
+      onResponderRelease={
+        nativeInteraction
+          ? (event) => {
+              releasingPointer.current = event
+              try {
+                deliverPointerUp(event)
+                handlers.onResponderRelease?.(event)
+              } finally {
+                releasingPointer.current = null
+                pointer.current = null
+              }
+            }
+          : undefined
+      }
+      onResponderTerminate={
+        nativeInteraction
+          ? (event) => {
+              try {
+                handlers.onResponderTerminate?.(event)
+              } finally {
+                pointer.current = null
+              }
+            }
+          : undefined
+      }
       onPointerEnter={(event) => {
         onPointerEnter?.(event)
         if (event.nativeEvent.pointerType === "touch" || !admitted() || hoverIntent.current) return

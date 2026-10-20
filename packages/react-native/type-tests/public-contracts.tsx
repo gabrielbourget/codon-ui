@@ -117,6 +117,10 @@ export const InvalidButtonTextDecoration = <Button style={{ textDecorationLine: 
 export const InvalidButtonDisabled = <Button disabled />
 // @ts-expect-error Button's role adapter is private to owned native component compositions.
 export const InvalidButtonNativeRole = <Button nativeRole="menuitem" />
+// @ts-expect-error Passive receiver composition remains private to native component owners.
+export const InvalidButtonNativeInteraction = <Button nativeInteraction={false} />
+// @ts-expect-error Native component style resolution does not extend the public Button API.
+export const InvalidButtonNativeStyle = <Button nativeStyle={() => ({})} />
 // @ts-expect-error Button owns busy/disabled accessibility semantics.
 export const InvalidButtonBusy = <Button accessibilityState={{ busy: false }} />
 // @ts-expect-error Native Button has no DOM class plumbing.

@@ -125,11 +125,11 @@ it("keeps complete state behind a partial renderer and waits for an actual offsc
   expect(scrollToKey).toHaveBeenLastCalledWith("0")
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
   expect(focus).not.toHaveBeenCalled()
-  expect(state.selectionManager.focusedKey).toBeNull()
+  expect(state.selectionManager.focusedKey).toBe("0")
   expect(renderedProps.persistedKeys?.has("0")).toBe(true)
   await act(() => materialize([0, "0"]))
   expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
-  expect(state.selectionManager.focusedKey).toBeNull()
+  expect(state.selectionManager.focusedKey).toBe("0")
   const host = row("second")
   const event = {
     nativeEvent: {
@@ -144,6 +144,56 @@ it("keeps complete state behind a partial renderer and waits for an actual offsc
   await act(() => host.props.onNativeFocusChange(event))
   expect(focus.mock.calls[0][0] === event).toBe(true)
   expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it("advances repeated logical navigation and keeps older focus acknowledgements from replacing the latest intent", async () => {
+  const first = createRef<RN.View>(),
+    last = createRef<RN.View>(),
+    focus = jest.fn()
+  let materialize!: () => void
+  let state!: TNativeListState<object>
+  const Root = ({ collection }: TNativeCollectionRootProps) => {
+    const [all, setAll] = useState(false)
+    materialize = () => setAll(true)
+    state = useContext(NativeListStateContext)!
+    return [...collection]
+      .filter((node) => all || node.key === 0)
+      .map((node) => <Fragment key={encodeCollectionKey(node.key)}>{node.render?.(node)}</Fragment>)
+  }
+  await fixture(
+    {},
+    <>
+      <Tag id={0} ref={first} testID="first">
+        First
+      </Tag>
+      <Tag id="middle">Middle</Tag>
+      <Tag id="last" ref={last} onFocus={focus}>
+        Last
+      </Tag>
+    </>,
+    { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
+  )
+  await scoped("ArrowDown", first.current)
+  await scoped("ArrowDown", first.current)
+  expect(state.selectionManager.focusedKey).toBe("last")
+  const host = row("first")
+  await act(() =>
+    host.props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: host.props.ownerId,
+        target: RN.findNodeHandle(first.current),
+        isFocused: true,
+        isFocusVisible: true,
+        origin: "keyboard",
+        timestamp: 90,
+      },
+    }),
+  )
+  expect(state.selectionManager.focusedKey).toBe("last")
+  expect(focus).not.toHaveBeenCalled()
+  await act(materialize)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === last.current).toBe(true)
+  expect(focus).not.toHaveBeenCalled()
 })
 
 it("rejects a pending offscreen focus request after its native window retires", async () => {
@@ -378,10 +428,19 @@ it.each([
   { key: "ArrowLeft", target: "last" },
   { key: "Home", target: "first" },
   { key: "End", target: "last" },
+  { key: "PageUp", target: "first" },
+  { key: "PageDown", target: "last" },
 ] as const)("matches the web $key focus target through actual native refs", async ({ key, target }) => {
   const f = await navigationFixture()
   await scoped(key, f.first.current)
   expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f[target].current).toBe(true)
+  expect([...f.owner]).toEqual([0])
+})
+it("matches source PageDown extension without inventing an anchor on the owner's plain set", async () => {
+  const f = await navigationFixture()
+  await scoped("PageDown", f.first.current, "1000:PageDown", { shiftKey: true })
+  expect(f.change.mock.calls.map(([keys]) => [...keys])).toEqual([[0, "tail"]])
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === f.last.current).toBe(true)
   expect([...f.owner]).toEqual([0])
 })
 it.each([

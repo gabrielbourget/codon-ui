@@ -50,3 +50,14 @@ export const disabledAlias = <Tag aria-disabled />
 export const busyAlias = <Tag aria-busy />
 // @ts-expect-error Native style owners do not advertise DOM class strings.
 export const domClass = <TagGroup className="ignored" />
+
+export const relationships = (
+  <TagGroup
+    aria-labelledby="tag-label"
+    ariaDescribedBy={["tag-description"]}
+    aria-details="tag-details"
+    labels={{ descriptionLabel: "Instructions", detailsLabel: "" }}
+  />
+)
+// @ts-expect-error Native relationship identities are strings, not collection keys.
+export const invalidRelationship = <TagGroup ariaDescribedBy={[0]} />
