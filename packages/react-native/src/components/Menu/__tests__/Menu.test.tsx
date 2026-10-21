@@ -1852,6 +1852,16 @@ it.each([false, true])(
     )
     await f.ready(false, "source-model-window")
     expect(row("host").props.menuPointerPolicies).toEqual([])
+    await act(() =>
+      row("trigger").props.onNativeFocusChange({
+        nativeEvent: {
+          ownerId: row("trigger").props.ownerId,
+          target: RN.findNodeHandle(trigger.current),
+          isFocused: true,
+          isFocusVisible: true,
+        },
+      }),
+    )
     await rawKey("trigger", "Enter")
     const lists = screen.getAllByTestId("menu-list", hidden)
     await fireEvent(lists[1], "layout", { nativeEvent: { layout: { x: 200, y: 0, width: 150, height: 180 } } })
@@ -1912,6 +1922,10 @@ it.each([false, true])(
           },
         }),
       )
+    if (retired) {
+      expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+      expect(row("host").props.menuPointerPolicies).toEqual([])
+    }
     jest.mocked(Commands.requestKeyboardFocus).mockClear()
     await act(() =>
       row("host").props.onNativeMenuPointer({
@@ -1928,7 +1942,7 @@ it.each([false, true])(
     )
     if (retired) expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
     else {
-      expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(other.current)
+      expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(other.current, row("other").props.ownerId)
       expect(row("trigger").props.accessibilityState.expanded).toBe(false)
     }
     expect(f.action).not.toHaveBeenCalled()
