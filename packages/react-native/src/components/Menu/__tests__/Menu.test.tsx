@@ -26,7 +26,9 @@ import { Text } from "../../Text/Text"
 import { MenuText, MenuKeyboardShortcut, NativeMenuSelectionIndicatorContext } from "../content"
 import {
   NativeMenuContext,
+  NativeMenuHeaderContext,
   NativeMenuListContext,
+  NativeMenuSeparatorContext,
   NativeMenuPointerObservationContext,
   NativeMenuStateContext,
 } from "../context"
@@ -36,7 +38,7 @@ import { MenuItem } from "../MenuItem"
 import { MenuSection } from "../MenuSection"
 import { MenuSeparator } from "../MenuSeparator"
 import { SubmenuTrigger } from "../SubmenuTrigger"
-import type { TNativeMenuProps } from "../types"
+import type { TNativeMenuProps, TNativeMenuItemState } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
@@ -406,11 +408,11 @@ it("keeps selection-only disabled items navigable and honors an explicit non-wra
   )
   await f.ready()
   await scopedKey("ArrowDown", a.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(b.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === b.current).toBe(true)
   expect(row("b").props.accessibilityState.disabled).toBe(false)
   jest.mocked(Commands.requestKeyboardFocus).mockClear()
   await scopedKey("ArrowDown", b.current)
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(b.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === b.current).toBe(true)
 })
 
 it("keeps actual focus on the virtual-focus list while logical navigation advances without item callbacks", async () => {
@@ -436,12 +438,12 @@ it("keeps actual focus on the virtual-focus list while logical navigation advanc
     { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
   )
   await render(
-    <NativeMenuListContext.Provider value={{ ref: list, shouldUseVirtualFocus: true }}>
+    <NativeMenuListContext.Provider value={{ ref: list, shouldUseVirtualFocus: true, autoFocus: "first" }}>
       {f.node()}
     </NativeMenuListContext.Provider>,
   )
   await f.ready()
-  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0]).toBe(list.current)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === list.current).toBe(true)
   const native = row("menu-list").props
   await act(() =>
     native.onNativeFocusChange({
@@ -503,6 +505,12 @@ it("resets parent list defaults at a submenu boundary while retaining explicit c
     </NativeMenuListContext.Provider>,
   )
   await f.ready()
+  const focusedTrigger = row("trigger").props
+  await act(() =>
+    focusedTrigger.onNativeFocusChange({
+      nativeEvent: { ownerId: focusedTrigger.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+    }),
+  )
   await rawKey("trigger", "Enter")
   expect(row("child").props.role).toBe("menuitem")
   expect(row("child").props.accessibilityState.disabled).toBe(false)
@@ -532,7 +540,9 @@ it("keeps submenu children out of the parent collection and opens without select
           </MenuItem>
         </Menu>
       </SubmenuTrigger>
-      <MenuItem id="other">Other</MenuItem>
+      <MenuItem id="other" testID="other">
+        Other
+      </MenuItem>
     </>,
     { ...DefaultNativeCollectionRenderer, CollectionRoot: Root },
   )
@@ -543,6 +553,14 @@ it("keeps submenu children out of the parent collection and opens without select
   expect(trigger.current).not.toBeNull()
   expect(row("trigger").props.role).toBe("menuitem")
   expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+  for (const key of ["other", "trigger"]) {
+    const native = row(key).props
+    await act(() =>
+      native.onNativeFocusChange({
+        nativeEvent: { ownerId: native.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+      }),
+    )
+  }
   await rawKey("trigger", "Enter")
   expect(row("trigger").props.accessibilityState.expanded).toBe(true)
   expect(row("child")).toBeDefined()
@@ -644,6 +662,12 @@ it("closes the complete submenu stack after a child action while a controlled ro
     configurable: true,
     value: (callback: (x: number, y: number, width: number, height: number) => void) => callback(100, 100, 40, 40),
   })
+  const focusedTrigger = row("trigger").props
+  await act(() =>
+    focusedTrigger.onNativeFocusChange({
+      nativeEvent: { ownerId: focusedTrigger.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+    }),
+  )
   await rawKey("trigger", "Enter")
   Object.defineProperty(childSurface.current!, "measureInWindow", {
     configurable: true,
@@ -701,6 +725,18 @@ it.each([
     )
     await render(f.node())
     await f.ready()
+    const focusedTrigger = row("trigger").props
+    await act(() =>
+      focusedTrigger.onNativeFocusChange({
+        nativeEvent: {
+          ownerId: focusedTrigger.ownerId,
+          target: 17,
+          isFocused: true,
+          isFocusVisible: true,
+          timestamp: 0,
+        },
+      }),
+    )
     await rawKey("trigger", forward)
     expect(row("trigger").props.accessibilityState.expanded).toBe(false)
     veto = false
@@ -894,12 +930,18 @@ it("retries initial item focus after a delayed native policy acknowledgment", as
       First
     </MenuItem>,
   )
-  await render(f.node())
+  await render(
+    <NativeMenuListContext.Provider value={{ autoFocus: "first" }}>{f.node()}</NativeMenuListContext.Provider>,
+  )
   await f.ready(true)
-  expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(first.current, row("first").props.ownerId)
+  expect(
+    jest
+      .mocked(Commands.requestKeyboardFocus)
+      .mock.calls.some(([target, owner]) => target === first.current && owner === row("first").props.ownerId),
+  ).toBe(true)
 })
 
-it("shares the actual default first-item target with the floating surface startup focus", async () => {
+it("shares an explicit first-item strategy with the floating surface startup focus", async () => {
   const first = createRef<RN.View>()
   const f = fixture(
     {},
@@ -907,7 +949,9 @@ it("shares the actual default first-item target with the floating surface startu
       Zero
     </MenuItem>,
   )
-  await render(f.node())
+  await render(
+    <NativeMenuListContext.Provider value={{ autoFocus: "first" }}>{f.node()}</NativeMenuListContext.Provider>,
+  )
   await f.ready()
   const last = jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)
   expect(last?.[0] === first.current).toBe(true)
@@ -1357,11 +1401,13 @@ it("CAP.menu.034 moves from the actual focused row, wraps/skips disabled and act
   await render(f.node())
   await f.ready()
   await scopedKey("ArrowDown", a.current)
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(c.current, row("c").props.ownerId)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === c.current).toBe(true)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[1]).toBe(row("c").props.ownerId)
   await rawKey("c", "Enter")
   expect(f.action.mock.calls).toEqual([["c"]])
   await scopedKey("Home", c.current)
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(a.current, row("a").props.ownerId)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === a.current).toBe(true)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[1]).toBe(row("a").props.ownerId)
 })
 it.each([
   { removed: "b", expected: "c", order: ["a", "b", "c"] },
@@ -1474,10 +1520,12 @@ it("routes typeahead through current labels without executing an action", async 
   await render(f.node())
   await f.ready()
   await rawKey("a", "e", "down", { nativeDefaultHandled: false })
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(b.current, row("b").props.ownerId)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === b.current).toBe(true)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[1]).toBe(row("b").props.ownerId)
   jest.mocked(Commands.requestKeyboardFocus).mockClear()
   await rawKey("b", "e", "down", { nativeDefaultHandled: false, repeat: true })
-  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(b.current, row("b").props.ownerId)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === b.current).toBe(true)
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[1]).toBe(row("b").props.ownerId)
   expect(f.action).not.toHaveBeenCalled()
 })
 it("requests all through the native scoped shortcut without mutating caller selection", async () => {
@@ -1559,46 +1607,50 @@ it("CAP.menu.035 dispatches native Escape to close while respecting controlled-o
   expect(row("menu")).toBeOnTheScreen()
 })
 
-it.each(["ArrowDown", "ArrowUp"])("opens from scoped %s only on a fresh key-down", async (key) => {
-  const requested = jest.fn()
-  await render(
-    <NativeThemeProvider>
-      <NativeFloatingLayerHost testID="host">
-        <NativeMenuTrigger
-          isOpen={false}
-          onOpenChange={requested}
-          trigger={(state) => <Button {...state.triggerProps}>Actions</Button>}
-        >
-          <Menu>
-            <MenuItem id="a">A</MenuItem>
-          </Menu>
-        </NativeMenuTrigger>
-      </NativeFloatingLayerHost>
-    </NativeThemeProvider>,
-  )
-  for (const ready of [false, true]) {
-    const host = row("host").props
-    await act(() =>
-      host.onNativeScopeStatus({
-        nativeEvent: {
-          ownerId: host.ownerId,
-          windowId: "menu-window",
-          epoch: 1,
-          policyRevision: host.policyRevision,
-          ready,
-          windowActive: true,
-        },
-      }),
+it.each(["ArrowDown", "ArrowUp"])(
+  "repeats scoped %s owner requests while ignoring key-up and cancellation",
+  async (key) => {
+    const requested = jest.fn()
+    await render(
+      <NativeThemeProvider>
+        <NativeFloatingLayerHost testID="host">
+          <NativeMenuTrigger
+            isOpen={false}
+            onOpenChange={requested}
+            trigger={(state) => <Button {...state.triggerProps}>Actions</Button>}
+          >
+            <Menu>
+              <MenuItem id="a">A</MenuItem>
+            </Menu>
+          </NativeMenuTrigger>
+        </NativeFloatingLayerHost>
+      </NativeThemeProvider>,
     )
-  }
-  await scopedKey(key, null, `0000:${key}`, { phase: "up" })
-  await scopedKey(key, null, `0000:${key}`, { repeat: true })
-  await scopedKey(key, null, `0000:${key}`, { cancelled: true })
-  expect(requested).not.toHaveBeenCalled()
-  await scopedKey(key, null)
-  expect(requested.mock.calls).toEqual([[true]])
-  expect(screen.queryByTestId("menu", hidden)).toBeNull()
-})
+    for (const ready of [false, true]) {
+      const host = row("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "menu-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready,
+            windowActive: true,
+          },
+        }),
+      )
+    }
+    await scopedKey(key, null, `0000:${key}`, { phase: "up" })
+    await scopedKey(key, null, `0000:${key}`, { cancelled: true })
+    expect(requested).not.toHaveBeenCalled()
+    await scopedKey(key, null)
+    expect(requested.mock.calls).toEqual([[true]])
+    await scopedKey(key, null, `0000:${key}`, { repeat: true })
+    expect(requested.mock.calls).toEqual([[true], [true]])
+    expect(screen.queryByTestId("menu", hidden)).toBeNull()
+  },
+)
 
 it("preserves original keyboard press lifecycle alongside key-down menu actions", async () => {
   const start = jest.fn(),
@@ -2056,7 +2108,11 @@ it.each([false, true])(
     )
     if (retired) expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
     else {
-      expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(other.current, row("other").props.ownerId)
+      expect(
+        jest
+          .mocked(Commands.requestKeyboardFocus)
+          .mock.calls.some(([target, owner]) => target === other.current && owner === row("other").props.ownerId),
+      ).toBe(true)
       expect(row("trigger").props.accessibilityState.expanded).toBe(false)
     }
     expect(f.action).not.toHaveBeenCalled()
@@ -2093,4 +2149,276 @@ it("names the original menu list through its actual trigger while retaining expl
   await view.rerender(scene(true))
   expect(row("naming-trigger").props.nativeID).toBe(trigger)
   expect(row("menu-list").props.nativeLabelledBy).toEqual([])
+})
+
+it.each(["none", "single", "multiple"] as const)(
+  "renders the original custom %s host with full live state and caller value ownership",
+  async (selectionMode) => {
+    const original = { id: 0, label: "Original value" },
+      ref = createRef<RN.View>()
+    let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+    let rendered!: TNativeMenuItemState
+    const Capture = () => {
+      state = useContext(NativeMenuStateContext)!
+      return null
+    }
+    const f = fixture(
+      { selectionMode, selectedKeys: new Set([0]), shouldCloseOnSelect: false },
+      <MenuItem
+        id={0}
+        value={original}
+        ref={ref}
+        textValue="Original value"
+        icon={<Text testID="original-icon">Icon</Text>}
+        render={(props, values) => {
+          rendered = values
+          return <NativeFocusHost {...props} testID="custom-item" />
+        }}
+      >
+        <Capture />
+        Original value
+      </MenuItem>,
+    )
+    await render(f.node())
+    await f.ready()
+    expect(ref.current).not.toBeNull()
+    expect(state.collection.getItem(0)!.value).toBe(original)
+    expect(Object.isFrozen(original)).toBe(false)
+    expect(row("custom-item").props.value).toBeUndefined()
+    expect(row("custom-item").props.render).toBeUndefined()
+    expect(row("original-icon")).toBeOnTheScreen()
+    expect(rendered).toEqual({
+      isSelected: selectionMode !== "none",
+      isDisabled: false,
+      isHovered: false,
+      isPressed: false,
+      isFocused: false,
+      isFocusVisible: false,
+      selectionMode,
+      selectionBehavior: "toggle",
+      hasSubmenu: false,
+      isOpen: false,
+    })
+    const target = ref.current
+    await press("custom-item")
+    expect(f.action.mock.calls).toEqual([[0]])
+    expect(ref.current === target).toBe(true)
+  },
+)
+
+it("replaces the actual custom item ref and cancels the held original-host press", async () => {
+  const ref = createRef<RN.View>(),
+    first = jest.fn(),
+    second = jest.fn(),
+    seen: unknown[] = []
+  const content = (version: number, action: () => void) => (
+    <MenuItem
+      id="item"
+      ref={ref}
+      onAction={action}
+      onPress={(event) => seen.push(event)}
+      render={(props) => <NativeFocusHost {...props} key={version} testID="replace-item" />}
+    >
+      Item
+    </MenuItem>
+  )
+  const f = fixture({ shouldCloseOnSelect: false }, content(0, first))
+  await render(f.node())
+  await f.ready()
+  const original = ref.current
+  await rerender(f.node(undefined, content(0, second)))
+  expect(ref.current === original).toBe(true)
+  const old = row("replace-item").props
+  const held = {
+    ...event(),
+    nativeEvent: { target: 17, timestamp: 0, identifier: 0, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+  }
+  await act(() => old.onResponderGrant(held))
+  await rerender(f.node(undefined, content(1, second)))
+  expect(ref.current === original).toBe(false)
+  expect(ref.current).not.toBeNull()
+  await act(() => old.onResponderRelease(held))
+  expect(first).not.toHaveBeenCalled()
+  expect(second).not.toHaveBeenCalled()
+  await f.ready()
+  await press("replace-item")
+  expect(first).not.toHaveBeenCalled()
+  expect(second).toHaveBeenCalledTimes(1)
+  expect(seen).toHaveLength(1)
+})
+
+it("exposes actual focus visibility to the custom renderer independently of authored outline styles", async () => {
+  const ref = createRef<RN.View>()
+  let rendered!: TNativeMenuItemState
+  const f = fixture(
+    {},
+    <MenuItem
+      id="item"
+      ref={ref}
+      style={{ outlineWidth: 0 }}
+      render={(props, values) => {
+        rendered = values
+        return <NativeFocusHost {...props} testID="focus-item" />
+      }}
+    >
+      Item
+    </MenuItem>,
+  )
+  await render(f.node())
+  await f.ready()
+  const native = row("focus-item").props
+  await act(() =>
+    native.onNativeFocusChange({
+      nativeEvent: { ownerId: native.ownerId, target: 17, isFocused: true, isFocusVisible: true, timestamp: 0 },
+    }),
+  )
+  expect(rendered.isFocused).toBe(true)
+  expect(rendered.isFocusVisible).toBe(true)
+  expect(row("focus-item")).toHaveStyle({ outlineWidth: 0 })
+})
+
+it.each(["first", "last"] as const)("initially prefers a current selectable owner key over %s", async (autoFocus) => {
+  const selected = createRef<RN.View>()
+  const f = fixture(
+    { selectionMode: "single", selectedKeys: ["b"] },
+    <>
+      <MenuItem id="a">Alpha</MenuItem>
+      <MenuItem id="b" ref={selected}>
+        Beta
+      </MenuItem>
+      <MenuItem id="c">Charlie</MenuItem>
+    </>,
+  )
+  await render(<NativeMenuListContext.Provider value={{ autoFocus }}>{f.node()}</NativeMenuListContext.Provider>)
+  await f.ready()
+  expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === selected.current).toBe(true)
+})
+
+it("keeps direct nonmodal opening from manufacturing an initial focus request", async () => {
+  const f = fixture({ isNonModal: true, selectionMode: "single", selectedKeys: ["gallery"] })
+  await render(f.node())
+  await f.ready()
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("retains explicit separator rendering and resets ancestor default props", async () => {
+  const ref = createRef<RN.View>(),
+    ignored = createRef<RN.View>()
+  let state: unknown = "unseen"
+  const f = fixture()
+  const content = (custom: boolean) => (
+    <NativeMenuSeparatorContext.Provider
+      value={{
+        ref: ignored,
+        style: { opacity: 0.4 },
+        render: (props) => <RN.View {...props} testID="ignored-separator" />,
+      }}
+    >
+      {f.node(
+        undefined,
+        <>
+          <MenuItem id="a">Alpha</MenuItem>
+          <MenuSeparator
+            ref={ref}
+            style={{ opacity: 0.7 }}
+            render={
+              custom
+                ? (props, value) => {
+                    state = value
+                    return <RN.View {...props} testID="custom-separator" />
+                  }
+                : undefined
+            }
+          />
+          <MenuItem id="b">Beta</MenuItem>
+        </>,
+      )}
+    </NativeMenuSeparatorContext.Provider>
+  )
+  await render(content(true))
+  expect(ref.current).not.toBeNull()
+  expect(row("custom-separator")).toHaveStyle({ opacity: 0.7 })
+  expect(state).toBeUndefined()
+  expect(ignored.current).toBeNull()
+  expect(screen.queryByTestId("ignored-separator", hidden)).toBeNull()
+  await rerender(content(false))
+  expect(ref.current).not.toBeNull()
+  expect(screen.queryByTestId("custom-separator", hidden)).toBeNull()
+  expect(row("menu-separator").props.role).toBe("separator")
+})
+
+it("retains explicit header rendering, content and original refs while sections reset ancestor defaults", async () => {
+  const ref = createRef<RN.View>(),
+    ignored = createRef<RN.View>()
+  let state: unknown = "unseen"
+  const f = fixture(
+    {},
+    <MenuSection testID="custom-section">
+      <MenuHeader
+        ref={ref}
+        style={{ opacity: 0.7 }}
+        render={(props, value) => {
+          state = value
+          return <NativeFocusHost {...props} testID="custom-header" />
+        }}
+      >
+        Named group
+      </MenuHeader>
+      <MenuItem id="a">Alpha</MenuItem>
+    </MenuSection>,
+  )
+  await render(
+    <NativeMenuHeaderContext.Provider
+      value={{
+        ref: ignored,
+        style: { opacity: 0.4 },
+        render: (props) => <NativeFocusHost {...props} testID="ignored-header" />,
+      }}
+    >
+      {f.node()}
+    </NativeMenuHeaderContext.Provider>,
+  )
+  expect(ref.current).not.toBeNull()
+  const host = row("custom-header")
+  expect(host).toHaveStyle({ opacity: 0.7 })
+  expect(host).toHaveTextContent("Named group")
+  expect(state).toBeUndefined()
+  expect(ignored.current).toBeNull()
+  expect(screen.queryByTestId("ignored-header", hidden)).toBeNull()
+  expect(row("custom-section").props.nativeLabelledBy).toEqual([host.props.nativeID])
+})
+
+it("updates the actual header ID relationship without fabricating caller ref cleanup", async () => {
+  const calls: (RN.View | null)[] = []
+  let setID!: (id: string) => void
+  const ref = (view: RN.View | null) => {
+    calls.push(view)
+    return () => {
+      calls.push(null)
+    }
+  }
+  const Opaque = () => {
+    const [id, update] = useState("first-header")
+    setID = update
+    return (
+      <MenuSection testID="live-header-section">
+        <MenuHeader nativeID={id} ref={ref}>
+          Named section
+        </MenuHeader>
+        <MenuItem id="a">Alpha</MenuItem>
+      </MenuSection>
+    )
+  }
+  const f = fixture({}, <Opaque />)
+  await render(f.node())
+  const original = calls[0]
+  expect(original).not.toBeNull()
+  expect(row("live-header-section").props.nativeLabelledBy).toEqual(["first-header"])
+  await act(() => setID("second-header"))
+  expect(calls).toHaveLength(1)
+  expect(calls[0] === original).toBe(true)
+  expect(row("live-header-section").props.nativeLabelledBy).toEqual(["second-header"])
+  await rerender(f.node({}, null))
+  expect(calls).toHaveLength(2)
+  expect(calls[1]).toBeNull()
 })

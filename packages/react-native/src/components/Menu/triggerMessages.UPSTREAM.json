@@ -1,0 +1,153 @@
+{
+  "package": "react-aria",
+  "version": "3.48.0",
+  "license": "../../collection/LICENSE.react-aria.md",
+  "sources": {
+    "packages/react-aria/intl/menu/ar-AE.json": {
+      "sourceSHA256": "07ae9e6fe50ddd6ce9464f98a74321e4d32c98ec700acf5b793421b7b4c056f7",
+      "mapSHA256": "7cc6e1a319aa0b942af04a3ce81ace57e679d563910ed8e325a613280edc21bc"
+    },
+    "packages/react-aria/intl/menu/bg-BG.json": {
+      "sourceSHA256": "3cda43fae8089258b5e8c08338679d6c7731f2a3971873d7cfd371042a83c66b",
+      "mapSHA256": "cf1b972caadaa21a93a016558e90a47b3318de988cda5b6253277274571ce171"
+    },
+    "packages/react-aria/intl/menu/cs-CZ.json": {
+      "sourceSHA256": "51ba178d34f1bacd6ab04c9b94e71eccd7ae7ffcfaa1b5d669099139d487edcd",
+      "mapSHA256": "c3f7694131e2f3818cd003f88168ed26a469cd45549c55fc326891db74ce402e"
+    },
+    "packages/react-aria/intl/menu/da-DK.json": {
+      "sourceSHA256": "d0498adfd4ff10a7fe26ff38518077888441129876e1ba5860a4ade2e72b1ccb",
+      "mapSHA256": "4039e4b43f7ce4e5578ae7624705a8943e69c35fe58c9101c1cedb013b20ff2d"
+    },
+    "packages/react-aria/intl/menu/de-DE.json": {
+      "sourceSHA256": "780ca88678890a2307a70a8c606402a28a828c9402c5ce0275057760584e612d",
+      "mapSHA256": "9d0222896c4f8dac6a2157bbd21dbaeab19cbce2c1d97dde49ee99162b7b77aa"
+    },
+    "packages/react-aria/intl/menu/el-GR.json": {
+      "sourceSHA256": "4165020b48f9088f6f5bd06a196bba0460083a382b96648da086ca6035e95761",
+      "mapSHA256": "2d05bc120e6f4da8b051514277b056550beb3e3cd4e4f269fd476f1e1ca08db4"
+    },
+    "packages/react-aria/intl/menu/en-US.json": {
+      "sourceSHA256": "54fd9b27eceb27c35caa2a08dee8bcd31cff577eab3f3752a636dd7848eb94df",
+      "mapSHA256": "650981e4984e0b4ffe8714388ec304a99a31f91447855f428a1d0bfb69ae8bb6"
+    },
+    "packages/react-aria/intl/menu/es-ES.json": {
+      "sourceSHA256": "535809464a1036c35b3dd4a7b69f4729a483e674aab746ce99a9fa25aac3af27",
+      "mapSHA256": "b1296d749e423afdefbd41498e1f30ec7039b9a8f145dc261b4f53e65264c671"
+    },
+    "packages/react-aria/intl/menu/et-EE.json": {
+      "sourceSHA256": "05beec02c4e58f7aa6c0a63b9459e30c43eb4a15b8792fcb82158adced0c08a5",
+      "mapSHA256": "abe65d4c2a63ff15ede91bd2a9f85d0f742734f7a6e39a742da4a867fd2de942"
+    },
+    "packages/react-aria/intl/menu/fi-FI.json": {
+      "sourceSHA256": "1d7c2941837d220ad35779746d182c3452caf8ec8905bb6ddae7577b4dac7155",
+      "mapSHA256": "9279bf952f3fc63e90ab926b419d3195133e4f487e1aea0a62b9d7210c5ce286"
+    },
+    "packages/react-aria/intl/menu/fr-FR.json": {
+      "sourceSHA256": "8ea5619e0dfbf687843cafdae99077034196b538cd63358d9ac1d542e96bcd53",
+      "mapSHA256": "311b7671171adee1f753ab7c5c04e36ea29e39fa16e0d598b5c691f45336e82b"
+    },
+    "packages/react-aria/intl/menu/he-IL.json": {
+      "sourceSHA256": "f96f9ebe2d3ff85481e670208cf1224593e054a6e468465e363e1b46f7ecb9da",
+      "mapSHA256": "67a5b927bedf92c6e0e0060a273c9e4603827d75d8ac6674f6c71ec94d4fd753"
+    },
+    "packages/react-aria/intl/menu/hr-HR.json": {
+      "sourceSHA256": "939278e015274f3935dfc7cb9b34123b09f8653d3343132407c4c0156f11b98d",
+      "mapSHA256": "99edbac0c14a0498320cb544f2f7dff767840e1f84e441045fd13c1be3a8d79f"
+    },
+    "packages/react-aria/intl/menu/hu-HU.json": {
+      "sourceSHA256": "83a09d502f9b057932414f6907ca472abd5ac78ac7820b48aeb0b5d8b5860850",
+      "mapSHA256": "e61cbed59594d0b789cb9246251279f28a57efac3dd2331f53e1fd510798b5d8"
+    },
+    "packages/react-aria/intl/menu/it-IT.json": {
+      "sourceSHA256": "ca2d9b2674ed798cdfb3731d8068d460ea77f309530e2fcc8f883a972386fecc",
+      "mapSHA256": "824cf7b8774c336e947d1b26c0ea46fb1ed64bff236c624cd4ae0b4ce3f4ece9"
+    },
+    "packages/react-aria/intl/menu/ja-JP.json": {
+      "sourceSHA256": "c357516e2f55490c40e414ce1bcb73c540b370dc10805b988fc7cf2cf9fd8fce",
+      "mapSHA256": "6376cb3d8c4b0cf60014d0b880de1fe71cfd666340456f095e83220c373441a9"
+    },
+    "packages/react-aria/intl/menu/ko-KR.json": {
+      "sourceSHA256": "732a3bbdbd96f8154336629d2ba4a6ad2702b0604d6b0f501300f57bc40cca61",
+      "mapSHA256": "5ff6a202c233ef483b93a406b8e101aa8efeb05f5d86321628be5dbe446bef89"
+    },
+    "packages/react-aria/intl/menu/lt-LT.json": {
+      "sourceSHA256": "990e55206cab29bed32df7ea035a372887d39bb6afaf02ac266a4613043b447c",
+      "mapSHA256": "92a06adf474e60e57ac4ad880363ddd9526aa88342e63ebfa83a539b6b0f2d00"
+    },
+    "packages/react-aria/intl/menu/lv-LV.json": {
+      "sourceSHA256": "cde9e53afc193fc2631bc0e6c637a8a59d90eaf41a1b9bf8b95980446c284fde",
+      "mapSHA256": "22fb9155a64f7b2ea8f37b24178c37fec4a90056ad5d445983c1ff830df89d64"
+    },
+    "packages/react-aria/intl/menu/nb-NO.json": {
+      "sourceSHA256": "a3512291fe0d6fa8a20379269085d80a31d262047bc2e9e4229b77e8a618d435",
+      "mapSHA256": "b753d5bd64ba815e0326570209f939a36be6325d96f06f07f25e1322a862e9b5"
+    },
+    "packages/react-aria/intl/menu/nl-NL.json": {
+      "sourceSHA256": "c581eadeb2ea4c081fffb4de13ab4cf3fdb22d6075de307e0d6783c0a1f70846",
+      "mapSHA256": "f9d8db79f218408c1d48ce5e4282d3bf9a4a27a246f138fa1aec58081fbd4bb9"
+    },
+    "packages/react-aria/intl/menu/pl-PL.json": {
+      "sourceSHA256": "1e32845bb344df8b94de8af6ae365a6a45250a1913180de2ae178761b7bc1c98",
+      "mapSHA256": "34bf466f7a908af66764c6f85b45d427db7080ebb76b87c7f6ca9be1b19fbb23"
+    },
+    "packages/react-aria/intl/menu/pt-BR.json": {
+      "sourceSHA256": "b09abe83d8feba74e9a5c4a3c94731469b4b8a596ace890c384170e0ccb14aa1",
+      "mapSHA256": "87e6a35795d78bbaa5e6f84bcf6dede27961e886badd95ffdaf7b68164341f9e"
+    },
+    "packages/react-aria/intl/menu/pt-PT.json": {
+      "sourceSHA256": "113acb51ca60a8d35cf3cbf793a05136c9b0305b4d5ebe6cbc73c96931878e4a",
+      "mapSHA256": "54cda01b109a5e523dc44da1317bdf8883452af25100481a66b3cdbef589ba5b"
+    },
+    "packages/react-aria/intl/menu/ro-RO.json": {
+      "sourceSHA256": "f24f8de284577b35f96719c4b7115be16143bfd8e5b9f9aa54f59c1becd646df",
+      "mapSHA256": "f4ad1e4d2e8ff6af78bb72b608e138694aa1f22ce32621d38da5fc53aa77a666"
+    },
+    "packages/react-aria/intl/menu/ru-RU.json": {
+      "sourceSHA256": "c57994ab5bf6d7717bea14973a1a1fe71050e9a224504555cecb3a3082b79d70",
+      "mapSHA256": "c0f25bdc666d46642ade6c18954b8b68b1acd94c7baf9f6ddbeabf984bea9f37"
+    },
+    "packages/react-aria/intl/menu/sk-SK.json": {
+      "sourceSHA256": "5603229157bd4b76fe3f71c50c6d1eea59d87be19663a9a01d054bdb3ec5ff1e",
+      "mapSHA256": "23c4ed64c2872feef23643ce2de72a9cf0d6d9674ae38457e7854bb24bd7c563"
+    },
+    "packages/react-aria/intl/menu/sl-SI.json": {
+      "sourceSHA256": "26b58ffffb710a48fe73f84e50869784c4ef98c263a947df59b62df94a8361b7",
+      "mapSHA256": "708f35b6e135cf43579fa9b77511ea00cf1fe2a2b87ec10eb94c648a6375c81f"
+    },
+    "packages/react-aria/intl/menu/sr-SP.json": {
+      "sourceSHA256": "e2597a38da73493e74e370885d2e62253b994cdf387a081d9df75875fc1cd254",
+      "mapSHA256": "100309a9c3aa39d1d53b0aa711ca808558999942b48a432a171817e22167e76e"
+    },
+    "packages/react-aria/intl/menu/sv-SE.json": {
+      "sourceSHA256": "815aef6d2ea07351f20005b13bbe4aee3fde29d0a81f23b3f4314c854fc776e9",
+      "mapSHA256": "794507f449687482257cbc85757282fddfd77e2bd42623e2439c91bdcc280675"
+    },
+    "packages/react-aria/intl/menu/tr-TR.json": {
+      "sourceSHA256": "4e932a5be9503eca5e202aa74deac0c7e79cbae636ea38146086b905ad9b6a62",
+      "mapSHA256": "4aa6c76dae047a7923841e79013fe5466dd83771f39d6377ceae40e974a60b36"
+    },
+    "packages/react-aria/intl/menu/uk-UA.json": {
+      "sourceSHA256": "04bbd456972b9b9923f672426a20b5b3a12387d21b374c48359702b7c5c153f5",
+      "mapSHA256": "4fa2281bf566dcba0dd1b9085f68cecc0dcdb2054230e71eb142bbb2582c50d6"
+    },
+    "packages/react-aria/intl/menu/zh-CN.json": {
+      "sourceSHA256": "ed010a6a03007ec44367c20d33619fc4742a19da62eb05626483064e7ccea30b",
+      "mapSHA256": "4e35cae5d38752584999c64be0c68c5393e041adf2422ac69f08337992e6126a"
+    },
+    "packages/react-aria/intl/menu/zh-TW.json": {
+      "sourceSHA256": "16b07d67dedace25a3c8fbed2efe4a1822b34b0be9aca2ca4ef6db43c04bc5a1",
+      "mapSHA256": "3cf694b4436decd9b47ca5bbb958bc4770ef43e6b690248d86589e0b964d04b4"
+    }
+  },
+  "authoredSHA256": "188203cfd872a3f6f6ae78206042cc87dea6de81a3bcabd0b8af1d0a9d79e789",
+  "scope": "Complete static long-press accessibility descriptions; source comparison and native profile proof are separate",
+  "localeFallback": {
+    "package": "@internationalized/string",
+    "version": "3.2.8",
+    "sourcePath": "packages/@internationalized/string/src/LocalizedStringDictionary.ts",
+    "sourceSHA256": "41ee060bc5586ede97d086379a2604d234bc3e3f2fde61697b8919b041b1071b",
+    "mapSHA256": "69ddcc7ac56cb24f8eaa5d9f4e8297fbc021c2c055e942868dfdaecb2ae8de59",
+    "scope": "Exact/language/first matching language/default en-US lookup; existing native TagGroup pattern"
+  }
+}

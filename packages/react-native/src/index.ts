@@ -188,6 +188,59 @@ export type {
   TNativeTagGroupSelectionMode,
   TNativeTagGroupSelectionBehavior,
 } from "./components/TagGroup/model"
+export { Menu } from "./components/Menu/Menu"
+export { MenuItem } from "./components/Menu/MenuItem"
+export { MenuSeparator } from "./components/Menu/MenuSeparator"
+export { MenuSection } from "./components/Menu/MenuSection"
+export { MenuHeader } from "./components/Menu/MenuHeader"
+export { SubmenuTrigger } from "./components/Menu/SubmenuTrigger"
+export type { TNativeSubmenuTriggerProps } from "./components/Menu/SubmenuTrigger"
+export { NativeMenuTrigger, NATIVE_MENU_TRIGGER_MODES } from "./components/Menu/NativeMenuTrigger"
+export type {
+  TNativeMenuTriggerProps,
+  TNativeMenuTriggerState,
+  TNativeMenuTriggerMode,
+} from "./components/Menu/NativeMenuTrigger"
+export {
+  NativeMenuContext,
+  NativeMenuListContext,
+  NativeMenuItemContext,
+  NativeMenuSeparatorContext,
+  NativeMenuHeaderContext,
+  NativeMenuStateContext,
+  NativeMenuSelectionManagerContext,
+  NativeRootMenuTriggerStateContext,
+} from "./components/Menu/context"
+export {
+  MenuText,
+  MenuKeyboardShortcut,
+  NativeMenuTextContext,
+  NativeMenuKeyboardShortcutContext,
+  NativeMenuSelectionIndicatorContext,
+} from "./components/Menu/content"
+export type { TNativeMenuTextProps } from "./components/Menu/content"
+export type { TNativeRootMenuTriggerState, TNativeSubmenuTriggerState } from "./components/Menu/triggerState"
+export { NATIVE_MENU_ITEM_VARIANTS } from "./components/Menu/types"
+export type {
+  TNativeMenuProps,
+  TNativeMenuProps as MenuProps,
+  TNativeMenuRef,
+  TNativeMenuItemProps,
+  TNativeMenuItemProps as MenuItemProps,
+  TNativeMenuItemRef,
+  TNativeMenuItemState,
+  TNativeMenuItemVariant,
+  TNativeMenuItemVariant as MenuItemVariant,
+  TNativeMenuSeparatorProps,
+  TNativeMenuSeparatorProps as MenuSeparatorProps,
+  TNativeMenuSectionProps,
+  TNativeMenuHeaderProps,
+  TNativeMenuListProps,
+  TNativeMenuListRenderState,
+} from "./components/Menu/types"
+export { NATIVE_MENU_SELECTION_MODES } from "./components/Menu/model"
+export type { TNativeMenuKey, TNativeMenuSelectionMode } from "./components/Menu/model"
+export type { TNativeTreeState } from "./collection/state"
 export { NativeCollection } from "./collection/CollectionBuilder"
 export {
   NATIVE_DEFAULT_SLOT,

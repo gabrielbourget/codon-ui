@@ -3,6 +3,16 @@ import { findNodeHandle, TextInput, View } from "react-native"
 
 import {
   Button,
+  Menu,
+  MenuItem,
+  MenuSeparator,
+  MenuSection,
+  MenuHeader,
+  SubmenuTrigger,
+  NativeMenuTrigger,
+  NativeMenuListContext,
+  MenuText,
+  MenuKeyboardShortcut,
   NativeCollection,
   NativeCollectionRendererContext,
   NativeFocusView,
@@ -10,17 +20,7 @@ import {
   useNativeTheme,
 } from "@codon-ui/react-native"
 
-import { MenuText, MenuKeyboardShortcut } from "../../../../packages/react-native/src/components/Menu/content"
-import {
-  NativeMenuListContext,
-  NativeMenuPointerObservationContext,
-} from "../../../../packages/react-native/src/components/Menu/context"
-import { Menu, NativeMenuTrigger } from "../../../../packages/react-native/src/components/Menu/Menu"
-import { MenuHeader } from "../../../../packages/react-native/src/components/Menu/MenuHeader"
-import { MenuItem } from "../../../../packages/react-native/src/components/Menu/MenuItem"
-import { MenuSection } from "../../../../packages/react-native/src/components/Menu/MenuSection"
-import { MenuSeparator } from "../../../../packages/react-native/src/components/Menu/MenuSeparator"
-import { SubmenuTrigger } from "../../../../packages/react-native/src/components/Menu/SubmenuTrigger"
+import { NativeMenuPointerObservationContext } from "../../../../packages/react-native/src/components/Menu/context"
 import { inspectNativeAccessibility } from "../../../../packages/react-native/src/input/accessibilityInspection"
 import type { TNativeMenuPointerEvent } from "../../../../packages/react-native/src/input/nativeMenuPointers"
 
@@ -55,6 +55,8 @@ export const MenuScene = () => {
   const [custom, setCustom] = useState(false)
   const [customHost, setCustomHost] = useState(false)
   const [virtualFocus, setVirtualFocus] = useState(false)
+  const [longPressTrigger, setLongPressTrigger] = useState(false)
+  const [frenchTrigger, setFrenchTrigger] = useState(false)
   const [virtualized, setVirtualized] = useState(false)
   const renderer = useMenuVirtualRenderer(virtualized)
   const virtualItems = useMemo(() => [...items, ...EXTRA_ITEMS], [items])
@@ -173,6 +175,10 @@ export const MenuScene = () => {
         }}
       />
       <Text testID="menu-owner-editor-state">Text events: {textEvents}.</Text>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <Button onPress={() => setLongPressTrigger((value) => !value)}>Toggle menu long-press trigger</Button>
+        <Button onPress={() => setFrenchTrigger((value) => !value)}>Toggle menu trigger locale</Button>
+      </View>
       <NativeMenuPointerObservationContext.Provider value={observePointer}>
         <NativeCollectionRendererContext.Provider value={renderer}>
           <NativeMenuListContext.Provider
@@ -187,6 +193,8 @@ export const MenuScene = () => {
             }}
           >
             <NativeMenuTrigger
+              triggerMode={longPressTrigger ? "longPress" : "press"}
+              locale={frenchTrigger ? "fr-FR" : "en-US"}
               isOpen={open}
               onOpenChange={(next) => {
                 record(`open:${next}`)
@@ -218,6 +226,19 @@ export const MenuScene = () => {
                     <NativeCollection items={virtualItems}>
                       {(item) => (
                         <MenuItem
+                          value={item}
+                          render={
+                            customHost
+                              ? (props, state) => (
+                                  <NativeFocusView
+                                    {...props}
+                                    accessibilityHint={
+                                      state.isFocusVisible ? "Keyboard focused menu item" : "Custom menu item"
+                                    }
+                                  />
+                                )
+                              : undefined
+                          }
                           id={item.id}
                           textValue={item.label}
                           ref={itemRefs.get(item.id)}

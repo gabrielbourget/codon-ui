@@ -93,6 +93,7 @@ export type TNativeMenuItemProps = Omit<
 > & {
   slot?: string | null
   id?: TNativeMenuKey
+  value?: object
   children?: ReactNode
   textValue?: string
   icon?: ReactNode
@@ -107,11 +108,14 @@ export type TNativeMenuItemProps = Omit<
   ariaDescribedBy?: string | readonly string[]
   "aria-describedby"?: string
   descriptionLabel?: string
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeMenuItemState) => ReactElement
 }
 export type TNativeMenuSeparatorProps = Omit<
   ViewProps,
   "children" | "style" | "role" | "accessibilityRole" | "accessible"
 > & {
+  slot?: string | null
+  render?: (props: ViewProps & RefAttributes<View>, state: undefined) => ReactElement
   customStyles?: StyleProp<ViewStyle>
   style?: StyleProp<ViewStyle>
   "data-testid"?: string
@@ -122,7 +126,11 @@ export type TNativeMenuItemRef = View
 export type TNativeMenuHeaderProps = Omit<
   TNativeFocusViewProps,
   "style" | "role" | "accessibilityRole" | "accessible"
-> & { style?: StyleProp<TextStyle> }
+> & {
+  slot?: string | null
+  style?: StyleProp<TextStyle>
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: undefined) => ReactElement
+}
 
 export type TNativeMenuSectionProps<T extends object = object> = Omit<
   TNativeFocusViewProps,
