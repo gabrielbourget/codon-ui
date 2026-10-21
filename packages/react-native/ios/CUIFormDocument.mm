@@ -1,5 +1,7 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
 #import "CUIFormDocumentInspection.h"
+#import "CUIFormMetadata.h"
+#import "CUIFocusView.h"
 #import <React/RCTAssert.h>
 #import <React/RCTInvalidating.h>
 #import <React/RCTScheduler.h>
@@ -9,6 +11,35 @@
 #include <cmath>
 #include <climits>
 #include <stdexcept>
+
+static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictionary *document, NSDictionary *request)
+{
+  if (![request isKindOfClass:NSDictionary.class] || ![request[@"lease"] isKindOfClass:NSDictionary.class] ||
+      ![request[@"form"] isKindOfClass:NSDictionary.class] || ![request[@"documentId"] isEqual:document[@"documentId"]] ||
+      ![request[@"revision"] isEqual:document[@"revision"]])
+    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-document-retired" userInfo:nil];
+  NSDictionary *lease = request[@"lease"], *form = request[@"form"];
+  BOOL found = NO;
+  for (NSDictionary *candidate in document[@"forms"]) if ([candidate isEqual:form]) found = YES;
+  if (!found || ![lease[@"target"] isEqual:document[@"target"]] || ![lease[@"surfaceId"] isEqual:document[@"surfaceId"]])
+    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-association-retired" userInfo:nil];
+  UIView *target = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[lease[@"target"] integerValue]];
+  CUIFormRoot *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[form[@"metadataTarget"] integerValue]];
+  UIView *original = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[form[@"target"] integerValue]];
+  if (![target isKindOfClass:CUIFocusView.class] || ![metadata isKindOfClass:CUIFormRoot.class] ||
+      ![original isKindOfClass:RCTViewComponentView.class] || !metadata.isMetadataOnly || metadata.originalTarget != original.tag ||
+      ![metadata.ownerId isEqual:form[@"ownerId"]] || ![metadata.descriptorId isEqual:form[@"descriptorId"]] ||
+      ![metadata.descriptorRevision isEqual:form[@"descriptorRevision"]])
+    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-original-target-retired" userInfo:nil];
+  NSDictionary *current = [(CUIFocusView *)target formActionSnapshot];
+  NSData *expectedBytes = [NSJSONSerialization dataWithJSONObject:lease options:NSJSONWritingSortedKeys error:nil];
+  NSData *currentBytes = current ? [NSJSONSerialization dataWithJSONObject:current options:NSJSONWritingSortedKeys error:nil] : nil;
+  if (!currentBytes || ![currentBytes isEqual:expectedBytes] || ![current[@"attached"] boolValue] ||
+      ![current[@"active"] boolValue] || ![current[@"enabled"] boolValue])
+    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-action-native-lease-retired" userInfo:nil];
+  return @{@"accepted":@YES, @"lease":current, @"documentId":document[@"documentId"], @"revision":document[@"revision"],
+    @"formDescriptorId":form[@"descriptorId"], @"formDescriptorRevision":form[@"descriptorRevision"]};
+}
 
 @interface CUIFormDocument : NativeCUIFormDocumentSpecBase <NativeCUIFormDocumentSpec, RCTInvalidating>
 @end
@@ -57,6 +88,11 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error] mutableCopy];
       if (!response || error) throw std::runtime_error("Native form: invalid snapshot encoding");
       response[@"requestId"] = nonce;
+      if (request[@"actionAdmission"]) {
+        response[@"actionAdmission"] = CUIAdmitFormAction(presenter, response, request[@"actionAdmission"]);
+        if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
+          throw std::runtime_error("Native form: document retired during action admission");
+      }
       if ([request[@"inspect"] isEqual:@YES]) {
         id control = request[@"controlTarget"];
         if (control && (![control isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)control) == CFBooleanGetTypeID() || !std::isfinite([control doubleValue]) || [control doubleValue] <= 0 || [control doubleValue] > INT_MAX || [control doubleValue] != std::floor([control doubleValue])))

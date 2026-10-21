@@ -3,7 +3,7 @@ import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
 import { NativePressable, type TNativePressableRender } from "../../input/NativePressable"
-import type { TNativeFocusEvent, TNativePressEvent } from "../../input/types"
+import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
 
@@ -21,23 +21,24 @@ type TPressCycle = {
   nativeEnd?: TNativePressEvent
 }
 
-type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState"> & {
-  accessibilityState?: Omit<AccessibilityState, "disabled">
-  nativeRole?: ViewProps["role"]
-  nativeAccessible?: boolean
-  nativeInteraction?: boolean
-  nativeRender?: (
-    props: Parameters<TNativePressableRender>[0],
-    state: TNativeButtonRenderState & { isFocusVisible: boolean },
-  ) => ReturnType<TNativePressableRender>
-  nativeProgrammaticFocusable?: boolean
-  nativeTabStop?: boolean
-  nativeOnFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
-  nativeStyle?: (
-    state: Omit<TNativeButtonRenderState, "foregroundColor">,
-    focusVisible: boolean,
-  ) => ReturnType<typeof getNativeButtonStyle>
-}
+type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState"> &
+  Pick<TNativeFocusViewProps, "nativeFormActionBinding" | "onNativeFormActionStatus"> & {
+    accessibilityState?: Omit<AccessibilityState, "disabled">
+    nativeRole?: ViewProps["role"]
+    nativeAccessible?: boolean
+    nativeInteraction?: boolean
+    nativeRender?: (
+      props: Parameters<TNativePressableRender>[0],
+      state: TNativeButtonRenderState & { isFocusVisible: boolean },
+    ) => ReturnType<TNativePressableRender>
+    nativeProgrammaticFocusable?: boolean
+    nativeTabStop?: boolean
+    nativeOnFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
+    nativeStyle?: (
+      state: Omit<TNativeButtonRenderState, "foregroundColor">,
+      focusVisible: boolean,
+    ) => ReturnType<typeof getNativeButtonStyle>
+  }
 
 export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalProps>((props, ref) => {
   const {

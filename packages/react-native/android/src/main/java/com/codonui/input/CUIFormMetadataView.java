@@ -26,6 +26,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private long epoch, sequence, mountBatch;
 
   CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; }
+  boolean isFieldBinding() { return fieldBinding; }
 
   private void connect() {
     if (manager != null || !isAttachedToWindow() || !(getContext() instanceof ReactContext)) return;

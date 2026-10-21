@@ -99,8 +99,26 @@ export type NativeFocusData = Readonly<{
   timestamp: Double
 }>
 
+export type NativeFormActionStatus = Readonly<{
+  ownerId: string
+  descriptorRevision: string
+  viewOwnerId: string
+  target: Int32
+  surfaceId: Int32
+  windowId: string
+  epoch: Double
+  sequence: Double
+  scopeOwnerId: string
+  scopeEpoch: Double
+  attached: boolean
+  active: boolean
+  enabled: boolean
+}>
+
 export interface NativeProps extends ViewProps {
   ownerId: string
+  nativeFormActionBinding?: string
+  onNativeFormActionStatus?: DirectEventHandler<NativeFormActionStatus>
   nativeCollectionBinding?: string
   nativeCollectionSemantics?: string
   keyboardFocusable?: WithDefault<boolean, true>

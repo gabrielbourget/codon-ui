@@ -59,6 +59,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private int nativeScrollAnchorTag;
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
+  private CUIFormActionLease formAction;
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
@@ -70,6 +71,47 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     setFocusable(true);
     setFocusableInTouchMode(true);
   }
+
+  private static java.util.Map<String, Object> jsonMap(org.json.JSONObject value) {
+    java.util.Map<String, Object> result = new java.util.HashMap<>();
+    java.util.Iterator<String> keys = value.keys();
+    while (keys.hasNext()) { String key = keys.next(); result.put(key, value.opt(key)); }
+    return result;
+  }
+  private org.json.JSONObject formActionEnvironment() throws org.json.JSONException {
+    int surface = UIManagerHelper.getSurfaceId(this);
+    boolean active = isAttachedToWindow() && hasWindowFocus() && isShown() && getWindowVisibility() == View.VISIBLE && surface > 0;
+    String scopeOwner = ""; double scopeEpoch = 0;
+    for (View view = this; view != null; view = view.getParent() instanceof View ? (View)view.getParent() : null) {
+      active &= view.getAlpha() > 0;
+      if (scopeOwner.isEmpty() && view instanceof CUIKeyboardScope) {
+        CUIKeyboardScope scope = (CUIKeyboardScope)view;
+        scopeOwner = scope.formActionOwnerId(); scopeEpoch = scope.formActionEpoch();
+      }
+    }
+    return new org.json.JSONObject().put("viewOwnerId", ownerId).put("target", getId()).put("surfaceId", surface)
+      .put("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "")
+      .put("scopeOwnerId", scopeOwner).put("scopeEpoch", scopeEpoch).put("attached", isAttachedToWindow())
+      .put("active", active).put("enabled", nativePressable && isEnabled());
+  }
+  void setNativeFormActionBinding(String value) {
+    if (value == null || value.isEmpty()) { retireFormAction(); return; }
+    if (formAction == null) {
+      java.lang.ref.WeakReference<CUIFocusView> actionRoot = new java.lang.ref.WeakReference<>(this);
+      formAction = new CUIFormActionLease(this, () -> {
+        CUIFocusView view = actionRoot.get();
+        if (view == null) throw new IllegalStateException("form-action-target-retired");
+        return view.formActionEnvironment();
+      }, data -> {
+        CUIFocusView view = actionRoot.get();
+        if (view != null) view.emit("topNativeFormActionStatus", com.facebook.react.bridge.Arguments.makeNativeMap(jsonMap(data)));
+      });
+    }
+    formAction.configure(value);
+  }
+  void synchronizeFormAction() { if (formAction != null) formAction.snapshot(); }
+  void retireFormAction() { if (formAction != null) formAction.invalidate(); formAction = null; }
+  org.json.JSONObject formActionSnapshot() { return formAction == null ? null : formAction.snapshot(); }
 
   void setNativeTabStop(boolean value) { nativeTabStop = value; }
   @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
@@ -113,7 +155,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -376,6 +418,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    if (formAction != null) formAction.attachmentChanged(false);
     motionGeometry.detached();
     motionColors.detached();
     scrollAnchor.invalidate();
@@ -387,6 +430,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   public void onWindowFocusChanged(boolean focused) {
+    if (formAction != null) formAction.snapshot();
     if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();
     super.onWindowFocusChanged(focused);

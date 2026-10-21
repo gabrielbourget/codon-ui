@@ -47,7 +47,10 @@ export type TNativePressableProps = Omit<
   keyof TCallbacks | "children" | "style" | "onFocus" | "onBlur"
 > &
   TCallbacks &
-  Pick<TNativeFocusViewProps, "onFocus" | "onBlur" | "onKeyDown" | "onKeyUp"> & {
+  Pick<
+    TNativeFocusViewProps,
+    "onFocus" | "onBlur" | "onKeyDown" | "onKeyUp" | "nativeFormActionBinding" | "onNativeFormActionStatus"
+  > & {
     children?: PressableProps["children"]
     style?: PressableProps["style"]
     nativeLabelledBy?: readonly string[]

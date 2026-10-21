@@ -7,4 +7,5 @@
 - (NSDictionary *)motionSnapshotIdentity;
 - (NSString *)motionProjectionRevision;
 - (BOOL)menuPointerTriggerEnabled;
+- (NSDictionary *)formActionSnapshot;
 @end
