@@ -27,6 +27,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState">
     nativeRole?: ViewProps["role"]
     nativeAccessible?: boolean
     nativeInteraction?: boolean
+    nativeIsPressed?: boolean
     nativeRender?: (
       props: Parameters<TNativePressableRender>[0],
       state: TNativeButtonRenderState & { isFocusVisible: boolean },
@@ -46,6 +47,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeRole = "button",
     nativeAccessible = true,
     nativeInteraction = true,
+    nativeIsPressed,
     nativeStyle,
     nativeRender,
     nativeProgrammaticFocusable,
@@ -127,7 +129,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   })
   const keyboardFocusable = !isDisabled && focusable !== false && rest.tabIndex !== -1
   const flags = {
-    isPressed: pressed && !blocked,
+    isPressed: nativeIsPressed ?? (pressed && !blocked),
     isHovered: hovered && !blocked,
     isFocused: focused && keyboardFocusable,
     isDisabled,

@@ -1,30 +1,31 @@
-import { useEffect, useInsertionEffect, useRef, type RefObject } from "react"
+import { forwardRef, useEffect, useInsertionEffect, useRef, type RefObject, type Ref } from "react"
 import type { ColorValue, TextInput, View } from "react-native"
 import Svg, { Polyline } from "react-native-svg"
 
+import { useNativeContextProps } from "../../collection/context"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import type { TNativeButtonProps } from "../Button/types"
 
+import { NativeComboBoxButtonContext } from "./collectionContext"
 import type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 import type { ComboBoxState } from "./state/types"
 
 type TOrigin = "touch" | "mouse" | "pen" | "keyboard" | "virtual"
-export const NativeCollectionComboBoxTrigger = <T extends object>({
+export const useNativeComboBoxButtonProps = <T extends object>({
   owner,
   state,
   input,
   identity,
-  foreground,
 }: {
   owner: TNativeCollectionComboBoxProps<T>
   state: ComboBoxState<T>
   input: RefObject<TextInput | null>
   identity: string
-  foreground: ColorValue
-}) => {
+}): TNativeButtonProps & { ref: Ref<View>; isPressed: boolean } => {
   const target = useRef<View>(null)
   const scope = useNativeKeyScope()
   const current = useRef({ owner, state })
@@ -85,70 +86,88 @@ export const NativeCollectionComboBoxTrigger = <T extends object>({
     focusNativeTarget(input.current)
     if (admitted()) current.current.state.toggle(strategy, "manual")
   }
-  return (
-    <NativeButton
-      ref={target}
-      testID={`${identity}-trigger`}
-      accessibilityLabel={owner.triggerLabel ?? "Show suggestions"}
-      isDisabled={owner.isDisabled || owner.isReadOnly}
-      focusable={false}
-      raised={false}
-      customStyles={[{ backgroundColor: "transparent" }, owner.customButtonStyles]}
-      onPointerDown={(event) => {
-        event.persist?.()
-        const type = event.nativeEvent.pointerType
-        pointer.current = {
-          origin: type === "mouse" || type === "pen" ? type : "touch",
-          target: target.current,
-          window: windowStamp(),
-          suppressed: () => event.defaultPrevented || event.isDefaultPrevented?.() === true,
-        }
-      }}
-      onPressStart={(event) => {
-        event.persist?.()
-        const kind = origin(event),
-          source =
-            kind !== "keyboard" &&
-            kind !== "virtual" &&
-            pointer.current?.target === target.current &&
-            pointer.current.window === windowStamp()
-              ? pointer.current
-              : null
-        cycle.current = {
-          origin: kind,
-          target: target.current,
-          input: input.current,
-          window: windowStamp(),
-          suppressed: () =>
-            event.defaultPrevented || event.isDefaultPrevented?.() === true || source?.suppressed() === true,
-        }
-        if (kind !== "touch") toggle()
-      }}
-      onPressEnd={() => {
-        pointer.current = null
-      }}
-      onPress={() => {
-        if (cycle.current?.origin === "touch") toggle()
-        cycle.current = null
-        pointer.current = null
-      }}
-    >
-      {owner.ComponentIcon ? (
-        getNativeButtonContent(owner.ComponentIcon)
-      ) : (
-        <Svg
-          width={15}
-          height={15}
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke={foreground}
-          strokeWidth={2}
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <Polyline points="6 9 12 15 18 9" />
-        </Svg>
-      )}
-    </NativeButton>
-  )
+  return {
+    ref: target,
+    testID: `${identity}-trigger`,
+    accessibilityLabel: owner.triggerLabel ?? "Show suggestions",
+    isDisabled: owner.isDisabled || owner.isReadOnly,
+    focusable: false,
+    raised: false,
+    customStyles: [{ backgroundColor: "transparent" }, owner.customButtonStyles],
+    onPointerDown: (event) => {
+      event.persist?.()
+      const type = event.nativeEvent.pointerType
+      pointer.current = {
+        origin: type === "mouse" || type === "pen" ? type : "touch",
+        target: target.current,
+        window: windowStamp(),
+        suppressed: () => event.defaultPrevented || event.isDefaultPrevented?.() === true,
+      }
+    },
+    onPressStart: (event) => {
+      event.persist?.()
+      const kind = origin(event),
+        source =
+          kind !== "keyboard" &&
+          kind !== "virtual" &&
+          pointer.current?.target === target.current &&
+          pointer.current.window === windowStamp()
+            ? pointer.current
+            : null
+      cycle.current = {
+        origin: kind,
+        target: target.current,
+        input: input.current,
+        window: windowStamp(),
+        suppressed: () =>
+          event.defaultPrevented || event.isDefaultPrevented?.() === true || source?.suppressed() === true,
+      }
+      if (kind !== "touch") toggle()
+    },
+    onPressEnd: () => {
+      pointer.current = null
+    },
+    onPress: () => {
+      if (cycle.current?.origin === "touch") toggle()
+      cycle.current = null
+      pointer.current = null
+    },
+    isPressed: state.isOpen,
+  }
 }
+
+export const NativeComboBoxButton = forwardRef<View, TNativeButtonProps & { isPressed?: boolean }>(
+  (authored, forwardedRef) => {
+    const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeComboBoxButtonContext)
+    const { slot: _slot, isPressed, ...button } = props
+    return <NativeButton {...button} ref={ref} nativeIsPressed={isPressed} />
+  },
+)
+NativeComboBoxButton.displayName = "NativeComboBoxButton"
+
+export const NativeCollectionComboBoxTrigger = <T extends object>({
+  owner,
+  foreground,
+}: {
+  owner: TNativeCollectionComboBoxProps<T>
+  foreground: ColorValue
+}) => (
+  <NativeComboBoxButton>
+    {owner.ComponentIcon ? (
+      getNativeButtonContent(owner.ComponentIcon)
+    ) : (
+      <Svg
+        width={15}
+        height={15}
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke={foreground}
+        strokeWidth={2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <Polyline points="6 9 12 15 18 9" />
+      </Svg>
+    )}
+  </NativeComboBoxButton>
+)
