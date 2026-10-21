@@ -44,6 +44,7 @@ import { SceneShell } from "./SceneShell"
 import { SelectScene } from "./SelectScene"
 import { SliderScene } from "./SliderScene"
 import { StepperScene } from "./StepperScene"
+import { TagComboBoxScene } from "./TagComboBoxScene"
 import { TagGroupScene } from "./TagGroupScene"
 import { TagScene } from "./TagScene"
 import { ThumbnailScene } from "./ThumbnailScene"
@@ -178,6 +179,7 @@ export const NativeShowcase = () => {
     | "avatar"
     | "tag"
     | "tag-group"
+    | "tag-combo-box"
     | "link"
     | "thumbnail"
     | "gallery"
@@ -280,6 +282,11 @@ export const NativeShowcase = () => {
                 selected={scene === "tag-group"}
                 onPress={() => setScene("tag-group")}
               />
+              <FixtureAction
+                label="TagComboBox scene"
+                selected={scene === "tag-combo-box"}
+                onPress={() => setScene("tag-combo-box")}
+              />
               <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
               <FixtureAction
                 label="Thumbnail scene"
@@ -354,6 +361,8 @@ export const NativeShowcase = () => {
                 <TagScene />
               ) : scene === "tag-group" ? (
                 <TagGroupScene />
+              ) : scene === "tag-combo-box" ? (
+                <TagComboBoxScene />
               ) : scene === "avatar" ? (
                 <AvatarScene />
               ) : scene === "toggle" ? (

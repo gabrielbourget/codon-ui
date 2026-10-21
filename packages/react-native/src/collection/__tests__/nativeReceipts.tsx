@@ -3,7 +3,7 @@ import type { ReactElement } from "react"
 import * as RN from "react-native"
 import type { TestInstance } from "test-renderer"
 
-export { fireEvent, screen } from "@testing-library/react-native"
+export { fireEvent, screen, userEvent } from "@testing-library/react-native"
 
 const mockTargets = new WeakMap<object, number>()
 const mockRootTargets = new Map<string, number>()
