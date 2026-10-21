@@ -3,6 +3,7 @@ import "../../../../../packages/react-native/src/collection/__tests__/nativeRece
 import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
 import {
+  actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
@@ -24,7 +25,19 @@ const scene = (mode: "light" | "dark" = "light") => (
   </NativeThemeProvider>
 )
 const hidden = { includeHiddenElements: true }
-const press = (name: string) => fireEvent.press(screen.getByRole("button", { name, ...hidden }))
+const press = async (name: string) => {
+  const target = screen.getByRole("button", { name, ...hidden })
+  if (name !== "Open owner menu") return fireEvent.press(target)
+  const original = {
+    target: 17,
+    currentTarget: 17,
+    persist: jest.fn(),
+    isDefaultPrevented: () => false,
+    nativeEvent: { target: 17, timestamp: 0, identifier: 0, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+  }
+  await act(() => target.props.onResponderGrant(original))
+  await act(() => target.props.onResponderRelease(original))
+}
 
 it("keeps actual trigger open requests subject to the current owner veto and echo", async () => {
   await render(scene())

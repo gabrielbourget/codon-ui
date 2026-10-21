@@ -3,7 +3,7 @@ import type { View } from "react-native"
 
 import { Button, NativeFocusView } from "../../.."
 import { MenuText, MenuKeyboardShortcut } from "../content"
-import { NativeMenuListContext } from "../context"
+import { NativeMenuListContext, NativeMenuSeparatorContext } from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
 import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
@@ -116,3 +116,43 @@ export const contentSlots = (
 export const invalidListStyle: TNativeMenuListProps = { style: () => ({ fontSize: "18px" }) }
 // @ts-expect-error Original native text refs cannot be DOM spans.
 export const invalidContentRef = <MenuText ref={createRef<HTMLSpanElement>()} />
+
+export const customItem = (
+  <MenuItem
+    id="custom"
+    value={{ id: "custom" }}
+    ref={ref}
+    render={(props, state) => (
+      <NativeFocusView {...props} accessibilityHint={state.isFocusVisible ? "Keyboard focus" : state.selectionMode} />
+    )}
+  />
+)
+export const domCustomItem = (
+  // @ts-expect-error Native item rendering exposes an actual View ref.
+  <MenuItem render={(props) => <NativeFocusView {...props} ref={createRef<HTMLDivElement>()} />} />
+)
+
+export const longPressTrigger = (
+  <NativeMenuTrigger
+    triggerMode="longPress"
+    locale="fr-FR"
+    longPressDescription=""
+    trigger={(state) => <Button {...state.triggerProps}>Open</Button>}
+  >
+    <Menu>
+      <MenuItem id="a">Alpha</MenuItem>
+    </Menu>
+  </NativeMenuTrigger>
+)
+// @ts-expect-error Trigger interaction modes are explicitly bounded.
+export const invalidTriggerMode = <NativeMenuTrigger triggerMode="hover" trigger={() => null} />
+// @ts-expect-error Rich host rendering remains private to the native component adapters.
+export const privateButtonRender = <Button nativeRender={() => <NativeFocusView />} />
+
+export const separatorDefaults = (
+  <NativeMenuSeparatorContext.Provider
+    value={{ ref, render: (props) => <NativeFocusView {...props} />, style: { opacity: 0.5 } }}
+  >
+    <MenuSeparator slot={null} />
+  </NativeMenuSeparatorContext.Provider>
+)

@@ -11,7 +11,7 @@ import type { TNativePressEvent } from "../../input/types"
 
 import type { TNativeMenuKey, TNativeMenuSelectionMode } from "./model"
 import type { TNativeRootMenuTriggerState, TNativeSubmenuTriggerState } from "./triggerState"
-import type { TNativeMenuItemProps, TNativeMenuListProps, TNativeMenuProps } from "./types"
+import type { TNativeMenuItemProps, TNativeMenuListProps, TNativeMenuProps, TNativeMenuSeparatorProps } from "./types"
 
 export type TNativeMenuRegistration = {
   id: TNativeMenuKey
@@ -51,6 +51,8 @@ export const NativeMenuContext =
   createContext<TNativeContextValue<Partial<Omit<TNativeMenuProps, "children">>, View>>(null)
 export const NativeMenuListContext = createContext<TNativeContextValue<Partial<TNativeMenuListProps>, View>>(null)
 export const NativeMenuItemContext = createContext<TNativeContextValue<Partial<TNativeMenuItemProps>, View>>(null)
+export const NativeMenuSeparatorContext =
+  createContext<TNativeContextValue<Partial<TNativeMenuSeparatorProps>, View>>(null)
 export const NativeMenuSelectionManagerContext = createContext<SelectionManager | null>(null)
 export const NativeMenuHeaderContext = createContext<{
   nativeID: string

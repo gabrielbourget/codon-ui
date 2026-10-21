@@ -2,7 +2,6 @@ import {
   forwardRef,
   useContext,
   useId,
-  useImperativeHandle,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -15,7 +14,7 @@ import { findNodeHandle, View, type TextStyle } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { NATIVE_DEFAULT_SLOT, useNativeContextProps } from "../../collection/context"
+import { NATIVE_DEFAULT_SLOT, useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -30,6 +29,7 @@ import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import type { TNativeButtonRenderState } from "../Button/types"
 import type { TNativeTextRef } from "../Text/types"
 
 import {
@@ -48,7 +48,12 @@ import {
 } from "./context"
 import { encodeNativeMenuKey, validateNativeMenuKey } from "./model"
 import { getNativeMenuItemStyles } from "./styles"
-import { NATIVE_MENU_ITEM_VARIANTS, type TNativeMenuItemProps, type TNativeMenuItemRef } from "./types"
+import {
+  NATIVE_MENU_ITEM_VARIANTS,
+  type TNativeMenuItemProps,
+  type TNativeMenuItemRef,
+  type TNativeMenuItemState,
+} from "./types"
 
 const textContent = (value: TNativeMenuItemProps["children"]): string => {
   if (typeof value === "string" || typeof value === "number" || typeof value === "bigint") return String(value)
@@ -91,6 +96,8 @@ const MenuItemReceiver = forwardRef<
     collectionNode,
     slot: _slot,
     id: authoredId,
+    value: _value,
+    render,
     children,
     textValue,
     icon,
@@ -190,9 +197,13 @@ const MenuItemReceiver = forwardRef<
   const metadata = JSON.stringify([id, href, authoredDisabled, textValue ?? textContent(children)])
   useLayoutEffect(() => refresh(row), [refresh, row, metadata])
   const lifetime = JSON.stringify([encodeNativeMenuKey(id), href])
-  useImperativeHandle(ref, () => view.current!, [lifetime])
   const disabled = authoredDisabled ?? selectionManager.isDisabled(id)
   const [targetTag, setTargetTag] = useState(0)
+  const bindView = useCallback((target: View | null) => {
+    view.current = target
+    setTargetTag(findNodeHandle(target) ?? 0)
+  }, [])
+  const nativeRef = useNativeCollectionRefs(ref, bindView)
   const openSubmenu = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
     if (
@@ -217,6 +228,24 @@ const MenuItemReceiver = forwardRef<
   const selected = selectionManager.isSelected(id)
   const mode = selectionManager.selectionMode
   const role = submenu ? "menuitem" : mode === "single" ? "radio" : mode === "multiple" ? "checkbox" : "menuitem"
+  const stateFor = (
+    flags: Pick<TNativeButtonRenderState, "isHovered" | "isPressed" | "isFocused"> & { isFocusVisible: boolean },
+  ): TNativeMenuItemState => ({
+    isSelected: selected,
+    isDisabled: disabled,
+    isHovered: flags.isHovered,
+    isPressed: flags.isPressed,
+    isFocused: context.virtualFocus
+      ? selectionManager.isFocused && selectionManager.focusedKey === id
+      : flags.isFocused,
+    isFocusVisible: context.virtualFocus
+      ? selectionManager.isFocused && selectionManager.focusedKey === id && context.focusVisible
+      : flags.isFocused && flags.isFocusVisible,
+    selectionMode: mode,
+    selectionBehavior: selectionManager.selectionBehavior,
+    hasSubmenu: !!submenu,
+    isOpen: submenu?.state.isOpen ?? false,
+  })
   return (
     <>
       {submenu ? (
@@ -244,7 +273,8 @@ const MenuItemReceiver = forwardRef<
           }}
           {...native}
           key={lifetime}
-          ref={view}
+          ref={nativeRef}
+          nativeRender={render ? (props, flags) => render(props, stateFor(flags)) : undefined}
           nativeID={submenu?.triggerID ?? props.nativeID}
           nativeRole={role}
           focusable={context.virtualFocus ? false : props.focusable}
@@ -264,22 +294,7 @@ const MenuItemReceiver = forwardRef<
             const style = getNativeMenuItemStyles(
               theme,
               props,
-              {
-                isSelected: selected,
-                isDisabled: disabled,
-                isHovered: state.isHovered,
-                isPressed: state.isPressed,
-                isFocused: context.virtualFocus
-                  ? selectionManager.isFocused && selectionManager.focusedKey === id
-                  : state.isFocused,
-                isFocusVisible: context.virtualFocus
-                  ? selectionManager.isFocused && selectionManager.focusedKey === id && context.focusVisible
-                  : state.isFocused && Number(state.defaultStyle.outlineWidth ?? 0) > 0,
-                selectionMode: mode,
-                selectionBehavior: selectionManager.selectionBehavior,
-                hasSubmenu: !!submenu,
-                isOpen: submenu?.state.isOpen ?? false,
-              },
+              stateFor({ ...state, isFocusVisible: Number(state.defaultStyle.outlineWidth ?? 0) > 0 }),
               context.text,
             )
             textStyle.current = style.text
