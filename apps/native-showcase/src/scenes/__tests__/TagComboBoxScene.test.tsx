@@ -175,3 +175,24 @@ it("requests closing once when the confirmed collection becomes empty under the 
   expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent("Requests: open:false.")
   expect(screen.getByTestId("combo-box-input")).toBeOnTheScreen()
 })
+
+it("replaces the requested custom picker host while retaining the wrapper, owner query and independent editor", async () => {
+  await render(scene())
+  await press("Set tag-combo owner query")
+  const wrapper = screen.getByTestId("tag-combobox"),
+    editor = screen.getByTestId("tag-combo-owner-editor"),
+    before = screen.getByTestId("combo-box-input")
+  await fireEvent.changeText(editor, "independent draft")
+  expect(before.props.nativeID).toBe("tag-combo-owner-query-field")
+  await press("Toggle tag-combo custom picker root")
+  const after = screen.getByTestId("combo-box-input")
+  expect(screen.getByTestId("tag-combo-owner-custom-picker")).toBeOnTheScreen()
+  expect(screen.getByTestId("tag-combobox") === wrapper).toBe(true)
+  expect(after).toHaveDisplayValue("held query")
+  expect(after.props.nativeID).toBe("tag-combo-owner-query-field")
+  expect(editor).toHaveDisplayValue("independent draft")
+  expect(screen.getByTestId("tag-combo-owner-requests")).toHaveTextContent("Requests: none.")
+  await press("Toggle tag-combo custom picker root")
+  expect(screen.queryByTestId("tag-combo-owner-custom-picker")).toBeNull()
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
+})

@@ -1,8 +1,9 @@
 import { useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
-import { Button, Text, useNativeTheme } from "@codon-ui/react-native"
+import { Button, NativeFocusView, Text, useNativeTheme } from "@codon-ui/react-native"
 
+import { NativeComboBoxContext } from "../../../../packages/react-native/src/components/ComboBox/collectionContext"
 import { TagComboBox } from "../../../../packages/react-native/src/components/TagComboBox/TagComboBox"
 import type { TNativeTagComboBoxChangeDetails } from "../../../../packages/react-native/src/components/TagComboBox/types"
 
@@ -30,6 +31,7 @@ export const TagComboBoxScene = () => {
   const [readOnly, setReadOnly] = useState(false)
   const [allowsEmpty, setAllowsEmpty] = useState(false)
   const [custom, setCustom] = useState(false)
+  const [customRoot, setCustomRoot] = useState(false)
   const [large, setLarge] = useState(false)
   const [requests, setRequests] = useState<string[]>([])
   const [draft, setDraft] = useState("")
@@ -37,6 +39,7 @@ export const TagComboBoxScene = () => {
   const [refs, setRefs] = useState("unmeasured")
   const root = useRef<View>(null)
   const input = useRef<TextInput>(null)
+  const picker = useRef<View>(null)
   const editor = useRef<TextInput>(null)
   const firstRefs = useRef(new Map<string, View | TextInput>())
   const scenario = useRef<{ selections: number; closes: number } | null>(null)
@@ -50,6 +53,7 @@ export const TagComboBoxScene = () => {
     const targets = [
       ["root", root.current],
       ["input", input.current],
+      ["picker", picker.current],
       ["editor", editor.current],
     ] as const
     setRefs(
@@ -96,6 +100,7 @@ export const TagComboBoxScene = () => {
         <Button onPress={() => setReadOnly((value) => !value)}>Toggle tag-combo read only</Button>
         <Button onPress={() => setAllowsEmpty((value) => !value)}>Toggle tag-combo empty-collection allowance</Button>
         <Button onPress={() => setCustom((value) => !value)}>Toggle tag-combo styles</Button>
+        <Button onPress={() => setCustomRoot((value) => !value)}>Toggle tag-combo custom picker root</Button>
         <Button onPress={() => setLarge((value) => !value)}>Toggle tag-combo text size</Button>
         <Button onPress={() => setSelected([ITEMS[0]])}>Set tag-combo number zero</Button>
         <Button onPress={() => setSelected([ITEMS[1]])}>Set tag-combo string zero</Button>
@@ -117,41 +122,55 @@ export const TagComboBoxScene = () => {
         }}
         style={{ color: theme.colors.foreground, borderWidth: 1, borderColor: theme.colors.controlBorder, padding: 8 }}
       />
-      <TagComboBox
-        ref={root}
-        inputRef={input}
-        inputProps={{ onFocus: inspectRefs }}
-        items={items}
-        selectedItems={selected}
-        getItemKey={(item) => item.id}
-        getItemTextValue={(item) => item.label}
-        onSelectedItemsChange={requestSelection}
-        inputValue={query}
-        onInputChange={(value) => {
-          record(`input:${JSON.stringify(value)}`)
-          if (scenario.current ? scenario.current.selections > 2 : !vetoInput) setQuery(value)
-        }}
-        isOpen={open}
-        onOpenChange={(value) => {
-          record(`open:${String(value)}`)
-          if (scenario.current && !value) {
-            if (++scenario.current.closes > 2) {
-              setOpen(false)
-              scenario.current = null
-            }
-          } else if (!vetoOpen) setOpen(value)
-        }}
-        isDisabled={disabled}
-        isReadOnly={readOnly}
-        allowsEmptyCollection={allowsEmpty}
-        accessibilityLabel="Owner-controlled tag choices"
-        textSize={large ? "large" : "medium"}
-        maxWidth="100%"
-        customStyles={custom ? { borderWidth: 2, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
-        customTagStyles={custom ? { padding: 12 } : undefined}
-        customComboBoxStyles={custom ? { backgroundColor: theme.colors.background } : undefined}
-        customComboBoxProps={{ onInputChange: (value) => record(`nested-input:${JSON.stringify(value)}`) }}
-      />
+      <NativeComboBoxContext.Provider value={{ ref: picker }}>
+        <TagComboBox
+          id="tag-combo-owner-query-field"
+          render={
+            customRoot
+              ? (props, state) => (
+                  <NativeFocusView
+                    {...props}
+                    testID="tag-combo-owner-custom-picker"
+                    accessibilityHint={state.isOpen ? "Choices open" : "Choices closed"}
+                  />
+                )
+              : undefined
+          }
+          ref={root}
+          inputRef={input}
+          inputProps={{ onFocus: inspectRefs }}
+          items={items}
+          selectedItems={selected}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          onSelectedItemsChange={requestSelection}
+          inputValue={query}
+          onInputChange={(value) => {
+            record(`input:${JSON.stringify(value)}`)
+            if (scenario.current ? scenario.current.selections > 2 : !vetoInput) setQuery(value)
+          }}
+          isOpen={open}
+          onOpenChange={(value) => {
+            record(`open:${String(value)}`)
+            if (scenario.current && !value) {
+              if (++scenario.current.closes > 2) {
+                setOpen(false)
+                scenario.current = null
+              }
+            } else if (!vetoOpen) setOpen(value)
+          }}
+          isDisabled={disabled}
+          isReadOnly={readOnly}
+          allowsEmptyCollection={allowsEmpty}
+          accessibilityLabel="Owner-controlled tag choices"
+          textSize={large ? "large" : "medium"}
+          maxWidth="100%"
+          customStyles={custom ? { borderWidth: 2, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
+          customTagStyles={custom ? { padding: 12 } : undefined}
+          customComboBoxStyles={custom ? { backgroundColor: theme.colors.background } : undefined}
+          customComboBoxProps={{ onInputChange: (value) => record(`nested-input:${JSON.stringify(value)}`) }}
+        />
+      </NativeComboBoxContext.Provider>
       <Button onPress={() => editor.current?.focus()}>Focus original tag-combo draft editor</Button>
       <TextInput
         accessibilityLabel="Draft after tag combo box"

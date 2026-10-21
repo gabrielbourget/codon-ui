@@ -1,6 +1,7 @@
 import { createRef } from "react"
 import type { TextInput, View } from "react-native"
 
+import { NativeFocusView } from "../../.."
 import { NativeComboBoxContext } from "../../ComboBox/collectionContext"
 import { TagComboBox } from "../TagComboBox"
 
@@ -54,4 +55,22 @@ export const parentContracts = (
       }}
     />
   </NativeComboBoxContext.Provider>
+)
+
+export const customPickerRoot = (
+  <TagComboBox
+    {...base}
+    id="field"
+    aria-label="Field"
+    render={(props, state) => (
+      <NativeFocusView
+        {...props}
+        accessibilityHint={state.isRequired ? "Required" : state.isInvalid ? "Invalid" : "Ready"}
+      />
+    )}
+  />
+)
+export const domPickerRoot = (
+  // @ts-expect-error Custom picker roots retain original native View refs.
+  <TagComboBox {...base} render={(props) => <NativeFocusView {...props} ref={createRef<HTMLElement>()} />} />
 )
