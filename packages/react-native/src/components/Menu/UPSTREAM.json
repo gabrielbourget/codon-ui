@@ -17,7 +17,7 @@
     "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSafelyMouseToSubmenu.mjs": "94a42ccb68056644dbeba162080397d9074fa1a91373844889aa417cd5c9436e"
   },
   "license": "../../collection/LICENSE.react-aria.md",
-  "scope": "Private section/submenu and inner-list/content context construction plus source-exact Android/UIKit mouse-grace calculations. Native consuming policy registration/default handling, active-descendant/AT binding, maintained scene, public/native acceptance remain open.",
+  "scope": "Private section/submenu and inner-list/content construction, source-exact Android/UIKit mouse-grace calculations and scope-owned policy receiver registry. Native scope host/consuming dispatch integration, active-descendant/AT binding, maintained scene, public/native acceptance remain open.",
   "authoredFilesSHA256": {
     "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
     "MenuSection.tsx": "37aaa4e86e6a9fa0fa661980dc231ae2fe43f217916c6c629a155a4ff83b5613",
@@ -33,6 +33,7 @@
     "content.tsx": "3b4f00bb4137ad7d41aebfedb763fe197f8ce2dba9f67f3a704ebc739f2adf7b",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
     "../../../android/src/main/java/com/codonui/input/CUIMenuPointerGrace.java": "54190f413c3cfda43a8d7f769db1dd9f466ed8d8bcad9f6b9d592c412070b98f",
-    "../../../ios/CUIMenuPointerGrace.h": "41b99d0b383dc4cce2dee5ad283c372b4356919df50e3969acf7b73830d26ad6"
+    "../../../ios/CUIMenuPointerGrace.h": "41b99d0b383dc4cce2dee5ad283c372b4356919df50e3969acf7b73830d26ad6",
+    "../../input/nativeMenuPointers.ts": "fee002a5f18472ae532654a982d0bf9aa3c80a40460deb4879ed57fcca0f9147"
   }
 }
