@@ -163,3 +163,17 @@ it("rejects a foreign document surface and a descriptor from another decoded sna
   const document = decode()
   expect(() => fieldsInNativeForm(document, decode().forms[0])).toThrow("foreign-native-form")
 })
+
+it("uses the committed serialization descriptor location rather than the editor's visual placement", () => {
+  const value = packet()
+  const editor = value.nodes.splice(
+    value.nodes.findIndex((node) => node.target === 6),
+    1,
+  )[0]
+  value.nodes.push({ ...editor, parent: 13 })
+  for (const form of value.forms) form.position = value.nodes.findIndex((node) => node.target === form.metadataTarget)
+  for (const field of value.fields)
+    field.position = value.nodes.findIndex((node) => node.target === field.metadataTarget)
+  const document = decode(value)
+  expect(fieldsInNativeForm(document, document.forms[0]).map((field) => field.descriptorId)).toContain("inside")
+})

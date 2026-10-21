@@ -145,3 +145,11 @@ it("uses callback-only owner updates without replacing the committed field or or
   expect(first).not.toHaveBeenCalled()
   expect(latest).toHaveBeenCalledWith(0)
 })
+
+it("ignores malformed original mount callbacks without granting editor authority", async () => {
+  const value = await setup()
+  const metadata = value.view.container.queryAll((node) => typeof node.props.editorTarget === "number")[0]
+  for (const packet of [undefined, null, [], {}])
+    await act(() => metadata.props.onNativeFormCommit({ nativeEvent: packet }))
+  expect(value.field().mount()?.getSnapshot() ?? null).toBeNull()
+})

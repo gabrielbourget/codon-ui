@@ -64,6 +64,7 @@ export const useNativeComboBoxField = <T extends object>(
   }, [])
   const receive = useCallback(
     (packet: NativeFormCommitData) => {
+      if (!packet || typeof packet !== "object" || Array.isArray(packet)) return
       const owner = current.current
       const editor = owner.currentEditor()
       const host = metadata.current
