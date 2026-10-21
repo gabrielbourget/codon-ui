@@ -4,6 +4,9 @@ import { userEvent } from "@testing-library/user-event"
 import { createRef, useContext } from "react"
 import {
   Button,
+  Header,
+  HeaderContext,
+  MenuSection,
   MenuTrigger,
   MenuStateContext,
   SeparatorContext,
@@ -158,4 +161,47 @@ it("retains explicit separator custom rendering and resets ancestor default prop
   expect(screen.queryByTestId("ignored-separator")).toBeNull()
   expect(screen.getByRole("separator")).toBe(screen.getByTestId("menu-separator"))
   observations.push({ separatorExplicitRender: true, ancestorDefaultsReset: true })
+})
+
+it("retains explicit header rendering, content and original refs while sections reset ancestor defaults", async () => {
+  const ref = createRef<HTMLElement>(),
+    ignored = createRef<HTMLElement>()
+  let state: unknown = "unseen"
+  render(
+    <HeaderContext.Provider
+      value={{
+        ref: ignored,
+        style: { opacity: 0.4 },
+        render: (props) => <div {...props} data-testid="ignored-header" />,
+      }}
+    >
+      <MenuTrigger defaultOpen>
+        <Button>Open grouped menu</Button>
+        <Menu isNonModal>
+          <MenuSection>
+            <Header
+              ref={ref}
+              style={{ opacity: 0.7 }}
+              render={(props, value) => {
+                state = value
+                return <div {...props} data-testid="custom-header" />
+              }}
+            >
+              Named group
+            </Header>
+            <MenuItem id="a">Alpha</MenuItem>
+          </MenuSection>
+        </Menu>
+      </MenuTrigger>
+    </HeaderContext.Provider>,
+  )
+  const host = await screen.findByTestId("custom-header")
+  expect(ref.current).toBe(host)
+  expect(host).toHaveStyle({ opacity: "0.7" })
+  expect(host).toHaveTextContent("Named group")
+  expect(state).toBeUndefined()
+  expect(ignored.current).toBeNull()
+  expect(screen.queryByTestId("ignored-header")).toBeNull()
+  expect(screen.getByRole("group", { name: "Named group" })).toHaveAttribute("aria-labelledby", host.id)
+  observations.push({ headerExplicitRender: true, originalRef: true, sectionDefaultsReset: true })
 })

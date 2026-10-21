@@ -126,7 +126,11 @@ export type TNativeMenuItemRef = View
 export type TNativeMenuHeaderProps = Omit<
   TNativeFocusViewProps,
   "style" | "role" | "accessibilityRole" | "accessible"
-> & { style?: StyleProp<TextStyle> }
+> & {
+  slot?: string | null
+  style?: StyleProp<TextStyle>
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: undefined) => ReactElement
+}
 
 export type TNativeMenuSectionProps<T extends object = object> = Omit<
   TNativeFocusViewProps,

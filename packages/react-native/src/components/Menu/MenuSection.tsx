@@ -17,6 +17,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import {
   NativeMenuActionsContext,
   NativeMenuHeaderContext,
+  NativeMenuHeaderBindingContext,
   NativeMenuItemContext,
   NativeMenuSelectionManagerContext,
   NativeMenuStateContext,
@@ -59,21 +60,26 @@ const Section = createNativeCollectionBranch<object, TNativeMenuSectionProps, Vi
     const styles = splitNativeTextStyle(resolveNativeStyle(style, "MenuSection", "style"))
     const text = { ...actions.text, ...styles.text }
     const children = (
-      <NativeMenuHeaderContext.Provider value={{ nativeID: generatedHeaderID, ref: headerRef }}>
-        <NativeMenuSelectionManagerContext.Provider value={manager}>
-          <NativeMenuItemContext.Provider
-            value={{ shouldCloseOnSelect: shouldCloseOnSelect ?? inherited?.shouldCloseOnSelect }}
-          >
-            <NativeMenuActionsContext.Provider value={{ ...actions, text }}>
-              <NativeContentContext.Provider
-                value={{ foregroundColor: text.color ?? theme.colors.foreground, isButton: false }}
-              >
-                <CollectionBranch collection={state.collection as TNativeCollectionSnapshot<object>} parent={section} />
-              </NativeContentContext.Provider>
-            </NativeMenuActionsContext.Provider>
-          </NativeMenuItemContext.Provider>
-        </NativeMenuSelectionManagerContext.Provider>
-      </NativeMenuHeaderContext.Provider>
+      <NativeMenuHeaderBindingContext.Provider value={{ nativeID: generatedHeaderID, ref: headerRef }}>
+        <NativeMenuHeaderContext.Provider value={{ nativeID: generatedHeaderID }}>
+          <NativeMenuSelectionManagerContext.Provider value={manager}>
+            <NativeMenuItemContext.Provider
+              value={{ shouldCloseOnSelect: shouldCloseOnSelect ?? inherited?.shouldCloseOnSelect }}
+            >
+              <NativeMenuActionsContext.Provider value={{ ...actions, text }}>
+                <NativeContentContext.Provider
+                  value={{ foregroundColor: text.color ?? theme.colors.foreground, isButton: false }}
+                >
+                  <CollectionBranch
+                    collection={state.collection as TNativeCollectionSnapshot<object>}
+                    parent={section}
+                  />
+                </NativeContentContext.Provider>
+              </NativeMenuActionsContext.Provider>
+            </NativeMenuItemContext.Provider>
+          </NativeMenuSelectionManagerContext.Provider>
+        </NativeMenuHeaderContext.Provider>
+      </NativeMenuHeaderBindingContext.Provider>
     )
     const hostProps = {
       ...native,

@@ -26,6 +26,7 @@ import { Text } from "../../Text/Text"
 import { MenuText, MenuKeyboardShortcut, NativeMenuSelectionIndicatorContext } from "../content"
 import {
   NativeMenuContext,
+  NativeMenuHeaderContext,
   NativeMenuListContext,
   NativeMenuSeparatorContext,
   NativeMenuPointerObservationContext,
@@ -2344,4 +2345,80 @@ it("retains explicit separator rendering and resets ancestor default props", asy
   expect(ref.current).not.toBeNull()
   expect(screen.queryByTestId("custom-separator", hidden)).toBeNull()
   expect(row("menu-separator").props.role).toBe("separator")
+})
+
+it("retains explicit header rendering, content and original refs while sections reset ancestor defaults", async () => {
+  const ref = createRef<RN.View>(),
+    ignored = createRef<RN.View>()
+  let state: unknown = "unseen"
+  const f = fixture(
+    {},
+    <MenuSection testID="custom-section">
+      <MenuHeader
+        ref={ref}
+        style={{ opacity: 0.7 }}
+        render={(props, value) => {
+          state = value
+          return <NativeFocusHost {...props} testID="custom-header" />
+        }}
+      >
+        Named group
+      </MenuHeader>
+      <MenuItem id="a">Alpha</MenuItem>
+    </MenuSection>,
+  )
+  await render(
+    <NativeMenuHeaderContext.Provider
+      value={{
+        ref: ignored,
+        style: { opacity: 0.4 },
+        render: (props) => <NativeFocusHost {...props} testID="ignored-header" />,
+      }}
+    >
+      {f.node()}
+    </NativeMenuHeaderContext.Provider>,
+  )
+  expect(ref.current).not.toBeNull()
+  const host = row("custom-header")
+  expect(host).toHaveStyle({ opacity: 0.7 })
+  expect(host).toHaveTextContent("Named group")
+  expect(state).toBeUndefined()
+  expect(ignored.current).toBeNull()
+  expect(screen.queryByTestId("ignored-header", hidden)).toBeNull()
+  expect(row("custom-section").props.nativeLabelledBy).toEqual([host.props.nativeID])
+})
+
+it("updates the actual header ID relationship without fabricating caller ref cleanup", async () => {
+  const calls: (RN.View | null)[] = []
+  let setID!: (id: string) => void
+  const ref = (view: RN.View | null) => {
+    calls.push(view)
+    return () => {
+      calls.push(null)
+    }
+  }
+  const Opaque = () => {
+    const [id, update] = useState("first-header")
+    setID = update
+    return (
+      <MenuSection testID="live-header-section">
+        <MenuHeader nativeID={id} ref={ref}>
+          Named section
+        </MenuHeader>
+        <MenuItem id="a">Alpha</MenuItem>
+      </MenuSection>
+    )
+  }
+  const f = fixture({}, <Opaque />)
+  await render(f.node())
+  const original = calls[0]
+  expect(original).not.toBeNull()
+  expect(row("live-header-section").props.nativeLabelledBy).toEqual(["first-header"])
+  await act(() => setID("second-header"))
+  expect(calls).toHaveLength(1)
+  expect(calls[0] === original).toBe(true)
+  expect(row("live-header-section").props.nativeLabelledBy).toEqual(["second-header"])
+  await rerender(f.node({}, null))
+  expect(calls).toHaveLength(2)
+  expect(calls[1]).toBeNull()
 })
