@@ -1,5 +1,5 @@
 {
-  "status": "Private TagGroup field/button context construction; final source/input/native/full-family acceptance remains open.",
+  "status": "Private supported TagGroup source and maintained SDK inspection construction; installed/native/full-family acceptance remains open.",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "canonicalInputsSHA256": {
     "packages/react/src/components/TagGroup/TagGroup.tsx": "59139db329054a51d68f6148aa4ba1c16a7d94c069083d327b39aea0d407aed2",
@@ -156,7 +156,7 @@
       "adaptedInto": ["Tag.tsx", "TagGroup.tsx"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it. Grouped custom render forwards complete state/original props and actual native refs, including replacement retirement; initial autofocus preserves native admission and window/input lifetimes. A private native Tab-stop field separates relative eligibility from programmatic focus for grouped rows, including the all-disabled autofocus source outcome.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it. Grouped custom render forwards complete state/original props and actual native refs, including replacement retirement; initial autofocus preserves native admission and window/input lifetimes. A private native Tab-stop field separates relative eligibility from programmatic focus for grouped rows, including the all-disabled autofocus source outcome. The maintained scene requests read-only SDK accessibility snapshots through actual outer/list/item refs, receiving original packets only from the current live owner/target. Chunked native logs retain SDK collection positions/counts without business-state injection or public inspection APIs.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
     "TagGroup.tsx": "e8cb551048305bb59a31697370c21bc2ab5c927830c90ecca59a3c41379a1e3e",
@@ -177,8 +177,9 @@
     "../Button/types.ts": "125da42f05231b5e2bf9fd760e007e3308774bc7342997a82297c3580bafb17f",
     "../ToggleButton/types.ts": "e772c65136afa96b7a1804d0fe75b1edf01ce341b5053a5d9995120059dd84fc",
     "../../input/NativePressable.tsx": "0223c6a7ac9a00d475fc35ac275246f4b6ac6105ef243a88ea0a7a3a6cd3558f",
-    "../../input/NativeFocusView.tsx": "c395992ba46fed1ba67309ce41d141d361626197fd6e941d451e63cbba3fe5d1",
+    "../../input/NativeFocusView.tsx": "c2a71a887688867502fcb76a10e156863fb22764a71606c0b0e24affe8a0c2cb",
     "../../input/specs/CUIFocusViewNativeComponent.ts": "a84ce2bab7dfade890541f228ca651486cbc481fe24492ae9501379f94294944",
-    "../../../android/src/main/java/com/codonui/input/CUIFocusViewManager.java": "17a3048130ce707324ae14791f17a50d7d2098e20c084ea03460f87a8b7de814"
+    "../../../android/src/main/java/com/codonui/input/CUIFocusViewManager.java": "17a3048130ce707324ae14791f17a50d7d2098e20c084ea03460f87a8b7de814",
+    "../../input/accessibilityInspection.ts": "94938353adbc2a24785e6e4a45e13fdeaebc875a20519094e87c85ca59a93c3f"
   }
 }

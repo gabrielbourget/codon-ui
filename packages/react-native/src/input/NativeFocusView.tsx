@@ -15,7 +15,7 @@ import { NativeCollectionItemBindingContext } from "../collection/binding"
 import { NativeCollectionSemanticsContext } from "../collection/semantics"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
-import { registerNativeAccessibilityInspector } from "./accessibilityInspection"
+import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
 import {
@@ -284,7 +284,11 @@ export const NativeFocusHost = forwardRef<
             : undefined
         }
         onNativeAccessibilitySnapshot={(event) => {
-          if (attached.current && event.nativeEvent.ownerId === ownerId) onNativeAccessibilitySnapshot?.(event)
+          if (!attached.current || event.nativeEvent.ownerId !== ownerId) return
+          const target = nativeTarget.current
+          if (target && event.nativeEvent.target === findNodeHandle(target))
+            receiveNativeAccessibilityInspection(target, event)
+          onNativeAccessibilitySnapshot?.(event)
         }}
         onNativeActivation={(event) => {
           const data = event.nativeEvent

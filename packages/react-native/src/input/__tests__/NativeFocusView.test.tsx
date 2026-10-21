@@ -162,6 +162,48 @@ it("forwards the original native accessibility snapshot only to its current live
   expect(next).toHaveBeenCalledTimes(1)
 })
 
+it("delivers inspection reads only for the requested live native owner and actual target", async () => {
+  const ref = createRef<View>()
+  const receive = jest.fn()
+  const find = jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(17)
+  try {
+    await render(<NativeFocusHost testID="focus" ref={ref} />)
+    const record = nativeEvent<NativeAccessibilityData>({
+      ownerId: host().props.ownerId,
+      target: 17,
+      windowId: "native-window",
+      platform: "android",
+      selected: false,
+      containerType: -1,
+      containerTitle: "",
+      roleDescription: "",
+      label: "Tags",
+      hint: "",
+      value: "",
+      description: "",
+      details: "",
+      descriptionAvailable: false,
+      detailsAvailable: false,
+      collection: '{"rows":3}',
+      observedAt: 1,
+    })
+    const deliver = host().props.onNativeAccessibilitySnapshot
+    expect(inspectNativeAccessibility(ref.current, receive)).toBe(true)
+    await act(() => deliver(nativeEvent({ ...record.nativeEvent, ownerId: "retired" })))
+    await act(() => deliver(nativeEvent({ ...record.nativeEvent, target: 18 })))
+    expect(receive).not.toHaveBeenCalled()
+    await act(() => deliver(record))
+    expect(receive.mock.calls[0][0]).toBe(record)
+    expect(inspectNativeAccessibility(ref.current, receive)).toBe(true)
+    await screen.unmount()
+    await act(() => deliver(record))
+    expect(receive).toHaveBeenCalledTimes(1)
+    expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  } finally {
+    find.mockRestore()
+  }
+})
+
 it("tokenizes canonical ARIA whitespace lists while preserving authored native lists and empty values", () => {
   const ids = ["native-one", "native-two"]
   expect(nativeAccessibilityIDs(" first\nsecond\tthird ")).toEqual(["first", "second", "third"])
