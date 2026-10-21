@@ -32,7 +32,6 @@ import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservati
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
-import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
@@ -49,6 +48,7 @@ import {
   NativeComboBoxOptionsContext,
   NativeComboBoxStateContext,
 } from "./collectionContext"
+import type { TNativeCollectionComboBoxProps, TNativeCollectionComboBoxParentProps } from "./collectionTypes"
 import { NativeComboBoxItem } from "./ComboBoxItem"
 import { createNativeComboBoxFilter } from "./filter"
 import { NativeComboBoxKeyBinding } from "./keyboard"
@@ -56,15 +56,7 @@ import { useComboBoxState } from "./state/useComboBoxState"
 import { getNativeComboBoxStyles } from "./styles"
 import type { TNativeComboBoxProps, TNativeComboBoxRef } from "./types"
 
-export type TNativeCollectionComboBoxProps<T extends object> = TNativeComboBoxProps<T> & {
-  children?: ReactNode | ((item: T) => ReactNode)
-  placement?: TNativeFloatingPlacement
-  shouldFocusWrap?: boolean
-  slot?: string | null
-  locale?: string
-  defaultFilter?: (text: string, query: string) => boolean
-  dependencies?: readonly unknown[]
-}
+export type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 const AuthoredItem = ({
   id,
   value,
@@ -120,10 +112,14 @@ const Receiver = <T extends object>({
   props,
   forwardedRef,
   collection,
+  isCollectionPending,
+  controlledItems,
 }: {
   props: TNativeCollectionComboBoxProps<T>
   forwardedRef: ForwardedRef<TNativeComboBoxRef>
   collection: TNativeCollectionSnapshot<T>
+  isCollectionPending: boolean
+  controlledItems?: Iterable<T>
 }) => {
   const filter = useMemo(
     () => props.defaultFilter ?? createNativeComboBoxFilter(props.locale),
@@ -131,6 +127,8 @@ const Receiver = <T extends object>({
   )
   const state = useComboBoxState({
     collection,
+    isCollectionPending,
+    items: controlledItems,
     defaultItems: props.items,
     value: props.value,
     defaultValue: props.defaultValue,
@@ -144,7 +142,15 @@ const Receiver = <T extends object>({
     disabledKeys: props.disabledKeys,
     isReadOnly: props.isReadOnly,
     isDisabled: props.isDisabled,
-    allowsEmptyCollection: true,
+    name: props.name,
+    allowsCustomValue: props.allowsCustomValue,
+    allowsEmptyCollection: props.allowsEmptyCollection,
+    menuTrigger: props.menuTrigger,
+    isRequired: props.isRequired,
+    isInvalid: props.isInvalid,
+    validate: props.validate,
+    shouldCloseOnBlur: props.shouldCloseOnBlur,
+    validationBehavior: props.validationBehavior ?? "native",
     defaultFilter: filter,
   })
   const theme = useNativeTheme()
@@ -212,9 +218,14 @@ const Receiver = <T extends object>({
   )
   const inputRef = useNativeCollectionRefs(props.inputRef, bindInput)
   const identity = props.testID ?? props["data-testid"] ?? "combo-box"
+  const authoredStyle = props.style
+  const inheritedStyle: TNativeComboBoxProps<T>["style"] =
+    typeof authoredStyle === "function"
+      ? (values) => authoredStyle({ ...values, isRequired: !!props.isRequired })
+      : authoredStyle
   const styles = getNativeComboBoxStyles(
     theme,
-    props,
+    { ...props, style: inheritedStyle },
     {
       isOpen: state.isOpen,
       isDisabled: !!props.isDisabled,
@@ -410,11 +421,17 @@ const Receiver = <T extends object>({
                 }}
                 onFocus={(event) => {
                   setFocused(true)
-                  state.setFocused(true)
+                  if (!state.isFocused) {
+                    props.onFocus?.(event)
+                    props.onFocusChange?.(true)
+                    state.setFocused(true)
+                  }
                   props.inputProps?.onFocus?.(event)
                 }}
                 onBlur={(event) => {
                   setFocused(false)
+                  props.onBlur?.(event)
+                  if (state.isFocused) props.onFocusChange?.(false)
                   state.setFocused(false)
                   props.inputProps?.onBlur?.(event)
                 }}
@@ -476,10 +493,26 @@ const Receiver = <T extends object>({
 }
 export const NativeCollectionComboBox = forwardRef(
   <T extends object>(authored: TNativeCollectionComboBoxProps<T>, forwardedRef: ForwardedRef<TNativeComboBoxRef>) => {
-    const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeComboBoxContext)
+    const parentProps: TNativeCollectionComboBoxParentProps<T> = { ...authored, items: undefined }
+    const [inherited, ref] = useNativeContextProps(parentProps, forwardedRef, NativeComboBoxContext)
+    const props = {
+      ...inherited,
+      items: authored.items,
+      children: authored.children,
+      getKey: authored.getKey,
+      getTextValue: authored.getTextValue,
+    }
     return (
       <NativeCollectionBuilder<T> content={<Authoring props={props} />}>
-        {(collection) => <Receiver props={props} forwardedRef={ref} collection={collection} />}
+        {(collection, receipt) => (
+          <Receiver
+            props={props}
+            forwardedRef={ref}
+            collection={collection}
+            isCollectionPending={receipt.status !== "confirmed"}
+            controlledItems={inherited.items}
+          />
+        )}
       </NativeCollectionBuilder>
     )
   },

@@ -241,3 +241,37 @@ it.each([false, true])(
     expect(result.current.isOpen).toBe(open)
   },
 )
+
+it("does not auto-close an unconfirmed native collection or loop after the owner vetoes empty-list closing", async () => {
+  const empty = collection().filter(() => false),
+    changed = jest.fn()
+  const { result, rerender } = await renderHook(
+    ({ pending, open }: { pending: boolean; open: boolean }) =>
+      useComboBoxState({ collection: empty, isOpen: open, isCollectionPending: pending, onOpenChange: changed }),
+    { initialProps: { pending: true, open: true } },
+  )
+  expect(changed).not.toHaveBeenCalled()
+  await rerender({ pending: false, open: true })
+  expect(changed.mock.calls).toEqual([[false, undefined]])
+  expect(result.current.isOpen).toBe(true)
+  await rerender({ pending: false, open: true })
+  expect(changed).toHaveBeenCalledTimes(1)
+  await act(() => result.current.setOpen(false))
+  await act(() => result.current.setOpen(false))
+  expect(changed).toHaveBeenCalledTimes(3)
+  await rerender({ pending: false, open: false })
+  await rerender({ pending: false, open: true })
+  expect(changed).toHaveBeenCalledTimes(4)
+  expect(result.current.isOpen).toBe(true)
+})
+
+it("retains source uncontrolled empty-list closing and explicit empty-collection allowance", async () => {
+  const empty = collection().filter(() => false)
+  const first = await renderHook(() => useComboBoxState({ collection: empty, defaultOpen: true }))
+  expect(first.result.current.isOpen).toBe(false)
+  await first.unmount()
+  const allowed = await renderHook(() =>
+    useComboBoxState({ collection: empty, isOpen: true, allowsEmptyCollection: true }),
+  )
+  expect(allowed.result.current.isOpen).toBe(true)
+})

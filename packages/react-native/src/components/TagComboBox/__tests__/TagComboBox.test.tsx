@@ -264,6 +264,7 @@ it("CAP.tag-combobox.015 merges independent labels with nested ComboBox label pr
   expect(row("tag-list").props.accessibilityLabel).toBe("Selected")
   expect(row("tag-combobox-input-group").props.accessibilityLabel).toBe("Input controls")
   expect(row("tag-combobox-picker").props.accessibilityLabel).toBe("Picker field")
+  expect(row("combo-box-input").props.accessibilityLabel).toBe("Picker field")
   expect(screen.getByRole("button", { name: "Nested choices" })).toBeOnTheScreen()
 })
 it("CAP.tag-combobox.016/.023/.024 preserves repeated owner vetoes, original objects and clear callback order", async () => {

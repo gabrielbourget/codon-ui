@@ -28,6 +28,7 @@ export const TagComboBoxScene = () => {
   const [vetoOpen, setVetoOpen] = useState(false)
   const [disabled, setDisabled] = useState(false)
   const [readOnly, setReadOnly] = useState(false)
+  const [allowsEmpty, setAllowsEmpty] = useState(false)
   const [custom, setCustom] = useState(false)
   const [large, setLarge] = useState(false)
   const [requests, setRequests] = useState<string[]>([])
@@ -93,6 +94,7 @@ export const TagComboBoxScene = () => {
         <Button onPress={() => setOpen((value) => !value)}>Toggle tag-combo owner open</Button>
         <Button onPress={() => setDisabled((value) => !value)}>Toggle tag-combo disabled</Button>
         <Button onPress={() => setReadOnly((value) => !value)}>Toggle tag-combo read only</Button>
+        <Button onPress={() => setAllowsEmpty((value) => !value)}>Toggle tag-combo empty-collection allowance</Button>
         <Button onPress={() => setCustom((value) => !value)}>Toggle tag-combo styles</Button>
         <Button onPress={() => setLarge((value) => !value)}>Toggle tag-combo text size</Button>
         <Button onPress={() => setSelected([ITEMS[0]])}>Set tag-combo number zero</Button>
@@ -141,6 +143,7 @@ export const TagComboBoxScene = () => {
         }}
         isDisabled={disabled}
         isReadOnly={readOnly}
+        allowsEmptyCollection={allowsEmpty}
         accessibilityLabel="Owner-controlled tag choices"
         textSize={large ? "large" : "medium"}
         maxWidth="100%"

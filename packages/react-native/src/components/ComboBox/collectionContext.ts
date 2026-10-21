@@ -7,18 +7,19 @@ import type { TNativePressEvent } from "../../input/types"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeClickPopoverProps } from "../ClickPopover/types"
 
+import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
 import type { ComboBoxState } from "./state/types"
-import type { TNativeComboBoxProps } from "./types"
 
 export const NativeComboBoxStateContext = createContext<ComboBoxState<object> | null>(null)
-export const NativeComboBoxContext = createContext<
-  TNativeContextValue<
-    Partial<Omit<TNativeComboBoxProps<unknown>, "items" | "getKey" | "getTextValue" | "renderItem">> & {
-      slot?: string | null
-    },
-    View
-  >
->(null)
+export const NativeComboBoxContext =
+  createContext<
+    TNativeContextValue<
+      Partial<
+        Omit<TNativeCollectionComboBoxParentProps<object>, "getKey" | "getTextValue" | "children" | "renderItem">
+      >,
+      View
+    >
+  >(null)
 export const NativeComboBoxItemValueContext = createContext<{
   key: string | number
   value: unknown

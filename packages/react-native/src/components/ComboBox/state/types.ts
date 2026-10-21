@@ -18,7 +18,13 @@ export type Collection<T> = TNativeCollectionSnapshot<T>
 export type ComboBoxStateOptions<T, M extends SelectionMode = "single"> = Omit<
   TSourceComboBoxStateOptions<T, M>,
   "collection" | "children"
-> & { collection: TNativeCollectionSnapshot<T>; isOpen?: boolean; defaultOpen?: boolean }
+> & {
+  collection: TNativeCollectionSnapshot<T>
+  isOpen?: boolean
+  defaultOpen?: boolean
+  name?: string
+  isCollectionPending?: boolean
+}
 export type ComboBoxState<T, M extends SelectionMode = "single"> = Omit<
   TSourceComboBoxState<T, M>,
   "selectionManager" | "collection" | keyof FormValidationState

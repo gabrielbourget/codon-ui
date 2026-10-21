@@ -1,6 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { createRef, useContext } from "react"
+import { createRef, useContext, useState } from "react"
 import * as RN from "react-native"
 
 import {
@@ -15,11 +15,14 @@ import { NativeThemeProvider } from "../../../theme"
 import { TagComboBox } from "../../TagComboBox/TagComboBox"
 import { NativeCollectionComboBox } from "../CollectionComboBox"
 import {
+  NativeComboBoxContext,
   NativeComboBoxGroupContext,
   NativeComboBoxPopoverContext,
   NativeComboBoxStateContext,
 } from "../collectionContext"
+import type { TNativeCollectionComboBoxStyleState } from "../collectionTypes"
 import { NativeComboBoxItem } from "../ComboBoxItem"
+import { FormValidationContext } from "../state/useFormValidationState"
 
 const ITEMS = [
   { id: 0, label: "Zero" },
@@ -310,4 +313,159 @@ it("routes admitted input navigation through the full state without moving the o
   expect(close.mock.calls).toEqual([[false], [false]])
   expect(state.value).toBeNull()
   expect(editor.current === original).toBe(true)
+})
+
+it("receives full parent context at the inner picker and preserves null-slot opt out", async () => {
+  const f = setup(),
+    outer = createRef<RN.View>(),
+    inner = createRef<RN.View>(),
+    inherited = jest.fn(),
+    authored = jest.fn()
+  const content = (slot?: null) =>
+    f.node(
+      <NativeComboBoxContext.Provider
+        value={{ ref: inner, isReadOnly: true, inputValue: "context query", onInputChange: inherited }}
+      >
+        <TagComboBox
+          ref={outer}
+          items={ITEMS}
+          selectedItems={[]}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          onSelectedItemsChange={() => {}}
+          onInputChange={authored}
+          slot={slot}
+        />
+      </NativeComboBoxContext.Provider>,
+    )
+  await render(content())
+  expect(outer.current).not.toBeNull()
+  expect(inner.current).not.toBeNull()
+  expect(inner.current === outer.current).toBe(false)
+  expect(screen.getByTestId("combo-box-input").props.readOnly).toBe(true)
+  expect(screen.getByTestId("combo-box-input").props.value).toBe("")
+  await act(() => screen.rerender(content(null)))
+  expect(inner.current).toBeNull()
+  expect(screen.getByTestId("combo-box-input").props.readOnly).toBe(false)
+  await fireEvent.changeText(screen.getByTestId("combo-box-input"), "owner query")
+  expect(authored).toHaveBeenCalledWith("owner query")
+  expect(inherited).not.toHaveBeenCalled()
+})
+
+it("forwards original input focus records and the complete five render flags", async () => {
+  const f = setup(),
+    focus = jest.fn(),
+    blur = jest.fn(),
+    nestedFocus = jest.fn(),
+    nestedBlur = jest.fn(),
+    changed = jest.fn(),
+    style = jest.fn((state: TNativeCollectionComboBoxStyleState) => ({ opacity: state.isRequired ? 1 : 0.5 }))
+  await render(
+    f.node(
+      <NativeCollectionComboBox
+        items={ITEMS}
+        getKey={(item) => item.id}
+        getTextValue={(item) => item.label}
+        accessibilityLabel="Choices"
+        inputLabel="Query"
+        closeLabel="Close"
+        isRequired
+        isInvalid
+        isReadOnly
+        style={style}
+        onFocus={focus}
+        onBlur={blur}
+        onFocusChange={changed}
+        inputProps={{ onFocus: nestedFocus, onBlur: nestedBlur }}
+      />,
+    ),
+  )
+  expect(style.mock.calls.at(-1)?.[0]).toMatchObject({
+    isOpen: false,
+    isDisabled: false,
+    isInvalid: true,
+    isRequired: true,
+    isReadOnly: true,
+    defaultStyle: expect.any(Object),
+  })
+  const entered = { nativeEvent: { target: 17 } },
+    left = { nativeEvent: { target: 17 } }
+  await act(() => screen.getByTestId("combo-box-input").props.onFocus(entered))
+  await act(() => screen.getByTestId("combo-box-input").props.onFocus(entered))
+  expect(focus.mock.calls).toEqual([[entered]])
+  expect(nestedFocus.mock.calls).toEqual([[entered], [entered]])
+  await act(() => screen.getByTestId("combo-box-input").props.onBlur(left))
+  expect(blur.mock.calls).toEqual([[left]])
+  expect(nestedBlur.mock.calls).toEqual([[left]])
+  expect(changed.mock.calls).toEqual([[true], [false]])
+})
+
+it("passes named server validation and client validation policy into the full state", async () => {
+  const f = setup(),
+    validate = jest.fn(() => "Client invalid")
+  let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)!
+    return null
+  }
+  const content = (errors: Record<string, string>, behavior: "native" | "aria") =>
+    f.node(
+      <FormValidationContext.Provider value={errors}>
+        <NativeCollectionComboBox
+          items={ITEMS}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          accessibilityLabel="Choices"
+          inputLabel="Query"
+          closeLabel="Close"
+          inputValue="Zero"
+          isOpen
+          name="entry"
+          validate={validate}
+          validationBehavior={behavior}
+        >
+          {(item) => (
+            <NativeComboBoxItem id={item.id}>
+              <Capture />
+              {item.label}
+            </NativeComboBoxItem>
+          )}
+        </NativeCollectionComboBox>
+      </FormValidationContext.Provider>,
+    )
+  await render(content({ entry: "Server invalid" }, "native"))
+  expect(state.displayValidation.validationErrors).toEqual(["Server invalid"])
+  expect(validate).toHaveBeenCalledWith({ inputValue: "Zero", value: null, selectedKey: null })
+  await act(() => screen.rerender(content({}, "aria")))
+  expect(state.displayValidation.validationErrors).toEqual(["Client invalid"])
+  expect(state.realtimeValidation.isInvalid).toBe(true)
+})
+
+it("preserves parent-controlled filtering without replacing the wrapper's original authored items", async () => {
+  const f = setup()
+  const contextItems = [{ id: "context-only", label: "Context only" }]
+  const Owner = () => {
+    const [query, setQuery] = useState("")
+    return (
+      <NativeComboBoxContext.Provider value={{ items: contextItems }}>
+        <TagComboBox
+          items={ITEMS}
+          selectedItems={[]}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          onSelectedItemsChange={() => {}}
+          inputValue={query}
+          onInputChange={setQuery}
+        />
+      </NativeComboBoxContext.Provider>
+    )
+  }
+  await render(f.node(<Owner />))
+  await press("combo-box-trigger")
+  await f.ready()
+  expect(screen.getByRole("option", { name: "Zero" })).toBeOnTheScreen()
+  await fireEvent.changeText(screen.getByTestId("combo-box-input"), "missing")
+  expect(screen.getByRole("option", { name: "Zero" })).toBeOnTheScreen()
+  expect(screen.queryByRole("option", { name: "Context only" })).toBeNull()
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("missing")
 })

@@ -41,13 +41,15 @@
     "Represent the complete eleven validity flags explicitly without requiring DOM ambient types",
     "Preserve source accessor/branch evaluation order while applying existing native TypeScript/lint style; inline the pinned child-node accessor to preserve generic payload types",
     "Expose the complete immutable native collection view, preserving source traversal/index/count behavior and native null absence plus filtered child endpoints",
-    "Respect the existing native controlled/default-open axes while omitted axes retain pinned source behavior"
+    "Respect the existing native controlled/default-open axes while omitted axes retain pinned source behavior",
+    "Forward named validation to the existing native form-validation context; native focus callbacks stay outside DOM-typed state props",
+    "Defer empty-list auto-close until native collection confirmation; coalesce only the same automatic controlled-empty close, preserving explicit repeated close requests and source uncontrolled behavior"
   ],
-  "verification": "Pinned DOM/native state parity, full filtered view and repeated controlled-open veto source checks pass; complete inherited defaults/slots/form/labels/native input/AT/products/profiles remain OPEN",
+  "verification": "Pinned state/validation parity, full filtered view, controlled-open veto/pending/empty policies and named parent validation source checks pass; complete field/form/native input/AT/products/profiles remain OPEN",
   "authoredSourcesSHA256": {
     "ListCollection.ts": "1f9bace9c3572f5006f1923c1bb70a67c3a21a0649f2bc8febe026e6e68311e0",
-    "types.ts": "9819615cf01ef79870cb0bdc44779f7f527b3b152d13b3d71d86e4daec4e72ea",
-    "useComboBoxState.ts": "f9dcb84e2d3e1272e36ca2507d2239bf035341e9e83fedd147f9b744b2151c77",
+    "types.ts": "c338df540b73cbd3ef20da5669f188246898ef408143be9ffeb870ea0eda3d86",
+    "useComboBoxState.ts": "a20944273387d938e98a8242765750bae6a52927c16f441222b8e144f12260de",
     "useFormValidationState.ts": "ca8ad2f9ff04c37255c880f6f30097cc49d78d167673e06f17bfc238f5a93e51",
     "useOverlayTriggerState.ts": "93931841783e23b05ab8f9fc7d0f20975cbfbdd3b70c9ced47603032a8c90b1f"
   },

@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs"
 import { fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { createRef } from "react"
+import { createRef, useState } from "react"
 import { ComboBoxContext } from "react-aria-components"
 import { afterAll, expect, it, vi } from "vitest"
 
@@ -81,4 +81,56 @@ it("materializes declarative options without inventing item objects for the comp
   expect(selected).not.toHaveBeenCalled()
   expect(screen.getByRole("combobox")).toHaveValue("")
   records.push({ declarativeOptionRendered: true, compositeAddRequests: selected.mock.calls.length })
+})
+
+it("provides every parent render flag and keeps field, group and trigger names independent", () => {
+  let flags: Record<string, unknown> = {}
+  render(
+    <TagComboBox
+      {...base}
+      isRequired
+      isInvalid
+      isReadOnly
+      inputValue="Alpha"
+      customComboBoxProps={{
+        style: (state) => {
+          flags = state as unknown as Record<string, unknown>
+          return {}
+        },
+      }}
+    />,
+  )
+  expect(flags).toMatchObject({ isOpen: false, isDisabled: false, isInvalid: true, isRequired: true, isReadOnly: true })
+  expect(screen.getByRole("combobox")).toHaveAccessibleName("Source tags")
+  expect(screen.getByRole("combobox")).toHaveAttribute("required")
+  expect(screen.getByRole("combobox")).toHaveAttribute("readonly")
+  expect(screen.getByRole("combobox")).toHaveAttribute("aria-invalid", "true")
+  expect(screen.getByRole("button", { name: "Show suggestions" })).toBeTruthy()
+  expect(screen.getByRole("group", { name: "ComboBox Input Button Group" })).toBeTruthy()
+  records.push({
+    flags: Object.fromEntries(
+      ["isOpen", "isDisabled", "isInvalid", "isRequired", "isReadOnly"].map((key) => [key, flags[key]]),
+    ),
+    fieldName: "Source tags",
+    triggerName: "Show suggestions",
+  })
+})
+
+it("keeps wrapper option authoring separate from a parent-controlled collection filter", async () => {
+  const Owner = () => {
+    const [query, setQuery] = useState("")
+    return (
+      <ComboBoxContext.Provider value={{ items: [{ id: "context-only", label: "Context only" }] }}>
+        <TagComboBox {...base} inputValue={query} onInputChange={setQuery} />
+      </ComboBoxContext.Provider>
+    )
+  }
+  render(<Owner />)
+  const user = userEvent.setup()
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  expect(await screen.findByRole("option", { name: "Alpha" })).toBeTruthy()
+  fireEvent.change(screen.getByRole("combobox"), { target: { value: "missing" } })
+  expect(await screen.findByRole("option", { name: "Alpha" })).toBeTruthy()
+  expect(screen.queryByRole("option", { name: "Context only" })).toBeNull()
+  records.push({ parentItemsControlFiltering: true, wrapperItemsAuthorOptions: true })
 })

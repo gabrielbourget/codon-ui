@@ -151,6 +151,7 @@ it("preserves the original draft and receiver refs through theme, styles and ite
 
 it("keeps the source string-key exclusion rule while preserving typed owner keys", async () => {
   await render(scene())
+  await press("Toggle tag-combo empty-collection allowance")
   await press("Set tag-combo number zero")
   await press("Toggle tag-combo owner open")
   await show()
@@ -163,4 +164,14 @@ it("keeps the source string-key exclusion rule while preserving typed owner keys
   expect(screen.getByTestId("combo-box-empty")).toBeOnTheScreen()
   await press("Restore tag-combo items")
   expect(screen.getByRole("option", { name: "Empty key" })).toBeOnTheScreen()
+})
+
+it("requests closing once when the confirmed collection becomes empty under the default policy", async () => {
+  await render(scene())
+  await press("Toggle tag-combo owner open")
+  await show()
+  await press("Clear tag-combo items")
+  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Open: false/)
+  expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent("Requests: open:false.")
+  expect(screen.getByTestId("combo-box-input")).toBeOnTheScreen()
 })

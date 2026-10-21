@@ -245,6 +245,7 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
   }
 
   const lastValueRef = useRef(displayValue)
+  const lastEmptyClose = useRef<Collection<T> | null>(null)
   const lastSelectedKeyText = useRef(selectedKey != null ? (collection.getItem(selectedKey)?.textValue ?? "") : "")
   // intentional omit dependency array, want this to happen on every render
   useEffect(() => {
@@ -262,9 +263,19 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
 
     // Close the menu if the collection is empty. Don't close menu if filtered collection size is 0
     // but we are currently showing all items via button press
-    if (!showAllItems && !allowsEmptyCollection && triggerState.isOpen && filteredCollection.size === 0) {
-      closeMenu()
-    }
+    if (
+      !showAllItems &&
+      !allowsEmptyCollection &&
+      triggerState.isOpen &&
+      filteredCollection.size === 0 &&
+      !props.isCollectionPending
+    ) {
+      // A declined native controlled close must not request itself again on its own reset render.
+      if (props.isOpen === undefined || lastEmptyClose.current !== filteredCollection) {
+        lastEmptyClose.current = filteredCollection
+        closeMenu()
+      }
+    } else lastEmptyClose.current = null
 
     // Close when an item is selected.
     if (displayValue != null && displayValue !== lastValueRef.current && selectionMode === "single") {
