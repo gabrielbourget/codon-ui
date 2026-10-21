@@ -17,6 +17,76 @@
 
 using namespace facebook::react;
 
+@interface CUIFormActionLease : NSObject
+- (instancetype)initWithRoot:(UIView *)root environment:(NSDictionary *(^)(void))environment emit:(void (^)(NSDictionary *))emit;
+- (void)configure:(NSString *)encoded;
+- (NSDictionary *)snapshot;
+- (void)invalidate;
+@end
+
+@implementation CUIFormActionLease {
+  __weak UIView *_root;
+  NSDictionary *(^_environment)(void);
+  void (^_emit)(NSDictionary *);
+  NSDictionary *_binding;
+  NSDictionary *_snapshot;
+  NSString *_signature;
+  NSUInteger _epoch, _sequence;
+  BOOL _observing, _applicationActive;
+}
+- (instancetype)initWithRoot:(UIView *)root environment:(NSDictionary *(^)(void))environment emit:(void (^)(NSDictionary *))emit
+{
+  if (self = [super init]) { _root = root; _environment = [environment copy]; _emit = [emit copy]; }
+  return self;
+}
+- (void)configure:(NSString *)encoded
+{
+  id value = encoded.length ? [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil] : nil;
+  BOOL valid = [value isKindOfClass:NSDictionary.class] && [value[@"ownerId"] isKindOfClass:NSString.class] && [value[@"ownerId"] length] &&
+    [value[@"descriptorRevision"] isKindOfClass:NSString.class] && [value[@"descriptorRevision"] length] &&
+    [value[@"enabled"] isKindOfClass:NSNumber.class] && CFGetTypeID((__bridge CFTypeRef)value[@"enabled"]) == CFBooleanGetTypeID();
+  if (!valid) { [self invalidate]; return; }
+  if (![_binding isEqual:value]) { _binding = [value copy]; _signature = nil; }
+  if (!_observing) {
+    _observing = YES; _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
+    for (NSString *name in @[UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
+        UISceneWillDeactivateNotification, UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
+      [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(environmentChanged:) name:name object:nil];
+  }
+  [self snapshot];
+}
+- (void)environmentChanged:(NSNotification *)notification
+{
+  if ([notification.object isKindOfClass:UIWindowScene.class] && notification.object != _root.window.windowScene) return;
+  if ([notification.name isEqual:UIApplicationWillResignActiveNotification] || [notification.name isEqual:UISceneWillDeactivateNotification]) _applicationActive = NO;
+  if ([notification.name isEqual:UIApplicationDidBecomeActiveNotification] || [notification.name isEqual:UISceneDidActivateNotification]) _applicationActive = YES;
+  [self snapshot];
+}
+- (NSDictionary *)snapshot
+{
+  if (!_binding || !_root) return nil;
+  NSMutableDictionary *value = [_environment() mutableCopy];
+  if (!value) return nil;
+  value[@"ownerId"] = _binding[@"ownerId"]; value[@"descriptorRevision"] = _binding[@"descriptorRevision"];
+  value[@"active"] = @([value[@"active"] boolValue] && _applicationActive);
+  value[@"enabled"] = @([value[@"enabled"] boolValue] && [_binding[@"enabled"] boolValue]);
+  NSData *data = [NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingSortedKeys error:nil];
+  NSString *signature = data ? [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding] : nil;
+  if (!signature) return nil;
+  if (![_signature isEqual:signature]) {
+    _signature = signature; value[@"epoch"] = @(++_epoch); value[@"sequence"] = @(++_sequence);
+    _snapshot = [value copy]; _emit(_snapshot);
+  }
+  return _snapshot;
+}
+- (void)invalidate
+{
+  [NSNotificationCenter.defaultCenter removeObserver:self];
+  _observing = NO; _binding = nil; _snapshot = nil; _signature = nil; _epoch++;
+}
+- (void)dealloc { [NSNotificationCenter.defaultCenter removeObserver:self]; }
+@end
+
 @interface CUIFocusView () <RCTCUIFocusViewViewProtocol, RCTMountingTransactionObserving>
 @end
 
@@ -47,6 +117,8 @@ using namespace facebook::react;
   BOOL _authoredHidden;
   BOOL _motionVisibilityReady;
   NSString *_motionProjectionRevision;
+  CUIFormActionLease *_formAction;
+  SurfaceId _formActionSurface;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
 
@@ -90,12 +162,40 @@ using namespace facebook::react;
       [weakSelf emitMotionColors:data];
     }];
     _motionGeometry = [[CUIMotionGeometryObserver alloc] initWithRoot:self emit:^(NSDictionary *data) { [weakSelf emitMotionGeometry:data]; }];
+    _formActionSurface = -1;
     [NSNotificationCenter.defaultCenter addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
   }
   return self;
 }
 
 - (NSString *)nativeCollectionBinding { return _nativeCollectionBinding; }
+
+- (NSDictionary *)formActionEnvironment
+{
+  UIWindow *window = self.window;
+  BOOL active = window && window.isKeyWindow && window.windowScene.activationState == UISceneActivationStateForegroundActive && _formActionSurface > 0;
+  for (UIView *view = self; view && active; view = view.superview) active &= !view.hidden && view.alpha > 0 && view.userInteractionEnabled;
+  NSDictionary *scope = nil;
+  for (UIView *view = self.superview; view && !scope; view = view.superview)
+    if ([view isKindOfClass:CUIKeyboardScope.class]) scope = [(CUIKeyboardScope *)view activationSession];
+  return @{@"viewOwnerId":_ownerId ?: @"", @"target":@(self.tag), @"surfaceId":@(_formActionSurface),
+    @"windowId":window ? CUIInputWindowIdentity(window) : @"", @"scopeOwnerId":scope[@"scopeOwnerId"] ?: @"",
+    @"scopeEpoch":scope[@"epoch"] ?: @0, @"attached":@(window != nil), @"active":@(active),
+    @"enabled":@(_nativePressable && !(self.accessibilityTraits & UIAccessibilityTraitNotEnabled))};
+}
+- (NSDictionary *)formActionSnapshot { return [_formAction snapshot]; }
+- (void)emitFormActionStatus:(NSDictionary *)packet
+{
+  if (!_eventEmitter) return;
+  CUIFocusViewEventEmitter::OnNativeFormActionStatus value{};
+  value.ownerId = [packet[@"ownerId"] UTF8String]; value.descriptorRevision = [packet[@"descriptorRevision"] UTF8String];
+  value.viewOwnerId = [packet[@"viewOwnerId"] UTF8String]; value.target = [packet[@"target"] intValue];
+  value.surfaceId = [packet[@"surfaceId"] intValue]; value.windowId = [packet[@"windowId"] UTF8String];
+  value.epoch = [packet[@"epoch"] doubleValue]; value.sequence = [packet[@"sequence"] doubleValue];
+  value.scopeOwnerId = [packet[@"scopeOwnerId"] UTF8String]; value.scopeEpoch = [packet[@"scopeEpoch"] doubleValue];
+  value.attached = [packet[@"attached"] boolValue]; value.active = [packet[@"active"] boolValue]; value.enabled = [packet[@"enabled"] boolValue];
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeFormActionStatus(value);
+}
 
 static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
@@ -442,6 +542,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
+  _formActionSurface = transaction.getSurfaceId();
+  [_formAction snapshot];
   [_motionGeometry captureKind:@"mount-after" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
 }
 
@@ -473,12 +575,14 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   [super traitCollectionDidChange:previousTraitCollection];
   [_motionColors synchronize];
+  [_formAction snapshot];
 }
 
 - (void)tintColorDidChange
 {
   [super tintColorDidChange];
   [_motionColors synchronize];
+  [_formAction snapshot];
 }
 
 - (BOOL)accessibilityActivate
@@ -747,6 +851,14 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_motionGeometry configureOwner:_ownerId binding:[NSString stringWithUTF8String:next.nativeMotionGeometryBinding.c_str()] revision:[NSString stringWithUTF8String:next.nativeMotionGeometryRevision.c_str()]];
   [_motionColors updateOwner:_ownerId enabled:next.nativeMotionColorObservation];
   [_motionColors synchronize];
+  NSString *formActionBinding = [NSString stringWithUTF8String:next.nativeFormActionBinding.c_str()];
+  if (formActionBinding.length && !_formAction) {
+    __weak CUIFocusView *weakSelf = self;
+    _formAction = [[CUIFormActionLease alloc] initWithRoot:self environment:^NSDictionary * { return [weakSelf formActionEnvironment]; }
+      emit:^(NSDictionary *value) { [weakSelf emitFormActionStatus:value]; }];
+  }
+  if (formActionBinding.length) [_formAction configure:formActionBinding];
+  else { [_formAction invalidate]; _formAction = nil; }
 }
 
 - (void)setHidden:(BOOL)hidden {
@@ -762,6 +874,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [super didMoveToWindow];
   [_motionGeometry windowChanged];
   [_motionColors synchronize];
+  [_formAction snapshot];
   if (!self.window) {
     [_scrollAnchor invalidate];
     [self cancelHeldKeys];
@@ -772,6 +885,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)prepareForRecycle
 {
+  [_formAction invalidate]; _formAction = nil; _formActionSurface = -1;
   [_motionGeometry invalidate];
   [_motionColors invalidate];
   [_scrollAnchor invalidate];
@@ -799,6 +913,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)dealloc
 {
+  [_formAction invalidate];
   [_scrollAnchor invalidate];
   [NSNotificationCenter.defaultCenter removeObserver:self];
 }

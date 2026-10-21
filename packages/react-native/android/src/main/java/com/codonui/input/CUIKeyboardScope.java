@@ -168,6 +168,8 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     data.putString("windowId", CUIInputWindow.identity(this));
     data.putDouble("epoch", windowEpoch);
   }
+  String formActionOwnerId() { return ownerId; }
+  double formActionEpoch() { return windowEpoch; }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
     CUIWindowPointers.refresh(this);

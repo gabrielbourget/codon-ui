@@ -47,6 +47,10 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("form-Fabric-unavailable");
         String snapshot = readSnapshot((FabricUIManager)manager, surface, target);
         JSONObject response = new JSONObject(snapshot);
+        if (request.has("actionAdmission")) {
+          response.put("actionAdmission", CUIFormActionAdmission.admit(manager, response, request.getJSONObject("actionAdmission")));
+          if (!snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target))) throw new IllegalStateException("form-document-retired-during-action-admission");
+        }
         if (request.optBoolean("inspect", false)) {
           Integer control = request.has("controlTarget") ? positiveInteger(request, "controlTarget") : null;
           response.put("inspection", CUIFormDocumentInspection.inspect(manager, response, control));

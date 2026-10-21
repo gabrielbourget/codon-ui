@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { ComboBoxStateContext, Form } from "react-aria-components"
 import { afterAll, expect, it, vi } from "vitest"
 
+import Button from "../../../../packages/react/src/components/Button/Button"
 import ComboBox from "../../../../packages/react/src/components/ComboBox/ComboBox"
 import ListBoxItem from "../../../../packages/react/src/components/ListBoxItem/ListBoxItem"
 import TagComboBox from "../../../../packages/react/src/components/TagComboBox/TagComboBox"
@@ -308,4 +309,47 @@ it("retains server errors for programmatic reset and clears them for the origina
   fireEvent.click(screen.getByRole("button", { name: "Reset fields" }))
   expect(state.displayValidation.validationErrors).toEqual([])
   records.push({ programmaticResetRetainsServerErrors: true, nativeResetEventClearsServerErrors: true })
+})
+
+it("records original submit-button click identity and cancellation before the form default", () => {
+  const button = createRef<HTMLButtonElement>()
+  const submitted = vi.fn((event) => event.preventDefault())
+  const observed: Event[] = []
+  let cancel = true
+  render(
+    <Form id="submit-owner" onSubmit={submitted}>
+      <Button
+        ref={button}
+        type="submit"
+        onClick={(event) => {
+          observed.push(event.nativeEvent)
+          if (cancel) event.preventDefault()
+        }}
+      >
+        Submit fields
+      </Button>
+    </Form>,
+  )
+  const original = button.current
+  const prevented = new MouseEvent("click", { bubbles: true, cancelable: true })
+  act(() => {
+    button.current!.dispatchEvent(prevented)
+  })
+  expect(observed[0] === prevented).toBe(true)
+  expect(prevented.defaultPrevented).toBe(true)
+  expect(submitted).not.toHaveBeenCalled()
+  cancel = false
+  const allowed = new MouseEvent("click", { bubbles: true, cancelable: true })
+  act(() => {
+    button.current!.dispatchEvent(allowed)
+  })
+  expect(observed[1] === allowed).toBe(true)
+  expect(submitted).toHaveBeenCalledOnce()
+  expect(button.current === original).toBe(true)
+  records.push({
+    originalSourceClickIdentity: true,
+    cancelledClickStopsFormDefault: true,
+    nativeCorrespondence:
+      "NativeFormAction retains its original admitted native press/key/activation event and its veto before native form callbacks",
+  })
 })
