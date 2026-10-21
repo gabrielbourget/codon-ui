@@ -4,6 +4,7 @@ import { findNodeHandle, TextInput, View } from "react-native"
 import { Button, NativeFocusView, Text, useNativeTheme } from "@codon-ui/react-native"
 
 import { NativeCollection } from "../../../../packages/react-native/src/collection/CollectionBuilder"
+import { NativeSelectableCollectionContext } from "../../../../packages/react-native/src/collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -13,6 +14,7 @@ import { TagGroupLabel, TagGroupText } from "../../../../packages/react-native/s
 import { Tag } from "../../../../packages/react-native/src/components/TagGroup/Tag"
 import { TagGroup } from "../../../../packages/react-native/src/components/TagGroup/TagGroup"
 import type { TNativeTagGroupProps } from "../../../../packages/react-native/src/components/TagGroup/types"
+import { inspectNativeAccessibility } from "../../../../packages/react-native/src/input/accessibilityInspection"
 
 import { useTagGroupVirtualRenderer } from "./TagGroupVirtualRenderer"
 
@@ -80,8 +82,12 @@ export const TagGroupScene = () => {
   const [draft, setDraft] = useState("")
   const [frame, setFrame] = useState("unmeasured")
   const [refs, setRefs] = useState("unmeasured")
+  const [sdkRequests, setSDKRequests] = useState(0)
+  const [sdkReads, setSDKReads] = useState(0)
+  const sdkSequence = useRef(0)
   const editor = useRef<TextInput>(null)
   const root = useRef<View>(null)
+  const list = useRef<View>(null)
   const itemRefs = useMemo(() => new Map(LARGE_ITEMS.map((item) => [item.id, createRef<View>()])), [])
   const initial = useRef(new Map<TKey, View>())
   const requestSelection: NonNullable<TNativeTagGroupProps["onSelectionChange"]> = (keys) => {
@@ -107,6 +113,30 @@ export const TagGroupScene = () => {
         })
         .join("; "),
     )
+  const inspectSDK = () => {
+    const targets = [
+      ["group", root.current],
+      ["list", list.current],
+      ...items.map((item) => [describeKey(item.id), itemRefs.get(item.id)!.current] as const),
+    ] as const
+    let requested = 0
+    for (const [receiver, target] of targets) {
+      if (
+        inspectNativeAccessibility(target, (event) => {
+          const content = JSON.stringify({ receiver, record: event.nativeEvent })
+          const sequence = ++sdkSequence.current
+          const parts = Math.ceil(content.length / 768)
+          for (let part = 0; part < parts; part++)
+            console.warn(
+              `CUI_TAG_GROUP_SDK_CHUNK ${JSON.stringify({ sequence, part, parts, content: content.slice(part * 768, (part + 1) * 768) })}`,
+            )
+          setSDKReads((count) => count + 1)
+        })
+      )
+        requested++
+    }
+    setSDKRequests((count) => count + requested)
+  }
   return (
     <View style={{ gap: 12 }}>
       <Text elementType="h2" variant="h3">
@@ -145,6 +175,7 @@ export const TagGroupScene = () => {
           Toggle 69-item native virtualization
         </Button>
         <Button onPress={inspectRefs}>Inspect grouped-tag refs</Button>
+        <Button onPress={inspectSDK}>Inspect grouped-tag native accessibility</Button>
         <Button onPress={() => setFieldSlots((value) => !value)}>Toggle tag-group field slots</Button>
       </View>
       <TextInput
@@ -157,67 +188,69 @@ export const TagGroupScene = () => {
       />
       <FieldRendererContext.Provider value={{ renderer, fields: fieldSlots }}>
         <NativeCollectionRendererContext.Provider value={fieldRenderer}>
-          <NativeCollection dependencies={[custom, raised, fieldSlots, customHost]}>
-            <TagGroup<TValue>
-              key={focusRevision}
-              ref={root}
-              items={items}
-              selectedKeys={selected}
-              selectionMode={MODES[modeIndex]}
-              selectionBehavior={replace ? "replace" : "toggle"}
-              disabledKeys={disabled ? [0] : []}
-              onSelectionChange={requestSelection}
-              onRemove={removable ? requestRemove : undefined}
-              onAction={(key) => {
-                setRequests((count) => count + 1)
-                setLast(`action ${describeKey(key)}`)
-              }}
-              accessibilityLabel="Owner-controlled tags"
-              orientation={vertical ? "vertical" : "horizontal"}
-              width="100%"
-              customStyles={custom ? { borderWidth: 1, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
-              customTagListStyles={custom ? { gap: 12 } : undefined}
-              renderEmptyState={({ state }) => (
-                <Text testID="tag-group-owner-empty">
-                  No owner items. Logical count: {state.collection.size}. Selection:{" "}
-                  {describeKeys(state.selectionManager.rawSelection)}.
-                </Text>
-              )}
-              onLayout={({ nativeEvent }) => setFrame(`${nativeEvent.layout.width} x ${nativeEvent.layout.height}`)}
-            >
-              {(item) => (
-                <Tag
-                  id={item.id}
-                  ref={itemRefs.get(item.id)}
-                  textValue={item.label}
-                  autoFocus={focusRevision > 0 && item.id === 0}
-                  testID={`grouped-${describeKey(item.id)}`}
-                  raised={raised}
-                  geometry="rounded"
-                  customStyles={custom ? { fontSize: 18 } : undefined}
-                  href={item.id === "link" ? "https://example.test/tag-group" : undefined}
-                  onNavigate={() => setLast("original navigation callback")}
-                  render={
-                    customHost
-                      ? (props, state) => (
-                          <NativeFocusView
-                            {...props}
-                            accessibilityHint={state.isSelected ? "Selected custom host" : props.accessibilityHint}
-                          />
-                        )
-                      : undefined
-                  }
-                >
-                  {item.label}
-                  {item.id === 0 && fieldSlots ? (
-                    <Button slot="remove" testID="tag-group-authored-remove">
-                      Authored removal
-                    </Button>
-                  ) : null}
-                </Tag>
-              )}
-            </TagGroup>
-          </NativeCollection>
+          <NativeSelectableCollectionContext.Provider value={{ ref: list }}>
+            <NativeCollection dependencies={[custom, raised, fieldSlots, customHost]}>
+              <TagGroup<TValue>
+                key={focusRevision}
+                ref={root}
+                items={items}
+                selectedKeys={selected}
+                selectionMode={MODES[modeIndex]}
+                selectionBehavior={replace ? "replace" : "toggle"}
+                disabledKeys={disabled ? [0] : []}
+                onSelectionChange={requestSelection}
+                onRemove={removable ? requestRemove : undefined}
+                onAction={(key) => {
+                  setRequests((count) => count + 1)
+                  setLast(`action ${describeKey(key)}`)
+                }}
+                accessibilityLabel="Owner-controlled tags"
+                orientation={vertical ? "vertical" : "horizontal"}
+                width="100%"
+                customStyles={custom ? { borderWidth: 1, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
+                customTagListStyles={custom ? { gap: 12 } : undefined}
+                renderEmptyState={({ state }) => (
+                  <Text testID="tag-group-owner-empty">
+                    No owner items. Logical count: {state.collection.size}. Selection:{" "}
+                    {describeKeys(state.selectionManager.rawSelection)}.
+                  </Text>
+                )}
+                onLayout={({ nativeEvent }) => setFrame(`${nativeEvent.layout.width} x ${nativeEvent.layout.height}`)}
+              >
+                {(item) => (
+                  <Tag
+                    id={item.id}
+                    ref={itemRefs.get(item.id)}
+                    textValue={item.label}
+                    autoFocus={focusRevision > 0 && item.id === 0}
+                    testID={`grouped-${describeKey(item.id)}`}
+                    raised={raised}
+                    geometry="rounded"
+                    customStyles={custom ? { fontSize: 18 } : undefined}
+                    href={item.id === "link" ? "https://example.test/tag-group" : undefined}
+                    onNavigate={() => setLast("original navigation callback")}
+                    render={
+                      customHost
+                        ? (props, state) => (
+                            <NativeFocusView
+                              {...props}
+                              accessibilityHint={state.isSelected ? "Selected custom host" : props.accessibilityHint}
+                            />
+                          )
+                        : undefined
+                    }
+                  >
+                    {item.label}
+                    {item.id === 0 && fieldSlots ? (
+                      <Button slot="remove" testID="tag-group-authored-remove">
+                        Authored removal
+                      </Button>
+                    ) : null}
+                  </Tag>
+                )}
+              </TagGroup>
+            </NativeCollection>
+          </NativeSelectableCollectionContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </FieldRendererContext.Provider>
       <Button onPress={() => editor.current?.focus()}>Focus original draft editor</Button>
@@ -227,6 +260,9 @@ export const TagGroupScene = () => {
       />
       <Text testID="tag-group-owner-layout">
         Frame: {frame}. Refs: {refs}.
+      </Text>
+      <Text testID="tag-group-owner-sdk">
+        SDK reads: {sdkReads}. Requested: {sdkRequests}.
       </Text>
     </View>
   )

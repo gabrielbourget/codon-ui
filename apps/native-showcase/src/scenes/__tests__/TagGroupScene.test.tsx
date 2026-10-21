@@ -1,3 +1,5 @@
+import type { NativeSyntheticEvent } from "react-native"
+
 import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
 import {
@@ -5,6 +7,10 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
+import {
+  Commands,
+  type NativeAccessibilityData,
+} from "../../../../../packages/react-native/src/input/specs/CUIFocusViewNativeComponent"
 import { TagGroupScene } from "../TagGroupScene"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -22,6 +28,65 @@ const scene = (mode: "light" | "dark" = "light") => (
 )
 const hidden = { includeHiddenElements: true }
 const press = (name: string) => fireEvent.press(screen.getByRole("button", { name }))
+
+it("requests SDK reads from actual group/list/item refs and records only original returned packets", async () => {
+  const inspect = jest.spyOn(Commands, "inspectAccessibility").mockImplementation(() => {})
+  const log = jest.spyOn(console, "warn").mockImplementation(() => {})
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const find = jest.mocked(native.findNodeHandle)
+  const previous = find.getMockImplementation()!
+  try {
+    await render(scene())
+    await fireEvent.changeText(screen.getByTestId("tag-group-owner-editor"), "held draft")
+    await press("Inspect grouped-tag native accessibility")
+    expect(inspect).toHaveBeenCalledTimes(7)
+    expect(screen.getByTestId("tag-group-owner-sdk")).toHaveTextContent("SDK reads: 0. Requested: 7.")
+    const list = screen.getByTestId("tag-list", hidden)
+    const target = inspect.mock.calls.find((call) => call[1] === list.props.ownerId)![0]
+    find.mockImplementation((view) => (view === target ? 71 : previous(view)))
+    const data: NativeAccessibilityData = {
+      ownerId: list.props.ownerId,
+      target: 71,
+      windowId: "source-model-window",
+      platform: "android",
+      selected: false,
+      containerType: -1,
+      containerTitle: "",
+      roleDescription: "",
+      label: "Owner-controlled tags",
+      hint: "",
+      value: "",
+      description: "",
+      details: "",
+      descriptionAvailable: false,
+      detailsAvailable: false,
+      collection: '{"rows":5,"columns":1}',
+      observedAt: 1,
+    }
+    await fireEvent(list, "nativeAccessibilitySnapshot", {
+      nativeEvent: data,
+    } as NativeSyntheticEvent<NativeAccessibilityData>)
+    expect(screen.getByTestId("tag-group-owner-sdk")).toHaveTextContent("SDK reads: 1. Requested: 7.")
+    const chunks = log.mock.calls
+      .filter(([line]) => String(line).startsWith("CUI_TAG_GROUP_SDK_CHUNK "))
+      .map(
+        ([line]) =>
+          JSON.parse(String(line).slice("CUI_TAG_GROUP_SDK_CHUNK ".length)) as { part: number; content: string },
+      )
+    const result = JSON.parse(
+      chunks
+        .sort((a, b) => a.part - b.part)
+        .map((chunk) => chunk.content)
+        .join(""),
+    )
+    expect(result).toEqual({ receiver: "list", record: data })
+    expect(screen.getByTestId("tag-group-owner-editor")).toHaveDisplayValue("held draft")
+  } finally {
+    find.mockImplementation(previous)
+    inspect.mockRestore()
+    log.mockRestore()
+  }
+})
 
 it("keeps original grouped refs and the visible editor draft through owner mode and provider changes", async () => {
   const view = await render(scene())
