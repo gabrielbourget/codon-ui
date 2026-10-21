@@ -7,18 +7,22 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type ComponentPropsWithoutRef,
+  type ReactElement,
+  type RefAttributes,
 } from "react"
 import type { GestureResponderEvent, MouseEvent, PressableProps, View } from "react-native"
 
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { nativeKeyTokens } from "./keyScope"
-import { NativeFocusHost } from "./NativeFocusView"
+import { NativeFocusView, type NativeFocusHost } from "./NativeFocusView"
 import { useNativeKeyScope } from "./NativeKeyboardScope"
 import { useNativeAndroidRipple, useNativePressability } from "./nativePressability"
 import type {
   TNativeActivationEvent,
   TNativeFocusViewProps,
+  TNativeFocusEvent,
   TNativeInteractionEvent,
   TNativeKeyboardEvent,
   TNativePressEvent,
@@ -31,6 +35,13 @@ type TCallbacks = {
   onPressIn?: (event: TNativeInteractionEvent) => void
   onPressOut?: (event: TNativeInteractionEvent) => void
 }
+export type TNativePressableRender = (props: TNativeFocusViewProps & RefAttributes<View>) => ReactElement
+const PressableHost = forwardRef<
+  View,
+  ComponentPropsWithoutRef<typeof NativeFocusHost> & { nativeRender?: TNativePressableRender }
+>(({ nativeRender, ...props }, ref) =>
+  nativeRender ? nativeRender({ ...props, ref }) : <NativeFocusView {...props} ref={ref} />,
+)
 export type TNativePressableProps = Omit<
   PressableProps,
   keyof TCallbacks | "children" | "style" | "onFocus" | "onBlur"
@@ -50,6 +61,10 @@ export type TNativePressableProps = Omit<
     onPressCancel?: (event: TNativePressEvent) => void
     onHoverCancel?: (event: MouseEvent) => void
     onFocusVisibilityChange?: (visible: boolean) => void
+    nativeRender?: TNativePressableRender
+    nativeProgrammaticFocusable?: boolean
+    nativeTabStop?: boolean
+    onNativeFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
   }
 type TCycle<E> = { event: E; cancelled: boolean; ended: boolean; upDelivered?: boolean }
 const activationKeys = [...nativeKeyTokens("Enter"), ...nativeKeyTokens(" ")]
@@ -57,6 +72,9 @@ const subscribeNothing = () => () => {}
 
 export const NativePressable = forwardRef<View, TNativePressableProps>((props, forwardedRef) => {
   const {
+    nativeRender,
+    nativeProgrammaticFocusable = false,
+    onNativeFocusObserved,
     activationBlocked: authoredActivationBlocked = false,
     nativeInteraction = true,
     disabled,
@@ -122,6 +140,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   const observedOrigin = useRef(inputOrigin)
   const attached = useRef(false)
   const view = useRef<View>(null)
+  const lastView = useRef<View | null>(null)
   const releaseRef = useRef<(() => void) | undefined>(undefined)
   const keyboard = useRef<(TCycle<TNativeKeyboardEvent> & { code: number }) | null>(null)
   const pointer = useRef<TCycle<GestureResponderEvent> | null>(null)
@@ -142,6 +161,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onKeyUp,
     onFocus,
     onBlur,
+    onNativeFocusObserved,
     disabled,
     activationBlocked,
     canAct,
@@ -166,6 +186,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       onKeyUp,
       onFocus,
       onBlur,
+      onNativeFocusObserved,
       disabled,
       activationBlocked,
       canAct,
@@ -239,6 +260,12 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
   )
   const setRef = useCallback(
     (target: View | null) => {
+      if (target && lastView.current && lastView.current !== target) {
+        cancel()
+        focused.current = false
+        observedOrigin.current = null
+      }
+      if (target) lastView.current = target
       attached.current = target !== null
       view.current = target
       releaseRef.current?.()
@@ -250,8 +277,12 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         }
       } else if (forwardedRef) forwardedRef.current = target
     },
-    [forwardedRef],
+    [forwardedRef, cancel],
   )
+  useLayoutEffect(() => {
+    if (__DEV__ && nativeRender && !view.current)
+      console.warn("Native custom render must forward its ref and props to the actual native focus host.")
+  }, [nativeRender])
   const deliverPointerUp = (event: GestureResponderEvent) => {
     const cycle = pointer.current
     if (!cycle || cycle.cancelled || cycle.ended || cycle.upDelivered || !admitted()) return
@@ -299,7 +330,8 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       : undefined,
   })
   return (
-    <NativeFocusHost
+    <PressableHost
+      nativeRender={nativeRender}
       {...rest}
       {...ripple?.viewProps}
       {...(nativeInteraction ? handlers : {})}
@@ -316,9 +348,9 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       }}
       collapsable={false}
       nativePressable={nativeInteraction ? true : undefined}
-      focusable={keyboardEnabled}
+      focusable={keyboardEnabled || nativeProgrammaticFocusable}
       hitSlop={hitSlop}
-      capturedKeys={nativeInteraction ? activationKeys : []}
+      capturedKeys={nativeInteraction && keyboardEnabled ? activationKeys : []}
       style={typeof style === "function" ? style({ pressed: pressed || testOnly_pressed === true }) : style}
       onClick={undefined}
       onNativeActivation={(event) => {
@@ -410,6 +442,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         else close()
       }}
       onFocus={(event) => {
+        if (attached.current && current.current.canAct()) current.current.onNativeFocusObserved?.(true, event)
         if (attached.current && current.current.keyboardEnabled && current.current.canAct()) {
           focused.current = true
           observedOrigin.current = input?.lastInput()?.origin ?? null
@@ -418,6 +451,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
         }
       }}
       onBlur={(event) => {
+        if (attached.current) current.current.onNativeFocusObserved?.(false, event)
         focused.current = false
         current.current.onFocusVisibilityChange?.(false)
         cancel(true)
@@ -467,7 +501,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
       }}
     >
       {typeof children === "function" ? children({ pressed: pressed || testOnly_pressed === true }) : children}
-    </NativeFocusHost>
+    </PressableHost>
   )
 })
 NativePressable.displayName = "NativePressable"

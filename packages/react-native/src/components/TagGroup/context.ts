@@ -17,6 +17,7 @@ export type TNativeTagRegistration = Readonly<{
   view: RefObject<View | null>
   removeView: RefObject<View | null>
   removeViews: ReadonlySet<View>
+  autoFocus: { pending: boolean; captured: boolean; input: unknown; window: string | null; inputWindow: string | null }
   props: () => TNativeGroupedTagProps
   text: () => string
   order?: number
@@ -44,6 +45,8 @@ export const NativeTagGroupActionsContext = createContext<{
   allowsRemoving: boolean
   labels: TNativeTagGroupLabels
   disabled: (row: TNativeTagRegistration, props?: TNativeGroupedTagProps) => boolean
+  tabStop: (row: TNativeTagRegistration) => boolean
+  observeDisabledFocus: (row: TNativeTagRegistration, focused: boolean) => void
   selected: (row: TNativeTagRegistration) => boolean
   semantics: (row: TNativeTagRegistration) => string
   actionState: (row: TNativeTagRegistration, props?: TNativeGroupedTagProps) => TNativeTagGroupActionState

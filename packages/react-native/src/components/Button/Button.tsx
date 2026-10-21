@@ -2,8 +2,8 @@ import { forwardRef, useEffect, useRef, useState, type ForwardRefExoticComponent
 import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
-import { NativePressable } from "../../input/NativePressable"
-import type { TNativePressEvent } from "../../input/types"
+import { NativePressable, type TNativePressableRender } from "../../input/NativePressable"
+import type { TNativeFocusEvent, TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
 
@@ -26,6 +26,13 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState">
   nativeRole?: ViewProps["role"]
   nativeAccessible?: boolean
   nativeInteraction?: boolean
+  nativeRender?: (
+    props: Parameters<TNativePressableRender>[0],
+    state: TNativeButtonRenderState,
+  ) => ReturnType<TNativePressableRender>
+  nativeProgrammaticFocusable?: boolean
+  nativeTabStop?: boolean
+  nativeOnFocusObserved?: (focused: boolean, event: TNativeFocusEvent) => void
   nativeStyle?: (
     state: Omit<TNativeButtonRenderState, "foregroundColor">,
     focusVisible: boolean,
@@ -39,6 +46,9 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeAccessible = true,
     nativeInteraction = true,
     nativeStyle,
+    nativeRender,
+    nativeProgrammaticFocusable,
+    nativeOnFocusObserved,
     color,
     hoverColor,
     colorMode,
@@ -141,6 +151,13 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     <NativeContentContext.Provider value={{ foregroundColor: resolved.foregroundColor, isButton: true }}>
       <NativePressable
         {...rest}
+        nativeRender={
+          nativeRender
+            ? (props) => nativeRender(props, { ...flags, foregroundColor: resolved.foregroundColor })
+            : undefined
+        }
+        nativeProgrammaticFocusable={nativeProgrammaticFocusable}
+        onNativeFocusObserved={nativeOnFocusObserved}
         ref={ref}
         accessible={nativeAccessible}
         nativeInteraction={nativeInteraction}

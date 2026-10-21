@@ -95,6 +95,8 @@ export type TNativeGroupedTagProps = Omit<
     textValue?: string
     children?: ReactNode | ((state: TNativeGroupedTagState) => ReactNode)
     closeIcon?: ReactNode
+    autoFocus?: boolean
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeGroupedTagState) => ReactElement
     onAction?: () => void
     href?: string
     onNavigate?: (href: string) => void

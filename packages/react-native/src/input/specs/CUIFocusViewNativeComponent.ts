@@ -104,6 +104,7 @@ export interface NativeProps extends ViewProps {
   nativeCollectionBinding?: string
   nativeCollectionSemantics?: string
   keyboardFocusable?: WithDefault<boolean, true>
+  nativeTabStop?: WithDefault<boolean, true>
   nativePressable?: WithDefault<boolean, false>
   nativeMotionGeometryBinding?: string
   nativeMotionGeometryRevision?: string

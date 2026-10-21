@@ -33,6 +33,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   final CUICollectionAccessibility collectionAccessibility = new CUICollectionAccessibility(this);
   private String origin = "unknown";
   private boolean keyboardFocusable = true;
+  private boolean nativeTabStop = true;
   private boolean nativePressable = false;
   private boolean nativeNavigation = false;
   private String nativeNavigationLabel = "Navigation";
@@ -63,6 +64,12 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     motionGeometry = new CUIMotionGeometryObserver(this, data -> { CUIFocusView view = geometryRoot.get(); if (view != null) view.emit("topNativeMotionGeometry", data); });
     setFocusable(true);
     setFocusableInTouchMode(true);
+  }
+
+  void setNativeTabStop(boolean value) { nativeTabStop = value; }
+  @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
+    super.addFocusables(views, direction, mode);
+    if (!nativeTabStop && (direction == View.FOCUS_FORWARD || direction == View.FOCUS_BACKWARD)) views.remove(this);
   }
 
   @Override public void setVisibility(int visibility) {

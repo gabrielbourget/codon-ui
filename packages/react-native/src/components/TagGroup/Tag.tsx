@@ -3,7 +3,6 @@ import {
   useCallback,
   useContext,
   useId,
-  useImperativeHandle,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -16,7 +15,7 @@ import Svg, { Path } from "react-native-svg"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { NativeSelectionIndicatorContext } from "../../collection/context"
+import { NativeSelectionIndicatorContext, useNativeCollectionRefs } from "../../collection/context"
 import {
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
@@ -60,6 +59,8 @@ const TagReceiver = forwardRef<
     textValue,
     children,
     closeIcon,
+    render,
+    autoFocus,
     customStyles: _custom,
     style: _style,
     color: _color,
@@ -116,6 +117,14 @@ const TagReceiver = forwardRef<
     view = useRef<View>(null),
     removeView = useRef<View>(null),
     current = useRef(props)
+  const bindView = useNativeCollectionRefs(view, ref)
+  const initialAutoFocus = useRef({
+    pending: autoFocus === true,
+    captured: false,
+    input: undefined as unknown,
+    window: null as string | null,
+    inputWindow: null as string | null,
+  })
   const removeViews = useRef(new Set<View>())
   const bindRemove = useCallback((target: View | null) => {
     if (!target) return
@@ -134,6 +143,7 @@ const TagReceiver = forwardRef<
       view,
       removeView,
       removeViews: removeViews.current,
+      autoFocus: initialAutoFocus.current,
       order: value?.order,
       props: () => current.current,
       text: () =>
@@ -155,7 +165,6 @@ const TagReceiver = forwardRef<
     actions = group.actionState(row, props)
   const interactive = actions.allowsSelection || actions.hasPrimaryAction
   const lifetime = JSON.stringify([encodeCollectionKey(key), href])
-  useImperativeHandle(ref, () => view.current!, [lifetime])
   const pointer = useRef<TNativeTagPressMetadata | null>(null),
     cycle = useRef<{ primary: boolean; long: boolean } | null>(null),
     lastMouse = useRef<number | undefined>(undefined),
@@ -202,9 +211,11 @@ const TagReceiver = forwardRef<
     setVisible(next && event.nativeEvent.isFocusVisible)
     if (next) nativeCellFocus?.(event)
     group.focus(row, next, event.nativeEvent.isFocusVisible)
-    if (next) onFocus?.(event)
-    else onBlur?.(event)
-    onFocusChange?.(next)
+    if (!disabled) {
+      if (next) onFocus?.(event)
+      else onBlur?.(event)
+      onFocusChange?.(next)
+    }
   }
   const label = props.accessibilityLabel ?? props["aria-label"] ?? textValue ?? textContent(children)
   const content = (state: TNativeGroupedTagState, foreground: TNativeButtonRenderState["foregroundColor"]) => {
@@ -292,10 +303,21 @@ const TagReceiver = forwardRef<
         {...native}
         {...owned}
         key={lifetime}
-        ref={view}
+        ref={bindView}
         nativeRole="row"
         nativeAccessible={interactive || !group.allowsRemoving}
         nativeInteraction={interactive}
+        nativeProgrammaticFocusable
+        nativeTabStop={group.tabStop(row)}
+        nativeOnFocusObserved={
+          disabled
+            ? (focused, event) => {
+                setVisible(focused && event.nativeEvent.isFocusVisible)
+                group.observeDisabledFocus(row, focused)
+              }
+            : undefined
+        }
+        nativeRender={render ? (props, flags) => render(props, stateFor(flags)) : undefined}
         isDisabled={disabled}
         aria-selected={undefined}
         aria-checked={undefined}

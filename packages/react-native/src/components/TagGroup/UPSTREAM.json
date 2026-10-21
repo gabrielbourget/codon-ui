@@ -142,15 +142,27 @@
       "sourcePath": "packages/react-aria/src/tag/useTag.ts",
       "sourceContentSHA256": "fd3185353cea29dd69a65fffbf9432e0feea664d69af5ade1a8f6e2e1d352f0a",
       "adaptedInto": ["Tag.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/interactions/useFocusable.mjs",
+      "distributionSHA256": "34a5994fea59b830d1cc60189f90a87417a12cd59aa15083e5c5954d238892e2",
+      "sourceMapPath": "dist/private/interactions/useFocusable.mjs.map",
+      "sourceMapSHA256": "aecebf798ed96a058367b92b90f0070765b1012ae8bb8302d3a1a5aeadaf6b9f",
+      "sourcePath": "packages/react-aria/src/interactions/useFocusable.tsx",
+      "sourceContentSHA256": "49b286471931c289688b9f71d9a10ed2aed50363d2c4f0ffe89325b5461a47fa",
+      "adaptedInto": ["Tag.tsx", "TagGroup.tsx"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it. Grouped custom render forwards complete state/original props and actual native refs, including replacement retirement; initial autofocus preserves native admission and window/input lifetimes. A private native Tab-stop field separates relative eligibility from programmatic focus for grouped rows, including the all-disabled autofocus source outcome.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
-    "TagGroup.tsx": "35a6cfd428bebbb4d540d77a3468586ca94435ad0826a83101528e4d8f8ea652",
-    "Tag.tsx": "bc847b7d775081455054d446d4fefa91b848d86db779dfc29824113a2fd4c991",
-    "context.ts": "71bc746294035e4f886740dd864825a1685c6a303e23651fd273824030952c2f",
-    "types.ts": "a5644175e839987929b2beda68bd5c6e1db5fcee339b5cb9bfb36098e50a50fa",
+    "TagGroup.tsx": "e8cb551048305bb59a31697370c21bc2ab5c927830c90ecca59a3c41379a1e3e",
+    "Tag.tsx": "3c408b4ac5090f64cfe9907bb8957264298be20d3369156033fa4a35892172ea",
+    "context.ts": "633553f22a8528c7ad3b157fc1e7872581e84f156f5a5a3fac8e85f89194b153",
+    "types.ts": "543b894729a3bef6ad8f71d64d69bc1fcbbda1e59147716563c851e1b2a2fe73",
     "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",
     "visualTypes.ts": "aaffbc57ed907c25323512d5be5d41681326e67a4152c12f68cf55ee81a04a49",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
@@ -158,11 +170,15 @@
     "../../../android/src/main/java/com/codonui/input/CUIAccessibilityReferences.java": "f77e2b4b053318d1e4fc3d6f9413b0ab105f85ad26091132e8b2841929385773",
     "../../../ios/CUIAccessibilityReferences.h": "a9e281efde541bce9ef4cf6f5a2aa2649d77ad3bf641933af2d71e40503609df",
     "../../../ios/CUIAccessibilityReferences.mm": "a6938606d47c9a85ac6e66925a510cf4e6808cb30636fd34546671f272113c07",
-    "../../../ios/CUIFocusView.mm": "d2e85f546bc25e7b131fbfb494b5f857f9ccb64b66289b584fe03ed14499108d",
+    "../../../ios/CUIFocusView.mm": "3ecd3331deb82686f4ced4995f687771c59e6ce73610ed0e0e77fe1ffa085382",
     "field.tsx": "f0c7ccd4be6add8e8d971427dfe47f735efcd47a9dde54ee2589347d057c60c3",
-    "../Button/Button.tsx": "6c6384cceb343ec61d5b152aa00d1304748773995b40614d82df75897fa7766e",
+    "../Button/Button.tsx": "5b926a78a6410634324cdbb0897eff246900de08e067dd528c888fcabd2249bf",
     "../Button/context.ts": "4500bd3c05baa8cc7ab41d72870d0023833fa607a897e833bb9e270610449ac9",
     "../Button/types.ts": "125da42f05231b5e2bf9fd760e007e3308774bc7342997a82297c3580bafb17f",
-    "../ToggleButton/types.ts": "e772c65136afa96b7a1804d0fe75b1edf01ce341b5053a5d9995120059dd84fc"
+    "../ToggleButton/types.ts": "e772c65136afa96b7a1804d0fe75b1edf01ce341b5053a5d9995120059dd84fc",
+    "../../input/NativePressable.tsx": "0223c6a7ac9a00d475fc35ac275246f4b6ac6105ef243a88ea0a7a3a6cd3558f",
+    "../../input/NativeFocusView.tsx": "c395992ba46fed1ba67309ce41d141d361626197fd6e941d451e63cbba3fe5d1",
+    "../../input/specs/CUIFocusViewNativeComponent.ts": "a84ce2bab7dfade890541f228ca651486cbc481fe24492ae9501379f94294944",
+    "../../../android/src/main/java/com/codonui/input/CUIFocusViewManager.java": "17a3048130ce707324ae14791f17a50d7d2098e20c084ea03460f87a8b7de814"
   }
 }
