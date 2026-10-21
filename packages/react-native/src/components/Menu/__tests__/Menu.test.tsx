@@ -4,7 +4,6 @@ import { act as rendererAct, fireEvent, screen } from "@testing-library/react-na
 import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import * as RN from "react-native"
 
-import { Button, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
@@ -17,10 +16,20 @@ import {
 } from "../../../collection/renderer"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
+import { NativeThemeProvider } from "../../../theme"
 import { resolveNativeTheme } from "../../../theme/defaults"
+import { Button } from "../../Button/Button"
 import { encodeCollectionKey } from "../../collection"
+import { Text } from "../../Text/Text"
 import { MenuText, MenuKeyboardShortcut, NativeMenuSelectionIndicatorContext } from "../content"
-import { NativeMenuContext, NativeMenuListContext, NativeMenuStateContext } from "../context"
+import {
+  NativeMenuContext,
+  NativeMenuListContext,
+  NativeMenuPointerObservationContext,
+  NativeMenuStateContext,
+} from "../context"
 import { Menu, NativeMenuTrigger } from "../Menu"
 import { MenuHeader } from "../MenuHeader"
 import { MenuItem } from "../MenuItem"
@@ -123,7 +132,7 @@ const fixture = (
       </NativeCollectionRendererContext.Provider>
     </NativeThemeProvider>
   )
-  const ready = async (flushBeforeAcknowledgment = false) => {
+  const ready = async (flushBeforeAcknowledgment = false, windowId = "menu-window") => {
     const measure = (view: RN.View, value: [number, number, number, number]) =>
       Object.defineProperty(view, "measureInWindow", {
         configurable: true,
@@ -141,7 +150,7 @@ const fixture = (
         native.onNativeScopeStatus({
           nativeEvent: {
             ownerId: native.ownerId,
-            windowId: "menu-window",
+            windowId,
             epoch: 1,
             policyRevision: native.policyRevision,
             ready,
@@ -1809,4 +1818,165 @@ it("keeps offscreen members in actual tree state and defers native focus until m
   await act(materialize)
   expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
   expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it.each([false, true])(
+  "hands an admitted native pointer receipt to the original parent row, retired=%s",
+  async (retired) => {
+    const trigger = createRef<RN.View>(),
+      other = createRef<RN.View>(),
+      childList = createRef<RN.View>()
+    const f = fixture(
+      {},
+      <>
+        <SubmenuTrigger ref={trigger}>
+          <MenuItem id="trigger" testID="trigger">
+            More
+          </MenuItem>
+          <NativeMenuListContext.Provider value={{ ref: childList }}>
+            <Menu testID="submenu">
+              <MenuItem id="child">Child</MenuItem>
+            </Menu>
+          </NativeMenuListContext.Provider>
+        </SubmenuTrigger>
+        <MenuItem ref={other} id="other" testID="other">
+          Other
+        </MenuItem>
+      </>,
+    )
+    const observe = jest.fn()
+    await render(
+      <NativeMenuPointerObservationContext.Provider value={observe}>
+        {f.node()}
+      </NativeMenuPointerObservationContext.Provider>,
+    )
+    await f.ready(false, "source-model-window")
+    expect(row("host").props.menuPointerPolicies).toEqual([])
+    await act(() =>
+      row("trigger").props.onNativeFocusChange({
+        nativeEvent: {
+          ownerId: row("trigger").props.ownerId,
+          target: RN.findNodeHandle(trigger.current),
+          isFocused: true,
+          isFocusVisible: true,
+        },
+      }),
+    )
+    await rawKey("trigger", "Enter")
+    const lists = screen.getAllByTestId("menu-list", hidden)
+    await fireEvent(lists[1], "layout", { nativeEvent: { layout: { x: 200, y: 0, width: 150, height: 180 } } })
+    await act(() => {
+      const scope = row("host").props
+      scope.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scope.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: scope.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      })
+    })
+    const native = row("host").props
+    expect(native.menuPointerPolicies).toHaveLength(1)
+    const policy = native.menuPointerPolicies[0]
+    expect(policy.triggerTarget).toBe(RN.findNodeHandle(trigger.current))
+    expect(policy.submenuTarget).toBe(RN.findNodeHandle(childList.current))
+    expect(JSON.parse(policy.parentBinding).descriptorId).toBe("")
+    expect(JSON.parse(policy.triggerBinding).descriptorId).not.toBe("")
+    const data = {
+      ownerId: native.ownerId,
+      windowId: "source-model-window",
+      epoch: 1,
+      revision: native.menuPointerRevision,
+      policyId: policy.id,
+      sequence: 1,
+      phase: "status",
+      ready: true,
+      suppressed: false,
+      observationId: 0,
+      pointerType: "unknown",
+      pageX: 10,
+      pageY: 10,
+      timestamp: 0,
+      target: policy.parentTarget,
+      hitPath: [policy.parentTarget],
+      nativeButtons: "",
+      nativeModifiers: "",
+      geometry: "",
+      error: "",
+    }
+    const status = { nativeEvent: data }
+    await act(() => native.onNativeMenuPointer(status))
+    expect(observe).toHaveBeenLastCalledWith(status)
+    expect(observe.mock.calls.at(-1)![0]).toBe(status)
+    if (retired)
+      await act(() =>
+        row("other").props.onNativeFocusChange({
+          nativeEvent: {
+            ownerId: row("other").props.ownerId,
+            target: RN.findNodeHandle(other.current),
+            isFocused: true,
+            isFocusVisible: false,
+          },
+        }),
+      )
+    if (retired) {
+      expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+      expect(row("host").props.menuPointerPolicies).toEqual([])
+    }
+    jest.mocked(Commands.requestKeyboardFocus).mockClear()
+    await act(() =>
+      row("host").props.onNativeMenuPointer({
+        nativeEvent: {
+          ...data,
+          sequence: 2,
+          phase: "handoff",
+          observationId: 7,
+          pointerType: "mouse",
+          target: RN.findNodeHandle(other.current),
+          hitPath: [RN.findNodeHandle(other.current), policy.parentTarget],
+        },
+      }),
+    )
+    if (retired) expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+    else {
+      expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(other.current, row("other").props.ownerId)
+      expect(row("trigger").props.accessibilityState.expanded).toBe(false)
+    }
+    expect(f.action).not.toHaveBeenCalled()
+  },
+)
+
+it("names the original menu list through its actual trigger while retaining explicit list naming precedence", async () => {
+  const scene = (override = false) => (
+    <NativeThemeProvider>
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost>
+          <NativeMenuListContext.Provider value={override ? { accessibilityLabelledBy: [] } : null}>
+            <NativeMenuTrigger
+              defaultOpen
+              trigger={(state) => (
+                <Button {...state.triggerProps} testID="naming-trigger">
+                  Original trigger name
+                </Button>
+              )}
+            >
+              <Menu menuAriaLabel="Authored menu label">
+                <MenuItem id="item">Item</MenuItem>
+              </Menu>
+            </NativeMenuTrigger>
+          </NativeMenuListContext.Provider>
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>
+    </NativeThemeProvider>
+  )
+  const view = await render(scene())
+  const trigger = row("naming-trigger").props.nativeID
+  expect(row("menu-list").props.nativeLabelledBy).toEqual([trigger])
+  expect(row("menu-list").props.accessibilityLabel).toBe("Authored menu label")
+  await view.rerender(scene(true))
+  expect(row("naming-trigger").props.nativeID).toBe(trigger)
+  expect(row("menu-list").props.nativeLabelledBy).toEqual([])
 })

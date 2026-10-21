@@ -174,6 +174,11 @@ final class CUICollectionRoot extends CUICollectionNode implements UIManagerList
     if (dispatcher != null) dispatcher.dispatchEvent(new CommitEvent(surface, getId(), "topNativeCollectionInspection", data));
   }
 
+  boolean acceptsPointerBinding(String serialized, int visibleTarget) {
+    try { return acceptsAction(new JSONObject(serialized), serialized, visibleTarget); }
+    catch (JSONException invalid) { return false; }
+  }
+
   private boolean acceptsAction(JSONObject binding, String serialized, int visibleTarget) throws JSONException {
     int surface = UIManagerHelper.getSurfaceId(this);
     if (!lastComplete || !isAttachedToWindow() || !hasWindowFocus() || getVisibility() != View.VISIBLE

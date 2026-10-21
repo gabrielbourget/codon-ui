@@ -6,6 +6,7 @@ import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { TNativeTreeState } from "../../collection/state"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 import type { FocusStrategy } from "../../collection/state/types"
+import type { TNativeMenuPointerEvent } from "../../input/nativeMenuPointers"
 import type { TNativePressEvent } from "../../input/types"
 
 import type { TNativeMenuKey, TNativeMenuSelectionMode } from "./model"
@@ -33,12 +34,16 @@ export type TNativeMenuContext = {
   selected: (row: TNativeMenuRegistration) => boolean
   focus: (row: TNativeMenuRegistration) => boolean
   requestFocus: (row: TNativeMenuRegistration) => boolean
+  pointerHandoff: (hitPath: readonly number[], isCurrent: () => boolean) => boolean
   activate: (row: TNativeMenuRegistration, event: TNativePressEvent) => void
   openSubmenu: (row: TNativeMenuRegistration, strategy?: FocusStrategy, isCurrent?: () => boolean) => void
   layout: (row: TNativeMenuRegistration, frame: { y: number; height: number }) => void
   typeahead: (row: TNativeMenuRegistration, value: string, time: number) => void
 }
 export const NativeMenuActionsContext = createContext<TNativeMenuContext | null>(null)
+export const NativeMenuPointerObservationContext = createContext<((event: TNativeMenuPointerEvent) => void) | null>(
+  null,
+)
 
 export const NativeMenuStateContext = createContext<TNativeTreeState<object> | null>(null)
 export const NativeMenuContext =
@@ -52,7 +57,9 @@ export const NativeMenuHeaderContext = createContext<{
 } | null>(null)
 
 export const NativeRootMenuTriggerStateContext = createContext<TNativeRootMenuTriggerState | null>(null)
+export const NativeMenuTriggerNamingContext = createContext<string | null>(null)
 export const NativeMenuDirectionContext = createContext<"ltr" | "rtl" | null>(null)
+export type TNativeSubmenuPointerRoot = Readonly<{ target: number; binding: string }>
 export const NativeSubmenuContext = createContext<{
   state: TNativeSubmenuTriggerState
   triggerRef: RefObject<View | null>
@@ -60,6 +67,7 @@ export const NativeSubmenuContext = createContext<{
   menuID: string
   direction: "ltr" | "rtl"
   restoreRef: RefObject<View | null>
+  reportPointerRoot: (root: TNativeSubmenuPointerRoot | null) => void
 } | null>(null)
 export const NativeSubmenuItemContext = createContext<{
   state: TNativeSubmenuTriggerState

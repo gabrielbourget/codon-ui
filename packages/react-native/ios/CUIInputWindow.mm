@@ -1,5 +1,6 @@
 #import "CUIInputWindow.h"
 #import "CUIFocusView.h"
+#import "CUIMenuPointerPolicies.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <objc/runtime.h>
 
@@ -61,12 +62,14 @@ void CUIRegisterInputScope(UIWindow *window, UIView *scope) {
   CUIWindowInputState *state = CUIWindowInput(window);
   [state.scopes addObject:scope];
   [state.scopeOrder setObject:@(++state.nextScopeOrder) forKey:scope];
+  CUIRefreshMenuPointerPolicies(window);
 }
 void CUIUnregisterInputScope(UIWindow *window, UIView *scope) {
   CUIWindowInputState *state = CUIWindowInput(window);
   [state.scopes removeObject:scope]; [state.scopeOrder removeObjectForKey:scope];
   CUIRefreshKeyboardObservation(window);
   CUIRefreshWindowPointerObservation(window);
+  CUIRefreshMenuPointerPolicies(window);
 }
 
 static NSArray<NSNumber *> *CUIWindowPointerAncestry(UIView *target)

@@ -1,10 +1,50 @@
 import { act, render, screen } from "@testing-library/react-native"
-import { useLayoutEffect } from "react"
+import { useLayoutEffect, useSyncExternalStore } from "react"
 
 import { NativeFloatingLayerHost, useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
-import { useNativeKeyboardObservation } from "../NativeKeyboardScope"
+import { useNativeKeyboardObservation, useNativeKeyScope, useNativeMenuPointerPolicy } from "../NativeKeyboardScope"
+import type { TNativeMenuPointerEvent } from "../nativeMenuPointers"
 
 type THost = ReturnType<typeof useNativeFloatingHost>
+const PointerProbe = ({
+  enabled,
+  observe,
+  retire,
+}: {
+  enabled: boolean
+  observe: (event: TNativeMenuPointerEvent) => void
+  retire: () => void
+}) => {
+  const scope = useNativeKeyScope()!
+  useSyncExternalStore(scope.subscribe, scope.snapshot, scope.snapshot)
+  const binding = (target: number, descriptorId = "") =>
+    JSON.stringify({
+      ownerId: `owner-${target}`,
+      rootId: `root-${target}`,
+      rootRevision: "original-root",
+      target,
+      surfaceId: 1,
+      windowId: scope.acknowledgedSession().windowId,
+      epoch: 1,
+      sequence: 1,
+      descriptorId,
+      descriptorRevision: descriptorId ? "original-descriptor" : "",
+      metadataTarget: descriptorId ? 110 : target,
+    })
+  useNativeMenuPointerPolicy({
+    enabled,
+    current: () => true,
+    observe,
+    retire,
+    parentTarget: 10,
+    triggerTarget: 11,
+    submenuTarget: 20,
+    parentBinding: binding(100),
+    triggerBinding: binding(100, "trigger"),
+    submenuBinding: binding(200),
+  })
+  return null
+}
 type TLease = ReturnType<THost["layers"]["register"]>
 const Probe = ({ observe }: { observe: (host: THost) => void }) => {
   const host = useNativeFloatingHost()
@@ -262,4 +302,71 @@ it("keeps passive delivery independent of consuming policy revisions and retains
   await act(() => props.onNativeObservedKey(event))
   expect(observed).toHaveBeenCalledWith(event)
   expect(observed.mock.calls[0][0]).toBe(event)
+})
+
+it("connects Menu policy revisions and original packets to the native host without changing passive pointer revisions", async () => {
+  const observe = jest.fn(),
+    retire = jest.fn()
+  const node = (enabled: boolean) => (
+    <NativeFloatingLayerHost testID="host">
+      <PointerProbe {...{ enabled, observe, retire }} />
+    </NativeFloatingLayerHost>
+  )
+  await render(node(true))
+  expect(root().props.menuPointerPolicies).toEqual([])
+  await acknowledge()
+  const props = root().props,
+    passiveRevision = props.pointerRevision
+  expect(props.menuPointerPolicies).toHaveLength(1)
+  expect(JSON.parse(props.menuPointerPolicies[0].triggerBinding).descriptorId).toBe("trigger")
+  let sequence = 0
+  const event = (phase: "status" | "handoff"): TNativeMenuPointerEvent =>
+    ({
+      nativeEvent: {
+        ownerId: props.ownerId,
+        windowId: props.acceptedWindowId,
+        epoch: props.acceptedEpoch,
+        revision: props.menuPointerRevision,
+        policyId: props.menuPointerPolicies[0].id,
+        sequence: ++sequence,
+        phase,
+        ready: true,
+        suppressed: false,
+        observationId: phase === "handoff" ? 9 : 0,
+        pointerType: phase === "handoff" ? "mouse" : "unknown",
+        pageX: 40,
+        pageY: 80,
+        timestamp: 10000,
+        target: 11,
+        hitPath: [11, 10, 1],
+        nativeButtons: "0",
+        nativeModifiers: "0",
+        geometry: "{}",
+        error: "",
+      },
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+    }) as unknown as TNativeMenuPointerEvent
+  const callback = props.onNativeMenuPointer
+  const early = event("handoff")
+  await act(() => callback(early))
+  expect(observe).not.toHaveBeenCalled()
+  await act(() => callback(event("status")))
+  const original = event("handoff")
+  await act(() => callback(original))
+  expect(observe).toHaveBeenLastCalledWith(original)
+  expect(observe.mock.calls.at(-1)![0]).toBe(original)
+  expect(original.preventDefault).not.toHaveBeenCalled()
+  await screen.rerender(node(false))
+  expect(root().props.menuPointerPolicies).toEqual([])
+  expect(root().props.pointerRevision).toBe(passiveRevision)
+  await act(() => callback(original))
+  expect(observe).toHaveBeenCalledTimes(2)
+  await screen.rerender(node(true))
+  expect(root().props.menuPointerPolicies[0].id).not.toBe(props.menuPointerPolicies[0].id)
+  const retainedCallback = root().props.onNativeMenuPointer
+  await screen.unmount()
+  await act(() => retainedCallback(original))
+  expect(observe).toHaveBeenCalledTimes(2)
+  expect(retire).toHaveBeenCalled()
 })

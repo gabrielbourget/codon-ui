@@ -34,6 +34,7 @@ import { GalleryScene } from "./GalleryScene"
 import { LibraryScene } from "./LibraryScene"
 import { LinkScene } from "./LinkScene"
 import { LoadingScene } from "./LoadingScene"
+import { MenuScene } from "./MenuScene"
 import { MultilineRadioScene } from "./MultilineRadioScene"
 import { NumberInputScene } from "./NumberInputScene"
 import { OverlayScene } from "./OverlayScene"
@@ -190,6 +191,7 @@ export const NativeShowcase = () => {
     | "breadcrumbs"
     | "pagination"
     | "toaster"
+    | "menu"
   >("foundation")
   const reset = () => {
     setMode("light")
@@ -237,6 +239,7 @@ export const NativeShowcase = () => {
                 onPress={() => setScene("breadcrumbs")}
               />
               <FixtureAction label="Toaster scene" selected={scene === "toaster"} onPress={() => setScene("toaster")} />
+              <FixtureAction label="Menu scene" selected={scene === "menu"} onPress={() => setScene("menu")} />
               <FixtureAction
                 label="Pagination scene"
                 selected={scene === "pagination"}
@@ -319,7 +322,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "toaster" ? (
+              {scene === "menu" ? (
+                <MenuScene />
+              ) : scene === "toaster" ? (
                 <ToasterScene />
               ) : scene === "pagination" ? (
                 <PaginationScene />

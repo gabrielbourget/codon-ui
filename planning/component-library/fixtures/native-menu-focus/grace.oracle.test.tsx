@@ -4,7 +4,7 @@ import { resolve } from "node:path"
 
 import { act, render, cleanup } from "@testing-library/react"
 import { useRef } from "react"
-import { afterEach, beforeAll, describe, expect, it, vi } from "vitest"
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest"
 
 import { setInteractionModality } from "../../../../node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/interactions/useFocusVisible.mjs"
 import { useSafelyMouseToSubmenu } from "../../../../node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSafelyMouseToSubmenu.mjs"
@@ -15,8 +15,35 @@ type TStep =
   | { wait: number }
   | { resize: TRectangle }
   | { enabled: boolean }
+  | { modality: "pointer" | "keyboard" | "virtual" }
+  | { position: TRectangle }
 type TCase = { name: string; parent: TRectangle; submenu: TRectangle; steps: TStep[] }
 const cases: TCase[] = [
+  {
+    name: "keyboard/virtual retirement, disabled movement, and pointer reactivation at current geometry",
+    parent: [0, 0, 220, 200],
+    submenu: [220, 0, 440, 220],
+    steps: [
+      { move: [20, 30] },
+      { move: [60, 60], delay: 50 },
+      { modality: "keyboard" },
+      { move: [100, 80], delay: 50 },
+      { wait: 1100 },
+      { position: [240, -10, 460, 210] },
+      { modality: "pointer" },
+      { move: [20, 30] },
+      { move: [80, 60], delay: 50 },
+      { modality: "virtual" },
+      { wait: 1100 },
+      { modality: "pointer" },
+      { enabled: false },
+      { move: [40, 60], delay: 50 },
+      { enabled: true },
+      { move: [20, 30] },
+      { move: [80, 60], delay: 50 },
+      { wait: 1100 },
+    ],
+  },
   {
     name: "right-side grace, first invalid release, two-movement recovery and exact timer boundaries",
     parent: [0, 0, 220, 200],
@@ -90,6 +117,14 @@ for (let seed = 1; seed <= 12; seed++) {
 }
 
 let output: string
+const nativeTraces: {
+  name: string
+  input: string[]
+  expected: string[]
+  parent: TRectangle
+  submenu: TRectangle
+  steps: TStep[]
+}[] = []
 let repository = process.cwd()
 while (!existsSync(resolve(repository, "pnpm-workspace.yaml"))) {
   const parent = resolve(repository, "..")
@@ -130,6 +165,37 @@ afterEach(() => {
   vi.useRealTimers()
   vi.restoreAllMocks()
   vi.unstubAllGlobals()
+})
+afterAll(() => {
+  expect(nativeTraces).toHaveLength(cases.length)
+  const commands = nativeTraces.flatMap((trace) => trace.input).join("\n") + "\n"
+  writeFileSync(`${output}/commands.txt`, commands)
+  const actualJava = execFileSync(java, ["-cp", output, "com.codonui.input.GraceRunner"], {
+    input: commands,
+    timeout: 10000,
+  })
+    .toString()
+    .trim()
+    .split("\n")
+  const actualUIKit = execFileSync(`${output}/grace`, [], { input: commands, timeout: 10000 })
+    .toString()
+    .trim()
+    .split("\n")
+  writeFileSync(`${output}/native-all.json`, JSON.stringify({ traces: nativeTraces, actualJava, actualUIKit }, null, 2))
+  let offset = 0
+  for (const [index, trace] of nativeTraces.entries()) {
+    const javaRows = actualJava.slice(offset, offset + trace.expected.length)
+    const uiKitRows = actualUIKit.slice(offset, offset + trace.expected.length)
+    writeFileSync(
+      `${output}/${index}.json`,
+      JSON.stringify({ ...trace, actualJava: javaRows, actualUIKit: uiKitRows }, null, 2),
+    )
+    expect(javaRows, trace.name).toEqual(trace.expected)
+    expect(uiKitRows, trace.name).toEqual(trace.expected)
+    offset += trace.expected.length
+  }
+  expect(actualJava).toHaveLength(offset)
+  expect(actualUIKit).toHaveLength(offset)
 })
 
 describe("actual pinned hook versus both native production grace calculations", () => {
@@ -211,13 +277,18 @@ describe("actual pinned hook versus both native production grace calculations", 
         input.push(`rect ${rectangle.join(" ")}`)
       } else if ("enabled" in step) {
         subject.rerender(<Subject enabled={step.enabled} />)
-        input.push(step.enabled ? `rect ${rectangle.join(" ")}` : "retire")
+        input.push(`enabled ${Number(step.enabled)}`)
+      } else if ("modality" in step) {
+        act(() => setInteractionModality(step.modality))
+        input.push(`modality ${Number(step.modality === "pointer")}`)
+      } else if ("position" in step) {
+        rectangle = step.position
+        input.push(`position ${rectangle.join(" ")}`)
       }
       expected.push(`${menu.style.pointerEvents === "none" ? 1 : 0} ${handoffs}`)
       input.push("read")
     }
-    const commands = input.join("\n") + "\n"
-    if (name === cases[0].name)
+    if (name === "right-side grace, first invalid release, two-movement recovery and exact timer boundaries")
       expect(expected).toEqual([
         "0 0",
         "1 0",
@@ -233,22 +304,6 @@ describe("actual pinned hook versus both native production grace calculations", 
         "1 1",
         "0 2",
       ])
-    const actualJava = execFileSync(java, ["-cp", output, "com.codonui.input.GraceRunner"], {
-      input: commands,
-      timeout: 10000,
-    })
-      .toString()
-      .trim()
-      .split("\n")
-    const actualUIKit = execFileSync(`${output}/grace`, [], { input: commands, timeout: 10000 })
-      .toString()
-      .trim()
-      .split("\n")
-    writeFileSync(
-      `${output}/${cases.findIndex((entry) => entry.name === name)}.json`,
-      JSON.stringify({ name, parent, submenu, steps, expected, actualJava, actualUIKit }, null, 2),
-    )
-    expect(actualJava).toEqual(expected)
-    expect(actualUIKit).toEqual(expected)
+    nativeTraces.push({ name, input, expected, parent, submenu, steps })
   })
 })

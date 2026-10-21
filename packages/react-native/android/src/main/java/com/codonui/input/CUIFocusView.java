@@ -15,6 +15,7 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.R;
 import com.facebook.react.internal.featureflags.ReactNativeFeatureFlags;
 import com.facebook.react.uimanager.ThemedReactContext;
+import com.facebook.react.uimanager.PointerEvents;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
@@ -25,6 +26,10 @@ import java.util.HashSet;
 import java.util.Set;
 
 public final class CUIFocusView extends ReactViewGroup implements View.OnClickListener {
+  PointerEvents authoredPointerEvents() { return super.getPointerEvents(); }
+  @Override public PointerEvents getPointerEvents() {
+    return CUIMenuPointerPolicies.suppresses(this) ? PointerEvents.NONE : super.getPointerEvents();
+  }
   private final SparseArray<KeyEvent> held = new SparseArray<>();
   private final Set<Integer> consumed = new HashSet<>();
   private Set<String> capturedKeys = new HashSet<>();
@@ -227,6 +232,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   @Override public boolean performAccessibilityAction(int action, android.os.Bundle arguments) {
+    if (action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK) CUIMenuPointerPolicies.recordVirtual(this);
     boolean handled = super.performAccessibilityAction(action, arguments);
     if (handled && nativePressable && action == android.view.accessibility.AccessibilityNodeInfo.ACTION_CLICK)
       CUIWindowPointers.activate(this);
