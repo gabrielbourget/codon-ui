@@ -1,6 +1,9 @@
 import "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
 
-import { NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
+import { createRef } from "react"
+import * as RN from "react-native"
+
+import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
 import {
   actWithNativeCollections as act,
@@ -9,6 +12,10 @@ import {
   screen,
   userEvent,
 } from "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
+import {
+  NativeComboBoxGroupContext,
+  NativeComboBoxPopoverContext,
+} from "../../../../../packages/react-native/src/components/ComboBox/collectionContext"
 import { TagComboBoxScene } from "../TagComboBoxScene"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -16,19 +23,79 @@ jest.mock("react-native-safe-area-context", () => ({
   SafeAreaView: jest.requireActual("react-native").View,
 }))
 const hidden = { includeHiddenElements: true }
+const host = createRef<RN.View>(),
+  anchor = createRef<RN.View>(),
+  popup = createRef<RN.View>()
+const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
+let frameSequence = 0
 const scene = (mode: "light" | "dark" = "light") => (
   <NativeThemeProvider mode={mode}>
     <NativeOverlayProvider>
-      <TagComboBoxScene />
+      <NativeFloatingLayerHost testID="fixture-host" ref={host}>
+        <NativeComboBoxGroupContext.Provider value={{ ref: anchor }}>
+          <NativeComboBoxPopoverContext.Provider value={{ ref: popup }}>
+            <TagComboBoxScene />
+          </NativeComboBoxPopoverContext.Provider>
+        </NativeComboBoxGroupContext.Provider>
+      </NativeFloatingLayerHost>
     </NativeOverlayProvider>
   </NativeThemeProvider>
 )
 const press = (name: string) => fireEvent.press(screen.getByRole("button", { name, ...hidden }))
-const choose = (name: string) => act(() => userEvent.setup().press(screen.getByRole("radio", { name })))
-const show = () => fireEvent(screen.getByTestId("combo-box-window", hidden), "show")
+const choose = (name: string) => act(() => userEvent.setup().press(screen.getByRole("option", { name })))
+const show = async () => {
+  const measure = (target: RN.View, box: number[]) =>
+    Object.defineProperty(target, "measureInWindow", {
+      configurable: true,
+      value: (callback: (...values: number[]) => void) => callback(...box),
+    })
+  measure(host.current!, [0, 0, 360, 640])
+  measure(anchor.current!, [10, 40, 260, 48])
+  measure(popup.current!, [0, 0, 260, 180])
+  await fireEvent(screen.getByTestId("fixture-host"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 360, height: 640 } },
+  })
+  await fireEvent(screen.getByTestId("combo-box-popover", hidden), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 260, height: 180 } },
+  })
+  for (const ready of [false, true]) {
+    const scope = screen.getByTestId("fixture-host").props
+    await act(() =>
+      scope.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scope.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: scope.policyRevision,
+          ready,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  for (let turn = 0; turn < 3; turn++)
+    await act(() => {
+      const pending = [...frames.values()]
+      frames.clear()
+      pending.forEach((callback) => callback(0))
+    })
+}
 
-beforeEach(() => jest.useFakeTimers())
+beforeEach(() => {
+  jest.useFakeTimers()
+  frames.clear()
+  jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
+  jest.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
+    const id = ++frameSequence
+    frames.set(id, callback)
+    return id
+  })
+  jest.spyOn(globalThis, "cancelAnimationFrame").mockImplementation((id) => {
+    if (id != null) frames.delete(id)
+  })
+})
 afterEach(() => {
+  jest.restoreAllMocks()
   jest.clearAllTimers()
   jest.useRealTimers()
 })
@@ -52,16 +119,16 @@ it("retains held selection and query across repeated add requests, then shows th
   await show()
   await choose("Empty key")
   await choose("Empty key")
-  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: empty.*Query: "held query"/)
+  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: empty.*Query: "Empty"/)
   expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent(
     'Requests: add:string:"" → input:"" → nested-input:"" → open:false → add:string:"" → input:"" → nested-input:"" → open:false.',
   )
-  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("Empty")
   await choose("Empty key")
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(
     /Selected: string:"".*Query: "".*Open: false/,
   )
-  expect(screen.queryByRole("radio", { name: "Empty key" })).toBeNull()
+  expect(screen.queryByRole("option", { name: "Empty key" })).toBeNull()
 })
 
 it("preserves the original draft and receiver refs through theme, styles and item updates", async () => {
@@ -84,16 +151,27 @@ it("preserves the original draft and receiver refs through theme, styles and ite
 
 it("keeps the source string-key exclusion rule while preserving typed owner keys", async () => {
   await render(scene())
+  await press("Toggle tag-combo empty-collection allowance")
   await press("Set tag-combo number zero")
   await press("Toggle tag-combo owner open")
   await show()
-  expect(screen.queryByRole("radio", { name: "Number zero" })).toBeNull()
-  expect(screen.queryByRole("radio", { name: "String zero" })).toBeNull()
-  expect(screen.getByRole("radio", { name: "Empty key" })).toBeOnTheScreen()
+  expect(screen.queryByRole("option", { name: "Number zero" })).toBeNull()
+  expect(screen.queryByRole("option", { name: "String zero" })).toBeNull()
+  expect(screen.getByRole("option", { name: "Empty key" })).toBeOnTheScreen()
   await press("Set tag-combo string zero")
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: string:"0"/)
   await press("Clear tag-combo items")
   expect(screen.getByTestId("combo-box-empty")).toBeOnTheScreen()
   await press("Restore tag-combo items")
-  expect(screen.getByRole("radio", { name: "Empty key" })).toBeOnTheScreen()
+  expect(screen.getByRole("option", { name: "Empty key" })).toBeOnTheScreen()
+})
+
+it("requests closing once when the confirmed collection becomes empty under the default policy", async () => {
+  await render(scene())
+  await press("Toggle tag-combo owner open")
+  await show()
+  await press("Clear tag-combo items")
+  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Open: false/)
+  expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent("Requests: open:false.")
+  expect(screen.getByTestId("combo-box-input")).toBeOnTheScreen()
 })

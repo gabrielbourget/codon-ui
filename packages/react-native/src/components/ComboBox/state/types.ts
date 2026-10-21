@@ -5,6 +5,7 @@ import type {
   SelectionMode,
 } from "react-stately/useComboBoxState"
 
+import type { TNativeCollectionSnapshot } from "../../../collection/snapshot"
 import type { TNativeListState } from "../../../collection/state"
 import type { Key } from "../../../collection/state/types"
 
@@ -13,16 +14,25 @@ import type { FormValidationState } from "./useFormValidationState"
 export type { MenuTriggerAction, SelectionMode }
 export type ValueType<M extends SelectionMode> = M extends "single" ? Key | null : Key[]
 export type ChangeValueType<M extends SelectionMode> = ValueType<M>
-export type Collection<T> = TSourceComboBoxState<T>["collection"]
+export type Collection<T> = TNativeCollectionSnapshot<T>
 export type ComboBoxStateOptions<T, M extends SelectionMode = "single"> = Omit<
   TSourceComboBoxStateOptions<T, M>,
   "collection" | "children"
-> & { collection: TNativeListState<T>["collection"] }
+> & {
+  collection: TNativeCollectionSnapshot<T>
+  isOpen?: boolean
+  defaultOpen?: boolean
+  name?: string
+  isCollectionPending?: boolean
+}
 export type ComboBoxState<T, M extends SelectionMode = "single"> = Omit<
   TSourceComboBoxState<T, M>,
-  "selectionManager" | keyof FormValidationState
+  "selectionManager" | "collection" | keyof FormValidationState
 > &
-  FormValidationState & { selectionManager: TNativeListState<T>["selectionManager"] }
+  FormValidationState & {
+    selectionManager: TNativeListState<T>["selectionManager"]
+    collection: TNativeCollectionSnapshot<T>
+  }
 export type ValidityState = Readonly<{
   badInput: boolean
   customError: boolean

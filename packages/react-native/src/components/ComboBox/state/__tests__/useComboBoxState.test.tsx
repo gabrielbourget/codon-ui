@@ -8,7 +8,8 @@ import { useComboBoxState } from "../useComboBoxState"
 
 import { collection, ITEMS, sectionCollection, type TItem } from "./collection"
 
-type TState = Omit<ComboBoxState<TItem>, "selectionManager"> & {
+type TState = Omit<ComboBoxState<TItem>, "selectionManager" | "collection"> & {
+  collection: import("react-stately/useComboBoxState").ComboBoxState<TItem>["collection"]
   selectionManager: Pick<TSourceManagerSurface, "focusedKey" | "isFocused" | "selectedKeys" | "setFocusedKey">
 }
 type THook = (props: ComboBoxStateOptions<TItem>) => TState
@@ -25,7 +26,13 @@ const observe = (state: TState) => ({
   selectedItem: state.selectedItem?.key ?? null,
   selectedItems: state.selectedItems.map((node) => [node.key, node.value]),
   keys: [...state.collection.getKeys()],
-  nodes: [...state.collection].map((node) => [node.key, node.index, node.prevKey, node.nextKey, node.textValue]),
+  nodes: [...state.collection].map((node) => [
+    node.key,
+    node.index,
+    node.prevKey ?? null,
+    node.nextKey ?? null,
+    node.textValue,
+  ]),
   size: state.collection.size,
   open: state.isOpen,
   focused: state.isFocused,
@@ -181,4 +188,90 @@ it("retains pinned filtered section traversal, indices, counts and immutable chi
   expect(native.state.keys).toEqual(["section", "b"])
   expect(native.state.size).toBe(2)
   expect([...data.getChildren("section")].map((node) => node.key)).toEqual([0, "", "b"])
+})
+
+it("provides the complete immutable native view after filtering a section", async () => {
+  const original = sectionCollection()
+  const { result } = await renderHook(() =>
+    useComboBoxState({
+      collection: original,
+      defaultItems: ITEMS,
+      defaultFilter: (text, query) => text.toLowerCase().includes(query.toLowerCase()),
+    }),
+  )
+  await act(() => result.current.setInputValue("bet"))
+  await act(() => result.current.open())
+  const view = result.current.collection
+  const section = view.getItem("section")!
+  expect(section.firstChildKey).toBe("b")
+  expect(section.lastChildKey).toBe("b")
+  expect([...view.getChildren("section")]).toEqual([view.getItem("b")])
+  expect(view.at(1)).toBe(view.getItem("b"))
+  expect(view.at(-1)).toBeNull()
+  expect(view.getTextValue("b")).toBe("Beta")
+  const again = view.filter((text) => text === "Beta")
+  expect([...again.getKeys()]).toEqual(["section", "b"])
+  expect(Object.isFrozen(again.getItem("section")!.childNodes)).toBe(true)
+  expect(again.getItem("b")!.value).toBe(ITEMS[2])
+  expect(getNativeCollectionMetadataIdentity(again.getItem("b")!)).toBe(
+    getNativeCollectionMetadataIdentity(original.getItem("b")!),
+  )
+  expect([...original.getChildren("section")].map((node) => node.key)).toEqual([0, "", "b"])
+})
+
+it.each([false, true])(
+  "retains native controlled open=%s through repeated veto and explicit default precedence",
+  async (open) => {
+    const change = jest.fn()
+    const { result } = await renderHook(() =>
+      useComboBoxState({
+        collection: collection(),
+        isOpen: open,
+        defaultOpen: !open,
+        onOpenChange: change,
+      }),
+    )
+    expect(result.current.isOpen).toBe(open)
+    await act(() => result.current.setOpen(!open))
+    await act(() => result.current.setOpen(!open))
+    expect(change.mock.calls).toEqual([
+      [!open, open ? undefined : "focus"],
+      [!open, open ? undefined : "focus"],
+    ])
+    expect(result.current.isOpen).toBe(open)
+  },
+)
+
+it("does not auto-close an unconfirmed native collection or loop after the owner vetoes empty-list closing", async () => {
+  const empty = collection().filter(() => false),
+    changed = jest.fn()
+  const { result, rerender } = await renderHook(
+    ({ pending, open }: { pending: boolean; open: boolean }) =>
+      useComboBoxState({ collection: empty, isOpen: open, isCollectionPending: pending, onOpenChange: changed }),
+    { initialProps: { pending: true, open: true } },
+  )
+  expect(changed).not.toHaveBeenCalled()
+  await rerender({ pending: false, open: true })
+  expect(changed.mock.calls).toEqual([[false, undefined]])
+  expect(result.current.isOpen).toBe(true)
+  await rerender({ pending: false, open: true })
+  expect(changed).toHaveBeenCalledTimes(1)
+  await act(() => result.current.setOpen(false))
+  await act(() => result.current.setOpen(false))
+  expect(changed).toHaveBeenCalledTimes(3)
+  await rerender({ pending: false, open: false })
+  await rerender({ pending: false, open: true })
+  expect(changed).toHaveBeenCalledTimes(4)
+  expect(result.current.isOpen).toBe(true)
+})
+
+it("retains source uncontrolled empty-list closing and explicit empty-collection allowance", async () => {
+  const empty = collection().filter(() => false)
+  const first = await renderHook(() => useComboBoxState({ collection: empty, defaultOpen: true }))
+  expect(first.result.current.isOpen).toBe(false)
+  await first.unmount()
+  const allowed = await renderHook(() =>
+    useComboBoxState({ collection: empty, isOpen: true, allowsEmptyCollection: true }),
+  )
+  expect(allowed.result.current.isOpen).toBe(true)
 })

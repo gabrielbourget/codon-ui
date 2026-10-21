@@ -1,6 +1,7 @@
 import { createRef } from "react"
 import type { TextInput, View } from "react-native"
 
+import { NativeComboBoxContext } from "../../ComboBox/collectionContext"
 import { TagComboBox } from "../TagComboBox"
 
 const items = [{ key: 0, label: "Zero" }]
@@ -30,3 +31,27 @@ export const ownedValue = <TagComboBox {...base} value={null} />
 export const domRef = <TagComboBox {...base} ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Nested ComboBox props cannot replace the owned selection callback.
 export const nestedOwner = <TagComboBox {...base} customComboBoxProps={{ onChange: () => {} }} />
+
+export const parentContracts = (
+  <NativeComboBoxContext.Provider
+    value={{ items: items.values(), isRequired: true, validationBehavior: "native", name: "entry" }}
+  >
+    <TagComboBox
+      {...base}
+      isRequired
+      isInvalid={false}
+      name="entry"
+      allowsCustomValue
+      menuTrigger="manual"
+      validationBehavior="aria"
+      validate={({ inputValue, value, selectedKey }) =>
+        inputValue.length && value === selectedKey ? null : "Choose a value"
+      }
+      onFocus={(event) => event.nativeEvent.target.toFixed()}
+      onFocusChange={(focused) => focused.valueOf()}
+      customComboBoxProps={{
+        style: (state) => ({ opacity: state.isRequired && state.isReadOnly && !state.isInvalid ? 0.5 : 1 }),
+      }}
+    />
+  </NativeComboBoxContext.Provider>
+)

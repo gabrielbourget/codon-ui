@@ -11,7 +11,7 @@ import {
 
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
-import { ComboBox } from "../ComboBox/ComboBox"
+import { NativeCollectionComboBox } from "../ComboBox/CollectionComboBox"
 import { NativeContentContext } from "../NativeContentContext"
 import { Tag } from "../TagGroup/Tag"
 import { TagGroup } from "../TagGroup/TagGroup"
@@ -76,8 +76,6 @@ const TagComboBoxInner = <T extends object>(
     collapsable,
     ...comboProps
   } = props
-  if (children != null && typeof children !== "function")
-    throw new TypeError("TagComboBox: declarative collection integration is not implemented")
   const allItems = useMemo(() => Array.from(items ?? []), [items])
   const currentItems = useRef(allItems)
   const selected = useMemo(
@@ -222,7 +220,7 @@ const TagComboBoxInner = <T extends object>(
             accessibilityLabel={resolved.comboBox.inputButtonGroupAriaLabel}
             testID="tag-combobox-input-group"
           >
-            <ComboBox
+            <NativeCollectionComboBox
               {...innerCombo}
               {...comboProps}
               items={available}
@@ -248,13 +246,14 @@ const TagComboBoxInner = <T extends object>(
               width="100%"
               enableFocusStyle={false}
               emptyListMessage={resolved.comboBox.emptyListMessage}
-              renderItem={typeof children === "function" ? (item) => children(item) : undefined}
               customStyles={[{ height: "100%" }, nestedComboStyles, customComboBoxStyles]}
               customInputButtonGroupStyles={[
                 nestedGroupStyles,
                 { borderWidth: 0, borderTopWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderRightWidth: 0 },
               ]}
-            />
+            >
+              {children}
+            </NativeCollectionComboBox>
           </NativeFocusHost>
         </NativeFocusHost>
       </NativeFocusHost>

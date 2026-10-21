@@ -12,12 +12,11 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
-import { copyNativeCollectionNodeIdentity } from "../../../collection/snapshot"
-import type { FocusStrategy, Key, Node, Selection } from "../../../collection/state/types"
+import type { FocusStrategy, Key, Selection } from "../../../collection/state/types"
 import { useControlledState } from "../../../collection/state/useControlledState"
 import { useListState } from "../../../collection/state/useListState"
 
-import { ListCollection } from "./ListCollection"
+import { ListCollection, filterComboBoxNodes } from "./ListCollection"
 import type {
   ChangeValueType,
   Collection,
@@ -94,7 +93,7 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
     }
   }
 
-  const { collection, selectionManager, disabledKeys } = useListState({
+  const { selectionManager, disabledKeys } = useListState({
     ...props,
     items: props.items ?? props.defaultItems,
     selectionMode,
@@ -123,6 +122,8 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
       }
     },
   })
+
+  const collection = props.collection
 
   const selectedKey = selectionMode === "single" ? selectionManager.firstSelectedKey : null
   const selectedItems = useMemo(() => {
@@ -160,7 +161,7 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
     }
   }
 
-  const triggerState = useOverlayTriggerState({ ...props, onOpenChange, isOpen: undefined, defaultOpen: undefined })
+  const triggerState = useOverlayTriggerState({ ...props, onOpenChange })
   const open = (focusStrategy: FocusStrategy | null = null, trigger?: MenuTriggerAction) => {
     const displayAllItems = trigger === "manual" || (trigger === "focus" && menuTrigger === "focus")
     // Prevent open operations from triggering if there is nothing to display
@@ -244,6 +245,7 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
   }
 
   const lastValueRef = useRef(displayValue)
+  const lastEmptyClose = useRef<Collection<T> | null>(null)
   const lastSelectedKeyText = useRef(selectedKey != null ? (collection.getItem(selectedKey)?.textValue ?? "") : "")
   // intentional omit dependency array, want this to happen on every render
   useEffect(() => {
@@ -261,9 +263,19 @@ export function useComboBoxState<T extends object, M extends SelectionMode = "si
 
     // Close the menu if the collection is empty. Don't close menu if filtered collection size is 0
     // but we are currently showing all items via button press
-    if (!showAllItems && !allowsEmptyCollection && triggerState.isOpen && filteredCollection.size === 0) {
-      closeMenu()
-    }
+    if (
+      !showAllItems &&
+      !allowsEmptyCollection &&
+      triggerState.isOpen &&
+      filteredCollection.size === 0 &&
+      !props.isCollectionPending
+    ) {
+      // A declined native controlled close must not request itself again on its own reset render.
+      if (props.isOpen === undefined || lastEmptyClose.current !== filteredCollection) {
+        lastEmptyClose.current = filteredCollection
+        closeMenu()
+      }
+    } else lastEmptyClose.current = null
 
     // Close when an item is selected.
     if (displayValue != null && displayValue !== lastValueRef.current && selectionMode === "single") {
@@ -448,30 +460,7 @@ function filterCollection<T extends object>(
   inputValue: string,
   filter: FilterFn,
 ): Collection<T> {
-  return new ListCollection(filterNodes(collection, collection, inputValue, filter))
-}
-
-function filterNodes<T>(
-  collection: Collection<T>,
-  nodes: Iterable<Node<T>>,
-  inputValue: string,
-  filter: FilterFn,
-): Iterable<Node<T>> {
-  const filteredNode: Node<T>[] = []
-  for (const node of nodes) {
-    if (node.type === "section" && node.hasChildNodes) {
-      const children = typeof collection.getChildren === "function" ? collection.getChildren(node.key) : node.childNodes
-      const filtered = filterNodes(collection, children, inputValue, filter)
-      if ([...filtered].some((node) => node.type === "item")) {
-        filteredNode.push(copyNativeCollectionNodeIdentity(node, { ...node, childNodes: filtered }))
-      }
-    } else if (node.type === "item" && filter(node.textValue, inputValue)) {
-      filteredNode.push(copyNativeCollectionNodeIdentity(node, { ...node }))
-    } else if (node.type !== "item") {
-      filteredNode.push(copyNativeCollectionNodeIdentity(node, { ...node }))
-    }
-  }
-  return filteredNode
+  return new ListCollection(filterComboBoxNodes(collection, collection, (text) => filter(text, inputValue)))
 }
 
 function getDefaultInputValue(

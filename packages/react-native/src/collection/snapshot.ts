@@ -130,11 +130,11 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
     }
     return null
   }
-  at = (_index: number): TNativeCollectionNode<T> => {
+  at = (_index: number): TNativeCollectionNode<T> | null => {
     throw new Error("Not implemented")
   }
 
-  filter = (predicate: TFilter<T>): NativeCollectionSnapshot<T> => {
+  filter = (predicate: TFilter<T>): TNativeCollectionSnapshot<T> => {
     const membership = new Map<TNativeCollectionKey, TNodeFields<T>>()
     const identities = new Map<TNativeCollectionKey, TMetadataIdentity | undefined>()
     const addDescendants = (node: TNodeFields<T>) => {
@@ -193,12 +193,12 @@ class NativeCollectionSnapshot<T> implements TSourceCollection<T> {
   }
 }
 
-export type TNativeCollectionSnapshot<T> = NativeCollectionSnapshot<T>
+export type TNativeCollectionSnapshot<T> = Pick<NativeCollectionSnapshot<T>, keyof NativeCollectionSnapshot<T>>
 
 export const createNativeCollectionSnapshot = <T>(
   hierarchy: readonly TNativeCollectionHierarchyEntry[],
   descriptors: ReadonlyMap<string, TNativeCollectionDescriptor<T>>,
-  previous?: NativeCollectionSnapshot<T> | null,
+  previous?: TNativeCollectionSnapshot<T> | null,
 ): NativeCollectionSnapshot<T> => {
   const byId = new Map<string, TNativeCollectionHierarchyEntry>()
   const children = new Map<string, TNativeCollectionHierarchyEntry[]>()

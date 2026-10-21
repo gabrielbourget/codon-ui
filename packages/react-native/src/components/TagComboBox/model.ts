@@ -44,7 +44,12 @@ export const getNativeTagComboBoxLabels = <T extends object>(
     triggerButtonAriaLabel: "Show suggestions",
     emptyListMessage:
       props.emptyListMessage ?? props.customComboBoxProps?.emptyListMessage ?? "No items remaining to select",
-    inputLabel: props.inputLabel ?? props.customComboBoxProps?.inputLabel ?? "Search choices",
+    inputLabel:
+      props.inputLabel ??
+      props.customComboBoxProps?.inputLabel ??
+      props.accessibilityLabel ??
+      props["aria-label"] ??
+      "Search choices",
     closeLabel: props.closeLabel ?? props.customComboBoxProps?.closeLabel ?? "Close choices",
     ...props.labels?.comboBox,
     ...props.customComboBoxProps?.labels,
