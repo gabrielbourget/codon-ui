@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type Ref } from "react"
 import { ScrollView, View } from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
@@ -75,7 +75,7 @@ const initial = (): TNativeQueryApplyRequest => ({
 })
 
 // Nonshipping controls and non-temporal editors. The root wrapper, Card row and date policy remain open.
-const FilterControlProbe = () => {
+const FilterControlProbe = ({ floatingRef }: { floatingRef?: Ref<View> }) => {
   const [confirmed, setConfirmed] = useState(initial)
   const [metadata, setMetadata] = useState(criteria)
   const [echo, setEcho] = useState(false)
@@ -106,7 +106,7 @@ const FilterControlProbe = () => {
   }
   return (
     <NativeThemeProvider mode={mode}>
-      <NativeFloatingLayerHost>
+      <NativeFloatingLayerHost ref={floatingRef}>
         <ScrollView>
           <Text>Private filter controls</Text>
           <Text>
