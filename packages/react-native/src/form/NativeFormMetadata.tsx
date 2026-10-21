@@ -1,4 +1,4 @@
-import type { ComponentProps } from "react"
+import type { ComponentProps, ComponentRef, Ref } from "react"
 
 import Field from "../input/specs/CUIFieldBindingNativeComponent"
 import Form from "../input/specs/CUIFormRootNativeComponent"
@@ -16,12 +16,22 @@ const metadataProps = {
 
 type TFormProps = Pick<
   ComponentProps<typeof Form>,
-  "ownerId" | "descriptorId" | "descriptorRevision" | "formTarget" | "formId"
->
+  "ownerId" | "descriptorId" | "descriptorRevision" | "formTarget" | "formId" | "onNativeFormCommit"
+> & { metadataRef?: Ref<ComponentRef<typeof Form>> }
 type TFieldProps = Pick<
   ComponentProps<typeof Field>,
-  "ownerId" | "descriptorId" | "descriptorRevision" | "editorTarget" | "hasFormAssociation" | "formId"
->
+  | "ownerId"
+  | "descriptorId"
+  | "descriptorRevision"
+  | "editorTarget"
+  | "hasFormAssociation"
+  | "formId"
+  | "onNativeFormCommit"
+> & { metadataRef?: Ref<ComponentRef<typeof Field>> }
 
-export const NativeFormMetadata = (props: TFormProps) => <Form {...props} {...metadataProps} />
-export const NativeFieldMetadata = (props: TFieldProps) => <Field {...props} {...metadataProps} />
+export const NativeFormMetadata = ({ metadataRef, ...props }: TFormProps) => (
+  <Form ref={metadataRef} {...props} {...metadataProps} />
+)
+export const NativeFieldMetadata = ({ metadataRef, ...props }: TFieldProps) => (
+  <Field ref={metadataRef} {...props} {...metadataProps} />
+)

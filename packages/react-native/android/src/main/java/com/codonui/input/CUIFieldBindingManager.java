@@ -9,6 +9,9 @@ import com.facebook.react.viewmanagers.CUIFieldBindingManagerDelegate;
 import com.facebook.react.viewmanagers.CUIFieldBindingManagerInterface;
 import com.facebook.react.views.view.ReactViewGroup;
 import com.facebook.react.views.view.ReactViewManager;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 @ReactModule(name = CUIFieldBindingManager.NAME)
 public final class CUIFieldBindingManager extends ReactViewManager implements CUIFieldBindingManagerInterface<ReactViewGroup> {
@@ -22,12 +25,19 @@ public final class CUIFieldBindingManager extends ReactViewManager implements CU
   };
   @Override public String getName() { return NAME; }
   @Override protected ViewManagerDelegate<ReactViewGroup> getDelegate() { return delegate; }
-  @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUICollectionNode(context); }
-  @Override @ReactProp(name = "ownerId") public void setOwnerId(ReactViewGroup view, String value) {}
-  @Override @ReactProp(name = "descriptorId") public void setDescriptorId(ReactViewGroup view, String value) {}
-  @Override @ReactProp(name = "descriptorRevision") public void setDescriptorRevision(ReactViewGroup view, String value) {}
-  @Override @ReactProp(name = "editorTarget") public void setEditorTarget(ReactViewGroup view, int value) {}
+  @Override public ReactViewGroup createViewInstance(ThemedReactContext context) { return new CUIFormMetadataView(context, true); }
+  @Override @ReactProp(name = "ownerId") public void setOwnerId(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).ownerId = value == null ? "" : value; }
+  @Override @ReactProp(name = "descriptorId") public void setDescriptorId(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).descriptorId = value == null ? "" : value; }
+  @Override @ReactProp(name = "descriptorRevision") public void setDescriptorRevision(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).descriptorRevision = value == null ? "" : value; }
+  @Override @ReactProp(name = "editorTarget") public void setEditorTarget(ReactViewGroup view, int value) { ((CUIFormMetadataView)view).originalTarget = value; }
   @Override @ReactProp(name = "hasFormAssociation") public void setHasFormAssociation(ReactViewGroup view, boolean value) {}
   @Override @ReactProp(name = "formId") public void setFormId(ReactViewGroup view, String value) {}
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUICollectionNode)view).enforceMetadata(); }
+  @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIFormMetadataView)view).retire(); super.onDropViewInstance(view); }
+  @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
+    Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();
+    if (inherited != null) events.putAll(inherited);
+    events.put("topNativeFormCommit", Collections.singletonMap("registrationName", "onNativeFormCommit")); return events;
+  }
+
 }
