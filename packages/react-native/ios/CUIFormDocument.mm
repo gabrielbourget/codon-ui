@@ -1,4 +1,5 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
+#import "CUIFormDocumentInspection.h"
 #import <React/RCTAssert.h>
 #import <React/RCTInvalidating.h>
 #import <React/RCTScheduler.h>
@@ -56,6 +57,14 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error] mutableCopy];
       if (!response || error) throw std::runtime_error("Native form: invalid snapshot encoding");
       response[@"requestId"] = nonce;
+      if ([request[@"inspect"] isEqual:@YES]) {
+        id control = request[@"controlTarget"];
+        if (control && (![control isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)control) == CFBooleanGetTypeID() || !std::isfinite([control doubleValue]) || [control doubleValue] <= 0 || [control doubleValue] > INT_MAX || [control doubleValue] != std::floor([control doubleValue])))
+          throw std::runtime_error("Native form: invalid control target");
+        response[@"inspection"] = CUIInspectFormDocument(presenter, response, [request[@"probeCustomContent"] isEqual:@YES], control);
+        if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
+          throw std::runtime_error("Native form: document retired during inspection");
+      }
       NSData *data = [NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:&error];
       if (!data || error) throw std::runtime_error("Native form: invalid snapshot encoding");
       resolve([[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);

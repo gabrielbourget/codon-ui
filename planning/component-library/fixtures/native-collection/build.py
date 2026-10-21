@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[4]
 FIXTURE = Path(__file__).resolve().parent
 LAB = Path.home() / ".local/share/codon-native-lab"
 STAGE = REPO / "apps/native-showcase/.expo/codon-collection-gate"
-FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py"]
+FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py"]
 
 
 def digest(path):
@@ -75,9 +75,10 @@ def prepare(root, profile="metadata"):
     STAGE.mkdir(parents=True, exist_ok=True)
     stage_names = ["App.tsx", "gate.ts", "index.ts", "identity.ts"]
     if profile == "authoring": stage_names += ["AuthoringApp.tsx", "authoring.ts"]
+    if profile == "form": stage_names = ["FormApp.tsx", "form.ts", "index.ts", "identity.ts"]
     for name in stage_names:
         if name == "identity.ts": continue
-        source_name = "authoring-index.ts" if profile == "authoring" and name == "index.ts" else name
+        source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "index.ts") if name == "index.ts" else name
         shutil.copyfile(FIXTURE / source_name, STAGE / name)
     (STAGE / "identity.ts").write_text('export const SOURCE_PRODUCER = ' + json.dumps(producer) + '\n')
     native = {}
@@ -106,7 +107,8 @@ def prove_android(root):
     with zipfile.ZipFile(apk) as archive:
         assert archive.read("assets/index.android.bundle") == bundle.read_bytes()
         dex = b"".join(archive.read(name) for name in archive.namelist() if name.startswith("classes") and name.endswith(".dex"))
-        assert all(("Lcom/codonui/input/" + name + ";").encode() in dex for name in ["CUICollectionRoot", "CUICollectionNode"])
+        native_classes = ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") == "form" else ["CUICollectionRoot", "CUICollectionNode"]
+        assert all(("Lcom/codonui/input/" + name + ";").encode() in dex for name in native_classes)
     data = json.loads(mapping.read_text())
     library, fixture, react = {}, {}, set()
     for name, text in zip(data["sources"], data["sourcesContent"]):
@@ -133,15 +135,81 @@ def prove_android(root):
     print("Matching private Android product", proof["apkSHA256"], flush=True)
 
 
+def prove_ios(root):
+    inputs = verify(root)
+    app = LAB / "ios-app-derived-data/Build/Products/Release-iphonesimulator/CodonNativeShowcase.app"
+    binary, bundle, mapping = app / "CodonNativeShowcase", app / "main.jsbundle", root / "ios-main.jsbundle.map"
+    data = json.loads(mapping.read_text()); library, fixture, react = {}, {}, set()
+    for name, text in zip(data["sources"], data["sourcesContent"]):
+        assert not any(part in name for part in ["/node_modules/react-dom/", "/node_modules/react-aria/", "/node_modules/react-aria-components/", "/node_modules/react-native-web/", "/__tests__/"]), name
+        if "/node_modules/react/" in name: react.add(name.split("/node_modules/react/")[0])
+        if "packages/react-native/" in name:
+            source_name = "packages/react-native/" + name.split("packages/react-native/", 1)[1]
+            assert text is not None and hashlib.sha256(text.encode()).hexdigest() == inputs["sourceInputs"][source_name]
+            library[source_name] = inputs["sourceInputs"][source_name]
+        if ".expo/codon-collection-gate/" in name:
+            source_name = name.split(".expo/codon-collection-gate/", 1)[1]
+            assert text is not None and hashlib.sha256(text.encode()).hexdigest() == inputs["stageInputs"][source_name]
+            fixture[source_name] = inputs["stageInputs"][source_name]
+    assert len(react) == 1 and "react@19.2.3" in next(iter(react))
+    assert set(fixture) == set(inputs["stageInputs"])
+    classes = ["CUIFormRoot", "CUIFieldBinding", "CUIFormMetadataView", "CUIFormDocument", "CUIFieldCustomContentLease"]
+    symbols = subprocess.check_output(["/usr/bin/nm", "-gU", str(binary)], text=True)
+    assert all("_OBJC_CLASS_$_" + name in symbols for name in classes)
+    assert "x86_64" in subprocess.check_output(["/usr/bin/file", str(binary)], text=True)
+    signed = subprocess.run(["/usr/bin/codesign", "-dv", str(app)], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    assert signed.returncode != 0 and b"not signed" in signed.stdout
+    (root / "ios-signature.txt").write_bytes(signed.stdout)
+    artifacts = {}
+    for name, source in [("ios-binary", binary), ("ios-main.jsbundle", bundle)]:
+        shutil.copyfile(source, root / name); artifacts[name] = digest(source)
+    archive = root / "ios-app.zip"
+    command(root, "ios-archive", ["/usr/bin/ditto", "-c", "-k", "--sequesterRsrc", "--keepParent", app, archive], 180)
+    artifacts[archive.name] = digest(archive)
+    proof = {"producer":inputs["producer"], "binarySHA256":digest(binary), "bundleSHA256":digest(bundle), "artifactsSHA256":artifacts, "librarySHA256":library, "fixtureSHA256":fixture, "singleReactRoot":sorted(react), "nativeClasses":classes, "unsignedSimulator":True, "architecture":"x86_64", "nativeActions":0, "sourceGateOnly":True, "bundleFilesSHA256":{path.relative_to(app).as_posix():digest(path) for path in sorted(app.rglob("*")) if path.is_file()}}
+    (root / "ios-product.json").write_text(json.dumps(proof, indent=2) + "\n")
+    print("Matching private iOS product", proof["binarySHA256"], flush=True)
+
+
+def ios(root):
+    inputs = verify(root)
+    assert inputs["profile"] == "form" and time.time() < inputs["deadlineUnix"]
+    lock = REPO / "apps/native-showcase/ios/Podfile.lock"
+    ruby = LAB / "ruby-3.4.11/bin/ruby"
+    def pod_lock(path):
+        return json.loads(subprocess.check_output([ruby, "-ryaml", "-rjson", "-e", "puts JSON.generate(YAML.safe_load(File.read(ARGV[0]), permitted_classes: [Symbol], aliases: true))", str(path)], env=environment(), text=True))
+    before = pod_lock(lock)
+    command(root, "ios-pods", [LAB / "ios-gems/bin/pod", "install", "--no-repo-update"], min(900, int(inputs["deadlineUnix"] - time.time())), REPO / "apps/native-showcase/ios")
+    after = pod_lock(lock); expected = json.loads(json.dumps(before))
+    changed = [key for key in after["SPEC CHECKSUMS"] if after["SPEC CHECKSUMS"][key] != before["SPEC CHECKSUMS"].get(key)]
+    assert set(changed) <= {"CodonNativeInput", "ReactCodegen", "ReactAppDependencyProvider"}, changed
+    for key in changed: expected["SPEC CHECKSUMS"][key] = after["SPEC CHECKSUMS"][key]
+    assert expected == after, "Pinned Pod versions/other lock sections changed"
+    inputs["podsChecked"] = True
+    (root / "inputs.json").write_text(json.dumps(inputs, indent=2) + "\n")
+    (root / "ios-Podfile.lock").write_bytes(lock.read_bytes())
+    verify(root)
+    generated = REPO / "apps/native-showcase/ios/build/generated/ios/ReactCodegen/RCTThirdPartyComponentsProvider.mm"
+    assert all(name in generated.read_text() for name in ["CUIFormRoot", "CUIFieldBinding"])
+    project = REPO / "apps/native-showcase/ios/Pods/Pods.xcodeproj/project.pbxproj"
+    assert "CUIFormDocumentInspection.mm" in project.read_text()
+    (root / "ios-integration.json").write_text(json.dumps({"producer":inputs["producer"], "ownedChecksumChanges":changed, "allPinnedVersionsUnchanged":True, "actualInspectionUnitIncluded":True, "providerSHA256":digest(generated)}, indent=2) + "\n")
+    extra = {"ENTRY_FILE":str(STAGE / "index.ts"), "FORCE_BUNDLING":"1", "EXTRA_PACKAGER_ARGS":"--max-workers 2"}
+    command(root, "ios-build", ["/usr/bin/xcodebuild", "-jobs", "2", "-workspace", "CodonNativeShowcase.xcworkspace", "-scheme", "CodonNativeShowcase", "-configuration", "Release", "-sdk", "iphonesimulator", "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", LAB / "ios-app-derived-data", "ARCHS=x86_64", "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "SOURCEMAP_FILE=" + str(root / "ios-main.jsbundle.map"), "build"], min(2700, int(inputs["deadlineUnix"] - time.time())), REPO / "apps/native-showcase/ios", extra_env=extra)
+    prove_ios(root)
+
+
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("phase", choices=["prepare", "android", "prove-android"])
+    parser.add_argument("phase", choices=["prepare", "android", "prove-android", "ios", "prove-ios"])
     parser.add_argument("root", type=Path)
-    parser.add_argument("--profile", choices=["metadata", "authoring"], default="metadata")
+    parser.add_argument("--profile", choices=["metadata", "authoring", "form"], default="metadata")
     args = parser.parse_args()
     root = args.root.resolve()
     if args.phase == "prepare": prepare(root, args.profile)
     elif args.phase == "prove-android": prove_android(root)
+    elif args.phase == "prove-ios": prove_ios(root)
+    elif args.phase == "ios": ios(root)
     else:
         inputs = verify(root)
         assert time.time() < inputs["deadlineUnix"]

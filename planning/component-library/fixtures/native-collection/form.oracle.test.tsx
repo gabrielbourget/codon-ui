@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs"
 import { act, fireEvent, render, screen } from "@testing-library/react"
 import { createRef, useContext } from "react"
+import { createPortal } from "react-dom"
 import { ComboBoxStateContext, Form } from "react-aria-components"
 import { afterAll, expect, it, vi } from "vitest"
 
@@ -216,4 +217,40 @@ it("keeps aria validation observational while native requestSubmit suppresses in
   expect(submit).toHaveBeenCalledOnce()
   fireEvent.change(screen.getByRole("combobox"), { target: { value: "Alpha" } })
   records.push({ nativeInvalidSuppressesSubmit: true, ariaAllowsSubmit: true })
+})
+
+it("records DOM portal association separately from the approved native retained-tree correspondence", () => {
+  const target = document.createElement("div")
+  document.body.append(target)
+  const form = createRef<HTMLFormElement>()
+  const view = render(
+    <Form id="source-portal-form" ref={form}>
+      <ComboBox {...options} name="local" formValue="text" inputValue="inside" />
+      {createPortal(
+        <>
+          <ComboBox {...options} name="implicit-portal" formValue="text" inputValue="outside" />
+          <ComboBox
+            {...options}
+            name="explicit-portal"
+            form="source-portal-form"
+            formValue="text"
+            inputValue="associated"
+          />
+        </>,
+        target,
+      )}
+    </Form>,
+  )
+  expect(entries(form.current!)).toEqual([
+    ["explicit-portal", "associated"],
+    ["local", "inside"],
+  ])
+  records.push({
+    sourcePortalMembershipUsesDOMAncestry: true,
+    sourceEntries: entries(form.current!),
+    approvedNativeCorrespondence:
+      "One Fabric document uses retained committed ancestry/order, including logical portals and modal descendants",
+  })
+  view.unmount()
+  target.remove()
 })
