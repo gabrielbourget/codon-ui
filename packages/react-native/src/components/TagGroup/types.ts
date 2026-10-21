@@ -34,6 +34,10 @@ export type TNativeTagGroupLabels = Readonly<{
   removeDescription?: string
   descriptionLabel?: string
   detailsLabel?: string
+  selectedItem?: (textValue: string) => string
+  deselectedItem?: (textValue: string) => string
+  selectedCount?: (count: number) => string
+  selectedAll?: string
 }>
 export type TNativeTagGroupProps<T extends object = object> = Omit<
   TNativeFocusViewProps,

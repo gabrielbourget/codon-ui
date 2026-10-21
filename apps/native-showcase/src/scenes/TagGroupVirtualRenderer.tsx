@@ -7,12 +7,8 @@ import {
   type TNativeCollectionRect,
   type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
-} from "../../../../packages/react-native/src/collection/renderer"
-import type {
-  TNativeCollectionKey,
-  TNativeCollectionNode,
-} from "../../../../packages/react-native/src/collection/snapshot"
-import { encodeCollectionKey } from "../../../../packages/react-native/src/components/collection"
+} from "@codon-ui/react-native"
+import type { TNativeCollectionKey, TNativeCollectionNode } from "@codon-ui/react-native"
 
 type TNode = TNativeCollectionNode<unknown>
 type TCellProps = ComponentProps<NonNullable<VirtualizedListProps<TNode>["CellRendererComponent"]>>
@@ -105,7 +101,7 @@ const VirtualRoot = ({
       data={data}
       getItem={(items: TNode[], index) => items[index]}
       getItemCount={(items: TNode[]) => items.length}
-      keyExtractor={(node) => encodeCollectionKey(node.key)}
+      keyExtractor={(node) => JSON.stringify([typeof node.key, node.key])}
       renderItem={({ item }) => item.render?.(item) ?? null}
       CellRendererComponent={Cell}
       initialNumToRender={4}

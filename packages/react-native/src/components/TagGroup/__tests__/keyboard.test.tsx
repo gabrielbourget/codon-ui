@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { fireEvent, screen } from "@testing-library/react-native"
 import { createRef, Fragment, useContext, useState, type ReactNode, type RefObject } from "react"
 import * as RN from "react-native"

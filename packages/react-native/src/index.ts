@@ -148,6 +148,76 @@ export type {
   TNativeLinkStyleState,
 } from "./components/Link/types"
 export { Tag } from "./components/Tag/Tag"
+export { TagGroup, NativeTagList } from "./components/TagGroup/TagGroup"
+export { Tag as TagGroupItem } from "./components/TagGroup/Tag"
+export {
+  NativeTagGroupContext,
+  NativeTagListContext,
+  NativeTagGroupStateContext as NativeTagListStateContext,
+} from "./components/TagGroup/context"
+export {
+  TagGroupLabel,
+  TagGroupText,
+  NativeTagGroupLabelContext,
+  NativeTagGroupTextContext,
+} from "./components/TagGroup/field"
+export type { TNativeTagGroupTextProps } from "./components/TagGroup/field"
+export type {
+  TNativeTagGroupProps,
+  TNativeTagGroupProps as TagGroupProps,
+  TNativeTagGroupRef,
+  TNativeGroupedTagProps,
+  TNativeGroupedTagProps as TagGroupItemProps,
+  TNativeGroupedTagRef,
+  TNativeTagGroupLabels,
+  TNativeTagGroupEmptyState,
+  TNativeTagGroupSnapshot,
+  TNativeTagListProps,
+} from "./components/TagGroup/types"
+export { NATIVE_TAG_GROUP_ORIENTATIONS } from "./components/TagGroup/visualTypes"
+export type {
+  TNativeTagGroupOrientation,
+  TNativeTagGroupOrientation as TagGroupOrientation,
+  TNativeTagGroupVisualProps,
+  TNativeGroupedTagVisualProps,
+  TNativeGroupedTagState,
+} from "./components/TagGroup/visualTypes"
+export { NATIVE_TAG_GROUP_SELECTION_MODES, NATIVE_TAG_GROUP_SELECTION_BEHAVIORS } from "./components/TagGroup/model"
+export type {
+  TNativeTagGroupKey,
+  TNativeTagGroupSelectionMode,
+  TNativeTagGroupSelectionBehavior,
+} from "./components/TagGroup/model"
+export { NativeCollection } from "./collection/CollectionBuilder"
+export {
+  NATIVE_DEFAULT_SLOT,
+  NativeSelectableCollectionContext,
+  NativeSelectionIndicatorContext,
+} from "./collection/context"
+export type {
+  TNativeContextValue,
+  TNativeSlotProps,
+  TNativeSelectableCollectionContextValue,
+} from "./collection/context"
+export {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionRendererContext,
+  NativeCollectionCellFocusContext,
+} from "./collection/renderer"
+export type {
+  TNativeCollectionRenderer,
+  TNativeCollectionRootProps,
+  TNativeCollectionBranchProps,
+  TNativeCollectionLayoutDelegate,
+  TNativeCollectionRect,
+  TNativeCollectionScrollHost,
+  TNativeCollectionDropTarget,
+  TNativeCollectionItemDropTarget,
+} from "./collection/renderer"
+export type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "./collection/snapshot"
+export { NativeListStateContext } from "./collection/state"
+export type { TNativeListState } from "./collection/state"
+export { NativeButtonContext } from "./components/Button/context"
 export { AVAILABLE_NATIVE_TAG_EASINGS } from "./components/Tag/types"
 export type {
   TNativeTagProps,

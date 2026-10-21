@@ -1,19 +1,24 @@
 import { createRef, useContext } from "react"
 import type { View } from "react-native"
 
-import { NativeCollection } from "../src/collection/CollectionBuilder"
-import { NATIVE_DEFAULT_SLOT } from "../src/collection/context"
 import {
+  NativeCollection,
+  NATIVE_DEFAULT_SLOT,
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
+  NativeListStateContext,
+  NativeTagListStateContext,
+  NativeTagGroupContext,
+  NativeTagListContext,
+  NativeFocusView,
+  TagGroup,
+  TagGroupItem as Tag,
+  TagGroupLabel,
+  TagGroupText,
+  Button,
   type TNativeCollectionRenderer,
-} from "../src/collection/renderer"
-import type { TNativeCollectionSnapshot } from "../src/collection/snapshot"
-import { NativeListStateContext } from "../src/collection/state"
-import { NativeTagGroupContext, NativeTagListContext } from "../src/components/TagGroup/context"
-import { Tag } from "../src/components/TagGroup/Tag"
-import { TagGroup } from "../src/components/TagGroup/TagGroup"
-import { NativeFocusView } from "../src/input/NativeFocusView"
+  type TNativeCollectionSnapshot,
+} from "../src"
 
 const values = [
   { id: 0, label: "Zero" },
@@ -28,6 +33,7 @@ export const NativeTagGroupContract = (
   <TagGroup
     ref={createRef<View>()}
     selectionMode="multiple"
+    labels={{ selectedItem: (text) => `Selected: ${text}`, selectedCount: (count) => String(count), selectedAll: "" }}
     selectedKeys="all"
     items={values}
     render={(props, state) => {
@@ -119,3 +125,49 @@ export const invalidCollectionRef = <TagGroup ref="tags" />
 export const invalidNativeRect: NonNullable<TNativeCollectionRenderer["layoutDelegate"]> = { getItemRect: () => "0px" }
 // @ts-expect-error Only typed business keys are accepted.
 export const invalidNativeKeys = <TagGroup selectedKeys={[{}]} />
+
+export const NativeGroupedItemRendering = (
+  <TagGroup selectionMode="multiple" onRemove={(keys) => keys.has(0)}>
+    <Tag
+      id={0}
+      autoFocus
+      render={(props, state) => <NativeFocusView {...props} accessibilityHint={String(state.isSelected)} />}
+      style={({ defaultStyle, isFocusVisible }) => [defaultStyle, { opacity: isFocusVisible ? 1 : 0.8 }]}
+    >
+      {(state) => (
+        <Button slot="remove" isDisabled={state.isDisabled}>
+          Remove zero
+        </Button>
+      )}
+    </Tag>
+  </TagGroup>
+)
+export const NativeFieldRenderer: TNativeCollectionRenderer = {
+  ...DefaultNativeCollectionRenderer,
+  CollectionRoot: (props) => {
+    const Root = DefaultNativeCollectionRenderer.CollectionRoot
+    return (
+      <>
+        <TagGroupLabel>Tags</TagGroupLabel>
+        <TagGroupText slot="description">Owner instructions</TagGroupText>
+        <Root {...props} />
+      </>
+    )
+  },
+}
+export const NativeSameCompleteListState = () => {
+  const list = useContext(NativeListStateContext)
+  const tags = useContext(NativeTagListStateContext)
+  list?.selectionManager.setSelectedKeys([0, "0"])
+  tags?.selectionManager.extendSelection(0)
+  return String(list === tags)
+}
+// @ts-expect-error Private native focus-routing fields are not part of the grouped-item API.
+export const invalidGroupedNativePolicy = <Tag nativeTabStop />
+// @ts-expect-error Collection metadata identities remain private native construction fields.
+export const invalidGroupedNativeIdentity = <Tag descriptorId="invented" />
+// @ts-expect-error Canonical grouped item render accepts a function, not an element shorthand.
+export const invalidGroupedRender = <Tag render={<NativeFocusView />} />
+
+// @ts-expect-error Localized selection-count callbacks receive a number.
+export const invalidAnnouncementCount = <TagGroup labels={{ selectedCount: (count: string) => count }} />

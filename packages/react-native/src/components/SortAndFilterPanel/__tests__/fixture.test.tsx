@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { act, screen, within } from "@testing-library/react-native"
 import { useContext } from "react"
 import { Platform } from "react-native"
