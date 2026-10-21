@@ -1,19 +1,23 @@
 import { createContext, createRef, useContext, useMemo, useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
-import { Button, NativeFocusView, Text, useNativeTheme } from "@codon-ui/react-native"
-
-import { NativeCollection } from "../../../../packages/react-native/src/collection/CollectionBuilder"
-import { NativeSelectableCollectionContext } from "../../../../packages/react-native/src/collection/context"
 import {
+  Button,
+  NativeFocusView,
+  Text,
+  useNativeTheme,
+  NativeCollection,
+  NativeSelectableCollectionContext,
   DefaultNativeCollectionRenderer,
   NativeCollectionRendererContext,
+  TagGroupLabel,
+  TagGroupText,
+  TagGroupItem as Tag,
+  TagGroup,
   type TNativeCollectionRootProps,
-} from "../../../../packages/react-native/src/collection/renderer"
-import { TagGroupLabel, TagGroupText } from "../../../../packages/react-native/src/components/TagGroup/field"
-import { Tag } from "../../../../packages/react-native/src/components/TagGroup/Tag"
-import { TagGroup } from "../../../../packages/react-native/src/components/TagGroup/TagGroup"
-import type { TNativeTagGroupProps } from "../../../../packages/react-native/src/components/TagGroup/types"
+  type TNativeTagGroupProps,
+} from "@codon-ui/react-native"
+
 import { inspectNativeAccessibility } from "../../../../packages/react-native/src/input/accessibilityInspection"
 
 import { useTagGroupVirtualRenderer } from "./TagGroupVirtualRenderer"
@@ -58,7 +62,7 @@ const FieldRoot = (props: TNativeCollectionRootProps) => {
   )
 }
 
-// Private family construction scene; no public counterpart or installed acceptance is implied.
+// Maintained public-source scene; installed acceptance is recorded separately.
 export const TagGroupScene = () => {
   const theme = useNativeTheme()
   const [items, setItems] = useState(ITEMS)
@@ -140,7 +144,7 @@ export const TagGroupScene = () => {
   return (
     <View style={{ gap: 12 }}>
       <Text elementType="h2" variant="h3">
-        Private TagGroup construction
+        TagGroup
       </Text>
       <Text testID="tag-group-owner-state">
         Owner: {describeKeys(selected)}. Mode: {MODES[modeIndex]}. Behavior: {replace ? "replace" : "toggle"}. Parent:{" "}

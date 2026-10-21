@@ -273,7 +273,7 @@ export const NativeShowcase = () => {
               <FixtureAction label="Avatar scene" selected={scene === "avatar"} onPress={() => setScene("avatar")} />
               <FixtureAction label="Tag scene" selected={scene === "tag"} onPress={() => setScene("tag")} />
               <FixtureAction
-                label="Private TagGroup scene"
+                label="TagGroup scene"
                 selected={scene === "tag-group"}
                 onPress={() => setScene("tag-group")}
               />

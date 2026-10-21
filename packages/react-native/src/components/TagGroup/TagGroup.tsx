@@ -77,6 +77,7 @@ import {
 import { getNativeTagGroupStyles } from "./styles"
 import { NativeTagList } from "./TagList"
 import type { TNativeTagGroupProps, TNativeTagGroupRef } from "./types"
+import { useNativeTagSelectionAnnouncement } from "./useSelectionAnnouncement"
 
 const KeyBindings = ({
   targetTag,
@@ -189,6 +190,7 @@ const NativeTagGroup = <T extends object>({
     [filter],
   )
   const state = UNSTABLE_useFilteredListState(unfilteredState, filterNode)
+  useNativeTagSelectionAnnouncement(state, labels)
   const collection = state.collection as TNativeCollectionSnapshot<T>
   const actions = useContext(NativeCollectionActionsContext)
   const manager = state.selectionManager

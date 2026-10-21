@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { screen } from "@testing-library/react-native"
 import { isValidElement } from "react"
 import { StyleSheet } from "react-native"

@@ -1,3 +1,5 @@
+import "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
+
 import type { NativeSyntheticEvent } from "react-native"
 
 import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"

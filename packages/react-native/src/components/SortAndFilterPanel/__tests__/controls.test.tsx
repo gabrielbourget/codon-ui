@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { act, screen, within } from "@testing-library/react-native"
 import { createRef, useContext, type ReactNode } from "react"
 import { AccessibilityInfo, StyleSheet, type View } from "react-native"

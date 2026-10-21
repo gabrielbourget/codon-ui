@@ -1,5 +1,5 @@
 {
-  "status": "Private supported TagGroup source and maintained SDK inspection construction; installed/native/full-family acceptance remains open.",
+  "status": "TGRP-01 public source delivery; installed/native/profile/full-goal acceptance remains OPEN.",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "canonicalInputsSHA256": {
     "packages/react/src/components/TagGroup/TagGroup.tsx": "59139db329054a51d68f6148aa4ba1c16a7d94c069083d327b39aea0d407aed2",
@@ -154,15 +154,27 @@
       "sourcePath": "packages/react-aria/src/interactions/useFocusable.tsx",
       "sourceContentSHA256": "49b286471931c289688b9f71d9a10ed2aed50363d2c4f0ffe89325b5461a47fa",
       "adaptedInto": ["Tag.tsx", "TagGroup.tsx"]
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/grid/useGridSelectionAnnouncement.mjs",
+      "distributionSHA256": "0557d744de6d05b552642864bec0c8d6dd84f2f061a6f5bbdf049e53b744875d",
+      "sourceMapPath": "dist/private/grid/useGridSelectionAnnouncement.mjs.map",
+      "sourceMapSHA256": "ea580946d71e6dcb81f9457278d33c8f7609c06d34c3ca389fb22b8a37364fc6",
+      "sourcePath": "packages/react-aria/src/grid/useGridSelectionAnnouncement.ts",
+      "sourceContentSHA256": "4c5457d8da9d85fe3e7d9dc7e0ec7a6a745e1d62860136e26f63e8d92ade96b4",
+      "adaptedInto": ["selectionAnnouncement.ts", "useSelectionAnnouncement.ts"]
     }
   ],
-  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it. Grouped custom render forwards complete state/original props and actual native refs, including replacement retirement; initial autofocus preserves native admission and window/input lifetimes. A private native Tab-stop field separates relative eligibility from programmatic focus for grouped rows, including the all-disabled autofocus source outcome. The maintained scene requests read-only SDK accessibility snapshots through actual outer/list/item refs, receiving original packets only from the current live owner/target. Chunked native logs retain SDK collection positions/counts without business-state injection or public inspection APIs.",
+  "scope": "Separate original collection authoring/visible TagList phases; complete list render state/ref/style/context and empty-state focus observations; native root/list typography; depth-first logical rows and shared actual selection-indicator state. Full TagGroup contexts/input/AT, maintained/public/consumer/native/profile acceptance remain required. Owning field IDs compose explicit and referenced labels through the pinned useField/useLabels contract; native resolvers read the original raw own label for self references. Actual visible field-slot name/description/error host bindings, native text refs, grouped remove Button slots and current multi-target keyboard admission; owner scene retains veto/echo and real virtualization. The Button-only slot extension is omitted from existing ToggleButton and grouped-row props to preserve their prior type boundaries. Exact-source proof confirms TagGroupInner deliberately strips the virtual-focus collection-context flag and retains physical item focus; the existing native policy matches it. Grouped custom render forwards complete state/original props and actual native refs, including replacement retirement; initial autofocus preserves native admission and window/input lifetimes. A private native Tab-stop field separates relative eligibility from programmatic focus for grouped rows, including the all-disabled autofocus source outcome. The maintained scene requests read-only SDK accessibility snapshots through actual outer/list/item refs, receiving original packets only from the current live owner/target. Chunked native logs retain SDK collection positions/counts without business-state injection or public inspection APIs. Public TagGroup/TagGroupItem, collection/render/layout/scroll/state/default-slot/field/button contexts and positive/negative installed declarations preserve standalone Tag. Source availability follows the same public-source tier as the existing41 counterparts; no installed acceptance is inferred. Selection announcements preserve the complete pinned update/focus/diff/item/count/all algorithm, commit-only callback visibility, frame retirement and assertive native delivery. All34 pinned grid locale message dictionaries and native label overrides remain DOM-free.",
   "authoredFilesSHA256": {
     "TagList.tsx": "dbda6df92ab978a8e28f391da52194946905b1334a90e85b1c66d7eaa560bde0",
-    "TagGroup.tsx": "e8cb551048305bb59a31697370c21bc2ab5c927830c90ecca59a3c41379a1e3e",
+    "TagGroup.tsx": "75b113593354657030dc0651f14f774d14d3a37b83f20d499cf97b6b98910b32",
     "Tag.tsx": "3c408b4ac5090f64cfe9907bb8957264298be20d3369156033fa4a35892172ea",
     "context.ts": "633553f22a8528c7ad3b157fc1e7872581e84f156f5a5a3fac8e85f89194b153",
-    "types.ts": "543b894729a3bef6ad8f71d64d69bc1fcbbda1e59147716563c851e1b2a2fe73",
+    "types.ts": "d37c9ec23e3becbf0ac528d6b0dc94a6ae413f3f47db6a9803430db7d143eae1",
     "styles.ts": "d57276e4d72877b3355fd194cc717aa6f11745140bff71e396f889d036eb5538",
     "visualTypes.ts": "aaffbc57ed907c25323512d5be5d41681326e67a4152c12f68cf55ee81a04a49",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
@@ -180,6 +192,49 @@
     "../../input/NativeFocusView.tsx": "c2a71a887688867502fcb76a10e156863fb22764a71606c0b0e24affe8a0c2cb",
     "../../input/specs/CUIFocusViewNativeComponent.ts": "a84ce2bab7dfade890541f228ca651486cbc481fe24492ae9501379f94294944",
     "../../../android/src/main/java/com/codonui/input/CUIFocusViewManager.java": "17a3048130ce707324ae14791f17a50d7d2098e20c084ea03460f87a8b7de814",
-    "../../input/accessibilityInspection.ts": "94938353adbc2a24785e6e4a45e13fdeaebc875a20519094e87c85ca59a93c3f"
+    "../../input/accessibilityInspection.ts": "94938353adbc2a24785e6e4a45e13fdeaebc875a20519094e87c85ca59a93c3f",
+    "selectionAnnouncement.ts": "08acb470ed16e13c1f350aa60dfa20ba83810db822fab1be3350d0fbeebce687",
+    "useSelectionAnnouncement.ts": "93a46e46dc1ce6e75bf05310fae39bf408bdd298357af4569ccade0fe2b9a88b",
+    "selectionMessages.ts": "74ca95cc8e25ec3aac1b41e18a21622aa454e1a80288d9a20e44b3d026f2ee42"
+  },
+  "selectionMessageSources": {
+    "package": "react-aria",
+    "version": "3.48.0",
+    "filesSHA256": {
+      "ar-AE.mjs": "53a32445c9c4a640eb8cd169bd0100f3da69ba940298cb5c46e82a35d4f908c7",
+      "bg-BG.mjs": "7a6a0323ae39eb601531903c9a8c2e89bda83ca8f0850422e0af45e865553cf0",
+      "cs-CZ.mjs": "ab8afce6ee3cf4e83cdc1dcf7c9342e8a1e1b54ae789d33f760db696e7021f27",
+      "da-DK.mjs": "e952bbbb473af92176bf7b46799565de2c986601e8906bb2a1a0cf9fba6beb45",
+      "de-DE.mjs": "d32ab94b96dbce971f1eda78c17707f79f17949965b68fe10bb2206fbf08cc79",
+      "el-GR.mjs": "38dadf08cff2ea9727ccdb02ac8e267ff08abfb34fd0944d0ebb3326eda82135",
+      "en-US.mjs": "f31da7a473f22650c4d96a44c5dc9ca4761f19d6bbd39c97d618731f9ccc0815",
+      "es-ES.mjs": "1939eaefd4f2c50e828e3a2127184cee449442728679a05eaff5181ddc736cbe",
+      "et-EE.mjs": "997312f39d013a7f393ba6628948384b062cf4bec6f632a23ca2bd808da818a6",
+      "fi-FI.mjs": "5ecd326c605546d551f24fb1dac3ecb1d5ec43d49f7580803b4bc556575f8c0e",
+      "fr-FR.mjs": "d017eb25d4b4096459a0f71b64df0ef1ebd49231cb99d1a467959d1d03f3f451",
+      "he-IL.mjs": "0944ba89aefe5f0d7c36acce2be62bfc8d8545dcb41600dc2d424cf27c7c4dab",
+      "hr-HR.mjs": "922dc3c7d7d6c7cd66b67df1857139750a6e38f9bb8252fe9f0490ce2c8b48c9",
+      "hu-HU.mjs": "819756226bee50ce42950811243c44b3f74e6be94ab8e972c7d923ce14410ba2",
+      "it-IT.mjs": "15ce16f0a128123e0cc1130535b7fc08ad3b3dbe04552b21ec64c2c4517f7bda",
+      "ja-JP.mjs": "21f994eddde7666def9af463630c406359a15a4cd5d40675e7752d8a96c714fc",
+      "ko-KR.mjs": "50b1e74081bcc251dffd210d637cd4ea8e98c0978cba7650c155f8ae5d1ef62b",
+      "lt-LT.mjs": "6e88626bc73aca48e704f68da99bf18b6d000fbc6166f5e170035b584624733e",
+      "lv-LV.mjs": "025db9a80e7e4ae4ef4c184110ff509e4af78a76358f060038717a40da817161",
+      "nb-NO.mjs": "b6f5d1ce0221b168e24e735bc15007a3a59ecd1abf8ba722905217d67624bfea",
+      "nl-NL.mjs": "9fade8bdb61512822937486384f0108f41de8548c6b94524402c52a3132186bd",
+      "pl-PL.mjs": "f2b589ebb69ce47943c9cd80b68ece5af876ea81ec41d80574bbed5d0a791fd9",
+      "pt-BR.mjs": "8d90eaec7e2bb786ecad49c9d723bb59505e643b2092eb5f8e9f59ad05e68d10",
+      "pt-PT.mjs": "8dd8a6a16091802de69a35be3113af3004be8a3b7f23373d81b8b3924c55871b",
+      "ro-RO.mjs": "92e6ef2237314ee55297553abab4f9b2c87c40a180fdfe54816c542ebb18f0e4",
+      "ru-RU.mjs": "8807c50ab7785919fdfcb6ac6345ecb466eed140412276102d0185fd1624bbc5",
+      "sk-SK.mjs": "e103981d8d461da75fcd99d45029d6b3883461c5cb7000015f56794b2c463dae",
+      "sl-SI.mjs": "18d81c7d725029dfc9ba17f888b056121fabf703b6983e9a246dea245bd2828e",
+      "sr-SP.mjs": "a1366475acf2895e7a01477fc7b20d084ef6d281688ef3c4bdfb32a927a135be",
+      "sv-SE.mjs": "7156886fd1021bc2ba3f4e421d69e287a87d033e9977122f8e54d1715843a7a4",
+      "tr-TR.mjs": "1b1adcb0ae1285bf15c56932b4019c87291a45f6d9b755e854ebbd66e3289b9f",
+      "uk-UA.mjs": "8803415b55b9a3e86a53a7c4e6184e88c35c2122b4ed601b6c4247d1751f7e39",
+      "zh-CN.mjs": "082075e9e1fac83d62f817c4e1d4f1d5e22aba3340979dd97225b417eb2e137b",
+      "zh-TW.mjs": "57c13291c1b6e0e48c447dabc76385a7f823e018e65d6e2323c84440f6c05734"
+    }
   }
 }

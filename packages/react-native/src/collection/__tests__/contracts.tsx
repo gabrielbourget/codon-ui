@@ -25,8 +25,8 @@ export const typedAuthoring = (
 export const primitiveItems = <NativeCollection items={[1, 2]} />
 // @ts-expect-error Visible item refs keep their declared native View receiver type.
 export const invalidVisibleRef = <Item title="Item" ref={createRef<{ foreign: true }>()} />
-// @ts-expect-error Construction stays private until the complete renderer/state/family contracts are ready.
-export type TUnpublishedCollection = typeof import("../../index").NativeCollection
+// @ts-expect-error Public collection authoring never exposes the private native metadata host.
+export type TPrivateMetadataRoot = typeof import("../../index").NativeCollectionMetadataRoot
 
 export const metadata = (
   <NativeCollectionMetadataRoot

@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { createContext, createRef, useContext } from "react"
 import * as RN from "react-native"
 

@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import * as RN from "react-native"

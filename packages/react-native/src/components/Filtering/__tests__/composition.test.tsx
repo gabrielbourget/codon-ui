@@ -1,3 +1,5 @@
+import "../../../collection/__tests__/nativeReceipts"
+
 import { screen, within } from "@testing-library/react-native"
 
 import {
