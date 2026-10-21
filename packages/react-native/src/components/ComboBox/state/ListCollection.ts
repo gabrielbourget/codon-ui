@@ -10,114 +10,88 @@
  * governing permissions and limitations under the License.
  */
 
-import type { Key, Node } from "../../../collection/state/types"
+import {
+  copyNativeCollectionNodeIdentity,
+  type TNativeCollectionNode,
+  type TNativeCollectionSnapshot,
+} from "../../../collection/snapshot"
+import type { Key } from "../../../collection/state/types"
 
-import type { Collection } from "./types"
+type TNode<T> = TNativeCollectionNode<T>
+type TDraft<T> = { -readonly [P in keyof TNode<T>]: TNode<T>[P] }
 
-export class ListCollection<T> implements Collection<T> {
-  private keyMap: Map<Key, Node<T>> = new Map()
-  private iterable: Iterable<Node<T>>
+export class ListCollection<T> implements TNativeCollectionSnapshot<T> {
+  private keyMap = new Map<Key, TDraft<T>>()
+  private iterable: readonly TNode<T>[]
   private firstKey: Key | null = null
   private lastKey: Key | null = null
-  private _size: number
+  readonly size: number
 
-  constructor(nodes: Iterable<Node<T>>) {
-    this.iterable = nodes
-
-    const visit = (node: Node<T>) => {
-      this.keyMap.set(node.key, node)
-
-      if (node.childNodes && node.type === "section") {
-        for (const child of node.childNodes) {
-          visit(child)
-        }
-      }
+  constructor(nodes: Iterable<TNode<T>>) {
+    const clone = (input: Iterable<TNode<T>>): TNode<T>[] =>
+      [...input].map((node) => {
+        const children = node.type === "section" ? clone(node.childNodes ?? []) : []
+        const copy = copyNativeCollectionNodeIdentity(node, {
+          ...node,
+          childNodes: Object.freeze(children),
+          firstChildKey: children[0]?.key ?? null,
+          lastChildKey: children.at(-1)?.key ?? null,
+        })
+        return copy
+      })
+    this.iterable = Object.freeze(clone(nodes))
+    const visit = (node: TNode<T>) => {
+      this.keyMap.set(node.key, node as TDraft<T>)
+      if (node.type === "section") for (const child of node.childNodes) visit(child)
     }
-
-    for (const node of nodes) {
-      visit(node)
-    }
-
-    let last: Node<T> | null = null
+    for (const node of this.iterable) visit(node)
+    let last: TDraft<T> | null = null
     let index = 0
     let size = 0
-    for (const [key, node] of this.keyMap) {
-      if (last) {
-        last.nextKey = key
-        node.prevKey = last.key
-      } else {
-        this.firstKey = key
-        node.prevKey = undefined
-      }
-
-      if (node.type === "item") {
-        node.index = index++
-      }
-
-      // Only count sections and items when determining size so that
-      // loaders and separators in RAC/S2 don't influence the emptyState determination
-      if (node.type === "section" || node.type === "item") {
-        size++
-      }
-
-      last = node
-
-      // Set nextKey as undefined since this might be the last node
-      // If it isn't the last node, last.nextKey will properly set at start of new loop
-      last.nextKey = undefined
-    }
-    this._size = size
-    this.lastKey = last?.key ?? null
-    // Filtering owns these clones; caller item values and props retain their original identities.
     for (const node of this.keyMap.values()) {
-      if (Array.isArray(node.childNodes)) Object.freeze(node.childNodes)
-      Object.freeze(node)
+      if (last) last.nextKey = node.key
+      else this.firstKey = node.key
+      node.prevKey = last?.key ?? null
+      node.nextKey = null
+      if (node.type === "item") node.index = index++
+      if (node.type === "section" || node.type === "item") size++
+      last = node
     }
-    if (Array.isArray(this.iterable)) Object.freeze(this.iterable)
+    this.size = size
+    this.lastKey = last?.key ?? null
+    for (const node of this.keyMap.values()) Object.freeze(node)
     Object.freeze(this)
   }
-
-  *[Symbol.iterator](): IterableIterator<Node<T>> {
+  *[Symbol.iterator](): IterableIterator<TNode<T>> {
     yield* this.iterable
   }
+  getKeys = (): IterableIterator<Key> => this.keyMap.keys()
+  getKeyBefore = (key: Key): Key | null => this.keyMap.get(key)?.prevKey ?? null
+  getKeyAfter = (key: Key): Key | null => this.keyMap.get(key)?.nextKey ?? null
+  getFirstKey = (): Key | null => this.firstKey
+  getLastKey = (): Key | null => this.lastKey
+  getItem = (key: Key): TNode<T> | null => this.keyMap.get(key) ?? null
+  at = (index: number): TNode<T> | null => this.getItem([...this.getKeys()][index])
+  getChildren = (key: Key): Iterable<TNode<T>> => this.keyMap.get(key)?.childNodes ?? []
+  getTextValue = (key: Key): string => this.getItem(key)?.textValue ?? ""
+  filter = (predicate: (text: string, node: TNode<T>) => boolean): ListCollection<T> =>
+    new ListCollection(filterComboBoxNodes(this, this, predicate))
+}
 
-  get size(): number {
-    return this._size
+export const filterComboBoxNodes = <T>(
+  collection: TNativeCollectionSnapshot<T>,
+  nodes: Iterable<TNode<T>>,
+  predicate: (text: string, node: TNode<T>) => boolean,
+): TNode<T>[] => {
+  const result: TNode<T>[] = []
+  for (const node of nodes) {
+    if (node.type === "section" && node.hasChildNodes) {
+      const children = filterComboBoxNodes(collection, collection.getChildren(node.key), predicate)
+      if (children.some((child) => child.type === "item"))
+        result.push(copyNativeCollectionNodeIdentity(node, { ...node, childNodes: children }))
+    } else if (node.type !== "item" || predicate(node.textValue, node)) {
+      result.push(copyNativeCollectionNodeIdentity(node, { ...node, childNodes: [] }))
+    }
   }
-
-  getKeys(): IterableIterator<Key> {
-    return this.keyMap.keys()
-  }
-
-  getKeyBefore(key: Key): Key | null {
-    const node = this.keyMap.get(key)
-    return node ? (node.prevKey ?? null) : null
-  }
-
-  getKeyAfter(key: Key): Key | null {
-    const node = this.keyMap.get(key)
-    return node ? (node.nextKey ?? null) : null
-  }
-
-  getFirstKey(): Key | null {
-    return this.firstKey
-  }
-
-  getLastKey(): Key | null {
-    return this.lastKey
-  }
-
-  getItem(key: Key): Node<T> | null {
-    return this.keyMap.get(key) ?? null
-  }
-
-  at(idx: number): Node<T> | null {
-    const keys = [...this.getKeys()]
-    return this.getItem(keys[idx])
-  }
-
-  getChildren(key: Key): Iterable<Node<T>> {
-    const node = this.keyMap.get(key)
-    return node?.childNodes || []
-  }
+  return result
 }

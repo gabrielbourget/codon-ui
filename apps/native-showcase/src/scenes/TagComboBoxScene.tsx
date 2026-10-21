@@ -78,7 +78,7 @@ export const TagComboBoxScene = () => {
           onPress={() => {
             scenario.current = { selections: 0, closes: 0 }
             setSelected([])
-            setQuery("held query")
+            setQuery("Empty")
             setVetoSelection(false)
             setVetoInput(false)
             setVetoOpen(false)

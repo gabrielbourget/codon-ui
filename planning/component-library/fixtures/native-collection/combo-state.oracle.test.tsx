@@ -1,5 +1,7 @@
 import { writeFileSync } from "node:fs"
 import { act, renderHook } from "@testing-library/react"
+import { I18nProvider as PinnedI18nProvider } from "react-aria-components"
+import { useFilter as usePinnedFilter } from "react-aria/useFilter"
 import { useComboBoxState as usePinnedComboBoxState } from "react-stately/useComboBoxState"
 import { afterAll, expect, it } from "vitest"
 
@@ -9,13 +11,15 @@ import type {
   ComboBoxStateOptions,
 } from "../../../../packages/react-native/src/components/ComboBox/state/types"
 import { useComboBoxState } from "../../../../packages/react-native/src/components/ComboBox/state/useComboBoxState"
+import { createNativeComboBoxFilter } from "../../../../packages/react-native/src/components/ComboBox/filter"
 import {
   collection,
   ITEMS,
   type TItem,
 } from "../../../../packages/react-native/src/components/ComboBox/state/__tests__/collection"
 
-type TState = Omit<ComboBoxState<TItem>, "selectionManager"> & {
+type TState = Omit<ComboBoxState<TItem>, "selectionManager" | "collection"> & {
+  collection: import("react-stately/useComboBoxState").ComboBoxState<TItem>["collection"]
   selectionManager: Pick<TSourceManagerSurface, "focusedKey" | "isFocused" | "selectedKeys" | "setFocusedKey">
 }
 type THook = (props: ComboBoxStateOptions<TItem>) => TState
@@ -32,7 +36,13 @@ const observe = (state: TState) => ({
   selectedItem: state.selectedItem?.key ?? null,
   selectedItems: state.selectedItems.map((node) => [node.key, node.value]),
   keys: [...state.collection.getKeys()],
-  nodes: [...state.collection].map((node) => [node.key, node.index, node.prevKey, node.nextKey, node.textValue]),
+  nodes: [...state.collection].map((node) => [
+    node.key,
+    node.index,
+    node.prevKey ?? null,
+    node.nextKey ?? null,
+    node.textValue,
+  ]),
   size: state.collection.size,
   open: state.isOpen,
   focused: state.isFocused,
@@ -131,4 +141,30 @@ it("matches complete pinned realtime, commit, external-result and reset validati
   const canonical = await validationTrace(usePinnedComboBoxState)
   expect(native).toEqual(canonical)
   records.push({ validation: true, canonical, native })
+})
+
+it("preserves the pinned Unicode and locale contains filter", async () => {
+  const pairs = [
+    ["Étiquette", "etiquette"],
+    ["e\u0301tiquette", "éti"],
+    ["İstanbul", "i"],
+    ["Istanbul", "ı"],
+    ["Straße", "strasse"],
+    ["Ångström", "ang"],
+    ["😀 Beta", "😀"],
+    ["Beta", ""],
+    ["", "b"],
+    ["Beta", "eta"],
+  ] as const
+  for (const locale of ["en-US", "fr-FR", "tr-TR", "de-DE"]) {
+    const native = createNativeComboBoxFilter(locale)
+    // Locale is supplied by the actual source i18n context, just as the native receiver supplies its locale.
+    const { result: localized, unmount: close } = await renderHook(() => usePinnedFilter({ sensitivity: "base" }), {
+      wrapper: ({ children }) => <PinnedI18nProvider locale={locale}>{children}</PinnedI18nProvider>,
+    })
+    expect(pairs.map(([text, query]) => native(text, query))).toEqual(
+      pairs.map(([text, query]) => localized.current.contains(text, query)),
+    )
+    await close()
+  }
 })

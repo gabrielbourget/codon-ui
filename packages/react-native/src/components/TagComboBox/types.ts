@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import type { StyleProp, TextStyle, View } from "react-native"
 
 import type { TThemingOrderCode } from "../../tokens/theme-order"
+import type { TNativeCollectionComboBoxProps } from "../ComboBox/CollectionComboBox"
 import type { TNativeComboBoxProps } from "../ComboBox/types"
 import type { TNativeDisplayDimension } from "../displayDimensions"
 import type { TNativeGroupedTagProps, TNativeTagGroupProps } from "../TagGroup/types"
@@ -26,16 +27,16 @@ export type TNativeTagComboBoxLabels = {
 export type TNativeTagComboBoxPartialLabels = Partial<Omit<TNativeTagComboBoxLabels, "comboBox">> & {
   comboBox?: Partial<TNativeTagComboBoxLabels["comboBox"]>
 }
-type TInnerComboProps<T> = Partial<
+type TInnerComboProps<T extends object> = Partial<
   Omit<
-    TNativeComboBoxProps<T>,
+    TNativeCollectionComboBoxProps<T>,
     "items" | "getKey" | "getTextValue" | "value" | "defaultValue" | "onChange" | "renderItem"
   >
 > & {
   labels?: Partial<TNativeTagComboBoxLabels["comboBox"]>
 }
 export type TNativeTagComboBoxProps<T extends object> = Omit<
-  TNativeComboBoxProps<T>,
+  TNativeCollectionComboBoxProps<T>,
   | "items"
   | "getKey"
   | "getTextValue"

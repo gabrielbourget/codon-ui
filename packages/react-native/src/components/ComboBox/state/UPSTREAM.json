@@ -2,7 +2,7 @@
   "package": "react-stately",
   "version": "3.46.0",
   "license": "../../../collection/LICENSE.react-aria.md",
-  "scope": "Private full ComboBox state construction under approved 3.5.54 parent-state adoption; not integrated or publicly exported",
+  "scope": "Private full ComboBox state connected to committed collection authoring and the same-window TagComboBox receiver; no public export",
   "sources": {
     "combobox/useComboBoxState": {
       "package": "react-stately",
@@ -39,19 +39,31 @@
     "Derive complete state/validation types from the pinned public ComboBox state subpath; no DOM runtime or peer-private import",
     "Replace source any assertions with explicit complete conditional value types",
     "Represent the complete eleven validity flags explicitly without requiring DOM ambient types",
-    "Preserve source accessor/branch evaluation order while applying existing native TypeScript/lint style; inline the pinned child-node accessor to preserve generic payload types"
+    "Preserve source accessor/branch evaluation order while applying existing native TypeScript/lint style; inline the pinned child-node accessor to preserve generic payload types",
+    "Expose the complete immutable native collection view, preserving source traversal/index/count behavior and native null absence plus filtered child endpoints",
+    "Respect the existing native controlled/default-open axes while omitted axes retain pinned source behavior"
   ],
-  "verification": "Focused strict types/lint, actual pinned source parity and seven native React state cases pass; component integration/public contexts/form/labels/native products/acceptance OPEN",
+  "verification": "Pinned DOM/native state parity, full filtered view and repeated controlled-open veto source checks pass; complete inherited defaults/slots/form/labels/native input/AT/products/profiles remain OPEN",
   "authoredSourcesSHA256": {
-    "ListCollection.ts": "233ad551e8d645280f7655e11d683d4b4ae86fd46d4e93ef215b7e565bed074e",
-    "types.ts": "42fde431c20453a44991dba9d1624807e5346ef0ea4d51da0f621409baea0741",
-    "useComboBoxState.ts": "39031e3a8dc6c7aa6521528c167136a30336965e017b92a8e4c1b58fd0f2f5d6",
+    "ListCollection.ts": "1f9bace9c3572f5006f1923c1bb70a67c3a21a0649f2bc8febe026e6e68311e0",
+    "types.ts": "9819615cf01ef79870cb0bdc44779f7f527b3b152d13b3d71d86e4daec4e72ea",
+    "useComboBoxState.ts": "f9dcb84e2d3e1272e36ca2507d2239bf035341e9e83fedd147f9b744b2151c77",
     "useFormValidationState.ts": "ca8ad2f9ff04c37255c880f6f30097cc49d78d167673e06f17bfc238f5a93e51",
     "useOverlayTriggerState.ts": "93931841783e23b05ab8f9fc7d0f20975cbfbdd3b70c9ced47603032a8c90b1f"
   },
   "identityAdapter": {
     "path": "../../../collection/snapshot.ts",
-    "authoredSHA256": "24d3413444995b08703453140cf3037e8e5e91b3113a9f55f9aa79c1b0f0bc73"
+    "authoredSHA256": "ec4330249859a1e7048acb461271b5620ff5ebcb13cbc1b1465d6885cc2518b9"
   },
-  "approval": "Full parent-state adoption in roadmap3.5.54.6 and the existing approved native-owned state-backend pattern; no component/public-context promotion"
+  "approval": "Full parent-state adoption in roadmap3.5.54.6 and the existing approved native-owned state-backend pattern; no component/public-context promotion",
+  "filterAdapter": {
+    "package": "react-aria",
+    "version": "3.48.0",
+    "sourcePath": "packages/react-aria/src/i18n/useFilter.ts",
+    "sourceSHA256": "e2eb48536bda1cf03b27cd715e2e0f54c69276888311b222cfbc212605444aa7",
+    "sourceMapSHA256": "f367f69d5c4c8e9b241f6a2e1e161c3a0397c3cb0063cb72c516c8da602b9923",
+    "authoredPath": "../filter.ts",
+    "authoredSHA256": "7a4df6027806859978a814bb361ebb2b7255db7f8a4e4450481d9a572154bbaa",
+    "adaptation": "Use the pinned contains algorithm with a receiver-owned locale collator; no DOM hook/runtime dependency. Actual native Intl locale profiles remain OPEN."
+  }
 }

@@ -1,6 +1,5 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { fireEvent, screen, userEvent } from "@testing-library/react-native"
 import { createRef, useState } from "react"
 import * as RN from "react-native"
 
@@ -8,8 +7,14 @@ import { NativeThemeProvider, Text } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
+  fireEventWithNativeCollections as fireEvent,
+  screen,
+  userEvent,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { resolveNativeTheme } from "../../../theme/defaults"
+import { NativeComboBoxGroupContext, NativeComboBoxPopoverContext } from "../../ComboBox/collectionContext"
 import { getNativeTagComboBoxStyles } from "../styles"
 import { TagComboBox } from "../TagComboBox"
 import type { TNativeTagComboBoxProps } from "../types"
@@ -33,12 +38,64 @@ const base: TNativeTagComboBoxProps<TItem> = {
 }
 const hidden = { includeHiddenElements: true }
 const row = (id: string) => screen.getByTestId(id, hidden)
-const node = (props: Partial<TNativeTagComboBoxProps<TItem>> = {}) => (
+const host = createRef<RN.View>(),
+  anchor = createRef<RN.View>(),
+  popup = createRef<RN.View>()
+const frames = new Map<number, Parameters<typeof requestAnimationFrame>[0]>()
+let frameSequence = 0
+const wrap = (children: React.ReactNode) => (
   <NativeThemeProvider>
-    <TagComboBox {...base} {...props} />
+    <NativeOverlayProvider>
+      <NativeFloatingLayerHost testID="fixture-host" ref={host}>
+        <NativeComboBoxGroupContext.Provider value={{ ref: anchor }}>
+          <NativeComboBoxPopoverContext.Provider value={{ ref: popup }}>
+            {children}
+          </NativeComboBoxPopoverContext.Provider>
+        </NativeComboBoxGroupContext.Provider>
+      </NativeFloatingLayerHost>
+    </NativeOverlayProvider>
   </NativeThemeProvider>
 )
-const choose = (label = "Empty") => act(() => userEvent.setup().press(screen.getByRole("radio", { name: label })))
+const node = (props: Partial<TNativeTagComboBoxProps<TItem>> = {}) => wrap(<TagComboBox {...base} {...props} />)
+const ready = async () => {
+  const measure = (target: RN.View, box: number[]) =>
+    Object.defineProperty(target, "measureInWindow", {
+      configurable: true,
+      value: (callback: (...values: number[]) => void) => callback(...box),
+    })
+  measure(host.current!, [0, 0, 360, 640])
+  measure(anchor.current!, [10, 40, 260, 48])
+  measure(popup.current!, [0, 0, 260, 180])
+  await fireEvent(row("fixture-host"), "layout", { nativeEvent: { layout: { x: 0, y: 0, width: 360, height: 640 } } })
+  await fireEvent(row("combo-box-popover"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 260, height: 180 } },
+  })
+  for (const ready of [false, true]) {
+    const scope = row("fixture-host").props
+    await act(() =>
+      scope.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: scope.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: scope.policyRevision,
+          ready,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  for (let turn = 0; turn < 3; turn++)
+    await act(() => {
+      const pending = [...frames.values()]
+      frames.clear()
+      pending.forEach((callback) => callback(0))
+    })
+}
+const choose = async (label = "Empty") => {
+  await ready()
+  await act(() => userEvent.setup().press(screen.getByRole("option", { name: label })))
+}
 const remove = async () => {
   const target = row("tag-remove-button")
   const event = {
@@ -53,6 +110,15 @@ const remove = async () => {
 }
 beforeEach(() => {
   jest.useFakeTimers()
+  frames.clear()
+  jest.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
+    const id = ++frameSequence
+    frames.set(id, callback)
+    return id
+  })
+  jest.spyOn(globalThis, "cancelAnimationFrame").mockImplementation((id) => {
+    if (id != null) frames.delete(id)
+  })
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
 afterEach(() => {
@@ -64,11 +130,7 @@ afterEach(() => {
 it("CAP.tag-combobox.001 forwards actual root/editor refs and composes the two native controls", async () => {
   const root = createRef<RN.View>(),
     input = createRef<RN.TextInput>()
-  await render(
-    <NativeThemeProvider>
-      <TagComboBox {...base} ref={root} inputRef={input} isOpen selectedItems={[items[0]]} />
-    </NativeThemeProvider>,
-  )
+  await render(wrap(<TagComboBox {...base} ref={root} inputRef={input} isOpen selectedItems={[items[0]]} />))
   expect(root.current).not.toBeNull()
   expect(input.current).not.toBeNull()
   expect(typeof root.current?.measure).toBe("function")
@@ -161,7 +223,7 @@ it("CAP.tag-combobox.006/.007 keeps disabled and controlled false open state aut
   )
   expect(row("tag-combobox").props.accessibilityState.disabled).toBe(true)
   expect(row("tag-remove-button").props.accessibilityState.disabled).toBe(true)
-  expect(screen.queryByRole("radio")).toBeNull()
+  expect(screen.queryByRole("option")).toBeNull()
   expect(change).not.toHaveBeenCalled()
 })
 it("CAP.tag-combobox.014 consumes wrapper props and sends root layout events once", async () => {
@@ -211,7 +273,7 @@ it("CAP.tag-combobox.016/.023/.024 preserves repeated owner vetoes, original obj
   await render(
     node({
       selectedItems,
-      inputValue: "held",
+      inputValue: "Empty",
       isOpen: true,
       onSelectedItemsChange: (...args) => {
         events.push("selected")
@@ -227,7 +289,7 @@ it("CAP.tag-combobox.016/.023/.024 preserves repeated owner vetoes, original obj
   expect(change.mock.calls[0][0][0] === items[1]).toBe(true)
   expect(change.mock.calls[0][1]).toEqual({ action: "add", changedItems: [items[1]], changedKeys: [""] })
   expect(selectedItems).toEqual([])
-  expect(row("combo-box-input").props.value).toBe("held")
+  expect(row("combo-box-input").props.value).toBe("Empty")
   expect(screen.queryByTestId("tag", hidden)).toBeNull()
 })
 it("CAP.tag-combobox.017/.019/.022 filters owner echoes and clears only the uncontrolled query", async () => {
@@ -235,7 +297,7 @@ it("CAP.tag-combobox.017/.019/.022 filters owner echoes and clears only the unco
     const [selected, setSelected] = useState<TItem[]>([])
     return node({
       isOpen: true,
-      defaultInputValue: "held",
+      defaultInputValue: "Empty",
       selectedItems: selected,
       onSelectedItemsChange: setSelected,
     })
@@ -243,7 +305,7 @@ it("CAP.tag-combobox.017/.019/.022 filters owner echoes and clears only the unco
   await render(<Owner />)
   await choose()
   expect(row("combo-box-input").props.value).toBe("")
-  expect(screen.queryByRole("radio", { name: "Empty" })).toBeNull()
+  expect(screen.queryByRole("option", { name: "Empty" })).toBeNull()
   expect(screen.getByText("Empty", hidden)).toBeOnTheScreen()
 })
 it("CAP.tag-combobox.018/.025 emits exact removal details and retains caller-owned data on veto", async () => {
