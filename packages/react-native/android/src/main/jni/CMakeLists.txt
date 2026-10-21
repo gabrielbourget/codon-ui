@@ -9,6 +9,9 @@ include("${REACT_NATIVE_DIR}/ReactCommon/cmake-utils/react-native-flags.cmake")
 set(CODON_MOTION_DIR "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/motion")
 add_library(codon_motion SHARED
   MotionSnapshotJNI.cpp
+  FormDocumentJNI.cpp
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FabricFormDocument.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/form/FormDocumentQuery.cpp"
   MotionIntrinsicsJNI.cpp
   MotionDrawingJNI.cpp
   "${CODON_MOTION_DIR}/FabricSnapshot.cpp"

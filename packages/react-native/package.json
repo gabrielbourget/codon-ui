@@ -78,13 +78,16 @@
     },
     "ios": {
       "modulesProvider": {
-        "CUIMotionSnapshot": "CUIMotionSnapshot"
+        "CUIMotionSnapshot": "CUIMotionSnapshot",
+        "CUIFormDocument": "CUIFormDocument"
       },
       "componentProvider": {
         "CUIFocusView": "CUIFocusView",
         "CUIKeyboardScope": "CUIKeyboardScope",
         "CUICollectionRoot": "CUICollectionRoot",
-        "CUICollectionNode": "CUICollectionNode"
+        "CUICollectionNode": "CUICollectionNode",
+        "CUIFormRoot": "CUIFormRoot",
+        "CUIFieldBinding": "CUIFieldBinding"
       }
     }
   }

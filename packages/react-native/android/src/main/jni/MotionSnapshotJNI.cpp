@@ -3,6 +3,8 @@
 #include <react/fabric/JFabricUIManager.h>
 #include <react/renderer/scheduler/Scheduler.h>
 #include "SnapshotQuery.h"
+#include "FabricManager.h"
+#include "FormDocumentJNI.h"
 #include "PopFrame.h"
 #include "PopPresentation.h"
 #include "ViewportQuery.h"
@@ -13,20 +15,6 @@
 
 namespace jni = facebook::jni;
 using namespace facebook::react;
-
-static std::shared_ptr<UIManager> scopedManager(
-    jni::alias_ref<JFabricUIManager::javaobject> manager) {
-  if (!manager) throw std::runtime_error("Native motion: actual manager unavailable");
-  // Locked RN0.86.3 stores its Hybrid binding here; consumer rules retain it.
-  static const auto field = JFabricUIManager::javaClassStatic()->getField<FabricUIManagerBinding::javaobject>("mBinding");
-  auto nativeBinding = manager->getFieldValue(field);
-  if (!nativeBinding) throw std::runtime_error("Native motion: Fabric binding retired");
-  auto scheduler = nativeBinding->cthis()->getScheduler();
-  if (!scheduler) throw std::runtime_error("Native motion: Fabric scheduler retired");
-  auto uiManager = scheduler->getUIManager();
-  if (!uiManager) throw std::runtime_error("Native motion: Fabric manager retired");
-  return uiManager;
-}
 
 static jni::local_ref<jstring> nativeSnapshot(
     jni::alias_ref<jclass>, jni::alias_ref<JFabricUIManager::javaobject> manager,
@@ -92,6 +80,7 @@ static void nativeClosePop(jni::alias_ref<jclass>, jlong handle) {
 extern "C" JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *) {
   return jni::initialize(vm, [] {
     codon::motion::registerMotionDrawingNatives(jni::Environment::current());
+    registerFormDocumentNatives();
     jni::findClassStatic("com/codonui/input/CUIMotionSnapshotModule")->registerNatives({
         makeNativeMethod("nativeSnapshot", nativeSnapshot),
         makeNativeMethod("nativeInitialValue", nativeInitialValue),

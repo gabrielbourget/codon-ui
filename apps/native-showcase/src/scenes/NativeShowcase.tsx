@@ -29,6 +29,7 @@ import { BreadcrumbsScene } from "./BreadcrumbsScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
 import { DisplayScene } from "./DisplayScene"
+import { FormDocumentScene } from "./FormDocumentScene"
 import { FormFieldScene } from "./FormFieldScene"
 import { GalleryScene } from "./GalleryScene"
 import { LibraryScene } from "./LibraryScene"
@@ -165,6 +166,7 @@ export const NativeShowcase = () => {
   const [fixture, setFixture] = useState<TLayoutFixture>("live")
   const [count, setCount] = useState(0)
   const [scene, setScene] = useState<
+    | "form-document"
     | "foundation"
     | "library"
     | "controls"
@@ -295,6 +297,11 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Stepper scene" selected={scene === "stepper"} onPress={() => setScene("stepper")} />
               <FixtureAction label="Slider scene" selected={scene === "slider"} onPress={() => setScene("slider")} />
+              <FixtureAction
+                label="Form document prototype"
+                selected={scene === "form-document"}
+                onPress={() => setScene("form-document")}
+              />
               <FixtureAction label="Form field scene" selected={scene === "field"} onPress={() => setScene("field")} />
               <FixtureAction
                 label="Inline search scene"
@@ -329,7 +336,9 @@ export const NativeShowcase = () => {
               ))}
             </View>
             <SceneShell fixture={fixture}>
-              {scene === "menu" ? (
+              {scene === "form-document" ? (
+                <FormDocumentScene />
+              ) : scene === "menu" ? (
                 <MenuScene />
               ) : scene === "toaster" ? (
                 <ToasterScene />

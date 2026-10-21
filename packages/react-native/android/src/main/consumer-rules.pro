@@ -1,3 +1,4 @@
+-keep class com.codonui.input.CUIFormDocumentModule { *; }
 -keep class com.codonui.input.CUIMotionSnapshotModule { *; }
 -keep class com.codonui.input.CUIMotionIntrinsics { *; }
 -keep class com.codonui.input.CUIMotionDrawingDispatch { *; }
