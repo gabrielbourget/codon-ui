@@ -4,6 +4,7 @@ import type {
 } from "../../input/specs/CUICollectionRootNativeComponent"
 import { NativeCollectionActions } from "../actions"
 import { NativeCollectionSession } from "../session"
+import { copyNativeCollectionNodeIdentity } from "../snapshot"
 
 const fixture = () => {
   const session = new NativeCollectionSession<unknown>({ ownerId: "owner", rootId: "root", rootRevision: "revision" })
@@ -114,6 +115,21 @@ it("retains a current request across foreign-owner/root/visible-target callbacks
     expect(action).not.toHaveBeenCalled()
   }
   expect(f.actions.receive(packet)).toBe(true)
+})
+
+it("admits an owned state clone and retires it when the committed descriptor changes", () => {
+  const f = fixture(),
+    action = jest.fn()
+  f.confirm()
+  const original = f.session.getSnapshot().collection.getItem(0)!
+  const copy = Object.freeze(copyNativeCollectionNodeIdentity(original, { ...original, index: 2 }))
+  expect(f.actions.bindingFor(copy)).toBe(f.actions.bindingFor(original))
+  expect(f.actions.request(copy, 9, action)).toBe(true)
+  const packet = reply(f.actions)
+  f.session.commitDescriptor({ ...f.descriptor, descriptorRevision: "v2" })
+  expect(f.actions.receive(packet)).toBe(false)
+  expect(f.actions.bindingFor(copy)).toBe("")
+  expect(action).not.toHaveBeenCalled()
 })
 
 it.each(["surfaceId", "windowId", "epoch", "sequence", "accepted"] as const)(

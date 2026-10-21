@@ -47,6 +47,12 @@ type TMetadataIdentity = Readonly<{ descriptorId: string; descriptorRevision: st
 const metadataIdentities = new WeakMap<object, TMetadataIdentity>()
 export const getNativeCollectionMetadataIdentity = (node: object): TMetadataIdentity | undefined =>
   metadataIdentities.get(node)
+// Filtered state views retain the original descriptor lease without exposing it on public nodes.
+export const copyNativeCollectionNodeIdentity = <T extends object>(original: object, copy: T): T => {
+  const identity = metadataIdentities.get(original)
+  if (identity) metadataIdentities.set(copy, identity)
+  return copy
+}
 type TNodeFields<T> = {
   -readonly [P in keyof Omit<TNativeCollectionNode<T>, "childNodes">]: TNativeCollectionNode<T>[P]
 }

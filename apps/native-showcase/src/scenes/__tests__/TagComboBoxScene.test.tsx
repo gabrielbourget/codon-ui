@@ -1,7 +1,5 @@
 import "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
 
-import { userEvent } from "@testing-library/react-native"
-
 import { NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
 
 import {
@@ -9,6 +7,7 @@ import {
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
   screen,
+  userEvent,
 } from "../../../../../packages/react-native/src/collection/__tests__/nativeReceipts"
 import { TagComboBoxScene } from "../TagComboBoxScene"
 
@@ -49,11 +48,7 @@ it("keeps popup requests subject to owner veto and opens only after an owner ech
 
 it("retains held selection and query across repeated add requests, then shows the owner echo", async () => {
   await render(scene())
-  await press("Set tag-combo owner query")
-  await press("Toggle tag-combo selection veto")
-  await press("Toggle tag-combo input veto")
-  await press("Toggle tag-combo popup veto")
-  await press("Toggle tag-combo owner open")
+  await press("Run two-veto tag-combo selection")
   await show()
   await choose("Empty key")
   await choose("Empty key")
@@ -62,10 +57,10 @@ it("retains held selection and query across repeated add requests, then shows th
     'Requests: add:string:"" → input:"" → nested-input:"" → open:false → add:string:"" → input:"" → nested-input:"" → open:false.',
   )
   expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
-  await press("Toggle tag-combo selection veto")
-  await press("Toggle tag-combo input veto")
   await choose("Empty key")
-  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: string:"".*Query: ""/)
+  expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(
+    /Selected: string:"".*Query: "".*Open: false/,
+  )
   expect(screen.queryByRole("radio", { name: "Empty key" })).toBeNull()
 })
 

@@ -38,10 +38,12 @@ export const TagComboBoxScene = () => {
   const input = useRef<TextInput>(null)
   const editor = useRef<TextInput>(null)
   const firstRefs = useRef(new Map<string, View | TextInput>())
+  const scenario = useRef<{ selections: number; closes: number } | null>(null)
   const record = (request: string) => setRequests((current) => [...current.slice(-11), request])
   const requestSelection = (next: TItem[], details: TNativeTagComboBoxChangeDetails<TItem>) => {
+    if (scenario.current && details.action === "add") scenario.current.selections++
     record(`${details.action}:${itemLabels(details.changedItems)}`)
-    if (!vetoSelection) setSelected(next)
+    if (scenario.current ? scenario.current.selections > 2 : !vetoSelection) setSelected(next)
   }
   const inspectRefs = () => {
     const targets = [
@@ -66,10 +68,25 @@ export const TagComboBoxScene = () => {
       </Text>
       <Text testID="tag-combo-owner-state">
         Selected: {itemLabels(selected)}. Query: {JSON.stringify(query)}. Open: {String(open)}. Selection:{" "}
-        {vetoSelection ? "veto" : "echo"}. Input: {vetoInput ? "veto" : "echo"}. Popup: {vetoOpen ? "veto" : "echo"}.
+        {scenario.current ? "veto two, echo third" : vetoSelection ? "veto" : "echo"}. Input:{" "}
+        {scenario.current ? "held until third selection" : vetoInput ? "veto" : "echo"}. Popup:{" "}
+        {scenario.current ? "veto two close requests" : vetoOpen ? "veto" : "echo"}.
       </Text>
       <Text testID="tag-combo-owner-requests">Requests: {requests.join(" → ") || "none"}.</Text>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Button
+          onPress={() => {
+            scenario.current = { selections: 0, closes: 0 }
+            setSelected([])
+            setQuery("held query")
+            setVetoSelection(false)
+            setVetoInput(false)
+            setVetoOpen(false)
+            setOpen(true)
+          }}
+        >
+          Run two-veto tag-combo selection
+        </Button>
         <Button onPress={() => setVetoSelection((value) => !value)}>Toggle tag-combo selection veto</Button>
         <Button onPress={() => setVetoInput((value) => !value)}>Toggle tag-combo input veto</Button>
         <Button onPress={() => setVetoOpen((value) => !value)}>Toggle tag-combo popup veto</Button>
@@ -110,12 +127,17 @@ export const TagComboBoxScene = () => {
         inputValue={query}
         onInputChange={(value) => {
           record(`input:${JSON.stringify(value)}`)
-          if (!vetoInput) setQuery(value)
+          if (scenario.current ? scenario.current.selections > 2 : !vetoInput) setQuery(value)
         }}
         isOpen={open}
         onOpenChange={(value) => {
           record(`open:${String(value)}`)
-          if (!vetoOpen) setOpen(value)
+          if (scenario.current && !value) {
+            if (++scenario.current.closes > 2) {
+              setOpen(false)
+              scenario.current = null
+            }
+          } else if (!vetoOpen) setOpen(value)
         }}
         isDisabled={disabled}
         isReadOnly={readOnly}
