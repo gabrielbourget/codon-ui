@@ -31,6 +31,12 @@ it("opens the public Breadcrumbs scene through the normal navigation", async () 
   expect(screen.getByTestId("breadcrumbs-scene-state")).toHaveTextContent(/Navigations: 0/)
 })
 
+it("opens the private TagComboBox owner scene through normal navigation", async () => {
+  await renderShowcase()
+  await userEvent.setup().press(screen.getByRole("button", { name: "TagComboBox scene" }))
+  expect(screen.getByTestId("tag-combo-owner-state")).toHaveTextContent(/Selected: empty.*Open: false/)
+})
+
 it("opens the public Pagination scene through the normal navigation", async () => {
   await renderShowcase()
   await userEvent.setup().press(screen.getByRole("button", { name: "Pagination scene" }))
