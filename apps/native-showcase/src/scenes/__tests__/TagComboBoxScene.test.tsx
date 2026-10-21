@@ -41,7 +41,19 @@ const scene = (mode: "light" | "dark" = "light") => (
     </NativeOverlayProvider>
   </NativeThemeProvider>
 )
-const press = (name: string) => fireEvent.press(screen.getByRole("button", { name, ...hidden }))
+const press = async (name: string) => {
+  const target = screen.getByRole("button", { name, ...hidden })
+  if (name !== "Show suggestions") return fireEvent.press(target)
+  const event = {
+    target: 17,
+    currentTarget: 17,
+    persist: jest.fn(),
+    isDefaultPrevented: () => false,
+    nativeEvent: { target: 17, identifier: 1, pageX: 4, pageY: 4, locationX: 4, locationY: 4, timestamp: 1 },
+  }
+  await fireEvent(target, "responderGrant", event)
+  await fireEvent(target, "responderRelease", event)
+}
 const choose = (name: string) => act(() => userEvent.setup().press(screen.getByRole("option", { name })))
 const show = async () => {
   const measure = (target: RN.View, box: number[]) =>

@@ -7,6 +7,8 @@ import type { TNativeFloatingPlacement } from "../../overlays/floating/placement
 import type { ComboBoxStateOptions } from "./state/types"
 import type { TNativeComboBoxProps, TNativeComboBoxRootStyle } from "./types"
 
+export type TNativeComboBoxSubmitEvent = Parameters<NonNullable<TextInputProps["onSubmitEditing"]>>[0]
+
 export type TNativeCollectionComboBoxRenderState = Readonly<{
   isOpen: boolean
   isDisabled: boolean
@@ -19,10 +21,11 @@ export type TNativeCollectionComboBoxStyleState = TNativeCollectionComboBoxRende
 }
 export type TNativeCollectionComboBoxProps<T extends object> = Omit<
   TNativeComboBoxProps<T>,
-  "style" | "accessibilityLabel" | "aria-label"
+  "style" | "accessibilityLabel" | "aria-label" | "onOpenChange"
 > &
   Pick<
     ComboBoxStateOptions<T>,
+    | "onOpenChange"
     | "allowsCustomValue"
     | "allowsEmptyCollection"
     | "menuTrigger"

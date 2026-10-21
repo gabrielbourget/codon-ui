@@ -3,7 +3,7 @@ import type { StyleProp, TextInput, TextStyle } from "react-native"
 
 import { Input } from "../Input/Input"
 
-import type { TNativeCollectionComboBoxProps } from "./collectionTypes"
+import type { TNativeCollectionComboBoxProps, TNativeComboBoxSubmitEvent } from "./collectionTypes"
 import type { ComboBoxState } from "./state/types"
 
 export const NativeCollectionComboBoxInput = <T extends object>({
@@ -13,6 +13,7 @@ export const NativeCollectionComboBoxInput = <T extends object>({
   identity,
   style,
   onFocusWithin,
+  onCommit,
 }: {
   owner: TNativeCollectionComboBoxProps<T>
   state: ComboBoxState<T>
@@ -20,12 +21,13 @@ export const NativeCollectionComboBoxInput = <T extends object>({
   identity: string
   style: StyleProp<TextStyle>
   onFocusWithin: (focused: boolean) => void
+  onCommit: (event: TNativeComboBoxSubmitEvent) => void
 }) => {
-  const current = useRef({ owner, state, onFocusWithin })
+  const current = useRef({ owner, state, onFocusWithin, onCommit })
   const live = useRef(false)
   const observedFocus = useRef(false)
   useInsertionEffect(() => {
-    current.current = { owner, state, onFocusWithin }
+    current.current = { owner, state, onFocusWithin, onCommit }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -88,6 +90,8 @@ export const NativeCollectionComboBoxInput = <T extends object>({
         if (live.current) current.current.owner.inputProps?.onEndEditing?.(event)
       }}
       onSubmitEditing={(event) => {
+        if (!live.current) return
+        if (!current.current.owner.isDisabled && !current.current.owner.isReadOnly) current.current.onCommit(event)
         if (live.current) current.current.owner.inputProps?.onSubmitEditing?.(event)
       }}
       onSelectionChange={(event) => {
