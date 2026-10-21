@@ -63,14 +63,11 @@ const TagComboBoxInner = <T extends object>(
     errorState,
     warningState,
     successState,
-    accessibilityLabel,
-    "aria-label": ariaLabel,
     inputLabel: _inputLabel,
     closeLabel: _closeLabel,
     testID,
     "data-testid": aliasID,
     nativeID,
-    id,
     onLayout,
     pointerEvents,
     collapsable,
@@ -118,23 +115,22 @@ const TagComboBoxInner = <T extends object>(
         }
       })
   }
-  const admitted = () => live.current && !current.current.isDisabled
   const changeInput = (value: string) => {
-    if (!admitted()) return
+    if (!live.current) return
     if (current.current.inputValue === undefined) setLocalQuery(value)
     current.current.onInputChange?.(value)
-    if (admitted()) current.current.customComboBoxProps?.onInputChange?.(value)
+    if (live.current) current.current.customComboBoxProps?.onInputChange?.(value)
   }
   const changeSelection = (key: string | number | null) => {
-    if (!admitted() || current.current.isReadOnly) return
+    if (!live.current) return
     const owner = current.current
     const request = getNativeTagComboBoxAddRequest(currentItems.current, owner.selectedItems, key, owner.getItemKey)
     if (!request) return
     owner.onSelectedItemsChange(request.items, request.details)
-    if (admitted()) changeInput("")
+    if (live.current) changeInput("")
   }
   const remove = (keys: Set<string | number>) => {
-    if (!admitted()) return
+    if (!live.current) return
     const owner = current.current,
       request = getNativeTagComboBoxRemoveRequest(owner.selectedItems, keys, owner.getItemKey)
     if (request) owner.onSelectedItemsChange(request.items, request.details)
@@ -161,7 +157,6 @@ const TagComboBoxInner = <T extends object>(
         accessibilityLabel={resolved.groupAriaLabel}
         accessibilityState={{ disabled: !!props.isDisabled }}
         nativeID={nativeID}
-        id={id}
         onLayout={onLayout}
         pointerEvents={pointerEvents}
         collapsable={collapsable}
@@ -204,58 +199,39 @@ const TagComboBoxInner = <T extends object>(
             </Tag>
           )}
         </TagGroup>
-        <NativeFocusHost
-          role="group"
-          accessible={false}
-          focusable={false}
-          style={{ width: "100%" }}
-          accessibilityLabel={accessibilityLabel ?? ariaLabel}
-          testID="tag-combobox-picker"
+        <NativeCollectionComboBox
+          {...innerCombo}
+          {...comboProps}
+          items={available}
+          getKey={getItemKey}
+          getTextValue={getItemTextValue}
+          value={null}
+          onChange={changeSelection}
+          inputValue={inputValue !== undefined ? inputValue : localQuery}
+          onInputChange={changeInput}
+          inputLabel={resolved.comboBox.inputLabel}
+          triggerLabel={resolved.comboBox.triggerButtonAriaLabel}
+          groupLabel={resolved.comboBox.inputButtonGroupAriaLabel}
+          closeLabel={resolved.comboBox.closeLabel}
+          color={color}
+          geometry={geometry}
+          textSize={textSize}
+          isDisabled={props.isDisabled}
+          isOpen={props.isOpen}
+          errorState={errorState}
+          warningState={warningState}
+          successState={successState}
+          width="100%"
+          enableFocusStyle={false}
+          emptyListMessage={resolved.comboBox.emptyListMessage}
+          customStyles={[{ height: "100%" }, nestedComboStyles, customComboBoxStyles]}
+          customInputButtonGroupStyles={[
+            nestedGroupStyles,
+            { borderWidth: 0, borderTopWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderRightWidth: 0 },
+          ]}
         >
-          <NativeFocusHost
-            role="group"
-            accessible={false}
-            focusable={false}
-            style={{ width: "100%" }}
-            accessibilityLabel={resolved.comboBox.inputButtonGroupAriaLabel}
-            testID="tag-combobox-input-group"
-          >
-            <NativeCollectionComboBox
-              {...innerCombo}
-              {...comboProps}
-              items={available}
-              getKey={getItemKey}
-              getTextValue={getItemTextValue}
-              value={null}
-              onChange={changeSelection}
-              inputValue={inputValue !== undefined ? inputValue : localQuery}
-              onInputChange={changeInput}
-              accessibilityLabel={
-                innerCombo.accessibilityLabel ?? innerCombo["aria-label"] ?? resolved.comboBox.triggerButtonAriaLabel
-              }
-              inputLabel={resolved.comboBox.inputLabel}
-              closeLabel={resolved.comboBox.closeLabel}
-              color={color}
-              geometry={geometry}
-              textSize={textSize}
-              isDisabled={props.isDisabled}
-              isOpen={props.isOpen}
-              errorState={errorState}
-              warningState={warningState}
-              successState={successState}
-              width="100%"
-              enableFocusStyle={false}
-              emptyListMessage={resolved.comboBox.emptyListMessage}
-              customStyles={[{ height: "100%" }, nestedComboStyles, customComboBoxStyles]}
-              customInputButtonGroupStyles={[
-                nestedGroupStyles,
-                { borderWidth: 0, borderTopWidth: 0, borderBottomWidth: 0, borderLeftWidth: 0, borderRightWidth: 0 },
-              ]}
-            >
-              {children}
-            </NativeCollectionComboBox>
-          </NativeFocusHost>
-        </NativeFocusHost>
+          {children}
+        </NativeCollectionComboBox>
       </NativeFocusHost>
     </NativeContentContext.Provider>
   )

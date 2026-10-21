@@ -9,6 +9,8 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../../collection/renderer"
+import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -469,3 +471,535 @@ it("preserves parent-controlled filtering without replacing the wrapper's origin
   expect(screen.queryByRole("option", { name: "Context only" })).toBeNull()
   expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("missing")
 })
+
+it("follows linked collection order after opaque parent-controlled reordering", async () => {
+  const f = setup(),
+    editor = createRef<RN.TextInput>()
+  const native = jest.requireActual("react-native") as typeof RN
+  const find = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  // Model only the original editor's native target, as in the established keyboard fixture.
+  jest
+    .mocked(native.findNodeHandle)
+    .mockImplementation((target) => (target != null && target === editor.current ? 888888 : find(target)))
+  const values = [
+    { id: "a", label: "Alpha" },
+    { id: "b", label: "Beta" },
+    { id: "c", label: "Gamma" },
+  ]
+  let reverse!: () => void
+  let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)!
+    return null
+  }
+  const Opaque = () => {
+    const [reversed, setReversed] = useState(false)
+    reverse = () => setReversed(true)
+    return (reversed ? [...values].reverse() : values).map((item) => (
+      <NativeComboBoxItem key={item.id} id={item.id} textValue={item.label}>
+        <Capture />
+        {item.label}
+      </NativeComboBoxItem>
+    ))
+  }
+  await render(
+    f.node(
+      <NativeComboBoxContext.Provider value={{ items: values }}>
+        <NativeCollectionComboBox
+          items={values}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          value={null}
+          inputValue=""
+          inputRef={editor}
+          isOpen
+          accessibilityLabel="Choices"
+          inputLabel="Query"
+          closeLabel="Close"
+        >
+          <Opaque />
+        </NativeCollectionComboBox>
+      </NativeComboBoxContext.Provider>,
+    ),
+  )
+  await f.ready()
+  const original = editor.current
+  const key = async (value: string, extra: Record<string, unknown> = {}) => {
+    let host = screen.getByTestId("host").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      }),
+    )
+    host = screen.getByTestId("host").props
+    const policy = host.policies.find(
+      (candidate: { targetTag: number; tokens: string[] }) =>
+        candidate.targetTag === native.findNodeHandle(editor.current) && candidate.tokens.includes(`0000:${value}`),
+    )
+    expect(policy).toBeDefined()
+    const event = {
+      persist: jest.fn(),
+      preventDefault: jest.fn(),
+      isDefaultPrevented: () => false,
+      nativeEvent: {
+        kind: "keyboard",
+        ownerId: host.ownerId,
+        policyId: policy.id,
+        target: native.findNodeHandle(editor.current),
+        focusedTarget: native.findNodeHandle(editor.current),
+        windowId: "source-model-window",
+        epoch: 1,
+        policyRevision: host.policyRevision,
+        key: value,
+        phase: "down",
+        repeat: false,
+        cancelled: false,
+        nativeCode: 1,
+        characters: "",
+        nativeDefaultHandled: true,
+        timestamp: 100,
+        shiftKey: false,
+        altKey: false,
+        ctrlKey: false,
+        metaKey: false,
+        capsLock: false,
+        nativeModifierData: "0",
+        ...extra,
+      },
+    }
+    await act(() => host.onNativeScopedKey(event))
+  }
+  await key("Home")
+  expect(state.selectionManager.focusedKey).toBe("a")
+  await act(reverse)
+  expect([...state.collection].map((node) => node.key)).toEqual(["c", "b", "a"])
+  expect([...state.collection.getKeys()]).toEqual(["a", "b", "c"])
+  await key("Home")
+  expect(state.selectionManager.focusedKey).toBe("c")
+  await key("ArrowDown")
+  expect(state.selectionManager.focusedKey).toBe("b")
+  await key("End")
+  expect(state.selectionManager.focusedKey).toBe("a")
+  await key("ArrowDown")
+  expect(state.selectionManager.focusedKey).toBe("c")
+  expect(editor.current === original).toBe(true)
+  expect(state.value).toBeNull()
+})
+
+it("retains the custom picker root, complete render state and original field/root refs", async () => {
+  const f = setup(),
+    outer = createRef<RN.View>(),
+    picker = createRef<RN.View>(),
+    editor = createRef<RN.TextInput>()
+  let flags: Record<string, unknown> = {}
+  const content = (replacement: boolean) =>
+    f.node(
+      <NativeComboBoxContext.Provider value={{ ref: picker, "aria-label": "Parent field" }}>
+        <TagComboBox
+          items={ITEMS}
+          selectedItems={[]}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          onSelectedItemsChange={() => {}}
+          ref={outer}
+          inputRef={editor}
+          id="source-field"
+          aria-label="Source field"
+          inputValue="held"
+          isRequired
+          isInvalid
+          render={
+            replacement
+              ? undefined
+              : (props, state) => {
+                  flags = state
+                  return <NativeFocusHost {...props} testID="custom-picker" />
+                }
+          }
+        />
+      </NativeComboBoxContext.Provider>,
+    )
+  await render(content(false))
+  const originalRoot = picker.current,
+    originalOuter = outer.current,
+    originalInput = editor.current
+  expect(originalRoot).not.toBeNull()
+  expect(originalInput).not.toBeNull()
+  expect(originalRoot === originalOuter).toBe(false)
+  expect(screen.getByTestId("tag-combobox").props.id).toBeUndefined()
+  expect(screen.getByTestId("custom-picker").props.id).toBeUndefined()
+  expect(screen.getByTestId("combo-box-input").props.nativeID).toBe("source-field")
+  expect(screen.getByTestId("combo-box-input").props.accessibilityLabel).toBe("Source field")
+  expect(screen.getByTestId("combo-box-trigger").props.accessibilityLabel).toBe("Show suggestions")
+  expect(screen.getByTestId("combo-box-group").props.accessibilityLabel).toBe("ComboBox Input Button Group")
+  expect(flags).toEqual({ isOpen: false, isDisabled: false, isInvalid: true, isRequired: true, isReadOnly: false })
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held")
+  await act(() => screen.rerender(content(true)))
+  expect(screen.queryByTestId("custom-picker")).toBeNull()
+  expect(picker.current).not.toBeNull()
+  expect(outer.current === originalOuter).toBe(true)
+  expect(editor.current === originalInput).toBe(true)
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held")
+})
+it.each(["wrapper", "nested", "parent"] as const)(
+  "keeps %s field naming and IDs separate from trigger and group labels",
+  async (owner) => {
+    const f = setup()
+    await render(
+      f.node(
+        <NativeComboBoxContext.Provider
+          value={{ id: owner === "parent" ? "parent-field" : undefined, "aria-label": "Parent field" }}
+        >
+          <TagComboBox
+            items={ITEMS}
+            selectedItems={[]}
+            getItemKey={(item) => item.id}
+            getItemTextValue={(item) => item.label}
+            onSelectedItemsChange={() => {}}
+            {...(owner === "wrapper" ? { id: "source-field", "aria-label": "Source field" } : null)}
+            customComboBoxProps={owner === "nested" ? { id: "nested-field", "aria-label": "Nested field" } : undefined}
+          />
+        </NativeComboBoxContext.Provider>,
+      ),
+    )
+    const expected = owner === "wrapper" ? "Source" : owner === "nested" ? "Nested" : "Parent"
+    expect(screen.getByTestId("combo-box-input").props.nativeID).toBe(expected.toLowerCase() + "-field")
+    expect(screen.getByTestId("combo-box-input").props.accessibilityLabel).toBe(expected + " field")
+    expect(screen.getByTestId("combo-box-trigger").props.accessibilityLabel).toBe("Show suggestions")
+    expect(screen.getByTestId("combo-box-group").props.accessibilityLabel).toBe("ComboBox Input Button Group")
+    expect(screen.queryByTestId("tag-combobox-input-group")).toBeNull()
+  },
+)
+
+it.each(["isDisabled", "isReadOnly"] as const)(
+  "keeps explicit state requests available with %s while the owner vetoes",
+  async (guard) => {
+    const f = setup(),
+      events: string[] = []
+    let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)!
+      return null
+    }
+    await render(
+      f.node(
+        <TagComboBox
+          items={ITEMS}
+          selectedItems={[]}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          {...{ [guard]: true }}
+          inputValue="held"
+          onInputChange={(value) => events.push("input:" + value)}
+          onSelectedItemsChange={(next, details) => {
+            expect(next[0] === ITEMS[0]).toBe(true)
+            expect(details.action).toBe("add")
+            events.push("selected")
+          }}
+          render={(props) => (
+            <NativeFocusHost {...props}>
+              {props.children}
+              <Capture />
+            </NativeFocusHost>
+          )}
+        />,
+      ),
+    )
+    await act(() => state.setInputValue("explicit"))
+    await act(() => state.setValue(0))
+    expect(events).toEqual(["input:explicit", "selected", "input:"])
+    expect(state.value).toBeNull()
+    expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held")
+  },
+)
+
+it("retires old editor callbacks after requested host replacement without resetting logical owner state", async () => {
+  const f = setup(),
+    input = createRef<RN.TextInput>(),
+    change = jest.fn(),
+    focus = jest.fn(),
+    blur = jest.fn(),
+    within = jest.fn()
+  let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)!
+    return null
+  }
+  const content = (revision: number) =>
+    f.node(
+      <NativeCollectionComboBox
+        items={ITEMS}
+        getKey={(item) => item.id}
+        getTextValue={(item) => item.label}
+        value={null}
+        inputValue="held"
+        inputRef={input}
+        inputLabel="Query"
+        closeLabel="Close"
+        onInputChange={change}
+        onFocus={focus}
+        onBlur={blur}
+        onFocusChange={within}
+        render={(props) => (
+          <NativeFocusHost {...props} key={revision}>
+            {props.children}
+            <Capture />
+          </NativeFocusHost>
+        )}
+      />,
+    )
+  await render(content(0))
+  const first = input.current,
+    retired = screen.getByTestId("combo-box-input").props
+  const entered = { nativeEvent: { target: 17 } },
+    left = { nativeEvent: { target: 17 } }
+  await act(() => retired.onFocus(entered))
+  expect(state.isFocused).toBe(true)
+  expect(focus).toHaveBeenCalledTimes(1)
+  await act(() => screen.rerender(content(1)))
+  expect(input.current === first).toBe(false)
+  expect(state.isFocused).toBe(true)
+  await act(() => {
+    retired.onChangeText("retired query")
+    retired.onFocus(entered)
+    retired.onBlur(left)
+  })
+  expect(change).not.toHaveBeenCalled()
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(blur).not.toHaveBeenCalled()
+  expect(state.isFocused).toBe(true)
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held")
+  await act(() => screen.getByTestId("combo-box-input").props.onFocus(entered))
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(within.mock.calls).toEqual([[true], [true]])
+})
+
+it.each(["mouse", "pen", "touch"] as const)(
+  "uses original %s trigger timing without a release retoggle",
+  async (type) => {
+    const f = setup(),
+      input = createRef<RN.TextInput>(),
+      changed = jest.fn()
+    let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)!
+      return null
+    }
+    await render(
+      f.node(
+        <NativeCollectionComboBox
+          items={ITEMS}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          inputRef={input}
+          inputLabel="Query"
+          closeLabel="Close"
+          onOpenChange={changed}
+          render={(props) => (
+            <NativeFocusHost {...props}>
+              {props.children}
+              <Capture />
+            </NativeFocusHost>
+          )}
+        />,
+      ),
+    )
+    const original = input.current,
+      row = screen.getByTestId("combo-box-trigger")
+    const event = {
+      target: 17,
+      currentTarget: 17,
+      persist: jest.fn(),
+      isDefaultPrevented: () => false,
+      nativeEvent: { target: 17, timestamp: 1, identifier: 0, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+    }
+    await act(() =>
+      row.props.onPointerDown({
+        persist: jest.fn(),
+        nativeEvent: { pointerType: type },
+        isDefaultPrevented: () => false,
+      }),
+    )
+    await act(() => row.props.onResponderGrant(event))
+    expect(state.isOpen).toBe(type !== "touch")
+    expect(changed.mock.calls).toStrictEqual(type === "touch" ? [] : [[true, "manual"]])
+    await act(() => row.props.onResponderRelease(event))
+    expect(state.isOpen).toBe(true)
+    expect(changed.mock.calls).toStrictEqual([[true, "manual"]])
+    expect(state.isFocused).toBe(false)
+    expect(input.current === original).toBe(true)
+  },
+)
+
+it.each(["disabled", "readonly", "window", "unmount", "cancel", "prevented"] as const)(
+  "retires an original held touch trigger on %s",
+  async (reason) => {
+    const f = setup(),
+      changed = jest.fn()
+    const content = (disabled = false, readOnly = false) =>
+      f.node(
+        <NativeCollectionComboBox
+          items={ITEMS}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          inputLabel="Query"
+          closeLabel="Close"
+          isDisabled={disabled}
+          isReadOnly={readOnly}
+          onOpenChange={changed}
+        />,
+      )
+    await render(content())
+    const target = screen.getByTestId("combo-box-trigger").props
+    const event = {
+      target: 17,
+      currentTarget: 17,
+      persist: jest.fn(),
+      isDefaultPrevented: () => false,
+      nativeEvent: { target: 17, timestamp: 1, identifier: 0, pageX: 0, pageY: 0, locationX: 0, locationY: 0 },
+    }
+    const pointer = {
+      persist: jest.fn(),
+      nativeEvent: { pointerType: "touch" },
+      defaultPrevented: false,
+      isDefaultPrevented: () => false,
+    }
+    await act(() => {
+      target.onPointerDown(pointer)
+      target.onResponderGrant(event)
+    })
+    if (reason === "disabled") await act(() => screen.rerender(content(true)))
+    else if (reason === "readonly") await act(() => screen.rerender(content(false, true)))
+    else if (reason === "unmount") await act(() => screen.rerender(f.node(null)))
+    else if (reason === "cancel") await act(() => target.onResponderTerminate(event))
+    else if (reason === "prevented") pointer.defaultPrevented = true
+    else {
+      const host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "retired",
+            epoch: 2,
+            policyRevision: host.policyRevision,
+            ready: false,
+            windowActive: false,
+          },
+        }),
+      )
+    }
+    if (reason !== "cancel") await act(() => target.onResponderRelease(event))
+    expect(changed).not.toHaveBeenCalled()
+  },
+)
+
+it.each([false, true])(
+  "commits the closed native submit with owner-held matching text, readonly=%s",
+  async (readonly) => {
+    const f = setup(),
+      events: string[] = []
+    const opened = jest.fn()
+    const submitted = jest.fn((event) => events.push("submit:" + event.nativeEvent.text))
+    await render(
+      f.node(
+        <TagComboBox
+          items={ITEMS}
+          selectedItems={[]}
+          getItemKey={(item) => item.id}
+          getItemTextValue={(item) => item.label}
+          inputValue="Zero"
+          isReadOnly={readonly}
+          onSelectedItemsChange={() => {}}
+          onInputChange={(value) => events.push("input:" + value)}
+          inputProps={{ onSubmitEditing: submitted }}
+          onOpenChange={opened}
+        />,
+      ),
+    )
+    const event = { nativeEvent: { text: "Zero", target: 17, eventCount: 1 } }
+    await act(() => screen.getByTestId("combo-box-input").props.onFocus({ nativeEvent: { target: 17 } }))
+    await act(() => screen.getByTestId("combo-box-input").props.onSubmitEditing(event))
+    expect(events).toEqual(["submit:Zero"])
+    expect(opened.mock.calls).toStrictEqual(readonly ? [] : [[true, "input"]])
+    expect(submitted.mock.calls[0][0] === event).toBe(true)
+    expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("Zero")
+  },
+)
+
+it.each(["current", "readonly", "query"] as const)(
+  "holds virtual submit for its actual current row, %s",
+  async (change) => {
+    const f = setup(),
+      selected = jest.fn(),
+      requested = jest.fn()
+    let show!: () => void, retire!: () => void
+    let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)!
+      return null
+    }
+    const Owner = () => {
+      const [visible, setVisible] = useState(false),
+        [retired, setRetired] = useState(false)
+      show = () => setVisible(true)
+      retire = () => setRetired(true)
+      return (
+        <NativeCollectionRendererContext.Provider
+          value={{
+            ...DefaultNativeCollectionRenderer,
+            isVirtualized: true,
+            CollectionRoot: (props) => (visible ? <DefaultNativeCollectionRenderer.CollectionRoot {...props} /> : null),
+            layoutDelegate: {
+              getItemRect: () => null,
+              getVisibleRect: () => ({ x: 0, y: 0, width: 260, height: 180 }),
+              getContentSize: () => ({ width: 260, height: 180 }),
+              getKeyRange: () => [],
+              requestRendering: requested,
+            },
+          }}
+        >
+          <NativeCollectionComboBox
+            items={ITEMS}
+            getKey={(item) => item.id}
+            getTextValue={(item) => item.label}
+            value={null}
+            inputValue={retired && change === "query" ? "changed" : ""}
+            isReadOnly={retired && change === "readonly"}
+            isOpen
+            onChange={selected}
+            inputLabel="Query"
+            closeLabel="Close"
+            render={(props) => (
+              <NativeFocusHost {...props}>
+                {props.children}
+                <Capture />
+              </NativeFocusHost>
+            )}
+          />
+        </NativeCollectionRendererContext.Provider>
+      )
+    }
+    await render(f.node(<Owner />))
+    await f.ready()
+    await act(() => state.selectionManager.setFocusedKey("b"))
+    const submitted = { persist: jest.fn(), nativeEvent: { target: 17, text: "", eventCount: 1 } }
+    await act(() => screen.getByTestId("combo-box-input").props.onSubmitEditing(submitted))
+    await act(() =>
+      screen
+        .getByTestId("combo-box-input")
+        .props.onSubmitEditing({ persist: jest.fn(), nativeEvent: { target: 17, text: "", eventCount: 2 } }),
+    )
+    expect(selected).not.toHaveBeenCalled()
+    expect(requested).toHaveBeenCalledWith("b")
+    if (change !== "current") await act(retire)
+    await act(show)
+    expect(selected.mock.calls).toEqual(change === "current" ? [["b"], ["b"]] : [])
+  },
+)

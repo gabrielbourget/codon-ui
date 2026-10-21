@@ -13,7 +13,6 @@ import {
   type RefAttributes,
 } from "react"
 import { findNodeHandle, ScrollView, type TextInput, type View } from "react-native"
-import Svg, { Polyline } from "react-native-svg"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -27,19 +26,19 @@ import {
 } from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext } from "../../collection/state"
-import { focusNativeTarget } from "../../input/focus"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
-import { NativeButton } from "../Button/Button"
-import { getNativeButtonContent } from "../Button/content"
 import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
-import { Input } from "../Input/Input"
+import { NativeContentContext } from "../NativeContentContext"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
+import { NativeCollectionComboBoxInput } from "./CollectionComboBoxInput"
+import { NativeCollectionComboBoxTrigger } from "./CollectionComboBoxTrigger"
 import {
   NativeComboBoxContext,
   NativeComboBoxGroupContext,
@@ -48,7 +47,11 @@ import {
   NativeComboBoxOptionsContext,
   NativeComboBoxStateContext,
 } from "./collectionContext"
-import type { TNativeCollectionComboBoxProps, TNativeCollectionComboBoxParentProps } from "./collectionTypes"
+import type {
+  TNativeCollectionComboBoxProps,
+  TNativeCollectionComboBoxParentProps,
+  TNativeComboBoxSubmitEvent,
+} from "./collectionTypes"
 import { NativeComboBoxItem } from "./ComboBoxItem"
 import { createNativeComboBoxFilter } from "./filter"
 import { NativeComboBoxKeyBinding } from "./keyboard"
@@ -56,6 +59,7 @@ import { useComboBoxState } from "./state/useComboBoxState"
 import { getNativeComboBoxStyles } from "./styles"
 import type { TNativeComboBoxProps, TNativeComboBoxRef } from "./types"
 
+type TCommitEvent = TNativePressEvent | TNativeComboBoxSubmitEvent
 export type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 const AuthoredItem = ({
   id,
@@ -163,7 +167,21 @@ const Receiver = <T extends object>({
   const bindInput = useCallback((target: TextInput | null) => {
     input.current = target
     setInputTarget(findNodeHandle(target) ?? 0)
+    if (!target) setFocused(false)
   }, [])
+  const inputScope = useNativeKeyScope()
+  const pendingCommit = useRef<
+    {
+      key: string | number
+      collection: TNativeCollectionSnapshot<T>
+      query: string
+      input: TextInput | null
+      scope: typeof inputScope
+      window: string
+      event: TCommitEvent
+    }[]
+  >([])
+  const flushCommit = useRef(() => {})
   const pendingNavigation = useRef<"first" | "last" | null>(null)
   const renderer = useContext(NativeCollectionRendererContext)
   const { CollectionRoot } = renderer
@@ -179,14 +197,18 @@ const Receiver = <T extends object>({
     return () => {
       live.current = false
       rows.current.clear()
+      pendingCommit.current = []
     }
   }, [])
   const register = useCallback((node: TNativeCollectionNode<unknown>, target: View | null) => {
-    if (target) rows.current.set(node.key, { node, target })
-    else if (rows.current.get(node.key)?.node === node) rows.current.delete(node.key)
+    if (target) {
+      rows.current.set(node.key, { node, target })
+      if (pendingCommit.current.some((pending) => pending.key === node.key))
+        void Promise.resolve().then(() => flushCommit.current())
+    } else if (rows.current.get(node.key)?.node === node) rows.current.delete(node.key)
   }, [])
   const press = useCallback(
-    (node: TNativeCollectionNode<unknown>, target: View | null, event: TNativePressEvent) => {
+    (node: TNativeCollectionNode<unknown>, target: View | null, event: TCommitEvent) => {
       const original = rows.current.get(node.key)
       if (
         !live.current ||
@@ -216,6 +238,62 @@ const Receiver = <T extends object>({
     },
     [actions],
   )
+  const requestCommit = (event: TCommitEvent) => {
+    const owner = current.current
+    if (
+      !live.current ||
+      owner.props.isDisabled ||
+      owner.props.isReadOnly ||
+      event.defaultPrevented ||
+      event.isDefaultPrevented?.()
+    )
+      return
+    const key = owner.state.selectionManager.focusedKey
+    if (owner.state.isOpen && key != null) {
+      const row = rows.current.get(key)
+      if (row) press(row.node, row.target, event)
+      else if (owner.state.collection.getItem(key)?.type === "item" && !owner.state.disabledKeys.has(key)) {
+        event.persist()
+        pendingCommit.current.push({
+          key,
+          collection: owner.state.collection,
+          query: owner.state.inputValue,
+          input: input.current,
+          scope: inputScope,
+          window: JSON.stringify(inputScope?.acknowledgedSession() ?? null),
+          event,
+        })
+        renderer.layoutDelegate?.requestRendering?.(key)
+        renderer.layoutDelegate?.scrollToKey?.(key)
+      }
+    } else owner.state.commit()
+  }
+  useInsertionEffect(() => {
+    flushCommit.current = () => {
+      const requests = pendingCommit.current
+      pendingCommit.current = []
+      for (const pending of requests) {
+        const owner = current.current
+        const valid =
+          live.current &&
+          !owner.props.isDisabled &&
+          !owner.props.isReadOnly &&
+          owner.state.isOpen &&
+          owner.state.selectionManager.focusedKey === pending.key &&
+          owner.state.collection === pending.collection &&
+          owner.state.inputValue === pending.query &&
+          input.current === pending.input &&
+          inputScope === pending.scope &&
+          inputScope?.isWindowActive() !== false &&
+          JSON.stringify(inputScope?.acknowledgedSession() ?? null) === pending.window
+        if (!valid) continue
+        const row = rows.current.get(pending.key)
+        if (row) press(row.node, row.target, pending.event)
+        else pendingCommit.current.push(pending)
+      }
+    }
+  })
+
   const inputRef = useNativeCollectionRefs(props.inputRef, bindInput)
   const identity = props.testID ?? props["data-testid"] ?? "combo-box"
   const authoredStyle = props.style
@@ -225,7 +303,11 @@ const Receiver = <T extends object>({
       : authoredStyle
   const styles = getNativeComboBoxStyles(
     theme,
-    { ...props, style: inheritedStyle },
+    {
+      ...props,
+      accessibilityLabel: props.accessibilityLabel ?? props["aria-label"] ?? props.inputLabel,
+      style: inheritedStyle,
+    },
     {
       isOpen: state.isOpen,
       isDisabled: !!props.isDisabled,
@@ -237,11 +319,17 @@ const Receiver = <T extends object>({
     false,
   )
   const persistedKeys = useNativePersistedKeys(state.selectionManager.focusedKey)
-  const enabledKeys = () =>
-    [...current.current.state.collection.getKeys()].filter((key) => {
-      const node = current.current.state.collection.getItem(key)
-      return node?.type === "item" && !current.current.state.selectionManager.isDisabled(key)
-    })
+  const enabledKeys = () => {
+    const { collection, selectionManager } = current.current.state
+    const keys: (string | number)[] = []
+    let key = collection.getFirstKey()
+    while (key != null) {
+      const node = collection.getItem(key)
+      if (node?.type === "item" && !selectionManager.isDisabled(key)) keys.push(key)
+      key = collection.getKeyAfter(key)
+    }
+    return keys
+  }
   useLayoutEffect(() => {
     if (!state.isOpen || !pendingNavigation.current) return
     const keys = enabledKeys()
@@ -312,10 +400,7 @@ const Receiver = <T extends object>({
         if (keys[candidate] != null) owner.state.selectionManager.setFocusedKey(keys[candidate])
       }
     } else if (data.key === "Enter") {
-      const key = owner.state.selectionManager.focusedKey
-      const row = key == null ? undefined : rows.current.get(key)
-      if (row) press(row.node, row.target, event)
-      else owner.state.commit()
+      requestCommit(event)
     } else if (data.key === "Escape") owner.state.revert()
   }
   const observeKey = (event: TNativeObservedKeyboardEvent) => {
@@ -331,6 +416,7 @@ const Receiver = <T extends object>({
     {
       slot: undefined,
       role: "group" as const,
+      accessibilityLabel: props.groupLabel ?? "ComboBox Input Button Group",
       accessible: false,
       focusable: false,
       testID: `${identity}-group`,
@@ -367,6 +453,29 @@ const Receiver = <T extends object>({
       {props.emptyListMessage ?? "No items remaining to select"}
     </PlaceholderText>
   )
+  const renderRoot = ({ children }: { children: ReactNode }) => {
+    const hostProps = {
+      ref: forwardedRef,
+      nativeID: props.nativeID,
+      onLayout: props.onLayout,
+      pointerEvents: props.pointerEvents,
+      collapsable: props.collapsable,
+      testID: identity,
+      role: "group" as const,
+      accessible: false,
+      focusable: false,
+      style: styles.root,
+      children,
+    }
+    const flags = {
+      isOpen: state.isOpen,
+      isDisabled: !!props.isDisabled,
+      isReadOnly: !!props.isReadOnly,
+      isRequired: !!props.isRequired,
+      isInvalid: state.displayValidation.isInvalid,
+    }
+    return props.render ? props.render(hostProps, flags) : <NativeFocusHost {...hostProps} />
+  }
   return (
     <NativeComboBoxStateContext.Provider value={state}>
       <NativeListStateContext.Provider value={state}>
@@ -380,112 +489,61 @@ const Receiver = <T extends object>({
             press,
           }}
         >
-          <NativeFocusHost
-            ref={forwardedRef}
-            nativeID={props.nativeID}
-            id={props.id}
-            onLayout={props.onLayout}
-            pointerEvents={props.pointerEvents}
-            collapsable={props.collapsable}
-            testID={identity}
-            role="group"
-            accessible={false}
-            focusable={false}
-            style={styles.root}
-          >
-            <NativeComboBoxKeyBinding
-              target={inputTarget}
-              open={state.isOpen}
-              enabled={!props.isDisabled && !props.isReadOnly}
-              lifetime={`${inputTarget}:${state.isOpen}`}
-              onKey={onKey}
-              observe={observeKey}
-            />
-            <NativeFocusHost {...groupProps} ref={groupRef}>
-              <Input
-                {...props.inputProps}
-                ref={inputRef}
-                testID={`${identity}-input`}
-                accessibilityLabel={props.inputLabel}
-                value={state.inputValue}
-                placeholder={props.placeholder}
-                isDisabled={props.isDisabled}
-                isReadOnly={props.isReadOnly}
-                textSize={props.textSize}
-                geometry={props.geometry}
-                enableFocusStyle={false}
-                customStyles={[{ flex: 1, minWidth: 0 }, styles.input]}
-                onChangeText={(value) => {
-                  if (live.current && !current.current.props.isDisabled && !current.current.props.isReadOnly)
-                    current.current.state.setInputValue(value)
-                }}
-                onFocus={(event) => {
-                  setFocused(true)
-                  if (!state.isFocused) {
-                    props.onFocus?.(event)
-                    props.onFocusChange?.(true)
-                    state.setFocused(true)
-                  }
-                  props.inputProps?.onFocus?.(event)
-                }}
-                onBlur={(event) => {
-                  setFocused(false)
-                  props.onBlur?.(event)
-                  if (state.isFocused) props.onFocusChange?.(false)
-                  state.setFocused(false)
-                  props.inputProps?.onBlur?.(event)
-                }}
-              />
-              <NativeButton
-                testID={`${identity}-trigger`}
-                accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
-                isDisabled={props.isDisabled}
-                focusable={false}
-                raised={false}
-                customStyles={[{ backgroundColor: "transparent" }, props.customButtonStyles]}
-                onPress={() => {
-                  if (props.isDisabled || props.isReadOnly) return
-                  state.toggle(null, "manual")
-                  focusNativeTarget(input.current)
-                }}
-              >
-                {props.ComponentIcon ? (
-                  getNativeButtonContent(props.ComponentIcon)
-                ) : (
-                  <Svg
-                    width={15}
-                    height={15}
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={styles.foreground}
-                    strokeWidth={2}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <Polyline points="6 9 12 15 18 9" />
-                  </Svg>
-                )}
-              </NativeButton>
-            </NativeFocusHost>
-            <NativeFloatingSurface {...popupProps} ref={popupRef} nativeRootRole={null}>
-              <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
-                <NativeFocusHost role="list" focusable={false} accessible={false} testID={`${identity}-list`}>
-                  {renderer.isVirtualized ? (
-                    optionContent
-                  ) : (
-                    <ScrollView
-                      ref={scroll as React.Ref<ScrollView>}
-                      keyboardShouldPersistTaps="always"
-                      keyboardDismissMode="none"
-                      style={{ maxHeight: 280 }}
-                    >
-                      {optionContent}
-                    </ScrollView>
-                  )}
-                </NativeFocusHost>
-              </NativeCollectionItemBindingContext.Provider>
-            </NativeFloatingSurface>
-          </NativeFocusHost>
+          <NativeContentContext.Provider value={{ foregroundColor: styles.foreground, isButton: false }}>
+            {renderRoot({
+              children: (
+                <>
+                  <NativeComboBoxKeyBinding
+                    target={inputTarget}
+                    open={state.isOpen}
+                    enabled={!props.isDisabled && !props.isReadOnly}
+                    lifetime={`${inputTarget}:${state.isOpen}`}
+                    onKey={onKey}
+                    observe={observeKey}
+                  />
+                  <NativeFocusHost {...groupProps} ref={groupRef}>
+                    <NativeCollectionComboBoxInput
+                      owner={props}
+                      state={state}
+                      inputRef={inputRef}
+                      identity={identity}
+                      style={styles.input}
+                      onFocusWithin={(focused) => {
+                        setFocused(focused)
+                        if (!focused) pendingCommit.current = []
+                      }}
+                      onCommit={requestCommit}
+                    />
+                    <NativeCollectionComboBoxTrigger
+                      owner={props}
+                      state={state}
+                      input={input}
+                      identity={identity}
+                      foreground={styles.foreground}
+                    />
+                  </NativeFocusHost>
+                  <NativeFloatingSurface {...popupProps} ref={popupRef} nativeRootRole={null}>
+                    <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+                      <NativeFocusHost role="list" focusable={false} accessible={false} testID={`${identity}-list`}>
+                        {renderer.isVirtualized ? (
+                          optionContent
+                        ) : (
+                          <ScrollView
+                            ref={scroll as React.Ref<ScrollView>}
+                            keyboardShouldPersistTaps="always"
+                            keyboardDismissMode="none"
+                            style={{ maxHeight: 280 }}
+                          >
+                            {optionContent}
+                          </ScrollView>
+                        )}
+                      </NativeFocusHost>
+                    </NativeCollectionItemBindingContext.Provider>
+                  </NativeFloatingSurface>
+                </>
+              ),
+            })}
+          </NativeContentContext.Provider>
         </NativeComboBoxOptionsContext.Provider>
       </NativeListStateContext.Provider>
     </NativeComboBoxStateContext.Provider>

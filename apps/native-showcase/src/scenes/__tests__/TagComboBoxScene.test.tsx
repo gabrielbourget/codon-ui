@@ -41,7 +41,19 @@ const scene = (mode: "light" | "dark" = "light") => (
     </NativeOverlayProvider>
   </NativeThemeProvider>
 )
-const press = (name: string) => fireEvent.press(screen.getByRole("button", { name, ...hidden }))
+const press = async (name: string) => {
+  const target = screen.getByRole("button", { name, ...hidden })
+  if (name !== "Show suggestions") return fireEvent.press(target)
+  const event = {
+    target: 17,
+    currentTarget: 17,
+    persist: jest.fn(),
+    isDefaultPrevented: () => false,
+    nativeEvent: { target: 17, identifier: 1, pageX: 4, pageY: 4, locationX: 4, locationY: 4, timestamp: 1 },
+  }
+  await fireEvent(target, "responderGrant", event)
+  await fireEvent(target, "responderRelease", event)
+}
 const choose = (name: string) => act(() => userEvent.setup().press(screen.getByRole("option", { name })))
 const show = async () => {
   const measure = (target: RN.View, box: number[]) =>
@@ -174,4 +186,25 @@ it("requests closing once when the confirmed collection becomes empty under the 
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Open: false/)
   expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent("Requests: open:false.")
   expect(screen.getByTestId("combo-box-input")).toBeOnTheScreen()
+})
+
+it("replaces the requested custom picker host while retaining the wrapper, owner query and independent editor", async () => {
+  await render(scene())
+  await press("Set tag-combo owner query")
+  const wrapper = screen.getByTestId("tag-combobox"),
+    editor = screen.getByTestId("tag-combo-owner-editor"),
+    before = screen.getByTestId("combo-box-input")
+  await fireEvent.changeText(editor, "independent draft")
+  expect(before.props.nativeID).toBe("tag-combo-owner-query-field")
+  await press("Toggle tag-combo custom picker root")
+  const after = screen.getByTestId("combo-box-input")
+  expect(screen.getByTestId("tag-combo-owner-custom-picker")).toBeOnTheScreen()
+  expect(screen.getByTestId("tag-combobox") === wrapper).toBe(true)
+  expect(after).toHaveDisplayValue("held query")
+  expect(after.props.nativeID).toBe("tag-combo-owner-query-field")
+  expect(editor).toHaveDisplayValue("independent draft")
+  expect(screen.getByTestId("tag-combo-owner-requests")).toHaveTextContent("Requests: none.")
+  await press("Toggle tag-combo custom picker root")
+  expect(screen.queryByTestId("tag-combo-owner-custom-picker")).toBeNull()
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
 })
