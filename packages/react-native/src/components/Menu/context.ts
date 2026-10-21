@@ -32,6 +32,7 @@ export type TNativeMenuContext = {
   focusVisible: boolean
   disabled: (row: TNativeMenuRegistration) => boolean
   selected: (row: TNativeMenuRegistration) => boolean
+  semantics: (row: TNativeMenuRegistration) => string
   focus: (row: TNativeMenuRegistration) => boolean
   requestFocus: (row: TNativeMenuRegistration) => boolean
   pointerHandoff: (hitPath: readonly number[], isCurrent: () => boolean) => boolean

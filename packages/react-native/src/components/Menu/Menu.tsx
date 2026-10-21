@@ -29,6 +29,7 @@ import {
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
 } from "../../collection/renderer"
+import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useTreeState } from "../../collection/state"
@@ -314,7 +315,7 @@ const NativeMenuList = (props: TListProps) => {
     commandedLease: TListProps["receipt"]["lease"]
   } | null>(null)
   const setActive = (key: TNativeMenuKey | null) => manager.setFocusedKey(key)
-  const logicalMembers = []
+  const logicalMembers: TNativeCollectionNode<object>[] = []
   let logicalKey = collection.getFirstKey()
   while (logicalKey !== null) {
     const node = collection.getItem(logicalKey)!
@@ -752,6 +753,12 @@ const NativeMenuList = (props: TListProps) => {
                 focusVisible,
                 disabled,
                 selected: (row) => row.selectionManager().isSelected(row.id),
+                semantics: (row) =>
+                  JSON.stringify({
+                    kind: "list-item",
+                    parentTarget: targetTag,
+                    ordinal: logicalMembers.findIndex((node) => node.key === row.id),
+                  } satisfies TNativeCollectionSemantics),
                 requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
                 pointerHandoff: (hitPath, isCurrent) => {
                   if (!isCurrent()) return false
@@ -781,108 +788,117 @@ const NativeMenuList = (props: TListProps) => {
               <NativeContentContext.Provider
                 value={{ foregroundColor: listStyles.text.color ?? theme.colors.foreground, isButton: false }}
               >
-                <MenuListHost
-                  {...props.listProps}
-                  ref={props.listRef}
-                  render={props.listProps.render}
-                  isEmpty={collection.size === 0}
-                  nativeID={props.listProps.nativeID ?? props.listProps.id ?? props.submenu?.menuID}
-                  nativeLabelledBy={
-                    nativeAccessibilityIDs(
-                      props.listProps.accessibilityLabelledBy ?? props.listProps["aria-labelledby"],
-                    ) ??
-                    (props.submenu ? [props.submenu.triggerID] : triggerLabelledBy ? [triggerLabelledBy] : undefined)
-                  }
-                  nativeDescribedBy={nativeAccessibilityIDs(
-                    props.listProps.ariaDescribedBy ?? props.listProps["aria-describedby"],
-                  )}
-                  nativeDetailsBy={nativeAccessibilityIDs(
-                    props.listProps.ariaDetails ?? props.listProps["aria-details"],
-                  )}
-                  nativeDescriptionLabel={props.listProps.descriptionLabel}
-                  nativeDetailsLabel={props.listProps.detailsLabel}
-                  role="menu"
-                  accessible={collection.size === 0 && !props.listProps.renderEmptyState}
-                  focusable
-                  accessibilityLabel={props.menuAriaLabel}
-                  testID={props.listProps.testID ?? "menu-list"}
-                  style={listStyles.view}
-                  onFocus={(event) => {
-                    manager.setFocused(true)
-                    setFocusVisible(event.nativeEvent.isFocusVisible)
-                    props.listProps.onFocus?.(event)
-                  }}
-                  onBlur={(event) => {
-                    manager.setFocused(false)
-                    setFocusVisible(false)
-                    props.listProps.onBlur?.(event)
-                  }}
-                  onKeyDown={(event) => {
-                    props.listProps.onKeyDown?.(event)
-                    const data = event.nativeEvent
-                    if (
-                      props.listProps.shouldUseVirtualFocus &&
-                      !event.defaultPrevented &&
-                      !event.isDefaultPrevented?.() &&
-                      !data.cancelled &&
-                      !data.altKey &&
-                      !data.ctrlKey &&
-                      !data.metaKey &&
-                      [...data.key].length === 1 &&
-                      current.current.active !== null
-                    ) {
-                      const from = current.current.active
-                      event.persist?.()
-                      actions?.request(null, findNodeHandle(props.root.current) ?? 0, () =>
-                        typeaheadFrom(from, data.key, data.timestamp),
-                      )
-                    }
-                  }}
-                  onLayout={(event) => {
-                    setTargetTag(findNodeHandle(props.root.current) ?? 0)
-                    props.listProps.onLayout?.(event)
-                  }}
+                <NativeCollectionSemanticsContext.Provider
+                  value={JSON.stringify({
+                    kind: "list-root",
+                    count: logicalMembers.length,
+                  } satisfies TNativeCollectionSemantics)}
                 >
-                  <NativeSelectableCollectionContext.Provider value={null}>
-                    {collection.size === 0 && props.listProps.renderEmptyState ? (
-                      <NativeFocusHost role="menuitem" accessible focusable={false} testID="menu-empty-state">
-                        {getNativeButtonContent(props.listProps.renderEmptyState(), listStyles.text)}
-                      </NativeFocusHost>
-                    ) : renderer.isVirtualized ? (
-                      <CollectionRoot
-                        collection={collection}
-                        scrollRef={rendererScroll}
-                        persistedKeys={persistedKeys}
-                      />
-                    ) : (
-                      <ScrollView
-                        ref={scroll}
-                        testID="menu-scroll"
-                        style={{ flexShrink: 1 }}
-                        contentContainerStyle={{
-                          flexDirection: listStyles.view.flexDirection,
-                          flexWrap: listStyles.view.flexWrap,
-                          alignItems: listStyles.view.alignItems,
-                          justifyContent: listStyles.view.justifyContent,
-                          alignContent: listStyles.view.alignContent,
-                          gap: listStyles.view.gap,
-                          rowGap: listStyles.view.rowGap,
-                          columnGap: listStyles.view.columnGap,
-                        }}
-                        keyboardShouldPersistTaps="always"
-                        scrollEventThrottle={16}
-                        onLayout={(event) => {
-                          viewport.current = event.nativeEvent.layout.height
-                        }}
-                        onScroll={(event) => {
-                          offset.current = event.nativeEvent.contentOffset.y
-                        }}
-                      >
-                        <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
-                      </ScrollView>
+                  <MenuListHost
+                    {...props.listProps}
+                    ref={props.listRef}
+                    render={props.listProps.render}
+                    isEmpty={collection.size === 0}
+                    nativeID={props.listProps.nativeID ?? props.listProps.id ?? props.submenu?.menuID}
+                    nativeLabelledBy={
+                      nativeAccessibilityIDs(
+                        props.listProps.accessibilityLabelledBy ?? props.listProps["aria-labelledby"],
+                      ) ??
+                      (props.submenu ? [props.submenu.triggerID] : triggerLabelledBy ? [triggerLabelledBy] : undefined)
+                    }
+                    nativeDescribedBy={nativeAccessibilityIDs(
+                      props.listProps.ariaDescribedBy ?? props.listProps["aria-describedby"],
                     )}
-                  </NativeSelectableCollectionContext.Provider>
-                </MenuListHost>
+                    nativeDetailsBy={nativeAccessibilityIDs(
+                      props.listProps.ariaDetails ?? props.listProps["aria-details"],
+                    )}
+                    nativeDescriptionLabel={props.listProps.descriptionLabel}
+                    nativeDetailsLabel={props.listProps.detailsLabel}
+                    role="menu"
+                    accessible={collection.size === 0 && !props.listProps.renderEmptyState}
+                    focusable
+                    accessibilityLabel={props.menuAriaLabel}
+                    testID={props.listProps.testID ?? "menu-list"}
+                    style={listStyles.view}
+                    onFocus={(event) => {
+                      manager.setFocused(true)
+                      setFocusVisible(event.nativeEvent.isFocusVisible)
+                      props.listProps.onFocus?.(event)
+                    }}
+                    onBlur={(event) => {
+                      manager.setFocused(false)
+                      setFocusVisible(false)
+                      props.listProps.onBlur?.(event)
+                    }}
+                    onKeyDown={(event) => {
+                      props.listProps.onKeyDown?.(event)
+                      const data = event.nativeEvent
+                      if (
+                        props.listProps.shouldUseVirtualFocus &&
+                        !event.defaultPrevented &&
+                        !event.isDefaultPrevented?.() &&
+                        !data.cancelled &&
+                        !data.altKey &&
+                        !data.ctrlKey &&
+                        !data.metaKey &&
+                        [...data.key].length === 1 &&
+                        current.current.active !== null
+                      ) {
+                        const from = current.current.active
+                        event.persist?.()
+                        actions?.request(null, findNodeHandle(props.root.current) ?? 0, () =>
+                          typeaheadFrom(from, data.key, data.timestamp),
+                        )
+                      }
+                    }}
+                    onLayout={(event) => {
+                      setTargetTag(findNodeHandle(props.root.current) ?? 0)
+                      props.listProps.onLayout?.(event)
+                    }}
+                  >
+                    <NativeCollectionSemanticsContext.Provider value="">
+                      <NativeSelectableCollectionContext.Provider value={null}>
+                        {collection.size === 0 && props.listProps.renderEmptyState ? (
+                          <NativeFocusHost role="menuitem" accessible focusable={false} testID="menu-empty-state">
+                            {getNativeButtonContent(props.listProps.renderEmptyState(), listStyles.text)}
+                          </NativeFocusHost>
+                        ) : renderer.isVirtualized ? (
+                          <CollectionRoot
+                            collection={collection}
+                            scrollRef={rendererScroll}
+                            persistedKeys={persistedKeys}
+                          />
+                        ) : (
+                          <ScrollView
+                            ref={scroll}
+                            testID="menu-scroll"
+                            style={{ flexShrink: 1 }}
+                            contentContainerStyle={{
+                              flexDirection: listStyles.view.flexDirection,
+                              flexWrap: listStyles.view.flexWrap,
+                              alignItems: listStyles.view.alignItems,
+                              justifyContent: listStyles.view.justifyContent,
+                              alignContent: listStyles.view.alignContent,
+                              gap: listStyles.view.gap,
+                              rowGap: listStyles.view.rowGap,
+                              columnGap: listStyles.view.columnGap,
+                            }}
+                            keyboardShouldPersistTaps="always"
+                            scrollEventThrottle={16}
+                            onLayout={(event) => {
+                              viewport.current = event.nativeEvent.layout.height
+                            }}
+                            onScroll={(event) => {
+                              offset.current = event.nativeEvent.contentOffset.y
+                            }}
+                          >
+                            <CollectionRoot collection={collection} scrollRef={scroll} persistedKeys={persistedKeys} />
+                          </ScrollView>
+                        )}
+                      </NativeSelectableCollectionContext.Provider>
+                    </NativeCollectionSemanticsContext.Provider>
+                  </MenuListHost>
+                </NativeCollectionSemanticsContext.Provider>
               </NativeContentContext.Provider>
             </NativeMenuActionsContext.Provider>
           </NativeCollectionItemBindingContext.Provider>

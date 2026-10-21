@@ -1,5 +1,6 @@
 #import "CUIFocusView.h"
 #import "CUIAccessibilityReferences.h"
+#import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIKeyboardScope.h"
@@ -112,6 +113,102 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
     && [@[@"none", @"single", @"multiple"] containsObject:mode ?: @""];
 }
 
+- (BOOL)hasCurrentListBinding
+{
+  if (!self.window || !_nativeCollectionBinding.length) return NO;
+  CGRect visible = [self convertRect:self.bounds toView:self.window];
+  for (UIView *ancestor = self; ancestor; ancestor = ancestor.superview) {
+    if (ancestor.hidden || ancestor.alpha <= 0) return NO;
+    if (ancestor.clipsToBounds) visible = CGRectIntersection(visible, [ancestor convertRect:ancestor.bounds toView:self.window]);
+  }
+  if (CGRectIsEmpty(CGRectIntersection(visible, self.window.bounds))) return NO;
+  id binding = [NSJSONSerialization JSONObjectWithData:[_nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  if (![binding isKindOfClass:NSDictionary.class]) return NO;
+  NSInteger target = CUICollectionInteger(binding, @"target");
+  UIView *root = target > 0 ? [self.window viewWithTag:target] : nil;
+  return [root isKindOfClass:CUICollectionRoot.class] && [(CUICollectionRoot *)root acceptsPointerBinding:_nativeCollectionBinding visibleTarget:self.tag];
+}
+
+- (BOOL)isListRoot
+{
+  return [_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"] && CUICollectionInteger(_nativeCollectionSemantics, @"count") >= 0
+    && [self hasCurrentListBinding];
+}
+
+- (CUIFocusView *)listParentCandidate
+{
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-item"] || ![self hasCurrentListBinding]) return nil;
+  UIView *candidate = [self.window viewWithTag:CUICollectionInteger(_nativeCollectionSemantics, @"parentTarget")];
+  if (![candidate isKindOfClass:CUIFocusView.class] || candidate == self) return nil;
+  CUIFocusView *parent = (CUIFocusView *)candidate;
+  if (![parent isListRoot] || parent.window != self.window) return nil;
+  NSDictionary *own = [NSJSONSerialization JSONObjectWithData:[_nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  NSDictionary *root = [NSJSONSerialization JSONObjectWithData:[parent.nativeCollectionBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  for (NSString *key in @[@"ownerId", @"rootId", @"rootRevision", @"target", @"surfaceId", @"windowId", @"epoch", @"sequence"])
+    if (!own[key] || ![own[key] isEqual:root[key]]) return nil;
+  NSInteger ordinal = CUICollectionInteger(_nativeCollectionSemantics, @"ordinal");
+  if (ordinal < 0 || ordinal >= CUICollectionInteger(parent->_nativeCollectionSemantics, @"count")) return nil;
+  for (UIView *ancestor = self.superview; ancestor; ancestor = ancestor.superview) {
+    if (ancestor == parent) return parent;
+    if ([ancestor isKindOfClass:CUIFocusView.class] && ([(CUIFocusView *)ancestor isCollectionRoot] || [(CUIFocusView *)ancestor isListRoot])) return nil;
+  }
+  return nil;
+}
+
+- (NSArray<CUIFocusView *> *)listItems
+{
+  if (![self isListRoot]) return @[];
+  NSMutableArray<CUIFocusView *> *items = [NSMutableArray array];
+  NSMutableArray<UIView *> *pending = [self.subviews mutableCopy];
+  while (pending.count) {
+    UIView *view = pending.firstObject;
+    [pending removeObjectAtIndex:0];
+    if (view.hidden || view.alpha <= 0) continue;
+    if ([view isKindOfClass:CUIFocusView.class]) {
+      CUIFocusView *item = (CUIFocusView *)view;
+      if ([item listParentCandidate] == self) [items addObject:item];
+      if ([item isListRoot] || [item isCollectionRoot]) continue;
+    }
+    [pending addObjectsFromArray:view.subviews];
+  }
+  return items;
+}
+
+- (CUIFocusView *)listParent
+{
+  CUIFocusView *parent = [self listParentCandidate];
+  if (!parent) return nil;
+  NSInteger ordinal = CUICollectionInteger(_nativeCollectionSemantics, @"ordinal");
+  for (CUIFocusView *item in [parent listItems])
+    if (item != self && (CUICollectionInteger(item->_nativeCollectionSemantics, @"ordinal") == ordinal || [item.nativeCollectionBinding isEqual:_nativeCollectionBinding])) return nil;
+  return parent;
+}
+
+- (NSInteger)accessibilityElementCount
+{
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementCount];
+  return [self isListRoot] ? CUICollectionInteger(_nativeCollectionSemantics, @"count") : 0;
+}
+
+- (id)accessibilityElementAtIndex:(NSInteger)index
+{
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super accessibilityElementAtIndex:index];
+  if (![self isListRoot]) return nil;
+  if (index < 0 || index >= [self accessibilityElementCount]) return nil;
+  for (CUIFocusView *item in [self listItems])
+    if (CUICollectionInteger(item->_nativeCollectionSemantics, @"ordinal") == index && [item listParent] == self) return item;
+  return nil;
+}
+
+- (NSInteger)indexOfAccessibilityElement:(id)element
+{
+  if (![_nativeCollectionSemantics[@"kind"] isEqual:@"list-root"]) return [super indexOfAccessibilityElement:element];
+  if (![self isListRoot]) return NSNotFound;
+  if (![element isKindOfClass:CUIFocusView.class] || [(CUIFocusView *)element listParent] != self) return NSNotFound;
+  NSInteger index = CUICollectionInteger(((CUIFocusView *)element)->_nativeCollectionSemantics, @"ordinal");
+  return [self accessibilityElementAtIndex:index] == element ? index : NSNotFound;
+}
+
 - (BOOL)conformsToProtocol:(Protocol *)protocol
 {
   if (protocol == @protocol(UIAccessibilityContainerDataTable)) return [self isCollectionRoot];
@@ -217,7 +314,26 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 - (NSString *)collectionAccessibilitySnapshot
 {
   NSMutableDictionary *snapshot = [NSMutableDictionary dictionary];
-  if ([self isCollectionRoot]) {
+  if ([self isListRoot]) {
+    snapshot[@"kind"] = @"list-root";
+    snapshot[@"tableProtocol"] = @([self conformsToProtocol:@protocol(UIAccessibilityContainerDataTable)]);
+    snapshot[@"count"] = @([self accessibilityElementCount]);
+    NSMutableArray *items = [NSMutableArray array];
+    for (CUIFocusView *item in [self listItems]) {
+      NSInteger index = [self indexOfAccessibilityElement:item];
+      if (index == NSNotFound) continue;
+      [items addObject:@{@"target":@(item.tag), @"ordinal":@(index), @"resolved":@([self accessibilityElementAtIndex:index] == item)}];
+    }
+    snapshot[@"materializedItems"] = items;
+  } else if ([self listParent]) {
+    CUIFocusView *parent = [self listParent];
+    snapshot[@"kind"] = @"list-item";
+    snapshot[@"tableCellProtocol"] = @([self conformsToProtocol:@protocol(UIAccessibilityContainerDataTableCell)]);
+    snapshot[@"parentTarget"] = @(parent.tag);
+    snapshot[@"ordinal"] = @([parent indexOfAccessibilityElement:self]);
+    snapshot[@"count"] = @([parent accessibilityElementCount]);
+    snapshot[@"resolved"] = @([parent accessibilityElementAtIndex:[parent indexOfAccessibilityElement:self]] == self);
+  } else if ([self isCollectionRoot]) {
     snapshot[@"kind"] = @"root";
     snapshot[@"rowCount"] = @([self accessibilityRowCount]); snapshot[@"columnCount"] = @([self accessibilityColumnCount]);
     NSMutableArray *cells = [NSMutableArray array];
@@ -254,6 +370,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (UIAccessibilityContainerType)accessibilityContainerType
 {
+  if ([self isListRoot]) return UIAccessibilityContainerTypeList;
   if ([self isCollectionRoot]) return UIAccessibilityContainerTypeDataTable;
   return _nativeNavigation ? UIAccessibilityContainerTypeLandmark : [super accessibilityContainerType];
 }

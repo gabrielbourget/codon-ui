@@ -224,6 +224,10 @@ it("applies full list context to dynamic authoring, original values and default 
   expect([...change.mock.calls[0][0]]).toEqual([0, "0"])
   expect(row("string").props.accessibilityState.checked).toBe(true)
   expect(state.collection.size).toBe(2)
+  expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics)).toEqual({
+    kind: "list-root",
+    count: 2,
+  })
   expect(f.close).not.toHaveBeenCalled()
 })
 
@@ -1808,6 +1812,8 @@ it("keeps offscreen members in actual tree state and defers native focus until m
   await f.ready()
   expect(state.collection.size).toBe(2)
   expect(second.current).toBeNull()
+  expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics).count).toBe(2)
+  expect(JSON.parse(row("first").props.nativeCollectionSemantics).ordinal).toBe(0)
   await scopedKey("a", first.current, "0010:a", { ctrlKey: true })
   await scopedKey("a", first.current, "0010:a", { ctrlKey: true })
   expect(selected.mock.calls.map(([keys]) => keys)).toEqual(["all", "all"])
@@ -1816,8 +1822,116 @@ it("keeps offscreen members in actual tree state and defers native focus until m
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
   expect(state.selectionManager.focusedKey).toBe("0")
   await act(materialize)
+  expect(JSON.parse(row("second").props.nativeCollectionSemantics).ordinal).toBe(1)
   expect(jest.mocked(Commands.requestKeyboardFocus).mock.calls.at(-1)?.[0] === second.current).toBe(true)
   expect(state.selectionManager.focusedKey).toBe("0")
+})
+
+it.each(["ltr", "rtl"] as const)(
+  "binds all five linked %s items without rewriting canonical indices",
+  async (direction) => {
+    const list = createRef<RN.View>()
+    let state!: NonNullable<React.ContextType<typeof NativeMenuStateContext>>
+    const Root = (props: TNativeCollectionRootProps) => {
+      state = useContext(NativeMenuStateContext)!
+      return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+    }
+    const f = fixture(
+      { direction, selectionMode: "multiple", selectedKeys: ["b"], disabledKeys: ["c"] },
+      <>
+        <MenuItem id="a" testID="a">
+          Alpha
+        </MenuItem>
+        <MenuSection>
+          <MenuHeader>Group</MenuHeader>
+          <MenuItem id="b" testID="b">
+            Beta
+          </MenuItem>
+          <MenuItem id="c" testID="c">
+            Charlie
+          </MenuItem>
+        </MenuSection>
+        <SubmenuTrigger>
+          <MenuItem id="trigger" testID="trigger">
+            More
+          </MenuItem>
+          <Menu>
+            <MenuItem id="child">Child</MenuItem>
+          </Menu>
+        </SubmenuTrigger>
+        <MenuItem id="d" testID="d">
+          Delta
+        </MenuItem>
+      </>,
+      { ...DefaultNativeCollectionRenderer, isVirtualized: true, CollectionRoot: Root },
+    )
+    await render(<NativeMenuListContext.Provider value={{ ref: list }}>{f.node()}</NativeMenuListContext.Provider>)
+    await f.ready()
+    const parentTarget = RN.findNodeHandle(list.current)
+    expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics)).toEqual({
+      kind: "list-root",
+      count: 5,
+    })
+    const keys = ["a", "b", "c", "trigger", "d"]
+    expect(keys.map((key) => state.collection.getItem(key)!.index)).toEqual([0, 1, 2, 0, 3])
+    keys.forEach((key, ordinal) => {
+      expect(JSON.parse(row(key).props.nativeCollectionSemantics)).toEqual({
+        kind: "list-item",
+        parentTarget,
+        ordinal,
+      })
+      expect(JSON.parse(row(key).props.nativeCollectionBinding).descriptorId).not.toBe("")
+    })
+    expect(row("c").props.accessibilityState.disabled).toBe(true)
+  },
+)
+
+it("updates list ordinals across opaque reorder, removal, reinsertion and filtering with original refs", async () => {
+  const refs = { a: createRef<RN.View>(), b: createRef<RN.View>(), c: createRef<RN.View>() }
+  let update!: (keys: (keyof typeof refs)[]) => void
+  const Opaque = () => {
+    const [keys, setKeys] = useState<(keyof typeof refs)[]>(["a", "b", "c"])
+    update = setKeys
+    return keys.map((key) => (
+      <MenuItem key={key} id={key} testID={key} ref={refs[key]}>
+        {key}
+      </MenuItem>
+    ))
+  }
+  const f = fixture({}, <Opaque />)
+  const view = (filter?: (text: string) => boolean, empty?: () => ReactNode) => (
+    <NativeMenuListContext.Provider value={{ filter, renderEmptyState: empty }}>
+      {f.node()}
+    </NativeMenuListContext.Provider>
+  )
+  await render(view())
+  await f.ready()
+  const original = refs.a.current
+  const expectOrder = (keys: string[]) => {
+    expect(JSON.parse(row("menu-list").props.nativeCollectionSemantics).count).toBe(keys.length)
+    keys.forEach((key, ordinal) => expect(JSON.parse(row(key).props.nativeCollectionSemantics).ordinal).toBe(ordinal))
+  }
+  expectOrder(["a", "b", "c"])
+  await act(() => update(["c", "a"]))
+  await f.ready()
+  expectOrder(["c", "a"])
+  expect(refs.a.current === original).toBe(true)
+  expect(refs.b.current).toBeNull()
+  await act(() => update(["b", "a", "c"]))
+  await f.ready()
+  expectOrder(["b", "a", "c"])
+  await rerender(view((text) => text !== "a"))
+  await f.ready()
+  expectOrder(["b", "c"])
+  await rerender(
+    view(
+      () => false,
+      () => "No items",
+    ),
+  )
+  await f.ready()
+  expectOrder([])
+  expect(row("menu-empty-state").props.nativeCollectionSemantics).toBe("")
 })
 
 it.each([false, true])(

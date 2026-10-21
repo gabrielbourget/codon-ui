@@ -2,6 +2,15 @@ import { createContext } from "react"
 
 export type TNativeCollectionSemantics =
   | Readonly<{
+      kind: "list-root"
+      count: number
+    }>
+  | Readonly<{
+      kind: "list-item"
+      parentTarget: number
+      ordinal: number
+    }>
+  | Readonly<{
       kind: "root"
       rowCount: number
       columnCount: number
