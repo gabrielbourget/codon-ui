@@ -45,7 +45,13 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(nonce instanceof String) || ((String)nonce).isEmpty()) throw new IllegalArgumentException("form-request-id-invalid");
         UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), target);
         if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("form-Fabric-unavailable");
-        JSONObject response = new JSONObject(readSnapshot((FabricUIManager)manager, surface, target));
+        String snapshot = readSnapshot((FabricUIManager)manager, surface, target);
+        JSONObject response = new JSONObject(snapshot);
+        if (request.optBoolean("inspect", false)) {
+          Integer control = request.has("controlTarget") ? positiveInteger(request, "controlTarget") : null;
+          response.put("inspection", CUIFormDocumentInspection.inspect(manager, response, control));
+          if (!snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target))) throw new IllegalStateException("form-document-retired-during-inspection");
+        }
         if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("form-module-retired");
         response.put("requestId", nonce);
         promise.resolve(response.toString());

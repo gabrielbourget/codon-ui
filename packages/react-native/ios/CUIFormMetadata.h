@@ -1,7 +1,12 @@
 #import "CUICollectionNode.h"
 
-@interface CUIFormRoot : CUICollectionMetadataView
+@interface CUIFormMetadataView : CUICollectionMetadataView
+@property (nonatomic, assign) NSInteger originalTarget;
+- (BOOL)isFieldBinding;
 @end
 
-@interface CUIFieldBinding : CUICollectionMetadataView
+@interface CUIFormRoot : CUIFormMetadataView
+@end
+
+@interface CUIFieldBinding : CUIFormMetadataView
 @end
