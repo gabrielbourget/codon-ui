@@ -17,21 +17,27 @@ final class CUIMenuPointerGrace {
   private int side, movements = 2;
   private double inactivity = -1, handoff = -1;
   private boolean suppressed;
+  private boolean pointerMode = true;
 
   void setSubmenu(Rect rectangle) { submenu = rectangle; side = 0; }
+  void activateSubmenu(Rect rectangle) { submenu = rectangle; }
   boolean suppressed() { return suppressed; }
+  boolean setPointerMode(boolean value) {
+    if (pointerMode == value) return false;
+    retire(); pointerMode = value; return true;
+  }
   double deadline() { return inactivity >= 0 ? inactivity : handoff; }
 
   void reset() { suppressed = false; movements = 2; hasPrevious = false; }
   void retire() { reset(); inactivity = -1; handoff = -1; }
 
-  void move(double x, double y, double now, Rect parent) {
-    if (now - lastProcessedTime < 50) return;
+  boolean move(double x, double y, double now, Rect parent) {
+    if (!pointerMode || now - lastProcessedTime < 50) return false;
     inactivity = -1; handoff = -1;
-    if (!hasPrevious) { previousX = x; previousY = y; hasPrevious = true; return; }
-    if (submenu == null) return;
+    if (!hasPrevious) { previousX = x; previousY = y; hasPrevious = true; return true; }
+    if (submenu == null) return true;
     if (side == 0) side = x > submenu.right ? -1 : 1;
-    if (!parent.contains(x, y)) { reset(); return; }
+    if (!parent.contains(x, y)) { reset(); return true; }
     double toSubmenu = side == 1 ? submenu.left - previousX : previousX - submenu.right;
     double angleTop = Math.atan2(previousY - submenu.top, toSubmenu) + Math.PI / 12;
     double angleBottom = Math.atan2(previousY - submenu.bottom, toSubmenu) - Math.PI / 12;
@@ -41,6 +47,7 @@ final class CUIMenuPointerGrace {
     suppressed = movements >= 2;
     lastProcessedTime = now; previousX = x; previousY = y;
     if (towards) inactivity = now + 1000;
+    return true;
   }
 
   // The platform schedules this with its monotonic UI-thread clock, retaining its original observation.

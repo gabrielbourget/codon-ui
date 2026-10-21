@@ -136,6 +136,37 @@ export type NativePointerStatus = Readonly<{
   ready: boolean
   error: string
 }>
+type NativeMenuPointerPolicy = Readonly<{
+  id: string
+  parentTarget: Int32
+  submenuTarget: Int32
+  triggerTarget: Int32
+  parentBinding: string
+  submenuBinding: string
+  triggerBinding: string
+}>
+export type NativeMenuPointerData = Readonly<{
+  ownerId: string
+  windowId: string
+  epoch: Double
+  revision: Double
+  policyId: string
+  sequence: Double
+  phase: "status" | "move" | "down" | "reset" | "handoff" | "retired"
+  ready: boolean
+  suppressed: boolean
+  observationId: Double
+  pointerType: "mouse" | "touch" | "pen" | "virtual" | "unknown"
+  pageX: Double
+  pageY: Double
+  timestamp: Double
+  target: Int32
+  hitPath: Int32[]
+  nativeButtons: string
+  nativeModifiers: string
+  geometry: string
+  error: string
+}>
 
 export interface NativeProps extends ViewProps {
   ownerId: string
@@ -149,6 +180,9 @@ export interface NativeProps extends ViewProps {
   observationRevision?: Double
   pointerRegistrations?: ReadonlyArray<NativePointerRegistration>
   pointerRevision?: Double
+  menuPointerPolicies?: ReadonlyArray<NativeMenuPointerPolicy>
+  menuPointerRevision?: Double
+  onNativeMenuPointer?: DirectEventHandler<NativeMenuPointerData>
   onNativeWindowPointer?: DirectEventHandler<NativeWindowPointerData>
   onNativePointerStatus?: DirectEventHandler<NativePointerStatus>
   onNativeObservedKey?: DirectEventHandler<NativeObservedKeyData>

@@ -170,6 +170,11 @@ using namespace facebook::react;
   id number = binding[key];
   return [number isKindOfClass:NSNumber.class] && CFGetTypeID((__bridge CFTypeRef)number) != CFBooleanGetTypeID() && [number doubleValue] == expected;
 }
+- (BOOL)acceptsPointerBinding:(NSString *)serialized visibleTarget:(NSInteger)target
+{
+  id binding = [NSJSONSerialization JSONObjectWithData:[serialized dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  return [self acceptsAction:binding serialized:serialized visibleTarget:target];
+}
 - (BOOL)acceptsAction:(NSDictionary *)binding serialized:(NSString *)serialized visibleTarget:(NSInteger)target
 {
   if (![binding isKindOfClass:NSDictionary.class] || !_lastComplete || !self.window.isKeyWindow || self.hidden ||

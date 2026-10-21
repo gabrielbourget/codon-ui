@@ -95,7 +95,7 @@ final class CUIWindowPointers implements CUIWindowPointerCallback.Listener, View
     return null;
   }
 
-  private static Window actualWindow(CUIKeyboardScope scope, View root) {
+  static Window actualWindow(CUIKeyboardScope scope, View root) {
     Activity activity = ((ThemedReactContext) scope.getContext()).getCurrentActivity();
     if (activity == null) return null;
     Window window = activity.getWindow();

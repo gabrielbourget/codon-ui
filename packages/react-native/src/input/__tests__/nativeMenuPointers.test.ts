@@ -260,3 +260,15 @@ it("retires once per enabled transition and requires a fresh native readiness re
   expect(f.pointers.dispatch(f.packet({ phase: "move", observationId: 2, pointerType: "mouse" }))).toBe(false)
   expect(f.acknowledge()).toBe(true)
 })
+
+it("retires the old identity before calling a receiver's retirement callback", () => {
+  const f = fixture()
+  const reenter = jest.fn(() => f.pointers.dispatch(old))
+  f.lease.update({ ...f.options, retire: reenter })
+  f.acknowledge()
+  const old = f.packet()
+  f.observe.mockClear()
+  f.lease.update({ ...f.options, triggerTarget: 12, retire: reenter })
+  expect(reenter).toHaveReturnedWith(false)
+  expect(f.observe).not.toHaveBeenCalled()
+})

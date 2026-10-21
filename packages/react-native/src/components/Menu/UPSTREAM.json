@@ -2,7 +2,8 @@
   "sourcePackages": {
     "react-aria-components": "1.17.0",
     "react-aria": "3.48.0",
-    "react-stately": "3.46.0"
+    "react-stately": "3.46.0",
+    "react-native": "0.86.3"
   },
   "sourceSHA256": {
     "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Menu.mjs": "12242046384db49df6f36c8db1713c81610cef011bd89118b29803842cad1008",
@@ -14,26 +15,44 @@
     "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Text.mjs": "fb01ac529c2dabb759476e391a8d5472cf967e91553b7918d9122d6a2f37e116",
     "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/Keyboard.mjs": "1b5f03bb4a3811c68de738d14bd7824c0b4869066d568471284213087f22bc0d",
     "node_modules/.pnpm/react-aria-components@1.17.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria-components/dist/private/SelectionIndicator.mjs": "51a317cc5699c0e14dc16d30893d0ed39f66a8877a81399f3bd55246580bf780",
-    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSafelyMouseToSubmenu.mjs": "94a42ccb68056644dbeba162080397d9074fa1a91373844889aa417cd5c9436e"
+    "node_modules/.pnpm/react-aria@3.48.0_react-dom@19.2.7_react@19.2.7__react@19.2.7/node_modules/react-aria/dist/private/menu/useSafelyMouseToSubmenu.mjs": "94a42ccb68056644dbeba162080397d9074fa1a91373844889aa417cd5c9436e",
+    "node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/React/Fabric/RCTSurfaceTouchHandler.mm": "7326c79d3cbd91762a18e0d6e21744bd7520521ded318a8f8411391e336e5dd3",
+    "node_modules/.pnpm/react-native@0.86.3_@babel+core@7.29.0_@react-native+jest-preset@0.86.3_@babel+core@7.2_dd54e729a713d753c263bb435da0ebed/node_modules/react-native/React/Fabric/RCTSurfacePointerHandler.mm": "402bd6a1e1f97b3eabd3f6a7cc8944dd5dd59859a2cd6deb800fc8b6b43c0e8f"
   },
   "license": "../../collection/LICENSE.react-aria.md",
-  "scope": "Private section/submenu and inner-list/content construction, source-exact Android/UIKit mouse-grace calculations and scope-owned policy receiver registry. Native scope host/consuming dispatch integration, active-descendant/AT binding, maintained scene, public/native acceptance remain open.",
+  "scope": "Private Menu state/context and native pointer-policy family integration with original collection/native-target/window admission, native geometry/timers, Android original-window delegation, UIKit original-surface input observers and a private original-receipt observation context for maintained scenes. Actual native/default/focus/retirement, active-descendant/AT, full current consumer/Release products and public-family acceptance remain open.",
   "authoredFilesSHA256": {
     "GroupSelectionManager.ts": "64f9b1fc570bb01acbcf9782fd0a8b93024d858fb2ae3698c8ad2148325e8406",
     "MenuSection.tsx": "37aaa4e86e6a9fa0fa661980dc231ae2fe43f217916c6c629a155a4ff83b5613",
     "MenuHeader.tsx": "9c32e40d56137da4a84b86cd3cd9b055a0d38c8157a87fbd4709c08284c85ef8",
-    "Menu.tsx": "7375f94b227809d1fa703a4a2fdeb3f2a642bc47c11cd3fc914db753eeb0736f",
+    "Menu.tsx": "d2c872191b47aad15b5c7744a515870083e0a73058d81f07a60364234b955cd6",
     "MenuItem.tsx": "6749fc2f5cfde5f99a549d56c3666b91f5a8de4fd89a898f58a4e36567c558f3",
-    "context.ts": "2057dcc9c603300e8c1b97dd16bf10abe297571ec80fdcd1ca495026d69f9fbf",
+    "context.ts": "f95cab7b093c6194b1b2e3a29ca3cb481156c8da76b29c1aeee27fbf5c479779",
     "types.ts": "b1431e11ef9e549314b13db35f26d818bd07e14c6f3e9516b72047c1c34c44cb",
-    "NativeMenuTrigger.tsx": "a4cc2b234ff3f44a54e471978e316ac33fbd5a3719a804a9f25b6031b04dd52c",
+    "NativeMenuTrigger.tsx": "68619241399b42827c5bc8f378e671f69644451adbc7ca9ef008537f71da2877",
     "triggerState.ts": "4059f13ad23ea183850525bf023ce9d3b07801478b17077f9a29217a54a83b43",
-    "SubmenuTrigger.tsx": "12366419c91e989eecbcb2005fc914a85b14331c7a027db99d7c246feead3c28",
+    "SubmenuTrigger.tsx": "790cd6d8423de75256d689c09ced0738a602d8e437fbbbaa163fe68868b04e56",
     "../../collection/snapshot.ts": "eb2eb9bd6be41f56d57504f34300300bf1f4a18ebf2daee2495709981c8ba2f5",
     "content.tsx": "3b4f00bb4137ad7d41aebfedb763fe197f8ce2dba9f67f3a704ebc739f2adf7b",
     "../../collection/context.tsx": "404811bd4f5ec84ca8394bf2bbdad73f1fd5068368e0f9a3f75dbeec4b2892a7",
-    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerGrace.java": "54190f413c3cfda43a8d7f769db1dd9f466ed8d8bcad9f6b9d592c412070b98f",
-    "../../../ios/CUIMenuPointerGrace.h": "41b99d0b383dc4cce2dee5ad283c372b4356919df50e3969acf7b73830d26ad6",
-    "../../input/nativeMenuPointers.ts": "fee002a5f18472ae532654a982d0bf9aa3c80a40460deb4879ed57fcca0f9147"
+    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerGrace.java": "3db9f8f11236bfe98ffd9a8e8a58ff226b8f5c42594c8f5adaff576f4f8f10a7",
+    "../../../ios/CUIMenuPointerGrace.h": "b26b65e99c0d6ca1eb93ad13d68f420312af55198e6ff99b72af7773bdf1d19a",
+    "../../input/nativeMenuPointers.ts": "c5346a3f995ab383092294b5d2168be565ec60df3e9c32527f6093b7e9e0b1d2",
+    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerPolicies.java": "6e64b9f31da7fefb00c54e157984a475c9c857852d9eb7c529b7dfeb9df017da",
+    "../../../android/src/main/java/com/codonui/input/CUIMenuPointerWindowCallback.java": "849fd9f6ea098488d68f02744b3d03f61700fe67c3f65ce83bbfd3a90d20c9a4",
+    "../../../ios/CUIMenuPointerPolicies.h": "c3c9cebce969206c8f2e0da7880ca6a974725c6f8ba0a3eae18da310bd68bb9f",
+    "../../../ios/CUIMenuPointerPolicies.mm": "46c9da4cae0fe3d61dbb6dae1b2bc42177fd9e507c6e2327ab97e55f7f30d0a3",
+    "../../input/NativeKeyboardScope.tsx": "c3b7d3987abd3acc3751e49994226c2fb958c08d1d5da69418ecea6df8441d3a",
+    "../../input/specs/CUIKeyboardScopeNativeComponent.ts": "a6ed1aaf8d8374e49244aab3b560bd046156990618bd33656bee7c4345060b8c",
+    "../../../ios/CUIFocusView.mm": "a7859d01e9038d695b7b85d5192dfcb3a836321477a2a41d154d6b06840a7fed",
+    "../../../ios/CUIKeyboardScope.mm": "dfb4c7dfa06941aef828e7500ad8183436a861d8240c0af80b6545d310caf5f4",
+    "../../../ios/CUIInputWindow.mm": "9bd4e41b76891f3f077bf2d9c1045d3088824f36f8ea5fb36b036651d5c2aaae",
+    "../../../ios/CUICollectionRoot.mm": "189a1810d2e352ace4ea9d4c8f11ffd1ea0bf49b251dfecfdfc583f451b9e6ae",
+    "../../../android/src/main/java/com/codonui/input/CUIKeyboardScope.java": "50f8a80d56707c47dabfdaa6f5cd32778733e0418c2be664187fee4b7cc82208",
+    "../../../android/src/main/java/com/codonui/input/CUIKeyboardScopeManager.java": "a08bbc97d37ebde9ecbf3cf0b35719d0aa0f8fc0eee499f823457e0fcd052c6f",
+    "../../../android/src/main/java/com/codonui/input/CUIFocusView.java": "703ad081ad47529858f4ed25709a3cb752054ef0af01ef04756fd8632d0cb430",
+    "../../../android/src/main/java/com/codonui/input/CUICollectionRoot.java": "10b674bc2f956b3fd377e91a4d1af2251e0a8b329d58e79ff503713d45b112f5",
+    "../../../android/src/main/java/com/codonui/input/CUIWindowPointerCallback.java": "173252c7efbf8c0f27fc0e02fe647fddff9e6f713cbf70948c33608e545a0192",
+    "../../../android/src/main/java/com/codonui/input/CUIWindowPointers.java": "fc7e9bb1b6123d6b718f2a406b5f8c5144b238b133e073f6151fed948a3d2826"
   }
 }

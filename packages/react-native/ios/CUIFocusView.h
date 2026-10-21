@@ -6,4 +6,5 @@
 - (BOOL)capturesObservedKey:(UIKey *)key;
 - (NSDictionary *)motionSnapshotIdentity;
 - (NSString *)motionProjectionRevision;
+- (BOOL)menuPointerTriggerEnabled;
 @end

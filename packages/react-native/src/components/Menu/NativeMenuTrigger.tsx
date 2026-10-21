@@ -11,7 +11,7 @@ import {
 } from "../../overlays/floating/NativeDialogTrigger"
 import type { TNativeButtonProps } from "../Button/types"
 
-import { NativeRootMenuTriggerStateContext } from "./context"
+import { NativeMenuTriggerNamingContext, NativeRootMenuTriggerStateContext } from "./context"
 import { useNativeMenuTriggerState } from "./triggerState"
 
 const StrategyContext = createContext<RefObject<"first" | "last"> | null>(null)
@@ -87,7 +87,13 @@ export const NativeMenuTrigger = ({ trigger, ...props }: TNativeMenuTriggerProps
           isOpen={state.isOpen}
           onOpenChange={(next) => (next ? state.open(strategy.current) : state.close())}
           trigger={(state) => <TriggerBinding state={state} render={trigger} strategy={strategy} />}
-        />
+        >
+          {(dialog) => (
+            <NativeMenuTriggerNamingContext.Provider value={dialog.triggerProps.nativeID}>
+              {typeof props.children === "function" ? props.children(dialog) : props.children}
+            </NativeMenuTriggerNamingContext.Provider>
+          )}
+        </NativeDialogTrigger>
       </StrategyContext.Provider>
     </NativeRootMenuTriggerStateContext.Provider>
   )

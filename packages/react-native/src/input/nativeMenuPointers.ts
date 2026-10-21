@@ -1,29 +1,9 @@
 import type { NativeSyntheticEvent } from "react-native"
 
 import type { TNativeKeyScope } from "./keyScope"
+import type { NativeMenuPointerData } from "./specs/CUIKeyboardScopeNativeComponent"
 
-export type TNativeMenuPointerData = Readonly<{
-  ownerId: string
-  windowId: string
-  epoch: number
-  revision: number
-  policyId: string
-  sequence: number
-  phase: "status" | "move" | "down" | "reset" | "handoff" | "retired"
-  ready: boolean
-  suppressed: boolean
-  observationId: number
-  pointerType: "mouse" | "touch" | "pen" | "virtual" | "unknown"
-  pageX: number
-  pageY: number
-  timestamp: number
-  target: number
-  hitPath: readonly number[]
-  nativeButtons: string
-  nativeModifiers: string
-  geometry: string
-  error: string
-}>
+export type TNativeMenuPointerData = Omit<NativeMenuPointerData, "hitPath"> & { readonly hitPath: readonly number[] }
 export type TNativeMenuPointerEvent = NativeSyntheticEvent<TNativeMenuPointerData>
 type TTargets = Readonly<{
   parentTarget: number
@@ -68,8 +48,9 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
     revision++
     version++
     for (const entry of entries.values()) {
-      if (entry.ready) entry.options.retire()
+      const wasReady = entry.ready
       entry.ready = false
+      if (wasReady) entry.options.retire()
     }
   }
   const flush = () => {
@@ -78,8 +59,8 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
   const retire = (entry: TEntry) => {
     entry.ready = false
     entry.sequence = 0
-    entry.options.retire()
     entry.id = `${scope.ownerId}:menu-pointer:${++serial}`
+    entry.options.retire()
   }
   const retireAll = () => {
     for (const entry of entries.values()) retire(entry)
@@ -237,8 +218,9 @@ export const createNativeMenuPointers = (scope: TNativeKeyScope) => {
       entry.sequence = data.sequence
       if (data.phase === "status" || data.phase === "retired") {
         const next = data.phase === "status" && data.ready
-        if (entry.ready && !next) entry.options.retire()
+        const wasReady = entry.ready
         entry.ready = next
+        if (wasReady && !next) entry.options.retire()
       }
       entry.options.observe(event)
       return true

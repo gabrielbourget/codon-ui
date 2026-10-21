@@ -55,6 +55,7 @@ import {
   NativeMenuListContext,
   NativeMenuSelectionManagerContext,
   NativeMenuStateContext,
+  NativeMenuTriggerNamingContext,
   NativeRootMenuTriggerStateContext,
   NativeSubmenuContext,
   type TNativeMenuRegistration,
@@ -235,6 +236,7 @@ type TListProps = Pick<
 }
 const NativeMenuList = (props: TListProps) => {
   const theme = useNativeTheme()
+  const triggerLabelledBy = useContext(NativeMenuTriggerNamingContext)
   const direction = useContext(NativeMenuDirectionContext) ?? (I18nManager.isRTL ? "rtl" : "ltr")
   const rootStrategy = useNativeMenuFocusStrategy()
   const autoFocus = props.listProps.autoFocus
@@ -274,6 +276,13 @@ const NativeMenuList = (props: TListProps) => {
   const renderer = useContext(NativeCollectionRendererContext)
   const CollectionRoot = renderer.CollectionRoot
   const actions = useContext(NativeCollectionActionsContext)
+  const pointerBinding = actions?.bindingFor(null) ?? ""
+  const reportPointerRoot = props.submenu?.reportPointerRoot
+  useLayoutEffect(() => {
+    if (!reportPointerRoot) return
+    reportPointerRoot(targetTag && pointerBinding ? { target: targetTag, binding: pointerBinding } : null)
+    return () => reportPointerRoot(null)
+  }, [reportPointerRoot, targetTag, pointerBinding])
   const state = useTreeState({
     ...props.listProps,
     children: undefined,
@@ -744,6 +753,18 @@ const NativeMenuList = (props: TListProps) => {
                 disabled,
                 selected: (row) => row.selectionManager().isSelected(row.id),
                 requestFocus: (row) => withNativeAdmission(row, () => requestFocus(row.id)),
+                pointerHandoff: (hitPath, isCurrent) => {
+                  if (!isCurrent()) return false
+                  const row = hitPath
+                    .map((target) =>
+                      current.current.ordered.find((candidate) => findNodeHandle(candidate.view.current) === target),
+                    )
+                    .find((candidate) => candidate !== undefined)
+                  if (!row) return false
+                  return withNativeAdmission(row, () => {
+                    if (isCurrent()) requestFocus(row.id)
+                  })
+                },
                 focus,
                 activate,
                 openSubmenu: (row, strategy, isCurrent) => {
@@ -769,7 +790,8 @@ const NativeMenuList = (props: TListProps) => {
                   nativeLabelledBy={
                     nativeAccessibilityIDs(
                       props.listProps.accessibilityLabelledBy ?? props.listProps["aria-labelledby"],
-                    ) ?? (props.submenu ? [props.submenu.triggerID] : undefined)
+                    ) ??
+                    (props.submenu ? [props.submenu.triggerID] : triggerLabelledBy ? [triggerLabelledBy] : undefined)
                   }
                   nativeDescribedBy={nativeAccessibilityIDs(
                     props.listProps.ariaDescribedBy ?? props.listProps["aria-describedby"],

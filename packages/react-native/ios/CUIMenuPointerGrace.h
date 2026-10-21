@@ -12,24 +12,29 @@ struct MenuPointerRect {
 // Private UI-thread state from the pinned hook; observations and default authority stay with UIKit.
 class MenuPointerGrace {
   MenuPointerRect submenu{};
-  bool hasSubmenu = false, hasPrevious = false, prevent = false;
+  bool hasSubmenu = false, hasPrevious = false, prevent = false, pointerMode = true;
   double previousX = 0, previousY = 0, lastProcessedTime = 0;
   int side = 0, movements = 2;
   double inactivity = -1, handoff = -1;
  public:
   void setSubmenu(MenuPointerRect rectangle) { submenu = rectangle; hasSubmenu = true; side = 0; }
+  void activateSubmenu(MenuPointerRect rectangle) { submenu = rectangle; hasSubmenu = true; }
   bool suppressed() const { return prevent; }
+  bool setPointerMode(bool value) {
+    if (pointerMode == value) return false;
+    retire(); pointerMode = value; return true;
+  }
   double deadline() const { return inactivity >= 0 ? inactivity : handoff; }
   void reset() { prevent = false; movements = 2; hasPrevious = false; }
   void retire() { reset(); inactivity = -1; handoff = -1; }
 
-  void move(double x, double y, double now, MenuPointerRect parent) {
-    if (now - lastProcessedTime < 50) return;
+  bool move(double x, double y, double now, MenuPointerRect parent) {
+    if (!pointerMode || now - lastProcessedTime < 50) return false;
     inactivity = -1; handoff = -1;
-    if (!hasPrevious) { previousX = x; previousY = y; hasPrevious = true; return; }
-    if (!hasSubmenu) return;
+    if (!hasPrevious) { previousX = x; previousY = y; hasPrevious = true; return true; }
+    if (!hasSubmenu) return true;
     if (side == 0) side = x > submenu.right ? -1 : 1;
-    if (!parent.contains(x, y)) { reset(); return; }
+    if (!parent.contains(x, y)) { reset(); return true; }
     constexpr double padding = 3.14159265358979323846 / 12;
     double toSubmenu = side == 1 ? submenu.left - previousX : previousX - submenu.right;
     double angleTop = std::atan2(previousY - submenu.top, toSubmenu) + padding;
@@ -40,6 +45,7 @@ class MenuPointerGrace {
     prevent = movements >= 2;
     lastProcessedTime = now; previousX = x; previousY = y;
     if (towards) inactivity = now + 1000;
+    return true;
   }
   bool expire(double now) {
     if (inactivity >= 0 && now >= inactivity) {

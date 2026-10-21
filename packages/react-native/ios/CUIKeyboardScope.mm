@@ -1,5 +1,6 @@
 #import "CUIKeyboardScope.h"
 #import "CUIInputWindow.h"
+#import "CUIMenuPointerPolicies.h"
 #import "CUIFloatingObserver.h"
 #import "CUIPhysicalKey.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
@@ -41,6 +42,7 @@ static UIView *CUIFirstResponder(UIView *root)
 - (void)prepareHold:(CUIKeyHold *)hold;
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused;
 - (NSInteger)policyOrder;
+- (void)emitMenuPointer:(NSDictionary *)packet;
 @end
 
 @interface CUIKeyboardRecognizer : UIGestureRecognizer
@@ -119,6 +121,9 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @implementation CUIKeyboardScope {
+  CUIMenuPointerPolicies *_menuPointers;
+  NSArray<NSDictionary *> *_menuPointerRegistrations;
+  double _menuPointerRevision;
   NSString *_ownerId;
   BOOL _captureEnabled;
   NSArray<NSDictionary *> *_policies;
@@ -163,6 +168,11 @@ static UIView *CUIFirstResponder(UIView *root)
     _sceneActive = YES;
     _floatingTargets = @[];
     __weak CUIKeyboardScope *weakSelf = self;
+    _menuPointerRegistrations = @[];
+    _menuPointers = [[CUIMenuPointerPolicies alloc] initWithScope:self ready:^BOOL {
+      CUIKeyboardScope *scope = weakSelf;
+      return scope && [scope captureReady];
+    } publish:^(NSDictionary *packet) { [weakSelf emitMenuPointer:packet]; }];
     _floating = [[CUIFloatingObserver alloc] initWithHost:self publish:^(NSDictionary *sample) {
       CUIKeyboardScope *scope = weakSelf;
       if (!scope || ![scope captureReady] || !scope->_eventEmitter) return;
@@ -194,6 +204,33 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   return @{ @"scopeOwnerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch) };
 }
+- (CUIMenuPointerPolicies *)menuPointers { return _menuPointers; }
+- (void)emitMenuPointer:(NSDictionary *)packet
+{
+  if (!_eventEmitter) return;
+  CUIKeyboardScopeEventEmitter::OnNativeMenuPointer data{};
+  data.ownerId = [packet[@"ownerId"] UTF8String]; data.windowId = [packet[@"windowId"] UTF8String]; data.epoch = [packet[@"epoch"] doubleValue];
+  data.revision = [packet[@"revision"] doubleValue]; data.policyId = [packet[@"policyId"] UTF8String]; data.sequence = [packet[@"sequence"] doubleValue];
+  NSString *phase = packet[@"phase"];
+  data.phase = [phase isEqualToString:@"move"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Move
+      : [phase isEqualToString:@"down"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Down
+      : [phase isEqualToString:@"reset"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Reset
+      : [phase isEqualToString:@"handoff"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Handoff
+      : [phase isEqualToString:@"retired"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Retired
+      : CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPhase::Status;
+  NSString *type = packet[@"pointerType"];
+  data.pointerType = [type isEqualToString:@"mouse"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPointerType::Mouse
+      : [type isEqualToString:@"touch"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPointerType::Touch
+      : [type isEqualToString:@"pen"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPointerType::Pen
+      : [type isEqualToString:@"virtual"] ? CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPointerType::Virtual
+      : CUIKeyboardScopeEventEmitter::OnNativeMenuPointerPointerType::Unknown;
+  data.ready = [packet[@"ready"] boolValue]; data.suppressed = [packet[@"suppressed"] boolValue]; data.observationId = [packet[@"observationId"] doubleValue];
+  data.pageX = [packet[@"pageX"] doubleValue]; data.pageY = [packet[@"pageY"] doubleValue]; data.timestamp = [packet[@"timestamp"] doubleValue];
+  data.target = [packet[@"target"] intValue]; for (NSNumber *tag in packet[@"hitPath"]) data.hitPath.push_back(tag.intValue);
+  data.nativeButtons = [packet[@"nativeButtons"] UTF8String]; data.nativeModifiers = [packet[@"nativeModifiers"] UTF8String];
+  data.geometry = [packet[@"geometry"] UTF8String]; data.error = [packet[@"error"] UTF8String];
+  std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeMenuPointer(data);
+}
 - (BOOL)captureReady
 {
   return _captureEnabled && [self windowActive] && _acceptedEpoch == _windowEpoch && [_acceptedWindowId isEqualToString:CUIInputWindowIdentity(self.window)];
@@ -208,6 +245,9 @@ static UIView *CUIFirstResponder(UIView *root)
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
   CUIRefreshWindowPointerObservation(self.window);
+  [_menuPointers update:_menuPointerRegistrations revision:_menuPointerRevision session:@{
+    @"ownerId": _ownerId, @"windowId": CUIInputWindowIdentity(self.window), @"epoch": @(_windowEpoch)
+  }];
   if (!_eventEmitter) return;
   CUIKeyboardScopeEventEmitter::OnNativeScopeStatus data{};
   data.ownerId = _ownerId.UTF8String;
@@ -351,11 +391,13 @@ static UIView *CUIFirstResponder(UIView *root)
 - (BOOL)hasPolicyForPress:(UIPress *)press { return [self policyForPress:press] != nil; }
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceivePress:(UIPress *)press
 {
+  if (press.key && self.window.isKeyWindow) CUIRecordMenuPointerKey(self.window, press.key);
   if (press.key && self.window.isKeyWindow) [self recordModality:@"keyboard"];
   return [self policyForPress:press] != nil;
 }
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceiveTouch:(UITouch *)touch
 {
+  if (self.window.isKeyWindow) CUIRecordMenuPointerDown(self.window);
   if (self.window.isKeyWindow) [self recordModality:@"pointer"];
   return NO;
 }
@@ -441,6 +483,16 @@ static UIView *CUIFirstResponder(UIView *root)
   }
   for (NSString *identity in _resolvedPointerTargets.copy) if (![identities containsObject:identity]) { [_pointerTargets removeObjectForKey:identity]; [_resolvedPointerTargets removeObject:identity]; }
   _pointerRegistrations = pointers;
+  _menuPointerRevision = next.menuPointerRevision;
+  NSMutableArray *menuPointers = [NSMutableArray array];
+  for (const auto &entry : next.menuPointerPolicies) [menuPointers addObject:@{
+    @"id": [NSString stringWithUTF8String:entry.id.c_str()], @"parentTarget": @(entry.parentTarget),
+    @"submenuTarget": @(entry.submenuTarget), @"triggerTarget": @(entry.triggerTarget),
+    @"parentBinding": [NSString stringWithUTF8String:entry.parentBinding.c_str()],
+    @"submenuBinding": [NSString stringWithUTF8String:entry.submenuBinding.c_str()],
+    @"triggerBinding": [NSString stringWithUTF8String:entry.triggerBinding.c_str()]
+  }];
+  _menuPointerRegistrations = menuPointers;
   NSMutableArray *floating = [NSMutableArray array];
   for (const auto &target : next.floatingTargets) [floating addObject:@{ @"id": [NSString stringWithUTF8String:target.id.c_str()], @"targetTag": @(target.targetTag), @"descriptionTag": @(target.descriptionTag), @"descriptionLabel": [NSString stringWithUTF8String:target.descriptionLabel.c_str()] }];
   _floatingTargets = floating;
@@ -465,11 +517,12 @@ static UIView *CUIFirstResponder(UIView *root)
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
-- (void)layoutSubviews { [super layoutSubviews]; CUIRefreshWindowPointerObservation(self.window); }
+- (void)layoutSubviews { [super layoutSubviews]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
   if (_boundWindow != self.window) {
+    [_menuPointers invalidate];
     [_keyboard retireHeld];
     [_boundWindow removeGestureRecognizer:_keyboard];
     CUIUnregisterInputScope(_boundWindow, self);
@@ -486,6 +539,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)prepareForRecycle
 {
+  [_menuPointers invalidate]; _menuPointerRegistrations = @[]; _menuPointerRevision = 0;
   [_floating invalidate]; _floatingTargets = @[];
   [_keyboard retireHeld];
   [_boundWindow removeGestureRecognizer:_keyboard];
@@ -503,6 +557,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)dealloc
 {
+  [_menuPointers invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];
   CUIUnregisterInputScope(_boundWindow, self);

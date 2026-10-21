@@ -26,7 +26,7 @@ final class CUIWindowPointerCallback implements Window.Callback, AutoCloseable {
   }
 
   private final WeakReference<Window> window;
-  private final Window.Callback original;
+  private Window.Callback original;
   private final Listener listener;
   private boolean closed;
 
@@ -43,6 +43,14 @@ final class CUIWindowPointerCallback implements Window.Callback, AutoCloseable {
   boolean isInstalled() {
     Window current = window.get();
     return !closed && current != null && current.getCallback() == this;
+  }
+
+  // The separate Menu policy sits inside this passive transport; this observer still delegates every original event.
+  Window.Callback delegate() { return original; }
+  boolean replaceDelegate(Window.Callback expected, Window.Callback next) {
+    if (!isInstalled() || original != expected) return false;
+    original = next;
+    return true;
   }
 
   private void report(RuntimeException failure) {

@@ -25,6 +25,15 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup {
+  final CUIMenuPointerPolicies menuPointers = new CUIMenuPointerPolicies(this);
+  private List<CUIMenuPointerPolicies.Registration> menuPointerPolicies = new ArrayList<>();
+  private double menuPointerRevision;
+  void setMenuPointerPolicies(List<CUIMenuPointerPolicies.Registration> next) { menuPointerPolicies = next; }
+  void setMenuPointerRevision(double next) { menuPointerRevision = next; }
+  boolean menuPointerCaptureReady() { return captureReady(); }
+  String menuPointerOwnerId() { return ownerId; }
+  double menuPointerEpoch() { return windowEpoch; }
+  void emitMenuPointer(WritableMap data) { emit("topNativeMenuPointer", data); }
   static final class Observation {
     final String id;
     final int targetTag;
@@ -162,6 +171,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
     CUIWindowPointers.refresh(this);
+    menuPointers.update(menuPointerPolicies, menuPointerRevision);
     floating.update(floatingTargets, captureReady());
     WritableMap data = baseData(); data.putString("windowId", isAttachedToWindow() ? CUIInputWindow.identity(this) : "");
     data.putDouble("epoch", windowEpoch); data.putDouble("policyRevision", policyRevision); data.putBoolean("ready", captureReady()); data.putBoolean("windowActive", windowActive()); emit("topNativeScopeStatus", data);
@@ -198,6 +208,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
+    CUIMenuPointerPolicies.recordKey(this, event);
     if (down) recordModality("keyboard", event.getEventTime());
     boolean outer = CUIInputWindow.beginKey(this);
     try {
@@ -271,12 +282,17 @@ public final class CUIKeyboardScope extends ReactViewGroup {
 
   @Override public boolean dispatchTouchEvent(MotionEvent event) {
     CUIInputWindow.pointerEvent(this, event);
-    if (event.getActionMasked() == MotionEvent.ACTION_DOWN && hasWindowFocus()) recordModality("pointer", event.getEventTime());
+    if (event.getActionMasked() == MotionEvent.ACTION_DOWN && hasWindowFocus()) {
+      CUIMenuPointerPolicies.recordPointerDown(this);
+      recordModality("pointer", event.getEventTime());
+    }
     CUIInputWindow.beginPointer(this);
     try { return super.dispatchTouchEvent(event); }
     finally { CUIInputWindow.endPointer(this); }
   }
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
+        && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) CUIMenuPointerPolicies.recordHover(this);
     if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);
     return super.dispatchGenericMotionEvent(event);
   }
@@ -325,7 +341,8 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
   @Override protected void onDetachedFromWindow() {
     floating.stop();
-    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); boundRoot = null; }
+    menuPointers.dispose();
+    retireHeld(); held.clear(); if (boundRoot != null) { ViewCompat.removeOnUnhandledKeyEventListener(boundRoot, unhandled); CUIInputWindow.unregister(boundRoot, this); CUIWindowPointers.release(boundRoot); CUIMenuPointerPolicies.release(boundRoot); boundRoot = null; }
     windowEpoch++; super.onDetachedFromWindow(); publishStatus();
   }
 
