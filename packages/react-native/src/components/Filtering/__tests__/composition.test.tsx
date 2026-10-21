@@ -3,25 +3,43 @@ import "../../../collection/__tests__/nativeReceipts"
 import { screen, within } from "@testing-library/react-native"
 
 import {
+  actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
+  userEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
 
+import { createFilterComboBoxFixture } from "./fixtures/comboBoxFixture"
 import FilterControlProbe from "./fixtures/FilterControlProbe"
 
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
+let comboFixture: ReturnType<typeof createFilterComboBoxFixture>
+beforeEach(() => {
+  comboFixture = createFilterComboBoxFixture()
+})
+afterEach(() => jest.restoreAllMocks())
 const state = () => JSON.parse(screen.getByTestId("native-filter-controls-proof").props.children as string)
-const press = async (name: string) => fireEvent.press(screen.getByRole("button", { name }))
+const press = async (name: string) => {
+  const button = screen.getByRole("button", { name })
+  if (name === "Show filter argument suggestions") {
+    await act(() => userEvent.setup().press(button))
+    await comboFixture.ready()
+  } else await fireEvent.press(button)
+}
 const select = async (row: string, field: string, option: string) => {
   await fireEvent.press(within(screen.getByTestId(row)).getByRole("button", { name: field }))
   await fireEvent.press(screen.getByRole("radio", { name: option }))
 }
 
 it("composes Select value requests with held/echoed owner snapshots and metadata/theme changes", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-status-clause", "Filter Argument", "Zero")
   expect(state().draft.filterGroups[0].clauses[0]).toMatchObject({ argument: 0, filterArgumentSelectedKey: "zero" })
   expect(state().confirmed.filterGroups[0].clauses[0].argument).toBe(false)
@@ -40,11 +58,15 @@ it("composes Select value requests with held/echoed owner snapshots and metadata
   expect(state().draft.filterGroups[0].clauses[0].argument).toBe(0)
 })
 it("composes condition changes and name-based multi-selection without optimistic applied ownership", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-names-clause", "Filter Condition Type", "Multi-Select")
   expect(state().draft.filterGroups[1].clauses[0]).toMatchObject({ conditionType: "Multi-Select", argument: [] })
   await press("Show filter argument suggestions")
-  await fireEvent.press(screen.getByRole("radio", { name: "Beta" }))
+  await act(() => userEvent.setup().press(screen.getByRole("option", { name: "Beta" })))
   expect(state().draft.filterGroups[1].clauses[0]).toMatchObject({
     argument: ["Beta"],
     filterArgumentSelectedKey: "beta",
@@ -56,7 +78,11 @@ it("composes condition changes and name-based multi-selection without optimistic
   expect(state().draft.filterGroups[1].clauses[0].argument).toEqual([])
 })
 it("preserves clause identity through a criterion move and guards closed deletes before reset", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-status-clause", "Filter Criteria", "Names")
   expect(state().draft.filterGroups).toHaveLength(1)
   expect(state().draft.filterGroups[0].clauses.map((item: { id: string }) => item.id)).toEqual([
@@ -74,7 +100,11 @@ it("preserves clause identity through a criterion move and guards closed deletes
 })
 
 it("composes numeric editor blanks with held Apply and confirmed Cancel", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-status-clause", "Filter Criteria", "Amount")
   const row = screen.getByTestId("filter-probe-status-clause")
   await fireEvent.press(within(row).getByRole("button", { name: "Increase argument" }))
@@ -93,7 +123,11 @@ it("composes numeric editor blanks with held Apply and confirmed Cancel", async 
   expect(state().draft.filterGroups[0].clauses[0].argument).toBe(false)
 })
 it("composes owned list edits without coercing previously confirmed values", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   const row = screen.getByTestId("filter-probe-names-clause")
   await fireEvent.changeText(within(row).getByLabelText("Filter Argument 0"), "Next")
   await fireEvent.press(within(row).getByRole("button", { name: "Add Filter Argument Entry" }))
@@ -106,7 +140,11 @@ it("composes owned list edits without coercing previously confirmed values", asy
 })
 
 it("composes the actual blank numeric Between factory through both owned bounds and Apply", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-status-clause", "Filter Criteria", "Amount")
   await select("filter-probe-status-clause", "Filter Condition", "Between")
   expect(state().draft.filterGroups.at(-1).clauses[0].argument).toEqual(["", ""])
@@ -124,7 +162,11 @@ it("composes the actual blank numeric Between factory through both owned bounds 
 })
 
 it("composes contained/similar argument labels through operation, metadata and theme changes", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-names-clause", "Filter Condition", "Contains")
   const input = screen.getByLabelText("Filter Names by contained text")
   await fireEvent.changeText(input, "draft")
@@ -146,7 +188,11 @@ it("composes contained/similar argument labels through operation, metadata and t
 })
 
 it("keeps the canonical typeahead placeholders explicit through actual criterion/operation changes", async () => {
-  await render(<FilterControlProbe />)
+  await render(
+    <comboFixture.Provider>
+      <FilterControlProbe floatingRef={comboFixture.host} />
+    </comboFixture.Provider>,
+  )
   await select("filter-probe-status-clause", "Filter Criteria", "Search labels")
   expect(screen.getByTestId("filter-typeahead-placeholder")).toHaveTextContent(
     "placeholder: typeahead search not implemented yet",

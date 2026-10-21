@@ -1,11 +1,13 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { act, screen } from "@testing-library/react-native"
+import { screen } from "@testing-library/react-native"
 import { createRef, useContext } from "react"
 import { Platform, StyleSheet, type View } from "react-native"
 
 import {
+  actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
+  userEvent,
   renderWithNativeCollections as render,
   rerenderWithNativeCollections,
 } from "../../../collection/__tests__/nativeReceipts"
@@ -15,13 +17,21 @@ import { NativeThemeProvider } from "../../../theme"
 import type { TAvailableListItem } from "../../Table/filterMetadata"
 import { SelectFilterArgument, MultiSelectFilterArgument, type TSelectFilterArgumentProps } from "../OptionArguments"
 
+import { createFilterComboBoxFixture } from "./fixtures/comboBoxFixture"
+
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
 }))
+let comboFixture: ReturnType<typeof createFilterComboBoxFixture>
+beforeEach(() => {
+  comboFixture = createFilterComboBoxFixture()
+})
 const wrap = (child: React.ReactNode) => (
   <NativeThemeProvider>
-    <NativeFloatingLayerHost>{child}</NativeFloatingLayerHost>
+    <NativeFloatingLayerHost ref={comboFixture.host}>
+      <comboFixture.Provider>{child}</comboFixture.Provider>
+    </NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
 const propsFor = (options: TAvailableListItem[]): TSelectFilterArgumentProps => ({
@@ -31,8 +41,15 @@ const propsFor = (options: TAvailableListItem[]): TSelectFilterArgumentProps => 
   onArgumentChange: jest.fn(),
 })
 const pick = async (name: string, option: string) => {
-  await fireEvent.press(screen.getByRole("button", { name }))
-  await fireEvent.press(screen.getByRole("radio", { name: option }))
+  const button = screen.getByRole("button", { name })
+  if (name === "Show filter argument suggestions") {
+    await act(() => userEvent.setup().press(button))
+    await comboFixture.ready()
+    await act(() => userEvent.setup().press(screen.getByRole("option", { name: option })))
+  } else {
+    await fireEvent.press(button)
+    await fireEvent.press(screen.getByRole("radio", { name: option }))
+  }
 }
 afterEach(() => jest.restoreAllMocks())
 
