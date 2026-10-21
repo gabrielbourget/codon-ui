@@ -47,6 +47,7 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    nativeTabStop?: boolean
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
     nativeMotionGeometryRevision?: string

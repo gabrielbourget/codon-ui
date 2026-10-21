@@ -20,6 +20,7 @@ using namespace facebook::react;
 
 @implementation CUIFocusView {
   BOOL _keyboardFocusable;
+  BOOL _nativeTabStop;
   BOOL _nativePressable;
   BOOL _nativeNavigation;
   double _activationId;
@@ -57,6 +58,7 @@ using namespace facebook::react;
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIFocusViewProps>();
     _keyboardFocusable = YES;
+    _nativeTabStop = YES;
     _nativeMotionVisible = YES;
     _authoredHidden = self.hidden;
     _motionVisibilityReady = YES;
@@ -381,8 +383,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   return YES;
 }
 
-- (BOOL)canBecomeFocused { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
-- (BOOL)canBecomeFirstResponder { return [self canBecomeFocused]; }
+- (BOOL)canBecomeFocused { return _nativeTabStop && [self canBecomeFirstResponder]; }
+- (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
 
 - (void)emitFocus:(BOOL)focused
 {
@@ -591,6 +593,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   id collection = [NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:next.nativeCollectionSemantics.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
   _nativeCollectionSemantics = [collection isKindOfClass:NSDictionary.class] ? collection : nil;
   _keyboardFocusable = next.keyboardFocusable;
+  _nativeTabStop = next.nativeTabStop;
   _nativePressable = next.nativePressable;
   _nativeNavigation = next.nativeNavigation;
   _capturedKeys = capture;
@@ -649,6 +652,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   _nativeCollectionSemantics = nil;
   _capturedKeys = [NSSet set];
   _keyboardFocusable = YES;
+  _nativeTabStop = YES;
   _nativePressable = NO;
   _nativeNavigation = NO;
   _nativeLabelledBy = nil;

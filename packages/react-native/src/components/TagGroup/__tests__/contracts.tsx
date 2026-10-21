@@ -107,3 +107,17 @@ export const invalidFieldLabelRef = <TagGroupLabel ref={createRef<HTMLSpanElemen
 export const invalidFieldTextStyle = <TagGroupText style={{ fontSize: "18px" }} />
 // @ts-expect-error Native slot names are strings or null.
 export const invalidButtonSlot = <Button slot={0}>Remove</Button>
+
+export const customItemHost = (
+  <Tag
+    id="custom"
+    autoFocus
+    render={(props, state) => (
+      <NativeFocusView {...props} style={[props.style, { opacity: state.isSelected ? 1 : 0.5 }]} />
+    )}
+  />
+)
+// @ts-expect-error Custom native item hosts must return a single element.
+export const invalidItemHost = <Tag render={() => null} />
+// @ts-expect-error The collection Tab policy remains private rather than changing the public focus-host API.
+export const privateTabPolicy = <NativeFocusView nativeTabStop={false} />

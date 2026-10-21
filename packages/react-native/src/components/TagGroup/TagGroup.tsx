@@ -208,6 +208,7 @@ const NativeTagGroup = <T extends object>({
     window: string
     commandedTarget: View | null
     commandedLease: TNativeCollectionSessionSnapshot<unknown>["receipt"]["lease"]
+    allowDisabled?: boolean
   } | null>(null)
   const observedFocus = useRef<TNativeTagGroupKey | null>(null)
   const retiredFocusIntent = useRef<TNativeTagGroupKey | null>(null)
@@ -293,6 +294,10 @@ const NativeTagGroup = <T extends object>({
     }
   }, [])
   const register = useCallback((row: TNativeTagRegistration) => {
+    if (!row.autoFocus.captured) {
+      row.autoFocus.captured = true
+      row.autoFocus.input = current.current.input?.lastInput()
+    }
     setRows((old) => {
       if (old.has(row.key) && old.get(row.key) !== row) throw new TypeError("TagGroup: duplicate tag key")
       return new Map(old).set(row.key, row)
@@ -310,7 +315,7 @@ const NativeTagGroup = <T extends object>({
   const refresh = useCallback((row: TNativeTagRegistration) => {
     if (live.current) setRows((old) => (old.get(row.key) === row ? new Map(old) : old))
   }, [])
-  const admitted = (row?: TNativeTagRegistration) =>
+  const admitted = (row?: TNativeTagRegistration, allowDisabled = false) =>
     live.current &&
     current.current.receipt.status === "confirmed" &&
     current.current.scope?.canAct() !== false &&
@@ -320,7 +325,7 @@ const NativeTagGroup = <T extends object>({
       (current.current.collection.getItem(row.key) !== null &&
         row.view.current !== null &&
         current.current.rows.get(row.key) === row &&
-        !current.current.isDisabled(row)))
+        (allowDisabled || !current.current.isDisabled(row))))
   const selected = (row: TNativeTagRegistration) => manager.isSelected(row.key)
   const keyCapture = (row: TNativeTagRegistration, event: TNativeKeyboardEvent) => {
     if (current.current.props.disallowTypeAhead) return
@@ -378,15 +383,15 @@ const NativeTagGroup = <T extends object>({
     else if (operation === "replace") manager.replaceSelection(key)
     else manager.extendSelection(key)
   }
-  const withNativeAdmission = (row: TNativeTagRegistration, operation: () => void) => {
-    if (!admitted(row)) return false
+  const withNativeAdmission = (row: TNativeTagRegistration, operation: () => void, allowDisabled = false) => {
+    if (!admitted(row, allowDisabled)) return false
     const node = row.node
     const host = row.view.current
     const target = host && findNodeHandle(host)
     if (!node || !target) return false
     return (
       actions?.request(node, target, () => {
-        if (admitted(row) && row.view.current === host) operation()
+        if (admitted(row, allowDisabled) && row.view.current === host) operation()
       }) ?? false
     )
   }
@@ -437,16 +442,20 @@ const NativeTagGroup = <T extends object>({
         row &&
         host &&
         host !== request.commandedTarget &&
-        withNativeAdmission(row, () => {
-          if (pendingFocus.current === request) focusNativeTarget(host)
-        })
+        withNativeAdmission(
+          row,
+          () => {
+            if (pendingFocus.current === request) focusNativeTarget(host)
+          },
+          request.allowDisabled,
+        )
       ) {
         request.commandedTarget = host
         request.commandedLease = current.current.receipt.lease
       }
     }
   }
-  const requestFocus = (key: TNativeTagGroupKey) => {
+  const requestFocus = (key: TNativeTagGroupKey, allowDisabled = false) => {
     const node = current.current.collection.getItem(key)
     if (!node || !admitted()) return
     pendingFocus.current = {
@@ -455,6 +464,7 @@ const NativeTagGroup = <T extends object>({
       window: focusWindowStamp(),
       commandedTarget: null,
       commandedLease: null,
+      allowDisabled,
     }
     retiredFocusIntent.current = null
     current.current.manager.setFocusedKey(key)
@@ -463,12 +473,57 @@ const NativeTagGroup = <T extends object>({
     void current.current.renderer.layoutDelegate?.scrollToKey?.(key)
     attemptFocusRequest()
   }
+  const requestListFocus = () => {
+    pendingFocus.current = {
+      key: null,
+      node: null,
+      window: focusWindowStamp(),
+      commandedTarget: null,
+      commandedLease: null,
+    }
+    setRequestedFocusKey(null)
+    attemptFocusRequest()
+  }
+  const attemptAutoFocus = () => {
+    const owner = current.current
+    const lease = owner.receipt.lease
+    if (owner.receipt.status !== "confirmed" || !lease) return
+    const stamp = JSON.stringify([lease.rootRevision, lease.target, lease.surfaceId, lease.windowId, lease.epoch])
+    for (const row of owner.ordered) {
+      const intent = row.autoFocus
+      if (!intent.pending) continue
+      intent.window ??= stamp
+      const session = owner.input?.acknowledgedSession()
+      const inputWindow = session?.windowId ? JSON.stringify([session.windowId, session.epoch]) : null
+      if (inputWindow) intent.inputWindow ??= inputWindow
+      if (
+        intent.window !== stamp ||
+        (inputWindow && intent.inputWindow !== inputWindow) ||
+        intent.input !== owner.input?.lastInput()
+      ) {
+        intent.pending = false
+        continue
+      }
+      if (owner.input?.isNativeReady() === false) continue
+      intent.pending = false
+      if (!admitted()) continue
+      const key = owner.isDisabled(row) ? (owner.model.find((item) => !item.isDisabled)?.key ?? row.key) : row.key
+      requestFocus(key, owner.isDisabled(row) && key === row.key)
+    }
+  }
   useLayoutEffect(attemptFocusRequest)
+  useLayoutEffect(attemptAutoFocus)
   useLayoutEffect(
     () =>
       input?.subscribe(() => {
-        if (current.current.input?.isWindowActive() === false) cancelFocusRequest()
-        else attemptFocusRequest()
+        if (current.current.input?.isWindowActive() === false) {
+          cancelFocusRequest()
+          if (current.current.input.acknowledgedSession().windowId)
+            for (const row of current.current.rows.values()) row.autoFocus.pending = false
+        } else {
+          attemptAutoFocus()
+          attemptFocusRequest()
+        }
       }),
     [input, actions],
   )
@@ -575,15 +630,7 @@ const NativeTagGroup = <T extends object>({
   useLayoutEffect(() => {
     if (collection.size !== 0 || observedFocus.current === null || !manager.isFocused) return
     observedFocus.current = null
-    pendingFocus.current = {
-      key: null,
-      node: null,
-      window: focusWindowStamp(),
-      commandedTarget: null,
-      commandedLease: null,
-    }
-    setRequestedFocusKey(null)
-    attemptFocusRequest()
+    requestListFocus()
   }, [collection.size, receipt])
   const onKeyAdmitted = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent
@@ -672,6 +719,7 @@ const NativeTagGroup = <T extends object>({
     role: collection.size ? ("grid" as const) : ("group" as const),
     accessible: collection.size === 0,
     focusable: true,
+    nativeTabStop: focusedKey === null,
     accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
     accessibilityLabelledBy: props.accessibilityLabelledBy,
     nativeDescribedBy:
@@ -687,7 +735,12 @@ const NativeTagGroup = <T extends object>({
     accessibilityLiveRegion: focusWithin ? ("polite" as const) : ("none" as const),
     onFocus: () => {
       if (pendingFocus.current?.key === null) pendingFocus.current = null
+      const owner = current.current
+      if (owner.manager.isFocused) return
       setFocusWithin(true)
+      const key =
+        owner.manager.focusedKey ?? owner.manager.firstSelectedKey ?? owner.model.find((item) => !item.isDisabled)?.key
+      if (key !== undefined && key !== null) requestFocus(key)
     },
     onBlur: () => {
       setFocusWithin(false)
@@ -720,6 +773,20 @@ const NativeTagGroup = <T extends object>({
                       labels,
                       allowsRemoving: !!props.onRemove,
                       disabled: isDisabled,
+                      tabStop: (row) => !isDisabled(row) && (focusedKey === null || focusedKey === row.key),
+                      observeDisabledFocus: (row, focused) => {
+                        if (!admitted(row, true)) return
+                        if (focused) {
+                          observedFocus.current = row.key
+                          if (pendingFocus.current?.key === row.key) {
+                            pendingFocus.current = null
+                            setRequestedFocusKey(null)
+                          }
+                          setFocusWithin(true)
+                          const next = current.current.model.find((item) => !item.isDisabled)
+                          if (next) requestFocus(next.key)
+                        } else setFocusWithin(false)
+                      },
                       selected,
                       semantics: (row) =>
                         JSON.stringify({

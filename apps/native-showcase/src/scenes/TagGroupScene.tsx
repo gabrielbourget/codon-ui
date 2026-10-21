@@ -1,7 +1,7 @@
 import { createContext, createRef, useContext, useMemo, useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
-import { Button, Text, useNativeTheme } from "@codon-ui/react-native"
+import { Button, NativeFocusView, Text, useNativeTheme } from "@codon-ui/react-native"
 
 import { NativeCollection } from "../../../../packages/react-native/src/collection/CollectionBuilder"
 import {
@@ -72,6 +72,8 @@ export const TagGroupScene = () => {
   const [removable, setRemovable] = useState(true)
   const [vertical, setVertical] = useState(false)
   const [custom, setCustom] = useState(false)
+  const [customHost, setCustomHost] = useState(false)
+  const [focusRevision, setFocusRevision] = useState(0)
   const [raised, setRaised] = useState(false)
   const [requests, setRequests] = useState(0)
   const [last, setLast] = useState("none")
@@ -124,6 +126,8 @@ export const TagGroupScene = () => {
         <Button onPress={() => setRemovable((value) => !value)}>Toggle tag-group removal</Button>
         <Button onPress={() => setVertical((value) => !value)}>Toggle tag-group orientation</Button>
         <Button onPress={() => setCustom((value) => !value)}>Toggle tag-group styles</Button>
+        <Button onPress={() => setCustomHost((value) => !value)}>Toggle grouped-tag custom host</Button>
+        <Button onPress={() => setFocusRevision((value) => value + 1)}>Remount tag group with autofocus</Button>
         <Button onPress={() => setRaised((value) => !value)}>Toggle grouped-tag shadow</Button>
         <Button onPress={() => setSelected("all")}>Set tag-group owner all</Button>
         <Button onPress={() => setSelected(new Set())}>Set tag-group owner empty</Button>
@@ -153,8 +157,9 @@ export const TagGroupScene = () => {
       />
       <FieldRendererContext.Provider value={{ renderer, fields: fieldSlots }}>
         <NativeCollectionRendererContext.Provider value={fieldRenderer}>
-          <NativeCollection dependencies={[custom, raised, fieldSlots]}>
+          <NativeCollection dependencies={[custom, raised, fieldSlots, customHost]}>
             <TagGroup<TValue>
+              key={focusRevision}
               ref={root}
               items={items}
               selectedKeys={selected}
@@ -185,12 +190,23 @@ export const TagGroupScene = () => {
                   id={item.id}
                   ref={itemRefs.get(item.id)}
                   textValue={item.label}
+                  autoFocus={focusRevision > 0 && item.id === 0}
                   testID={`grouped-${describeKey(item.id)}`}
                   raised={raised}
                   geometry="rounded"
                   customStyles={custom ? { fontSize: 18 } : undefined}
                   href={item.id === "link" ? "https://example.test/tag-group" : undefined}
                   onNavigate={() => setLast("original navigation callback")}
+                  render={
+                    customHost
+                      ? (props, state) => (
+                          <NativeFocusView
+                            {...props}
+                            accessibilityHint={state.isSelected ? "Selected custom host" : props.accessibilityHint}
+                          />
+                        )
+                      : undefined
+                  }
                 >
                   {item.label}
                   {item.id === 0 && fieldSlots ? (

@@ -2,7 +2,7 @@ import { screen } from "@testing-library/react-native"
 import { createRef, type ReactNode } from "react"
 import * as RN from "react-native"
 
-import { Button, NativeThemeProvider, Text } from "../../.."
+import { Button, NativeFocusView, NativeThemeProvider, Text } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
@@ -47,6 +47,78 @@ const press = async (id: string) => {
   await act(() => target.props.onResponderRelease(event))
   return event
 }
+
+it("renders the actual custom item host with current state, original events and ref replacement", async () => {
+  const target = createRef<RN.View>(),
+    calls = jest.fn(),
+    select = jest.fn()
+  const states: TNativeGroupedTagState[] = []
+  const example = (selected: string[], alternate = false) =>
+    node(
+      { selectionMode: "multiple", selectedKeys: selected, onSelectionChange: select },
+      <Tag
+        id="a"
+        textValue="Alpha"
+        ref={target}
+        onPress={calls}
+        render={(props, state) => {
+          states.push(state)
+          return (
+            <NativeFocusView
+              {...props}
+              key={alternate ? "alternate" : "original"}
+              testID="custom-tag"
+              style={[props.style, { borderWidth: 7 }]}
+            />
+          )
+        }}
+      >
+        Alpha
+      </Tag>,
+    )
+  const view = await render(example([]))
+  const original = target.current
+  expect(original).not.toBeNull()
+  expect(row("custom-tag")).toHaveStyle({ borderWidth: 7 })
+  expect(row("custom-tag").props.role).toBe("row")
+  expect(states.at(-1)).toMatchObject({ isSelected: false, selectionMode: "multiple" })
+  const event = await press("custom-tag")
+  expect(calls.mock.calls[0][0]).toBe(event)
+  expect(select).toHaveBeenCalledTimes(1)
+  expect([...select.mock.calls[0][0]]).toEqual(["a"])
+  await view.rerender(example(["a"]))
+  expect(states.at(-1)?.isSelected).toBe(true)
+  expect(target.current).toBe(original)
+  await view.rerender(example(["a"], true))
+  expect(target.current).not.toBe(original)
+  expect(target.current).not.toBeNull()
+  await view.unmount()
+  expect(target.current).toBeNull()
+})
+
+it("retires a held custom-host press before the actual receiver is replaced", async () => {
+  const selection = jest.fn(),
+    pressEnd = jest.fn()
+  const example = (alternate: boolean) =>
+    node(
+      { selectionMode: "multiple", onSelectionChange: selection },
+      <Tag
+        id="a"
+        onPressEnd={pressEnd}
+        render={(props) => <NativeFocusView {...props} key={alternate ? "b" : "a"} testID="replace-host" />}
+      >
+        Alpha
+      </Tag>,
+    )
+  const view = await render(example(false))
+  const old = row("replace-host").props
+  const event = gesture()
+  await act(() => old.onResponderGrant(event))
+  await view.rerender(example(true))
+  await act(() => old.onResponderRelease(event))
+  expect(selection).not.toHaveBeenCalled()
+  expect(pressEnd).toHaveBeenCalledTimes(1)
+})
 
 it("binds an authored remove-slot button to the current tag and preserves the original caller event", async () => {
   const remove = jest.fn(),
@@ -131,6 +203,58 @@ const focus = async (id: string, isFocused: boolean, isFocusVisible = true) => {
   await act(() => target.props.onNativeFocusChange(event))
   return event
 }
+
+it("keeps Tab eligibility distinct from programmatic focus and suppresses disabled callbacks", async () => {
+  const called = jest.fn(),
+    blurred = jest.fn(),
+    pressed = jest.fn()
+  await render(
+    node(
+      { disabledKeys: ["a", "b"] },
+      <>
+        <Tag id="a" testID="a" autoFocus onFocus={called} onBlur={blurred} onPress={pressed}>
+          Alpha
+        </Tag>
+        <Tag id="b" testID="b">
+          Beta
+        </Tag>
+      </>,
+    ),
+  )
+  expect(row("a").props.focusable).toBe(true)
+  expect(row("a").props.nativeTabStop).toBe(false)
+  expect(row("a").props.accessibilityState.disabled).toBe(true)
+  await focus("a", true)
+  expect(row("tag-list").props.accessibilityLiveRegion).toBe("polite")
+  await focus("a", false)
+  expect(called).not.toHaveBeenCalled()
+  expect(blurred).not.toHaveBeenCalled()
+  expect(pressed).not.toHaveBeenCalled()
+})
+
+it("updates native Tab stops from the same focused-key policy as the source", async () => {
+  await render(
+    node(
+      { onRemove: jest.fn() },
+      <>
+        <Tag id="a" testID="a">
+          Alpha
+        </Tag>
+        <Tag id="b" testID="b">
+          Beta
+        </Tag>
+      </>,
+    ),
+  )
+  expect(row("tag-list").props.nativeTabStop).toBe(true)
+  expect(row("a").props.nativeTabStop).toBe(true)
+  expect(row("b").props.nativeTabStop).toBe(true)
+  await focus("a", true)
+  expect(row("tag-list").props.nativeTabStop).toBe(false)
+  expect(row("a").props.nativeTabStop).toBe(true)
+  expect(row("b").props.nativeTabStop).toBe(false)
+  expect(screen.getAllByTestId("tag-remove-button", hidden).every((button) => button.props.focusable)).toBe(true)
+})
 beforeEach(() => {
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })

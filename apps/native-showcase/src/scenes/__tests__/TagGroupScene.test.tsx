@@ -83,3 +83,15 @@ it("exposes actual field slots and keeps authored remove-button requests owner c
   expect(screen.getByTestId("tag-list", hidden).props.nativeDescribedBy).toBeUndefined()
   expect(editor).toHaveDisplayValue("held draft")
 })
+
+it("retains actual item refs when toggling the compatible custom host", async () => {
+  await render(scene())
+  await press("Inspect grouped-tag refs")
+  await press("Toggle grouped-tag custom host")
+  await press("Inspect grouped-tag refs")
+  expect(screen.getByTestId("tag-group-owner-layout")).not.toHaveTextContent(/replaced/)
+  expect(screen.getByTestId("grouped-number:0", hidden).props.accessibilityHint).toBe("Selected custom host")
+  await press("Toggle grouped-tag custom host")
+  await press("Inspect grouped-tag refs")
+  expect(screen.getByTestId("tag-group-owner-layout")).not.toHaveTextContent(/replaced/)
+})

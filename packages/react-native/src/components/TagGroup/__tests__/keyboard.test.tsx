@@ -1,5 +1,5 @@
 import { fireEvent, screen } from "@testing-library/react-native"
-import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
+import { createRef, Fragment, useContext, useState, type ReactNode, type RefObject } from "react"
 import * as RN from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "../../.."
@@ -38,6 +38,8 @@ const fixture = async (
   children: ReactNode,
   renderer = DefaultNativeCollectionRenderer,
   virtualFocusContext = false,
+  collectionRef?: RefObject<RN.View | null>,
+  beforeReady?: () => void,
 ) => {
   const view = await render(
     <NativeThemeProvider>
@@ -45,7 +47,11 @@ const fixture = async (
         <NativeOverlayProvider>
           <NativeFloatingLayerHost testID="host">
             <NativeSelectableCollectionContext.Provider
-              value={virtualFocusContext ? { shouldUseVirtualFocus: true } : null}
+              value={
+                virtualFocusContext || collectionRef
+                  ? { shouldUseVirtualFocus: virtualFocusContext, ref: collectionRef }
+                  : null
+              }
             >
               <TagGroup {...props}>{children}</TagGroup>
             </NativeSelectableCollectionContext.Provider>
@@ -69,9 +75,99 @@ const fixture = async (
         },
       }),
     )
+    if (!ready && beforeReady) await act(beforeReady)
   }
   return view
 }
+
+it.each(["enabled", "disabled", "all-disabled"] as const)(
+  "requests the source autofocus target for %s items once",
+  async (mode) => {
+    const first = createRef<RN.View>(),
+      second = createRef<RN.View>(),
+      list = createRef<RN.View>()
+    await fixture(
+      { disabledKeys: mode === "enabled" ? [] : mode === "disabled" ? ["a"] : ["a", "b"] },
+      <>
+        <Tag id="a" textValue="Alpha" ref={first} autoFocus>
+          Alpha
+        </Tag>
+        <Tag id="b" textValue="Beta" ref={second}>
+          Beta
+        </Tag>
+      </>,
+      DefaultNativeCollectionRenderer,
+      false,
+      list,
+    )
+    expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(1)
+    expect(Commands.requestKeyboardFocus).toHaveBeenCalledWith(
+      mode === "disabled" ? second.current : first.current,
+      expect.any(String),
+    )
+  },
+)
+
+it("samples item autofocus on its original lifetime rather than later prop updates", async () => {
+  let enable!: () => void
+  const Authored = () => {
+    const [autoFocus, setAutoFocus] = useState(false)
+    enable = () => setAutoFocus(true)
+    return (
+      <Tag id="a" autoFocus={autoFocus}>
+        Alpha
+      </Tag>
+    )
+  }
+  await fixture({}, <Authored />)
+  await act(enable)
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("retires initial autofocus if original input arrives before native readiness", async () => {
+  await fixture(
+    {},
+    <Tag id="a" autoFocus>
+      Alpha
+    </Tag>,
+    DefaultNativeCollectionRenderer,
+    false,
+    undefined,
+    () => {
+      const host = row("host").props
+      host.onNativeInputModality({
+        nativeEvent: { ownerId: host.ownerId, windowId: "tags-window", epoch: 1, origin: "pointer", timestamp: 101 },
+      })
+    },
+  )
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+it("does not revive initial autofocus in a replacement native window epoch", async () => {
+  await fixture(
+    {},
+    <Tag id="a" autoFocus>
+      Alpha
+    </Tag>,
+    DefaultNativeCollectionRenderer,
+    false,
+    undefined,
+    () => {
+      const host = row("host").props
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "tags-window",
+          epoch: 2,
+          policyRevision: host.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      })
+    },
+  )
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
 
 it("matches the source TagGroup's physical-focus policy when the collection context requests virtual focus", async () => {
   let state!: TNativeListState<object>

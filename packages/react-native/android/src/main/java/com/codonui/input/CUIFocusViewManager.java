@@ -44,6 +44,8 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
 
   @Override @ReactProp(name = "keyboardFocusable", defaultBoolean = true)
   public void setKeyboardFocusable(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setKeyboardFocusable(value); }
+  @ReactProp(name = "nativeTabStop", defaultBoolean = true)
+  public void setNativeTabStop(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativeTabStop(value); }
 
   @Override @ReactProp(name = "nativePressable", defaultBoolean = false)
   public void setNativePressable(ReactViewGroup view, boolean value) { ((CUIFocusView) view).setNativePressable(value); }
