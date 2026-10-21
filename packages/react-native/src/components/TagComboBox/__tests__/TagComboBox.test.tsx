@@ -11,6 +11,8 @@ import {
   screen,
   userEvent,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeFormRegistryContext } from "../../../form/context"
+import { NativeFormRegistry } from "../../../form/registry"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { resolveNativeTheme } from "../../../theme/defaults"
@@ -22,6 +24,10 @@ import type { TNativeTagComboBoxProps } from "../types"
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
+}))
+jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
+  __esModule: true,
+  default: jest.requireActual("react-native").View,
 }))
 type TItem = { key: string | number; label: string; group: string }
 const items: TItem[] = [
@@ -35,6 +41,19 @@ const base: TNativeTagComboBoxProps<TItem> = {
   getItemKey: (item) => item.key,
   getItemTextValue: (item) => item.label,
   onSelectedItemsChange: () => {},
+}
+const modelOriginalFormTargets = () => {
+  const native = jest.requireActual<typeof RN>("react-native")
+  const find = native.findNodeHandle as jest.Mock
+  const previous = find.getMockImplementation()!
+  const targets = new WeakMap<object, number>()
+  let sequence = 2000000
+  find.mockImplementation((host) => {
+    const known = previous(host)
+    if (known != null || !host || typeof host !== "object") return known
+    if (!targets.has(host)) targets.set(host, ++sequence)
+    return targets.get(host)!
+  })
 }
 const hidden = { includeHiddenElements: true }
 const row = (id: string) => screen.getByTestId(id, hidden)
@@ -338,4 +357,67 @@ it("retains cached one-shot items through registration renders and controlled ca
   await render(node({ items: iterator, isOpen: true, onSelectedItemsChange: change }))
   await choose()
   expect(change.mock.calls[0][0][0] === items[1]).toBe(true)
+})
+
+it("registers only the original inner ComboBox key/text values rather than selected tag objects", async () => {
+  modelOriginalFormTargets()
+  const registry = new NativeFormRegistry()
+  const key = createRef<RN.TextInput>(),
+    text = createRef<RN.TextInput>(),
+    custom = createRef<RN.TextInput>()
+  await render(
+    wrap(
+      <NativeFormRegistryContext.Provider value={registry}>
+        <TagComboBox {...base} name="key" inputRef={key} selectedItems={[items[0]]} inputValue="held" />
+        <TagComboBox {...base} name="text" inputRef={text} formValue="text" inputValue="held" />
+        <TagComboBox {...base} name="custom" inputRef={custom} formValue="key" allowsCustomValue inputValue="draft" />
+      </NativeFormRegistryContext.Provider>,
+    ),
+  )
+  const fields = [...registry.fields.values()]
+  expect(fields).toHaveLength(3)
+  for (const [name, expected, ref] of [
+    ["key", "", key],
+    ["text", "held", text],
+    ["custom", "draft", custom],
+  ] as const) {
+    const field = fields.find((field) => field.data.entries[0]?.[0] === name)!
+    expect(field.data.entries).toEqual([[name, expected]])
+    expect(field.editor()).toBe(ref.current)
+    expect(ref.current).not.toBeNull()
+  }
+})
+
+it("preserves selected tags and the same original editor across a vetoed form query reset", async () => {
+  modelOriginalFormTargets()
+  const registry = new NativeFormRegistry(),
+    input = createRef<RN.TextInput>()
+  const query = jest.fn(),
+    selected = jest.fn()
+  const content = (value: string) =>
+    wrap(
+      <NativeFormRegistryContext.Provider value={registry}>
+        <TagComboBox
+          {...base}
+          name="text"
+          formValue="text"
+          inputRef={input}
+          selectedItems={[items[0]]}
+          inputValue={value}
+          onInputChange={query}
+          onSelectedItemsChange={selected}
+        />
+      </NativeFormRegistryContext.Provider>,
+    )
+  const view = await render(content("initial"))
+  const original = input.current
+  await view.rerender(content("held"))
+  query.mockClear()
+  await act(() => [...registry.fields.values()][0].reset("programmatic"))
+  expect(query).toHaveBeenCalledWith("initial")
+  expect(selected).not.toHaveBeenCalled()
+  expect(input.current).toBe(original)
+  expect(input.current).not.toBeNull()
+  expect([...registry.fields.values()][0].data.entries).toEqual([["text", "held"]])
+  expect(screen.getByText("Zero", hidden)).toBeOnTheScreen()
 })

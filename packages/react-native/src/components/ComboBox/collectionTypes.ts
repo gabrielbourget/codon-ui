@@ -45,6 +45,8 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     defaultFilter?: (text: string, query: string) => boolean
     dependencies?: readonly unknown[]
     name?: string
+    form?: string
+    formValue?: "key" | "text"
     triggerLabel?: string
     groupLabel?: string
     render?: (

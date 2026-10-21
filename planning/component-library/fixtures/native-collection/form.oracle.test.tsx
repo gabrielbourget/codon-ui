@@ -254,3 +254,58 @@ it("records DOM portal association separately from the approved native retained-
   view.unmount()
   target.remove()
 })
+
+it("requests the default query before the initial key and leaves controlled owners authoritative", () => {
+  const form = createRef<HTMLFormElement>()
+  const calls: unknown[] = []
+  const content = (key: 0 | "b", query: string) => (
+    <Form ref={form} onReset={() => calls.push(["form"])}>
+      <ComboBox
+        {...options}
+        name="entry"
+        selectedKey={key}
+        inputValue={query}
+        onInputChange={(value) => calls.push(["query", value])}
+        onSelectionChange={(value) => calls.push(["key", value])}
+      />
+    </Form>
+  )
+  const view = render(content(0, "initial controlled query"))
+  view.rerender(content("b", "held draft"))
+  calls.length = 0
+  act(() => form.current!.reset())
+  expect(calls).toEqual([["query", "Alpha"], ["key", 0], ["form"]])
+  expect(screen.getByRole("combobox")).toHaveValue("held draft")
+  expect(entries(form.current!)).toEqual([["entry", "b"]])
+  records.push({ resetQueryBeforeKey: calls, controlledQueryAndKeyRemainAuthoritative: true })
+})
+
+it("retains server errors for programmatic reset and clears them for the original reset button event", () => {
+  const form = createRef<HTMLFormElement>()
+  let state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+  const Probe = () => {
+    state = useContext(ComboBoxStateContext)!
+    return null
+  }
+  render(
+    <Form ref={form} validationErrors={{ entry: "Server says no" }}>
+      <ComboBox
+        {...options}
+        name="entry"
+        render={(props) => (
+          <div {...props}>
+            {props.children}
+            <Probe />
+          </div>
+        )}
+      />
+      <button type="reset">Reset fields</button>
+    </Form>,
+  )
+  expect(state.displayValidation.validationErrors).toEqual(["Server says no"])
+  act(() => form.current!.reset())
+  expect(state.displayValidation.validationErrors).toEqual(["Server says no"])
+  fireEvent.click(screen.getByRole("button", { name: "Reset fields" }))
+  expect(state.displayValidation.validationErrors).toEqual([])
+  records.push({ programmaticResetRetainsServerErrors: true, nativeResetEventClearsServerErrors: true })
+})

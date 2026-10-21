@@ -26,6 +26,8 @@ import {
 } from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext } from "../../collection/state"
+import { NativeFormBehaviorContext } from "../../form/context"
+import { useNativeComboBoxField } from "../../form/useComboBoxField"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -129,6 +131,7 @@ const Receiver = <T extends object>({
     () => props.defaultFilter ?? createNativeComboBoxFilter(props.locale),
     [props.defaultFilter, props.locale],
   )
+  const formBehavior = useContext(NativeFormBehaviorContext)
   const state = useComboBoxState({
     collection,
     isCollectionPending,
@@ -154,7 +157,7 @@ const Receiver = <T extends object>({
     isInvalid: props.isInvalid,
     validate: props.validate,
     shouldCloseOnBlur: props.shouldCloseOnBlur,
-    validationBehavior: props.validationBehavior ?? "native",
+    validationBehavior: props.validationBehavior ?? formBehavior,
     defaultFilter: filter,
   })
   const theme = useNativeTheme()
@@ -163,12 +166,27 @@ const Receiver = <T extends object>({
   const popup = useRef<View>(null)
   const scroll = useRef<TNativeCollectionScrollHost | null>(null)
   const [focused, setFocused] = useState(false)
-  const [inputTarget, setInputTarget] = useState(0)
+  const [originalInput, setOriginalInput] = useState<Readonly<{ editor: TextInput; target: number }> | null>(null)
+  const inputTarget = originalInput?.target ?? 0
   const bindInput = useCallback((target: TextInput | null) => {
     input.current = target
-    setInputTarget(findNodeHandle(target) ?? 0)
+    if (target) {
+      const nativeTarget = findNodeHandle(target) ?? 0
+      setOriginalInput((previous) =>
+        previous?.editor === target && previous.target === nativeTarget
+          ? previous
+          : { editor: target, target: nativeTarget },
+      )
+    }
     if (!target) setFocused(false)
   }, [])
+  const field = useNativeComboBoxField(
+    { ...props, validationBehavior: props.validationBehavior ?? formBehavior },
+    state,
+    originalInput,
+    () => input.current,
+    () => focused,
+  )
   const inputScope = useNativeKeyScope()
   const pendingCommit = useRef<
     {
@@ -514,6 +532,7 @@ const Receiver = <T extends object>({
                       }}
                       onCommit={requestCommit}
                     />
+                    {field.placement === "input" && field.metadata}
                     <NativeCollectionComboBoxTrigger
                       owner={props}
                       state={state}
@@ -540,6 +559,7 @@ const Receiver = <T extends object>({
                       </NativeFocusHost>
                     </NativeCollectionItemBindingContext.Provider>
                   </NativeFloatingSurface>
+                  {field.placement === "root" && field.metadata}
                 </>
               ),
             })}

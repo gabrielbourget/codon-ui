@@ -164,7 +164,9 @@ export const fieldsInNativeForm = (document: TNativeFormDocument, form: TNativeF
       return associated[0] === form
     }
     const parents = new Map(document.nodes.map((node) => [node.target, node.parent]))
-    let target = field.target
+    // A key field serializes at its metadata host; its original editor may
+    // occupy a different authored position. UI authority remains separate.
+    let target = field.metadataTarget
     while (target !== 0) {
       const ancestor = document.forms.find((candidate) => candidate.target === target)
       if (ancestor) return ancestor === form
