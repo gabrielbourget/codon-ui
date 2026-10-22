@@ -29,6 +29,7 @@ import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../col
 import { NativeListStateContext } from "../../collection/state"
 import { NativeFormBehaviorContext } from "../../form/context"
 import { useNativeComboBoxField } from "../../form/useComboBoxField"
+import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/useFieldSemantics"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -182,20 +183,24 @@ const Receiver = <T extends object>({
       description: `${fieldId}:description`,
       errorMessage: `${fieldId}:error`,
       value: `${fieldId}:value`,
+      list: `${fieldId}:list`,
     }),
     [fieldId],
   )
-  const label = useRef<TNativeTextRef>(null)
-  const description = useRef<TNativeTextRef>(null)
-  const errorMessage = useRef<TNativeTextRef>(null)
-  const value = useRef<View>(null)
-  const list = useRef<View>(null)
+  const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [errorMessage, errorMessageRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+  const [value, valueRef] = useNativeFieldSemanticRef<View>()
+  const [list, listRef] = useNativeFieldSemanticRef<View>()
   const input = useRef<TextInput>(null)
   const anchor = useRef<View>(null)
   const popup = useRef<View>(null)
   const scroll = useRef<TNativeCollectionScrollHost | null>(null)
   const [focused, setFocused] = useState(false)
   const [originalInput, setOriginalInput] = useState<Readonly<{ editor: TextInput; target: number }> | null>(null)
+  const actions = useContext(NativeCollectionActionsContext)
+  const rows = useRef(new Map<string | number, { node: TNativeCollectionNode<unknown>; target: View }>())
+  const [, setSemanticTargetsRevision] = useState(0)
   const inputTarget = originalInput?.target ?? 0
   const bindInput = useCallback((target: TextInput | null) => {
     input.current = target
@@ -209,12 +214,42 @@ const Receiver = <T extends object>({
     }
     if (!target) setFocused(false)
   }, [])
+  const focusedKey = state.selectionManager.focusedKey
+  const activeRow = focusedKey == null ? undefined : rows.current.get(focusedKey)
+  const activeBinding =
+    activeRow && state.collection.getItem(activeRow.node.key) === activeRow.node
+      ? actions?.bindingFor(activeRow.node)
+      : ""
+  const activeTarget = activeBinding && activeRow ? findNodeHandle(activeRow.target) : 0
+  const semanticBinding = useNativeFieldSemantics({
+    ids: fieldIds,
+    refs: { input, label, description, errorMessage, value, list },
+    inputAliases: props.id ? [props.id] : [],
+    labelledBy: props.nativeLabelledBy,
+    describedBy: props.nativeDescribedBy,
+    errorMessageBy: props.nativeErrorMessageBy,
+    detailsBy: props.nativeDetailsBy,
+    labels: props.nativeAccessibilityLabels,
+    flags: {
+      disabled: !!props.isDisabled,
+      readOnly: !!props.isReadOnly,
+      required: !!props.isRequired,
+      invalid: state.displayValidation.isInvalid,
+      expanded: state.isOpen,
+    },
+    activeDescendant: activeTarget && activeBinding ? { target: activeTarget, binding: activeBinding } : null,
+  })
   const field = useNativeComboBoxField(
-    { ...props, validationBehavior: props.validationBehavior ?? formBehavior },
+    {
+      ...props,
+      validationBehavior: props.validationBehavior ?? formBehavior,
+      requiredErrorMessage: props.nativeAccessibilityLabels?.required,
+    },
     state,
     originalInput,
     () => input.current,
     () => focused,
+    semanticBinding,
   )
   const inputScope = useNativeKeyScope()
   const pendingCommit = useRef<
@@ -232,8 +267,6 @@ const Receiver = <T extends object>({
   const pendingNavigation = useRef<"first" | "last" | null>(null)
   const renderer = useContext(NativeCollectionRendererContext)
   const { CollectionRoot } = renderer
-  const actions = useContext(NativeCollectionActionsContext)
-  const rows = useRef(new Map<string | number, { node: TNativeCollectionNode<unknown>; target: View }>())
   const live = useRef(false)
   const current = useRef({ props, state })
   useInsertionEffect(() => {
@@ -248,11 +281,18 @@ const Receiver = <T extends object>({
     }
   }, [])
   const register = useCallback((node: TNativeCollectionNode<unknown>, target: View | null) => {
+    const previous = rows.current.get(node.key)
     if (target) {
       rows.current.set(node.key, { node, target })
       if (pendingCommit.current.some((pending) => pending.key === node.key))
         void Promise.resolve().then(() => flushCommit.current())
     } else if (rows.current.get(node.key)?.node === node) rows.current.delete(node.key)
+    if (
+      live.current &&
+      current.current.state.selectionManager.focusedKey === node.key &&
+      (previous?.node !== node || previous?.target !== target)
+    )
+      setSemanticTargetsRevision((value) => value + 1)
   }, [])
   const press = useCallback(
     (node: TNativeCollectionNode<unknown>, target: View | null, event: TCommitEvent) => {
@@ -551,19 +591,19 @@ const Receiver = <T extends object>({
       <NativeComboBoxInputContext.Provider value={inputProps}>
         <NativeComboBoxButtonContext.Provider value={buttonProps}>
           <NativeComboBoxLabelContext.Provider
-            value={{ nativeID: fieldIds.label, ref: label, labelTarget: input, isDisabled: !!props.isDisabled }}
+            value={{ nativeID: fieldIds.label, ref: labelRef, labelTarget: input, isDisabled: !!props.isDisabled }}
           >
             <NativeComboBoxTextContext.Provider
               value={{
                 slots: {
-                  description: { nativeID: fieldIds.description, ref: description },
-                  errorMessage: { nativeID: fieldIds.errorMessage, ref: errorMessage },
+                  description: { nativeID: fieldIds.description, ref: descriptionRef },
+                  errorMessage: { nativeID: fieldIds.errorMessage, ref: errorMessageRef },
                 },
               }}
             >
               <NativeComboBoxFieldErrorContext.Provider value={state.displayValidation}>
                 <NativeComboBoxValueContext.Provider
-                  value={{ nativeID: fieldIds.value, locale: props.locale, ref: value }}
+                  value={{ nativeID: fieldIds.value, locale: props.locale, ref: valueRef }}
                 >
                   <NativeComboBoxOverlayTriggerStateContext.Provider value={state}>
                     <NativeComboBoxGroupContext.Provider
@@ -571,7 +611,7 @@ const Receiver = <T extends object>({
                     >
                       <NativeComboBoxListContext.Provider
                         value={{
-                          ref: list,
+                          ref: listRef,
                           role: "list",
                           accessible: false,
                           focusable: false,
@@ -636,7 +676,8 @@ const Receiver = <T extends object>({
                                               value={actions?.bindingFor(null) ?? ""}
                                             >
                                               <NativeFocusHost
-                                                ref={list}
+                                                ref={listRef}
+                                                nativeID={fieldIds.list}
                                                 role="list"
                                                 focusable={false}
                                                 accessible={false}

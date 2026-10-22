@@ -79,6 +79,7 @@ export const NativeComboBoxFieldIdsContext = createContext<Readonly<{
   description: string
   errorMessage: string
   value: string
+  list: string
 }> | null>(null)
 export const NativeComboBoxListContext = createContext<
   TNativeContextValue<

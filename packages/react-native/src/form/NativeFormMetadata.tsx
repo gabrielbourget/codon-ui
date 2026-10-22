@@ -26,6 +26,7 @@ type TFieldProps = Pick<
   | "editorTarget"
   | "hasFormAssociation"
   | "formId"
+  | "semanticBinding"
   | "onNativeFormCommit"
 > & { metadataRef?: Ref<ComponentRef<typeof Field>> }
 

@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { TextInputProps, View } from "react-native"
 
+import type { TNativeFieldSemanticLabels } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 
@@ -49,6 +50,11 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     formValue?: "key" | "text"
     triggerLabel?: string
     groupLabel?: string
+    nativeLabelledBy?: readonly string[]
+    nativeDescribedBy?: readonly string[]
+    nativeErrorMessageBy?: readonly string[]
+    nativeDetailsBy?: readonly string[]
+    nativeAccessibilityLabels?: Partial<TNativeFieldSemanticLabels>
     render?: (
       props: TNativeFocusViewProps & RefAttributes<View>,
       state: TNativeCollectionComboBoxRenderState,

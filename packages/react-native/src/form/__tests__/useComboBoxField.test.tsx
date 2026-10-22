@@ -153,3 +153,19 @@ it("ignores malformed original mount callbacks without granting editor authority
     await act(() => metadata.props.onNativeFormCommit({ nativeEvent: packet }))
   expect(value.field().mount()?.getSnapshot() ?? null).toBeNull()
 })
+
+it("exposes an actual required message after validation without changing the held owner or original editor", async () => {
+  const changed = jest.fn()
+  const value = await setup({ isRequired: true, inputValue: "", onInputChange: changed })
+  const original = value.original()
+  expect(value.field().data.validation.validationErrors).toEqual(["Required"])
+  await act(() => value.field().commitValidation())
+  expect(value.state().displayValidation).toMatchObject({
+    isInvalid: true,
+    validationDetails: { valueMissing: true },
+    validationErrors: ["Required"],
+  })
+  expect(value.state().inputValue).toBe("")
+  expect(value.original()).toBe(original)
+  expect(changed).not.toHaveBeenCalled()
+})

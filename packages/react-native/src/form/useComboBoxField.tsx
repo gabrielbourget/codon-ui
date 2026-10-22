@@ -18,6 +18,7 @@ import { nativeComboBoxFieldData, type TNativeComboBoxFieldOptions } from "./com
 import { NativeFormRegistryContext } from "./context"
 import { NativeFormMountReceipt } from "./mount"
 import { NativeFieldMetadata } from "./NativeFormMetadata"
+import { NativeFieldSemanticSession } from "./semanticSession"
 
 let nextRevision = 0
 
@@ -27,6 +28,7 @@ export const useNativeComboBoxField = <T extends object>(
   original: Readonly<{ editor: TextInput; target: number }> | null,
   currentEditor: () => TextInput | null,
   isFocusObserved: () => boolean,
+  semanticBinding = "",
 ) => {
   const registry = useContext(NativeFormRegistryContext)
   const ownerId = useId()
@@ -39,10 +41,27 @@ export const useNativeComboBoxField = <T extends object>(
   const metadata = useRef<View | null>(null)
   const [metadataTarget, setMetadataTarget] = useState(0)
   const receipt = useRef<NativeFormMountReceipt | null>(null)
-  const current = useRef({ state, currentEditor, isFocusObserved, descriptorRevision, original, metadataTarget })
+  const semantics = useRef<NativeFieldSemanticSession | null>(null)
+  const current = useRef({
+    state,
+    currentEditor,
+    isFocusObserved,
+    descriptorRevision,
+    original,
+    metadataTarget,
+    semanticBinding,
+  })
   const resetActive = useRef(false)
   useInsertionEffect(() => {
-    current.current = { state, currentEditor, isFocusObserved, descriptorRevision, original, metadataTarget }
+    current.current = {
+      state,
+      currentEditor,
+      isFocusObserved,
+      descriptorRevision,
+      original,
+      metadataTarget,
+      semanticBinding,
+    }
   })
   useEffect(() => {
     resetActive.current = true
@@ -56,6 +75,8 @@ export const useNativeComboBoxField = <T extends object>(
   })
   const bindMetadata = useCallback((view: View | null) => {
     if (metadata.current !== view) {
+      semantics.current?.retire()
+      semantics.current = null
       receipt.current?.retire()
       receipt.current = null
     }
@@ -81,13 +102,18 @@ export const useNativeComboBoxField = <T extends object>(
         return
       const previous = receipt.current
       if (previous && previous.scope.descriptorRevision !== owner.descriptorRevision) previous.retire()
-      if (!previous || previous.scope.descriptorRevision !== owner.descriptorRevision)
+      if (!previous || previous.isRetired || previous.scope.descriptorRevision !== owner.descriptorRevision)
         receipt.current = new NativeFormMountReceipt(packet, {
           metadata: host,
           original: editor,
           current: () => ({ metadata: metadata.current, original: current.current.currentEditor() }),
         })
-      receipt.current!.receive(packet)
+      if (!receipt.current!.receive(packet)) return
+      if (semantics.current?.receipt !== receipt.current) {
+        semantics.current?.retire()
+        semantics.current = new NativeFieldSemanticSession(receipt.current!)
+      }
+      semantics.current.observe(owner.semanticBinding)
     },
     [ownerId, descriptorId],
   )
@@ -122,6 +148,8 @@ export const useNativeComboBoxField = <T extends object>(
     })
     return () => {
       release()
+      semantics.current?.retire()
+      semantics.current = null
       receipt.current?.retire()
       receipt.current = null
     }
@@ -139,6 +167,7 @@ export const useNativeComboBoxField = <T extends object>(
         editorTarget={original?.target ?? 0}
         hasFormAssociation={props.form !== undefined}
         formId={props.form ?? ""}
+        semanticBinding={semanticBinding}
         onNativeFormCommit={(event) => receive(event.nativeEvent)}
       />
     ),
