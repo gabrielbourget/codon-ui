@@ -24,6 +24,7 @@ import {
 } from "../collectionContext"
 import type { TNativeCollectionComboBoxStyleState } from "../collectionTypes"
 import { NativeComboBoxItem } from "../ComboBoxItem"
+import { NativeComboBoxHeader, NativeComboBoxSection } from "../ComboBoxSection"
 import { FormValidationContext } from "../state/useFormValidationState"
 
 const ITEMS = [
@@ -120,6 +121,78 @@ const press = async (id: string) => {
   await act(() => row.props.onResponderGrant(event))
   await act(() => row.props.onResponderRelease(event))
 }
+
+it("binds all five sectioned options to the original list target in linked reading order", async () => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  const targets = new WeakMap<object, number>()
+  let nextTarget = 800000
+  jest.mocked(native.findNodeHandle).mockImplementation((view) => {
+    const original = inherited(view)
+    if (original) return original
+    if (!view || typeof view !== "object") return null
+    if (!targets.has(view)) targets.set(view, ++nextTarget)
+    return targets.get(view)!
+  })
+  const f = setup()
+  await render(
+    f.node(
+      <NativeCollectionComboBox
+        items={[]}
+        getKey={() => "unused"}
+        getTextValue={() => "unused"}
+        name="wire"
+        inputLabel="Query"
+        closeLabel="Close"
+        isOpen
+      >
+        <NativeComboBoxItem id="" textValue="Empty" testID="ordered-empty">
+          Empty
+        </NativeComboBoxItem>
+        <NativeComboBoxSection id="first-section" accessibilityLabel="First section">
+          <NativeComboBoxItem id={0} textValue="Number zero" testID="ordered-number">
+            Number zero
+          </NativeComboBoxItem>
+          <NativeComboBoxItem id="0" textValue="String zero" testID="ordered-string">
+            String zero
+          </NativeComboBoxItem>
+        </NativeComboBoxSection>
+        <NativeComboBoxSection id="second-section">
+          <NativeComboBoxHeader>Second section</NativeComboBoxHeader>
+          <NativeComboBoxItem id="third" textValue="Third" testID="ordered-third">
+            Third
+          </NativeComboBoxItem>
+          <NativeComboBoxItem id="fourth" textValue="Fourth" testID="ordered-fourth">
+            Fourth
+          </NativeComboBoxItem>
+        </NativeComboBoxSection>
+      </NativeCollectionComboBox>,
+    ),
+  )
+  await f.ready()
+  const root = screen.getByTestId("combo-box-list", hidden)
+  expect(JSON.parse(root.props.nativeCollectionSemantics)).toEqual({ kind: "list-root", count: 5 })
+  const binding = JSON.parse(root.props.nativeCollectionBinding)
+  expect(binding.descriptorId).toBe("")
+  const field = screen.container.queryAll(
+    (node) => typeof node.props.semanticBinding === "string" && node.props.semanticBinding.length > 0,
+  )[0]
+  const listAlias = JSON.parse(field.props.semanticBinding).aliases.find(
+    (alias: { id: string }) => alias.id === root.props.nativeID,
+  )
+  expect(listAlias.target).toBeGreaterThan(0)
+  for (const [ordinal, name] of ["empty", "number", "string", "third", "fourth"].entries()) {
+    const option = screen.getByTestId(`ordered-${name}`, hidden)
+    expect(JSON.parse(option.props.nativeCollectionSemantics)).toEqual({
+      kind: "list-item",
+      parentTarget: listAlias.target,
+      ordinal,
+    })
+    const itemBinding = JSON.parse(option.props.nativeCollectionBinding)
+    expect(itemBinding.rootRevision).toBe(binding.rootRevision)
+    expect(itemBinding.descriptorId).not.toBe("")
+  }
+})
 
 it("connects the complete state and original values to committed options and repeated owner-vetoed selection", async () => {
   const f = setup(),

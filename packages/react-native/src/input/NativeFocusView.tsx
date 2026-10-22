@@ -17,6 +17,7 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../over
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
+import { NativeFocusWithinSession, type TNativeFocusWithinEvent } from "./focusWithin"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
 import {
   NativeMotionGeometryObserver,
@@ -55,6 +56,9 @@ export const NativeFocusHost = forwardRef<
     nativeMotionProjectionRevision?: string
     nativeMotionDrawingOwner?: boolean
     nativeMotionProjectionRadii?: string
+    nativeFocusWithinObservation?: boolean
+    nativeOnFocusWithin?: (event: TNativeFocusWithinEvent) => void
+    nativeOnFocusWithinRetired?: () => void
     nativeNavigation?: boolean
     nativeNavigationLabel?: string
     nativeLabelledBy?: readonly string[]
@@ -89,6 +93,9 @@ export const NativeFocusHost = forwardRef<
     nativeMotionGeometryRevision = "",
     nativeMotionVisible = true,
     nativeMotionProjectionRevision = "",
+    nativeFocusWithinObservation = false,
+    nativeOnFocusWithin,
+    nativeOnFocusWithinRetired,
     onBubbledFocus,
     onBubbledBlur,
     ...rest
@@ -108,6 +115,20 @@ export const NativeFocusHost = forwardRef<
   const motionGeometry = useRef<NativeMotionGeometryObserver | undefined>(undefined)
   const releaseMotionGeometry = useRef<(() => void) | undefined>(undefined)
   const releaseDescription = useRef<(() => void) | undefined>(undefined)
+  const [withinBinding, setWithinBinding] = useState("")
+  const within = useRef<NativeFocusWithinSession | null>(null)
+  const withinOptions = useRef({
+    enabled: nativeFocusWithinObservation,
+    receive: nativeOnFocusWithin,
+    retire: nativeOnFocusWithinRetired,
+  })
+  useInsertionEffect(() => {
+    withinOptions.current = {
+      enabled: nativeFocusWithinObservation,
+      receive: nativeOnFocusWithin,
+      retire: nativeOnFocusWithinRetired,
+    }
+  })
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
   const keyboardFocusable = tabIndex === -1 ? false : (focusable ?? true)
@@ -123,6 +144,38 @@ export const NativeFocusHost = forwardRef<
     const session = scope?.acknowledgedSession()
     return `${scope?.ownerId ?? ""}:${session?.windowId ?? ""}:${session?.epoch ?? 0}`
   }, [])
+  const refreshWithin = useCallback(() => {
+    if (!withinOptions.current.enabled || !attached.current) {
+      within.current?.detach()
+      within.current = null
+      return
+    }
+    if (!within.current) {
+      const session = new NativeFocusWithinSession({
+        ownerId,
+        target: () => (nativeTarget.current ? findNodeHandle(nativeTarget.current) : null),
+        scope: () => {
+          const scope = focusEligibility.current.inputScope
+          const native = scope?.acknowledgedSession()
+          return {
+            ownerId: scope?.ownerId ?? "",
+            windowId: native?.windowId,
+            epoch: native?.epoch,
+            active: scope?.isWindowActive() !== false,
+          }
+        },
+        changed: setWithinBinding,
+        receive: (event) => withinOptions.current.receive?.(event),
+        retire: () => withinOptions.current.retire?.(),
+      })
+      within.current = session
+      session.attach()
+    } else within.current.refreshScope()
+  }, [ownerId])
+  useLayoutEffect(() => {
+    refreshWithin()
+    return nativeFocusWithinObservation ? inputScope?.subscribe(refreshWithin) : undefined
+  }, [inputScope, nativeFocusWithinObservation, refreshWithin])
   const canFocus = useCallback(() => {
     const current = focusEligibility.current
     return (
@@ -223,6 +276,9 @@ export const NativeFocusHost = forwardRef<
           releaseForwardedRef.current = typeof cleanup === "function" ? cleanup : () => forwardedRef(null)
         }
       } else if (forwardedRef) forwardedRef.current = target
+      within.current?.detach()
+      within.current = null
+      refreshWithin()
     },
     [
       forwardedRef,
@@ -232,6 +288,7 @@ export const NativeFocusHost = forwardRef<
       nativeMotionColorObservation,
       nativeMotionGeometryObservation,
       geometryBinding,
+      refreshWithin,
     ],
   )
   const normalized = nativeViewProps(rest)
@@ -247,6 +304,14 @@ export const NativeFocusHost = forwardRef<
         ownerId={ownerId}
         nativeCollectionBinding={collectionBinding}
         nativeCollectionSemantics={collectionSemantics}
+        nativeFocusWithinBinding={nativeFocusWithinObservation ? withinBinding : ""}
+        onNativeFocusWithin={
+          nativeFocusWithinObservation
+            ? (event) => {
+                if (attached.current) within.current?.receive(event)
+              }
+            : undefined
+        }
         nativeMotionColorObservation={nativeMotionColorObservation}
         nativeMotionGeometryBinding={nativeMotionGeometryObservation ? geometryBinding : ""}
         nativeMotionGeometryRevision={nativeMotionGeometryRevision}

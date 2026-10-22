@@ -99,6 +99,24 @@ export type NativeFocusData = Readonly<{
   timestamp: Double
 }>
 
+export type NativeFocusWithinData = Readonly<{
+  ownerId: string
+  bindingId: string
+  target: Int32
+  surfaceId: Int32
+  windowId: string
+  scopeOwnerId: string
+  scopeEpoch: Double
+  sequence: Double
+  attached: boolean
+  active: boolean
+  within: boolean
+  focusedTarget: Int32
+  textInputFocused: boolean
+  origin: string
+  observedAt: Double
+}>
+
 export type NativeFormActionStatus = Readonly<{
   ownerId: string
   descriptorRevision: string
@@ -117,6 +135,8 @@ export type NativeFormActionStatus = Readonly<{
 
 export interface NativeProps extends ViewProps {
   ownerId: string
+  nativeFocusWithinBinding?: string
+  onNativeFocusWithin?: DirectEventHandler<NativeFocusWithinData>
   nativeFormActionBinding?: string
   onNativeFormActionStatus?: DirectEventHandler<NativeFormActionStatus>
   nativeCollectionBinding?: string

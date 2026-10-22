@@ -4,11 +4,12 @@ import type { TextInput, View } from "react-native"
 import type { TNativeContextValue } from "../../collection/context"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { TNativePressEvent } from "../../input/types"
-import type { TNativeFocusViewProps } from "../../input/types"
-import type { TNativeClickPopoverProps } from "../ClickPopover/types"
 import type { TNativeTextRender } from "../Text/Text"
 import type { TNativeTextProps, TNativeTextRef } from "../Text/types"
 
+import type { TNativeComboBoxGroupProps } from "./CollectionComboBoxGroup"
+import type { TNativeComboBoxListProps } from "./CollectionComboBoxList"
+import type { TNativeComboBoxPopoverProps } from "./CollectionComboBoxPopover"
 import type { TNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import type { TNativeComboBoxInputProps } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
@@ -29,23 +30,10 @@ export const NativeComboBoxItemValueContext = createContext<{
   value: unknown
   text: string
 } | null>(null)
-export const NativeComboBoxGroupContext = createContext<
-  TNativeContextValue<
-    Partial<TNativeFocusViewProps> & {
-      isDisabled?: boolean
-      isInvalid?: boolean
-    },
-    View
-  >
->(null)
-export const NativeComboBoxPopoverContext = createContext<
-  TNativeContextValue<
-    Partial<Omit<TNativeClickPopoverProps, "children">> & {
-      clearContexts?: typeof NATIVE_COMBO_BOX_POPOVER_CONTEXTS
-    },
-    View
-  >
->(null)
+export const NativeComboBoxGroupContext =
+  createContext<TNativeContextValue<Partial<TNativeComboBoxGroupProps>, View>>(null)
+export const NativeComboBoxPopoverContext =
+  createContext<TNativeContextValue<Partial<Omit<TNativeComboBoxPopoverProps, "children">>, View>>(null)
 export type TNativeComboBoxLabelContext = Partial<TNativeTextProps> & {
   render?: TNativeTextRender
   labelTarget?: RefObject<TextInput | null>
@@ -81,20 +69,8 @@ export const NativeComboBoxFieldIdsContext = createContext<Readonly<{
   value: string
   list: string
 }> | null>(null)
-export const NativeComboBoxListContext = createContext<
-  TNativeContextValue<
-    Partial<TNativeFocusViewProps> & {
-      autoFocus?: boolean | "first" | "last"
-      shouldUseVirtualFocus?: boolean
-      shouldSelectOnPressUp?: boolean
-      shouldFocusOnHover?: boolean
-      linkBehavior?: "selection"
-      itemBehavior?: "action"
-      shouldFocusWrap?: boolean
-    },
-    View
-  >
->(null)
+export const NativeComboBoxListContext =
+  createContext<TNativeContextValue<Partial<TNativeComboBoxListProps>, View>>(null)
 export const NativeComboBoxOptionsContext = createContext<{
   input: RefObject<TextInput | null>
   isDisabled: boolean
