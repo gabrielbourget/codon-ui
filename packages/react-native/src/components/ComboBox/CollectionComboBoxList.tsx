@@ -46,6 +46,7 @@ import type { TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle } from "../colors"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeComboBoxListContext, NativeComboBoxStateContext } from "./collectionContext"
@@ -92,6 +93,7 @@ export const NativeComboBoxListBehaviorContext = createContext<
     shouldFocusOnHover: boolean
     shouldFocusWrap: boolean
     onAction?: (key: TNativeCollectionKey) => void
+    textStyle?: TextStyle
     parentTarget: number
     ordinals: ReadonlyMap<TNativeCollectionKey, number>
   }>
@@ -262,6 +264,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     state,
   }
   const theme = useNativeTheme()
+  const inheritedContent = useNativeContentContext()
   const defaultStyle: ViewStyle = {}
   const resolved = typeof style === "function" ? style({ ...flags, defaultStyle }) : style
   const styles = splitNativeTextStyle(resolveNativeStyle(resolved, "ComboBoxList", "style"))
@@ -275,7 +278,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
       />
       {flags.isEmpty &&
         renderEmptyState &&
-        getNativeButtonContent(renderEmptyState(flags), { color: theme.colors.controlPlaceholder, ...styles.text })}
+        getNativeButtonContent(renderEmptyState(flags), { ...inheritedContent?.textStyle, ...styles.text })}
     </>
   )
   const host = {
@@ -308,39 +311,48 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     },
     children: (
       <NativeCollectionSemanticsContext.Provider value="">
-        <NativeComboBoxListContext.Provider value={props}>
-          <NativeComboBoxStateContext.Provider value={state}>
-            <NativeListStateContext.Provider value={state}>
-              <NativeComboBoxListBehaviorContext.Provider
-                value={{
-                  shouldUseVirtualFocus,
-                  shouldSelectOnPressUp,
-                  shouldFocusOnHover,
-                  shouldFocusWrap,
-                  onAction,
-                  parentTarget,
-                  ordinals,
-                }}
-              >
-                <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
-                  {renderer.isVirtualized ? (
-                    content
-                  ) : (
-                    <ScrollView
-                      ref={scroll as React.Ref<ScrollView>}
-                      keyboardShouldPersistTaps="always"
-                      keyboardDismissMode="none"
-                      onScroll={onScroll}
-                      style={{ maxHeight: 280 }}
-                    >
-                      {content}
-                    </ScrollView>
-                  )}
-                </NativeCollectionItemBindingContext.Provider>
-              </NativeComboBoxListBehaviorContext.Provider>
-            </NativeListStateContext.Provider>
-          </NativeComboBoxStateContext.Provider>
-        </NativeComboBoxListContext.Provider>
+        <NativeContentContext.Provider
+          value={{
+            foregroundColor: styles.text.color ?? inheritedContent?.foregroundColor ?? theme.colors.foreground,
+            isButton: false,
+            textStyle: { ...inheritedContent?.textStyle, ...styles.text },
+          }}
+        >
+          <NativeComboBoxListContext.Provider value={props}>
+            <NativeComboBoxStateContext.Provider value={state}>
+              <NativeListStateContext.Provider value={state}>
+                <NativeComboBoxListBehaviorContext.Provider
+                  value={{
+                    shouldUseVirtualFocus,
+                    shouldSelectOnPressUp,
+                    shouldFocusOnHover,
+                    shouldFocusWrap,
+                    onAction,
+                    textStyle: styles.text,
+                    parentTarget,
+                    ordinals,
+                  }}
+                >
+                  <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(null) ?? ""}>
+                    {renderer.isVirtualized ? (
+                      content
+                    ) : (
+                      <ScrollView
+                        ref={scroll as React.Ref<ScrollView>}
+                        keyboardShouldPersistTaps="always"
+                        keyboardDismissMode="none"
+                        onScroll={onScroll}
+                        style={{ maxHeight: 280 }}
+                      >
+                        {content}
+                      </ScrollView>
+                    )}
+                  </NativeCollectionItemBindingContext.Provider>
+                </NativeComboBoxListBehaviorContext.Provider>
+              </NativeListStateContext.Provider>
+            </NativeComboBoxStateContext.Provider>
+          </NativeComboBoxListContext.Provider>
+        </NativeContentContext.Provider>
       </NativeCollectionSemanticsContext.Provider>
     ),
   }

@@ -139,6 +139,7 @@ it.each([
   "pen",
   "late-query",
   "late-read-only",
+  "pending",
 ] as const)(
   "admits trigger-to-option mouse release only while its original ownership is current: %s",
   async (scenario) => {
@@ -173,11 +174,17 @@ it.each([
           isOpen={open}
           onOpenChange={setOpen}
           onChange={changes}
+          dependencies={scenario === "pending" ? [retired] : undefined}
           isDisabled={retired && scenario.startsWith("disabled")}
           isReadOnly={retired && (scenario === "read-only" || scenario === "late-read-only")}
         >
           {(item) => (
-            <NativeComboBoxItem id={item.id} ref={item.id === 0 ? option : undefined} textValue={item.label}>
+            <NativeComboBoxItem
+              id={item.id}
+              ref={item.id === 0 ? option : undefined}
+              textValue={item.label}
+              isPending={retired && scenario === "pending"}
+            >
               {item.label}
             </NativeComboBoxItem>
           )}
@@ -280,7 +287,8 @@ it.each([
     const optionTarget = native.findNodeHandle(option.current)!
     if (scenario.startsWith("query")) await fireEvent.changeText(screen.getByTestId("combo-box-input"), "Beta")
     if (scenario === "query-restore") await fireEvent.changeText(screen.getByTestId("combo-box-input"), "")
-    if (["disabled", "disabled-restore", "read-only", "unmount"].includes(scenario)) await act(retire)
+    if (["disabled", "disabled-restore", "read-only", "unmount", "pending"].includes(scenario)) await act(retire)
+    if (scenario === "pending") await acknowledge()
     if (scenario === "disabled-restore") await act(restore)
     if (scenario === "window") {
       const host = screen.getByTestId("host").props

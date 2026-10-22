@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event"
 import { createRef, useContext, useState } from "react"
 import { createPortal } from "react-dom"
 import {
+  SelectionIndicatorContext,
   RouterProvider,
   ButtonContext,
   ComboBoxStateContext,
@@ -816,5 +817,147 @@ it.each(["pointer-empty", "input-zero"])(
     expect(state.value).toBeNull()
     expect(screen.getByRole("combobox")).toBe(editor)
     records.push({ case: "controlled-selection-veto", mode, changes, closes })
+  },
+)
+
+it("retains complete item render/style values, custom original host and label/description/indicator contexts", async () => {
+  const original = createRef<HTMLDivElement>(),
+    label = createRef<HTMLElement>(),
+    description = createRef<HTMLElement>()
+  let flags: Record<string, unknown> = {},
+    renderFlags: Record<string, unknown> = {},
+    styleFlags: Record<string, unknown> = {},
+    indicator: unknown
+  const Capture = () => {
+    indicator = useContext(SelectionIndicatorContext)
+    return null
+  }
+  const user = userEvent.setup()
+  render(
+    <ComboBox aria-label="Item render choices" items={[{ id: 0, label: "Zero" }]} isOpen>
+      {(item) => (
+        <ListBoxItem
+          id={item.id}
+          textValue={item.label}
+          ref={original}
+          textSize="large"
+          customStyles={{ padding: 9 }}
+          style={(values) => {
+            styleFlags = values
+            return { marginTop: 3 }
+          }}
+          render={(props, values) => {
+            renderFlags = values
+            return <div {...props} data-testid="rendered-item" />
+          }}
+        >
+          {(values) => {
+            flags = values
+            return (
+              <>
+                <Capture />
+                <Text ref={label} slot="label">
+                  Zero
+                </Text>
+                <Text ref={description} slot="description">
+                  Detail
+                </Text>
+              </>
+            )
+          }}
+        </ListBoxItem>
+      )}
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const host = await screen.findByTestId("rendered-item")
+  const expected = {
+    isSelected: false,
+    isDisabled: false,
+    isHovered: false,
+    isPressed: false,
+    allowsSelection: true,
+    hasAction: false,
+    allowsDragging: false,
+    selectionMode: "single",
+    selectionBehavior: "toggle",
+  }
+  for (const values of [flags, renderFlags, styleFlags]) {
+    expect(values).toMatchObject(expected)
+    expect(values).toHaveProperty("isDragging")
+    expect(values).toHaveProperty("isDropTarget")
+  }
+  expect(original.current).toBe(host)
+  expect(host.style.padding).toBe("9px")
+  expect(host.style.marginTop).toBe("3px")
+  expect(host.getAttribute("aria-labelledby")?.split(" ")).toContain(label.current!.id)
+  expect(host.getAttribute("aria-describedby")?.split(" ")).toContain(description.current!.id)
+  expect(indicator).toMatchObject({ isSelected: false })
+  records.push({
+    case: "item-render-context",
+    flags: Object.fromEntries(
+      Object.entries(flags).map(([key, value]) => [key, value === undefined ? "[undefined]" : value]),
+    ),
+    styleKeys: Object.keys(styleFlags),
+    customOriginalHost: true,
+    labelId: label.current!.id,
+    descriptionId: description.current!.id,
+  })
+})
+
+it("retires the focused key when an authored option becomes disabled", async () => {
+  let disable!: () => void, state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+  const Capture = () => {
+    state = useContext(ComboBoxStateContext)!
+    return null
+  }
+  const Harness = () => {
+    const [disabled, setDisabled] = useState(false)
+    disable = () => setDisabled(true)
+    return (
+      <ComboBox aria-label="Disabled takeover" items={[{ id: 0, label: "Zero", disabled }]} isOpen>
+        {(item) => (
+          <ListBoxItem id={item.id} textValue={item.label} isDisabled={item.disabled}>
+            <Capture />
+            {item.label}
+          </ListBoxItem>
+        )}
+      </ComboBox>
+    )
+  }
+  const user = userEvent.setup()
+  render(<Harness />)
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const original = await screen.findByRole("option", { name: "Zero" })
+  await user.hover(original)
+  expect(state.selectionManager.focusedKey).toBe(0)
+  await act(disable)
+  expect(state.selectionManager.focusedKey).toBeNull()
+  expect(screen.getByRole("option", { name: "Zero" })).toBe(original)
+  expect(original.getAttribute("aria-disabled")).toBe("true")
+  records.push({ case: "authored-disabled-focus-retirement", focusedKey: null, originalHost: true })
+})
+
+it.each([null, false, 0, "", undefined])(
+  "preserves explicit item content independently of its textValue: %s",
+  async (children) => {
+    const user = userEvent.setup()
+    render(
+      <ComboBox aria-label="Content ownership" items={[{ id: 0 }]} isOpen>
+        {(item) => (
+          <ListBoxItem id={item.id} textValue="Search text">
+            {children}
+          </ListBoxItem>
+        )}
+      </ComboBox>,
+    )
+    await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+    const option = await screen.findByRole("option")
+    expect(option.textContent).toBe(children === 0 ? "0" : "")
+    records.push({
+      case: "item-content-presence",
+      input: children === undefined ? "[undefined]" : children,
+      text: option.textContent,
+    })
   },
 )

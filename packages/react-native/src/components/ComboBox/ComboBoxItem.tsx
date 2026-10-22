@@ -1,3 +1,4 @@
+/* Native counterpart of pinned RAC ListBoxItem/useOption; Apache-2.0. See ../../collection/LICENSE.react-aria.md. */
 import {
   forwardRef,
   useContext,
@@ -7,31 +8,39 @@ import {
   useCallback,
   useId,
   useSyncExternalStore,
+  useState,
+  useEffect,
+  type ReactElement,
 } from "react"
-import { findNodeHandle, type View } from "react-native"
+import { findNodeHandle, type View, type TextStyle, type StyleProp } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs } from "../../collection/context"
+import { useNativeCollectionRefs, NATIVE_DEFAULT_SLOT, NativeSelectionIndicatorContext } from "../../collection/context"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativePressableRender } from "../../input/NativePressable"
 import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
-import type { TNativeButtonProps, TNativeButtonChildrenState } from "../Button/types"
+import type { TNativeButtonProps, TNativeButtonRenderState } from "../Button/types"
+import { useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { getNativeControlRootStyle, nativeControlTarget } from "../selection"
+import type { TNativeTextRef } from "../Text/types"
 
 import { NativeComboBoxListBehaviorContext } from "./CollectionComboBoxList"
 import {
   NativeComboBoxItemValueContext,
   NativeComboBoxOptionsContext,
   NativeComboBoxStateContext,
+  NativeComboBoxTextContext,
+  NativeComboBoxItemTextBindingContext,
 } from "./collectionContext"
 import {
   getNativeComboBoxPressRequest,
@@ -41,21 +50,35 @@ import {
 } from "./itemActions"
 import { NativeComboBoxItemPressQueue } from "./itemPressQueue"
 
-export type TNativeComboBoxItemRenderState = TNativeButtonChildrenState & {
+export type TNativeComboBoxItemRenderState = TNativeButtonRenderState & {
   isSelected: boolean
   isReadOnly: boolean
   isFocusVisible: boolean
   selectionMode: "none" | "single" | "multiple"
   selectionBehavior: "toggle" | "replace"
+  allowsSelection: boolean
+  hasAction: boolean
+  allowsDragging: boolean
+  isDragging: boolean | undefined
+  isDropTarget: boolean | undefined
 }
-export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id" | "onPressUp"> &
+export const NATIVE_COMBO_BOX_ITEM_TEXT_SIZES = ["small", "medium", "large"] as const
+export type TNativeComboBoxItemTextSize = (typeof NATIVE_COMBO_BOX_ITEM_TEXT_SIZES)[number]
+export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id" | "onPressUp" | "style"> &
   TNativeComboBoxItemActionProps & {
     onPressUp?: (event: TNativePressEvent | TNativeWindowPointerEvent) => void
     id?: string | number
     value?: object
     textValue?: string
     isReadOnly?: boolean
-    children?: React.ReactNode | ((state: TNativeComboBoxItemRenderState) => React.ReactNode)
+    textSize?: TNativeComboBoxItemTextSize
+    style?:
+      | StyleProp<TextStyle>
+      | ((state: TNativeComboBoxItemRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
+    render?: (props: Parameters<TNativePressableRender>[0], state: TNativeComboBoxItemRenderState) => ReactElement
+    children?:
+      | React.ReactNode
+      | ((state: TNativeComboBoxItemRenderState & { defaultChildren: undefined }) => React.ReactNode)
   }
 const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeCollectionNode<unknown> }>((props, ref) => {
   const {
@@ -68,6 +91,8 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
     isReadOnly,
     style,
     customStyles,
+    render,
+    textSize,
     onPress,
     onPressStart,
     onPressEnd,
@@ -92,6 +117,44 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   const pressQueue = useRef<{ target: View; node: typeof node; queue: NativeComboBoxItemPressQueue } | null>(null)
   if (!state || !options) throw new Error("ComboBoxItem requires a native collection ComboBox")
   const theme = useNativeTheme()
+  const content = useNativeContentContext()
+  const textStyle = useRef<TextStyle>({})
+  const textBindingLive = useRef(false)
+  const [textBindings, setTextBindings] = useState(
+    new Map<object, { slot: "label" | "description"; target: TNativeTextRef; nativeID: string }>(),
+  )
+  useInsertionEffect(() => {
+    textBindingLive.current = true
+    return () => {
+      textBindingLive.current = false
+    }
+  }, [])
+  const registerText = useCallback(
+    (token: object, slot: "label" | "description", target: TNativeTextRef | null, nativeID: string | undefined) => {
+      if (!textBindingLive.current) return
+      setTextBindings((old) => {
+        const previous = old.get(token)
+        if (
+          target && nativeID
+            ? previous?.target === target && previous.nativeID === nativeID && previous.slot === slot
+            : !previous
+        )
+          return old
+        const next = new Map(old)
+        if (target && nativeID) next.set(token, { slot, target, nativeID })
+        else next.delete(token)
+        return next
+      })
+    },
+    [],
+  )
+  const textIDs = (slot: "label" | "description") => [
+    ...new Set(
+      [...textBindings.values()].filter((binding) => binding.slot === slot).map((binding) => binding.nativeID),
+    ),
+  ]
+  const labelIDs = textIDs("label"),
+    descriptionIDs = textIDs("description")
   const target = useRef<View>(null)
   const register = options.register
   const bind = useCallback(
@@ -110,6 +173,9 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   const inputScope = useNativeKeyScope()
   useSyncExternalStore(inputScope?.subscribe ?? (() => () => {}), inputScope?.snapshot ?? (() => 0), () => 0)
   const focusVisible = focused && inputScope?.lastInput()?.origin === "keyboard"
+  useEffect(() => {
+    if (disabled && state.selectionManager.focusedKey === node.key) state.selectionManager.setFocusedKey(null)
+  }, [disabled, state.selectionManager, node.key])
   const currentFocus = useRef({ state, disabled, virtual: list.shouldUseVirtualFocus, node, actions })
   const currentPointer = useRef({ disabled, readOnly, list, options, node, props })
   const focusAttempt = useRef<{ target: View; binding: string } | null>(null)
@@ -134,6 +200,7 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
         latest.node === node &&
         !latest.disabled &&
         !latest.readOnly &&
+        !latest.props.isPending &&
         !latest.props.onAction &&
         !latest.list.onAction &&
         latest.list.shouldSelectOnPressUp &&
@@ -236,10 +303,31 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
     if (!started || started.target !== target.current || started.binding !== actions?.bindingFor(node)) return
     submit(event, operation, () => {
       const latest = currentPointer.current
-      return !latest.disabled && !latest.readOnly && latest.node === node && target.current === started.target
+      return (
+        !latest.disabled &&
+        !latest.readOnly &&
+        !latest.props.isPending &&
+        latest.node === node &&
+        target.current === started.target
+      )
     })
   }
   const hasAction = !!props.onAction || !!list.onAction
+  const values = (flags: TNativeButtonRenderState): TNativeComboBoxItemRenderState => ({
+    ...flags,
+    isSelected: selected,
+    isReadOnly: readOnly,
+    isFocused: focused,
+    isFocusVisible: !!focusVisible,
+    selectionMode: state.selectionManager.selectionMode,
+    selectionBehavior: state.selectionManager.selectionBehavior,
+    allowsSelection:
+      !disabled && !readOnly && !props.isPending && !hasAction && state.selectionManager.canSelectItem(node.key),
+    hasAction: !disabled && !readOnly && !props.isPending && hasAction,
+    allowsDragging: false,
+    isDragging: undefined,
+    isDropTarget: undefined,
+  })
   return (
     <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
       <NativeCollectionSemanticsContext.Provider
@@ -254,6 +342,10 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
         }
       >
         <NativeButton
+          {...{
+            nativeLabelledBy: labelIDs.length ? labelIDs : undefined,
+            nativeDescribedBy: descriptionIDs.length ? descriptionIDs : undefined,
+          }}
           {...native}
           ref={mergedRef}
           nativeRole="option"
@@ -267,34 +359,51 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
               if (isFocused) state.selectionManager.setFocusedKey(node.key)
             }
           }}
-          accessibilityLabel={props.accessibilityLabel ?? node.textValue}
-          accessibilityState={{ selected }}
+          accessibilityLabel={props.accessibilityLabel ?? props["aria-label"]}
+          accessibilityState={{ ...props.accessibilityState, selected }}
+          aria-selected={undefined}
           isDisabled={disabled}
           nativeInteraction={!readOnly}
           nativeMinPressDuration={0}
+          nativeRender={render ? (props, flags) => render(props, values(flags)) : undefined}
           nativeStyle={(flags) => {
-            const foregroundColor = selected ? theme.colors.controlSelectedForeground : theme.colors.controlForeground
-            const resolved = getNativeControlRootStyle(
+            const foregroundColor = list.textStyle?.color ?? content?.foregroundColor ?? theme.colors.controlForeground
+            const variant = textSize === "small" ? "b11" : textSize === "large" ? "b9" : "b10"
+            const computed: TextStyle = {
+              ...list.textStyle,
+              color: foregroundColor,
+              fontSize: theme.typography.fontSizes[variant],
+              fontFamily: theme.typography.fontFamilies.body,
+              fontWeight: theme.typography.fontWeights.regular,
+              lineHeight: theme.typography.lineHeight,
+              width: "100%",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              padding: theme.spacing.unit,
+              minHeight: nativeControlTarget(),
+              borderRadius: theme.radius.rounded,
+              backgroundColor:
+                selected || focused || flags.isHovered ? theme.colors.controlHoverBackground : "transparent",
+              ...(props.href ? { textDecorationLine: flags.isHovered ? "underline" : "none" } : {}),
+              opacity: disabled ? theme.opacity.disabled : 1,
+            }
+            const merged = getNativeControlRootStyle(
               "ComboBoxItem",
-              {
-                justifyContent: "center",
-                padding: theme.spacing.unit * 2,
-                borderRadius: theme.radius.rounded,
-                backgroundColor: selected
-                  ? theme.colors.controlSelectedBackground
-                  : flags.isPressed
-                    ? theme.colors.controlPressedBackground
-                    : flags.isHovered
-                      ? theme.colors.controlHoverBackground
-                      : theme.colors.controlBackground,
-                opacity: disabled ? theme.opacity.disabled : 1,
-                ...(focused ? { outlineWidth: 1.5, outlineColor: theme.colors.focusRing, outlineOffset: 1.5 } : {}),
-              },
+              computed,
               customStyles,
               style,
-              { ...flags, foregroundColor },
+              values({ ...flags, foregroundColor }),
             )
+            // Clearing an inline override leaves the item's owned source classes active.
+            const resolved = {
+              ...merged,
+              ...Object.fromEntries(
+                Object.entries(computed).filter(([key]) => merged[key as keyof TextStyle] === undefined),
+              ),
+            }
             const split = splitNativeTextStyle(resolved)
+            textStyle.current = split.text
             return {
               foregroundColor: split.text.color ?? foregroundColor,
               textStyle: split.text,
@@ -358,22 +467,32 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
         >
           {(flags) => (
             <NativeCollectionSemanticsContext.Provider value="">
-              {getNativeButtonContent(
-                typeof children === "function"
-                  ? children({
-                      ...flags,
-                      isSelected: selected,
-                      isReadOnly: readOnly,
-                      isFocused: focused,
-                      isFocusVisible: !!focusVisible,
-                      selectionMode: state.selectionManager.selectionMode,
-                      selectionBehavior: state.selectionManager.selectionBehavior,
-                    })
-                  : (children ?? node.textValue),
-                {
-                  color: flags.foregroundColor,
-                },
-              )}
+              <NativeComboBoxItemTextBindingContext.Provider value={registerText}>
+                <NativeComboBoxTextContext.Provider
+                  value={{
+                    slots: {
+                      [NATIVE_DEFAULT_SLOT]: {
+                        nativeID: `${pointerKey}-label`,
+                        accessible: false,
+                      },
+                      label: { nativeID: `${pointerKey}-label`, accessible: false },
+                      description: {
+                        nativeID: `${pointerKey}-description`,
+                        accessible: false,
+                      },
+                    },
+                  }}
+                >
+                  <NativeSelectionIndicatorContext.Provider value={{ isSelected: selected }}>
+                    {getNativeButtonContent(
+                      typeof children === "function"
+                        ? children({ ...values(flags), defaultChildren: undefined })
+                        : children,
+                      textStyle.current,
+                    )}
+                  </NativeSelectionIndicatorContext.Provider>
+                </NativeComboBoxTextContext.Provider>
+              </NativeComboBoxItemTextBindingContext.Provider>
             </NativeCollectionSemanticsContext.Provider>
           )}
         </NativeButton>

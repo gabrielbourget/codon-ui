@@ -4,6 +4,7 @@ import { Text as RNText, type TextProps, type TextStyle } from "react-native"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import type { TNativeTextProps, TNativeTextRef } from "./types"
 
@@ -77,7 +78,11 @@ export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { native
     }
     return (
       <NativeContentContext.Provider
-        value={{ foregroundColor: resolved.color ?? foreground, isButton: content?.isButton ?? false }}
+        value={{
+          foregroundColor: resolved.color ?? foreground,
+          isButton: content?.isButton ?? false,
+          textStyle: splitNativeTextStyle(resolved).text,
+        }}
       >
         {nativeRender ? nativeRender(nativeProps) : <RNText {...nativeProps} />}
       </NativeContentContext.Provider>

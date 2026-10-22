@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { TextInputProps, View } from "react-native"
+import type { TextInputProps, View, StyleProp, TextStyle } from "react-native"
 
 import type { TNativeFieldSemanticLabels } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
@@ -22,7 +22,7 @@ export type TNativeCollectionComboBoxStyleState = TNativeCollectionComboBoxRende
 }
 export type TNativeCollectionComboBoxProps<T extends object> = Omit<
   TNativeComboBoxProps<T>,
-  "style" | "accessibilityLabel" | "aria-label" | "onOpenChange"
+  "style" | "accessibilityLabel" | "aria-label" | "onOpenChange" | "customOptionsListStyles"
 > &
   Pick<
     ComboBoxStateOptions<T>,
@@ -37,6 +37,7 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     | "shouldCloseOnBlur"
   > & {
     accessibilityLabel?: string
+    customOptionsListStyles?: StyleProp<TextStyle>
     "aria-label"?: string
     children?: ReactNode | ((item: T) => ReactNode)
     placement?: TNativeFloatingPlacement

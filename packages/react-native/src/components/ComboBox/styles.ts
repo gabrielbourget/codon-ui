@@ -1,4 +1,4 @@
-import type { ColorValue, ViewStyle } from "react-native"
+import type { ColorValue, ViewStyle, TextStyle, StyleProp } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { resolveNativeStyle } from "../colors"
@@ -8,7 +8,7 @@ import type { TNativeComboBoxProps, TNativeComboBoxRenderState, TNativeComboBoxR
 
 export const getNativeComboBoxStyles = <T>(
   theme: TNativeTheme,
-  props: TNativeComboBoxProps<T>,
+  props: Omit<TNativeComboBoxProps<T>, "customOptionsListStyles"> & { customOptionsListStyles?: StyleProp<TextStyle> },
   state: TNativeComboBoxRenderState,
   focused: boolean,
   pressed: boolean,

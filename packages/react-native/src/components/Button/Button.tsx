@@ -164,7 +164,9 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     : undefined
 
   return (
-    <NativeContentContext.Provider value={{ foregroundColor: resolved.foregroundColor, isButton: true }}>
+    <NativeContentContext.Provider
+      value={{ foregroundColor: resolved.foregroundColor, isButton: true, textStyle: resolved.textStyle }}
+    >
       <NativePressable
         {...rest}
         nativeRender={

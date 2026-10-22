@@ -47,6 +47,15 @@ export const NativeComboBoxLabelContext =
   createContext<TNativeContextValue<TNativeComboBoxLabelContext, TNativeTextRef>>(null)
 export const NativeComboBoxTextContext =
   createContext<TNativeContextValue<Partial<TNativeTextProps> & { render?: TNativeTextRender }, TNativeTextRef>>(null)
+export const NativeComboBoxItemTextBindingContext = createContext<
+  | ((
+      token: object,
+      slot: "label" | "description",
+      target: TNativeTextRef | null,
+      nativeID: string | undefined,
+    ) => void)
+  | null
+>(null)
 export const NativeComboBoxFieldErrorContext = createContext<ValidationResult | null>(null)
 export const NativeComboBoxInputContext =
   createContext<TNativeContextValue<Partial<TNativeComboBoxInputProps>, TextInput>>(null)

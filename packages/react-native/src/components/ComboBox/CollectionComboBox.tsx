@@ -345,7 +345,8 @@ const Receiver = <T extends object>({
             event.isDefaultPrevented?.()
           )
             return
-          if (owner.state.disabledKeys.has(node.key)) return
+          const itemProps = owner.state.collection.getItem(node.key)?.props
+          if (owner.state.selectionManager.isDisabled(node.key) || itemProps?.isReadOnly || itemProps?.isPending) return
           if (request.kind === "select") owner.state.selectionManager.replaceSelection(node.key)
           else if (request.kind === "commit") owner.state.commit()
           else {
@@ -670,6 +671,7 @@ const Receiver = <T extends object>({
                         <NativeComboBoxListContext.Provider
                           value={{
                             ref: listRef,
+                            style: props.customOptionsListStyles,
                             role: "list",
                             accessible: false,
                             autoFocus: state.focusStrategy || true,
