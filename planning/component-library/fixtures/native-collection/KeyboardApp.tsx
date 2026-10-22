@@ -14,7 +14,7 @@ import Defaults from "../../../../packages/react-native/src/input/specs/NativeCU
 import Document from "../../../../packages/react-native/src/input/specs/NativeCUIFormDocument"
 
 import { SOURCE_PRODUCER } from "./identity"
-import { KEYBOARD_MODES, KEYBOARD_PROBE, type TKeyboardMode } from "./keyboard"
+import { createKeyboardJournal, KEYBOARD_MODES, KEYBOARD_PROBE, type TKeyboardMode } from "./keyboard"
 
 type TRow = Record<string, unknown>
 const KeyboardApp = () => {
@@ -23,7 +23,6 @@ const KeyboardApp = () => {
   const original = useRef<TextInput | null>(null)
   const lease = useRef<NativeEditorKeyboardLease | null>(null)
   const leaseIdentity = useRef("")
-  const rows = useRef<TRow[]>([])
   const previousAck = useRef<TNativeEditorKeyboardAcknowledgement | null>(null)
   const mode = useRef<TKeyboardMode>("veto")
   const snapshotSequence = useRef(0)
@@ -39,29 +38,28 @@ const KeyboardApp = () => {
   const [snapshot, setSnapshot] = useState("no snapshot")
   const bindingId = `${ownerId}:editor`
   const revision = `${generation}:${target}`
-  const record = useCallback((value: TRow) => {
-    const row = {
-      probe: KEYBOARD_PROBE,
-      producer: SOURCE_PRODUCER,
-      sequence: rows.current.length + 1,
-      observedAt: Date.now(),
-      ...value,
-    }
-    rows.current.push(row)
-    console.warn(`CUI_EDITOR_KEYBOARD ${JSON.stringify(row)}`)
-  }, [])
-  const persist = async () => {
-    const fs = requireNativeModule<{
-      cacheDirectory: string | null
-      writeAsStringAsync: (path: string, text: string, options: { encoding: "utf8" }) => Promise<void>
-    }>("ExponentFileSystem")
-    if (!fs.cacheDirectory) throw new Error("Original native cache unavailable")
-    await fs.writeAsStringAsync(
-      `${fs.cacheDirectory.replace(/\/?$/, "/")}${KEYBOARD_PROBE}.jsonl`,
-      rows.current.map((row) => JSON.stringify(row)).join("\n") + "\n",
-      { encoding: "utf8" },
-    )
-  }
+  const [diagnostics, setDiagnostics] = useState<{ scope?: unknown; keyboard?: unknown; metadata?: unknown }>({})
+  const [journal] = useState(() =>
+    createKeyboardJournal(SOURCE_PRODUCER, async (encoded) => {
+      const fs = requireNativeModule<{
+        cacheDirectory: string | null
+        writeAsStringAsync: (path: string, text: string, options: { encoding: "utf8" }) => Promise<void>
+      }>("ExponentFileSystem")
+      if (!fs.cacheDirectory) throw new Error("Original native cache unavailable")
+      await fs.writeAsStringAsync(`${fs.cacheDirectory.replace(/\/?$/, "/")}${KEYBOARD_PROBE}.jsonl`, encoded, {
+        encoding: "utf8",
+      })
+    }),
+  )
+  const persist = useCallback(() => journal.persist(), [journal])
+  const record = useCallback(
+    (value: TRow) => {
+      const row = journal.record(value)
+      console.warn(`CUI_EDITOR_KEYBOARD ${JSON.stringify(row)}`)
+      void persist().catch((error: unknown) => console.warn(`CUI_EDITOR_KEYBOARD_PERSIST ${String(error)}`))
+    },
+    [journal, persist],
+  )
   const bind = useCallback((editor: TextInput | null) => {
     if (editor !== original.current) {
       lease.current?.retire()
@@ -122,6 +120,21 @@ const KeyboardApp = () => {
     <View ref={root} collapsable={false} style={{ flex: 1, paddingTop: 55, paddingHorizontal: 12, gap: 8 }}>
       <Text testID="keyboard-ready">{keyboardReady && metadataReady ? "ready" : "waiting"}</Text>
       <Text testID="keyboard-mode">{caption}</Text>
+      <Text
+        testID="keyboard-status-detail"
+        numberOfLines={2}
+        accessibilityLabel={JSON.stringify({
+          target,
+          revision,
+          moduleAvailable: !!moduleLease,
+          accepted,
+          keyboardReady,
+          metadataReady,
+          diagnostics,
+        })}
+      >
+        {JSON.stringify({ target, keyboardReady, metadataReady })}
+      </Text>
       <View style={{ flexDirection: "row", gap: 8 }}>
         {button("keyboard-next-mode", "Next mode", () => {
           mode.current = KEYBOARD_MODES[(KEYBOARD_MODES.indexOf(mode.current) + 1) % KEYBOARD_MODES.length]!
@@ -183,6 +196,7 @@ const KeyboardApp = () => {
           onNativeScopeStatus={(event) => {
             const status = event.nativeEvent
             record({ kind: "scope-status", data: status })
+            setDiagnostics((previous) => ({ ...previous, scope: status }))
             if (status.ownerId === ownerId && status.windowId && status.epoch > 0)
               setAccepted((previous) =>
                 previous.windowId === status.windowId && previous.epoch === status.epoch
@@ -193,6 +207,7 @@ const KeyboardApp = () => {
           onNativeEditorKeyboardStatus={(event) => {
             const data = event.nativeEvent
             record({ kind: "keyboard-status", data })
+            setDiagnostics((previous) => ({ ...previous, keyboard: data }))
             const editor = original.current
             if (
               !editor ||
@@ -251,6 +266,7 @@ const KeyboardApp = () => {
             onNativeFormCommit={(event) => {
               const data = event.nativeEvent
               record({ kind: "metadata-status", data })
+              setDiagnostics((previous) => ({ ...previous, metadata: data }))
               setMetadataReady(
                 data.ownerId === ownerId &&
                   data.descriptorId === "editor" &&

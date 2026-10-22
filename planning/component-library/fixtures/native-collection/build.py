@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[4]
 FIXTURE = Path(__file__).resolve().parent
 LAB = Path.home() / ".local/share/codon-native-lab"
 STAGE = REPO / "apps/native-showcase/.expo/codon-collection-gate"
-FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py", "KeyboardApp.tsx", "keyboard.ts", "keyboard-index.ts", "KeyboardDefaultTrialTests.swift", "build_keyboard_tests.rb", "validate_keyboard.py", "test_validate_keyboard.py", "run_keyboard.py"]
+FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py", "KeyboardApp.tsx", "keyboard.ts", "keyboard-index.ts", "keyboard-journal.test.ts", "KeyboardDefaultTrialTests.swift", "build_keyboard_tests.rb", "validate_keyboard.py", "test_validate_keyboard.py", "run_keyboard.py"]
 
 
 def digest(path):
