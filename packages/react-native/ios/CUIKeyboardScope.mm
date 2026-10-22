@@ -3,6 +3,8 @@
 #import "CUIMenuPointerPolicies.h"
 #import "CUIFloatingObserver.h"
 #import "CUIPhysicalKey.h"
+#import "CUIEditorKeyboardRecognizer.h"
+#include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -43,6 +45,9 @@ static UIView *CUIFirstResponder(UIView *root)
 - (NSString *)localPolicyForPress:(UIPress *)press focused:(UIView *)focused;
 - (NSInteger)policyOrder;
 - (void)emitMenuPointer:(NSDictionary *)packet;
+- (NSDictionary *)editorBindingForPress:(UIPress *)press;
+- (BOOL)dispatchEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (void)publishEditorKeyboardStatus;
 @end
 
 @interface CUIKeyboardRecognizer : UIGestureRecognizer
@@ -121,6 +126,13 @@ static UIView *CUIFirstResponder(UIView *root)
 @end
 
 @implementation CUIKeyboardScope {
+  CUIEditorKeyboardRecognizer *_editorKeyboard;
+  NSArray<NSDictionary *> *_editorKeyboardBindings;
+  NSMapTable<NSString *, UIView *> *_editorKeyboardTargets;
+  NSMutableSet<NSString *> *_resolvedEditorKeyboardTargets;
+  NSMutableDictionary<NSString *, NSString *> *_editorKeyboardStatuses;
+  NSUInteger _editorKeyboardStatusSequence;
+  NSUInteger _editorKeyboardEventId;
   CUIMenuPointerPolicies *_menuPointers;
   NSArray<NSDictionary *> *_menuPointerRegistrations;
   double _menuPointerRevision;
@@ -168,6 +180,16 @@ static UIView *CUIFirstResponder(UIView *root)
     _sceneActive = YES;
     _floatingTargets = @[];
     __weak CUIKeyboardScope *weakSelf = self;
+    _editorKeyboardBindings = @[];
+    _editorKeyboardTargets = NSMapTable.strongToWeakObjectsMapTable;
+    _resolvedEditorKeyboardTargets = [NSMutableSet set];
+    _editorKeyboardStatuses = [NSMutableDictionary dictionary];
+    _editorKeyboard = [[CUIEditorKeyboardRecognizer alloc] initWithAdmission:^BOOL(UIPress *press) {
+      return [weakSelf editorBindingForPress:press] != nil;
+    } dispatch:^BOOL(UIPress *press, NSString *phase, BOOL repeat) {
+      return [weakSelf dispatchEditorPress:press phase:phase repeat:repeat];
+    }];
+    _editorKeyboard.enabled = NO;
     _menuPointerRegistrations = @[];
     _menuPointers = [[CUIMenuPointerPolicies alloc] initWithScope:self ready:^BOOL {
       CUIKeyboardScope *scope = weakSelf;
@@ -242,6 +264,7 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)publishStatus
 {
+  [self publishEditorKeyboardStatus];
   [_floating setTargets:_floatingTargets active:[self captureReady]];
   CUIRefreshKeyboardObservation(self.window);
   CUIRefreshWindowPointerObservation(self.window);
@@ -325,6 +348,119 @@ static UIView *CUIFirstResponder(UIView *root)
     data.registrations.push_back(registration);
   }
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeWindowPointer(data);
+}
+static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
+{
+  if (root.tag == tag) return root;
+  for (UIView *child in root.subviews) { UIView *found = CUIEditorViewWithTag(child, tag); if (found) return found; }
+  return nil;
+}
+- (NSString *)editorBindingIdentity:(NSDictionary *)binding
+{
+  return [NSString stringWithFormat:@"%@:%@:%@:%@", binding[@"bindingId"], binding[@"bindingRevision"], binding[@"targetTag"], binding[@"moduleLease"]];
+}
+- (UIView *)originalEditorForBinding:(NSDictionary *)binding
+{
+  if ([binding[@"targetTag"] integerValue] <= 0 || ![binding[@"bindingId"] length] || ![binding[@"bindingRevision"] length] || [binding[@"ambiguous"] boolValue]) return nil;
+  NSString *identity = [self editorBindingIdentity:binding];
+  if (![_resolvedEditorKeyboardTargets containsObject:identity]) {
+    UIView *target = CUIEditorViewWithTag(self, [binding[@"targetTag"] integerValue]);
+    if (target) { [_editorKeyboardTargets setObject:target forKey:identity]; [_resolvedEditorKeyboardTargets addObject:identity]; }
+  }
+  UIView *target = [_editorKeyboardTargets objectForKey:identity];
+  if (!target || target.tag != [binding[@"targetTag"] integerValue] || target.window != self.window ||
+      ![target isDescendantOfView:self]) return nil;
+  for (UIView *ancestor = target; ancestor; ancestor = ancestor.superview) if (ancestor.hidden) return nil;
+  return target;
+}
+- (NSDictionary *)editorBindingForPress:(UIPress *)press
+{
+  if (!press.key || ![self captureReady] || press.window != self.window) return nil;
+  UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIFirstResponder(self.window);
+  if (![focused conformsToProtocol:@protocol(UITextInput)]) return nil;
+  NSDictionary *match = nil;
+  for (NSDictionary *binding in _editorKeyboardBindings) {
+    UIView *target = [self originalEditorForBinding:binding];
+    if (!target || (focused != target && ![focused isDescendantOfView:target]) ||
+        !codon::editorKeyboardDefaultsForLease([binding[@"moduleLease"] UTF8String])) continue;
+    if (match) return nil;
+    match = binding;
+  }
+  return match;
+}
+- (void)publishEditorKeyboardStatus
+{
+  if (!_eventEmitter) return;
+  for (NSDictionary *binding in _editorKeyboardBindings) {
+    UIView *target = [self originalEditorForBinding:binding];
+    BOOL ready = [self captureReady] && target && codon::editorKeyboardDefaultsForLease([binding[@"moduleLease"] UTF8String]) != nullptr;
+    NSString *identity = [self editorBindingIdentity:binding];
+    NSString *signature = [NSString stringWithFormat:@"%@:%@:%g:%d:%p", _ownerId, CUIInputWindowIdentity(self.window), _windowEpoch, ready, target];
+    if ([_editorKeyboardStatuses[identity] isEqualToString:signature]) continue;
+    _editorKeyboardStatuses[identity] = signature;
+    CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardStatus data{};
+    data.ownerId = _ownerId.UTF8String; data.bindingId = [binding[@"bindingId"] UTF8String];
+    data.bindingRevision = [binding[@"bindingRevision"] UTF8String]; data.target = [binding[@"targetTag"] intValue];
+    data.windowId = CUIInputWindowIdentity(self.window).UTF8String; data.epoch = _windowEpoch;
+    data.sequence = ++_editorKeyboardStatusSequence; data.ready = ready; data.windowActive = self.window.isKeyWindow;
+    data.error = ready ? "" : target ? "native-binding-not-ready" : "original-editor-unavailable";
+    std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeEditorKeyboardStatus(data);
+  }
+}
+- (BOOL)dispatchEditorPress:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  NSDictionary *binding = [self editorBindingForPress:press];
+  if (!binding || !_eventEmitter) return NO;
+  UIView *original = [self originalEditorForBinding:binding];
+  UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIFirstResponder(self.window);
+  auto frames = codon::editorKeyboardDefaultsForLease([binding[@"moduleLease"] UTF8String]);
+  if (!frames || !original) return NO;
+  const codon::EditorKeyIdentity identity{_ownerId.UTF8String, [binding[@"bindingId"] UTF8String],
+    [binding[@"bindingRevision"] UTF8String], [binding[@"targetTag"] intValue], CUIInputWindowIdentity(self.window).UTF8String, (int64_t)_windowEpoch};
+  const auto eventId = ++_editorKeyboardEventId;
+  const auto token = frames->begin(identity, eventId, phase.UTF8String);
+  if (!token) return NO;
+  const double started = NSProcessInfo.processInfo.systemUptime * 1000;
+  codon::EditorKeyDisposition decision;
+  try {
+  @try {
+    UIKey *key = press.key; UIKeyModifierFlags flags = key.modifierFlags;
+    CUIKeyboardScopeEventEmitter::OnNativeEditorKey data{};
+    data.ownerId = identity.ownerId; data.bindingId = identity.bindingId; data.bindingRevision = identity.bindingRevision;
+    data.target = identity.target; data.windowId = identity.windowId; data.epoch = identity.epoch; data.eventId = eventId;
+    data.phase = [phase isEqualToString:@"down"] ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyPhase::Down
+      : [phase isEqualToString:@"up"] ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyPhase::Up : CUIKeyboardScopeEventEmitter::OnNativeEditorKeyPhase::Cancel;
+    data.key = CUIInputKeyName(key).UTF8String; data.code = CUIPhysicalKeyCode((int)key.keyCode);
+    data.nativeCode = (int)key.keyCode; data.location = CUIPhysicalKeyLocation((int)key.keyCode);
+    data.repeat = repeat; data.cancelled = [phase isEqualToString:@"cancel"];
+    data.isComposing = ((id<UITextInput>)focused).markedTextRange != nil;
+    data.shiftKey = flags & UIKeyModifierShift; data.altKey = flags & UIKeyModifierAlternate;
+    data.ctrlKey = flags & UIKeyModifierControl; data.metaKey = flags & UIKeyModifierCommand; data.capsLock = flags & UIKeyModifierAlphaShift;
+    data.nativeModifierData = std::to_string((unsigned long long)flags); data.timestamp = press.timestamp * 1000;
+    auto emitter = std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter);
+    emitter->experimental_flushSync([&] { emitter->onNativeEditorKey(data); });
+  } @catch (NSException *exception) {
+    [_editorKeyboardStatuses removeAllObjects];
+  }
+  } catch (const std::exception &) { [_editorKeyboardStatuses removeAllObjects]; }
+  catch (...) { [_editorKeyboardStatuses removeAllObjects]; }
+  BOOL current = [_editorKeyboardBindings containsObject:binding] && [self originalEditorForBinding:binding] == original &&
+    focused.window == self.window && (focused == original || [focused isDescendantOfView:original]) &&
+    [self captureReady] && identity.epoch == _windowEpoch && identity.windowId == CUIInputWindowIdentity(self.window).UTF8String &&
+    codon::editorKeyboardDefaultsForLease([binding[@"moduleLease"] UTF8String]) == frames;
+  decision = frames->end(token, current);
+  CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecision result{};
+  result.ownerId = identity.ownerId; result.bindingId = identity.bindingId; result.bindingRevision = identity.bindingRevision;
+  result.target = identity.target; result.windowId = identity.windowId; result.epoch = identity.epoch; result.eventId = eventId;
+  result.phase = [phase isEqualToString:@"down"] ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionPhase::Down
+    : [phase isEqualToString:@"up"] ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionPhase::Up : CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionPhase::Cancel;
+  result.decision = decision == codon::EditorKeyDisposition::Prevented ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionDecision::Prevented
+    : decision == codon::EditorKeyDisposition::Allowed ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionDecision::Allowed
+    : decision == codon::EditorKeyDisposition::Unacknowledged ? CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionDecision::Unacknowledged
+    : CUIKeyboardScopeEventEmitter::OnNativeEditorKeyboardDecisionDecision::Retired;
+  result.elapsedMs = NSProcessInfo.processInfo.systemUptime * 1000 - started;
+  if (_eventEmitter) std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeEditorKeyboardDecision(result);
+  return decision == codon::EditorKeyDisposition::Prevented;
 }
 - (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
 - (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
@@ -463,6 +599,34 @@ static UIView *CUIFirstResponder(UIView *root)
   }
   NSString *accepted = [NSString stringWithUTF8String:next.acceptedWindowId.c_str()];
   if (![_ownerId isEqualToString:owner] || !next.enabled || ![_policies isEqual:policies] || _acceptedEpoch != next.acceptedEpoch || ![_acceptedWindowId isEqualToString:accepted] || _policyRevision != next.policyRevision) [_keyboard retireHeld];
+  NSMutableArray *editorBindings = [NSMutableArray array];
+  NSMutableSet *editorIdentities = [NSMutableSet set];
+  for (const auto &entry : next.editorKeyboardBindings) {
+    NSDictionary *binding = @{ @"bindingId": @(entry.bindingId.c_str()), @"bindingRevision": @(entry.bindingRevision.c_str()),
+      @"targetTag": @(entry.targetTag), @"moduleLease": @(entry.moduleLease.c_str()) };
+    [editorBindings addObject:binding]; [editorIdentities addObject:[self editorBindingIdentity:binding]];
+  }
+  for (NSString *identity in _resolvedEditorKeyboardTargets.copy) if (![editorIdentities containsObject:identity]) {
+    [_editorKeyboardTargets removeObjectForKey:identity]; [_resolvedEditorKeyboardTargets removeObject:identity]; [_editorKeyboardStatuses removeObjectForKey:identity];
+  }
+  NSMutableDictionary<NSString *, NSNumber *> *editorIdCounts = [NSMutableDictionary dictionary];
+  NSMutableDictionary<NSNumber *, NSNumber *> *editorTargetCounts = [NSMutableDictionary dictionary];
+  for (NSDictionary *binding in editorBindings) {
+    NSString *identity = binding[@"bindingId"]; NSNumber *target = binding[@"targetTag"];
+    editorIdCounts[identity] = @([editorIdCounts[identity] integerValue] + 1);
+    editorTargetCounts[target] = @([editorTargetCounts[target] integerValue] + 1);
+  }
+  NSMutableArray *checkedEditorBindings = [NSMutableArray array];
+  for (NSDictionary *binding in editorBindings) {
+    NSMutableDictionary *checked = [binding mutableCopy];
+    checked[@"ambiguous"] = @([editorIdCounts[binding[@"bindingId"]] integerValue] != 1 || [editorTargetCounts[binding[@"targetTag"]] integerValue] != 1);
+    [checkedEditorBindings addObject:checked];
+  }
+  if (![_editorKeyboardBindings isEqual:checkedEditorBindings] || !next.enabled) {
+    _editorKeyboard.enabled = NO;
+    _editorKeyboard.enabled = next.enabled && checkedEditorBindings.count > 0;
+  }
+  _editorKeyboardBindings = checkedEditorBindings;
   _ownerId = owner;
   _captureEnabled = next.enabled;
   if (![_policies isEqual:policies]) _policyOrder = CUINextInputPolicyOrder(self.window);
@@ -501,23 +665,23 @@ static UIView *CUIFirstResponder(UIView *root)
 }
 - (void)windowDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window) { [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window) { [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && _editorKeyboardBindings.count > 0; _windowEpoch++; [self publishStatus]; }
 }
 - (void)windowActivated:(NSNotification *)notification
 {
   if (notification.object == self.window) { _windowEpoch++; [self publishStatus]; }
 }
-- (void)applicationDeactivated:(NSNotification *)notification { _applicationActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _windowEpoch++; [self publishStatus]; }
+- (void)applicationDeactivated:(NSNotification *)notification { _applicationActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && _editorKeyboardBindings.count > 0; _windowEpoch++; [self publishStatus]; }
 - (void)applicationActivated:(NSNotification *)notification { _applicationActive = YES; _windowEpoch++; [self publishStatus]; }
 - (void)sceneDeactivated:(NSNotification *)notification
 {
-  if (notification.object == self.window.windowScene) { _sceneActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _windowEpoch++; [self publishStatus]; }
+  if (notification.object == self.window.windowScene) { _sceneActive = NO; [_keyboard retireHeld]; _keyboard.enabled = NO; _keyboard.enabled = YES; _editorKeyboard.enabled = NO; _editorKeyboard.enabled = _captureEnabled && _editorKeyboardBindings.count > 0; _windowEpoch++; [self publishStatus]; }
 }
 - (void)sceneActivated:(NSNotification *)notification
 {
   if (notification.object == self.window.windowScene) { _sceneActive = YES; _windowEpoch++; [self publishStatus]; }
 }
-- (void)layoutSubviews { [super layoutSubviews]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
+- (void)layoutSubviews { [super layoutSubviews]; [self publishEditorKeyboardStatus]; CUIRefreshWindowPointerObservation(self.window); CUIRefreshMenuPointerPolicies(self.window); }
 - (void)didMoveToWindow
 {
   [super didMoveToWindow];
@@ -525,6 +689,7 @@ static UIView *CUIFirstResponder(UIView *root)
     [_menuPointers invalidate];
     [_keyboard retireHeld];
     [_boundWindow removeGestureRecognizer:_keyboard];
+    [_boundWindow removeGestureRecognizer:_editorKeyboard];
     CUIUnregisterInputScope(_boundWindow, self);
     _boundWindow = self.window;
     _sceneActive = self.window.windowScene == nil || self.window.windowScene.activationState == UISceneActivationStateForegroundActive;
@@ -532,6 +697,7 @@ static UIView *CUIFirstResponder(UIView *root)
     if (_boundWindow) {
       CUIRegisterInputScope(_boundWindow, self);
       [_boundWindow addGestureRecognizer:_keyboard];
+      [_boundWindow addGestureRecognizer:_editorKeyboard];
       _policyOrder = CUINextInputPolicyOrder(_boundWindow);
     }
   }
@@ -543,9 +709,11 @@ static UIView *CUIFirstResponder(UIView *root)
   [_floating invalidate]; _floatingTargets = @[];
   [_keyboard retireHeld];
   [_boundWindow removeGestureRecognizer:_keyboard];
+  [_boundWindow removeGestureRecognizer:_editorKeyboard];
   CUIUnregisterInputScope(_boundWindow, self);
   _boundWindow = nil;
   _ownerId = @"";
+  _editorKeyboardBindings = @[]; [_editorKeyboardTargets removeAllObjects]; [_resolvedEditorKeyboardTargets removeAllObjects]; [_editorKeyboardStatuses removeAllObjects];
   _policies = @[];
   _observations = @[];
   _pointerRegistrations = @[]; [_pointerTargets removeAllObjects]; [_resolvedPointerTargets removeAllObjects]; _pointerStatus = nil;
@@ -560,6 +728,7 @@ static UIView *CUIFirstResponder(UIView *root)
   [_menuPointers invalidate];
   [_floating invalidate];
   [_boundWindow removeGestureRecognizer:_keyboard];
+  [_boundWindow removeGestureRecognizer:_editorKeyboard];
   CUIUnregisterInputScope(_boundWindow, self);
   [NSNotificationCenter.defaultCenter removeObserver:self];
 }

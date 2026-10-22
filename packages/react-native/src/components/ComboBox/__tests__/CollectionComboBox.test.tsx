@@ -883,6 +883,8 @@ it("retains the custom picker root, complete render state and original field/roo
     f.node(
       <NativeComboBoxContext.Provider value={{ ref: picker, "aria-label": "Parent field" }}>
         <TagComboBox
+          autoFocus
+          inputMode="search"
           items={ITEMS}
           selectedItems={[]}
           getItemKey={(item) => item.id}
@@ -910,6 +912,8 @@ it("retains the custom picker root, complete render state and original field/roo
   const originalRoot = picker.current,
     originalOuter = outer.current,
     originalInput = editor.current
+  expect(screen.getByTestId("combo-box-input").props.autoFocus).toBe(true)
+  expect(screen.getByTestId("combo-box-input").props.inputMode).toBe("search")
   expect(originalRoot).not.toBeNull()
   expect(originalInput).not.toBeNull()
   expect(originalRoot === originalOuter).toBe(false)

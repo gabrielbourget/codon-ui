@@ -13,6 +13,7 @@ import java.util.List;
 public final class CodonInputPackage extends BaseReactPackage {
   @Override
   public NativeModule getModule(String name, ReactApplicationContext context) {
+    if (CUIEditorKeyboardDefaultsModule.NAME.equals(name)) return new CUIEditorKeyboardDefaultsModule(context);
     if (CUIFormDocumentModule.NAME.equals(name)) return new CUIFormDocumentModule(context);
     return CUIMotionSnapshotModule.NAME.equals(name) ? new CUIMotionSnapshotModule(context) : null;
   }
@@ -25,6 +26,8 @@ public final class CodonInputPackage extends BaseReactPackage {
         CUIMotionSnapshotModule.class.getName(), false, false, false, true));
       modules.put(CUIFormDocumentModule.NAME, new ReactModuleInfo(CUIFormDocumentModule.NAME,
         CUIFormDocumentModule.class.getName(), false, false, false, true));
+      modules.put(CUIEditorKeyboardDefaultsModule.NAME, new ReactModuleInfo(CUIEditorKeyboardDefaultsModule.NAME,
+        CUIEditorKeyboardDefaultsModule.class.getName(), false, false, false, true));
       return modules;
     };
   }

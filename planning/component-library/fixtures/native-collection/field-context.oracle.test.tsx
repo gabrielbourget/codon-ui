@@ -1254,3 +1254,87 @@ it("does not reveal a programmatic row change after pointer input", async () => 
   expect(list.scrollTop).toBe(140)
   expect(document.activeElement).toBe(input)
 })
+
+it("preserves original editor autofocus and source key/default/caller ordering", async () => {
+  const user = userEvent.setup(),
+    trace: unknown[] = []
+  let state: React.ContextType<typeof ComboBoxStateContext>
+  const Capture = () => {
+    state = useContext(ComboBoxStateContext)
+    return null
+  }
+  render(
+    <ComboBox
+      aria-label="Key callbacks"
+      autoFocus
+      items={items}
+      inputValue=""
+      onInputChange={(value) => trace.push(["input", value])}
+      onOpenChange={(value) => trace.push(["open", value])}
+      onKeyDown={(event) =>
+        trace.push([
+          "down",
+          event.key,
+          event.target === screen.getByRole("combobox"),
+          state?.selectionManager.focusedKey ?? null,
+        ])
+      }
+      onKeyUp={(event) =>
+        trace.push([
+          "up",
+          event.key,
+          event.target === screen.getByRole("combobox"),
+          state?.selectionManager.focusedKey ?? null,
+        ])
+      }
+    >
+      {(item) => (
+        <ListBoxItem id={item.id} textValue={item.label}>
+          <Capture />
+          {item.label}
+        </ListBoxItem>
+      )}
+    </ComboBox>,
+  )
+  expect(document.activeElement).toBe(screen.getByRole("combobox"))
+  await user.keyboard("{ArrowDown}{ArrowDown}a{Escape}")
+  expect(trace).toEqual([
+    ["open", true],
+    ["down", "ArrowDown", true, null],
+    ["up", "ArrowDown", true, 0],
+    ["down", "ArrowDown", true, ""],
+    ["up", "ArrowDown", true, ""],
+    ["down", "a", true, ""],
+    ["input", "a"],
+    ["up", "a", true, ""],
+    ["open", false],
+    ["down", "Escape", true, null],
+    ["up", "Escape", true, null],
+  ])
+})
+it("lets the original source key-down callback veto editing without losing key-up", async () => {
+  const user = userEvent.setup(),
+    trace: unknown[] = []
+  render(
+    <ComboBox
+      aria-label="Key veto"
+      autoFocus
+      items={[]}
+      allowsEmptyCollection
+      inputValue=""
+      onInputChange={(value) => trace.push(["input", value])}
+      onKeyDown={(event) => {
+        trace.push(["down", event.key])
+        event.preventDefault()
+      }}
+      onKeyUp={(event) => trace.push(["up", event.key])}
+    >
+      {null}
+    </ComboBox>,
+  )
+  await user.keyboard("a")
+  expect(trace).toEqual([
+    ["down", "a"],
+    ["up", "a"],
+  ])
+})

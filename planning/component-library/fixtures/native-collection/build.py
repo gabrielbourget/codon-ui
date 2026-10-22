@@ -14,7 +14,7 @@ REPO = Path(__file__).resolve().parents[4]
 FIXTURE = Path(__file__).resolve().parent
 LAB = Path.home() / ".local/share/codon-native-lab"
 STAGE = REPO / "apps/native-showcase/.expo/codon-collection-gate"
-FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py"]
+FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py", "KeyboardApp.tsx", "keyboard.ts", "keyboard-index.ts", "KeyboardDefaultTrialTests.swift", "build_keyboard_tests.rb", "validate_keyboard.py", "test_validate_keyboard.py", "run_keyboard.py"]
 
 
 def digest(path):
@@ -75,10 +75,11 @@ def prepare(root, profile="metadata"):
     STAGE.mkdir(parents=True, exist_ok=True)
     stage_names = ["App.tsx", "gate.ts", "index.ts", "identity.ts"]
     if profile == "authoring": stage_names += ["AuthoringApp.tsx", "authoring.ts"]
+    if profile == "keyboard": stage_names = ["KeyboardApp.tsx", "keyboard.ts", "index.ts", "identity.ts"]
     if profile == "form": stage_names = ["FormApp.tsx", "form.ts", "index.ts", "identity.ts"]
     for name in stage_names:
         if name == "identity.ts": continue
-        source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "index.ts") if name == "index.ts" else name
+        source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "keyboard-index.ts" if profile == "keyboard" else "index.ts") if name == "index.ts" else name
         shutil.copyfile(FIXTURE / source_name, STAGE / name)
     (STAGE / "identity.ts").write_text('export const SOURCE_PRODUCER = ' + json.dumps(producer) + '\n')
     native = {}
@@ -107,7 +108,7 @@ def prove_android(root):
     with zipfile.ZipFile(apk) as archive:
         assert archive.read("assets/index.android.bundle") == bundle.read_bytes()
         dex = b"".join(archive.read(name) for name in archive.namelist() if name.startswith("classes") and name.endswith(".dex"))
-        native_classes = ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") == "form" else ["CUICollectionRoot", "CUICollectionNode"]
+        native_classes = ["CUIEditorKeyboardDefaultsModule", "CUIEditorKeyboardBindings", "CUIEditorKeyboardDefaultFrames"] if inputs.get("profile") == "keyboard" else ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") == "form" else ["CUICollectionRoot", "CUICollectionNode"]
         assert all(("Lcom/codonui/input/" + name + ";").encode() in dex for name in native_classes)
     data = json.loads(mapping.read_text())
     library, fixture, react = {}, {}, set()
@@ -154,6 +155,7 @@ def prove_ios(root):
     assert len(react) == 1 and "react@19.2.3" in next(iter(react))
     assert set(fixture) == set(inputs["stageInputs"])
     classes = ["CUIFormRoot", "CUIFieldBinding", "CUIFormMetadataView", "CUIFormDocument", "CUIFieldCustomContentLease"]
+    if inputs.get("profile") == "keyboard": classes += ["CUIEditorKeyboardDefaults", "CUIEditorKeyboardRecognizer"]
     symbols = subprocess.check_output(["/usr/bin/nm", "-gU", str(binary)], text=True)
     assert all("_OBJC_CLASS_$_" + name in symbols for name in classes)
     assert "x86_64" in subprocess.check_output(["/usr/bin/file", str(binary)], text=True)
@@ -173,7 +175,7 @@ def prove_ios(root):
 
 def ios(root):
     inputs = verify(root)
-    assert inputs["profile"] == "form" and time.time() < inputs["deadlineUnix"]
+    assert inputs["profile"] in ["form", "keyboard"] and time.time() < inputs["deadlineUnix"]
     lock = REPO / "apps/native-showcase/ios/Podfile.lock"
     ruby = LAB / "ruby-3.4.11/bin/ruby"
     def pod_lock(path):
@@ -193,6 +195,8 @@ def ios(root):
     assert all(name in generated.read_text() for name in ["CUIFormRoot", "CUIFieldBinding"])
     project = REPO / "apps/native-showcase/ios/Pods/Pods.xcodeproj/project.pbxproj"
     assert "CUIFormDocumentInspection.mm" in project.read_text()
+    if inputs["profile"] == "keyboard":
+        assert all(name in project.read_text() for name in ["CUIEditorKeyboardDefaults.mm", "CUIEditorKeyboardRecognizer.mm", "CUIEditorKeyboardDefaultRegistry.cpp"])
     (root / "ios-integration.json").write_text(json.dumps({"producer":inputs["producer"], "ownedChecksumChanges":changed, "allPinnedVersionsUnchanged":True, "actualInspectionUnitIncluded":True, "providerSHA256":digest(generated)}, indent=2) + "\n")
     extra = {"ENTRY_FILE":str(STAGE / "index.ts"), "FORCE_BUNDLING":"1", "EXTRA_PACKAGER_ARGS":"--max-workers 2"}
     command(root, "ios-build", ["/usr/bin/xcodebuild", "-jobs", "2", "-workspace", "CodonNativeShowcase.xcworkspace", "-scheme", "CodonNativeShowcase", "-configuration", "Release", "-sdk", "iphonesimulator", "-destination", "generic/platform=iOS Simulator", "-derivedDataPath", LAB / "ios-app-derived-data", "ARCHS=x86_64", "ONLY_ACTIVE_ARCH=YES", "CODE_SIGNING_ALLOWED=NO", "CODE_SIGNING_REQUIRED=NO", "SOURCEMAP_FILE=" + str(root / "ios-main.jsbundle.map"), "build"], min(2700, int(inputs["deadlineUnix"] - time.time())), REPO / "apps/native-showcase/ios", extra_env=extra)
@@ -203,7 +207,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=["prepare", "android", "prove-android", "ios", "prove-ios"])
     parser.add_argument("root", type=Path)
-    parser.add_argument("--profile", choices=["metadata", "authoring", "form"], default="metadata")
+    parser.add_argument("--profile", choices=["metadata", "authoring", "form", "keyboard"], default="metadata")
     args = parser.parse_args()
     root = args.root.resolve()
     if args.phase == "prepare": prepare(root, args.profile)

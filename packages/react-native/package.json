@@ -79,7 +79,8 @@
     "ios": {
       "modulesProvider": {
         "CUIMotionSnapshot": "CUIMotionSnapshot",
-        "CUIFormDocument": "CUIFormDocument"
+        "CUIFormDocument": "CUIFormDocument",
+        "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults"
       },
       "componentProvider": {
         "CUIFocusView": "CUIFocusView",

@@ -25,7 +25,7 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIKeyboardScopeManagerDelegate<ReactViewGroup, CUIKeyboardScopeManager> delegate = new CUIKeyboardScopeManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
+      if ("editorKeyboardBindings".equals(name) || "menuPointerPolicies".equals(name) || "menuPointerRevision".equals(name) || "pointerRegistrations".equals(name) || "pointerRevision".equals(name) || "ownerId".equals(name) || "enabled".equals(name) || "policies".equals(name) || "acceptedWindowId".equals(name) || "acceptedEpoch".equals(name) || "policyRevision".equals(name) || "floatingTargets".equals(name) || "observations".equals(name) || "observationRevision".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -69,6 +69,14 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
     }
     ((CUIKeyboardScope) view).setFloatingTargets(targets);
   }
+  @Override @ReactProp(name = "editorKeyboardBindings") public void setEditorKeyboardBindings(ReactViewGroup view, ReadableArray value) {
+    List<CUIEditorKeyboardBindings.Registration> registrations = new ArrayList<>();
+    if (value != null) for (int index = 0; index < value.size(); index++) {
+      ReadableMap entry = value.getMap(index);
+      registrations.add(new CUIEditorKeyboardBindings.Registration(entry.getString("bindingId"), entry.getString("bindingRevision"), entry.getInt("targetTag"), entry.getString("moduleLease")));
+    }
+    ((CUIKeyboardScope)view).editorKeyboard.update(registrations);
+  }
   @Override @ReactProp(name = "policies") public void setPolicies(ReactViewGroup view, ReadableArray value) {
     List<CUIKeyboardScope.Policy> policies = new ArrayList<>();
     if (value != null) for (int index = 0; index < value.size(); index++) {
@@ -81,6 +89,9 @@ public final class CUIKeyboardScopeManager extends ReactViewManager implements C
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> existing = super.getExportedCustomDirectEventTypeConstants();
     if (existing != null) events.putAll(existing);
+    events.put("topNativeEditorKey", Collections.singletonMap("registrationName", "onNativeEditorKey"));
+    events.put("topNativeEditorKeyboardStatus", Collections.singletonMap("registrationName", "onNativeEditorKeyboardStatus"));
+    events.put("topNativeEditorKeyboardDecision", Collections.singletonMap("registrationName", "onNativeEditorKeyboardDecision"));
     events.put("topNativeScopedKey", Collections.singletonMap("registrationName", "onNativeScopedKey"));
     events.put("topNativeInputModality", Collections.singletonMap("registrationName", "onNativeInputModality"));
     events.put("topNativeScopeStatus", Collections.singletonMap("registrationName", "onNativeScopeStatus"));

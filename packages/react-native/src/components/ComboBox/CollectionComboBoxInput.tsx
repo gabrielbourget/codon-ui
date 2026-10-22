@@ -45,6 +45,8 @@ export const useNativeComboBoxInputProps = <T extends object>({
   return {
     ...owner.inputProps,
     ref: inputRef,
+    autoFocus: owner.autoFocus,
+    inputMode: owner.inputMode,
     testID: `${identity}-input`,
     role: "combobox",
     nativeID: owner.id,
