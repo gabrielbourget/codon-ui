@@ -1,4 +1,3 @@
-import { CalendarDateTime, Time, ZonedDateTime, parseZonedDateTime } from "@internationalized/date"
 import { requireNativeModule } from "expo"
 import { useCallback, useId, useLayoutEffect, useRef, useState, useSyncExternalStore } from "react"
 import { findNodeHandle, Pressable, Text, TextInput, View } from "react-native"
@@ -17,6 +16,12 @@ import type {
   DateSegmentType,
 } from "../../../../packages/react-native/src/date/state/useDateFieldState"
 import { useTimeFieldState } from "../../../../packages/react-native/src/date/state/useTimeFieldState"
+import {
+  CalendarDateTime,
+  Time,
+  ZonedDateTime,
+  parseZonedDateTime,
+} from "../../../../packages/react-native/src/date/values"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../../../packages/react-native/src/input/focus"
 import { nativeKeyToken } from "../../../../packages/react-native/src/input/keyScope"
 import {
