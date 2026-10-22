@@ -17,6 +17,12 @@ static jlong nativeCreateFormSession(jni::alias_ref<jclass>, jni::alias_ref<jstr
   if (!identity) throw std::invalid_argument("Native form: module identity required");
   return reinterpret_cast<jlong>(new codon::form::NativeFormDocumentSession(identity->toStdString()));
 }
+static jni::local_ref<jstring> nativeFormDocumentStamp(jni::alias_ref<jclass>,
+    jni::alias_ref<JFabricUIManager::javaobject> manager, jint surface, jlong session) {
+  if (!session) throw std::invalid_argument("Native form: current module identity required");
+  return jni::make_jstring(codon::form::queryFabricFormDocumentStamp(*scopedManager(manager), surface,
+      *reinterpret_cast<codon::form::NativeFormDocumentSession *>(session)));
+}
 static void nativeRetireFormSession(jni::alias_ref<jclass>, jlong session) {
   delete reinterpret_cast<codon::form::NativeFormDocumentSession *>(session);
 }
@@ -24,6 +30,7 @@ static void nativeRetireFormSession(jni::alias_ref<jclass>, jlong session) {
 void registerFormDocumentNatives() {
   jni::findClassStatic("com/codonui/input/CUIFormDocumentModule")->registerNatives({
     makeNativeMethod("nativeFormDocument", nativeFormDocument),
+    makeNativeMethod("nativeFormDocumentStamp", nativeFormDocumentStamp),
     makeNativeMethod("nativeCreateFormSession", nativeCreateFormSession),
     makeNativeMethod("nativeRetireFormSession", nativeRetireFormSession)});
 }

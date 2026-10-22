@@ -6,7 +6,8 @@
 
 @interface CUIFieldCustomContentLease ()
 @property (nonatomic, weak) UIView *editor;
-@property (nonatomic, copy) NSArray<AXCustomContent *> *content;
+@property (nonatomic, copy) NSArray<AXCustomContent *> *(^content)(void);
+@property (nonatomic, copy) BOOL (^isCurrent)(void);
 @end
 
 static NSMapTable<UIView *, CUIFieldCustomContentLease *> *CUIFieldContentLeases;
@@ -19,7 +20,12 @@ static NSArray<AXCustomContent *> *CUIFieldReadCustomContent(id target, SEL sele
   NSArray<AXCustomContent *> *base = original ? ((id (*)(id, SEL))original)(target, selector) : nil;
   CUIFieldCustomContentLease *lease = [CUIFieldContentLeases objectForKey:target];
   if (!lease) return base;
-  return base.count ? [base arrayByAddingObjectsFromArray:lease.content] : lease.content;
+  @try {
+    if (!lease.isCurrent || !lease.isCurrent()) { [lease retire]; return base; }
+    NSArray *content = lease.content ? lease.content() : nil;
+    for (id item in content) if (![item isKindOfClass:AXCustomContent.class]) { [lease retire]; return base; }
+    return content.count ? (base.count ? [base arrayByAddingObjectsFromArray:content] : content) : base;
+  } @catch (NSException *retired) { [lease retire]; return base; }
 }
 
 static BOOL CUIFieldInstallCustomContent(Class exactClass)
@@ -52,24 +58,34 @@ static BOOL CUIFieldInstallCustomContent(Class exactClass)
   if (editor && [CUIFieldContentLeases objectForKey:editor] == self)
     [CUIFieldContentLeases removeObjectForKey:editor];
   self.editor = nil;
-  self.content = @[];
+  self.content = nil;
+  self.isCurrent = nil;
 }
 @end
 
 CUIFieldCustomContentLease *CUIBindFieldCustomContent(UIView *editor, NSArray<AXCustomContent *> *content)
 {
   RCTAssertMainQueue();
-  if (!editor || !content || ![content isKindOfClass:NSArray.class]) return nil;
+  if (!editor || ![content isKindOfClass:NSArray.class]) return nil;
+  for (id item in content) if (![item isKindOfClass:AXCustomContent.class]) return nil;
+  NSArray *copied = [[NSArray alloc] initWithArray:content copyItems:YES];
+  return CUIBindLiveFieldCustomContent(editor, ^{ return copied; }, ^{ return YES; });
+}
+
+CUIFieldCustomContentLease *CUIBindLiveFieldCustomContent(UIView *editor, NSArray<AXCustomContent *> *(^content)(void), BOOL (^isCurrent)(void))
+{
+  RCTAssertMainQueue();
+  if (!editor || !content || !isCurrent) return nil;
   if (!CUIFieldContentLeases) {
     CUIFieldContentLeases = [NSMapTable weakToStrongObjectsMapTable];
     CUIFieldContentOriginals = [NSMutableDictionary dictionary];
   }
-  for (id item in content) if (![item isKindOfClass:AXCustomContent.class]) return nil;
   if (!CUIFieldInstallCustomContent(object_getClass(editor))) return nil;
   [[CUIFieldContentLeases objectForKey:editor] retire];
   CUIFieldCustomContentLease *lease = [CUIFieldCustomContentLease new];
   lease.editor = editor;
-  lease.content = [[NSArray alloc] initWithArray:content copyItems:YES];
+  lease.content = content;
+  lease.isCurrent = isCurrent;
   [CUIFieldContentLeases setObject:lease forKey:editor];
   return lease;
 }
