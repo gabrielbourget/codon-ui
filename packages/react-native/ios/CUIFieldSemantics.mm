@@ -36,7 +36,9 @@ static NSString *CUIFieldOwnerString(const std::string &value)
 
 @interface CUIFieldSemanticsLease : NSObject <CUIFieldSemanticContribution>
 - (NSString *)ownerLabel;
-- (instancetype)initWithCore:(RCTTextInputComponentView *)core editor:(UIView *)editor plan:(NSDictionary *)plan
+- (BOOL)isRetired;
+- (BOOL)isCurrent;
+- (instancetype)initWithCore:(RCTViewComponentView *)core editor:(UIView *)editor plan:(NSDictionary *)plan
     label:(NSString *)label description:(NSString *)description errors:(NSString *)errors details:(NSString *)details
     controls:(NSString *)controls isCurrent:(BOOL (^)(void))isCurrent;
 @end
@@ -44,7 +46,7 @@ static NSString *CUIFieldOwnerString(const std::string &value)
 static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
 
 @implementation CUIFieldSemanticsLease {
-  __weak RCTTextInputComponentView *_core;
+  __weak RCTViewComponentView *_core;
   __weak UIView *_editor;
   std::string _ownerLabel, _ownerHint;
   NSString *_baseLabel, *_baseHint, *_appliedLabel, *_appliedHint;
@@ -54,7 +56,7 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
   BOOL (^_isCurrent)(void);
   BOOL _labelApplied, _hintApplied, _retired;
 }
-- (instancetype)initWithCore:(RCTTextInputComponentView *)core editor:(UIView *)editor plan:(NSDictionary *)plan
+- (instancetype)initWithCore:(RCTViewComponentView *)core editor:(UIView *)editor plan:(NSDictionary *)plan
     label:(NSString *)label description:(NSString *)description errors:(NSString *)errors details:(NSString *)details
     controls:(NSString *)controls isCurrent:(BOOL (^)(void))isCurrent
 {
@@ -68,8 +70,11 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
   NSDictionary *labels = plan[@"labels"];
   NSMutableArray<AXCustomContent *> *content = [NSMutableArray new];
   const auto add = [&](NSString *caption, NSString *value) { [content addObject:[AXCustomContent customContentWithLabel:caption value:value]]; };
-  add(labels[@"role"], [plan[@"expanded"] boolValue] ? labels[@"expanded"] : labels[@"collapsed"]);
-  add(labels[@"autocomplete"], labels[@"list"]);
+  const BOOL dateField = plan[@"dateField"] != nil;
+  if (!dateField) {
+    add(labels[@"role"], [plan[@"expanded"] boolValue] ? labels[@"expanded"] : labels[@"collapsed"]);
+    add(labels[@"autocomplete"], labels[@"list"]);
+  }
   for (NSString *key in @[@"required", @"readOnly", @"disabled"]) if ([plan[key] boolValue]) add(labels[key], labels[@"yes"]);
   if ([plan[@"invalid"] boolValue]) add(labels[@"invalid"], errors.length ? errors : labels[@"yes"]);
   if (details.length) add(labels[@"details"], details);
@@ -84,7 +89,11 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
   });
   if (!_customContent) return nil;
   [CUIFieldSemanticLeases setObject:self forKey:editor];
-  if ([plan[@"labelledBy"] count]) { _labelApplied = YES; _appliedLabel = [label copy]; editor.accessibilityLabel = label; }
+  if ([plan[@"labelledBy"] count]) {
+    _labelApplied = YES;
+    _appliedLabel = dateField && _baseLabel.length ? [_baseLabel stringByAppendingFormat:@", %@", label] : [label copy];
+    editor.accessibilityLabel = _appliedLabel;
+  }
   NSMutableArray *hints = [NSMutableArray new];
   if (_baseHint.length) [hints addObject:_baseHint];
   if (description.length) [hints addObject:description];
@@ -103,7 +112,7 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
   UIView *editor = _editor;
   CUIFieldSemanticsLease *current = editor ? [CUIFieldSemanticLeases objectForKey:editor] : nil;
   if (editor && (!current || current == self)) {
-    RCTTextInputComponentView *core = nil;
+    RCTViewComponentView *core = nil;
     for (UIView *view = editor.superview; view && !core; view = view.superview)
       if ([view isKindOfClass:RCTTextInputComponentView.class]) core = (id)view;
     if (!core && _core.accessibilityElement == editor) core = _core;
@@ -123,7 +132,7 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
 }
 - (NSString *)ownerLabel
 {
-  RCTTextInputComponentView *core = _core;
+  RCTViewComponentView *core = _core;
   if (core && core.accessibilityElement == _editor) {
     const auto props = std::static_pointer_cast<const ViewProps>(core.props);
     if (props->accessibilityLabel != _ownerLabel) return CUIFieldOwnerString(props->accessibilityLabel);
@@ -131,11 +140,23 @@ static NSMapTable<UIView *, CUIFieldSemanticsLease *> *CUIFieldSemanticLeases;
   return _baseLabel;
 }
 - (void)dealloc { [self retire]; }
+- (BOOL)isRetired { return _retired; }
+- (BOOL)isCurrent { return !_retired && _isCurrent && _isCurrent(); }
 @end
+
+NSString *CUIReadOwnedDateFieldText(UIView *editor, NSString *base, BOOL hint)
+{
+  CUIFieldSemanticsLease *lease = [CUIFieldSemanticLeases objectForKey:editor];
+  if (!lease || lease.isRetired) return base;
+  @try { if (lease.isCurrent) return base; } @catch (NSException *retired) {}
+  [lease retire];
+  return hint ? editor.accessibilityHint : editor.accessibilityLabel;
+}
 
 static NSString *CUIFieldUnaugmentedLabel(UIView *view, BOOL *registered)
 {
-  UIView *editor = [view isKindOfClass:RCTTextInputComponentView.class] ? ((RCTTextInputComponentView *)view).accessibilityElement : view;
+  id accessible = [view isKindOfClass:RCTTextInputComponentView.class] ? ((RCTTextInputComponentView *)view).accessibilityElement : view;
+  UIView *editor = [accessible isKindOfClass:UIView.class] ? (UIView *)accessible : nil;
   CUIFieldSemanticsLease *lease = [CUIFieldSemanticLeases objectForKey:editor];
   *registered = lease != nil;
   return lease ? [lease ownerLabel] : nil;
@@ -146,7 +167,8 @@ id<CUIFieldSemanticContribution> CUIBindFieldSemantics(RCTSurfacePresenter *pres
 {
   RCTAssertMainQueue();
   if (!core || !plan || !isCurrent || !isCurrent()) return nil;
-  UIView *editor = core.accessibilityElement;
+  id accessible = core.accessibilityElement;
+  UIView *editor = [accessible isKindOfClass:UIView.class] ? (UIView *)accessible : nil;
   if (![editor isKindOfClass:UITextField.class] && ![editor isKindOfClass:UITextView.class]) return nil;
   NSString *label = CUIFieldReferencedText(presenter, plan[@"labelledBy"]);
   NSString *description = CUIFieldReferencedText(presenter, plan[@"describedBy"]);
@@ -156,4 +178,45 @@ id<CUIFieldSemanticContribution> CUIBindFieldSemantics(RCTSurfacePresenter *pres
   if (!isCurrent() || core.accessibilityElement != editor) return nil;
   return [[CUIFieldSemanticsLease alloc] initWithCore:core editor:editor plan:plan label:label description:description
     errors:errors details:details controls:controls isCurrent:isCurrent];
+}
+
+@interface CUIDateSemanticGroup : NSObject <CUIFieldSemanticContribution>
+@property(nonatomic, copy) NSArray<id<CUIFieldSemanticContribution>> *leases;
+@end
+@implementation CUIDateSemanticGroup
+- (void)retire { for (id<CUIFieldSemanticContribution> lease in _leases) [lease retire]; _leases = nil; }
+- (void)dealloc { [self retire]; }
+@end
+
+id<CUIFieldSemanticContribution> CUIBindDateFieldSemantics(RCTSurfacePresenter *presenter,
+    NSArray<CUIDateSegment *> *segments, NSDictionary *plan, BOOL (^isCurrent)(void))
+{
+  RCTAssertMainQueue();
+  NSNumber *first = plan[@"dateField"][@"firstEditableTarget"];
+  if (!segments.count || !first || !isCurrent || !isCurrent()) return nil;
+  BOOL found = NO;
+  for (CUIDateSegment *segment in segments) if (segment.tag == first.integerValue) found = YES;
+  if (!found) return nil;
+  CUIDateSemanticGroup *group = [CUIDateSemanticGroup new];
+  NSMutableArray *leases = [NSMutableArray new];
+  @try {
+    for (CUIDateSegment *segment in segments) {
+      if (segment.accessibilityElement != segment || !isCurrent()) @throw [NSException exceptionWithName:@"CUI.Field" reason:@"date-semantic-editor-retired" userInfo:nil];
+      NSMutableDictionary *part = [plan mutableCopy];
+      if (segment.tag != first.integerValue && ![plan[@"invalid"] boolValue]) part[@"describedBy"] = @[];
+      part[@"readOnly"] = @([segment fieldSegmentReadOnly]);
+      CUIFieldSemanticsLease *lease = [[CUIFieldSemanticsLease alloc] initWithCore:segment editor:segment plan:part
+        label:CUIFieldReferencedText(presenter, part[@"labelledBy"])
+        description:CUIFieldReferencedText(presenter, part[@"describedBy"])
+        errors:CUIFieldReferencedText(presenter, part[@"errorMessageBy"])
+        details:CUIFieldReferencedText(presenter, part[@"detailsBy"]) controls:@"" isCurrent:isCurrent];
+      if (!lease) @throw [NSException exceptionWithName:@"CUI.Field" reason:@"date-semantic-content-unavailable" userInfo:nil];
+      [leases addObject:lease];
+    }
+    if (!isCurrent()) @throw [NSException exceptionWithName:@"CUI.Field" reason:@"date-semantic-document-retired" userInfo:nil];
+    group.leases = leases; return group;
+  } @catch (NSException *retired) {
+    for (id<CUIFieldSemanticContribution> lease in leases) [lease retire];
+    return nil;
+  }
 }

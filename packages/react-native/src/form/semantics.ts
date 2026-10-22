@@ -88,3 +88,24 @@ export const encodeNativeFieldSemantics = (value: TNativeFieldSemanticBinding) =
     ),
   })
 }
+
+export type TNativeDateFieldSemanticBinding = TNativeFieldSemanticBinding &
+  Readonly<{
+    dateField: Readonly<{ firstEditableTarget: number }>
+  }>
+export const encodeNativeDateFieldSemantics = (value: TNativeDateFieldSemanticBinding) => {
+  const target = value.dateField.firstEditableTarget
+  if (
+    !Number.isSafeInteger(target) ||
+    target <= 0 ||
+    target > 2_147_483_647 ||
+    value.expanded ||
+    value.controls.length ||
+    value.activeDescendant
+  )
+    throw new Error("native-date-field-semantic-identity-required")
+  return JSON.stringify({
+    ...JSON.parse(encodeNativeFieldSemantics(value)),
+    dateField: { firstEditableTarget: target },
+  })
+}

@@ -73,7 +73,7 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     return document;
   }
 
-  private void refreshField(FabricUIManager manager, CUIFormMetadataView metadata, ReactEditText editor, String owner, String descriptor) throws Exception {
+  private void refreshField(FabricUIManager manager, CUIFormMetadataView metadata, View editor, String owner, String descriptor) throws Exception {
     metadata.setSemanticContribution(null);
     JSONObject mount = metadata.formMountSnapshot();
     if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance() || editor == null ||
@@ -91,12 +91,12 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     JSONObject plan = node.getJSONObject("semanticPlan");
     WeakReference<CUIFormDocumentModule> moduleRef = new WeakReference<>(this);
     WeakReference<CUIFormMetadataView> metadataRef = new WeakReference<>(metadata);
-    WeakReference<ReactEditText> editorRef = new WeakReference<>(editor);
+    WeakReference<View> editorRef = new WeakReference<>(editor);
     WeakReference<FabricUIManager> managerRef = new WeakReference<>(manager);
     String documentId = document.getString("documentId"), documentRevision = document.getString("revision");
     CUIFieldSemantics.Current current = () -> {
       CUIFormDocumentModule module = moduleRef.get(); CUIFormMetadataView binding = metadataRef.get();
-      ReactEditText original = editorRef.get(); FabricUIManager fabric = managerRef.get();
+      View original = editorRef.get(); FabricUIManager fabric = managerRef.get();
       if (module == null || !module.valid.get() || !module.getReactApplicationContext().hasActiveReactInstance() ||
           binding == null || original == null || fabric == null || !binding.ownerId.equals(owner) || !binding.descriptorId.equals(descriptor) ||
           !binding.descriptorRevision.equals(revision) || !binding.semanticBinding.equals(encoded) ||
@@ -104,9 +104,13 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
       JSONObject latest = new JSONObject(module.readStamp(fabric, surface));
       return documentId.equals(latest.getString("documentId")) && documentRevision.equals(latest.getString("revision"));
     };
-    CUIFieldSemantics contribution = CUIFieldSemantics.bind(manager, editor, plan, current);
+    boolean dateField = editor instanceof CUIDateSegment;
+    if (dateField != plan.has("dateField")) { metadata.resetSemanticAccessibilityFocus(); return; }
+    CUIFormMetadataView.SemanticContribution contribution = dateField ? CUIFieldSemantics.bindDateField(manager,
+        CUIOwnedDateField.resolveAll(manager, metadata, metadata.ownedEditorBinding, editor.getId(), surface), plan, current) :
+        CUIFieldSemantics.bind(manager, (ReactEditText)editor, plan, current);
     metadata.setSemanticContribution(contribution);
-    if (contribution == null || !current.check() || !editor.isFocused() || plan.getBoolean("disabled")) { metadata.resetSemanticAccessibilityFocus(); return; }
+    if (dateField || contribution == null || !current.check() || !editor.isFocused() || plan.getBoolean("disabled")) { metadata.resetSemanticAccessibilityFocus(); return; }
     if (!plan.isNull("activeDescendant")) {
       JSONObject active = plan.getJSONObject("activeDescendant"), binding = new JSONObject(active.getString("binding"));
       View root = manager.resolveView(binding.getInt("target")), option = manager.resolveView(active.getInt("target"));
@@ -128,15 +132,15 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(selected instanceof FabricUIManager)) throw new IllegalStateException("field-Fabric-unavailable");
         FabricUIManager manager = (FabricUIManager)selected;
         View target = manager.resolveView(positiveInteger(mount, "target")), original = manager.resolveView(positiveInteger(mount, "originalTarget"));
-        if (!(target instanceof CUIFormMetadataView) || !((CUIFormMetadataView)target).isFieldBinding() || !(original instanceof ReactEditText))
+        if (!(target instanceof CUIFormMetadataView) || !((CUIFormMetadataView)target).isFieldBinding() || (!(original instanceof ReactEditText) && !(original instanceof CUIDateSegment)))
           throw new IllegalStateException("field-binding-original-editor-retired");
-        CUIFormMetadataView metadata = (CUIFormMetadataView)target; ReactEditText editor = (ReactEditText)original;
+        CUIFormMetadataView metadata = (CUIFormMetadataView)target; View editor = original;
         if (metadata.originalForMountSnapshot(mount) != editor || !metadata.semanticBinding.equals(request.getString("semanticBinding")))
           throw new IllegalStateException("field-binding-original-editor-retired");
         String owner = metadata.ownerId, descriptor = metadata.descriptorId, token = semanticModuleId + ":binding:" + nonce;
         WeakReference<CUIFormDocumentModule> moduleRef = new WeakReference<>(this);
         WeakReference<CUIFormMetadataView> metadataRef = new WeakReference<>(metadata);
-        WeakReference<ReactEditText> editorRef = new WeakReference<>(editor);
+        WeakReference<View> editorRef = new WeakReference<>(editor);
         WeakReference<FabricUIManager> managerRef = new WeakReference<>(manager);
         metadata.setSemanticRefresh(() -> {
           CUIFormDocumentModule module = moduleRef.get(); CUIFormMetadataView binding = metadataRef.get(); FabricUIManager fabric = managerRef.get();

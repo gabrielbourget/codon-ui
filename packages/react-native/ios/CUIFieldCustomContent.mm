@@ -1,4 +1,5 @@
 #import "CUIFieldCustomContent.h"
+#import "CUIDateSegment.h"
 #import <React/RCTAssert.h>
 #import <React/RCTUITextField.h>
 #import <React/RCTUITextView.h>
@@ -80,7 +81,9 @@ CUIFieldCustomContentLease *CUIBindLiveFieldCustomContent(UIView *editor, NSArra
     CUIFieldContentLeases = [NSMapTable weakToStrongObjectsMapTable];
     CUIFieldContentOriginals = [NSMutableDictionary dictionary];
   }
-  if (!CUIFieldInstallCustomContent(object_getClass(editor))) return nil;
+  // The owned date host implements the provider directly. Core-editor runtime
+  // installation keeps its existing exact-class allowlist.
+  if (object_getClass(editor) != CUIDateSegment.class && !CUIFieldInstallCustomContent(object_getClass(editor))) return nil;
   [[CUIFieldContentLeases objectForKey:editor] retire];
   CUIFieldCustomContentLease *lease = [CUIFieldCustomContentLease new];
   lease.editor = editor;
@@ -88,4 +91,9 @@ CUIFieldCustomContentLease *CUIBindLiveFieldCustomContent(UIView *editor, NSArra
   lease.isCurrent = isCurrent;
   [CUIFieldContentLeases setObject:lease forKey:editor];
   return lease;
+}
+
+NSArray<AXCustomContent *> *CUIReadOwnedDateFieldCustomContent(UIView *editor)
+{
+  return object_getClass(editor) == CUIDateSegment.class ? CUIFieldReadCustomContent(editor, @selector(accessibilityCustomContent)) : @[];
 }

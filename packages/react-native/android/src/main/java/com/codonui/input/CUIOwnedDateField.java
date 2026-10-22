@@ -15,11 +15,11 @@ final class CUIOwnedDateField {
     double number = ((Number)value).doubleValue();
     return Double.isFinite(number) && number > 0 && Math.floor(number) == number && number <= (tag ? Integer.MAX_VALUE : 9007199254740991.0);
   }
-  private static void collect(View view, ArrayList<CUIDateSegment> result) {
-    if (view instanceof CUIDateSegment) result.add((CUIDateSegment)view);
+  private static void collect(View view, String owner, ArrayList<CUIDateSegment> result) {
+    if (view instanceof CUIDateSegment && owner.equals(((CUIDateSegment)view).ownerId)) result.add((CUIDateSegment)view);
     if (view instanceof ViewGroup) {
       ViewGroup group = (ViewGroup)view;
-      for (int index = 0; index < group.getChildCount(); index++) collect(group.getChildAt(index), result);
+      for (int index = 0; index < group.getChildCount(); index++) collect(group.getChildAt(index), owner, result);
     }
   }
   private static boolean descendant(View view, View root) {
@@ -28,6 +28,10 @@ final class CUIOwnedDateField {
     return false;
   }
   static CUIDateSegment resolve(UIManager manager, View metadata, String encoded, int primaryTarget, int surface) {
+    ArrayList<CUIDateSegment> result = resolveAll(manager, metadata, encoded, primaryTarget, surface);
+    return result == null ? null : result.get(0);
+  }
+  static ArrayList<CUIDateSegment> resolveAll(UIManager manager, View metadata, String encoded, int primaryTarget, int surface) {
     try {
       if (manager == null || !metadata.isAttachedToWindow() || encoded.isEmpty() || surface <= 0) return null;
       JSONObject value = new JSONObject(encoded);
@@ -35,7 +39,8 @@ final class CUIOwnedDateField {
       View root = manager.resolveView(value.getInt("rootTarget"));
       if (!(root instanceof ReactViewGroup) || root instanceof CUIDateSegment || root == metadata || !descendant(metadata, root)) return null;
       JSONArray expected = value.getJSONArray("segments");
-      ArrayList<CUIDateSegment> originals = new ArrayList<>(); collect(root, originals);
+      if (expected.length() == 0 || expected.getJSONObject(0).getString("ownerId").isEmpty()) return null;
+      ArrayList<CUIDateSegment> originals = new ArrayList<>(); collect(root, expected.getJSONObject(0).getString("ownerId"), originals);
       if (originals.isEmpty() || originals.size() != expected.length() || originals.get(0).getId() != primaryTarget) return null;
       HashSet<String> ids = new HashSet<>(); HashSet<Integer> targets = new HashSet<>();
       String owner = null, window = CUIInputWindow.identity(metadata);
@@ -50,7 +55,7 @@ final class CUIOwnedDateField {
             !targets.add(row.getInt("target")) || !CUIFormActionAdmission.same(original.formSegmentIdentity(), row)) return null;
         owner = row.getString("ownerId");
       }
-      return originals.get(0);
+      return originals;
     } catch (Exception retired) { return null; }
   }
 }

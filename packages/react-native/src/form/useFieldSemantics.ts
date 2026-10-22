@@ -12,9 +12,11 @@ import { findNodeHandle } from "react-native"
 
 import {
   encodeNativeFieldSemantics,
+  encodeNativeDateFieldSemantics,
   NATIVE_FIELD_SEMANTIC_LABELS,
   type TNativeFieldSemanticBinding,
   type TNativeFieldSemanticLabels,
+  type TNativeDateFieldSemanticBinding,
 } from "./semantics"
 
 const targetNames = ["input", "label", "description", "errorMessage", "value", "list"] as const
@@ -31,6 +33,7 @@ type TOptions = Readonly<{
   labels?: Partial<TNativeFieldSemanticLabels>
   flags: Pick<TNativeFieldSemanticBinding, "disabled" | "readOnly" | "required" | "invalid" | "expanded">
   activeDescendant: TNativeFieldSemanticBinding["activeDescendant"]
+  dateField?: TNativeDateFieldSemanticBinding["dateField"]
 }>
 let nextSemanticRevision = 0
 
@@ -97,14 +100,16 @@ export const useNativeFieldSemantics = (options: TOptions) => {
     activeDescendant: options.activeDescendant,
     ...options.flags,
     labels,
+    ...(options.dateField ? { dateField: options.dateField } : {}),
   }
   const signature = JSON.stringify(payload)
-  return useMemo(
-    () =>
-      encodeNativeFieldSemantics({
-        ...(JSON.parse(signature) as Omit<TNativeFieldSemanticBinding, "revision">),
-        revision: `${owner}:semantics:${++nextSemanticRevision}`,
-      }),
-    [owner, signature],
-  )
+  return useMemo(() => {
+    const value = {
+      ...(JSON.parse(signature) as Omit<TNativeFieldSemanticBinding, "revision">),
+      revision: `${owner}:semantics:${++nextSemanticRevision}`,
+    }
+    return options.dateField
+      ? encodeNativeDateFieldSemantics({ ...value, dateField: options.dateField })
+      : encodeNativeFieldSemantics(value)
+  }, [owner, signature])
 }

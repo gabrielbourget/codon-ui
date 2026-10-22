@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { StyleProp, TextStyle, View } from "react-native"
 
 import type { TNativeSlotProps } from "../../collection/context"
+import type { TNativeFieldSemanticLabels } from "../../form/semantics"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TimePickerProps, TimeValue } from "../state/types"
 import type { DateFieldState } from "../state/useDateFieldState"
@@ -33,6 +34,7 @@ export type TNativeTimeFieldProps<T extends TimeValue = TimeValue> = Omit<TNativ
     name?: string
     form?: string
     autoComplete?: string
+    nativeAccessibilityLabels?: Partial<TNativeFieldSemanticLabels>
     "data-testid"?: string
     ariaDescribedBy?: string | readonly string[]
     ariaDetails?: string | readonly string[]

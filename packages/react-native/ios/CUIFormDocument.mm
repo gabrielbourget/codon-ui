@@ -3,6 +3,7 @@
 #import "CUIFormMetadata.h"
 #import "CUIFormFieldFocus.h"
 #import "CUIFieldSemantics.h"
+#import "CUIOwnedDateField.h"
 #import "CUICollectionRoot.h"
 #import "CUIFocusView.h"
 #import <React/RCTAssert.h>
@@ -128,7 +129,7 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     @throw [NSException exceptionWithName:@"CUI.Field" reason:[NSString stringWithUTF8String:failure.what()] userInfo:nil];
   }
 }
-- (void)refreshField:(CUIFieldBinding *)metadata core:(RCTTextInputComponentView *)core owner:(NSString *)owner descriptor:(NSString *)descriptor
+- (void)refreshField:(CUIFieldBinding *)metadata core:(RCTViewComponentView *)core owner:(NSString *)owner descriptor:(NSString *)descriptor
 {
   [metadata setSemanticContribution:nil];
   NSDictionary *mount = [metadata formMountSnapshot];
@@ -145,15 +146,17 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   if (!field || ![field[@"ownerId"] isEqual:owner] || ![field[@"descriptorId"] isEqual:descriptor] ||
       ![field[@"descriptorRevision"] isEqual:revision] || [field[@"target"] integerValue] != core.tag ||
       ![node[@"fieldSemantics"] isEqual:encoded] || ![plan isKindOfClass:NSDictionary.class]) { [metadata resetSemanticAccessibilityFocus]; return; }
-  UIView *editor = core.accessibilityElement;
+  id accessible = core.accessibilityElement;
+  UIView *editor = [accessible isKindOfClass:UIView.class] ? (UIView *)accessible : nil;
+  if (!editor) { [metadata resetSemanticAccessibilityFocus]; return; }
   __weak CUIFormDocument *weakSelf = self;
   __weak CUIFieldBinding *weakMetadata = metadata;
-  __weak RCTTextInputComponentView *weakCore = core;
+  __weak RCTViewComponentView *weakCore = core;
   __weak UIView *weakEditor = editor;
   NSString *documentId = document[@"documentId"], *documentRevision = document[@"revision"];
   BOOL (^current)(void) = ^BOOL {
     CUIFormDocument *module = weakSelf; CUIFieldBinding *binding = weakMetadata;
-    RCTTextInputComponentView *original = weakCore; UIView *backed = weakEditor;
+    RCTViewComponentView *original = weakCore; UIView *backed = weakEditor;
     @try {
       if (!module || !module->_valid.load() || !binding || !original || !backed ||
           original.accessibilityElement != backed || ![binding.ownerId isEqual:owner] || ![binding.descriptorId isEqual:descriptor] ||
@@ -163,9 +166,13 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       return [latest[@"documentId"] isEqual:documentId] && [latest[@"revision"] isEqual:documentRevision];
     } @catch (NSException *retired) { return NO; }
   };
-  id<CUIFieldSemanticContribution> contribution = CUIBindFieldSemantics(presenter, core, plan, current);
+  const BOOL dateField = [core isKindOfClass:CUIDateSegment.class];
+  if (dateField != (plan[@"dateField"] != nil)) { [metadata resetSemanticAccessibilityFocus]; return; }
+  id<CUIFieldSemanticContribution> contribution = dateField ? CUIBindDateFieldSemantics(presenter,
+      CUIResolveOwnedDateFieldSegments(metadata, metadata.ownedEditorBinding, core.tag, [mount[@"surfaceId"] integerValue]), plan, current) :
+      CUIBindFieldSemantics(presenter, (RCTTextInputComponentView *)core, plan, current);
   [metadata setSemanticContribution:contribution];
-  if (!contribution || !current() || !editor.isFirstResponder || [plan[@"disabled"] boolValue]) { [metadata resetSemanticAccessibilityFocus]; return; }
+  if (dateField || !contribution || !current() || !editor.isFirstResponder || [plan[@"disabled"] boolValue]) { [metadata resetSemanticAccessibilityFocus]; return; }
   NSDictionary *active = [plan[@"activeDescendant"] isKindOfClass:NSDictionary.class] ? plan[@"activeDescendant"] : nil;
   if (active) {
     NSString *serialized = active[@"binding"];
@@ -191,13 +198,13 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-binding-request-invalid" userInfo:nil];
     RCTSurfacePresenter *presenter = (id)_presenter;
     CUIFieldBinding *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"target"] integerValue]];
-    RCTTextInputComponentView *core = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"originalTarget"] integerValue]];
-    if (![metadata isKindOfClass:CUIFieldBinding.class] || ![core isKindOfClass:RCTTextInputComponentView.class] ||
+    RCTViewComponentView *core = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"originalTarget"] integerValue]];
+    if (![metadata isKindOfClass:CUIFieldBinding.class] || (![core isKindOfClass:RCTTextInputComponentView.class] && ![core isKindOfClass:CUIDateSegment.class]) ||
         [metadata originalForMountSnapshot:mount] != core || ![metadata.semanticBinding isEqual:request[@"semanticBinding"]])
       @throw [NSException exceptionWithName:@"CUI.Field" reason:@"field-binding-original-editor-retired" userInfo:nil];
     NSString *owner = [metadata.ownerId copy], *descriptor = [metadata.descriptorId copy];
     NSString *token = [NSString stringWithFormat:@"%@:binding:%@", _semanticModuleId, nonce];
-    __weak CUIFormDocument *weakSelf = self; __weak CUIFieldBinding *weakMetadata = metadata; __weak RCTTextInputComponentView *weakCore = core;
+    __weak CUIFormDocument *weakSelf = self; __weak CUIFieldBinding *weakMetadata = metadata; __weak RCTViewComponentView *weakCore = core;
     [metadata setSemanticRefresh:^{
       CUIFormDocument *module = weakSelf; CUIFieldBinding *binding = weakMetadata;
       if (!module || !binding) { [binding setSemanticContribution:nil]; return; }
