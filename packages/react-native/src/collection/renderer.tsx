@@ -8,7 +8,7 @@ import {
   type ReactNode,
   type RefObject,
 } from "react"
-import type { ScrollView, VirtualizedList } from "react-native"
+import type { ScrollView, ScrollViewProps, VirtualizedList } from "react-native"
 
 import { encodeCollectionKey } from "../components/collection"
 import type { TNativeFocusEvent, TNativeFocusViewProps } from "../input/types"
@@ -44,6 +44,7 @@ export type TNativeCollectionRootProps = Omit<TNativeFocusViewProps, "children">
   persistedKeys?: Set<TNativeCollectionKey> | null
   scrollRef?: RefObject<TNativeCollectionScrollHost | null>
   renderDropIndicator?: (target: TNativeCollectionItemDropTarget) => ReactNode
+  onScroll?: ScrollViewProps["onScroll"]
 }
 export type TNativeCollectionBranchProps = Pick<TNativeCollectionRootProps, "collection" | "renderDropIndicator"> & {
   parent: TNativeCollectionNode<unknown>

@@ -8,23 +8,17 @@ import {
   useMemo,
   useRef,
   useState,
-  useLayoutEffect,
   type ForwardedRef,
   type ReactNode,
   type RefAttributes,
 } from "react"
-import { findNodeHandle, ScrollView, type TextInput, type View } from "react-native"
+import { findNodeHandle, type TextInput, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
-import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { useNativeCachedChildren } from "../../collection/cachedChildren"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
-import {
-  NativeCollectionRendererContext,
-  useNativePersistedKeys,
-  type TNativeCollectionScrollHost,
-} from "../../collection/renderer"
+import { NativeCollectionRendererContext, type TNativeCollectionScrollHost } from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext } from "../../collection/state"
 import { NativeFormBehaviorContext } from "../../form/context"
@@ -43,6 +37,7 @@ import type { TNativeTextRef } from "../Text/types"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
 import { NativeComboBoxInput, useNativeComboBoxInputProps } from "./CollectionComboBoxInput"
+import { NativeComboBoxList, NativeComboBoxListEnvironmentContext } from "./CollectionComboBoxList"
 import { NativeCollectionComboBoxTrigger, useNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import {
   NativeComboBoxContext,
@@ -216,8 +211,9 @@ const Receiver = <T extends object>({
   }, [])
   const focusedKey = state.selectionManager.focusedKey
   const activeRow = focusedKey == null ? undefined : rows.current.get(focusedKey)
+  const activeNode = activeRow && state.collection.getItem(activeRow.node.key)
   const activeBinding =
-    activeRow && state.collection.getItem(activeRow.node.key) === activeRow.node
+    activeRow && activeNode && actions?.bindingFor(activeNode) === actions?.bindingFor(activeRow.node)
       ? actions?.bindingFor(activeRow.node)
       : ""
   const activeTarget = activeBinding && activeRow ? findNodeHandle(activeRow.target) : 0
@@ -264,9 +260,7 @@ const Receiver = <T extends object>({
     }[]
   >([])
   const flushCommit = useRef(() => {})
-  const pendingNavigation = useRef<"first" | "last" | null>(null)
   const renderer = useContext(NativeCollectionRendererContext)
-  const { CollectionRoot } = renderer
   const live = useRef(false)
   const current = useRef({ props, state })
   useInsertionEffect(() => {
@@ -424,7 +418,6 @@ const Receiver = <T extends object>({
     input,
     identity,
   })
-  const persistedKeys = useNativePersistedKeys(state.selectionManager.focusedKey)
   const enabledKeys = () => {
     const { collection, selectionManager } = current.current.state
     const keys: (string | number)[] = []
@@ -436,21 +429,6 @@ const Receiver = <T extends object>({
     }
     return keys
   }
-  useLayoutEffect(() => {
-    if (!state.isOpen || !pendingNavigation.current) return
-    const keys = enabledKeys()
-    const key = pendingNavigation.current === "last" ? keys.at(-1) : keys[0]
-    if (key == null) return
-    pendingNavigation.current = null
-    state.selectionManager.setFocusedKey(key)
-  }, [state.isOpen, state.collection])
-  useLayoutEffect(() => {
-    const key = state.selectionManager.focusedKey
-    if (key != null && state.isOpen) {
-      renderer.layoutDelegate?.requestRendering?.(key)
-      renderer.layoutDelegate?.scrollToKey?.(key)
-    }
-  }, [state.selectionManager.focusedKey, state.isOpen, renderer.layoutDelegate])
   const onKey = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent,
       owner = current.current
@@ -467,8 +445,7 @@ const Receiver = <T extends object>({
       return
     if (!owner.state.isOpen) {
       if (data.key === "ArrowDown" || data.key === "ArrowUp") {
-        pendingNavigation.current = data.key === "ArrowUp" ? "last" : "first"
-        owner.state.open(pendingNavigation.current, "manual")
+        owner.state.open(data.key === "ArrowUp" ? "last" : "first", "manual")
       }
       return
     }
@@ -555,14 +532,6 @@ const Receiver = <T extends object>({
     NativeComboBoxPopoverContext,
   )
   const { clearContexts: _clearContexts, ...nativePopupProps } = popupProps
-  const rootProps = { collection: state.collection, scrollRef: scroll, persistedKeys }
-  const optionContent = state.collection.size ? (
-    <CollectionRoot {...rootProps} />
-  ) : (
-    <PlaceholderText align="center" testID={`${identity}-empty`}>
-      {props.emptyListMessage ?? "No items remaining to select"}
-    </PlaceholderText>
-  )
   const renderRoot = ({ children }: { children: ReactNode }) => {
     const hostProps = {
       ref: forwardedRef,
@@ -609,106 +578,93 @@ const Receiver = <T extends object>({
                     <NativeComboBoxGroupContext.Provider
                       value={{ isDisabled: !!props.isDisabled, isInvalid: state.displayValidation.isInvalid }}
                     >
-                      <NativeComboBoxListContext.Provider
-                        value={{
-                          ref: listRef,
-                          role: "list",
-                          accessible: false,
-                          focusable: false,
-                          autoFocus: state.focusStrategy || true,
-                          shouldUseVirtualFocus: true,
-                          shouldSelectOnPressUp: true,
-                          shouldFocusOnHover: true,
-                          linkBehavior: "selection",
-                          itemBehavior: "action",
-                          shouldFocusWrap: props.shouldFocusWrap ?? true,
-                        }}
+                      <NativeComboBoxListEnvironmentContext.Provider
+                        value={{ scrollRef: scroll, isOpen: state.isOpen, isCollectionPending }}
                       >
-                        <NativeComboBoxPopoverContext.Provider
+                        <NativeComboBoxListContext.Provider
                           value={{
-                            ...nativePopupProps,
-                            ref: popupRef,
-                            trigger: "ComboBox",
-                            clearContexts: NATIVE_COMBO_BOX_POPOVER_CONTEXTS,
+                            ref: listRef,
+                            role: "list",
+                            accessible: false,
+                            autoFocus: state.focusStrategy || true,
+                            shouldUseVirtualFocus: true,
+                            shouldSelectOnPressUp: true,
+                            shouldFocusOnHover: true,
+                            linkBehavior: "selection",
+                            itemBehavior: "action",
+                            shouldFocusWrap: props.shouldFocusWrap ?? true,
                           }}
                         >
-                          <NativeComboBoxStateContext.Provider value={state}>
-                            <NativeListStateContext.Provider value={state}>
-                              <NativeComboBoxOptionsContext.Provider
-                                value={{
-                                  input,
-                                  isDisabled: !!props.isDisabled,
-                                  isReadOnly: !!props.isReadOnly,
-                                  isVirtualized: !!renderer.isVirtualized,
-                                  register,
-                                  press,
-                                }}
-                              >
-                                <NativeContentContext.Provider
-                                  value={{ foregroundColor: styles.foreground, isButton: false }}
+                          <NativeComboBoxPopoverContext.Provider
+                            value={{
+                              ...nativePopupProps,
+                              ref: popupRef,
+                              trigger: "ComboBox",
+                              clearContexts: NATIVE_COMBO_BOX_POPOVER_CONTEXTS,
+                            }}
+                          >
+                            <NativeComboBoxStateContext.Provider value={state}>
+                              <NativeListStateContext.Provider value={state}>
+                                <NativeComboBoxOptionsContext.Provider
+                                  value={{
+                                    input,
+                                    isDisabled: !!props.isDisabled,
+                                    isReadOnly: !!props.isReadOnly,
+                                    isVirtualized: !!renderer.isVirtualized,
+                                    register,
+                                    press,
+                                  }}
                                 >
-                                  {renderRoot({
-                                    children: (
-                                      <>
-                                        <NativeComboBoxKeyBinding
-                                          target={inputTarget}
-                                          open={state.isOpen}
-                                          enabled={!props.isDisabled && !props.isReadOnly}
-                                          lifetime={`${inputTarget}:${state.isOpen}`}
-                                          onKey={onKey}
-                                          observe={observeKey}
-                                        />
-                                        <NativeFocusHost {...nativeGroupProps} ref={groupRef}>
-                                          <NativeComboBoxInput />
-                                          {field.placement === "input" && field.metadata}
-                                          <NativeCollectionComboBoxTrigger
-                                            owner={props}
-                                            foreground={styles.foreground}
+                                  <NativeContentContext.Provider
+                                    value={{ foregroundColor: styles.foreground, isButton: false }}
+                                  >
+                                    {renderRoot({
+                                      children: (
+                                        <>
+                                          <NativeComboBoxKeyBinding
+                                            target={inputTarget}
+                                            open={state.isOpen}
+                                            enabled={!props.isDisabled && !props.isReadOnly}
+                                            lifetime={`${inputTarget}:${state.isOpen}`}
+                                            onKey={onKey}
+                                            observe={observeKey}
                                           />
-                                        </NativeFocusHost>
-                                        <NativeFloatingSurface
-                                          {...nativePopupProps}
-                                          ref={popupRef}
-                                          nativeRootRole={null}
-                                        >
-                                          <NativeComboBoxPopoverBoundary>
-                                            <NativeCollectionItemBindingContext.Provider
-                                              value={actions?.bindingFor(null) ?? ""}
-                                            >
-                                              <NativeFocusHost
-                                                ref={listRef}
+                                          <NativeFocusHost {...nativeGroupProps} ref={groupRef}>
+                                            <NativeComboBoxInput />
+                                            {field.placement === "input" && field.metadata}
+                                            <NativeCollectionComboBoxTrigger
+                                              owner={props}
+                                              foreground={styles.foreground}
+                                            />
+                                          </NativeFocusHost>
+                                          <NativeFloatingSurface
+                                            {...nativePopupProps}
+                                            ref={popupRef}
+                                            nativeRootRole={null}
+                                          >
+                                            <NativeComboBoxPopoverBoundary>
+                                              <NativeComboBoxList
                                                 nativeID={fieldIds.list}
-                                                role="list"
-                                                focusable={false}
-                                                accessible={false}
                                                 testID={`${identity}-list`}
-                                              >
-                                                {renderer.isVirtualized ? (
-                                                  optionContent
-                                                ) : (
-                                                  <ScrollView
-                                                    ref={scroll as React.Ref<ScrollView>}
-                                                    keyboardShouldPersistTaps="always"
-                                                    keyboardDismissMode="none"
-                                                    style={{ maxHeight: 280 }}
-                                                  >
-                                                    {optionContent}
-                                                  </ScrollView>
+                                                renderEmptyState={() => (
+                                                  <PlaceholderText align="center" testID={`${identity}-empty`}>
+                                                    {props.emptyListMessage ?? "No items remaining to select"}
+                                                  </PlaceholderText>
                                                 )}
-                                              </NativeFocusHost>
-                                            </NativeCollectionItemBindingContext.Provider>
-                                          </NativeComboBoxPopoverBoundary>
-                                        </NativeFloatingSurface>
-                                        {field.placement === "root" && field.metadata}
-                                      </>
-                                    ),
-                                  })}
-                                </NativeContentContext.Provider>
-                              </NativeComboBoxOptionsContext.Provider>
-                            </NativeListStateContext.Provider>
-                          </NativeComboBoxStateContext.Provider>
-                        </NativeComboBoxPopoverContext.Provider>
-                      </NativeComboBoxListContext.Provider>
+                                              />
+                                            </NativeComboBoxPopoverBoundary>
+                                          </NativeFloatingSurface>
+                                          {field.placement === "root" && field.metadata}
+                                        </>
+                                      ),
+                                    })}
+                                  </NativeContentContext.Provider>
+                                </NativeComboBoxOptionsContext.Provider>
+                              </NativeListStateContext.Provider>
+                            </NativeComboBoxStateContext.Provider>
+                          </NativeComboBoxPopoverContext.Provider>
+                        </NativeComboBoxListContext.Provider>
+                      </NativeComboBoxListEnvironmentContext.Provider>
                     </NativeComboBoxGroupContext.Provider>
                   </NativeComboBoxOverlayTriggerStateContext.Provider>
                 </NativeComboBoxValueContext.Provider>

@@ -1,7 +1,7 @@
 import { writeFileSync } from "node:fs"
-import { fireEvent, render, screen } from "@testing-library/react"
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
-import { createRef, useContext } from "react"
+import { createRef, useContext, useState } from "react"
 import {
   ButtonContext,
   ComboBoxStateContext,
@@ -38,6 +38,110 @@ const records: unknown[] = []
 afterAll(() => {
   if (process.env.CODON_FIELD_CONTEXT_OBSERVATIONS)
     writeFileSync(process.env.CODON_FIELD_CONTEXT_OBSERVATIONS, JSON.stringify(records, null, 2))
+})
+
+const listFocusItems = [...items, { id: "b", label: "Beta" }]
+it.each(["first", "last", null] as const)(
+  "retains the source list's %s strategy while keeping its physical render focus separate",
+  async (strategy) => {
+    let state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+    const Probe = () => {
+      state = useContext(ComboBoxStateContext)!
+      return null
+    }
+    render(
+      <ComboBox
+        aria-label="Source list"
+        items={listFocusItems}
+        render={(props) => (
+          <div {...props}>
+            {props.children}
+            <Probe />
+          </div>
+        )}
+      >
+        {(item) => <ListBoxItem id={item.id}>{item.label}</ListBoxItem>}
+      </ComboBox>,
+    )
+    await act(() => state.open(strategy, "manual"))
+    await waitFor(() => expect(screen.getByRole("listbox")).toBeInTheDocument())
+    const list = screen.getByRole("listbox")
+    expect(state.selectionManager.isFocused).toBe(true)
+    expect(state.selectionManager.focusedKey).toBe(strategy === "first" ? 0 : strategy === "last" ? "b" : null)
+    expect(list.getAttribute("data-focused")).toBeNull()
+    expect(list.getAttribute("data-focus-visible")).toBeNull()
+    records.push({
+      listStrategy: strategy,
+      managerFocused: true,
+      focusedKey: state.selectionManager.focusedKey,
+      listPhysicallyFocused: false,
+      activeDescendant: screen.getByRole("combobox").getAttribute("aria-activedescendant"),
+    })
+  },
+)
+
+it("gives an enabled selected empty key precedence over the requested last list strategy", async () => {
+  let state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+  const Probe = () => {
+    state = useContext(ComboBoxStateContext)!
+    return null
+  }
+  render(
+    <ComboBox
+      aria-label="Selected source list"
+      selectedKey=""
+      items={listFocusItems}
+      render={(props) => (
+        <div {...props}>
+          {props.children}
+          <Probe />
+        </div>
+      )}
+    >
+      {(item) => <ListBoxItem id={item.id}>{item.label}</ListBoxItem>}
+    </ComboBox>,
+  )
+  await act(() => state.open("last", "manual"))
+  await waitFor(() => expect(screen.getByRole("listbox")).toBeInTheDocument())
+  expect(state.selectionManager.focusedKey).toBe("")
+  records.push({ listSelectedEmptyKeyWinsLastStrategy: true })
+})
+
+it("keeps initial empty-list autofocus pending until committed items appear without replacing the list host", async () => {
+  let state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>,
+    setItems!: (items: typeof listFocusItems) => void
+  const Probe = () => {
+    state = useContext(ComboBoxStateContext)!
+    return null
+  }
+  const Harness = () => {
+    const [choices, update] = useState<typeof listFocusItems>([])
+    setItems = update
+    return (
+      <ComboBox
+        aria-label="Empty source list"
+        allowsEmptyCollection
+        items={choices}
+        render={(props) => (
+          <div {...props}>
+            {props.children}
+            <Probe />
+          </div>
+        )}
+      >
+        {(item) => <ListBoxItem id={item.id}>{item.label}</ListBoxItem>}
+      </ComboBox>
+    )
+  }
+  render(<Harness />)
+  await act(() => state.open("first", "manual"))
+  await waitFor(() => expect(screen.getByRole("listbox")).toBeInTheDocument())
+  const original = screen.getByRole("listbox")
+  expect(state.selectionManager.focusedKey).toBeNull()
+  await act(() => setItems(listFocusItems))
+  await waitFor(() => expect(state.selectionManager.focusedKey).toBe(0))
+  expect(screen.getByRole("listbox") === original).toBe(true)
+  records.push({ initialEmptyListWaitsForCommittedItems: true, originalListHostPreserved: true })
 })
 
 it("keeps scoped Input rendering, named/null contexts, caller refs and held controlled values", () => {

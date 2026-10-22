@@ -9,6 +9,7 @@ import type { TNativeClickPopoverProps } from "../ClickPopover/types"
 import type { TNativeTextRender } from "../Text/Text"
 import type { TNativeTextProps, TNativeTextRef } from "../Text/types"
 
+import type { TNativeComboBoxListProps } from "./CollectionComboBoxList"
 import type { TNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import type { TNativeComboBoxInputProps } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
@@ -81,20 +82,8 @@ export const NativeComboBoxFieldIdsContext = createContext<Readonly<{
   value: string
   list: string
 }> | null>(null)
-export const NativeComboBoxListContext = createContext<
-  TNativeContextValue<
-    Partial<TNativeFocusViewProps> & {
-      autoFocus?: boolean | "first" | "last"
-      shouldUseVirtualFocus?: boolean
-      shouldSelectOnPressUp?: boolean
-      shouldFocusOnHover?: boolean
-      linkBehavior?: "selection"
-      itemBehavior?: "action"
-      shouldFocusWrap?: boolean
-    },
-    View
-  >
->(null)
+export const NativeComboBoxListContext =
+  createContext<TNativeContextValue<Partial<TNativeComboBoxListProps>, View>>(null)
 export const NativeComboBoxOptionsContext = createContext<{
   input: RefObject<TextInput | null>
   isDisabled: boolean
