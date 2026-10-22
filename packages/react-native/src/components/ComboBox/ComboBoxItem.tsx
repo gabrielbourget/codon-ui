@@ -5,6 +5,7 @@ import {
   useRef,
   useLayoutEffect,
   useCallback,
+  useId,
   useSyncExternalStore,
 } from "react"
 import { findNodeHandle, type View } from "react-native"
@@ -66,6 +67,8 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   const list = useContext(NativeComboBoxListBehaviorContext)
   const actions = useContext(NativeCollectionActionsContext)
   const cycle = useRef<{ binding: string; target: View | null } | null>(null)
+  const pointerKey = useId()
+  const pointerRegistration = useRef<{ target: View; node: typeof node; release: () => void } | null>(null)
   if (!state || !options) throw new Error("ComboBoxItem requires a native collection ComboBox")
   const theme = useNativeTheme()
   const target = useRef<View>(null)
@@ -87,10 +90,50 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   useSyncExternalStore(inputScope?.subscribe ?? (() => () => {}), inputScope?.snapshot ?? (() => 0), () => 0)
   const focusVisible = focused && inputScope?.lastInput()?.origin === "keyboard"
   const currentFocus = useRef({ state, disabled, virtual: list.shouldUseVirtualFocus, node, actions })
+  const currentPointer = useRef({ disabled, readOnly, list, options, node })
   const focusAttempt = useRef<{ target: View; binding: string } | null>(null)
   useInsertionEffect(() => {
     currentFocus.current = { state, disabled, virtual: list.shouldUseVirtualFocus, node, actions }
+    currentPointer.current = { disabled, readOnly, list, options, node }
   })
+  useLayoutEffect(() => {
+    const original = target.current
+    if (
+      pointerRegistration.current &&
+      (pointerRegistration.current.target !== original || pointerRegistration.current.node !== node)
+    ) {
+      pointerRegistration.current.release()
+      pointerRegistration.current = null
+    }
+    if (!original || pointerRegistration.current) return
+    const admitted = () => {
+      const latest = currentPointer.current
+      return (
+        target.current === original &&
+        latest.node === node &&
+        !latest.disabled &&
+        !latest.readOnly &&
+        latest.list.shouldSelectOnPressUp &&
+        latest.list.shouldFocusOnHover
+      )
+    }
+    pointerRegistration.current = {
+      target: original,
+      node,
+      release: options.registerPointerOption(pointerKey, {
+        target: original,
+        current: admitted,
+        release: (event) => currentPointer.current.options.press(node, original, event, admitted),
+      }),
+    }
+  })
+  useLayoutEffect(
+    () => () => {
+      pointerRegistration.current?.release()
+      pointerRegistration.current = null
+    },
+    [options.registerPointerOption],
+  )
   useLayoutEffect(() => () => register(node, null), [register, node])
   useLayoutEffect(() => {
     if (list.shouldUseVirtualFocus || !focused || disabled || inputScope?.isWindowActive() === false) {
@@ -199,7 +242,10 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
               started.binding === actions?.bindingFor(node) &&
               findNodeHandle(target.current)
             )
-              options.press(node, target.current, event)
+              options.press(node, target.current, event, () => {
+                const latest = currentPointer.current
+                return !latest.disabled && !latest.readOnly && latest.node === node && target.current === started.target
+              })
           }}
           onPressStart={(event) => {
             cycle.current = { binding: actions?.bindingFor(node) ?? "", target: target.current }

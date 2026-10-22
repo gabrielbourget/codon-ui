@@ -38,6 +38,19 @@ const options = {
   children: (item: (typeof items)[number]) => <ListBoxItem id={item.id}>{item.label}</ListBoxItem>,
 }
 const records: unknown[] = []
+
+it("selects an option on original mouse release after pressing its trigger", async () => {
+  const user = userEvent.setup(),
+    changes: unknown[] = []
+  render(<ComboBox {...options} onChange={(key) => changes.push(key)} />)
+  await user.pointer({ keys: "[MouseLeft>]", target: screen.getByRole("button", { name: "Show suggestions" }) })
+  const option = await screen.findByRole("option", { name: "Alpha" })
+  expect(changes).toEqual([])
+  await user.pointer({ target: option })
+  await user.pointer({ keys: "[/MouseLeft]", target: option })
+  expect(changes).toEqual([0])
+  records.push({ case: "trigger-to-option-release", changes })
+})
 afterAll(() => {
   if (process.env.CODON_FIELD_CONTEXT_OBSERVATIONS)
     writeFileSync(process.env.CODON_FIELD_CONTEXT_OBSERVATIONS, JSON.stringify(records, null, 2))

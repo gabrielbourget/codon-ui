@@ -3,6 +3,7 @@ import type { TextInput, View } from "react-native"
 
 import type { TNativeContextValue } from "../../collection/context"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeTextRender } from "../Text/Text"
 import type { TNativeTextProps, TNativeTextRef } from "../Text/types"
@@ -13,6 +14,7 @@ import type { TNativeComboBoxPopoverProps } from "./CollectionComboBoxPopover"
 import type { TNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import type { TNativeComboBoxInputProps } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
+import type { TNativeComboBoxPointerOptionRegistration } from "./pointerSelection"
 import type { ComboBoxState, ValidationResult } from "./state/types"
 
 export const NativeComboBoxStateContext = createContext<ComboBoxState<object> | null>(null)
@@ -77,5 +79,11 @@ export const NativeComboBoxOptionsContext = createContext<{
   isReadOnly: boolean
   isVirtualized: boolean
   register: (node: TNativeCollectionNode<unknown>, target: View | null) => void
-  press: (node: TNativeCollectionNode<unknown>, target: View | null, event: TNativePressEvent) => void
+  registerPointerOption: TNativeComboBoxPointerOptionRegistration
+  press: (
+    node: TNativeCollectionNode<unknown>,
+    target: View | null,
+    event: TNativePressEvent | TNativeWindowPointerEvent,
+    admitted?: () => boolean,
+  ) => void
 } | null>(null)

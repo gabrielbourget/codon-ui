@@ -27,6 +27,7 @@ import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/u
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -66,11 +67,12 @@ import type {
 import { NativeComboBoxItem } from "./ComboBoxItem"
 import { createNativeComboBoxFilter } from "./filter"
 import { NativeComboBoxKeyBinding } from "./keyboard"
+import { useNativeComboBoxPointerSelection } from "./pointerSelection"
 import { useComboBoxState } from "./state/useComboBoxState"
 import { getNativeComboBoxStyles } from "./styles"
 import type { TNativeComboBoxProps, TNativeComboBoxRef } from "./types"
 
-type TCommitEvent = TNativePressEvent | TNativeComboBoxSubmitEvent
+type TCommitEvent = TNativePressEvent | TNativeComboBoxSubmitEvent | TNativeWindowPointerEvent
 export type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 const AuthoredItem = ({
   id,
@@ -289,16 +291,25 @@ const Receiver = <T extends object>({
       setSemanticTargetsRevision((value) => value + 1)
   }, [])
   const press = useCallback(
-    (node: TNativeCollectionNode<unknown>, target: View | null, event: TCommitEvent) => {
+    (
+      node: TNativeCollectionNode<unknown>,
+      target: View | null,
+      event: TCommitEvent,
+      admitted: () => boolean = () => true,
+    ) => {
       const original = rows.current.get(node.key)
       if (
         !live.current ||
         !target ||
         original?.target !== target ||
         current.current.props.isDisabled ||
-        current.current.props.isReadOnly
+        current.current.props.isReadOnly ||
+        !admitted()
       )
         return
+      const query = current.current.state.inputValue,
+        editor = input.current,
+        window = JSON.stringify(inputScope?.acknowledgedSession() ?? null)
       event.persist()
       actions?.request(node, findNodeHandle(target) ?? 0, () => {
         const owner = current.current
@@ -307,6 +318,11 @@ const Receiver = <T extends object>({
           !owner.state.isOpen ||
           owner.props.isDisabled ||
           owner.props.isReadOnly ||
+          !admitted() ||
+          owner.state.inputValue !== query ||
+          input.current !== editor ||
+          inputScope?.isWindowActive() === false ||
+          JSON.stringify(inputScope?.acknowledgedSession() ?? null) !== window ||
           rows.current.get(node.key) !== original ||
           event.defaultPrevented ||
           event.isDefaultPrevented?.()
@@ -317,7 +333,7 @@ const Receiver = <T extends object>({
         if (live.current && current.current.state.isOpen) current.current.state.setOpen(false)
       })
     },
-    [actions],
+    [actions, inputScope],
   )
   const requestCommit = (event: TCommitEvent) => {
     const owner = current.current
@@ -418,6 +434,13 @@ const Receiver = <T extends object>({
     input,
     identity,
   })
+  const pointerSelection = useNativeComboBoxPointerSelection({
+    input,
+    enabled: !props.isDisabled && !props.isReadOnly,
+    isOpen: state.isOpen,
+    query: state.inputValue,
+  })
+  const triggerRef = useNativeCollectionRefs(buttonProps.ref, pointerSelection.triggerRef)
   const enabledKeys = () => {
     const { collection, selectionManager } = current.current.state
     const keys: (string | number)[] = []
@@ -558,7 +581,7 @@ const Receiver = <T extends object>({
   return (
     <NativeComboBoxFieldIdsContext.Provider value={fieldIds}>
       <NativeComboBoxInputContext.Provider value={inputProps}>
-        <NativeComboBoxButtonContext.Provider value={buttonProps}>
+        <NativeComboBoxButtonContext.Provider value={{ ...buttonProps, ref: triggerRef }}>
           <NativeComboBoxLabelContext.Provider
             value={{ nativeID: fieldIds.label, ref: labelRef, labelTarget: input, isDisabled: !!props.isDisabled }}
           >
@@ -612,6 +635,7 @@ const Receiver = <T extends object>({
                                     isReadOnly: !!props.isReadOnly,
                                     isVirtualized: !!renderer.isVirtualized,
                                     register,
+                                    registerPointerOption: pointerSelection.registerOption,
                                     press,
                                   }}
                                 >
