@@ -389,6 +389,9 @@ importers:
 
   packages/react-native:
     dependencies:
+      '@internationalized/date':
+        specifier: 3.12.1
+        version: 3.12.1
       '@internationalized/number':
         specifier: 3.6.6
         version: 3.6.6

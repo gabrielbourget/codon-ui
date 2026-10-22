@@ -1,0 +1,103 @@
+{
+  "package": "react-stately",
+  "version": "3.46.0",
+  "license": "../../collection/LICENSE.react-aria.md",
+  "sources": {
+    "useTimeFieldState": {
+      "sourcePath": "packages/react-stately/src/datepicker/useTimeFieldState.ts",
+      "sourceSHA256": "f659bcc85dd7b749d410365cd0c141321833c7bbc73b62aba46934b2c5ab5fb0",
+      "sourceMapSHA256": "b12cfb79f401b9972ea240ac77275858d1aa51cbf8ee63456cae187efc781cf0"
+    },
+    "useDateFieldState": {
+      "sourcePath": "packages/react-stately/src/datepicker/useDateFieldState.ts",
+      "sourceSHA256": "ae5dff66bf5e6b96460e1c02e909b6181db5f0d917d41bdd259f5067014b07c2",
+      "sourceMapSHA256": "97c7b0354bf8bc9777b9d1d2d90f67768ed9d3e8e94fe2fc95611118601e5e4d"
+    },
+    "IncompleteDate": {
+      "sourcePath": "packages/react-stately/src/datepicker/IncompleteDate.ts",
+      "sourceSHA256": "ab070a666f74da52f8c120a976a8cd81ace4b09c866c7219db5a98feca25ea79",
+      "sourceMapSHA256": "69cce3860df1db0d7fd52bc3fcc0d29c609170978ede14735462e0af2d6a9d17"
+    },
+    "utils": {
+      "sourcePath": "packages/react-stately/src/datepicker/utils.ts",
+      "sourceSHA256": "9c07c19fc32fe942182272bfa445af751d012a240733c806373713b155ec83a3",
+      "sourceMapSHA256": "62bd2693b30ca8b705cd3e8b525020cc8765f6380245a8c304df736047037b01"
+    },
+    "placeholders": {
+      "sourcePath": "packages/react-stately/src/datepicker/placeholders.ts",
+      "sourceSHA256": "05de557e46e7d4e1b2a1844ddc4a63f4c8b4e5887b7b2ab8fca84e1c0ee058b6",
+      "sourceMapSHA256": "8b036d5c9ef82deb111033bf3f07d2ac3f78664edb20133db15a5d45d1cf1730"
+    }
+  },
+  "messageLocales": [
+    "ar-AE",
+    "bg-BG",
+    "cs-CZ",
+    "da-DK",
+    "de-DE",
+    "el-GR",
+    "en-US",
+    "es-ES",
+    "et-EE",
+    "fi-FI",
+    "fr-FR",
+    "he-IL",
+    "hr-HR",
+    "hu-HU",
+    "it-IT",
+    "ja-JP",
+    "ko-KR",
+    "lt-LT",
+    "lv-LV",
+    "nb-NO",
+    "nl-NL",
+    "pl-PL",
+    "pt-BR",
+    "pt-PT",
+    "ro-RO",
+    "ru-RU",
+    "sk-SK",
+    "sl-SI",
+    "sr-SP",
+    "sv-SE",
+    "tr-TR",
+    "uk-UA",
+    "zh-CN",
+    "zh-TW"
+  ],
+  "adaptations": [
+    "Reuse the approved native controlled-state commit-effect backend and complete native form validation context",
+    "Use actual host Intl locale for platform validation messages; retain every pinned translation and exact locale fallback",
+    "Retain full source state/partial date algorithms and public state types; explicit typed dynamic lookups preserve source behavior without DOM ambient types",
+    "No private dependency runtime imports; source maps are extraction provenance only",
+    "The only date validation templates are plain strings or one minValue/maxValue interpolation; preserve all 34 dictionaries through an owned private formatter, not a new string-runtime dependency",
+    "Preserve source undefined literal-segment flags exactly; typed declaration cleanup does not normalize their runtime values"
+  ],
+  "approval": "Complete roadmap 3.5.52, directly approved by Gabriel on 2026-10-22",
+  "verification": "50 focused native source cases pass across actual pinned time-state traces, controlled veto/class/null/partial/guard/validation/locale and shared state regressions; no SDK or public TimePicker delivery claim",
+  "messageLocalesCount": 34,
+  "authoredSourcesSHA256": {
+    "IncompleteDate.ts": "2f6a71c989198de4694d9109eead8599971326abf367941f012184d0e4b973ca",
+    "messages.ts": "281d7487f37aa3da49711fc13e4c7b16e2a9caaf417774d2270c01e1e6fabe50",
+    "placeholders.ts": "98de0b62d08152d8a751fbe0e32047a4497030feb2d959d302b480c5045a9b10",
+    "types.ts": "8f9ab0432bb58bdd1f06e3071d1378c93e9778531ae0a6b33313979120251fbe",
+    "useDateFieldState.ts": "123f39f6a0a774d876f9472d45e08a200d3906ac7c372d92962a63db720f45a8",
+    "useTimeFieldState.ts": "7a3ae097de994debdbf028dae0e3b882d554e071c34030c70f597b8424d70295",
+    "utils.ts": "b1200c1c58cd6ae461f583a59e198ad58b2b7e28d3b4d7032e641161267467b6"
+  },
+  "stringMatchingSource": {
+    "package": "@internationalized/string",
+    "version": "3.2.8",
+    "sourcePath": "src/LocalizedStringDictionary.ts",
+    "sourceSHA256": "41ee060bc5586ede97d086379a2604d234bc3e3f2fde61697b8919b041b1071b",
+    "scope": "Exact language/script and first regional dictionary fallback; native has no browser-global dictionary override. Date template interpolation retains all frozen source messages."
+  },
+  "localeDirectionSource": {
+    "package": "react-aria",
+    "version": "3.48.0",
+    "sourcePath": "packages/react-aria/src/i18n/utils.ts",
+    "sourceSHA256": "859abfb9460fb808c77a05b0b6eaca6a16013e0c94f60fa6f1c2c8fa86294da2",
+    "sourceMapSHA256": "18fac941ca5323d3554bfe73e7d3e2927e1d845e9ab3350628e820e6541bfccc",
+    "adaptation": "Preserve exact text-info/script/language precedence; native default and refresh use actual host Intl and AppState rather than browser globals"
+  }
+}
