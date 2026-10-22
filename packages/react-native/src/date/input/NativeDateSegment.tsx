@@ -107,6 +107,7 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     }
     release.current = registerNativeFocusTarget(target, {
       canFocus,
+      canObserveFocus: () => targetRef.current === target && lease.current === binding && !!binding.frame(),
       window: () => binding.frame()?.windowId ?? "",
       focus: () => command("focus"),
       blur: () => command("blur"),

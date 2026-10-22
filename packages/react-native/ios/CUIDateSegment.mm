@@ -107,7 +107,8 @@ using namespace facebook::react;
   _keyboardMode = keyboardMode;
   BOOL traitsChanged = modeChanged || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
   _disabled = next.segmentDisabled; _readOnly = next.segmentReadOnly; _editable = next.segmentEditable;
-  if (_disabled || !_editable) [self resignFirstResponder];
+  // A disabled canonical segment loses tab admission, not an existing responder.
+  if (!_editable) [self resignFirstResponder];
   if (traitsChanged) { _epoch++; [self clearTransientDocument]; [self reloadInputViews]; }
   self.isAccessibilityElement = YES;
   self.accessibilityValue = _displayText;
@@ -115,7 +116,7 @@ using namespace facebook::react;
 }
 - (BOOL)canBecomeFirstResponder { return !_disabled && _editable; }
 - (BOOL)canBecomeFocused { return !_disabled && _editable; }
-- (UIView *)inputView { return _readOnly ? _readOnlyKeyboard : nil; }
+- (UIView *)inputView { return _readOnly || _disabled ? _readOnlyKeyboard : nil; }
 - (UIKeyboardType)keyboardType { return !_readOnly && [_keyboardMode isEqualToString:@"numeric"] ? UIKeyboardTypeNumberPad : UIKeyboardTypeDefault; }
 - (UITextAutocorrectionType)autocorrectionType { return UITextAutocorrectionTypeNo; }
 - (UITextAutocapitalizationType)autocapitalizationType { return UITextAutocapitalizationTypeNone; }

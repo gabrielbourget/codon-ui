@@ -12,6 +12,8 @@ type TBinding = Readonly<{
   focusContainer?: () => void
   blur: () => void
   canFocus: () => boolean
+  // An owned control can retain SDK focus while refusing new focus requests.
+  canObserveFocus?: () => boolean
   window?: () => string
 }>
 const bindings = new WeakMap<TTarget, TBinding>()
@@ -25,7 +27,10 @@ const publishFocus = () => {
 export const getNativeFocusedTarget = (): TTarget | null => {
   const input = textInputState.currentlyFocusedInput()
   if (input && textInputState.isTextInput(input)) return input
-  if (observedFocus && bindings.get(observedFocus)?.canFocus()) return observedFocus
+  if (observedFocus) {
+    const binding = bindings.get(observedFocus)
+    if (binding && (binding.canObserveFocus?.() ?? binding.canFocus())) return observedFocus
+  }
   return null
 }
 export const getNativeFocusTargetWindow = (target: TTarget) => bindings.get(target)?.window?.()
@@ -48,7 +53,7 @@ export const subscribeNativeFocus = (observer: () => void) => {
 }
 export const observeNativeFocus = (target: TTarget, focused: boolean) => {
   const binding = bindings.get(target)
-  if (!binding || (focused && !binding.canFocus())) return
+  if (!binding || (focused && !(binding.canObserveFocus?.() ?? binding.canFocus()))) return
   if (focused) {
     if (observedFocus === target) return
     previousFocus = observedFocus ?? previousFocus
