@@ -1084,3 +1084,116 @@ it("selects on mouse release over an option after an editor-origin press", async
   expect(changes).toEqual([0])
   records.push({ case: "editor-origin-option-release", changes })
 })
+
+let keyboardState: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+const KeyboardCapture = () => {
+  keyboardState = useContext(ComboBoxStateContext)!
+  return null
+}
+const keyboardItems = Array.from({ length: 8 }, (_, id) => ({ id, label: `Option ${id}` }))
+const mountKeyboardOracle = async () => {
+  const user = userEvent.setup()
+  render(
+    <ComboBox aria-label="Query" items={keyboardItems} inputValue="" onInputChange={() => {}}>
+      {(item) => (
+        <ListBoxItem id={item.id} textValue={item.label}>
+          <KeyboardCapture />
+          {item.label}
+        </ListBoxItem>
+      )}
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("option", { name: "Option 0" })
+  return screen.getByRole("combobox")
+}
+it("preserves original editor boundary and Shift+Home navigation", async () => {
+  const input = await mountKeyboardOracle()
+  expect(keyboardState.selectionManager.focusedKey).toBe(null)
+  fireEvent.keyDown(input, { key: "Home", shiftKey: true })
+  expect(keyboardState.selectionManager.focusedKey).toBe(null)
+  fireEvent.keyDown(input, { key: "End" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "Home" })
+  fireEvent.keyDown(input, { key: "ArrowUp" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+})
+it("uses original scrollable list row and viewport geometry for page navigation", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  Object.defineProperties(list, {
+    clientHeight: { configurable: true, value: 100 },
+    scrollHeight: { configurable: true, value: 240 },
+    clientWidth: { configurable: true, value: 100 },
+    scrollWidth: { configurable: true, value: 100 },
+  })
+  list.style.overflowY = "auto"
+  list.getBoundingClientRect = () => ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 100,
+    bottom: 100,
+    width: 100,
+    height: 100,
+    toJSON: () => ({}),
+  })
+  screen.getAllByRole("option").forEach((node, i) => {
+    node.getBoundingClientRect = () => ({
+      x: 0,
+      y: i * 30,
+      left: 0,
+      top: i * 30,
+      right: 100,
+      bottom: i * 30 + 30,
+      width: 100,
+      height: 30,
+      toJSON: () => ({}),
+    })
+  })
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  fireEvent.keyDown(input, { key: "PageDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(3)
+  fireEvent.keyDown(input, { key: "PageDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(6)
+  fireEvent.keyDown(input, { key: "PageUp" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(3)
+})
+
+it("retains original editor boundaries after opaque linked collection reordering", async () => {
+  const user = userEvent.setup()
+  let reverse!: () => void
+  const Opaque = () => {
+    const [reversed, setReversed] = useState(false)
+    reverse = () => setReversed(true)
+    return (reversed ? [...keyboardItems].reverse() : keyboardItems).map((item) => (
+      <ListBoxItem key={item.id} id={item.id} textValue={item.label}>
+        <KeyboardCapture />
+        {item.label}
+      </ListBoxItem>
+    ))
+  }
+  render(
+    <ComboBox aria-label="Query" items={keyboardItems} inputValue="" onInputChange={() => {}}>
+      <Opaque />
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("option", { name: "Option 0" })
+  const input = screen.getByRole("combobox")
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  await act(reverse)
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(6)
+  fireEvent.keyDown(input, { key: "End" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+})
