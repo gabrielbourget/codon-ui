@@ -404,6 +404,18 @@
     "useNativeDateSegmentEntry.ts": "cfd29e8a30d47c60f43ab9acd27f403dfd7764dac2857073422632712791591b",
     "../field/focus.ts": "9b59c16a1b1894375306064f50b9c24145494bdc2353a58ba7d5ecf4e0177bb6",
     "../field/selection.ts": "f1b4f3c0e3f10658ffb58d7f77378d967f44238d37d63480ff37799144a84933",
-    "../field/useLifecycle.ts": "cf1dd597c2609c7e5be7e4265710b7c4d9404a5828818477f368a126f4fd5e9f"
+    "../field/useLifecycle.ts": "cf1dd597c2609c7e5be7e4265710b7c4d9404a5828818477f368a126f4fd5e9f",
+    "../field/types.ts": "592b17b3c3962a01c807592a8ef67266acb645dd297102f996a4de8ad7efb61a",
+    "../field/context.ts": "be60cf0e8ed6da08e41f8f55529cf780945c0ca9719c83ece56528628f1da889",
+    "../field/useTimeField.ts": "ec11bed883342046ce6fb0139bf6eab4f18ef374a19da71aac9eb0f49e3cfc28"
+  },
+  "componentSources": {
+    "DateField.tsx": {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "sourcePath": "packages/react-aria-components/src/DateField.tsx",
+      "sourceSHA256": "a8bbfaeaa9754c030423d92a2e757f4d56aa3303c564151822428543dd5e1dbe",
+      "sourceMapSHA256": "c7010a62d2dd800a6dca60284069b0afc8d3d3c65b45c624f246acb92b9f6ad7"
+    }
   }
 }
