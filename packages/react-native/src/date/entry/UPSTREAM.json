@@ -1,0 +1,396 @@
+{
+  "package": "react-aria",
+  "version": "3.48.0",
+  "license": "../../collection/LICENSE.react-aria.md",
+  "sources": {
+    "useDateSegment": {
+      "sourcePath": "packages/react-aria/src/datepicker/useDateSegment.ts",
+      "sourceSHA256": "38b735b9d38444c4014e025b7e2311162c5f8c3d98946c628f5e383ec5c6ce56",
+      "sourceMapSHA256": "c9795fe2ce13978a912c459605f4c607504512d32deafb7cb4052540a29952c7"
+    },
+    "useDisplayNames": {
+      "sourcePath": "packages/react-aria/src/datepicker/useDisplayNames.ts",
+      "sourceSHA256": "5d4afc19774d86f109bec64fe75468b4092bcbef58d74776d3081831d2053026",
+      "sourceMapSHA256": "e6f10fdec47695c4f09d4a6355f52b6c2e6ee732371e6bc04eb421fb463034ea"
+    },
+    "useDateField": {
+      "sourcePath": "packages/react-aria/src/datepicker/useDateField.ts",
+      "sourceSHA256": "ab81b3af22680951be284291b5751f6da5040f0dd2d18ca28f0c2bb9f92e9bff",
+      "sourceMapSHA256": "64dfe4271b94403a1d15794179fe28323835f8a9bfca27ed181c73f6dee1d070"
+    },
+    "useDatePickerGroup": {
+      "sourcePath": "packages/react-aria/src/datepicker/useDatePickerGroup.ts",
+      "sourceSHA256": "9ac52b9fc6ea3dcd5c0375aa42a4e9edb1e5d319baa83fcbeeaf72a9e17e97ff",
+      "sourceMapSHA256": "afd749e496ca640ff9c1b876f7b68d256b3b5aa803685b8b1654afcca84ba2cb"
+    },
+    "useSpinButton": {
+      "sourcePath": "packages/react-aria/src/spinbutton/useSpinButton.ts",
+      "sourceSHA256": "adfd12a078f880785e068c9bb5e538c193a9f5736c797ba8b1fa43c3ccecb901",
+      "sourceMapSHA256": "5a483749e152f52907b66bad22523f18ea7e4019af0bdeb09cacd52c14b6592d"
+    },
+    "useFilter": {
+      "sourcePath": "packages/react-aria/src/i18n/useFilter.ts",
+      "sourceSHA256": "e2eb48536bda1cf03b27cd715e2e0f54c69276888311b222cfbc212605444aa7",
+      "sourceMapSHA256": "f367f69d5c4c8e9b241f6a2e1e161c3a0397c3cb0063cb72c516c8da602b9923"
+    }
+  },
+  "translations": {
+    "ar-AE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/ar-AE.json",
+      "sourceSHA256": "4367f35d31a6f36a87f6d39e51b16bee13f9e47c07fbac3a67f6cd0aeced1a6b",
+      "sourceMapSHA256": "9fa5d3e99e3184963b2860d533a132cf64c59e1c0b5f728ddab4acf30eafff84"
+    },
+    "bg-BG.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/bg-BG.json",
+      "sourceSHA256": "c529c45e2ebdfc01aa9e628af04306a8697cab46970d77ed848530d69bf6a628",
+      "sourceMapSHA256": "ec2d89ba6e1120f2ec0d1370c4d8eb212b7911c5b5e24ea22ecd2cbc44704961"
+    },
+    "cs-CZ.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/cs-CZ.json",
+      "sourceSHA256": "488552514ef26399098afc8a8f9baab1fbffce3b0ee3f755a5d260b09c6a65d9",
+      "sourceMapSHA256": "4ee537e36c223956e699174c538b1229e00f5a2ab8a3690442bb518efedcc8d1"
+    },
+    "da-DK.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/da-DK.json",
+      "sourceSHA256": "7920d7cab2598549d8af20b786a53effa3ac99a9090c5811b4883b160f8f5836",
+      "sourceMapSHA256": "08f6070fddb86ce81c64fe132cff5ff8b2db7ce100ee8d5eadaf3080a99a4cc0"
+    },
+    "de-DE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/de-DE.json",
+      "sourceSHA256": "183b23db4d816e779ad318862d6a9a70935eb840cfa3baa4b0c08da02c45e8bb",
+      "sourceMapSHA256": "4addacf2b2f8336b15302aec2e30891605180a497d4ce5f927c49a5f78c935d8"
+    },
+    "el-GR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/el-GR.json",
+      "sourceSHA256": "94b91baa3db396e8e7676ee63e8ba2bd3707b68a549c82a56ab8956ac57ef845",
+      "sourceMapSHA256": "fa2227309fee561f85a3736c6b12689733b733db99fc83217690a5c62bff5507"
+    },
+    "en-US.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/en-US.json",
+      "sourceSHA256": "2d85d2cfa04c2f90f3ba1ffcff07a15e493e16998e4c082d65d2339cbb09f997",
+      "sourceMapSHA256": "5e2007d9f63a788e0b0bcc8e220aed8acfa60a16983a762c4259cea36644af97"
+    },
+    "es-ES.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/es-ES.json",
+      "sourceSHA256": "97da6b0882514267bf203b5e3485ad32b1facb8d1daa6a59f2b66db181a7b6e5",
+      "sourceMapSHA256": "e8405693fb10d20cbb2c0862124b8e87ae1f85ef6a90201c77f54487b861db96"
+    },
+    "et-EE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/et-EE.json",
+      "sourceSHA256": "e0023d51632b0bce59d56b46f78aee4e7c196537cd0ca5e712d6b8343748ceb0",
+      "sourceMapSHA256": "146bc94dfcdcb8e5ca36ff9232c1d743ab2c31723d57ae7d54f879ae93a17b56"
+    },
+    "fi-FI.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/fi-FI.json",
+      "sourceSHA256": "163ac752177462e93937ad95a9ae360767b42c21118d6318f9739caceabb8f20",
+      "sourceMapSHA256": "befe4168f06317e104ffa790212f428191831b9904ba0ae9c98039c48df74c3f"
+    },
+    "fr-FR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/fr-FR.json",
+      "sourceSHA256": "d847340e41e5cf991bcfcaa2a660de6166b6791426a8225d6f9d2bac3ad9b96a",
+      "sourceMapSHA256": "3f7b998dc181cd75e29355833a61cf3381216cdba94a2a33514803e772777410"
+    },
+    "he-IL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/he-IL.json",
+      "sourceSHA256": "effc46331ca4f64ef42c7542a0a2a3f555049d8c9165cfe3636907e6103c4656",
+      "sourceMapSHA256": "d09bfc6db5a1a2cee42fbbbf5edfd8de43e73b06e9bbf3dde877ac1802decaa7"
+    },
+    "hr-HR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/hr-HR.json",
+      "sourceSHA256": "6fac2c1391e697de76d8646ff9553dbc58a6c94684a9af6461bc1a7da1e388aa",
+      "sourceMapSHA256": "b4907df0f3146f10e32d4cf8f226446066d169e527c0f76487cd9738e04eef81"
+    },
+    "hu-HU.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/hu-HU.json",
+      "sourceSHA256": "f97c4588cab6c110a25af94778fad33cda99848a190e9904662a1999a066b475",
+      "sourceMapSHA256": "f07ecda692a7c19d77c33949fd0841852e5928af907c2055a582163d21f44610"
+    },
+    "it-IT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/it-IT.json",
+      "sourceSHA256": "309a80a4f76dd584f68dc0f4d135a96aa7758bfc6b921e30d07ddda371379d77",
+      "sourceMapSHA256": "cd17064cefd0682d5963487ee1b29b0a12ea4aa2bf0a70f5c35b652905bd13a3"
+    },
+    "ja-JP.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/ja-JP.json",
+      "sourceSHA256": "15f0f45167a3986ecee204996771e130cdd5f43f4dbff8adad8c52c18f4f7b4c",
+      "sourceMapSHA256": "89688d9d3136c8073439cd20dc1b8cd4a762abcda9b65efa279b4035edda99c6"
+    },
+    "ko-KR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/ko-KR.json",
+      "sourceSHA256": "893df7d0d1dadff1e3e98ea73f3f1c1f8fb3c759aad2d0c6f4fd02615dc43a74",
+      "sourceMapSHA256": "b5c0706163f2eff53e2ac8c5976df6266fb4a7d76077828d51a523d07c4c743c"
+    },
+    "lt-LT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/lt-LT.json",
+      "sourceSHA256": "bd302c21ea627939a0bf892728c8047bc12026f2a6d8bc05105e9223a03006f9",
+      "sourceMapSHA256": "11b8ea7e206e682c0c26284815a56f8ae0e8796aa61e06ffc8c9194d4d89d543"
+    },
+    "lv-LV.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/lv-LV.json",
+      "sourceSHA256": "f62f5cdc2721528919baeb4df9a704b6e975a421410393362edaedb4bb2b5bec",
+      "sourceMapSHA256": "fc502c4c0288fda9802975b7f0a3afe3fa8cb786856fd95f22a39b43e7a2e986"
+    },
+    "nb-NO.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/nb-NO.json",
+      "sourceSHA256": "5c9af327c8cad6414710ca32fe5b2f677217e2cd70d72cb402e27bd8f335abbd",
+      "sourceMapSHA256": "2830e56da2e31acba7222844f5d969a420c61e1e1312c179227e620f722d3226"
+    },
+    "nl-NL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/nl-NL.json",
+      "sourceSHA256": "86d98769dd8faaeaaf59d35483478266accefceb3ad09898d3320065bd6cd816",
+      "sourceMapSHA256": "3d34e9c55eb428267f3729b10558ecb0adf3ba59237167ac20b54208c0edced0"
+    },
+    "pl-PL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/pl-PL.json",
+      "sourceSHA256": "b99e402b5f374757f12ca5578fdc92788699bc292a84db3b38467f364c23903a",
+      "sourceMapSHA256": "dc0599e5f8c3a45f2aeacdfc871ec667fa29f10ea6991dce27d60843c1a63719"
+    },
+    "pt-BR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/pt-BR.json",
+      "sourceSHA256": "42ee2ec2f9a3c5463cea726e5122f423a38d395d1a5e7f1f2dfaccc60919a77e",
+      "sourceMapSHA256": "32075911ba0052d795ce061cd498c002ebce3d0152920cc56aa13e2c1e4e0c95"
+    },
+    "pt-PT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/pt-PT.json",
+      "sourceSHA256": "9f1c32963223d198ef08e787a37e1dd19c3bad528d567d2cb5acf8416f765942",
+      "sourceMapSHA256": "131ee9114bc4019b4dbceaa3264d11d528a29433bcc67cf38676e1ac5f02b56b"
+    },
+    "ro-RO.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/ro-RO.json",
+      "sourceSHA256": "b9f5f8e60a1fd53a71d5b5ca49259e256e95bfe7833e2b4df08d868f3f350e2b",
+      "sourceMapSHA256": "028220bd570e5d2d275a501aa608e46b47793e439bcac8e9e11aa7d46229ad03"
+    },
+    "ru-RU.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/ru-RU.json",
+      "sourceSHA256": "10e8f6fefd5f0a168b1e7b411d640f7eb1e5268b6081bf816c771311c6817c2f",
+      "sourceMapSHA256": "95258301fef2f4014eaeb200a66616c3022930069818994dbd5681eeb1b71419"
+    },
+    "sk-SK.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/sk-SK.json",
+      "sourceSHA256": "71869a1db6a861f15e8afc17d35e54026803fdfa2922d2df37236695c3fb0fac",
+      "sourceMapSHA256": "2ed813ceaf69465758d1a3a437d4e1416bd07a7c359f576a1f3d9199fc97e819"
+    },
+    "sl-SI.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/sl-SI.json",
+      "sourceSHA256": "bb39f05bbb57d89b573a0e1201513361d0234c93fa4af081772b72833c6cd728",
+      "sourceMapSHA256": "f1850c4cc3a154a2b4e9b10af45995a0bbc7c98ee97ee0cba6350bf508e46080"
+    },
+    "sr-SP.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/sr-SP.json",
+      "sourceSHA256": "fae46695f6c10ad967812cc8097e32abdfbd0f8b85c990f7e5f7719922327048",
+      "sourceMapSHA256": "293b1e514c52619cd8f5975be952d9bf9d898c20bc4bb1625466e83d155a167c"
+    },
+    "sv-SE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/sv-SE.json",
+      "sourceSHA256": "cbf79a30f96486cf96dca3dc011ee79cfececc3b76656acf851552d8f2885c98",
+      "sourceMapSHA256": "51ef71a8f97225548b20faa5d0a99a5c5eeca39f15cc41b1d9b58de533204abe"
+    },
+    "tr-TR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/tr-TR.json",
+      "sourceSHA256": "b5301a58ab55a7b01ec4455c6806110695cd94733d9f38b116ac0b7029f2c2f8",
+      "sourceMapSHA256": "491b24e1500a0c6ae50459b22c13ca2cde0917be8a16946869764a207b2faa00"
+    },
+    "uk-UA.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/uk-UA.json",
+      "sourceSHA256": "f1349fe087bc2518f75ef9981c585a2f6a52ce80973c20a387679bb9ef7ec908",
+      "sourceMapSHA256": "2bb3e71a0715f7f48a122868a1fa1c4f6c4254a7b4cd69b7a2007a4605033a34"
+    },
+    "zh-CN.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/zh-CN.json",
+      "sourceSHA256": "94b54de8df04e779d9c0fce4e735c643d9ccf0df02c1af970efc98fcd2d1b96c",
+      "sourceMapSHA256": "6d97fac5ca6e1e972d13c82ca6d1aa7f112ce58a50c062839df79eda21e7473b"
+    },
+    "zh-TW.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/datepicker/zh-TW.json",
+      "sourceSHA256": "edf24732fe87e67d52a9e104c0623636a2459926389a0880c8b4d99fb8d845b5",
+      "sourceMapSHA256": "466c17e06175ec9b009e80642aa9b2f2ed7f4694d490e28adcf33f3fb2ae160e"
+    }
+  },
+  "adaptations": [
+    "Complete entered-key/backspace/era/day-period/number bounds/restart/auto-next and relevant spinbutton keyboard algorithms operate on native-owned pinned field state",
+    "Use native original keyboard event data and explicit actual-focus callbacks; group RTL movement requires current native physical geometry",
+    "Replace DOM text/content/selection writes with separate owned SDK input admission; no existing editor writes, no replay",
+    "Retain pinned display-name Intl fallback and every date-field translation; installed native semantics/IME/default/focus/geometry remain unqualified"
+  ],
+  "approval": "Complete roadmap3.5.52 directly approved2026-10-22",
+  "verification": "35 actual canonical TimePicker entry/key/name/empty-value oracles;77 native source cases across five suites, with final19 entry cases repeated after metadata additions; focused oracle types773files/zero diagnostics. No native event/controller adoption or installed IME/default/focus/geometry verdict.",
+  "spinTranslations": {
+    "ar-AE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/ar-AE.json",
+      "sourceSHA256": "1b94b24be10bb06c62f7dacb9eb6d76441a3f288c684bb1ec0a62195298b0574",
+      "sourceMapSHA256": "b8db28f3899cc79ebeba9d880c7ff78a4ed5ea81076f7c0801d9a379a933176d"
+    },
+    "bg-BG.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/bg-BG.json",
+      "sourceSHA256": "63bf7a4e8a63f726c98d5e031a1fd97c1148fef0a84a1fa413b20aef7ec36ac8",
+      "sourceMapSHA256": "9925847f51165bf047b5065ddc95a809d54a3e67feec770b610c0fa15255c5da"
+    },
+    "cs-CZ.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/cs-CZ.json",
+      "sourceSHA256": "01ed66e6f6af5cc14e3b9c882efe690b7e4f877f5411108af6ca53901c3a9886",
+      "sourceMapSHA256": "32ba392c0be70d999a233f7d170df701e4232052122b07462639aaabc59335f6"
+    },
+    "da-DK.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/da-DK.json",
+      "sourceSHA256": "391848e638de8fff0f7a776337e939ff7118186d2b8d0dc8fe65d8a35fc3b768",
+      "sourceMapSHA256": "38c966d5f66e4964413d7d38ed4934df7226f2ed9404147807da7a52f67f566c"
+    },
+    "de-DE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/de-DE.json",
+      "sourceSHA256": "4f78b1f24502cab0b411e30e15020c8406446849fceccd2e7e5d69c5c145cdfb",
+      "sourceMapSHA256": "0bdae083cead433e1a7ce48a856720a93f260aa2a45441e2d7280351b90960a3"
+    },
+    "el-GR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/el-GR.json",
+      "sourceSHA256": "47f9b89632fc09dc5e7e9c8b451e9f63169eeaa597b9737a0612932388127cbf",
+      "sourceMapSHA256": "f427bc4196d4a89f80ba7f3292e8934e6a2aac589e733ae4ff679212aebd0d12"
+    },
+    "en-US.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/en-US.json",
+      "sourceSHA256": "8f5a77f9413a562ec5ccd2438bc7e72bdc1e1cda460285af4fc243d9d7305b71",
+      "sourceMapSHA256": "558f5bf506bdce3806679f12e916ad65cade90b34926b790195ca598e5051ae3"
+    },
+    "es-ES.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/es-ES.json",
+      "sourceSHA256": "0677c5a97c262c2397c5469301f0902301eb6d291df02f5a767bafa6e9322804",
+      "sourceMapSHA256": "9e503a12a5b7bef9a56ba26e0a1f2d3ad88455b815d8e25e432174fad6ce0235"
+    },
+    "et-EE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/et-EE.json",
+      "sourceSHA256": "606ff83e57fd5660590fb357389178a6e7806f9e35269f0ff866f5330dcaab70",
+      "sourceMapSHA256": "49c5aeb6dd3689c4a91812ee971745cd0d8447d249a93692f812bcd60bebf848"
+    },
+    "fi-FI.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/fi-FI.json",
+      "sourceSHA256": "23652d52ed19988e74f7dae5f237e3806770bce405773a8cec991e1540094869",
+      "sourceMapSHA256": "8a109f69520a460337b94fc44597932fb6e15bb0330cadf7b508c90f9cb26fba"
+    },
+    "fr-FR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/fr-FR.json",
+      "sourceSHA256": "2fdf7b35e0a01743ae9019bbcbed6499851b5b5f9fa0d75ea11089112b74691b",
+      "sourceMapSHA256": "bbe7236675dd592b0978992ad241e572c96cd32c8a1b4ed708f60c13997fcf21"
+    },
+    "he-IL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/he-IL.json",
+      "sourceSHA256": "9ab4fa7f803be4db258e4908d801e7887468f95e3270f0dd2bc1f53d9553cd34",
+      "sourceMapSHA256": "fd291c57405a8bc190c74487e76bc69bc3fd5ffb24e2809482bc9d576d6b2bc2"
+    },
+    "hr-HR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/hr-HR.json",
+      "sourceSHA256": "f5446ddd5557c078ede9607ecf5d7355ba10a8414e21b3592905e66be7ee7aec",
+      "sourceMapSHA256": "86a30b27501315c794cd0406620a295a999e8fb366cbcd4fcad92109e7c9fce8"
+    },
+    "hu-HU.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/hu-HU.json",
+      "sourceSHA256": "42bc0526a9dc0175cf0fd5fe32444684ba7a824cc8af91214b5b12c946656230",
+      "sourceMapSHA256": "25821835abc391db1fd231e0236196d150961e97b1564a01ac7e247f70294a23"
+    },
+    "it-IT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/it-IT.json",
+      "sourceSHA256": "7ba19090e740c3d486b1cf733ce16455f87cc2a74e3b645a88101a2b5caf6a19",
+      "sourceMapSHA256": "eac13b4438f9fc7baeed803007e451a03675df78ebc15adeb74255edc2fdeb5e"
+    },
+    "ja-JP.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/ja-JP.json",
+      "sourceSHA256": "56be32b7566bf7bc11d35d623c5b013e89bc408c03c50eeef2ab808470390b53",
+      "sourceMapSHA256": "9cf3bba44018d5e8cd7abb9260c023b466e0bdfebfc21f7bde6c9abf3fcb2968"
+    },
+    "ko-KR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/ko-KR.json",
+      "sourceSHA256": "96b0fffd20b99537edb2e353eee1be430f2be1905965c1cb6510196d72cd3794",
+      "sourceMapSHA256": "c0d2e272b2a00a23c77264c943dc21e9bee7f9b88f989036c5f7faf4efbe698c"
+    },
+    "lt-LT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/lt-LT.json",
+      "sourceSHA256": "1c93c0b80df62a5c790ef87855b990ecbc60935ddad1310a7817fba5d60d6906",
+      "sourceMapSHA256": "1fed5952b268da8256d3dde95bf822fb137cdc0965d56551a1c7edf6d403e4ae"
+    },
+    "lv-LV.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/lv-LV.json",
+      "sourceSHA256": "b231ec4106d37995115213d18f63455de1d2e562ff1fe3cc965dfd1fd62edd82",
+      "sourceMapSHA256": "69a739a714e921319574662317a3b8b91dcca2b7a733070b5e4eb518ebd91660"
+    },
+    "nb-NO.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/nb-NO.json",
+      "sourceSHA256": "391848e638de8fff0f7a776337e939ff7118186d2b8d0dc8fe65d8a35fc3b768",
+      "sourceMapSHA256": "65fd54df735f302cd00ac49a81a07aab2df8de35ee370a4367ea821d80de09d3"
+    },
+    "nl-NL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/nl-NL.json",
+      "sourceSHA256": "6b236e57896476e308a2900c19026db1335674b2226aaa8e527a12fef75fc223",
+      "sourceMapSHA256": "6daa14e32d1e0ed5bc8d4d50599d1465b00943ee812aa4c5981aae3632649158"
+    },
+    "pl-PL.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/pl-PL.json",
+      "sourceSHA256": "d53edbb3a4bdb4d87c1dbdd60c7d24f1adbb0403390bf68f6e2a5a09f72a7cde",
+      "sourceMapSHA256": "0c110826d0ad04fb9d1123ae7a579492eea7a33620ada83e55b4683c8c1b80dd"
+    },
+    "pt-BR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/pt-BR.json",
+      "sourceSHA256": "58bec7b756a1a94a500312700d3a7c81475c2d8ca4aa0d9ecfb063cb8e6ebc01",
+      "sourceMapSHA256": "61d9865a2f4a4e7613b1e1d113616545c92962b5a81c37c69af4c3c6ee77f5c2"
+    },
+    "pt-PT.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/pt-PT.json",
+      "sourceSHA256": "58bec7b756a1a94a500312700d3a7c81475c2d8ca4aa0d9ecfb063cb8e6ebc01",
+      "sourceMapSHA256": "33b01039025be577a424a8af51339303b426596415e634851e8b08af26473459"
+    },
+    "ro-RO.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/ro-RO.json",
+      "sourceSHA256": "61bfe334c871329b80272e72e6c7f62d9e35dc37a21ff12b3cb67424e9a79a90",
+      "sourceMapSHA256": "39143cf580eea9b953121e2481a3a6ba8e08b24a01f4af3c0d80a8fdf9842302"
+    },
+    "ru-RU.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/ru-RU.json",
+      "sourceSHA256": "9db5535df6c53e3847ec5b957b6eb73952186c1c8c47c6b1fb7a55b9c4c017b8",
+      "sourceMapSHA256": "57d9e812a6bd79501e8765acbf44b4f251e79da7ce02000bc3e0df3afe19c92f"
+    },
+    "sk-SK.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/sk-SK.json",
+      "sourceSHA256": "6686b6ab30ecc95da068614a07a3be9334a87622f5355a732312eb3bf0fd9f41",
+      "sourceMapSHA256": "a93d1c04e1b4248cd2d87b27b351f5ba82abbac3cbc01497621848bdff1c7786"
+    },
+    "sl-SI.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/sl-SI.json",
+      "sourceSHA256": "27c2a5e4a8a8d1a6bdf16d2a7a112a7f284a97d2db7d264e6c1970059924c366",
+      "sourceMapSHA256": "341c6b6109c6011cb1db92dcabff403053556632d616030e881a2915f2db3f14"
+    },
+    "sr-SP.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/sr-SP.json",
+      "sourceSHA256": "f5446ddd5557c078ede9607ecf5d7355ba10a8414e21b3592905e66be7ee7aec",
+      "sourceMapSHA256": "580730e07b1bd5e88912808efb9f4bf067b988f4a402b3c57130215eb61ee0f0"
+    },
+    "sv-SE.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/sv-SE.json",
+      "sourceSHA256": "4d674252f754d0aee4848871868c0751de92dabfb3c0734b2533f8dfcd24657b",
+      "sourceMapSHA256": "ccd3e514fe412109557da4efc57582c256d73da7635317666363483c53ba247d"
+    },
+    "tr-TR.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/tr-TR.json",
+      "sourceSHA256": "0bcfd226d8090b77861087a9ca4c70773f2d37adfd6d72d218123591e07f9224",
+      "sourceMapSHA256": "0ff23ec62cd7e44543fef06a9ed7439fdb08e8d35534e411aa6fbad107401c0e"
+    },
+    "uk-UA.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/uk-UA.json",
+      "sourceSHA256": "02a3a61d7a2fde513d93664cfc7f67bac5885f046b0d8958b919c41eb0cc3e0e",
+      "sourceMapSHA256": "1fcd49a85b58d694be3d6ad4748176e4067be9116dc0f5b0fe7b1ac42d7f8b27"
+    },
+    "zh-CN.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/zh-CN.json",
+      "sourceSHA256": "56be32b7566bf7bc11d35d623c5b013e89bc408c03c50eeef2ab808470390b53",
+      "sourceMapSHA256": "6d136547d5042461a035db89884518090cdc4b573421bf8cb67e7f4f271effe9"
+    },
+    "zh-TW.mjs.map": {
+      "sourcePath": "packages/react-aria/intl/spinbutton/zh-TW.json",
+      "sourceSHA256": "daa122fcd94ba08c4a513ccc610a004530514b09d222db381a61f9990ec8267f",
+      "sourceMapSHA256": "fbc24af516dc522b03fc8a6cd350067c6eb8ca6432d882a6c06f51048bf99215"
+    }
+  },
+  "authoredSourcesSHA256": {
+    "groupKey.ts": "8759a73ebc38a8bd91b0763fa77ed7bb3a6dd815b305884e2944a000ab9efbd3",
+    "messages.ts": "9c5d3551e3d8d40dcf92a5fa0dbacce6f3c6ea31cf3c3af570b1bb31261cdbf9",
+    "semantics.ts": "1666affc04e73db2176c98019f418a2488190e0680e7a0ae67863affae29c26f",
+    "spinMessages.ts": "9fe490816f067ab49f11b869f7e9d77e590af5f0706721aed82976d79790e26d",
+    "useNativeDateSegmentEntry.ts": "cfd29e8a30d47c60f43ab9acd27f403dfd7764dac2857073422632712791591b"
+  }
+}
