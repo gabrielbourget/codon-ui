@@ -150,6 +150,7 @@ export const NativeTimePickerSegment = (props: TProps) => {
       segmentDisabled={state.isDisabled}
       segmentReadOnly={state.isReadOnly || !segment.isEditable}
       segmentEditable
+      segmentPlaceholder={segment.isPlaceholder}
       accessible
       role={semantics.role === "spinbutton" ? "spinbutton" : undefined}
       accessibilityLabel={semantics.label}

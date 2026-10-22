@@ -36,6 +36,7 @@ export interface NativeProps extends ViewProps {
   segmentDisabled: boolean
   segmentReadOnly: boolean
   segmentEditable: boolean
+  segmentPlaceholder?: WithDefault<boolean, false>
   onNativeSegmentInput?: DirectEventHandler<NativeDateSegmentData>
 }
 

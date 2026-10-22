@@ -1,9 +1,11 @@
 #include "FormDocumentQuery.h"
 #include "FieldSemanticQuery.h"
+#include "FieldGroupQuery.h"
 
 #include <folly/json.h>
 #include <react/renderer/components/CodonNativeInputSpec/Props.h>
 #include <react/renderer/components/view/YogaStylableProps.h>
+#include <react/renderer/components/textinput/BaseTextInputProps.h>
 #include <react/renderer/mounting/ShadowTree.h>
 #include <stdexcept>
 #include <string_view>
@@ -89,7 +91,7 @@ std::string queryFabricFormDocumentStamp(const UIManager &manager, SurfaceId sur
 }
 
 std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface, Tag target,
-    NativeFormDocumentSession &session, const std::function<void()> &check) {
+    NativeFormDocumentSession &session, const std::function<void()> &check, const std::string &fieldGroup) {
   if (target <= 0) throw std::invalid_argument("Native form: current target and document required");
   const auto document = surface == 0 ? captureFabricFormDocumentForTarget(manager, target, check) :
       captureFabricFormDocument(manager, surface, check);
@@ -112,8 +114,24 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
       ("hidden", node.getTraits().check(ShadowNodeTraits::Trait::Hidden))
       ("displayNone", style && style->yogaStyle.display() == facebook::yoga::Display::None));
     const auto name = std::string_view(node.getComponentName());
-    if (name == "CUIDateSegment") nodes[nodes.size() - 1]["dateSegmentOwner"] =
-      static_cast<const CUIDateSegmentProps *>(node.getProps().get())->ownerId;
+    if (name == "CUIDateSegment") {
+      const auto &segment = *static_cast<const CUIDateSegmentProps *>(node.getProps().get());
+      nodes[nodes.size() - 1]["dateSegmentOwner"] = segment.ownerId;
+      if (!fieldGroup.empty()) nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
+        ("candidate", true)("focusable", segment.segmentEditable && !segment.segmentDisabled)
+        ("tabStop", true)("readOnly", segment.segmentReadOnly)("placeholder", segment.segmentPlaceholder);
+    } else if (!fieldGroup.empty() && name == "CUIFocusView") {
+      const auto &focus = *static_cast<const CUIFocusViewProps *>(node.getProps().get());
+      nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
+        ("candidate", true)("focusable", focus.keyboardFocusable)("tabStop", focus.nativeTabStop)
+        ("readOnly", false)("placeholder", false);
+    } else if (!fieldGroup.empty() && (name == "TextInput" || name == "AndroidTextInput")) {
+      const auto &editor = *static_cast<const BaseTextInputProps *>(node.getProps().get());
+      const bool disabled = editor.accessibilityState && editor.accessibilityState->disabled;
+      nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
+        ("candidate", true)("focusable", !disabled)("tabStop", true)
+        ("readOnly", editor.readOnly || !editor.editable)("placeholder", false);
+    }
     // The generated app library owns custom prop vtables on Android. Resolve
     // its exact component identity before reading its generated prop type.
     const auto *form = name == "CUIFormRoot" ? static_cast<const CUIFormRootProps *>(node.getProps().get()) : nullptr;
@@ -156,8 +174,14 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
   resolveFieldSemanticPlans(nodes);
   if (check) check();
   if (!isFabricFormDocumentCurrent(manager, document)) throw std::runtime_error("Native form: document revision retired");
-  return folly::toJson(folly::dynamic::object("documentId", documentId)("surfaceId", document.root->getSurfaceId())
+  folly::dynamic result = folly::dynamic::object("documentId", documentId)("surfaceId", document.root->getSurfaceId())
     ("rootTarget", document.root->getTag())("revision", std::to_string(document.revision))
-    ("target", target)("nodes", std::move(nodes))("forms", std::move(forms))("fields", std::move(fields)));
+    ("target", target)("nodes", std::move(nodes))("forms", std::move(forms))("fields", std::move(fields));
+  if (!fieldGroup.empty()) {
+    result["fieldGroup"] = fieldGroupPlan(result, folly::parseJson(fieldGroup));
+    if (check) check();
+    if (!isFabricFormDocumentCurrent(manager, document)) throw std::runtime_error("Native field group: document revision retired");
+  }
+  return folly::toJson(result);
 }
 } // namespace codon::form

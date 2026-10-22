@@ -27,8 +27,9 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
   private JSONObject semanticDocument;
   private final HashMap<Integer, JSONObject> semanticNodes = new HashMap<>(), semanticFields = new HashMap<>();
   CUIFormDocumentModule(ReactApplicationContext context) { super(context); }
-  private static native String nativeFormDocument(FabricUIManager manager, int surface, int target, long session);
+  private static native String nativeFormDocument(FabricUIManager manager, int surface, int target, long session, String group);
   private static native String nativeFormDocumentStamp(FabricUIManager manager, int surface, long session);
+  private static native String nativeFieldGroupSelection(String document, String snapshot);
   private static native long nativeCreateFormSession(String identity);
   private static native void nativeRetireFormSession(long session);
 
@@ -42,8 +43,11 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
   }
 
   private synchronized String readSnapshot(FabricUIManager manager, int surface, int target) {
+    return readSnapshot(manager, surface, target, "");
+  }
+  private synchronized String readSnapshot(FabricUIManager manager, int surface, int target, String group) {
     if (!valid.get() || session == 0) throw new IllegalStateException("form-module-retired");
-    return nativeFormDocument(manager, surface, target, session);
+    return nativeFormDocument(manager, surface, target, session, group);
   }
   private synchronized String readStamp(FabricUIManager manager, int surface) {
     if (!valid.get() || session == 0) throw new IllegalStateException("form-module-retired");
@@ -180,8 +184,18 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(nonce instanceof String) || ((String)nonce).isEmpty()) throw new IllegalArgumentException("form-request-id-invalid");
         UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), target);
         if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("form-Fabric-unavailable");
-        String snapshot = readSnapshot((FabricUIManager)manager, surface, target);
+        String group = request.has("fieldGroup") ? request.getJSONObject("fieldGroup").toString() : "";
+        if (!group.isEmpty() && (focus || request.has("actionAdmission") || request.has("inspect")))
+          throw new IllegalArgumentException("field-group-read-only-request-required");
+        String snapshot = readSnapshot((FabricUIManager)manager, surface, target, group);
         JSONObject response = new JSONObject(snapshot);
+        if (!group.isEmpty()) {
+          JSONObject groupSnapshot = CUIFieldGroupDocument.read(manager, response);
+          groupSnapshot.put("selection", new JSONObject(nativeFieldGroupSelection(snapshot, groupSnapshot.toString())));
+          response.put("fieldGroupSnapshot", groupSnapshot);
+          if (!snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target, group)))
+            throw new IllegalStateException("field-group-document-retired-during-original-read");
+        }
         if (focus) {
           String origin = request.getString("origin");
           if (!("native".equals(origin) && request.has("actionAdmission")) &&

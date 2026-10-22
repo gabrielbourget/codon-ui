@@ -1,5 +1,6 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
 #import "CUIFormDocumentInspection.h"
+#import "CUIFieldGroupDocument.h"
 #import "CUIFormMetadata.h"
 #import "CUIFormFieldFocus.h"
 #import "CUIFieldSemantics.h"
@@ -11,6 +12,7 @@
 #import <React/RCTScheduler.h>
 #import <React/RCTSurfacePresenter.h>
 #include "../cpp/form/FormDocumentQuery.h"
+#include "../cpp/form/FieldGroupQuery.h"
 #include <atomic>
 #include <cmath>
 #include <climits>
@@ -260,10 +262,26 @@ RCT_EXPORT_MODULE(CUIFormDocument)
     if (!manager) @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-Fabric-unavailable" userInfo:nil];
     try {
       const auto check = [&] { if (!_valid.load()) throw std::runtime_error("Native form: module retired"); };
-      const auto result = codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check);
+      id group = request[@"fieldGroup"];
+      if (group && (focus || request[@"actionAdmission"] || request[@"inspect"] || ![group isKindOfClass:NSDictionary.class]))
+        throw std::runtime_error("Native field group: read-only request required");
+      NSData *groupBytes = group ? [NSJSONSerialization dataWithJSONObject:group options:NSJSONWritingSortedKeys error:nil] : nil;
+      const std::string groupRequest = group ? std::string([[[NSString alloc] initWithData:groupBytes encoding:NSUTF8StringEncoding] UTF8String]) : "";
+      const auto result = codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check, groupRequest);
       NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error] mutableCopy];
       if (!response || error) throw std::runtime_error("Native form: invalid snapshot encoding");
       response[@"requestId"] = nonce;
+      if (group) {
+        NSMutableDictionary *snapshot = [CUIReadFieldGroupDocument(presenter, response) mutableCopy];
+        NSData *snapshotBytes = [NSJSONSerialization dataWithJSONObject:snapshot options:NSJSONWritingSortedKeys error:nil];
+        const auto selection = codon::form::fieldGroupSelection(folly::parseJson(result),
+          folly::parseJson([[[NSString alloc] initWithData:snapshotBytes encoding:NSUTF8StringEncoding] UTF8String]));
+        const auto selected = folly::toJson(selection);
+        snapshot[@"selection"] = [NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:selected.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+        response[@"fieldGroupSnapshot"] = snapshot;
+        if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check, groupRequest))
+          throw std::runtime_error("Native field group: document retired during original read");
+      }
       if (focus) {
         NSString *origin = request[@"origin"];
         if (!([origin isEqual:@"native"] && request[@"actionAdmission"]) &&

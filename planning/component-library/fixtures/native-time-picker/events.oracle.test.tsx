@@ -147,3 +147,128 @@ it("includes authored focusables in RTL physical-neighbor selection", async () =
   await userEvent.setup().keyboard("{ArrowRight}")
   expect(document.activeElement).toBe(button)
 })
+
+it("includes negative tab stops in logical focus order", async () => {
+  render(
+    <>
+      {content}
+      <TimePicker
+        value={new Time(13, 45)}
+        aria-label="Clock"
+        ComponentIcon={
+          <>
+            <button tabIndex={-1}>Programmatic action</button>
+            <button>Tab action</button>
+          </>
+        }
+      />
+    </>,
+  )
+  const user = userEvent.setup(),
+    parts = screen.getAllByRole("spinbutton"),
+    programmatic = screen.getByRole("button", { name: "Programmatic action" }),
+    tabbable = screen.getByRole("button", { name: "Tab action" })
+  act(() => parts[1].focus())
+  await user.keyboard("{ArrowRight}")
+  expect(document.activeElement).toBe(programmatic)
+  await user.keyboard("{ArrowRight}")
+  expect(document.activeElement).toBe(tabbable)
+  await user.keyboard("{ArrowLeft}")
+  expect(document.activeElement).toBe(programmatic)
+})
+
+it("uses tab stops and first reading-order ties for physical RTL navigation", async () => {
+  render(
+    <>
+      {content}
+      <I18nProvider locale="ar-EG">
+        <TimePicker
+          value={new Time(13, 45)}
+          aria-label="Clock"
+          ComponentIcon={
+            <>
+              <button tabIndex={-1}>Programmatic action</button>
+              <button>First tie</button>
+              <button>Second tie</button>
+            </>
+          }
+        />
+      </I18nProvider>
+    </>,
+  )
+  const parts = screen.getAllByRole("spinbutton"),
+    programmatic = screen.getByRole("button", { name: "Programmatic action" }),
+    first = screen.getByRole("button", { name: "First tie" }),
+    second = screen.getByRole("button", { name: "Second tie" })
+  const targets = [...parts, programmatic, first, second]
+  const positions = [30, 80, 40, 50, 50]
+  positions.forEach((left, index) =>
+    vi.spyOn(targets[index], "getBoundingClientRect").mockReturnValue(new DOMRect(left, index * 30, 10, 20)),
+  )
+  act(() => parts[0].focus())
+  await userEvent.setup().keyboard("{ArrowRight}")
+  expect(document.activeElement).toBe(first)
+})
+
+it("keeps independently owned nested fields in the outer committed traversal", async () => {
+  const outer = vi.fn(),
+    inner = vi.fn()
+  render(
+    <>
+      {content}
+      <TimePicker
+        value={new Time(13, 45)}
+        aria-label="Outer clock"
+        onKeyDown={outer}
+        ComponentIcon={<TimePicker value={new Time(8, 15)} aria-label="Inner clock" onKeyDown={inner} />}
+      />
+    </>,
+  )
+  const parts = screen.getAllByRole("spinbutton"),
+    user = userEvent.setup()
+  act(() => parts[1].focus())
+  await user.keyboard("{ArrowRight}")
+  expect(document.activeElement).toBe(parts[2])
+  expect(outer).toHaveBeenCalledTimes(1)
+  expect(inner).not.toHaveBeenCalled()
+  outer.mockClear()
+  await user.keyboard("{ArrowRight}")
+  expect(document.activeElement).toBe(parts[3])
+  expect(inner).toHaveBeenCalledTimes(1)
+  expect(outer).not.toHaveBeenCalled()
+})
+
+it("selects the final contiguous placeholder run at mouse start", async () => {
+  render(
+    <>
+      {content}
+      <TimePicker aria-label="Clock" />
+    </>,
+  )
+  const user = userEvent.setup(),
+    outside = screen.getByRole("button", { name: "Outside field" }),
+    group = screen.getByRole("group", { name: "TimePicker Input Icon Group" }),
+    parts = screen.getAllByRole("spinbutton")
+  act(() => outside.focus())
+  await user.pointer({ target: group, keys: "[MouseLeft>]" })
+  expect(document.activeElement).toBe(parts[0])
+  await user.pointer({ target: group, keys: "[/MouseLeft]" })
+})
+
+it("waits for touch release before selecting the placeholder run", async () => {
+  render(
+    <>
+      {content}
+      <TimePicker aria-label="Clock" />
+    </>,
+  )
+  const user = userEvent.setup(),
+    outside = screen.getByRole("button", { name: "Outside field" }),
+    group = screen.getByRole("group", { name: "TimePicker Input Icon Group" }),
+    parts = screen.getAllByRole("spinbutton")
+  act(() => outside.focus())
+  await user.pointer({ target: group, keys: "[TouchA>]" })
+  expect(document.activeElement).toBe(outside)
+  await user.pointer({ target: group, keys: "[/TouchA]" })
+  expect(document.activeElement).toBe(parts[0])
+})
