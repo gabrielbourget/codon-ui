@@ -5,6 +5,7 @@ import {
   useContext,
   useCallback,
   useInsertionEffect,
+  useEffect,
   useLayoutEffect,
   useRef,
   useMemo,
@@ -87,6 +88,7 @@ type TEnvironment = Readonly<{
   isCollectionPending: boolean
   metrics?: RefObject<TNativeComboBoxListMetrics>
   contentRef?: RefObject<View | null>
+  revealFocusedRow?: (key: TNativeCollectionKey) => boolean
 }>
 export const NativeComboBoxListEnvironmentContext = createContext<TEnvironment | null>(null)
 export const NativeComboBoxListBehaviorContext = createContext<
@@ -187,10 +189,14 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     return result
   }, [state.collection])
   const autoFocusPending = useRef(autoFocus)
+  const didAutoFocus = useRef(false)
+  const lastScrolledKey = useRef(state.selectionManager.focusedKey)
+  const scrollFrame = useRef<ReturnType<typeof requestAnimationFrame> | null>(null)
+  const [, setLayoutRevision] = useState(0)
   const focusAttempt = useRef<{ target: View; binding: string } | null>(null)
-  const current = useRef({ props, state, environment, actions })
+  const current = useRef({ props, state, environment, actions, renderer })
   useInsertionEffect(() => {
-    current.current = { props, state, environment, actions }
+    current.current = { props, state, environment, actions, renderer }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -256,14 +262,57 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
           focusNativeTarget(target)
       })
     }
-    if (owner.state.collection.size > 0) autoFocusPending.current = false
+    if (owner.state.collection.size > 0) {
+      autoFocusPending.current = false
+      didAutoFocus.current = true
+    }
   })
   useLayoutEffect(() => {
     const key = state.selectionManager.focusedKey
     if (!active() || !state.selectionManager.isFocused || key == null) return
     renderer.layoutDelegate?.requestRendering?.(key)
-    renderer.layoutDelegate?.scrollToKey?.(key)
   }, [state.selectionManager.focusedKey, state.selectionManager.isFocused, renderer.layoutDelegate])
+  useEffect(() => {
+    const key = state.selectionManager.focusedKey
+    if (
+      active() &&
+      state.selectionManager.isFocused &&
+      key != null &&
+      (lastScrolledKey.current !== key || didAutoFocus.current)
+    ) {
+      if (scope?.lastInput()?.origin === "keyboard" || didAutoFocus.current) {
+        if (scrollFrame.current != null) cancelAnimationFrame(scrollFrame.current)
+        const collection = state.collection
+        const force = didAutoFocus.current
+        scrollFrame.current = requestAnimationFrame(() => {
+          scrollFrame.current = null
+          const owner = current.current
+          if (
+            !active() ||
+            owner.renderer !== renderer ||
+            owner.state.collection !== collection ||
+            !owner.state.selectionManager.isFocused ||
+            owner.state.selectionManager.focusedKey !== key ||
+            (!force && scope?.lastInput()?.origin !== "keyboard")
+          )
+            return
+          if (renderer.layoutDelegate?.scrollToKey) renderer.layoutDelegate.scrollToKey(key)
+          else if (!renderer.isVirtualized && owner.environment?.revealFocusedRow?.(key) !== true) return
+          lastScrolledKey.current = key
+          didAutoFocus.current = false
+        })
+        return
+      }
+    }
+    lastScrolledKey.current = key
+    didAutoFocus.current = false
+  })
+  useEffect(
+    () => () => {
+      if (scrollFrame.current != null) cancelAnimationFrame(scrollFrame.current)
+    },
+    [],
+  )
   const flags: TNativeComboBoxListRenderState = {
     isEmpty: state.collection.size === 0,
     isFocused: observedFocused,
@@ -363,6 +412,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
                                   ? { width, height }
                                   : null,
                             }
+                          setLayoutRevision((revision) => revision + 1)
                         }}
                         onScroll={(event) => {
                           if (metrics)

@@ -1197,3 +1197,60 @@ it("retains original editor boundaries after opaque linked collection reordering
   fireEvent.keyDown(input, { key: "ArrowDown" })
   expect(keyboardState.selectionManager.focusedKey).toBe(0)
 })
+
+it("reveals keyboard-focused rows in the original scroll list while retaining editor focus", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  Object.defineProperties(list, {
+    clientHeight: { configurable: true, value: 100 },
+    scrollHeight: { configurable: true, value: 240 },
+    clientWidth: { configurable: true, value: 100 },
+    scrollWidth: { configurable: true, value: 100 },
+    offsetWidth: { configurable: true, value: 100 },
+    offsetHeight: { configurable: true, value: 100 },
+  })
+  list.style.overflowY = "auto"
+  list.getBoundingClientRect = () => ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 100,
+    bottom: 100,
+    width: 100,
+    height: 100,
+    toJSON: () => ({}),
+  })
+  screen.getAllByRole("option").forEach((node, index) => {
+    node.getBoundingClientRect = () => ({
+      x: 0,
+      y: index * 30 - list.scrollTop,
+      left: 0,
+      top: index * 30 - list.scrollTop,
+      right: 100,
+      bottom: index * 30 + 30 - list.scrollTop,
+      width: 100,
+      height: 30,
+      toJSON: () => ({}),
+    })
+  })
+  fireEvent.keyDown(input, { key: "End" })
+  await waitFor(() => expect(list.scrollTop).toBe(140))
+  expect(document.activeElement).toBe(input)
+  fireEvent.keyDown(input, { key: "Home" })
+  await waitFor(() => expect(list.scrollTop).toBe(0))
+  expect(document.activeElement).toBe(input)
+  records.push({ case: "original-list-keyboard-reveal", endOffset: 140, homeOffset: 0, originalEditorFocused: true })
+})
+
+it("does not reveal a programmatic row change after pointer input", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  list.scrollTop = 140
+  const user = userEvent.setup()
+  await user.click(input)
+  await act(() => keyboardState.selectionManager.setFocusedKey(0))
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  expect(list.scrollTop).toBe(140)
+  expect(document.activeElement).toBe(input)
+})
