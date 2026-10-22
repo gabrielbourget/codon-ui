@@ -1,5 +1,5 @@
-import { forwardRef } from "react"
-import { Text as NativeText, type TextProps, type TextStyle } from "react-native"
+import { forwardRef, type ForwardRefExoticComponent, type ReactElement, type RefAttributes } from "react"
+import { Text as RNText, type TextProps, type TextStyle } from "react-native"
 
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
@@ -7,10 +7,12 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 
 import type { TNativeTextProps, TNativeTextRef } from "./types"
 
-export const Text = forwardRef<TNativeTextRef, TNativeTextProps>(
+export type TNativeTextRender = (props: TextProps & RefAttributes<TNativeTextRef>) => ReactElement
+export const NativeText = forwardRef<TNativeTextRef, TNativeTextProps & { nativeRender?: TNativeTextRender }>(
   (
     {
       children,
+      nativeRender,
       variant = "b10",
       fontWeight = "regular",
       fontStyle,
@@ -62,25 +64,26 @@ export const Text = forwardRef<TNativeTextRef, TNativeTextProps>(
             ? "heading"
             : undefined)
 
+    const nativeProps: TextProps & RefAttributes<TNativeTextRef> = {
+      ...rest,
+      ref,
+      role: semanticRole,
+      accessibilityRole,
+      accessibilityLabel: accessibilityLabel ?? aliasLabel,
+      testID: testID ?? aliasTestID ?? "text",
+      selectable: selectable ?? (elementType !== "label" && !content?.isButton),
+      style: { ...resolved, color: resolved.color ?? foreground },
+      children,
+    }
     return (
       <NativeContentContext.Provider
         value={{ foregroundColor: resolved.color ?? foreground, isButton: content?.isButton ?? false }}
       >
-        <NativeText
-          {...rest}
-          ref={ref}
-          role={semanticRole}
-          accessibilityRole={accessibilityRole}
-          accessibilityLabel={accessibilityLabel ?? aliasLabel}
-          testID={testID ?? aliasTestID ?? "text"}
-          selectable={selectable ?? (elementType !== "label" && !content?.isButton)}
-          style={{ ...resolved, color: resolved.color ?? foreground }}
-        >
-          {children}
-        </NativeText>
+        {nativeRender ? nativeRender(nativeProps) : <RNText {...nativeProps} />}
       </NativeContentContext.Provider>
     )
   },
 )
 
-Text.displayName = "Text"
+NativeText.displayName = "Text"
+export const Text: ForwardRefExoticComponent<TNativeTextProps & RefAttributes<TNativeTextRef>> = NativeText
