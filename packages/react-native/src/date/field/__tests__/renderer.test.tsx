@@ -5,6 +5,8 @@ import { Text, View } from "react-native"
 import type * as RN from "react-native"
 
 import { NativeFocusHost } from "../../../input/NativeFocusView"
+import { useNativeKeyPolicy } from "../../../input/NativeKeyboardScope"
+import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { packet } from "../../input/__tests__/packet"
 import type { TNativeDateSegmentInput } from "../../input/NativeDateSegment"
@@ -382,4 +384,86 @@ it("keeps parent form metadata ahead of an independently owned field in the icon
   expect(metadata).toHaveLength(2)
   expect(metadata[0]).not.toBe(nested)
   expect(metadata[1]).toBe(nested)
+})
+
+it("routes an accepted key release to onKeyUp once per source group without repeating key-down effects", async () => {
+  const order: string[] = [],
+    down = jest.fn((event: TNativeKeyboardEvent) => order.push(`down:${event.nativeEvent.phase}`)),
+    up = jest.fn((event: TNativeKeyboardEvent) => order.push(`up:${event.nativeEvent.phase}`))
+  await render(
+    <NativeTimePickerRenderer
+      value={new Time(13, 45)}
+      onChange={() => order.push("change")}
+      onKeyDown={down}
+      onKeyUp={up}
+    />,
+  )
+  await send(0)
+  await send(0, { kind: "focus", focused: true, sequence: 2 })
+  const policy = () =>
+    jest
+      .mocked(useNativeKeyPolicy)
+      .mock.calls.map(([value]) => value)
+      .filter((value) => value.targetTag === 101)
+      .at(-1)!
+  expect(policy().canAct()).toBe(true)
+  const event = (phase: "down" | "up") =>
+    ({
+      nativeEvent: {
+        kind: "keyboard",
+        ownerId: "window",
+        target: 101,
+        key: "ArrowUp",
+        code: "ArrowUp",
+        nativeCode: 82,
+        characters: "",
+        phase,
+        repeat: false,
+        cancelled: false,
+        shiftKey: false,
+        altKey: false,
+        ctrlKey: false,
+        metaKey: false,
+        capsLock: false,
+        nativeModifierData: "0",
+        nativeDefaultHandled: true,
+        timestamp: 100,
+      },
+      preventDefault: jest.fn(),
+      stopPropagation: jest.fn(),
+      isPropagationStopped: () => false,
+    }) as unknown as TNativeKeyboardEvent
+  const pressed = event("down"),
+    released = event("up")
+  await act(() => policy().onKey(pressed))
+  await act(() => policy().onKey(released))
+  expect(order).toEqual(["change", "down:down", "down:down", "up:up", "up:up"])
+  expect(down.mock.calls.every(([value]) => value === pressed)).toBe(true)
+  expect(up.mock.calls.every(([value]) => value === released)).toBe(true)
+})
+
+it("retains the same-group callback after navigation stops propagation to the outer group", async () => {
+  const down = jest.fn()
+  await render(<NativeTimePickerRenderer value={new Time(13, 45)} onKeyDown={down} />)
+  await send(0)
+  await send(0, { kind: "focus", focused: true, sequence: 2 })
+  const policy = jest
+    .mocked(useNativeKeyPolicy)
+    .mock.calls.map(([value]) => value)
+    .filter((value) => value.targetTag === 101)
+    .at(-1)!
+  let stopped = false
+  const event = {
+    nativeEvent: { phase: "down", key: "ArrowRight", cancelled: false },
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(() => {
+      stopped = true
+    }),
+    isPropagationStopped: () => stopped,
+  } as unknown as TNativeKeyboardEvent
+  await act(() => policy.onKey(event))
+  expect(event.preventDefault).toHaveBeenCalledTimes(1)
+  expect(event.stopPropagation).toHaveBeenCalledTimes(1)
+  expect(down).toHaveBeenCalledTimes(1)
+  expect(down).toHaveBeenCalledWith(event)
 })
