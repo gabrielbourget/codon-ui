@@ -191,6 +191,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
       Editable text = ((EditText) focused).getText();
       composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0;
     }
+    if (focused instanceof CUIDateSegment) composing = ((CUIDateSegment)focused).isSegmentComposing();
     boolean editable = focused != null && focused.onCheckIsTextEditor();
     String token = CUIInputWindow.keyToken(event);
     for (Policy policy : policies) {
@@ -242,6 +243,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     if (ids.size() == 0) return;
     boolean composing = false;
     if (focused instanceof EditText) { Editable text = ((EditText) focused).getText(); composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0; }
+    if (focused instanceof CUIDateSegment) composing = ((CUIDateSegment)focused).isSegmentComposing();
     int code = event.getKeyCode();
     WritableMap data = baseData();
     data.putInt("target", focused != null && focused.getId() != View.NO_ID ? focused.getId() : getId());

@@ -89,7 +89,8 @@
         "CUICollectionRoot": "CUICollectionRoot",
         "CUICollectionNode": "CUICollectionNode",
         "CUIFormRoot": "CUIFormRoot",
-        "CUIFieldBinding": "CUIFieldBinding"
+        "CUIFieldBinding": "CUIFieldBinding",
+        "CUIDateSegment": "CUIDateSegment"
       }
     }
   }
