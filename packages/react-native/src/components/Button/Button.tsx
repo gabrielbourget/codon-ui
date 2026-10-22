@@ -35,6 +35,7 @@ type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" 
     nativeRole?: ViewProps["role"]
     nativeAccessible?: boolean
     nativeInteraction?: boolean
+    nativeMinPressDuration?: number
     nativeIsPressed?: boolean
     children?:
       | ReactNode
@@ -58,6 +59,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     nativeRole = "button",
     nativeAccessible = true,
     nativeInteraction = true,
+    nativeMinPressDuration,
     nativeIsPressed,
     nativeStyle,
     nativeRender,
@@ -162,7 +164,9 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
     : undefined
 
   return (
-    <NativeContentContext.Provider value={{ foregroundColor: resolved.foregroundColor, isButton: true }}>
+    <NativeContentContext.Provider
+      value={{ foregroundColor: resolved.foregroundColor, isButton: true, textStyle: resolved.textStyle }}
+    >
       <NativePressable
         {...rest}
         nativeRender={
@@ -183,6 +187,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
         role={nativeRole}
         disabled={isDisabled}
         activationBlocked={blocked}
+        nativeMinPressDuration={nativeMinPressDuration}
         focusable={keyboardFocusable}
         aria-disabled={isDisabled}
         aria-busy={nativeInteraction ? isPending : accessibilityState?.busy}

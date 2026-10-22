@@ -1,5 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
+import { act as actWithoutNativeCollections } from "@testing-library/react-native"
 import { createRef, useContext, useState } from "react"
 import * as RN from "react-native"
 
@@ -70,7 +71,7 @@ const setup = () => {
       </NativeOverlayProvider>
     </NativeThemeProvider>
   )
-  const ready = async () => {
+  const ready = async (resetScope = true) => {
     const measure = (target: RN.View, box: [number, number, number, number]) =>
       Object.defineProperty(target, "measureInWindow", {
         configurable: true,
@@ -85,7 +86,7 @@ const setup = () => {
     await fireEvent(screen.getByTestId("combo-box-popover", hidden), "layout", {
       nativeEvent: { layout: { x: 0, y: 0, width: 260, height: 180 } },
     })
-    for (const ready of [false, true]) {
+    for (const ready of resetScope ? [false, true] : [true]) {
       const scope = screen.getByTestId("host").props
       await act(() =>
         scope.onNativeScopeStatus({
@@ -121,6 +122,206 @@ const press = async (id: string) => {
   await act(() => row.props.onResponderGrant(event))
   await act(() => row.props.onResponderRelease(event))
 }
+
+// Original window packets below are explicit component models, not installed SDK input evidence.
+it.each([
+  "select",
+  "outside",
+  "cancel",
+  "query",
+  "query-restore",
+  "disabled",
+  "disabled-restore",
+  "read-only",
+  "unmount",
+  "window",
+  "prevented",
+  "pen",
+  "late-query",
+  "late-read-only",
+  "pending",
+] as const)(
+  "admits trigger-to-option mouse release only while its original ownership is current: %s",
+  async (scenario) => {
+    const native = jest.requireActual<typeof import("react-native")>("react-native")
+    const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
+    const targets = new WeakMap<object, number>()
+    let nextTarget = 850000
+    jest.mocked(native.findNodeHandle).mockImplementation((view) => {
+      const existing = inherited(view)
+      if (existing || !view || typeof view !== "object") return existing
+      if (!targets.has(view)) targets.set(view, ++nextTarget)
+      return targets.get(view)!
+    })
+    const f = setup(),
+      option = createRef<RN.View>(),
+      changes = jest.fn()
+    let retire!: () => void
+    let restore!: () => void
+    const Harness = () => {
+      const [open, setOpen] = useState(false),
+        [retired, setRetired] = useState(false)
+      retire = () => setRetired(true)
+      restore = () => setRetired(false)
+      if (retired && scenario === "unmount") return null
+      return (
+        <NativeCollectionComboBox
+          items={ITEMS}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          inputLabel="Query"
+          closeLabel="Close"
+          isOpen={open}
+          onOpenChange={setOpen}
+          onChange={changes}
+          dependencies={scenario === "pending" ? [retired] : undefined}
+          isDisabled={retired && scenario.startsWith("disabled")}
+          isReadOnly={retired && (scenario === "read-only" || scenario === "late-read-only")}
+        >
+          {(item) => (
+            <NativeComboBoxItem
+              id={item.id}
+              ref={item.id === 0 ? option : undefined}
+              textValue={item.label}
+              isPending={retired && scenario === "pending"}
+            >
+              {item.label}
+            </NativeComboBoxItem>
+          )}
+        </NativeCollectionComboBox>
+      )
+    }
+    await render(f.node(<Harness />))
+    const acknowledge = async () => {
+      const host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready: true,
+            windowActive: true,
+          },
+        }),
+      )
+      const committed = screen.getByTestId("host").props
+      await act(() =>
+        committed.onNativePointerStatus({
+          nativeEvent: {
+            ownerId: committed.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            revision: committed.pointerRevision,
+            ready: true,
+            error: "",
+          },
+        }),
+      )
+    }
+    await acknowledge()
+    const initial = screen.getByTestId("host").props
+    const triggerTarget = initial.pointerRegistrations[0].targetTag
+    const packet = (phase: "start" | "end" | "cancel", hitTarget: number) => {
+      const host = screen.getByTestId("host").props
+      return {
+        persist: jest.fn(),
+        isDefaultPrevented: () => false,
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          sequence: ++sequence,
+          phase,
+          pointerId: 7,
+          pointerType: "mouse",
+          isPrimary: true,
+          button: 0,
+          buttons: phase === "start" ? 1 : 0,
+          nativeButtons: "0",
+          nativeModifiers: "0",
+          shiftKey: false,
+          altKey: false,
+          ctrlKey: false,
+          metaKey: false,
+          pageX: 20,
+          pageY: 50,
+          timestamp: sequence,
+          target: hitTarget,
+          registrations: host.pointerRegistrations.map((entry: { id: string; targetTag: number }) => ({
+            ...entry,
+            ownerId: host.ownerId,
+            epoch: 1,
+            revision: host.pointerRevision,
+            depth: entry.targetTag === hitTarget ? 0 : -1,
+          })),
+        },
+      }
+    }
+    const down = packet("start", triggerTarget)
+    if (scenario === "pen") Object.assign(down.nativeEvent, { pointerType: "pen" })
+    await act(() => initial.onNativeWindowPointer(down))
+    const trigger = screen.getByTestId("combo-box-trigger", hidden)
+    const original = {
+      target: triggerTarget,
+      currentTarget: triggerTarget,
+      persist: jest.fn(),
+      isDefaultPrevented: () => false,
+      nativeEvent: {
+        target: triggerTarget,
+        timestamp: 1,
+        identifier: 7,
+        pageX: 20,
+        pageY: 50,
+        locationX: 0,
+        locationY: 0,
+        pointerType: "mouse",
+      },
+    }
+    await act(() => trigger.props.onPointerDown(original))
+    await act(() => trigger.props.onResponderGrant(original))
+    await f.ready(false)
+    await acknowledge()
+    expect(changes).not.toHaveBeenCalled()
+    const optionTarget = native.findNodeHandle(option.current)!
+    if (scenario.startsWith("query")) await fireEvent.changeText(screen.getByTestId("combo-box-input"), "Beta")
+    if (scenario === "query-restore") await fireEvent.changeText(screen.getByTestId("combo-box-input"), "")
+    if (["disabled", "disabled-restore", "read-only", "unmount", "pending"].includes(scenario)) await act(retire)
+    if (scenario === "pending") await acknowledge()
+    if (scenario === "disabled-restore") await act(restore)
+    if (scenario === "window") {
+      const host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready: true,
+            windowActive: false,
+          },
+        }),
+      )
+    }
+    const up = packet(scenario === "cancel" ? "cancel" : "end", scenario === "outside" ? 0 : optionTarget)
+    if (scenario === "prevented") up.isDefaultPrevented = () => true
+    if (scenario.startsWith("late-")) {
+      await actWithoutNativeCollections(() => screen.getByTestId("host").props.onNativeWindowPointer(up))
+      expect(changes).not.toHaveBeenCalled()
+      expect(
+        screen.container
+          .queryAll((host) => !!host.props.actionRequests)
+          .some((host) => JSON.parse(host.props.actionRequests).length > 0),
+      ).toBe(true)
+      if (scenario === "late-query") await fireEvent.changeText(screen.getByTestId("combo-box-input"), "Beta")
+      else await act(retire)
+    } else await act(() => screen.getByTestId("host").props.onNativeWindowPointer(up))
+    expect(changes.mock.calls).toEqual(scenario === "select" ? [[0]] : [])
+    expect(down.persist).toHaveBeenCalledTimes(scenario === "pen" ? 0 : 1)
+  },
+)
 
 it("binds all five sectioned options to the original list target in linked reading order", async () => {
   const native = jest.requireActual<typeof import("react-native")>("react-native")
@@ -236,7 +437,7 @@ it("connects the complete state and original values to committed options and rep
   await press("option-")
   await press("option-")
   expect(change.mock.calls).toEqual([[""], [""]])
-  expect(close.mock.calls).toEqual([[false], [false]])
+  expect(close.mock.calls).toEqual([])
   expect(state.value).toBeNull()
   expect(state.inputValue).toBe("Empty")
 })
@@ -381,11 +582,11 @@ it("routes admitted input navigation through the full state without moving the o
   await key("End")
   expect(state.selectionManager.focusedKey).toBe("b")
   await key("Enter")
-  expect(state.selectionManager.focusedKey).toBeNull()
+  expect(state.selectionManager.focusedKey).toBe("b")
   await key("End")
   await key("Enter")
   expect(change.mock.calls).toEqual([["b"], ["b"]])
-  expect(close.mock.calls).toEqual([[false], [false]])
+  expect(close.mock.calls).toEqual([])
   expect(state.value).toBeNull()
   expect(editor.current === original).toBe(true)
 })
@@ -1074,5 +1275,308 @@ it.each(["current", "readonly", "query"] as const)(
     if (change !== "current") await act(retire)
     await act(show)
     expect(selected.mock.calls).toEqual(change === "current" ? [["b"], ["b"]] : [])
+  },
+)
+
+it.each(["selection", "action", "link", "action-link"])(
+  "preserves source item mouse callback ordering and ownership: %s",
+  async (kind) => {
+    const f = setup(),
+      trace: unknown[] = []
+    await render(
+      f.node(
+        <NativeCollectionComboBox
+          items={[ITEMS[0]]}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          value={null}
+          inputValue=""
+          isOpen
+          inputLabel="Query"
+          closeLabel="Close"
+          onChange={(key) => trace.push(["select", key])}
+          onOpenChange={(value) => trace.push(["open", value])}
+        >
+          {(item) => (
+            <NativeComboBoxItem
+              id={item.id}
+              textValue={item.label}
+              testID="action-option"
+              href={kind.includes("link") ? "/zero" : undefined}
+              onAction={kind.includes("action") ? () => trace.push(["action"]) : undefined}
+              onNavigate={(href) => trace.push(["navigate", href])}
+              onPressChange={(value) => trace.push(["change", value])}
+              onPressStart={() => trace.push(["start"])}
+              onPressUp={() => trace.push(["up"])}
+              onPressEnd={() => trace.push(["end"])}
+              onPress={() => trace.push(["press"])}
+            >
+              {item.label}
+            </NativeComboBoxItem>
+          )}
+        </NativeCollectionComboBox>,
+      ),
+    )
+    await f.ready()
+    const option = screen.getByTestId("action-option", hidden)
+    const original = {
+      target: 17,
+      currentTarget: 17,
+      persist: jest.fn(),
+      isDefaultPrevented: () => false,
+      nativeEvent: {
+        target: 17,
+        timestamp: 1,
+        identifier: 0,
+        pageX: 0,
+        pageY: 0,
+        locationX: 0,
+        locationY: 0,
+        pointerType: "mouse",
+      },
+    }
+    await act(() => option.props.onPointerDown(original))
+    await act(() => option.props.onResponderGrant(original))
+    expect(trace).toEqual([["start"], ["change", true]])
+    await act(() => option.props.onResponderRelease(original))
+    const business =
+      kind === "selection"
+        ? [["select", 0]]
+        : kind.includes("action")
+          ? [["action"], ["open", false]]
+          : [
+              ["navigate", "/zero"],
+              ["open", false],
+            ]
+    expect(trace).toEqual(
+      kind.includes("action")
+        ? [["start"], ["change", true], ["up"], ["end"], ["change", false], ...business, ["press"]]
+        : [["start"], ["change", true], ...business, ["up"], ["end"], ["change", false], ["press"]],
+    )
+  },
+)
+
+it.each(
+  ["selection", "action", "link", "action-link"].flatMap((kind) => ["enter", "tab"].map((mode) => ({ kind, mode }))),
+)("uses original input Enter/Tab with source action and link precedence: $kind/$mode", async ({ kind, mode }) => {
+  const f = setup(),
+    editor = createRef<RN.TextInput>(),
+    trace: unknown[] = []
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  jest
+    .mocked(native.findNodeHandle)
+    .mockImplementation((view) => (view != null && view === editor.current ? 888888 : inherited(view)))
+  await render(
+    f.node(
+      <NativeCollectionComboBox
+        items={[ITEMS[0]]}
+        getKey={(item) => item.id}
+        getTextValue={(item) => item.label}
+        inputRef={editor}
+        value={null}
+        inputValue=""
+        isOpen
+        inputLabel="Query"
+        closeLabel="Close"
+        onChange={(key) => trace.push(["select", key])}
+        onOpenChange={(open) => trace.push(["open", open])}
+      >
+        {(item) => (
+          <NativeComboBoxItem
+            id={item.id}
+            textValue={item.label}
+            href={kind.includes("link") ? "/zero" : undefined}
+            onAction={kind.includes("action") ? () => trace.push(["action"]) : undefined}
+            onNavigate={(href) => trace.push(["navigate", href])}
+          >
+            {item.label}
+          </NativeComboBoxItem>
+        )}
+      </NativeCollectionComboBox>,
+    ),
+  )
+  await f.ready()
+  const original = editor.current
+  const key = async (value: string) => {
+    let host = screen.getByTestId("host").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready: true,
+          windowActive: true,
+        },
+      }),
+    )
+    host = screen.getByTestId("host").props
+    const policy = host.policies.find(
+      (entry: { targetTag: number; tokens: string[] }) =>
+        entry.targetTag === 888888 && entry.tokens.includes(`0000:${value}`),
+    )
+    expect(policy).toBeDefined()
+    await act(() =>
+      host.onNativeScopedKey({
+        persist: jest.fn(),
+        isDefaultPrevented: () => false,
+        nativeEvent: {
+          kind: "keyboard",
+          ownerId: host.ownerId,
+          policyId: policy.id,
+          target: 888888,
+          focusedTarget: 888888,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          key: value,
+          phase: "down",
+          repeat: false,
+          cancelled: false,
+          nativeCode: 1,
+          characters: "",
+          nativeDefaultHandled: true,
+          timestamp: ++sequence,
+          shiftKey: false,
+          altKey: false,
+          ctrlKey: false,
+          metaKey: false,
+          capsLock: false,
+          nativeModifierData: "0",
+        },
+      }),
+    )
+  }
+  await key("ArrowDown")
+  trace.length = 0
+  if (mode === "enter") await key("Enter")
+  else {
+    let host = screen.getByTestId("host").props
+    for (let attempt = 0; attempt < 2; attempt++) {
+      host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeObservationStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            observationRevision: host.observationRevision,
+            ready: true,
+            windowActive: true,
+          },
+        }),
+      )
+    }
+    host = screen.getByTestId("host").props
+    const registration = host.observations.find((entry: { targetTag: number }) => entry.targetTag === 888888)
+    expect(registration).toBeDefined()
+    await act(() =>
+      host.onNativeObservedKey({
+        persist: jest.fn(),
+        isDefaultPrevented: () => false,
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "source-model-window",
+          epoch: 1,
+          observationRevision: host.observationRevision,
+          observerIds: [registration.id],
+          eventId: ++sequence,
+          target: 888888,
+          focusedTarget: 888888,
+          key: "Tab",
+          code: "Tab",
+          nativeCode: 1,
+          legacyKeyCode: 9,
+          location: 0,
+          repeat: false,
+          cancelled: false,
+          isComposing: false,
+          shiftKey: false,
+          altKey: false,
+          ctrlKey: false,
+          metaKey: false,
+          capsLock: false,
+          nativeModifierData: "0",
+          defaultCaptured: false,
+          timestamp: sequence,
+        },
+      }),
+    )
+  }
+  const expected =
+    kind === "selection"
+      ? [["select", 0]]
+      : kind === "action"
+        ? [["action"], ["open", false]]
+        : mode === "enter"
+          ? [
+              ["navigate", "/zero"],
+              ["open", false],
+            ]
+          : [["open", false]]
+  expect(trace).toEqual(expected)
+  expect(editor.current).toBe(original)
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("")
+})
+
+it.each(["current", "synchronous", "query", "href", "unmount"])(
+  "uses the original native link route and retires obsolete failures: %s",
+  async (mode) => {
+    const f = setup(),
+      report = jest.fn(),
+      failure = new Error("original navigation"),
+      url = "codon://zero"
+    let reject!: (error: unknown) => void, retire!: () => void
+    const open = jest.spyOn(RN.Linking, "openURL").mockImplementation(() => {
+      if (mode === "synchronous") throw failure
+      return new Promise((_resolve, rejectRequest) => {
+        reject = rejectRequest
+      })
+    })
+    open.mockClear()
+    const Harness = () => {
+      const [retired, setRetired] = useState(false)
+      retire = () => setRetired(true)
+      if (retired && mode === "unmount") return null
+      return (
+        <NativeCollectionComboBox
+          items={[ITEMS[0]]}
+          getKey={(item) => item.id}
+          getTextValue={(item) => item.label}
+          isOpen
+          value={null}
+          inputValue={retired && mode === "query" ? "replacement" : ""}
+          dependencies={[retired]}
+          inputLabel="Query"
+          closeLabel="Close"
+        >
+          {(item) => (
+            <NativeComboBoxItem
+              id={item.id}
+              textValue={item.label}
+              testID="native-link"
+              href={retired && mode === "href" ? "codon://replacement" : url}
+              accessibilityHint={retired && mode === "href" ? "codon://replacement" : url}
+              onNavigationError={report}
+            >
+              {item.label}
+            </NativeComboBoxItem>
+          )}
+        </NativeCollectionComboBox>
+      )
+    }
+    await render(f.node(<Harness />))
+    await f.ready()
+    await press("native-link")
+    expect(open.mock.calls).toEqual([[url]])
+    if (mode !== "synchronous") {
+      if (mode !== "current") await act(retire)
+      if (mode === "href") expect(screen.getByTestId("native-link").props.accessibilityHint).toBe("codon://replacement")
+      await act(async () => reject(failure))
+    }
+    expect(report.mock.calls).toEqual(mode === "current" || mode === "synchronous" ? [[failure, url]] : [])
+    if (mode === "current" || mode === "synchronous") expect(report.mock.calls[0][0]).toBe(failure)
   },
 )

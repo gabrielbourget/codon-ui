@@ -4,6 +4,8 @@ import {
   useInsertionEffect,
   useRef,
   useMemo,
+  useCallback,
+  useLayoutEffect,
   type ReactElement,
   type ReactNode,
   type RefAttributes,
@@ -13,6 +15,8 @@ import { View, type StyleProp, type TextStyle, type ViewProps, type ViewStyle } 
 import { useNativeCollectionRefs, useNativeContextProps, type TNativeSlotProps } from "../../collection/context"
 import { focusNativeTarget } from "../../input/focus"
 import { getNativeButtonContent } from "../Button/content"
+import { resolveNativeStyle } from "../colors"
+import { useNativeContentContext } from "../NativeContentContext"
 import { NativeText, type TNativeTextRender } from "../Text/Text"
 import type { TNativeTextProps, TNativeTextRef } from "../Text/types"
 
@@ -25,6 +29,7 @@ import {
   NativeComboBoxButtonContext,
   NativeComboBoxInputContext,
   NativeComboBoxGroupContext,
+  NativeComboBoxItemTextBindingContext,
 } from "./collectionContext"
 import type { ComboBoxState, ValidationResult } from "./state/types"
 
@@ -90,9 +95,47 @@ export const NativeComboBoxLabel = forwardRef<TNativeTextRef, TTextProps>((autho
 NativeComboBoxLabel.displayName = "NativeComboBoxLabel"
 
 export const NativeComboBoxText = forwardRef<TNativeTextRef, TTextProps>((authored, forwardedRef) => {
+  const content = useNativeContentContext()
   const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeComboBoxTextContext)
+  const register = useContext(NativeComboBoxItemTextBindingContext)
+  const token = useRef({})
+  const original = useRef<TNativeTextRef | null>(null)
+  const nativeID = props.id ?? props.nativeID
+  const slot: "label" | "description" = authored.slot === "description" ? "description" : "label"
+  const current = useRef({ slot, nativeID, enabled: authored.slot !== null })
+  useInsertionEffect(() => {
+    current.current = { slot, nativeID, enabled: authored.slot !== null }
+  })
+  const bind = useCallback(
+    (target: TNativeTextRef | null) => {
+      original.current = target
+      const binding = current.current
+      register?.(token.current, binding.slot, binding.enabled ? target : null, binding.nativeID)
+    },
+    [register],
+  )
+  useLayoutEffect(() => {
+    const binding = current.current
+    register?.(token.current, binding.slot, binding.enabled ? original.current : null, binding.nativeID)
+  }, [register, slot, nativeID, authored.slot])
+  const mergedRef = useNativeCollectionRefs(ref, bind)
   const { slot: _slot, render, ...text } = props
-  return <NativeText {...text} ref={ref} nativeRender={render} />
+  if (!content?.textStyle) return <NativeText {...text} ref={mergedRef} nativeRender={render} />
+  const inherited = { ...content.textStyle }
+  if (text.variant !== undefined) {
+    delete inherited.fontFamily
+    delete inherited.fontSize
+    delete inherited.lineHeight
+  }
+  if (text.fontWeight !== undefined) delete inherited.fontWeight
+  if (text.fontStyle !== undefined) delete inherited.fontStyle
+  if (text.color !== undefined) delete inherited.color
+  const resolved = resolveNativeStyle([inherited, text.customStyles, text.style], "ComboBoxText", "style")
+  const restored = {
+    ...resolved,
+    ...Object.fromEntries(Object.entries(inherited).filter(([key]) => resolved[key as keyof TextStyle] === undefined)),
+  }
+  return <NativeText {...text} ref={mergedRef} nativeRender={render} customStyles={undefined} style={restored} />
 })
 NativeComboBoxText.displayName = "NativeComboBoxText"
 

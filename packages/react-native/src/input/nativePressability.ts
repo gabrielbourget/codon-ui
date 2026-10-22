@@ -27,6 +27,7 @@ type TConfig = Pick<
   blockNativeResponder?: boolean
   pressRectOffset?: PressableProps["pressRetentionOffset"]
   delayPressIn?: number
+  minPressDuration?: number
 }
 type THandlers = Pick<
   ViewProps,

@@ -12,9 +12,9 @@ import {
   type ReactNode,
   type RefAttributes,
 } from "react"
-import { findNodeHandle, type TextInput, type View } from "react-native"
+import { findNodeHandle, Linking, type TextInput, type View } from "react-native"
 
-import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionActionsContext, type TNativeCollectionActionOutcome } from "../../collection/actions"
 import { useNativeCachedChildren } from "../../collection/cachedChildren"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
@@ -27,6 +27,7 @@ import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/u
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -65,12 +66,18 @@ import type {
 } from "./collectionTypes"
 import { NativeComboBoxItem } from "./ComboBoxItem"
 import { createNativeComboBoxFilter } from "./filter"
+import { getNativeComboBoxInputRequest, type TNativeComboBoxItemRequest } from "./itemActions"
 import { NativeComboBoxKeyBinding } from "./keyboard"
+import { useNativeComboBoxPointerSelection } from "./pointerSelection"
 import { useComboBoxState } from "./state/useComboBoxState"
 import { getNativeComboBoxStyles } from "./styles"
 import type { TNativeComboBoxProps, TNativeComboBoxRef } from "./types"
 
-type TCommitEvent = TNativePressEvent | TNativeComboBoxSubmitEvent
+type TCommitEvent =
+  | TNativePressEvent
+  | TNativeComboBoxSubmitEvent
+  | TNativeWindowPointerEvent
+  | TNativeObservedKeyboardEvent
 export type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 const AuthoredItem = ({
   id,
@@ -257,6 +264,7 @@ const Receiver = <T extends object>({
       scope: typeof inputScope
       window: string
       event: TCommitEvent
+      mode: "enter" | "tab"
     }[]
   >([])
   const flushCommit = useRef(() => {})
@@ -289,37 +297,101 @@ const Receiver = <T extends object>({
       setSemanticTargetsRevision((value) => value + 1)
   }, [])
   const press = useCallback(
-    (node: TNativeCollectionNode<unknown>, target: View | null, event: TCommitEvent) => {
+    (
+      node: TNativeCollectionNode<unknown>,
+      target: View | null,
+      event: TCommitEvent,
+      admitted: () => boolean = () => true,
+      request: TNativeComboBoxItemRequest = { kind: "select" },
+      settled?: (outcome: TNativeCollectionActionOutcome) => void,
+    ) => {
       const original = rows.current.get(node.key)
       if (
         !live.current ||
         !target ||
         original?.target !== target ||
         current.current.props.isDisabled ||
-        current.current.props.isReadOnly
-      )
+        current.current.props.isReadOnly ||
+        !admitted()
+      ) {
+        settled?.("rejected")
         return
+      }
+      const query = current.current.state.inputValue,
+        editor = input.current,
+        window = JSON.stringify(inputScope?.acknowledgedSession() ?? null)
       event.persist()
-      actions?.request(node, findNodeHandle(target) ?? 0, () => {
-        const owner = current.current
-        if (
-          !live.current ||
-          !owner.state.isOpen ||
-          owner.props.isDisabled ||
-          owner.props.isReadOnly ||
-          rows.current.get(node.key) !== original ||
-          event.defaultPrevented ||
-          event.isDefaultPrevented?.()
-        )
-          return
-        if (owner.state.disabledKeys.has(node.key)) return
-        owner.state.selectionManager.replaceSelection(node.key)
-        if (live.current && current.current.state.isOpen) current.current.state.setOpen(false)
-      })
+      if (!actions) {
+        settled?.("rejected")
+        return
+      }
+      actions.request(
+        node,
+        findNodeHandle(target) ?? 0,
+        () => {
+          const owner = current.current
+          if (
+            !live.current ||
+            !owner.state.isOpen ||
+            owner.props.isDisabled ||
+            owner.props.isReadOnly ||
+            !admitted() ||
+            owner.state.inputValue !== query ||
+            input.current !== editor ||
+            inputScope?.isWindowActive() === false ||
+            JSON.stringify(inputScope?.acknowledgedSession() ?? null) !== window ||
+            rows.current.get(node.key) !== original ||
+            event.defaultPrevented ||
+            event.isDefaultPrevented?.()
+          )
+            return
+          const itemProps = owner.state.collection.getItem(node.key)?.props
+          if (owner.state.selectionManager.isDisabled(node.key) || itemProps?.isReadOnly || itemProps?.isPending) return
+          if (request.kind === "select") owner.state.selectionManager.replaceSelection(node.key)
+          else if (request.kind === "commit") owner.state.commit()
+          else {
+            if (request.kind === "action") request.action()
+            if (request.kind === "link") {
+              const { href, onNavigate, onNavigationError } = request.props
+              if (!href) return
+              if (onNavigate) onNavigate(href)
+              else {
+                let navigation: Promise<unknown>
+                try {
+                  navigation = Linking.openURL(href)
+                } catch (error) {
+                  navigation = Promise.reject(error)
+                }
+                void navigation.catch((error: unknown) => {
+                  if (
+                    live.current &&
+                    admitted() &&
+                    rows.current.get(node.key) === original &&
+                    current.current.state.inputValue === query &&
+                    input.current === editor &&
+                    inputScope?.isWindowActive() !== false &&
+                    JSON.stringify(inputScope?.acknowledgedSession() ?? null) === window
+                  )
+                    onNavigationError?.(error, href)
+                })
+              }
+              if (request.resetSelection) {
+                if (live.current && admitted()) {
+                  const manager = current.current.state.selectionManager
+                  manager.setSelectedKeys(manager.selectedKeys)
+                }
+                return
+              }
+            }
+            if (live.current && admitted() && current.current.state.isOpen) current.current.state.close()
+          }
+        },
+        settled,
+      )
     },
-    [actions],
+    [actions, inputScope],
   )
-  const requestCommit = (event: TCommitEvent) => {
+  const requestCommit = (event: TCommitEvent, mode: "enter" | "tab" = "enter") => {
     const owner = current.current
     if (
       !live.current ||
@@ -332,7 +404,7 @@ const Receiver = <T extends object>({
     const key = owner.state.selectionManager.focusedKey
     if (owner.state.isOpen && key != null) {
       const row = rows.current.get(key)
-      if (row) press(row.node, row.target, event)
+      if (row) press(row.node, row.target, event, undefined, getNativeComboBoxInputRequest(row.node.props, mode))
       else if (owner.state.collection.getItem(key)?.type === "item" && !owner.state.disabledKeys.has(key)) {
         event.persist()
         pendingCommit.current.push({
@@ -343,6 +415,7 @@ const Receiver = <T extends object>({
           scope: inputScope,
           window: JSON.stringify(inputScope?.acknowledgedSession() ?? null),
           event,
+          mode,
         })
         renderer.layoutDelegate?.requestRendering?.(key)
         renderer.layoutDelegate?.scrollToKey?.(key)
@@ -369,7 +442,14 @@ const Receiver = <T extends object>({
           JSON.stringify(inputScope?.acknowledgedSession() ?? null) === pending.window
         if (!valid) continue
         const row = rows.current.get(pending.key)
-        if (row) press(row.node, row.target, pending.event)
+        if (row)
+          press(
+            row.node,
+            row.target,
+            pending.event,
+            undefined,
+            getNativeComboBoxInputRequest(row.node.props, pending.mode),
+          )
         else pendingCommit.current.push(pending)
       }
     }
@@ -418,6 +498,13 @@ const Receiver = <T extends object>({
     input,
     identity,
   })
+  const pointerSelection = useNativeComboBoxPointerSelection({
+    input,
+    enabled: !props.isDisabled && !props.isReadOnly,
+    isOpen: state.isOpen,
+    query: state.inputValue,
+  })
+  const triggerRef = useNativeCollectionRefs(buttonProps.ref, pointerSelection.triggerRef)
   const enabledKeys = () => {
     const { collection, selectionManager } = current.current.state
     const keys: (string | number)[] = []
@@ -491,7 +578,7 @@ const Receiver = <T extends object>({
       return
     const owner = current.current
     if (!live.current || owner.props.isDisabled || owner.props.isReadOnly) return
-    if (event.nativeEvent.key === "Tab" && owner.state.isOpen) owner.state.commit()
+    if (event.nativeEvent.key === "Tab" && owner.state.isOpen) requestCommit(event, "tab")
     if (event.nativeEvent.key === "ArrowLeft" || event.nativeEvent.key === "ArrowRight")
       owner.state.selectionManager.setFocusedKey(null)
   }
@@ -558,7 +645,7 @@ const Receiver = <T extends object>({
   return (
     <NativeComboBoxFieldIdsContext.Provider value={fieldIds}>
       <NativeComboBoxInputContext.Provider value={inputProps}>
-        <NativeComboBoxButtonContext.Provider value={buttonProps}>
+        <NativeComboBoxButtonContext.Provider value={{ ...buttonProps, ref: triggerRef }}>
           <NativeComboBoxLabelContext.Provider
             value={{ nativeID: fieldIds.label, ref: labelRef, labelTarget: input, isDisabled: !!props.isDisabled }}
           >
@@ -584,6 +671,7 @@ const Receiver = <T extends object>({
                         <NativeComboBoxListContext.Provider
                           value={{
                             ref: listRef,
+                            style: props.customOptionsListStyles,
                             role: "list",
                             accessible: false,
                             autoFocus: state.focusStrategy || true,
@@ -612,6 +700,7 @@ const Receiver = <T extends object>({
                                     isReadOnly: !!props.isReadOnly,
                                     isVirtualized: !!renderer.isVirtualized,
                                     register,
+                                    registerPointerOption: pointerSelection.registerOption,
                                     press,
                                   }}
                                 >

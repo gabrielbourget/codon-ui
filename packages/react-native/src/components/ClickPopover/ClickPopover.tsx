@@ -478,7 +478,11 @@ export const NativeFloatingSurface = forwardRef<
               }}
             >
               <NativeContentContext.Provider
-                value={{ foregroundColor: painted.rootText.color ?? theme.colors.foreground, isButton: false }}
+                value={{
+                  foregroundColor: painted.rootText.color ?? theme.colors.foreground,
+                  isButton: false,
+                  textStyle: painted.rootText,
+                }}
               >
                 {showOverlayArrow && (
                   <NativeFloatingArrow
@@ -519,7 +523,11 @@ export const NativeFloatingSurface = forwardRef<
                     onBlur={() => setDialogFocused(false)}
                   >
                     <NativeContentContext.Provider
-                      value={{ foregroundColor: painted.dialogText.color ?? theme.colors.foreground, isButton: false }}
+                      value={{
+                        foregroundColor: painted.dialogText.color ?? theme.colors.foreground,
+                        isButton: false,
+                        textStyle: painted.dialogText,
+                      }}
                     >
                       {body}
                     </NativeContentContext.Provider>

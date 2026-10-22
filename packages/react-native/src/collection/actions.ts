@@ -5,6 +5,8 @@ import type { NativeCollectionActionData } from "../input/specs/CUICollectionRoo
 import type { NativeCollectionSession } from "./session"
 import { getNativeCollectionMetadataIdentity, type TNativeCollectionNode } from "./snapshot"
 
+export type TNativeCollectionActionOutcome = "accepted" | "rejected" | "failed"
+
 type TLease = NonNullable<ReturnType<NativeCollectionSession<unknown>["getSnapshot"]>["receipt"]["lease"]>
 type TRequest = Readonly<{
   requestId: string
@@ -12,7 +14,13 @@ type TRequest = Readonly<{
   binding: string
   visibleTarget: number
 }>
-type TPending = { request: TRequest; node: TNativeCollectionNode<unknown> | null; lease: TLease; action: () => void }
+type TPending = {
+  request: TRequest
+  node: TNativeCollectionNode<unknown> | null
+  lease: TLease
+  action: () => void
+  settled?: (outcome: TNativeCollectionActionOutcome) => void
+}
 
 // A JS collection receipt selects a candidate. Only the original native root can admit its current visible binding.
 export class NativeCollectionActions {
@@ -26,9 +34,14 @@ export class NativeCollectionActions {
     this.#session = session
     session.subscribe(() => {
       const { receipt } = session.getSnapshot()
+      const retired: TPending[] = []
       for (const [id, pending] of this.#pending)
-        if (receipt.status !== "confirmed" || receipt.lease !== pending.lease) this.#pending.delete(id)
+        if (receipt.status !== "confirmed" || receipt.lease !== pending.lease) {
+          this.#pending.delete(id)
+          retired.push(pending)
+        }
       this.#publish()
+      for (const pending of retired) pending.settled?.("rejected")
     })
   }
   getSnapshot = () => this.#requests
@@ -55,7 +68,12 @@ export class NativeCollectionActions {
     return JSON.stringify({ ownerId, rootId, rootRevision, target, surfaceId, windowId, epoch, sequence, ...identity })
   }
 
-  request = (node: TNativeCollectionNode<unknown> | null, visibleTarget: number, action: () => void) => {
+  request = (
+    node: TNativeCollectionNode<unknown> | null,
+    visibleTarget: number,
+    action: () => void,
+    settled?: (outcome: TNativeCollectionActionOutcome) => void,
+  ) => {
     const binding = this.bindingFor(node),
       { receipt } = this.#session.getSnapshot()
     if (
@@ -64,11 +82,13 @@ export class NativeCollectionActions {
       visibleTarget <= 0 ||
       visibleTarget > 2147483647 ||
       !receipt.lease
-    )
+    ) {
+      settled?.("rejected")
       return false
+    }
     const requestId = `${this.#session.scope.rootRevision}:action:${++this.#sequence}`
     const request = Object.freeze({ requestId, actionSequence: this.#sequence, binding, visibleTarget })
-    this.#pending.set(requestId, { request, node, lease: receipt.lease, action })
+    this.#pending.set(requestId, { request, node, lease: receipt.lease, action, settled })
     this.#publish()
     return true
   }
@@ -76,7 +96,7 @@ export class NativeCollectionActions {
   receive = (packet: NativeCollectionActionData) => {
     const pending = this.#pending.get(packet.requestId)
     if (!pending) return false
-    const { request, node, lease, action } = pending
+    const { request, node, lease, action, settled } = pending
     const identity = ["ownerId", "rootId", "rootRevision", "target"] as const
     if (!identity.every((field) => packet[field] === lease[field]) || packet.visibleTarget !== request.visibleTarget)
       return false
@@ -90,15 +110,25 @@ export class NativeCollectionActions {
       current.receipt.lease !== lease ||
       current.receipt.status !== "confirmed" ||
       (node !== null && !this.#matchesNode(node, current.collection.getItem(node.key)))
-    )
+    ) {
+      settled?.("rejected")
       return false
-    action()
+    }
+    try {
+      action()
+    } catch (error) {
+      settled?.("failed")
+      throw error
+    }
+    settled?.("accepted")
     return true
   }
 
   reset = () => {
+    const retired = [...this.#pending.values()]
     this.#pending.clear()
     this.#publish()
+    for (const pending of retired) pending.settled?.("rejected")
   }
   #matchesNode = (node: TNativeCollectionNode<unknown>, current: TNativeCollectionNode<unknown> | null) => {
     const identity = getNativeCollectionMetadataIdentity(node)
