@@ -38,6 +38,7 @@ type TProps = {
   label?: string
   testID: string
   onKeyDown?: (event: TNativeKeyboardEvent) => void
+  onKeyUp?: (event: TNativeKeyboardEvent) => void
 }
 
 // The fixed Codon wrapper renders each formatter segment. Literal separators
@@ -77,13 +78,18 @@ export const NativeTimePickerSegment = (props: TProps) => {
     lifetimeKey: `${ownerId}:${segmentId}:${target}:${state.isDisabled}`,
     canAct: () => original.current !== null && getNativeFocusedTarget() === original.current,
     onKey: (event) => {
-      entry.keyDown(event, composing.current)
-      if (event.isPropagationStopped()) return
-      handleNativeDateGroupKey(event, direction, focus)
+      if (event.nativeEvent.phase === "down") {
+        entry.keyDown(event, composing.current)
+        if (event.isPropagationStopped()) return
+        handleNativeDateGroupKey(event, direction, focus)
+      }
+      const callback = event.nativeEvent.phase === "up" ? props.onKeyUp : props.onKeyDown
       // Both canonical Group layers inherit the field handler. Retain its
       // original event and multiplicity after segment/default handling.
-      if (!event.isPropagationStopped()) props.onKeyDown?.(event)
-      if (!event.isPropagationStopped()) props.onKeyDown?.(event)
+      // A group's merged caller still runs when that same group's navigation
+      // stopped bubbling. Only the following ancestor group is suppressed.
+      callback?.(event)
+      if (!event.isPropagationStopped()) callback?.(event)
     },
   })
   const receive = (event: TNativeDateSegmentInput) => {

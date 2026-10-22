@@ -277,6 +277,7 @@ export const NativeTimePickerRenderer = forwardRef(
               inheritedText={inheritedText}
               label={props.accessibilityLabel ?? props["aria-label"]}
               onKeyDown={props.onKeyDown}
+              onKeyUp={props.onKeyUp}
               testID={`${testID}-segment-${index}`}
             />
           ))}
