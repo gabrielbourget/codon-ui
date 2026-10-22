@@ -47,6 +47,42 @@ afterAll(() => {
   if (path) writeFileSync(path, JSON.stringify(records, null, 2))
 })
 
+it("retains controlled open and original input across repeated vetoed selections", async () => {
+  const trace: unknown[] = []
+  const Owner = () => {
+    const [open, setOpen] = useState(false)
+    return (
+      <TagComboBox
+        {...base}
+        inputValue="Alpha"
+        isOpen={open}
+        onSelectedItemsChange={(_items, details) => trace.push(["selection", details.changedKeys])}
+        onInputChange={(value) => trace.push(["input", value])}
+        onOpenChange={(value) => {
+          if (value) setOpen(true)
+          else trace.push(["open", value])
+        }}
+      />
+    )
+  }
+  render(<Owner />)
+  const original = screen.getByRole("combobox")
+  const user = userEvent.setup()
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await user.click(await screen.findByRole("option", { name: "Alpha" }))
+  await user.click(await screen.findByRole("option", { name: "Alpha" }))
+  expect(trace).toEqual([
+    ["selection", [0]],
+    ["input", ""],
+    ["selection", [0]],
+    ["input", ""],
+  ])
+  expect(screen.getByRole("combobox")).toBe(original)
+  expect(original).toHaveValue("Alpha")
+  expect(screen.getByRole("option", { name: "Alpha" })).toBeInTheDocument()
+  records.push({ vetoedSelectionOriginalRequests: trace, originalEditorRetained: true })
+})
+
 it("inherits parent context at the inner ComboBox, preserves actual refs, and honors slot=null", () => {
   const root = createRef<HTMLDivElement>(),
     picker = createRef<HTMLDivElement>(),

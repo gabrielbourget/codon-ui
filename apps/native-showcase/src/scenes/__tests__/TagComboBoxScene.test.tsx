@@ -3,8 +3,6 @@ import "../../../../../packages/react-native/src/collection/__tests__/nativeRece
 import { createRef } from "react"
 import * as RN from "react-native"
 
-import { NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider } from "@codon-ui/react-native"
-
 import {
   actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
@@ -16,8 +14,17 @@ import {
   NativeComboBoxGroupContext,
   NativeComboBoxPopoverContext,
 } from "../../../../../packages/react-native/src/components/ComboBox/collectionContext"
+import { nativeFormRegistry } from "../../../../../packages/react-native/src/form/registry"
+import { NativeFloatingLayerHost } from "../../../../../packages/react-native/src/overlays/floating/NativeFloatingLayerHost"
+import { NativeOverlayProvider } from "../../../../../packages/react-native/src/overlays/NativeOverlayProvider"
+import { NativeThemeProvider } from "../../../../../packages/react-native/src/theme"
 import { TagComboBoxScene } from "../TagComboBoxScene"
 
+const mockReadForm = jest.fn<Promise<string>, [string]>()
+jest.mock("../../../../../packages/react-native/src/input/specs/NativeCUIFormDocument", () => ({
+  __esModule: true,
+  default: { getSnapshot: (request: string) => mockReadForm(request) },
+}))
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
@@ -96,6 +103,44 @@ const show = async () => {
 beforeEach(() => {
   jest.useFakeTimers()
   frames.clear()
+  const native = jest.requireActual<typeof RN>("react-native")
+  const findHandle = jest.spyOn(native, "findNodeHandle")
+  const inheritedFind = findHandle.getMockImplementation()!
+  const formTargets = new WeakMap<object, number>()
+  let nextFormTarget = 80000000
+  findHandle.mockImplementation((host) => {
+    const existing = inheritedFind(host)
+    if (existing || !host || typeof host !== "object") return existing
+    if (!formTargets.has(host)) formTargets.set(host, ++nextFormTarget)
+    return formTargets.get(host)!
+  })
+  mockReadForm.mockImplementation(async (encoded) => {
+    const request = JSON.parse(encoded) as { target: number; requestId: string }
+    const form = [...nativeFormRegistry.forms.values()].find(
+      (entry) => entry.descriptor.formId === "tag-combo-owner-form",
+    )!
+    const nodes = [
+      { target: 9000000, parent: 0, component: "RootView" },
+      { target: form.descriptor.target, parent: 9000000, component: "View" },
+      { target: form.descriptor.metadataTarget, parent: form.descriptor.target, component: "CUIFormRoot" },
+    ]
+    const fields = [...nativeFormRegistry.fields.values()].map(({ descriptor }) => {
+      nodes.push({ target: descriptor.target, parent: form.descriptor.target, component: "TextInput" })
+      nodes.push({ target: descriptor.metadataTarget, parent: form.descriptor.target, component: "CUIFieldBinding" })
+      return { ...descriptor, position: nodes.length - 1 }
+    })
+    // An explicit source model of the retained document; this is never an SDK hierarchy verdict.
+    return JSON.stringify({
+      ...request,
+      documentId: "tag-combo-scene-model",
+      rootTarget: 9000000,
+      surfaceId: 11,
+      revision: "1",
+      nodes: nodes.map((node) => ({ ...node, hidden: false, displayNone: false })),
+      forms: [{ ...form.descriptor, position: 2 }],
+      fields,
+    })
+  })
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   jest.spyOn(globalThis, "requestAnimationFrame").mockImplementation((callback) => {
     const id = ++frameSequence
@@ -133,12 +178,12 @@ it("retains held selection and query across repeated add requests, then shows th
   await choose("Empty key")
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(/Selected: empty.*Query: "Empty"/)
   expect(screen.getByTestId("tag-combo-owner-requests", hidden)).toHaveTextContent(
-    'Requests: add:string:"" → input:"" → nested-input:"" → open:false → add:string:"" → input:"" → nested-input:"" → open:false.',
+    'Requests: add:string:"" → input:"" → nested-input:"" → add:string:"" → input:"" → nested-input:"".',
   )
   expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("Empty")
   await choose("Empty key")
   expect(screen.getByTestId("tag-combo-owner-state", hidden)).toHaveTextContent(
-    /Selected: string:"".*Query: "".*Open: false/,
+    /Selected: string:"".*Query: "".*Open: true/,
   )
   expect(screen.queryByRole("option", { name: "Empty key" })).toBeNull()
 })
@@ -207,4 +252,133 @@ it("replaces the requested custom picker host while retaining the wrapper, owner
   await press("Toggle tag-combo custom picker root")
   expect(screen.queryByTestId("tag-combo-owner-custom-picker")).toBeNull()
   expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
+})
+
+it("submits the current named query through its actual Form ref while retaining the independent draft", async () => {
+  await render(scene())
+  const input = screen.getByTestId("combo-box-input"),
+    draft = screen.getByTestId("tag-combo-owner-editor"),
+    form = [...nativeFormRegistry.forms.values()][0].original
+  await fireEvent.changeText(draft, "independent draft")
+  await press("Set tag-combo owner query")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent(
+    /submit:programmatic:\[\["tagQuery","held query"\]\]/,
+  )
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: submitted\./)
+  expect([...nativeFormRegistry.forms.values()][0].original === form).toBe(true)
+  expect(screen.getByTestId("combo-box-input") === input).toBe(true)
+  expect(draft).toHaveDisplayValue("independent draft")
+})
+
+it("keeps form cancellation separate from owner-vetoed reset requests and their later echo", async () => {
+  await render(scene())
+  await press("Set tag-combo owner query")
+  await press("Set tag-combo number zero")
+  await press("Toggle tag-combo input veto")
+  await press("Toggle tag-combo form veto")
+  await press("Reset tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: cancelled\./)
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
+  expect(screen.getByTestId("tag-combo-owner-requests")).toHaveTextContent(/input:"" → nested-input:""/)
+  await press("Toggle tag-combo form veto")
+  await press("Reset tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: reset\./)
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("held query")
+  expect(screen.getByTestId("tag-combo-owner-requests")).toHaveTextContent(/input:"" → nested-input:""/)
+  await press("Toggle tag-combo input veto")
+  await press("Reset tag-combo form programmatically")
+  expect(screen.getByTestId("combo-box-input")).toHaveDisplayValue("")
+  expect(screen.getByTestId("tag-combo-owner-state")).toHaveTextContent(/Selected: number:0/)
+})
+
+it("uses committed disabled and explicit association policy without replacing its field", async () => {
+  await render(scene())
+  const original = screen.getByTestId("combo-box-input")
+  await press("Set tag-combo owner query")
+  await press("Toggle tag-combo disabled")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent(/submit:programmatic:\[\]/)
+  await press("Toggle tag-combo disabled")
+  await press("Toggle tag-combo form association")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent(/submit:programmatic:\[\]/)
+  await press("Toggle tag-combo form association")
+  await press("Toggle tag-combo read only")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent(
+    /submit:programmatic:\[\["tagQuery","held query"\]\]/,
+  )
+  expect(screen.getByTestId("combo-box-input") === original).toBe(true)
+})
+
+it("shows validation outcomes and never treats an unavailable native document as a successful empty form", async () => {
+  await render(scene())
+  await press("Toggle tag-combo required")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: invalid\./)
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent("Form requests: none.")
+  await press("Toggle tag-combo form validation")
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: submitted\./)
+  mockReadForm.mockRejectedValueOnce(new Error("Original SDK document unavailable"))
+  await press("Submit tag-combo form programmatically")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(
+    /Result: retired:native-document-unavailable-or-incomplete\./,
+  )
+})
+
+it("keeps an original form-action press without a native acknowledgement from becoming a successful submit", async () => {
+  await render(scene())
+  await act(() => userEvent.setup().press(screen.getByRole("button", { name: "Submit tag-combo form" })))
+  expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent("Form requests: none.")
+  expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: retired:/)
+})
+
+it("materializes the picker through the actual VirtualizedList while its selected tags keep their ordinary renderer", async () => {
+  await render(scene())
+  const input = screen.getByTestId("combo-box-input"),
+    draft = screen.getByTestId("tag-combo-owner-editor")
+  await fireEvent.changeText(draft, "virtualized owner draft")
+  await press("Set tag-combo number zero")
+  await press("Toggle 72-item tag-combo virtualization")
+  await press("Toggle tag-combo owner open")
+  await show()
+  expect(screen.getByTestId("tag-combo-owner-virtual-list")).toBeOnTheScreen()
+  expect(screen.getByTestId("tag-combo-owner-profile", hidden)).toHaveTextContent(
+    /Logical items: 72\. Renderer: VirtualizedList/,
+  )
+  expect(screen.getByText("Number zero")).toBeOnTheScreen()
+  expect(screen.getAllByRole("option").length).toBeLessThan(70)
+  expect(screen.queryByRole("option", { name: "Window choice 68" })).toBeNull()
+  expect(screen.getByTestId("combo-box-input") === input).toBe(true)
+  expect(draft).toHaveDisplayValue("virtualized owner draft")
+})
+
+it("retains its original editor and held query when direction and large text change", async () => {
+  await render(scene())
+  await press("Set tag-combo owner query")
+  const original = screen.getByTestId("combo-box-input")
+  await press("Toggle tag-combo direction")
+  await press("Toggle tag-combo text size")
+  expect(RN.StyleSheet.flatten(screen.getByTestId("tag-combobox").props.style).direction).toBe("rtl")
+  expect(screen.getByTestId("tag-combo-owner-profile")).toHaveTextContent(/Direction: rtl\. Text: large\./)
+  expect(screen.getByTestId("combo-box-input") === original).toBe(true)
+  expect(original).toHaveDisplayValue("held query")
+})
+
+it("executes native Intl.ListFormat on original selected labels and exposes an unavailable formatter", async () => {
+  await render(scene())
+  await press("Set two selected tags")
+  await press("Format selected tag names")
+  expect(screen.getByTestId("tag-combo-owner-formatted-selection")).toHaveTextContent(
+    "Formatted selection: Number zero and Dernière étiquette.",
+  )
+  jest.spyOn(Intl, "ListFormat").mockImplementation(() => {
+    throw new Error("Native formatter missing")
+  })
+  await press("Format selected tag names")
+  expect(screen.getByTestId("tag-combo-owner-formatted-selection")).toHaveTextContent(
+    /Unavailable: Error: Native formatter missing/,
+  )
 })
