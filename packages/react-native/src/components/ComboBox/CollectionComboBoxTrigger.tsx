@@ -1,16 +1,31 @@
-import { forwardRef, useEffect, useInsertionEffect, useRef, type RefObject, type Ref } from "react"
-import type { ColorValue, TextInput, View } from "react-native"
+import {
+  forwardRef,
+  useContext,
+  useEffect,
+  useInsertionEffect,
+  useRef,
+  type ReactElement,
+  type ReactNode,
+  type RefObject,
+  type Ref,
+} from "react"
+import type { ColorValue, StyleProp, TextInput, View } from "react-native"
 import Svg, { Polyline } from "react-native-svg"
 
 import { useNativeContextProps } from "../../collection/context"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativePressableRender } from "../../input/NativePressable"
 import type { TNativePressEvent } from "../../input/types"
+import { useNativeMotionValue } from "../../motion/animation/hooks"
+import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
+import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
-import type { TNativeButtonProps } from "../Button/types"
+import { getNativeButtonStyle } from "../Button/styles"
+import type { TNativeButtonRenderState, TNativeButtonRootStyle, TNativeButtonProps } from "../Button/types"
 
-import { NativeComboBoxButtonContext } from "./collectionContext"
+import { NativeComboBoxButtonContext, NativeComboBoxStateContext } from "./collectionContext"
 import type { TNativeCollectionComboBoxProps } from "./collectionTypes"
 import type { ComboBoxState } from "./state/types"
 
@@ -136,13 +151,42 @@ export const useNativeComboBoxButtonProps = <T extends object>({
   }
 }
 
-export const NativeComboBoxButton = forwardRef<View, TNativeButtonProps & { isPressed?: boolean }>(
-  (authored, forwardedRef) => {
-    const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeComboBoxButtonContext)
-    const { slot: _slot, isPressed, ...button } = props
-    return <NativeButton {...button} ref={ref} nativeIsPressed={isPressed} />
-  },
-)
+export type TNativeComboBoxButtonRenderState = TNativeButtonRenderState & { isFocusVisible: boolean }
+export type TNativeComboBoxButtonProps = Omit<TNativeButtonProps, "children" | "style"> & {
+  isPressed?: boolean
+  children?: ReactNode | ((state: TNativeComboBoxButtonRenderState & { defaultChildren: undefined }) => ReactNode)
+  style?:
+    | StyleProp<TNativeButtonRootStyle>
+    | ((
+        state: TNativeComboBoxButtonRenderState & { defaultStyle: TNativeButtonRootStyle },
+      ) => StyleProp<TNativeButtonRootStyle>)
+  render?: (props: Parameters<TNativePressableRender>[0], state: TNativeComboBoxButtonRenderState) => ReactElement
+}
+export const NativeComboBoxButton = forwardRef<View, TNativeComboBoxButtonProps>((authored, forwardedRef) => {
+  const [props, ref] = useNativeContextProps(authored, forwardedRef, NativeComboBoxButtonContext)
+  const { slot: _slot, isPressed, render, style, ...button } = props
+  const theme = useNativeTheme()
+  return (
+    <NativeButton
+      {...button}
+      ref={ref}
+      style={typeof style === "function" ? undefined : style}
+      nativeIsPressed={isPressed}
+      nativeRender={render}
+      nativeStyle={
+        typeof style === "function"
+          ? (flags, visible) =>
+              getNativeButtonStyle(
+                theme,
+                { ...button, style: (values) => style({ ...values, isFocusVisible: visible }) },
+                flags,
+                visible,
+              )
+          : undefined
+      }
+    />
+  )
+})
 NativeComboBoxButton.displayName = "NativeComboBoxButton"
 
 export const NativeCollectionComboBoxTrigger = <T extends object>({
@@ -151,23 +195,40 @@ export const NativeCollectionComboBoxTrigger = <T extends object>({
 }: {
   owner: TNativeCollectionComboBoxProps<T>
   foreground: ColorValue
-}) => (
-  <NativeComboBoxButton>
-    {owner.ComponentIcon ? (
-      getNativeButtonContent(owner.ComponentIcon)
-    ) : (
-      <Svg
-        width={15}
-        height={15}
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke={foreground}
-        strokeWidth={2}
-        strokeLinecap="round"
-        strokeLinejoin="round"
+}) => {
+  const state = useContext(NativeComboBoxStateContext)
+  // This owned wrapper has no caller transform; retain its neutral source rotation across retargeting.
+  const rotateX = useNativeMotionValue<unknown>(0)
+  return (
+    <NativeComboBoxButton>
+      <NativeMotionOwnerHost
+        testID={`${owner.testID ?? owner["data-testid"] ?? "combo-box"}-icon`}
+        accessible={false}
+        focusable={false}
+        computedStyles={{ alignItems: "center", justifyContent: "center" }}
+        values={{ rotateX }}
+        motion={{
+          animate: { rotateX: state?.isOpen ? 180 : 0 },
+          transition: { ease: "easeInOut", duration: 0.4 },
+        }}
       >
-        <Polyline points="6 9 12 15 18 9" />
-      </Svg>
-    )}
-  </NativeComboBoxButton>
-)
+        {owner.ComponentIcon ? (
+          getNativeButtonContent(owner.ComponentIcon)
+        ) : (
+          <Svg
+            width={15}
+            height={15}
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke={foreground}
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <Polyline points="6 9 12 15 18 9" />
+          </Svg>
+        )}
+      </NativeMotionOwnerHost>
+    </NativeComboBoxButton>
+  )
+}
