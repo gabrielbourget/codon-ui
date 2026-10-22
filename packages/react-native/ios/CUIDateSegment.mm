@@ -265,8 +265,11 @@ using namespace facebook::react;
 - (void)setSelectedTextRange:(UITextRange *)range
 {
   if (![self validRange:range]) return;
+  CUIDateRange *original = (CUIDateRange *)range;
+  NSDictionary *nativeData = @{ @"method":@"setSelectedTextRange", @"start":@(original.first.index), @"end":@(original.last.index),
+    @"startGeneration":@(original.first.generation), @"endGeneration":@(original.last.generation) };
   [_inputDelegate selectionWillChange:self]; _selection = [self nativeRange:range]; [_inputDelegate selectionDidChange:self];
-  [self emit:@"selection" text:@"" replacement:_selection];
+  [self emit:@"selection" text:@"" replacement:_selection nativeData:nativeData];
 }
 - (UITextRange *)markedTextRange { return _marked.location == NSNotFound ? nil : [self range:_marked]; }
 - (void)setMarkedText:(NSString *)text selectedRange:(NSRange)selectedRange
