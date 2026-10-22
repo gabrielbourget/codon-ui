@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class CUIKeyboardScope extends ReactViewGroup {
+  final CUIEditorKeyboardBindings editorKeyboard = new CUIEditorKeyboardBindings(this);
   final CUIMenuPointerPolicies menuPointers = new CUIMenuPointerPolicies(this);
   private List<CUIMenuPointerPolicies.Registration> menuPointerPolicies = new ArrayList<>();
   private double menuPointerRevision;
@@ -172,6 +173,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   double formActionEpoch() { return windowEpoch; }
   private boolean captureReady() { return captureEnabled && windowActive() && acceptedEpoch == windowEpoch && acceptedWindowId.equals(CUIInputWindow.identity(this)); }
   void publishStatus() {
+    editorKeyboard.publish();
     CUIWindowPointers.refresh(this);
     menuPointers.update(menuPointerPolicies, menuPointerRevision);
     floating.update(floatingTargets, captureReady());
@@ -222,6 +224,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
         long eventId = CUIInputWindow.nextObservedEvent(this);
         for (CUIKeyboardScope candidate : scopes) candidate.observeKey(event, focused, eventId, captured);
       }
+      if (outer && CUIEditorKeyboardBindings.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus())) return true;
       return dispatchCapturedKey(event) || super.dispatchKeyEvent(event);
     } finally { CUIInputWindow.endKey(this); }
   }
@@ -325,6 +328,23 @@ public final class CUIKeyboardScope extends ReactViewGroup {
     ThemedReactContext context = (ThemedReactContext) getContext(); EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
     if (dispatcher != null) dispatcher.dispatchEvent(new ScopeEvent(UIManagerHelper.getSurfaceId(this), getId(), name, data));
   }
+  void emitEditorKeyboard(String name, WritableMap data, boolean synchronous) {
+    ThemedReactContext context = (ThemedReactContext)getContext();
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag(context, getId());
+    if (dispatcher != null) dispatcher.dispatchEvent(new EditorKeyboardEvent(UIManagerHelper.getSurfaceId(this), getId(), name, data, synchronous));
+  }
+  private static final class EditorKeyboardEvent extends Event<EditorKeyboardEvent> {
+    private final String name;
+    private final WritableMap data;
+    private final boolean synchronous;
+    EditorKeyboardEvent(int surface, int tag, String name, WritableMap data, boolean synchronous) {
+      super(surface, tag); this.name = name; this.data = data; this.synchronous = synchronous;
+    }
+    @Override public String getEventName() { return name; }
+    @Override public boolean canCoalesce() { return false; }
+    @Override protected WritableMap getEventData() { return data; }
+    @Override protected boolean experimental_isSynchronous() { return synchronous; }
+  }
   void retireHeld() {
     for (int index = 0; index < held.size(); index++) {
       Hold hold = held.valueAt(index);
@@ -332,6 +352,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
       hold.retired = true;
     }
   }
+  @Override protected void onLayout(boolean changed, int left, int top, int right, int bottom) { super.onLayout(changed, left, top, right, bottom); editorKeyboard.publish(); }
   @Override public void onWindowFocusChanged(boolean focused) { retireHeld(); held.clear(); if (!focused) CUIInputWindow.clearPointers(this); windowEpoch++; super.onWindowFocusChanged(focused); publishStatus(); }
   @Override protected void onWindowVisibilityChanged(int visibility) {
     super.onWindowVisibilityChanged(visibility);

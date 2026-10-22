@@ -883,6 +883,8 @@ it("retains the custom picker root, complete render state and original field/roo
     f.node(
       <NativeComboBoxContext.Provider value={{ ref: picker, "aria-label": "Parent field" }}>
         <TagComboBox
+          autoFocus
+          inputMode="search"
           items={ITEMS}
           selectedItems={[]}
           getItemKey={(item) => item.id}
@@ -910,6 +912,8 @@ it("retains the custom picker root, complete render state and original field/roo
   const originalRoot = picker.current,
     originalOuter = outer.current,
     originalInput = editor.current
+  expect(screen.getByTestId("combo-box-input").props.autoFocus).toBe(true)
+  expect(screen.getByTestId("combo-box-input").props.inputMode).toBe("search")
   expect(originalRoot).not.toBeNull()
   expect(originalInput).not.toBeNull()
   expect(originalRoot === originalOuter).toBe(false)
@@ -1587,7 +1591,17 @@ it.each(["current", "synchronous", "query", "href", "unmount"])(
   },
 )
 
-it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as const)(
+const NAVIGATION_SCENARIOS = [
+  "boundaries",
+  "shift-home",
+  "page",
+  "native-page",
+  "retired-page",
+  "reveal",
+  "retired-reveal",
+  "pointer-reveal",
+] as const
+it.each(NAVIGATION_SCENARIOS)(
   "matches original editor navigation for %s without moving its native editor",
   async (scenario) => {
     const f = setup(),
@@ -1597,6 +1611,9 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
     jest
       .mocked(native.findNodeHandle)
       .mockImplementation((target) => (target != null && target === editor.current ? 888888 : find(target)))
+    const measured = !["boundaries", "shift-home", "page"].includes(scenario)
+    const scrollTo = jest.fn()
+    let observedOffset = 0
     const values = Array.from({ length: 8 }, (_, id) => ({ id, label: `Option ${id}` }))
     const rowRefs = values.map(() => createRef<RN.View>())
     let scrollRef:
@@ -1625,7 +1642,7 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
       f.node(
         <NativeCollectionRendererContext.Provider
           value={
-            scenario === "native-page" || scenario === "retired-page"
+            measured
               ? measuredRenderer
               : {
                   ...DefaultNativeCollectionRenderer,
@@ -1658,11 +1675,20 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
       ),
     )
     await f.ready()
+    const flushFrames = async () => {
+      for (let turn = 0; turn < 3; turn++)
+        await act(() => {
+          const pending = [...frames.values()]
+          frames.clear()
+          pending.forEach((callback) => callback(0))
+        })
+    }
     let flushMeasurements = () => {}
-    if (scenario === "native-page" || scenario === "retired-page") {
+    if (measured) {
       // The RN preset does not implement its native-backed ScrollView getter.
       const viewport = scrollRef?.current
       expect(viewport).toBeTruthy()
+      Object.defineProperty(viewport, "scrollTo", { configurable: true, value: scrollTo })
       Object.defineProperty(viewport, "getNativeScrollRef", { configurable: true, value: () => viewport })
       Object.defineProperty(viewport, "measureInWindow", {
         configurable: true,
@@ -1673,15 +1699,15 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
       contentRef!.current = contentModel.current
       Object.defineProperty(contentModel.current, "measureInWindow", {
         configurable: true,
-        value: (callback: (...values: number[]) => void) => callback(10, 100, 100, 240),
+        value: (callback: (...values: number[]) => void) => callback(10, 100 - observedOffset, 100, 240),
       })
       const measurements: (() => void)[] = []
       rowRefs.forEach((ref, index) =>
         Object.defineProperty(ref.current, "measureInWindow", {
           configurable: true,
           value: (callback: (...values: number[]) => void) => {
-            const run = () => callback(10, 100 + index * 30, 100, 30)
-            if (scenario === "retired-page") measurements.push(run)
+            const run = () => callback(10, 100 + index * 30 - observedOffset, 100, 30)
+            if (scenario === "retired-page" || scenario === "retired-reveal") measurements.push(run)
             else run()
           },
         }),
@@ -1705,6 +1731,18 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
         }),
       )
       host = screen.getByTestId("host").props
+      if (scenario === "reveal" || scenario === "retired-reveal" || scenario === "pointer-reveal")
+        await act(() =>
+          host.onNativeInputModality({
+            nativeEvent: {
+              ownerId: host.ownerId,
+              windowId: "source-model-window",
+              epoch: 1,
+              origin: "keyboard",
+              timestamp: 100,
+            },
+          }),
+        )
       const policy = host.policies.find(
         (candidate: { targetTag: number; tokens: string[] }) =>
           candidate.targetTag === native.findNodeHandle(editor.current) &&
@@ -1744,7 +1782,49 @@ it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as c
       )
     }
     expect(state.selectionManager.focusedKey).toBe(null)
-    if (scenario === "shift-home") {
+    if (scenario === "reveal" || scenario === "retired-reveal" || scenario === "pointer-reveal") {
+      await key("End")
+      await flushFrames()
+      if (scenario === "retired-reveal") {
+        await key("Home")
+        await act(flushMeasurements)
+        await flushFrames()
+        await act(flushMeasurements)
+        expect(scrollTo).not.toHaveBeenCalled()
+      } else {
+        expect(scrollTo.mock.calls).toEqual([[{ x: 0, y: 140, animated: false }]])
+        observedOffset = 140
+        await fireEvent(screen.getByTestId("combo-box-list-scroll", hidden), "scroll", {
+          nativeEvent: {
+            contentOffset: { x: 0, y: 140 },
+            contentSize: { width: 100, height: 240 },
+            layoutMeasurement: { width: 100, height: 100 },
+          },
+        })
+        if (scenario === "pointer-reveal") {
+          const host = screen.getByTestId("host").props
+          await act(() =>
+            host.onNativeInputModality({
+              nativeEvent: {
+                ownerId: host.ownerId,
+                windowId: "source-model-window",
+                epoch: 1,
+                origin: "pointer",
+                timestamp: 101,
+              },
+            }),
+          )
+          await act(() => state.selectionManager.setFocusedKey(0))
+          await flushFrames()
+          expect(scrollTo.mock.calls).toHaveLength(1)
+          expect(editor.current).toBe(original)
+          return
+        }
+        await key("Home")
+        await flushFrames()
+        expect(scrollTo.mock.calls).toEqual([[{ x: 0, y: 140, animated: false }], [{ x: 0, y: 0, animated: false }]])
+      }
+    } else if (scenario === "shift-home") {
       await key("Home", true)
       expect(state.selectionManager.focusedKey).toBe(null)
       await key("End", true)

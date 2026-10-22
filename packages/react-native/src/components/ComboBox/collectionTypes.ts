@@ -36,6 +36,8 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     | "validationBehavior"
     | "shouldCloseOnBlur"
   > & {
+    autoFocus?: TextInputProps["autoFocus"]
+    inputMode?: TextInputProps["inputMode"]
     accessibilityLabel?: string
     customOptionsListStyles?: StyleProp<TextStyle>
     "aria-label"?: string

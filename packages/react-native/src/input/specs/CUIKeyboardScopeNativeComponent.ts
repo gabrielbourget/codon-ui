@@ -168,8 +168,67 @@ export type NativeMenuPointerData = Readonly<{
   error: string
 }>
 
+export type NativeEditorKeyboardBinding = Readonly<{
+  bindingId: string
+  bindingRevision: string
+  targetTag: Int32
+  moduleLease: string
+}>
+export type NativeEditorKeyData = Readonly<{
+  ownerId: string
+  bindingId: string
+  bindingRevision: string
+  target: Int32
+  windowId: string
+  epoch: Double
+  eventId: Double
+  phase: "down" | "up" | "cancel"
+  key: string
+  code: string
+  nativeCode: Int32
+  location: Int32
+  repeat: boolean
+  cancelled: boolean
+  isComposing: boolean
+  shiftKey: boolean
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  capsLock: boolean
+  nativeModifierData: string
+  timestamp: Double
+}>
+export type NativeEditorKeyboardStatus = Readonly<{
+  ownerId: string
+  bindingId: string
+  bindingRevision: string
+  target: Int32
+  windowId: string
+  epoch: Double
+  sequence: Double
+  ready: boolean
+  windowActive: boolean
+  error: string
+}>
+export type NativeEditorKeyboardDecision = Readonly<{
+  ownerId: string
+  bindingId: string
+  bindingRevision: string
+  target: Int32
+  windowId: string
+  epoch: Double
+  eventId: Double
+  phase: "down" | "up" | "cancel"
+  decision: "allowed" | "prevented" | "unacknowledged" | "retired"
+  elapsedMs: Double
+}>
+
 export interface NativeProps extends ViewProps {
   ownerId: string
+  editorKeyboardBindings?: ReadonlyArray<NativeEditorKeyboardBinding>
+  onNativeEditorKey?: DirectEventHandler<NativeEditorKeyData>
+  onNativeEditorKeyboardStatus?: DirectEventHandler<NativeEditorKeyboardStatus>
+  onNativeEditorKeyboardDecision?: DirectEventHandler<NativeEditorKeyboardDecision>
   enabled?: WithDefault<boolean, true>
   policies?: ReadonlyArray<NativeKeyPolicy>
   acceptedWindowId?: string

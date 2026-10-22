@@ -520,6 +520,79 @@ const Receiver = <T extends object>({
     }
     return keys
   }
+  const scrollRequest = useRef(0)
+  const revealFocusedRow = (key: string | number) => {
+    const owner = current.current
+    const row = rows.current.get(key)
+    const scroller = scroll.current
+    const viewport = scroller?.getNativeScrollRef?.()
+    const contentTarget = scrollContent.current
+    const metrics = listMetrics.current
+    const binding = row && actions?.bindingFor(row.node)
+    if (!row || !binding || !scroller?.scrollTo || !viewport || !contentTarget || !metrics.content) return false
+    const request = ++scrollRequest.current
+    const editor = input.current
+    const session = JSON.stringify(inputScope?.acknowledgedSession() ?? null)
+    const valid = () => {
+      const latest = current.current
+      return (
+        live.current &&
+        request === scrollRequest.current &&
+        latest.state.isOpen &&
+        latest.state.selectionManager.isFocused &&
+        latest.state.selectionManager.focusedKey === key &&
+        !latest.props.isDisabled &&
+        !latest.props.isReadOnly &&
+        latest.state.collection === owner.state.collection &&
+        latest.state.inputValue === owner.state.inputValue &&
+        latest.renderer === owner.renderer &&
+        rows.current.get(key) === row &&
+        input.current === editor &&
+        scroll.current === scroller &&
+        scroller.getNativeScrollRef?.() === viewport &&
+        scrollContent.current === contentTarget &&
+        listMetrics.current === metrics &&
+        actions?.bindingFor(row.node) === binding &&
+        inputScope?.isWindowActive() !== false &&
+        JSON.stringify(inputScope?.acknowledgedSession() ?? null) === session
+      )
+    }
+    readNativeComboBoxPageLayout({
+      viewport,
+      contentTarget,
+      metrics,
+      rows: [{ key, target: row.target }],
+      current: valid,
+      complete: (layout) => {
+        const rect = layout.getItemRect?.(key)
+        if (!rect || !valid()) return
+        const visible = layout.getVisibleRect()
+        const content = layout.getContentSize()
+        const nearest = (start: number, length: number, offset: number, extent: number) => {
+          if (start >= offset && start + length <= offset + extent) return offset
+          const first = start - offset
+          const last = start + length - offset - extent
+          return offset + (Math.abs(first) <= Math.abs(last) ? first : last)
+        }
+        const x = Math.max(
+          0,
+          Math.min(Math.max(0, content.width - visible.width), nearest(rect.x, rect.width, visible.x, visible.width)),
+        )
+        const y = Math.max(
+          0,
+          Math.min(
+            Math.max(0, content.height - visible.height),
+            nearest(rect.y, rect.height, visible.y, visible.height),
+          ),
+        )
+        if (x === visible.x && y === visible.y) return
+        actions?.request(row.node, findNodeHandle(row.target) ?? 0, () => {
+          if (valid()) scroller.scrollTo?.({ x, y, animated: false })
+        })
+      },
+    })
+    return true
+  }
   const onKey = (event: TNativeKeyboardEvent) => {
     const data = event.nativeEvent,
       owner = current.current
@@ -704,6 +777,7 @@ const Receiver = <T extends object>({
                           isCollectionPending,
                           metrics: listMetrics,
                           contentRef: scrollContent,
+                          revealFocusedRow,
                         }}
                       >
                         <NativeComboBoxListContext.Provider

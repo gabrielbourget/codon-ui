@@ -1197,3 +1197,144 @@ it("retains original editor boundaries after opaque linked collection reordering
   fireEvent.keyDown(input, { key: "ArrowDown" })
   expect(keyboardState.selectionManager.focusedKey).toBe(0)
 })
+
+it("reveals keyboard-focused rows in the original scroll list while retaining editor focus", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  Object.defineProperties(list, {
+    clientHeight: { configurable: true, value: 100 },
+    scrollHeight: { configurable: true, value: 240 },
+    clientWidth: { configurable: true, value: 100 },
+    scrollWidth: { configurable: true, value: 100 },
+    offsetWidth: { configurable: true, value: 100 },
+    offsetHeight: { configurable: true, value: 100 },
+  })
+  list.style.overflowY = "auto"
+  list.getBoundingClientRect = () => ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 100,
+    bottom: 100,
+    width: 100,
+    height: 100,
+    toJSON: () => ({}),
+  })
+  screen.getAllByRole("option").forEach((node, index) => {
+    node.getBoundingClientRect = () => ({
+      x: 0,
+      y: index * 30 - list.scrollTop,
+      left: 0,
+      top: index * 30 - list.scrollTop,
+      right: 100,
+      bottom: index * 30 + 30 - list.scrollTop,
+      width: 100,
+      height: 30,
+      toJSON: () => ({}),
+    })
+  })
+  fireEvent.keyDown(input, { key: "End" })
+  await waitFor(() => expect(list.scrollTop).toBe(140))
+  expect(document.activeElement).toBe(input)
+  fireEvent.keyDown(input, { key: "Home" })
+  await waitFor(() => expect(list.scrollTop).toBe(0))
+  expect(document.activeElement).toBe(input)
+  records.push({ case: "original-list-keyboard-reveal", endOffset: 140, homeOffset: 0, originalEditorFocused: true })
+})
+
+it("does not reveal a programmatic row change after pointer input", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  list.scrollTop = 140
+  const user = userEvent.setup()
+  await user.click(input)
+  await act(() => keyboardState.selectionManager.setFocusedKey(0))
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+  expect(list.scrollTop).toBe(140)
+  expect(document.activeElement).toBe(input)
+})
+
+it("preserves original editor autofocus and source key/default/caller ordering", async () => {
+  const user = userEvent.setup(),
+    trace: unknown[] = []
+  let state: React.ContextType<typeof ComboBoxStateContext>
+  const Capture = () => {
+    state = useContext(ComboBoxStateContext)
+    return null
+  }
+  render(
+    <ComboBox
+      aria-label="Key callbacks"
+      autoFocus
+      items={items}
+      inputValue=""
+      onInputChange={(value) => trace.push(["input", value])}
+      onOpenChange={(value) => trace.push(["open", value])}
+      onKeyDown={(event) =>
+        trace.push([
+          "down",
+          event.key,
+          event.target === screen.getByRole("combobox"),
+          state?.selectionManager.focusedKey ?? null,
+        ])
+      }
+      onKeyUp={(event) =>
+        trace.push([
+          "up",
+          event.key,
+          event.target === screen.getByRole("combobox"),
+          state?.selectionManager.focusedKey ?? null,
+        ])
+      }
+    >
+      {(item) => (
+        <ListBoxItem id={item.id} textValue={item.label}>
+          <Capture />
+          {item.label}
+        </ListBoxItem>
+      )}
+    </ComboBox>,
+  )
+  expect(document.activeElement).toBe(screen.getByRole("combobox"))
+  await user.keyboard("{ArrowDown}{ArrowDown}a{Escape}")
+  expect(trace).toEqual([
+    ["open", true],
+    ["down", "ArrowDown", true, null],
+    ["up", "ArrowDown", true, 0],
+    ["down", "ArrowDown", true, ""],
+    ["up", "ArrowDown", true, ""],
+    ["down", "a", true, ""],
+    ["input", "a"],
+    ["up", "a", true, ""],
+    ["open", false],
+    ["down", "Escape", true, null],
+    ["up", "Escape", true, null],
+  ])
+})
+it("lets the original source key-down callback veto editing without losing key-up", async () => {
+  const user = userEvent.setup(),
+    trace: unknown[] = []
+  render(
+    <ComboBox
+      aria-label="Key veto"
+      autoFocus
+      items={[]}
+      allowsEmptyCollection
+      inputValue=""
+      onInputChange={(value) => trace.push(["input", value])}
+      onKeyDown={(event) => {
+        trace.push(["down", event.key])
+        event.preventDefault()
+      }}
+      onKeyUp={(event) => trace.push(["up", event.key])}
+    >
+      {null}
+    </ComboBox>,
+  )
+  await user.keyboard("a")
+  expect(trace).toEqual([
+    ["down", "a"],
+    ["up", "a"],
+  ])
+})
