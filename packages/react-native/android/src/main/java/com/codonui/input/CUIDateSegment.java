@@ -9,6 +9,7 @@ import android.text.SpannableStringBuilder;
 import android.text.InputType;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 import android.view.accessibility.AccessibilityNodeInfo;
 import android.view.inputmethod.BaseInputConnection;
 import android.view.inputmethod.EditorInfo;
@@ -23,6 +24,7 @@ import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.views.view.ReactViewGroup;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import java.util.ArrayList;
 
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUIDateSegment extends ReactViewGroup {
@@ -46,8 +48,15 @@ final class CUIDateSegment extends ReactViewGroup {
     if (manager != null && hasFocus()) manager.restartInput(this);
   }
   void enforceTraits() {
-    setFocusable(!segmentDisabled && segmentEditable); setFocusableInTouchMode(!segmentDisabled && segmentEditable);
-    if (segmentDisabled || !segmentEditable) clearFocus();
+    boolean eligible = segmentEditable && (!segmentDisabled || hasFocus());
+    setFocusable(eligible); setFocusableInTouchMode(eligible);
+    if (!segmentEditable) clearFocus();
+  }
+  @Override public boolean requestFocus(int direction, Rect previous) {
+    return !segmentDisabled && segmentEditable && super.requestFocus(direction, previous);
+  }
+  @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
+    if (!segmentDisabled && segmentEditable) super.addFocusables(views, direction, mode);
   }
   boolean isSegmentComposing() { return BaseInputConnection.getComposingSpanStart(document) >= 0; }
   void mounted() { enforceTraits(); emit("status", "", 0, 0); }
@@ -67,7 +76,7 @@ final class CUIDateSegment extends ReactViewGroup {
     super.onFocusChanged(focused, direction, previous);
     if (focused) clearDocument();
     emit(focused ? "focus" : "blur", "", 0, 0);
-    if (!focused) clearDocument();
+    if (!focused) { clearDocument(); if (segmentDisabled) enforceTraits(); }
   }
   JSONObject formSegmentIdentity() throws Exception {
     int surface = UIManagerHelper.getSurfaceId(this);

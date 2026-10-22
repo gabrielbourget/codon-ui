@@ -197,6 +197,7 @@ using namespace facebook::react;
   value.attached = [packet[@"attached"] boolValue]; value.active = [packet[@"active"] boolValue]; value.within = [packet[@"within"] boolValue];
   value.focusedTarget = [packet[@"focusedTarget"] intValue]; value.textInputFocused = [packet[@"textInputFocused"] boolValue];
   value.origin = [packet[@"origin"] UTF8String]; value.observedAt = [packet[@"observedAt"] doubleValue];
+  value.isFocused = [packet[@"isFocused"] boolValue]; value.isFocusVisible = [packet[@"isFocusVisible"] boolValue]; value.timestamp = [packet[@"timestamp"] doubleValue];
   std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeFocusWithin(value);
 }
 - (void)emitFormActionStatus:(NSDictionary *)packet
@@ -662,6 +663,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
     if (focused) _eventEmitter->onFocus();
     else _eventEmitter->onBlur();
   }
+  CUIReportInputFocusChanged(self, focused);
 }
 
 - (BOOL)becomeFirstResponder

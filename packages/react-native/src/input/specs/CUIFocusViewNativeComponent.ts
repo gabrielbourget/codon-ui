@@ -115,6 +115,9 @@ export type NativeFocusWithinData = Readonly<{
   textInputFocused: boolean
   origin: string
   observedAt: Double
+  isFocused?: boolean
+  isFocusVisible?: boolean
+  timestamp?: Double
 }>
 
 export type NativeFormActionStatus = Readonly<{

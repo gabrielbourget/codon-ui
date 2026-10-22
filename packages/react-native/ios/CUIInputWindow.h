@@ -27,3 +27,6 @@ NSInteger CUINextInputPolicyOrder(UIWindow *window);
 void CUIRefreshKeyboardObservation(UIWindow *window);
 void CUIRefreshWindowPointerObservation(UIWindow *window);
 void CUIActivateWindowPointer(UIView *target);
+
+extern NSNotificationName const CUIInputFocusChangedNotification;
+void CUIReportInputFocusChanged(UIView *target, BOOL focused);

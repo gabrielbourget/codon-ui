@@ -191,3 +191,47 @@ it("retires queued input when numeric/text keyboard traits change while retainin
   expect(ref.current).toBe(original)
   expect(screen.getByTestId("segment").props.keyboardMode).toBe("text")
 })
+
+it.each(["segmentDisabled", "segmentReadOnly"] as const)(
+  "retains original observed focus after native acknowledgement of %s while preserving request/edit admission",
+  async (guard) => {
+    const ref = createRef<TNativeDateSegmentRef>(),
+      callback = jest.fn()
+    const view = await render(
+      <NativeDateSegment {...props} ref={ref} testID="segment" onNativeSegmentInput={callback} />,
+    )
+    const original = ref.current!
+    await send()
+    await send({ kind: "focus", focused: true, sequence: 2 })
+    expect(getNativeFocusedTarget()).toBe(original)
+    await view.rerender(
+      <NativeDateSegment
+        {...props}
+        ref={ref}
+        testID="segment"
+        onNativeSegmentInput={callback}
+        {...{ [guard]: true }}
+      />,
+    )
+    // A new guard generation alone cannot grant a native focus observation.
+    expect(getNativeFocusedTarget()).toBeNull()
+    await send({ kind: "status", focused: true, epoch: 5, sequence: 3 })
+    expect(getNativeFocusedTarget()).toBe(original)
+    expect(focusNativeTarget(original)).toBe(guard === "segmentReadOnly")
+    callback.mockClear()
+    await send({
+      kind: "insert",
+      focused: true,
+      epoch: 5,
+      sequence: 4,
+      text: "2",
+      document: "2",
+      selectionStart: 1,
+      selectionEnd: 1,
+    })
+    expect(callback).not.toHaveBeenCalled()
+    await send({ kind: "blur", focused: false, epoch: 5, sequence: 5 })
+    expect(getNativeFocusedTarget()).toBeNull()
+    expect(ref.current).toBe(original)
+  },
+)

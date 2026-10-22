@@ -107,7 +107,8 @@ using namespace facebook::react;
   _keyboardMode = keyboardMode;
   BOOL traitsChanged = modeChanged || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
   _disabled = next.segmentDisabled; _readOnly = next.segmentReadOnly; _editable = next.segmentEditable;
-  if (_disabled || !_editable) [self resignFirstResponder];
+  // A disabled canonical segment loses tab admission, not an existing responder.
+  if (!_editable) [self resignFirstResponder];
   if (traitsChanged) { _epoch++; [self clearTransientDocument]; [self reloadInputViews]; }
   self.isAccessibilityElement = YES;
   self.accessibilityValue = _displayText;
@@ -115,7 +116,7 @@ using namespace facebook::react;
 }
 - (BOOL)canBecomeFirstResponder { return !_disabled && _editable; }
 - (BOOL)canBecomeFocused { return !_disabled && _editable; }
-- (UIView *)inputView { return _readOnly ? _readOnlyKeyboard : nil; }
+- (UIView *)inputView { return _readOnly || _disabled ? _readOnlyKeyboard : nil; }
 - (UIKeyboardType)keyboardType { return !_readOnly && [_keyboardMode isEqualToString:@"numeric"] ? UIKeyboardTypeNumberPad : UIKeyboardTypeDefault; }
 - (UITextAutocorrectionType)autocorrectionType { return UITextAutocorrectionTypeNo; }
 - (UITextAutocapitalizationType)autocapitalizationType { return UITextAutocapitalizationTypeNone; }
@@ -124,13 +125,21 @@ using namespace facebook::react;
 {
   if (![self active] || ![self canBecomeFirstResponder]) return NO;
   BOOL was = self.isFirstResponder, result = [super becomeFirstResponder];
-  if (result && !was) { [self clearTransientDocument]; [self emit:@"focus" text:@"" replacement:NSMakeRange(0, 0)]; }
+  if (result && !was) {
+    CUIAdvanceInputRevision(self.window);
+    [self clearTransientDocument]; [self emit:@"focus" text:@"" replacement:NSMakeRange(0, 0)];
+    CUIReportInputFocusChanged(self, YES);
+  }
   return result;
 }
 - (BOOL)resignFirstResponder
 {
   BOOL was = self.isFirstResponder, result = [super resignFirstResponder];
-  if (was && result) { [self emit:@"blur" text:@"" replacement:NSMakeRange(0, 0)]; [self clearTransientDocument]; }
+  if (was && result) {
+    CUIAdvanceInputRevision(self.window);
+    [self emit:@"blur" text:@"" replacement:NSMakeRange(0, 0)]; [self clearTransientDocument];
+    CUIReportInputFocusChanged(self, NO);
+  }
   return result;
 }
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event

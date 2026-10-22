@@ -4,6 +4,12 @@
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <objc/runtime.h>
 
+NSNotificationName const CUIInputFocusChangedNotification = @"CUIInputFocusChanged";
+void CUIReportInputFocusChanged(UIView *target, BOOL focused)
+{
+  [NSNotificationCenter.defaultCenter postNotificationName:CUIInputFocusChangedNotification object:target userInfo:@{@"focused":@(focused)}];
+}
+
 @interface CUIPassiveKeyboardObserver : UIGestureRecognizer <UIGestureRecognizerDelegate>
 @property(nonatomic, strong) NSMutableSet<NSNumber *> *held;
 @end

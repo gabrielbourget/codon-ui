@@ -22,7 +22,7 @@
   if (!_observing) {
     _observing = YES;
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
-    for (NSString *name in @[UITextFieldTextDidBeginEditingNotification, UITextFieldTextDidEndEditingNotification,
+    for (NSString *name in @[CUIInputFocusChangedNotification, UITextFieldTextDidBeginEditingNotification, UITextFieldTextDidEndEditingNotification,
         UITextViewTextDidBeginEditingNotification, UITextViewTextDidEndEditingNotification,
         UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
         UISceneWillDeactivateNotification, UISceneDidActivateNotification,
@@ -36,7 +36,12 @@
   if ([notification.object isKindOfClass:UIWindowScene.class] && notification.object != _root.window.windowScene) return;
   if ([notification.name isEqual:UIApplicationWillResignActiveNotification] || [notification.name isEqual:UISceneWillDeactivateNotification]) _applicationActive = NO;
   if ([notification.name isEqual:UIApplicationDidBecomeActiveNotification] || [notification.name isEqual:UISceneDidActivateNotification]) _applicationActive = YES;
-  [self schedule];
+  BOOL began = [notification.name isEqual:UITextFieldTextDidBeginEditingNotification] ||
+    [notification.name isEqual:UITextViewTextDidBeginEditingNotification] ||
+    ([notification.name isEqual:CUIInputFocusChangedNotification] && [notification.userInfo[@"focused"] boolValue]);
+  // Enter/target changes are observed at the SDK callback. Defer an end until
+  // its destination is known, so an internal move cannot become a field blur.
+  if (began) [self sample]; else [self schedule];
 }
 - (void)schedule
 {
@@ -74,7 +79,10 @@
   _last = value;
   NSMutableDictionary *packet = [value mutableCopy];
   packet[@"sequence"] = @(++_sequence);
-  packet[@"observedAt"] = @(NSProcessInfo.processInfo.systemUptime * 1000);
+  NSNumber *timestamp = @(NSProcessInfo.processInfo.systemUptime * 1000);
+  packet[@"observedAt"] = timestamp; packet[@"timestamp"] = timestamp;
+  packet[@"isFocused"] = @(within);
+  packet[@"isFocusVisible"] = @(within && [value[@"origin"] isEqual:@"keyboard"]);
   _emit(packet);
 }
 - (void)invalidate

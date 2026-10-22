@@ -61,7 +61,7 @@ final class CUIFocusWithinObserver {
         .put("windowId", state.optString("windowId")).put("scopeOwnerId", state.optString("scopeOwnerId"))
         .put("scopeEpoch", state.optDouble("scopeEpoch")).put("attached", attached).put("active", active)
         .put("within", within).put("focusedTarget", Math.max(0, focusedTag))
-        .put("textInputFocused", within && focused instanceof EditText).put("origin", CUIInputWindow.modality(view));
+        .put("textInputFocused", within && (focused instanceof EditText || focused instanceof CUIDateSegment)).put("origin", CUIInputWindow.modality(view));
       String encoded = next.toString();
       if (encoded.equals(signature)) return;
       signature = encoded;
@@ -69,7 +69,10 @@ final class CUIFocusWithinObserver {
       for (String name : new String[]{"ownerId", "bindingId", "windowId", "scopeOwnerId", "origin"}) packet.putString(name, next.optString(name));
       for (String name : new String[]{"target", "surfaceId", "focusedTarget"}) packet.putInt(name, next.optInt(name));
       for (String name : new String[]{"attached", "active", "within", "textInputFocused"}) packet.putBoolean(name, next.optBoolean(name));
-      packet.putDouble("scopeEpoch", next.optDouble("scopeEpoch")); packet.putDouble("sequence", ++sequence); packet.putDouble("observedAt", SystemClock.uptimeMillis());
+      long timestamp = SystemClock.uptimeMillis();
+      packet.putDouble("scopeEpoch", next.optDouble("scopeEpoch")); packet.putDouble("sequence", ++sequence); packet.putDouble("observedAt", timestamp);
+      packet.putDouble("timestamp", timestamp); packet.putBoolean("isFocused", within);
+      packet.putBoolean("isFocusVisible", within && CUIInputWindow.modality(view).equals("keyboard"));
       emitter.emit(packet);
     } catch (Exception ignored) { signature = ""; }
   }
