@@ -719,3 +719,6 @@ export type {
   TNativeFocusViewProps,
   TNativeFocusViewRef,
 } from "./input/types"
+
+export { NativeLocaleProvider, useNativeLocale } from "./locale/NativeLocaleProvider"
+export type { TNativeLocale, TNativeLocaleProviderProps } from "./locale/NativeLocaleProvider"

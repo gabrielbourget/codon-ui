@@ -66,6 +66,7 @@
     "react-dom": "19.2.3"
   },
   "dependencies": {
+    "@internationalized/date": "3.12.1",
     "@internationalized/number": "3.6.6",
     "react-stately": "3.46.0"
   },
@@ -88,7 +89,8 @@
         "CUICollectionRoot": "CUICollectionRoot",
         "CUICollectionNode": "CUICollectionNode",
         "CUIFormRoot": "CUIFormRoot",
-        "CUIFieldBinding": "CUIFieldBinding"
+        "CUIFieldBinding": "CUIFieldBinding",
+        "CUIDateSegment": "CUIDateSegment"
       }
     }
   }

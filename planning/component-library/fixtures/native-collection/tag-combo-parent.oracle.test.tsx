@@ -83,6 +83,35 @@ it("retains controlled open and original input across repeated vetoed selections
   records.push({ vetoedSelectionOriginalRequests: trace, originalEditorRetained: true })
 })
 
+it("retains inherited capture callbacks and their original input-focus default veto", async () => {
+  const observed: MouseEvent[] = []
+  let veto = true
+  render(
+    <TagComboBox
+      {...base}
+      onMouseDownCapture={(event) => {
+        observed.push(event.nativeEvent)
+        if (veto) event.preventDefault()
+      }}
+    />,
+  )
+  const original = screen.getByRole("combobox")
+  const user = userEvent.setup()
+  await user.click(original)
+  expect(observed).toHaveLength(1)
+  expect(observed[0].target).toBe(original)
+  expect(observed[0].defaultPrevented).toBe(true)
+  expect(document.activeElement).not.toBe(original)
+  veto = false
+  await user.click(original)
+  expect(observed).toHaveLength(2)
+  expect(observed[1].target).toBe(original)
+  expect(observed[1].defaultPrevented).toBe(false)
+  expect(document.activeElement).toBe(original)
+  expect(screen.getByRole("combobox")).toBe(original)
+  records.push({ inheritedMouseCaptureDefaultVeto: true, originalInputAndEvents: true })
+})
+
 it("inherits parent context at the inner ComboBox, preserves actual refs, and honors slot=null", () => {
   const root = createRef<HTMLDivElement>(),
     picker = createRef<HTMLDivElement>(),
