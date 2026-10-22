@@ -3,6 +3,7 @@ import { TurboModuleRegistry } from "react-native"
 
 export interface Spec extends TurboModule {
   getSnapshot(request: string): Promise<string>
+  focusField(request: string): Promise<string>
 }
 
 export default TurboModuleRegistry.get<Spec>("CUIFormDocument")

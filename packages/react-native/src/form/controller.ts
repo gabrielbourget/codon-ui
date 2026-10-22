@@ -1,6 +1,6 @@
 import type { TextInput, View } from "react-native"
 
-import { focusNativeTarget } from "../input/focus"
+import type { NativeFormActionStatus } from "../input/specs/CUIFocusViewNativeComponent"
 import type { TNativePressEvent } from "../input/types"
 
 import {
@@ -9,6 +9,11 @@ import {
   type TNativeFormDocument,
   type TNativeFormDescriptor,
 } from "./document"
+import {
+  requestNativeFormFieldFocus,
+  type TNativeFormFieldFocusOutcome,
+  type TNativeFormFieldFocusRequest,
+} from "./fieldFocus"
 import type { NativeFormRegistry } from "./registry"
 import { type TNativeFormBinding, type TNativeFormFieldBinding } from "./registry"
 import type { TNativeFormAction, TNativeFormEntry, TNativeFormRequest, TNativeFormResult } from "./types"
@@ -21,6 +26,7 @@ type TNativeActionAdmission = Readonly<{
   formId?: string
   isCurrent: () => boolean
   admit: (document: TNativeFormDocument, form: TNativeFormDescriptor) => Promise<boolean>
+  actionLease?: NativeFormActionStatus | null
 }>
 type TProgrammatic = Readonly<{ origin: "programmatic"; form: View }>
 const retired = (reason: string, requestedFields?: readonly string[]): TNativeFormResult =>
@@ -54,7 +60,10 @@ export class NativeFormController {
   constructor(
     readonly registry: NativeFormRegistry,
     readonly read: TReader,
-    readonly focus: (target: TextInput) => boolean = focusNativeTarget,
+    readonly focus: (
+      target: TextInput,
+      scope: TNativeFormFieldFocusRequest,
+    ) => Promise<TNativeFormFieldFocusOutcome> = (_target, scope) => requestNativeFormFieldFocus(scope),
   ) {}
 
   #current = (form: TNativeFormBinding, revision: number, fields: readonly TNativeFormFieldBinding[]) =>
@@ -167,14 +176,36 @@ export class NativeFormController {
         const first = invalid[0],
           editor = first.editor(),
           mount = first.mount()?.getSnapshot()
-        const requested = !!(
-          current() &&
-          editor &&
-          mount &&
-          !hidden(document, first.descriptor.target) &&
-          this.focus(editor)
-        )
-        const observed = !!(editor && first.editor() === editor && first.isFocusObserved())
+        const fieldDescriptor = document.fields.find((field) => field.descriptorId === first.descriptor.descriptorId)!
+        let focus: TNativeFormFieldFocusOutcome = { requested: false, current: false }
+        if (current() && editor && mount?.active && !hidden(document, first.descriptor.target)) {
+          try {
+            focus = await this.focus(editor, {
+              document,
+              form: descriptor,
+              field: fieldDescriptor,
+              mount,
+              origin: source.origin,
+              actionLease: source.origin === "native" ? source.actionLease : undefined,
+            })
+          } catch {
+            /* An unavailable native command cannot become a focus request. */
+          }
+        }
+        const originalCurrent = first.editor() === editor && first.mount()?.getSnapshot() === mount
+        const observed = !!(focus.current && mount?.active && editor && originalCurrent && first.isFocusObserved())
+        const focusResult = Object.freeze({
+          descriptorId: first.descriptor.descriptorId,
+          target: first.descriptor.target,
+          requested: focus.requested,
+          observed,
+        })
+        if (!current() || (focus.requested && (!focus.current || !originalCurrent)))
+          return Object.freeze({
+            status: "retired",
+            reason: "form-retired-during-focus-request",
+            focus: focusResult,
+          })
         return Object.freeze({
           status: "invalid",
           invalidFields: Object.freeze(
@@ -182,12 +213,7 @@ export class NativeFormController {
               Object.freeze({ descriptorId: field.descriptor.descriptorId, validation: field.data.validation }),
             ),
           ),
-          focus: Object.freeze({
-            descriptorId: first.descriptor.descriptorId,
-            target: first.descriptor.target,
-            requested,
-            observed,
-          }),
+          focus: focusResult,
         })
       }
     }

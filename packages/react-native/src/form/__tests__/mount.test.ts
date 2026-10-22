@@ -16,6 +16,7 @@ const packet = (updates: Partial<NativeFormCommitData> = {}): NativeFormCommitDa
   sequence: 1,
   mountRevision: "native-mount:1",
   attached: true,
+  active: true,
   complete: true,
   metadataOnly: true,
   originalClass: "OriginalEditor",
@@ -84,7 +85,15 @@ it("retires current completion on a valid incomplete/detached native status", ()
   receiver.receive(packet())
   expect(
     receiver.receive(
-      packet({ epoch: 2, sequence: 2, attached: false, complete: false, originalClass: "", error: "detached" }),
+      packet({
+        epoch: 2,
+        sequence: 2,
+        attached: false,
+        active: false,
+        complete: false,
+        originalClass: "",
+        error: "detached",
+      }),
     ),
   ).toBe(true)
   expect(receiver.getSnapshot()).toBeNull()
@@ -99,6 +108,16 @@ it("permanently retires original-ref authority before delayed callbacks and refu
   restore()
   expect(receiver.receive(packet({ epoch: 2, sequence: 2 }))).toBe(false)
   expect(receiver.getSnapshot()).toBeNull()
+})
+
+it("retains logical membership while inactive and requires a fresh native epoch after window restoration", () => {
+  const { receiver } = setup()
+  expect(receiver.receive(packet())).toBe(true)
+  expect(receiver.receive(packet({ epoch: 2, sequence: 2, active: false }))).toBe(true)
+  expect(receiver.getSnapshot()).toMatchObject({ complete: true, active: false })
+  expect(receiver.receive(packet({ epoch: 2, sequence: 3, active: true }))).toBe(false)
+  expect(receiver.receive(packet({ epoch: 3, sequence: 3, active: true }))).toBe(true)
+  expect(receiver.getSnapshot()?.active).toBe(true)
 })
 
 it.each([null, undefined, []])("rejects malformed native payload %p without manufacturing readiness", (value) => {

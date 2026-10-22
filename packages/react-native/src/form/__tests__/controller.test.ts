@@ -60,6 +60,7 @@ const setup = () => {
       mountRevision: "model",
       complete: true,
       attached: true,
+      active: true,
       metadataOnly: true,
       originalClass: "OriginalModelEditor",
       error: "",
@@ -144,7 +145,10 @@ const setup = () => {
     mutate?.(value)
     return JSON.stringify(value)
   })
-  const focus = jest.fn(() => true)
+  const focus = jest.fn(async (_editor: TextInput, _scope: import("../fieldFocus").TNativeFormFieldFocusRequest) => ({
+    requested: true,
+    current: true,
+  }))
   const controller = new NativeFormController(registry, read, focus)
   return {
     registry,
@@ -257,6 +261,55 @@ it("does not fabricate a focus request for a retained hidden invalid first field
     },
   })
   value.root()
+  const result = await value.controller.request("submit", { origin: "programmatic", form: value.form })
+  expect(result.status).toBe("invalid")
+  expect(result.focus).toMatchObject({ requested: false, observed: false })
+  expect(value.focus).not.toHaveBeenCalled()
+})
+
+it.each(["denied", "throws", "native retirement", "form retirement", "mount retirement"] as const)(
+  "preserves the actual focus request outcome after %s",
+  async (mode) => {
+    const value = setup()
+    value.publish("beta", {
+      validation: {
+        isInvalid: true,
+        validationDetails: { ...VALID_VALIDITY_STATE, valid: false, valueMissing: true },
+        validationErrors: ["Required"],
+      },
+    })
+    value.root()
+    value.focus.mockImplementationOnce(async (editor, scope) => {
+      expect(editor).toBe(value.registry.fields.get("beta")!.editor())
+      expect(scope.mount.originalTarget).toBe(9)
+      expect(scope.field.descriptorId).toBe("beta")
+      if (mode === "throws") throw new Error("native focus unavailable")
+      if (mode === "form retirement") value.retire()
+      if (mode === "mount retirement") value.registry.fields.get("beta")!.mount()!.retire()
+      return { requested: mode !== "denied", current: mode !== "denied" && mode !== "native retirement" }
+    })
+    const result = await value.controller.request("submit", { origin: "programmatic", form: value.form })
+    const issued = mode !== "denied" && mode !== "throws"
+    expect(result.status).toBe(issued ? "retired" : "invalid")
+    expect(result.focus).toMatchObject({ descriptorId: "beta", requested: issued, observed: false })
+  },
+)
+
+it("does not request focus from an inactive original-window mount acknowledgment", async () => {
+  const value = setup()
+  value.publish("beta", {
+    validation: {
+      isInvalid: true,
+      validationDetails: { ...VALID_VALIDITY_STATE, valid: false, valueMissing: true },
+      validationErrors: ["Required"],
+    },
+  })
+  value.root()
+  const receipt = value.registry.fields.get("beta")!.mount()!,
+    previous = receipt.getSnapshot()!
+  expect(
+    receipt.receive({ ...previous, active: false, epoch: previous.epoch + 1, sequence: previous.sequence + 1 }),
+  ).toBe(true)
   const result = await value.controller.request("submit", { origin: "programmatic", form: value.form })
   expect(result.status).toBe("invalid")
   expect(result.focus).toMatchObject({ requested: false, observed: false })

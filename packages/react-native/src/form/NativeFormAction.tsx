@@ -93,6 +93,7 @@ export const NativeFormAction = forwardRef<View, TNativeFormActionProps>((receiv
         target: lease?.target ?? 0,
         formId: owner.props.form,
         isCurrent,
+        actionLease: lease,
         admit: (document, form) => (lease ? admitNativeFormAction(lease, document, form) : Promise.resolve(false)),
       })
       .then((result) => {

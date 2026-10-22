@@ -256,6 +256,75 @@ it("records DOM portal association separately from the approved native retained-
   target.remove()
 })
 
+it("focuses the first invalid original editor in current document order after reorder", () => {
+  const form = createRef<HTMLFormElement>(),
+    focuses: EventTarget[] = [],
+    submit = vi.fn()
+  const content = (order: readonly string[]) => (
+    <>
+      <Form ref={form} onSubmit={submit}>
+        {order.map((name) => (
+          <ComboBox
+            {...options}
+            key={name}
+            aria-label={name}
+            name={name}
+            formValue="text"
+            inputValue=""
+            isRequired
+            onFocus={(event) => focuses.push(event.target)}
+          />
+        ))}
+      </Form>
+      <button type="button">Outside focus</button>
+    </>
+  )
+  const view = render(content(["later", "first"]))
+  const later = screen.getByRole("combobox", { name: "later" }),
+    first = screen.getByRole("combobox", { name: "first" })
+  act(() => form.current!.requestSubmit())
+  expect(document.activeElement).toBe(later)
+  expect(focuses.at(-1)).toBe(later)
+  act(() => screen.getByText("Outside focus").focus())
+  view.rerender(content(["first", "later"]))
+  expect(screen.getByRole("combobox", { name: "first" })).toBe(first)
+  expect(screen.getByRole("combobox", { name: "later" })).toBe(later)
+  act(() => form.current!.requestSubmit())
+  expect(document.activeElement).toBe(first)
+  expect(focuses.at(-1)).toBe(first)
+  expect(first).toHaveValue("")
+  expect(later).toHaveValue("")
+  expect(submit).not.toHaveBeenCalled()
+  records.push({
+    invalidFocusUsesCurrentDocumentOrder: true,
+    originalEditorsRetained: true,
+    heldEmptyQueriesRetained: true,
+  })
+})
+
+it("retains the original outside focus when invalid capture prevents the source focus default", () => {
+  const form = createRef<HTMLFormElement>(),
+    focus = vi.fn(),
+    invalid = vi.fn((event) => event.preventDefault())
+  render(
+    <>
+      <Form ref={form} onInvalidCapture={invalid}>
+        <ComboBox {...options} isRequired inputValue="" onFocus={focus} />
+      </Form>
+      <button type="button">Outside focus</button>
+    </>,
+  )
+  const outside = screen.getByText("Outside focus"),
+    editor = screen.getByRole("combobox")
+  act(() => outside.focus())
+  act(() => form.current!.requestSubmit())
+  expect(invalid).toHaveBeenCalled()
+  expect(document.activeElement).toBe(outside)
+  expect(focus).not.toHaveBeenCalled()
+  expect(editor).toHaveValue("")
+  records.push({ invalidCapturePreventsSourceFocusDefault: true, originalOutsideFocusRetained: true })
+})
+
 it("requests the default query before the initial key and leaves controlled owners authoritative", () => {
   const form = createRef<HTMLFormElement>()
   const calls: unknown[] = []

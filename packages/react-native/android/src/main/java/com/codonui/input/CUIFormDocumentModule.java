@@ -35,7 +35,9 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     return nativeFormDocument(manager, surface, target, session);
   }
 
-  @Override public void getSnapshot(String encoded, Promise promise) {
+  @Override public void getSnapshot(String encoded, Promise promise) { performRequest(encoded, promise, false); }
+  @Override public void focusField(String encoded, Promise promise) { performRequest(encoded, promise, true); }
+  private void performRequest(String encoded, Promise promise, boolean focus) {
     UiThreadUtil.runOnUiThread(() -> {
       try {
         if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("form-module-retired");
@@ -47,6 +49,12 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         if (!(manager instanceof FabricUIManager)) throw new IllegalStateException("form-Fabric-unavailable");
         String snapshot = readSnapshot((FabricUIManager)manager, surface, target);
         JSONObject response = new JSONObject(snapshot);
+        if (focus) {
+          String origin = request.getString("origin");
+          if (!("native".equals(origin) && request.has("actionAdmission")) &&
+              !("programmatic".equals(origin) && !request.has("actionAdmission"))) throw new IllegalArgumentException("form-focus-origin-invalid");
+          if (request.has("inspect")) throw new IllegalArgumentException("form-focus-inspection-not-admitted");
+        }
         if (request.has("actionAdmission")) {
           response.put("actionAdmission", CUIFormActionAdmission.admit(manager, response, request.getJSONObject("actionAdmission")));
           if (!snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target))) throw new IllegalStateException("form-document-retired-during-action-admission");
@@ -56,7 +64,15 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
           response.put("inspection", CUIFormDocumentInspection.inspect(manager, response, control));
           if (!snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target))) throw new IllegalStateException("form-document-retired-during-inspection");
         }
-        if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("form-module-retired");
+        if (focus) {
+          response.put("focus", CUIFormFieldFocus.focus(manager, response, request,
+            () -> {
+              if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) return false;
+              if (request.has("actionAdmission")) CUIFormActionAdmission.admit(manager, response, request.getJSONObject("actionAdmission"));
+              return snapshot.equals(readSnapshot((FabricUIManager)manager, surface, target));
+            }));
+        }
+        if (!focus && (!valid.get() || !getReactApplicationContext().hasActiveReactInstance())) throw new IllegalStateException("form-module-retired");
         response.put("requestId", nonce);
         promise.resolve(response.toString());
       } catch (Exception failure) { promise.reject("E_CUI_FORM_DOCUMENT", failure); }

@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 final class CUIFormActionAdmission {
-  private static boolean same(JSONObject left, JSONObject right) throws Exception {
+  static boolean same(JSONObject left, JSONObject right) throws Exception {
     if (left == null || right == null || left.length() != right.length()) return false;
     java.util.Iterator<String> keys = left.keys();
     while (keys.hasNext()) {

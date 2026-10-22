@@ -1,6 +1,7 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
 #import "CUIFormDocumentInspection.h"
 #import "CUIFormMetadata.h"
+#import "CUIFormFieldFocus.h"
 #import "CUIFocusView.h"
 #import <React/RCTAssert.h>
 #import <React/RCTInvalidating.h>
@@ -62,6 +63,14 @@ RCT_EXPORT_MODULE(CUIFormDocument)
 - (void)invalidate { _valid.store(false); }
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
+  [self performRequest:encoded focus:NO resolve:resolve reject:reject];
+}
+- (void)focusField:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  [self performRequest:encoded focus:YES resolve:resolve reject:reject];
+}
+- (void)performRequest:(NSString *)encoded focus:(BOOL)focus resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
   RCTAssertMainQueue();
   @try {
     if (!_valid.load() || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
@@ -88,6 +97,13 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       NSMutableDictionary *response = [[NSJSONSerialization JSONObjectWithData:[[NSString stringWithUTF8String:result.c_str()] dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:&error] mutableCopy];
       if (!response || error) throw std::runtime_error("Native form: invalid snapshot encoding");
       response[@"requestId"] = nonce;
+      if (focus) {
+        NSString *origin = request[@"origin"];
+        if (!([origin isEqual:@"native"] && request[@"actionAdmission"]) &&
+            !([origin isEqual:@"programmatic"] && !request[@"actionAdmission"]))
+          throw std::runtime_error("Native form: focus origin invalid");
+        if (request[@"inspect"]) throw std::runtime_error("Native form: focus inspection not admitted");
+      }
       if (request[@"actionAdmission"]) {
         response[@"actionAdmission"] = CUIAdmitFormAction(presenter, response, request[@"actionAdmission"]);
         if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
@@ -100,6 +116,17 @@ RCT_EXPORT_MODULE(CUIFormDocument)
         response[@"inspection"] = CUIInspectFormDocument(presenter, response, [request[@"probeCustomContent"] isEqual:@YES], control);
         if (result != codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check))
           throw std::runtime_error("Native form: document retired during inspection");
+      }
+      if (focus) {
+        response[@"focus"] = CUIFocusFormField(presenter, response, request, ^BOOL {
+          @try {
+            try {
+              if (!_valid.load()) return NO;
+              if (request[@"actionAdmission"]) CUIAdmitFormAction(presenter, response, request[@"actionAdmission"]);
+              return result == codon::form::queryFabricFormDocument(*manager, [surface intValue], [target intValue], *_session, check);
+            } catch (...) { return NO; }
+          } @catch (NSException *retired) { return NO; }
+        });
       }
       NSData *data = [NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:&error];
       if (!data || error) throw std::runtime_error("Native form: invalid snapshot encoding");
