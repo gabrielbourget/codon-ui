@@ -6,6 +6,7 @@ export type TNativeFormDocumentNode = Readonly<{
   component: string
   hidden: boolean
   displayNone: boolean
+  dateSegmentOwner?: string
 }>
 export type TNativeFormDescriptor = Readonly<{
   ownerId: string
@@ -85,6 +86,7 @@ export const decodeNativeFormDocument = (
         component: text(node.component),
         hidden: boolean(node.hidden),
         displayNone: boolean(node.displayNone),
+        ...(node.component === "CUIDateSegment" ? { dateSegmentOwner: text(node.dateSegmentOwner) } : {}),
       }),
     )
   }
@@ -141,7 +143,12 @@ export const decodeNativeFormDocument = (
         return false
       }
       if (!descendant(result.metadataTarget) || binding.rootTarget === result.metadataTarget) fail()
-      const actual = nodes.filter((node) => node.component === "CUIDateSegment" && descendant(node.target))
+      const actual = nodes.filter(
+        (node) =>
+          node.component === "CUIDateSegment" &&
+          descendant(node.target) &&
+          node.dateSegmentOwner === binding.segments[0].ownerId,
+      )
       if (
         actual.length !== binding.segments.length ||
         actual.some((node, index) => node.target !== binding.segments[index].target)

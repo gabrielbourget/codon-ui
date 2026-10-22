@@ -27,11 +27,15 @@ static void validateOwnedDateField(const TFabricFormDocument &document, const CU
       !binding["segments"].isArray() || binding["segments"].empty()) fail();
   const auto root = static_cast<Tag>(binding["rootTarget"].asDouble());
   if (!document.positions.contains(root) || root == metadata || !isFormDocumentDescendant(document, metadata, root)) fail();
+  const auto &segments = binding["segments"];
+  if (!segments[0].isObject() || !segments[0]["ownerId"].isString() || segments[0]["ownerId"].asString().empty()) fail();
+  const auto expectedOwner = segments[0]["ownerId"].asString();
   std::vector<Tag> originals;
   for (const auto &entry : document.preorder)
     if (std::string_view(entry.node->getComponentName()) == "CUIDateSegment" &&
-        isFormDocumentDescendant(document, entry.node->getTag(), root)) originals.push_back(entry.node->getTag());
-  const auto &segments = binding["segments"];
+        isFormDocumentDescendant(document, entry.node->getTag(), root) &&
+        static_cast<const CUIDateSegmentProps *>(entry.node->getProps().get())->ownerId == expectedOwner)
+      originals.push_back(entry.node->getTag());
   if (originals.size() != segments.size() || originals.empty() || originals.front() != field.editorTarget) fail();
   std::unordered_set<std::string> ids;
   std::string owner, window;
@@ -108,11 +112,16 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
       ("hidden", node.getTraits().check(ShadowNodeTraits::Trait::Hidden))
       ("displayNone", style && style->yogaStyle.display() == facebook::yoga::Display::None));
     const auto name = std::string_view(node.getComponentName());
+    if (name == "CUIDateSegment") nodes[nodes.size() - 1]["dateSegmentOwner"] =
+      static_cast<const CUIDateSegmentProps *>(node.getProps().get())->ownerId;
     // The generated app library owns custom prop vtables on Android. Resolve
     // its exact component identity before reading its generated prop type.
     const auto *form = name == "CUIFormRoot" ? static_cast<const CUIFormRootProps *>(node.getProps().get()) : nullptr;
     const auto *field = name == "CUIFieldBinding" ? static_cast<const CUIFieldBindingProps *>(node.getProps().get()) : nullptr;
-    if (field) nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
+    if (field) {
+      nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
+      if (!field->ownedEditorBinding.empty()) nodes[nodes.size() - 1]["ownedEditorBinding"] = field->ownedEditorBinding;
+    }
     if (name == "CUIFocusView") nodes[nodes.size() - 1]["collectionBinding"] =
       static_cast<const CUIFocusViewProps *>(node.getProps().get())->nativeCollectionBinding;
     if (!form && !field) continue;

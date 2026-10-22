@@ -1,11 +1,12 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
-import { act, render } from "@testing-library/react-native"
-import { Activity } from "react"
+import { act, render, screen } from "@testing-library/react-native"
+import { Activity, type Ref } from "react"
 import type * as RN from "react-native"
 
 import { FormValidationContext } from "../../components/ComboBox/state/useFormValidationState"
 import type { TimeFieldStateOptions } from "../../date/state/useTimeFieldState"
 import { useTimeFieldState } from "../../date/state/useTimeFieldState"
+import FormDocument from "../../input/specs/NativeCUIFormDocument"
 import { NativeFormRegistryContext } from "../context"
 import type { TNativeDateSegmentFormTarget } from "../dateSegments"
 import { NativeFormRegistry } from "../registry"
@@ -13,7 +14,27 @@ import { useNativeTimeFieldForm } from "../useTimeField"
 
 jest.mock("../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,
-  default: jest.requireActual("react-native").View,
+  default: jest
+    .requireActual("react")
+    .forwardRef((props: object, ref: Ref<RN.View>) =>
+      jest
+        .requireActual("react")
+        .createElement(jest.requireActual("react-native").View, { ...props, ref, testID: "time-field-metadata" }),
+    ),
+}))
+jest.mock("../../input/specs/NativeCUIFormDocument", () => ({
+  __esModule: true,
+  default: {
+    bindField: jest.fn(async (encoded: string) => {
+      const request = JSON.parse(encoded)
+      return JSON.stringify({
+        requestId: request.requestId,
+        metadataTarget: request.mount.target,
+        ownerToken: "owned-watch",
+      })
+    }),
+    unbindField: jest.fn(async () => true),
+  },
 }))
 beforeEach(() => jest.spyOn(jest.requireActual<typeof RN>("react-native"), "findNodeHandle").mockReturnValue(100))
 afterEach(() => jest.restoreAllMocks())
@@ -37,7 +58,7 @@ const originals = () => ({
     }),
   ),
 })
-const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}) => {
+const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}, semanticBinding = "") => {
   const registry = new NativeFormRegistry(),
     original = originals()
   let actual: ReturnType<typeof originals> | null = original
@@ -51,6 +72,7 @@ const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}) 
       original,
       () => actual,
       () => true,
+      semanticBinding,
     )
   }
   const content = (props: typeof initial, mode: "hidden" | "visible" = "visible") => (
@@ -75,6 +97,81 @@ const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}) 
     },
   }
 }
+
+it("starts and retires a semantic watch only after an original complete-field mount acknowledgement", async () => {
+  const bind = jest.mocked(FormDocument!.bindField),
+    unbind = jest.mocked(FormDocument!.unbindField)
+  bind.mockClear()
+  unbind.mockClear()
+  const value = await setup({}, {}, "date-semantic-frame")
+  expect(bind).not.toHaveBeenCalled()
+  const metadata = screen.getByTestId("time-field-metadata", { includeHiddenElements: true })
+  const packet = {
+    ownerId: metadata.props.ownerId,
+    descriptorId: metadata.props.descriptorId,
+    descriptorRevision: metadata.props.descriptorRevision,
+    target: 100,
+    originalTarget: 6,
+    surfaceId: 11,
+    windowId: "window:1",
+    epoch: 5,
+    sequence: 1,
+    mountRevision: "mount:1",
+    attached: true,
+    active: true,
+    complete: true,
+    metadataOnly: true,
+    originalClass: "CUIDateSegment",
+    error: "",
+  }
+  await act(async () => {
+    metadata.props.onNativeFormCommit({ nativeEvent: packet })
+    await Promise.resolve()
+  })
+  expect(bind).toHaveBeenCalledTimes(1)
+  expect(JSON.parse(bind.mock.calls[0][0])).toMatchObject({ semanticBinding: "date-semantic-frame", mount: packet })
+  await value.view.unmount()
+  await act(async () => {
+    await Promise.resolve()
+  })
+  expect(unbind).toHaveBeenCalledWith(JSON.stringify({ metadataTarget: 100, ownerToken: "owned-watch" }))
+})
+
+it("rejects semantic binding when a non-primary original changes before the mount receipt", async () => {
+  const bind = jest.mocked(FormDocument!.bindField)
+  bind.mockClear()
+  const value = await setup({}, {}, "date-semantic-frame")
+  value.replace({
+    ...value.original,
+    segments: [value.original.segments[0], { ...value.original.segments[1], original: {} as RN.View }],
+  })
+  const metadata = screen.getByTestId("time-field-metadata", { includeHiddenElements: true })
+  await act(async () => {
+    metadata.props.onNativeFormCommit({
+      nativeEvent: {
+        ownerId: metadata.props.ownerId,
+        descriptorId: metadata.props.descriptorId,
+        descriptorRevision: metadata.props.descriptorRevision,
+        target: 100,
+        originalTarget: 6,
+        surfaceId: 11,
+        windowId: "window:1",
+        epoch: 5,
+        sequence: 1,
+        mountRevision: "mount:1",
+        attached: true,
+        active: true,
+        complete: true,
+        metadataOnly: true,
+        originalClass: "CUIDateSegment",
+        error: "",
+      },
+    })
+    await Promise.resolve()
+  })
+  expect(bind).not.toHaveBeenCalled()
+  await value.view.unmount()
+})
 it.each([
   new Time(13, 45),
   new CalendarDateTime(2024, 10, 1, 13, 45),

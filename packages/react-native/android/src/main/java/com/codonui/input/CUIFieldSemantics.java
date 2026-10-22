@@ -20,8 +20,8 @@ import org.json.JSONObject;
 
 final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContribution {
   interface Current { boolean check() throws Exception; }
-  private static final WeakHashMap<ReactEditText, WeakReference<CUIFieldSemantics>> leases = new WeakHashMap<>();
-  private final WeakReference<ReactEditText> editor;
+  private static final WeakHashMap<View, WeakReference<CUIFieldSemantics>> leases = new WeakHashMap<>();
+  private final WeakReference<View> editor;
   private final JSONObject plan;
   private final String label, description, errors, details;
   private final WeakReference<View> firstLabel;
@@ -64,7 +64,37 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
     if (!current.check()) return null;
     return new CUIFieldSemantics(editor, plan, label, description, errors, details, firstLabel, current);
   }
-  private CUIFieldSemantics(ReactEditText editor, JSONObject plan, String label, String description, String errors, String details, View firstLabel, Current current) {
+  static CUIFormMetadataView.SemanticContribution bindDateField(UIManager manager, ArrayList<CUIDateSegment> segments,
+      JSONObject plan, Current current) throws Exception {
+    if (segments == null || segments.isEmpty() || !current.check()) return null;
+    int first = plan.getJSONObject("dateField").getInt("firstEditableTarget");
+    boolean found = false;
+    for (CUIDateSegment segment : segments) if (segment.getId() == first) found = true;
+    if (!found) return null;
+    ArrayList<CUIFieldSemantics> contributions = new ArrayList<>();
+    try {
+      for (CUIDateSegment segment : segments) {
+        if (!current.check()) throw new IllegalStateException("date-semantic-document-retired");
+        JSONObject part = new JSONObject(plan.toString());
+        if (segment.getId() != first && !plan.getBoolean("invalid")) part.put("describedBy", new JSONArray());
+        part.put("readOnly", segment.segmentReadOnly);
+        WeakReference<CUIFieldSemantics> previous = leases.get(segment);
+        if (previous != null && previous.get() != null) previous.get().retire();
+        String label = referencedText(manager, part.getJSONArray("labelledBy"));
+        String description = referencedText(manager, part.getJSONArray("describedBy"));
+        String errors = referencedText(manager, part.getJSONArray("errorMessageBy"));
+        String details = referencedText(manager, part.getJSONArray("detailsBy"));
+        View firstLabel = part.getJSONArray("labelledBy").length() == 0 ? null : manager.resolveView(part.getJSONArray("labelledBy").getInt(0));
+        contributions.add(new CUIFieldSemantics(segment, part, label, description, errors, details, firstLabel, current));
+      }
+      if (!current.check()) throw new IllegalStateException("date-semantic-document-retired");
+      return () -> { for (CUIFieldSemantics value : contributions) value.retire(); contributions.clear(); };
+    } catch (Exception retired) {
+      for (CUIFieldSemantics value : contributions) value.retire();
+      throw retired;
+    }
+  }
+  private CUIFieldSemantics(View editor, JSONObject plan, String label, String description, String errors, String details, View firstLabel, Current current) {
     this.editor = new WeakReference<>(editor); this.plan = plan; this.label = label; this.description = description;
     this.errors = errors; this.details = details; this.firstLabel = new WeakReference<>(firstLabel); this.current = current;
     original = ViewCompat.getAccessibilityDelegate(editor);
@@ -84,13 +114,17 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
     if (!isCurrent(host)) { retire(); return; }
     try {
       JSONObject labels = plan.getJSONObject("labels");
-      if (plan.getJSONArray("labelledBy").length() > 0) node.setContentDescription(label);
+      boolean dateField = plan.has("dateField");
+      if (plan.getJSONArray("labelledBy").length() > 0) {
+        CharSequence base = node.getContentDescription();
+        node.setContentDescription(dateField && base != null && base.length() > 0 ? base + ", " + label : label);
+      }
       View labelledBy = firstLabel.get(); if (labelledBy != null) node.setLabeledBy(labelledBy);
-      if (node.getRoleDescription() == null || node.getRoleDescription().length() == 0) node.setRoleDescription(labels.getString("role"));
+      if (!dateField && (node.getRoleDescription() == null || node.getRoleDescription().length() == 0)) node.setRoleDescription(labels.getString("role"));
       if (plan.getBoolean("disabled")) node.setEnabled(false);
       ArrayList<String> state = new ArrayList<>();
       CharSequence ownerState = node.getStateDescription(); if (ownerState != null && ownerState.length() > 0) state.add(ownerState.toString());
-      state.add(labels.getString(plan.getBoolean("expanded") ? "expanded" : "collapsed"));
+      if (!dateField) state.add(labels.getString(plan.getBoolean("expanded") ? "expanded" : "collapsed"));
       for (String key : new String[]{"required", "readOnly", "disabled"}) if (plan.getBoolean(key)) state.add(labels.getString(key));
       node.setStateDescription(String.join(" ", state));
       ArrayList<String> hints = new ArrayList<>(); CharSequence ownerHint = node.getHintText();
@@ -114,7 +148,7 @@ final class CUIFieldSemantics implements CUIFormMetadataView.SemanticContributio
   }
   @Override public void retire() {
     if (retired) return;
-    retired = true; ReactEditText view = editor.get();
+    retired = true; View view = editor.get();
     if (view != null) {
       WeakReference<CUIFieldSemantics> currentLease = leases.get(view);
       if (currentLease != null && currentLease.get() == this) leases.remove(view);

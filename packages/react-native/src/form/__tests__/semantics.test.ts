@@ -1,5 +1,6 @@
 import {
   encodeNativeFieldSemantics,
+  encodeNativeDateFieldSemantics,
   NATIVE_FIELD_SEMANTIC_LABELS,
   type TNativeFieldSemanticBinding,
 } from "../semantics"
@@ -19,6 +20,27 @@ const binding = (): TNativeFieldSemanticBinding => ({
   invalid: false,
   expanded: false,
   labels: NATIVE_FIELD_SEMANTIC_LABELS,
+})
+
+it("keeps the existing fourteen-field protocol intact and admits only an explicit segmented field", () => {
+  expect(Object.keys(JSON.parse(encodeNativeFieldSemantics(binding())))).toHaveLength(14)
+  const result = JSON.parse(encodeNativeDateFieldSemantics({ ...binding(), dateField: { firstEditableTarget: 12 } }))
+  expect(Object.keys(result)).toHaveLength(15)
+  expect(result.dateField).toEqual({ firstEditableTarget: 12 })
+  expect(result).toMatchObject({ expanded: false, controls: [], activeDescendant: null })
+})
+
+it.each([
+  { dateField: { firstEditableTarget: 0 } },
+  { dateField: { firstEditableTarget: 1.5 } },
+  { dateField: { firstEditableTarget: 2_147_483_648 } },
+  { expanded: true },
+  { controls: ["options"] },
+  { activeDescendant: { target: 13, binding: "option" } },
+])("rejects an unavailable date target or combobox-only state %j", (override) => {
+  expect(() =>
+    encodeNativeDateFieldSemantics({ ...binding(), dateField: { firstEditableTarget: 12 }, ...override }),
+  ).toThrow()
 })
 
 it("preserves false flags, live aliases and caller-localized or explicitly empty captions", () => {

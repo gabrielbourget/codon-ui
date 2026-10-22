@@ -20,6 +20,7 @@ const node = (target: number, parent: number, component = "View") => ({
   component,
   hidden: false,
   displayNone: false,
+  ...(component === "CUIDateSegment" ? { dateSegmentOwner: "time-owner" } : {}),
 })
 const packet = () => ({
   documentId: "document:1",
@@ -146,6 +147,15 @@ it("requires an explicit owned binding and rejects omitted or newly added native
   const extra = packet()
   extra.nodes.push(node(9, 4, "CUIDateSegment"))
   expect(() => decode(extra)).toThrow()
+})
+
+it("keeps nested field owners independent while rejecting a foreign segment inside this field's declared membership", () => {
+  const value = packet()
+  value.nodes.push({ ...node(9, 4, "CUIDateSegment"), dateSegmentOwner: "nested-owner" })
+  expect(decode(value).fields).toHaveLength(1)
+  const foreign = packet()
+  foreign.nodes[5].dateSegmentOwner = "nested-owner"
+  expect(() => decode(foreign)).toThrow()
 })
 it("rejects metadata moved outside the original field root", () => {
   const value = packet()

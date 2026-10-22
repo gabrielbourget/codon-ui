@@ -31,7 +31,8 @@ inline void resolveFieldSemanticPlans(folly::dynamic &nodes) {
     if (!encoded || !encoded->isString() || encoded->asString().empty()) continue;
     try {
       auto binding = folly::parseJson(encoded->asString());
-      if (!binding.isObject() || binding.size() != 14 || !binding.at("revision").isString() || binding.at("revision").asString().empty() ||
+      const bool dateField = binding.isObject() && binding.get_ptr("dateField");
+      if (!binding.isObject() || binding.size() != (dateField ? 15 : 14) || !binding.at("revision").isString() || binding.at("revision").asString().empty() ||
           !binding.at("aliases").isArray() || !binding.at("labels").isObject() || binding.at("labels").size() != captions.size())
         throw std::invalid_argument("field-semantic-binding-invalid");
       for (const auto key : flags) if (!binding.at(key).isBool()) throw std::invalid_argument("field-semantic-flag-invalid");
@@ -39,6 +40,22 @@ inline void resolveFieldSemanticPlans(folly::dynamic &nodes) {
       for (const auto key : relations) {
         if (!binding.at(key).isArray()) throw std::invalid_argument("field-semantic-relation-invalid");
         for (const auto &id : binding.at(key)) if (!id.isString() || id.asString().empty()) throw std::invalid_argument("field-semantic-id-invalid");
+      }
+      if (dateField) {
+        const auto &date = binding.at("dateField");
+        if (!date.isObject() || date.size() != 1 || binding.at("expanded").asBool() ||
+            !binding.at("controls").empty() || !binding.at("activeDescendant").isNull())
+          throw std::invalid_argument("date-field-semantic-binding-invalid");
+        const auto target = fieldSemanticTarget(date.at("firstEditableTarget"));
+        if (!positions.contains(target) || nodes[positions.at(target)].at("component") != "CUIDateSegment")
+          throw std::invalid_argument("date-field-semantic-editor-invalid");
+        const auto encodedOwned = node.get_ptr("ownedEditorBinding");
+        if (!encodedOwned || !encodedOwned->isString() || encodedOwned->asString().empty())
+          throw std::invalid_argument("date-field-semantic-owner-required");
+        const auto owned = folly::parseJson(encodedOwned->asString());
+        bool member = false;
+        for (const auto &segment : owned.at("segments")) if (fieldSemanticTarget(segment.at("target")) == target) member = true;
+        if (!member) throw std::invalid_argument("date-field-semantic-editor-outside-owner");
       }
       // Validate all aliases before publishing any contribution from this field.
       for (const auto &alias : binding.at("aliases")) {
@@ -69,6 +86,7 @@ inline void resolveFieldSemanticPlans(folly::dynamic &nodes) {
         plan[key] = std::move(targets);
       }
       plan["activeDescendant"] = binding.at("activeDescendant");
+      if (const auto date = binding.get_ptr("dateField")) plan["dateField"] = *date;
       node["semanticPlan"] = std::move(plan);
     } catch (const std::exception &) { node["semanticError"] = "field-semantic-id-unavailable-or-ambiguous"; }
   }

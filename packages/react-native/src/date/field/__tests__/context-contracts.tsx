@@ -50,6 +50,13 @@ const invalidLabel: TNativeTimeFieldProps = {
   // @ts-expect-error RAC TimeField omits direct label props in favor of its slot context.
   label: "Clock",
 }
+const nativeLabels: TNativeTimeFieldProps<Time> = {
+  nativeAccessibilityLabels: { required: "Obligatoire", readOnly: "" },
+}
+const invalidNativeLabels: TNativeTimeFieldProps = {
+  // @ts-expect-error Native captions are localizable text, not state flags.
+  nativeAccessibilityLabels: { required: true },
+}
 const context = (
   <NativeTimeFieldContext.Provider
     value={{ value: calendar.value, onChange: (value: CalendarDateTime | null) => value?.day }}
@@ -61,4 +68,6 @@ void zoned
 void invalidValue
 void invalidDisplay
 void invalidLabel
+void nativeLabels
+void invalidNativeLabels
 void context

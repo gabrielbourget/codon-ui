@@ -22,6 +22,7 @@ import {
 } from "./dateSegments"
 import { NativeFormMountReceipt } from "./mount"
 import { NativeFieldMetadata } from "./NativeFormMetadata"
+import { NativeFieldSemanticSession } from "./semanticSession"
 import { nativeTimeFieldData, type TNativeTimeFieldFormOptions } from "./timeField"
 
 type TOriginalDateField = Readonly<{
@@ -39,6 +40,7 @@ export const useNativeTimeFieldForm = (
   original: TOriginalDateField | null,
   currentOriginal: () => TOriginalDateField | null,
   isFocusObserved: () => boolean,
+  semanticBinding = "",
 ) => {
   const registry = useContext(NativeFormRegistryContext)
   const ownerId = useId()
@@ -53,10 +55,27 @@ export const useNativeTimeFieldForm = (
   const metadata = useRef<View | null>(null)
   const [metadataTarget, setMetadataTarget] = useState(0)
   const receipt = useRef<NativeFormMountReceipt | null>(null)
-  const current = useRef({ state, original, currentOriginal, isFocusObserved, descriptorRevision, metadataTarget })
+  const semantics = useRef<NativeFieldSemanticSession | null>(null)
+  const current = useRef({
+    state,
+    original,
+    currentOriginal,
+    isFocusObserved,
+    descriptorRevision,
+    metadataTarget,
+    semanticBinding,
+  })
   const resetActive = useRef(false)
   useInsertionEffect(() => {
-    current.current = { state, original, currentOriginal, isFocusObserved, descriptorRevision, metadataTarget }
+    current.current = {
+      state,
+      original,
+      currentOriginal,
+      isFocusObserved,
+      descriptorRevision,
+      metadataTarget,
+      semanticBinding,
+    }
   })
   const currentPrimary = useCallback(() => {
     const expected = current.current.original,
@@ -81,6 +100,8 @@ export const useNativeTimeFieldForm = (
   })
   const bindMetadata = useCallback((view: View | null) => {
     if (metadata.current !== view) {
+      semantics.current?.retire()
+      semantics.current = null
       receipt.current?.retire()
       receipt.current = null
     }
@@ -114,7 +135,12 @@ export const useNativeTimeFieldForm = (
           original: primary,
           current: () => ({ metadata: metadata.current, original: currentPrimary() }),
         })
-      receipt.current!.receive(packet)
+      if (!receipt.current!.receive(packet)) return
+      if (semantics.current?.receipt !== receipt.current) {
+        semantics.current?.retire()
+        semantics.current = new NativeFieldSemanticSession(receipt.current!)
+      }
+      semantics.current.observe(owner.semanticBinding)
     },
     [ownerId, descriptorId, currentPrimary],
   )
@@ -147,6 +173,8 @@ export const useNativeTimeFieldForm = (
     })
     return () => {
       release()
+      semantics.current?.retire()
+      semantics.current = null
       receipt.current?.retire()
       receipt.current = null
     }
@@ -162,6 +190,7 @@ export const useNativeTimeFieldForm = (
       hasFormAssociation={props.form !== undefined}
       formId={props.form ?? ""}
       ownedEditorBinding={ownedEditorBinding}
+      semanticBinding={semanticBinding}
       onNativeFormCommit={(event) => receive(event.nativeEvent)}
     />
   )

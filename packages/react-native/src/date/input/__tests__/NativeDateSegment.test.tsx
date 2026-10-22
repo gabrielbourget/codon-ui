@@ -82,6 +82,23 @@ it("keeps actual owned host/core editor refs and source events, using native foc
   expect(write).not.toHaveBeenCalled()
   expect(screen.getByTestId("existing").props).toMatchObject({ value: "", selection: { start: 0, end: 0 } })
 })
+
+it("retains the original SDK selection method and argument packet without rewriting its event", async () => {
+  const callback = jest.fn()
+  await render(<NativeDateSegment {...props} testID="segment" onNativeSegmentInput={callback} />)
+  await send()
+  const nativeData = JSON.stringify({
+    method: "setSelectedTextRange",
+    start: 0,
+    end: 0,
+    startGeneration: 4,
+    endGeneration: 4,
+  })
+  const original = await send({ kind: "selection", sequence: 2, nativeData })
+  expect(callback).toHaveBeenLastCalledWith(original)
+  expect(callback.mock.calls.at(-1)![0]).toBe(original)
+  expect(callback.mock.calls.at(-1)![0].nativeEvent.nativeData).toBe(nativeData)
+})
 it("retires old queued edits on readonly/disabled transitions and requires fresh native status", async () => {
   const ref = createRef<TNativeDateSegmentRef>(),
     callback = jest.fn()

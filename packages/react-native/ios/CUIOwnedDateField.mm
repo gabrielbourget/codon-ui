@@ -8,12 +8,12 @@ static BOOL CUIDatePositiveInteger(id value, BOOL tag)
   double number = [value doubleValue];
   return std::isfinite(number) && number > 0 && std::floor(number) == number && number <= (tag ? INT_MAX : 9007199254740991.0);
 }
-static void CUICollectDateSegments(UIView *view, NSMutableArray<CUIDateSegment *> *segments)
+static void CUICollectDateSegments(UIView *view, NSString *owner, NSMutableArray<CUIDateSegment *> *segments)
 {
-  if ([view isKindOfClass:CUIDateSegment.class]) [segments addObject:(CUIDateSegment *)view];
-  for (UIView *child in view.subviews) CUICollectDateSegments(child, segments);
+  if ([view isKindOfClass:CUIDateSegment.class] && [[(CUIDateSegment *)view fieldOwnerId] isEqual:owner]) [segments addObject:(CUIDateSegment *)view];
+  for (UIView *child in view.subviews) CUICollectDateSegments(child, owner, segments);
 }
-CUIDateSegment *CUIResolveOwnedDateField(UIView *metadata, NSString *binding, NSInteger primaryTarget, NSInteger surface)
+NSArray<CUIDateSegment *> *CUIResolveOwnedDateFieldSegments(UIView *metadata, NSString *binding, NSInteger primaryTarget, NSInteger surface)
 {
   @try {
     if (!metadata.window || !binding.length || surface <= 0) return nil;
@@ -24,8 +24,10 @@ CUIDateSegment *CUIResolveOwnedDateField(UIView *metadata, NSString *binding, NS
     UIView *root = [metadata.window viewWithTag:[value[@"rootTarget"] integerValue]];
     if (!root || root == metadata || ![metadata isDescendantOfView:root] ||
         ![root isKindOfClass:RCTViewComponentView.class] || [root isKindOfClass:CUIDateSegment.class]) return nil;
-    NSMutableArray<CUIDateSegment *> *originals = [NSMutableArray new]; CUICollectDateSegments(root, originals);
     NSArray *expected = value[@"segments"];
+    id first = expected.firstObject;
+    if (![first isKindOfClass:NSDictionary.class] || ![first[@"ownerId"] isKindOfClass:NSString.class] || ![first[@"ownerId"] length]) return nil;
+    NSMutableArray<CUIDateSegment *> *originals = [NSMutableArray new]; CUICollectDateSegments(root, first[@"ownerId"], originals);
     if (originals.count != expected.count || originals.firstObject.tag != primaryTarget) return nil;
     NSMutableSet *ids = [NSMutableSet new], *targets = [NSMutableSet new];
     NSString *owner = nil, *window = CUIInputWindowIdentity(metadata.window);
@@ -41,6 +43,10 @@ CUIDateSegment *CUIResolveOwnedDateField(UIView *metadata, NSString *binding, NS
           [targets containsObject:row[@"target"]] || ![[original formSegmentIdentity] isEqual:row]) return nil;
       owner = row[@"ownerId"]; [ids addObject:row[@"segmentId"]]; [targets addObject:row[@"target"]];
     }
-    return originals.firstObject;
+    return [originals copy];
   } @catch (NSException *retired) { return nil; }
+}
+CUIDateSegment *CUIResolveOwnedDateField(UIView *metadata, NSString *binding, NSInteger primaryTarget, NSInteger surface)
+{
+  return CUIResolveOwnedDateFieldSegments(metadata, binding, primaryTarget, surface).firstObject;
 }

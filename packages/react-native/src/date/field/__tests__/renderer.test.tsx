@@ -1,6 +1,6 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
-import { act, fireEvent, render, screen } from "@testing-library/react-native"
-import { createRef, useContext } from "react"
+import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
+import { createRef, useContext, type Ref } from "react"
 import { Text, View } from "react-native"
 import type * as RN from "react-native"
 
@@ -21,7 +21,13 @@ jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
 }))
 jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
   __esModule: true,
-  default: jest.requireActual("react-native").View,
+  default: jest
+    .requireActual("react")
+    .forwardRef((props: object, ref: Ref<View>) =>
+      jest
+        .requireActual("react")
+        .createElement(jest.requireActual("react-native").View, { ...props, ref, testID: "field-metadata" }),
+    ),
 }))
 jest.mock("../../../input/NativeFocusView", () => ({ NativeFocusHost: jest.requireActual("react-native").View }))
 jest.mock("../../../input/NativeKeyboardScope", () => ({ useNativeKeyPolicy: jest.fn() }))
@@ -85,6 +91,9 @@ it("renders owned segments, literal separators and the exact default clock with 
     borderWidth: 0,
     backgroundColor: "transparent",
   })
+  expect(
+    within(screen.getByTestId("time-picker-group")).getByTestId("field-metadata", { includeHiddenElements: true }),
+  ).toBeTruthy()
 })
 
 it.each([
@@ -311,4 +320,66 @@ it("keeps group focus styling and owner callbacks tied to the original admitted 
   await act(() => screen.getByTestId("time-picker-group").props.nativeOnFocusWithin(blur))
   expect(onBlur).toHaveBeenCalledWith(blur)
   expect(onFocusChange).toHaveBeenLastCalledWith(false)
+})
+
+it.each([false, true])(
+  "binds complete original segments and live description/error slots: invalid=%s",
+  async (invalid) => {
+    await render(
+      <NativeTimePickerRenderer
+        value={new Time(13, 45)}
+        validationBehavior="aria"
+        validate={() => (invalid ? "Rejected clock" : null)}
+        nativeAccessibilityLabels={{ required: "Obligatoire", readOnly: "Lecture seule" }}
+        render={(props) => (
+          <NativeFocusHost {...props}>
+            <NativeTimeFieldLabel testID="semantic-label">Clock label</NativeTimeFieldLabel>
+            <NativeTimeFieldText slot="description" testID="semantic-description">
+              Time helper
+            </NativeTimeFieldText>
+            {props.children}
+            <NativeTimeFieldError testID="semantic-error" />
+          </NativeFocusHost>
+        )}
+      />,
+    )
+    const metadata = () => screen.getByTestId("field-metadata", { includeHiddenElements: true })
+    expect(metadata().props.semanticBinding).toBe("")
+    await send(0)
+    expect(metadata().props.semanticBinding).toBe("")
+    await send(1)
+    const owned = JSON.parse(metadata().props.ownedEditorBinding),
+      frame = JSON.parse(metadata().props.semanticBinding)
+    expect(owned.segments).toHaveLength(2)
+    expect(frame.dateField.firstEditableTarget).toBe(owned.segments[0].target)
+    expect(frame.invalid).toBe(invalid)
+    expect(frame.labels).toMatchObject({ required: "Obligatoire", readOnly: "Lecture seule" })
+    expect(frame.labelledBy).toEqual([screen.getByTestId("semantic-label").props.nativeID])
+    expect(frame.describedBy).toEqual([
+      screen.getByTestId("time-picker-selected-description", { includeHiddenElements: true }).props.nativeID,
+      screen.getByTestId("semantic-description").props.nativeID,
+    ])
+    expect(frame.errorMessageBy).toEqual(invalid ? [screen.getByTestId("semantic-error").props.nativeID] : [])
+    expect(frame.aliases.map((entry: { id: string }) => entry.id)).toEqual(
+      expect.arrayContaining([...frame.labelledBy, ...frame.describedBy, ...frame.errorMessageBy]),
+    )
+  },
+)
+
+it("keeps parent form metadata ahead of an independently owned field in the icon slot", async () => {
+  await render(
+    <NativeTimePickerRenderer
+      value={new Time(13, 45)}
+      name="parent"
+      ComponentIcon={<NativeTimePickerRenderer value={new Time(9, 20)} name="nested" testID="nested-time-picker" />}
+    />,
+  )
+  const parentGroup = within(screen.getByTestId("time-picker-group"))
+  const metadata = parentGroup.getAllByTestId("field-metadata", { includeHiddenElements: true })
+  const nested = within(screen.getByTestId("nested-time-picker-group")).getByTestId("field-metadata", {
+    includeHiddenElements: true,
+  })
+  expect(metadata).toHaveLength(2)
+  expect(metadata[0]).not.toBe(nested)
+  expect(metadata[1]).toBe(nested)
 })

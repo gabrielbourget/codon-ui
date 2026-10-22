@@ -1,4 +1,6 @@
 #import "CUIDateSegment.h"
+#import "CUIFieldCustomContent.h"
+#import "CUIFieldSemantics.h"
 #import "CUIInputWindow.h"
 #import <React/RCTConversions.h>
 #import <React/RCTMountingTransactionObserving.h>
@@ -32,6 +34,7 @@ using namespace facebook::react;
 @end
 
 @implementation CUIDateSegment {
+  NSArray<AXCustomContent *> *_baseCustomContent;
   NSString *_ownerId, *_segmentId, *_bindingRevision, *_displayText, *_locale, *_keyboardMode;
   NSMutableString *_document;
   NSRange _selection, _marked;
@@ -115,6 +118,16 @@ using namespace facebook::react;
   [super updateProps:props oldProps:oldProps];
 }
 - (BOOL)canBecomeFirstResponder { return !_disabled && _editable; }
+- (BOOL)fieldSegmentReadOnly { return _readOnly; }
+- (NSString *)fieldOwnerId { return _ownerId; }
+- (NSString *)accessibilityLabel { return CUIReadOwnedDateFieldText(self, [super accessibilityLabel], NO); }
+- (NSString *)accessibilityHint { return CUIReadOwnedDateFieldText(self, [super accessibilityHint], YES); }
+- (NSArray<AXCustomContent *> *)accessibilityCustomContent
+{
+  NSArray *field = CUIReadOwnedDateFieldCustomContent(self);
+  return field.count ? (_baseCustomContent.count ? [_baseCustomContent arrayByAddingObjectsFromArray:field] : field) : _baseCustomContent ?: @[];
+}
+- (void)setAccessibilityCustomContent:(NSArray<AXCustomContent *> *)content { _baseCustomContent = [content copy] ?: @[]; }
 - (BOOL)canBecomeFocused { return !_disabled && _editable; }
 - (UIView *)inputView { return _readOnly || _disabled ? _readOnlyKeyboard : nil; }
 - (UIKeyboardType)keyboardType { return !_readOnly && [_keyboardMode isEqualToString:@"numeric"] ? UIKeyboardTypeNumberPad : UIKeyboardTypeDefault; }
@@ -252,8 +265,11 @@ using namespace facebook::react;
 - (void)setSelectedTextRange:(UITextRange *)range
 {
   if (![self validRange:range]) return;
+  CUIDateRange *original = (CUIDateRange *)range;
+  NSDictionary *nativeData = @{ @"method":@"setSelectedTextRange", @"start":@(original.first.index), @"end":@(original.last.index),
+    @"startGeneration":@(original.first.generation), @"endGeneration":@(original.last.generation) };
   [_inputDelegate selectionWillChange:self]; _selection = [self nativeRange:range]; [_inputDelegate selectionDidChange:self];
-  [self emit:@"selection" text:@"" replacement:_selection];
+  [self emit:@"selection" text:@"" replacement:_selection nativeData:nativeData];
 }
 - (UITextRange *)markedTextRange { return _marked.location == NSNotFound ? nil : [self range:_marked]; }
 - (void)setMarkedText:(NSString *)text selectedRange:(NSRange)selectedRange
@@ -324,6 +340,7 @@ using namespace facebook::react;
 }
 - (void)prepareForRecycle
 {
+  _baseCustomContent = nil;
   [self resignFirstResponder]; _epoch++; [self clearTransientDocument];
   _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _disabled = YES; _editable = NO;
   [super prepareForRecycle];

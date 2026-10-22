@@ -11,18 +11,20 @@ import {
   type RefAttributes,
   type ReactElement,
 } from "react"
-import { findNodeHandle, View } from "react-native"
+import { findNodeHandle, Text, View } from "react-native"
 import Svg, { Circle, Polyline } from "react-native-svg"
 
 import { resolveNativeStyle } from "../../components/colors"
 import { NativeContentContext, useNativeContentContext } from "../../components/NativeContentContext"
 import { splitNativeTextStyle } from "../../components/nativeTextStyle"
 import type { TNativeTextRef } from "../../components/Text/types"
-import { useNativeFieldSemanticRef } from "../../form/useFieldSemantics"
+import { useNativeFieldSemanticRef, useNativeFieldSemantics } from "../../form/useFieldSemantics"
 import { useNativeTimeFieldForm } from "../../form/useTimeField"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import type { TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
+import { getNativeDateFieldDescription } from "../entry/semantics"
 import type { TimeValue } from "../state/types"
 
 import {
@@ -96,6 +98,7 @@ const fieldOptions = new Set([
   "customInputStyles",
   "customInputIconGroupStyles",
   "ariaDescribedBy",
+  "nativeAccessibilityLabels",
   "ariaDetails",
   "aria-describedby",
   "aria-details",
@@ -151,13 +154,6 @@ export const NativeTimePickerRenderer = forwardRef(
       const value = hosts.snapshot(current.current.segments)
       return value ? { root: value.root, rootTarget: value.rootTarget, segments: value.rows } : null
     }, [hosts])
-    const metadata = useNativeTimeFieldForm(
-      { ...props, validationBehavior: field.validationBehavior },
-      state,
-      original ? { root: original.root, rootTarget: original.rootTarget, segments: original.rows } : null,
-      currentOriginal,
-      () => observedFocus.current,
-    )
     const initialAutoFocus = useRef(!!props.autoFocus)
     useLayoutEffect(() => {
       if (initialAutoFocus.current && !state.isDisabled && original && focus.focusFirst())
@@ -171,11 +167,59 @@ export const NativeTimePickerRenderer = forwardRef(
     const group = splitNativeTextStyle(appearance.group)
     const input = splitNativeTextStyle(appearance.input)
     const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-    const [, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
-    const [, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [error, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const [selected, selectedRef] = useNativeFieldSemanticRef<TNativeTextRef>()
+    const selectedDescription = getNativeDateFieldDescription(state, locale)
     const labelId = `${ownerId}:label`,
       descriptionId = `${ownerId}:description`,
-      errorId = `${ownerId}:error`
+      errorId = `${ownerId}:error`,
+      selectedId = `${ownerId}:selected-time`
+    const primary = useRef<View | null>(null),
+      absent = useRef<View | null>(null)
+    useInsertionEffect(() => {
+      primary.current = original?.rows[0].original ?? null
+    })
+    const firstIndex = state.segments.findIndex((segment) => segment.isEditable)
+    const firstPart = state.segments[firstIndex]
+    const firstEditableTarget = firstPart
+      ? original?.rows.find((row) => row.identity.segmentId === nativeDateFieldSegmentId(firstPart, firstIndex))
+          ?.identity.target
+      : undefined
+    const semanticFrame = useNativeFieldSemantics({
+      ids: {
+        input: `${ownerId}:input`,
+        label: labelId,
+        description: descriptionId,
+        errorMessage: errorId,
+        value: selectedId,
+        list: `${ownerId}:list`,
+      },
+      refs: { input: primary, label, description, errorMessage: error, value: selected, list: absent },
+      labelledBy: nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
+      describedBy: [
+        ...(selected.current ? [selectedId] : []),
+        ...(nativeAccessibilityIDs(props["aria-describedby"] ?? props.ariaDescribedBy) ?? []),
+      ],
+      labels: props.nativeAccessibilityLabels,
+      flags: {
+        disabled: state.isDisabled,
+        readOnly: state.isReadOnly,
+        required: !!state.isRequired,
+        invalid: state.isInvalid,
+        expanded: false,
+      },
+      activeDescendant: null,
+      dateField: firstEditableTarget ? { firstEditableTarget } : undefined,
+    })
+    const metadata = useNativeTimeFieldForm(
+      { ...props, validationBehavior: field.validationBehavior },
+      state,
+      original ? { root: original.root, rootTarget: original.rootTarget, segments: original.rows } : null,
+      currentOriginal,
+      () => observedFocus.current,
+      firstEditableTarget ? semanticFrame : "",
+    )
     const groupProps = {
       ref: bindGroup,
       nativeID: props.id,
@@ -237,6 +281,7 @@ export const NativeTimePickerRenderer = forwardRef(
             />
           ))}
         </View>
+        {metadata}
         <NativeContentContext.Provider value={{ foregroundColor: appearance.iconColor, isButton: false }}>
           {authored.ComponentIcon || (
             <Svg
@@ -256,6 +301,19 @@ export const NativeTimePickerRenderer = forwardRef(
             </Svg>
           )}
         </NativeContentContext.Provider>
+        {selectedDescription ? (
+          <Text
+            ref={selectedRef}
+            nativeID={selectedId}
+            testID={`${testID}-selected-description`}
+            accessible={false}
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+            style={{ position: "absolute", width: 0, height: 0, opacity: 0 }}
+          >
+            {selectedDescription}
+          </Text>
+        ) : null}
       </NativeFocusHost>
     )
     const nativeProps = {
@@ -269,12 +327,7 @@ export const NativeTimePickerRenderer = forwardRef(
       onLayout: props.onLayout,
       pointerEvents: props.pointerEvents,
       collapsable: props.collapsable,
-      children: (
-        <>
-          {children}
-          {metadata}
-        </>
-      ),
+      children,
     }
     return (
       <NativeTimeFieldStateContext.Provider value={state}>
