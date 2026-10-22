@@ -63,3 +63,27 @@ it("retains every validation flag and server/custom message in the owned field s
   })
   expect(Object.keys(field.validation.validationDetails)).toHaveLength(11)
 })
+
+it.each([{ isReadOnly: true }, { isDisabled: true }])(
+  "matches native required-validation exclusion for %j",
+  (guard) => {
+    const result = nativeComboBoxFieldData({ ...guard, isRequired: true }, { ...state, inputValue: "" })
+    expect(result.validation).toMatchObject({
+      isInvalid: false,
+      validationDetails: { valid: true, valueMissing: false },
+      validationErrors: [],
+    })
+  },
+)
+
+it.each([undefined, "Obligatoire", ""])(
+  "keeps a usable or explicitly authored required message %p",
+  (requiredErrorMessage) => {
+    const result = nativeComboBoxFieldData({ isRequired: true, requiredErrorMessage }, { ...state, inputValue: "" })
+    expect(result.validation).toMatchObject({
+      isInvalid: true,
+      validationDetails: { valueMissing: true },
+      validationErrors: [requiredErrorMessage ?? "Required"],
+    })
+  },
+)

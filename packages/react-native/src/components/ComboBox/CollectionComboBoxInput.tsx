@@ -44,6 +44,7 @@ export const useNativeComboBoxInputProps = <T extends object>({
     ...owner.inputProps,
     ref: inputRef,
     testID: `${identity}-input`,
+    role: "combobox",
     nativeID: owner.id,
     accessibilityLabel: owner.accessibilityLabel ?? owner["aria-label"] ?? owner.inputLabel,
     value: state.inputValue,

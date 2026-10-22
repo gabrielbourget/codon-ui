@@ -1,8 +1,10 @@
 #include "FormDocumentQuery.h"
+#include "FieldSemanticQuery.h"
 
 #include <folly/json.h>
 #include <react/renderer/components/CodonNativeInputSpec/Props.h>
 #include <react/renderer/components/view/YogaStylableProps.h>
+#include <react/renderer/mounting/ShadowTree.h>
 #include <stdexcept>
 #include <string_view>
 #include <unordered_set>
@@ -19,6 +21,27 @@ std::string NativeFormDocumentSession::identityFor(const ShadowNodeFamily::Share
     document.identity = identity_ + ":" + std::to_string(++sequence_);
   }
   return document.identity;
+}
+
+std::string queryFabricFormDocumentStamp(const UIManager &manager, SurfaceId surface,
+    NativeFormDocumentSession &session, const std::function<void()> &check) {
+  if (surface <= 0) throw std::invalid_argument("Native form: current surface required");
+  std::optional<std::string> result;
+  manager.getShadowTreeRegistry().visit(surface, [&](const ShadowTree &tree) {
+    if (check) check();
+    const auto revision = tree.getCurrentRevision();
+    const auto root = revision.rootShadowNode;
+    if (!root || root->getSurfaceId() != surface) throw std::runtime_error("Native form: document unavailable");
+    const auto identity = session.identityFor(root->getFamilyShared());
+    const auto current = tree.getCurrentRevision();
+    if (check) check();
+    if (current.number != revision.number || current.rootShadowNode != root)
+      throw std::runtime_error("Native form: document revision retired");
+    result = folly::toJson(folly::dynamic::object("documentId", identity)("surfaceId", surface)
+      ("rootTarget", root->getTag())("revision", std::to_string(revision.number)));
+  });
+  if (!result) throw std::runtime_error("Native form: document surface retired");
+  return std::move(*result);
 }
 
 std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface, Tag target,
@@ -41,6 +64,7 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     nodes.push_back(folly::dynamic::object("target", node.getTag())
       ("parent", entry.parent ? document.preorder[*entry.parent].node->getTag() : 0)
       ("component", node.getComponentName())
+      ("nativeId", node.getProps()->nativeId)
       ("hidden", node.getTraits().check(ShadowNodeTraits::Trait::Hidden))
       ("displayNone", style && style->yogaStyle.display() == facebook::yoga::Display::None));
     const auto name = std::string_view(node.getComponentName());
@@ -48,6 +72,9 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     // its exact component identity before reading its generated prop type.
     const auto *form = name == "CUIFormRoot" ? static_cast<const CUIFormRootProps *>(node.getProps().get()) : nullptr;
     const auto *field = name == "CUIFieldBinding" ? static_cast<const CUIFieldBindingProps *>(node.getProps().get()) : nullptr;
+    if (field) nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
+    if (name == "CUIFocusView") nodes[nodes.size() - 1]["collectionBinding"] =
+      static_cast<const CUIFocusViewProps *>(node.getProps().get())->nativeCollectionBinding;
     if (!form && !field) continue;
     const auto &owner = form ? form->ownerId : field->ownerId;
     const auto &id = form ? form->descriptorId : field->descriptorId;
@@ -72,6 +99,7 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
       fields.push_back(std::move(descriptor));
     }
   }
+  resolveFieldSemanticPlans(nodes);
   if (check) check();
   if (!isFabricFormDocumentCurrent(manager, document)) throw std::runtime_error("Native form: document revision retired");
   return folly::toJson(folly::dynamic::object("documentId", documentId)("surfaceId", document.root->getSurfaceId())

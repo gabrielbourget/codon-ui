@@ -9,3 +9,5 @@
 
 CUIFieldCustomContentLease *CUIBindFieldCustomContent(
     UIView *editor, NSArray<AXCustomContent *> *content);
+CUIFieldCustomContentLease *CUIBindLiveFieldCustomContent(
+    UIView *editor, NSArray<AXCustomContent *> *(^content)(void), BOOL (^isCurrent)(void));

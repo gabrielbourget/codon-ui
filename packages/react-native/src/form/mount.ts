@@ -33,7 +33,13 @@ export class NativeFormMountReceipt {
       !positive(scope.originalTarget)
     )
       throw new Error("original-native-form-targets-required")
-    this.scope = Object.freeze({ ...scope })
+    this.scope = Object.freeze({
+      ownerId: scope.ownerId,
+      descriptorId: scope.descriptorId,
+      descriptorRevision: scope.descriptorRevision,
+      target: scope.target,
+      originalTarget: scope.originalTarget,
+    })
     this.#metadata = new WeakSet([targets.metadata])
     this.#original = new WeakSet([targets.original])
     this.#targets = targets.current
@@ -50,6 +56,9 @@ export class NativeFormMountReceipt {
   }
 
   getSnapshot = () => (this.#current() ? this.#receipt : null)
+  get isRetired() {
+    return this.#closed
+  }
   retire = () => {
     this.#closed = true
     this.#receipt = null
@@ -95,7 +104,26 @@ export class NativeFormMountReceipt {
     this.#sequence = packet.sequence
     this.#window = packet.windowId
     this.#active = packet.active
-    this.#receipt = packet.complete ? Object.freeze({ ...packet }) : null
+    this.#receipt = packet.complete
+      ? Object.freeze({
+          ownerId: packet.ownerId,
+          descriptorId: packet.descriptorId,
+          descriptorRevision: packet.descriptorRevision,
+          target: packet.target,
+          originalTarget: packet.originalTarget,
+          surfaceId: packet.surfaceId,
+          windowId: packet.windowId,
+          epoch: packet.epoch,
+          sequence: packet.sequence,
+          mountRevision: packet.mountRevision,
+          attached: packet.attached,
+          active: packet.active,
+          complete: packet.complete,
+          metadataOnly: packet.metadataOnly,
+          originalClass: packet.originalClass,
+          error: packet.error,
+        })
+      : null
     return true
   }
 }

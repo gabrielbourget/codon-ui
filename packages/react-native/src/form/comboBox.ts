@@ -12,6 +12,7 @@ export type TNativeComboBoxFieldOptions = Readonly<{
   isReadOnly?: boolean
   isRequired?: boolean
   validationBehavior?: "native" | "aria"
+  requiredErrorMessage?: string
 }>
 
 export const nativeComboBoxFieldData = (
@@ -20,7 +21,12 @@ export const nativeComboBoxFieldData = (
 ): TNativeFormFieldData => {
   const behavior = props.validationBehavior ?? "native"
   const validation = state.realtimeValidation
-  const missing = behavior === "native" && !!props.isRequired && state.inputValue.length === 0
+  const missing =
+    behavior === "native" &&
+    !props.isDisabled &&
+    !props.isReadOnly &&
+    !!props.isRequired &&
+    state.inputValue.length === 0
   const invalid = validation.isInvalid || missing
   return {
     entries: props.name
@@ -41,7 +47,11 @@ export const nativeComboBoxFieldData = (
         valueMissing: missing,
         valid: !invalid,
       },
-      validationErrors: validation.isInvalid ? validation.validationErrors : [],
+      validationErrors: validation.isInvalid
+        ? validation.validationErrors
+        : missing
+          ? [props.requiredErrorMessage ?? "Required"]
+          : [],
     },
   }
 }

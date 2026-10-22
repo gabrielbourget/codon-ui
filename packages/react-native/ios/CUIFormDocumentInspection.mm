@@ -70,7 +70,7 @@ NSDictionary *CUIInspectFormDocument(RCTSurfacePresenter *presenter, NSDictionar
       record[@"metadataInstance"] = CUIFormViewIdentity(metadata);
       record[@"state"] = CUIEditorState(editor);
       record[@"stateUnchanged"] = @YES;
-      if (probeCustomContent && current && available) {
+      if (probeCustomContent && current && available && !binding.semanticBinding.length) {
         NSArray *before = CUIContentValues(editor);
         NSDictionary *stateBefore = CUIEditorState(editor);
         id delegate = [editor isKindOfClass:UITextField.class] ? ((UITextField *)editor).delegate : ((UITextView *)editor).delegate;
@@ -87,7 +87,7 @@ NSDictionary *CUIInspectFormDocument(RCTSurfacePresenter *presenter, NSDictionar
         record[@"delegateUnchanged"] = @(delegate == ([editor isKindOfClass:UITextField.class] ? ((UITextField *)editor).delegate : ((UITextView *)editor).delegate));
         record[@"originalEditorUnchanged"] = @(editor == CUIOriginalEditor(presenter, target));
         record[@"unregisteredControlAfterUnchanged"] = @(!control || ([controlBefore isEqual:CUIContentValues(control)] && [controlState isEqual:CUIEditorState(control)]));
-      } else if (probeCustomContent) record[@"probeSkipped"] = current ? @"inactive-window" : @"retired-descriptor";
+      } else if (probeCustomContent) record[@"probeSkipped"] = !current ? @"retired-descriptor" : binding.semanticBinding.length ? @"owned-semantic-config" : @"inactive-window";
       record[@"customContentCurrent"] = CUIContentValues(editor);
     }
     [fields addObject:record];

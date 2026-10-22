@@ -26,4 +26,7 @@ std::string queryFabricFormDocument(
     facebook::react::Tag target,
     NativeFormDocumentSession &session,
     const std::function<void()> &check = {});
+std::string queryFabricFormDocumentStamp(
+    const facebook::react::UIManager &manager, facebook::react::SurfaceId surface,
+    NativeFormDocumentSession &session, const std::function<void()> &check = {});
 } // namespace codon::form

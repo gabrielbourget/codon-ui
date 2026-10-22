@@ -1,6 +1,6 @@
 import "../../../collection/__tests__/nativeReceipts"
 
-import { createRef, useContext, type ReactNode } from "react"
+import { createRef, useContext, useState, type ReactNode } from "react"
 import { Text as RNText, TextInput, View } from "react-native"
 
 import {
@@ -341,6 +341,135 @@ it("keeps controlled pressed rendering independent from disabled native activati
   )
   expect(values.mock.calls.at(-1)![0]).toMatchObject({ isPressed: true, isDisabled: true })
   expect(screen.getByRole("button")).toBeDisabled()
+})
+
+it("binds current original text refs and semantic aliases without copying the editor query or label bodies", async () => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  const targets = new WeakMap<object, number>()
+  let nextTarget = 500000
+  jest.mocked(native.findNodeHandle).mockImplementation((view) => {
+    const original = inherited(view)
+    if (original) return original
+    if (!view || typeof view !== "object") return null
+    if (!targets.has(view)) targets.set(view, ++nextTarget)
+    return targets.get(view)!
+  })
+  const input = createRef<TextInput>(),
+    label = createRef<TNativeTextRef>(),
+    description = createRef<TNativeTextRef>()
+  const changed = jest.fn()
+  const content = (showDescription: boolean) =>
+    wrap(
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost>
+          <FormValidationContext.Provider value={{ entry: ["Server message body"] }}>
+            <NativeCollectionComboBox
+              items={ITEMS}
+              getKey={(item) => item.id}
+              getTextValue={(item) => item.label}
+              id="source-input"
+              inputRef={input}
+              inputLabel="Input"
+              closeLabel="Close"
+              name="entry"
+              inputValue="held business query"
+              onInputChange={changed}
+              nativeAccessibilityLabels={{ role: "Liste" }}
+              render={(props) => (
+                <NativeFocusHost {...props}>
+                  {props.children}
+                  <NativeComboBoxLabel ref={label} nativeID="caller-label">
+                    Visible label body
+                  </NativeComboBoxLabel>
+                  {showDescription && (
+                    <NativeComboBoxText ref={description} slot="description">
+                      Visible description body
+                    </NativeComboBoxText>
+                  )}
+                  <NativeComboBoxFieldError />
+                </NativeFocusHost>
+              )}
+            />
+          </FormValidationContext.Provider>
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>,
+    )
+  const view = await render(content(true))
+  const original = input.current,
+    focus = original!.focus
+  const binding = () =>
+    JSON.parse(
+      view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
+    )
+  const first = binding()
+  expect(first.aliases).toContainEqual({ id: "source-input", target: native.findNodeHandle(original) })
+  expect(first.labelledBy).toHaveLength(1)
+  expect(first.aliases).toContainEqual({ id: first.labelledBy[0], target: native.findNodeHandle(label.current) })
+  expect(first.describedBy).toHaveLength(1)
+  expect(first.aliases).toContainEqual({ id: first.describedBy[0], target: native.findNodeHandle(description.current) })
+  expect(first).toMatchObject({ invalid: true, expanded: false, labels: { role: "Liste" } })
+  expect(first.errorMessageBy).toHaveLength(1)
+  for (const value of ["held business query", "Visible label body", "Visible description body", "Server message body"])
+    expect(JSON.stringify(first)).not.toContain(value)
+  await view.rerender(content(false))
+  expect(binding().describedBy).toEqual([])
+  expect(binding().aliases.some((alias: { id: string }) => alias.id === first.describedBy[0])).toBe(false)
+  expect(input.current === original).toBe(true)
+  expect(input.current!.focus === focus).toBe(true)
+  expect(changed).not.toHaveBeenCalled()
+})
+
+it("observes semantic slots that mount and retire in a child-only commit", async () => {
+  const native = jest.requireActual<typeof import("react-native")>("react-native")
+  const inherited = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  const targets = new WeakMap<object, number>()
+  let nextTarget = 600000,
+    toggle!: () => void
+  jest.mocked(native.findNodeHandle).mockImplementation((view) => {
+    const original = inherited(view)
+    if (original) return original
+    if (!view || typeof view !== "object") return null
+    if (!targets.has(view)) targets.set(view, ++nextTarget)
+    return targets.get(view)!
+  })
+  const DeferredDescription = () => {
+    const [show, setShow] = useState(false)
+    toggle = () => setShow((value) => !value)
+    return show ? <NativeComboBoxText slot="description">Deferred description</NativeComboBoxText> : null
+  }
+  const view = await render(
+    wrap(
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost>
+          <NativeCollectionComboBox
+            items={ITEMS}
+            getKey={(item) => item.id}
+            getTextValue={(item) => item.label}
+            inputLabel="Input"
+            closeLabel="Close"
+            render={(props) => (
+              <NativeFocusHost {...props}>
+                {props.children}
+                <DeferredDescription />
+              </NativeFocusHost>
+            )}
+          />
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>,
+    ),
+  )
+  const binding = () =>
+    JSON.parse(
+      view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
+    )
+  expect(binding().describedBy).toEqual([])
+  await act(toggle)
+  const descriptionId = binding().describedBy[0]
+  expect(typeof descriptionId).toBe("string")
+  expect(binding().aliases.some((alias: { id: string }) => alias.id === descriptionId)).toBe(true)
+  await act(toggle)
+  expect(binding().describedBy).toEqual([])
 })
 
 it("preserves style/children/host rendering order, full error values and the actual custom Text ref", async () => {

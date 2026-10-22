@@ -1,6 +1,6 @@
 import { writeFileSync } from "node:fs"
 import { act, fireEvent, render, screen } from "@testing-library/react"
-import { createRef, useContext } from "react"
+import { createRef, useContext, type ContextType } from "react"
 import { createPortal } from "react-dom"
 import { ComboBoxStateContext, Form } from "react-aria-components"
 import { afterAll, expect, it, vi } from "vitest"
@@ -323,6 +323,79 @@ it("retains the original outside focus when invalid capture prevents the source 
   expect(focus).not.toHaveBeenCalled()
   expect(editor).toHaveValue("")
   records.push({ invalidCapturePreventsSourceFocusDefault: true, originalOutsideFocusRetained: true })
+})
+
+it("excludes empty readonly and disabled controls from required constraint validation", () => {
+  const form = createRef<HTMLFormElement>(),
+    submit = vi.fn((event) => event.preventDefault())
+  render(
+    <Form ref={form} onSubmit={submit}>
+      <ComboBox
+        {...options}
+        aria-label="Readonly"
+        name="readonly"
+        formValue="text"
+        inputValue=""
+        isRequired
+        isReadOnly
+      />
+      <ComboBox
+        {...options}
+        aria-label="Disabled"
+        name="disabled"
+        formValue="text"
+        inputValue=""
+        isRequired
+        isDisabled
+      />
+    </Form>,
+  )
+  for (const input of screen.getAllByRole("combobox") as HTMLInputElement[]) {
+    expect(input.willValidate).toBe(false)
+    expect(input.validity.valueMissing).toBe(false)
+    expect(input.validity.valid).toBe(true)
+  }
+  act(() => form.current!.requestSubmit())
+  expect(submit).toHaveBeenCalledOnce()
+  expect(entries(form.current!)).toEqual([["readonly", ""]])
+  records.push({ emptyReadonlyAndDisabledRequiredControlsAreNotInvalid: true, readonlyStillSerializes: true })
+})
+
+it("exposes a nonempty native constraint message in the complete source validation context", () => {
+  const form = createRef<HTMLFormElement>()
+  let state!: NonNullable<ContextType<typeof ComboBoxStateContext>>
+  const Probe = () => {
+    state = useContext(ComboBoxStateContext)!
+    return null
+  }
+  render(
+    <Form ref={form}>
+      <ComboBox
+        {...options}
+        name="required"
+        formValue="text"
+        inputValue=""
+        isRequired
+        render={(props) => (
+          <div {...props}>
+            {props.children}
+            <Probe />
+          </div>
+        )}
+      />
+    </Form>,
+  )
+  act(() => form.current!.requestSubmit())
+  const validation = state!.displayValidation
+  expect(validation.isInvalid).toBe(true)
+  expect(validation.validationDetails.valueMissing).toBe(true)
+  expect(validation.validationErrors.length).toBeGreaterThan(0)
+  expect(validation.validationErrors[0].length).toBeGreaterThan(0)
+  records.push({
+    requiredConstraintMessageIsNonempty: true,
+    sourceMessage: validation.validationErrors[0],
+    nativeMessageUsesLocalizableCaption: true,
+  })
 })
 
 it("requests the default query before the initial key and leaves controlled owners authoritative", () => {
