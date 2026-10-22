@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.View;
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReactContext;
+import com.facebook.react.bridge.LifecycleEventListener;
+import com.facebook.react.common.LifecycleState;
 import com.facebook.react.bridge.UIManager;
 import com.facebook.react.bridge.UIManagerListener;
 import com.facebook.react.bridge.WritableMap;
@@ -14,9 +16,10 @@ import com.facebook.react.views.textinput.ReactEditText;
 import com.facebook.react.views.view.ReactViewGroup;
 import java.lang.ref.WeakReference;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
-final class CUIFormMetadataView extends CUICollectionNode implements UIManagerListener {
+final class CUIFormMetadataView extends CUICollectionNode implements UIManagerListener, LifecycleEventListener {
   int originalTarget;
   private final boolean fieldBinding;
   private UIManager manager;
@@ -24,6 +27,9 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private String window = "", identity = "", signature = "";
   private int surface = -1;
   private long epoch, sequence, mountBatch;
+  private JSONObject mountSnapshot;
+  private String lastMount = "unmounted";
+  private boolean observing, resumed, lastActive;
 
   CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; }
   boolean isFieldBinding() { return fieldBinding; }
@@ -32,10 +38,17 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     if (manager != null || !isAttachedToWindow() || !(getContext() instanceof ReactContext)) return;
     manager = UIManagerHelper.getUIManagerForReactTag((ReactContext)getContext(), getId());
     if (manager != null) manager.addUIManagerEventListener(this);
+    ReactContext context = (ReactContext)getContext();
+    if (!observing) {
+      resumed = context.getLifecycleState() == LifecycleState.RESUMED;
+      observing = true; context.addLifecycleEventListener(this);
+    }
   }
   private void disconnect() {
     if (manager != null) manager.removeUIManagerEventListener(this);
     manager = null;
+    if (observing && getContext() instanceof ReactContext) ((ReactContext)getContext()).removeLifecycleEventListener(this);
+    observing = false;
   }
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow(); epoch++; window = CUIInputWindow.identity(this); signature = ""; connect();
@@ -46,10 +59,25 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   void retire() {
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
+    mountSnapshot = null; lastMount = "retired"; lastActive = false;
   }
 
+  JSONObject formMountSnapshot() throws Exception {
+    publish(isAttachedToWindow(), lastMount);
+    return mountSnapshot == null ? null : new JSONObject(mountSnapshot.toString());
+  }
+  View originalForMountSnapshot(JSONObject expected) throws Exception {
+    JSONObject current = formMountSnapshot();
+    return CUIFormActionAdmission.same(expected, current) && current.getBoolean("complete") && current.getBoolean("active") ? original.get() : null;
+  }
+  @Override public void onWindowFocusChanged(boolean focused) { super.onWindowFocusChanged(focused); publish(isAttachedToWindow(), lastMount); }
+  @Override protected void onWindowVisibilityChanged(int visibility) { super.onWindowVisibilityChanged(visibility); publish(isAttachedToWindow(), lastMount); }
+  @Override public void onHostResume() { resumed = true; publish(isAttachedToWindow(), lastMount); }
+  @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); }
+  @Override public void onHostDestroy() { resumed = false; publish(false, "retired"); disconnect(); }
+
   private void publish(boolean attached, String mountRevision) {
-    if (ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) return;
+    if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; return; }
     attached &= isAttachedToWindow();
     String currentWindow = attached ? CUIInputWindow.identity(this) : window;
     View target = attached && originalTarget > 0 ? getRootView().findViewById(originalTarget) : null;
@@ -62,21 +90,34 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()
       && window.equals(CUIInputWindow.identity(target)) && correctType && metadataOnly;
+    boolean active = complete && resumed && getContext() instanceof ReactContext && ((ReactContext)getContext()).getLifecycleState() == LifecycleState.RESUMED
+      && target.hasWindowFocus() && target.isShown() && target.getWindowVisibility() == View.VISIBLE;
+    for (View view = target; view != null && active; view = view.getParent() instanceof View ? (View)view.getParent() : null) active &= view.getAlpha() > 0;
+    if (lastActive != active) { lastActive = active; epoch++; }
     String error = !attached ? "form-metadata-detached" : target == null ? "form-original-target-unavailable" :
       !correctType ? "form-original-type-mismatch" : !metadataOnly ? "form-metadata-not-inert" : !complete ? "form-metadata-incomplete" : "";
     String originalClass = target == null ? "" : target.getClass().getName();
     String nextSignature = new JSONArray().put(identity).put(getId()).put(surface).put(window).put(epoch)
-      .put(attached).put(complete).put(metadataOnly).put(originalClass).put(error).toString();
+      .put(attached).put(active).put(complete).put(metadataOnly).put(originalClass).put(error).toString();
     if (signature.equals(nextSignature)) return;
     EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ReactContext)getContext(), getId());
-    if (dispatcher == null) return;
+    if (dispatcher == null) { mountSnapshot = null; return; }
     signature = nextSignature;
+    lastMount = mountRevision;
+    sequence++;
+    try {
+      mountSnapshot = new JSONObject().put("ownerId", ownerId).put("descriptorId", descriptorId).put("descriptorRevision", descriptorRevision)
+        .put("target", getId()).put("originalTarget", originalTarget).put("surfaceId", surface).put("windowId", window)
+        .put("epoch", epoch).put("sequence", sequence).put("mountRevision", mountRevision).put("attached", attached).put("active", active)
+        .put("complete", complete).put("metadataOnly", metadataOnly).put("originalClass", originalClass).put("error", error);
+    } catch (org.json.JSONException invalid) { mountSnapshot = null; return; }
     WritableMap data = Arguments.createMap();
     data.putString("ownerId", ownerId); data.putString("descriptorId", descriptorId); data.putString("descriptorRevision", descriptorRevision);
     data.putInt("target", getId()); data.putInt("originalTarget", originalTarget); data.putInt("surfaceId", surface);
-    data.putString("windowId", window); data.putDouble("epoch", epoch); data.putDouble("sequence", ++sequence);
+    data.putString("windowId", window); data.putDouble("epoch", epoch); data.putDouble("sequence", sequence);
     data.putString("mountRevision", mountRevision); data.putBoolean("attached", attached); data.putBoolean("complete", complete);
     data.putBoolean("metadataOnly", metadataOnly); data.putString("originalClass", originalClass); data.putString("error", error);
+    data.putBoolean("active", active);
     dispatcher.dispatchEvent(new CommitEvent(surface, getId(), data));
   }
   @Override public void didMountItems(UIManager manager) { if (this.manager == manager) publish(true, "android-ui-mount-batch:" + ++mountBatch); }

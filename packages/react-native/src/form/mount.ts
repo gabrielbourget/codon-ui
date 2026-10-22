@@ -21,6 +21,7 @@ export class NativeFormMountReceipt {
   #epoch = 0
   #sequence = 0
   #window = ""
+  #active = false
   #receipt: NativeFormCommitData | null = null
 
   constructor(scope: TNativeFormMountScope, targets: TTargets) {
@@ -73,11 +74,14 @@ export class NativeFormMountReceipt {
       typeof packet.originalClass !== "string" ||
       typeof packet.error !== "string" ||
       typeof packet.attached !== "boolean" ||
+      typeof packet.active !== "boolean" ||
+      (packet.active && !packet.complete) ||
       typeof packet.complete !== "boolean" ||
       typeof packet.metadataOnly !== "boolean" ||
       packet.epoch < this.#epoch ||
       packet.sequence <= this.#sequence ||
       (packet.epoch === this.#epoch && packet.windowId !== this.#window) ||
+      (packet.epoch === this.#epoch && packet.active !== this.#active) ||
       (packet.complete &&
         (!packet.attached ||
           !packet.metadataOnly ||
@@ -90,6 +94,7 @@ export class NativeFormMountReceipt {
     this.#epoch = packet.epoch
     this.#sequence = packet.sequence
     this.#window = packet.windowId
+    this.#active = packet.active
     this.#receipt = packet.complete ? Object.freeze({ ...packet }) : null
     return true
   }

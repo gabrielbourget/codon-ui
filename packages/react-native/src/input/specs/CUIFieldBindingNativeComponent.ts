@@ -13,6 +13,7 @@ export type NativeFormCommitData = Readonly<{
   sequence: Double
   mountRevision: string
   attached: boolean
+  active: boolean
   complete: boolean
   metadataOnly: boolean
   originalClass: string
