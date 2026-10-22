@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event"
 import { createRef, useContext, useState } from "react"
 import { createPortal } from "react-dom"
 import {
+  Header,
+  ListBoxSection,
   SelectionIndicatorContext,
   RouterProvider,
   ButtonContext,
@@ -961,3 +963,124 @@ it.each([null, false, 0, "", undefined])(
     })
   },
 )
+
+it("retains section/header custom hosts, original refs and presentational group naming", async () => {
+  const section = createRef<HTMLElement>(),
+    header = createRef<HTMLElement>(),
+    user = userEvent.setup()
+  const sectionValues: unknown[] = [],
+    headerValues: unknown[] = []
+  render(
+    <ComboBox aria-label="Sections" items={[]} isOpen>
+      <ListBoxSection
+        id="metadata-section"
+        aria-label="Fallback"
+        ref={section}
+        style={{ padding: 6 }}
+        render={(props, values) => {
+          sectionValues.push(values)
+          return <section {...props} data-testid="source-section" />
+        }}
+      >
+        <Header
+          id="authored-heading"
+          ref={header}
+          style={{ color: "red" }}
+          render={(props, values) => {
+            headerValues.push(values)
+            return <header {...props} data-testid="source-heading" />
+          }}
+        >
+          Choices
+        </Header>
+        <ListBoxItem id={0} textValue="Zero">
+          Zero
+        </ListBoxItem>
+      </ListBoxSection>
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const group = await screen.findByRole("group", { name: "Choices" }),
+    heading = screen.getByTestId("source-heading")
+  expect(group).toBe(section.current)
+  expect(heading).toBe(header.current)
+  expect(group.id).toBe("")
+  expect(group.getAttribute("aria-labelledby")).toBe(heading.id)
+  expect(heading.id).not.toBe("")
+  expect(heading.id).not.toBe("authored-heading")
+  expect(heading.getAttribute("role")).toBe("presentation")
+  expect(group.style.padding).toBe("6px")
+  expect(heading.style.color).toBe("red")
+  expect(sectionValues.length).toBeGreaterThan(0)
+  expect(sectionValues.every((value) => value === undefined)).toBe(true)
+  expect(headerValues.length).toBeGreaterThan(0)
+  expect(headerValues.every((value) => value === undefined)).toBe(true)
+  const input = screen.getByRole("combobox")
+  await act(() => (input as HTMLInputElement).focus())
+  await user.click(heading)
+  expect(document.activeElement).toBe(input)
+  records.push({
+    case: "section-header-original-host",
+    groupName: "Choices",
+    headerRole: "presentation",
+    renderState: "undefined",
+    inputRetained: true,
+  })
+})
+
+it("retires section heading references on original header replacement and removal", async () => {
+  let replace!: () => void, remove!: () => void
+  const section = createRef<HTMLElement>(),
+    header = createRef<HTMLElement>(),
+    user = userEvent.setup()
+  const Harness = () => {
+    const [phase, setPhase] = useState(0)
+    replace = () => setPhase(1)
+    remove = () => setPhase(2)
+    return (
+      <ComboBox aria-label="Header lifetime" items={[]} isOpen>
+        <ListBoxSection id="section" aria-label="Fallback" ref={section}>
+          {phase === 2 ? null : (
+            <Header key={phase} id={phase === 0 ? "before" : "after"} ref={header}>
+              Choices
+            </Header>
+          )}
+          <ListBoxItem id={0} textValue="Zero">
+            Zero
+          </ListBoxItem>
+        </ListBoxSection>
+      </ComboBox>
+    )
+  }
+  render(<Harness />)
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("group", { name: "Choices" })
+  const original = header.current
+  const generatedID = header.current!.id
+  expect(section.current!.getAttribute("aria-labelledby")).toBe(generatedID)
+  await act(replace)
+  expect(header.current).not.toBe(original)
+  expect(header.current).not.toBeNull()
+  expect(header.current!.id).toBe(generatedID)
+  expect(section.current!.getAttribute("aria-labelledby")).toBe(generatedID)
+  await act(remove)
+  expect(header.current).toBeNull()
+  expect(section.current!.getAttribute("aria-labelledby")).toBeNull()
+  expect(screen.getByRole("group", { name: "Fallback" })).toBe(section.current)
+  records.push({ case: "section-header-lifetime", originalRetiredOnKeyReplacement: true, referenceRetired: true })
+})
+
+it("selects on mouse release over an option after an editor-origin press", async () => {
+  const user = userEvent.setup(),
+    changes: unknown[] = []
+  render(<ComboBox {...options} value={null} inputValue="" isOpen onChange={(key) => changes.push(key)} />)
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const input = screen.getByRole("combobox"),
+    option = await screen.findByRole("option", { name: "Alpha" })
+  await user.pointer({ target: input, keys: "[MouseLeft>]" })
+  expect(changes).toEqual([])
+  await user.pointer({ target: option })
+  await user.pointer({ target: option, keys: "[/MouseLeft]" })
+  expect(changes).toEqual([0])
+  records.push({ case: "editor-origin-option-release", changes })
+})

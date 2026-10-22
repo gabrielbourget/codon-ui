@@ -140,6 +140,7 @@ it.each([
   "late-query",
   "late-read-only",
   "pending",
+  "input-origin",
 ] as const)(
   "admits trigger-to-option mouse release only while its original ownership is current: %s",
   async (scenario) => {
@@ -154,12 +155,13 @@ it.each([
       return targets.get(view)!
     })
     const f = setup(),
+      editor = createRef<RN.TextInput>(),
       option = createRef<RN.View>(),
       changes = jest.fn()
     let retire!: () => void
     let restore!: () => void
     const Harness = () => {
-      const [open, setOpen] = useState(false),
+      const [open, setOpen] = useState(scenario === "input-origin"),
         [retired, setRetired] = useState(false)
       retire = () => setRetired(true)
       restore = () => setRetired(false)
@@ -170,6 +172,7 @@ it.each([
           getKey={(item) => item.id}
           getTextValue={(item) => item.label}
           inputLabel="Query"
+          inputRef={editor}
           closeLabel="Close"
           isOpen={open}
           onOpenChange={setOpen}
@@ -259,7 +262,7 @@ it.each([
         },
       }
     }
-    const down = packet("start", triggerTarget)
+    const down = packet("start", scenario === "input-origin" ? native.findNodeHandle(editor.current)! : triggerTarget)
     if (scenario === "pen") Object.assign(down.nativeEvent, { pointerType: "pen" })
     await act(() => initial.onNativeWindowPointer(down))
     const trigger = screen.getByTestId("combo-box-trigger", hidden)
@@ -279,8 +282,10 @@ it.each([
         pointerType: "mouse",
       },
     }
-    await act(() => trigger.props.onPointerDown(original))
-    await act(() => trigger.props.onResponderGrant(original))
+    if (scenario !== "input-origin") {
+      await act(() => trigger.props.onPointerDown(original))
+      await act(() => trigger.props.onResponderGrant(original))
+    }
     await f.ready(false)
     await acknowledge()
     expect(changes).not.toHaveBeenCalled()
@@ -318,7 +323,7 @@ it.each([
       if (scenario === "late-query") await fireEvent.changeText(screen.getByTestId("combo-box-input"), "Beta")
       else await act(retire)
     } else await act(() => screen.getByTestId("host").props.onNativeWindowPointer(up))
-    expect(changes.mock.calls).toEqual(scenario === "select" ? [[0]] : [])
+    expect(changes.mock.calls).toEqual(scenario === "select" || scenario === "input-origin" ? [[0]] : [])
     expect(down.persist).toHaveBeenCalledTimes(scenario === "pen" ? 0 : 1)
   },
 )
