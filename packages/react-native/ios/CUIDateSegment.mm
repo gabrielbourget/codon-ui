@@ -138,6 +138,20 @@ using namespace facebook::react;
   [super touchesEnded:touches withEvent:event];
   if (touches.count == 1 && CGRectContainsPoint(self.bounds, [touches.anyObject locationInView:self])) [self becomeFirstResponder];
 }
+- (NSDictionary *)formSegmentIdentity
+{
+  if (![self active] || _surface <= 0 || self.tag <= 0 || !_ownerId.length || !_segmentId.length || !_bindingRevision.length) return nil;
+  return @{ @"ownerId":_ownerId, @"segmentId":_segmentId, @"bindingRevision":_bindingRevision,
+    @"target":@(self.tag), @"nativeInstance":[NSString stringWithFormat:@"uikit-date-segment:%p", self],
+    @"surfaceId":@(_surface), @"windowId":CUIInputWindowIdentity(self.window), @"epoch":@(_epoch) };
+}
+- (BOOL)requestFormSegmentFocus:(NSDictionary *)identity
+{
+  if (![[self formSegmentIdentity] isEqual:identity] || ![self canBecomeFirstResponder]) return NO;
+  [self requestSegmentFocus:identity[@"ownerId"] segmentId:identity[@"segmentId"] bindingRevision:identity[@"bindingRevision"]
+      windowId:identity[@"windowId"] epoch:[identity[@"epoch"] doubleValue]];
+  return self.isFirstResponder && [[self formSegmentIdentity] isEqual:identity];
+}
 - (BOOL)matchesOwner:(NSString *)owner segment:(NSString *)segment revision:(NSString *)revision window:(NSString *)window epoch:(double)epoch
 {
   return [_ownerId isEqual:owner] && [_segmentId isEqual:segment] && [_bindingRevision isEqual:revision] &&

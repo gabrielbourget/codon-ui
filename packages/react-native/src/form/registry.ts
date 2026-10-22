@@ -21,7 +21,7 @@ export type TNativeFormFieldData = Readonly<{
 export type TNativeFormFieldBinding = Readonly<{
   descriptor: Omit<TNativeFieldDescriptor, "position">
   data: TNativeFormFieldData
-  editor: () => TextInput | null
+  editor: () => TextInput | View | null
   mount: () => NativeFormMountReceipt | null
   isFocusObserved: () => boolean
   commitValidation: () => void

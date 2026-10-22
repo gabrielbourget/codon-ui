@@ -69,6 +69,19 @@ final class CUIDateSegment extends ReactViewGroup {
     emit(focused ? "focus" : "blur", "", 0, 0);
     if (!focused) clearDocument();
   }
+  JSONObject formSegmentIdentity() throws Exception {
+    int surface = UIManagerHelper.getSurfaceId(this);
+    if (!active() || surface <= 0 || getId() <= 0 || ownerId.isEmpty() || segmentId.isEmpty() || bindingRevision.isEmpty()) return null;
+    return new JSONObject().put("ownerId", ownerId).put("segmentId", segmentId).put("bindingRevision", bindingRevision)
+      .put("target", getId()).put("nativeInstance", "android-date-segment:"+Integer.toHexString(System.identityHashCode(this)))
+      .put("surfaceId", surface).put("windowId", CUIInputWindow.identity(this)).put("epoch", epoch);
+  }
+  boolean requestFormSegmentFocus(JSONObject identity) throws Exception {
+    if (!CUIFormActionAdmission.same(formSegmentIdentity(), identity) || segmentDisabled || !segmentEditable) return false;
+    requestSegmentFocus(identity.getString("ownerId"), identity.getString("segmentId"), identity.getString("bindingRevision"),
+      identity.getString("windowId"), identity.getDouble("epoch"));
+    return hasFocus() && CUIFormActionAdmission.same(formSegmentIdentity(), identity);
+  }
   private boolean matches(String owner, String segment, String revision, String window, double generation) {
     return ownerId.equals(owner) && segmentId.equals(segment) && bindingRevision.equals(revision) &&
       window.equals(CUIInputWindow.identity(this)) && generation == epoch && active();

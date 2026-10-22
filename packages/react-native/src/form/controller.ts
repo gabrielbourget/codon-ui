@@ -61,7 +61,7 @@ export class NativeFormController {
     readonly registry: NativeFormRegistry,
     readonly read: TReader,
     readonly focus: (
-      target: TextInput,
+      target: TextInput | View,
       scope: TNativeFormFieldFocusRequest,
     ) => Promise<TNativeFormFieldFocusOutcome> = (_target, scope) => requestNativeFormFieldFocus(scope),
   ) {}
@@ -131,7 +131,8 @@ export class NativeFormController {
       if (
         !binding ||
         !descriptorMatches(binding.descriptor, candidate) ||
-        binding.descriptor.hasFormAssociation !== candidate.hasFormAssociation
+        binding.descriptor.hasFormAssociation !== candidate.hasFormAssociation ||
+        (binding.descriptor.ownedEditorBinding ?? "") !== (candidate.ownedEditorBinding ?? "")
       )
         return retired("native-document-field-registration-incomplete")
     }

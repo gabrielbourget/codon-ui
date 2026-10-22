@@ -1,0 +1,46 @@
+#import "CUIOwnedDateField.h"
+#import "CUIInputWindow.h"
+#import <cmath>
+
+static BOOL CUIDatePositiveInteger(id value, BOOL tag)
+{
+  if (![value isKindOfClass:NSNumber.class] || CFGetTypeID((__bridge CFTypeRef)value) == CFBooleanGetTypeID()) return NO;
+  double number = [value doubleValue];
+  return std::isfinite(number) && number > 0 && std::floor(number) == number && number <= (tag ? INT_MAX : 9007199254740991.0);
+}
+static void CUICollectDateSegments(UIView *view, NSMutableArray<CUIDateSegment *> *segments)
+{
+  if ([view isKindOfClass:CUIDateSegment.class]) [segments addObject:(CUIDateSegment *)view];
+  for (UIView *child in view.subviews) CUICollectDateSegments(child, segments);
+}
+CUIDateSegment *CUIResolveOwnedDateField(UIView *metadata, NSString *binding, NSInteger primaryTarget, NSInteger surface)
+{
+  @try {
+    if (!metadata.window || !binding.length || surface <= 0) return nil;
+    id value = [NSJSONSerialization JSONObjectWithData:[binding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    if (![value isKindOfClass:NSDictionary.class] || ![value[@"kind"] isEqual:@"date-field"] ||
+        !CUIDatePositiveInteger(value[@"rootTarget"], YES) || ![value[@"segments"] isKindOfClass:NSArray.class] ||
+        ![value[@"segments"] count]) return nil;
+    UIView *root = [metadata.window viewWithTag:[value[@"rootTarget"] integerValue]];
+    if (!root || root == metadata || ![metadata isDescendantOfView:root] ||
+        ![root isKindOfClass:RCTViewComponentView.class] || [root isKindOfClass:CUIDateSegment.class]) return nil;
+    NSMutableArray<CUIDateSegment *> *originals = [NSMutableArray new]; CUICollectDateSegments(root, originals);
+    NSArray *expected = value[@"segments"];
+    if (originals.count != expected.count || originals.firstObject.tag != primaryTarget) return nil;
+    NSMutableSet *ids = [NSMutableSet new], *targets = [NSMutableSet new];
+    NSString *owner = nil, *window = CUIInputWindowIdentity(metadata.window);
+    for (NSUInteger index = 0; index < expected.count; index++) {
+      id row = expected[index]; CUIDateSegment *original = originals[index];
+      if (![row isKindOfClass:NSDictionary.class] || [row count] != 8) return nil;
+      for (NSString *key in @[@"ownerId", @"segmentId", @"bindingRevision", @"nativeInstance", @"windowId"])
+        if (![row[key] isKindOfClass:NSString.class] || ![row[key] length]) return nil;
+      if (!CUIDatePositiveInteger(row[@"target"], YES) || !CUIDatePositiveInteger(row[@"surfaceId"], YES) ||
+          !CUIDatePositiveInteger(row[@"epoch"], NO) || [row[@"surfaceId"] integerValue] != surface ||
+          ![row[@"windowId"] isEqual:window] || original.window != metadata.window ||
+          (owner && ![owner isEqual:row[@"ownerId"]]) || [ids containsObject:row[@"segmentId"]] ||
+          [targets containsObject:row[@"target"]] || ![[original formSegmentIdentity] isEqual:row]) return nil;
+      owner = row[@"ownerId"]; [ids addObject:row[@"segmentId"]]; [targets addObject:row[@"target"]];
+    }
+    return originals.firstObject;
+  } @catch (NSException *retired) { return nil; }
+}
