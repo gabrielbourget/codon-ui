@@ -4,6 +4,7 @@
 #import "CUIFloatingObserver.h"
 #import "CUIPhysicalKey.h"
 #import "CUIEditorKeyboardRecognizer.h"
+#import "CUIFieldInputBinding.h"
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -375,6 +376,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (NSDictionary *)editorBindingForPress:(UIPress *)press
 {
+  if (CUIFieldInputOwnsPress(press, self.window)) return nil;
   if (!press.key || ![self captureReady] || press.window != self.window) return nil;
   UIView *focused = [press.responder isKindOfClass:UIView.class] ? (UIView *)press.responder : CUIFirstResponder(self.window);
   if (![focused conformsToProtocol:@protocol(UITextInput)]) return nil;
@@ -494,6 +496,7 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
 }
 - (NSString *)policyForPress:(UIPress *)press
 {
+  if (CUIFieldInputOwnsPress(press, self.window)) return nil;
   if (![self captureReady] || !press.key || press.window != self.window) return nil;
   UIView *focused = CUIFirstResponder(self.window);
   NSString *policy = [self localPolicyForPress:press focused:focused];

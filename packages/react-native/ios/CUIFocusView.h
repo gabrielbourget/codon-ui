@@ -8,4 +8,6 @@
 - (NSString *)motionProjectionRevision;
 - (BOOL)menuPointerTriggerEnabled;
 - (NSDictionary *)formActionSnapshot;
+- (NSString *)fieldInputOwnerId;
+- (void)synchronizeFieldInputFocus;
 @end

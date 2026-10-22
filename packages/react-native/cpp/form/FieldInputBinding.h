@@ -101,6 +101,7 @@ inline folly::dynamic orderedFieldInputGroups(const folly::dynamic &document,
   std::vector<Group> groups;
   std::unordered_set<int32_t> originals;
   for (const auto &binding : bindings) {
+    if (!ancestry.contains(binding.inputTarget) && !ancestry.contains(binding.outerTarget)) continue;
     const folly::dynamic *committed = nullptr;
     for (const auto &node : document.at("nodes")) {
       const auto encoded = node.get_ptr("fieldGroupBinding");

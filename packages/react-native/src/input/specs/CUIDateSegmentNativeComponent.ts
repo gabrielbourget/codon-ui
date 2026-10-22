@@ -1,5 +1,11 @@
 import { codegenNativeComponent, codegenNativeCommands, type HostComponent, type ViewProps } from "react-native"
-import type { DirectEventHandler, Double, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes"
+import type {
+  BubblingEventHandler,
+  DirectEventHandler,
+  Double,
+  Int32,
+  WithDefault,
+} from "react-native/Libraries/Types/CodegenTypes"
 
 export type NativeDateSegmentData = Readonly<{
   kind: string
@@ -26,6 +32,27 @@ export type NativeDateSegmentData = Readonly<{
   active: boolean
 }>
 
+export type NativeFieldKeyData = Readonly<{
+  fieldDispatch: string
+  kind: string
+  ownerId: string
+  target: Int32
+  key: string
+  nativeCode: Int32
+  characters: string
+  phase: "down" | "up"
+  repeat: boolean
+  cancelled: boolean
+  shiftKey: boolean
+  altKey: boolean
+  ctrlKey: boolean
+  metaKey: boolean
+  capsLock: boolean
+  nativeModifierData: string
+  nativeDefaultHandled: boolean
+  timestamp: Double
+}>
+
 export interface NativeProps extends ViewProps {
   ownerId: string
   segmentId: string
@@ -37,6 +64,7 @@ export interface NativeProps extends ViewProps {
   segmentReadOnly: boolean
   segmentEditable: boolean
   segmentPlaceholder?: WithDefault<boolean, false>
+  onNativeFieldKey?: BubblingEventHandler<NativeFieldKeyData>
   onNativeSegmentInput?: DirectEventHandler<NativeDateSegmentData>
 }
 

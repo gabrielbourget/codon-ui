@@ -5,6 +5,7 @@
 #import "CUIFocusWithinObserver.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIKeyboardScope.h"
+#import "CUIFieldInputBinding.h"
 #import "CUIFloatingScrollAnchor.h"
 #import "CUIMotionColorSampler.h"
 #import "CUIMotionGeometryObserver.h"
@@ -636,6 +637,8 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (BOOL)canBecomeFocused { return _nativeTabStop && [self canBecomeFirstResponder]; }
 - (BOOL)canBecomeFirstResponder { return _keyboardFocusable && self.window != nil && !self.hidden && self.alpha > 0; }
+- (NSString *)fieldInputOwnerId { return _ownerId; }
+- (void)synchronizeFieldInputFocus { [_focusWithin synchronize]; }
 
 - (void)emitFocus:(BOOL)focused
 {
@@ -767,7 +770,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   NSMutableSet<UIPress *> *unhandled = [NSMutableSet set];
   for (UIPress *press in presses) {
-    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused)) {
+    if (!press.key || !_keyboardFocusable || (!self.isFirstResponder && !self.isFocused) || CUIFieldInputOwnsPress(press, self.window)) {
       [unhandled addObject:press];
       continue;
     }

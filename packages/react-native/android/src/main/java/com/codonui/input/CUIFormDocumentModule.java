@@ -26,6 +26,8 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
   private String semanticDocumentStamp = "";
   private JSONObject semanticDocument;
   private final HashMap<Integer, JSONObject> semanticNodes = new HashMap<>(), semanticFields = new HashMap<>();
+  private final WeakHashMap<CUIFormMetadataView, CUIFieldInputBinding> fieldInputs = new WeakHashMap<>();
+  private final WeakHashMap<CUIFormMetadataView, String> fieldInputOwners = new WeakHashMap<>();
   CUIFormDocumentModule(ReactApplicationContext context) { super(context); }
   private static native String nativeFormDocument(FabricUIManager manager, int surface, int target, long session, String group);
   private static native String nativeFormDocumentStamp(FabricUIManager manager, int surface, long session);
@@ -172,6 +174,67 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
     });
   }
 
+  private JSONObject fieldInputSnapshot(FabricUIManager manager, CUIFormMetadataView metadata) throws Exception {
+    if (!valid.get() || !getReactApplicationContext().hasActiveReactInstance()) throw new IllegalStateException("field-input-module-retired");
+    JSONObject binding = new JSONObject(metadata.fieldGroupBinding), mount = metadata.formMountSnapshot();
+    if (mount == null) throw new IllegalStateException("field-input-original-mount-unavailable");
+    JSONObject group = new JSONObject().put("outerTarget", positiveInteger(binding, "outerTarget"))
+      .put("inputTarget", positiveInteger(binding, "inputTarget")).put("mount", mount);
+    String encoded = readSnapshot(manager, mount.getInt("surfaceId"), metadata.originalTarget, group.toString());
+    JSONObject document = new JSONObject(encoded);
+    document.put("encodedDocument", encoded).put("fieldGroupSnapshot", CUIFieldGroupDocument.read(manager, document));
+    if (!encoded.equals(readSnapshot(manager, mount.getInt("surfaceId"), metadata.originalTarget, group.toString())))
+      throw new IllegalStateException("field-input-document-retired-during-read");
+    return document;
+  }
+  @Override public void bindFieldInput(String encoded, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      try {
+        JSONObject request = new JSONObject(encoded), mount = request.getJSONObject("mount");
+        String nonce = request.getString("requestId");
+        if (nonce.isEmpty() || !valid.get()) throw new IllegalArgumentException("field-input-bind-request-invalid");
+        UIManager selected = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), positiveInteger(mount, "target"));
+        if (!(selected instanceof FabricUIManager)) throw new IllegalStateException("field-input-Fabric-unavailable");
+        FabricUIManager manager = (FabricUIManager)selected;
+        View original = manager.resolveView(positiveInteger(mount, "target"));
+        if (!(original instanceof CUIFormMetadataView) || !((CUIFormMetadataView)original).isFieldBinding())
+          throw new IllegalStateException("field-input-original-metadata-retired");
+        CUIFormMetadataView metadata = (CUIFormMetadataView)original;
+        if (metadata.originalForMountSnapshot(mount) == null || !metadata.fieldGroupBinding.equals(request.getString("fieldGroupBinding")))
+          throw new IllegalStateException("field-input-bind-original-retired");
+        fieldInputSnapshot(manager, metadata);
+        CUIFieldInputBinding previous = fieldInputs.get(metadata); if (previous != null) previous.retire();
+        WeakReference<CUIFormDocumentModule> module = new WeakReference<>(this);
+        WeakReference<CUIFormMetadataView> target = new WeakReference<>(metadata);
+        WeakReference<FabricUIManager> fabric = new WeakReference<>(manager);
+        CUIFieldInputBinding binding = new CUIFieldInputBinding(metadata, manager, () -> {
+          CUIFormDocumentModule current = module.get(); CUIFormMetadataView view = target.get(); FabricUIManager active = fabric.get();
+          if (current == null || view == null || active == null) throw new IllegalStateException("field-input-owner-retired");
+          return current.fieldInputSnapshot(active, view);
+        });
+        String owner = semanticModuleId + ":input:" + nonce;
+        fieldInputs.put(metadata, binding); fieldInputOwners.put(metadata, owner);
+        WeakReference<CUIFieldInputBinding> refresh = new WeakReference<>(binding);
+        metadata.setFieldInputRefresh(() -> { CUIFieldInputBinding current = refresh.get(); if (current != null) current.refresh(); }, owner);
+        promise.resolve(new JSONObject().put("requestId", nonce).put("ownerToken", owner).put("metadataTarget", metadata.getId()).toString());
+      } catch (Exception error) { promise.reject("E_CUI_FIELD_INPUT", error); }
+    });
+  }
+  @Override public void unbindFieldInput(String encoded, Promise promise) {
+    UiThreadUtil.runOnUiThread(() -> {
+      try {
+        JSONObject request = new JSONObject(encoded); int target = positiveInteger(request, "metadataTarget");
+        String owner = request.getString("ownerToken"); UIManager manager = UIManagerHelper.getUIManagerForReactTag(getReactApplicationContext(), target);
+        View view = manager == null ? null : manager.resolveView(target);
+        boolean current = view instanceof CUIFormMetadataView && owner.equals(fieldInputOwners.get((CUIFormMetadataView)view));
+        if (current) {
+          CUIFormMetadataView metadata = (CUIFormMetadataView)view; fieldInputs.get(metadata).retire(); metadata.clearFieldInputRefresh(owner);
+          fieldInputs.remove(metadata); fieldInputOwners.remove(metadata);
+        }
+        promise.resolve(current);
+      } catch (Exception error) { promise.reject("E_CUI_FIELD_INPUT", error); }
+    });
+  }
   @Override public void getSnapshot(String encoded, Promise promise) { performRequest(encoded, promise, false); }
   @Override public void focusField(String encoded, Promise promise) { performRequest(encoded, promise, true); }
   private void performRequest(String encoded, Promise promise, boolean focus) {
@@ -229,6 +292,10 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
   @Override public synchronized void invalidate() {
     valid.set(false);
     UiThreadUtil.runOnUiThread(() -> {
+      for (java.util.Map.Entry<CUIFormMetadataView, CUIFieldInputBinding> entry : fieldInputs.entrySet()) {
+        entry.getValue().retire(); entry.getKey().clearFieldInputRefresh(fieldInputOwners.get(entry.getKey()));
+      }
+      fieldInputs.clear(); fieldInputOwners.clear();
       for (java.util.Map.Entry<CUIFormMetadataView, String> entry : semanticHosts.entrySet()) entry.getKey().clearSemanticRefresh(entry.getValue());
       semanticHosts.clear();
       semanticDocument = null; semanticDocumentStamp = ""; semanticNodes.clear(); semanticFields.clear();

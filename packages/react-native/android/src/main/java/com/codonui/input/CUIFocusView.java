@@ -374,9 +374,11 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   boolean capturesObservedKey(KeyEvent event) {
     return keyboardFocusable && isFocused() && (held.get(event.getKeyCode()) != null ? consumed.contains(event.getKeyCode()) : capturedKeys.contains(CUIInputWindow.keyToken(event)));
   }
+  String fieldInputOwnerId() { return ownerId; }
 
   @Override
   public boolean dispatchKeyEvent(KeyEvent event) {
+    if (CUIFieldInputBinding.inDefault(event)) return super.dispatchKeyEvent(event);
     if (!keyboardFocusable || !isFocused() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) {
       return super.dispatchKeyEvent(event);
     }

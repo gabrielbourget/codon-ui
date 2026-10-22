@@ -27,6 +27,10 @@ final class CUIFieldGroupDocument {
     try { return manager.resolveView(target); }
     catch (IllegalViewOperationException unavailable) { return null; }
   }
+  static boolean matchesOriginal(UIManager manager, JSONObject expected, View original) throws Exception {
+    return original != null && resolve(manager, expected.getInt("target")) == original &&
+      instance(original).equals(expected.getString("nativeInstance")) && instance(original).equals(expected.getString("editorInstance"));
+  }
   private static boolean descendant(View view, View ancestor) {
     if (ancestor == null) return false;
     for (View current = view; current != null; current = current.getParent() instanceof View ? (View)current.getParent() : null)
@@ -108,6 +112,10 @@ final class CUIFieldGroupDocument {
           !CUIInputWindow.identity(original).equals(CUIInputWindow.identity(outer)))
         throw new IllegalStateException("field-group-original-window-or-containment-retired");
       if (core && !(original instanceof ReactEditText)) throw new IllegalStateException("field-group-original-editor-class-retired");
+      String hostOwner = original instanceof CUIDateSegment ? ((CUIDateSegment)original).ownerId :
+        original instanceof CUIFocusView ? ((CUIFocusView)original).fieldInputOwnerId() : null;
+      if (policy != null && policy.has("ownerId") && !policy.getString("ownerId").equals(hostOwner))
+        throw new IllegalStateException("field-group-original-host-owner-retired");
       boolean eligible = node.getBoolean("visible") && visible(original, outer) && original.isEnabled() &&
         original.isFocusable() && (policy == null || policy.getBoolean("focusable"));
       if (!eligible && !original.isFocused()) continue;
@@ -132,6 +140,7 @@ final class CUIFieldGroupDocument {
         .put("rect", new JSONObject().put("x", rectangle.left / density).put("y", rectangle.top / density)
           .put("width", rectangle.width() / density).put("height", rectangle.height() / density));
       if (original instanceof CUIDateSegment) row.put("segment", ((CUIDateSegment)original).formSegmentIdentity());
+      if (hostOwner != null) row.put("hostOwnerId", hostOwner);
       originals.put(row); currentOriginals.add(original);
     }
     if (resolve(manager, plan.getInt("outerTarget")) != outer || resolve(manager, plan.getInt("inputTarget")) != input ||

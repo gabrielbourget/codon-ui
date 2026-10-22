@@ -119,12 +119,12 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
       nodes[nodes.size() - 1]["dateSegmentOwner"] = segment.ownerId;
       if (!fieldGroup.empty()) nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
         ("candidate", true)("focusable", segment.segmentEditable && !segment.segmentDisabled)
-        ("tabStop", true)("readOnly", segment.segmentReadOnly)("placeholder", segment.segmentPlaceholder);
+        ("tabStop", true)("readOnly", segment.segmentReadOnly)("placeholder", segment.segmentPlaceholder)("ownerId", segment.ownerId);
     } else if (!fieldGroup.empty() && name == "CUIFocusView") {
       const auto &focus = *static_cast<const CUIFocusViewProps *>(node.getProps().get());
       nodes[nodes.size() - 1]["fieldFocus"] = folly::dynamic::object
         ("candidate", true)("focusable", focus.keyboardFocusable)("tabStop", focus.nativeTabStop)
-        ("readOnly", false)("placeholder", false);
+        ("readOnly", false)("placeholder", false)("ownerId", focus.ownerId);
     } else if (!fieldGroup.empty() && (name == "TextInput" || name == "AndroidTextInput")) {
       const auto &editor = *static_cast<const BaseTextInputProps *>(node.getProps().get());
       const bool disabled = editor.accessibilityState && editor.accessibilityState->disabled;
@@ -139,6 +139,7 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
     if (field) {
       nodes[nodes.size() - 1]["fieldSemantics"] = field->semanticBinding;
       if (!field->ownedEditorBinding.empty()) nodes[nodes.size() - 1]["ownedEditorBinding"] = field->ownedEditorBinding;
+      if (!field->fieldGroupBinding.empty()) nodes[nodes.size() - 1]["fieldGroupBinding"] = field->fieldGroupBinding;
     }
     if (name == "CUIFocusView") nodes[nodes.size() - 1]["collectionBinding"] =
       static_cast<const CUIFocusViewProps *>(node.getProps().get())->nativeCollectionBinding;

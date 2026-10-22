@@ -1,6 +1,7 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
 #import <React/RCTInvalidating.h>
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
+#include "../cpp/FieldInputRuntime.h"
 #include <folly/json.h>
 #include <atomic>
 #include <cmath>
@@ -10,12 +11,17 @@ namespace {
 struct EditorKeyboardModuleState {
   std::string lease{NSUUID.UUID.UUIDString.UTF8String};
   std::shared_ptr<codon::EditorKeyboardDefaultFrames> frames{std::make_shared<codon::EditorKeyboardDefaultFrames>()};
+  std::shared_ptr<codon::FieldInputRuntime> field{std::make_shared<codon::FieldInputRuntime>()};
   std::atomic<bool> valid{true};
-  EditorKeyboardModuleState() { codon::registerEditorKeyboardDefaults(lease, frames); }
+  EditorKeyboardModuleState() {
+    codon::registerEditorKeyboardDefaults(lease, frames);
+    codon::registerFieldInputRuntime(lease, field);
+  }
   void retire() {
     valid.store(false);
     codon::unregisterEditorKeyboardDefaults(lease);
     frames->retire();
+    codon::retireFieldInputRuntime(lease);
   }
 };
 class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorKeyboardDefaultsSpecJSI {
@@ -26,6 +32,10 @@ class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorK
     // Do not queue a synchronous acknowledgement back onto its waiting UI thread.
     methodMap_["getLease"] = MethodMetadata{0, getLease};
     methodMap_["settle"] = MethodMetadata{1, settle};
+    methodMap_["settleField"] = MethodMetadata{1, settleField};
+    methodMap_["acceptsField"] = MethodMetadata{1, acceptsField};
+    methodMap_["moveFieldFocus"] = MethodMetadata{1, moveFieldFocus};
+    state_->field->install(params.jsInvoker);
   }
  private:
   std::shared_ptr<EditorKeyboardModuleState> state_;
@@ -56,6 +66,25 @@ class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorK
         request.at("phase").asString(), request.at("current").asBool(), request.at("preventDefault").asBool());
     } catch (const std::exception &) { return false; }
   }
+  static facebook::jsi::Value settleField(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+                                        const facebook::jsi::Value *arguments, size_t count) {
+    auto &self = static_cast<EditorKeyboardDefaultsJSI &>(module);
+    return self.state_->valid.load() && count == 1 && arguments[0].isString() &&
+      codon::settleFieldInput(self.state_->field->frames, arguments[0].getString(runtime).utf8(runtime));
+  }
+  static facebook::jsi::Value acceptsField(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+                                         const facebook::jsi::Value *arguments, size_t count) {
+    auto &self = static_cast<EditorKeyboardDefaultsJSI &>(module);
+    return self.state_->valid.load() && count == 1 && arguments[0].isString() &&
+      codon::acceptsFieldInput(self.state_->field->frames, arguments[0].getString(runtime).utf8(runtime));
+  }
+  static facebook::jsi::Value moveFieldFocus(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+                                          const facebook::jsi::Value *arguments, size_t count) {
+    auto &self = static_cast<EditorKeyboardDefaultsJSI &>(module);
+    const auto result = self.state_->valid.load() && count == 1 && arguments[0].isString() ?
+      self.state_->field->moveFocus(runtime, arguments[0].getString(runtime).utf8(runtime)) : "";
+    return facebook::jsi::String::createFromUtf8(runtime, result);
+  }
 };
 }
 
@@ -68,6 +97,9 @@ RCT_EXPORT_MODULE(CUIEditorKeyboardDefaults)
 - (instancetype)init { if ((self = [super init])) _state = std::make_shared<EditorKeyboardModuleState>(); return self; }
 - (NSString *)getLease { return _state->valid.load() ? @(_state->lease.c_str()) : @""; }
 - (NSNumber *)settle:(NSString *)request { return @NO; }
+- (NSNumber *)settleField:(NSString *)request { return @NO; }
+- (NSNumber *)acceptsField:(NSString *)request { return @NO; }
+- (NSString *)moveFieldFocus:(NSString *)request { return @""; }
 - (void)invalidate { _state->retire(); }
 - (std::shared_ptr<facebook::react::TurboModule>)getTurboModule:(const facebook::react::ObjCTurboModule::InitParams &)params {
   return std::make_shared<EditorKeyboardDefaultsJSI>(params, _state);
