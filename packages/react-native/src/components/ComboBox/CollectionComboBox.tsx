@@ -30,14 +30,15 @@ import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
-import { NativeFloatingSurface } from "../ClickPopover/ClickPopover"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
 import type { TNativeTextRef } from "../Text/types"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
+import { NativeComboBoxGroup } from "./CollectionComboBoxGroup"
 import { NativeComboBoxInput, useNativeComboBoxInputProps } from "./CollectionComboBoxInput"
 import { NativeComboBoxList, NativeComboBoxListEnvironmentContext } from "./CollectionComboBoxList"
+import { NativeComboBoxPopover } from "./CollectionComboBoxPopover"
 import { NativeCollectionComboBoxTrigger, useNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import {
   NativeComboBoxContext,
@@ -63,7 +64,6 @@ import type {
   TNativeComboBoxSubmitEvent,
 } from "./collectionTypes"
 import { NativeComboBoxItem } from "./ComboBoxItem"
-import { NativeComboBoxPopoverBoundary } from "./fieldParts"
 import { createNativeComboBoxFilter } from "./filter"
 import { NativeComboBoxKeyBinding } from "./keyboard"
 import { useComboBoxState } from "./state/useComboBoxState"
@@ -509,7 +509,7 @@ const Receiver = <T extends object>({
     anchor,
     NativeComboBoxGroupContext,
   )
-  const { isDisabled: _groupDisabled, isInvalid: _groupInvalid, ...nativeGroupProps } = groupProps
+  const nativeGroupProps = groupProps
   const [popupProps, popupRef] = useNativeContextProps(
     {
       slot: undefined,
@@ -629,31 +629,25 @@ const Receiver = <T extends object>({
                                             onKey={onKey}
                                             observe={observeKey}
                                           />
-                                          <NativeFocusHost {...nativeGroupProps} ref={groupRef}>
+                                          <NativeComboBoxGroup {...nativeGroupProps} ref={groupRef}>
                                             <NativeComboBoxInput />
                                             {field.placement === "input" && field.metadata}
                                             <NativeCollectionComboBoxTrigger
                                               owner={props}
                                               foreground={styles.foreground}
                                             />
-                                          </NativeFocusHost>
-                                          <NativeFloatingSurface
-                                            {...nativePopupProps}
-                                            ref={popupRef}
-                                            nativeRootRole={null}
-                                          >
-                                            <NativeComboBoxPopoverBoundary>
-                                              <NativeComboBoxList
-                                                nativeID={fieldIds.list}
-                                                testID={`${identity}-list`}
-                                                renderEmptyState={() => (
-                                                  <PlaceholderText align="center" testID={`${identity}-empty`}>
-                                                    {props.emptyListMessage ?? "No items remaining to select"}
-                                                  </PlaceholderText>
-                                                )}
-                                              />
-                                            </NativeComboBoxPopoverBoundary>
-                                          </NativeFloatingSurface>
+                                          </NativeComboBoxGroup>
+                                          <NativeComboBoxPopover>
+                                            <NativeComboBoxList
+                                              nativeID={fieldIds.list}
+                                              testID={`${identity}-list`}
+                                              renderEmptyState={() => (
+                                                <PlaceholderText align="center" testID={`${identity}-empty`}>
+                                                  {props.emptyListMessage ?? "No items remaining to select"}
+                                                </PlaceholderText>
+                                              )}
+                                            />
+                                          </NativeComboBoxPopover>
                                           {field.placement === "root" && field.metadata}
                                         </>
                                       ),

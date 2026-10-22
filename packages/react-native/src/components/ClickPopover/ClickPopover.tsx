@@ -2,6 +2,9 @@ import {
   forwardRef,
   type ForwardRefExoticComponent,
   type RefAttributes,
+  type ComponentPropsWithoutRef,
+  type ReactElement,
+  type ReactNode,
   useContext,
   useImperativeHandle,
   useInsertionEffect,
@@ -19,6 +22,7 @@ import {
   type GestureResponderEvent,
   type LayoutChangeEvent,
   type ViewProps,
+  type StyleProp,
 } from "react-native"
 import type { PathProps } from "react-native-svg"
 
@@ -39,9 +43,26 @@ import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 
 import { getNativeClickPopoverStyles } from "./styles"
-import type { TNativeClickPopoverProps, TNativeClickPopoverRef } from "./types"
+import type { TNativeClickPopoverProps, TNativeClickPopoverRef, TNativeClickPopoverRootStyle } from "./types"
 
-const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusHost)
+export type TNativeFloatingRenderState = Readonly<{
+  trigger: string | null
+  placement: "top" | "bottom" | "left" | "right" | null
+  isEntering: boolean
+  isExiting: boolean
+}>
+type TFloatingHostProps = ComponentPropsWithoutRef<typeof NativeFocusHost> & RefAttributes<View>
+export type TNativeFloatingHostRender = (props: TFloatingHostProps, state: TNativeFloatingRenderState) => ReactElement
+const FloatingHost = forwardRef<
+  View,
+  ComponentPropsWithoutRef<typeof NativeFocusHost> & {
+    nativeRender?: TNativeFloatingHostRender
+    nativeRenderState: TNativeFloatingRenderState
+  }
+>(({ nativeRender, nativeRenderState, ...props }, ref) =>
+  nativeRender ? nativeRender({ ...props, ref }, nativeRenderState) : <NativeFocusHost {...props} ref={ref} />,
+)
+const AnimatedFocusView = Animated.createAnimatedComponent(FloatingHost)
 const subscribeNone = () => () => {}
 const zero = () => 0
 const getFocusSessionKey = (scope: ReturnType<typeof useNativeKeyScope>) => {
@@ -51,11 +72,21 @@ const getFocusSessionKey = (scope: ReturnType<typeof useNativeKeyScope>) => {
 
 export const NativeFloatingSurface = forwardRef<
   TNativeClickPopoverRef,
-  TNativeClickPopoverProps & { nativeRootRole?: ViewProps["role"] | null }
+  TNativeClickPopoverProps & {
+    nativeRootRole?: ViewProps["role"] | null
+    nativeRender?: TNativeFloatingHostRender
+    nativeStyle?: (
+      state: TNativeFloatingRenderState & { defaultStyle: TNativeClickPopoverRootStyle },
+    ) => StyleProp<TNativeClickPopoverRootStyle>
+    nativeChildren?: (state: TNativeFloatingRenderState & { defaultChildren: undefined }) => ReactNode
+  }
 >((props, ref) => {
   const {
     children,
     nativeRootRole,
+    nativeRender,
+    nativeStyle,
+    nativeChildren,
     isOpen,
     defaultOpen,
     onOpenChange,
@@ -168,7 +199,15 @@ export const NativeFloatingSurface = forwardRef<
   const [side, setSide] = useState<TSide>(initialSide)
   const [layoutRevision, setLayoutRevision] = useState(0)
   const [arrowLayout, setArrowLayout] = useState<{ width: number; height: number } | null>(null)
-  const calibrated = getNativeClickPopoverStyles(theme, props, side, direction, host.layout?.width ?? 0)
+  const committedDynamicStyle = useRef<StyleProp<TNativeClickPopoverRootStyle>>(undefined)
+  const [, refreshDynamicStyle] = useState(0)
+  const calibrated = getNativeClickPopoverStyles(
+    theme,
+    nativeStyle ? { ...props, style: [props.style, committedDynamicStyle.current] } : props,
+    side,
+    direction,
+    host.layout?.width ?? 0,
+  )
   const layer = useNativeFloatingLayer({
     registry: host.layers,
     parent: parent?.id ?? null,
@@ -213,7 +252,7 @@ export const NativeFloatingSurface = forwardRef<
   useLayoutEffect(() => {
     if (position) setSide(position.placement)
   }, [position?.placement])
-  const painted = getNativeClickPopoverStyles(
+  const baseline = getNativeClickPopoverStyles(
     theme,
     props,
     position?.placement ?? side,
@@ -225,6 +264,31 @@ export const NativeFloatingSurface = forwardRef<
   if (geometryReady) positionedGeneration.current = layer.generation
   const transitionReady = geometryReady || positionedGeneration.current === layer.generation || (!open && isExiting)
   const motion = useNativeFloatingMotion(layer, transitionReady, open, isEntering, isExiting)
+  const renderState: TNativeFloatingRenderState = {
+    trigger: triggerName || null,
+    placement: position?.placement ?? null,
+    isEntering: isEntering || (!!position && motion.isEntering),
+    isExiting: motion.isExiting,
+  }
+  const dynamicStyle =
+    layer.mounted || isExiting ? nativeStyle?.({ ...renderState, defaultStyle: baseline.root }) : undefined
+  const painted = nativeStyle
+    ? getNativeClickPopoverStyles(
+        theme,
+        { ...props, style: [props.style, dynamicStyle] },
+        position?.placement ?? side,
+        direction,
+        host.layout?.width ?? 0,
+      )
+    : baseline
+  useInsertionEffect(() => {
+    committedDynamicStyle.current = dynamicStyle
+  })
+  const dynamicPosition = JSON.stringify([painted.margins, painted.priority])
+  const measuredPosition = JSON.stringify([calibrated.margins, calibrated.priority])
+  useLayoutEffect(() => {
+    if (nativeStyle && dynamicPosition !== measuredPosition) refreshDynamicStyle((value) => value + 1)
+  }, [nativeStyle, dynamicPosition, measuredPosition])
   const ready =
     geometryReady && motion.preferenceReady && windowActive?.() !== false && input?.isWindowActive() !== false
   const scrollAnchorTag = useNativeFloatingScrollAnchor(
@@ -333,7 +397,8 @@ export const NativeFloatingSurface = forwardRef<
     setLayoutRevision((value) => value + 1)
     onLayout?.(event)
   }
-  const body = getNativeButtonContent(children, childIsDialog ? painted.dialogText : painted.rootText)
+  const renderedChildren = nativeChildren ? nativeChildren({ ...renderState, defaultChildren: undefined }) : children
+  const body = getNativeButtonContent(renderedChildren, childIsDialog ? painted.dialogText : painted.rootText)
   return (
     <NativeFloatingPortal layerId={layer.mounted ? layer.id : undefined}>
       <View
@@ -358,6 +423,8 @@ export const NativeFloatingSurface = forwardRef<
         >
           <NativeFloatingScopeContext.Provider value={{ id: layer.id, canAct: layer.canAct }}>
             <AnimatedFocusView
+              nativeRender={nativeRender}
+              nativeRenderState={renderState}
               {...nativeProps}
               ref={root}
               testID={identity}

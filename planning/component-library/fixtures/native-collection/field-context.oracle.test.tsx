@@ -2,6 +2,7 @@ import { writeFileSync } from "node:fs"
 import { act, fireEvent, render, screen, waitFor } from "@testing-library/react"
 import userEvent from "@testing-library/user-event"
 import { createRef, useContext, useState } from "react"
+import { createPortal } from "react-dom"
 import {
   ButtonContext,
   ComboBoxStateContext,
@@ -10,6 +11,7 @@ import {
   FieldErrorContext,
   Form,
   GroupContext,
+  Group,
   InputContext,
   Label,
   LabelContext,
@@ -17,8 +19,9 @@ import {
   Text,
   TextContext,
   PopoverContext,
+  Popover,
 } from "react-aria-components"
-import { afterAll, expect, it } from "vitest"
+import { afterAll, expect, it, vi } from "vitest"
 
 import Button from "../../../../packages/react/src/components/Button/Button"
 import ComboBox from "../../../../packages/react/src/components/ComboBox/ComboBox"
@@ -38,6 +41,175 @@ const records: unknown[] = []
 afterAll(() => {
   if (process.env.CODON_FIELD_CONTEXT_OBSERVATIONS)
     writeFileSync(process.env.CODON_FIELD_CONTEXT_OBSERVATIONS, JSON.stringify(records, null, 2))
+})
+
+it("preserves Group's named/null context, original rendered ref and complete style/render values", () => {
+  const inherited = createRef<HTMLDivElement>(),
+    caller = createRef<HTMLDivElement>(),
+    values: unknown[] = []
+  let defaultStyle: unknown
+  const view = render(
+    <GroupContext.Provider value={{ slots: { named: { ref: inherited, isInvalid: true, style: { padding: 9 } } } }}>
+      <Group
+        ref={caller}
+        slot="named"
+        data-testid="source-group"
+        style={(state) => {
+          defaultStyle = state.defaultStyle
+          return { color: "blue" }
+        }}
+        render={(props, state) => {
+          values.push(state)
+          return <div {...props} />
+        }}
+      >
+        Group
+      </Group>
+      <Group slot={null} data-testid="isolated-group" />
+    </GroupContext.Provider>,
+  )
+  expect(caller.current === inherited.current).toBe(true)
+  expect(caller.current === screen.getByTestId("source-group")).toBe(true)
+  expect(values.at(-1)).toMatchObject({
+    isHovered: false,
+    isFocusWithin: false,
+    isFocusVisible: false,
+    isDisabled: false,
+    isInvalid: true,
+  })
+  expect(defaultStyle).toMatchObject({ padding: 9 })
+  expect(screen.getByTestId("isolated-group").getAttribute("data-invalid")).toBeNull()
+  view.unmount()
+  expect([inherited.current, caller.current]).toEqual([null, null])
+  records.push({ groupNamedNullContextsAndOriginalRenderRef: true, fullGroupStyleValues: true })
+})
+
+it("disables Group hover while retaining actual child focus and the text-input visibility rule", async () => {
+  const user = userEvent.setup(),
+    focus = vi.fn()
+  const values: { isHovered: boolean; isFocusWithin: boolean; isFocusVisible: boolean; isDisabled: boolean }[] = []
+  render(
+    <Group isDisabled onFocus={focus}>
+      {(state) => {
+        values.push(state)
+        return <input aria-label="Group editor" value="held" onChange={() => {}} />
+      }}
+    </Group>,
+  )
+  const editor = screen.getByRole("textbox", { name: "Group editor" })
+  await user.click(editor)
+  expect(values.at(-1)).toMatchObject({
+    isHovered: false,
+    isFocusWithin: true,
+    isFocusVisible: false,
+    isDisabled: true,
+  })
+  await user.keyboard("a")
+  expect(values.at(-1)?.isFocusVisible).toBe(false)
+  await user.keyboard("{Escape}")
+  expect(values.at(-1)?.isFocusVisible).toBe(true)
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(focus.mock.calls[0][0].target === editor).toBe(true)
+  records.push({ disabledGroupPreservesChildFocus: true, groupPointerTypingEscapeVisibility: true })
+})
+
+it("forwards portal focus through React without treating the portal as a physical Group descendant", async () => {
+  const focus = vi.fn(),
+    user = userEvent.setup(),
+    values: { isFocusWithin: boolean }[] = []
+  render(
+    <Group onFocus={focus} data-testid="physical-group">
+      {(state) => {
+        values.push(state)
+        return createPortal(<input aria-label="Portalled editor" />, document.body)
+      }}
+    </Group>,
+  )
+  const editor = screen.getByRole("textbox", { name: "Portalled editor" })
+  await user.click(editor)
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(focus.mock.calls[0][0].target === editor).toBe(true)
+  expect(values.at(-1)?.isFocusWithin).toBe(false)
+  expect(screen.getByTestId("physical-group").contains(editor)).toBe(false)
+  records.push({ originalPortalFocusCallback: true, physicalGroupContainmentSeparateFromReactBubbling: true })
+})
+
+it("preserves Popover context/caller refs, callback order and one close request per owner", async () => {
+  const anchor = createRef<HTMLButtonElement>(),
+    inherited = createRef<HTMLDivElement>(),
+    caller = createRef<HTMLDivElement>()
+  const context = vi.fn(),
+    authored = vi.fn(),
+    order: string[] = [],
+    seen: unknown[] = []
+  const view = render(
+    <>
+      <button ref={anchor}>Anchor</button>
+      <PopoverContext.Provider
+        value={{
+          ref: inherited,
+          triggerRef: anchor,
+          isOpen: true,
+          isNonModal: true,
+          trigger: "ComboBox",
+          onOpenChange: context,
+          style: { padding: 9 },
+        }}
+      >
+        <Popover
+          ref={caller}
+          data-testid="source-popover"
+          onOpenChange={authored}
+          style={(state) => {
+            order.push("style")
+            expect(state.defaultStyle.padding).toBe(9)
+            return { color: "blue" }
+          }}
+          render={(props, state) => {
+            order.push("render")
+            seen.push(state)
+            return <div {...props} />
+          }}
+        >
+          {(state) => {
+            order.push("children")
+            return <span>{state.trigger}</span>
+          }}
+        </Popover>
+      </PopoverContext.Provider>
+    </>,
+  )
+  await waitFor(() => expect(screen.getByTestId("source-popover").getAttribute("data-placement")).toBe("bottom"))
+  expect(caller.current === inherited.current).toBe(true)
+  expect(caller.current === screen.getByTestId("source-popover")).toBe(true)
+  expect(seen.at(-1)).toMatchObject({ trigger: "ComboBox", placement: "bottom", isEntering: false, isExiting: false })
+  expect(order.slice(-3)).toEqual(["style", "children", "render"])
+  fireEvent.keyDown(screen.getByTestId("source-popover"), { key: "Escape" })
+  expect(context.mock.calls).toEqual([[false]])
+  expect(authored.mock.calls).toEqual([[false]])
+  expect(screen.getByTestId("source-popover")).toBeInTheDocument()
+  view.unmount()
+  expect([caller.current, inherited.current]).toEqual([null, null])
+  records.push({ popoverOriginalRefAndRenderOrder: true, controlledCloseRequestsOncePerMergedOwner: true })
+})
+
+it("does not evaluate visible Popover render/style/children callbacks when a normal popup is closed", () => {
+  const anchor = createRef<HTMLButtonElement>(),
+    style = vi.fn(() => ({})),
+    children = vi.fn(() => null),
+    renderHost = vi.fn((props) => <div {...props} />)
+  render(
+    <>
+      <button ref={anchor}>Closed anchor</button>
+      <Popover triggerRef={anchor} isOpen={false} style={style} render={renderHost}>
+        {children}
+      </Popover>
+    </>,
+  )
+  expect(style).not.toHaveBeenCalled()
+  expect(children).not.toHaveBeenCalled()
+  expect(renderHost).not.toHaveBeenCalled()
+  records.push({ closedPopoverDoesNotEvaluateVisibleCallbacks: true })
 })
 
 const listFocusItems = [...items, { id: "b", label: "Beta" }]

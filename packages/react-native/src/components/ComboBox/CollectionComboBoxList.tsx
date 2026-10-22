@@ -1,3 +1,4 @@
+/* Native counterpart of pinned RAC ListBox; Apache-2.0. See ../../collection/LICENSE.react-aria.md. */
 import {
   createContext,
   forwardRef,
