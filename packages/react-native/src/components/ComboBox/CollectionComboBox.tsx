@@ -18,7 +18,11 @@ import { NativeCollectionActionsContext, type TNativeCollectionActionOutcome } f
 import { useNativeCachedChildren } from "../../collection/cachedChildren"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs, useNativeContextProps } from "../../collection/context"
-import { NativeCollectionRendererContext, type TNativeCollectionScrollHost } from "../../collection/renderer"
+import {
+  NativeCollectionRendererContext,
+  type TNativeCollectionRenderer,
+  type TNativeCollectionScrollHost,
+} from "../../collection/renderer"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { NativeListStateContext } from "../../collection/state"
 import { NativeFormBehaviorContext } from "../../form/context"
@@ -272,8 +276,28 @@ const Receiver = <T extends object>({
     }[]
   >([])
   const flushCommit = useRef(() => {})
-  const renderer = useContext(NativeCollectionRendererContext)
+  const inheritedRenderer = useContext(NativeCollectionRendererContext)
+  const inheritedRendererRef = useRef(inheritedRenderer)
   const live = useRef(false)
+  type TRendererOwner = Readonly<{ renderer: TNativeCollectionRenderer }>
+  const rendererOwner = useRef<TRendererOwner | null>(null)
+  const [listRenderer, setListRenderer] = useState<TRendererOwner | null>(null)
+  useInsertionEffect(() => {
+    inheritedRendererRef.current = inheritedRenderer
+  })
+  const registerListRenderer = useCallback((renderer: TNativeCollectionRenderer) => {
+    if (!live.current) return () => {}
+    if (rendererOwner.current) throw new Error("ComboBox requires one current list renderer")
+    const owner = { renderer }
+    rendererOwner.current = owner
+    if (renderer !== inheritedRendererRef.current) setListRenderer(owner)
+    return () => {
+      if (rendererOwner.current !== owner) return
+      rendererOwner.current = null
+      if (live.current) setListRenderer((current) => (current === owner ? null : current))
+    }
+  }, [])
+  const renderer = listRenderer?.renderer ?? inheritedRenderer
   const current = useRef({ props, state, renderer })
   useInsertionEffect(() => {
     current.current = { props, state, renderer }
@@ -282,6 +306,7 @@ const Receiver = <T extends object>({
     live.current = true
     return () => {
       live.current = false
+      rendererOwner.current = null
       rows.current.clear()
       pendingCommit.current = []
     }
@@ -778,6 +803,7 @@ const Receiver = <T extends object>({
                           metrics: listMetrics,
                           contentRef: scrollContent,
                           revealFocusedRow,
+                          registerRenderer: registerListRenderer,
                         }}
                       >
                         <NativeComboBoxListContext.Provider

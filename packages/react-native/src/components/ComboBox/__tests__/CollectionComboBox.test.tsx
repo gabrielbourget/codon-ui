@@ -109,7 +109,7 @@ const setup = () => {
         pending.forEach((callback) => callback(0))
       })
   }
-  return { node, ready }
+  return { node, ready, popup }
 }
 const press = async (id: string) => {
   const row = screen.getByTestId(id, hidden)
@@ -1601,6 +1601,122 @@ const NAVIGATION_SCENARIOS = [
   "retired-reveal",
   "pointer-reveal",
 ] as const
+it("uses the actual popup list layout instead of a renderer inherited around the picker", async () => {
+  const f = setup(),
+    editor = createRef<RN.TextInput>()
+  const native = jest.requireActual<typeof RN>("react-native")
+  const find = jest.mocked(native.findNodeHandle).getMockImplementation()!
+  jest
+    .mocked(native.findNodeHandle)
+    .mockImplementation((target) => (target != null && target === editor.current ? 888888 : find(target)))
+  const inheritedRect = jest.fn(() => ({ x: 0, y: 0, width: 100, height: 100 }))
+  const firstRect = jest.fn(() => ({ x: 0, y: 0, width: 100, height: 100 }))
+  const secondRect = jest.fn(() => ({ x: 0, y: 0, width: 100, height: 160 }))
+  const layout = (visible: typeof firstRect) => ({
+    getItemRect: (key: string | number) => ({ x: 0, y: Number(key) * 30, width: 100, height: 30 }),
+    getVisibleRect: visible,
+    getContentSize: () => ({ width: 100, height: 240 }),
+  })
+  const inherited = { ...DefaultNativeCollectionRenderer, layoutDelegate: layout(inheritedRect) }
+  const first = { ...DefaultNativeCollectionRenderer, isVirtualized: true, layoutDelegate: layout(firstRect) }
+  const second = { ...DefaultNativeCollectionRenderer, isVirtualized: true, layoutDelegate: layout(secondRect) }
+  const values = Array.from({ length: 8 }, (_, id) => ({ id, label: `Option ${id}` }))
+  const content = (renderer: typeof first) =>
+    f.node(
+      <NativeCollectionRendererContext.Provider value={inherited}>
+        <NativeComboBoxPopoverContext.Provider
+          value={{
+            ref: f.popup,
+            render: (props) => (
+              <NativeFocusHost {...props}>
+                <NativeCollectionRendererContext.Provider value={renderer}>
+                  {props.children}
+                </NativeCollectionRendererContext.Provider>
+              </NativeFocusHost>
+            ),
+          }}
+        >
+          <NativeCollectionComboBox
+            items={values}
+            getKey={(item) => item.id}
+            getTextValue={(item) => item.label}
+            inputRef={editor}
+            value={0}
+            inputValue=""
+            isOpen
+            inputLabel="Query"
+            closeLabel="Close"
+          />
+        </NativeComboBoxPopoverContext.Provider>
+      </NativeCollectionRendererContext.Provider>,
+    )
+  const view = await render(content(first))
+  const original = editor.current
+  const page = async () => {
+    for (const ready of [false, true]) {
+      const host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready,
+            windowActive: true,
+          },
+        }),
+      )
+    }
+    const host = screen.getByTestId("host").props
+    const policy = host.policies.find(
+      (candidate: { targetTag: number; tokens: string[] }) =>
+        candidate.targetTag === 888888 && candidate.tokens.includes("0000:PageDown"),
+    )
+    expect(policy).toBeDefined()
+    await act(() =>
+      host.onNativeScopedKey({
+        persist: jest.fn(),
+        preventDefault: jest.fn(),
+        isDefaultPrevented: () => false,
+        nativeEvent: {
+          kind: "keyboard",
+          ownerId: host.ownerId,
+          policyId: policy.id,
+          target: 888888,
+          focusedTarget: 888888,
+          windowId: "source-model-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          key: "PageDown",
+          phase: "down",
+          repeat: false,
+          cancelled: false,
+          nativeCode: 1,
+          characters: "",
+          nativeDefaultHandled: true,
+          timestamp: 100,
+          shiftKey: false,
+          altKey: false,
+          ctrlKey: false,
+          metaKey: false,
+          capsLock: false,
+          nativeModifierData: "0",
+        },
+      }),
+    )
+  }
+  await view.rerender(content(second))
+  firstRect.mockClear()
+  secondRect.mockClear()
+  inheritedRect.mockClear()
+  await page()
+  expect(secondRect).toHaveBeenCalled()
+  expect(firstRect).not.toHaveBeenCalled()
+  expect(inheritedRect).not.toHaveBeenCalled()
+  expect(editor.current === original).toBe(true)
+})
+
 it.each(NAVIGATION_SCENARIOS)(
   "matches original editor navigation for %s without moving its native editor",
   async (scenario) => {

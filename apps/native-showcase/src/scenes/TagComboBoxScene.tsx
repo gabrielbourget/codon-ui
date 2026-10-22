@@ -1,8 +1,14 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
+import { useNativeContextProps } from "../../../../packages/react-native/src/collection/context"
+import { NativeCollectionRendererContext } from "../../../../packages/react-native/src/collection/renderer"
 import { Button } from "../../../../packages/react-native/src/components/Button/Button"
-import { NativeComboBoxContext } from "../../../../packages/react-native/src/components/ComboBox/collectionContext"
+import type { TNativeFloatingHostRender } from "../../../../packages/react-native/src/components/ClickPopover/ClickPopover"
+import {
+  NativeComboBoxContext,
+  NativeComboBoxPopoverContext,
+} from "../../../../packages/react-native/src/components/ComboBox/collectionContext"
 import { TagComboBox } from "../../../../packages/react-native/src/components/TagComboBox/TagComboBox"
 import type { TNativeTagComboBoxChangeDetails } from "../../../../packages/react-native/src/components/TagComboBox/types"
 import { Text } from "../../../../packages/react-native/src/components/Text/Text"
@@ -17,12 +23,18 @@ import type {
 import { NativeFocusView } from "../../../../packages/react-native/src/input/NativeFocusView"
 import { useNativeTheme } from "../../../../packages/react-native/src/theme"
 
+import { useTagComboVirtualRenderer } from "./TagComboBoxVirtualRenderer"
+
 type TItem = { id: string | number; label: string }
 const ITEMS: TItem[] = [
   { id: 0, label: "Number zero" },
   { id: "0", label: "String zero" },
   { id: "", label: "Empty key" },
   { id: "last", label: "Dernière étiquette" },
+]
+const VIRTUAL_ITEMS: TItem[] = [
+  ...ITEMS,
+  ...Array.from({ length: 68 }, (_, index) => ({ id: `window-${index + 1}`, label: `Window choice ${index + 1}` })),
 ]
 const keyLabel = (key: TItem["id"]) => `${typeof key}:${JSON.stringify(key)}`
 const itemLabels = (items: readonly TItem[]) => items.map((item) => keyLabel(item.id)).join(", ") || "empty"
@@ -31,6 +43,24 @@ const itemLabels = (items: readonly TItem[]) => items.map((item) => keyLabel(ite
 export const TagComboBoxScene = () => {
   const theme = useNativeTheme()
   const [items, setItems] = useState(ITEMS)
+  const [virtual, setVirtual] = useState(false)
+  const [rtl, setRTL] = useState(false)
+  const renderer = useTagComboVirtualRenderer(virtual)
+  const [inheritedPopup, inheritedPopupRef] = useNativeContextProps({}, undefined, NativeComboBoxPopoverContext)
+  const renderVirtualPopup = useCallback<TNativeFloatingHostRender>(
+    (props, state) => {
+      const host = {
+        ...props,
+        children: (
+          <NativeCollectionRendererContext.Provider value={renderer}>
+            {props.children}
+          </NativeCollectionRendererContext.Provider>
+        ),
+      }
+      return inheritedPopup.render ? inheritedPopup.render(host, state) : <NativeFocusView {...host} />
+    },
+    [inheritedPopup.render, renderer],
+  )
   const [selected, setSelected] = useState<TItem[]>([])
   const [query, setQuery] = useState("")
   const [open, setOpen] = useState(false)
@@ -54,6 +84,7 @@ export const TagComboBoxScene = () => {
   const [disassociated, setDisassociated] = useState(false)
   const [formRequests, setFormRequests] = useState<string[]>([])
   const [formResult, setFormResult] = useState("none")
+  const [formattedSelection, setFormattedSelection] = useState("unrequested")
   const form = useRef<View>(null)
   const root = useRef<View>(null)
   const input = useRef<TextInput>(null)
@@ -138,7 +169,16 @@ export const TagComboBoxScene = () => {
         <Button onPress={() => setQuery("held query")}>Set tag-combo owner query</Button>
         <Button onPress={() => setItems((current) => [...current].reverse())}>Reverse tag-combo items</Button>
         <Button onPress={() => setItems([])}>Clear tag-combo items</Button>
-        <Button onPress={() => setItems(ITEMS)}>Restore tag-combo items</Button>
+        <Button onPress={() => setItems(virtual ? VIRTUAL_ITEMS : ITEMS)}>Restore tag-combo items</Button>
+        <Button
+          onPress={() => {
+            setItems(virtual ? ITEMS : VIRTUAL_ITEMS)
+            setVirtual(!virtual)
+          }}
+        >
+          Toggle 72-item tag-combo virtualization
+        </Button>
+        <Button onPress={() => setRTL((value) => !value)}>Toggle tag-combo direction</Button>
         <Button onPress={inspectRefs}>Inspect tag-combo refs</Button>
         <Button onPress={() => setFormVeto((value) => !value)}>Toggle tag-combo form veto</Button>
         <Button onPress={() => setRequired((value) => !value)}>Toggle tag-combo required</Button>
@@ -147,7 +187,7 @@ export const TagComboBoxScene = () => {
         <Button onPress={() => setDisassociated((value) => !value)}>Toggle tag-combo form association</Button>
       </View>
     ),
-    [inspectRefs],
+    [inspectRefs, virtual],
   )
   return (
     <View style={{ gap: 12 }}>
@@ -160,6 +200,29 @@ export const TagComboBoxScene = () => {
         {scenario.current ? "held until third selection" : vetoInput ? "veto" : "echo"}. Popup:{" "}
         {scenario.current ? "owner-held open" : vetoOpen ? "veto" : "echo"}.
       </Text>
+      <Text testID="tag-combo-owner-profile">
+        Logical items: {items.length}. Renderer: {virtual ? "VirtualizedList" : "ordinary"}. Direction:{" "}
+        {rtl ? "rtl" : "ltr"}. Text: {large ? "large" : "medium"}.
+      </Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+        <Button onPress={() => setSelected([ITEMS[0], ITEMS[3]])}>Set two selected tags</Button>
+        <Button
+          onPress={() => {
+            try {
+              setFormattedSelection(
+                new Intl.ListFormat(rtl ? "ar-EG" : "en-US", { style: "long", type: "conjunction" }).format(
+                  selected.map((item) => item.label),
+                ),
+              )
+            } catch (error) {
+              setFormattedSelection(`Unavailable: ${String(error)}`)
+            }
+          }}
+        >
+          Format selected tag names
+        </Button>
+      </View>
+      <Text testID="tag-combo-owner-formatted-selection">Formatted selection: {formattedSelection}.</Text>
       <Text testID="tag-combo-owner-requests">Requests: {requests.join(" → ") || "none"}.</Text>
       {ownerControls}
       <TextInput
@@ -188,57 +251,69 @@ export const TagComboBoxScene = () => {
         onReset={observeForm}
         style={{ gap: 8 }}
       >
-        <NativeComboBoxContext.Provider value={{ ref: picker }}>
-          <TagComboBox
-            id="tag-combo-owner-query-field"
-            name="tagQuery"
-            formValue="text"
-            form={disassociated ? "" : undefined}
-            isRequired={required}
-            render={
-              customRoot
-                ? (props, state) => (
-                    <NativeFocusView
-                      {...props}
-                      testID="tag-combo-owner-custom-picker"
-                      accessibilityHint={state.isOpen ? "Choices open" : "Choices closed"}
-                    />
-                  )
-                : undefined
-            }
-            ref={root}
-            inputRef={input}
-            inputProps={{ onFocus: inspectRefs }}
-            items={items}
-            selectedItems={selected}
-            getItemKey={(item) => item.id}
-            getItemTextValue={(item) => item.label}
-            onSelectedItemsChange={requestSelection}
-            inputValue={query}
-            onInputChange={(value) => {
-              record(`input:${JSON.stringify(value)}`)
-              if (scenario.current ? scenario.current.selections > 2 : !vetoInput) setQuery(value)
-            }}
-            isOpen={open}
-            onOpenChange={(value) => {
-              record(`open:${String(value)}`)
-              if (!vetoOpen) {
-                setOpen(value)
-                if (!value) scenario.current = null
+        <NativeComboBoxPopoverContext.Provider
+          value={{
+            ...inheritedPopup,
+            ref: inheritedPopupRef,
+            render: virtual ? renderVirtualPopup : inheritedPopup.render,
+          }}
+        >
+          <NativeComboBoxContext.Provider value={{ ref: picker }}>
+            <TagComboBox
+              id="tag-combo-owner-query-field"
+              name="tagQuery"
+              formValue="text"
+              form={disassociated ? "" : undefined}
+              isRequired={required}
+              render={
+                customRoot
+                  ? (props, state) => (
+                      <NativeFocusView
+                        {...props}
+                        testID="tag-combo-owner-custom-picker"
+                        accessibilityHint={state.isOpen ? "Choices open" : "Choices closed"}
+                      />
+                    )
+                  : undefined
               }
-            }}
-            isDisabled={disabled}
-            isReadOnly={readOnly}
-            allowsEmptyCollection={allowsEmpty}
-            accessibilityLabel="Owner-controlled tag choices"
-            textSize={large ? "large" : "medium"}
-            maxWidth="100%"
-            customStyles={custom ? { borderWidth: 2, borderColor: theme.colors.focusRing, padding: 8 } : undefined}
-            customTagStyles={custom ? { padding: 12 } : undefined}
-            customComboBoxStyles={custom ? { backgroundColor: theme.colors.background } : undefined}
-            customComboBoxProps={{ onInputChange: (value) => record(`nested-input:${JSON.stringify(value)}`) }}
-          />
-        </NativeComboBoxContext.Provider>
+              ref={root}
+              inputRef={input}
+              inputProps={{ onFocus: inspectRefs }}
+              items={items}
+              selectedItems={selected}
+              getItemKey={(item) => item.id}
+              getItemTextValue={(item) => item.label}
+              onSelectedItemsChange={requestSelection}
+              inputValue={query}
+              onInputChange={(value) => {
+                record(`input:${JSON.stringify(value)}`)
+                if (scenario.current ? scenario.current.selections > 2 : !vetoInput) setQuery(value)
+              }}
+              isOpen={open}
+              onOpenChange={(value) => {
+                record(`open:${String(value)}`)
+                if (!vetoOpen) {
+                  setOpen(value)
+                  if (!value) scenario.current = null
+                }
+              }}
+              isDisabled={disabled}
+              isReadOnly={readOnly}
+              allowsEmptyCollection={allowsEmpty}
+              accessibilityLabel="Owner-controlled tag choices"
+              textSize={large ? "large" : "medium"}
+              locale={rtl ? "ar-EG" : "en-US"}
+              maxWidth="100%"
+              customStyles={[
+                { direction: rtl ? "rtl" : "ltr" },
+                custom ? { borderWidth: 2, borderColor: theme.colors.focusRing, padding: 8 } : undefined,
+              ]}
+              customTagStyles={custom ? { padding: 12 } : undefined}
+              customComboBoxStyles={custom ? { backgroundColor: theme.colors.background } : undefined}
+              customComboBoxProps={{ onInputChange: (value) => record(`nested-input:${JSON.stringify(value)}`) }}
+            />
+          </NativeComboBoxContext.Provider>
+        </NativeComboBoxPopoverContext.Provider>
         <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
           <NativeFormAction action="submit" onActionResult={observeFormResult}>
             Submit tag-combo form

@@ -334,3 +334,51 @@ it("keeps an original form-action press without a native acknowledgement from be
   expect(screen.getByTestId("tag-combo-form-requests")).toHaveTextContent("Form requests: none.")
   expect(screen.getByTestId("tag-combo-form-state")).toHaveTextContent(/Result: retired:/)
 })
+
+it("materializes the picker through the actual VirtualizedList while its selected tags keep their ordinary renderer", async () => {
+  await render(scene())
+  const input = screen.getByTestId("combo-box-input"),
+    draft = screen.getByTestId("tag-combo-owner-editor")
+  await fireEvent.changeText(draft, "virtualized owner draft")
+  await press("Set tag-combo number zero")
+  await press("Toggle 72-item tag-combo virtualization")
+  await press("Toggle tag-combo owner open")
+  await show()
+  expect(screen.getByTestId("tag-combo-owner-virtual-list")).toBeOnTheScreen()
+  expect(screen.getByTestId("tag-combo-owner-profile", hidden)).toHaveTextContent(
+    /Logical items: 72\. Renderer: VirtualizedList/,
+  )
+  expect(screen.getByText("Number zero")).toBeOnTheScreen()
+  expect(screen.getAllByRole("option").length).toBeLessThan(70)
+  expect(screen.queryByRole("option", { name: "Window choice 68" })).toBeNull()
+  expect(screen.getByTestId("combo-box-input") === input).toBe(true)
+  expect(draft).toHaveDisplayValue("virtualized owner draft")
+})
+
+it("retains its original editor and held query when direction and large text change", async () => {
+  await render(scene())
+  await press("Set tag-combo owner query")
+  const original = screen.getByTestId("combo-box-input")
+  await press("Toggle tag-combo direction")
+  await press("Toggle tag-combo text size")
+  expect(RN.StyleSheet.flatten(screen.getByTestId("tag-combobox").props.style).direction).toBe("rtl")
+  expect(screen.getByTestId("tag-combo-owner-profile")).toHaveTextContent(/Direction: rtl\. Text: large\./)
+  expect(screen.getByTestId("combo-box-input") === original).toBe(true)
+  expect(original).toHaveDisplayValue("held query")
+})
+
+it("executes native Intl.ListFormat on original selected labels and exposes an unavailable formatter", async () => {
+  await render(scene())
+  await press("Set two selected tags")
+  await press("Format selected tag names")
+  expect(screen.getByTestId("tag-combo-owner-formatted-selection")).toHaveTextContent(
+    "Formatted selection: Number zero and Dernière étiquette.",
+  )
+  jest.spyOn(Intl, "ListFormat").mockImplementation(() => {
+    throw new Error("Native formatter missing")
+  })
+  await press("Format selected tag names")
+  expect(screen.getByTestId("tag-combo-owner-formatted-selection")).toHaveTextContent(
+    /Unavailable: Error: Native formatter missing/,
+  )
+})

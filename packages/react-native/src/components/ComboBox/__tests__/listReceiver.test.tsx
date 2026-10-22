@@ -12,6 +12,7 @@ import { NativeCollectionActions, NativeCollectionActionsContext } from "../../.
 import { NATIVE_DEFAULT_SLOT, NativeSelectableCollectionContext } from "../../../collection/context"
 import {
   NativeCollectionRendererContext,
+  type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
   type TNativeCollectionScrollHost,
 } from "../../../collection/renderer"
@@ -42,6 +43,46 @@ afterEach(() => {
   jest.clearAllTimers()
   jest.restoreAllMocks()
   jest.useRealTimers()
+})
+
+it("publishes the actual committed list renderer and retires only its own layout lease", async () => {
+  const first = { ...emptyRenderer, isVirtualized: true },
+    second = { ...emptyRenderer, isVirtualized: true },
+    retireFirst = jest.fn(),
+    retireSecond = jest.fn(),
+    registerRenderer = jest.fn((renderer: TNativeCollectionRenderer) =>
+      renderer === first ? retireFirst : retireSecond,
+    ),
+    scroll = createRef<TNativeCollectionScrollHost>()
+  const Harness = () => {
+    const state = useComboBoxState({ collection: collection(), isOpen: true })
+    return (
+      <NativeComboBoxStateContext.Provider value={state}>
+        <NativeComboBoxList />
+      </NativeComboBoxStateContext.Provider>
+    )
+  }
+  const content = (renderer: TNativeCollectionRenderer) =>
+    wrap(
+      <NativeCollectionRendererContext.Provider value={renderer}>
+        <NativeComboBoxListEnvironmentContext.Provider
+          value={{ scrollRef: scroll, isOpen: true, isCollectionPending: false, registerRenderer }}
+        >
+          <Harness />
+        </NativeComboBoxListEnvironmentContext.Provider>
+      </NativeCollectionRendererContext.Provider>,
+    )
+  const view = await render(content(first))
+  expect(registerRenderer).toHaveBeenCalledTimes(1)
+  expect(registerRenderer).toHaveBeenLastCalledWith(first)
+  await view.rerender(content(first))
+  expect(registerRenderer).toHaveBeenCalledTimes(1)
+  expect(retireFirst).not.toHaveBeenCalled()
+  await view.rerender(content(second))
+  expect(retireFirst).toHaveBeenCalledTimes(1)
+  expect(registerRenderer).toHaveBeenLastCalledWith(second)
+  await view.unmount()
+  expect(retireSecond).toHaveBeenCalledTimes(1)
 })
 
 it.each([

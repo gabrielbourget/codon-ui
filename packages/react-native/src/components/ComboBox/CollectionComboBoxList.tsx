@@ -34,6 +34,7 @@ import {
   NativeCollectionRendererContext,
   useNativePersistedKeys,
   type TNativeCollectionScrollHost,
+  type TNativeCollectionRenderer,
 } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } from "../../collection/semantics"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
@@ -89,6 +90,7 @@ type TEnvironment = Readonly<{
   metrics?: RefObject<TNativeComboBoxListMetrics>
   contentRef?: RefObject<View | null>
   revealFocusedRow?: (key: TNativeCollectionKey) => boolean
+  registerRenderer?: (renderer: TNativeCollectionRenderer) => () => void
 }>
 export const NativeComboBoxListEnvironmentContext = createContext<TEnvironment | null>(null)
 export const NativeComboBoxListBehaviorContext = createContext<
@@ -166,6 +168,8 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     }
   }, [metrics])
   const renderer = useContext(NativeCollectionRendererContext)
+  const registerRenderer = environment?.registerRenderer
+  useLayoutEffect(() => registerRenderer?.(renderer), [registerRenderer, renderer])
   const { CollectionRoot } = renderer
   const fallbackScroll = useRef<TNativeCollectionScrollHost | null>(null)
   const scroll = environment?.scrollRef ?? fallbackScroll
