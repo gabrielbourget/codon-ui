@@ -169,3 +169,25 @@ it("rejects a queued guard generation after a quick readonly round trip without 
   expect(Commands.requestSegmentFocus).toHaveBeenLastCalledWith(original, "owner", "hour", finalRevision, "window", 5)
   expect(ref.current).toBe(original)
 })
+
+it("retires queued input when numeric/text keyboard traits change while retaining the original host", async () => {
+  const ref = createRef<TNativeDateSegmentRef>(),
+    callback = jest.fn()
+  const view = await render(
+    <NativeDateSegment {...props} ref={ref} testID="segment" keyboardMode="numeric" onNativeSegmentInput={callback} />,
+  )
+  const original = ref.current!
+  const previous = screen.getByTestId("segment").props.bindingRevision
+  await send()
+  await view.rerender(
+    <NativeDateSegment {...props} ref={ref} testID="segment" keyboardMode="text" onNativeSegmentInput={callback} />,
+  )
+  callback.mockClear()
+  await send({ kind: "insert", bindingRevision: previous, sequence: 2, focused: true })
+  expect(callback).not.toHaveBeenCalled()
+  expect(focusNativeTarget(original)).toBe(false)
+  await send({ epoch: 5, sequence: 3 })
+  expect(focusNativeTarget(original)).toBe(true)
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("segment").props.keyboardMode).toBe("text")
+})

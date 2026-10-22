@@ -1,5 +1,5 @@
 import { codegenNativeComponent, codegenNativeCommands, type HostComponent, type ViewProps } from "react-native"
-import type { DirectEventHandler, Double, Int32 } from "react-native/Libraries/Types/CodegenTypes"
+import type { DirectEventHandler, Double, Int32, WithDefault } from "react-native/Libraries/Types/CodegenTypes"
 
 export type NativeDateSegmentData = Readonly<{
   kind: string
@@ -32,6 +32,7 @@ export interface NativeProps extends ViewProps {
   bindingRevision: string
   displayText: string
   locale: string
+  keyboardMode?: WithDefault<string, "numeric">
   segmentDisabled: boolean
   segmentReadOnly: boolean
   segmentEditable: boolean

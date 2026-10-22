@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUIDateSegment extends ReactViewGroup {
-  String ownerId = "", segmentId = "", bindingRevision = "", displayText = "", locale = "";
+  String ownerId = "", segmentId = "", bindingRevision = "", displayText = "", locale = "", keyboardMode = "numeric";
   boolean segmentDisabled, segmentReadOnly, segmentEditable;
   private final Editable document = new SpannableStringBuilder();
   private long epoch = 1, sequence;
@@ -54,6 +54,11 @@ final class CUIDateSegment extends ReactViewGroup {
   private void clearDocument() { document.clear(); BaseInputConnection.removeComposingSpans(document); Selection.setSelection(document, 0); }
   @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); epoch++; clearDocument(); emit("status", "", 0, 0); }
   @Override protected void onDetachedFromWindow() { clearFocus(); epoch++; clearDocument(); super.onDetachedFromWindow(); emit("status", "", 0, 0); }
+  @Override protected void onVisibilityChanged(android.view.View changedView,int visibility) {
+    super.onVisibilityChanged(changedView,visibility);
+    if (document == null) return;
+    epoch++; clearDocument(); if (!active()) clearFocus(); emit("status","",0,0);
+  }
   @Override public void onWindowFocusChanged(boolean focused) {
     super.onWindowFocusChanged(focused); epoch++; clearDocument();
     if (!focused) clearFocus(); emit("status", "", 0, 0);
@@ -90,7 +95,7 @@ final class CUIDateSegment extends ReactViewGroup {
   @Override public boolean onCheckIsTextEditor() { return segmentEditable && !segmentDisabled && !segmentReadOnly; }
   @Override public InputConnection onCreateInputConnection(EditorInfo info) {
     if (!canEdit()) return null;
-    info.inputType = InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
+    info.inputType = "numeric".equals(keyboardMode) ? InputType.TYPE_CLASS_NUMBER : InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS;
     info.imeOptions = EditorInfo.IME_ACTION_DONE | EditorInfo.IME_FLAG_NO_EXTRACT_UI;
     info.initialSelStart = Selection.getSelectionStart(document); info.initialSelEnd = Selection.getSelectionEnd(document);
     return new SegmentConnection(epoch);
@@ -161,7 +166,7 @@ final class CUIDateSegment extends ReactViewGroup {
   @Override public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
     super.onInitializeAccessibilityNodeInfo(info); info.setText(displayText); info.setEditable(onCheckIsTextEditor()); info.setEnabled(!segmentDisabled);
   }
-  void retire() { clearFocus(); epoch++; clearDocument(); ownerId = ""; segmentId = ""; bindingRevision = ""; }
+  void retire() { clearFocus(); epoch++; clearDocument(); ownerId = ""; segmentId = ""; bindingRevision = ""; keyboardMode = "numeric"; }
   private static String raw(String method,Object... args) {
     try { JSONObject data=new JSONObject(); data.put("method",method); JSONArray values=new JSONArray(); for(Object value:args)values.put(value); data.put("arguments",values); return data.toString(); }
     catch(org.json.JSONException invalid) { return "{}"; }

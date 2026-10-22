@@ -16,6 +16,9 @@ LAB = Path.home() / ".local/share/codon-native-lab"
 STAGE = REPO / "apps/native-showcase/.expo/codon-collection-gate"
 FIXTURE_FILES = ["App.tsx", "gate.ts", "identity.ts", "index.ts", "AuthoringApp.tsx", "authoring.ts", "authoring-index.ts", "validate_authoring.py", "test_validate_authoring.py", "validate.py", "test_validate.py", "build.py", "run.py", "FormApp.tsx", "form.ts", "form-index.ts", "validate_form.py", "test_validate_form.py", "run_form.py", "KeyboardApp.tsx", "keyboard.ts", "keyboard-index.ts", "keyboard-journal.test.ts", "KeyboardDefaultTrialTests.swift", "build_keyboard_tests.rb", "validate_keyboard.py", "test_validate_keyboard.py", "run_keyboard.py", "ResponderApp.tsx", "responder.ts", "responder-index.ts", "ResponderTrialTests.swift", "build_responder_tests.rb", "validate_responder.py", "test_validate_responder.py", "run_responder.py"]
 
+TIME_ENTRY_FILES = ["SDKApp.tsx", "sdk.ts", "sdk-index.ts", "identity.ts", "TimeEntryTrialTests.swift", "build_sdk_tests.rb", "run_sdk.py", "validate_sdk.py", "test_validate_sdk.py"]
+FIXTURE_FILES += ["../native-time-picker/" + name for name in TIME_ENTRY_FILES]
+
 
 def digest(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
@@ -70,18 +73,23 @@ def prepare(root, profile="metadata"):
     assert not root.exists()
     assert not subprocess.check_output(["git", "status", "--porcelain"], cwd=REPO)
     producer = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=REPO, text=True).strip()
-    names = subprocess.check_output(["git", "ls-files", "packages/react-native", "apps/native-showcase", "planning/component-library/fixtures/native-collection", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "AGENTS.md"], cwd=REPO, text=True).splitlines()
+    names = subprocess.check_output(["git", "ls-files", "packages/react-native", "apps/native-showcase", "planning/component-library/fixtures/native-collection", "planning/component-library/fixtures/native-time-picker", "package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml", "AGENTS.md"], cwd=REPO, text=True).splitlines()
     root.mkdir(parents=True)
     STAGE.mkdir(parents=True, exist_ok=True)
     stage_names = ["App.tsx", "gate.ts", "index.ts", "identity.ts"]
     if profile == "authoring": stage_names += ["AuthoringApp.tsx", "authoring.ts"]
+    if profile == "time-entry": stage_names = ["SDKApp.tsx", "sdk.ts", "index.ts", "identity.ts"]
     if profile == "responder": stage_names = ["ResponderApp.tsx", "responder.ts", "index.ts", "identity.ts"]
     if profile == "keyboard": stage_names = ["KeyboardApp.tsx", "keyboard.ts", "index.ts", "identity.ts"]
     if profile == "form": stage_names = ["FormApp.tsx", "form.ts", "index.ts", "identity.ts"]
     for name in stage_names:
         if name == "identity.ts": continue
         source_name = ("authoring-index.ts" if profile == "authoring" else "form-index.ts" if profile == "form" else "keyboard-index.ts" if profile == "keyboard" else "responder-index.ts" if profile == "responder" else "index.ts") if name == "index.ts" else name
-        shutil.copyfile(FIXTURE / source_name, STAGE / name)
+        if profile == "time-entry":
+            source_name = "sdk-index.ts" if name == "index.ts" else name
+            shutil.copyfile(FIXTURE.parent / "native-time-picker" / source_name, STAGE / name)
+        else:
+            shutil.copyfile(FIXTURE / source_name, STAGE / name)
     (STAGE / "identity.ts").write_text('export const SOURCE_PRODUCER = ' + json.dumps(producer) + '\n')
     native = {}
     for platform in ["android", "ios"]:
@@ -109,7 +117,7 @@ def prove_android(root):
     with zipfile.ZipFile(apk) as archive:
         assert archive.read("assets/index.android.bundle") == bundle.read_bytes()
         dex = b"".join(archive.read(name) for name in archive.namelist() if name.startswith("classes") and name.endswith(".dex"))
-        native_classes = ["CUIEditorKeyboardDefaultsModule", "CUIEditorKeyboardBindings", "CUIEditorKeyboardDefaultFrames"] if inputs.get("profile") == "keyboard" else ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") in ["form", "responder"] else ["CUICollectionRoot", "CUICollectionNode"]
+        native_classes = ["CUIEditorKeyboardDefaultsModule", "CUIEditorKeyboardBindings", "CUIEditorKeyboardDefaultFrames"] if inputs.get("profile") == "keyboard" else ["CUIFormMetadataView", "CUIFormDocumentModule"] if inputs.get("profile") in ["form", "responder"] else ["CUIDateSegment", "CUIDateSegmentManager", "CUIKeyboardScope"] if inputs.get("profile") == "time-entry" else ["CUICollectionRoot", "CUICollectionNode"]
         assert all(("Lcom/codonui/input/" + name + ";").encode() in dex for name in native_classes)
     data = json.loads(mapping.read_text())
     library, fixture, react = {}, {}, set()
@@ -157,6 +165,7 @@ def prove_ios(root):
     assert set(fixture) == set(inputs["stageInputs"])
     classes = ["CUIFormRoot", "CUIFieldBinding", "CUIFormMetadataView", "CUIFormDocument", "CUIFieldCustomContentLease"]
     if inputs.get("profile") == "keyboard": classes += ["CUIEditorKeyboardDefaults", "CUIEditorKeyboardRecognizer"]
+    if inputs.get("profile") == "time-entry": classes += ["CUIDateSegment", "CUIKeyboardScope"]
     symbols = subprocess.check_output(["/usr/bin/nm", "-gU", str(binary)], text=True)
     assert all("_OBJC_CLASS_$_" + name in symbols for name in classes)
     assert "x86_64" in subprocess.check_output(["/usr/bin/file", str(binary)], text=True)
@@ -176,7 +185,7 @@ def prove_ios(root):
 
 def ios(root):
     inputs = verify(root)
-    assert inputs["profile"] in ["form", "keyboard", "responder"] and time.time() < inputs["deadlineUnix"]
+    assert inputs["profile"] in ["form", "keyboard", "responder", "time-entry"] and time.time() < inputs["deadlineUnix"]
     lock = REPO / "apps/native-showcase/ios/Podfile.lock"
     ruby = LAB / "ruby-3.4.11/bin/ruby"
     def pod_lock(path):
@@ -208,7 +217,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("phase", choices=["prepare", "android", "prove-android", "ios", "prove-ios"])
     parser.add_argument("root", type=Path)
-    parser.add_argument("--profile", choices=["metadata", "authoring", "form", "keyboard", "responder"], default="metadata")
+    parser.add_argument("--profile", choices=["metadata", "authoring", "form", "keyboard", "responder", "time-entry"], default="metadata")
     args = parser.parse_args()
     root = args.root.resolve()
     if args.phase == "prepare": prepare(root, args.profile)

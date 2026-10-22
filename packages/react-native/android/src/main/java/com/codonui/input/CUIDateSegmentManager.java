@@ -20,7 +20,7 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   private final ViewManagerDelegate<ReactViewGroup> inherited=new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIDateSegmentManagerDelegate<ReactViewGroup,CUIDateSegmentManager> delegate=new CUIDateSegmentManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view,String name,Object value) {
-      if ("ownerId".equals(name)||"segmentId".equals(name)||"bindingRevision".equals(name)||"displayText".equals(name)||"locale".equals(name)||"segmentDisabled".equals(name)||"segmentReadOnly".equals(name)||"segmentEditable".equals(name)) super.setProperty(view,name,value);
+      if ("ownerId".equals(name)||"segmentId".equals(name)||"bindingRevision".equals(name)||"displayText".equals(name)||"locale".equals(name)||"keyboardMode".equals(name)||"segmentDisabled".equals(name)||"segmentReadOnly".equals(name)||"segmentEditable".equals(name)) super.setProperty(view,name,value);
       else inherited.setProperty(view,name,value);
     }
   };
@@ -33,6 +33,7 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   @Override @ReactProp(name="bindingRevision") public void setBindingRevision(ReactViewGroup view,String value) { CUIDateSegment v=(CUIDateSegment)view;v.configureIdentity(v.ownerId,v.segmentId,string(value)); }
   @Override @ReactProp(name="displayText") public void setDisplayText(ReactViewGroup view,String value) { ((CUIDateSegment)view).displayText=string(value); }
   @Override @ReactProp(name="locale") public void setLocale(ReactViewGroup view,String value) { ((CUIDateSegment)view).locale=string(value); }
+  @Override @ReactProp(name="keyboardMode") public void setKeyboardMode(ReactViewGroup view,String value) { CUIDateSegment v=(CUIDateSegment)view;String next=value==null?"numeric":value;if(!v.keyboardMode.equals(next)){v.keyboardMode=next;v.traitsChanged();} }
   @Override @ReactProp(name="segmentDisabled") public void setSegmentDisabled(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.segmentDisabled!=value){v.segmentDisabled=value;v.traitsChanged();} }
   @Override @ReactProp(name="segmentReadOnly") public void setSegmentReadOnly(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.segmentReadOnly!=value){v.segmentReadOnly=value;v.traitsChanged();} }
   @Override @ReactProp(name="segmentEditable") public void setSegmentEditable(ReactViewGroup view,boolean value) { CUIDateSegment v=(CUIDateSegment)view;if(v.segmentEditable!=value){v.segmentEditable=value;v.traitsChanged();} }
