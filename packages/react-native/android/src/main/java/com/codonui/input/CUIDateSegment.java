@@ -29,7 +29,7 @@ import java.util.ArrayList;
 @androidx.annotation.OptIn(markerClass = com.facebook.react.common.annotations.UnstableReactNativeAPI.class)
 final class CUIDateSegment extends ReactViewGroup {
   String ownerId = "", segmentId = "", bindingRevision = "", displayText = "", locale = "", keyboardMode = "numeric";
-  boolean segmentDisabled, segmentReadOnly, segmentEditable;
+  boolean segmentDisabled, segmentReadOnly, segmentEditable, segmentPlaceholder;
   private final Editable document = new SpannableStringBuilder();
   private long epoch = 1, sequence;
 

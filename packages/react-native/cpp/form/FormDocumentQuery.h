@@ -25,7 +25,7 @@ std::string queryFabricFormDocument(
     facebook::react::SurfaceId surface,
     facebook::react::Tag target,
     NativeFormDocumentSession &session,
-    const std::function<void()> &check = {});
+    const std::function<void()> &check = {}, const std::string &fieldGroup = "");
 std::string queryFabricFormDocumentStamp(
     const facebook::react::UIManager &manager, facebook::react::SurfaceId surface,
     NativeFormDocumentSession &session, const std::function<void()> &check = {});
