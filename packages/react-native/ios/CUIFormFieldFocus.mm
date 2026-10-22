@@ -1,5 +1,6 @@
 #import "CUIFormFieldFocus.h"
 #import "CUIFormMetadata.h"
+#import "CUIOwnedDateField.h"
 #import <React/RCTTextInputComponentView.h>
 #import <React/RCTTextInputNativeCommands.h>
 
@@ -37,14 +38,29 @@ NSDictionary *CUIFocusFormField(RCTSurfacePresenter *presenter, NSDictionary *do
     @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-document-retired" userInfo:nil];
   CUIFormRoot *root = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[form[@"metadataTarget"] integerValue]];
   CUIFieldBinding *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[field[@"metadataTarget"] integerValue]];
-  RCTTextInputComponentView *original = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[field[@"target"] integerValue]];
+  UIView *original = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[field[@"target"] integerValue]];
   if (![root isKindOfClass:CUIFormRoot.class] || !root.isMetadataOnly || root.originalTarget != [form[@"target"] integerValue] ||
       ![root.ownerId isEqual:form[@"ownerId"]] || ![root.descriptorId isEqual:form[@"descriptorId"]] ||
       ![root.descriptorRevision isEqual:form[@"descriptorRevision"]] ||
-      ![metadata isKindOfClass:CUIFieldBinding.class] || ![original isKindOfClass:RCTTextInputComponentView.class] ||
+      ![metadata isKindOfClass:CUIFieldBinding.class] ||
       [metadata originalForMountSnapshot:mount] != original || !isCurrent())
     @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-original-editor-retired" userInfo:nil];
-  UIView *editor = original.accessibilityElement;
+  if ([field[@"ownedEditorBinding"] length]) {
+    NSString *binding = field[@"ownedEditorBinding"];
+    CUIDateSegment *segment = CUIResolveOwnedDateField(metadata, binding, [field[@"target"] integerValue], [document[@"surfaceId"] integerValue]);
+    if (segment != original || ![metadata.ownedEditorBinding isEqual:binding])
+      @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-owned-segments-retired" userInfo:nil];
+    NSDictionary *identity = [segment formSegmentIdentity];
+    BOOL requested = [segment requestFormSegmentFocus:identity];
+    BOOL current = requested && isCurrent() && [metadata originalForMountSnapshot:mount] == original &&
+      CUIResolveOwnedDateField(metadata, binding, [field[@"target"] integerValue], [document[@"surfaceId"] integerValue]) == original;
+    return @{@"descriptorId":field[@"descriptorId"], @"descriptorRevision":field[@"descriptorRevision"],
+      @"target":field[@"target"], @"mount":mount, @"requested":@(requested), @"current":@(current)};
+  }
+  if (![original isKindOfClass:RCTTextInputComponentView.class] || metadata.ownedEditorBinding.length)
+    @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-original-editor-retired" userInfo:nil];
+  RCTTextInputComponentView *coreOriginal = (RCTTextInputComponentView *)original;
+  UIView *editor = coreOriginal.accessibilityElement;
   if (![editor isKindOfClass:UITextField.class] && ![editor isKindOfClass:UITextView.class])
     @throw [NSException exceptionWithName:@"CUI.Form" reason:@"form-focus-backed-editor-unavailable" userInfo:nil];
   if (([editor isKindOfClass:UITextField.class] && ![(UITextField *)editor isEnabled]) ||
@@ -55,7 +71,7 @@ NSDictionary *CUIFocusFormField(RCTSurfacePresenter *presenter, NSDictionary *do
   // No text/selection repair or replacement responder/delegate is installed.
   @try {
     [(id<RCTTextInputViewProtocol>)original focus];
-    current = isCurrent() && [metadata originalForMountSnapshot:mount] == original && original.accessibilityElement == editor;
+    current = isCurrent() && [metadata originalForMountSnapshot:mount] == original && coreOriginal.accessibilityElement == editor;
   }
   @catch (NSException *retired) { current = NO; }
   return @{@"descriptorId":field[@"descriptorId"], @"descriptorRevision":field[@"descriptorRevision"],

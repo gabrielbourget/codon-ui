@@ -1,5 +1,6 @@
 #import "CUIFormMetadata.h"
 #import "CUIInputWindow.h"
+#import "CUIOwnedDateField.h"
 #import <React/RCTMountingTransactionObserving.h>
 #import <React/RCTTextInputComponentView.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
@@ -37,6 +38,7 @@ using namespace facebook::react;
     _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
     _lastMount = @"unmounted";
     self.semanticBinding = @"";
+    self.ownedEditorBinding = @"";
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
     for (NSString *name in @[UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
         UISceneWillDeactivateNotification, UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
@@ -121,15 +123,17 @@ using namespace facebook::react;
     original = bound.tag == self.originalTarget && bound.window == self.window ? bound : [self.window viewWithTag:self.originalTarget];
   }
   attached &= self.window != nil;
-  NSData *identityData = [NSJSONSerialization dataWithJSONObject:@[self.ownerId, self.descriptorId, self.descriptorRevision, @(self.originalTarget)] options:0 error:nil];
+  NSData *identityData = [NSJSONSerialization dataWithJSONObject:@[self.ownerId, self.descriptorId, self.descriptorRevision, @(self.originalTarget), self.ownedEditorBinding ?: @""] options:0 error:nil];
   if (!identityData) return;
   NSString *identity = [[NSString alloc] initWithData:identityData encoding:NSUTF8StringEncoding];
   UIView *editor = [self isFieldBinding] && [original isKindOfClass:RCTTextInputComponentView.class] ?
-    ((RCTTextInputComponentView *)original).accessibilityElement : original;
+    (UIView *)((RCTTextInputComponentView *)original).accessibilityElement : original;
   if (_boundOriginal != original || _boundEditor != editor || ![_identity isEqual:identity] || _surface != surface) {
     _epoch++; _boundOriginal = original; _boundEditor = editor; _identity = identity; _surface = surface;
   }
-  BOOL correctType = [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
+  BOOL ownedDate = [self isFieldBinding] && self.ownedEditorBinding.length;
+  BOOL correctType = ownedDate ? CUIResolveOwnedDateField(self, self.ownedEditorBinding, self.originalTarget, surface) == original && original != nil :
+    [self isFieldBinding] ? [original isKindOfClass:RCTTextInputComponentView.class] &&
       ([editor isKindOfClass:UITextField.class] || [editor isKindOfClass:UITextView.class]) :
       [original isKindOfClass:RCTViewComponentView.class] && ![original isKindOfClass:CUICollectionMetadataView.class];
   BOOL metadataOnly = self.isMetadataOnly;
@@ -182,6 +186,7 @@ using namespace facebook::react;
   _epoch++; _boundWindow = nil; _boundOriginal = nil; _boundEditor = nil; _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
   _mountSnapshot = nil; _lastMount = @"retired"; _lastActive = NO;
   self.originalTarget = 0;
+  self.ownedEditorBinding = @"";
   self.semanticBinding = @"";
   [super prepareForRecycle];
 }
@@ -226,6 +231,7 @@ using namespace facebook::react;
   self.descriptorId = [NSString stringWithUTF8String:value.descriptorId.c_str()];
   self.descriptorRevision = [NSString stringWithUTF8String:value.descriptorRevision.c_str()];
   self.originalTarget = value.editorTarget;
+  self.ownedEditorBinding = [NSString stringWithUTF8String:value.ownedEditorBinding.c_str()];
   self.semanticBinding = [NSString stringWithUTF8String:value.semanticBinding.c_str()];
   [super updateProps:props oldProps:oldProps];
 }

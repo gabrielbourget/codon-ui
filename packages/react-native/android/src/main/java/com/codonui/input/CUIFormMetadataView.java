@@ -30,6 +30,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private String window = "", identity = "", signature = "";
   private int surface = -1;
   private long epoch, sequence, mountBatch;
+  String ownedEditorBinding = "";
   private JSONObject mountSnapshot;
   private String lastMount = "unmounted";
   private boolean observing, resumed, lastActive;
@@ -104,7 +105,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
-    semanticBinding = "";
+    semanticBinding = ""; ownedEditorBinding = "";
     resetSemanticAccessibilityFocus();
   }
 
@@ -131,11 +132,13 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
       try { target = manager.resolveView(originalTarget); } catch (RuntimeException unavailable) { target = null; }
     }
     int currentSurface = UIManagerHelper.getSurfaceId(this);
-    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).toString();
+    String currentIdentity = new JSONArray().put(ownerId).put(descriptorId).put(descriptorRevision).put(originalTarget).put(ownedEditorBinding).toString();
     if (!window.equals(currentWindow) || original.get() != target || !identity.equals(currentIdentity) || surface != currentSurface) {
       epoch++; window = currentWindow; original = new WeakReference<>(target); identity = currentIdentity; surface = currentSurface;
     }
-    boolean correctType = fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUICollectionNode);
+    boolean ownedDate = fieldBinding && !ownedEditorBinding.isEmpty();
+    boolean correctType = ownedDate ? target != null && CUIOwnedDateField.resolve(manager, this, ownedEditorBinding, originalTarget, currentSurface) == target :
+      fieldBinding ? target instanceof ReactEditText : target instanceof ReactViewGroup && !(target instanceof CUICollectionNode);
     boolean metadataOnly = isMetadataOnly();
     boolean complete = attached && surface > 0 && !window.isEmpty() && target != null && target.isAttachedToWindow()
       && window.equals(CUIInputWindow.identity(target)) && correctType && metadataOnly;

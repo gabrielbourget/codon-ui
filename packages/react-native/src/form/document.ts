@@ -1,3 +1,5 @@
+import { decodeNativeDateFieldBinding } from "./dateSegments"
+
 export type TNativeFormDocumentNode = Readonly<{
   target: number
   parent: number
@@ -14,7 +16,8 @@ export type TNativeFormDescriptor = Readonly<{
   position: number
   formId: string
 }>
-export type TNativeFieldDescriptor = TNativeFormDescriptor & Readonly<{ hasFormAssociation: boolean }>
+export type TNativeFieldDescriptor = TNativeFormDescriptor &
+  Readonly<{ hasFormAssociation: boolean; ownedEditorBinding?: string }>
 export type TNativeFormDocument = Readonly<{
   documentId: string
   surfaceId: number
@@ -115,9 +118,51 @@ export const decodeNativeFormDocument = (
     return result
   }
   const forms = array(raw.forms).map((value) => descriptor(value, "CUIFormRoot"))
+  const ownedDateTargets = new Set<number>()
   const fields = array(raw.fields).map((value) => {
     const result = descriptor(value, "CUIFieldBinding")
     const editor = nodes[positions.get(result.target) ?? -1]
+    const owned = object(value).ownedEditorBinding
+    if (owned !== undefined && owned !== "") {
+      const encoded = text(owned),
+        binding = decodeNativeDateFieldBinding(encoded)
+      if (
+        editor?.component !== "CUIDateSegment" ||
+        binding.segments[0].target !== result.target ||
+        !positions.has(binding.rootTarget)
+      )
+        fail()
+      const descendant = (target: number) => {
+        let current = target
+        while (current) {
+          if (current === binding.rootTarget) return true
+          current = nodes[positions.get(current) ?? -1]?.parent ?? 0
+        }
+        return false
+      }
+      if (!descendant(result.metadataTarget) || binding.rootTarget === result.metadataTarget) fail()
+      const actual = nodes.filter((node) => node.component === "CUIDateSegment" && descendant(node.target))
+      if (
+        actual.length !== binding.segments.length ||
+        actual.some((node, index) => node.target !== binding.segments[index].target)
+      )
+        fail()
+      for (const segment of binding.segments) {
+        if (
+          ownedDateTargets.has(segment.target) ||
+          segment.surfaceId !== surfaceId ||
+          nodes[positions.get(segment.target) ?? -1]?.component !== "CUIDateSegment" ||
+          !descendant(segment.target)
+        )
+          fail()
+        ownedDateTargets.add(segment.target)
+      }
+      return Object.freeze({
+        ...result,
+        hasFormAssociation: boolean(object(value).hasFormAssociation),
+        ownedEditorBinding: encoded,
+      })
+    }
     if (editor?.component !== "TextInput" && editor?.component !== "AndroidTextInput") fail()
     return Object.freeze({ ...result, hasFormAssociation: boolean(object(value).hasFormAssociation) })
   })

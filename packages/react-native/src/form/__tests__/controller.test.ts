@@ -145,10 +145,12 @@ const setup = () => {
     mutate?.(value)
     return JSON.stringify(value)
   })
-  const focus = jest.fn(async (_editor: TextInput, _scope: import("../fieldFocus").TNativeFormFieldFocusRequest) => ({
-    requested: true,
-    current: true,
-  }))
+  const focus = jest.fn(
+    async (_editor: TextInput | View, _scope: import("../fieldFocus").TNativeFormFieldFocusRequest) => ({
+      requested: true,
+      current: true,
+    }),
+  )
   const controller = new NativeFormController(registry, read, focus)
   return {
     registry,

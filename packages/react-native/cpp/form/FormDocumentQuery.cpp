@@ -8,9 +8,49 @@
 #include <stdexcept>
 #include <string_view>
 #include <unordered_set>
+#include <cmath>
 
 namespace codon::form {
 using namespace facebook::react;
+
+static void validateOwnedDateField(const TFabricFormDocument &document, const CUIFieldBindingProps &field,
+    Tag metadata, std::unordered_set<Tag> &editorTargets) {
+  const auto binding = folly::parseJson(field.ownedEditorBinding);
+  const auto fail = [] { throw std::runtime_error("Native form: invalid owned date field"); };
+  const auto integer = [](const folly::dynamic &value, bool tag) {
+    if (!value.isNumber()) return false;
+    const auto number = value.asDouble();
+    return std::isfinite(number) && number > 0 && std::floor(number) == number &&
+      number <= (tag ? 2147483647.0 : 9007199254740991.0);
+  };
+  if (!binding.isObject() || binding["kind"] != "date-field" || !integer(binding["rootTarget"], true) ||
+      !binding["segments"].isArray() || binding["segments"].empty()) fail();
+  const auto root = static_cast<Tag>(binding["rootTarget"].asDouble());
+  if (!document.positions.contains(root) || root == metadata || !isFormDocumentDescendant(document, metadata, root)) fail();
+  std::vector<Tag> originals;
+  for (const auto &entry : document.preorder)
+    if (std::string_view(entry.node->getComponentName()) == "CUIDateSegment" &&
+        isFormDocumentDescendant(document, entry.node->getTag(), root)) originals.push_back(entry.node->getTag());
+  const auto &segments = binding["segments"];
+  if (originals.size() != segments.size() || originals.empty() || originals.front() != field.editorTarget) fail();
+  std::unordered_set<std::string> ids;
+  std::string owner, window;
+  for (size_t index = 0; index < originals.size(); ++index) {
+    const auto &row = segments[index];
+    if (!row.isObject() || row.size() != 8) fail();
+    for (const auto key : {"ownerId", "segmentId", "bindingRevision", "nativeInstance", "windowId"})
+      if (!row[key].isString() || row[key].asString().empty()) fail();
+    if (!integer(row["target"], true) || !integer(row["surfaceId"], true) || !integer(row["epoch"], false) ||
+        row["target"].asDouble() != originals[index] || row["surfaceId"].asDouble() != document.root->getSurfaceId() ||
+        !editorTargets.insert(originals[index]).second || !ids.insert(row["segmentId"].asString()).second) fail();
+    if (index && (owner != row["ownerId"].asString() || window != row["windowId"].asString())) fail();
+    owner = row["ownerId"].asString(); window = row["windowId"].asString();
+    const auto &node = document.preorder[document.positions.at(originals[index])].node;
+    const auto &props = *static_cast<const CUIDateSegmentProps *>(node->getProps().get());
+    if (props.ownerId != owner || props.segmentId != row["segmentId"].asString() ||
+        props.bindingRevision != row["bindingRevision"].asString()) fail();
+  }
+}
 
 std::string NativeFormDocumentSession::identityFor(const ShadowNodeFamily::Shared &family) {
   if (!family || identity_.empty()) throw std::runtime_error("Native form: retired document identity");
@@ -91,10 +131,15 @@ std::string queryFabricFormDocument(const UIManager &manager, SurfaceId surface,
         throw std::runtime_error("Native form: invalid original form root");
       forms.push_back(std::move(descriptor));
     } else {
-      const auto editorName = std::string_view(document.preorder[document.positions.at(original)].node->getComponentName());
-      if (editorName != "TextInput" && editorName != "AndroidTextInput")
-        throw std::runtime_error("Native form: original core editor required");
-      if (!editorTargets.insert(original).second) throw std::runtime_error("Native form: duplicate editor binding");
+      if (!field->ownedEditorBinding.empty()) {
+        validateOwnedDateField(document, *field, node.getTag(), editorTargets);
+        descriptor["ownedEditorBinding"] = field->ownedEditorBinding;
+      } else {
+        const auto editorName = std::string_view(document.preorder[document.positions.at(original)].node->getComponentName());
+        if (editorName != "TextInput" && editorName != "AndroidTextInput")
+          throw std::runtime_error("Native form: original core editor required");
+        if (!editorTargets.insert(original).second) throw std::runtime_error("Native form: duplicate editor binding");
+      }
       descriptor["hasFormAssociation"] = field->hasFormAssociation;
       fields.push_back(std::move(descriptor));
     }

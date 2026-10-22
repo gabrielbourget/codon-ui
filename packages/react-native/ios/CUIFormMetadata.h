@@ -7,6 +7,7 @@
 @interface CUIFormMetadataView : CUICollectionMetadataView
 @property (nonatomic, assign) NSInteger originalTarget;
 @property (nonatomic, copy) NSString *semanticBinding;
+@property (nonatomic, copy) NSString *ownedEditorBinding;
 - (BOOL)isFieldBinding;
 - (NSDictionary *)formMountSnapshot;
 - (UIView *)originalForMountSnapshot:(NSDictionary *)snapshot;

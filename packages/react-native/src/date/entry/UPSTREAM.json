@@ -32,6 +32,16 @@
       "sourcePath": "packages/react-aria/src/i18n/useFilter.ts",
       "sourceSHA256": "e2eb48536bda1cf03b27cd715e2e0f54c69276888311b222cfbc212605444aa7",
       "sourceMapSHA256": "f367f69d5c4c8e9b241f6a2e1e161c3a0397c3cb0063cb72c516c8da602b9923"
+    },
+    "FocusScope": {
+      "sourcePath": "packages/react-aria/src/focus/FocusScope.tsx",
+      "sourceSHA256": "ed7bc70123120e7ff3b915af7604a0c684bea563075bf05888970d32d003b1b9",
+      "sourceMapSHA256": "a33445ca5c3488103603ddb2ac4b745214d528a749e591ab445c1f745d309975"
+    },
+    "useFocusWithin": {
+      "sourcePath": "packages/react-aria/src/interactions/useFocusWithin.ts",
+      "sourceSHA256": "109b1f318e3e30f855797f55e88a8decf9222751ca5fe5fb9cd0b2fc4935c0d3",
+      "sourceMapSHA256": "004db713aa6deb82a6df246930d6b0892001afb023f9fde60873dd904dc7a2b8"
     }
   },
   "translations": {
@@ -391,6 +401,9 @@
     "messages.ts": "9c5d3551e3d8d40dcf92a5fa0dbacce6f3c6ea31cf3c3af570b1bb31261cdbf9",
     "semantics.ts": "1666affc04e73db2176c98019f418a2488190e0680e7a0ae67863affae29c26f",
     "spinMessages.ts": "9fe490816f067ab49f11b869f7e9d77e590af5f0706721aed82976d79790e26d",
-    "useNativeDateSegmentEntry.ts": "cfd29e8a30d47c60f43ab9acd27f403dfd7764dac2857073422632712791591b"
+    "useNativeDateSegmentEntry.ts": "cfd29e8a30d47c60f43ab9acd27f403dfd7764dac2857073422632712791591b",
+    "../field/focus.ts": "9b59c16a1b1894375306064f50b9c24145494bdc2353a58ba7d5ecf4e0177bb6",
+    "../field/selection.ts": "f1b4f3c0e3f10658ffb58d7f77378d967f44238d37d63480ff37799144a84933",
+    "../field/useLifecycle.ts": "cf1dd597c2609c7e5be7e4265710b7c4d9404a5828818477f368a126f4fd5e9f"
   }
 }

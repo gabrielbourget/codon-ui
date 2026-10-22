@@ -29,6 +29,7 @@ export interface NativeProps extends ViewProps {
   hasFormAssociation: boolean
   formId: string
   semanticBinding?: string
+  ownedEditorBinding?: string
 }
 
 export default codegenNativeComponent<NativeProps>("CUIFieldBinding") as HostComponent<NativeProps>
