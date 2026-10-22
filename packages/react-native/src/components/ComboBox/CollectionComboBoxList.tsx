@@ -69,6 +69,7 @@ export type TNativeComboBoxListProps = Omit<TNativeFocusViewProps, "children" | 
     linkBehavior?: "selection"
     itemBehavior?: "action"
     shouldFocusWrap?: boolean
+    onAction?: (key: TNativeCollectionKey) => void
     layout?: "stack" | "grid"
     orientation?: "vertical" | "horizontal"
     style?:
@@ -90,6 +91,7 @@ export const NativeComboBoxListBehaviorContext = createContext<
     shouldSelectOnPressUp: boolean
     shouldFocusOnHover: boolean
     shouldFocusWrap: boolean
+    onAction?: (key: TNativeCollectionKey) => void
     parentTarget: number
     ordinals: ReadonlyMap<TNativeCollectionKey, number>
   }>
@@ -125,6 +127,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     shouldSelectOnPressUp = true,
     shouldFocusOnHover = true,
     shouldFocusWrap = true,
+    onAction,
     linkBehavior: _linkBehavior,
     itemBehavior: _itemBehavior,
     filter,
@@ -314,6 +317,7 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
                   shouldSelectOnPressUp,
                   shouldFocusOnHover,
                   shouldFocusWrap,
+                  onAction,
                   parentTarget,
                   ordinals,
                 }}

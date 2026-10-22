@@ -1,6 +1,7 @@
 import { createContext, type RefObject } from "react"
 import type { TextInput, View } from "react-native"
 
+import type { TNativeCollectionActionOutcome } from "../../collection/actions"
 import type { TNativeContextValue } from "../../collection/context"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
@@ -14,6 +15,7 @@ import type { TNativeComboBoxPopoverProps } from "./CollectionComboBoxPopover"
 import type { TNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
 import type { TNativeComboBoxInputProps } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
+import type { TNativeComboBoxItemRequest } from "./itemActions"
 import type { TNativeComboBoxPointerOptionRegistration } from "./pointerSelection"
 import type { ComboBoxState, ValidationResult } from "./state/types"
 
@@ -85,5 +87,7 @@ export const NativeComboBoxOptionsContext = createContext<{
     target: View | null,
     event: TNativePressEvent | TNativeWindowPointerEvent,
     admitted?: () => boolean,
+    request?: TNativeComboBoxItemRequest,
+    settled?: (outcome: TNativeCollectionActionOutcome) => void,
   ) => void
 } | null>(null)

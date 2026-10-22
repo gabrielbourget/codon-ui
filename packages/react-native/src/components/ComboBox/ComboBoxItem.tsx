@@ -18,6 +18,8 @@ import { NativeCollectionSemanticsContext, type TNativeCollectionSemantics } fro
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { focusNativeTarget } from "../../input/focus"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
+import type { TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
@@ -31,6 +33,13 @@ import {
   NativeComboBoxOptionsContext,
   NativeComboBoxStateContext,
 } from "./collectionContext"
+import {
+  getNativeComboBoxPressRequest,
+  getNativeComboBoxSelectionRequest,
+  type TNativeComboBoxItemActionProps,
+  type TNativeComboBoxItemRequest,
+} from "./itemActions"
+import { NativeComboBoxItemPressQueue } from "./itemPressQueue"
 
 export type TNativeComboBoxItemRenderState = TNativeButtonChildrenState & {
   isSelected: boolean
@@ -39,13 +48,15 @@ export type TNativeComboBoxItemRenderState = TNativeButtonChildrenState & {
   selectionMode: "none" | "single" | "multiple"
   selectionBehavior: "toggle" | "replace"
 }
-export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id"> & {
-  id?: string | number
-  value?: object
-  textValue?: string
-  isReadOnly?: boolean
-  children?: React.ReactNode | ((state: TNativeComboBoxItemRenderState) => React.ReactNode)
-}
+export type TNativeComboBoxItemProps = Omit<TNativeButtonProps, "children" | "id" | "onPressUp"> &
+  TNativeComboBoxItemActionProps & {
+    onPressUp?: (event: TNativePressEvent | TNativeWindowPointerEvent) => void
+    id?: string | number
+    value?: object
+    textValue?: string
+    isReadOnly?: boolean
+    children?: React.ReactNode | ((state: TNativeComboBoxItemRenderState) => React.ReactNode)
+  }
 const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeCollectionNode<unknown> }>((props, ref) => {
   const {
     node,
@@ -59,7 +70,15 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
     customStyles,
     onPress,
     onPressStart,
+    onPressEnd,
+    onPressChange,
+    onPressUp,
+    onPointerDown,
     onHoverStart,
+    href: _href,
+    onAction: _action,
+    onNavigate: _navigate,
+    onNavigationError: _navigationError,
     ...native
   } = props
   const state = useContext(NativeComboBoxStateContext)
@@ -67,8 +86,10 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   const list = useContext(NativeComboBoxListBehaviorContext)
   const actions = useContext(NativeCollectionActionsContext)
   const cycle = useRef<{ binding: string; target: View | null } | null>(null)
+  const pointerType = useRef<"touch" | "mouse" | "pen" | null>(null)
   const pointerKey = useId()
   const pointerRegistration = useRef<{ target: View; node: typeof node; release: () => void } | null>(null)
+  const pressQueue = useRef<{ target: View; node: typeof node; queue: NativeComboBoxItemPressQueue } | null>(null)
   if (!state || !options) throw new Error("ComboBoxItem requires a native collection ComboBox")
   const theme = useNativeTheme()
   const target = useRef<View>(null)
@@ -90,11 +111,11 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
   useSyncExternalStore(inputScope?.subscribe ?? (() => () => {}), inputScope?.snapshot ?? (() => 0), () => 0)
   const focusVisible = focused && inputScope?.lastInput()?.origin === "keyboard"
   const currentFocus = useRef({ state, disabled, virtual: list.shouldUseVirtualFocus, node, actions })
-  const currentPointer = useRef({ disabled, readOnly, list, options, node })
+  const currentPointer = useRef({ disabled, readOnly, list, options, node, props })
   const focusAttempt = useRef<{ target: View; binding: string } | null>(null)
   useInsertionEffect(() => {
     currentFocus.current = { state, disabled, virtual: list.shouldUseVirtualFocus, node, actions }
-    currentPointer.current = { disabled, readOnly, list, options, node }
+    currentPointer.current = { disabled, readOnly, list, options, node, props }
   })
   useLayoutEffect(() => {
     const original = target.current
@@ -113,6 +134,8 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
         latest.node === node &&
         !latest.disabled &&
         !latest.readOnly &&
+        !latest.props.onAction &&
+        !latest.list.onAction &&
         latest.list.shouldSelectOnPressUp &&
         latest.list.shouldFocusOnHover
       )
@@ -123,7 +146,10 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
       release: options.registerPointerOption(pointerKey, {
         target: original,
         current: admitted,
-        release: (event) => currentPointer.current.options.press(node, original, event, admitted),
+        release: (event) => {
+          submit(event, getNativeComboBoxSelectionRequest(currentPointer.current.props), admitted)
+          emit(event, () => currentPointer.current.props.onPressUp?.(event))
+        },
       }),
     }
   })
@@ -163,6 +189,57 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
         focusNativeTarget(original)
     })
   }, [list.shouldUseVirtualFocus, focused, disabled, inputScope, actions, node])
+  useInsertionEffect(() => () => pressQueue.current?.queue.retire(), [])
+  const queue = () => {
+    const original = target.current
+    if (!original) return null
+    if (pressQueue.current?.target !== original || pressQueue.current.node !== node) {
+      pressQueue.current?.queue.retire()
+      pressQueue.current = {
+        target: original,
+        node,
+        queue: new NativeComboBoxItemPressQueue(
+          () => target.current === original && currentPointer.current.node === node,
+        ),
+      }
+    }
+    return pressQueue.current.queue
+  }
+  const emit = (event: TNativePressEvent | TNativeWindowPointerEvent, callback: () => void) => {
+    event.persist()
+    queue()?.emit(callback)
+  }
+  const submit = (
+    event: TNativePressEvent | TNativeWindowPointerEvent,
+    operation: TNativeComboBoxItemRequest,
+    admitted: () => boolean,
+  ) => {
+    const original = target.current
+    event.persist()
+    const pendingQueue = queue()
+    pendingQueue?.push((complete) => {
+      options.press(node, original, event, admitted, operation, (outcome) => {
+        if (outcome === "accepted") complete()
+        else if (outcome === "failed") pendingQueue.retire()
+        else void Promise.resolve().then(complete)
+      })
+    })
+  }
+  const origin = (event: TNativePressEvent) =>
+    "kind" in event.nativeEvent
+      ? event.nativeEvent.kind === "keyboard"
+        ? "keyboard"
+        : "virtual"
+      : (pointerType.current ?? "touch")
+  const request = (event: TNativePressEvent, operation: TNativeComboBoxItemRequest) => {
+    const started = cycle.current
+    if (!started || started.target !== target.current || started.binding !== actions?.bindingFor(node)) return
+    submit(event, operation, () => {
+      const latest = currentPointer.current
+      return !latest.disabled && !latest.readOnly && latest.node === node && target.current === started.target
+    })
+  }
+  const hasAction = !!props.onAction || !!list.onAction
   return (
     <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
       <NativeCollectionSemanticsContext.Provider
@@ -194,6 +271,7 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
           accessibilityState={{ selected }}
           isDisabled={disabled}
           nativeInteraction={!readOnly}
+          nativeMinPressDuration={0}
           nativeStyle={(flags) => {
             const foregroundColor = selected ? theme.colors.controlSelectedForeground : theme.colors.controlForeground
             const resolved = getNativeControlRootStyle(
@@ -231,25 +309,51 @@ const Receiver = forwardRef<View, TNativeComboBoxItemProps & { node: TNativeColl
             }
             onHoverStart?.(event)
           }}
+          onPointerDown={(event) => {
+            const type = event.nativeEvent.pointerType
+            pointerType.current = type === "mouse" || type === "pen" ? type : "touch"
+            onPointerDown?.(event)
+          }}
+          onPressUp={(event) => {
+            if (origin(event) === "mouse" && list.shouldSelectOnPressUp && list.shouldFocusOnHover && !hasAction)
+              request(event, getNativeComboBoxSelectionRequest(props))
+            emit(event, () => onPressUp?.(event))
+          }}
+          onPressEnd={(event) => emit(event, () => onPressEnd?.(event))}
+          onPressChange={(pressed) => queue()?.emit(() => onPressChange?.(pressed))}
           onPress={(event) => {
-            const started = cycle.current
-            cycle.current = null
-            onPress?.(event)
-            if (
-              !disabled &&
-              !readOnly &&
-              started?.target === target.current &&
-              started.binding === actions?.bindingFor(node) &&
-              findNodeHandle(target.current)
+            const type = origin(event)
+            if (hasAction)
+              request(
+                event,
+                getNativeComboBoxPressRequest(props, list.onAction ? () => list.onAction!(node.key) : undefined),
+              )
+            else if (
+              type !== "keyboard" &&
+              (type !== "mouse" || (list.shouldSelectOnPressUp && !list.shouldFocusOnHover))
             )
-              options.press(node, target.current, event, () => {
-                const latest = currentPointer.current
-                return !latest.disabled && !latest.readOnly && latest.node === node && target.current === started.target
-              })
+              request(event, getNativeComboBoxSelectionRequest(props))
+            if (type === "touch" && !disabled && !readOnly) {
+              state.selectionManager.setFocused(true)
+              state.selectionManager.setFocusedKey(node.key)
+            }
+            emit(event, () => onPress?.(event))
+            cycle.current = null
+            pointerType.current = null
           }}
           onPressStart={(event) => {
             cycle.current = { binding: actions?.bindingFor(node) ?? "", target: target.current }
-            onPressStart?.(event)
+            const type = origin(event)
+            if (type !== "touch" && !disabled && !readOnly) {
+              state.selectionManager.setFocused(true)
+              state.selectionManager.setFocusedKey(node.key)
+            }
+            if (
+              (type === "keyboard" && (!hasAction || ("key" in event.nativeEvent && event.nativeEvent.key === " "))) ||
+              (type === "mouse" && !list.shouldSelectOnPressUp && !hasAction)
+            )
+              request(event, getNativeComboBoxSelectionRequest(props))
+            emit(event, () => onPressStart?.(event))
           }}
         >
           {(flags) => (

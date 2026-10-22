@@ -60,6 +60,7 @@ export type TNativePressableProps = Omit<
     nativeDetailsLabel?: string
     activationBlocked?: boolean
     nativeInteraction?: boolean
+    nativeMinPressDuration?: number
     blockNativeResponder?: boolean
     onPressCancel?: (event: TNativePressEvent) => void
     onHoverCancel?: (event: MouseEvent) => void
@@ -80,6 +81,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     onNativeFocusObserved,
     activationBlocked: authoredActivationBlocked = false,
     nativeInteraction = true,
+    nativeMinPressDuration,
     disabled,
     children,
     style,
@@ -302,6 +304,7 @@ export const NativePressable = forwardRef<View, TNativePressableProps>((props, f
     delayHoverOut,
     delayLongPress,
     delayPressIn: unstable_pressDelay,
+    minPressDuration: nativeMinPressDuration,
     blockNativeResponder,
     onPress: (event) => {
       if (admitted() && !pointer.current?.cancelled) current.current.onPress?.(event)

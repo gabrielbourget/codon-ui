@@ -172,3 +172,64 @@ it("supports the original root binding for empty-list selection and cancels requ
   expect(f.actions.getSnapshot()).toBe("[]")
   expect(action).not.toHaveBeenCalled()
 })
+
+it("settles exactly once after the admitted operation and consumes no foreign reply", () => {
+  const f = fixture(),
+    trace: unknown[] = []
+  f.confirm()
+  f.actions.request(
+    f.session.getSnapshot().collection.getItem(0)!,
+    9,
+    () => trace.push("action"),
+    (accepted) => trace.push(accepted),
+  )
+  const packet = reply(f.actions)
+  expect(f.actions.receive({ ...packet, visibleTarget: 99 })).toBe(false)
+  expect(trace).toEqual([])
+  expect(f.actions.receive(packet)).toBe(true)
+  expect(trace).toEqual(["action", "accepted"])
+  expect(f.actions.receive(packet)).toBe(false)
+  expect(trace).toEqual(["action", "accepted"])
+})
+
+it.each(["native-reject", "descriptor", "root", "reset"])(
+  "settles a retired original request without running its operation: %s",
+  (kind) => {
+    const f = fixture(),
+      action = jest.fn(),
+      settled = jest.fn()
+    f.confirm()
+    f.actions.request(f.session.getSnapshot().collection.getItem(0)!, 9, action, settled)
+    const packet = reply(f.actions)
+    if (kind === "native-reject") f.actions.receive({ ...packet, accepted: false })
+    else if (kind === "descriptor") f.session.commitDescriptor({ ...f.descriptor, descriptorRevision: "v2" })
+    else if (kind === "root") f.session.bindRootTarget(null)
+    else f.actions.reset()
+    expect(settled.mock.calls).toEqual([["rejected"]])
+    expect(action).not.toHaveBeenCalled()
+    expect(f.actions.getSnapshot()).toBe("[]")
+    f.actions.receive(packet)
+    f.actions.reset()
+    expect(settled).toHaveBeenCalledTimes(1)
+  },
+)
+
+it("settles immediate rejection and an admitted operation that throws", () => {
+  const f = fixture(),
+    settled = jest.fn(),
+    error = new Error("operation")
+  expect(f.actions.request(null, 0, jest.fn(), settled)).toBe(false)
+  expect(settled.mock.calls).toEqual([["rejected"]])
+  f.confirm()
+  f.actions.request(
+    f.session.getSnapshot().collection.getItem(0)!,
+    9,
+    () => {
+      throw error
+    },
+    settled,
+  )
+  expect(() => f.actions.receive(reply(f.actions))).toThrow(error)
+  expect(settled.mock.calls).toEqual([["rejected"], ["failed"]])
+  expect(f.actions.getSnapshot()).toBe("[]")
+})

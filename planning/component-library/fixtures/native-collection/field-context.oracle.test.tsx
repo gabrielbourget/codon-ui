@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event"
 import { createRef, useContext, useState } from "react"
 import { createPortal } from "react-dom"
 import {
+  RouterProvider,
   ButtonContext,
   ComboBoxStateContext,
   ComboBoxValue,
@@ -696,3 +697,124 @@ it("evaluates FieldError style before children and passes complete validation to
   expect(screen.getByTestId("custom-error").textContent).toBe("One Two")
   records.push({ styleChildrenRenderOrder: true, completeValidationInCustomHost: true })
 })
+
+it.each(
+  ["selection", "action", "link", "action-link"].flatMap((kind) =>
+    ["mouse", "enter", "tab"].map((mode) => ({ kind, mode })),
+  ),
+)("preserves original item callbacks and business action precedence: $kind/$mode", async ({ kind, mode }) => {
+  const trace: unknown[] = [],
+    user = userEvent.setup()
+  render(
+    <RouterProvider navigate={(href) => trace.push(["navigate", href])}>
+      <ComboBox
+        aria-label="Item actions"
+        items={[{ id: 0, label: "Zero" }]}
+        value={null}
+        inputValue=""
+        isOpen
+        onChange={(key) => trace.push(["select", key])}
+        onOpenChange={(value) => trace.push(["open", value])}
+      >
+        {(item) => (
+          <ListBoxItem
+            id={item.id}
+            textValue={item.label}
+            href={kind.includes("link") ? "/zero" : undefined}
+            onAction={kind.includes("action") ? () => trace.push(["action"]) : undefined}
+            onPressChange={(value) => trace.push(["change", value])}
+            onPressStart={() => trace.push(["start"])}
+            onPressUp={() => trace.push(["up"])}
+            onPressEnd={() => trace.push(["end"])}
+            onPress={() => trace.push(["press"])}
+          >
+            {item.label}
+          </ListBoxItem>
+        )}
+      </ComboBox>
+    </RouterProvider>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  trace.length = 0
+  const option = await screen.findByRole("option", { name: "Zero" }),
+    input = screen.getByRole("combobox")
+  const business =
+    kind === "selection"
+      ? [["select", 0]]
+      : kind === "action" || (kind === "action-link" && mode === "mouse")
+        ? [["action"], ["open", false]]
+        : mode === "tab"
+          ? [["open", false]]
+          : [
+              ["navigate", "/zero"],
+              ["open", false],
+            ]
+  if (mode === "mouse") {
+    await user.pointer({ target: option, keys: "[MouseLeft>]" })
+    expect(trace).toEqual([["start"], ["change", true]])
+    await user.pointer({ target: option, keys: "[/MouseLeft]" })
+    const expected = kind.includes("action")
+      ? [["start"], ["change", true], ["up"], ["end"], ["change", false], ...business, ["press"]]
+      : [["start"], ["change", true], ...business, ["up"], ["end"], ["change", false], ["press"]]
+    expect(trace).toEqual(expected)
+  } else {
+    await act(() => (input as HTMLInputElement).focus())
+    fireEvent.keyDown(input, { key: "ArrowDown", code: "ArrowDown" })
+    trace.length = 0
+    fireEvent.keyDown(input, { key: mode === "enter" ? "Enter" : "Tab", code: mode === "enter" ? "Enter" : "Tab" })
+    expect(trace).toEqual(business)
+  }
+  records.push({ case: "item-action-order", kind, mode, trace })
+})
+
+it.each(["pointer-empty", "input-zero"])(
+  "preserves a declined controlled selection without a close request: %s",
+  async (mode) => {
+    const changes: unknown[] = [],
+      closes: unknown[] = [],
+      user = userEvent.setup()
+    let state!: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+    const Capture = () => {
+      state = useContext(ComboBoxStateContext)!
+      return null
+    }
+    const values = mode === "pointer-empty" ? [{ id: "", label: "Empty" }] : [{ id: 0, label: "Zero" }]
+    render(
+      <>
+        <ComboBox
+          aria-label="Veto choices"
+          items={values}
+          value={null}
+          inputValue={mode === "pointer-empty" ? "Empty" : ""}
+          isOpen
+          onChange={(key) => changes.push(key)}
+          onOpenChange={(value) => closes.push(value)}
+        >
+          {(item) => (
+            <ListBoxItem id={item.id} textValue={item.label}>
+              <Capture />
+              {item.label}
+            </ListBoxItem>
+          )}
+        </ComboBox>
+      </>,
+    )
+    await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+    closes.length = 0
+    const editor = screen.getByRole("combobox")
+    for (let turn = 0; turn < 2; turn++) {
+      if (mode === "pointer-empty") await user.click(await screen.findByRole("option", { name: "Empty" }))
+      else {
+        await act(() => (editor as HTMLInputElement).focus())
+        if (turn === 0) fireEvent.keyDown(editor, { key: "ArrowDown", code: "ArrowDown" })
+        fireEvent.keyDown(editor, { key: "Enter", code: "Enter" })
+        expect(state.selectionManager.focusedKey).toBe(0)
+      }
+    }
+    expect(changes).toEqual(mode === "pointer-empty" ? ["", ""] : [0, 0])
+    expect(closes).toEqual([])
+    expect(state.value).toBeNull()
+    expect(screen.getByRole("combobox")).toBe(editor)
+    records.push({ case: "controlled-selection-veto", mode, changes, closes })
+  },
+)
