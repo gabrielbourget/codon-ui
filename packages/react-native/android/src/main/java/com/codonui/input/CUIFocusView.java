@@ -60,6 +60,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   private String nativeScrollAnchorKey = "";
   private String nativeScrollAnchorRevision = "";
   private CUIFormActionLease formAction;
+  private CUIFocusWithinObserver focusWithin;
 
   public CUIFocusView(ThemedReactContext context) {
     super(context);
@@ -112,6 +113,20 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeFormAction() { if (formAction != null) formAction.snapshot(); }
   void retireFormAction() { if (formAction != null) formAction.invalidate(); formAction = null; }
   org.json.JSONObject formActionSnapshot() { return formAction == null ? null : formAction.snapshot(); }
+  void setNativeFocusWithinBinding(String binding) {
+    if (binding == null || binding.isEmpty()) { retireFocusWithin(); return; }
+    if (focusWithin == null) {
+      java.lang.ref.WeakReference<CUIFocusView> weak = new java.lang.ref.WeakReference<>(this);
+      focusWithin = new CUIFocusWithinObserver(this, () -> {
+        CUIFocusView view = weak.get();
+        if (view == null) throw new IllegalStateException("focus-within-owner-retired");
+        return view.formActionEnvironment();
+      }, data -> { CUIFocusView view = weak.get(); if (view != null) view.emit("topNativeFocusWithin", data); });
+    }
+    focusWithin.configure(binding);
+  }
+  void synchronizeFocusWithin() { if (focusWithin != null) focusWithin.synchronize(); }
+  void retireFocusWithin() { if (focusWithin != null) focusWithin.invalidate(); focusWithin = null; }
 
   void setNativeTabStop(boolean value) { nativeTabStop = value; }
   @Override public void addFocusables(ArrayList<View> views, int direction, int mode) {
@@ -155,7 +170,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   void synchronizeMotionColors() { motionColors.updateOwner(ownerId, nativeMotionColorObservation); motionColors.synchronize(); }
   void invalidateMotionColors() { motionColors.invalidate(); }
   void sampleMotionColors(String owner, String requestId, String request) { synchronizeMotionColors(); motionColors.sample(owner, requestId, request); }
-  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); }
+  @Override protected void onAttachedToWindow() { super.onAttachedToWindow(); if (motionColors != null) motionColors.attached(); if (motionGeometry != null) motionGeometry.attached(); if (formAction != null) formAction.attachmentChanged(true); synchronizeFocusWithin(); }
   @Override protected void drawableStateChanged() { super.drawableStateChanged(); if (motionColors != null) motionColors.synchronize(); }
   @Override protected void onConfigurationChanged(android.content.res.Configuration configuration) { super.onConfigurationChanged(configuration); if (motionColors != null) motionColors.synchronize(); }
 
@@ -418,6 +433,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
 
   @Override
   protected void onDetachedFromWindow() {
+    if (focusWithin != null) focusWithin.detached();
     if (formAction != null) formAction.attachmentChanged(false);
     motionGeometry.detached();
     motionColors.detached();
@@ -434,6 +450,7 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
     if (!focused) scrollAnchor.invalidate();
     if (!focused) cancelHeldKeys();
     super.onWindowFocusChanged(focused);
+    if (focusWithin != null) focusWithin.sample();
     motionColors.synchronize();
   }
 

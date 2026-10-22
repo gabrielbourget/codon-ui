@@ -2,6 +2,7 @@
 #import "CUIAccessibilityReferences.h"
 #import "CUICollectionRoot.h"
 #import "CUIInputWindow.h"
+#import "CUIFocusWithinObserver.h"
 #import "CUIMenuPointerPolicies.h"
 #import "CUIKeyboardScope.h"
 #import "CUIFloatingScrollAnchor.h"
@@ -118,6 +119,7 @@ using namespace facebook::react;
   BOOL _motionVisibilityReady;
   NSString *_motionProjectionRevision;
   CUIFormActionLease *_formAction;
+  CUIFocusWithinObserver *_focusWithin;
   SurfaceId _formActionSurface;
   CUIFocusViewEventEmitter::OnNativeFocusChangeOrigin _origin;
 }
@@ -184,6 +186,19 @@ using namespace facebook::react;
     @"enabled":@(_nativePressable && !(self.accessibilityTraits & UIAccessibilityTraitNotEnabled))};
 }
 - (NSDictionary *)formActionSnapshot { return [_formAction snapshot]; }
+- (void)emitFocusWithin:(NSDictionary *)packet
+{
+  if (!_eventEmitter) return;
+  CUIFocusViewEventEmitter::OnNativeFocusWithin value{};
+  value.ownerId = [packet[@"ownerId"] UTF8String]; value.bindingId = [packet[@"bindingId"] UTF8String];
+  value.target = [packet[@"target"] intValue]; value.surfaceId = [packet[@"surfaceId"] intValue];
+  value.windowId = [packet[@"windowId"] UTF8String]; value.scopeOwnerId = [packet[@"scopeOwnerId"] UTF8String];
+  value.scopeEpoch = [packet[@"scopeEpoch"] doubleValue]; value.sequence = [packet[@"sequence"] doubleValue];
+  value.attached = [packet[@"attached"] boolValue]; value.active = [packet[@"active"] boolValue]; value.within = [packet[@"within"] boolValue];
+  value.focusedTarget = [packet[@"focusedTarget"] intValue]; value.textInputFocused = [packet[@"textInputFocused"] boolValue];
+  value.origin = [packet[@"origin"] UTF8String]; value.observedAt = [packet[@"observedAt"] doubleValue];
+  std::static_pointer_cast<const CUIFocusViewEventEmitter>(_eventEmitter)->onNativeFocusWithin(value);
+}
 - (void)emitFormActionStatus:(NSDictionary *)packet
 {
   if (!_eventEmitter) return;
@@ -544,6 +559,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 {
   _formActionSurface = transaction.getSurfaceId();
   [_formAction snapshot];
+  [_focusWithin schedule];
   [_motionGeometry captureKind:@"mount-after" requestId:@"" transaction:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
 }
 
@@ -672,6 +688,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
     [self resignFirstResponder];
     [self emitFocus:NO];
   }
+  [_focusWithin schedule];
 }
 
 - (void)requestKeyboardFocus:(NSString *)ownerId
@@ -859,6 +876,14 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   }
   if (formActionBinding.length) [_formAction configure:formActionBinding];
   else { [_formAction invalidate]; _formAction = nil; }
+  NSString *focusWithinBinding = [NSString stringWithUTF8String:next.nativeFocusWithinBinding.c_str()];
+  if (focusWithinBinding.length && !_focusWithin) {
+    __weak CUIFocusView *weakSelf = self;
+    _focusWithin = [[CUIFocusWithinObserver alloc] initWithRoot:self environment:^NSDictionary * { return [weakSelf formActionEnvironment]; }
+      emit:^(NSDictionary *packet) { [weakSelf emitFocusWithin:packet]; }];
+  }
+  if (focusWithinBinding.length) [_focusWithin configure:focusWithinBinding];
+  else { [_focusWithin invalidate]; _focusWithin = nil; }
 }
 
 - (void)setHidden:(BOOL)hidden {
@@ -875,6 +900,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
   [_motionGeometry windowChanged];
   [_motionColors synchronize];
   [_formAction snapshot];
+  [_focusWithin schedule];
   if (!self.window) {
     [_scrollAnchor invalidate];
     [self cancelHeldKeys];
@@ -885,6 +911,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)prepareForRecycle
 {
+  [_focusWithin invalidate]; _focusWithin = nil;
   [_formAction invalidate]; _formAction = nil; _formActionSurface = -1;
   [_motionGeometry invalidate];
   [_motionColors invalidate];
@@ -913,6 +940,7 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)dealloc
 {
+  [_focusWithin invalidate];
   [_formAction invalidate];
   [_scrollAnchor invalidate];
   [NSNotificationCenter.defaultCenter removeObserver:self];
