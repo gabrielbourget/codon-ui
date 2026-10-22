@@ -40,12 +40,13 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     segmentDisabled,
     segmentReadOnly,
     segmentEditable,
+    keyboardMode,
     onNativeSegmentInput,
     ...other
   } = props
   const wireRevision = useMemo(
     () => `${bindingRevision}:native-segment-lease:${++segmentLeaseGenerations}`,
-    [bindingRevision, segmentDisabled, segmentReadOnly, segmentEditable],
+    [bindingRevision, segmentDisabled, segmentReadOnly, segmentEditable, keyboardMode],
   )
   const current = useRef(props)
   const identity = useRef({ ownerId, segmentId, bindingRevision: wireRevision })
@@ -177,6 +178,7 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
         segmentDisabled={segmentDisabled}
         segmentReadOnly={segmentReadOnly}
         segmentEditable={segmentEditable}
+        keyboardMode={keyboardMode}
         onNativeSegmentInput={handleInput}
         collapsable={false}
       />

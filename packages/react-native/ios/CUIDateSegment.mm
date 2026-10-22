@@ -32,12 +32,12 @@ using namespace facebook::react;
 @end
 
 @implementation CUIDateSegment {
-  NSString *_ownerId, *_segmentId, *_bindingRevision, *_displayText, *_locale;
+  NSString *_ownerId, *_segmentId, *_bindingRevision, *_displayText, *_locale, *_keyboardMode;
   NSMutableString *_document;
   NSRange _selection, _marked;
   NSUInteger _epoch, _sequence;
   SurfaceId _surface;
-  BOOL _disabled, _readOnly, _editable;
+  BOOL _disabled, _readOnly, _editable, _wasActive;
   UITextInputStringTokenizer *_tokenizer;
   __weak id<UITextInputDelegate> _inputDelegate;
   NSDictionary<NSAttributedStringKey, id> *_markedTextStyle;
@@ -55,7 +55,7 @@ using namespace facebook::react;
 {
   if (self = [super initWithFrame:frame]) {
     _props = std::make_shared<const CUIDateSegmentProps>();
-    _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @"";
+    _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric";
     _document = [NSMutableString new]; _marked = NSMakeRange(NSNotFound, 0);
     _surface = -1; _epoch = 1; _tokenizer = [[UITextInputStringTokenizer alloc] initWithTextInput:self];
     _readOnlyKeyboard = [[UIView alloc] initWithFrame:CGRectZero];
@@ -68,6 +68,7 @@ using namespace facebook::react;
 - (void)dealloc { [[NSNotificationCenter defaultCenter] removeObserver:self]; }
 - (BOOL)active
 {
+  for (UIView *view = self; view; view = view.superview) if (view.hidden) return NO;
   return self.window.isKeyWindow && !self.window.hidden && UIApplication.sharedApplication.applicationState == UIApplicationStateActive &&
     (!self.window.windowScene || self.window.windowScene.activationState == UISceneActivationStateForegroundActive);
 }
@@ -101,7 +102,10 @@ using namespace facebook::react;
   BOOL replaced = ownerChanged || ![_bindingRevision isEqual:revision];
   if (replaced) { if (ownerChanged) [self resignFirstResponder]; _epoch++; [self clearTransientDocument]; }
   _ownerId = owner; _segmentId = segment; _bindingRevision = revision; _displayText = RCTNSStringFromString(next.displayText); _locale = RCTNSStringFromString(next.locale);
-  BOOL traitsChanged = _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
+  NSString *keyboardMode = RCTNSStringFromString(next.keyboardMode);
+  BOOL modeChanged = ![_keyboardMode isEqual:keyboardMode];
+  _keyboardMode = keyboardMode;
+  BOOL traitsChanged = modeChanged || _readOnly != next.segmentReadOnly || _disabled != next.segmentDisabled || _editable != next.segmentEditable;
   _disabled = next.segmentDisabled; _readOnly = next.segmentReadOnly; _editable = next.segmentEditable;
   if (_disabled || !_editable) [self resignFirstResponder];
   if (traitsChanged) { _epoch++; [self clearTransientDocument]; [self reloadInputViews]; }
@@ -112,6 +116,7 @@ using namespace facebook::react;
 - (BOOL)canBecomeFirstResponder { return !_disabled && _editable; }
 - (BOOL)canBecomeFocused { return !_disabled && _editable; }
 - (UIView *)inputView { return _readOnly ? _readOnlyKeyboard : nil; }
+- (UIKeyboardType)keyboardType { return !_readOnly && [_keyboardMode isEqualToString:@"numeric"] ? UIKeyboardTypeNumberPad : UIKeyboardTypeDefault; }
 - (UITextAutocorrectionType)autocorrectionType { return UITextAutocorrectionTypeNo; }
 - (UITextAutocapitalizationType)autocapitalizationType { return UITextAutocapitalizationTypeNone; }
 - (UITextSpellCheckingType)spellCheckingType { return UITextSpellCheckingTypeNo; }
@@ -289,12 +294,15 @@ using namespace facebook::react;
 {
   SurfaceId surface = transaction.getSurfaceId();
   if (_surface >= 0 && _surface != surface) { _epoch++; [self clearTransientDocument]; }
-  _surface = surface; [self emit:@"status" text:@"" replacement:NSMakeRange(0, 0)];
+  _surface = surface;
+  BOOL active = [self active];
+  if (_wasActive != active) { _wasActive = active; _epoch++; [self clearTransientDocument]; if (!active) [self resignFirstResponder]; }
+  [self emit:@"status" text:@"" replacement:NSMakeRange(0, 0)];
 }
 - (void)prepareForRecycle
 {
   [self resignFirstResponder]; _epoch++; [self clearTransientDocument];
-  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _disabled = YES; _editable = NO;
+  _ownerId = @""; _segmentId = @""; _bindingRevision = @""; _displayText = @""; _locale = @""; _keyboardMode = @"numeric"; _wasActive = NO; _disabled = YES; _editable = NO;
   [super prepareForRecycle];
 }
 @end
