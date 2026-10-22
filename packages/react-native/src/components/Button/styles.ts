@@ -31,7 +31,7 @@ const TEXT_FIELDS = [
 
 export const getNativeButtonStyle = (
   theme: TNativeTheme,
-  props: TNativeButtonProps,
+  props: Omit<TNativeButtonProps, "children">,
   state: Omit<TNativeButtonRenderState, "foregroundColor">,
   isFocusVisible = true,
 ) => {

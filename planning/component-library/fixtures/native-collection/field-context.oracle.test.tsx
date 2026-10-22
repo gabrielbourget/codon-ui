@@ -1,5 +1,6 @@
 import { writeFileSync } from "node:fs"
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
+import userEvent from "@testing-library/user-event"
 import { createRef, useContext } from "react"
 import {
   ButtonContext,
@@ -21,6 +22,7 @@ import { afterAll, expect, it } from "vitest"
 
 import Button from "../../../../packages/react/src/components/Button/Button"
 import ComboBox from "../../../../packages/react/src/components/ComboBox/ComboBox"
+import Input from "../../../../packages/react/src/components/Input/Input"
 import ListBoxItem from "../../../../packages/react/src/components/ListBoxItem/ListBoxItem"
 
 const items = [
@@ -36,6 +38,90 @@ const records: unknown[] = []
 afterAll(() => {
   if (process.env.CODON_FIELD_CONTEXT_OBSERVATIONS)
     writeFileSync(process.env.CODON_FIELD_CONTEXT_OBSERVATIONS, JSON.stringify(records, null, 2))
+})
+
+it("keeps scoped Input rendering, named/null contexts, caller refs and held controlled values", () => {
+  const inherited = createRef<HTMLInputElement>(),
+    caller = createRef<HTMLInputElement>()
+  const order: string[] = [],
+    events: unknown[] = []
+  const view = render(
+    <InputContext.Provider
+      value={{
+        slots: {
+          search: {
+            ref: inherited,
+            value: "held",
+            onChange: (event) => {
+              order.push("context")
+              events.push(event)
+            },
+            "aria-invalid": true,
+          },
+        },
+      }}
+    >
+      <Input
+        ref={caller}
+        slot="search"
+        onChange={(event) => {
+          order.push("caller")
+          events.push(event)
+        }}
+        render={(props, state) => <input {...props} data-testid="source-input" data-state-invalid={state.isInvalid} />}
+      />
+      <Input slot={null} data-testid="isolated-input" />
+    </InputContext.Provider>,
+  )
+  expect(caller.current === inherited.current).toBe(true)
+  expect(caller.current === screen.getByTestId("source-input")).toBe(true)
+  expect(caller.current?.value).toBe("held")
+  expect(caller.current?.dataset.stateInvalid).toBe("true")
+  fireEvent.change(caller.current!, { target: { value: "request" } })
+  expect(order).toEqual(["context", "caller"])
+  expect(events[0] === events[1]).toBe(true)
+  expect(caller.current?.value).toBe("held")
+  expect((screen.getByTestId("isolated-input") as HTMLInputElement).value).toBe("")
+  view.unmount()
+  expect([inherited.current, caller.current]).toEqual([null, null])
+  records.push({ originalInputRenderAndRefs: true, namedAndNullInputSlots: true, heldOwnerAndOriginalEvents: true })
+})
+
+it("keeps typed text from changing pointer-origin Input focus visibility until Escape", async () => {
+  const values: {
+    isHovered: boolean
+    isFocused: boolean
+    isFocusVisible: boolean
+    isDisabled: boolean
+    isInvalid: boolean
+  }[] = []
+  const user = userEvent.setup()
+  render(
+    <Input
+      aria-label="Source editor"
+      render={(props, state) => {
+        values.push(state)
+        return <input {...props} />
+      }}
+    />,
+  )
+  const editor = screen.getByRole("textbox", { name: "Source editor" })
+  await user.click(editor)
+  expect(values.at(-1)).toMatchObject({
+    isFocused: true,
+    isFocusVisible: false,
+    isHovered: true,
+    isDisabled: false,
+    isInvalid: false,
+  })
+  await user.keyboard("a")
+  expect(values.at(-1)?.isFocusVisible).toBe(false)
+  await user.keyboard("{Escape}")
+  expect(values.at(-1)?.isFocusVisible).toBe(true)
+  records.push({
+    textInputFocusVisibility: "pointer=false, typed-letter=false, Escape=true",
+    hoverFromOriginalMouse: true,
+  })
 })
 
 it("retains complete field, group, list and validation contexts and original label/text/error/value refs", () => {

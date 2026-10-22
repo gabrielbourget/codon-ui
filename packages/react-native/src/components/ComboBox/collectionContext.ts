@@ -5,12 +5,12 @@ import type { TNativeContextValue } from "../../collection/context"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeFocusViewProps } from "../../input/types"
-import type { TNativeButtonProps } from "../Button/types"
 import type { TNativeClickPopoverProps } from "../ClickPopover/types"
-import type { TNativeInputProps } from "../Input/types"
 import type { TNativeTextRender } from "../Text/Text"
 import type { TNativeTextProps, TNativeTextRef } from "../Text/types"
 
+import type { TNativeComboBoxButtonProps } from "./CollectionComboBoxTrigger"
+import type { TNativeComboBoxInputProps } from "./collectionInputTypes"
 import type { TNativeCollectionComboBoxParentProps } from "./collectionTypes"
 import type { ComboBoxState, ValidationResult } from "./state/types"
 
@@ -57,9 +57,9 @@ export const NativeComboBoxTextContext =
   createContext<TNativeContextValue<Partial<TNativeTextProps> & { render?: TNativeTextRender }, TNativeTextRef>>(null)
 export const NativeComboBoxFieldErrorContext = createContext<ValidationResult | null>(null)
 export const NativeComboBoxInputContext =
-  createContext<TNativeContextValue<Partial<TNativeInputProps>, TextInput>>(null)
+  createContext<TNativeContextValue<Partial<TNativeComboBoxInputProps>, TextInput>>(null)
 export const NativeComboBoxButtonContext =
-  createContext<TNativeContextValue<Partial<TNativeButtonProps> & { isPressed?: boolean }, View>>(null)
+  createContext<TNativeContextValue<Partial<TNativeComboBoxButtonProps>, View>>(null)
 export const NativeComboBoxValueContext =
   createContext<TNativeContextValue<Partial<import("./fieldParts").TNativeComboBoxValueProps>, View>>(null)
 export const NATIVE_COMBO_BOX_POPOVER_CONTEXTS = [

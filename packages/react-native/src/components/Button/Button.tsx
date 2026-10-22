@@ -1,4 +1,12 @@
-import { forwardRef, useEffect, useRef, useState, type ForwardRefExoticComponent, type RefAttributes } from "react"
+import {
+  forwardRef,
+  useEffect,
+  useRef,
+  useState,
+  type ForwardRefExoticComponent,
+  type ReactNode,
+  type RefAttributes,
+} from "react"
 import type { AccessibilityState, MouseEvent, ViewProps } from "react-native"
 
 import { useNativeContextProps } from "../../collection/context"
@@ -21,13 +29,16 @@ type TPressCycle = {
   nativeEnd?: TNativePressEvent
 }
 
-type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState"> &
+type TNativeButtonInternalProps = Omit<TNativeButtonProps, "accessibilityState" | "children"> &
   Pick<TNativeFocusViewProps, "nativeFormActionBinding" | "onNativeFormActionStatus"> & {
     accessibilityState?: Omit<AccessibilityState, "disabled">
     nativeRole?: ViewProps["role"]
     nativeAccessible?: boolean
     nativeInteraction?: boolean
     nativeIsPressed?: boolean
+    children?:
+      | ReactNode
+      | ((state: TNativeButtonRenderState & { isFocusVisible: boolean; defaultChildren: undefined }) => ReactNode)
     nativeRender?: (
       props: Parameters<TNativePressableRender>[0],
       state: TNativeButtonRenderState & { isFocusVisible: boolean },
@@ -138,7 +149,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
   const resolved = nativeStyle
     ? nativeStyle(flags, focusVisible)
     : getNativeButtonStyle(theme, props, flags, focusVisible)
-  const state: TNativeButtonRenderState = { ...flags, foregroundColor: resolved.foregroundColor }
+  const state = { ...flags, foregroundColor: resolved.foregroundColor, isFocusVisible: focusVisible }
   const rendered = typeof children === "function" ? children({ ...state, defaultChildren: undefined }) : children
   const content = getNativeButtonContent(rendered, resolved.textStyle)
   const automaticHitSlop = bounds
