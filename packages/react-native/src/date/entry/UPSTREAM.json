@@ -407,7 +407,14 @@
     "../field/useLifecycle.ts": "cf1dd597c2609c7e5be7e4265710b7c4d9404a5828818477f368a126f4fd5e9f",
     "../field/types.ts": "592b17b3c3962a01c807592a8ef67266acb645dd297102f996a4de8ad7efb61a",
     "../field/context.ts": "be60cf0e8ed6da08e41f8f55529cf780945c0ca9719c83ece56528628f1da889",
-    "../field/useTimeField.ts": "ec11bed883342046ce6fb0139bf6eab4f18ef374a19da71aac9eb0f49e3cfc28"
+    "../field/useTimeField.ts": "ec11bed883342046ce6fb0139bf6eab4f18ef374a19da71aac9eb0f49e3cfc28",
+    "../field/NativeTimePickerRenderer.tsx": "9270202659a123b8c095acba0bdcf52ba0d0e8d5045b61861822817dfd2235f2",
+    "../field/NativeTimePickerSegment.tsx": "0cd6f53a5f35294783a8448d5476a658ebf9d7fb0ccfc6372fcf4e589f28260c",
+    "../field/parts.tsx": "9f3db1aa9f0d181e8c319c371ebe2f354cd30c28756d8e328871bff115cb0962",
+    "../field/appearance.ts": "9f5c2c61d4b1c86dc40441b1ee6583142157e2a4bbfe75dab58bbede39c27fda",
+    "../field/descendants.ts": "744254af1b24a2225c8978a98c14cc24aac0a74cd5d82ddf376c917d3cdf3de0",
+    "../field/hostSet.ts": "4d02e95db7ba8958721a002cac510cec10f2d205725dd60bf5ab5f07f66a5e3a",
+    "../field/focusEvent.ts": "8c5d2265c8fe0c3f2132715535e5e9ad33b65967976f11a2519038d5b6e2e505"
   },
   "componentSources": {
     "DateField.tsx": {
@@ -416,6 +423,31 @@
       "sourcePath": "packages/react-aria-components/src/DateField.tsx",
       "sourceSHA256": "a8bbfaeaa9754c030423d92a2e757f4d56aa3303c564151822428543dd5e1dbe",
       "sourceMapSHA256": "c7010a62d2dd800a6dca60284069b0afc8d3d3c65b45c624f246acb92b9f6ad7"
+    },
+    "FieldError.tsx": {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "sourcePath": "packages/react-aria-components/src/FieldError.tsx",
+      "sourceSHA256": "522f16b967286103f974e35e250ac3a4afef2a6d02a38d482227d6db2fdf3888",
+      "sourceMapSHA256": "a94dddff5b9e479aa8fb27d2cbcf35b1f79a203d6a1db102363a6358b65ff7ad"
+    },
+    "Label.tsx": {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "sourcePath": "packages/react-aria-components/src/Label.tsx",
+      "sourceSHA256": "4adad8964de54129b3e79ff9d11f68e99c617339f997120038eeadbd89836fa7",
+      "sourceMapSHA256": "d12445f6939d35b56238da77f2d4dc8440f332fff6dc4c99da7ab689bfef6913"
+    },
+    "Text.tsx": {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "sourcePath": "packages/react-aria-components/src/Text.tsx",
+      "sourceSHA256": "b2995f9f6b6216c9d15a9eb25455293c53da57ba86e8bc45d193fae10ba413f6",
+      "sourceMapSHA256": "22ee393649b5fabc2085a735442571754e2f0f4b4ee6d8c66917243cefe3ffd0"
     }
+  },
+  "canonicalWrapper": {
+    "sourceRef": "ddc9f066f67af4742e05e04bd870726141c44129:packages/react/src/components/TimePicker/TimePicker.tsx",
+    "sourceSHA256": "507a8a90e8e324120fd14d9c4db60de8b4a5251b9f454b2564d9c6491e291c67"
   }
 }

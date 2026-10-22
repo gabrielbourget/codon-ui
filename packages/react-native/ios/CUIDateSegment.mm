@@ -124,13 +124,21 @@ using namespace facebook::react;
 {
   if (![self active] || ![self canBecomeFirstResponder]) return NO;
   BOOL was = self.isFirstResponder, result = [super becomeFirstResponder];
-  if (result && !was) { [self clearTransientDocument]; [self emit:@"focus" text:@"" replacement:NSMakeRange(0, 0)]; }
+  if (result && !was) {
+    CUIAdvanceInputRevision(self.window);
+    [self clearTransientDocument]; [self emit:@"focus" text:@"" replacement:NSMakeRange(0, 0)];
+    CUIReportInputFocusChanged(self, YES);
+  }
   return result;
 }
 - (BOOL)resignFirstResponder
 {
   BOOL was = self.isFirstResponder, result = [super resignFirstResponder];
-  if (was && result) { [self emit:@"blur" text:@"" replacement:NSMakeRange(0, 0)]; [self clearTransientDocument]; }
+  if (was && result) {
+    CUIAdvanceInputRevision(self.window);
+    [self emit:@"blur" text:@"" replacement:NSMakeRange(0, 0)]; [self clearTransientDocument];
+    CUIReportInputFocusChanged(self, NO);
+  }
   return result;
 }
 - (void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event
