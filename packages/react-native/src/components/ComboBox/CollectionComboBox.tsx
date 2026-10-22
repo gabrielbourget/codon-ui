@@ -68,6 +68,7 @@ import { NativeComboBoxItem } from "./ComboBoxItem"
 import { createNativeComboBoxFilter } from "./filter"
 import { getNativeComboBoxInputRequest, type TNativeComboBoxItemRequest } from "./itemActions"
 import { NativeComboBoxKeyBinding } from "./keyboard"
+import { createNativeComboBoxListMetrics, getNativeComboBoxPageKey, readNativeComboBoxPageLayout } from "./navigation"
 import { useNativeComboBoxPointerSelection } from "./pointerSelection"
 import { useComboBoxState } from "./state/useComboBoxState"
 import { getNativeComboBoxStyles } from "./styles"
@@ -198,6 +199,9 @@ const Receiver = <T extends object>({
   const anchor = useRef<View>(null)
   const popup = useRef<View>(null)
   const scroll = useRef<TNativeCollectionScrollHost | null>(null)
+  const listMetrics = useRef(createNativeComboBoxListMetrics())
+  const scrollContent = useRef<View>(null)
+  const navigationSerial = useRef(0)
   const [focused, setFocused] = useState(false)
   const [originalInput, setOriginalInput] = useState<Readonly<{ editor: TextInput; target: number }> | null>(null)
   const actions = useContext(NativeCollectionActionsContext)
@@ -270,9 +274,9 @@ const Receiver = <T extends object>({
   const flushCommit = useRef(() => {})
   const renderer = useContext(NativeCollectionRendererContext)
   const live = useRef(false)
-  const current = useRef({ props, state })
+  const current = useRef({ props, state, renderer })
   useInsertionEffect(() => {
-    current.current = { props, state }
+    current.current = { props, state, renderer }
   })
   useInsertionEffect(() => {
     live.current = true
@@ -530,6 +534,7 @@ const Receiver = <T extends object>({
       event.isDefaultPrevented?.()
     )
       return
+    navigationSerial.current++
     if (!owner.state.isOpen) {
       if (data.key === "ArrowDown" || data.key === "ArrowUp") {
         owner.state.open(data.key === "ArrowUp" ? "last" : "first", "manual")
@@ -540,34 +545,59 @@ const Receiver = <T extends object>({
     let index = keys.findIndex((key) => key === owner.state.selectionManager.focusedKey)
     if (data.key === "ArrowDown" || data.key === "ArrowUp") {
       const next = index + (data.key === "ArrowDown" ? 1 : -1)
-      index =
-        index < 0
-          ? data.key === "ArrowUp"
-            ? keys.length - 1
-            : 0
-          : owner.props.shouldFocusWrap === false
-            ? Math.max(0, Math.min(keys.length - 1, next))
-            : (next + keys.length) % keys.length
+      index = index < 0 ? (data.key === "ArrowUp" ? keys.length - 1 : 0) : Math.max(0, Math.min(keys.length - 1, next))
       if (keys[index] != null) owner.state.selectionManager.setFocusedKey(keys[index])
     } else if (data.key === "Home" || data.key === "End") {
+      if (owner.state.selectionManager.focusedKey == null && data.shiftKey) return
       const key = data.key === "Home" ? keys[0] : keys.at(-1)
       if (key != null) owner.state.selectionManager.setFocusedKey(key)
     } else if (data.key === "PageUp" || data.key === "PageDown") {
-      const layout = renderer.layoutDelegate
-      const rect =
-        owner.state.selectionManager.focusedKey == null
-          ? null
-          : layout?.getItemRect?.(owner.state.selectionManager.focusedKey)
-      if (rect && layout?.getItemRect) {
-        const direction = data.key === "PageUp" ? -1 : 1
-        const edge = rect.y + direction * layout.getVisibleRect().height
-        let candidate = Math.max(0, index)
-        while (candidate + direction >= 0 && candidate + direction < keys.length) {
-          const next = layout.getItemRect(keys[candidate + direction])
-          candidate += direction
-          if (!next || (direction > 0 ? next.y >= edge : next.y <= edge)) break
-        }
-        if (keys[candidate] != null) owner.state.selectionManager.setFocusedKey(keys[candidate])
+      const focused = owner.state.selectionManager.focusedKey
+      if (focused == null) return
+      const pageKey = data.key
+      const navigate = (layout: NonNullable<typeof renderer.layoutDelegate>) => {
+        const key = getNativeComboBoxPageKey(keys, focused, pageKey, layout)
+        if (key != null) current.current.state.selectionManager.setFocusedKey(key)
+      }
+      if (owner.renderer.layoutDelegate) navigate(owner.renderer.layoutDelegate)
+      else if (!owner.renderer.isVirtualized) {
+        const viewport = scroll.current?.getNativeScrollRef?.()
+        const contentTarget = scrollContent.current
+        const originalRows = keys.map((key) => ({ key, row: rows.current.get(key) }))
+        if (!contentTarget || !viewport?.measureInWindow || originalRows.some(({ row }) => !row)) return
+        const serial = navigationSerial.current
+        const editor = input.current
+        const metrics = listMetrics.current
+        const session = JSON.stringify(inputScope?.acknowledgedSession() ?? null)
+        event.persist()
+        readNativeComboBoxPageLayout({
+          viewport,
+          contentTarget,
+          rows: originalRows.map(({ key, row }) => ({ key, target: row!.target })),
+          metrics,
+          current: () => {
+            const latest = current.current
+            return (
+              live.current &&
+              navigationSerial.current === serial &&
+              latest.state.isOpen &&
+              !latest.props.isDisabled &&
+              !latest.props.isReadOnly &&
+              latest.renderer === owner.renderer &&
+              latest.state.collection === owner.state.collection &&
+              latest.state.inputValue === owner.state.inputValue &&
+              latest.state.selectionManager.focusedKey === focused &&
+              input.current === editor &&
+              listMetrics.current === metrics &&
+              scrollContent.current === contentTarget &&
+              scroll.current?.getNativeScrollRef?.() === viewport &&
+              inputScope?.isWindowActive() !== false &&
+              JSON.stringify(inputScope?.acknowledgedSession() ?? null) === session &&
+              originalRows.every(({ key, row }) => rows.current.get(key) === row)
+            )
+          },
+          complete: navigate,
+        })
       }
     } else if (data.key === "Enter") {
       requestCommit(event)
@@ -579,8 +609,10 @@ const Receiver = <T extends object>({
     const owner = current.current
     if (!live.current || owner.props.isDisabled || owner.props.isReadOnly) return
     if (event.nativeEvent.key === "Tab" && owner.state.isOpen) requestCommit(event, "tab")
-    if (event.nativeEvent.key === "ArrowLeft" || event.nativeEvent.key === "ArrowRight")
+    if (event.nativeEvent.key === "ArrowLeft" || event.nativeEvent.key === "ArrowRight") {
+      navigationSerial.current++
       owner.state.selectionManager.setFocusedKey(null)
+    }
   }
   const [groupProps, groupRef] = useNativeContextProps(
     {
@@ -666,7 +698,13 @@ const Receiver = <T extends object>({
                       value={{ isDisabled: !!props.isDisabled, isInvalid: state.displayValidation.isInvalid }}
                     >
                       <NativeComboBoxListEnvironmentContext.Provider
-                        value={{ scrollRef: scroll, isOpen: state.isOpen, isCollectionPending }}
+                        value={{
+                          scrollRef: scroll,
+                          isOpen: state.isOpen,
+                          isCollectionPending,
+                          metrics: listMetrics,
+                          contentRef: scrollContent,
+                        }}
                       >
                         <NativeComboBoxListContext.Provider
                           value={{

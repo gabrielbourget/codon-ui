@@ -17,6 +17,7 @@ import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { TagComboBox } from "../../TagComboBox/TagComboBox"
 import { NativeCollectionComboBox } from "../CollectionComboBox"
+import { NativeComboBoxListEnvironmentContext } from "../CollectionComboBoxList"
 import {
   NativeComboBoxContext,
   NativeComboBoxGroupContext,
@@ -140,6 +141,7 @@ it.each([
   "late-query",
   "late-read-only",
   "pending",
+  "input-origin",
 ] as const)(
   "admits trigger-to-option mouse release only while its original ownership is current: %s",
   async (scenario) => {
@@ -154,12 +156,13 @@ it.each([
       return targets.get(view)!
     })
     const f = setup(),
+      editor = createRef<RN.TextInput>(),
       option = createRef<RN.View>(),
       changes = jest.fn()
     let retire!: () => void
     let restore!: () => void
     const Harness = () => {
-      const [open, setOpen] = useState(false),
+      const [open, setOpen] = useState(scenario === "input-origin"),
         [retired, setRetired] = useState(false)
       retire = () => setRetired(true)
       restore = () => setRetired(false)
@@ -170,6 +173,7 @@ it.each([
           getKey={(item) => item.id}
           getTextValue={(item) => item.label}
           inputLabel="Query"
+          inputRef={editor}
           closeLabel="Close"
           isOpen={open}
           onOpenChange={setOpen}
@@ -259,7 +263,7 @@ it.each([
         },
       }
     }
-    const down = packet("start", triggerTarget)
+    const down = packet("start", scenario === "input-origin" ? native.findNodeHandle(editor.current)! : triggerTarget)
     if (scenario === "pen") Object.assign(down.nativeEvent, { pointerType: "pen" })
     await act(() => initial.onNativeWindowPointer(down))
     const trigger = screen.getByTestId("combo-box-trigger", hidden)
@@ -279,8 +283,10 @@ it.each([
         pointerType: "mouse",
       },
     }
-    await act(() => trigger.props.onPointerDown(original))
-    await act(() => trigger.props.onResponderGrant(original))
+    if (scenario !== "input-origin") {
+      await act(() => trigger.props.onPointerDown(original))
+      await act(() => trigger.props.onResponderGrant(original))
+    }
     await f.ready(false)
     await acknowledge()
     expect(changes).not.toHaveBeenCalled()
@@ -318,7 +324,7 @@ it.each([
       if (scenario === "late-query") await fireEvent.changeText(screen.getByTestId("combo-box-input"), "Beta")
       else await act(retire)
     } else await act(() => screen.getByTestId("host").props.onNativeWindowPointer(up))
-    expect(changes.mock.calls).toEqual(scenario === "select" ? [[0]] : [])
+    expect(changes.mock.calls).toEqual(scenario === "select" || scenario === "input-origin" ? [[0]] : [])
     expect(down.persist).toHaveBeenCalledTimes(scenario === "pen" ? 0 : 1)
   },
 )
@@ -862,7 +868,7 @@ it("follows linked collection order after opaque parent-controlled reordering", 
   await key("End")
   expect(state.selectionManager.focusedKey).toBe("a")
   await key("ArrowDown")
-  expect(state.selectionManager.focusedKey).toBe("c")
+  expect(state.selectionManager.focusedKey).toBe("a")
   expect(editor.current === original).toBe(true)
   expect(state.value).toBeNull()
 })
@@ -1578,5 +1584,195 @@ it.each(["current", "synchronous", "query", "href", "unmount"])(
     }
     expect(report.mock.calls).toEqual(mode === "current" || mode === "synchronous" ? [[failure, url]] : [])
     if (mode === "current" || mode === "synchronous") expect(report.mock.calls[0][0]).toBe(failure)
+  },
+)
+
+it.each(["boundaries", "shift-home", "page", "native-page", "retired-page"] as const)(
+  "matches original editor navigation for %s without moving its native editor",
+  async (scenario) => {
+    const f = setup(),
+      editor = createRef<RN.TextInput>()
+    const native = jest.requireActual<typeof import("react-native")>("react-native")
+    const find = jest.mocked(native.findNodeHandle).getMockImplementation()!
+    jest
+      .mocked(native.findNodeHandle)
+      .mockImplementation((target) => (target != null && target === editor.current ? 888888 : find(target)))
+    const values = Array.from({ length: 8 }, (_, id) => ({ id, label: `Option ${id}` }))
+    const rowRefs = values.map(() => createRef<RN.View>())
+    let scrollRef:
+      | React.RefObject<import("../../../collection/renderer").TNativeCollectionScrollHost | null>
+      | undefined
+    const measuredRenderer = {
+      ...DefaultNativeCollectionRenderer,
+      CollectionRoot: (props: React.ComponentProps<typeof DefaultNativeCollectionRenderer.CollectionRoot>) => {
+        scrollRef = props.scrollRef
+        return (
+          <RN.View ref={contentModel}>
+            <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+          </RN.View>
+        )
+      },
+    }
+    let contentRef: React.RefObject<RN.View | null> | undefined
+    const contentModel = createRef<RN.View>()
+    let state!: NonNullable<React.ContextType<typeof NativeComboBoxStateContext>>
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)!
+      contentRef = useContext(NativeComboBoxListEnvironmentContext)?.contentRef
+      return null
+    }
+    await render(
+      f.node(
+        <NativeCollectionRendererContext.Provider
+          value={
+            scenario === "native-page" || scenario === "retired-page"
+              ? measuredRenderer
+              : {
+                  ...DefaultNativeCollectionRenderer,
+                  layoutDelegate: {
+                    getItemRect: (key) => ({ x: 0, y: Number(key) * 30, width: 100, height: 30 }),
+                    getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 100 }),
+                    getContentSize: () => ({ width: 100, height: 240 }),
+                  },
+                }
+          }
+        >
+          <NativeCollectionComboBox
+            items={values}
+            getKey={(item) => item.id}
+            getTextValue={(item) => item.label}
+            inputRef={editor}
+            inputValue=""
+            isOpen
+            inputLabel="Query"
+            closeLabel="Close"
+          >
+            {(item) => (
+              <NativeComboBoxItem ref={rowRefs[item.id]} id={item.id} textValue={item.label}>
+                <Capture />
+                {item.label}
+              </NativeComboBoxItem>
+            )}
+          </NativeCollectionComboBox>
+        </NativeCollectionRendererContext.Provider>,
+      ),
+    )
+    await f.ready()
+    let flushMeasurements = () => {}
+    if (scenario === "native-page" || scenario === "retired-page") {
+      // The RN preset does not implement its native-backed ScrollView getter.
+      const viewport = scrollRef?.current
+      expect(viewport).toBeTruthy()
+      Object.defineProperty(viewport, "getNativeScrollRef", { configurable: true, value: () => viewport })
+      Object.defineProperty(viewport, "measureInWindow", {
+        configurable: true,
+        value: (callback: (...values: number[]) => void) => callback(10, 100, 100, 100),
+      })
+      expect(contentRef).toBeDefined()
+      // Model the preset's omitted original innerViewRef assignment.
+      contentRef!.current = contentModel.current
+      Object.defineProperty(contentModel.current, "measureInWindow", {
+        configurable: true,
+        value: (callback: (...values: number[]) => void) => callback(10, 100, 100, 240),
+      })
+      const measurements: (() => void)[] = []
+      rowRefs.forEach((ref, index) =>
+        Object.defineProperty(ref.current, "measureInWindow", {
+          configurable: true,
+          value: (callback: (...values: number[]) => void) => {
+            const run = () => callback(10, 100 + index * 30, 100, 30)
+            if (scenario === "retired-page") measurements.push(run)
+            else run()
+          },
+        }),
+      )
+      flushMeasurements = () => measurements.splice(0).forEach((run) => run())
+      await act(() => screen.getByTestId("combo-box-list-scroll", hidden).props.onContentSizeChange(100, 240))
+    }
+    const original = editor.current
+    const key = async (value: string, shiftKey = false) => {
+      let host = screen.getByTestId("host").props
+      await act(() =>
+        host.onNativeScopeStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "source-model-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            ready: true,
+            windowActive: true,
+          },
+        }),
+      )
+      host = screen.getByTestId("host").props
+      const policy = host.policies.find(
+        (candidate: { targetTag: number; tokens: string[] }) =>
+          candidate.targetTag === native.findNodeHandle(editor.current) &&
+          candidate.tokens.includes(`${shiftKey ? 1 : 0}000:${value}`),
+      )
+      expect(policy).toBeDefined()
+      await act(() =>
+        host.onNativeScopedKey({
+          persist: jest.fn(),
+          preventDefault: jest.fn(),
+          isDefaultPrevented: () => false,
+          nativeEvent: {
+            kind: "keyboard",
+            ownerId: host.ownerId,
+            policyId: policy.id,
+            target: native.findNodeHandle(editor.current),
+            focusedTarget: native.findNodeHandle(editor.current),
+            windowId: "source-model-window",
+            epoch: 1,
+            policyRevision: host.policyRevision,
+            key: value,
+            phase: "down",
+            repeat: false,
+            cancelled: false,
+            nativeCode: 1,
+            characters: "",
+            nativeDefaultHandled: true,
+            timestamp: 100,
+            shiftKey,
+            altKey: false,
+            ctrlKey: false,
+            metaKey: false,
+            capsLock: false,
+            nativeModifierData: "0",
+          },
+        }),
+      )
+    }
+    expect(state.selectionManager.focusedKey).toBe(null)
+    if (scenario === "shift-home") {
+      await key("Home", true)
+      expect(state.selectionManager.focusedKey).toBe(null)
+      await key("End", true)
+      expect(state.selectionManager.focusedKey).toBe(null)
+    } else if (scenario === "boundaries") {
+      await key("End")
+      await key("ArrowDown")
+      expect(state.selectionManager.focusedKey).toBe(7)
+      await key("Home")
+      await key("ArrowUp")
+      expect(state.selectionManager.focusedKey).toBe(0)
+    } else {
+      await key("Home")
+      await key("PageDown")
+      if (scenario === "retired-page") {
+        expect(state.selectionManager.focusedKey).toBe(0)
+        await key("End")
+        await act(flushMeasurements)
+        expect(state.selectionManager.focusedKey).toBe(7)
+        expect(editor.current).toBe(original)
+        return
+      }
+      expect(state.selectionManager.focusedKey).toBe(3)
+      await key("PageDown")
+      expect(state.selectionManager.focusedKey).toBe(6)
+      await key("PageUp")
+      expect(state.selectionManager.focusedKey).toBe(3)
+    }
+    expect(editor.current).toBe(original)
   },
 )

@@ -62,14 +62,7 @@ export const useNativeComboBoxPointerSelection = (owner: TOwner) => {
       start: (event, admitted) => {
         cycle.current = null
         const data = event.nativeEvent
-        if (
-          data.pointerType !== "mouse" ||
-          !data.registrations.some(
-            (hit) => hit.targetTag === targetTag && hit.depth >= 0 && pointers.select(data, hit),
-          ) ||
-          event.defaultPrevented ||
-          event.isDefaultPrevented?.()
-        )
+        if (data.pointerType !== "mouse" || data.button !== 0 || event.defaultPrevented || event.isDefaultPrevented?.())
           return false
         event.persist()
         cycle.current = {

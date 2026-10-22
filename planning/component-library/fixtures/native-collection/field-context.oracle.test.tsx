@@ -4,6 +4,8 @@ import userEvent from "@testing-library/user-event"
 import { createRef, useContext, useState } from "react"
 import { createPortal } from "react-dom"
 import {
+  Header,
+  ListBoxSection,
   SelectionIndicatorContext,
   RouterProvider,
   ButtonContext,
@@ -961,3 +963,237 @@ it.each([null, false, 0, "", undefined])(
     })
   },
 )
+
+it("retains section/header custom hosts, original refs and presentational group naming", async () => {
+  const section = createRef<HTMLElement>(),
+    header = createRef<HTMLElement>(),
+    user = userEvent.setup()
+  const sectionValues: unknown[] = [],
+    headerValues: unknown[] = []
+  render(
+    <ComboBox aria-label="Sections" items={[]} isOpen>
+      <ListBoxSection
+        id="metadata-section"
+        aria-label="Fallback"
+        ref={section}
+        style={{ padding: 6 }}
+        render={(props, values) => {
+          sectionValues.push(values)
+          return <section {...props} data-testid="source-section" />
+        }}
+      >
+        <Header
+          id="authored-heading"
+          ref={header}
+          style={{ color: "red" }}
+          render={(props, values) => {
+            headerValues.push(values)
+            return <header {...props} data-testid="source-heading" />
+          }}
+        >
+          Choices
+        </Header>
+        <ListBoxItem id={0} textValue="Zero">
+          Zero
+        </ListBoxItem>
+      </ListBoxSection>
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const group = await screen.findByRole("group", { name: "Choices" }),
+    heading = screen.getByTestId("source-heading")
+  expect(group).toBe(section.current)
+  expect(heading).toBe(header.current)
+  expect(group.id).toBe("")
+  expect(group.getAttribute("aria-labelledby")).toBe(heading.id)
+  expect(heading.id).not.toBe("")
+  expect(heading.id).not.toBe("authored-heading")
+  expect(heading.getAttribute("role")).toBe("presentation")
+  expect(group.style.padding).toBe("6px")
+  expect(heading.style.color).toBe("red")
+  expect(sectionValues.length).toBeGreaterThan(0)
+  expect(sectionValues.every((value) => value === undefined)).toBe(true)
+  expect(headerValues.length).toBeGreaterThan(0)
+  expect(headerValues.every((value) => value === undefined)).toBe(true)
+  const input = screen.getByRole("combobox")
+  await act(() => (input as HTMLInputElement).focus())
+  await user.click(heading)
+  expect(document.activeElement).toBe(input)
+  records.push({
+    case: "section-header-original-host",
+    groupName: "Choices",
+    headerRole: "presentation",
+    renderState: "undefined",
+    inputRetained: true,
+  })
+})
+
+it("retires section heading references on original header replacement and removal", async () => {
+  let replace!: () => void, remove!: () => void
+  const section = createRef<HTMLElement>(),
+    header = createRef<HTMLElement>(),
+    user = userEvent.setup()
+  const Harness = () => {
+    const [phase, setPhase] = useState(0)
+    replace = () => setPhase(1)
+    remove = () => setPhase(2)
+    return (
+      <ComboBox aria-label="Header lifetime" items={[]} isOpen>
+        <ListBoxSection id="section" aria-label="Fallback" ref={section}>
+          {phase === 2 ? null : (
+            <Header key={phase} id={phase === 0 ? "before" : "after"} ref={header}>
+              Choices
+            </Header>
+          )}
+          <ListBoxItem id={0} textValue="Zero">
+            Zero
+          </ListBoxItem>
+        </ListBoxSection>
+      </ComboBox>
+    )
+  }
+  render(<Harness />)
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("group", { name: "Choices" })
+  const original = header.current
+  const generatedID = header.current!.id
+  expect(section.current!.getAttribute("aria-labelledby")).toBe(generatedID)
+  await act(replace)
+  expect(header.current).not.toBe(original)
+  expect(header.current).not.toBeNull()
+  expect(header.current!.id).toBe(generatedID)
+  expect(section.current!.getAttribute("aria-labelledby")).toBe(generatedID)
+  await act(remove)
+  expect(header.current).toBeNull()
+  expect(section.current!.getAttribute("aria-labelledby")).toBeNull()
+  expect(screen.getByRole("group", { name: "Fallback" })).toBe(section.current)
+  records.push({ case: "section-header-lifetime", originalRetiredOnKeyReplacement: true, referenceRetired: true })
+})
+
+it("selects on mouse release over an option after an editor-origin press", async () => {
+  const user = userEvent.setup(),
+    changes: unknown[] = []
+  render(<ComboBox {...options} value={null} inputValue="" isOpen onChange={(key) => changes.push(key)} />)
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  const input = screen.getByRole("combobox"),
+    option = await screen.findByRole("option", { name: "Alpha" })
+  await user.pointer({ target: input, keys: "[MouseLeft>]" })
+  expect(changes).toEqual([])
+  await user.pointer({ target: option })
+  await user.pointer({ target: option, keys: "[/MouseLeft]" })
+  expect(changes).toEqual([0])
+  records.push({ case: "editor-origin-option-release", changes })
+})
+
+let keyboardState: NonNullable<React.ContextType<typeof ComboBoxStateContext>>
+const KeyboardCapture = () => {
+  keyboardState = useContext(ComboBoxStateContext)!
+  return null
+}
+const keyboardItems = Array.from({ length: 8 }, (_, id) => ({ id, label: `Option ${id}` }))
+const mountKeyboardOracle = async () => {
+  const user = userEvent.setup()
+  render(
+    <ComboBox aria-label="Query" items={keyboardItems} inputValue="" onInputChange={() => {}}>
+      {(item) => (
+        <ListBoxItem id={item.id} textValue={item.label}>
+          <KeyboardCapture />
+          {item.label}
+        </ListBoxItem>
+      )}
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("option", { name: "Option 0" })
+  return screen.getByRole("combobox")
+}
+it("preserves original editor boundary and Shift+Home navigation", async () => {
+  const input = await mountKeyboardOracle()
+  expect(keyboardState.selectionManager.focusedKey).toBe(null)
+  fireEvent.keyDown(input, { key: "Home", shiftKey: true })
+  expect(keyboardState.selectionManager.focusedKey).toBe(null)
+  fireEvent.keyDown(input, { key: "End" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "Home" })
+  fireEvent.keyDown(input, { key: "ArrowUp" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+})
+it("uses original scrollable list row and viewport geometry for page navigation", async () => {
+  const input = await mountKeyboardOracle()
+  const list = screen.getByRole("listbox")
+  Object.defineProperties(list, {
+    clientHeight: { configurable: true, value: 100 },
+    scrollHeight: { configurable: true, value: 240 },
+    clientWidth: { configurable: true, value: 100 },
+    scrollWidth: { configurable: true, value: 100 },
+  })
+  list.style.overflowY = "auto"
+  list.getBoundingClientRect = () => ({
+    x: 0,
+    y: 0,
+    left: 0,
+    top: 0,
+    right: 100,
+    bottom: 100,
+    width: 100,
+    height: 100,
+    toJSON: () => ({}),
+  })
+  screen.getAllByRole("option").forEach((node, i) => {
+    node.getBoundingClientRect = () => ({
+      x: 0,
+      y: i * 30,
+      left: 0,
+      top: i * 30,
+      right: 100,
+      bottom: i * 30 + 30,
+      width: 100,
+      height: 30,
+      toJSON: () => ({}),
+    })
+  })
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  fireEvent.keyDown(input, { key: "PageDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(3)
+  fireEvent.keyDown(input, { key: "PageDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(6)
+  fireEvent.keyDown(input, { key: "PageUp" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(3)
+})
+
+it("retains original editor boundaries after opaque linked collection reordering", async () => {
+  const user = userEvent.setup()
+  let reverse!: () => void
+  const Opaque = () => {
+    const [reversed, setReversed] = useState(false)
+    reverse = () => setReversed(true)
+    return (reversed ? [...keyboardItems].reverse() : keyboardItems).map((item) => (
+      <ListBoxItem key={item.id} id={item.id} textValue={item.label}>
+        <KeyboardCapture />
+        {item.label}
+      </ListBoxItem>
+    ))
+  }
+  render(
+    <ComboBox aria-label="Query" items={keyboardItems} inputValue="" onInputChange={() => {}}>
+      <Opaque />
+    </ComboBox>,
+  )
+  await user.click(screen.getByRole("button", { name: "Show suggestions" }))
+  await screen.findByRole("option", { name: "Option 0" })
+  const input = screen.getByRole("combobox")
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  await act(reverse)
+  fireEvent.keyDown(input, { key: "Home" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(7)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(6)
+  fireEvent.keyDown(input, { key: "End" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+  fireEvent.keyDown(input, { key: "ArrowDown" })
+  expect(keyboardState.selectionManager.focusedKey).toBe(0)
+})

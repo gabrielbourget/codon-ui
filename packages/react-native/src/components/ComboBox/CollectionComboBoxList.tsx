@@ -50,6 +50,7 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeComboBoxListContext, NativeComboBoxStateContext } from "./collectionContext"
+import { createNativeComboBoxListMetrics, type TNativeComboBoxListMetrics } from "./navigation"
 import type { ComboBoxState } from "./state/types"
 
 export type TNativeComboBoxListRenderState = Readonly<{
@@ -84,6 +85,8 @@ type TEnvironment = Readonly<{
   scrollRef: RefObject<TNativeCollectionScrollHost | null>
   isOpen: boolean
   isCollectionPending: boolean
+  metrics?: RefObject<TNativeComboBoxListMetrics>
+  contentRef?: RefObject<View | null>
 }>
 export const NativeComboBoxListEnvironmentContext = createContext<TEnvironment | null>(null)
 export const NativeComboBoxListBehaviorContext = createContext<
@@ -153,6 +156,13 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
     [inputState, filtered],
   )
   const environment = useContext(NativeComboBoxListEnvironmentContext)
+  const metrics = environment?.metrics
+  useInsertionEffect(() => {
+    if (metrics) metrics.current = createNativeComboBoxListMetrics()
+    return () => {
+      if (metrics) metrics.current = { ...createNativeComboBoxListMetrics(), revision: metrics.current.revision + 1 }
+    }
+  }, [metrics])
   const renderer = useContext(NativeCollectionRendererContext)
   const { CollectionRoot } = renderer
   const fallbackScroll = useRef<TNativeCollectionScrollHost | null>(null)
@@ -339,9 +349,29 @@ export const NativeComboBoxList = forwardRef<View, TNativeComboBoxListProps>((au
                     ) : (
                       <ScrollView
                         ref={scroll as React.Ref<ScrollView>}
+                        innerViewRef={environment?.contentRef as RefObject<View>}
+                        testID={native.testID ? `${native.testID}-scroll` : undefined}
                         keyboardShouldPersistTaps="always"
                         keyboardDismissMode="none"
-                        onScroll={onScroll}
+                        onContentSizeChange={(width, height) => {
+                          if (metrics)
+                            metrics.current = {
+                              ...metrics.current,
+                              revision: metrics.current.revision + 1,
+                              content:
+                                Number.isFinite(width) && Number.isFinite(height) && width >= 0 && height >= 0
+                                  ? { width, height }
+                                  : null,
+                            }
+                        }}
+                        onScroll={(event) => {
+                          if (metrics)
+                            metrics.current = {
+                              ...metrics.current,
+                              revision: metrics.current.revision + 1,
+                            }
+                          onScroll?.(event)
+                        }}
                         style={{ maxHeight: 280 }}
                       >
                         {content}
