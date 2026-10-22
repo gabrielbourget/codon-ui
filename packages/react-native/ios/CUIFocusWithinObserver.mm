@@ -56,6 +56,7 @@
     [observer sample];
   });
 }
+- (void)synchronize { [self sample]; }
 - (void)sample
 {
   UIView *root = _root;

@@ -150,6 +150,12 @@ public final class CUIFocusViewManager extends ReactViewManager implements CUIFo
     else super.receiveCommand(view, command, args);
   }
 
+  @Override public Map<String, Object> getExportedCustomBubblingEventTypeConstants() {
+    Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomBubblingEventTypeConstants();
+    if (inherited != null) events.putAll(inherited);
+    Map<String, String> phases = new HashMap<>(); phases.put("bubbled", "onNativeFieldKey"); phases.put("captured", "onNativeFieldKeyCapture");
+    events.put("topNativeFieldKey", Collections.singletonMap("phasedRegistrationNames", phases)); return events;
+  }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>();
     Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();

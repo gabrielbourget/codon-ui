@@ -211,6 +211,7 @@ public final class CUIKeyboardScope extends ReactViewGroup {
   }
 
   @Override public boolean dispatchKeyEvent(KeyEvent event) {
+    if (CUIFieldInputBinding.inDefault(event)) return super.dispatchKeyEvent(event);
     if (!isAttachedToWindow() || !hasWindowFocus() || (event.getAction() != KeyEvent.ACTION_DOWN && event.getAction() != KeyEvent.ACTION_UP)) return super.dispatchKeyEvent(event);
     boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
     CUIMenuPointerPolicies.recordKey(this, event);
@@ -224,6 +225,19 @@ public final class CUIKeyboardScope extends ReactViewGroup {
         for (CUIKeyboardScope candidate : scopes) captured |= candidate.held.get(event.getKeyCode()) != null || candidate.localPolicyFor(event, focused) != null;
         long eventId = CUIInputWindow.nextObservedEvent(this);
         for (CUIKeyboardScope candidate : scopes) candidate.observeKey(event, focused, eventId, captured);
+      }
+      if (outer) {
+        CUIFieldInputBinding.Decision field = CUIFieldInputBinding.dispatch(this, event, getRootView().findFocus());
+        if (field != null) {
+          boolean invoked = false, handled = false;
+          String error = "";
+          KeyEvent previous = CUIFieldInputBinding.beginDefault(event);
+          try {
+            if (field.prevented) return true;
+            invoked = true; handled = super.dispatchKeyEvent(event); return handled;
+          } catch (RuntimeException | Error failure) { error = failure.toString(); throw failure; }
+          finally { CUIFieldInputBinding.endDefault(event, previous); field.finish(invoked, handled, error); }
+        }
       }
       if (outer && CUIEditorKeyboardBindings.dispatch(CUIInputWindow.scopes(this), event, getRootView().findFocus())) return true;
       return dispatchCapturedKey(event) || super.dispatchKeyEvent(event);

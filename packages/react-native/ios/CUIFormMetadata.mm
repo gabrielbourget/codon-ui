@@ -29,6 +29,8 @@ using namespace facebook::react;
   void (^_semanticRefresh)(void);
   id<CUIFieldSemanticContribution> _semanticContribution;
   BOOL _refreshingSemantics;
+  void (^_fieldInputRefresh)(void);
+  NSString *_fieldInputOwner;
   __weak UIView *_semanticAXTarget;
   NSString *_semanticAXIdentity;
 }
@@ -39,6 +41,7 @@ using namespace facebook::react;
     _lastMount = @"unmounted";
     self.semanticBinding = @"";
     self.ownedEditorBinding = @"";
+    self.fieldGroupBinding = @"";
     _applicationActive = UIApplication.sharedApplication.applicationState == UIApplicationStateActive;
     for (NSString *name in @[UIApplicationWillResignActiveNotification, UIApplicationDidBecomeActiveNotification,
         UISceneWillDeactivateNotification, UISceneDidActivateNotification, UIWindowDidBecomeKeyNotification, UIWindowDidResignKeyNotification])
@@ -75,6 +78,22 @@ using namespace facebook::react;
   @try { _semanticRefresh(); }
   @catch (NSException *retired) { [self setSemanticContribution:nil]; }
   @finally { _refreshingSemantics = NO; }
+}
+- (void)setFieldInputRefresh:(void (^)(void))refresh owner:(NSString *)owner
+{
+  _fieldInputRefresh = [refresh copy]; _fieldInputOwner = [owner copy];
+  if (_fieldInputRefresh) _fieldInputRefresh();
+}
+- (void)clearFieldInputRefreshForOwner:(NSString *)owner
+{
+  if (![_fieldInputOwner isEqual:owner]) return;
+  _fieldInputRefresh = nil; _fieldInputOwner = nil;
+}
+- (void)emitFieldInputRecord:(NSString *)record
+{
+  if (![self isFieldBinding] || !_eventEmitter) return;
+  CUIFieldBindingEventEmitter::OnNativeFieldInputRecord data{}; data.record = record.UTF8String ?: "";
+  std::static_pointer_cast<const CUIFieldBindingEventEmitter>(_eventEmitter)->onNativeFieldInputRecord(data);
 }
 - (void)resetSemanticAccessibilityFocus { _semanticAXTarget = nil; _semanticAXIdentity = nil; }
 - (void)requestSemanticAccessibilityFocus:(UIView *)target identity:(NSString *)identity returningToEditor:(BOOL)returning
@@ -171,6 +190,7 @@ using namespace facebook::react;
     CUIFormRootEventEmitter::OnNativeFormCommit value{}; fill(value);
     std::static_pointer_cast<const CUIFormRootEventEmitter>(_eventEmitter)->onNativeFormCommit(value);
   }
+  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
@@ -180,6 +200,7 @@ using namespace facebook::react;
 }
 - (void)prepareForRecycle
 {
+  _fieldInputRefresh = nil; _fieldInputOwner = nil;
   [self publish:NO surface:_surface mount:@"retired"];
   [self clearSemanticRefreshForOwner:_semanticOwner];
   [self resetSemanticAccessibilityFocus];
@@ -232,6 +253,7 @@ using namespace facebook::react;
   self.descriptorRevision = [NSString stringWithUTF8String:value.descriptorRevision.c_str()];
   self.originalTarget = value.editorTarget;
   self.ownedEditorBinding = [NSString stringWithUTF8String:value.ownedEditorBinding.c_str()];
+  self.fieldGroupBinding = [NSString stringWithUTF8String:value.fieldGroupBinding.c_str()];
   self.semanticBinding = [NSString stringWithUTF8String:value.semanticBinding.c_str()];
   [super updateProps:props oldProps:oldProps];
 }

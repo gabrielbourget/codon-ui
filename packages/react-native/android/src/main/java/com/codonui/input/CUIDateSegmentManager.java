@@ -45,6 +45,11 @@ public final class CUIDateSegmentManager extends ReactViewManager implements CUI
   @Override public void receiveCommand(ReactViewGroup view,String command,ReadableArray args) {
     if("requestSegmentFocus".equals(command)||"requestSegmentBlur".equals(command)) delegate.receiveCommand(view,command,args); else super.receiveCommand(view,command,args);
   }
+  @Override public Map<String,Object> getExportedCustomBubblingEventTypeConstants() {
+    Map<String,Object> events=new HashMap<>();Map<String,Object> parent=super.getExportedCustomBubblingEventTypeConstants();if(parent!=null)events.putAll(parent);
+    Map<String,String> phases=new HashMap<>();phases.put("bubbled","onNativeFieldKey");phases.put("captured","onNativeFieldKeyCapture");
+    events.put("topNativeFieldKey",Collections.singletonMap("phasedRegistrationNames",phases));return events;
+  }
   @Override public Map<String,Object> getExportedCustomDirectEventTypeConstants() {
     Map<String,Object> events=new HashMap<>();Map<String,Object> parent=super.getExportedCustomDirectEventTypeConstants();if(parent!=null)events.putAll(parent);
     events.put("topNativeSegmentInput",Collections.singletonMap("registrationName","onNativeSegmentInput"));return events;

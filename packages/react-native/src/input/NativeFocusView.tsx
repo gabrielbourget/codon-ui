@@ -16,6 +16,7 @@ import { NativeCollectionSemanticsContext } from "../collection/semantics"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
+import { NativeFieldInputContext, receiveNativeFieldKey, type TNativeFieldKeyEvent } from "./fieldInput"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { NativeFocusWithinSession, type TNativeFocusWithinEvent } from "./focusWithin"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
@@ -48,6 +49,7 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewRef,
   TNativeFocusViewProps & {
     nativePressable?: boolean
+    nativeFieldGroupHandler?: (event: TNativeFieldKeyEvent, target: number) => void
     nativeTabStop?: boolean
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
@@ -81,6 +83,7 @@ export const NativeFocusHost = forwardRef<
   const {
     onKeyDown,
     onKeyUp,
+    nativeFieldGroupHandler,
     onFocus,
     onBlur,
     focusable,
@@ -101,6 +104,7 @@ export const NativeFocusHost = forwardRef<
     ...rest
   } = props
   const ownerId = useId()
+  const fieldInput = useContext(NativeFieldInputContext)
   const collectionBinding = useContext(NativeCollectionItemBindingContext)
   const collectionSemantics = useContext(NativeCollectionSemanticsContext)
   const [geometryBinding] = useState(() => `motion-geometry:${++motionGeometryBindings}`)
@@ -367,6 +371,22 @@ export const NativeFocusHost = forwardRef<
           if (event.nativeEvent.phase === "down") {
             if (keyboardFocusable) onKeyDown?.(event)
           } else onKeyUp?.(event)
+        }}
+        onNativeFieldKey={(event) => {
+          const original = nativeTarget.current
+          if (!attached.current || !original || !isKeyboardEvent(event)) return
+          const target = findNodeHandle(original)
+          if (target == null) return
+          if (nativeFieldGroupHandler) nativeFieldGroupHandler(event as TNativeFieldKeyEvent, target)
+          else if (fieldInput)
+            receiveNativeFieldKey(fieldInput, event as TNativeFieldKeyEvent, {
+              target,
+              group: false,
+              run: () => {
+                if (event.nativeEvent.phase === "down") onKeyDown?.(event)
+                else onKeyUp?.(event)
+              },
+            })
         }}
         onNativeFocusChange={(event) => {
           if (!attached.current || event.nativeEvent.ownerId !== ownerId) return

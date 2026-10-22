@@ -19,7 +19,7 @@ public final class CUIFieldBindingManager extends ReactViewManager implements CU
   private final ViewManagerDelegate<ReactViewGroup> inherited = new ViewManagerPropertyUpdater.GenericViewManagerDelegate<>(this);
   private final CUIFieldBindingManagerDelegate<ReactViewGroup, CUIFieldBindingManager> delegate = new CUIFieldBindingManagerDelegate<>(this) {
     @Override public void setProperty(ReactViewGroup view, String name, Object value) {
-      if ("ownerId".equals(name) || "descriptorId".equals(name) || "descriptorRevision".equals(name) || "editorTarget".equals(name) || "hasFormAssociation".equals(name) || "formId".equals(name) || "semanticBinding".equals(name) || "ownedEditorBinding".equals(name)) super.setProperty(view, name, value);
+      if ("ownerId".equals(name) || "descriptorId".equals(name) || "descriptorRevision".equals(name) || "editorTarget".equals(name) || "hasFormAssociation".equals(name) || "formId".equals(name) || "semanticBinding".equals(name) || "ownedEditorBinding".equals(name) || "fieldGroupBinding".equals(name)) super.setProperty(view, name, value);
       else inherited.setProperty(view, name, value);
     }
   };
@@ -33,13 +33,15 @@ public final class CUIFieldBindingManager extends ReactViewManager implements CU
   @Override @ReactProp(name = "hasFormAssociation") public void setHasFormAssociation(ReactViewGroup view, boolean value) {}
   @Override @ReactProp(name = "formId") public void setFormId(ReactViewGroup view, String value) {}
   @Override @ReactProp(name = "semanticBinding") public void setSemanticBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).setSemanticBinding(value == null ? "" : value); }
+  @Override @ReactProp(name = "fieldGroupBinding") public void setFieldGroupBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).fieldGroupBinding = value == null ? "" : value; }
   @Override @ReactProp(name = "ownedEditorBinding") public void setOwnedEditorBinding(ReactViewGroup view, String value) { ((CUIFormMetadataView)view).ownedEditorBinding = value == null ? "" : value; }
   @Override protected void onAfterUpdateTransaction(ReactViewGroup view) { super.onAfterUpdateTransaction(view); ((CUICollectionNode)view).enforceMetadata(); }
   @Override public void onDropViewInstance(ReactViewGroup view) { ((CUIFormMetadataView)view).retire(); super.onDropViewInstance(view); }
   @Override public Map<String, Object> getExportedCustomDirectEventTypeConstants() {
     Map<String, Object> events = new HashMap<>(); Map<String, Object> inherited = super.getExportedCustomDirectEventTypeConstants();
     if (inherited != null) events.putAll(inherited);
-    events.put("topNativeFormCommit", Collections.singletonMap("registrationName", "onNativeFormCommit")); return events;
+    events.put("topNativeFormCommit", Collections.singletonMap("registrationName", "onNativeFormCommit"));
+    events.put("topNativeFieldInputRecord", Collections.singletonMap("registrationName", "onNativeFieldInputRecord")); return events;
   }
 
 }

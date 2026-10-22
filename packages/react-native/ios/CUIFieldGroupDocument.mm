@@ -2,6 +2,7 @@
 #import "CUIFormMetadata.h"
 #import "CUIOwnedDateField.h"
 #import "CUIInputWindow.h"
+#import "CUIFocusView.h"
 #import <React/RCTAssert.h>
 #import <React/RCTTextInputComponentView.h>
 #include <cmath>
@@ -25,6 +26,13 @@ static BOOL CUIGroupVisible(UIView *view, UIWindow *window)
   for (UIView *current = view; current; current = current.superview)
     if (current.hidden || current.alpha <= 0 || !current.userInteractionEnabled) return NO;
   return YES;
+}
+BOOL CUIFieldGroupOriginalMatches(RCTSurfacePresenter *presenter, NSDictionary *row, UIView *component, UIView *editor)
+{
+  RCTAssertMainQueue();
+  return component && editor && component == [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[row[@"target"] integerValue]] &&
+    [CUIGroupInstance(component) isEqual:row[@"nativeInstance"]] && [CUIGroupInstance(editor) isEqual:row[@"editorInstance"]] &&
+    (![component isKindOfClass:RCTTextInputComponentView.class] || [(RCTTextInputComponentView *)component accessibilityElement] == editor);
 }
 NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictionary *document)
 {
@@ -81,6 +89,9 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
     if (component.window != outer.window || ![component isDescendantOfView:outer])
       CUIGroupFail(@"field-group-original-window-or-containment-retired");
     UIView *original = component;
+    NSString *hostOwner = [component isKindOfClass:CUIDateSegment.class] ? [(CUIDateSegment *)component fieldOwnerId] :
+      [component isKindOfClass:CUIFocusView.class] ? [(CUIFocusView *)component fieldInputOwnerId] : nil;
+    if (policy[@"ownerId"] && ![policy[@"ownerId"] isEqual:hostOwner]) CUIGroupFail(@"field-group-original-host-owner-retired");
     if (core) {
       if (![component isKindOfClass:RCTTextInputComponentView.class]) CUIGroupFail(@"field-group-original-editor-class-retired");
       id element = [(RCTTextInputComponentView *)component accessibilityElement];
@@ -107,6 +118,7 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
       @"tabStop":policy ? policy[@"tabStop"] : @YES, @"readOnly":@(readOnly),
       @"placeholder":policy ? policy[@"placeholder"] : @NO, @"groups":node[@"groups"],
       @"rect":@{@"x":@(rectangle.origin.x), @"y":@(rectangle.origin.y), @"width":@(rectangle.size.width), @"height":@(rectangle.size.height)}} mutableCopy];
+    if (hostOwner) row[@"hostOwnerId"] = hostOwner;
     if ([original isKindOfClass:CUIDateSegment.class]) row[@"segment"] = [(CUIDateSegment *)original formSegmentIdentity] ?: NSNull.null;
     [originals addObject:row]; [components addObject:component]; [backedOriginals addObject:original]; [targets addObject:node[@"target"]];
   }

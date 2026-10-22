@@ -1,6 +1,7 @@
 #import <CodonNativeInputSpec/CodonNativeInputSpec.h>
 #import "CUIFormDocumentInspection.h"
 #import "CUIFieldGroupDocument.h"
+#import "CUIFieldInputBinding.h"
 #import "CUIFormMetadata.h"
 #import "CUIFormFieldFocus.h"
 #import "CUIFieldSemantics.h"
@@ -58,6 +59,8 @@ static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictio
   NSString *_semanticModuleId;
   NSDictionary *_semanticDocumentStamp, *_semanticDocument;
   NSDictionary<NSNumber *, NSDictionary *> *_semanticNodes, *_semanticFields;
+  NSMapTable<CUIFieldBinding *, CUIFieldInputBinding *> *_fieldInputs;
+  NSMapTable<CUIFieldBinding *, NSString *> *_fieldInputOwners;
 }
 RCT_EXPORT_MODULE(CUIFormDocument)
 + (BOOL)requiresMainQueueSetup { return NO; }
@@ -66,6 +69,7 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   if (self = [super init]) {
     _valid.store(true); _session = std::make_unique<codon::form::NativeFormDocumentSession>([NSUUID.UUID.UUIDString UTF8String]);
     _semanticModuleId = NSUUID.UUID.UUIDString; _semanticHosts = [NSMapTable weakToStrongObjectsMapTable];
+    _fieldInputs = [NSMapTable weakToStrongObjectsMapTable]; _fieldInputOwners = [NSMapTable weakToStrongObjectsMapTable];
   }
   return self;
 }
@@ -76,6 +80,10 @@ RCT_EXPORT_MODULE(CUIFormDocument)
 {
   _valid.store(false);
   dispatch_async(dispatch_get_main_queue(), ^{
+    for (CUIFieldBinding *metadata in _fieldInputs.keyEnumerator) {
+      [[_fieldInputs objectForKey:metadata] retire]; [metadata clearFieldInputRefreshForOwner:[_fieldInputOwners objectForKey:metadata]];
+    }
+    [_fieldInputs removeAllObjects]; [_fieldInputOwners removeAllObjects];
     for (CUIFormMetadataView *metadata in _semanticHosts.keyEnumerator)
       [metadata clearSemanticRefreshForOwner:[_semanticHosts objectForKey:metadata]];
     [_semanticHosts removeAllObjects];
@@ -233,6 +241,72 @@ RCT_EXPORT_MODULE(CUIFormDocument)
 - (void)getSnapshot:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
   [self performRequest:encoded focus:NO resolve:resolve reject:reject];
+}
+- (NSDictionary *)fieldInputSnapshot:(CUIFieldBinding *)metadata
+{
+  if (!_valid.load() || !metadata || ![(id)_presenter isKindOfClass:RCTSurfacePresenter.class])
+    @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-module-retired" userInfo:nil];
+  RCTSurfacePresenter *presenter = (id)_presenter;
+  auto manager = presenter.scheduler.uiManager;
+  if (!manager) @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-Fabric-unavailable" userInfo:nil];
+  NSDictionary *binding = [NSJSONSerialization JSONObjectWithData:[metadata.fieldGroupBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+  NSDictionary *mount = [metadata formMountSnapshot];
+  if (!binding || !mount) @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-committed-binding-unavailable" userInfo:nil];
+  NSDictionary *request = @{@"outerTarget":binding[@"outerTarget"] ?: NSNull.null, @"inputTarget":binding[@"inputTarget"] ?: NSNull.null, @"mount":mount};
+  NSData *requestBytes = [NSJSONSerialization dataWithJSONObject:request options:NSJSONWritingSortedKeys error:nil];
+  const std::string group([[[NSString alloc] initWithData:requestBytes encoding:NSUTF8StringEncoding] UTF8String]);
+  const auto check = [&] { if (!_valid.load()) throw std::runtime_error("field-input-module-retired"); };
+  const auto result = codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group);
+  NSMutableDictionary *document = [[NSJSONSerialization JSONObjectWithData:[@(result.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nil] mutableCopy];
+  document[@"encodedDocument"] = @(result.c_str());
+  document[@"fieldGroupSnapshot"] = CUIReadFieldGroupDocument(presenter, document);
+  if (result != codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group))
+    @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-document-retired-during-read" userInfo:nil];
+  return document;
+}
+- (void)bindFieldInput:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  RCTAssertMainQueue();
+  @try {
+    try {
+      NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+      NSDictionary *mount = request[@"mount"]; NSString *nonce = request[@"requestId"];
+      if (![mount isKindOfClass:NSDictionary.class] || ![nonce isKindOfClass:NSString.class] || !nonce.length || !_valid.load())
+        throw std::invalid_argument("field-input-bind-request-invalid");
+      RCTSurfacePresenter *presenter = (id)_presenter;
+      CUIFieldBinding *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"target"] integerValue]];
+      if (![metadata isKindOfClass:CUIFieldBinding.class] || ![metadata originalForMountSnapshot:mount] ||
+          ![metadata.fieldGroupBinding isEqual:request[@"fieldGroupBinding"]]) throw std::invalid_argument("field-input-bind-original-retired");
+      [self fieldInputSnapshot:metadata];
+      [[_fieldInputs objectForKey:metadata] retire];
+      __weak CUIFormDocument *weakSelf = self; __weak CUIFieldBinding *weakMetadata = metadata;
+      CUIFieldInputBinding *binding = [[CUIFieldInputBinding alloc] initWithMetadata:metadata presenter:presenter manager:presenter.scheduler.uiManager snapshot:^NSDictionary * {
+        CUIFormDocument *module = weakSelf; CUIFieldBinding *original = weakMetadata;
+        return module && original ? [module fieldInputSnapshot:original] : nil;
+      }];
+      NSString *owner = [NSString stringWithFormat:@"%@:input:%@", _semanticModuleId, nonce];
+      [_fieldInputs setObject:binding forKey:metadata]; [_fieldInputOwners setObject:owner forKey:metadata];
+      __weak CUIFieldInputBinding *weakBinding = binding;
+      [metadata setFieldInputRefresh:^{ [weakBinding refresh]; } owner:owner];
+      NSDictionary *response = @{@"requestId":nonce, @"ownerToken":owner, @"metadataTarget":@(metadata.tag)};
+      resolve([[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding]);
+    } catch (const std::exception &error) { reject(@"E_CUI_FIELD_INPUT", @(error.what()), nil); }
+  } @catch (NSException *error) { reject(@"E_CUI_FIELD_INPUT", error.reason, nil); }
+}
+- (void)unbindFieldInput:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
+{
+  RCTAssertMainQueue();
+  @try {
+    NSDictionary *request = [NSJSONSerialization JSONObjectWithData:[encoded dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+    CUIFieldBinding *metadata = (id)[(RCTSurfacePresenter *)_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[request[@"metadataTarget"] integerValue]];
+    NSString *owner = request[@"ownerToken"];
+    BOOL current = [metadata isKindOfClass:CUIFieldBinding.class] && [owner isKindOfClass:NSString.class] && [[_fieldInputOwners objectForKey:metadata] isEqual:owner];
+    if (current) {
+      [[_fieldInputs objectForKey:metadata] retire]; [metadata clearFieldInputRefreshForOwner:owner];
+      [_fieldInputs removeObjectForKey:metadata]; [_fieldInputOwners removeObjectForKey:metadata];
+    }
+    resolve(@(current));
+  } @catch (NSException *error) { reject(@"E_CUI_FIELD_INPUT", error.reason, nil); }
 }
 - (void)focusField:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {

@@ -31,6 +31,9 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   private int surface = -1;
   private long epoch, sequence, mountBatch;
   String ownedEditorBinding = "";
+  String fieldGroupBinding = "";
+  private Runnable fieldInputRefresh;
+  private String fieldInputOwner;
   private JSONObject mountSnapshot;
   private String lastMount = "unmounted";
   private boolean observing, resumed, lastActive;
@@ -72,6 +75,22 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     catch (RuntimeException retired) { setSemanticContribution(null); }
     finally { refreshingSemantics = false; }
   }
+  void setFieldInputRefresh(Runnable refresh, String owner) { fieldInputRefresh = refresh; fieldInputOwner = owner; if (refresh != null) refresh.run(); }
+  void clearFieldInputRefresh(String owner) { if (owner.equals(fieldInputOwner)) { fieldInputRefresh = null; fieldInputOwner = null; } }
+  void emitFieldInputRecord(String record) {
+    if (!fieldBinding || !(getContext() instanceof ReactContext)) return;
+    EventDispatcher dispatcher = UIManagerHelper.getEventDispatcherForReactTag((ReactContext)getContext(), getId());
+    if (dispatcher == null) return;
+    WritableMap data = Arguments.createMap(); data.putString("record", record);
+    dispatcher.dispatchEvent(new FieldInputRecordEvent(UIManagerHelper.getSurfaceId(this), getId(), data));
+  }
+  private static final class FieldInputRecordEvent extends Event<FieldInputRecordEvent> {
+    private final WritableMap data;
+    FieldInputRecordEvent(int surface, int tag, WritableMap data) { super(surface, tag); this.data = data; }
+    @Override public String getEventName() { return "topNativeFieldInputRecord"; }
+    @Override public boolean canCoalesce() { return false; }
+    @Override protected WritableMap getEventData() { return data; }
+  }
 
   CUIFormMetadataView(Context context, boolean fieldBinding) { super(context); this.fieldBinding = fieldBinding; }
   boolean isFieldBinding() { return fieldBinding; }
@@ -101,11 +120,12 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow();
   }
   void retire() {
+    fieldInputRefresh = null; fieldInputOwner = null;
     setSemanticContribution(null); semanticRefresh = null; semanticOwner = null;
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
-    semanticBinding = ""; ownedEditorBinding = "";
+    semanticBinding = ""; ownedEditorBinding = ""; fieldGroupBinding = "";
     resetSemanticAccessibilityFocus();
   }
 
@@ -171,6 +191,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     data.putBoolean("metadataOnly", metadataOnly); data.putString("originalClass", originalClass); data.putString("error", error);
     data.putBoolean("active", active);
     dispatcher.dispatchEvent(new CommitEvent(surface, getId(), data));
+    if (fieldInputRefresh != null) fieldInputRefresh.run();
   }
   @Override public void didMountItems(UIManager manager) { if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); refreshSemantics(); } }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
