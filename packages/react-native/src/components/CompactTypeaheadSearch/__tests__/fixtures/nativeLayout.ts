@@ -1,7 +1,11 @@
-import { act, fireEvent, screen } from "@testing-library/react-native"
+import { screen, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
-import { findNodeHandle, type View } from "react-native"
+import { findNodeHandle, type TextInput, type View } from "react-native"
 
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+} from "../../../../collection/__tests__/nativeReceipts"
 import * as focusRegistry from "../../../../input/focus"
 
 export const row = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
@@ -27,8 +31,8 @@ export const installCompactNativeLayout = () => {
     if (!actual) throw new Error(`Missing actual RN preset ref for ${id}`)
     return actual
   }
-  const acknowledge = async (active = true, epoch = 1) => {
-    for (const ready of [false, true]) {
+  const acknowledge = async (active = true, epoch = 1, resetReady = true) => {
+    for (const ready of resetReady ? [false, true] : [true]) {
       const host = row("host").props
       await act(() =>
         host.onNativeScopeStatus({
@@ -62,5 +66,90 @@ export const installCompactNativeLayout = () => {
     await advance()
     await acknowledge()
   }
-  return { hostRef, target, acknowledge, ready }
+  const within = async (id: string, focusedId: string | null, sequence = 1) => {
+    const props = row(id).props
+    const scope = row("host").props
+    await act(() =>
+      props.onNativeFocusWithin?.({
+        nativeEvent: {
+          ownerId: props.ownerId,
+          bindingId: props.nativeFocusWithinBinding,
+          target: findNodeHandle(target(id)),
+          surfaceId: 11,
+          windowId: "compact-window",
+          scopeOwnerId: scope.ownerId,
+          scopeEpoch: 1,
+          sequence,
+          attached: true,
+          active: true,
+          within: focusedId !== null,
+          focusedTarget: focusedId ? findNodeHandle(target(focusedId)) : 0,
+          textInputFocused: false,
+          origin: "pointer",
+          observedAt: sequence,
+        },
+      }),
+    )
+  }
+  const observedKey = async (editor: TextInput, key: string) => {
+    for (let step = 0; step < 2; step++) {
+      const host = row("host").props
+      await act(() =>
+        host.onNativeObservationStatus({
+          nativeEvent: {
+            ownerId: host.ownerId,
+            windowId: "compact-window",
+            epoch: 1,
+            observationRevision: host.observationRevision,
+            ready: true,
+            windowActive: true,
+          },
+        }),
+      )
+    }
+    const host = row("host").props
+    const ids = host.observations
+      .filter((entry: { targetTag: number }) => entry.targetTag === findNodeHandle(editor))
+      .map((entry: { id: string }) => entry.id)
+    expect(ids.length).toBeGreaterThan(0)
+    const preventDefault = jest.fn()
+    await act(() =>
+      host.onNativeObservedKey({
+        preventDefault,
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "compact-window",
+          epoch: 1,
+          observationRevision: host.observationRevision,
+          eventId: 1,
+          observerIds: ids,
+          target: findNodeHandle(hostRef.current),
+          focusedTarget: findNodeHandle(editor),
+          key,
+          code: key,
+          nativeCode: 21,
+          legacyKeyCode: 37,
+          location: 0,
+          repeat: false,
+          cancelled: false,
+          isComposing: false,
+          shiftKey: false,
+          altKey: false,
+          ctrlKey: false,
+          metaKey: false,
+          capsLock: false,
+          nativeModifierData: "0",
+          defaultCaptured: false,
+          timestamp: 100,
+        },
+      }),
+    )
+    expect(preventDefault).not.toHaveBeenCalled()
+  }
+  return { hostRef, target, acknowledge, ready, within, observedKey }
+}
+
+export const pressCompact = async (target: Parameters<ReturnType<typeof userEvent.setup>["press"]>[0]) => {
+  await userEvent.setup().press(target)
+  await act(() => {})
 }

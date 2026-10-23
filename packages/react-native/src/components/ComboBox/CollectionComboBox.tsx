@@ -361,7 +361,7 @@ const Receiver = <T extends object>({
           const owner = current.current
           if (
             !live.current ||
-            !owner.state.isOpen ||
+            !(owner.props.popoverIsOpen ?? owner.state.isOpen) ||
             owner.props.isDisabled ||
             owner.props.isReadOnly ||
             !admitted() ||
@@ -530,7 +530,7 @@ const Receiver = <T extends object>({
   const pointerSelection = useNativeComboBoxPointerSelection({
     input,
     enabled: !props.isDisabled && !props.isReadOnly,
-    isOpen: state.isOpen,
+    isOpen: props.popoverIsOpen ?? state.isOpen,
     query: state.inputValue,
   })
   const triggerRef = useNativeCollectionRefs(buttonProps.ref, pointerSelection.triggerRef)
@@ -730,7 +730,7 @@ const Receiver = <T extends object>({
   const [popupProps, popupRef] = useNativeContextProps(
     {
       slot: undefined,
-      isOpen: state.isOpen,
+      isOpen: props.popoverIsOpen ?? state.isOpen,
       onOpenChange: (open: boolean) => {
         if (!open) state.close()
       },
@@ -793,12 +793,16 @@ const Receiver = <T extends object>({
                 >
                   <NativeComboBoxOverlayTriggerStateContext.Provider value={state}>
                     <NativeComboBoxGroupContext.Provider
-                      value={{ isDisabled: !!props.isDisabled, isInvalid: state.displayValidation.isInvalid }}
+                      value={{
+                        ref: groupRef,
+                        isDisabled: !!props.isDisabled,
+                        isInvalid: state.displayValidation.isInvalid,
+                      }}
                     >
                       <NativeComboBoxListEnvironmentContext.Provider
                         value={{
                           scrollRef: scroll,
-                          isOpen: state.isOpen,
+                          isOpen: props.popoverIsOpen ?? state.isOpen,
                           isCollectionPending,
                           metrics: listMetrics,
                           contentRef: scrollContent,
@@ -856,26 +860,32 @@ const Receiver = <T extends object>({
                                             onKey={onKey}
                                             observe={observeKey}
                                           />
-                                          <NativeComboBoxGroup {...nativeGroupProps} ref={groupRef}>
-                                            <NativeComboBoxInput />
-                                            {field.placement === "input" && field.metadata}
-                                            <NativeCollectionComboBoxTrigger
-                                              owner={props}
-                                              foreground={styles.foreground}
-                                            />
-                                          </NativeComboBoxGroup>
-                                          <NativeComboBoxPopover>
-                                            <NativeComboBoxList
-                                              nativeID={fieldIds.list}
-                                              testID={`${identity}-list`}
-                                              renderEmptyState={() => (
-                                                <PlaceholderText align="center" testID={`${identity}-empty`}>
-                                                  {props.emptyListMessage ?? "No items remaining to select"}
-                                                </PlaceholderText>
-                                              )}
-                                            />
-                                          </NativeComboBoxPopover>
-                                          {field.placement === "root" && field.metadata}
+                                          {props.renderContent ? (
+                                            props.renderContent(field)
+                                          ) : (
+                                            <>
+                                              <NativeComboBoxGroup {...nativeGroupProps}>
+                                                <NativeComboBoxInput />
+                                                {field.placement === "input" && field.metadata}
+                                                <NativeCollectionComboBoxTrigger
+                                                  owner={props}
+                                                  foreground={styles.foreground}
+                                                />
+                                              </NativeComboBoxGroup>
+                                              <NativeComboBoxPopover>
+                                                <NativeComboBoxList
+                                                  nativeID={fieldIds.list}
+                                                  testID={`${identity}-list`}
+                                                  renderEmptyState={() => (
+                                                    <PlaceholderText align="center" testID={`${identity}-empty`}>
+                                                      {props.emptyListMessage ?? "No items remaining to select"}
+                                                    </PlaceholderText>
+                                                  )}
+                                                />
+                                              </NativeComboBoxPopover>
+                                              {field.placement === "root" && field.metadata}
+                                            </>
+                                          )}
                                         </>
                                       ),
                                     })}

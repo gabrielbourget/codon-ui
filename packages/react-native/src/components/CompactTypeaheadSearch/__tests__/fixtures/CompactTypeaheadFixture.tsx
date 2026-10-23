@@ -1,7 +1,7 @@
 import { useState, type Ref } from "react"
 import { ScrollView, View } from "react-native"
 
-import { Button, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
+import { Button, NativeFloatingLayerHost, NativeFocusView, NativeThemeProvider, Text } from "../../../.."
 import { CompactTypeaheadSearch } from "../../CompactTypeaheadSearch"
 import type { TNativeCompactTypeaheadKey } from "../../types"
 
@@ -61,6 +61,19 @@ export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) =>
             isOpen={open}
             minimumInputLength={minimum}
             isLoading={loading}
+            SearchIcon={
+              custom ? (
+                <NativeFocusView
+                  testID="compact-search-descendant"
+                  focusable
+                  accessible
+                  accessibilityLabel="Custom search detail"
+                  onFocus={() => record("search-child:focus")}
+                >
+                  <Text>Find</Text>
+                </NativeFocusView>
+              ) : undefined
+            }
             rtl={rtl}
             getItemKey={(item) => item.id}
             onInputChange={(text) => {
