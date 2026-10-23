@@ -4,6 +4,7 @@
 #include "FieldInputMount.h"
 #include "FieldInputRecords.h"
 #include "FieldInputOriginalEvents.h"
+#include "FieldInputNativeOperation.h"
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/JSIDynamic.h>
 #include <react/renderer/core/EventEmitter.h>
@@ -71,7 +72,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
     });
     manager->addEventListener(listener);
     TResult result;
-    try { result = perform(); }
+    try { FieldInputNativeOperation operation(manager.get()); result = perform(); }
     catch (const std::exception &error) { result.error = error.what(); }
     catch (...) { result.error = "field-input-original-native-operation-threw"; }
     manager->removeEventListener(listener);
@@ -140,7 +141,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
       const std::shared_ptr<facebook::react::UIManager> &manager,
       const std::shared_ptr<const facebook::react::ShadowNode> &original,
       const std::string &type, folly::dynamic payload, facebook::react::HighResTimeStamp timestamp,
-      std::function<bool()> currentDocument) {
+      std::function<bool()> currentDocument, facebook::react::SharedEventPayload originalPayload = nullptr) {
     using namespace facebook::react;
     {
       std::lock_guard lock(mutex_);
@@ -148,16 +149,17 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
     }
     if (!ticket || !manager || !original || original->getTag() != ticket->identity.target ||
         original->getSurfaceId() != ticket->identity.surfaceId || !original->getEventEmitter() ||
-        (type != "nativeFieldKey" && type != "nativeFieldPointer") || !payload.isObject()) return false;
+        (type != "nativeFieldKey" && type != "nativeFieldPointer" && type != "topNativeSegmentInput") || !payload.isObject()) return false;
     const auto scheduler = fieldInputRuntimeScheduler(*manager);
-    if (!scheduler) return false;
+    if (!scheduler || ((type == "topNativeSegmentInput") != (originalPayload != nullptr)) ||
+        (originalPayload && ticket->phase != "input")) return false;
     std::weak_ptr<FieldInputRuntime> weakSelf = shared_from_this();
     std::weak_ptr<FieldInputDispatchFrames::Ticket> weakTicket = ticket;
     std::weak_ptr<UIManager> weakManager = manager;
     std::weak_ptr<const ShadowNode> weakOriginal = original;
     const auto eventType = EventEmitter::normalizeEventType(type);
     scheduler->scheduleWork([weakSelf, weakTicket, weakManager, weakOriginal, eventType,
-        payload = std::move(payload), timestamp, currentDocument = std::move(currentDocument)](facebook::jsi::Runtime &runtime) {
+        payload = std::move(payload), originalPayload = std::move(originalPayload), timestamp, currentDocument = std::move(currentDocument)](facebook::jsi::Runtime &runtime) {
       const auto state = weakSelf.lock();
       const auto frame = weakTicket.lock();
       if (!state || !frame || !state->live_.load() || !state->frames.startDelivery(frame)) return;
@@ -185,8 +187,16 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
                   state->live_.load() && currentDocument()) {
                 // First delivery of this original native record, using the
                 // original Fabric target and React's own event handler.
-                ValueFactoryEventPayload eventPayload([&payload](facebook::jsi::Runtime &runtime) {
-                  return facebook::jsi::valueFromDynamic(runtime, payload);
+                ValueFactoryEventPayload eventPayload([&payload, &originalPayload, &state, &frame](facebook::jsi::Runtime &runtime) {
+                  if (!originalPayload) return facebook::jsi::valueFromDynamic(runtime, payload);
+                  auto value = originalPayload->asJSIValue(runtime);
+                  if (!value.isObject()) throw std::runtime_error("field-input-original-payload-invalid");
+                  state->records.append(folly::toJson(folly::dynamic::object("kind", "original-input")
+                    ("token", frame->token)("eventId", frame->eventId)("payload", facebook::jsi::dynamicFromValue(runtime, value))));
+                  auto object = value.asObject(runtime);
+                  if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
+                  object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, payload.at("fieldDispatch").asString()));
+                  return value;
                 });
                 binding->dispatchEvent(runtime, target.get(), eventType, ReactEventPriority::Discrete, eventPayload, timestamp);
                 failed = false;

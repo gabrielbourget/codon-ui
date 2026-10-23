@@ -252,3 +252,26 @@ it.each(["segmentDisabled", "segmentReadOnly"] as const)(
     expect(ref.current).toBe(original)
   },
 )
+
+it("drops an admitted private input after its field context is removed, preserving ordinary standalone input", async () => {
+  const callback = jest.fn()
+  await render(<NativeDateSegment {...props} testID="segment" onNativeSegmentInput={callback} />)
+  await send()
+  callback.mockClear()
+  const original = {
+    nativeEvent: {
+      ...packet({
+        bindingRevision: screen.getByTestId("segment").props.bindingRevision,
+        kind: "insert",
+        focused: true,
+        sequence: 2,
+      }),
+      fieldDispatch: "retired-private-packet",
+    },
+  } as unknown as TNativeDateSegmentInput
+  await act(() => screen.getByTestId("segment").props.onNativeSegmentInput(original))
+  expect(callback).not.toHaveBeenCalled()
+  const ordinary = await send({ kind: "insert", focused: true, sequence: 3 })
+  expect(callback).toHaveBeenCalledTimes(1)
+  expect(callback).toHaveBeenCalledWith(ordinary)
+})

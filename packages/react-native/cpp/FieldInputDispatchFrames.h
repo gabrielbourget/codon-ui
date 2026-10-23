@@ -102,7 +102,7 @@ class FieldInputDispatchFrames final {
     std::lock_guard lock(mutex_);
     if (!live_ || serial_ >= 9007199254740991ULL || !identity.valid() || eventId <= 0 || eventId > 9007199254740991LL ||
         (phase != "down" && phase != "up" && phase != "cancel" && phase != "pointer-start" &&
-          phase != "pointer-end" && phase != "pointer-cancel") || timeout.count() <= 0 || timeout.count() > 1000)
+          phase != "pointer-end" && phase != "pointer-cancel" && phase != "input") || timeout.count() <= 0 || timeout.count() > 1000)
       return nullptr;
     if (scopes.empty()) scopes.push_back(identity);
     bool hasOriginal = false;
@@ -134,6 +134,7 @@ class FieldInputDispatchFrames final {
     if (!current(ticket) || ticket->token != token || !ticket->started || ticket->returned || ticket->acknowledged ||
         ticket->identity != identity || ticket->eventId != eventId || ticket->phase != phase ||
         Clock::now() >= ticket->deadline) return false;
+    if (phase == "input" && preventDefault) return false;
     const bool cancel = phase == "cancel" || phase == "pointer-cancel";
     if (focus && (cancel || !ticket->scopeFor(focus->groupTarget) ||
         (focus->kind != "first" && focus->kind != "next" && focus->kind != "previous" &&

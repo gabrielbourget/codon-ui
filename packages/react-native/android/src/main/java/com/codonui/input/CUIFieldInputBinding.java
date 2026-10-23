@@ -29,6 +29,8 @@ final class CUIFieldInputBinding {
   private final HashSet<Integer> consumed = new HashSet<>();
   private static native String nativeDispatchFieldKey(FabricUIManager manager, CUIFieldInputBinding binding,
     String document, String snapshot, String key, String declarations, double epoch);
+  private static native String nativeEmitOwnedInput(FabricUIManager manager, CUIFieldInputBinding binding,
+    String document, String snapshot, String input, String declarations, double epoch, Runnable emit);
   private static native void nativeRecordFieldInput(String lease, String encoded);
   private static native void nativeRetireBinding(String lease, String owner, String binding);
 
@@ -108,6 +110,44 @@ final class CUIFieldInputBinding {
         owner.emitRecord(record.toString());
       }
       catch (Exception failure) { owner.record("failure", String.valueOf(failure.getMessage())); }
+    }
+  }
+  static void emitOwnedInput(View original, Runnable emit) {
+    UiThreadUtil.assertOnUiThread();
+    CUIFieldInputBinding selected = null;
+    JSONArray declarations = new JSONArray();
+    try {
+      for (CUIFieldInputBinding candidate : new ArrayList<>(bindings.keySet())) {
+        JSONObject value = candidate.capture(); View outer = candidate.outer.get();
+        if (value == null || outer == null || !original.isFocused() || !descendant(original, outer)) continue;
+        declarations.put(new JSONObject().put("encodedDocument", value.getString("encodedDocument"))
+          .put("snapshot", value.getJSONObject("fieldGroupSnapshot")).put("epoch", candidate.epoch));
+        if (selected != null && selected.outer.get() == outer) throw new IllegalStateException("field-input-original-group-ambiguous");
+        if (selected == null || descendant(outer, selected.outer.get())) selected = candidate;
+      }
+    } catch (Exception error) {
+      if (selected != null) selected.record("failure", String.valueOf(error.getMessage()));
+      emit.run(); return;
+    }
+    if (selected == null) { emit.run(); return; }
+    selected.emitOriginalInput(original, emit, declarations);
+  }
+  private void emitOriginalInput(View original, Runnable emit, JSONArray declarations) {
+    // The guard records invocation, including a throwing original emitter. A
+    // capture/delivery failure must never invoke that original emitter twice.
+    CUIOriginalInputEmission emission = new CUIOriginalInputEmission(emit);
+    try {
+      JSONObject value = capture(); FabricUIManager manager = this.manager.get();
+      if (value == null || manager == null) { emission.run(); return; }
+      JSONObject input = new JSONObject().put("target", original.getId()).put("eventId", ++eventId);
+      String receipt = nativeEmitOwnedInput(manager, this, value.getString("encodedDocument"),
+        value.getJSONObject("fieldGroupSnapshot").toString(), input.toString(), declarations.toString(), epoch,
+        emission);
+      if (!receipt.isEmpty()) emitRecord(receipt);
+    } catch (Exception error) {
+      record("failure", String.valueOf(error.getMessage()));
+      emission.rethrowOriginalFailure();
+      if (!emission.wasInvoked()) emission.run();
     }
   }
   static Decision dispatch(View window, KeyEvent event, View focused) {
