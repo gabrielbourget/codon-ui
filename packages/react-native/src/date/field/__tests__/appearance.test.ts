@@ -1,5 +1,6 @@
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { calibrateNativeTimePickerStyle, getNativeTimePickerAppearance } from "../appearance"
+import { resolveNativeTimePickerBorderColors } from "../motion"
 import type { TNativeTimeFieldStyleState } from "../types"
 
 const theme = resolveNativeTheme("light")
@@ -74,4 +75,62 @@ it("keeps group and input custom styles on their own final surfaces", () => {
   expect(result.group.borderWidth).toBe(3)
   expect(result.input).toMatchObject({ padding: 0, backgroundColor: "red", borderWidth: 0 })
   expect(result.group.backgroundColor).toBeUndefined()
+})
+
+it.each([
+  [false, false, false, "red", "blue", "green", "purple", false],
+  [false, true, false, "red", "blue", "green", "purple", false],
+  [true, false, false, "orange", "yellow", "cyan", "purple", false],
+  [true, true, false, "yellow", "orange", "cyan", "purple", false],
+  [true, true, true, "yellow", "orange", "cyan", "purple", true],
+] as const)(
+  "uses pinned platform border priority android=%s rtl=%s swap=%s",
+  (android, rtl, swap, left, right, top, bottom, swapPhysical) => {
+    expect(
+      resolveNativeTimePickerBorderColors(
+        {
+          borderColor: "black",
+          borderLeftColor: "red",
+          borderRightColor: "blue",
+          borderStartColor: "orange",
+          borderEndColor: "yellow",
+          borderTopColor: "cyan",
+          borderBottomColor: "pink",
+          borderBlockColor: "green",
+          borderBlockEndColor: "purple",
+        },
+        "white",
+        rtl,
+        android,
+        swap,
+      ),
+    ).toMatchObject({
+      borderLeftColor: left,
+      borderRightColor: right,
+      borderTopColor: top,
+      borderBottomColor: bottom,
+      swapPhysical,
+    })
+  },
+)
+
+it("preserves Android's native physical-edge swap when logical overrides are absent", () => {
+  expect(
+    resolveNativeTimePickerBorderColors(
+      { borderLeftColor: "red", borderRightColor: "blue" },
+      "black",
+      true,
+      true,
+      true,
+    ),
+  ).toMatchObject({ borderLeftColor: "blue", borderRightColor: "red", swapPhysical: true })
+  expect(
+    resolveNativeTimePickerBorderColors(
+      { borderLeftColor: "red", borderRightColor: "blue" },
+      "black",
+      true,
+      true,
+      false,
+    ),
+  ).toMatchObject({ borderLeftColor: "red", borderRightColor: "blue", swapPhysical: false })
 })
