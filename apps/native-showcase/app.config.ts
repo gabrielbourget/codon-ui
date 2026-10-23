@@ -8,7 +8,7 @@ const config: ExpoConfig = {
   ios: { bundleIdentifier: "dev.codonui.showcase", supportsTablet: true },
   android: { package: "dev.codonui.showcase" },
   experiments: { reactCompiler: false },
-  plugins: ["expo-dev-client"],
+  plugins: ["expo-dev-client", "./plugins/withNativeSDKSourceBuild.mjs"],
 }
 
 export default config
