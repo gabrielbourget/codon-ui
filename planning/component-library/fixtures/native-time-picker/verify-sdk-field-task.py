@@ -65,7 +65,7 @@ inventory = {
     },
     "CUISourceFiles": {
         name: hashlib.sha256((fixture.parents[3] / name).read_bytes()).hexdigest()
-        for name in ["packages/react-native/cpp/FieldInputRuntime.h", "packages/react-native/cpp/FieldInputTaskScope.h", "packages/react-native/cpp/FieldInputDispatchFrames.h"]
+        for name in ["packages/react-native/cpp/FieldInputRuntime.h", "packages/react-native/cpp/FieldInputTaskScope.h", "packages/react-native/cpp/FieldInputDispatchFrames.h", "packages/react-native/cpp/FieldInputOriginalCommand.h", "packages/react-native/cpp/FieldInputMount.h", "packages/react-native/ios/CUIFieldInputBinding.mm", "packages/react-native/android/src/main/jni/FormDocumentJNI.cpp"]
     },
     "scope": "Actual Task.cpp, SDK scope/registry and CUI frame/scope; exact lifecycle/checkpoint/render methods. Explicit surrounding JSI, queue, tracing and consistency doubles. No linked platform SDK, focus/default or installed acceptance.",
 }

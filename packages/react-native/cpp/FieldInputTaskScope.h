@@ -2,6 +2,7 @@
 
 #include "FieldInputDispatchFrames.h"
 #include <react/renderer/runtimescheduler/NativeEventTaskScope.h>
+#include <react/renderer/uimanager/NativeEventCommands.h>
 #include <memory>
 #include <stdexcept>
 
@@ -14,6 +15,11 @@ class FieldInputTaskScope final : public facebook::react::NativeEventTaskScope {
       FieldInputDispatchFrames::Handle ticket)
       : owner_(std::move(owner)), frames_(frames), ticket_(std::move(ticket)) {
     if (!owner_ || !ticket_) throw std::invalid_argument("field-input-task-scope-required");
+  }
+  void attachCommands(facebook::react::NativeEventCommands &registry,
+      facebook::react::NativeEventCommands::Handler handler) {
+    if (finished_ || commands_) throw std::runtime_error("field-input-command-scope-already-attached");
+    commands_ = registry.enter(std::move(handler));
   }
   void fail(const std::string &error) noexcept override {
     try {
@@ -29,11 +35,13 @@ class FieldInputTaskScope final : public facebook::react::NativeEventTaskScope {
     finished_ = true;
     try { frames_.finishPhases(ticket_); }
     catch (...) { fail("field-input-task-finish-threw"); }
+    commands_.reset();
   }
  private:
   std::shared_ptr<void> owner_;
   FieldInputDispatchFrames &frames_;
   FieldInputDispatchFrames::Handle ticket_;
+  std::shared_ptr<facebook::react::NativeEventCommands::Registration> commands_;
   bool finished_{false};
 };
 } // namespace codon

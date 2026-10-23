@@ -445,7 +445,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000), [weakRoot, weakManager, revision] {
         const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
-      }, originalInput ? originalInput->eventPayload : nullptr);
+      }, originalInput);
     FieldInputMountCursor mountCursor{fabric.root};
     FieldInputDecision waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
       CUIFieldInputBinding *owner = scopeOwners[@(action.groupTarget)];
@@ -462,6 +462,35 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
         }); }
         @catch (NSException *error) { throw std::runtime_error(error.reason.UTF8String ?: "field-input-original-mount-threw"); }
       });
+    }, [&](const FieldInputCommandAction &command) {
+      const auto current = [&] {
+        if (![NSThread isMainThread] || !state->frames.isCurrent(ticket) || _epoch != identity.epoch || !_window.isKeyWindow)
+          return false;
+        for (const auto &scope : ticket->scopes) {
+          CUIFieldInputBinding *owner = scopeOwners[@(scope.outerTarget)];
+          if (!owner || ![owner currentScope:scope]) return false;
+        }
+        return true;
+      };
+      UIView *originalTarget = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:command.target];
+      NSDictionary *beforeCommand = [self capture];
+      if (!beforeCommand || !current() || !originalTarget || originalTarget.window != _window)
+        return FieldInputCommandResult{false, "field-input-original-command-window-retired"};
+      auto result = state->captureCommandEvents(ticket, manager, [&](const RawEvent &event) {
+        return isFieldInputCommandEvent(*manager, ticket, event);
+      }, [&] {
+        @try { return command.perform(); }
+        @catch (NSException *error) { throw std::runtime_error(error.reason.UTF8String ?: "field-input-original-command-threw"); }
+      });
+      NSDictionary *afterCommand = [self capture];
+      const bool targetCurrent = current() && afterCommand && originalTarget.window == _window &&
+        [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:command.target] == originalTarget;
+      if (!targetCurrent && result.error.empty()) result.error = "field-input-original-command-target-retired";
+      [self record:@{@"kind":@"command-native", @"token":@(ticket->token), @"target":@(command.target),
+        @"command":@(command.name.c_str()), @"callbackCompleted":@(result.callbackCompleted), @"current":@(targetCurrent),
+        @"error":@(result.error.c_str()), @"before":beforeCommand[@"fieldGroupSnapshot"] ?: NSNull.null,
+        @"after":afterCommand[@"fieldGroupSnapshot"] ?: NSNull.null}];
+      return result;
     }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
     NSDictionary *after = [self capture];
     bool current = after && _epoch == identity.epoch && _window.isKeyWindow &&

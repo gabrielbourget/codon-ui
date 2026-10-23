@@ -1,5 +1,5 @@
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
-index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..6daebcdf710dd4abf3a5b79cdb98835743e70e1f 100644
+index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..41800e8bf87264d1e95891cf97908e8a8a4fcaa8 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
 +++ b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 @@ -25,7 +25,10 @@ EventDispatcher::EventDispatcher(
@@ -14,7 +14,23 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..6daebcdf710dd4abf3a5b79cdb988357
      return;
    }
  
-@@ -49,7 +52,10 @@ void EventDispatcher::dispatchStateUpdate(
+@@ -37,6 +40,15 @@ void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
+   eventQueue_.enqueueEvent(std::move(rawEvent));
+ }
+ 
++void EventDispatcher::dispatchOriginalNativeEvents(
++    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
++  if (auto logger = eventLogger_.lock()) {
++    for (auto &event : events) if (event.loggingTag == 0)
++      event.loggingTag = logger->onEventStart(event.type, event.eventTarget, event.eventStartTimeStamp);
++  }
++  eventQueue_.dispatchOriginalNativeEvents(runtime, std::move(events));
++}
++
+ void EventDispatcher::experimental_flushSync() const {
+   eventQueue_.experimental_flushSync();
+ }
+@@ -49,7 +61,10 @@ void EventDispatcher::dispatchStateUpdate(
  
  void EventDispatcher::dispatchUniqueEvent(RawEvent&& rawEvent) const {
    // Allows the event listener to interrupt default event dispatch
@@ -26,6 +42,18 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..6daebcdf710dd4abf3a5b79cdb988357
      return;
    }
  
+diff --git a/ReactCommon/react/renderer/core/EventDispatcher.h b/ReactCommon/react/renderer/core/EventDispatcher.h
+index 88a9a953e4234088d567e5c9f040016f95fe9a08..dd1896505c16ea23ee439d8d419275708be3a821 100644
+--- a/ReactCommon/react/renderer/core/EventDispatcher.h
++++ b/ReactCommon/react/renderer/core/EventDispatcher.h
+@@ -45,6 +45,7 @@ class EventDispatcher {
+    * Experimental API exposed to support EventEmitter::experimental_flushSync.
+    */
+   void experimental_flushSync() const;
++  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
+ 
+   /*
+    * Dispatches a raw event with asynchronous batched priority. Before the
 diff --git a/ReactCommon/react/renderer/core/EventListener.cpp b/ReactCommon/react/renderer/core/EventListener.cpp
 index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225838e5bd5 100644
 --- a/ReactCommon/react/renderer/core/EventListener.cpp
@@ -48,6 +76,37 @@ index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225
    std::shared_lock lock(mutex_);
  
    bool handled = false;
+diff --git a/ReactCommon/react/renderer/core/EventQueue.cpp b/ReactCommon/react/renderer/core/EventQueue.cpp
+index 6e99fd71bb7aa4f16da1be6828028e10fb4252fc..c659063bc8c3aa8c1b43a8b7c2fbc430fba1479b 100644
+--- a/ReactCommon/react/renderer/core/EventQueue.cpp
++++ b/ReactCommon/react/renderer/core/EventQueue.cpp
+@@ -82,6 +82,11 @@ void EventQueue::enqueueStateUpdate(
+   }
+ }
+ 
++void EventQueue::dispatchOriginalNativeEvents(
++    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
++  eventProcessor_.flushEvents(runtime, std::move(events));
++}
++
+ void EventQueue::onEnqueue() const {
+   eventBeat_->request();
+ }
+diff --git a/ReactCommon/react/renderer/core/EventQueue.h b/ReactCommon/react/renderer/core/EventQueue.h
+index f525767478aa700f3b1978a0b4f2dc8c7d3b7730..930f66425c2cb0dbe7b446d5354b4122e03e6386 100644
+--- a/ReactCommon/react/renderer/core/EventQueue.h
++++ b/ReactCommon/react/renderer/core/EventQueue.h
+@@ -63,6 +63,10 @@ class EventQueue {
+    */
+   void experimental_flushSync() const;
+ 
++  // First processing of original records already consumed by an admitted
++  // listener. Preserve this queue's existing processor/priority state.
++  void dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
++
+  protected:
+   /*
+    * Called on any enqueue operation.
 diff --git a/ReactCommon/react/renderer/core/NativeEventContinuation.h b/ReactCommon/react/renderer/core/NativeEventContinuation.h
 new file mode 100644
 index 0000000000000000000000000000000000000000..875d42b2b9c1acd72d033a9dc4349e36120b0807
@@ -384,7 +443,7 @@ index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965d
    std::optional<std::variant<jsi::Function, RawCallback>> callback;
    HighResTimeStamp expirationTime;
 diff --git a/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
-index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..bef72b54697f8c8c055ac056eebf5d2d63ab39ef 100644
+index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..3b0140ab690cbdc0e6d1afb458e6eb068763559e 100644
 --- a/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 +++ b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 @@ -353,19 +353,26 @@ void Scheduler::uiManagerDidDispatchCommand(
@@ -426,6 +485,32 @@ index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..bef72b54697f8c8c055ac056eebf5d2d
 +    runtimeScheduler_->scheduleRenderingUpdate(shadowNode->getSurfaceId(), std::move(original));
    }
  }
+ 
+@@ -474,6 +481,13 @@ std::shared_ptr<UIManager> Scheduler::getUIManager() const {
+   return uiManager_;
+ }
+ 
++bool Scheduler::dispatchOriginalNativeEvents(
++    jsi::Runtime& runtime, std::vector<RawEvent>&& events) const {
++  if (!eventDispatcher_->has_value()) return false;
++  eventDispatcher_->value().dispatchOriginalNativeEvents(runtime, std::move(events));
++  return true;
++}
++
+ void Scheduler::addEventListener(
+     std::shared_ptr<const EventListener> listener) {
+   if (eventDispatcher_->has_value()) {
+diff --git a/ReactCommon/react/renderer/scheduler/Scheduler.h b/ReactCommon/react/renderer/scheduler/Scheduler.h
+index bd6de832e04d16844fdff28d71d9e05b764e06a2..868f5512dc3b90cc5600c4a060b007a0908da33a 100644
+--- a/ReactCommon/react/renderer/scheduler/Scheduler.h
++++ b/ReactCommon/react/renderer/scheduler/Scheduler.h
+@@ -113,6 +113,7 @@ class Scheduler final : public UIManagerDelegate {
+   void reportMount(SurfaceId surfaceId) const;
+ 
+ #pragma mark - Event listeners
++  bool dispatchOriginalNativeEvents(jsi::Runtime &runtime, std::vector<RawEvent> &&events) const;
+   void addEventListener(std::shared_ptr<const EventListener> listener);
+   void removeEventListener(const std::shared_ptr<const EventListener> &listener);
  
 diff --git a/ReactCommon/react/renderer/uimanager/NativeEventCommands.h b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
 new file mode 100644
