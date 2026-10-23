@@ -7,9 +7,9 @@ import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusHost } from "../../input/NativeFocusView"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
+import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { encodeCollectionKey } from "../collection"
@@ -168,8 +168,9 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         nativeProgrammaticFocusable
         onKeyDown={table.keyboard.captureTypeahead}
         nativeRender={(props) => (
-          <NativeFocusHost
+          <NativeMotionOwnerHost
             {...props}
+            motion={{ layout: true }}
             capturedKeys={[
               ...table.keyboard.keysFor(node.key),
               ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),

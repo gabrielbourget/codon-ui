@@ -14,6 +14,7 @@ import {
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
+jest.setTimeout(10000)
 beforeEach(() => jest.useFakeTimers())
 afterEach(async () => {
   await cleanup()

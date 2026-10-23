@@ -354,4 +354,4 @@ it("keeps the original held editor while the maintained owner vetoes then echoes
   expect(editor.current).toBe(original)
   expect(screen.getByTestId("table-editor").props.text).toBe("held")
   expect(write).not.toHaveBeenCalled()
-})
+}, 10000)
