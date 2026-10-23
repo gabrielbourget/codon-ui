@@ -96,6 +96,9 @@ class FieldInputDispatchFrames final {
     bool started{false}, returned{false}, acknowledged{false}, current{false}, prevented{false};
     bool retired{false}, failed{false}, expired{false};
     bool closed{false}, phasesComplete{false}, originalDefaultPrevented{false};
+    std::weak_ptr<Ticket> parent;
+    std::vector<std::shared_ptr<Ticket>> inputs;
+    bool detachedInput{false};
     bool pendingMount{false}, mountRunning{false};
     int32_t pendingMountTarget{0}, activeMountTarget{0};
     std::optional<FieldInputMountResult> mountResult;
@@ -137,6 +140,59 @@ class FieldInputDispatchFrames final {
     auto ticket = Handle(new Ticket(++serial_, identity, eventId, phase, Clock::now() + timeout, std::move(scopes)));
     frames_.push_back(ticket);
     return ticket;
+  }
+  Handle beginInput(const Handle &parent, const FieldInputIdentity &identity, int64_t eventId,
+      std::vector<FieldInputIdentity> scopes) {
+    // Admission and activation share the same lock and the parent's exact end.
+    std::lock_guard lock(mutex_);
+    if (!current(parent) || parent->failed || parent->phasesComplete || !parent->started ||
+        parent->pendingFocus || parent->focusRunning || parent->pendingMount || parent->mountRunning || parent->pendingCommand || parent->commandRunning ||
+        Clock::now() >= parent->deadline || serial_ >= 9007199254740991ULL || !identity.valid() ||
+        eventId <= 0 || eventId > 9007199254740991LL || scopes.empty() ||
+        identity.surfaceId != parent->identity.surfaceId || identity.windowId != parent->identity.windowId ||
+        identity.documentId != parent->identity.documentId) return nullptr;
+    std::unordered_set<int32_t> roots, metadata;
+    bool hasOriginal = false;
+    for (const auto &scope : scopes) {
+      if (!scope.valid() || scope.surfaceId != identity.surfaceId || scope.target != identity.target ||
+          scope.documentId != identity.documentId || scope.documentRevision != identity.documentRevision ||
+          scope.windowId != identity.windowId || scope.nativeInstance != identity.nativeInstance ||
+          scope.editorInstance != identity.editorInstance || !metadata.insert(scope.metadataTarget).second ||
+          !roots.insert(scope.outerTarget).second || !roots.insert(scope.inputTarget).second) return nullptr;
+      hasOriginal |= scope == identity;
+    }
+    if (!hasOriginal) return nullptr;
+    auto input = Handle(new Ticket(++serial_, identity, eventId, "input", parent->deadline, std::move(scopes)));
+    input->parent = parent;
+    parent->inputs.push_back(input);
+    frames_.push_back(input);
+    condition_.notify_all();
+    return input;
+  }
+  Handle activeInput(const Handle &root) {
+    std::lock_guard lock(mutex_);
+    return waitActive(root) && Clock::now() < root->deadline && !frames_.empty() && current(frames_.back()) ? frames_.back() : nullptr;
+  }
+  FieldInputDecision finishInput(const Handle &input, bool failed = false, const std::string &error = "") {
+    std::lock_guard lock(mutex_);
+    if (!input || frames_.empty() || frames_.back() != input || input->parent.expired())
+      return {FieldInputDisposition::Retired, {}, false, false};
+    auto parent = input->parent.lock();
+    input->returned = true;
+    input->failed |= failed;
+    if (input->error.empty()) input->error = error;
+    auto disposition = input->failed ? FieldInputDisposition::Failed :
+      Clock::now() >= input->deadline ? FieldInputDisposition::TimedOut :
+      !input->acknowledged ? FieldInputDisposition::Unacknowledged :
+      input->retired || !input->current ? FieldInputDisposition::Retired : FieldInputDisposition::Allowed;
+    if (disposition != FieldInputDisposition::Allowed) {
+      parent->failed = true;
+      if (parent->error.empty()) parent->error = input->error.empty() ? "field-input-subphase-unacknowledged-or-retired" : input->error;
+    }
+    input->detachedInput = true;
+    frames_.pop_back();
+    condition_.notify_all();
+    return decision(input, disposition);
   }
   bool startDelivery(const Handle &ticket) {
     std::lock_guard lock(mutex_);
@@ -227,6 +283,7 @@ class FieldInputDispatchFrames final {
       failed = true;
       if (ticket->error.empty()) ticket->error = error.empty() ? "field-input-command-phase-incomplete" : error;
     }
+    for (const auto &input : ticket->inputs) finishInputPhases(input, failed, error);
     ticket->phasesComplete = true;
     ticket->failed |= failed;
     if (ticket->error.empty()) ticket->error = error;
@@ -292,77 +349,110 @@ class FieldInputDispatchFrames final {
     std::lock_guard lock(mutex_);
     return phaseActive(ticket) && ticket->returned && !ticket->phasesComplete && Clock::now() < ticket->deadline;
   }
+  std::vector<std::pair<Handle, FieldInputDecision>> inputResults(const Handle &root) {
+    std::lock_guard lock(mutex_);
+    std::vector<std::pair<Handle, FieldInputDecision>> results;
+    const std::function<void(const Handle &)> collect = [&](const Handle &parent) {
+      for (const auto &input : parent->inputs) {
+        const auto disposition = input->failed ? FieldInputDisposition::Failed :
+          Clock::now() >= input->deadline ? FieldInputDisposition::TimedOut :
+          input->retired || !input->current ? FieldInputDisposition::Retired :
+          !input->acknowledged ? FieldInputDisposition::Unacknowledged : FieldInputDisposition::Allowed;
+        results.emplace_back(input, decision(input, disposition)); collect(input);
+      }
+    };
+    if (root) collect(root);
+    return results;
+  }
   FieldInputDecision wait(const Handle &ticket,
       const std::function<FieldInputFocusResult(const FieldInputFocusAction &)> &serviceFocus = {},
       const std::function<FieldInputMountResult()> &serviceMount = {},
       const std::function<FieldInputCommandResult(const FieldInputCommandAction &)> &serviceCommand = {}) {
+    return waitWithInputs(ticket,
+      serviceFocus ? std::function<FieldInputFocusResult(const Handle &, const FieldInputFocusAction &)>([&](const auto &, const auto &action) { return serviceFocus(action); }) : nullptr,
+      serviceMount ? std::function<FieldInputMountResult(const Handle &)>([&](const auto &) { return serviceMount(); }) : nullptr,
+      serviceCommand ? std::function<FieldInputCommandResult(const Handle &, const FieldInputCommandAction &)>([&](const auto &, const auto &action) { return serviceCommand(action); }) : nullptr);
+  }
+  FieldInputDecision waitWithInputs(const Handle &ticket,
+      const std::function<FieldInputFocusResult(const Handle &, const FieldInputFocusAction &)> &serviceFocus,
+      const std::function<FieldInputMountResult(const Handle &)> &serviceMount,
+      const std::function<FieldInputCommandResult(const Handle &, const FieldInputCommandAction &)> &serviceCommand) {
     std::unique_lock lock(mutex_);
     if (!ticket) return {FieldInputDisposition::Retired, {}, false, false};
-    while (phaseActive(ticket) && !ticket->phasesComplete && Clock::now() < ticket->deadline) {
+    while (waitActive(ticket) && !ticket->phasesComplete && Clock::now() < ticket->deadline) {
       condition_.wait_until(lock, ticket->deadline, [&] {
-        return !phaseActive(ticket) || ticket->phasesComplete || ticket->pendingFocus.has_value() || ticket->pendingMount || ticket->pendingCommand;
+        return !waitActive(ticket) || ticket->phasesComplete || (!frames_.empty() &&
+          (frames_.back()->pendingFocus.has_value() || frames_.back()->pendingMount || frames_.back()->pendingCommand));
       });
-      if (!phaseActive(ticket) || ticket->phasesComplete) continue;
-      if (ticket->pendingCommand) {
-        auto command = std::move(ticket->pendingCommand);
-        ticket->commandRunning = true; ticket->activeCommand = command;
-        const bool allowed = current(ticket) && !ticket->failed && Clock::now() < ticket->deadline;
-        const auto serial = ticket->commandSerial;
+      if (!waitActive(ticket) || ticket->phasesComplete) continue;
+      const auto active = frames_.back();
+      if (active->pendingCommand) {
+        auto command = std::move(active->pendingCommand);
+        active->commandRunning = true; active->activeCommand = command;
+        const bool allowed = current(active) && !active->failed && Clock::now() < active->deadline;
+        const auto serial = active->commandSerial;
         lock.unlock();
         FieldInputCommandResult result;
         try {
           if (!allowed) result.error = "field-input-command-frame-retired";
-          else if (serviceCommand) result = serviceCommand(*command);
+          else if (serviceCommand) result = serviceCommand(active, *command);
           else result.error = "field-input-command-service-unavailable";
         } catch (const std::exception &error) { result.error = error.what(); }
         catch (...) { result.error = "field-input-command-service-threw"; }
         command->cancel();
         lock.lock();
-        ticket->commandRunning = false; ticket->activeCommand.reset();
+        active->commandRunning = false; active->activeCommand.reset();
         if (!result.callbackCompleted && result.error.empty()) result.error = "field-input-command-callback-not-completed";
-        if (!result.error.empty()) { ticket->failed = true; if (ticket->error.empty()) ticket->error = result.error; }
-        if (current(ticket) && !ticket->phasesComplete && ticket->commandSerial == serial && Clock::now() < ticket->deadline)
-          ticket->commandResult = std::move(result);
+        if (!result.error.empty()) { active->failed = true; if (active->error.empty()) active->error = result.error; }
+        if (current(active) && !active->phasesComplete && active->commandSerial == serial && Clock::now() < active->deadline)
+          active->commandResult = std::move(result);
         condition_.notify_all();
         continue;
       }
-      if (ticket->pendingMount) {
-        ticket->pendingMount = false; ticket->mountRunning = true;
-        ticket->activeMountTarget = ticket->pendingMountTarget; ticket->pendingMountTarget = 0;
+      if (active->pendingMount) {
+        active->pendingMount = false; active->mountRunning = true;
+        active->activeMountTarget = active->pendingMountTarget; active->pendingMountTarget = 0;
+        const bool allowed = current(active) && !active->failed && Clock::now() < active->deadline;
         lock.unlock();
         FieldInputMountResult result;
         try {
-          if (serviceMount) result = serviceMount();
+          if (!allowed) result.error = "field-input-mount-frame-retired";
+          else if (serviceMount) result = serviceMount(active);
           else result.error = "field-input-mount-service-unavailable";
         } catch (const std::exception &error) { result.error = error.what(); }
         catch (...) { result.error = "field-input-mount-service-threw"; }
         lock.lock();
-        ticket->mountRunning = false; ticket->activeMountTarget = 0;
-        if (!result.error.empty()) { ticket->failed = true; if (ticket->error.empty()) ticket->error = result.error; }
-        if (phaseActive(ticket) && Clock::now() < ticket->deadline) ticket->mountResult = std::move(result);
+        active->mountRunning = false; active->activeMountTarget = 0;
+        if (!result.error.empty()) { active->failed = true; if (active->error.empty()) active->error = result.error; }
+        if (phaseActive(active) && Clock::now() < active->deadline) active->mountResult = std::move(result);
         condition_.notify_all();
         continue;
       }
-      if (!ticket->pendingFocus) continue;
-      const auto action = *ticket->pendingFocus;
-      ticket->pendingFocus.reset(); ticket->focusRunning = true;
-      const auto serial = ticket->focusSerial;
+      if (!active->pendingFocus) continue;
+      const auto action = *active->pendingFocus;
+      active->pendingFocus.reset(); active->focusRunning = true;
+      const auto serial = active->focusSerial;
+      const bool allowed = current(active) && !active->failed && Clock::now() < active->deadline;
       lock.unlock();
       FieldInputFocusResult result;
       try {
-        if (serviceFocus) result = serviceFocus(action);
+        if (!allowed) result.error = "field-input-focus-frame-retired";
+        else if (serviceFocus) result = serviceFocus(active, action);
         else result.error = "field-input-focus-service-unavailable";
       } catch (const std::exception &error) { result.error = error.what(); }
       catch (...) { result.error = "field-input-focus-service-threw"; }
       lock.lock();
-      ticket->focusRunning = false;
-      if (!result.error.empty()) { ticket->failed = true; if (ticket->error.empty()) ticket->error = result.error; }
-      if (current(ticket) && ticket->focusSerial == serial && Clock::now() < ticket->deadline)
-        ticket->focusResult = std::move(result);
+      active->focusRunning = false;
+      if (!result.error.empty()) { active->failed = true; if (active->error.empty()) active->error = result.error; }
+      if (current(active) && active->focusSerial == serial && Clock::now() < active->deadline)
+        active->focusResult = std::move(result);
       condition_.notify_all();
     }
-    if (ticket->expired) return decision(ticket, FieldInputDisposition::TimedOut);
-    if (!current(ticket)) return decision(ticket, FieldInputDisposition::Retired);
+    if (ticket->expired || Clock::now() >= ticket->deadline) {
+      ticket->expired = true; ticket->focus.reset();
+      return decision(ticket, FieldInputDisposition::TimedOut);
+    }
+    if (!waitActive(ticket) || ticket->retired) return decision(ticket, FieldInputDisposition::Retired);
     if (!ticket->phasesComplete) {
       ticket->expired = true;
       ticket->focus.reset();
@@ -380,8 +470,15 @@ class FieldInputDispatchFrames final {
   }
   FieldInputDecision end(const Handle &ticket, bool originalCurrent) {
     std::unique_lock lock(mutex_);
-    if (!ticket || ticket->closed || (!frames_.empty() && frames_.back() != ticket))
+    if (!ticket || ticket->closed || (!frames_.empty() && !descendsFrom(frames_.back(), ticket)))
       return {FieldInputDisposition::Retired, {}, false, false};
+    std::vector<FieldInputCommand> commands;
+    while (!frames_.empty() && frames_.back() != ticket) {
+      auto input = frames_.back(); frames_.pop_back();
+      retireInput(input);
+      if (input->pendingCommand) commands.push_back(std::move(input->pendingCommand));
+      if (input->activeCommand) commands.push_back(std::move(input->activeCommand));
+    }
     auto result = decision(ticket, FieldInputDisposition::Retired);
     if (live_ && originalCurrent && !ticket->retired) {
       if (ticket->expired || Clock::now() >= ticket->deadline) result = decision(ticket, FieldInputDisposition::TimedOut);
@@ -389,11 +486,13 @@ class FieldInputDispatchFrames final {
       else if (!ticket->phasesComplete || !ticket->acknowledged) result = decision(ticket, FieldInputDisposition::Unacknowledged);
       else if (ticket->current) result = decision(ticket, ticket->prevented ? FieldInputDisposition::Prevented : FieldInputDisposition::Allowed);
     }
+    for (const auto &input : ticket->inputs) retireInput(input);
     ticket->retired = true; ticket->closed = true;
     auto command = std::move(ticket->pendingCommand), active = std::move(ticket->activeCommand);
     if (!frames_.empty()) frames_.pop_back();
     condition_.notify_all();
     lock.unlock();
+    for (const auto &pending : commands) pending->cancel();
     if (command) command->cancel();
     if (active) active->cancel();
     return result;
@@ -416,6 +515,12 @@ class FieldInputDispatchFrames final {
     std::vector<FieldInputCommand> commands;
     {
       std::lock_guard lock(mutex_);
+      for (const auto &ticket : frames_) for (const auto &input : ticket->inputs) {
+        if (std::any_of(input->scopes.begin(), input->scopes.end(), [&](const auto &scope) { return scope.ownerId == owner && scope.bindingId == binding; })) {
+          retireInput(input); ticket->failed = true;
+          if (ticket->error.empty()) ticket->error = "field-input-subphase-binding-retired";
+        }
+      }
       for (const auto &ticket : frames_) if (std::any_of(ticket->scopes.begin(), ticket->scopes.end(), [&](const auto &scope) {
         return scope.ownerId == owner && scope.bindingId == binding;
       })) {
@@ -429,7 +534,27 @@ class FieldInputDispatchFrames final {
   }
 
  private:
+  static void retireInput(const Handle &input) {
+    input->retired = true; input->closed = true;
+    for (const auto &child : input->inputs) retireInput(child);
+  }
+  static void finishInputPhases(const Handle &input, bool failed, const std::string &error) {
+    for (const auto &child : input->inputs) finishInputPhases(child, failed, error);
+    input->failed |= failed;
+    if (input->error.empty()) input->error = error;
+    input->phasesComplete = input->detachedInput && input->returned;
+  }
+  bool waitActive(const Handle &ticket) const {
+    if (!live_ || !ticket || ticket->closed || ticket->expired || (ticket->retired && !ticket->started) || frames_.empty()) return false;
+    return descendsFrom(frames_.back(), ticket);
+  }
+  static bool descendsFrom(Handle active, const Handle &root) {
+    for (; active; active = active->parent.lock()) if (active == root) return true;
+    return false;
+  }
   bool phaseActive(const Handle &ticket) const {
+    if (ticket) for (auto parent = ticket->parent.lock(); parent; parent = parent->parent.lock())
+      if (parent->closed || parent->expired || parent->retired || parent->failed || parent->phasesComplete) return false;
     return live_ && ticket && !ticket->closed && !ticket->expired && (!ticket->retired || ticket->started) &&
       !frames_.empty() && frames_.back() == ticket;
   }

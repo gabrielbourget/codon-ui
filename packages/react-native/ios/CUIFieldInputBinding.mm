@@ -362,6 +362,28 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 {
   const auto manager = _manager.lock();
   if (!manager || !view.isFirstResponder) { emit(); return; }
+  if (FieldInputNativeOperation::contains(manager.get())) {
+    NSDictionary *value = [self capture];
+    if (!value) throw std::runtime_error("field-input-captured-scope-retired");
+    const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
+    const auto json = [](id object) {
+      NSData *bytes = [NSJSONSerialization dataWithJSONObject:object options:0 error:nil];
+      return folly::parseJson([[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] UTF8String]);
+    };
+    folly::dynamic declarations = folly::dynamic::array;
+    for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
+      NSDictionary *current = [entry capture];
+      UIView *root = [entry outerRoot];
+      if (!current || root.window != _window || ![view isDescendantOfView:root] || ![[entry moduleLease] isEqual:_lease]) continue;
+      declarations.push_back(folly::dynamic::object("encodedDocument", [current[@"encodedDocument"] UTF8String])
+        ("snapshot", json(current[@"fieldGroupSnapshot"]))("epoch", entry->_epoch));
+    }
+    const auto context = captureFieldOwnedInput(manager, document, json(value[@"fieldGroupSnapshot"]), declarations,
+      static_cast<int32_t>(view.tag), _epoch, ++_eventId);
+    FieldInputNativeOperation::Input inputScope(manager.get(), context);
+    emit();
+    return;
+  }
   continueFieldOriginalInput(*manager, static_cast<int32_t>(view.tag), [&] { emit(); }, [&](const RawEvent &original) {
     [self dispatch:nil phase:@"input" repeat:NO originalInput:&original];
   });
@@ -447,13 +469,22 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
       }, originalInput);
     FieldInputMountCursor mountCursor{fabric.root};
-    FieldInputDecision waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
-      CUIFieldInputBinding *owner = scopeOwners[@(action.groupTarget)];
+    const auto scopeOwner = [&](int32_t target) -> CUIFieldInputBinding * {
+      CUIFieldInputBinding *found = nil;
+      for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
+        if ([entry outerRoot].tag != target || [entry boundWindow] != _window || ![[entry moduleLease] isEqual:_lease]) continue;
+        if (found) throw std::runtime_error("field-input-original-group-ambiguous");
+        found = entry;
+      }
+      return found;
+    };
+    FieldInputDecision waited = scheduled ? state->frames.waitWithInputs(ticket, [&](const FieldInputDispatchFrames::Handle &ticket, const FieldInputFocusAction &action) {
+      CUIFieldInputBinding *owner = scopeOwner(action.groupTarget);
       if (!owner) { FieldInputFocusResult failure; failure.error = "field-input-original-scope-retired"; return failure; }
       const auto result = [owner focus:action state:state ticket:ticket];
       if (result.current && result.error.empty()) mountCursor.appliedRoot = captureFabricFormDocument(*manager, identity.surfaceId).root;
       return result;
-    }, [&] {
+    }, [&](const FieldInputDispatchFrames::Handle &ticket) {
       return state->captureMountEvents(ticket, manager, [&](const RawEvent &event) {
         return isFieldInputMountEvent(*manager, ticket, event);
       }, [&] {
@@ -462,12 +493,12 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
         }, state->frames.mountTarget(ticket)); }
         @catch (NSException *error) { throw std::runtime_error(error.reason.UTF8String ?: "field-input-original-mount-threw"); }
       });
-    }, [&](const FieldInputCommandAction &command) {
+    }, [&](const FieldInputDispatchFrames::Handle &ticket, const FieldInputCommandAction &command) {
       const auto current = [&] {
         if (![NSThread isMainThread] || !state->frames.isCurrent(ticket) || _epoch != identity.epoch || !_window.isKeyWindow)
           return false;
         for (const auto &scope : ticket->scopes) {
-          CUIFieldInputBinding *owner = scopeOwners[@(scope.outerTarget)];
+          CUIFieldInputBinding *owner = scopeOwner(scope.outerTarget);
           if (!owner || ![owner currentScope:scope]) return false;
         }
         return true;
@@ -499,12 +530,13 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       CUIFieldInputBinding *owner = scopeOwners[@(scope.outerTarget)];
       current = current && owner && [owner currentScope:scope];
     }
-    const auto decision = state->frames.end(ticket, current);
+    const auto subphases = fieldInputSubphaseResults(state->frames, ticket);
+  const auto decision = state->frames.end(ticket, current);
     folly::dynamic record = folly::dynamic::object("kind", originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
       ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
       ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
       ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)
-      ("scopeCurrent", current)("before", snapshot)
+      ("scopeCurrent", current)("inputSubphases", subphases)("before", snapshot)
       ("intrinsicDefaultCaptured", static_cast<bool>(intrinsic));
     if (after) {
       NSData *bytes = [NSJSONSerialization dataWithJSONObject:after[@"fieldGroupSnapshot"] options:0 error:nil];

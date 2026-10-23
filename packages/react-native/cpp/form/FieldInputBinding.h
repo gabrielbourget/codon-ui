@@ -95,6 +95,16 @@ inline const char *fieldInputDispositionName(FieldInputDisposition value) {
   }
   throw std::invalid_argument("field-input-disposition-invalid");
 }
+inline folly::dynamic fieldInputSubphaseResults(FieldInputDispatchFrames &frames, const FieldInputDispatchFrames::Handle &parent) {
+  folly::dynamic results = folly::dynamic::array;
+  for (const auto &[input, decision] : frames.inputResults(parent)) {
+    results.push_back(folly::dynamic::object("token", input->token)("eventId", input->eventId)("phase", input->phase)
+      ("identity", encodeFieldInputIdentity(input->identity))("decision", fieldInputDispositionName(decision.disposition))
+      ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)
+      ("renderPhasesComplete", decision.phasesComplete)("error", decision.error));
+  }
+  return results;
+}
 inline folly::dynamic orderedFieldInputGroups(const folly::dynamic &document,
     const std::vector<TFieldInputBinding> &bindings, int32_t originalTarget) {
   std::unordered_map<int32_t, int32_t> parents;
@@ -130,5 +140,38 @@ inline folly::dynamic orderedFieldInputGroups(const folly::dynamic &document,
   for (const auto &group : groups) result.push_back(folly::dynamic::object("target", group.target)
     ("bindingId", group.binding->bindingId)("bindingRevision", group.binding->bindingRevision)("scopeTarget", group.binding->outerTarget));
   return result;
+}
+inline std::shared_ptr<const FieldInputOwnedInput> captureFieldOwnedInput(
+    const std::shared_ptr<facebook::react::UIManager> &manager, const folly::dynamic &document,
+    const folly::dynamic &snapshot, const folly::dynamic &declarations, int32_t target, int64_t epoch, int64_t eventId) {
+  const auto binding = fieldInputBinding(document);
+  auto fabric = captureFabricFormDocument(*manager, fieldGroupTarget(document.at("surfaceId")));
+  if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
+    throw std::invalid_argument("field-input-captured-document-retired");
+  const auto node = fabric.preorder[fabric.positions.at(target)].node;
+  std::vector<TFieldInputBinding> bindings;
+  std::vector<FieldInputIdentity> scopes;
+  for (const auto &entry : declarations) {
+    const auto source = folly::parseJson(entry.at("encodedDocument").asString());
+    const auto field = fieldInputBinding(source);
+    if (field.moduleLease != binding.moduleLease) throw std::invalid_argument("field-input-captured-module-retired");
+    bindings.push_back(field);
+    scopes.push_back(fieldInputIdentity(source, entry.at("snapshot"), field, target, fieldInputInteger(entry.at("epoch"))));
+  }
+  const auto groups = orderedFieldInputGroups(document, bindings, target);
+  const auto identity = fieldInputIdentity(document, snapshot, binding, target, epoch);
+  const std::weak_ptr<facebook::react::UIManager> weakManager = manager;
+  const std::weak_ptr<const facebook::react::ShadowNode> weakNode = node;
+  const auto owner = fieldInputRuntime(binding.moduleLease);
+  if (!owner || !owner->ready()) throw std::invalid_argument("field-input-captured-runtime-retired");
+  return std::make_shared<const FieldInputOwnedInput>(FieldInputOwnedInput{identity, eventId, std::move(scopes), owner,
+    [binding, groups](const auto &ticket) { return folly::toJson(fieldInputPacket(ticket, binding, groups)); },
+    [weakManager, weakNode, identity] {
+      const auto manager = weakManager.lock(); const auto node = weakNode.lock();
+      if (!manager || !node) return false;
+      const auto current = captureFabricFormDocument(*manager, identity.surfaceId);
+      const auto found = current.positions.find(identity.target);
+      return found != current.positions.end() && current.preorder[found->second].node->getFamilyShared() == node->getFamilyShared();
+    }});
 }
 } // namespace codon::form

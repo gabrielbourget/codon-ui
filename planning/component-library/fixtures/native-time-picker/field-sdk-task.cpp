@@ -16,6 +16,7 @@
 #include <react/utils/OnScopeExit.h>
 #include "../../../../packages/react-native/cpp/FieldInputTaskScope.h"
 #include "../../../../packages/react-native/cpp/FieldInputOriginalCommand.h"
+#include "../../../../packages/react-native/cpp/FieldInputSubphase.h"
 namespace folly { struct dynamic { int original{41}; }; }
 namespace facebook::react { class ShadowNode {}; }
 #include <react/renderer/uimanager/NativeEventCommands.h>
@@ -88,7 +89,8 @@ struct CommandScope final : NativeEventTaskScope {
       : frame(std::move(owner), frames, ticket), finishes(finishes) {
     if (!frames.startDelivery(ticket)) throw std::runtime_error("original task admission expired");
     frame.attachCommands(registry, [&frames, ticket](const auto &command) {
-      const auto result = requestFieldInputOriginalCommand(frames, ticket, command,
+      const auto active = frames.activeInput(ticket);
+      const auto result = requestFieldInputOriginalCommand(frames, active, command,
         [command] { return FieldInputCommandResult{command->executeOriginal(), ""}; });
       if (!result.callbackCompleted || !result.error.empty()) throw std::runtime_error(result.error);
     });
@@ -319,6 +321,60 @@ int main() {
     check(decision.disposition == FieldInputDisposition::Allowed);
     check(order == (std::vector<std::string>{"genuine-mount", "earlier-notification", "original-command"}));
     frames.end(ticket, true);
+  }
+  for (bool duringHandler : {false, true}) {
+    RuntimeScheduler_Modern scheduler; jsi::Runtime runtime; FieldInputDispatchFrames frames; NativeEventCommands registry;
+    const auto owner = std::make_shared<int>(1); auto root = frames.begin(identity, 1, "down", 1000ms);
+    FieldInputDispatchFrames::Handle input; int finishes = 0, commands = 0; std::vector<std::string> order;
+    FieldInputOwnedInput context{identity, 2, {identity}, owner,
+      [](const auto &ticket) { return std::to_string(ticket->token); }, [] { return true; }};
+    auto js = std::async(std::launch::async, [&] {
+      const auto command = [&] {
+        auto route = registry.captureCurrentThread();
+        if (!route) throw std::runtime_error("input lost original SDK registration");
+        auto original = std::make_shared<NativeEventCommand>(11, 12, "focus", node, args,
+          [&] { commands++; }, [route] { return route->current(); });
+        route->dispatchOriginal(original);
+      };
+      const auto originalInput = [&] {
+        dispatchFieldInputSubphase(frames, root, context, owner.get(), [&](const auto &child) {
+          input = child; order.push_back("input");
+          if (child->token == root->token || child->deadline != root->deadline || !frames.accepts(child->token, identity, 2, "input") ||
+              frames.accepts(root->token, identity, 1, "down")) throw std::runtime_error("input borrowed parent acknowledgement");
+          command();
+          if (!frames.acknowledge(child->token, identity, 2, "input", true, false, {})) throw std::runtime_error("input ack failed");
+          runtime.microtasks.push_back([&] {
+            order.push_back("input-microtask"); command();
+            scheduler.scheduleRenderingUpdate(11, [&] { order.push_back("input-render"); command(); });
+          });
+          return true;
+        }, [&](const auto &, const auto &decision) {
+          if (!decision.deliveryReturned || decision.phasesComplete || !frames.isCurrent(root))
+            throw std::runtime_error("input claimed rendering before SDK checkpoint");
+          order.push_back("input-returned");
+        });
+      };
+      scheduler.scheduleNativeEventWork([&](auto &) {
+        if (duringHandler) originalInput();
+        if (!frames.acknowledge(root->token, identity, 1, "down", true, false, {})) throw std::runtime_error("parent ack was consumed by input");
+        frames.finishHandler(root, false); order.push_back("key-returned");
+        if (!duringHandler) runtime.microtasks.push_back(originalInput);
+      }, [&](auto &) { return std::make_shared<CommandScope>(owner, frames, root, registry, finishes); });
+      scheduler.runNext(runtime);
+    });
+    std::vector<std::string> serviced;
+    const auto decision = frames.waitWithInputs(root, {}, {}, [&](const auto &active, const auto &action) {
+      serviced.push_back(active->phase); return action.perform();
+    });
+    js.get();
+    check(decision.disposition == FieldInputDisposition::Allowed && commands == 3 && finishes == 1);
+    check(serviced == (std::vector<std::string>{"input", "down", "down"}));
+    check(order == (duringHandler ? std::vector<std::string>{"input", "input-returned", "key-returned", "input-microtask", "input-render"} :
+      std::vector<std::string>{"key-returned", "input", "input-returned", "input-microtask", "input-render"}));
+    auto results = frames.inputResults(root);
+    check(results.size() == 1 && results[0].first == input && results[0].second.phasesComplete && results[0].second.disposition == FieldInputDisposition::Allowed);
+    check(!registry.captureCurrentThread() && !frames.accepts(input->token, identity, 2, "input"));
+    frames.end(root, true);
   }
   std::cout << assertions << " actual SDK Task/CUI scope and exact task/checkpoint/render assertions passed; no linked or installed verdict\n";
 }
