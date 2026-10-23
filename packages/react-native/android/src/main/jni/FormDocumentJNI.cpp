@@ -215,10 +215,14 @@ static jni::local_ref<jstring> nativeEmitOwnedInput(jni::alias_ref<jclass>,
   const auto manager = scopedManager(managerObject);
   const auto record = folly::parseJson(input->toStdString());
   static const auto run = jni::findClassStatic("java/lang/Runnable")->getMethod<void()>("run");
-  const auto original = codon::captureFieldOriginalInput(*manager, codon::form::fieldGroupTarget(record.at("target")), [&] { run(emitter); });
-  // An earlier focus/mount observer may already own this notification. Its
-  // original handoff retains first delivery; never start a nested UI/JS wait.
-  if (original) return dispatchFieldOriginal(managerObject, owner, document, snapshot, input, declarations, epoch, &*original);
+  jni::local_ref<jstring> receipt;
+  // A current native-operation observer keeps its existing first-delivery
+  // handoff; this continuation does not borrow a returned key capability.
+  codon::continueFieldOriginalInput(*manager, codon::form::fieldGroupTarget(record.at("target")), [&] { run(emitter); },
+    [&](const RawEvent &original) {
+      receipt = dispatchFieldOriginal(managerObject, owner, document, snapshot, input, declarations, epoch, &original);
+    });
+  if (receipt) return receipt;
   return jni::make_jstring("");
 }
 
