@@ -35,6 +35,19 @@ it("distinguishes primary action in empty toggle mode and secondary replace acti
     longPressEnabled: false,
   })
 })
+it("keeps action links selectable while retaining the grouped-item override default", () => {
+  expect(state({ isLink: true, linkBehavior: "action", behavior: "replace" })).toMatchObject({
+    allowsSelection: true,
+    hasPrimaryAction: false,
+    hasSecondaryAction: true,
+  })
+  expect(state({ isLink: true, linkBehavior: "action", isEmpty: false })).toMatchObject({
+    allowsSelection: true,
+    hasAction: false,
+    allowsActions: true,
+  })
+  expect(state({ isLink: true })).toMatchObject({ allowsSelection: false, hasPrimaryAction: true })
+})
 it("selects on keyboard down and touch/pen/virtual release without a second key-up selection", () => {
   const value = state()
   expect(intent(value, "start", "keyboard", "Enter").select).toBe(true)

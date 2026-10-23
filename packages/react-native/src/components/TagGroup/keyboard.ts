@@ -2,6 +2,7 @@ import type { TNativeCollectionLayoutDelegate } from "../../collection/renderer"
 import { nativeKeyTokens } from "../../input/keyScope"
 import type { TNativeKeyboardData } from "../../input/types"
 
+import type { TNativeSelectableLinkBehavior } from "./intent"
 import type {
   TNativeTagGroupKey,
   TNativeTagGroupRow,
@@ -84,6 +85,7 @@ export const getNativeTagGroupNavigationSelection = (options: {
   mode: TNativeTagGroupSelectionMode
   behavior: TNativeTagGroupSelectionBehavior
   isLink: boolean
+  linkBehavior?: TNativeSelectableLinkBehavior
   isApple: boolean
   modifiers: Pick<TNativeKeyboardData, "shiftKey" | "ctrlKey" | "altKey" | "metaKey">
 }): TNativeTagGroupSelectionOperation | null => {
@@ -93,7 +95,7 @@ export const getNativeTagGroupNavigationSelection = (options: {
     if ((isApple ? modifiers.metaKey : modifiers.ctrlKey) && modifiers.shiftKey && mode === "multiple") return "extend"
     return behavior === "replace" ? "replace" : null
   }
-  if (isLink) return null
+  if (isLink && options.linkBehavior !== "action") return null
   if (modifiers.shiftKey && mode === "multiple") return "extend"
   return behavior === "replace" && !(isApple ? modifiers.altKey : modifiers.ctrlKey) ? "replace" : null
 }

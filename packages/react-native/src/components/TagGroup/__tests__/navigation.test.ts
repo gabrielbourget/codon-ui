@@ -73,6 +73,25 @@ it("keeps Apple Home/End range selection distinct from arrows and never selects 
   expect(getNativeTagGroupNavigationSelection({ ...base, key: "ArrowDown" })).toBeNull()
   expect(getNativeTagGroupNavigationSelection({ ...base, key: "End", mode: "none" })).toBeNull()
 })
+it("selects action links during arrow navigation without changing the override default", () => {
+  const options = {
+    key: "ArrowDown" as const,
+    mode: "multiple" as const,
+    behavior: "replace" as const,
+    isLink: true,
+    isApple: true,
+    modifiers: { shiftKey: false, metaKey: false, ctrlKey: false, altKey: false },
+  }
+  expect(getNativeTagGroupNavigationSelection(options)).toBeNull()
+  expect(getNativeTagGroupNavigationSelection({ ...options, linkBehavior: "action" })).toBe("replace")
+  expect(
+    getNativeTagGroupNavigationSelection({
+      ...options,
+      linkBehavior: "action",
+      modifiers: { ...options.modifiers, shiftKey: true },
+    }),
+  ).toBe("extend")
+})
 
 it("pages with actual native horizontal rectangles and preserves unmaterialized typed targets", () => {
   const layout = {

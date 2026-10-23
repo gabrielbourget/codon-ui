@@ -8,6 +8,8 @@ export const NATIVE_TAG_GROUP_POINTER_TYPES = ["touch", "pen", "mouse", "keyboar
 export type TNativeTagGroupPointerType = (typeof NATIVE_TAG_GROUP_POINTER_TYPES)[number]
 export const NATIVE_TAG_GROUP_PRESS_PHASES = ["start", "release", "double", "long"] as const
 export type TNativeTagGroupPressPhase = (typeof NATIVE_TAG_GROUP_PRESS_PHASES)[number]
+export const NATIVE_SELECTABLE_LINK_BEHAVIORS = ["override", "action"] as const
+export type TNativeSelectableLinkBehavior = (typeof NATIVE_SELECTABLE_LINK_BEHAVIORS)[number]
 export type TNativeTagGroupActionState = Readonly<{
   allowsSelection: boolean
   allowsActions: boolean
@@ -23,8 +25,10 @@ export const getNativeTagGroupActionState = (options: {
   isDisabled: boolean
   hasAction: boolean
   isLink: boolean
+  linkBehavior?: TNativeSelectableLinkBehavior
 }): TNativeTagGroupActionState => {
-  const allowsSelection = !options.isDisabled && options.mode !== "none" && !options.isLink
+  const allowsSelection =
+    !options.isDisabled && options.mode !== "none" && (!options.isLink || options.linkBehavior === "action")
   const allowsAction = !options.isDisabled && (options.hasAction || options.isLink)
   const hasPrimaryAction =
     allowsAction && (options.behavior === "replace" ? !allowsSelection : !allowsSelection || options.isEmpty)
