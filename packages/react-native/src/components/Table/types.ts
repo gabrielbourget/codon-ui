@@ -4,6 +4,7 @@ import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-na
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TCornerGeometry } from "../../tokens/geometry"
+import type { TNativeLinkProps } from "../Link/types"
 import type { TNativePaginationProps } from "../Pagination/types"
 
 import type { TPartialNativeTableFilteringLabels } from "./filterLabels"
@@ -153,6 +154,7 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
 export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "children" | "style"> &
+  Partial<Pick<TNativeLinkProps, "href" | "onNavigationError">> &
   TStyleProps & {
     textValue?: string
     id?: TNativeCollectionKey

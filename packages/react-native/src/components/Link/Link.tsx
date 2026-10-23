@@ -1,5 +1,4 @@
 import { forwardRef, useContext, useInsertionEffect, useRef, useState } from "react"
-import { Linking } from "react-native"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -12,6 +11,7 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 import { useNativeControlHitSlop } from "../selection"
 
 import { useNativeLinkColor } from "./motion"
+import { openNativeLink } from "./navigation"
 import { getNativeLinkStyle } from "./styles"
 import type { TNativeLinkProps, TNativeLinkRef } from "./types"
 
@@ -92,11 +92,7 @@ export const Link = forwardRef<TNativeLinkRef, TNativeLinkProps>((props, ref) =>
       if (onNavigationError) onNavigationError(error, destination)
       else console.warn(`Link: unable to open ${JSON.stringify(destination)}`, error)
     }
-    try {
-      void Linking.openURL(destination).catch(report)
-    } catch (error) {
-      report(error)
-    }
+    openNativeLink(destination, report)
   }
   const [pressed, setPressed] = useState(false)
   const [hovered, setHovered] = useState(false)

@@ -4,6 +4,7 @@ import {
   SelectableCollectionContext,
   TableBody as AriaTableBody,
   Row as AriaRow,
+  RouterProvider,
   type CellRenderProps,
 } from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
@@ -22,6 +23,113 @@ const items = [
   { id: "beta", name: "Beta" },
 ]
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
+describe("native Table row link oracle", () => {
+  it("opens on Enter, selects on Space and selects action links reached by an arrow", async () => {
+    const user = userEvent.setup(),
+      navigate = vi.fn(),
+      changed = vi.fn()
+    render(
+      <RouterProvider navigate={navigate}>
+        <Table
+          aria-label="Linked rows"
+          selectionMode="multiple"
+          selectionBehavior="replace"
+          selectedKeys={new Set()}
+          onSelectionChange={changed}
+        >
+          <TableHeader columns={columns} />
+          <AriaTableBody>
+            {items.map((row) => (
+              <TableRow
+                key={row.id}
+                id={row.id}
+                item={row}
+                columns={columns}
+                href={`/people/${row.id}`}
+                data-testid={`linked-${row.id}`}
+              />
+            ))}
+          </AriaTableBody>
+        </Table>
+      </RouterProvider>,
+    )
+    screen.getByTestId("linked-0").focus()
+    await user.keyboard("{Enter}")
+    expect(navigate).toHaveBeenCalledWith("/people/0", undefined)
+    await user.keyboard(" ")
+    expect([...changed.mock.calls[0][0]]).toEqual([0])
+    await user.keyboard("{ArrowDown}")
+    expect([...changed.mock.calls.at(-1)![0]]).toEqual(["beta"])
+    expect(navigate).toHaveBeenCalledTimes(1)
+  })
+  it.each(["toggle", "replace"] as const)("preserves %s link selection and action ordering", async (behavior) => {
+    const user = userEvent.setup(),
+      requests: string[] = []
+    render(
+      <RouterProvider navigate={(href) => requests.push(`navigate:${href}`)}>
+        <Table
+          aria-label="Linked rows"
+          selectionMode="multiple"
+          selectionBehavior={behavior}
+          selectedKeys={new Set()}
+          onSelectionChange={(keys) => requests.push(`selection:${keys === "all" ? keys : [...keys].join(",")}`)}
+          clickableRows
+          onRowAction={(key) => requests.push(`root:${key}`)}
+        >
+          <TableHeader columns={columns} />
+          <AriaTableBody>
+            <TableRow
+              id={0}
+              item={items[0]}
+              columns={columns}
+              href="/people/0"
+              data-testid="linked-row"
+              onAction={() => requests.push("row")}
+            />
+          </AriaTableBody>
+        </Table>
+      </RouterProvider>,
+    )
+    await user.click(screen.getByTestId("linked-row"))
+    expect(requests).toEqual(behavior === "toggle" ? ["row", "root:0", "navigate:/people/0"] : ["selection:0"])
+    if (behavior === "replace") {
+      requests.length = 0
+      await user.dblClick(screen.getByTestId("linked-row"))
+      expect(requests.slice(-3)).toEqual(["row", "root:0", "navigate:/people/0"])
+    }
+  })
+  it("selects a linked row in nonempty toggle mode and preserves selection-only disabled actions", async () => {
+    const user = userEvent.setup(),
+      navigate = vi.fn(),
+      changed = vi.fn()
+    const tree = (disabled = false) => (
+      <RouterProvider navigate={navigate}>
+        <Table
+          aria-label="Linked rows"
+          selectionMode="multiple"
+          selectionBehavior="toggle"
+          selectedKeys={new Set([0])}
+          onSelectionChange={changed}
+          disabledKeys={disabled ? [0] : []}
+          disabledBehavior="selection"
+        >
+          <TableHeader columns={columns} />
+          <AriaTableBody>
+            <TableRow id={0} item={items[0]} columns={columns} href="/people/0" data-testid="linked-row" />
+          </AriaTableBody>
+        </Table>
+      </RouterProvider>
+    )
+    const view = render(tree())
+    await user.click(screen.getByTestId("linked-row"))
+    expect([...changed.mock.calls[0][0]]).toEqual([])
+    expect(navigate).not.toHaveBeenCalled()
+    view.rerender(tree(true))
+    await user.click(screen.getByTestId("linked-row"))
+    expect(changed).toHaveBeenCalledTimes(1)
+    expect(navigate).toHaveBeenCalledWith("/people/0", undefined)
+  })
+})
 describe("native Table keyboard oracle", () => {
   const gridColumns = [...columns, { id: "age", name: "Age" }]
   const rows = [

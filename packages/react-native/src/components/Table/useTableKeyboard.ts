@@ -412,6 +412,7 @@ export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
           mode: manager.selectionMode,
           behavior: manager.selectionBehavior,
           isLink: manager.isLink(next),
+          linkBehavior: "action",
           isApple: Platform.OS === "ios",
           modifiers: data,
         })

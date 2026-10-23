@@ -1,4 +1,4 @@
-import { useCallback, useContext, useId, useRef, type ForwardedRef } from "react"
+import { useCallback, useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -14,6 +14,7 @@ import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 import { encodeCollectionKey } from "../collection"
 import { resolveNativeStyle } from "../colors"
+import { openNativeLink } from "../Link/navigation"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import {
@@ -43,6 +44,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     customStyles,
     isDisabled: _disabled,
     onAction: _action,
+    href: _href,
+    onNavigationError: _navigationError,
     ...native
   } = props
   const table = useNativeTable()
@@ -51,6 +54,11 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const renderer = useContext(NativeCollectionRendererContext)
   const ordinal = table.rows.findIndex((row) => row.key === node.key)
   const original = useRef<View | null>(null)
+  const navigation = useRef(props)
+  useInsertionEffect(() => {
+    navigation.current = props
+  })
+  if (props.href !== undefined && typeof props.href !== "string") throw new TypeError("TableRow: href must be a string")
   const keyboardRef = useCallback(
     (view: View | null) => table.keyboard.register(node, view),
     [node, table.keyboard.register],
@@ -64,7 +72,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     isEmpty: table.manager.isEmpty,
     isDisabled: table.manager.isDisabled(node.key),
     hasAction: !!(table.onRowAction || props.onAction),
-    isLink: false,
+    isLink: table.manager.isLink(node.key),
+    linkBehavior: "action",
   })
   type TPointer = (typeof NATIVE_TAG_GROUP_POINTER_TYPES)[number]
   type TMetadata = {
@@ -113,7 +122,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         isEmpty: manager.isEmpty,
         isDisabled: manager.isDisabled(row.key),
         hasAction: !!(current.onRowAction || row.props.onAction),
-        isLink: false,
+        isLink: manager.isLink(row.key),
+        linkBehavior: "action",
       })
       const intent = getNativeTagGroupPressIntent(available, {
         phase,
@@ -140,8 +150,16 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
       }
       if (intent.enterToggle) manager.setSelectionBehavior("toggle")
       if (intent.action) {
+        const href = row.props.href,
+          target = original.current
         row.props.onAction?.()
         current.onRowAction?.(row.key)
+        if (href && target && action.isActive() && original.current === target)
+          openNativeLink(href, (error) => {
+            if (!action.isActive() || original.current !== target || navigation.current.href !== href) return
+            if (navigation.current.onNavigationError) navigation.current.onNavigationError(error, href)
+            else console.warn(`TableRow: unable to open ${JSON.stringify(href)}`, error)
+          })
       }
     })
   }

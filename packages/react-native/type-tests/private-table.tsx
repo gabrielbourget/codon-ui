@@ -11,6 +11,7 @@ import { TableBody } from "../src/components/Table/TableBody"
 import { TableCell } from "../src/components/Table/TableCell"
 import { TableFilterPopover } from "../src/components/Table/TableFilterPopover"
 import { TableHeader } from "../src/components/Table/TableHeader"
+import { TableRow } from "../src/components/Table/TableRow"
 import type { TNativeTableColumnMetadata } from "../src/components/Table/types"
 
 const rows = [{ id: 0, name: "Alpha" }]
@@ -19,6 +20,19 @@ const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
   { id: "action", role: "structural", structuralKind: "action", structuralPosition: "right", width: 0 },
 ]
 const view = createRef<View>()
+export const linkedRow = (
+  <TableRow
+    id={0}
+    item={rows[0]}
+    columns={columns}
+    href="/people/0"
+    onNavigationError={(error, href) => {
+      void [error, href]
+    }}
+  />
+)
+// @ts-expect-error Native link destinations retain the existing Link string contract.
+export const invalidLink = <TableRow item={rows[0]} columns={columns} href={0} />
 const composition = (
   <Table accessibilityLabel="People" style={{ width: "100%" }}>
     <TableHeader columns={columns} />

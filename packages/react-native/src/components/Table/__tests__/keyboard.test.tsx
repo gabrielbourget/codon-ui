@@ -193,6 +193,52 @@ const key = async (host: THost, value: string, overrides: Record<string, unknown
 const expectFocus = (host: THost) =>
   expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(mockViews.get(host.props.ownerId), host.props.ownerId)
 
+it("opens linked rows on Enter release and selects on Space without a second navigation", async () => {
+  const native = jest.requireActual<typeof RN>("react-native"),
+    navigate = jest.spyOn(native.Linking, "openURL").mockResolvedValue(undefined),
+    changed = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <Table selectionMode="multiple" selectionBehavior="replace" selectedKeys={new Set()} onSelectionChange={changed}>
+        <TableHeader columns={columns} />
+        <RawBody>
+          <TableRow id={0} item={items[0]} columns={columns} href="/people/0" />
+        </RawBody>
+      </Table>
+    </NativeThemeProvider>,
+  )
+  await focused(row(0))
+  await key(row(0), "Enter")
+  expect(navigate).not.toHaveBeenCalled()
+  await key(row(0), "Enter", { phase: "up" })
+  expect(navigate).toHaveBeenCalledWith("/people/0")
+  await key(row(0), " ")
+  await key(row(0), " ", { phase: "up" })
+  expect([...changed.mock.calls[0][0]]).toEqual([0])
+  expect(navigate).toHaveBeenCalledTimes(1)
+})
+it("replaces selection when arrow navigation reaches an action link without opening it", async () => {
+  const native = jest.requireActual<typeof RN>("react-native"),
+    navigate = jest.spyOn(native.Linking, "openURL").mockResolvedValue(undefined),
+    changed = jest.fn()
+  await render(
+    <NativeThemeProvider>
+      <Table selectionMode="multiple" selectionBehavior="replace" selectedKeys={new Set()} onSelectionChange={changed}>
+        <TableHeader columns={columns} />
+        <RawBody>
+          <TableRow id={0} item={items[0]} columns={columns} />
+          <TableRow id="beta" item={items[1]} columns={columns} href="/people/beta" />
+        </RawBody>
+      </Table>
+    </NativeThemeProvider>,
+  )
+  await focused(row(0))
+  await key(row(0), "ArrowDown")
+  expect([...changed.mock.calls[0][0]]).toEqual(["beta"])
+  expectFocus(row("beta"))
+  expect(navigate).not.toHaveBeenCalled()
+})
+
 it("enters the first row through the original root and supports row navigation without selection", async () => {
   await render(node())
   await focused(screen.getByTestId("table"))
