@@ -39,12 +39,16 @@ inventory = {
     "sdk": "react-native@0.86.3",
     "patch": str(args.patch.resolve()),
     "patchSHA256": hashlib.sha256(patch).hexdigest(),
-    "sourceFiles": {name: hashlib.sha256((sdk / name).read_bytes()).hexdigest() for name in files},
+    "sourceFiles": {name: hashlib.sha256((sdk / name).read_bytes()).hexdigest() for name in sorted(set(re.findall(r"^diff --git a/(.*?) b/", patch.decode(), re.M)))},
     "changedExistingMethods": [
-        "Scheduler::uiManagerDidDispatchCommand", "EventDispatcher::dispatchEvent/dispatchUniqueEvent", "EventListenerContainer::willDispatchEvent",
+        "MountItemDispatcher::addViewCommandMountItem", "Scheduler::uiManagerDidDispatchCommand", "EventDispatcher::dispatchEvent/dispatchUniqueEvent", "EventListenerContainer::willDispatchEvent",
         "RuntimeScheduler_Modern::runEventLoopTick/executeTask/performMicrotaskCheckpoint/scheduleRenderingUpdate",
     ],
     "additiveMethods": [
+        "EventQueue/EventDispatcher/Scheduler::dispatchOriginalNativeEvents",
+        "FabricUIManager::checkNativeEventCommandBoundary/beginNativeEventCommand",
+        "MountItemDispatcher::checkNativeEventCommandBoundary/beginNativeEventCommand/endNativeEventCapture/nativeEventSurfaceCurrent/drainNativeEventCommands",
+        "NativeEventCommandScope::constructor/capture/isCurrent/reject/finishAndDrain/wasExecuted/getError/close; original item getSurfaceId/toString/execute",
         "UIManager::getNativeEventCommands",
         "NativeEventCommand::NativeEventCommand/status/claim/cancel/executeOriginal",
         "NativeEventCommands::Entry::Entry",
@@ -65,8 +69,9 @@ inventory = {
     },
     "CUISourceFiles": {
         name: hashlib.sha256((fixture.parents[3] / name).read_bytes()).hexdigest()
-        for name in ["packages/react-native/cpp/FieldInputRuntime.h", "packages/react-native/cpp/FieldInputTaskScope.h", "packages/react-native/cpp/FieldInputDispatchFrames.h", "packages/react-native/cpp/FieldInputOriginalCommand.h", "packages/react-native/cpp/FieldInputMount.h", "packages/react-native/ios/CUIFieldInputBinding.mm", "packages/react-native/android/src/main/jni/FormDocumentJNI.cpp"]
+        for name in ["packages/react-native/cpp/FieldInputOwnedInput.h", "packages/react-native/cpp/FieldInputSubphase.h", "packages/react-native/cpp/FieldInputNativeOperation.h", "packages/react-native/cpp/form/FieldInputBinding.h", "packages/react-native/cpp/FieldInputRuntime.h", "packages/react-native/cpp/FieldInputTaskScope.h", "packages/react-native/cpp/FieldInputDispatchFrames.h", "packages/react-native/cpp/FieldInputOriginalCommand.h", "packages/react-native/cpp/FieldInputMount.h", "packages/react-native/ios/CUIFieldInputBinding.mm", "packages/react-native/android/src/main/jni/FormDocumentJNI.cpp"]
     },
+    "fixtureFiles": {name: hashlib.sha256((fixture / name).read_bytes()).hexdigest() for name in ["field-sdk-task.cpp", "field-input-subphases.cpp"]},
     "scope": "Actual Task.cpp, SDK scope/registry and CUI frame/scope; exact lifecycle/checkpoint/render methods. Explicit surrounding JSI, queue, tracing and consistency doubles. No linked platform SDK, focus/default or installed acceptance.",
 }
 # The complete SDK/CUI and patch inventory exists before any compiler.
@@ -148,6 +153,9 @@ subprocess.run([
     str(fixture / "field-sdk-task.cpp"), str(sdk / "ReactCommon/react/renderer/runtimescheduler/Task.cpp"), "-o", str(executable),
 ], check=True, timeout=30)
 record = subprocess.check_output([str(executable)], text=True, timeout=8).strip()
-result = {"patchSHA256": inventory["patchSHA256"], "executable": record, "linkedSDKAcceptance": False, "installedAcceptance": False}
+subphase_executable = output / "field-input-subphases"
+subprocess.run(["/usr/bin/clang++", "-std=c++20", "-pthread", "-Wall", "-Wextra", "-Werror", str(fixture / "field-input-subphases.cpp"), "-o", str(subphase_executable)], check=True, timeout=25)
+subphase_record = subprocess.check_output([str(subphase_executable)], text=True, timeout=8).strip()
+result = {"patchSHA256": inventory["patchSHA256"], "executable": record, "inputSubphases": subphase_record, "linkedSDKAcceptance": False, "installedAcceptance": False}
 (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 print(json.dumps(result, indent=2))

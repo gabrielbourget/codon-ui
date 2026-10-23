@@ -5,6 +5,7 @@
 #include "FieldInputRecords.h"
 #include "FieldInputOriginalEvents.h"
 #include "FieldInputNativeOperation.h"
+#include "FieldInputSubphase.h"
 #include "FieldInputTaskScope.h"
 #include "FieldInputOriginalCommand.h"
 #include <ReactCommon/CallInvoker.h>
@@ -26,6 +27,8 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
   struct OriginalEvent {
     std::weak_ptr<facebook::react::UIManager> manager;
     std::shared_ptr<const facebook::react::RawEvent> original;
+    std::shared_ptr<const FieldInputOwnedInput> input;
+    std::weak_ptr<FieldInputDispatchFrames::Ticket> parent;
   };
   FieldInputDispatchFrames frames;
   FieldInputRecords records;
@@ -63,7 +66,9 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
       if (std::this_thread::get_id() != nativeThread || !live_.load() || event.isUnique || !event.eventTarget || !event.eventPayload || !belongs) return false;
       try {
         if (!belongs(event)) return false;
-        events.push_back({manager, std::make_shared<const RawEvent>(event)});
+        const auto family = event.shadowNodeFamily.lock();
+        auto input = event.type == "topNativeSegmentInput" && family ? FieldInputNativeOperation::input(manager.get(), family->getTag()) : nullptr;
+        events.push_back({manager, std::make_shared<const RawEvent>(event), std::move(input), ticket});
         return true;
       } catch (const std::exception &error) { if (observerError.empty()) observerError = error.what(); }
       catch (...) { if (observerError.empty()) observerError = "field-input-original-event-observer-threw"; }
@@ -248,9 +253,10 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
       try {
         scope->attachCommands(manager->getNativeEventCommands(), [weakSelf, weakTicket, weakManager, &runtime](const auto &command) {
           const auto state = weakSelf.lock(); const auto ticket = weakTicket.lock(); const auto manager = weakManager.lock();
-          if (!state || !ticket || !manager || !state->live_.load() || !state->frames.isCurrent(ticket))
+          const auto active = state && ticket ? state->frames.activeInput(ticket) : nullptr;
+          if (!state || !active || !manager || !state->live_.load() || !state->frames.isCurrent(active))
             throw std::runtime_error("field-input-original-command-retired");
-          state->dispatchOriginalCommand(runtime, ticket, manager, command);
+          state->dispatchOriginalCommand(runtime, active, manager, command);
         });
       } catch (const std::exception &error) { scope->fail(error.what()); scope->finish(); throw; }
       catch (...) { scope->fail("field-input-command-scope-threw"); scope->finish(); throw; }
@@ -389,9 +395,39 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
     const auto scheduler = manager ? dynamic_cast<Scheduler *>(manager->getDelegate()) : nullptr;
     if (!manager || !scheduler || !event.original || !event.original->eventPayload || !event.original->eventTarget ||
         !binding || &binding->getUIManager() != manager.get()) return false;
-    std::vector<RawEvent> originals;
-    originals.push_back(*event.original);
-    return scheduler->dispatchOriginalNativeEvents(runtime, std::move(originals));
+    auto original = *event.original;
+    const auto parent = event.parent.lock();
+    const auto active = parent ? frames.activeInput(parent) : nullptr;
+    // A late real notification retains ordinary first delivery, without a new
+    // capability or permission to affect the expired native default.
+    if (!event.input || !active) {
+      std::vector<RawEvent> originals; originals.push_back(std::move(original));
+      return scheduler->dispatchOriginalNativeEvents(runtime, std::move(originals));
+    }
+    const auto &context = event.input;
+    return dispatchFieldInputSubphase(frames, active, *context, this, [&](const auto &input) {
+      const auto payload = original.eventPayload;
+      const auto packet = context->packet(input);
+      original.eventPayload = std::make_shared<ValueFactoryEventPayload>([this, input, context, payload, packet](facebook::jsi::Runtime &runtime) {
+        if (!frames.isCurrent(input) || !context->current()) throw std::runtime_error("field-input-subphase-expired");
+        auto value = payload->asJSIValue(runtime);
+        if (!value.isObject()) throw std::runtime_error("field-input-original-payload-invalid");
+        records.append(folly::toJson(folly::dynamic::object("kind", "original-input")
+          ("token", input->token)("eventId", input->eventId)("payload", facebook::jsi::dynamicFromValue(runtime, value))));
+        auto object = value.asObject(runtime);
+        if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
+        object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, packet));
+        if (!frames.isCurrent(input)) throw std::runtime_error("field-input-subphase-expired");
+        return value;
+      });
+      std::vector<RawEvent> originals; originals.push_back(std::move(original));
+      return scheduler->dispatchOriginalNativeEvents(runtime, std::move(originals));
+    }, [&](const auto &input, const auto &result) {
+      records.append(folly::toJson(folly::dynamic::object("kind", "input-subphase")
+        ("token", input->token)("parentToken", active->token)("eventId", input->eventId)
+        ("deliveryStarted", result.deliveryStarted)("deliveryReturned", result.deliveryReturned)
+        ("handlerAllowed", result.disposition == FieldInputDisposition::Allowed)("renderPhasesComplete", result.phasesComplete)("error", result.error)));
+    });
   }
 
   void scheduleOriginals(std::vector<OriginalEvent> events) {

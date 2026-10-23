@@ -140,7 +140,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
     }, originalInput);
   FieldInputMountCursor mountCursor{fabric.root};
-  const auto waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
+  const auto waited = scheduled ? state->frames.waitWithInputs(ticket, [&](const FieldInputDispatchFrames::Handle &ticket, const FieldInputFocusAction &action) {
     static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
     static const auto focus = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jstring)>("focus");
     const auto expectedScope = ticket->scopeFor(action.groupTarget);
@@ -169,7 +169,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
       if (result.current && result.error.empty()) mountCursor.appliedRoot = captureFabricFormDocument(*manager, identity.surfaceId).root;
       return result;
     });
-  }, [&] {
+  }, [&](const FieldInputDispatchFrames::Handle &ticket) {
     return state->captureMountEvents(ticket, manager, [&](const RawEvent &event) {
       return isFieldInputMountEvent(*manager, ticket, event);
     }, [&] {
@@ -181,7 +181,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
       }
       return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] { return witness(owner)->toStdString(); }, target);
     });
-  }, [&](const FieldInputCommandAction &command) {
+  }, [&](const FieldInputDispatchFrames::Handle &ticket, const FieldInputCommandAction &command) {
     return state->captureCommandEvents(ticket, manager, [&](const RawEvent &event) {
       return isFieldInputCommandEvent(*manager, ticket, event) || isFieldInputMountEvent(*manager, ticket, event);
     }, [&] {
@@ -225,12 +225,13 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
         scoped.at("fieldGroupSnapshot"), fieldInputInteger(scoped.at("scopeEpoch")));
     }
   } catch (const std::exception &) { current = false; }
+  const auto subphases = fieldInputSubphaseResults(state->frames, ticket);
   const auto decision = state->frames.end(ticket, current);
   return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
     ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
     ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
     ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)
-    ("scopeCurrent", current)("before", snapshot)("after", afterSnapshot)));
+    ("scopeCurrent", current)("before", snapshot)("after", afterSnapshot)("inputSubphases", subphases)));
 }
 
 static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
@@ -247,6 +248,15 @@ static jni::local_ref<jstring> nativeEmitOwnedInput(jni::alias_ref<jclass>,
   const auto manager = scopedManager(managerObject);
   const auto record = folly::parseJson(input->toStdString());
   static const auto run = jni::findClassStatic("java/lang/Runnable")->getMethod<void()>("run");
+  if (codon::FieldInputNativeOperation::contains(manager.get())) {
+    const auto context = codon::form::captureFieldOwnedInput(manager, folly::parseJson(document->toStdString()),
+      folly::parseJson(snapshot->toStdString()), folly::parseJson(declarations->toStdString()),
+      codon::form::fieldGroupTarget(record.at("target")), codon::fieldInputInteger(folly::dynamic(epoch)),
+      codon::fieldInputInteger(record.at("eventId")));
+    codon::FieldInputNativeOperation::Input inputScope(manager.get(), context);
+    run(emitter);
+    return jni::make_jstring("");
+  }
   jni::local_ref<jstring> receipt;
   // A current native-operation observer keeps its existing first-delivery
   // handoff; this continuation does not borrow a returned key capability.
