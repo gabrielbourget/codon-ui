@@ -137,7 +137,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(before.at("timestamp").asDouble()), [weakRoot, weakManager, revision] {
       const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
-    }, originalInput ? originalInput->eventPayload : nullptr);
+    }, originalInput);
   FieldInputMountCursor mountCursor{fabric.root};
   const auto waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
     static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
@@ -175,6 +175,10 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
       static const auto witness = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>()>("mountWitness");
       return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] { return witness(owner)->toStdString(); });
     });
+  }, [&](const FieldInputCommandAction &) {
+    // The original SDK callback only enqueues an Android command. Do not run
+    // it until the SDK-owned ordered native drain is available and guarded.
+    return FieldInputCommandResult{false, "field-input-sdk-command-drain-unavailable"};
   }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
   bool current = false;
   folly::dynamic afterSnapshot = nullptr;

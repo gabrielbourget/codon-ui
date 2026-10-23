@@ -26,6 +26,18 @@ inline bool isFieldInputMountEvent(facebook::react::UIManager &manager,
   }
   return false;
 }
+inline bool isFieldInputCommandEvent(facebook::react::UIManager &manager,
+    const FieldInputDispatchFrames::Handle &ticket, const facebook::react::RawEvent &event) {
+  const bool inputNotification = event.type == "topFocus" || event.type == "topBlur" || event.type == "topChange" ||
+    event.type == "topSelectionChange" || event.type == "topEndEditing" || event.type == "topSubmitEditing" ||
+    event.type == "topKeyPress" || event.type == "topTextInput" || event.type == "topNativeSegmentInput" ||
+    event.type == "topNativeFocusChange" || event.type == "topNativeFocusWithin";
+  const auto family = event.shadowNodeFamily.lock();
+  if (!inputNotification || event.isUnique || !family || family->getSurfaceId() != ticket->identity.surfaceId) return false;
+  const auto document = form::captureFabricFormDocument(manager, ticket->identity.surfaceId);
+  const auto found = document.positions.find(family->getTag());
+  return found != document.positions.end() && document.preorder[found->second].node->getFamilyShared() == family;
+}
 inline std::shared_ptr<facebook::react::RuntimeScheduler> fieldInputRuntimeScheduler(
     facebook::react::UIManager &manager) {
   using namespace facebook::react;

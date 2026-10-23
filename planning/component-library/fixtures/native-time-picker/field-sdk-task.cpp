@@ -15,6 +15,7 @@
 #include <react/renderer/runtimescheduler/Task.h>
 #include <react/utils/OnScopeExit.h>
 #include "../../../../packages/react-native/cpp/FieldInputTaskScope.h"
+#include "../../../../packages/react-native/cpp/FieldInputOriginalCommand.h"
 namespace folly { struct dynamic { int original{41}; }; }
 namespace facebook::react { class ShadowNode {}; }
 #include <react/renderer/uimanager/NativeEventCommands.h>
@@ -80,22 +81,20 @@ using namespace std::chrono_literals;
 
 struct CommandScope final : NativeEventTaskScope {
   FieldInputTaskScope frame;
-  std::shared_ptr<NativeEventCommands::Registration> commands;
   int &finishes;
   std::string error;
   CommandScope(std::shared_ptr<void> owner, FieldInputDispatchFrames &frames, FieldInputDispatchFrames::Handle ticket,
       NativeEventCommands &registry, int &finishes)
       : frame(std::move(owner), frames, ticket), finishes(finishes) {
     if (!frames.startDelivery(ticket)) throw std::runtime_error("original task admission expired");
-    commands = registry.enter([&frames, ticket](const auto &command) {
-      auto action = std::make_shared<FieldInputCommandAction>(FieldInputCommandAction{command->surfaceId, command->target, command->name,
-        [command] { return FieldInputCommandResult{command->executeOriginal(), ""}; }, [command] { command->cancel(); }});
-      const auto result = frames.requestCommand(ticket, action);
+    frame.attachCommands(registry, [&frames, ticket](const auto &command) {
+      const auto result = requestFieldInputOriginalCommand(frames, ticket, command,
+        [command] { return FieldInputCommandResult{command->executeOriginal(), ""}; });
       if (!result.callbackCompleted || !result.error.empty()) throw std::runtime_error(result.error);
     });
   }
   void fail(const std::string &value) noexcept override { if (error.empty()) error = value; frame.fail(value); }
-  void finish() noexcept override { finishes++; frame.finish(); commands.reset(); }
+  void finish() noexcept override { finishes++; frame.finish(); }
 };
 
 int main() {
@@ -260,6 +259,45 @@ int main() {
     check(finishes == 1 && !registry.captureCurrentThread() && !scope->error.empty());
     check(scheduler.errors.size() == 1 && scheduler.currentTask_ == nullptr);
     frames.end(ticket, false);
+  }
+  {
+    FieldInputDispatchFrames frames; auto owner = std::make_shared<int>(1);
+    auto ticket = frames.begin(identity, 1, "down", 1000ms); frames.startDelivery(ticket);
+    NativeEventCommands registry, otherRegistry; FieldInputTaskScope scope(owner, frames, ticket);
+    scope.attachCommands(registry, [](const auto &command) { command->cancel(); });
+    check(registry.captureCurrentThread() != nullptr && !otherRegistry.captureCurrentThread());
+    try { scope.attachCommands(otherRegistry, [](const auto &) {}); check(false); }
+    catch (const std::runtime_error &error) { check(std::string(error.what()) == "field-input-command-scope-already-attached"); }
+    frames.finishHandler(ticket, false); scope.finish(); scope.finish();
+    check(!registry.captureCurrentThread() && !otherRegistry.captureCurrentThread());
+    try { scope.attachCommands(otherRegistry, [](const auto &) {}); check(false); }
+    catch (const std::runtime_error &error) { check(std::string(error.what()) == "field-input-command-scope-already-attached"); }
+    auto original = std::make_shared<NativeEventCommand>(11, 12, "focus", node, args, [] {}, [] { return true; });
+    auto missing = requestFieldInputOriginalCommand(frames, ticket, original, {});
+    check(missing.error == "field-input-original-command-executor-required" && original->status() == NativeEventCommandStatus::Cancelled);
+    check(requestFieldInputOriginalCommand(frames, ticket, nullptr, {}).error == "field-input-original-command-required");
+    frames.end(ticket, true);
+  }
+  {
+    FieldInputDispatchFrames frames; auto ticket = frames.begin(identity, 1, "down", 1000ms); frames.startDelivery(ticket);
+    int originalCalls = 0;
+    auto original = std::make_shared<NativeEventCommand>(11, 12, "focus", node, args, [&] { originalCalls++; }, [] { return true; });
+    auto scope = std::make_shared<FieldInputTaskScope>(std::make_shared<int>(1), frames, ticket); NativeEventCommands registry;
+    auto js = std::async(std::launch::async, [&] {
+      scope->attachCommands(registry, [&](const auto &command) {
+        const auto result = requestFieldInputOriginalCommand(frames, ticket, command, [command] { return FieldInputCommandResult{command->executeOriginal(), ""}; });
+        if (result.error != "field-input-sdk-command-drain-unavailable" || result.callbackCompleted)
+          throw std::runtime_error("missing native drain was accepted");
+        frames.finishHandler(ticket, true, result.error); scope->finish();
+      });
+      registry.captureCurrentThread()->dispatchOriginal(original);
+      if (registry.captureCurrentThread()) throw std::runtime_error("failed native route retained registration");
+    });
+    const auto decision = frames.wait(ticket, {}, {}, [](const auto &) { return FieldInputCommandResult{false, "field-input-sdk-command-drain-unavailable"}; });
+    js.get();
+    check(originalCalls == 0 && original->status() == NativeEventCommandStatus::Cancelled);
+    check(decision.disposition == FieldInputDisposition::Failed && decision.error == "field-input-sdk-command-drain-unavailable");
+    frames.end(ticket, true);
   }
   std::cout << assertions << " actual SDK Task/CUI scope and exact task/checkpoint/render assertions passed; no linked or installed verdict\n";
 }
