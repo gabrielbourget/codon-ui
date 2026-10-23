@@ -3,6 +3,7 @@ import type { ColorValue, StyleProp, TextInput, TextStyle, View, ViewProps } fro
 
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TCornerGeometry } from "../../tokens/geometry"
+import type { TNativeCollectionComboBoxProps } from "../ComboBox/collectionTypes"
 import type { TNativeInputProps, TNativeInputSize } from "../Input/types"
 
 import type { TNativeCompactTypeaheadLabels } from "./labels"
@@ -22,7 +23,7 @@ export type TNativeCompactTypeaheadRenderItemArgs = Readonly<{
   textValue: string
   itemKey: TNativeCompactTypeaheadKey
 }>
-export type TNativeCompactTypeaheadSearchProps<T extends object = object> = Omit<ViewProps, "children" | "style"> & {
+type TNativeCompactTypeaheadOwnProps<T extends object> = Omit<ViewProps, "children" | "style"> & {
   children?: never
   "data-testid"?: string
   "aria-label"?: string
@@ -79,6 +80,18 @@ export type TNativeCompactTypeaheadSearchProps<T extends object = object> = Omit
   customOptionsListStyles?: StyleProp<TextStyle>
   style?: StyleProp<TextStyle> | ((state: TNativeCompactTypeaheadStyleState) => StyleProp<TextStyle>)
 }
+export type TNativeCompactTypeaheadSearchProps<T extends object = object> = TNativeCompactTypeaheadOwnProps<T> &
+  Omit<
+    TNativeCollectionComboBoxProps<T>,
+    | keyof TNativeCompactTypeaheadOwnProps<T>
+    | "inputLabel"
+    | "closeLabel"
+    | "getKey"
+    | "getTextValue"
+    | "ComponentIcon"
+    | "popoverIsOpen"
+    | "renderContent"
+  >
 export type TNativeCompactTypeaheadEntry<T> = Readonly<{
   item: T
   key: TNativeCompactTypeaheadKey

@@ -58,6 +58,9 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     nativeErrorMessageBy?: readonly string[]
     nativeDetailsBy?: readonly string[]
     nativeAccessibilityLabels?: Partial<TNativeFieldSemanticLabels>
+    // Owned composites may control their popup independently of trigger state.
+    popoverIsOpen?: boolean
+    renderContent?: (field: { metadata: ReactNode; placement: "input" | "root" }) => ReactNode
     render?: (
       props: TNativeFocusViewProps & RefAttributes<View>,
       state: TNativeCollectionComboBoxRenderState,

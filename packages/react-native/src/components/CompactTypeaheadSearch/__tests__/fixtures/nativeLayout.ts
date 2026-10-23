@@ -1,7 +1,11 @@
-import { act, fireEvent, screen } from "@testing-library/react-native"
+import { screen, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
 import { findNodeHandle, type View } from "react-native"
 
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+} from "../../../../collection/__tests__/nativeReceipts"
 import * as focusRegistry from "../../../../input/focus"
 
 export const row = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
@@ -27,8 +31,8 @@ export const installCompactNativeLayout = () => {
     if (!actual) throw new Error(`Missing actual RN preset ref for ${id}`)
     return actual
   }
-  const acknowledge = async (active = true, epoch = 1) => {
-    for (const ready of [false, true]) {
+  const acknowledge = async (active = true, epoch = 1, resetReady = true) => {
+    for (const ready of resetReady ? [false, true] : [true]) {
       const host = row("host").props
       await act(() =>
         host.onNativeScopeStatus({
@@ -63,4 +67,9 @@ export const installCompactNativeLayout = () => {
     await acknowledge()
   }
   return { hostRef, target, acknowledge, ready }
+}
+
+export const pressCompact = async (target: Parameters<ReturnType<typeof userEvent.setup>["press"]>[0]) => {
+  await userEvent.setup().press(target)
+  await act(() => {})
 }

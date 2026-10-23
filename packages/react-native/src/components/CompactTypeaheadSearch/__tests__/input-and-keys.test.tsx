@@ -1,12 +1,20 @@
-import { act, cleanup, fireEvent, render } from "@testing-library/react-native"
-import { createRef } from "react"
+import "../../../collection/__tests__/nativeReceipts"
+
+import { cleanup } from "@testing-library/react-native"
+import { createRef, useContext, type ContextType } from "react"
 import { AccessibilityInfo, findNodeHandle, type TextInput } from "react-native"
 
 import { NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 import { getNativeFocusedTarget } from "../../../input/focus"
+import { NativeComboBoxStateContext } from "../../ComboBox/collectionContext"
 import { CompactTypeaheadSearch } from "../CompactTypeaheadSearch"
 
-import { advance, installCompactNativeLayout, row } from "./fixtures/nativeLayout"
+import { advance, installCompactNativeLayout, pressCompact, row } from "./fixtures/nativeLayout"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
@@ -56,14 +64,23 @@ const dataFor = (editor: TextInput, key: string, repeat = false, shiftKey = fals
   }
 }
 const key = async (editor: TextInput, key: string, repeat = false, shiftKey = false) => {
+  await fixture.acknowledge(true, 1, false)
+  await fixture.acknowledge(true, 1, false)
   const packet = dataFor(editor, key, repeat, shiftKey)
-  await act(() => row("host").props.onNativeScopedKey({ nativeEvent: packet }))
+  await act(() =>
+    row("host").props.onNativeScopedKey({ nativeEvent: packet, persist: jest.fn(), isDefaultPrevented: () => false }),
+  )
 }
 const setup = async (shouldFocusWrap?: boolean, isLoading = false) => {
   const editor = createRef<TextInput>(),
     onChange = jest.fn(),
     onInputChange = jest.fn(),
     onNativeChange = jest.fn()
+  let observedState: ContextType<typeof NativeComboBoxStateContext> = null
+  const State = () => {
+    observedState = useContext(NativeComboBoxStateContext)
+    return null
+  }
   const node = (readOnly = false, loading = isLoading) => (
     <NativeThemeProvider>
       <NativeFloatingLayerHost ref={fixture.hostRef} testID="host">
@@ -76,6 +93,7 @@ const setup = async (shouldFocusWrap?: boolean, isLoading = false) => {
           isReadOnly={readOnly}
           shouldFocusWrap={shouldFocusWrap}
           isLoading={loading}
+          SearchIcon={<State />}
           onChange={onChange}
           onInputChange={onInputChange}
           inputProps={{ onChange: onNativeChange }}
@@ -93,7 +111,7 @@ const setup = async (shouldFocusWrap?: boolean, isLoading = false) => {
   expect(editor.current).not.toBeNull()
   expect(findNodeHandle(editor.current)).toBeGreaterThan(0)
   await fireEvent(row("type-ahead-search-input"), "focus", { nativeEvent: { target: findNodeHandle(editor.current) } })
-  return { ...result, node, editor, onChange, onInputChange, onNativeChange }
+  return { ...result, node, editor, onChange, onInputChange, onNativeChange, state: () => observedState! }
 }
 it("NATIVE.compact.006 routes scoped navigation/commit while preserving the real controlled editor", async () => {
   const f = await setup(),
@@ -103,7 +121,8 @@ it("NATIVE.compact.006 routes scoped navigation/commit while preserving the real
   await key(target, "ArrowDown")
   await key(target, "ArrowDown")
   await key(target, "Enter", true)
-  expect(f.onChange).not.toHaveBeenCalled()
+  expect(f.onChange.mock.calls).toEqual([[""]])
+  f.onChange.mockClear()
   await key(target, "Enter")
   await advance()
   expect(f.onChange).toHaveBeenCalledWith("")
@@ -164,9 +183,10 @@ it.each([undefined, false, true])(
 it("preserves shifted caret boundaries before virtual highlight and allows them after navigation", async () => {
   const f = await setup(),
     target = f.editor.current!
+  await pressCompact(row("type-ahead-search-button"))
   await key(target, "Home", false, true)
   await key(target, "End", false, true)
-  await key(target, "Enter")
+  expect(f.state().selectionManager.focusedKey).toBeNull()
   expect(f.onChange).not.toHaveBeenCalled()
   await key(target, "ArrowDown")
   await key(target, "End", false, true)
@@ -239,6 +259,7 @@ it("does not select invisible results behind the parent-controlled loading statu
   await key(target, "Enter")
   expect(f.onChange).not.toHaveBeenCalled()
   await f.rerender(f.node(false, false))
+  await key(target, "ArrowDown")
   await key(target, "Home")
   await key(target, "Enter")
   expect(f.onChange.mock.calls).toEqual([[0]])
@@ -247,8 +268,11 @@ it("does not select invisible results behind the parent-controlled loading statu
 it("ignores navigation that did not capture the original native default", async () => {
   const f = await setup(),
     target = f.editor.current!
-  const nativeEvent = { ...dataFor(target, "ArrowDown"), nativeDefaultHandled: false }
+  await key(target, "ArrowDown")
+  await fixture.acknowledge(true, 1, false)
+  await fixture.acknowledge(true, 1, false)
+  const nativeEvent = { ...dataFor(target, "End"), nativeDefaultHandled: false }
   await act(() => row("host").props.onNativeScopedKey({ nativeEvent }))
   await key(target, "Enter")
-  expect(f.onChange).not.toHaveBeenCalled()
+  expect(f.onChange.mock.calls).toEqual([[0]])
 })

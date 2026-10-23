@@ -10,6 +10,37 @@ const items = [
 ]
 const base = { "aria-label": "Search", items, getItemKey: (item: (typeof items)[number]) => item.id }
 describe("native port ownership oracle", () => {
+  it.each([false, true])(
+    "retains a consumed iterable with query-keyed item caching, query change=%s",
+    async (changeQuery) => {
+      const iterable = (function* () {
+        yield* items
+      })()
+      const user = userEvent.setup()
+      const { rerender } = render(<CompactTypeaheadSearch {...base} items={iterable} isOpen inputValue="held" />)
+      expect(screen.getByTestId("type-ahead-search-empty-state")).toBeInTheDocument()
+      await user.click(screen.getByTestId("type-ahead-search-button"))
+      expect(await screen.findByRole("option", { name: "Alpha Wave" })).toBeInTheDocument()
+      await rerender(
+        <CompactTypeaheadSearch
+          {...base}
+          items={iterable}
+          isOpen
+          inputValue={changeQuery ? "new held" : "held"}
+          getItemTextValue={(item) => `${item.name}!`}
+        />,
+      )
+      expect(screen.getByRole("option", { name: changeQuery ? "Alpha Wave!" : "Alpha Wave" })).toBeInTheDocument()
+    },
+  )
+  it("keeps repeated Enter selection requests under a held value and open popup", async () => {
+    const onChange = vi.fn(),
+      user = userEvent.setup()
+    render(<CompactTypeaheadSearch {...base} value={null} inputValue="" isOpen onChange={onChange} />)
+    await user.click(screen.getByTestId("type-ahead-search-button"))
+    await user.keyboard("{ArrowDown}{Enter>2/}")
+    expect(onChange.mock.calls).toEqual([[0], [0]])
+  })
   it.each([undefined, false, true])(
     "keeps input navigation bounded when the list's shouldFocusWrap is %s",
     async (shouldFocusWrap) => {

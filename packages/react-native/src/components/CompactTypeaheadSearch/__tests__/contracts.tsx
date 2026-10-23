@@ -1,6 +1,7 @@
 import { createRef } from "react"
 import type { TextInput, View } from "react-native"
 
+import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { CompactTypeaheadSearch } from "../CompactTypeaheadSearch"
 
 const source = [{ key: 0, label: "" }]
@@ -44,4 +45,24 @@ const domRef = <CompactTypeaheadSearch ref={createRef<HTMLDivElement>()} />
 const nullQuery = <CompactTypeaheadSearch inputValue={null} />
 // @ts-expect-error Native styles use logical dimensions, without CSS units.
 const cssWidth = <CompactTypeaheadSearch width="10rem" />
-void [cssClass, domRef, nullQuery, cssWidth]
+const inheritedField = (
+  <CompactTypeaheadSearch
+    items={source}
+    name="search"
+    form="filters"
+    formValue="text"
+    validationBehavior="aria"
+    isRequired
+    validate={({ inputValue, value, selectedKey }) =>
+      inputValue.length && value !== null && selectedKey !== null ? null : "Choose a result"
+    }
+    slot={null}
+    nativeDescribedBy={["search-description"]}
+    render={(props, state) => <NativeFocusHost {...props} testID={state.isInvalid ? "invalid" : "valid"} />}
+  />
+)
+// @ts-expect-error Form serialization has the same key/text modes as ComboBox.
+const invalidFormValue = <CompactTypeaheadSearch formValue="object" />
+// @ts-expect-error Internal composition hooks are not part of the component API.
+const privateContent = <CompactTypeaheadSearch renderContent={() => null} />
+void [cssClass, domRef, nullQuery, cssWidth, inheritedField, invalidFormValue, privateContent]

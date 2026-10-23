@@ -1,13 +1,21 @@
-import { act, cleanup, fireEvent, render, screen, userEvent } from "@testing-library/react-native"
+import "../../../collection/__tests__/nativeReceipts"
+
+import { cleanup, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode, type RefAttributes, useState } from "react"
 import { AccessibilityInfo, findNodeHandle, type View } from "react-native"
 
 import { NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../.."
+import {
+  actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
+  renderWithNativeCollections as render,
+} from "../../../collection/__tests__/nativeReceipts"
 import { CompactTypeaheadSearch } from "../CompactTypeaheadSearch"
 import type { TNativeCompactTypeaheadSearchProps } from "../types"
 
-import { advance, installCompactNativeLayout } from "./fixtures/nativeLayout"
+import { advance, pressCompact, installCompactNativeLayout } from "./fixtures/nativeLayout"
 
+jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
   SafeAreaProvider: jest.requireActual("react-native").View,
   SafeAreaView: jest.requireActual("react-native").View,
@@ -28,7 +36,10 @@ const wrapper = (props: TProps = {}, extra?: ReactNode) => (
     </NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
-const ready = () => fixture.ready()
+const ready = async (admitTrigger = true) => {
+  if (admitTrigger) await pressCompact(row("type-ahead-search-button"))
+  await fixture.ready()
+}
 beforeEach(() => {
   jest.useFakeTimers()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
@@ -91,7 +102,8 @@ it("CAP.compact-typeahead.029 activates a measured real popup row with the origi
   const onChange = jest.fn()
   await render(wrapper({ isOpen: true, value: null, onChange }))
   await ready()
-  await userEvent.setup().press(row("type-ahead-search-option-string:alpha"))
+  expect(findNodeHandle(fixture.target("type-ahead-search-option-string:alpha"))).toBeGreaterThan(0)
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
   expect(onChange).toHaveBeenCalledWith("alpha")
 })
 
@@ -127,7 +139,7 @@ it.each(["isDisabled", "isReadOnly"] as const)(
     const lateChange = row("type-ahead-search-input").props.onChangeText
     await rerender(wrapper({ onInputChange, onOpenChange, [guard]: true }))
     await act(() => lateChange("stale"))
-    await userEvent.setup().press(row("type-ahead-search-button"))
+    await pressCompact(row("type-ahead-search-button"))
     expect(onInputChange).not.toHaveBeenCalled()
     expect(onOpenChange).not.toHaveBeenCalled()
     expect(row("type-ahead-search-input").props.value).toBe("")
@@ -136,8 +148,8 @@ it.each(["isDisabled", "isReadOnly"] as const)(
 it("CAP.compact-typeahead.009 and oracle retain trigger toggles under controlled false", async () => {
   const onOpenChange = jest.fn()
   await render(wrapper({ isOpen: false, onOpenChange }))
-  await userEvent.setup().press(row("type-ahead-search-button"))
-  await userEvent.setup().press(row("type-ahead-search-button"))
+  await pressCompact(row("type-ahead-search-button"))
+  await pressCompact(row("type-ahead-search-button"))
   expect(onOpenChange.mock.calls.map(([open]) => open)).toEqual([true, false])
   expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
 })
@@ -245,9 +257,10 @@ it.each(["minimum-query", "empty", "loading"] as const)(
       })
     }
     await render(<Harness />)
-    await userEvent.setup().press(row("type-ahead-search-button"))
+    await pressCompact(row("type-ahead-search-button"))
+    await fireEvent(row("type-ahead-search-input"), "focus", { nativeEvent: { target: 17 } })
     await fireEvent.changeText(row("type-ahead-search-input"), "Al")
-    await ready()
+    await ready(false)
     expect(row(`type-ahead-search-${kind}-state`)).toBeOnTheScreen()
     await fireEvent(row("type-ahead-search-input"), "blur", { nativeEvent: { target: 17 } })
     await advance()
@@ -282,6 +295,7 @@ it("CAP.compact-typeahead.027/.028 passes original caller-curated items and held
     textValue: "Alpha Wave",
     itemKey: "alpha",
   })
+  await ready()
   expect(row("render-beta")).toBeOnTheScreen()
 })
 it("CAP.compact-typeahead.030 closes a controlled clear after selection without local query echoes", async () => {
@@ -301,7 +315,7 @@ it("CAP.compact-typeahead.030 closes a controlled clear after selection without 
   }
   await render(<Harness />)
   await ready()
-  await userEvent.setup().press(row("type-ahead-search-option-string:alpha"))
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
   await advance()
   expect(row("type-ahead-search-input").props.value).toBe("")
   expect(screen.queryByTestId("type-ahead-search-minimum-query-state", { includeHiddenElements: true })).toBeNull()
@@ -325,8 +339,8 @@ it("NATIVE.compact.001 preserves typed zero/empty keys and authoritative held va
     }),
   )
   await ready()
-  await userEvent.setup().press(row("type-ahead-search-option-number:0"))
-  await userEvent.setup().press(row("type-ahead-search-option-string:"))
+  await pressCompact(row("type-ahead-search-option-number:0"))
+  await pressCompact(row("type-ahead-search-option-string:"))
   expect(onChange.mock.calls.map(([key]) => key)).toEqual([0, ""])
   expect(onInputChange).not.toHaveBeenCalled()
   expect(row("type-ahead-search-input").props.value).toBe("")
@@ -335,7 +349,7 @@ it("NATIVE.compact.002 matches the uncontrolled selected-value label-request ora
   const onInputChange = jest.fn()
   await render(wrapper({ isOpen: true, inputValue: "held", onInputChange }))
   await ready()
-  await userEvent.setup().press(row("type-ahead-search-option-string:alpha"))
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
   expect(onInputChange).toHaveBeenCalledWith("Alpha Wave")
   expect(row("type-ahead-search-input").props.value).toBe("held")
 })
@@ -347,33 +361,39 @@ it("NATIVE.compact.003 preserves false/zero/empty custom affordances without def
   ).toBeNull()
   expect(screen.getByText("0", { includeHiddenElements: true })).toBeOnTheScreen()
 })
-it("NATIVE.compact.004 retains a consumed iterator across eligible query changes and resolver replacement", async () => {
-  const iterable = (function* () {
-    yield* items
-  })()
-  const disabledKeys = (function* () {
-    yield "alpha"
-  })()
-  const { rerender } = await render(wrapper({ isOpen: true, inputValue: "Al", items: iterable, disabledKeys }))
-  expect(row("type-ahead-search-option-string:alpha")).toBeOnTheScreen()
-  await rerender(
-    wrapper({
-      isOpen: true,
-      inputValue: "Be",
-      items: iterable,
-      disabledKeys,
-      getItemTextValue: (item) => `${item.name}!`,
-    }),
-  )
-  expect(row("type-ahead-search-option-string:alpha").props.accessibilityLabel).toBe("Alpha Wave!")
-  expect(row("type-ahead-search-option-string:beta")).toBeOnTheScreen()
-  expect(row("type-ahead-search-option-string:alpha").props.accessibilityState.disabled).toBe(true)
-})
+it.each([false, true])(
+  "NATIVE.compact.004 retains a consumed iterator and source query-keyed caching, query change=%s",
+  async (changeQuery) => {
+    const iterable = (function* () {
+      yield* items
+    })()
+    const disabledKeys = (function* () {
+      yield "alpha"
+    })()
+    const { rerender } = await render(wrapper({ isOpen: true, inputValue: "Al", items: iterable, disabledKeys }))
+    await ready()
+    expect(row("type-ahead-search-option-string:alpha")).toBeOnTheScreen()
+    await rerender(
+      wrapper({
+        isOpen: true,
+        inputValue: changeQuery ? "Be" : "Al",
+        items: iterable,
+        disabledKeys,
+        getItemTextValue: (item) => `${item.name}!`,
+      }),
+    )
+    expect(row("type-ahead-search-option-string:alpha").props.accessibilityLabel).toBe(
+      changeQuery ? "Alpha Wave!" : "Alpha Wave",
+    )
+    expect(row("type-ahead-search-option-string:beta")).toBeOnTheScreen()
+    expect(row("type-ahead-search-option-string:alpha").props.accessibilityState.disabled).toBe(true)
+  },
+)
 it("NATIVE.compact.005 excludes disabled rows and stale callbacks after guard takeover", async () => {
   const onChange = jest.fn()
   const { rerender } = await render(wrapper({ isOpen: true, onChange, disabledKeys: ["alpha"] }))
   await ready()
-  await userEvent.setup().press(row("type-ahead-search-option-string:alpha"))
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
   expect(onChange).not.toHaveBeenCalled()
   const beta = row("type-ahead-search-option-string:beta")
   const packet = {
@@ -402,7 +422,7 @@ it("NATIVE.compact.009 matches canonical selected-row style and pointer recommit
     padding: 5,
     minHeight: 20,
   })
-  await userEvent.setup().press(row("type-ahead-search-option-string:alpha"))
+  await pressCompact(row("type-ahead-search-option-string:alpha"))
   expect(onChange).not.toHaveBeenCalled()
   expect(onInputChange).toHaveBeenCalledWith("Alpha Wave")
   expect(row("type-ahead-search-input").props.value).toBe("held")
