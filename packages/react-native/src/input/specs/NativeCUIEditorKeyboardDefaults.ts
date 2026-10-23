@@ -7,6 +7,7 @@ export interface Spec extends TurboModule {
   settleField(request: string): boolean
   acceptsField(request: string): boolean
   moveFieldFocus(request: string): string
+  takeFieldRecords(): string
 }
 
 export default TurboModuleRegistry.get<Spec>("CUIEditorKeyboardDefaults")

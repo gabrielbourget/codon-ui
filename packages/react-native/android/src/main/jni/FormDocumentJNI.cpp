@@ -69,6 +69,15 @@ static jboolean nativeAcceptsField(jni::alias_ref<jclass>, jni::alias_ref<jstrin
   const auto state = codon::fieldInputRuntime(lease->toStdString());
   return state && state->ready() && codon::acceptsFieldInput(state->frames, request->toStdString());
 }
+static jni::local_ref<jstring> nativeTakeFieldRecords(jni::alias_ref<jclass>, jni::alias_ref<jstring> lease) {
+  const auto state = lease ? codon::fieldInputRuntime(lease->toStdString()) : nullptr;
+  if (!state) throw std::runtime_error("field-input-receipt-module-retired");
+  return jni::make_jstring(state->takeRecords());
+}
+static void nativeRecordFieldInput(jni::alias_ref<jclass>, jni::alias_ref<jstring> lease, jni::alias_ref<jstring> encoded) {
+  const auto state = lease ? codon::fieldInputRuntime(lease->toStdString()) : nullptr;
+  if (state && encoded) state->records.append(encoded->toStdString());
+}
 static void nativeRetireField(jni::alias_ref<jclass>, jni::alias_ref<jstring> lease) {
   if (lease) codon::retireFieldInputRuntime(lease->toStdString());
 }
@@ -124,6 +133,7 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
       const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
     });
+  FieldInputMountCursor mountCursor{fabric.root};
   const auto waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
     static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
     static const auto focus = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jstring)>("focus");
@@ -148,14 +158,25 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
       return family && family->getSurfaceId() == identity.surfaceId && members.contains(family->getTag()) && event.type != "topNativeFieldKey";
     }, [&] {
       const auto response = folly::parseJson(focus(owner, jni::make_jstring(request).get())->toStdString());
-      return FieldInputFocusResult{response.at("requested").asBool(), response.at("observed").asBool(), response.at("current").asBool(),
+      FieldInputFocusResult result{response.at("requested").asBool(), response.at("observed").asBool(), response.at("current").asBool(),
         static_cast<int32_t>(response.at("target").asInt()), response.at("nativeInstance").asString(), response.at("editorInstance").asString(), response.at("error").asString()};
+      if (result.current && result.error.empty()) mountCursor.appliedRoot = captureFabricFormDocument(*manager, identity.surfaceId).root;
+      return result;
+    });
+  }, [&] {
+    return state->captureMountEvents(ticket, manager, [&](const RawEvent &event) {
+      return isFieldInputMountEvent(*manager, ticket, event);
+    }, [&] {
+      static const auto witness = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>()>("mountWitness");
+      return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] { return witness(owner)->toStdString(); });
     });
   }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
   bool current = false;
+  folly::dynamic afterSnapshot = nullptr;
   try {
     static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>()>("currentSnapshot");
     const auto value = folly::parseJson(read(owner)->toStdString());
+    afterSnapshot = value.at("fieldGroupSnapshot");
     const auto afterDocument = folly::parseJson(value.at("encodedDocument").asString());
     const auto afterBinding = fieldInputBinding(afterDocument);
     current = afterBinding.bindingId == binding.bindingId && afterBinding.bindingRevision == binding.bindingRevision &&
@@ -170,13 +191,16 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
   const auto decision = state->frames.end(ticket, current);
   return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))
     ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
-    ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)));
+    ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
+    ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)
+    ("scopeCurrent", current)("before", snapshot)("after", afterSnapshot)));
 }
 
 void registerFormDocumentNatives() {
   JFieldInputBinding::javaClassStatic()->registerNatives({makeNativeMethod("nativeDispatchFieldKey", nativeDispatchFieldKey),
-    makeNativeMethod("nativeRetireBinding", nativeRetireBinding)});
+    makeNativeMethod("nativeRetireBinding", nativeRetireBinding), makeNativeMethod("nativeRecordFieldInput", nativeRecordFieldInput)});
   jni::findClassStatic("com/codonui/input/CUIEditorKeyboardDefaultsModule")->registerNatives({
+    makeNativeMethod("nativeTakeFieldRecords", nativeTakeFieldRecords),
     makeNativeMethod("nativeFieldBindings", nativeFieldBindings), makeNativeMethod("nativeSettleField", nativeSettleField),
     makeNativeMethod("nativeAcceptsField", nativeAcceptsField), makeNativeMethod("nativeRetireField", nativeRetireField)});
   jni::findClassStatic("com/codonui/input/CUIFormDocumentModule")->registerNatives({

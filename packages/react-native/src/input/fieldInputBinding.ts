@@ -109,7 +109,19 @@ export class NativeFieldInputSession {
         ))
     )
       throw new Error("field-input-plan-invalid")
-    this.#withdraw()
+    const previous = this.#plan
+    const retainOriginalBinding =
+      this.#bound &&
+      previous &&
+      plan &&
+      previous.bindingId === plan.bindingId &&
+      previous.outer === plan.outer &&
+      previous.input === plan.input &&
+      previous.outerTarget === plan.outerTarget &&
+      previous.inputTarget === plan.inputTarget &&
+      previous.originalTarget === plan.originalTarget &&
+      this.native.getLease() === this.#lease
+    if (!retainOriginalBinding) this.#withdraw()
     this.#plan = plan
     this.#failed = null
     this.#changed()

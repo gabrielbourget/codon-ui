@@ -30,6 +30,7 @@ class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorK
                            std::shared_ptr<EditorKeyboardModuleState> state)
       : NativeCUIEditorKeyboardDefaultsSpecJSI(params), state_(std::move(state)) {
     // Do not queue a synchronous acknowledgement back onto its waiting UI thread.
+    methodMap_["takeFieldRecords"] = MethodMetadata{0, takeFieldRecords};
     methodMap_["getLease"] = MethodMetadata{0, getLease};
     methodMap_["settle"] = MethodMetadata{1, settle};
     methodMap_["settleField"] = MethodMetadata{1, settleField};
@@ -39,6 +40,11 @@ class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorK
   }
  private:
   std::shared_ptr<EditorKeyboardModuleState> state_;
+  static facebook::jsi::Value takeFieldRecords(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
+                                             const facebook::jsi::Value *, size_t) {
+    auto &self = static_cast<EditorKeyboardDefaultsJSI &>(module);
+    return facebook::jsi::String::createFromUtf8(runtime, self.state_->field->takeRecords());
+  }
   static facebook::jsi::Value getLease(facebook::jsi::Runtime &runtime, facebook::react::TurboModule &module,
                                      const facebook::jsi::Value *, size_t) {
     auto &self = static_cast<EditorKeyboardDefaultsJSI &>(module);
@@ -95,6 +101,7 @@ class EditorKeyboardDefaultsJSI final : public facebook::react::NativeCUIEditorK
 }
 RCT_EXPORT_MODULE(CUIEditorKeyboardDefaults)
 - (instancetype)init { if ((self = [super init])) _state = std::make_shared<EditorKeyboardModuleState>(); return self; }
+- (NSString *)takeFieldRecords { return @(_state->field->takeRecords().c_str()); }
 - (NSString *)getLease { return _state->valid.load() ? @(_state->lease.c_str()) : @""; }
 - (NSNumber *)settle:(NSString *)request { return @NO; }
 - (NSNumber *)settleField:(NSString *)request { return @NO; }

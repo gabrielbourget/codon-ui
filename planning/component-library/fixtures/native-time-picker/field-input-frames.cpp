@@ -1,4 +1,7 @@
 #include "../../../../packages/react-native/cpp/FieldInputDispatchFrames.h"
+#include "../../../../packages/react-native/cpp/FieldInputRecords.h"
+#include "../../../../packages/react-native/cpp/FieldInputOriginalEvents.h"
+#include <unordered_set>
 #include <atomic>
 #include <future>
 #include <iostream>
@@ -224,6 +227,114 @@ int main() {
   check(!frames.begin(identity, 32, "down", 1000ms, {parent}));
   check(!frames.begin(identity, 32, "down", 1000ms, {identity, parent, parent}));
 
+  auto phased = frames.begin(identity, 40, "down", 1000ms);
+  check(frames.startDelivery(phased));
+  check(frames.acknowledge(phased->token, identity, 40, "down", true, true, {}));
+  frames.finishHandler(phased, false);
+  check(frames.canFinishPhases(phased));
+  std::atomic<int> mountChecks{0};
+  auto phaseJS = std::async(std::launch::async, [&] {
+    const auto first = frames.requestMount(phased);
+    check(first.mounted && first.error.empty());
+    const auto second = frames.requestMount(phased);
+    check(!second.mounted && second.error.empty());
+    frames.finishPhases(phased);
+  });
+  const auto phaseResult = frames.wait(phased, {}, [&] {
+    return FieldInputMountResult{++mountChecks == 1, ""};
+  });
+  phaseJS.get();
+  check(mountChecks == 2 && phaseResult.phasesComplete && phaseResult.deliveryReturned);
+  check(phaseResult.disposition == FieldInputDisposition::Prevented && phaseResult.originalDefaultPrevented);
+  check(frames.end(phased, true).originalDefaultPrevented);
+  check(!frames.end(phased, true).originalDefaultPrevented);
+
+  auto awaitingRender = frames.begin(identity, 41, "down", 1000ms);
+  check(frames.startDelivery(awaitingRender));
+  check(frames.acknowledge(awaitingRender->token, identity, 41, "down", true, true, {}));
+  frames.finishHandler(awaitingRender, false);
+  auto renderingWait = std::async(std::launch::async, [&] { return frames.wait(awaitingRender); });
+  check(renderingWait.wait_for(15ms) == std::future_status::timeout);
+  frames.finishPhases(awaitingRender);
+  check(renderingWait.get().phasesComplete);
+  frames.end(awaitingRender, true);
+
+  auto retiredRender = frames.begin(identity, 42, "down", 1000ms, {identity, parent});
+  check(frames.startDelivery(retiredRender));
+  check(frames.acknowledge(retiredRender->token, identity, 42, "down", true, true, {}));
+  frames.finishHandler(retiredRender, false);
+  auto retiredRenderJS = std::async(std::launch::async, [&] {
+    const auto value = frames.requestMount(retiredRender);
+    check(value.mounted && value.error.empty());
+    check(!frames.accepts(retiredRender->token, identity, 42, "down"));
+    check(!frames.requestFocus(retiredRender->token, identity, 42, "down", next).error.empty());
+    frames.finishPhases(retiredRender);
+  });
+  const auto retiredPhase = frames.wait(retiredRender, {}, [&] {
+    frames.retireBinding(parent.ownerId, parent.bindingId);
+    return FieldInputMountResult{true, ""};
+  });
+  retiredRenderJS.get();
+  check(retiredPhase.disposition == FieldInputDisposition::Retired && retiredPhase.phasesComplete);
+  check(retiredPhase.originalDefaultPrevented && !retiredPhase.focus);
+  const auto retiredDefault = frames.end(retiredRender, false);
+  check(retiredDefault.originalDefaultPrevented && retiredDefault.disposition == FieldInputDisposition::Retired);
+
+  auto mountFailure = frames.begin(identity, 43, "down", 1000ms);
+  check(frames.startDelivery(mountFailure));
+  check(frames.acknowledge(mountFailure->token, identity, 43, "down", true, true, {}));
+  frames.finishHandler(mountFailure, false);
+  auto mountFailureJS = std::async(std::launch::async, [&] {
+    const auto value = frames.requestMount(mountFailure);
+    check(value.error == "original-mount-failure");
+    frames.finishPhases(mountFailure, true, "later-failure");
+  });
+  const auto failedMount = frames.wait(mountFailure, {}, [&]() -> FieldInputMountResult {
+    throw std::runtime_error("original-mount-failure");
+  });
+  mountFailureJS.get();
+  check(failedMount.disposition == FieldInputDisposition::Failed && failedMount.error == "original-mount-failure");
+  check(failedMount.originalDefaultPrevented && !failedMount.focus);
+  frames.end(mountFailure, true);
+
+  auto handlerFailure = frames.begin(identity, 44, "down", 1000ms);
+  check(frames.startDelivery(handlerFailure));
+  check(frames.acknowledge(handlerFailure->token, identity, 44, "down", true, true, {}));
+  frames.finishDelivery(handlerFailure, true, "original-handler-threw");
+  check(!frames.wait(handlerFailure).originalDefaultPrevented);
+  frames.end(handlerFailure, true);
+
+  auto phaseTimeout = frames.begin(identity, 45, "down", 5ms);
+  check(frames.startDelivery(phaseTimeout));
+  check(frames.acknowledge(phaseTimeout->token, identity, 45, "down", true, true, {}));
+  frames.finishHandler(phaseTimeout, false);
+  auto noPhase = frames.wait(phaseTimeout);
+  check(noPhase.disposition == FieldInputDisposition::TimedOut && noPhase.originalDefaultPrevented && !noPhase.phasesComplete);
+  check(!frames.canFinishPhases(phaseTimeout));
+  frames.end(phaseTimeout, true);
+
+  auto returnedLate = frames.begin(identity, 46, "down", 5ms);
+  check(frames.startDelivery(returnedLate));
+  check(frames.acknowledge(returnedLate->token, identity, 46, "down", true, true, {}));
+  check(frames.wait(returnedLate).disposition == FieldInputDisposition::TimedOut);
+  frames.finishDelivery(returnedLate, false);
+  check(!frames.end(returnedLate, true).originalDefaultPrevented);
+
+  auto retiredBeforeDelivery = frames.begin(identity, 47, "down", 1000ms);
+  frames.retireBinding(identity.ownerId, identity.bindingId);
+  check(!frames.startDelivery(retiredBeforeDelivery));
+  check(frames.wait(retiredBeforeDelivery).disposition == FieldInputDisposition::Retired);
+  check(!frames.end(retiredBeforeDelivery, false).originalDefaultPrevented);
+
+  FieldInputDispatchFrames completedBeforeTeardown;
+  auto completed = completedBeforeTeardown.begin(identity, 48, "down", 1000ms);
+  check(completedBeforeTeardown.startDelivery(completed));
+  check(completedBeforeTeardown.acknowledge(completed->token, identity, 48, "down", true, true, {}));
+  completedBeforeTeardown.finishHandler(completed, false);
+  completedBeforeTeardown.retire();
+  check(completedBeforeTeardown.end(completed, false).originalDefaultPrevented);
+  check(!completedBeforeTeardown.end(completed, false).originalDefaultPrevented);
+
   auto retiring = frames.begin(identity, 12, "down", 1000ms);
   auto retirement = std::async(std::launch::async, [&] { return frames.wait(retiring); });
   frames.retire();
@@ -241,5 +352,67 @@ int main() {
   check(!validation.begin(identity, 1, "repeat", 100ms));
   check(!validation.begin(identity, 1, "down", 0ms));
   check(!validation.begin(identity, 1, "down", 1001ms));
+  FieldInputOriginalEvents<int> originalEvents;
+  std::vector<int> emitted;
+  originalEvents.append({1, 2, 3});
+  const std::function<bool(const int &)> deliver = [&](const int &event) {
+    emitted.push_back(event);
+    if (event == 1) {
+      check(originalEvents.drain(deliver));
+      emitted.push_back(4); // The next SDK action starts after older notifications.
+      originalEvents.append({5, 6});
+      check(originalEvents.drain(deliver));
+    }
+    return true;
+  };
+  check(originalEvents.drain(deliver));
+  check(emitted == std::vector<int>({1, 2, 3, 4, 5, 6}));
+  check(originalEvents.drain([&](const int &) { check(false); return true; }));
+  originalEvents.append({7, 8}); emitted.clear();
+  check(!originalEvents.drain([&](const int &event) { emitted.push_back(event); return event != 7; }));
+  check(emitted == std::vector<int>({7, 8}));
+  originalEvents.append({9, 10});
+  try { originalEvents.drain([&](const int &event) { if (event == 9) throw std::runtime_error("original-receiver-threw"); return true; }); }
+  catch (const std::runtime_error &error) { check(std::string(error.what()) == "original-receiver-threw"); }
+  emitted.clear();
+  check(originalEvents.drain([&](const int &event) { emitted.push_back(event); return true; }));
+  check(emitted == std::vector<int>({10}));
+
+  FieldInputRecords boundedRecords(2, 10);
+  boundedRecords.append("first"); boundedRecords.append("two"); boundedRecords.append("last");
+  auto batch = boundedRecords.take();
+  check(batch.records == std::vector<std::string>({"first", "two"}) && batch.dropped == 1);
+  check(boundedRecords.take().records.empty());
+  boundedRecords.append(""); boundedRecords.append("too-many-bytes"); boundedRecords.append("ok");
+  batch = boundedRecords.take();
+  check(batch.records == std::vector<std::string>({"ok"}) && batch.dropped == 2);
+  boundedRecords.append("after");
+  check(boundedRecords.take().dropped == 0);
+
+  FieldInputRecords concurrentRecords(256, 1024 * 1024);
+  std::atomic<int> finished{0};
+  auto firstProducer = std::async(std::launch::async, [&] {
+    for (int index = 0; index < 100; ++index) concurrentRecords.append("A:" + std::to_string(index));
+    ++finished;
+  });
+  auto secondProducer = std::async(std::launch::async, [&] {
+    for (int index = 0; index < 100; ++index) concurrentRecords.append("B:" + std::to_string(index));
+    ++finished;
+  });
+  auto consumer = std::async(std::launch::async, [&] {
+    std::unordered_set<std::string> received;
+    while (finished < 2 || received.size() < 200) {
+      const auto records = concurrentRecords.take();
+      if (records.dropped) throw std::runtime_error("unexpected record loss");
+      for (const auto &record : records.records) if (!received.insert(record).second) throw std::runtime_error("duplicate record");
+      std::this_thread::yield();
+    }
+    return received;
+  });
+  firstProducer.get(); secondProducer.get();
+  const auto received = consumer.get();
+  check(received.size() == 200 && received.contains("A:0") && received.contains("B:99"));
+  check(concurrentRecords.take().records.empty());
+
   std::cout << assertions << " actual C++ field-input frame assertions passed; no SDK/default verdict\n";
 }

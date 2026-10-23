@@ -37,7 +37,10 @@ import {
   NativeFieldInputSession,
   type TNativeFieldInputPlan,
 } from "../../../../packages/react-native/src/input/fieldInputBinding"
-import { getNativeFieldInputModule } from "../../../../packages/react-native/src/input/fieldInputModule"
+import {
+  getNativeFieldInputModule,
+  takeNativeFieldInputRecords,
+} from "../../../../packages/react-native/src/input/fieldInputModule"
 import { NativeFocusHost } from "../../../../packages/react-native/src/input/NativeFocusView"
 import { NativeKeyboardScope } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
 import { NativePressable } from "../../../../packages/react-native/src/input/NativePressable"
@@ -168,8 +171,22 @@ type TFieldProps = {
   stop: boolean
   revision: number
   nested?: boolean
+  removeOnKey?: boolean
+  onRemove?: () => void
 }
-const Field = ({ name, record, disabled, readonly, echo, veto, stop, revision, nested = false }: TFieldProps) => {
+const Field = ({
+  name,
+  record,
+  disabled,
+  readonly,
+  echo,
+  veto,
+  stop,
+  revision,
+  nested = false,
+  removeOnKey = false,
+  onRemove,
+}: TFieldProps) => {
   const ownerId = useId(),
     { locale, direction } = useNativeLocale()
   const [value, setValue] = useState(new Time(nested ? 8 : 13, nested ? 15 : 45))
@@ -231,7 +248,7 @@ const Field = ({ name, record, disabled, readonly, echo, veto, stop, revision, n
   const outerTarget = outer ? (findNodeHandle(outer) ?? 0) : 0,
     inputTarget = input ? (findNodeHandle(input) ?? 0) : 0
   const firstOriginalTarget = original?.rows[0].identity.target ?? 0
-  const lifetime = JSON.stringify([originalSignature, disabled, readonly, locale, veto, stop, revision])
+  const lifetime = JSON.stringify([originalSignature, disabled, readonly, locale, veto, stop, revision, removeOnKey])
   const plan = useMemo<TNativeFieldInputPlan | null>(
     () =>
       firstOriginalTarget && outer && input && outerTarget && inputTarget
@@ -277,8 +294,12 @@ const Field = ({ name, record, disabled, readonly, echo, veto, stop, revision, n
         stopped: event.isPropagationStopped(),
       })
       if (veto) event.preventDefault()
+      if (removeOnKey && event.nativeEvent.phase === "down") {
+        event.preventDefault()
+        onRemove?.()
+      }
     },
-    [record, name, veto, revision],
+    [record, name, veto, revision, removeOnKey, onRemove],
   )
   const group = scope ? nativeFieldGroupKeyHandler(scope, { direction, onKeyDown: caller, onKeyUp: caller }) : undefined
   return (
@@ -372,23 +393,33 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
     [veto, setVeto] = useState(false),
     [stop, setStop] = useState(false),
     [revision, setRevision] = useState(0),
-    [locale, setLocale] = useState("en-GB")
+    [locale, setLocale] = useState("en-GB"),
+    [visible, setVisible] = useState(true),
+    [removeOnKey, setRemoveOnKey] = useState(false)
+  const removeField = useCallback(() => setVisible(false), [])
   return (
     <NativeLocaleProvider locale={locale}>
       <NativeKeyboardScope captureEnabled style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={{ padding: 20 }}>
           <Text>Original field input prototype</Text>
-          <Field
-            name="outer"
-            record={record}
-            disabled={disabled}
-            readonly={readonly}
-            echo={echo}
-            veto={veto}
-            stop={stop}
-            revision={revision}
-          />
+          {visible && (
+            <Field
+              name="outer"
+              record={record}
+              disabled={disabled}
+              readonly={readonly}
+              echo={echo}
+              veto={veto}
+              stop={stop}
+              revision={revision}
+              removeOnKey={removeOnKey}
+              onRemove={removeField}
+            />
+          )}
           {[
+            ["unmount", () => setRemoveOnKey((value) => !value)],
+            ["show", () => setVisible(true)],
+            ["receipts", () => record({ kind: "native-receipts", ...takeNativeFieldInputRecords() })],
             ["disabled", () => setDisabled((value) => !value)],
             ["readonly", () => setReadonly((value) => !value)],
             ["echo", () => setEcho((value) => !value)],
