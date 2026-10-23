@@ -1,0 +1,268 @@
+diff --git a/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..bef72b54697f8c8c055ac056eebf5d2d63ab39ef 100644
+--- a/ReactCommon/react/renderer/scheduler/Scheduler.cpp
++++ b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
+@@ -353,19 +353,26 @@ void Scheduler::uiManagerDidDispatchCommand(
+     // See comment in uiManagerDidFinishTransaction above for gating shape.
+     auto guardEnabled =
+         ReactNativeFeatureFlags::enableSchedulerDelegateInvalidation();
+-    runtimeScheduler_->scheduleRenderingUpdate(
+-        shadowNode->getSurfaceId(),
+-        [delegate = delegate_,
+-         invalidated = delegateInvalidated_,
+-         guardEnabled,
+-         shadowView = std::move(shadowView),
+-         commandName,
+-         args]() {
+-          if (guardEnabled && *invalidated) {
+-            return;
+-          }
+-          delegate->schedulerDidDispatchCommand(shadowView, commandName, args);
+-        });
++    auto original = [delegate = delegate_,
++                     invalidated = delegateInvalidated_,
++                     guardEnabled,
++                     shadowView = std::move(shadowView),
++                     commandName,
++                     args]() {
++      if (guardEnabled && *invalidated) {
++        return;
++      }
++      delegate->schedulerDidDispatchCommand(shadowView, commandName, args);
++    };
++    if (auto route = uiManager_->getNativeEventCommands().captureCurrentThread()) {
++      auto command = std::make_shared<NativeEventCommand>(
++          shadowNode->getSurfaceId(), shadowNode->getTag(), commandName, shadowNode,
++          std::make_shared<const folly::dynamic>(args), std::move(original),
++          [invalidated = delegateInvalidated_, route]() { return !*invalidated && route->current(); });
++      route->dispatchOriginal(command);
++      return;
++    }
++    runtimeScheduler_->scheduleRenderingUpdate(shadowNode->getSurfaceId(), std::move(original));
+   }
+ }
+ 
+diff --git a/ReactCommon/react/renderer/uimanager/NativeEventCommands.h b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ca613b3392d37e892682337ffea41b60ec5f6579
+--- /dev/null
++++ b/ReactCommon/react/renderer/uimanager/NativeEventCommands.h
+@@ -0,0 +1,174 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++
++#pragma once
++
++#include <algorithm>
++#include <atomic>
++#include <cstdint>
++#include <functional>
++#include <memory>
++#include <mutex>
++#include <stdexcept>
++#include <string>
++#include <thread>
++#include <utility>
++#include <vector>
++
++namespace folly { struct dynamic; }
++namespace facebook::react {
++class ShadowNode;
++
++enum class NativeEventCommandStatus { Pending, Running, Completed, Cancelled, DelegateRetired, Failed };
++
++// Owns one original SDK operation. A native turn and the ordinary render queue
++// can share its handle, but can never invoke or cancel that operation twice.
++class NativeEventCommand final {
++ public:
++  NativeEventCommand(int32_t surface, int32_t target, std::string name,
++      std::weak_ptr<const ShadowNode> node, std::shared_ptr<const folly::dynamic> arguments,
++      std::function<void()> original, std::function<bool()> delegateCurrent)
++      : surfaceId(surface), target(target), name(std::move(name)), node(std::move(node)),
++        arguments(std::move(arguments)), original_(std::move(original)), delegateCurrent_(std::move(delegateCurrent)) {
++    if (surfaceId <= 0 || target <= 0 || this->name.empty() || !this->arguments || !original_ || !delegateCurrent_)
++      throw std::invalid_argument("native-event-command-invalid");
++  }
++  const int32_t surfaceId, target;
++  const std::string name;
++  const std::weak_ptr<const ShadowNode> node;
++  const std::shared_ptr<const folly::dynamic> arguments;
++  NativeEventCommandStatus status() const { return status_.load(); }
++  bool claim() {
++    bool expected = false;
++    return status() == NativeEventCommandStatus::Pending && claimed_.compare_exchange_strong(expected, true);
++  }
++  bool cancel() {
++    auto expected = NativeEventCommandStatus::Pending;
++    if (!status_.compare_exchange_strong(expected, NativeEventCommandStatus::Cancelled)) return false;
++    original_ = nullptr; delegateCurrent_ = nullptr;
++    return true;
++  }
++  bool executeOriginal() {
++    auto expected = NativeEventCommandStatus::Pending;
++    if (!status_.compare_exchange_strong(expected, NativeEventCommandStatus::Running)) return false;
++    auto original = std::move(original_);
++    auto current = std::move(delegateCurrent_);
++    try {
++      if (!current()) {
++        status_.store(NativeEventCommandStatus::DelegateRetired);
++        return false;
++      }
++      original();
++      status_.store(NativeEventCommandStatus::Completed);
++      return true;
++    } catch (...) { status_.store(NativeEventCommandStatus::Failed); throw; }
++  }
++ private:
++  std::atomic<bool> claimed_{false};
++  std::atomic<NativeEventCommandStatus> status_{NativeEventCommandStatus::Pending};
++  std::function<void()> original_;
++  std::function<bool()> delegateCurrent_;
++};
++
++// Registration belongs to one UIManager and originating thread. Its token can
++// retire from another thread without leaving a raw manager/delegate pointer.
++class NativeEventCommands final {
++ public:
++  using Handler = std::function<void(const std::shared_ptr<NativeEventCommand> &)>;
++ private:
++  struct Entry { uint64_t token; std::thread::id thread; Handler handler; std::atomic<bool> live{true};
++    Entry(uint64_t token, std::thread::id thread, Handler handler) : token(token), thread(thread), handler(std::move(handler)) {}
++  };
++  struct State { std::mutex mutex; uint64_t serial{0}; std::vector<std::shared_ptr<Entry>> entries; };
++ public:
++  NativeEventCommands() = default;
++  NativeEventCommands(const NativeEventCommands &) = delete;
++  NativeEventCommands &operator=(const NativeEventCommands &) = delete;
++  ~NativeEventCommands() {
++    std::vector<std::shared_ptr<Entry>> retired;
++    {
++      std::lock_guard lock(state_->mutex);
++      for (const auto &entry : state_->entries) entry->live.store(false);
++      retired.swap(state_->entries);
++    }
++  }
++  class Registration final {
++   public:
++    Registration(const Registration &) = delete;
++    Registration &operator=(const Registration &) = delete;
++    ~Registration() { retire(); }
++    void retire() {
++      auto state = state_.lock();
++      if (!state) return;
++      std::vector<std::shared_ptr<Entry>> retired;
++      {
++        std::lock_guard lock(state->mutex);
++        std::erase_if(state->entries, [&](const auto &entry) {
++          if (entry->token != token_) return false;
++          entry->live.store(false); retired.push_back(entry); return true;
++        });
++      }
++      // A handler's captures may release another registration.
++      retired.clear();
++    }
++   private:
++    friend class NativeEventCommands;
++    explicit Registration(std::weak_ptr<State> state) : state_(std::move(state)) {}
++    const std::weak_ptr<State> state_;
++    uint64_t token_{0};
++  };
++  std::shared_ptr<Registration> enter(Handler handler) {
++    if (!handler) throw std::invalid_argument("native-event-command-handler-required");
++    // Allocate the control block before taking the registry lock: allocation
++    // failure may invoke Registration::~Registration and reenter retire().
++    auto registration = std::shared_ptr<Registration>(new Registration(state_));
++    std::unique_lock lock(state_->mutex);
++    if (state_->serial == UINT64_MAX) throw std::overflow_error("native-event-command-token-exhausted");
++    const auto token = ++state_->serial;
++    std::shared_ptr<Entry> entry;
++    try {
++      entry = std::make_shared<Entry>(token, std::this_thread::get_id(), std::move(handler));
++      registration->token_ = token;
++      state_->entries.push_back(entry);
++    } catch (...) { lock.unlock(); throw; }
++    return registration;
++  }
++  class Route final {
++   public:
++    bool current() const { return entry_->live.load(); }
++    void dispatchOriginal(const std::shared_ptr<NativeEventCommand> &command) const {
++      if (!command) throw std::invalid_argument("native-event-command-required");
++      if (!current() || entry_->thread != std::this_thread::get_id()) {
++        command->cancel();
++        throw std::runtime_error("native-event-command-registration-retired");
++      }
++      if (!command->claim()) throw std::runtime_error("native-event-command-already-claimed");
++      try {
++        entry_->handler(command);
++        const auto status = command->status();
++        if (status == NativeEventCommandStatus::Pending || status == NativeEventCommandStatus::Running) {
++          command->cancel();
++          throw std::runtime_error("native-event-command-unsettled");
++        }
++      } catch (...) { command->cancel(); throw; }
++    }
++   private:
++    friend class NativeEventCommands;
++    explicit Route(std::shared_ptr<Entry> entry) : entry_(std::move(entry)) {}
++    const std::shared_ptr<Entry> entry_;
++  };
++  std::shared_ptr<Route> captureCurrentThread() const {
++    std::lock_guard lock(state_->mutex);
++    const auto found = std::find_if(state_->entries.rbegin(), state_->entries.rend(),
++        [&](const auto &entry) { return entry->thread == std::this_thread::get_id(); });
++    return found == state_->entries.rend() ? nullptr : std::shared_ptr<Route>(new Route(*found));
++  }
++
++ private:
++  std::shared_ptr<State> state_ = std::make_shared<State>();
++};
++} // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/uimanager/UIManager.cpp b/ReactCommon/react/renderer/uimanager/UIManager.cpp
+index 4d640400dc129724b1a46e429fc90da2fb1919cc..3bde3e14a4b85bc44ea07253c383204a968761d3 100644
+--- a/ReactCommon/react/renderer/uimanager/UIManager.cpp
++++ b/ReactCommon/react/renderer/uimanager/UIManager.cpp
+@@ -58,6 +58,10 @@ UIManager::~UIManager() {
+                << ").";
+ }
+ 
++NativeEventCommands& UIManager::getNativeEventCommands() {
++  return nativeEventCommands_;
++}
++
+ std::shared_ptr<ShadowNode> UIManager::createNode(
+     Tag tag,
+     const std::string& name,
+diff --git a/ReactCommon/react/renderer/uimanager/UIManager.h b/ReactCommon/react/renderer/uimanager/UIManager.h
+index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d2701304b269dd 100644
+--- a/ReactCommon/react/renderer/uimanager/UIManager.h
++++ b/ReactCommon/react/renderer/uimanager/UIManager.h
+@@ -23,6 +23,7 @@
+ #include <react/renderer/mounting/ShadowTree.h>
+ #include <react/renderer/mounting/ShadowTreeDelegate.h>
+ #include <react/renderer/mounting/ShadowTreeRegistry.h>
++#include <react/renderer/uimanager/NativeEventCommands.h>
+ #include <react/renderer/uimanager/UIManagerAnimationBackend.h>
+ #include <react/renderer/uimanager/UIManagerAnimationDelegate.h>
+ #include <react/renderer/uimanager/UIManagerDelegate.h>
+@@ -55,6 +56,8 @@ class UIManager final : public ShadowTreeDelegate {
+   void setDelegate(UIManagerDelegate *delegate);
+   UIManagerDelegate *getDelegate();
+ 
++  NativeEventCommands &getNativeEventCommands();
++
+   /**
+    * Sets and gets the UIManager's Animation APIs delegate.
+    * The delegate is stored as a raw pointer, so the owner must null
+@@ -245,6 +248,7 @@ class UIManager final : public ShadowTreeDelegate {
+       const ShadowNode &shadowNode,
+       const std::shared_ptr<const ShadowNode> &ancestorShadowNode) const;
+ 
++  NativeEventCommands nativeEventCommands_;
+   SharedComponentDescriptorRegistry componentDescriptorRegistry_;
+   UIManagerDelegate *delegate_{};
+   UIManagerAnimationDelegate *animationDelegate_{nullptr};
