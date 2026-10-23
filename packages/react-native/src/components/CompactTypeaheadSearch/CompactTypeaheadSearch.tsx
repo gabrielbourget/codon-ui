@@ -12,12 +12,13 @@ import {
   type RefAttributes,
   type RefObject,
 } from "react"
-import { View, type TextInput, type TextStyle } from "react-native"
+import { View, findNodeHandle, type TextInput, type TextStyle } from "react-native"
 
 import { useNativeCollectionRefs, useNativeSlottedContext } from "../../collection/context"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../input/focus"
+import type { TNativeFocusWithinEvent } from "../../input/focusWithin"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -32,6 +33,7 @@ import { NativeComboBoxPopover } from "../ComboBox/CollectionComboBoxPopover"
 import { NativeComboBoxButton } from "../ComboBox/CollectionComboBoxTrigger"
 import {
   NativeComboBoxContext,
+  NativeComboBoxGroupContext,
   NativeComboBoxInputContext,
   NativeComboBoxStateContext,
 } from "../ComboBox/collectionContext"
@@ -130,6 +132,7 @@ const CompactContent = <T extends object>({
   minimum,
   status,
   requestOpen,
+  clearSuppression,
   query,
 }: {
   props: TNativeCompactTypeaheadSearchProps<T>
@@ -139,6 +142,7 @@ const CompactContent = <T extends object>({
   minimum: boolean
   status: boolean
   requestOpen: (open: boolean) => void
+  clearSuppression: () => void
   query: string
 }) => {
   const theme = useNativeTheme()
@@ -146,7 +150,9 @@ const CompactContent = <T extends object>({
   const host = useNativeFloatingHost()
   const state = useContext(NativeComboBoxStateContext)!
   const inheritedInput = useNativeSlottedContext(NativeComboBoxInputContext, undefined)
+  const inheritedGroup = useNativeSlottedContext(NativeComboBoxGroupContext, undefined)
   const button = useRef<View | null>(null)
+  const groupWithin = useRef<boolean | null>(null)
   const frame = useRef<number | null>(null)
   const [focused, setFocused] = useState(false)
   const [groupWidth, setGroupWidth] = useState(0)
@@ -180,7 +186,7 @@ const CompactContent = <T extends object>({
     frame.current = requestAnimationFrame(() => {
       frame.current = null
       const target = getNativeFocusedTarget()
-      if (target && (target === input.current || target === button.current)) return
+      if (groupWithin.current ?? (target && (target === input.current || target === button.current))) return
       setFocused(false)
       if (current.current.status) current.current.requestOpen(false)
     })
@@ -204,6 +210,20 @@ const CompactContent = <T extends object>({
         testID="type-ahead-search-group"
         accessibilityLabel={labels.inputButtonGroupAriaLabel}
         onBlur={blur}
+        render={(native, flags) => {
+          const observed = {
+            ...native,
+            nativeOnFocusWithin: (event: TNativeFocusWithinEvent) => {
+              groupWithin.current = event.nativeEvent.within
+              native.nativeOnFocusWithin?.(event)
+            },
+            nativeOnFocusWithinRetired: () => {
+              groupWithin.current = null
+              native.nativeOnFocusWithinRetired?.()
+            },
+          }
+          return inheritedGroup?.render ? inheritedGroup.render(observed, flags) : <NativeFocusHost {...observed} />
+        }}
         style={({ isFocusWithin }) =>
           getCompactTypeaheadStyles(theme, calibration, flags, focused || isFocusWithin).group
         }
@@ -216,6 +236,7 @@ const CompactContent = <T extends object>({
           customStyles={styles.input}
           onFocus={() => setFocused(true)}
           onBlur={blur}
+          onKeyPress={clearSuppression}
         />
         {field.placement === "input" && field.metadata}
         <NativeComboBoxButton
@@ -303,7 +324,10 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const items = useMemo(() => (status ? [] : entries.map((entry) => entry.item)), [status, entries])
   const disabledKeys = useMemo(() => Array.from(props.disabledKeys ?? []), [props.disabledKeys])
   const input = useRef<TextInput | null>(null)
-  const inputRef = useNativeCollectionRefs(props.inputRef, input)
+  const [originalInput, setOriginalInput] = useState<TextInput | null>(null)
+  const trackedInputRef = useNativeCollectionRefs(input, setOriginalInput)
+  const inputRef = useNativeCollectionRefs(props.inputRef, trackedInputRef)
+  const inputTarget = originalInput ? (findNodeHandle(originalInput) ?? 0) : 0
   const scope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -311,6 +335,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const host = useNativeFloatingHost()
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
   const live = useRef(false)
+  const rootWithin = useRef<boolean | null>(null)
   const current = useRef({ props, status, scope, floatingScope, windowActive })
   useInsertionEffect(() => {
     current.current = { props, status, scope, floatingScope, windowActive }
@@ -322,6 +347,18 @@ const CompactTypeaheadSearchInner = <T extends object>(
     current.current.scope?.isWindowActive() !== false &&
     current.current.floatingScope?.canAct() !== false &&
     current.current.windowActive?.() !== false
+  const clearSuppression = () => {
+    if (canAct()) setSuppressed(false)
+  }
+  useNativeKeyboardObservation({
+    targetTag: inputTarget,
+    isEnabled: inputTarget > 0,
+    lifetimeKey: `compact-minimum:${inputTarget}`,
+    canAct,
+    onKeyDown: (event) => {
+      if (!event.nativeEvent.cancelled && event.nativeEvent.focusedTarget === inputTarget) clearSuppression()
+    },
+  })
   const retire = useCallback(() => {
     if (pending.current !== null) clearTimeout(pending.current)
     pending.current = null
@@ -351,7 +388,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
       owner.props.inputValue !== undefined &&
       owner.props.inputValue.trim().length > 0 &&
       !next &&
-      getNativeFocusedTarget() === input.current
+      (rootWithin.current ?? getNativeFocusedTarget() === input.current)
     )
       return
     if (owner.props.isOpen === undefined) setLocalOpen(next)
@@ -361,7 +398,6 @@ const CompactTypeaheadSearchInner = <T extends object>(
     if (!live.current) return
     if (current.current.props.inputValue === undefined) setLocalQuery(value)
     if (current.current.props.isOpen === undefined) setLocalOpen(true)
-    setSuppressed(false)
     current.current.props.onInputChange?.(value)
   }
   const changeSelection = (key: string | number | null) => {
@@ -426,6 +462,13 @@ const CompactTypeaheadSearchInner = <T extends object>(
         const root = {
           ...nativeViewProps(nativeProps),
           ...native,
+          nativeFocusWithinObservation: true,
+          nativeOnFocusWithin: (event: TNativeFocusWithinEvent) => {
+            rootWithin.current = event.nativeEvent.within
+          },
+          nativeOnFocusWithinRetired: () => {
+            rootWithin.current = null
+          },
           style,
           children: (
             <NativeContentContext.Provider
@@ -447,6 +490,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
           minimum={minimum}
           status={status}
           requestOpen={requestOpen}
+          clearSuppression={clearSuppression}
           query={query}
         />
       )}

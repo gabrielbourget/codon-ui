@@ -2,12 +2,14 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup } from "@testing-library/react-native"
 import { createRef, useContext, type ContextType, type ReactNode } from "react"
-import { AccessibilityInfo, type TextInput, type View } from "react-native"
+import { AccessibilityInfo, findNodeHandle, type TextInput, type View } from "react-native"
 
 import { NativeFloatingLayerHost, NativeThemeProvider } from "../../.."
 import {
   actWithNativeCollections as act,
+  fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
+  screen,
 } from "../../../collection/__tests__/nativeReceipts"
 import { NATIVE_DEFAULT_SLOT } from "../../../collection/context"
 import { NativeFormRegistryContext } from "../../../form/context"
@@ -21,7 +23,7 @@ import {
 } from "../../ComboBox/collectionContext"
 import { CompactTypeaheadSearch } from "../CompactTypeaheadSearch"
 
-import { installCompactNativeLayout, pressCompact, row } from "./fixtures/nativeLayout"
+import { advance, installCompactNativeLayout, pressCompact, row } from "./fixtures/nativeLayout"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
 jest.mock("react-native-safe-area-context", () => ({
@@ -52,6 +54,125 @@ const wrap = (child: ReactNode) => (
     </NativeFloatingLayerHost>
   </NativeThemeProvider>
 )
+
+it.each(["programmatic", "soft-key", "physical-key"] as const)(
+  "preserves selection suppression ownership for %s",
+  async (action) => {
+    let state: ContextType<typeof NativeComboBoxStateContext> = null
+    const Capture = () => {
+      state = useContext(NativeComboBoxStateContext)
+      return null
+    }
+    const editor = createRef<TextInput>(),
+      changed = jest.fn()
+    const node = (query: string) =>
+      wrap(
+        <CompactTypeaheadSearch
+          items={items}
+          accessibilityLabel="Query"
+          value={null}
+          inputValue={query}
+          isOpen
+          minimumInputLength={3}
+          inputRef={editor}
+          onInputChange={changed}
+          SearchIcon={<Capture />}
+        />,
+      )
+    const view = await render(node("long"))
+    const original = editor.current!
+    await act(() => {
+      state!.setValue(0)
+    })
+    await view.rerender(node(""))
+    await fixture.ready()
+    expect(screen.queryByTestId("type-ahead-search-minimum-query-state", { includeHiddenElements: true })).toBeNull()
+    if (action === "programmatic") {
+      await act(() => {
+        state!.setInputValue("a")
+      })
+      expect(screen.queryByTestId("type-ahead-search-minimum-query-state", { includeHiddenElements: true })).toBeNull()
+    } else {
+      if (action === "soft-key") {
+        await fireEvent(row("type-ahead-search-input"), "keyPress", {
+          nativeEvent: { key: "ArrowLeft", target: findNodeHandle(original) },
+        })
+      } else {
+        await fixture.observedKey(original, "ArrowLeft")
+      }
+      expect(row("type-ahead-search-minimum-query-state")).toBeOnTheScreen()
+      expect(changed).not.toHaveBeenCalled()
+    }
+    expect(editor.current).toBe(original)
+    expect(row("type-ahead-search-input").props.value).toBe("")
+  },
+)
+
+it.each(["group-blur", "state-close"] as const)("retains authored descendant focus during %s", async (action) => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return <NativeFocusHost testID="search-descendant" focusable />
+  }
+  const onOpenChange = jest.fn()
+  await render(
+    wrap(
+      <CompactTypeaheadSearch
+        items={items}
+        accessibilityLabel="Query"
+        inputValue="q"
+        minimumInputLength={3}
+        isOpen
+        onOpenChange={onOpenChange}
+        SearchIcon={<Capture />}
+      />,
+    ),
+  )
+  await fixture.ready()
+  const descendant = fixture.target("search-descendant")
+  await act(() =>
+    row("search-descendant").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("search-descendant").props.ownerId,
+        target: findNodeHandle(descendant),
+        isFocused: true,
+      },
+    }),
+  )
+  await fixture.within("type-ahead-search", "search-descendant")
+  await fixture.within("type-ahead-search-group", "search-descendant")
+  if (action === "group-blur") {
+    await act(() => row("type-ahead-search-group").props.onBlur({ nativeEvent: { target: 17 } }))
+    await advance()
+  } else {
+    await act(() => {
+      state!.open(null, "manual")
+    })
+    onOpenChange.mockClear()
+    await act(() => {
+      state!.close()
+    })
+  }
+  expect(onOpenChange).not.toHaveBeenCalledWith(false)
+  expect(fixture.target("search-descendant")).toBe(descendant)
+  await fixture.within("type-ahead-search", null, 2)
+  await fixture.within("type-ahead-search-group", null, 2)
+  await fixture.within("type-ahead-search", "search-descendant", 1)
+  await fixture.within("type-ahead-search-group", "search-descendant", 1)
+  if (action === "group-blur") {
+    await act(() => row("type-ahead-search-group").props.onBlur({ nativeEvent: { target: 17 } }))
+    await advance()
+  } else {
+    await act(() => {
+      state!.open(null, "manual")
+    })
+    onOpenChange.mockClear()
+    await act(() => {
+      state!.close()
+    })
+  }
+  expect(onOpenChange).toHaveBeenCalledWith(false)
+})
 
 it.each(["isDisabled", "isReadOnly"] as const)("preserves programmatic state requests under %s", async (guard) => {
   let state: ContextType<typeof NativeComboBoxStateContext> = null

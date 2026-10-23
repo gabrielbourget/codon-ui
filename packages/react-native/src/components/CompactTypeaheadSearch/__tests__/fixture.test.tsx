@@ -1,9 +1,10 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, screen } from "@testing-library/react-native"
-import { AccessibilityInfo } from "react-native"
+import { AccessibilityInfo, findNodeHandle } from "react-native"
 
 import {
+  actWithNativeCollections as act,
   fireEventWithNativeCollections as fireEvent,
   renderWithNativeCollections as render,
 } from "../../../collection/__tests__/nativeReceipts"
@@ -68,4 +69,32 @@ it("SCENE.compact.003 selection clears the controlled query and closes the maint
   await advance()
   expect(row("compact-fixture-state")).toHaveTextContent(/Query ""\. Value string:""\. Open false/)
   expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+})
+it("SCENE.compact.004 preserves custom descendant focus and closes after observed group departure", async () => {
+  await render(<CompactTypeaheadFixture hostRef={fixture.hostRef} />)
+  await press("Toggle custom slots")
+  await press("Run search")
+  await fixture.ready()
+  const descendant = fixture.target("compact-search-descendant")
+  await act(() =>
+    row("compact-search-descendant").props.onNativeFocusChange({
+      nativeEvent: {
+        ownerId: row("compact-search-descendant").props.ownerId,
+        target: findNodeHandle(descendant),
+        isFocused: true,
+      },
+    }),
+  )
+  await fixture.within("type-ahead-search", "compact-search-descendant")
+  await fixture.within("type-ahead-search-group", "compact-search-descendant")
+  await act(() => row("type-ahead-search-group").props.onBlur({ nativeEvent: { target: 17 } }))
+  await advance()
+  expect(row("compact-fixture-events")).toHaveTextContent(/search-child:focus/)
+  expect(row("compact-fixture-state")).toHaveTextContent(/Query ""\. Value object:null\. Open true/)
+  await fixture.within("type-ahead-search", null, 2)
+  await fixture.within("type-ahead-search-group", null, 2)
+  await act(() => row("type-ahead-search-group").props.onBlur({ nativeEvent: { target: 17 } }))
+  await advance()
+  expect(row("compact-fixture-state")).toHaveTextContent(/Query ""\. Value object:null\. Open false/)
+  expect(fixture.target("compact-search-descendant")).toBe(descendant)
 })
