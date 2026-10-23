@@ -89,8 +89,20 @@ const clause = (
     customStyles={{ padding: 0 }}
   />
 )
-// @ts-expect-error Native pointer/keyboard resizing has not been implemented by this view step.
-const resizing = <Table columnResizing={{ enabled: true }} />
+const resizing = (
+  <Table
+    columns={columns}
+    columnResizing={{
+      enabled: true,
+      onColumnResize: ({ columnID, width }) => {
+        const result: [string, number] = [columnID, width]
+        void result
+      },
+    }}
+  />
+)
+// @ts-expect-error Resizing requests require the owner's width callback.
+const invalidResizing = <Table columnResizing={{ enabled: true }} />
 // @ts-expect-error Native body rows preserve canonical string/number keys.
 const key = <TableBody items={rows} columns={columns} rowKey={() => false} />
 // @ts-expect-error DOM classes do not enter the native renderer.
@@ -110,6 +122,7 @@ void [
   filterPopover,
   clause,
   resizing,
+  invalidResizing,
   key,
   dom,
   css,

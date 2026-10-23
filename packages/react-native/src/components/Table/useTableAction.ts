@@ -31,15 +31,31 @@ export const useTableAction = (node: TNativeCollectionNode<object>, target: RefO
     current.current.floating?.canAct() !== false &&
     current.current.window?.() !== false
   return {
+    isActive: eligible,
     binding: actions.bindingFor(node),
-    request: (run: (table: TNativeTableContext, node: TNativeCollectionNode<object>) => void) => {
+    request: (
+      run: (table: TNativeTableContext, node: TNativeCollectionNode<object>) => void,
+      rejected?: () => void,
+    ) => {
       const owner = current.current
       const original = owner.target.current
       const tag = original && findNodeHandle(original)
-      if (!eligible() || !tag) return false
-      return actions.request(owner.node, tag, () => {
-        if (eligible() && current.current.target.current === original) run(current.current.table, current.current.node)
-      })
+      if (!eligible() || !tag) {
+        rejected?.()
+        return false
+      }
+      return actions.request(
+        owner.node,
+        tag,
+        () => {
+          if (eligible() && current.current.target.current === original)
+            run(current.current.table, current.current.node)
+          else rejected?.()
+        },
+        (outcome) => {
+          if (outcome !== "accepted") rejected?.()
+        },
+      )
     },
   }
 }

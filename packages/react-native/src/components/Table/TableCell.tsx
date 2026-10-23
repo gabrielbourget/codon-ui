@@ -55,6 +55,7 @@ const Cell = (
     [heading, isRowHeader, headerKey, table.registerHeader],
   )
   const target = useRef<View | null>(null)
+  const width = useRef<number | null>(null)
   const action = useTableAction(node, target)
   const originalRef = useNativeCollectionRefs(target, bindHeader)
   const mergedRef = useNativeCollectionRefs(ref, originalRef)
@@ -88,7 +89,7 @@ const Cell = (
         .map((cell) => table.headerTargets.get(JSON.stringify(["row", parent?.key, cell.props.columnID])))
         .filter((value): value is number => !!value)
   const rendered = (
-    <NativeTableCellContext.Provider value={{ node, target }}>
+    <NativeTableCellContext.Provider value={{ node, target, width }}>
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
       >
@@ -124,6 +125,10 @@ const Cell = (
             nativeInteraction={!!allowsSorting}
             nativeProgrammaticFocusable
             nativeTabStop={false}
+            onLayout={(event) => {
+              width.current = event.nativeEvent.layout.width
+              native.onLayout?.(event)
+            }}
             accessibilityValue={
               allowsSorting
                 ? { text: table.primarySort?.column === columnID ? table.primarySort.direction : "none" }

@@ -42,6 +42,12 @@ export type TNativeTableFilteringControls = {
 )
 
 export type TNativeTableColumnSortMetadata = { enabled?: boolean; criteriaID: string; queryKey?: string }
+export type TNativeTableColumnResizingControls = {
+  enabled?: boolean
+  minWidth?: number
+  maxWidth?: number
+  onColumnResize: (details: { columnID: string; width: number }) => void
+}
 export type TNativeTableSortingControls = {
   activeSorts: TTableSortInstruction[]
   mode?: "single" | "multiple"
@@ -105,6 +111,7 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
     columns?: TNativeTableColumnMetadata<T>[]
     queryControls?: TNativeTableQueryControls
     filteringLabels?: TPartialNativeTableFilteringLabels
+    columnResizing?: TNativeTableColumnResizingControls
   }
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {

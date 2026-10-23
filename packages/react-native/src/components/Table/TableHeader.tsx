@@ -21,6 +21,7 @@ import { getNativeTableColumns } from "./rendering"
 import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { computeNextNativeTableSorts } from "./sorting"
 import { TableColumn } from "./TableCell"
+import { TableColumnResizer } from "./TableColumnResizer"
 import { TableFilterPopover } from "./TableFilterPopover"
 import type { TNativeTableHeaderProps, TNativeTableHeaderComponent, TNativeTableColumnMetadata } from "./types"
 import { useTableAction } from "./useTableAction"
@@ -241,23 +242,33 @@ export const TableHeader = createNativeCollectionBranch<object, TNativeTableHead
             {options.mode === "multiple" && <TableSelectionCheckbox all />}
           </TableColumn>
         )}
-        {getNativeTableColumns(props.columns).map((column) => (
-          <TableColumn
-            key={column.id}
-            id={`header:${column.id}`}
-            columnID={column.id}
-            isRowHeader={column.isRowHeader}
-            allowsSorting={options.sortingEnabled && !!column.sort?.enabled}
-            accessibilityLabel={column.headerAriaLabel}
-            alignment={column.headerAlignment ?? column.alignment}
-            customStyles={[
-              { width: column.width, minWidth: column.minWidth, maxWidth: column.maxWidth },
-              column.customHeaderColumnStyles,
-            ]}
-          >
-            <HeaderContent column={column} />
-          </TableColumn>
-        ))}
+        {getNativeTableColumns(props.columns).map((column) => {
+          const custom = resolveNativeStyle(column.customHeaderColumnStyles, "TableHeader", "customHeaderColumnStyles")
+          const reserveEnd =
+            options.resizingEnabled &&
+            !column.headerVisuallyHidden &&
+            custom.padding === undefined &&
+            custom.paddingHorizontal === undefined
+          return (
+            <TableColumn
+              key={column.id}
+              id={`header:${column.id}`}
+              columnID={column.id}
+              isRowHeader={column.isRowHeader}
+              allowsSorting={options.sortingEnabled && !!column.sort?.enabled}
+              accessibilityLabel={column.headerAriaLabel ?? column.name}
+              alignment={column.headerAlignment ?? column.alignment}
+              customStyles={[
+                reserveEnd ? { paddingEnd: 11 } : undefined,
+                { width: column.width, minWidth: column.minWidth, maxWidth: column.maxWidth },
+                custom,
+              ]}
+            >
+              <HeaderContent column={column} />
+              {options.resizingEnabled && !column.headerVisuallyHidden && <TableColumnResizer column={column} />}
+            </TableColumn>
+          )
+        })}
       </>
     )
   },

@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react"
+import { fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
@@ -117,6 +117,91 @@ describe("native Table selection oracle", () => {
     expect(changed).not.toHaveBeenCalled()
     await user.click(rows[1])
     expect([...changed.mock.calls[0][0]]).toEqual(["beta"])
+  })
+})
+
+describe("native Table resizing oracle", () => {
+  const header: TTableDataColumnMetadata<(typeof items)[number]>[] = [
+    { ...columns[0], width: 120, minWidth: 100, maxWidth: 150 },
+  ]
+  const rect = (width: number) => ({
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    bottom: 30,
+    right: width,
+    width,
+    height: 30,
+    toJSON: () => ({}),
+  })
+  it("preserves header sorting from keyboard activation of its resize button", async () => {
+    const sort = vi.fn(),
+      resized = vi.fn(),
+      user = userEvent.setup()
+    const sortable = [{ ...header[0], sort: { enabled: true, criteriaID: "name" } }]
+    render(
+      <Table
+        aria-label="Resize activation"
+        columns={sortable}
+        columnResizing={{ enabled: true, onColumnResize: resized }}
+        queryControls={{ sorting: { activeSorts: [], onSortChange: sort } }}
+      >
+        <TableHeader columns={sortable} />
+        <TableBody columns={sortable} items={items} />
+      </Table>,
+    )
+    screen.getByRole("button", { name: "Resize Name column" }).focus()
+    await user.keyboard("{Enter} ")
+    expect(sort).toHaveBeenCalledTimes(2)
+    expect(resized).not.toHaveBeenCalled()
+  })
+  it("keeps a drag's header metadata/callback snapshot while keyboard requests use the current root metadata", async () => {
+    const original = vi.fn(),
+      current = vi.fn()
+    const node = (root = header, shown = header, callback = original) => (
+      <Table aria-label="Resizable" columns={root} columnResizing={{ enabled: true, onColumnResize: callback }}>
+        <TableHeader columns={shown} />
+        <TableBody items={items} columns={shown} />
+      </Table>
+    )
+    const view = render(node())
+    vi.spyOn(screen.getByRole("columnheader", { name: "Name" }), "getBoundingClientRect").mockReturnValue(rect(120))
+    const button = screen.getByRole("button", { name: "Resize Name column" })
+    fireEvent(button, new MouseEvent("pointerdown", { bubbles: true, clientX: 10 }))
+    view.rerender(
+      node(
+        [{ ...header[0], width: 400, minWidth: 130, maxWidth: 180 }],
+        [{ ...header[0], width: 400, minWidth: 0, maxWidth: 500 }],
+        current,
+      ),
+    )
+    fireEvent(window, new MouseEvent("pointermove", { clientX: 20 }))
+    expect(original).toHaveBeenLastCalledWith({ columnID: "name", width: 130 })
+    expect(current).not.toHaveBeenCalled()
+    fireEvent(window, new MouseEvent("pointerup"))
+    vi.spyOn(screen.getByRole("columnheader", { name: "Name" }), "getBoundingClientRect").mockReturnValue(rect(400))
+    fireEvent.keyDown(screen.getByRole("button", { name: "Resize Name column" }), { key: "ArrowRight" })
+    expect(current).toHaveBeenLastCalledWith({ columnID: "name", width: 180 })
+  })
+  it("admits pointer resizing without root columns while keyboard resizing stays inert", async () => {
+    const resized = vi.fn(),
+      user = userEvent.setup()
+    render(
+      <Table aria-label="No root columns" columnResizing={{ enabled: true, onColumnResize: resized }}>
+        <TableHeader columns={header} />
+        <TableBody columns={header} items={items} />
+      </Table>,
+    )
+    vi.spyOn(screen.getByRole("columnheader", { name: "Name" }), "getBoundingClientRect").mockReturnValue(rect(120))
+    const button = screen.getByRole("button", { name: "Resize Name column" })
+    button.focus()
+    await user.keyboard("{ArrowRight}")
+    expect(resized).not.toHaveBeenCalled()
+    fireEvent(button, new MouseEvent("pointerdown", { bubbles: true, clientX: 10 }))
+    fireEvent(window, new MouseEvent("pointermove", { clientX: 20 }))
+    fireEvent(window, new MouseEvent("pointerup"))
+    expect(resized.mock.calls).toEqual([[{ columnID: "name", width: 130 }]])
   })
 })
 

@@ -33,19 +33,22 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
   const [holdQuery, setHoldQuery] = useState(false)
   const [filters, setFilters] = useState<TTableFilterGroup[]>([])
   const [filterRequests, setFilterRequests] = useState<TTableFilterGroup[][]>([])
+  const [widths, setWidths] = useState<Record<string, number>>({ name: 110, active: 70 })
+  const [resizeRequests, setResizeRequests] = useState<{ columnID: string; width: number }[]>([])
   const columns: TNativeTableColumnMetadata<TPerson>[] = [
     {
       id: "name",
       name: "Person",
       isRowHeader: true,
-      width: 110,
+      width: widths.name,
       sort: { enabled: true, criteriaID: "person" },
       filter: { enabled: true, criteriaID: "person", allowedOperationCodes: ["equal", "like", "not-equal"] },
     },
-    { id: "active", name: "Active", width: 70 },
+    { id: "active", name: "Active", width: widths.active },
     {
       id: "draft",
       name: "Held draft",
+      width: widths.draft,
       cellRenderer: ({ row }) =>
         row.id === "a" ? (
           <Input
@@ -90,6 +93,13 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
               }}
               onRowAction={(key) => setActions((previous) => [...previous, key])}
               columns={columns}
+              columnResizing={{
+                enabled: true,
+                onColumnResize: (next) => {
+                  setResizeRequests((previous) => [...previous, next])
+                  if (!holdQuery) setWidths((previous) => ({ ...previous, [next.columnID]: next.width }))
+                },
+              }}
               queryControls={{
                 sorting: {
                   activeSorts: sorts,
@@ -142,6 +152,8 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
             <Text testID="table-page-requests">{JSON.stringify(pageRequests)}</Text>
             <Text testID="table-filters">{JSON.stringify(filters)}</Text>
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
+            <Text testID="table-widths">{JSON.stringify(widths)}</Text>
+            <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

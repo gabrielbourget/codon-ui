@@ -19,6 +19,7 @@ import { Pagination } from "../Pagination/Pagination"
 import { NativeTableContext, NativeTableOptionsContext } from "./context"
 import { resolveNativeTableFilteringLabels } from "./filterLabels"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
+import { resizeNativeTableColumn } from "./resizing"
 import { computeNextNativeTableSorts } from "./sorting"
 import type { TNativeTableProps } from "./types"
 
@@ -54,6 +55,7 @@ const Receiver = <T extends object>({
     columns,
     queryControls,
     filteringLabels,
+    columnResizing,
     ...native
   } = props
   const sorting = queryControls?.sorting
@@ -115,6 +117,19 @@ const Receiver = <T extends object>({
         onRowAction: clickableRows && onRowAction ? onRowAction : undefined,
         queryControls,
         filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
+        columnResizing,
+        canResizeWithKeyboard: (id) =>
+          !!columnResizing?.enabled &&
+          !!columns?.some((column) => column.id === id && !column.isHidden && !column.headerVisuallyHidden),
+        resizeWithKeyboard: (id, measuredWidth, delta) => {
+          const column = columns?.find((candidate) => candidate.id === id)
+          if (columnResizing?.enabled && column && !column.isHidden && !column.headerVisuallyHidden)
+            resizeNativeTableColumn(
+              column,
+              columnResizing,
+              (measuredWidth ?? (typeof column.width === "number" ? column.width : 0)) + delta,
+            )
+        },
         primarySort:
           primaryColumn && firstSort
             ? {
@@ -186,8 +201,15 @@ export const Table = <T extends object = object>(props: TNativeTableProps<T>) =>
       behavior: selection.selectionMode === "none" ? null : selection.selectionBehavior,
       labels,
       sortingEnabled: !!props.queryControls?.sorting,
+      resizingEnabled: !!props.columnResizing?.enabled,
     }),
-    [selection.selectionMode, selection.selectionBehavior, labels, !!props.queryControls?.sorting],
+    [
+      selection.selectionMode,
+      selection.selectionBehavior,
+      labels,
+      !!props.queryControls?.sorting,
+      !!props.columnResizing?.enabled,
+    ],
   )
   return (
     <NativeTableOptionsContext.Provider value={options}>
