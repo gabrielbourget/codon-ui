@@ -43,6 +43,7 @@ import {
 import { NativeDateFieldFocusManager } from "./focus"
 import { isNativeDateFieldFocusEvent } from "./focusEvent"
 import { NativeDateFieldHostSet, nativeDateFieldSegmentId } from "./hostSet"
+import { useNativeTimePickerMotion } from "./motion"
 import { NativeTimePickerSegment } from "./NativeTimePickerSegment"
 import type { TNativeTimeFieldProps } from "./types"
 import { useNativeDateFieldLifecycle } from "./useLifecycle"
@@ -166,6 +167,15 @@ export const NativeTimePickerRenderer = forwardRef(
     const root = splitNativeTextStyle(rootStyle)
     const group = splitNativeTextStyle(appearance.group)
     const input = splitNativeTextStyle(appearance.input)
+    const foregroundColor = root.text.color ?? content?.foregroundColor ?? theme.colors.foreground
+    const inheritedRootText = { ...content?.textStyle, color: foregroundColor, ...root.text }
+    const motion = useNativeTimePickerMotion(
+      root.view,
+      group.view,
+      foregroundColor,
+      group.text.color ?? foregroundColor,
+      appearance.defaultBorderColor,
+    )
     const [label, labelRef] = useNativeFieldSemanticRef<TNativeTextRef>()
     const [description, descriptionRef] = useNativeFieldSemanticRef<TNativeTextRef>()
     const [error, errorRef] = useNativeFieldSemanticRef<TNativeTextRef>()
@@ -229,8 +239,7 @@ export const NativeTimePickerRenderer = forwardRef(
       isReadOnly: state.isReadOnly,
       isInvalid: state.isInvalid,
     }
-    const foregroundColor = root.text.color ?? content?.foregroundColor ?? theme.colors.foreground
-    const inheritedText = { ...content?.textStyle, color: foregroundColor, ...root.text, ...group.text, ...input.text }
+    const inheritedText = { ...inheritedRootText, ...group.text, color: motion.groupColor, ...input.text }
     const children = (
       <NativeFocusHost
         ref={bindGroup}
@@ -253,7 +262,7 @@ export const NativeTimePickerRenderer = forwardRef(
           setFocused(false)
           lifecycle.retire()
         }}
-        style={group.view}
+        style={{ ...group.view, ...motion.group }}
       >
         <View
           testID={`${testID}-input`}
@@ -283,7 +292,13 @@ export const NativeTimePickerRenderer = forwardRef(
           ))}
         </View>
         {metadata}
-        <NativeContentContext.Provider value={{ foregroundColor: appearance.iconColor, isButton: false }}>
+        <NativeContentContext.Provider
+          value={{
+            foregroundColor: appearance.iconColor,
+            isButton: false,
+            textStyle: { ...inheritedRootText, ...group.text, color: motion.groupColor },
+          }}
+        >
           {authored.ComponentIcon || (
             <Svg
               testID={`${testID}-clock`}
@@ -324,7 +339,7 @@ export const NativeTimePickerRenderer = forwardRef(
       ref: field.ref,
       testID,
       accessible: false,
-      style: root.view,
+      style: { ...root.view, ...motion.root },
       onLayout: props.onLayout,
       pointerEvents: props.pointerEvents,
       collapsable: props.collapsable,
@@ -357,7 +372,7 @@ export const NativeTimePickerRenderer = forwardRef(
               >
                 <NativeTimeFieldErrorContext.Provider value={state.displayValidation}>
                   <NativeContentContext.Provider
-                    value={{ foregroundColor, isButton: content?.isButton ?? false, textStyle: inheritedText }}
+                    value={{ foregroundColor, isButton: content?.isButton ?? false, textStyle: inheritedRootText }}
                   >
                     {props.render ? (
                       props.render(nativeProps, renderState)

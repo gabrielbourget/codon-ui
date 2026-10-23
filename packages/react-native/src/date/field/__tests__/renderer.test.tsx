@@ -1,13 +1,24 @@
 import { CalendarDateTime, Time, parseZonedDateTime } from "@internationalized/date"
 import { act, fireEvent, render, screen, within } from "@testing-library/react-native"
 import { createRef, useContext, type Ref } from "react"
-import { Text, View } from "react-native"
+import {
+  AccessibilityInfo,
+  Animated,
+  I18nManager,
+  Platform,
+  PlatformColor,
+  processColor,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native"
 import type * as RN from "react-native"
 
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
+import { NativeThemeProvider } from "../../../theme"
 import { packet } from "../../input/__tests__/packet"
 import type { TNativeDateSegmentInput } from "../../input/NativeDateSegment"
 import type { TimeValue } from "../../state/types"
@@ -36,6 +47,7 @@ jest.mock("../../../input/NativeKeyboardScope", () => ({ useNativeKeyPolicy: jes
 
 let tags: WeakMap<object, number>, nextTag: number
 beforeEach(() => {
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   tags = new WeakMap()
   nextTag = 100
   jest.spyOn(jest.requireActual<typeof RN>("react-native"), "findNodeHandle").mockImplementation((target) => {
@@ -48,7 +60,10 @@ beforeEach(() => {
     return tag
   })
 })
-afterEach(() => jest.restoreAllMocks())
+afterEach(() => {
+  jest.restoreAllMocks()
+  jest.useRealTimers()
+})
 const segment = (index = 0) =>
   screen.getAllByTestId(/^time-picker-segment-/).filter((node) => node.props.ownerId)[index]
 const send = async (index: number, extra: Parameters<typeof packet>[0] = {}) => {
@@ -466,4 +481,360 @@ it("retains the same-group callback after navigation stops propagation to the ou
   expect(event.stopPropagation).toHaveBeenCalledTimes(1)
   expect(down).toHaveBeenCalledTimes(1)
   expect(down).toHaveBeenCalledWith(event)
+})
+
+const colorAt = (
+  id: string,
+  name:
+    | "color"
+    | "borderColor"
+    | "borderTopColor"
+    | "borderBottomColor"
+    | "borderLeftColor"
+    | "borderRightColor" = "borderColor",
+) => StyleSheet.flatten(screen.getByTestId(id).props.style)[name]
+const rgbAt = (
+  id: string,
+  name:
+    | "color"
+    | "borderColor"
+    | "borderTopColor"
+    | "borderBottomColor"
+    | "borderLeftColor"
+    | "borderRightColor" = "borderColor",
+) => processColor(colorAt(id, name))
+
+it("transitions original root/group borders for250ms and inherited group text for350ms without changing state or refs", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing"),
+    ref = createRef<View>(),
+    onChange = jest.fn(),
+    value = new Time(13, 45)
+  const node = (color: string) => (
+    <NativeTimePickerRenderer
+      ref={ref}
+      value={value}
+      onChange={onChange}
+      customStyles={{ borderWidth: 1, borderColor: color }}
+      customInputIconGroupStyles={{ borderColor: color, color }}
+    />
+  )
+  const { rerender } = await render(node("red"))
+  const original = ref.current,
+    originalFocus = original?.focus,
+    wire = segment().props.bindingRevision
+  await rerender(node("blue"))
+  await act(() => jest.advanceTimersByTime(125))
+  for (const id of ["time-picker", "time-picker-group"]) {
+    expect(rgbAt(id)).not.toBe(processColor("red"))
+    expect(rgbAt(id)).not.toBe(processColor("blue"))
+  }
+  await act(() => jest.advanceTimersByTime(150))
+  expect(rgbAt("time-picker")).toBe(processColor("blue"))
+  expect(rgbAt("time-picker-group")).toBe(processColor("blue"))
+  const text = () => within(segment()).getByText("13")
+  expect(processColor(StyleSheet.flatten(text().props.style).color)).not.toBe(processColor("blue"))
+  await act(() => jest.advanceTimersByTime(150))
+  expect(processColor(StyleSheet.flatten(text().props.style).color)).toBe(processColor("blue"))
+  const configs = timing.mock.calls.map(([, config]) => config)
+  expect(configs.some((config) => config.duration === 250)).toBe(true)
+  expect(configs.some((config) => config.duration === 350)).toBe(true)
+  expect(configs.every((config) => config.useNativeDriver === false && config.isInteraction === false)).toBe(true)
+  expect(configs.every((config) => Math.abs(config.easing!(0.5) - 0.5) < 0.001)).toBe(true)
+  expect(onChange).not.toHaveBeenCalled()
+  expect(ref.current).toBe(original)
+  expect(ref.current?.focus).toBe(originalFocus)
+  expect(segment().props.bindingRevision).toBe(wire)
+  expect(segment().props.displayText).toBe("13")
+})
+
+it("keeps each side's transition deadline and interrupts changed colors at the current frame", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const node = (top: string, bottom: string) => (
+    <NativeTimePickerRenderer customStyles={{ borderWidth: 1, borderTopColor: top, borderBottomColor: bottom }} />
+  )
+  const { rerender } = await render(node("red", "red"))
+  await rerender(node("blue", "blue"))
+  await act(() => jest.advanceTimersByTime(125))
+  const before = rgbAt("time-picker", "borderBottomColor")
+  await rerender(node("blue", "green"))
+  expect(rgbAt("time-picker", "borderBottomColor")).toBe(before)
+  await act(() => jest.advanceTimersByTime(150))
+  expect(rgbAt("time-picker", "borderTopColor")).toBe(processColor("blue"))
+  expect(rgbAt("time-picker", "borderBottomColor")).not.toBe(processColor("green"))
+  await act(() => jest.advanceTimersByTime(150))
+  expect(rgbAt("time-picker", "borderBottomColor")).toBe(processColor("green"))
+})
+
+it("retains root/group/input text ownership while the group color transitions", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const node = (color: string) => (
+    <NativeTimePickerRenderer
+      value={new Time(13, 45)}
+      customStyles={{ color: "red" }}
+      customInputIconGroupStyles={{ color }}
+      customInputStyles={{ color: "blue" }}
+      ComponentIcon={
+        <NativeTimeFieldText slot={null} testID="group-text-icon">
+          Text icon
+        </NativeTimeFieldText>
+      }
+      render={(props) => (
+        <NativeFocusHost {...props}>
+          <NativeTimeFieldText slot={null} testID="root-text">
+            Outside group
+          </NativeTimeFieldText>
+          {props.children}
+        </NativeFocusHost>
+      )}
+    />
+  )
+  const { rerender } = await render(node("green"))
+  expect(processColor(colorAt("root-text", "color"))).toBe(processColor("red"))
+  expect(processColor(colorAt("group-text-icon", "color"))).toBe(processColor("green"))
+  expect(processColor(StyleSheet.flatten(within(segment()).getByText("13").props.style).color)).toBe(
+    processColor("blue"),
+  )
+  await rerender(node("purple"))
+  await act(() => jest.advanceTimersByTime(125))
+  expect(processColor(colorAt("root-text", "color"))).toBe(processColor("red"))
+  expect(processColor(colorAt("group-text-icon", "color"))).not.toBe(processColor("purple"))
+  expect(processColor(StyleSheet.flatten(within(segment()).getByText("13").props.style).color)).toBe(
+    processColor("blue"),
+  )
+  await act(() => jest.advanceTimersByTime(300))
+  expect(processColor(colorAt("group-text-icon", "color"))).toBe(processColor("purple"))
+})
+
+it("uses the final group border override and leaves focus outlines/clock colors immediate", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing")
+  const { rerender } = await render(<NativeTimePickerRenderer customInputIconGroupStyles={{ borderColor: "orange" }} />)
+  await rerender(<NativeTimePickerRenderer errorState customInputIconGroupStyles={{ borderColor: "orange" }} />)
+  expect(rgbAt("time-picker-group")).toBe(processColor("orange"))
+  expect(timing).not.toHaveBeenCalled()
+  await act(() =>
+    screen.getByTestId("time-picker-group").props.nativeOnFocusWithin({
+      nativeEvent: {
+        ownerId: "field",
+        bindingId: "binding",
+        target: 5,
+        surfaceId: 1,
+        windowId: "window",
+        scopeOwnerId: "scope",
+        scopeEpoch: 1,
+        sequence: 1,
+        attached: true,
+        active: true,
+        within: true,
+        focusedTarget: 101,
+        textInputFocused: true,
+        origin: "keyboard",
+        observedAt: 20,
+        timestamp: 20,
+        isFocused: true,
+        isFocusVisible: true,
+      },
+    }),
+  )
+  expect(screen.getByTestId("time-picker-group")).toHaveStyle({ outlineWidth: 1.5, outlineOffset: 1.5 })
+  expect(screen.getByTestId("time-picker-clock").props.stroke).toBe("#2563eb")
+  expect(timing).not.toHaveBeenCalled()
+})
+
+it("snaps native semantic colors instead of interpolating a synthetic color", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing"),
+    semantic = PlatformColor("labelColor")
+  const { rerender } = await render(<NativeTimePickerRenderer customStyles={{ borderColor: "red" }} />)
+  await rerender(<NativeTimePickerRenderer customStyles={{ borderColor: semantic }} />)
+  expect(processColor(colorAt("time-picker"))).toEqual(processColor(semantic))
+  expect(timing).not.toHaveBeenCalled()
+})
+
+it("honors a live Reduce Motion event over the late bootstrap query and releases the original subscription", async () => {
+  jest.useFakeTimers()
+  let settle: (value: boolean) => void = () => undefined
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockReturnValue(
+    new Promise((resolve) => {
+      settle = resolve
+    }),
+  )
+  const subscribe = jest.spyOn(AccessibilityInfo, "addEventListener"),
+    timing = jest.spyOn(Animated, "timing")
+  const { rerender, unmount } = await render(
+    <NativeTimePickerRenderer customInputIconGroupStyles={{ borderColor: "red" }} />,
+  )
+  const registration = subscribe.mock.calls.at(-1)!
+  expect(registration[0]).toBe("reduceMotionChanged")
+  const changed = registration[1] as unknown as (value: boolean) => void
+  const subscription = subscribe.mock.results.at(-1)!.value
+  await act(() => changed(true))
+  await act(() => settle(false))
+  await rerender(<NativeTimePickerRenderer customInputIconGroupStyles={{ borderColor: "blue" }} />)
+  expect(rgbAt("time-picker-group")).toBe(processColor("blue"))
+  expect(timing).not.toHaveBeenCalled()
+  await unmount()
+  expect(subscription.remove).toHaveBeenCalledTimes(1)
+})
+
+it("follows palette replacement and stops a pending transition on unmount", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const onChange = jest.fn(),
+    ref = createRef<View>(),
+    value = new Time(13, 45),
+    error = jest.spyOn(console, "error")
+  const node = (border: string, foreground: string) => (
+    <NativeThemeProvider overrides={{ colors: { controlBorder: border, foreground } }}>
+      <NativeTimePickerRenderer ref={ref} value={value} onChange={onChange} />
+    </NativeThemeProvider>
+  )
+  const { rerender, unmount } = await render(node("red", "red"))
+  const original = ref.current
+  await rerender(node("blue", "blue"))
+  await act(() => jest.advanceTimersByTime(125))
+  expect(rgbAt("time-picker-group")).not.toBe(processColor("blue"))
+  expect(ref.current).toBe(original)
+  await act(() => jest.advanceTimersByTime(300))
+  expect(rgbAt("time-picker-group")).toBe(processColor("blue"))
+  expect(processColor(StyleSheet.flatten(within(segment()).getByText("13").props.style).color)).toBe(
+    processColor("blue"),
+  )
+  await rerender(node("green", "green"))
+  await act(() => jest.advanceTimersByTime(80))
+  const stop = jest.spyOn(Animated.Value.prototype, "stopAnimation")
+  await unmount()
+  expect(stop).toHaveBeenCalled()
+  await act(() => jest.advanceTimersByTime(500))
+  expect(onChange).not.toHaveBeenCalled()
+  expect(ref.current).toBeNull()
+  expect(error).not.toHaveBeenCalled()
+})
+
+it("animates physical, inline and block border colors on each original owned surface", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const borders = (color: string) => ({
+    borderTopColor: color,
+    borderRightColor: color,
+    borderBottomColor: color,
+    borderLeftColor: color,
+    borderStartColor: color,
+    borderEndColor: color,
+    borderBlockColor: color,
+    borderBlockStartColor: color,
+    borderBlockEndColor: color,
+  })
+  const node = (color: string) => (
+    <NativeTimePickerRenderer customStyles={borders(color)} customInputIconGroupStyles={borders(color)} />
+  )
+  const { rerender } = await render(node("red"))
+  await rerender(node("blue"))
+  await act(() => jest.advanceTimersByTime(125))
+  for (const id of ["time-picker", "time-picker-group"]) {
+    const styles = StyleSheet.flatten(screen.getByTestId(id).props.style)
+    expect(processColor(styles.borderLeftColor)).not.toBe(processColor("blue"))
+    expect(processColor(styles.borderTopColor)).not.toBe(processColor("blue"))
+  }
+  await act(() => jest.advanceTimersByTime(200))
+  for (const id of ["time-picker", "time-picker-group"]) {
+    const styles = StyleSheet.flatten(screen.getByTestId(id).props.style)
+    for (const name of ["borderLeftColor", "borderRightColor", "borderTopColor", "borderBottomColor"])
+      expect(processColor(styles[name])).toBe(processColor("blue"))
+  }
+})
+
+it("transitions removed side overrides to their actual inherited color and resolves RTL/block aliases before painting", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const { rerender } = await render(
+    <NativeTimePickerRenderer
+      customStyles={{ direction: "ltr", borderColor: "blue", borderTopColor: "red" }}
+      customInputIconGroupStyles={{
+        direction: "rtl",
+        borderColor: "black",
+        borderStartColor: "red",
+        borderEndColor: "green",
+        borderTopColor: "red",
+        borderBlockColor: "blue",
+      }}
+    />,
+  )
+  expect(rgbAt("time-picker-group", "borderRightColor")).toBe(processColor("red"))
+  expect(rgbAt("time-picker-group", "borderLeftColor")).toBe(processColor("green"))
+  expect(rgbAt("time-picker-group", "borderTopColor")).toBe(processColor("blue"))
+  await rerender(
+    <NativeTimePickerRenderer
+      customStyles={{ direction: "ltr", borderColor: "blue" }}
+      customInputIconGroupStyles={{
+        direction: "rtl",
+        borderColor: "black",
+        borderStartColor: "red",
+        borderEndColor: "green",
+        borderTopColor: "red",
+        borderBlockColor: "blue",
+      }}
+    />,
+  )
+  await act(() => jest.advanceTimersByTime(125))
+  expect(rgbAt("time-picker", "borderTopColor")).not.toBe(processColor("blue"))
+  expect(rgbAt("time-picker", "borderTopColor")).not.toBe(processColor("red"))
+  await act(() => jest.advanceTimersByTime(200))
+  expect(rgbAt("time-picker", "borderTopColor")).toBe(processColor("blue"))
+})
+
+it("keeps painted-edge continuity across Android RTL physical-input swapping", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  jest.replaceProperty(Platform, "OS", "android")
+  jest.replaceProperty(I18nManager, "doLeftAndRightSwapInRTL", true)
+  const node = (direction: "ltr" | "rtl") => (
+    <NativeTimePickerRenderer customStyles={{ direction, borderLeftColor: "red", borderRightColor: "blue" }} />
+  )
+  const { rerender } = await render(node("ltr"))
+  expect(rgbAt("time-picker", "borderLeftColor")).toBe(processColor("red"))
+  await rerender(node("rtl"))
+  // The pinned Android renderer consumes the opposite physical input in RTL.
+  expect(rgbAt("time-picker", "borderRightColor")).toBe(processColor("red"))
+  await act(() => jest.advanceTimersByTime(125))
+  expect(rgbAt("time-picker", "borderRightColor")).not.toBe(processColor("red"))
+  expect(rgbAt("time-picker", "borderRightColor")).not.toBe(processColor("blue"))
+  await act(() => jest.advanceTimersByTime(200))
+  expect(rgbAt("time-picker", "borderRightColor")).toBe(processColor("blue"))
+  expect(rgbAt("time-picker", "borderLeftColor")).toBe(processColor("red"))
+})
+
+it("keeps original native aliases when an arbitrary ancestor's inherited direction is unobserved", async () => {
+  await render(
+    <NativeTimePickerRenderer
+      customStyles={{ borderStartColor: "red", borderEndColor: "blue" }}
+      customInputIconGroupStyles={{ direction: "inherit", borderStartColor: "green", borderEndColor: "purple" }}
+    />,
+  )
+  expect(screen.getByTestId("time-picker")).toHaveStyle({ borderStartColor: "red", borderEndColor: "blue" })
+  expect(screen.getByTestId("time-picker-group")).toHaveStyle({ borderStartColor: "green", borderEndColor: "purple" })
+  expect(colorAt("time-picker", "borderLeftColor")).toBeUndefined()
+})
+
+it("keeps exact native target colors when explicit direction admission changes", async () => {
+  jest.useFakeTimers()
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const node = (direction?: "ltr" | "inherit") => (
+    <NativeTimePickerRenderer customStyles={{ direction, borderStartColor: "red", borderEndColor: "blue" }} />
+  )
+  const { rerender } = await render(node())
+  await rerender(node("ltr"))
+  expect(rgbAt("time-picker", "borderLeftColor")).toBe(processColor("red"))
+  expect(rgbAt("time-picker", "borderRightColor")).toBe(processColor("blue"))
+  await rerender(node("inherit"))
+  expect(screen.getByTestId("time-picker")).toHaveStyle({ borderStartColor: "red", borderEndColor: "blue" })
+  expect(colorAt("time-picker", "borderLeftColor")).toBeUndefined()
+  await act(() => jest.advanceTimersByTime(500))
+  expect(screen.getByTestId("time-picker")).toHaveStyle({ borderStartColor: "red", borderEndColor: "blue" })
 })

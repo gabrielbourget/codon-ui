@@ -44,6 +44,13 @@ export const getNativeTimePickerAppearance = (
   state: Pick<TNativeTimeFieldRenderState, "isDisabled"> & { isFocusWithin: boolean },
 ) => {
   const geometry = props.geometry ?? "rounded"
+  const defaultBorderColor = props.errorState
+    ? theme.colors.validationErrorBorder
+    : props.warningState
+      ? theme.colors.validationWarningBorder
+      : props.successState
+        ? theme.colors.validationSuccessBorder
+        : theme.colors.controlBorder
   const group = resolveNativeStyle<TextStyle>(
     [
       {
@@ -53,13 +60,7 @@ export const getNativeTimePickerAppearance = (
         paddingHorizontal: theme.spacing.unit,
         paddingLeft: 1.5,
         borderWidth: 1,
-        borderColor: props.errorState
-          ? theme.colors.validationErrorBorder
-          : props.warningState
-            ? theme.colors.validationWarningBorder
-            : props.successState
-              ? theme.colors.validationSuccessBorder
-              : theme.colors.controlBorder,
+        borderColor: defaultBorderColor,
         ...(geometry === "rounded" ? { borderRadius: theme.radius.rounded } : {}),
         ...(geometry === "round"
           ? { borderRadius: "50%", padding: theme.spacing.unit, paddingHorizontal: 7, paddingLeft: 7 }
@@ -96,6 +97,7 @@ export const getNativeTimePickerAppearance = (
       ...(state.isDisabled ? { opacity: theme.opacity.disabled } : {}),
     } satisfies ViewStyle,
     group,
+    defaultBorderColor,
     input,
     text,
     segment: { alignItems: "center", justifyContent: "center", borderRadius: 3, padding: 1.5 } satisfies ViewStyle,
