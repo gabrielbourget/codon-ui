@@ -40,8 +40,23 @@ const action = (
     }}
   />
 )
-// @ts-expect-error Sorting/filtering/pagination remain required future Table work, not ignored props.
-const query = <Table queryControls={{}} />
+const query = (
+  <Table
+    columns={columns}
+    queryControls={{
+      sorting: { activeSorts: [], onSortChange: () => {} },
+      pagination: {
+        currentPage: 1,
+        itemsPerPage: 10,
+        numberOfItems: 20,
+        setCurrentPage: () => {},
+        setItemsPerPage: () => {},
+      },
+    }}
+  />
+)
+// @ts-expect-error Filtering remains required future Table work, not an ignored prop.
+const filtering = <Table queryControls={{ filtering: {} }} />
 // @ts-expect-error Native pointer/keyboard resizing has not been implemented by this view step.
 const resizing = <Table columnResizing={{ enabled: true }} />
 // @ts-expect-error Native body rows preserve canonical string/number keys.
@@ -52,4 +67,4 @@ const dom = <Table className="table" />
 const css = <Table style={{ tableLayout: "fixed" }} />
 // @ts-expect-error A cell cannot replace its original native ref with a DOM ref.
 const ref = <TableCell columnID="name" ref={createRef<{ getBoundingClientRect: () => { width: number } }>()} />
-void [PublicTable, composition, selection, action, query, resizing, key, dom, css, ref]
+void [PublicTable, composition, selection, action, query, filtering, resizing, key, dom, css, ref]

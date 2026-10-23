@@ -14,17 +14,20 @@ import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { Pagination } from "../Pagination/Pagination"
 
 import { NativeTableContext, NativeTableOptionsContext } from "./context"
+import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
+import { computeNextNativeTableSorts } from "./sorting"
 import type { TNativeTableProps } from "./types"
 
-const Receiver = ({
+const Receiver = <T extends object>({
   props,
   collection,
   selection,
   confirmed,
 }: {
-  props: TNativeTableProps
+  props: TNativeTableProps<T>
   collection: TNativeCollectionSnapshot<object>
   selection: ReturnType<typeof useMultipleSelectionState>
   confirmed: boolean
@@ -47,8 +50,13 @@ const Receiver = ({
     allowDuplicateSelectionEvents: _duplicates,
     clickableRows,
     onRowAction,
+    columns,
+    queryControls,
     ...native
   } = props
+  const sorting = queryControls?.sorting
+  const firstSort = sorting?.activeSorts[0]
+  const primaryColumn = firstSort && columns?.find((column) => column.sort?.criteriaID === firstSort.criteriaID)
   const manager = useMemo(() => new SelectionManager(collection, selection), [collection, selection])
   useFocusedKeyReset(collection, manager)
   const renderer = useContext(NativeCollectionRendererContext)
@@ -103,6 +111,21 @@ const Receiver = ({
         registerHeader,
         manager,
         onRowAction: clickableRows && onRowAction ? onRowAction : undefined,
+        queryControls,
+        primarySort:
+          primaryColumn && firstSort
+            ? {
+                column: primaryColumn.id,
+                direction: firstSort.sortDirection === TABLE_SORT_DIRECTION__ASCENDING ? "ascending" : "descending",
+              }
+            : undefined,
+        sortColumn: (columnID) => {
+          const column = columns?.find((candidate) => candidate.id === columnID)
+          if (sorting && column?.sort?.criteriaID)
+            sorting.onSortChange(
+              computeNextNativeTableSorts({ activeSorts: sorting.activeSorts, column, mode: sorting.mode }),
+            )
+        },
       }}
     >
       <View
@@ -134,11 +157,21 @@ const Receiver = ({
             </NativeContentContext.Provider>
           </NativeFocusHost>
         </NativeCollectionSemanticsContext.Provider>
+        {queryControls?.pagination && (
+          <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
+            <Pagination
+              maxVisiblePages={4}
+              showIncrementButtonsWithOnePage={false}
+              chosenPaginationSubcomponents={["items-per-page", "primary-controls"]}
+              {...queryControls.pagination}
+            />
+          </View>
+        )}
       </View>
     </NativeTableContext.Provider>
   )
 }
-export const Table = (props: TNativeTableProps) => {
+export const Table = <T extends object = object>(props: TNativeTableProps<T>) => {
   const selection = useMultipleSelectionState(props)
   const labels = useMemo(
     () => ({ selectAllRowsAriaLabel: "Select All", selectRowAriaLabel: "Select Row", ...props.labels?.selection }),
@@ -149,8 +182,9 @@ export const Table = (props: TNativeTableProps) => {
       mode: selection.selectionMode,
       behavior: selection.selectionMode === "none" ? null : selection.selectionBehavior,
       labels,
+      sortingEnabled: !!props.queryControls?.sorting,
     }),
-    [selection.selectionMode, selection.selectionBehavior, labels],
+    [selection.selectionMode, selection.selectionBehavior, labels, !!props.queryControls?.sorting],
   )
   return (
     <NativeTableOptionsContext.Provider value={options}>

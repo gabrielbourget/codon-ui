@@ -4,6 +4,8 @@ import { describe, expect, it, vi } from "vitest"
 
 import TableBody from "../components/TableBody/TableBody"
 import TableHeader from "../components/TableHeader/TableHeader"
+import type { TTableDataColumnMetadata } from "../helpers"
+import { TABLE_SORT_DIRECTION__ASCENDING, type TTableSortInstruction } from "../queryTypes"
 import Table from "../Table"
 
 const items = [
@@ -114,5 +116,103 @@ describe("native Table selection oracle", () => {
     expect(changed).not.toHaveBeenCalled()
     await user.click(rows[1])
     expect([...changed.mock.calls[0][0]]).toEqual(["beta"])
+  })
+})
+
+describe("native Table query oracle", () => {
+  const sortable: TTableDataColumnMetadata<(typeof items)[number]>[] = [
+    { ...columns[0], sort: { enabled: true, criteriaID: "person", queryKey: "user.name" } },
+  ]
+  it("keeps root and inner header metadata routes separate and admits inner presses with root columns omitted", async () => {
+    const changed = vi.fn(),
+      user = userEvent.setup()
+    const node = (rootColumns: typeof sortable | undefined) => (
+      <Table
+        aria-label="Rows"
+        columns={rootColumns}
+        queryControls={{ sorting: { activeSorts: [], onSortChange: changed } }}
+      >
+        <TableHeader columns={sortable} />
+        <TableBody columns={sortable} items={items} />
+      </Table>
+    )
+    const view = render(node([{ ...sortable[0], name: "Root name", sort: { enabled: true, criteriaID: "root" } }]))
+    await user.click(screen.getByRole("columnheader", { name: "Name" }))
+    expect(changed).toHaveBeenLastCalledWith([
+      {
+        id: "sort-root",
+        criteriaID: "root",
+        criteriaName: "Root name",
+        queryKey: undefined,
+        sortDirection: TABLE_SORT_DIRECTION__ASCENDING,
+      },
+    ])
+    await user.click(screen.getByRole("button", { name: "Name" }))
+    expect(changed).toHaveBeenLastCalledWith([
+      {
+        id: "sort-person",
+        criteriaID: "person",
+        criteriaName: "Name",
+        queryKey: "user.name",
+        sortDirection: TABLE_SORT_DIRECTION__ASCENDING,
+      },
+    ])
+    expect(changed).toHaveBeenCalledTimes(2)
+    view.rerender(node(undefined))
+    await user.click(screen.getByRole("columnheader", { name: "Name" }))
+    expect(changed).toHaveBeenCalledTimes(2)
+    await user.click(screen.getByRole("button", { name: "Name" }))
+    expect(changed).toHaveBeenCalledTimes(3)
+  })
+  it("repeats held inner requests and retains the exact original array for an empty criterion", async () => {
+    const changed = vi.fn(),
+      user = userEvent.setup(),
+      active: TTableSortInstruction[] = []
+    const node = (header = sortable) => (
+      <Table aria-label="Rows" queryControls={{ sorting: { activeSorts: active, onSortChange: changed } }}>
+        <TableHeader columns={header} />
+        <TableBody columns={sortable} items={items} />
+      </Table>
+    )
+    const view = render(node())
+    await user.click(screen.getByRole("button", { name: "Name" }))
+    await user.click(screen.getByRole("button", { name: "Name" }))
+    expect(changed.mock.calls[0]).toEqual(changed.mock.calls[1])
+    expect(active).toEqual([])
+    view.rerender(node([{ ...sortable[0], sort: { enabled: true, criteriaID: "" } }]))
+    await user.click(screen.getByRole("button", { name: "Name" }))
+    expect(changed.mock.calls[2][0]).toBe(active)
+  })
+  it("keeps pagination outside the grid and lets explicit undefined groups override Table's defaults", async () => {
+    const page = vi.fn(),
+      user = userEvent.setup()
+    const pagination = {
+      currentPage: 1,
+      itemsPerPage: 10,
+      numberOfItems: 100,
+      setCurrentPage: page,
+      setItemsPerPage: vi.fn(),
+    }
+    const node = (defaults: boolean) => (
+      <Table
+        aria-label="Rows"
+        queryControls={{
+          pagination: defaults ? pagination : { ...pagination, chosenPaginationSubcomponents: undefined },
+        }}
+      >
+        <TableHeader columns={columns} />
+        <TableBody columns={columns} items={items} />
+      </Table>
+    )
+    const view = render(node(true))
+    const footer = screen.getByRole("navigation")
+    expect(screen.getByRole("grid").contains(footer)).toBe(false)
+    expect(screen.getByText("Items Per Page")).toBeInTheDocument()
+    expect(screen.queryByRole("button", { name: "Next Page" })).not.toBeInTheDocument()
+    await user.click(screen.getByRole("button", { name: "Go To Page 10" }))
+    await user.click(screen.getByRole("button", { name: "Go To Page 10" }))
+    expect(page.mock.calls).toEqual([[10], [10]])
+    view.rerender(node(false))
+    expect(screen.queryByText("Items Per Page")).not.toBeInTheDocument()
   })
 })

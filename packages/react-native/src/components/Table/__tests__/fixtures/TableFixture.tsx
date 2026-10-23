@@ -1,7 +1,8 @@
 import { useState, type Ref } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
-import { Button, Input, NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../../.."
+import { Button, Input, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../../.."
+import type { TTableSortInstruction } from "../../queryTypes"
 import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
@@ -23,8 +24,14 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
   const [holdSelection, setHoldSelection] = useState(false)
   const [selectionRequests, setSelectionRequests] = useState<string[]>([])
   const [actions, setActions] = useState<(string | number)[]>([])
+  const [sorts, setSorts] = useState<TTableSortInstruction[]>([])
+  const [sortRequests, setSortRequests] = useState<TTableSortInstruction[][]>([])
+  const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [pageRequests, setPageRequests] = useState<number[]>([])
+  const [holdQuery, setHoldQuery] = useState(false)
   const columns: TNativeTableColumnMetadata<TPerson>[] = [
-    { id: "name", name: "Person", isRowHeader: true, width: 110 },
+    { id: "name", name: "Person", isRowHeader: true, width: 110, sort: { enabled: true, criteriaID: "person" } },
     { id: "active", name: "Active", width: 70 },
     {
       id: "draft",
@@ -45,47 +52,79 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
   ]
   return (
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
-      <NativeFloatingLayerHost>
-        <ScrollView contentContainerStyle={{ padding: 15, gap: 10 }}>
-          <Text elementType="h1">Private Table construction</Text>
-          <Text>Inspect cells, loading, empty content and the held editor through row reorder and theme changes.</Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
-            <Button onPress={() => setReversed((value) => !value)}>Reverse rows</Button>
-            <Button onPress={() => setLoading((value) => !value)}>Toggle loading</Button>
-            <Button onPress={() => setEmpty((value) => !value)}>Toggle empty</Button>
-            <Button onPress={() => setDark((value) => !value)}>Toggle theme</Button>
-            <Button onPress={() => setHoldSelection((value) => !value)}>Toggle selection veto</Button>
-          </View>
-          <Table
-            accessibilityLabel="People"
-            zebra
-            zebraColor={dark ? "#333333" : "#eeeeee"}
-            selectionMode="multiple"
-            selectedKeys={selected}
-            clickableRows
-            onSelectionChange={(next) => {
-              setSelectionRequests((previous) => [...previous, next === "all" ? "all" : JSON.stringify([...next])])
-              if (!holdSelection) setSelected(next)
-            }}
-            onRowAction={(key) => setActions((previous) => [...previous, key])}
-          >
-            <TableHeader columns={columns} />
-            <TableBody
-              items={empty ? [] : reversed ? [...people].reverse() : people}
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost>
+          <ScrollView contentContainerStyle={{ padding: 15, gap: 10 }}>
+            <Text elementType="h1">Private Table construction</Text>
+            <Text>
+              Inspect cells, loading, empty content and the held editor through row reorder and theme changes.
+            </Text>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+              <Button onPress={() => setReversed((value) => !value)}>Reverse rows</Button>
+              <Button onPress={() => setLoading((value) => !value)}>Toggle loading</Button>
+              <Button onPress={() => setEmpty((value) => !value)}>Toggle empty</Button>
+              <Button onPress={() => setDark((value) => !value)}>Toggle theme</Button>
+              <Button onPress={() => setHoldSelection((value) => !value)}>Toggle selection veto</Button>
+              <Button onPress={() => setHoldQuery((value) => !value)}>Toggle query veto</Button>
+            </View>
+            <Table
+              accessibilityLabel="People"
+              zebra
+              zebraColor={dark ? "#333333" : "#eeeeee"}
+              selectionMode="multiple"
+              selectedKeys={selected}
+              clickableRows
+              onSelectionChange={(next) => {
+                setSelectionRequests((previous) => [...previous, next === "all" ? "all" : JSON.stringify([...next])])
+                if (!holdSelection) setSelected(next)
+              }}
+              onRowAction={(key) => setActions((previous) => [...previous, key])}
               columns={columns}
-              renderEmptyState={() => "No people"}
-              isLoading={loading}
-              renderLoadingState={() => (
-                <TableRow id="loading" item={{ id: "loading", name: "Loading", active: false }} columns={columns} />
-              )}
-            />
-          </Table>
-          <Text testID="table-requests">{JSON.stringify(requests)}</Text>
-          <Text testID="table-selection">{selected === "all" ? "all" : JSON.stringify([...selected])}</Text>
-          <Text testID="table-selection-requests">{JSON.stringify(selectionRequests)}</Text>
-          <Text testID="table-actions">{JSON.stringify(actions)}</Text>
-        </ScrollView>
-      </NativeFloatingLayerHost>
+              queryControls={{
+                sorting: {
+                  activeSorts: sorts,
+                  onSortChange: (next) => {
+                    setSortRequests((previous) => [...previous, next])
+                    if (!holdQuery) setSorts(next)
+                  },
+                },
+                pagination: {
+                  showIncrementButtonsWithOnePage: true,
+                  currentPage: page,
+                  itemsPerPage: pageSize,
+                  numberOfItems: 100,
+                  setCurrentPage: (next) => {
+                    setPageRequests((previous) => [...previous, next])
+                    if (!holdQuery) setPage(next)
+                  },
+                  setItemsPerPage: (next) => {
+                    if (!holdQuery) setPageSize(next)
+                  },
+                },
+              }}
+            >
+              <TableHeader columns={columns} />
+              <TableBody
+                items={empty ? [] : reversed ? [...people].reverse() : people}
+                columns={columns}
+                renderEmptyState={() => "No people"}
+                isLoading={loading}
+                renderLoadingState={() => (
+                  <TableRow id="loading" item={{ id: "loading", name: "Loading", active: false }} columns={columns} />
+                )}
+              />
+            </Table>
+            <Text testID="table-requests">{JSON.stringify(requests)}</Text>
+            <Text testID="table-selection">{selected === "all" ? "all" : JSON.stringify([...selected])}</Text>
+            <Text testID="table-selection-requests">{JSON.stringify(selectionRequests)}</Text>
+            <Text testID="table-actions">{JSON.stringify(actions)}</Text>
+            <Text testID="table-sorts">{JSON.stringify(sorts)}</Text>
+            <Text testID="table-sort-requests">{JSON.stringify(sortRequests)}</Text>
+            <Text testID="table-page">{page}</Text>
+            <Text testID="table-page-requests">{JSON.stringify(pageRequests)}</Text>
+          </ScrollView>
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>
     </NativeThemeProvider>
   )
 }

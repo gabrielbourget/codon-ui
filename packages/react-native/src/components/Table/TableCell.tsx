@@ -11,6 +11,7 @@ import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
+import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
@@ -18,13 +19,24 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import type { TNativeTableCellProps, TNativeTableColumnProps } from "./types"
+import { useTableAction } from "./useTableAction"
 
 const Cell = (
-  props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader">,
+  props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting">,
   ref: ForwardedRef<View>,
   node: TNativeCollectionNode<object>,
 ) => {
-  const { id: _id, columnID, isRowHeader: _columnHeader, alignment, children, customStyles, style, ...native } = props
+  const {
+    id: _id,
+    columnID,
+    isRowHeader: _columnHeader,
+    allowsSorting,
+    alignment,
+    children,
+    customStyles,
+    style,
+    ...native
+  } = props
   const table = useNativeTable()
   const content = useNativeContentContext()
   const theme = useNativeTheme()
@@ -43,6 +55,7 @@ const Cell = (
     [heading, isRowHeader, headerKey, table.registerHeader],
   )
   const target = useRef<View | null>(null)
+  const action = useTableAction(node, target)
   const originalRef = useNativeCollectionRefs(target, bindHeader)
   const mergedRef = useNativeCollectionRefs(ref, originalRef)
   const textAlign = alignment === "Center" ? "center" : alignment === "Right" ? "right" : "auto"
@@ -74,6 +87,15 @@ const Cell = (
         .filter((cell) => table.rowHeaderColumns.has(cell.props.columnID))
         .map((cell) => table.headerTargets.get(JSON.stringify(["row", parent?.key, cell.props.columnID])))
         .filter((value): value is number => !!value)
+  const rendered = (
+    <NativeTableCellContext.Provider value={{ node, target }}>
+      <NativeContentContext.Provider
+        value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+      >
+        {getNativeButtonContent(children, styles.text)}
+      </NativeContentContext.Provider>
+    </NativeTableCellContext.Provider>
+  )
   return (
     <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
       <NativeCollectionSemanticsContext.Provider
@@ -94,15 +116,47 @@ const Cell = (
             : ""
         }
       >
-        <NativeFocusHost {...nativeViewProps(native)} ref={mergedRef} accessible focusable={false} style={styles.view}>
-          <NativeTableCellContext.Provider value={{ node, target }}>
-            <NativeContentContext.Provider
-              value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
-            >
-              {getNativeButtonContent(children, styles.text)}
-            </NativeContentContext.Provider>
-          </NativeTableCellContext.Provider>
-        </NativeFocusHost>
+        {heading ? (
+          <NativeButton
+            {...nativeViewProps(native)}
+            ref={mergedRef}
+            nativeRole="columnheader"
+            nativeInteraction={!!allowsSorting}
+            nativeProgrammaticFocusable
+            nativeTabStop={false}
+            accessibilityValue={
+              allowsSorting
+                ? { text: table.primarySort?.column === columnID ? table.primarySort.direction : "none" }
+                : native.accessibilityValue
+            }
+            nativeStyle={(flags, visible) => ({
+              viewStyle: {
+                ...(flags.isFocused && visible ? { outlineWidth: 2, outlineColor: theme.colors.focusRing } : {}),
+                ...styles.view,
+              },
+              textStyle: styles.text,
+              foregroundColor: styles.text.color ?? theme.colors.foreground,
+              target: 0,
+            })}
+            onPress={() =>
+              action.request((next, current) => {
+                if (current.props.allowsSorting) next.sortColumn(current.props.columnID)
+              })
+            }
+          >
+            {rendered}
+          </NativeButton>
+        ) : (
+          <NativeFocusHost
+            {...nativeViewProps(native)}
+            ref={mergedRef}
+            accessible
+            focusable={false}
+            style={styles.view}
+          >
+            {rendered}
+          </NativeFocusHost>
+        )}
       </NativeCollectionSemanticsContext.Provider>
     </NativeCollectionItemBindingContext.Provider>
   )

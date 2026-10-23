@@ -4,12 +4,28 @@ import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-na
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TCornerGeometry } from "../../tokens/geometry"
+import type { TNativePaginationProps } from "../Pagination/types"
+
+import type { TTableSortInstruction } from "./queryTypes"
+
+export type TNativeTableColumnSortMetadata = { enabled?: boolean; criteriaID: string; queryKey?: string }
+export type TNativeTableSortingControls = {
+  activeSorts: TTableSortInstruction[]
+  mode?: "single" | "multiple"
+  icons?: { ascending?: ReactNode; descending?: ReactNode }
+  onSortChange: (nextSorts: TTableSortInstruction[]) => void
+}
+export type TNativeTableQueryControls = {
+  sorting?: TNativeTableSortingControls
+  pagination?: TNativePaginationProps
+}
 
 type TStyleProps = { customStyles?: StyleProp<TextStyle>; style?: StyleProp<TextStyle> }
 type TColumnMetadataBase<T extends object> = {
   id: string
   name?: string
   headerAriaLabel?: string
+  headerVisuallyHidden?: boolean
   isHidden?: boolean
   width?: TextStyle["width"]
   minWidth?: TextStyle["minWidth"]
@@ -27,6 +43,7 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
         role?: "data"
         accessor?: (row: T) => ReactNode
         isRowHeader?: boolean
+        sort?: TNativeTableColumnSortMetadata
         structuralPosition?: never
         structuralKind?: never
       }
@@ -37,9 +54,10 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
         structuralKind: "action" | "drag" | "selection"
         accessor?: never
         isRowHeader?: never
+        sort?: never
       }
   )
-export type TNativeTableProps = Omit<ViewProps, "children" | "style"> &
+export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps &
   MultipleSelectionStateProps & {
     children?: ReactNode
@@ -48,6 +66,8 @@ export type TNativeTableProps = Omit<ViewProps, "children" | "style"> &
     labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
     clickableRows?: boolean
     onRowAction?: (key: TNativeCollectionKey) => void
+    columns?: TNativeTableColumnMetadata<T>[]
+    queryControls?: TNativeTableQueryControls
   }
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
@@ -58,6 +78,7 @@ export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
     id?: TNativeCollectionKey
     columnID: string
     isRowHeader?: boolean
+    allowsSorting?: boolean
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
 export type TNativeTableCellProps = Omit<ViewProps, "id" | "style"> &
