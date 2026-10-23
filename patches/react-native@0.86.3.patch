@@ -155,6 +155,234 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..821163e5962462e0a38be5d61db7d8a8
  };
  
  } // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h b/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..ded4b8a78665b531734095e7dcb445ea8623aff7
+--- /dev/null
++++ b/ReactCommon/react/renderer/runtimescheduler/NativeEventTaskScope.h
+@@ -0,0 +1,46 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++#pragma once
++
++#include <atomic>
++#include <exception>
++#include <functional>
++#include <utility>
++#include <memory>
++#include <string>
++
++namespace facebook::jsi { class Runtime; }
++namespace facebook::react {
++// One original task owns this scope through its real microtask checkpoint and
++// rendering updates. Completion is not evidence of any native platform effect.
++class NativeEventTaskScope {
++ public:
++  virtual ~NativeEventTaskScope() = default;
++  virtual void fail(const std::string &error) noexcept = 0;
++  virtual void finish() noexcept = 0;
++};
++// The ordinary rendering queue retains its front callback when it throws.
++// Copies of an admitted task's queue item must still own only one invocation.
++class NativeEventTaskRenderingUpdate final {
++ public:
++  NativeEventTaskRenderingUpdate(std::function<void()> callback, std::weak_ptr<NativeEventTaskScope> scope)
++      : callback_(std::move(callback)), scope_(std::move(scope)) {}
++  void run() {
++    bool expected = false;
++    if (!claimed_.compare_exchange_strong(expected, true)) return;
++    auto callback = std::move(callback_);
++    try { if (callback) callback(); }
++    catch (const std::exception &error) { if (auto scope = scope_.lock()) scope->fail(error.what()); throw; }
++    catch (...) { if (auto scope = scope_.lock()) scope->fail("native-event-task-rendering-threw"); throw; }
++  }
++ private:
++  std::atomic<bool> claimed_{false};
++  std::function<void()> callback_;
++  std::weak_ptr<NativeEventTaskScope> scope_;
++};
++using NativeEventTaskScopeFactory = std::function<std::shared_ptr<NativeEventTaskScope>(jsi::Runtime &)>;
++} // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.cpp b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.cpp
+index f7393dbdd520a9b955dba39debeb09366130d6db..df8d16bd7aa337f54347959a4f2fc7f64d32a6aa 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.cpp
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.cpp
+@@ -53,6 +53,11 @@ void RuntimeScheduler::scheduleWork(RawCallback&& callback) noexcept {
+   return runtimeSchedulerImpl_->scheduleWork(std::move(callback));
+ }
+ 
++bool RuntimeScheduler::scheduleNativeEventWork(
++    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
++  return runtimeSchedulerImpl_->scheduleNativeEventWork(std::move(callback), std::move(factory));
++}
++
+ std::shared_ptr<Task> RuntimeScheduler::scheduleTask(
+     SchedulerPriority priority,
+     jsi::Function&& callback) noexcept {
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
+index ded6174907f16358234cfb40a0cb2941737ba1a9..7cb1f9f668c8ee1dad9023bfbb2095f86b8bd08a 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler.h
+@@ -31,6 +31,8 @@ class RuntimeSchedulerBase {
+  public:
+   virtual ~RuntimeSchedulerBase() = default;
+   virtual void scheduleWork(RawCallback &&callback) noexcept = 0;
++  // A legacy scheduler explicitly declines this original-event contract.
++  virtual bool scheduleNativeEventWork(RawCallback &&, NativeEventTaskScopeFactory) { return false; }
+   virtual void executeNowOnTheSameThread(RawCallback &&callback) = 0;
+   virtual std::shared_ptr<Task> scheduleTask(SchedulerPriority priority, jsi::Function &&callback) noexcept = 0;
+   virtual std::shared_ptr<Task> scheduleTask(SchedulerPriority priority, RawCallback &&callback) noexcept = 0;
+@@ -75,6 +77,7 @@ class RuntimeScheduler final : RuntimeSchedulerBase {
+   RuntimeScheduler &operator=(RuntimeScheduler &&) = delete;
+ 
+   void scheduleWork(RawCallback &&callback) noexcept override;
++  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
+ 
+   /*
+    * Grants access to the runtime synchronously on the caller's thread.
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
+index b786399ff5560cf9617d1294f4e9a8d47fab31c1..d5ad02e2720353c936d8a6d6c6c32078456c2ea8 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.cpp
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "RuntimeScheduler_Modern.h"
++#include <exception>
+ 
+ #include <ReactCommon/RuntimeExecutorSyncUIThreadUtils.h>
+ #include <cxxreact/TraceSection.h>
+@@ -47,6 +48,18 @@ void RuntimeScheduler_Modern::scheduleWork(RawCallback&& callback) noexcept {
+   scheduleTask(SchedulerPriority::ImmediatePriority, std::move(callback));
+ }
+ 
++bool RuntimeScheduler_Modern::scheduleNativeEventWork(
++    RawCallback&& callback, NativeEventTaskScopeFactory factory) {
++  if (!callback || !factory) return false;
++  auto priority = SchedulerPriority::ImmediatePriority;
++  auto expirationTime = now_() + timeoutForSchedulerPriority(priority);
++  auto task = std::make_shared<Task>(priority, std::move(callback), expirationTime);
++  // Publish context before queueing: the executor may run the task immediately.
++  task->nativeEventScopeFactory = std::move(factory);
++  scheduleTask(task);
++  return true;
++}
++
+ std::shared_ptr<Task> RuntimeScheduler_Modern::scheduleTask(
+     SchedulerPriority priority,
+     jsi::Function&& callback) noexcept {
+@@ -190,7 +203,12 @@ void RuntimeScheduler_Modern::scheduleRenderingUpdate(
+   TraceSection s("RuntimeScheduler::scheduleRenderingUpdate");
+ 
+   surfaceIdsWithPendingRenderingUpdates_.insert(surfaceId);
+-  pendingRenderingUpdates_.push(renderingUpdate);
++  if (currentTask_ && currentTask_->nativeEventScope && renderingUpdate) {
++    auto original = std::make_shared<NativeEventTaskRenderingUpdate>(std::move(renderingUpdate), currentTask_->nativeEventScope);
++    pendingRenderingUpdates_.push([original] { original->run(); });
++  } else {
++    pendingRenderingUpdates_.push(renderingUpdate);
++  }
+ }
+ 
+ void RuntimeScheduler_Modern::setShadowTreeRevisionConsistencyManager(
+@@ -301,6 +319,38 @@ void RuntimeScheduler_Modern::runEventLoopTick(
+   ScopedShadowTreeRevisionLock revisionLock(
+       shadowTreeRevisionConsistencyManager_);
+ 
++  if (task.nativeEventScopeFactory) {
++    auto factory = std::exchange(task.nativeEventScopeFactory, {});
++    try {
++      task.nativeEventScope = factory(runtime);
++      if (!task.nativeEventScope) {
++        task.callback.reset();
++        return;
++      }
++    } catch (jsi::JSError& error) {
++      task.callback.reset();
++      onTaskError_(runtime, error);
++      return;
++    } catch (std::exception& ex) {
++      task.callback.reset();
++      jsi::JSError error(runtime, std::string("Non-js exception: ") + ex.what());
++      onTaskError_(runtime, error);
++      return;
++    } catch (...) {
++      task.callback.reset();
++      throw;
++    }
++  }
++  const auto previousTask = currentTask_;
++  const auto exceptionsBefore = std::uncaught_exceptions();
++  OnScopeExit finishNativeEventScope([&]() {
++    auto scope = std::move(task.nativeEventScope);
++    if (!scope) return;
++    if (std::uncaught_exceptions() > exceptionsBefore) scope->fail("native-event-task-stack-unwound");
++    currentTask_ = previousTask;
++    scope->finish();
++  });
++
+   currentTask_ = &task;
+   currentPriority_ = task.priority;
+ 
+@@ -380,8 +430,10 @@ void RuntimeScheduler_Modern::executeTask(
+       task.callback = result.getObject(runtime).getFunction(runtime);
+     }
+   } catch (jsi::JSError& error) {
++    if (task.nativeEventScope) task.nativeEventScope->fail(error.what());
+     onTaskError_(runtime, error);
+   } catch (std::exception& ex) {
++    if (task.nativeEventScope) task.nativeEventScope->fail(ex.what());
+     jsi::JSError error(runtime, std::string("Non-js exception: ") + ex.what());
+     onTaskError_(runtime, error);
+   }
+@@ -419,8 +471,10 @@ void RuntimeScheduler_Modern::performMicrotaskCheckpoint(
+         break;
+       }
+     } catch (jsi::JSError& error) {
++      if (currentTask_ && currentTask_->nativeEventScope) currentTask_->nativeEventScope->fail(error.what());
+       onTaskError_(runtime, error);
+     } catch (std::exception& ex) {
++      if (currentTask_ && currentTask_->nativeEventScope) currentTask_->nativeEventScope->fail(ex.what());
+       jsi::JSError error(
+           runtime, std::string("Non-js exception: ") + ex.what());
+       onTaskError_(runtime, error);
+diff --git a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.h b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.h
+index 05ba08896f19d720665dc463ff9dc70a87ec806e..64798d513808215e66a74e3e7298ef4c4eb6a115 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.h
++++ b/ReactCommon/react/renderer/runtimescheduler/RuntimeScheduler_Modern.h
+@@ -44,6 +44,7 @@ class RuntimeScheduler_Modern final : public RuntimeSchedulerBase {
+    * All callers should use scheduleTask with the right priority after that.
+    */
+   void scheduleWork(RawCallback &&callback) noexcept override;
++  bool scheduleNativeEventWork(RawCallback &&callback, NativeEventTaskScopeFactory factory) override;
+ 
+   /*
+    * Grants access to the runtime synchronously on the caller's thread.
+diff --git a/ReactCommon/react/renderer/runtimescheduler/Task.h b/ReactCommon/react/renderer/runtimescheduler/Task.h
+index e1a91f57303d0496b0ae20a2b5fa4bb61bb268e9..76cb2c9be309b21a781576533041965df5ec52fb 100644
+--- a/ReactCommon/react/renderer/runtimescheduler/Task.h
++++ b/ReactCommon/react/renderer/runtimescheduler/Task.h
+@@ -11,6 +11,7 @@
+ #include <jsi/jsi.h>
+ #include <react/timing/primitives.h>
+ 
++#include <react/renderer/runtimescheduler/NativeEventTaskScope.h>
+ #include <cstdint>
+ #include <optional>
+ #include <variant>
+@@ -33,6 +34,8 @@ struct Task final : public jsi::NativeState {
+   friend RuntimeScheduler_Modern;
+   friend TaskPriorityComparer;
+ 
++  NativeEventTaskScopeFactory nativeEventScopeFactory;
++  std::shared_ptr<NativeEventTaskScope> nativeEventScope;
+   SchedulerPriority priority;
+   std::optional<std::variant<jsi::Function, RawCallback>> callback;
+   HighResTimeStamp expirationTime;
 diff --git a/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..bef72b54697f8c8c055ac056eebf5d2d63ab39ef 100644
 --- a/ReactCommon/react/renderer/scheduler/Scheduler.cpp
