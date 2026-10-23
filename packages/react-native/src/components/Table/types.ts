@@ -129,8 +129,24 @@ export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
     allowsSorting?: boolean
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
-export type TNativeTableCellProps = Omit<ViewProps, "id" | "style"> &
+export type TNativeTableCellRenderState = Readonly<{
+  isPressed: boolean
+  isFocused: boolean
+  isFocusVisible: boolean
+  isHovered: boolean
+  isSelected: boolean
+  isDisabled: boolean
+  id?: TNativeCollectionKey
+  columnIndex?: number | null
+  isTreeColumn: boolean
+  isExpanded: boolean
+  hasChildItems: boolean
+  level: number
+  defaultChildren: undefined
+}>
+export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children"> &
   TStyleProps & {
+    children?: ReactNode | ((state: TNativeTableCellRenderState) => ReactNode)
     textValue?: string
     id?: TNativeCollectionKey
     columnID: string

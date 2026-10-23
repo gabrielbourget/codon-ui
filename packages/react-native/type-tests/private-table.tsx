@@ -47,6 +47,29 @@ const textCell = (
     Visible text
   </TableCell>
 )
+const renderedCell = (
+  <TableCell columnID="name">
+    {(state) => {
+      const flags: boolean[] = [
+        state.isPressed,
+        state.isHovered,
+        state.isFocused,
+        state.isFocusVisible,
+        state.isSelected,
+        state.isDisabled,
+        state.isTreeColumn,
+        state.isExpanded,
+        state.hasChildItems,
+      ]
+      const id: string | number | undefined = state.id
+      const column: number | null | undefined = state.columnIndex
+      const level: number = state.level
+      const originalDefault: undefined = state.defaultChildren
+      void [flags, id, column, level, originalDefault]
+      return "Cell content"
+    }}
+  </TableCell>
+)
 const ignoredTypeaheadFlag = (
   <NativeSelectableCollectionContext.Provider value={{ disallowTypeAhead: true }}>
     <Table />
@@ -140,6 +163,7 @@ void [
   composition,
   selection,
   textCell,
+  renderedCell,
   ignoredTypeaheadFlag,
   invalidTypeaheadProp,
   invalidTextValue,

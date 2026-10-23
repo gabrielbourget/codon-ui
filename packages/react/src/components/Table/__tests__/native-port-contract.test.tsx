@@ -1,9 +1,15 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { SelectableCollectionContext, TableBody as AriaTableBody } from "react-aria-components"
+import {
+  SelectableCollectionContext,
+  TableBody as AriaTableBody,
+  Row as AriaRow,
+  type CellRenderProps,
+} from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
 
 import TableBody from "../components/TableBody/TableBody"
+import TableCell from "../components/TableCell/TableCell"
 import TableFilterPopover from "../components/TableFilterPopover/TableFilterPopover"
 import TableHeader from "../components/TableHeader/TableHeader"
 import TableRow from "../components/TableRow/TableRow"
@@ -23,6 +29,70 @@ describe("native Table keyboard oracle", () => {
     { id: "beta", name: "Beta", age: 30 },
     { id: "last", name: "Last", age: 40 },
   ]
+  it("exposes cell render state while keeping row selection outside the cell press state", async () => {
+    class TestPointerEvent extends MouseEvent {
+      readonly pointerType: string
+      constructor(type: string, init: PointerEventInit = {}) {
+        super(type, init)
+        this.pointerType = init.pointerType ?? "mouse"
+      }
+    }
+    vi.stubGlobal("PointerEvent", TestPointerEvent)
+    try {
+      const user = userEvent.setup()
+      const rendered = vi.fn((state: CellRenderProps) => `Cell ${state.isSelected}`)
+      const content = (selected = true, disabled = false, style = {}) => (
+        <Table
+          aria-label="Cell state"
+          selectionMode="multiple"
+          selectionBehavior="replace"
+          selectedKeys={new Set(selected ? [0] : [])}
+          disabledKeys={disabled ? [0] : []}
+        >
+          <TableHeader columns={gridColumns} />
+          <AriaTableBody>
+            <AriaRow id={0}>
+              <TableCell id="state-cell" data-testid="state-cell" style={style}>
+                {rendered}
+              </TableCell>
+              <TableCell id="other-cell">20</TableCell>
+            </AriaRow>
+          </AriaTableBody>
+        </Table>
+      )
+      const view = render(content())
+      const latest = () => rendered.mock.calls.at(-1)![0]
+      expect(latest()).toMatchObject({
+        isPressed: false,
+        isFocused: false,
+        isFocusVisible: false,
+        isHovered: false,
+        isSelected: true,
+        isDisabled: false,
+        id: "state-cell",
+        columnIndex: 0,
+        isTreeColumn: false,
+        isExpanded: false,
+        hasChildItems: false,
+        level: 1,
+      })
+      expect(latest()).toHaveProperty("defaultChildren", undefined)
+      const cell = screen.getByTestId("state-cell")
+      await user.hover(cell)
+      expect(latest().isHovered).toBe(true)
+      await user.pointer({ target: cell, keys: "[MouseLeft>]" })
+      expect(latest().isPressed).toBe(false)
+      await user.pointer({ keys: "[/MouseLeft]" })
+      cell.focus()
+      await user.keyboard("{F2}")
+      expect(latest()).toMatchObject({ isFocused: true, isFocusVisible: true })
+      view.rerender(content(false, true, { outlineWidth: 0 }))
+      expect(latest()).toMatchObject({ isSelected: false, isDisabled: true })
+      expect(screen.getByTestId("state-cell").style.outlineWidth).toBe("0")
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
   it("uses a one-second search buffer without changing selection and consumes search Space", async () => {
     const user = userEvent.setup(),
       changed = vi.fn()

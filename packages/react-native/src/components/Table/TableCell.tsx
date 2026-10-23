@@ -1,4 +1,13 @@
-import { forwardRef, useCallback, useContext, useRef, type ForwardedRef, type ReactNode } from "react"
+import {
+  forwardRef,
+  useCallback,
+  useContext,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ForwardedRef,
+  type ReactNode,
+} from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
@@ -11,6 +20,7 @@ import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { NativePressable } from "../../input/NativePressable"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
@@ -21,12 +31,11 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { TableCellKeys } from "./TableCellKeys"
-import type { TNativeTableCellProps, TNativeTableColumnProps } from "./types"
+import type { TNativeTableCellProps, TNativeTableColumnProps, TNativeTableCellRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
 
 const Cell = (
-  props: Omit<TNativeTableCellProps, "children"> &
-    Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting"> & { children?: ReactNode | (() => ReactNode) },
+  props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting">,
   ref: ForwardedRef<View>,
   node: TNativeCollectionNode<object>,
 ) => {
@@ -44,6 +53,16 @@ const Cell = (
   } = props
   const table = useNativeTable()
   const scope = useNativeKeyScope()
+  const [focused, setFocused] = useState(false)
+  const [focusVisible, setFocusVisible] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  useLayoutEffect(
+    () =>
+      scope?.subscribe(() => {
+        if (scope.isWindowActive() === false) setHovered(false)
+      }),
+    [scope],
+  )
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
@@ -99,13 +118,36 @@ const Cell = (
         .filter((cell) => table.rowHeaderColumns.has(cell.props.columnID))
         .map((cell) => table.headerTargets.get(JSON.stringify(["row", parent?.key, cell.props.columnID])))
         .filter((value): value is number => !!value)
+  let level = 1
+  let ancestor = parent?.parentKey == null ? null : table.collection.getItem(parent.parentKey)
+  while (ancestor) {
+    if (ancestor.type === "item") level++
+    ancestor = ancestor.parentKey == null ? null : table.collection.getItem(ancestor.parentKey)
+  }
+  const lastChild = parent?.lastChildKey == null ? null : table.collection.getItem(parent.lastChildKey)
+  const renderState: TNativeTableCellRenderState = {
+    // The public source Table selects rows and exposes no cell-action prop.
+    isPressed: false,
+    isFocused: focused,
+    isFocusVisible: focused && focusVisible,
+    isHovered: hovered,
+    isSelected: !!parent && table.manager.isSelected(parent.key),
+    isDisabled: !!parent && table.manager.isDisabled(parent.key),
+    id: node.key,
+    columnIndex: index,
+    isTreeColumn: false,
+    isExpanded: false,
+    hasChildItems: !!parent?.props.hasChildItems || (!!lastChild && lastChild.type !== "cell"),
+    level,
+    defaultChildren: undefined,
+  }
   const rendered = (
     <NativeTableCellContext.Provider value={{ node, target, width }}>
       <TableCellKeys node={node} target={target} binding={actions?.bindingFor(node) ?? ""} />
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
       >
-        {getNativeButtonContent(typeof children === "function" ? children() : children, styles.text)}
+        {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>
   )
@@ -182,32 +224,62 @@ const Cell = (
             {rendered}
           </NativeButton>
         ) : (
-          <NativeFocusHost
+          <NativePressable
             {...nativeViewProps(native)}
             ref={mergedRef}
             accessible
-            focusable
+            nativeInteraction={false}
+            nativeProgrammaticFocusable
             nativeTabStop={table.manager.focusedKey === node.key}
-            capturedKeys={scope ? [] : table.keyboard.keysFor(node.key)}
+            nativeRender={(props) => (
+              <NativeFocusHost {...props} capturedKeys={scope ? [] : table.keyboard.keysFor(node.key)} />
+            )}
             onFocus={(event) => {
+              if (event.nativeEvent.target !== findNodeHandle(target.current)) return
+              setFocused(true)
+              setFocusVisible(event.nativeEvent.isFocusVisible)
               table.keyboard.observe(node.key, event)
               native.onFocus?.(event)
             }}
+            onBlur={(event) => {
+              if (event.nativeEvent.target !== findNodeHandle(target.current)) return
+              setFocused(false)
+              setFocusVisible(false)
+              native.onBlur?.(event)
+            }}
+            onFocusVisibilityChange={setFocusVisible}
+            onPointerEnter={(event) => {
+              native.onPointerEnter?.(event)
+              if (event.nativeEvent.pointerType !== "touch" && action.isActive()) setHovered(true)
+            }}
+            onPointerLeave={(event) => {
+              native.onPointerLeave?.(event)
+              if (event.nativeEvent.pointerType !== "touch") setHovered(false)
+            }}
             onKeyDown={table.keyboard.onKeyDown}
-            style={styles.view}
+            style={{
+              ...(focused ? { outlineWidth: focusVisible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),
+              ...styles.view,
+            }}
           >
             {rendered}
-          </NativeFocusHost>
+          </NativePressable>
         )}
       </NativeCollectionSemanticsContext.Provider>
     </NativeCollectionItemBindingContext.Provider>
   )
 }
-type TMetadataCellProps = Omit<TNativeTableCellProps, "children"> & { children: () => ReactNode }
+type TMetadataCellProps = Omit<TNativeTableCellProps, "children"> & {
+  children: (state: TNativeTableCellRenderState) => ReactNode
+}
 const CellMetadata = createNativeCollectionLeaf<object, TMetadataCellProps, View>("cell", Cell)
 export const TableCell = forwardRef<View, TNativeTableCellProps>((props, ref) => {
   // Canonical Cell authors a render function; its plain visible text is not collection search metadata.
-  const content = useCallback(() => props.children, [props.children])
+  const content = useCallback(
+    (state: TNativeTableCellRenderState) =>
+      typeof props.children === "function" ? props.children(state) : props.children,
+    [props.children],
+  )
   return (
     <CellMetadata {...props} ref={ref}>
       {content}

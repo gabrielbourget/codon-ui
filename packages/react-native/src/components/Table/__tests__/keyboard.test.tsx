@@ -25,9 +25,11 @@ import { encodeCollectionKey } from "../../collection"
 import { useNativeTable } from "../context"
 import { Table } from "../Table"
 import { TableBody } from "../TableBody"
+import { TableCell } from "../TableCell"
 import { TableHeader } from "../TableHeader"
 import { TableRow } from "../TableRow"
 import type { TNativeTableProps } from "../types"
+import type { TNativeTableCellRenderState } from "../types"
 
 import { TableFixture } from "./fixtures/TableFixture"
 
@@ -93,6 +95,20 @@ const columns = [
 ]
 const RawBody = createNativeCollectionBranch<object, { children?: ReactNode }, RN.View>(
   "body",
+  (_props, ref, parent) => {
+    const table = useNativeTable(),
+      renderer = useContext(NativeCollectionRendererContext)
+    const Native = jest.requireActual<typeof RN>("react-native")
+    return (
+      <Native.View ref={ref}>
+        <renderer.CollectionBranch collection={table.collection} parent={parent} />
+      </Native.View>
+    )
+  },
+  (props) => props.children,
+)
+const RawRow = createNativeCollectionBranch<object, { id: string | number; children?: ReactNode }, RN.View>(
+  "item",
   (_props, ref, parent) => {
     const table = useNativeTable(),
       renderer = useContext(NativeCollectionRendererContext)
@@ -786,6 +802,84 @@ it("retains the canonical wrapper's empty default search text", async () => {
   await focused(row(0))
   await key(row(0), "b", { nativeDefaultHandled: false })
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+it("renders the complete flat cell state and observes hover/focus without a cell press action", async () => {
+  const rendered = jest.fn((state: TNativeTableCellRenderState) => `Cell ${state.isSelected}`)
+  const content = (selected = true, disabled = false, style = {}) => (
+    <NativeThemeProvider>
+      <Table
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={new Set(selected ? [0] : [])}
+        disabledKeys={disabled ? [0] : []}
+      >
+        <TableHeader columns={columns} />
+        <RawBody>
+          <RawRow id={0}>
+            <TableCell id="state-cell" columnID="name" testID="state-cell" style={style}>
+              {rendered}
+            </TableCell>
+            <TableCell id="other-cell" columnID="age">
+              20
+            </TableCell>
+          </RawRow>
+        </RawBody>
+      </Table>
+    </NativeThemeProvider>
+  )
+  const view = await render(content())
+  const latest = () => rendered.mock.calls.at(-1)![0]
+  expect(latest()).toEqual({
+    isPressed: false,
+    isFocused: false,
+    isFocusVisible: false,
+    isHovered: false,
+    isSelected: true,
+    isDisabled: false,
+    id: "state-cell",
+    columnIndex: 0,
+    isTreeColumn: false,
+    isExpanded: false,
+    hasChildItems: false,
+    level: 1,
+    defaultChildren: undefined,
+  })
+  const target = screen.getByTestId("state-cell")
+  await act(() => target.props.onPointerEnter({ nativeEvent: { target: tag(target), pointerType: "touch" } }))
+  expect(latest().isHovered).toBe(false)
+  await act(() =>
+    target.props.onPointerEnter({ nativeEvent: { target: tag(target), pointerType: "mouse" }, persist: jest.fn() }),
+  )
+  expect(latest().isHovered).toBe(true)
+  await focused(screen.getByTestId("state-cell"))
+  expect(latest()).toMatchObject({ isFocused: true, isFocusVisible: true, isHovered: true, isPressed: false })
+  expect(screen.getByTestId("state-cell")).toHaveStyle({ outlineWidth: 2 })
+  await act(() =>
+    screen.getByTestId("state-cell").props.onNativeFocusChange({
+      nativeEvent: { ownerId: target.props.ownerId, target: tag(target), isFocused: false, isFocusVisible: false },
+    }),
+  )
+  expect(latest()).toMatchObject({ isFocused: false, isFocusVisible: false })
+  await view.rerender(content(false, true, { outlineWidth: 0 }))
+  expect(latest()).toMatchObject({ isSelected: false, isDisabled: true })
+  const current = screen.getByTestId("state-cell")
+  await act(() =>
+    current.props.onNativeFocusChange({
+      nativeEvent: { ownerId: current.props.ownerId, target: tag(current), isFocused: true, isFocusVisible: false },
+    }),
+  )
+  expect(latest()).toMatchObject({ isFocused: true, isFocusVisible: false })
+  expect(screen.getByTestId("state-cell")).toHaveStyle({ outlineWidth: 0 })
+  await key(screen.getByTestId("state-cell"), "F2", { nativeDefaultHandled: false })
+  expect(latest()).toMatchObject({ isFocused: true, isFocusVisible: true, isPressed: false })
+  expect(screen.getByTestId("state-cell")).toHaveStyle({ outlineWidth: 0 })
+  await act(() =>
+    screen.getByTestId("state-cell").props.onPointerLeave({
+      nativeEvent: { target: tag(screen.getByTestId("state-cell")), pointerType: "mouse" },
+      persist: jest.fn(),
+    }),
+  )
+  expect(latest().isHovered).toBe(false)
 })
 const partialFixture = async (active = () => true) => {
   let materialize!: (keys: (string | number)[]) => void
