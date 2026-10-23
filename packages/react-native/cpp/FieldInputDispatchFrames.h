@@ -60,6 +60,7 @@ struct FieldInputCommandAction {
   std::string name;
   std::function<FieldInputCommandResult()> perform;
   std::function<void()> cancel;
+  std::function<bool()> current{};
 };
 using FieldInputCommand = std::shared_ptr<const FieldInputCommandAction>;
 
@@ -96,6 +97,7 @@ class FieldInputDispatchFrames final {
     bool retired{false}, failed{false}, expired{false};
     bool closed{false}, phasesComplete{false}, originalDefaultPrevented{false};
     bool pendingMount{false}, mountRunning{false};
+    int32_t pendingMountTarget{0}, activeMountTarget{0};
     std::optional<FieldInputMountResult> mountResult;
     FieldInputCommand pendingCommand, activeCommand;
     bool commandRunning{false};
@@ -234,12 +236,13 @@ class FieldInputDispatchFrames final {
     if (pending) pending->cancel();
     if (active) active->cancel();
   }
-  FieldInputMountResult requestMount(const Handle &ticket) {
+  FieldInputMountResult requestMount(const Handle &ticket, int32_t commandTarget = 0) {
     std::unique_lock lock(mutex_);
-    if (!phaseActive(ticket) || !ticket->returned || ticket->phasesComplete || ticket->pendingMount || ticket->mountRunning ||
+    if (commandTarget < 0 || !phaseActive(ticket) || ticket->failed || !ticket->started || (!ticket->returned && commandTarget <= 0) ||
+        (commandTarget > 0 && !current(ticket)) || ticket->phasesComplete || ticket->pendingMount || ticket->mountRunning ||
         ticket->pendingCommand || ticket->commandRunning ||
         Clock::now() >= ticket->deadline) return {false, "field-input-mount-frame-retired"};
-    ticket->mountResult.reset(); ticket->pendingMount = true;
+    ticket->mountResult.reset(); ticket->pendingMount = true; ticket->pendingMountTarget = commandTarget;
     condition_.notify_all();
     condition_.wait_until(lock, ticket->deadline, [&] { return !phaseActive(ticket) || ticket->mountResult.has_value(); });
     if (!phaseActive(ticket)) return {false, "field-input-mount-frame-retired"};
@@ -249,6 +252,10 @@ class FieldInputDispatchFrames final {
       return {false, "field-input-mount-timed-out"};
     }
     return *ticket->mountResult;
+  }
+  int32_t mountTarget(const Handle &ticket) {
+    std::lock_guard lock(mutex_);
+    return ticket && ticket->mountRunning ? ticket->activeMountTarget : 0;
   }
   FieldInputCommandResult requestCommand(const Handle &ticket, FieldInputCommand command) {
     std::unique_lock lock(mutex_);
@@ -321,6 +328,7 @@ class FieldInputDispatchFrames final {
       }
       if (ticket->pendingMount) {
         ticket->pendingMount = false; ticket->mountRunning = true;
+        ticket->activeMountTarget = ticket->pendingMountTarget; ticket->pendingMountTarget = 0;
         lock.unlock();
         FieldInputMountResult result;
         try {
@@ -329,7 +337,7 @@ class FieldInputDispatchFrames final {
         } catch (const std::exception &error) { result.error = error.what(); }
         catch (...) { result.error = "field-input-mount-service-threw"; }
         lock.lock();
-        ticket->mountRunning = false;
+        ticket->mountRunning = false; ticket->activeMountTarget = 0;
         if (!result.error.empty()) { ticket->failed = true; if (ticket->error.empty()) ticket->error = result.error; }
         if (phaseActive(ticket) && Clock::now() < ticket->deadline) ticket->mountResult = std::move(result);
         condition_.notify_all();

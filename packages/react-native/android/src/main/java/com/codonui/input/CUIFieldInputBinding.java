@@ -3,6 +3,8 @@ package com.codonui.input;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import android.os.SystemClock;
+import com.facebook.react.fabric.mounting.NativeEventCommandScope;
 import com.facebook.proguard.annotations.DoNotStrip;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.fabric.FabricUIManager;
@@ -33,6 +35,8 @@ final class CUIFieldInputBinding {
     String document, String snapshot, String input, String declarations, double epoch, Runnable emit);
   private static native void nativeRecordFieldInput(String lease, String encoded);
   private static native void nativeRetireBinding(String lease, String owner, String binding);
+  private static native boolean nativeOriginalCommandCurrent(long token);
+  private static native String nativePerformOriginalCommand(long token);
 
   CUIFieldInputBinding(CUIFormMetadataView metadata, FabricUIManager manager, Snapshot snapshot) {
     UiThreadUtil.assertOnUiThread();
@@ -224,6 +228,49 @@ final class CUIFieldInputBinding {
     JSONObject value = selected.capture();
     if (value == null) throw new IllegalStateException("field-input-current-scope-retired");
     return value.put("scopeEpoch", selected.epoch).toString();
+  }
+  @DoNotStrip
+  void checkCommandBoundary(int surface) {
+    UiThreadUtil.assertOnUiThread();
+    FabricUIManager manager = this.manager.get();
+    if (manager == null) throw new IllegalStateException("field-input-command-manager-retired");
+    manager.checkNativeEventCommandBoundary(surface);
+  }
+  @DoNotStrip
+  String executeOriginalCommand(String encoded, long token, long remaining) throws Exception {
+    UiThreadUtil.assertOnUiThread();
+    JSONObject request = new JSONObject(encoded), before = capture();
+    FabricUIManager manager = this.manager.get();
+    View root = outer.get();
+    if (before == null || manager == null || root == null || !root.isAttachedToWindow() || !root.hasWindowFocus())
+      throw new IllegalStateException("field-input-command-window-retired");
+    View original = manager.resolveView(request.getInt("target"));
+    final long expectedEpoch = epoch;
+    if (original == null || !original.isAttachedToWindow() || original.getRootView() != root.getRootView() || remaining <= 0 || remaining > 1000)
+      throw new IllegalStateException("field-input-command-target-retired");
+    java.util.function.BooleanSupplier current = () -> {
+      try {
+        return !closed && epoch == expectedEpoch && outer.get() == root && root.isAttachedToWindow() && root.hasWindowFocus() &&
+          original.isAttachedToWindow() && original.getRootView() == root.getRootView() && manager.resolveView(original.getId()) == original &&
+          capture() != null && nativeOriginalCommandCurrent(token);
+      } catch (Exception error) { return false; }
+    };
+    String error;
+    boolean executed, callbackCompleted;
+    try (NativeEventCommandScope scope = manager.beginNativeEventCommand(request.getInt("surfaceId"), SystemClock.uptimeMillis() + remaining, current)) {
+      error = nativePerformOriginalCommand(token);
+      callbackCompleted = error.isEmpty();
+      if (error.isEmpty() && !scope.finishAndDrain()) error = scope.getError();
+      executed = scope.wasExecuted();
+    }
+    JSONObject after = capture();
+    boolean live = current.getAsBoolean();
+    if (!live && error.isEmpty()) error = "field-input-command-scope-retired-after-execution";
+    JSONObject record = new JSONObject().put("kind", "command-native").put("target", original.getId())
+      .put("command", request.getString("command")).put("callbackCompleted", callbackCompleted).put("nativeItemReturned", executed).put("current", live).put("error", error)
+      .put("before", before.getJSONObject("fieldGroupSnapshot")).put("after", after == null ? JSONObject.NULL : after.getJSONObject("fieldGroupSnapshot"));
+    emitRecord(record.toString());
+    return record.toString();
   }
   @DoNotStrip
   String focus(String encoded) throws Exception {

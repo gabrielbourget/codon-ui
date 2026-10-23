@@ -459,7 +459,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       }, [&] {
         @try { return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] {
           return std::string([self mountWitness].UTF8String);
-        }); }
+        }, state->frames.mountTarget(ticket)); }
         @catch (NSException *error) { throw std::runtime_error(error.reason.UTF8String ?: "field-input-original-mount-threw"); }
       });
     }, [&](const FieldInputCommandAction &command) {

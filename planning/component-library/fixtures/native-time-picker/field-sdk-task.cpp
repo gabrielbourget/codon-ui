@@ -299,5 +299,26 @@ int main() {
     check(decision.disposition == FieldInputDisposition::Failed && decision.error == "field-input-sdk-command-drain-unavailable");
     frames.end(ticket, true);
   }
+  {
+    FieldInputDispatchFrames frames; auto ticket = frames.begin(identity, 1, "down", 1000ms); frames.startDelivery(ticket);
+    std::vector<std::string> order;
+    auto js = std::async(std::launch::async, [&] {
+      auto prepared = frames.requestMount(ticket, 12);
+      if (!prepared.mounted || !prepared.error.empty()) throw std::runtime_error("command target mount preparation failed");
+      order.push_back("earlier-notification");
+      auto original = std::make_shared<NativeEventCommand>(11, 12, "focus", node, args, [&] { order.push_back("original-command"); }, [] { return true; });
+      auto result = requestFieldInputOriginalCommand(frames, ticket, original, [original] { return FieldInputCommandResult{original->executeOriginal(), ""}; });
+      if (!result.callbackCompleted) throw std::runtime_error("prepared original command did not execute");
+      frames.acknowledge(ticket->token, identity, 1, "down", true, false, std::nullopt); frames.finishDelivery(ticket, false);
+    });
+    bool targetObserved = false;
+    const auto decision = frames.wait(ticket, {}, [&] { targetObserved = frames.mountTarget(ticket) == 12; order.push_back("genuine-mount"); return FieldInputMountResult{true, ""}; },
+      [](const auto &command) { return command.perform(); });
+    js.get();
+    check(targetObserved && frames.mountTarget(ticket) == 0);
+    check(decision.disposition == FieldInputDisposition::Allowed);
+    check(order == (std::vector<std::string>{"genuine-mount", "earlier-notification", "original-command"}));
+    frames.end(ticket, true);
+  }
   std::cout << assertions << " actual SDK Task/CUI scope and exact task/checkpoint/render assertions passed; no linked or installed verdict\n";
 }
