@@ -5,6 +5,7 @@
 #include "FieldInputRecords.h"
 #include "FieldInputOriginalEvents.h"
 #include "FieldInputNativeOperation.h"
+#include "FieldInputTaskScope.h"
 #include <ReactCommon/CallInvoker.h>
 #include <jsi/JSIDynamic.h>
 #include <react/renderer/core/EventEmitter.h>
@@ -158,11 +159,11 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
     std::weak_ptr<UIManager> weakManager = manager;
     std::weak_ptr<const ShadowNode> weakOriginal = original;
     const auto eventType = EventEmitter::normalizeEventType(type);
-    scheduler->scheduleWork([weakSelf, weakTicket, weakManager, weakOriginal, eventType,
+    return scheduler->scheduleNativeEventWork([weakSelf, weakTicket, weakManager, weakOriginal, eventType,
         payload = std::move(payload), originalPayload = std::move(originalPayload), timestamp, currentDocument = std::move(currentDocument)](facebook::jsi::Runtime &runtime) {
       const auto state = weakSelf.lock();
       const auto frame = weakTicket.lock();
-      if (!state || !frame || !state->live_.load() || !state->frames.startDelivery(frame)) return;
+      if (!state || !frame || !state->live_.load() || !state->frames.isCurrent(frame)) return;
       bool failed = true;
       std::string failure = "field-input-original-Fabric-target-retired";
       try {
@@ -174,7 +175,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
         const auto manager = weakManager.lock();
         const auto node = weakOriginal.lock();
         const auto binding = UIManagerBinding::getBinding(runtime);
-        if (state->live_.load() && manager && node && binding && &binding->getUIManager() == manager.get() &&
+        if (state->live_.load() && state->frames.isCurrent(frame) && manager && node && binding && &binding->getUIManager() == manager.get() &&
             currentDocument && currentDocument()) {
           const auto target = node->getEventEmitter()->getEventTarget();
           if (target) {
@@ -184,11 +185,16 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
             }
             try {
               if (!target->getInstanceHandle(runtime).isNull() && !target->getInstanceHandle(runtime).isUndefined() &&
-                  state->live_.load() && currentDocument()) {
+                  state->live_.load() && state->frames.isCurrent(frame) && currentDocument()) {
                 // First delivery of this original native record, using the
                 // original Fabric target and React's own event handler.
                 ValueFactoryEventPayload eventPayload([&payload, &originalPayload, &state, &frame](facebook::jsi::Runtime &runtime) {
-                  if (!originalPayload) return facebook::jsi::valueFromDynamic(runtime, payload);
+                  if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
+                  if (!originalPayload) {
+                    auto value = facebook::jsi::valueFromDynamic(runtime, payload);
+                    if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
+                    return value;
+                  }
                   auto value = originalPayload->asJSIValue(runtime);
                   if (!value.isObject()) throw std::runtime_error("field-input-original-payload-invalid");
                   state->records.append(folly::toJson(folly::dynamic::object("kind", "original-input")
@@ -196,6 +202,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
                   auto object = value.asObject(runtime);
                   if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
                   object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, payload.at("fieldDispatch").asString()));
+                  if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
                   return value;
                 });
                 binding->dispatchEvent(runtime, target.get(), eventType, ReactEventPriority::Discrete, eventPayload, timestamp);
@@ -215,8 +222,14 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
         catch (const std::exception &error) { state->frames.finishPhases(frame, true, error.what()); }
         catch (...) { state->frames.finishPhases(frame, true, "field-input-microtask-enqueue-threw"); }
       }
+    }, [weakSelf, weakTicket](facebook::jsi::Runtime &) -> std::shared_ptr<NativeEventTaskScope> {
+      const auto state = weakSelf.lock();
+      const auto ticket = weakTicket.lock();
+      if (!state || !ticket || !state->live_.load()) return nullptr;
+      auto scope = std::make_shared<FieldInputTaskScope>(state, state->frames, ticket);
+      if (!state->frames.startDelivery(ticket)) return nullptr;
+      return scope;
     });
-    return true;
   }
  private:
   std::vector<OriginalEvent> closeHandoff(uint64_t token, bool timedOut) {
@@ -255,15 +268,9 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
             // Original native notifications may enqueue further React work.
             // Let its microtasks run before checking for the next real commit.
             state->queueMountPhase(runtime, ticket, manager);
-          } else {
-            const auto current = manager.lock();
-            const auto scheduler = current ? fieldInputRuntimeScheduler(*current) : nullptr;
-            if (!scheduler) throw std::runtime_error("field-input-render-scheduler-retired");
-            scheduler->scheduleRenderingUpdate(ticket->identity.surfaceId, [weak, weakTicket] {
-              const auto state = weak.lock(); const auto ticket = weakTicket.lock();
-              if (state && ticket && state->live_.load()) state->frames.finishPhases(ticket);
-            });
           }
+          // The SDK task scope completes phases after its entire checkpoint
+          // and rendering queue, rather than from an earlier queue callback.
         } catch (const std::exception &error) { state->frames.finishPhases(ticket, true, error.what()); }
         catch (...) { state->frames.finishPhases(ticket, true, "field-input-original-mount-phase-threw"); }
         return facebook::jsi::Value::undefined();
