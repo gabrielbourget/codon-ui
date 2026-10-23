@@ -112,7 +112,7 @@ export const useCompactTypeaheadState = <T extends object>(
   }
   const select = (key: TNativeCompactTypeaheadKey | null, inputCommit = false) => {
     const owner = current.current
-    if (!owner.options.canAct() || owner.props.isReadOnly || !owner.open) return
+    if (!owner.options.canAct() || owner.props.isReadOnly || !owner.open || owner.status) return
     if (
       key !== null &&
       (!owner.entries.some((entry) => entry.key === key) || owner.disabled.has(encodeCollectionKey(key)))
@@ -194,15 +194,37 @@ export const useCompactTypeaheadState = <T extends object>(
       if (current.current.props.isOpen === undefined) setLocalOpen(false)
       current.current.props.onOpenChange?.(false)
     },
+    clearHighlight: () => {
+      current.current.active = null
+      setActive(null)
+    },
+    focusEdge: (key: "Home" | "End", shiftKey: boolean) => {
+      const owner = current.current
+      if (
+        !owner.options.canAct() ||
+        owner.props.isReadOnly ||
+        owner.status ||
+        !owner.open ||
+        (owner.active === null && shiftKey)
+      )
+        return
+      const available = owner.entries.filter((entry) => !owner.disabled.has(entry.encodedKey))
+      const next = (key === "Home" ? available[0] : available.at(-1))?.key ?? null
+      owner.active = next
+      setActive(next)
+    },
     highlight: (delta: number) => {
-      const available = current.current.entries.filter((entry) => !current.current.disabled.has(entry.encodedKey))
-      if (!available.length || !current.current.options.canAct()) return
+      const owner = current.current
+      const available = owner.entries.filter((entry) => !owner.disabled.has(entry.encodedKey))
+      if (!available.length || !owner.options.canAct() || owner.props.isReadOnly || owner.status) return
       admit(true)
-      const index = available.findIndex((entry) => entry.key === current.current.active)
+      const index = available.findIndex((entry) => entry.key === owner.active)
       const next = index < 0 ? (delta < 0 ? available.length - 1 : 0) : index + delta
-      if (current.current.props.shouldFocusWrap === false && (next < 0 || next >= available.length)) return
-      const key = available[(next + available.length) % available.length].key
-      current.current.active = key
+      // The canonical wrapper applies shouldFocusWrap to its ListBox only.
+      // Navigation from the original editor keeps the ComboBox's bounded default.
+      if (next < 0 || next >= available.length) return
+      const key = available[next].key
+      owner.active = key
       setActive(key)
     },
   }

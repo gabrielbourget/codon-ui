@@ -15,8 +15,9 @@ import type { TextInput } from "react-native"
 import { findNodeHandle, ScrollView, View, type TextStyle, type ViewStyle } from "react-native"
 
 import { focusNativeTarget, getNativeFocusedTarget } from "../../input/focus"
+import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
-import { useNativeKeyPolicy, useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import { useNativeKeyPolicy, useNativeKeyScope, useNativeKeyboardObservation } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -36,7 +37,8 @@ import { NativeCompactOption } from "./Option"
 import { getCompactTypeaheadStyles } from "./styles"
 import type { TNativeCompactTypeaheadRef, TNativeCompactTypeaheadSearchProps } from "./types"
 
-const KEYS = ["ArrowDown", "ArrowUp", "Enter", "Escape"].map((key) => `0000:${key}`)
+const CLOSED_KEYS = ["ArrowDown", "ArrowUp"].flatMap(nativeKeyTokens)
+const OPEN_KEYS = [...CLOSED_KEYS, ...["Home", "End", "Enter", "Escape"].flatMap(nativeKeyTokens)]
 const NativeCompactKeys = <T extends object>({
   target,
   enabled,
@@ -51,7 +53,7 @@ const NativeCompactKeys = <T extends object>({
   const scope = useContext(NativeFloatingScopeContext)
   const model = modelRef.current
   useNativeKeyPolicy({
-    tokens: model?.open ? KEYS : KEYS.slice(0, 2),
+    tokens: model?.open ? OPEN_KEYS : CLOSED_KEYS,
     targetTag: target,
     excludeEditable: false,
     excludeComposing: true,
@@ -61,11 +63,22 @@ const NativeCompactKeys = <T extends object>({
     onKey: (event) => {
       const data = event.nativeEvent
       const owner = modelRef.current
-      if (!owner || data.phase !== "down" || data.cancelled) return
+      if (!owner || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled) return
       if (data.key === "ArrowDown") owner.highlight(1)
       else if (data.key === "ArrowUp") owner.highlight(-1)
+      else if (data.key === "Home" || data.key === "End") owner.focusEdge(data.key, data.shiftKey)
       else if (!data.repeat && data.key === "Enter" && owner.active !== null) owner.select(owner.active, true)
       else if (!data.repeat && data.key === "Escape") owner.revert()
+    },
+  })
+  useNativeKeyboardObservation({
+    targetTag: target,
+    isEnabled: enabled && target > 0 && scope?.canAct() !== false,
+    lifetimeKey: `${target}:${enabled}`,
+    canAct: () => canAct() && scope?.canAct() !== false,
+    onKeyDown: ({ nativeEvent: data }) => {
+      if (data.cancelled || data.isComposing || data.focusedTarget !== target) return
+      if (data.key === "ArrowLeft" || data.key === "ArrowRight") modelRef.current?.clearHighlight()
     },
   })
   return null
@@ -111,7 +124,7 @@ const NativeCompactTypeaheadSearch = <T extends object>(
     textSize,
     placement = "bottom start",
     rtl = false,
-    shouldFocusWrap,
+    shouldFocusWrap: _shouldFocusWrap,
     enableFocusStyle,
     offsetFocusRing,
     errorState,
