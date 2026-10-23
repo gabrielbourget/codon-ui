@@ -272,28 +272,48 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
       if (!live_.load() || originalEvents_.contains(ticket->token)) throw std::runtime_error("field-input-original-handoff-overlap");
       originalEvents_.emplace(ticket->token, OriginalHandoff{});
     }
+    FieldInputMountResult prepared;
+    try { prepared = frames.requestMount(ticket, command->target); }
+    catch (...) {
+      command->cancel();
+      originalDelivery_.append(closeHandoff(ticket->token, true));
+      throw;
+    }
+    auto preparedEvents = closeHandoff(ticket->token, prepared.error == "field-input-mount-timed-out");
+    originalDelivery_.append(std::move(preparedEvents));
+    if (!originalDelivery_.drain([&](const OriginalEvent &event) { return deliverOriginal(runtime, event); }))
+      throw std::runtime_error("field-input-command-preparation-event-retired");
+    if (!prepared.error.empty()) throw std::runtime_error(prepared.error);
+    if (!frames.isCurrent(ticket)) throw std::runtime_error("field-input-command-preparation-retired");
+    {
+      std::lock_guard lock(mutex_);
+      if (!live_.load() || originalEvents_.contains(ticket->token)) throw std::runtime_error("field-input-original-handoff-overlap");
+      originalEvents_.emplace(ticket->token, OriginalHandoff{});
+    }
     std::weak_ptr<FieldInputRuntime> weakSelf = weak_from_this();
     std::weak_ptr<UIManager> weakManager = manager;
     const auto originalScheduler = dynamic_cast<Scheduler *>(manager->getDelegate());
     const auto originalPlatform = originalScheduler ? originalScheduler->getDelegate() : nullptr;
+    const auto validate = [weakSelf, weakManager, ticket, command, originalScheduler, originalPlatform]() -> std::string {
+      const auto state = weakSelf.lock(); const auto manager = weakManager.lock(); const auto node = command->node.lock();
+      if (!state || !manager || !node || !state->live_.load() || !state->frames.isCurrent(ticket))
+        return "field-input-original-command-target-retired";
+      const auto scheduler = dynamic_cast<Scheduler *>(manager->getDelegate());
+      if (!scheduler || !originalPlatform || scheduler != originalScheduler || scheduler->getDelegate() != originalPlatform)
+        return "field-input-original-command-delegate-retired";
+      const auto document = form::captureFabricFormDocument(*manager, command->surfaceId);
+      const auto found = document.positions.find(command->target);
+      if (found == document.positions.end() || document.preorder[found->second].node->getFamilyShared() != node->getFamilyShared())
+        return "field-input-original-command-family-retired";
+      return state->live_.load() && state->frames.isCurrent(ticket) ? "" : "field-input-original-command-expired";
+    };
     FieldInputCommandResult result;
     try {
-      result = requestFieldInputOriginalCommand(frames, ticket, command,
-        [weakSelf, weakManager, ticket, command, originalScheduler, originalPlatform] {
-          const auto state = weakSelf.lock(); const auto manager = weakManager.lock(); const auto node = command->node.lock();
-          if (!state || !manager || !node || !state->live_.load() || !state->frames.isCurrent(ticket))
-            return FieldInputCommandResult{false, "field-input-original-command-target-retired"};
-          const auto scheduler = dynamic_cast<Scheduler *>(manager->getDelegate());
-          if (!scheduler || !originalPlatform || scheduler != originalScheduler || scheduler->getDelegate() != originalPlatform)
-            return FieldInputCommandResult{false, "field-input-original-command-delegate-retired"};
-          const auto document = form::captureFabricFormDocument(*manager, command->surfaceId);
-          const auto found = document.positions.find(command->target);
-          if (found == document.positions.end() || document.preorder[found->second].node->getFamilyShared() != node->getFamilyShared())
-            return FieldInputCommandResult{false, "field-input-original-command-family-retired"};
-          if (!state->live_.load() || !state->frames.isCurrent(ticket))
-            return FieldInputCommandResult{false, "field-input-original-command-expired"};
-          return FieldInputCommandResult{command->executeOriginal(), ""};
-      });
+      result = requestFieldInputOriginalCommand(frames, ticket, command, [command, validate] {
+        const auto error = validate();
+        if (!error.empty()) return FieldInputCommandResult{false, error};
+        return FieldInputCommandResult{command->executeOriginal(), ""};
+      }, [validate] { return validate().empty(); });
     } catch (...) {
       command->cancel();
       const auto status = command->status();

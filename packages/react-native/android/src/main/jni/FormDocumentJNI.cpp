@@ -4,6 +4,7 @@
 #include "../../../../cpp/form/FieldGroupQuery.h"
 #include "../../../../cpp/FieldInputRuntime.h"
 #include "../../../../cpp/FieldInputOriginalCapture.h"
+#include "../../../../cpp/FieldInputCommandExecution.h"
 #include "../../../../cpp/form/FieldInputBinding.h"
 #include <ReactCommon/BindingsInstallerHolder.h>
 
@@ -173,12 +174,39 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
       return isFieldInputMountEvent(*manager, ticket, event);
     }, [&] {
       static const auto witness = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>()>("mountWitness");
-      return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] { return witness(owner)->toStdString(); });
+      const auto target = state->frames.mountTarget(ticket);
+      if (target > 0) {
+        static const auto boundary = JFieldInputBinding::javaClassStatic()->getMethod<void(jint)>("checkCommandBoundary");
+        boundary(owner, identity.surfaceId);
+      }
+      return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] { return witness(owner)->toStdString(); }, target);
     });
-  }, [&](const FieldInputCommandAction &) {
-    // The original SDK callback only enqueues an Android command. Do not run
-    // it until the SDK-owned ordered native drain is available and guarded.
-    return FieldInputCommandResult{false, "field-input-sdk-command-drain-unavailable"};
+  }, [&](const FieldInputCommandAction &command) {
+    return state->captureCommandEvents(ticket, manager, [&](const RawEvent &event) {
+      return isFieldInputCommandEvent(*manager, ticket, event) || isFieldInputMountEvent(*manager, ticket, event);
+    }, [&] {
+      static const auto boundary = JFieldInputBinding::javaClassStatic()->getMethod<void(jint)>("checkCommandBoundary");
+      static const auto readScope = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
+      static const auto execute = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jstring, jlong, jlong)>("executeOriginalCommand");
+      if (!state->frames.isCurrent(ticket) || !command.current || !command.current())
+        return FieldInputCommandResult{false, "field-input-original-command-retired"};
+      boundary(owner, identity.surfaceId);
+      for (const auto &scope : ticket->scopes) {
+        const auto value = folly::parseJson(readScope(owner, scope.outerTarget)->toStdString());
+        if (!fieldInputScopeCurrent(scope, folly::parseJson(value.at("encodedDocument").asString()),
+            value.at("fieldGroupSnapshot"), fieldInputInteger(value.at("scopeEpoch"))))
+          return FieldInputCommandResult{false, "field-input-original-command-scope-retired"};
+      }
+      const auto remaining = std::chrono::duration_cast<std::chrono::milliseconds>(ticket->deadline - FieldInputDispatchFrames::Clock::now()).count();
+      if (remaining <= 0) return FieldInputCommandResult{false, "field-input-original-command-expired"};
+      FieldInputCommandExecution execution(command);
+      const auto request = folly::toJson(folly::dynamic::object("surfaceId", identity.surfaceId)("target", command.target)("command", command.name));
+      const auto response = folly::parseJson(execute(owner, jni::make_jstring(request).get(), execution.token(), remaining)->toStdString());
+      auto result = execution.result();
+      if (result.error.empty()) result.error = response.at("error").asString();
+      if (!response.at("nativeItemReturned").asBool() && result.error.empty()) result.error = "field-input-native-command-not-executed";
+      return result;
+    });
   }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
   bool current = false;
   folly::dynamic afterSnapshot = nullptr;
@@ -230,9 +258,18 @@ static jni::local_ref<jstring> nativeEmitOwnedInput(jni::alias_ref<jclass>,
   return jni::make_jstring("");
 }
 
+static jboolean nativeOriginalCommandCurrent(jni::alias_ref<jclass>, jlong token) {
+  return static_cast<jboolean>(codon::FieldInputCommandExecution::current(token));
+}
+static jni::local_ref<jstring> nativePerformOriginalCommand(jni::alias_ref<jclass>, jlong token) {
+  return jni::make_jstring(codon::FieldInputCommandExecution::perform(token));
+}
+
 void registerFormDocumentNatives() {
   JFieldInputBinding::javaClassStatic()->registerNatives({makeNativeMethod("nativeDispatchFieldKey", nativeDispatchFieldKey),
     makeNativeMethod("nativeEmitOwnedInput", nativeEmitOwnedInput),
+    makeNativeMethod("nativeOriginalCommandCurrent", nativeOriginalCommandCurrent),
+    makeNativeMethod("nativePerformOriginalCommand", nativePerformOriginalCommand),
     makeNativeMethod("nativeRetireBinding", nativeRetireBinding), makeNativeMethod("nativeRecordFieldInput", nativeRecordFieldInput)});
   jni::findClassStatic("com/codonui/input/CUIEditorKeyboardDefaultsModule")->registerNatives({
     makeNativeMethod("nativeTakeFieldRecords", nativeTakeFieldRecords),

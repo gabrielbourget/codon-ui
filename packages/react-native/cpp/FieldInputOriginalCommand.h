@@ -9,7 +9,7 @@ namespace codon {
 inline FieldInputCommandResult requestFieldInputOriginalCommand(FieldInputDispatchFrames &frames,
     const FieldInputDispatchFrames::Handle &ticket,
     const std::shared_ptr<facebook::react::NativeEventCommand> &command,
-    std::function<FieldInputCommandResult()> perform) {
+    std::function<FieldInputCommandResult()> perform, std::function<bool()> current = {}) {
   if (!command) return {false, "field-input-original-command-required"};
   if (!perform) {
     command->cancel();
@@ -17,7 +17,7 @@ inline FieldInputCommandResult requestFieldInputOriginalCommand(FieldInputDispat
   }
   try {
     auto action = std::make_shared<FieldInputCommandAction>(FieldInputCommandAction{
-      command->surfaceId, command->target, command->name, std::move(perform), [command] { command->cancel(); }});
+      command->surfaceId, command->target, command->name, std::move(perform), [command] { command->cancel(); }, std::move(current)});
     return frames.requestCommand(ticket, std::move(action));
   } catch (...) { command->cancel(); throw; }
 }

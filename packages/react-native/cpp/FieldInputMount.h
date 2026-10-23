@@ -51,10 +51,11 @@ struct FieldInputMountCursor {
   facebook::react::RootShadowNode::Shared appliedRoot;
 };
 inline bool fieldInputRootEffectsChanged(const facebook::react::RootShadowNode &before,
-    const facebook::react::RootShadowNode &after, const std::vector<FieldInputIdentity> &scopes) {
+    const facebook::react::RootShadowNode &after, const std::vector<FieldInputIdentity> &scopes, int32_t commandTarget = 0) {
   using namespace facebook::react;
   std::unordered_set<Tag> roots;
   for (const auto &scope : scopes) roots.insert(scope.outerTarget);
+  if (commandTarget > 0) roots.insert(commandTarget);
   const auto collect = [&](const RootShadowNode &root) {
     std::vector<std::pair<Tag, ShadowView>> result;
     const std::function<bool(const ShadowNode &, Tag, bool)> visit = [&](const ShadowNode &node, Tag parent, bool inside) {
@@ -77,7 +78,7 @@ inline bool fieldInputRootEffectsChanged(const facebook::react::RootShadowNode &
 // remains untouched and is never manufactured to clear its async flag.
 inline FieldInputMountResult mountFieldInputTransactions(facebook::react::UIManager &manager,
     const FieldInputDispatchFrames::Handle &ticket, FieldInputMountCursor &cursor,
-    const std::function<std::string()> &nativeWitness) {
+    const std::function<std::string()> &nativeWitness, int32_t commandTarget = 0) {
   using namespace facebook::react;
   std::shared_ptr<const MountingCoordinator> coordinator;
   RootShadowNode::Shared currentRoot;
@@ -87,7 +88,7 @@ inline FieldInputMountResult mountFieldInputTransactions(facebook::react::UIMana
   if (!coordinator || !currentRoot) return {false, "field-input-mount-surface-retired"};
   const auto applied = cursor.appliedRoot;
   if (!applied) return {false, "field-input-mount-baseline-retired"};
-  if (applied == currentRoot || !fieldInputRootEffectsChanged(*applied, *currentRoot, ticket->scopes)) {
+  if (applied == currentRoot || !fieldInputRootEffectsChanged(*applied, *currentRoot, ticket->scopes, commandTarget)) {
     cursor.appliedRoot = currentRoot;
     return {};
   }

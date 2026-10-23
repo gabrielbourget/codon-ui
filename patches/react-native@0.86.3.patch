@@ -1,3 +1,196 @@
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
+index 9c29ee6213deaa7293fb64dfc0d614af1f937cdf..0c11beb3e572ac4ef36b5db3c865e862db2e7f99 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
++++ b/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
+@@ -1266,6 +1266,17 @@ public class FabricUIManager
+             + " Fabric JSI API");
+   }
+ 
++  @UiThread
++  public void checkNativeEventCommandBoundary(int surfaceId) {
++    mMountItemDispatcher.checkNativeEventCommandBoundary(surfaceId);
++  }
++
++  @UiThread
++  public com.facebook.react.fabric.mounting.NativeEventCommandScope beginNativeEventCommand(
++      int surfaceId, long deadline, java.util.function.BooleanSupplier current) {
++    return mMountItemDispatcher.beginNativeEventCommand(surfaceId, deadline, current);
++  }
++
+   @Override
+   @Deprecated
+   @AnyThread
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountItemDispatcher.kt b/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountItemDispatcher.kt
+index 984ff9e75074e74dc8b06b96e924160df9e34352..dab0dd223dd677d4f9c55bdb2a07993181bde112 100644
+--- a/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountItemDispatcher.kt
++++ b/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/MountItemDispatcher.kt
+@@ -17,6 +17,8 @@ import com.facebook.react.bridge.ReactIgnorableMountingException
+ import com.facebook.react.bridge.ReactNoCrashSoftException
+ import com.facebook.react.bridge.ReactSoftExceptionLogger
+ import com.facebook.react.bridge.RetryableMountingLayerException
++import com.facebook.react.bridge.UiThreadUtil
++import java.util.function.BooleanSupplier
+ import com.facebook.react.fabric.FabricUIManager
+ import com.facebook.react.fabric.mounting.mountitems.DispatchCommandMountItem
+ import com.facebook.react.fabric.mounting.mountitems.MountItem
+@@ -34,6 +36,7 @@ internal class MountItemDispatcher(
+   private val mountItems: Queue<MountItem> = ConcurrentLinkedQueue()
+   private val preMountItems: Queue<MountItem> = ConcurrentLinkedQueue()
+ 
++  private var nativeEventCapture: NativeEventCommandScope? = null
+   private var inDispatch: Boolean = false
+   var batchedExecutionTime: Long = 0L
+     private set
+@@ -44,13 +47,50 @@ internal class MountItemDispatcher(
+   private var lastFrameTimeNanos: Long = 0L
+ 
+   fun addViewCommandMountItem(mountItem: DispatchCommandMountItem) {
++    val original = if (UiThreadUtil.isOnUiThread()) nativeEventCapture?.capture(mountItem) ?: mountItem else mountItem
+     if (!ReactNativeFeatureFlags.disableEarlyViewCommandExecution()) {
+-      viewCommandMountItems.add(mountItem)
++      viewCommandMountItems.add(original)
+     } else {
+-      mountItems.add(mountItem)
++      mountItems.add(original)
+     }
+   }
+ 
++  fun checkNativeEventCommandBoundary(surfaceId: Int) {
++    UiThreadUtil.assertOnUiThread()
++    check(!inDispatch && nativeEventCapture == null) { "native-event-command-dispatch-reentrant" }
++    check(nativeEventSurfaceCurrent(surfaceId)) { "native-event-command-surface-unavailable" }
++    // The SDK's synchronous-property path documents deletion during drawing
++    // as unsafe. Do not enter its genuine mounting drain from those stacks.
++    check(Thread.currentThread().stackTrace.none { frame ->
++      frame.className.startsWith("android.view.") && frame.methodName in setOf(
++          "draw", "performDraw", "performTraversals", "doTraversal", "dispatchDraw",
++          "updateDisplayListIfDirty", "layout", "dispatchLayout")
++    }) { "native-event-command-render-stack-active" }
++  }
++
++  fun beginNativeEventCommand(surfaceId: Int, deadline: Long, current: BooleanSupplier): NativeEventCommandScope {
++    checkNativeEventCommandBoundary(surfaceId)
++    val remaining = deadline - SystemClock.uptimeMillis()
++    check(remaining in 1..1000 && current.asBoolean) { "native-event-command-admission-expired" }
++    val scope = NativeEventCommandScope(this, surfaceId, deadline, current)
++    nativeEventCapture = scope
++    return scope
++  }
++
++  internal fun endNativeEventCapture(scope: NativeEventCommandScope) {
++    UiThreadUtil.assertOnUiThread()
++    if (nativeEventCapture === scope) nativeEventCapture = null
++  }
++
++  internal fun nativeEventSurfaceCurrent(surfaceId: Int): Boolean =
++      surfaceId > 0 && !mountingManager.surfaceIsStopped(surfaceId) && !mountingManager.isWaitingForViewAttach(surfaceId)
++
++  internal fun drainNativeEventCommands() {
++    UiThreadUtil.assertOnUiThread()
++    check(!inDispatch && nativeEventCapture == null) { "native-event-command-dispatch-reentrant" }
++    tryDispatchMountItems()
++  }
++
+   fun addMountItem(mountItem: MountItem) {
+     mountItems.add(mountItem)
+   }
+diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/NativeEventCommandScope.kt b/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/NativeEventCommandScope.kt
+new file mode 100644
+index 0000000000000000000000000000000000000000..c6c2bcc40f92410ff613d3fc88ebc96340418185
+--- /dev/null
++++ b/ReactAndroid/src/main/java/com/facebook/react/fabric/mounting/NativeEventCommandScope.kt
+@@ -0,0 +1,91 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++package com.facebook.react.fabric.mounting
++
++import android.os.SystemClock
++import com.facebook.react.bridge.RetryableMountingLayerException
++import com.facebook.react.bridge.UiThreadUtil
++import com.facebook.react.fabric.mounting.mountitems.DispatchCommandMountItem
++import java.util.function.BooleanSupplier
++
++// Owns the original item, including the dispatcher's existing retry policy.
++// A retired item may remain in a normal SDK queue but cannot execute later.
++public class NativeEventCommandScope internal constructor(
++    private val dispatcher: MountItemDispatcher,
++    private val surfaceId: Int,
++    private val deadline: Long,
++    private val current: BooleanSupplier,
++) : AutoCloseable {
++  private var captured = false
++  private var closed = false
++  private var executed = false
++  private var error = ""
++  private var attempts = 0
++
++  internal fun capture(original: DispatchCommandMountItem): DispatchCommandMountItem {
++    check(!captured && !closed) { "native-event-command-capture-count" }
++    check(original.getSurfaceId() == surfaceId) { "native-event-command-surface-mismatch" }
++    captured = true
++    return object : DispatchCommandMountItem() {
++      override fun getSurfaceId(): Int = original.getSurfaceId()
++      override fun toString(): String = original.toString()
++      override fun execute(mountingManager: MountingManager) {
++        if (closed || executed || error.isNotEmpty()) return
++        if (!isCurrent()) { reject("native-event-command-retired"); return }
++        // The wrapper is the queued item; retain the original item's retry
++        // count as the existing dispatcher advances that same operation.
++        while (original.getRetries() < getRetries()) original.incrementRetries()
++        attempts++
++        try {
++          original.execute(mountingManager)
++          executed = true
++        } catch (failure: RetryableMountingLayerException) {
++          if (getRetries() != 0) reject(failure.message ?: "native-event-command-retry-exhausted")
++          throw failure
++        } catch (failure: Throwable) {
++          reject(failure.message ?: "native-event-command-failed")
++          throw failure
++        }
++      }
++    }
++  }
++
++  private fun isCurrent(): Boolean =
++      !closed && SystemClock.uptimeMillis() < deadline && current.asBoolean &&
++          dispatcher.nativeEventSurfaceCurrent(surfaceId)
++
++  private fun reject(reason: String) { if (error.isEmpty()) error = reason }
++
++  public fun finishAndDrain(): Boolean {
++    UiThreadUtil.assertOnUiThread()
++    dispatcher.endNativeEventCapture(this)
++    if (!captured) reject("native-event-command-not-captured")
++    try {
++      while (!closed && !executed && error.isEmpty()) {
++        if (!isCurrent()) { reject("native-event-command-retired"); break }
++        val before = attempts
++        dispatcher.drainNativeEventCommands()
++        if (!executed && error.isEmpty() && attempts == before) {
++          reject("native-event-command-no-progress")
++        }
++      }
++      if (executed && !isCurrent()) reject("native-event-command-retired-after-execution")
++      return executed && error.isEmpty()
++    } finally {
++      close()
++    }
++  }
++
++  public fun wasExecuted(): Boolean = executed
++  public fun getError(): String = error
++
++  override fun close() {
++    UiThreadUtil.assertOnUiThread()
++    closed = true
++    dispatcher.endNativeEventCapture(this)
++  }
++}
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..41800e8bf87264d1e95891cf97908e8a8a4fcaa8 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
