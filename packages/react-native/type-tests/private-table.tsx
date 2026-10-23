@@ -11,7 +11,7 @@ import type { TNativeTableColumnMetadata } from "../src/components/Table/types"
 
 const rows = [{ id: 0, name: "Alpha" }]
 const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
-  { id: "name", name: "Person", accessor: (row) => row.name },
+  { id: "name", name: "Person", isRowHeader: true, accessor: (row) => row.name },
   { id: "action", role: "structural", structuralKind: "action", structuralPosition: "right", width: 0 },
 ]
 const view = createRef<View>()
@@ -28,8 +28,18 @@ const composition = (
     />
   </Table>
 )
-// @ts-expect-error The private rendering step does not yet implement row selection.
-const selection = <Table selectionMode="multiple" />
+const selection = (
+  <Table selectionMode="multiple" selectedKeys={new Set([0])} labels={{ selection: { selectRowAriaLabel: "Row" } }} />
+)
+const action = (
+  <Table
+    clickableRows
+    onRowAction={(key) => {
+      const typed: string | number = key
+      void typed
+    }}
+  />
+)
 // @ts-expect-error Sorting/filtering/pagination remain required future Table work, not ignored props.
 const query = <Table queryControls={{}} />
 // @ts-expect-error Native pointer/keyboard resizing has not been implemented by this view step.
@@ -42,4 +52,4 @@ const dom = <Table className="table" />
 const css = <Table style={{ tableLayout: "fixed" }} />
 // @ts-expect-error A cell cannot replace its original native ref with a DOM ref.
 const ref = <TableCell columnID="name" ref={createRef<{ getBoundingClientRect: () => { width: number } }>()} />
-void [PublicTable, composition, selection, query, resizing, key, dom, css, ref]
+void [PublicTable, composition, selection, action, query, resizing, key, dom, css, ref]

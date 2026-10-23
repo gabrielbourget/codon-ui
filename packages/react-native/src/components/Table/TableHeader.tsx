@@ -10,8 +10,9 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { Text } from "../Text/Text"
 
-import { useNativeTable } from "./context"
+import { NativeTableOptionsContext, useNativeTable } from "./context"
 import { getNativeTableColumns } from "./rendering"
+import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { TableColumn } from "./TableCell"
 import type { TNativeTableHeaderProps, TNativeTableHeaderComponent } from "./types"
 
@@ -40,22 +41,34 @@ const Header = (
 export const TableHeader = createNativeCollectionBranch<object, TNativeTableHeaderProps<object>, View>(
   "header",
   Header,
-  (props) =>
-    getNativeTableColumns(props.columns).map((column) => (
-      <TableColumn
-        key={column.id}
-        id={`header:${column.id}`}
-        columnID={column.id}
-        accessibilityLabel={column.headerAriaLabel}
-        alignment={column.headerAlignment ?? column.alignment}
-        customStyles={[
-          { width: column.width, minWidth: column.minWidth, maxWidth: column.maxWidth },
-          column.customHeaderColumnStyles,
-        ]}
-      >
-        <Text variant="b10" fontWeight="bold" customStyles={column.customHeaderCellStyles}>
-          {column.name ?? ""}
-        </Text>
-      </TableColumn>
-    )),
+  (props) => {
+    const options = useContext(NativeTableOptionsContext)
+    return (
+      <>
+        {options.behavior === "toggle" && (
+          <TableColumn id="header:__selection" columnID="__selection" style={{ width: 30, padding: 0 }}>
+            {options.mode === "multiple" && <TableSelectionCheckbox all />}
+          </TableColumn>
+        )}
+        {getNativeTableColumns(props.columns).map((column) => (
+          <TableColumn
+            key={column.id}
+            id={`header:${column.id}`}
+            columnID={column.id}
+            isRowHeader={column.isRowHeader}
+            accessibilityLabel={column.headerAriaLabel}
+            alignment={column.headerAlignment ?? column.alignment}
+            customStyles={[
+              { width: column.width, minWidth: column.minWidth, maxWidth: column.maxWidth },
+              column.customHeaderColumnStyles,
+            ]}
+          >
+            <Text variant="b10" fontWeight="bold" customStyles={column.customHeaderCellStyles}>
+              {column.name ?? ""}
+            </Text>
+          </TableColumn>
+        ))}
+      </>
+    )
+  },
 ) as TNativeTableHeaderComponent

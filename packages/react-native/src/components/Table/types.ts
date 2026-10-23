@@ -2,6 +2,7 @@ import type { ReactNode, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
 
 import type { TNativeCollectionKey } from "../../collection/snapshot"
+import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TCornerGeometry } from "../../tokens/geometry"
 
 type TStyleProps = { customStyles?: StyleProp<TextStyle>; style?: StyleProp<TextStyle> }
@@ -22,20 +23,31 @@ type TColumnMetadataBase<T extends object> = {
 }
 export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T> &
   (
-    | { role?: "data"; accessor?: (row: T) => ReactNode; structuralPosition?: never; structuralKind?: never }
+    | {
+        role?: "data"
+        accessor?: (row: T) => ReactNode
+        isRowHeader?: boolean
+        structuralPosition?: never
+        structuralKind?: never
+      }
     | {
         role: "structural"
         width: number
         structuralPosition: "left" | "right"
         structuralKind: "action" | "drag" | "selection"
         accessor?: never
+        isRowHeader?: never
       }
   )
 export type TNativeTableProps = Omit<ViewProps, "children" | "style"> &
-  TStyleProps & {
+  TStyleProps &
+  MultipleSelectionStateProps & {
     children?: ReactNode
     zebra?: boolean
     zebraColor?: ColorValue
+    labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
+    clickableRows?: boolean
+    onRowAction?: (key: TNativeCollectionKey) => void
   }
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
@@ -45,6 +57,7 @@ export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
   TStyleProps & {
     id?: TNativeCollectionKey
     columnID: string
+    isRowHeader?: boolean
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
 export type TNativeTableCellProps = Omit<ViewProps, "id" | "style"> &
@@ -61,6 +74,8 @@ export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "chi
     geometry?: TCornerGeometry
     renderCell?: (context: { row: T; column: TNativeTableColumnMetadata<T> }) => ReactNode
     dependencies?: readonly unknown[]
+    isDisabled?: boolean
+    onAction?: () => void
   }
 export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {

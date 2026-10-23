@@ -1,4 +1,4 @@
-import { useCallback, useContext, type ForwardedRef } from "react"
+import { useCallback, useContext, useRef, type ForwardedRef } from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
@@ -16,27 +16,35 @@ import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
-import { useNativeTable } from "./context"
+import { NativeTableCellContext, useNativeTable } from "./context"
 import type { TNativeTableCellProps, TNativeTableColumnProps } from "./types"
 
-const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
-  const { id: _id, columnID, alignment, children, customStyles, style, ...native } = props
+const Cell = (
+  props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader">,
+  ref: ForwardedRef<View>,
+  node: TNativeCollectionNode<object>,
+) => {
+  const { id: _id, columnID, isRowHeader: _columnHeader, alignment, children, customStyles, style, ...native } = props
   const table = useNativeTable()
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
   const heading = node.type === "column"
+  const isRowHeader = !heading && table.rowHeaderColumns.has(columnID)
   const parent = node.parentKey == null ? null : table.collection.getItem(node.parentKey)
   const siblings = parent ? Array.from(table.collection.getChildren(parent.key)) : []
   const index = siblings.findIndex((candidate) => candidate.key === node.key)
   const rowIndex = heading ? 0 : table.headerCount + table.rows.findIndex((row) => row.key === parent?.key)
+  const headerKey = JSON.stringify(heading ? ["column", columnID] : ["row", parent?.key, columnID])
   const bindHeader = useCallback(
     (view: View | null) => {
-      if (heading) table.registerHeader(columnID, view ? (findNodeHandle(view) ?? 0) : 0)
+      if (heading || isRowHeader) table.registerHeader(headerKey, view ? (findNodeHandle(view) ?? 0) : 0)
     },
-    [heading, columnID, table.registerHeader],
+    [heading, isRowHeader, headerKey, table.registerHeader],
   )
-  const mergedRef = useNativeCollectionRefs(ref, bindHeader)
+  const target = useRef<View | null>(null)
+  const originalRef = useNativeCollectionRefs(target, bindHeader)
+  const mergedRef = useNativeCollectionRefs(ref, originalRef)
   const textAlign = alignment === "Center" ? "center" : alignment === "Right" ? "right" : "auto"
   const authored = resolveNativeStyle([customStyles, style], heading ? "TableColumn" : "TableCell", "style")
   const fluid = authored.width == null || authored.width === "auto"
@@ -59,7 +67,13 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
       "style",
     ),
   )
-  const headers = table.headerTargets.get(columnID)
+  const headers = table.headerTargets.get(JSON.stringify(["column", columnID]))
+  const rowHeaders = heading
+    ? []
+    : siblings
+        .filter((cell) => table.rowHeaderColumns.has(cell.props.columnID))
+        .map((cell) => table.headerTargets.get(JSON.stringify(["row", parent?.key, cell.props.columnID])))
+        .filter((value): value is number => !!value)
   return (
     <NativeCollectionItemBindingContext.Provider value={actions?.bindingFor(node) ?? ""}>
       <NativeCollectionSemanticsContext.Provider
@@ -72,20 +86,22 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
                 columnIndex: index,
                 rowSpan: 1,
                 columnSpan: 1,
-                heading,
-                selected: false,
-                rowHeaderTargets: [],
+                heading: heading || !!isRowHeader,
+                selected: !heading && parent ? table.manager.isSelected(parent.key) : false,
+                rowHeaderTargets: rowHeaders,
                 columnHeaderTargets: !heading && headers ? [headers] : [],
               })
             : ""
         }
       >
         <NativeFocusHost {...nativeViewProps(native)} ref={mergedRef} accessible focusable={false} style={styles.view}>
-          <NativeContentContext.Provider
-            value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
-          >
-            {getNativeButtonContent(children, styles.text)}
-          </NativeContentContext.Provider>
+          <NativeTableCellContext.Provider value={{ node, target }}>
+            <NativeContentContext.Provider
+              value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+            >
+              {getNativeButtonContent(children, styles.text)}
+            </NativeContentContext.Provider>
+          </NativeTableCellContext.Provider>
         </NativeFocusHost>
       </NativeCollectionSemanticsContext.Provider>
     </NativeCollectionItemBindingContext.Provider>

@@ -89,7 +89,7 @@ export function UNSTABLE_useFilteredListState<T extends object>(
   }
 }
 
-function useFocusedKeyReset<T>(collection: Collection<Node<T>>, selectionManager: SelectionManager) {
+export function useFocusedKeyReset<T>(collection: Collection<Node<T>>, selectionManager: SelectionManager) {
   // Reset focused key if that item is deleted from the collection.
   const cachedCollection = useRef<Collection<Node<T>> | null>(null)
   useEffect(() => {

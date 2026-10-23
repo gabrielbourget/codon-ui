@@ -21,7 +21,7 @@ afterEach(cleanup)
 type TRow = { id: string | number; name: string; left?: string; right?: string }
 const columns: TNativeTableColumnMetadata<TRow>[] = [
   { id: "right", name: "Right", role: "structural", structuralPosition: "right", structuralKind: "action", width: 30 },
-  { id: "name", name: "Name" },
+  { id: "name", name: "Name", isRowHeader: true },
   { id: "hidden", name: "Hidden", isHidden: true },
   { id: "left", name: "Left", role: "structural", structuralPosition: "left", structuralKind: "action", width: 0 },
 ]
@@ -97,7 +97,7 @@ it("calls the column renderer before the body renderer with original row and col
   const columnRender = jest.fn(({ row }: { row: TRow }) => row.name)
   const fallback = jest.fn(({ row }: { row: TRow }) => `fallback:${row.id}`)
   const received = [
-    { id: "name", name: "Name", cellRenderer: columnRender },
+    { id: "name", name: "Name", isRowHeader: true, cellRenderer: columnRender },
     { id: "other", name: "Other" },
   ]
   await render(
@@ -118,7 +118,7 @@ it("calls the column renderer before the body renderer with original row and col
 it.each([undefined, "auto", null] as const)(
   "keeps fluid header and body tracks independent of content width for %s",
   async (width) => {
-    const metadata: TNativeTableColumnMetadata<TRow>[] = [{ id: "name", name: "Short", width }]
+    const metadata: TNativeTableColumnMetadata<TRow>[] = [{ id: "name", name: "Short", isRowHeader: true, width }]
     await render(
       wrap(
         <Table>
@@ -140,7 +140,7 @@ it.each([
   [{ nested: 0 }, '{"nested":0}'],
 ] as const)("renders canonical scalar/object cell value %j", async (value, expected) => {
   const data = [{ id: "value", value }]
-  const metadata = [{ id: "value", name: "Value" }]
+  const metadata = [{ id: "value", name: "Value", isRowHeader: true }]
   await render(
     wrap(
       <Table>
@@ -153,7 +153,7 @@ it.each([
 })
 
 it("replaces source rows with a loading row and then uses the empty renderer without stale cells", async () => {
-  const metadata = [{ id: "name", name: "Name" }]
+  const metadata = [{ id: "name", name: "Name", isRowHeader: true }]
   const empty = jest.fn(() => "No people")
   const node = (loading: boolean) =>
     wrap(
@@ -199,6 +199,7 @@ it("preserves an original editor and its held value through opaque child-local r
     {
       id: "name",
       name: "Name",
+      isRowHeader: true,
       cellRenderer: ({ row }) => (row.id === "a" ? <TextInput ref={editor} value="held" testID="editor" /> : row.name),
     },
   ]
