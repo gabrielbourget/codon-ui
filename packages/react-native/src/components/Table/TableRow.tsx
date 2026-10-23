@@ -1,4 +1,4 @@
-import { useContext, useId, useRef, type ForwardedRef } from "react"
+import { useCallback, useContext, useId, useRef, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -6,6 +6,8 @@ import { createNativeCollectionBranch } from "../../collection/CollectionBuilder
 import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
+import { nativeKeyTokens } from "../../input/keyScope"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
@@ -48,7 +50,12 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const renderer = useContext(NativeCollectionRendererContext)
   const ordinal = table.rows.findIndex((row) => row.key === node.key)
   const original = useRef<View | null>(null)
-  const boundRef = useNativeCollectionRefs(ref, original)
+  const keyboardRef = useCallback(
+    (view: View | null) => table.keyboard.register(node, view),
+    [node, table.keyboard.register],
+  )
+  const keyboardTargetRef = useNativeCollectionRefs(original, keyboardRef)
+  const boundRef = useNativeCollectionRefs(ref, keyboardTargetRef)
   const action = useTableAction(node, original)
   const state = getNativeTagGroupActionState({
     mode: table.manager.canSelectItem(node.key) ? table.manager.selectionMode : "none",
@@ -158,6 +165,19 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         nativeAccessible={false}
         nativeInteraction={state.allowsSelection || state.hasAction}
         nativeProgrammaticFocusable
+        nativeRender={(props) => (
+          <NativeFocusHost
+            {...props}
+            capturedKeys={[
+              ...table.keyboard.keysFor(node.key),
+              ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
+            ]}
+            onKeyDown={(event) => {
+              props.onKeyDown?.(event)
+              table.keyboard.onKeyDown(event)
+            }}
+          />
+        )}
         nativeTabStop={table.manager.focusedKey === node.key}
         isDisabled={table.manager.isDisabled(node.key)}
         accessibilityState={{
@@ -174,8 +194,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           target: 0,
         })}
         onFocus={(event) => {
-          table.manager.setFocused(true)
-          table.manager.setFocusedKey(node.key)
+          table.keyboard.observe(node.key, event)
           native.onFocus?.(event)
         }}
         onPointerDown={(event: PointerEvent) => {

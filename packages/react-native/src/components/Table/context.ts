@@ -8,6 +8,7 @@ import type { SelectionManager } from "../../collection/state/SelectionManager"
 
 import type { resolveNativeTableFilteringLabels } from "./filterLabels"
 import type { TNativeTableQueryControls, TNativeTableColumnResizingControls } from "./types"
+import type { useTableKeyboard } from "./useTableKeyboard"
 
 export const NativeTableOptionsContext = createContext<{
   mode: "none" | "single" | "multiple"
@@ -40,6 +41,7 @@ export type TNativeTableContext = {
   headerTargets: ReadonlyMap<string, number>
   registerHeader: (id: string, target: number) => void
   manager: SelectionManager
+  keyboard: ReturnType<typeof useTableKeyboard>
   onRowAction?: (key: string | number) => void
   queryControls?: TNativeTableQueryControls
   primarySort?: { column: string; direction: "ascending" | "descending" }

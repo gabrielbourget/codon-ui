@@ -32,8 +32,17 @@ const composition = (
   </Table>
 )
 const selection = (
-  <Table selectionMode="multiple" selectedKeys={new Set([0])} labels={{ selection: { selectRowAriaLabel: "Row" } }} />
+  <Table
+    selectionMode="multiple"
+    selectedKeys={new Set([0])}
+    labels={{ selection: { selectRowAriaLabel: "Row" } }}
+    disallowSelectAll
+    escapeKeyBehavior="none"
+    shouldFocusWrap
+  />
 )
+// @ts-expect-error Escape behavior retains the canonical finite policy.
+const invalidEscape = <Table escapeKeyBehavior="close" />
 const action = (
   <Table
     clickableRows
@@ -115,6 +124,7 @@ void [
   PublicTable,
   composition,
   selection,
+  invalidEscape,
   action,
   query,
   filtering,

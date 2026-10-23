@@ -14,6 +14,77 @@ const items = [
   { id: "beta", name: "Beta" },
 ]
 const columns = [{ id: "name", name: "Name", isRowHeader: true }]
+describe("native Table keyboard oracle", () => {
+  const gridColumns = [...columns, { id: "age", name: "Age" }]
+  const rows = [
+    { id: 0, name: "Zero", age: 20 },
+    { id: "beta", name: "Beta", age: 30 },
+    { id: "last", name: "Last", age: 40 },
+  ]
+  it("enters rows, traverses cells and retains the column across vertical navigation", async () => {
+    const user = userEvent.setup()
+    render(
+      <Table aria-label="Keyboard">
+        <TableHeader columns={gridColumns} />
+        <TableBody items={rows} columns={gridColumns} />
+      </Table>,
+    )
+    await user.tab()
+    expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("rowheader", { name: "Zero" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}{ArrowDown}")
+    expect(screen.getByRole("gridcell", { name: "30" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("row", { name: "Beta" })).toHaveFocus()
+    await user.keyboard("{ArrowLeft}")
+    expect(screen.getByRole("gridcell", { name: "30" })).toHaveFocus()
+  })
+  it("navigates through headers and distinguishes local and global Home/End", async () => {
+    const user = userEvent.setup()
+    render(
+      <Table aria-label="Keyboard">
+        <TableHeader columns={gridColumns} />
+        <TableBody items={rows} columns={gridColumns} />
+      </Table>,
+    )
+    await user.tab()
+    await user.keyboard("{ArrowLeft}{ArrowUp}")
+    expect(screen.getByRole("columnheader", { name: "Age" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("columnheader", { name: "Name" })).toHaveFocus()
+    await user.keyboard("{ArrowDown}{ArrowDown}{End}")
+    expect(screen.getByRole("gridcell", { name: "30" })).toHaveFocus()
+    await user.keyboard("{Home}")
+    expect(screen.getByRole("rowheader", { name: "Beta" })).toHaveFocus()
+    await user.keyboard("{Control>}{End}{/Control}")
+    expect(screen.getByRole("gridcell", { name: "40" })).toHaveFocus()
+    await user.keyboard("{Control>}{Home}{/Control}")
+    expect(screen.getByRole("rowheader", { name: "Zero" })).toHaveFocus()
+  })
+  it("extends held row selection from a focused cell without mutating the owner", async () => {
+    const changed = vi.fn(),
+      held = new Set<string | number>([0]),
+      user = userEvent.setup()
+    render(
+      <Table
+        aria-label="Keyboard"
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={held}
+        onSelectionChange={changed}
+      >
+        <TableHeader columns={gridColumns} />
+        <TableBody items={rows} columns={gridColumns} />
+      </Table>,
+    )
+    await user.tab()
+    await user.keyboard("{ArrowLeft}{Shift>}{ArrowDown}{/Shift}")
+    expect([...changed.mock.calls.at(-1)![0]]).toEqual([0, "beta"])
+    expect([...held]).toEqual([0])
+    expect(screen.getByRole("gridcell", { name: "30" })).toHaveFocus()
+  })
+})
 describe("native Table selection oracle", () => {
   it("keeps row actions primary until selected keys are echoed and preserves checkbox-only selection", async () => {
     const changed = vi.fn(),

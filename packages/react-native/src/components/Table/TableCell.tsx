@@ -8,6 +8,7 @@ import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
 import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
+import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
@@ -57,7 +58,12 @@ const Cell = (
   const target = useRef<View | null>(null)
   const width = useRef<number | null>(null)
   const action = useTableAction(node, target)
-  const originalRef = useNativeCollectionRefs(target, bindHeader)
+  const keyboardRef = useCallback(
+    (view: View | null) => table.keyboard.register(node, view),
+    [node, table.keyboard.register],
+  )
+  const keyboardTargetRef = useNativeCollectionRefs(target, keyboardRef)
+  const originalRef = useNativeCollectionRefs(keyboardTargetRef, bindHeader)
   const mergedRef = useNativeCollectionRefs(ref, originalRef)
   const textAlign = alignment === "Center" ? "center" : alignment === "Right" ? "right" : "auto"
   const authored = resolveNativeStyle([customStyles, style], heading ? "TableColumn" : "TableCell", "style")
@@ -124,7 +130,24 @@ const Cell = (
             nativeRole="columnheader"
             nativeInteraction={!!allowsSorting}
             nativeProgrammaticFocusable
-            nativeTabStop={false}
+            nativeTabStop={table.manager.focusedKey === node.key}
+            nativeRender={(props) => (
+              <NativeFocusHost
+                {...props}
+                capturedKeys={[
+                  ...table.keyboard.keysFor(node.key),
+                  ...(allowsSorting ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
+                ]}
+                onKeyDown={(event) => {
+                  props.onKeyDown?.(event)
+                  table.keyboard.onKeyDown(event)
+                }}
+              />
+            )}
+            onFocus={(event) => {
+              table.keyboard.observe(node.key, event)
+              native.onFocus?.(event)
+            }}
             onLayout={(event) => {
               width.current = event.nativeEvent.layout.width
               native.onLayout?.(event)
@@ -156,7 +179,14 @@ const Cell = (
             {...nativeViewProps(native)}
             ref={mergedRef}
             accessible
-            focusable={false}
+            focusable
+            nativeTabStop={table.manager.focusedKey === node.key}
+            capturedKeys={table.keyboard.keysFor(node.key)}
+            onFocus={(event) => {
+              table.keyboard.observe(node.key, event)
+              native.onFocus?.(event)
+            }}
+            onKeyDown={table.keyboard.onKeyDown}
             style={styles.view}
           >
             {rendered}

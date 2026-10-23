@@ -112,6 +112,9 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
     queryControls?: TNativeTableQueryControls
     filteringLabels?: TPartialNativeTableFilteringLabels
     columnResizing?: TNativeTableColumnResizingControls
+    disallowSelectAll?: boolean
+    escapeKeyBehavior?: "clearSelection" | "none"
+    shouldFocusWrap?: boolean
   }
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {

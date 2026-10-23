@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useState } from "react"
+import { useCallback, useContext, useMemo, useRef, useState } from "react"
 import { findNodeHandle, View } from "react-native"
 
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
@@ -22,6 +22,7 @@ import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { resizeNativeTableColumn } from "./resizing"
 import { computeNextNativeTableSorts } from "./sorting"
 import type { TNativeTableProps } from "./types"
+import { useTableKeyboard } from "./useTableKeyboard"
 
 const Receiver = <T extends object>({
   props,
@@ -56,6 +57,9 @@ const Receiver = <T extends object>({
     queryControls,
     filteringLabels,
     columnResizing,
+    disallowSelectAll: _selectAll,
+    escapeKeyBehavior: _escape,
+    shouldFocusWrap: _wrap,
     ...native
   } = props
   const sorting = queryControls?.sorting
@@ -66,8 +70,12 @@ const Receiver = <T extends object>({
   const renderer = useContext(NativeCollectionRendererContext)
   const theme = useNativeTheme()
   const [target, setTarget] = useState(0)
+  const root = useRef<View | null>(null)
   const [headerTargets, setHeaderTargets] = useState(new Map<string, number>())
-  const bind = useCallback((view: View | null) => setTarget(view ? (findNodeHandle(view) ?? 0) : 0), [])
+  const bind = useCallback((view: View | null) => {
+    root.current = view
+    setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
+  }, [])
   const registerHeader = useCallback(
     (id: string, target: number) =>
       setHeaderTargets((previous) => {
@@ -95,6 +103,7 @@ const Receiver = <T extends object>({
     }
   }
   visit(collection)
+  const keyboard = useTableKeyboard({ collection, manager, rows, root, props })
   if (confirmed && columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
   const styles = splitNativeTextStyle(
@@ -114,6 +123,7 @@ const Receiver = <T extends object>({
         headerTargets,
         registerHeader,
         manager,
+        keyboard,
         onRowAction: clickableRows && onRowAction ? onRowAction : undefined,
         queryControls,
         filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
@@ -164,7 +174,14 @@ const Receiver = <T extends object>({
             ref={bind}
             testID={props.testID ?? "table"}
             accessible={false}
-            focusable={false}
+            focusable
+            nativeTabStop={manager.focusedKey == null}
+            capturedKeys={keyboard.keysFor(null)}
+            onKeyDown={keyboard.onKeyDown}
+            onFocus={(event) => {
+              keyboard.onFocus(event)
+              native.onFocus?.(event)
+            }}
             role="grid"
             style={styles.view}
           >
