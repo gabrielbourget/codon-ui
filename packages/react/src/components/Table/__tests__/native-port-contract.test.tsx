@@ -21,6 +21,80 @@ describe("native Table keyboard oracle", () => {
     { id: "beta", name: "Beta", age: 30 },
     { id: "last", name: "Last", age: 40 },
   ]
+  it("enters first/last cell children and walks eligible controls before leaving", async () => {
+    const user = userEvent.setup()
+    const controls = [
+      columns[0],
+      {
+        id: "controls",
+        name: "Controls",
+        cellRenderer: ({ row }: { row: { id: string | number } }) =>
+          row.id === 0 ? (
+            <>
+              <button>First {row.id}</button>
+              <button disabled>Disabled {row.id}</button>
+              <span>
+                <button>Second {row.id}</button>
+              </span>
+            </>
+          ) : (
+            "Other"
+          ),
+      },
+    ]
+    render(
+      <Table aria-label="Child controls">
+        <TableHeader columns={controls} />
+        <TableBody items={rows} columns={controls} />
+      </Table>,
+    )
+    await user.tab()
+    await user.keyboard("{ArrowLeft}")
+    expect(screen.getByRole("button", { name: "Second 0" })).toHaveFocus()
+    await user.keyboard("{ArrowLeft}")
+    expect(screen.getByRole("button", { name: "First 0" })).toHaveFocus()
+    await user.keyboard("{ArrowLeft}")
+    expect(screen.getByRole("rowheader", { name: "Zero" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("button", { name: "First 0" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("button", { name: "Second 0" })).toHaveFocus()
+    await user.keyboard("{ArrowRight}")
+    expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+    await user.keyboard("{ArrowLeft}{Alt>}{ArrowDown}{/Alt}")
+    expect(screen.getAllByRole("gridcell", { name: "Other" })[0]).toHaveFocus()
+  })
+  it("pages by the actual delegate's measured vertical viewport", async () => {
+    const user = userEvent.setup()
+    const rectangles = vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const row = this.closest("tr"),
+        key = row?.getAttribute("data-key")
+      const y = key === "last" ? 90 : key === "beta" ? 45 : row?.closest("tbody") ? 20 : 0
+      return { x: 0, y, left: 0, top: y, width: 100, height: 20, right: 100, bottom: y + 20, toJSON: () => ({}) }
+    })
+    try {
+      render(
+        <Table aria-label="Paging">
+          <TableHeader columns={gridColumns} />
+          <TableBody items={rows} columns={gridColumns} />
+        </Table>,
+      )
+      const grid = screen.getByRole("grid", { name: "Paging" })
+      Object.defineProperties(grid, {
+        clientHeight: { configurable: true, value: 80 },
+        scrollHeight: { configurable: true, value: 120 },
+      })
+      await user.tab()
+      await user.keyboard("{PageDown}")
+      expect(screen.getByRole("row", { name: "Last" })).toHaveFocus()
+      await user.keyboard("{PageUp}")
+      expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+    } finally {
+      rectangles.mockRestore()
+    }
+  })
   it("enters rows, traverses cells and retains the column across vertical navigation", async () => {
     const user = userEvent.setup()
     render(

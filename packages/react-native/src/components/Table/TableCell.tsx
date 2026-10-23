@@ -10,6 +10,7 @@ import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
@@ -19,6 +20,7 @@ import { NativeContentContext, useNativeContentContext } from "../NativeContentC
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
+import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableCellProps, TNativeTableColumnProps } from "./types"
 import { useTableAction } from "./useTableAction"
 
@@ -39,6 +41,7 @@ const Cell = (
     ...native
   } = props
   const table = useNativeTable()
+  const scope = useNativeKeyScope()
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
@@ -96,6 +99,7 @@ const Cell = (
         .filter((value): value is number => !!value)
   const rendered = (
     <NativeTableCellContext.Provider value={{ node, target, width }}>
+      <TableCellKeys node={node} target={target} binding={actions?.bindingFor(node) ?? ""} />
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
       >
@@ -135,7 +139,7 @@ const Cell = (
               <NativeFocusHost
                 {...props}
                 capturedKeys={[
-                  ...table.keyboard.keysFor(node.key),
+                  ...(scope ? [] : table.keyboard.keysFor(node.key)),
                   ...(allowsSorting ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
                 ]}
                 onKeyDown={(event) => {
@@ -181,7 +185,7 @@ const Cell = (
             accessible
             focusable
             nativeTabStop={table.manager.focusedKey === node.key}
-            capturedKeys={table.keyboard.keysFor(node.key)}
+            capturedKeys={scope ? [] : table.keyboard.keysFor(node.key)}
             onFocus={(event) => {
               table.keyboard.observe(node.key, event)
               native.onFocus?.(event)

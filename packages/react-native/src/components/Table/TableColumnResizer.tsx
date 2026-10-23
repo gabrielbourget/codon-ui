@@ -3,11 +3,14 @@ import { findNodeHandle, View, type GestureResponderEvent } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusHost } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
+import type { TNativeKeyboardEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeButton } from "../Button/Button"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { resizeNativeTableColumn } from "./resizing"
+import { TableKeyPolicy } from "./TableCellKeys"
 import type { TNativeTableColumnMetadata, TNativeTableColumnResizingControls } from "./types"
 import { useTableAction } from "./useTableAction"
 
@@ -24,6 +27,7 @@ type TResizeCycle = {
 }
 export const TableColumnResizer = ({ column }: { column: TNativeTableColumnMetadata<object> }) => {
   const table = useNativeTable()
+  const scope = useNativeKeyScope()
   const cell = useContext(NativeTableCellContext)!
   const action = useTableAction(cell.node, cell.target)
   const handle = useRef<View | null>(null)
@@ -92,33 +96,36 @@ export const TableColumnResizer = ({ column }: { column: TNativeTableColumnMetad
       }
     }
   }
+  const onResizeKey = (event: TNativeKeyboardEvent) => {
+    const data = event.nativeEvent
+    const target = "focusedTarget" in data ? data.focusedTarget : data.target
+    if (
+      data.phase !== "down" ||
+      !data.nativeDefaultHandled ||
+      data.cancelled ||
+      !current.current.action.isActive() ||
+      target !== findNodeHandle(handle.current)
+    )
+      return
+    if (
+      (data.key !== "ArrowLeft" && data.key !== "ArrowRight") ||
+      !current.current.table.canResizeWithKeyboard(current.current.column.id)
+    )
+      return
+    event.preventDefault()
+    event.stopPropagation()
+    const width = current.current.cell.width.current
+    current.current.action.request((next) =>
+      next.resizeWithKeyboard(current.current.column.id, width, data.key === "ArrowLeft" ? -16 : 16),
+    )
+  }
   return (
     <NativeButton
       ref={handle}
       nativeTabStop
       testID={`table-column-resizer-${column.id}`}
       accessibilityLabel={`Resize ${column.name ?? column.id} column`}
-      onKeyDown={(event) => {
-        const key = event.nativeEvent.key
-        if (
-          !event.nativeEvent.nativeDefaultHandled ||
-          event.nativeEvent.cancelled ||
-          !current.current.action.isActive() ||
-          event.nativeEvent.target !== findNodeHandle(handle.current)
-        )
-          return
-        if (
-          (key !== "ArrowLeft" && key !== "ArrowRight") ||
-          !current.current.table.canResizeWithKeyboard(current.current.column.id)
-        )
-          return
-        event.preventDefault()
-        event.stopPropagation()
-        const width = current.current.cell.width.current
-        current.current.action.request((next) =>
-          next.resizeWithKeyboard(current.current.column.id, width, key === "ArrowLeft" ? -16 : 16),
-        )
-      }}
+      onKeyDown={onResizeKey}
       onPress={(event) => {
         if (!("kind" in event.nativeEvent) || event.nativeEvent.kind !== "keyboard") return
         current.current.action.request((next, node) => {
@@ -128,7 +135,9 @@ export const TableColumnResizer = ({ column }: { column: TNativeTableColumnMetad
       nativeRender={(props) => (
         <NativeFocusHost
           {...props}
-          capturedKeys={table.canResizeWithKeyboard(column.id) ? [...activationKeys, ...arrowKeys] : activationKeys}
+          capturedKeys={
+            !scope && table.canResizeWithKeyboard(column.id) ? [...activationKeys, ...arrowKeys] : activationKeys
+          }
           onStartShouldSetResponder={() =>
             current.current.action.isActive() && !!current.current.table.columnResizing?.enabled
           }
@@ -163,18 +172,30 @@ export const TableColumnResizer = ({ column }: { column: TNativeTableColumnMetad
       })}
     >
       {(state) => (
-        <View
-          pointerEvents="none"
-          style={{
-            position: "absolute",
-            top: 0,
-            bottom: 0,
-            start: "50%",
-            width: 1,
-            backgroundColor: theme.colors.controlForeground,
-            opacity: state.isHovered || state.isFocusVisible ? 0.4 : 0,
-          }}
-        />
+        <>
+          <TableKeyPolicy
+            target={handle}
+            lifetimeKey={action.binding}
+            tokens={arrowKeys}
+            isEnabled={table.canResizeWithKeyboard(column.id)}
+            excludeEditable
+            excludeComposing
+            canAct={action.isActive}
+            onKey={onResizeKey}
+          />
+          <View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              start: "50%",
+              width: 1,
+              backgroundColor: theme.colors.controlForeground,
+              opacity: state.isHovered || state.isFocusVisible ? 0.4 : 0,
+            }}
+          />
+        </>
       )}
     </NativeButton>
   )

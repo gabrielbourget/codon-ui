@@ -1,15 +1,26 @@
 // Adapted from react-aria 3.48.0 GridKeyboardDelegate/TableKeyboardDelegate.
 // Copyright 2020, 2022 Adobe. Apache-2.0; see ../../collection/LICENSE.react-aria.md.
+import type { TNativeCollectionLayoutDelegate } from "../../collection/renderer"
 import type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 import { nativeKeyTokens } from "../../input/keyScope"
 
-export const NATIVE_TABLE_NAVIGATION_KEYS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"] as const
+export const NATIVE_TABLE_NAVIGATION_KEYS = [
+  "ArrowUp",
+  "ArrowDown",
+  "ArrowLeft",
+  "ArrowRight",
+  "Home",
+  "End",
+  "PageUp",
+  "PageDown",
+] as const
 type TNavigationKey = (typeof NATIVE_TABLE_NAVIGATION_KEYS)[number]
 type TNavigation = {
   collection: TNativeCollectionSnapshot<object>
   rows: readonly TNativeCollectionNode<object>[]
   manager: SelectionManager
+  layout?: TNativeCollectionLayoutDelegate
 }
 
 export const getNativeTableKeyTokens = (isApple: boolean) => [
@@ -44,6 +55,24 @@ export const getNativeTableNavigationKey = (
       return cells[last ? cells.length - 1 : 0]?.key ?? null
     }
     return boundary(last, false)
+  }
+  if (key === "PageUp" || key === "PageDown") {
+    const layout = table.layout
+    if (from == null || !layout?.getItemRect || !layout.getVisibleRect) return null
+    let current: TNativeCollectionKey | null = from
+    let rect = layout.getItemRect(current)
+    if (!rect) return null
+    const up = key === "PageUp"
+    const limit = up
+      ? Math.max(0, rect.y + rect.height - layout.getVisibleRect().height)
+      : Math.min(layout.getContentSize().height, rect.y + layout.getVisibleRect().height)
+    while (rect && (up ? rect.y > limit : rect.y + rect.height < limit)) {
+      const next = getNativeTableNavigationKey(table, current, up ? "ArrowUp" : "ArrowDown", isRTL)
+      if (next == null) return up ? null : current
+      current = next
+      rect = layout.getItemRect(current)
+    }
+    return current
   }
   if (key === "Home" || key === "End") {
     const last = key === "End"

@@ -6,12 +6,18 @@ import type * as RN from "react-native"
 
 import {
   actWithNativeCollections as act,
+  flushNativeCollectionActions,
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../../collection/renderer"
+import { nativeKeyToken } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
+import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
 import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
+import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
+import { NativeButton } from "../../Button/Button"
 import { encodeCollectionKey } from "../../collection"
 import { Table } from "../Table"
 import { TableBody } from "../TableBody"
@@ -349,4 +355,239 @@ it("retains the maintained scene's original held editor through grid navigation"
   expect(editor.current).toBe(original)
   expect(screen.getByTestId("table-editor").props.text).toBe("held")
   expect(writes).not.toHaveBeenCalled()
+})
+
+const controlsFixture = async (scoped = false) => {
+  const first = createRef<RN.View>(),
+    second = createRef<RN.View>(),
+    disabled = createRef<RN.View>(),
+    scope = createRef<RN.View>()
+  const controlColumns = [
+    columns[0],
+    {
+      id: "controls",
+      name: "Controls",
+      cellRenderer: ({ row }: { row: { id: string | number } }) =>
+        row.id === 0 ? (
+          <>
+            <NativeButton ref={first} accessibilityLabel="First">
+              First
+            </NativeButton>
+            <NativeButton ref={disabled} isDisabled accessibilityLabel="Disabled">
+              Disabled
+            </NativeButton>
+            <NativeButton ref={second} accessibilityLabel="Second">
+              Second
+            </NativeButton>
+          </>
+        ) : (
+          "Other"
+        ),
+    },
+  ]
+  const table = (
+    <Table accessibilityLabel="Controls">
+      <TableHeader columns={controlColumns} />
+      <TableBody columns={controlColumns} items={items} />
+    </Table>
+  )
+  await render(
+    <NativeThemeProvider>
+      {scoped ? (
+        <NativeOverlayProvider>
+          <NativeFloatingLayerHost ref={scope} testID="keys-host">
+            {table}
+          </NativeFloatingLayerHost>
+        </NativeOverlayProvider>
+      ) : (
+        table
+      )}
+    </NativeThemeProvider>,
+  )
+  Object.defineProperty(mockViews.get(cell(1, 1).props.ownerId)!, "childNodes", {
+    configurable: true,
+    get: () => [{ childNodes: [first.current, disabled.current, second.current] }],
+  })
+  if (scoped) await ready()
+  return { first, second, disabled, scope }
+}
+const ready = async () => {
+  for (const isReady of [false, true]) {
+    const host = screen.getByTestId("keys-host").props
+    await act(() =>
+      host.onNativeScopeStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "table-window",
+          epoch: 1,
+          policyRevision: host.policyRevision,
+          ready: isReady,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+}
+const scopedKey = async (
+  value: string,
+  focused: THost,
+  parent: THost,
+  scope: RN.View | null,
+  overrides: Record<string, unknown> = {},
+  settle = true,
+) => {
+  const host = screen.getByTestId("keys-host").props
+  const policy = host.policies.find(
+    (entry: { targetTag: number; tokens: string[] }) =>
+      entry.targetTag === tag(parent) &&
+      entry.tokens.includes(
+        nativeKeyToken({
+          key: value,
+          shiftKey: !!overrides.shiftKey,
+          altKey: !!overrides.altKey,
+          ctrlKey: !!overrides.ctrlKey,
+          metaKey: !!overrides.metaKey,
+        }),
+      ),
+  )
+  expect(policy).toBeDefined()
+  const event = {
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+    persist: jest.fn(),
+    isDefaultPrevented: () => false,
+    nativeEvent: {
+      kind: "keyboard",
+      ownerId: host.ownerId,
+      policyId: policy.id,
+      target: jest.requireActual<typeof RN>("react-native").findNodeHandle(scope),
+      focusedTarget: tag(focused),
+      windowId: "table-window",
+      epoch: 1,
+      policyRevision: host.policyRevision,
+      key: value,
+      phase: "down",
+      repeat: false,
+      cancelled: false,
+      nativeCode: 1,
+      characters: "",
+      nativeDefaultHandled: true,
+      timestamp: 100,
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      capsLock: false,
+      nativeModifierData: "",
+      ...overrides,
+    },
+  }
+  await (settle ? act : rawAct)(() => host.onNativeScopedKey(event))
+  return event
+}
+it("focuses the first or last eligible original child when entering a cell", async () => {
+  const { first, second } = await controlsFixture()
+  await focused(row(0))
+  await key(row(0), "ArrowLeft")
+  expectFocus(screen.getByRole("button", { name: "Second" }))
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(second.current, expect.any(String))
+  await focused(cell(1, 0))
+  await key(cell(1, 0), "ArrowRight")
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(first.current, expect.any(String))
+})
+it("routes original scoped child arrows through eligible siblings before leaving the cell", async () => {
+  const { first, second, scope } = await controlsFixture(true)
+  const firstHost = screen.getByRole("button", { name: "First" })
+  const secondHost = screen.getByRole("button", { name: "Second" })
+  await focused(firstHost)
+  await scopedKey("ArrowRight", firstHost, cell(1, 1), scope.current)
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(second.current, expect.any(String))
+  await focused(secondHost)
+  await scopedKey("ArrowLeft", secondHost, cell(1, 1), scope.current)
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(first.current, expect.any(String))
+  await focused(firstHost)
+  await scopedKey("ArrowLeft", firstHost, cell(1, 1), scope.current)
+  expectFocus(cell(1, 0))
+  await focused(secondHost)
+  await scopedKey("ArrowDown", secondHost, cell(1, 1), scope.current, { altKey: true })
+  expectFocus(cell(2, 1))
+})
+it("does not focus a child removed while native admission is pending", async () => {
+  const { second } = await controlsFixture()
+  await focused(row(0))
+  await key(row(0), "ArrowLeft", {}, false)
+  await flushNativeCollectionActions()
+  Object.defineProperty(mockViews.get(cell(1, 1).props.ownerId)!, "childNodes", { configurable: true, get: () => [] })
+  await act(() => {})
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  expect(second.current).not.toBeNull()
+})
+it("enters the resize handle from its row and preserves its scoped policy priority", async () => {
+  const resized = jest.fn(),
+    scope = createRef<RN.View>()
+  const sized = [
+    { ...columns[0], width: 120 },
+    { ...columns[1], width: 80 },
+  ]
+  await render(
+    <NativeThemeProvider>
+      <NativeOverlayProvider>
+        <NativeFloatingLayerHost ref={scope} testID="keys-host">
+          <Table columns={sized} columnResizing={{ enabled: true, onColumnResize: resized }}>
+            <TableHeader columns={sized} />
+            <TableBody columns={sized} items={items} />
+          </Table>
+        </NativeFloatingLayerHost>
+      </NativeOverlayProvider>
+    </NativeThemeProvider>,
+  )
+  const handle = screen.getByRole("button", { name: "Resize Name column" })
+  Object.defineProperty(mockViews.get(cell(0, 0).props.ownerId)!, "childNodes", {
+    configurable: true,
+    get: () => [mockViews.get(handle.props.ownerId)!],
+  })
+  await ready()
+  const policies = screen
+    .getByTestId("keys-host")
+    .props.policies.filter(
+      (policy: { targetTag: number; tokens: string[] }) =>
+        [tag(handle), tag(cell(0, 0))].includes(policy.targetTag) && policy.tokens.includes("0000:ArrowRight"),
+    )
+  expect(policies.map((policy: { targetTag: number }) => policy.targetTag)).toEqual([tag(handle), tag(cell(0, 0))])
+  await focused(row(0))
+  await key(row(0), "ArrowUp")
+  expectFocus(handle)
+  expect(handle.props.capturedKeys.some((token: string) => token.endsWith(":ArrowRight"))).toBe(false)
+  await focused(handle)
+  await scopedKey("ArrowRight", handle, handle, scope.current)
+  expect(resized).toHaveBeenCalledTimes(1)
+  expect(resized).toHaveBeenLastCalledWith({ columnID: "name", width: 136 })
+})
+it("uses actual renderer rectangles for PageUp/PageDown and omits unmeasured paging", async () => {
+  const layout = {
+    getItemRect: (key: string | number) => {
+      const id = String(key)
+      return {
+        x: 0,
+        y: id.includes("last") ? 90 : id.includes("beta") ? 45 : id.includes("header") ? 0 : 20,
+        width: 100,
+        height: 20,
+      }
+    },
+    getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 80 }),
+    getContentSize: () => ({ width: 100, height: 120 }),
+  }
+  const view = await render(
+    <NativeCollectionRendererContext.Provider value={{ ...DefaultNativeCollectionRenderer, layoutDelegate: layout }}>
+      {node()}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  await focused(row(0))
+  await key(row(0), "PageDown")
+  expectFocus(row("last"))
+  await focused(row("last"))
+  await key(row("last"), "PageUp")
+  expectFocus(row(0))
+  await view.rerender(node())
+  expect(row(0).props.capturedKeys.some((token: string) => token.endsWith(":PageDown"))).toBe(false)
 })

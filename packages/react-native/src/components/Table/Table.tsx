@@ -103,7 +103,7 @@ const Receiver = <T extends object>({
     }
   }
   visit(collection)
-  const keyboard = useTableKeyboard({ collection, manager, rows, root, props })
+  const keyboard = useTableKeyboard({ collection, manager, rows, root, props, layout: renderer.layoutDelegate })
   if (confirmed && columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
   const styles = splitNativeTextStyle(
