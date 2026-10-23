@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import type { ComponentType, Ref } from "react"
 import { findNodeHandle, type View } from "react-native"
 
@@ -57,6 +57,7 @@ jest.mock("../specs/NativeCUIEditorKeyboardDefaults", () => ({
     acceptsField: jest.fn(() => true),
     settleField: jest.fn(() => true),
     moveFieldFocus: jest.fn(),
+    takeFieldRecords: jest.fn(() => JSON.stringify({ records: [], dropped: 0 })),
   },
 }))
 jest.mock("../specs/NativeCUIFormDocument", () => ({
@@ -212,6 +213,75 @@ it("connects original segment entry, group callers and native binding lifetime w
   expect(JSON.parse(jest.mocked(NativeDefaults!.settleField).mock.calls[0][0])).toMatchObject({
     current: true,
     preventDefault: true,
+  })
+  await fireEvent.press(screen.getByTestId("field-sdk-callback"))
+  expect(JSON.parse(screen.getByTestId("outer-binding").props.accessibilityLabel)).toMatchObject({
+    ready: true,
+    error: "",
+  })
+  expect(jest.mocked(NativeDocument!.bindFieldInput).mock.calls).toHaveLength(installed)
+  const changed = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((item) => item.props.editorTarget === target.nativeTag)!
+  const newBinding = JSON.parse(changed.props.fieldGroupBinding)
+  expect(newBinding.bindingRevision).not.toBe(binding.bindingRevision)
+  record.mockClear()
+  const stale = { ...event, nativeEvent: { ...event.nativeEvent } }
+  await act(() => screen.getByTestId("outer-hour").props.onNativeFieldKey(stale))
+  expect(record).not.toHaveBeenCalled()
+  await fireEvent.press(screen.getByTestId("field-sdk-receipts"))
+  expect(record).toHaveBeenCalledWith({ kind: "native-receipts", records: [], dropped: 0 })
+  await fireEvent.press(screen.getByTestId("field-sdk-unmount"))
+  const removingMetadata = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((item) => item.props.editorTarget === target.nativeTag)!
+  const removingBinding = JSON.parse(removingMetadata.props.fieldGroupBinding)
+  const originalPacket = JSON.parse(event.nativeEvent.fieldDispatch)
+  const removing = {
+    ...event,
+    nativeEvent: {
+      ...event.nativeEvent,
+      fieldDispatch: JSON.stringify({
+        ...originalPacket,
+        token: 3,
+        eventId: 3,
+        identity: { ...identity, bindingRevision: removingBinding.bindingRevision },
+        groups: originalPacket.groups.map((group: Record<string, unknown>) => ({
+          ...group,
+          bindingRevision: removingBinding.bindingRevision,
+        })),
+      }),
+    },
+  }
+  const handlers = ["outer-hour", "outer-input", "outer-outer"].map(
+    (id) => screen.getByTestId(id).props.onNativeFieldKey,
+  )
+  await act(() => {
+    for (const handler of handlers) handler(removing)
+  })
+  expect(screen.queryByTestId("outer-hour")).toBeNull()
+  jest.mocked(NativeDefaults!.takeFieldRecords).mockReturnValueOnce(
+    JSON.stringify({
+      records: [
+        JSON.stringify({
+          kind: "key",
+          scopeCurrent: false,
+          originalDefaultPrevented: true,
+          renderPhasesComplete: true,
+          after: null,
+        }),
+      ],
+      dropped: 0,
+    }),
+  )
+  record.mockClear()
+  await fireEvent.press(screen.getByTestId("field-sdk-receipts"))
+  expect(record).toHaveBeenCalledWith({
+    kind: "native-receipts",
+    records: [
+      { kind: "key", scopeCurrent: false, originalDefaultPrevented: true, renderPhasesComplete: true, after: null },
+    ],
+    dropped: 0,
   })
   expect(findNodeHandle).toHaveBeenCalled()
   await screen.unmount()

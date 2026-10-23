@@ -1,6 +1,6 @@
 import { Platform } from "react-native"
 
-import { getNativeFieldInputModule } from "../fieldInputModule"
+import { getNativeFieldInputModule, takeNativeFieldInputRecords } from "../fieldInputModule"
 import NativeDefaults from "../specs/NativeCUIEditorKeyboardDefaults"
 
 jest.mock("../specs/NativeCUIEditorKeyboardDefaults", () => ({
@@ -10,6 +10,7 @@ jest.mock("../specs/NativeCUIEditorKeyboardDefaults", () => ({
     acceptsField: jest.fn(() => true),
     settleField: jest.fn(() => true),
     moveFieldFocus: jest.fn(() => "original-result"),
+    takeFieldRecords: jest.fn(() => JSON.stringify({ records: [], dropped: 0 })),
   },
 }))
 type TRuntime = typeof globalThis & { __cuiNativeFieldInputMoveFocus?: (lease: string, request: string) => string }
@@ -46,3 +47,34 @@ it("rejects a missing Android runtime binding instead of substituting the genera
   expect(getNativeFieldInputModule).toThrow("native-field-input-runtime-unavailable")
   expect(NativeDefaults?.moveFieldFocus).not.toHaveBeenCalled()
 })
+
+it("retains original native receipt data and explicit loss without deriving input acceptance", () => {
+  jest.mocked(NativeDefaults!.takeFieldRecords).mockReturnValueOnce(
+    JSON.stringify({
+      records: [
+        JSON.stringify({
+          kind: "key",
+          decision: "retired",
+          originalDefaultPrevented: true,
+          before: { focusedTarget: 10 },
+          after: null,
+        }),
+      ],
+      dropped: 2,
+    }),
+  )
+  const batch = takeNativeFieldInputRecords()
+  expect(batch.dropped).toBe(2)
+  expect(batch.records).toEqual([
+    { kind: "key", decision: "retired", originalDefaultPrevented: true, before: { focusedTarget: 10 }, after: null },
+  ])
+  expect(Object.isFrozen(batch.records)).toBe(true)
+})
+
+it.each([null, { records: [], dropped: -1 }, { records: ["null"], dropped: 0 }, { records: [{}], dropped: 0 }])(
+  "rejects malformed native receipt batches %j",
+  (value) => {
+    jest.mocked(NativeDefaults!.takeFieldRecords).mockReturnValueOnce(JSON.stringify(value))
+    expect(takeNativeFieldInputRecords).toThrow("native-field-input-receipts-invalid")
+  },
+)

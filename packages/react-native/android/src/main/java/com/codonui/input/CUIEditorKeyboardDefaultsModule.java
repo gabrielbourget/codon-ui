@@ -20,6 +20,7 @@ public final class CUIEditorKeyboardDefaultsModule extends NativeCUIEditorKeyboa
   private final AtomicBoolean valid = new AtomicBoolean(true);
   private final BindingsInstallerHolder fieldBindings = nativeFieldBindings(lease);
   private static native BindingsInstallerHolder nativeFieldBindings(String lease);
+  private static native String nativeTakeFieldRecords(String lease);
   private static native boolean nativeSettleField(String lease, String request);
   private static native boolean nativeAcceptsField(String lease, String request);
   private static native void nativeRetireField(String lease);
@@ -31,6 +32,7 @@ public final class CUIEditorKeyboardDefaultsModule extends NativeCUIEditorKeyboa
     WeakReference<CUIEditorKeyboardDefaultFrames> reference = REGISTRY.get(lease);
     return reference == null ? null : reference.get();
   }
+  @Override public String takeFieldRecords() { return nativeTakeFieldRecords(lease); }
   @Override public String getLease() { return valid.get() ? lease : ""; }
   @Override public BindingsInstallerHolder getBindingsInstaller() { return fieldBindings; }
   @Override public boolean settleField(String request) { return valid.get() && nativeSettleField(lease, request); }

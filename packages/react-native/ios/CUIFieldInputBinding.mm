@@ -187,10 +187,16 @@ BOOL CUIFieldInputOwnsView(UIView *view)
 - (UIView *)outerRoot { return _outer; }
 - (UIWindow *)boundWindow { return _window; }
 - (NSString *)moduleLease { return _lease; }
+- (void)recordEncoded:(NSString *)encoded
+{
+  const auto state = _lease ? fieldInputRuntime(_lease.UTF8String) : nullptr;
+  if (state) state->records.append(encoded.UTF8String ?: "");
+  [_metadata emitFieldInputRecord:encoded];
+}
 - (void)record:(NSDictionary *)value
 {
   NSData *bytes = [NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingSortedKeys error:nil];
-  if (bytes) [_metadata emitFieldInputRecord:[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]];
+  if (bytes) [self recordEncoded:[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]];
 }
 - (void)retirePending
 {
@@ -245,6 +251,12 @@ BOOL CUIFieldInputOwnsView(UIView *view)
   UIWindow *previous = _window;
   if (previous != window) { _window = window; _epoch++; [self retirePending]; }
   CUIRefreshFieldInputWindow(previous); CUIRefreshFieldInputWindow(window);
+}
+- (NSString *)mountWitness
+{
+  NSDictionary *mount = [_metadata formMountSnapshot];
+  NSData *bytes = mount ? [NSJSONSerialization dataWithJSONObject:mount options:NSJSONWritingSortedKeys error:nil] : nil;
+  return bytes ? [[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] : @"unmounted";
 }
 - (BOOL)currentScope:(const FieldInputIdentity &)expected
 {
@@ -408,10 +420,22 @@ BOOL CUIFieldInputOwnsView(UIView *view)
         const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
       });
+    FieldInputMountCursor mountCursor{fabric.root};
     FieldInputDecision waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
       CUIFieldInputBinding *owner = scopeOwners[@(action.groupTarget)];
       if (!owner) { FieldInputFocusResult failure; failure.error = "field-input-original-scope-retired"; return failure; }
-      return [owner focus:action state:state ticket:ticket];
+      const auto result = [owner focus:action state:state ticket:ticket];
+      if (result.current && result.error.empty()) mountCursor.appliedRoot = captureFabricFormDocument(*manager, identity.surfaceId).root;
+      return result;
+    }, [&] {
+      return state->captureMountEvents(ticket, manager, [&](const RawEvent &event) {
+        return isFieldInputMountEvent(*manager, ticket, event);
+      }, [&] {
+        @try { return mountFieldInputTransactions(*manager, ticket, mountCursor, [&] {
+          return std::string([self mountWitness].UTF8String);
+        }); }
+        @catch (NSException *error) { throw std::runtime_error(error.reason.UTF8String ?: "field-input-original-mount-threw"); }
+      });
     }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
     NSDictionary *after = [self capture];
     bool current = after && _epoch == identity.epoch && _window.isKeyWindow &&
@@ -424,9 +448,15 @@ BOOL CUIFieldInputOwnsView(UIView *view)
     folly::dynamic record = folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))
       ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
       ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
+      ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)
+      ("scopeCurrent", current)("before", snapshot)
       ("intrinsicDefaultCaptured", static_cast<bool>(intrinsic));
-    [_metadata emitFieldInputRecord:@(folly::toJson(record).c_str())];
-    return intrinsic || decision.disposition == FieldInputDisposition::Prevented;
+    if (after) {
+      NSData *bytes = [NSJSONSerialization dataWithJSONObject:after[@"fieldGroupSnapshot"] options:0 error:nil];
+      record["after"] = folly::parseJson([[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] UTF8String]);
+    } else record["after"] = nullptr;
+    [self recordEncoded:@(folly::toJson(record).c_str())];
+    return intrinsic || decision.originalDefaultPrevented;
   } catch (const std::exception &error) {
     [self record:@{@"kind":@"failure", @"error":@(error.what()), @"phase":phase}]; return NO;
   }

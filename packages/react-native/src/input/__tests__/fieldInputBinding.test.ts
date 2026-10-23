@@ -221,3 +221,20 @@ it("retains synchronous native method failures without granting or retrying an i
   expect(f.session.status()).toMatchObject({ ready: false, error: "original-native-module-threw" })
   expect(f.document.bindFieldInput).toHaveBeenCalledTimes(1)
 })
+
+it("retires old callback scopes while retaining the native watch over unchanged original roots", async () => {
+  const f = setup()
+  f.metadata.commit(mount())
+  await f.reply()
+  const next = Object.freeze({ ...f.original, bindingRevision: "new-callback-and-traits" }),
+    current = f.session.scope(next)
+  f.session.configure(next)
+  expect(f.scope.current()).toBe(false)
+  expect(current.current()).toBe(true)
+  expect(f.document.unbindFieldInput).not.toHaveBeenCalled()
+  f.session.metadataFor(next).commit(mount({ descriptorRevision: "value:2", mountRevision: "mount:2", sequence: 2 }))
+  expect(f.document.bindFieldInput).toHaveBeenCalledTimes(1)
+  f.session.configure({ ...next, outer: {} as View })
+  expect(current.current()).toBe(false)
+  expect(f.document.unbindFieldInput).toHaveBeenCalledTimes(1)
+})

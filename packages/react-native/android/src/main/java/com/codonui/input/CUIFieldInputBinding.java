@@ -29,6 +29,7 @@ final class CUIFieldInputBinding {
   private final HashSet<Integer> consumed = new HashSet<>();
   private static native String nativeDispatchFieldKey(FabricUIManager manager, CUIFieldInputBinding binding,
     String document, String snapshot, String key, String declarations, double epoch);
+  private static native void nativeRecordFieldInput(String lease, String encoded);
   private static native void nativeRetireBinding(String lease, String owner, String binding);
 
   CUIFieldInputBinding(CUIFormMetadataView metadata, FabricUIManager manager, Snapshot snapshot) {
@@ -68,10 +69,13 @@ final class CUIFieldInputBinding {
   }
   void refresh() { if (!closed && !capturing) capture(); }
   private void record(String kind, String error) {
-    CUIFormMetadataView metadata = this.metadata.get();
-    if (metadata == null) return;
-    try { metadata.emitFieldInputRecord(new JSONObject().put("kind", kind).put("error", error).toString()); }
+    try { emitRecord(new JSONObject().put("kind", kind).put("error", error).toString()); }
     catch (Exception ignored) { /* The original native failure remains the decision. */ }
+  }
+  private void emitRecord(String encoded) {
+    if (!lease.isEmpty()) nativeRecordFieldInput(lease, encoded);
+    CUIFormMetadataView original = metadata.get();
+    if (original != null) original.emitFieldInputRecord(encoded);
   }
   private void retirePending() {
     if (!lease.isEmpty() && !bindingId.isEmpty()) nativeRetireBinding(lease, ownerId, bindingId);
@@ -98,11 +102,10 @@ final class CUIFieldInputBinding {
     final JSONObject record;
     Decision(CUIFieldInputBinding owner, boolean prevented, JSONObject record) { this.owner = owner; this.prevented = prevented; this.record = record; }
     void finish(boolean invoked, boolean handled, String error) {
-      CUIFormMetadataView metadata = owner.metadata.get(); if (metadata == null) return;
       try {
         record.put("originalDefaultInvoked", invoked).put("originalDefaultReturned", invoked && error.isEmpty())
           .put("originalDispatchHandled", handled).put("originalDefaultError", error);
-        metadata.emitFieldInputRecord(record.toString());
+        owner.emitRecord(record.toString());
       }
       catch (Exception failure) { owner.record("failure", String.valueOf(failure.getMessage())); }
     }
@@ -147,8 +150,14 @@ final class CUIFieldInputBinding {
         .put("code", CUIPhysicalKey.code(event.getKeyCode())).put("location", CUIPhysicalKey.location(event.getKeyCode()));
       JSONObject record = new JSONObject(nativeDispatchFieldKey(manager, this, value.getString("encodedDocument"),
         value.getJSONObject("fieldGroupSnapshot").toString(), key.toString(), declarations.toString(), epoch));
-      return new Decision(this, intrinsic || "prevented".equals(record.getString("decision")), record);
+      return new Decision(this, intrinsic || record.getBoolean("originalDefaultPrevented"), record);
     } catch (Exception error) { record("failure", String.valueOf(error.getMessage())); return null; }
+  }
+  @DoNotStrip
+  String mountWitness() throws Exception {
+    CUIFormMetadataView original = metadata.get();
+    JSONObject mount = original == null ? null : original.formMountSnapshot();
+    return mount == null ? "unmounted" : mount.toString();
   }
   @DoNotStrip
   String currentSnapshot() throws Exception {
@@ -220,8 +229,7 @@ final class CUIFieldInputBinding {
       JSONObject response = new JSONObject().put("requested", true).put("observed", completed).put("current", current).put("target", target)
         .put("nativeInstance", expected.getString("nativeInstance")).put("editorInstance", expected.getString("editorInstance"))
         .put("error", completed ? "" : "field-input-original-focus-not-observed");
-      CUIFormMetadataView metadata = this.metadata.get();
-      if (metadata != null) metadata.emitFieldInputRecord(new JSONObject(response.toString()).put("kind", "focus")
+      emitRecord(new JSONObject(response.toString()).put("kind", "focus")
         .put("nativeCommandResult", commandResult).put("after", after == null ? JSONObject.NULL : after.getJSONObject("fieldGroupSnapshot")).toString());
       return response.toString();
     } catch (Exception error) {
