@@ -1,3 +1,160 @@
+diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
+index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..6daebcdf710dd4abf3a5b79cdb98835743e70e1f 100644
+--- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
++++ b/ReactCommon/react/renderer/core/EventDispatcher.cpp
+@@ -25,7 +25,10 @@ EventDispatcher::EventDispatcher(
+ 
+ void EventDispatcher::dispatchEvent(RawEvent&& rawEvent) const {
+   // Allows the event listener to interrupt default event dispatch
+-  if (eventListeners_.willDispatchEvent(rawEvent)) {
++  const bool handled = eventListeners_.willDispatchEvent(rawEvent);
++  // willDispatchEvent has released its shared lock before any bounded UI/JS
++  // service can add or remove listeners on this same dispatcher.
++  if (rawEvent.continueAfterListeners() || handled) {
+     return;
+   }
+ 
+@@ -49,7 +52,10 @@ void EventDispatcher::dispatchStateUpdate(
+ 
+ void EventDispatcher::dispatchUniqueEvent(RawEvent&& rawEvent) const {
+   // Allows the event listener to interrupt default event dispatch
+-  if (eventListeners_.willDispatchEvent(rawEvent)) {
++  const bool handled = eventListeners_.willDispatchEvent(rawEvent);
++  // willDispatchEvent has released its shared lock before any bounded UI/JS
++  // service can add or remove listeners on this same dispatcher.
++  if (rawEvent.continueAfterListeners() || handled) {
+     return;
+   }
+ 
+diff --git a/ReactCommon/react/renderer/core/EventListener.cpp b/ReactCommon/react/renderer/core/EventListener.cpp
+index a64e24fdff706a9d47e5a98b7b51435de2823d58..4172ea78c0a843a05ac444a03c9f6225838e5bd5 100644
+--- a/ReactCommon/react/renderer/core/EventListener.cpp
++++ b/ReactCommon/react/renderer/core/EventListener.cpp
+@@ -10,8 +10,17 @@
+ #include <mutex>
+ 
+ namespace facebook::react {
++namespace {
++thread_local unsigned int nativeEventListenerDepth = 0;
++}
++NativeEventListenerScope::NativeEventListenerScope() { nativeEventListenerDepth++; }
++NativeEventListenerScope::~NativeEventListenerScope() { nativeEventListenerDepth--; }
++bool NativeEventListenerScope::active() { return nativeEventListenerDepth != 0; }
++
+ 
+ bool EventListenerContainer::willDispatchEvent(const RawEvent& event) {
++  // Construct before the lock so destruction records its release first.
++  NativeEventListenerScope scope;
+   std::shared_lock lock(mutex_);
+ 
+   bool handled = false;
+diff --git a/ReactCommon/react/renderer/core/NativeEventContinuation.h b/ReactCommon/react/renderer/core/NativeEventContinuation.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..875d42b2b9c1acd72d033a9dc4349e36120b0807
+--- /dev/null
++++ b/ReactCommon/react/renderer/core/NativeEventContinuation.h
+@@ -0,0 +1,50 @@
++/*
++ * Copyright (c) Meta Platforms, Inc. and affiliates.
++ *
++ * This source code is licensed under the MIT license found in the
++ * LICENSE file in the root directory of this source tree.
++ */
++#pragma once
++
++#include <atomic>
++#include <functional>
++#include <stdexcept>
++#include <thread>
++#include <utility>
++
++namespace facebook::react {
++// Tracks SDK listener stacks on this thread, including a different manager.
++// It is a lock-safety guard, not an event admission or feature switch.
++class NativeEventListenerScope final {
++ public:
++  NativeEventListenerScope();
++  ~NativeEventListenerScope();
++  NativeEventListenerScope(const NativeEventListenerScope &) = delete;
++  NativeEventListenerScope &operator=(const NativeEventListenerScope &) = delete;
++  static bool active();
++};
++
++// Claimed on the original event stack, invoked only after the listener lock.
++// Callback completion is not a JS delivery, focus or native-default receipt.
++class NativeEventContinuation final {
++ public:
++  explicit NativeEventContinuation(std::function<void()> callback)
++      : thread_(std::this_thread::get_id()), callback_(std::move(callback)) {
++    if (!callback_) throw std::invalid_argument("native-event-continuation-required");
++  }
++  void run() {
++    if (NativeEventListenerScope::active())
++      throw std::runtime_error("native-event-continuation-listener-stack-active");
++    if (thread_ != std::this_thread::get_id())
++      throw std::runtime_error("native-event-continuation-wrong-thread");
++    bool expected = false;
++    if (!claimed_.compare_exchange_strong(expected, true)) return;
++    auto callback = std::move(callback_);
++    callback();
++  }
++ private:
++  const std::thread::id thread_;
++  std::atomic<bool> claimed_{false};
++  std::function<void()> callback_;
++};
++} // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/core/RawEvent.cpp b/ReactCommon/react/renderer/core/RawEvent.cpp
+index bced302982b13fb1e140c34173d7609b060974d5..1c7e57c90b4da3c766ed4ed3dcd5b2e003ebf234 100644
+--- a/ReactCommon/react/renderer/core/RawEvent.cpp
++++ b/ReactCommon/react/renderer/core/RawEvent.cpp
+@@ -25,4 +25,17 @@ RawEvent::RawEvent(
+       isUnique(isUnique),
+       eventStartTimeStamp(eventStartTimeStamp) {}
+ 
++bool RawEvent::deferAfterListeners(std::function<void()> callback) const {
++  if (nativeContinuation_) return false;
++  nativeContinuation_ = std::make_shared<NativeEventContinuation>(std::move(callback));
++  return true;
++}
++
++bool RawEvent::continueAfterListeners() {
++  const auto continuation = nativeContinuation_;
++  if (!continuation) return false;
++  continuation->run();
++  return true;
++}
++
+ } // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/core/RawEvent.h b/ReactCommon/react/renderer/core/RawEvent.h
+index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..821163e5962462e0a38be5d61db7d8a83e7146a2 100644
+--- a/ReactCommon/react/renderer/core/RawEvent.h
++++ b/ReactCommon/react/renderer/core/RawEvent.h
+@@ -8,6 +8,8 @@
+ #pragma once
+ 
+ #include <memory>
++#include <functional>
++#include <react/renderer/core/NativeEventContinuation.h>
+ #include <string>
+ 
+ #include <react/renderer/core/EventLogger.h>
+@@ -88,6 +90,15 @@ struct RawEvent {
+   // time if not specified by the client (e.g., when MotionEvent was triggered
+   // on the Android native side).
+   HighResTimeStamp eventStartTimeStamp;
++
++  // A listener may consume this original event and defer its first-delivery
++  // work until the dispatcher's listener lock is released. Copies retain the
++  // same once-only continuation; ordinary events allocate nothing here.
++  bool deferAfterListeners(std::function<void()> callback) const;
++  bool continueAfterListeners();
++
++ private:
++  mutable std::shared_ptr<NativeEventContinuation> nativeContinuation_;
+ };
+ 
+ } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/scheduler/Scheduler.cpp b/ReactCommon/react/renderer/scheduler/Scheduler.cpp
 index 7ea5fc3c782fe911bba2d566031a7ef7d11825c6..bef72b54697f8c8c055ac056eebf5d2d63ab39ef 100644
 --- a/ReactCommon/react/renderer/scheduler/Scheduler.cpp

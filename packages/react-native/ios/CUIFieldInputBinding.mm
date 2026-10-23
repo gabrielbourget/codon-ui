@@ -362,8 +362,9 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 {
   const auto manager = _manager.lock();
   if (!manager || !view.isFirstResponder) { emit(); return; }
-  const auto original = captureFieldOriginalInput(*manager, static_cast<int32_t>(view.tag), [&] { emit(); });
-  if (original) [self dispatch:nil phase:@"input" repeat:NO originalInput:&*original];
+  continueFieldOriginalInput(*manager, static_cast<int32_t>(view.tag), [&] { emit(); }, [&](const RawEvent &original) {
+    [self dispatch:nil phase:@"input" repeat:NO originalInput:&original];
+  });
 }
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
 {
