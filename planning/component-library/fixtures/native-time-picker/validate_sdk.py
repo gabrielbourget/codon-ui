@@ -53,7 +53,8 @@ def validate(rows, producer):
     assert any(row.get("hidden") is True and row["focused"] is None for row in snapshots), "Hidden owned editor stayed focused"
     assert any(row.get("hidden") is False and row["focused"] == "hour" and len(row["requests"]) == 6 for row in snapshots), "Original shown editor focus missing"
     final = snapshots[-1]
-    assert final["disabled"] and final["focused"] is None and final["scopeReady"] and len(final["requests"]) == 6
+    assert final["disabled"] and final["focused"] == "hour" and final["scopeReady"] and len(final["requests"]) == 6, "Disabled original focus was not retained"
+    assert any(row["disabled"] and row["data"]["kind"] == "status" and row["data"]["segmentId"] == "hour" and row["data"]["active"] and row["data"]["focused"] and row["data"]["target"] == targets["hour"] for row in native), "Original disabled SDK responder observation missing"
     assert len({row["coreTarget"] for row in snapshots if row["coreTarget"]}) == 1, "Independent core ref target changed"
     assert not any(row["kind"] == "core-change" for row in rows), "Independent core editor changed"
     return {"sdkInputPrerequisite": True, "nativePackets": len(native), "sourceRequests": len(requests), "capturedKeys": len(keys), "ownedInstances": instances, "realCompositionObserved": any(row["data"]["kind"] == "marked" for row in native), "fullIME": False, "fullInputSurface": False, "fullFamily": False, "fullGoal": False}

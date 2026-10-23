@@ -181,7 +181,12 @@ export const moveNativeFieldFocus = (
     settled.has(event) ||
     packet.phase === "cancel" ||
     !FOCUS_ACTIONS.includes(action.kind) ||
-    !packet.groups.some((group) => group.scopeTarget === action.groupTarget)
+    !packet.groups.some(
+      (group) =>
+        group.scopeTarget === action.groupTarget &&
+        group.bindingId === scope.bindingId &&
+        group.bindingRevision === scope.bindingRevision,
+    )
   )
     return null
   const result = object(JSON.parse(scope.native.moveFieldFocus(JSON.stringify({ ...request(packet), action }))))
@@ -259,3 +264,41 @@ export const receiveNativeFieldKey = (
   }
   return true
 }
+
+export const nativeFieldGroupKeyHandler =
+  (
+    scope: TNativeFieldInputScope,
+    props: Readonly<{
+      direction: "ltr" | "rtl"
+      onKeyDown?: (event: TNativeKeyboardEvent) => void
+      onKeyUp?: (event: TNativeKeyboardEvent) => void
+    }>,
+  ) =>
+  (event: TNativeFieldKeyEvent, target: number) =>
+    receiveNativeFieldKey(scope, event, {
+      target,
+      group: true,
+      run: () => {
+        const data = event.nativeEvent
+        if (data.phase === "down" && !data.cancelled && (data.key === "ArrowLeft" || data.key === "ArrowRight")) {
+          event.preventDefault()
+          event.stopPropagation()
+          const group = packetFor(event).groups.find((candidate) => candidate.target === target)!
+          moveNativeFieldFocus(scope, event, {
+            groupTarget: group.scopeTarget,
+            kind:
+              props.direction === "rtl"
+                ? data.key === "ArrowLeft"
+                  ? "physical-left"
+                  : "physical-right"
+                : data.key === "ArrowLeft"
+                  ? "previous"
+                  : "next",
+          })
+        }
+        if (isNativeFieldInputCurrent(scope, event)) {
+          const callback = data.phase === "down" ? props.onKeyDown : props.onKeyUp
+          callback?.(event)
+        }
+      },
+    })

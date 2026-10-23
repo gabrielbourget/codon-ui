@@ -105,7 +105,7 @@ final class TimeEntryTrialTests: XCTestCase {
     hour.tap()
     try snapshot("shown-original-editor-refocused") { ($0["hidden"] as? Bool) == false && $0["focused"] as? String == "hour" }
     element("time-sdk-disabled").tap()
-    try snapshot("disabled-owned-editor-retired") { ($0["disabled"] as? Bool) == true && $0["focused"] as? String == nil && ($0["scopeReady"] as? Bool) == true }
+    try snapshot("disabled-original-editor-focus-retained") { ($0["disabled"] as? Bool) == true && $0["focused"] as? String == "hour" && ($0["scopeReady"] as? Bool) == true }
     XCTAssertEqual(element("time-sdk-existing-core").value as? String, originalCoreValue)
   }
 }

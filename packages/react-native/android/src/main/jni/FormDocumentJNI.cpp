@@ -99,12 +99,19 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
   const auto state = fieldInputRuntime(binding.moduleLease);
   if (!state || !state->ready()) throw std::invalid_argument("field-input-runtime-unavailable");
   std::vector<TFieldInputBinding> registered;
-  for (const auto &entry : folly::parseJson(declarations->toStdString())) registered.push_back(decodeFieldInputBinding(folly::toJson(entry)));
+  std::vector<FieldInputIdentity> scopes;
+  for (const auto &entry : folly::parseJson(declarations->toStdString())) {
+    const auto scopeDocument = folly::parseJson(entry.at("encodedDocument").asString());
+    const auto scopeBinding = fieldInputBinding(scopeDocument);
+    if (scopeBinding.moduleLease != binding.moduleLease) throw std::invalid_argument("field-input-original-scope-module-retired");
+    registered.push_back(scopeBinding);
+    scopes.push_back(fieldInputIdentity(scopeDocument, entry.at("snapshot"), scopeBinding, target, fieldInputInteger(entry.at("epoch"))));
+  }
   const auto groups = orderedFieldInputGroups(document, registered, target);
   const auto identity = fieldInputIdentity(document, snapshot, binding, target, fieldInputInteger(folly::dynamic(epoch)));
   const auto eventId = fieldInputInteger(key.at("eventId"));
   const auto phase = key.at("cancelled").asBool() ? "cancel" : key.at("phase").asString();
-  const auto ticket = state->frames.begin(identity, eventId, phase, std::chrono::milliseconds(1000));
+  const auto ticket = state->frames.begin(identity, eventId, phase, std::chrono::milliseconds(1000), std::move(scopes));
   if (!ticket) throw std::invalid_argument("field-input-original-frame-retired");
   FieldInputFrameLifetime lifetime(state->frames, ticket);
   key["fieldDispatch"] = folly::toJson(fieldInputPacket(ticket, binding, groups));
@@ -118,19 +125,24 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
     });
   const auto waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
-    static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>()>("currentSnapshot");
+    static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
     static const auto focus = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jstring)>("focus");
-    const auto value = folly::parseJson(read(owner)->toStdString());
+    const auto expectedScope = ticket->scopeFor(action.groupTarget);
+    if (!expectedScope) throw std::invalid_argument("field-input-focus-scope-not-admitted");
+    const auto value = folly::parseJson(read(owner, action.groupTarget)->toStdString());
     const auto currentDocument = folly::parseJson(value.at("encodedDocument").asString());
     const auto &currentSnapshot = value.at("fieldGroupSnapshot");
+    if (!fieldInputScopeCurrent(*expectedScope, currentDocument, currentSnapshot, fieldInputInteger(value.at("scopeEpoch"))))
+      throw std::invalid_argument("field-input-focus-scope-retired");
     const auto selected = fieldInputFocusTarget(currentDocument, currentSnapshot, action);
     FieldInputFocusResult result;
     if (!selected) { result.current = true; return result; }
     const auto row = fieldInputOriginal(currentSnapshot, selected);
     std::unordered_set<int32_t> members;
     for (const auto &node : currentDocument.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
-    members.insert(binding.outerTarget);
-    const auto request = folly::toJson(folly::dynamic::object("target", selected)("original", row)("epoch", identity.epoch));
+    members.insert(action.groupTarget);
+    const auto request = folly::toJson(folly::dynamic::object("target", selected)("original", row)
+      ("epoch", expectedScope->epoch)("scopeTarget", action.groupTarget));
     return state->captureFocusEvents(ticket, manager, [&](const RawEvent &event) {
       const auto family = event.shadowNodeFamily.lock();
       return family && family->getSurfaceId() == identity.surfaceId && members.contains(family->getTag()) && event.type != "topNativeFieldKey";
@@ -148,6 +160,12 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
     const auto afterBinding = fieldInputBinding(afterDocument);
     current = afterBinding.bindingId == binding.bindingId && afterBinding.bindingRevision == binding.bindingRevision &&
       afterBinding.moduleLease == binding.moduleLease && value.at("fieldGroupSnapshot").at("windowId") == identity.windowId;
+    static const auto readScope = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
+    for (const auto &scope : ticket->scopes) {
+      const auto scoped = folly::parseJson(readScope(owner, scope.outerTarget)->toStdString());
+      current = current && fieldInputScopeCurrent(scope, folly::parseJson(scoped.at("encodedDocument").asString()),
+        scoped.at("fieldGroupSnapshot"), fieldInputInteger(scoped.at("scopeEpoch")));
+    }
   } catch (const std::exception &) { current = false; }
   const auto decision = state->frames.end(ticket, current);
   return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))

@@ -171,6 +171,59 @@ int main() {
   check(!frames.accepts(replacedBinding->token, identity, 24, "down"));
   check(frames.end(replacedBinding, true).disposition == FieldInputDisposition::Retired);
 
+  auto parent = identity;
+  parent.ownerId = "parent"; parent.bindingId = "parent-binding"; parent.bindingRevision = "parent-revision";
+  parent.metadataTarget = 25; parent.outerTarget = 20; parent.inputTarget = 21;
+  parent.outerInstance = "outer:20"; parent.inputInstance = "input:21"; parent.epoch = 8;
+  auto nested = frames.begin(identity, 30, "down", 1000ms, {identity, parent});
+  check(nested && nested->scopeFor(20) && *nested->scopeFor(20) == parent && !nested->scopeFor(99));
+  check(frames.startDelivery(nested));
+  auto ancestorAction = std::async(std::launch::async, [&] {
+    const auto actual = frames.requestFocus(nested->token, identity, 30, "down", {20, "previous"});
+    frames.acknowledge(nested->token, identity, 30, "down", true, true, {});
+    frames.finishDelivery(nested, false);
+    return actual;
+  });
+  check(frames.wait(nested, [&](const FieldInputFocusAction &action) {
+    check(action.groupTarget == 20 && action.kind == "previous");
+    return FieldInputFocusResult{true, true, true, 19, "component:19", "editor:19", ""};
+  }).disposition == FieldInputDisposition::Prevented);
+  check(ancestorAction.get().target == 19);
+  check(frames.end(nested, true).disposition == FieldInputDisposition::Prevented);
+
+  auto parentRetired = frames.begin(identity, 31, "down", 1000ms, {identity, parent});
+  check(frames.startDelivery(parentRetired));
+  frames.retireBinding("foreign", parent.bindingId);
+  check(frames.accepts(parentRetired->token, identity, 31, "down"));
+  frames.retireBinding(parent.ownerId, parent.bindingId);
+  check(!frames.accepts(parentRetired->token, identity, 31, "down"));
+  check(frames.end(parentRetired, true).disposition == FieldInputDisposition::Retired);
+
+  auto committedValue = parent; committedValue.documentRevision = "8"; committedValue.mountRevision = "mount:8";
+  check(committedValue.sameScope(parent));
+  for (auto member : {&FieldInputIdentity::ownerId, &FieldInputIdentity::bindingId, &FieldInputIdentity::bindingRevision,
+      &FieldInputIdentity::documentId, &FieldInputIdentity::windowId, &FieldInputIdentity::outerInstance,
+      &FieldInputIdentity::inputInstance, &FieldInputIdentity::nativeInstance, &FieldInputIdentity::editorInstance}) {
+    auto changed = parent; changed.*member = "replacement";
+    check(!changed.sameScope(parent));
+  }
+  for (auto member : {&FieldInputIdentity::metadataTarget, &FieldInputIdentity::outerTarget, &FieldInputIdentity::inputTarget,
+      &FieldInputIdentity::surfaceId, &FieldInputIdentity::target}) {
+    auto changed = parent; changed.*member += 100;
+    check(!changed.sameScope(parent));
+  }
+  auto epochChanged = parent; epochChanged.epoch++;
+  check(!epochChanged.sameScope(parent));
+  for (auto member : {&FieldInputIdentity::documentId, &FieldInputIdentity::documentRevision, &FieldInputIdentity::windowId,
+      &FieldInputIdentity::nativeInstance, &FieldInputIdentity::editorInstance}) {
+    auto changed = parent; changed.*member = "foreign";
+    check(!frames.begin(identity, 32, "down", 1000ms, {identity, changed}));
+  }
+  auto reusedRoot = parent; reusedRoot.outerTarget = identity.inputTarget;
+  check(!frames.begin(identity, 32, "down", 1000ms, {identity, reusedRoot}));
+  check(!frames.begin(identity, 32, "down", 1000ms, {parent}));
+  check(!frames.begin(identity, 32, "down", 1000ms, {identity, parent, parent}));
+
   auto retiring = frames.begin(identity, 12, "down", 1000ms);
   auto retirement = std::async(std::launch::async, [&] { return frames.wait(retiring); });
   frames.retire();

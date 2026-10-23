@@ -116,7 +116,8 @@ final class CUIFieldInputBinding {
       JSONObject value = binding.capture(); View outer = binding.outer.get();
       if (value == null || outer == null || outer.getRootView() != window.getRootView() || !descendant(focused, outer)) continue;
       try {
-        declarations.put(new JSONObject(binding.metadata.get().fieldGroupBinding));
+        declarations.put(new JSONObject().put("encodedDocument", value.getString("encodedDocument"))
+          .put("snapshot", value.getJSONObject("fieldGroupSnapshot")).put("epoch", binding.epoch));
         if (selected != null && selected.outer.get() == outer) return null;
         if (selected == null || descendant(outer, selected.outer.get())) selected = binding;
       } catch (Exception error) { binding.record("failure", String.valueOf(error.getMessage())); }
@@ -155,10 +156,34 @@ final class CUIFieldInputBinding {
     if (value == null) throw new IllegalStateException("field-input-current-snapshot-retired");
     return value.toString();
   }
+  private CUIFieldInputBinding scopeOwner(int target) throws Exception {
+    View originalOuter = outer.get();
+    CUIFieldInputBinding found = null;
+    for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
+      View root = binding.outer.get();
+      if (binding.closed || root == null || originalOuter == null || root.getId() != target ||
+          root.getRootView() != originalOuter.getRootView() || !binding.lease.equals(lease)) continue;
+      if (found != null) throw new IllegalStateException("field-input-original-group-ambiguous");
+      found = binding;
+    }
+    if (found == null) throw new IllegalStateException("field-input-original-scope-retired");
+    return found;
+  }
   @DoNotStrip
-  String focus(String encoded) {
+  String currentScopeSnapshot(int target) throws Exception {
+    CUIFieldInputBinding selected = scopeOwner(target);
+    JSONObject value = selected.capture();
+    if (value == null) throw new IllegalStateException("field-input-current-scope-retired");
+    return value.put("scopeEpoch", selected.epoch).toString();
+  }
+  @DoNotStrip
+  String focus(String encoded) throws Exception {
+    JSONObject request = new JSONObject(encoded);
+    return scopeOwner(request.getInt("scopeTarget")).focusOriginal(request);
+  }
+  private String focusOriginal(JSONObject request) {
     try {
-      JSONObject request = new JSONObject(encoded), value = capture();
+      JSONObject value = capture();
       FabricUIManager manager = this.manager.get();
       if (value == null || manager == null || request.getLong("epoch") != epoch) throw new IllegalStateException("field-input-focus-binding-retired");
       int target = request.getInt("target");

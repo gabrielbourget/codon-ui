@@ -246,15 +246,28 @@ BOOL CUIFieldInputOwnsView(UIView *view)
   if (previous != window) { _window = window; _epoch++; [self retirePending]; }
   CUIRefreshFieldInputWindow(previous); CUIRefreshFieldInputWindow(window);
 }
+- (BOOL)currentScope:(const FieldInputIdentity &)expected
+{
+  NSDictionary *value = [self capture];
+  if (!value || expected.epoch != _epoch) return NO;
+  const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
+  NSData *bytes = [NSJSONSerialization dataWithJSONObject:value[@"fieldGroupSnapshot"] options:0 error:nil];
+  const auto snapshot = folly::parseJson([[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] UTF8String]);
+  return fieldInputScopeCurrent(expected, document, snapshot, _epoch);
+}
 - (FieldInputFocusResult)focus:(const FieldInputFocusAction &)action state:(const std::shared_ptr<FieldInputRuntime> &)state
                        ticket:(const FieldInputDispatchFrames::Handle &)ticket
 {
   FieldInputFocusResult result;
+  const auto scope = ticket->scopeFor(action.groupTarget);
   NSDictionary *value = [self capture];
-  if (!value || ticket->identity.epoch != _epoch) { result.error = "field-input-focus-binding-retired"; return result; }
+  if (!value || !scope || scope->epoch != _epoch) { result.error = "field-input-focus-binding-retired"; return result; }
   const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
   NSData *snapshotBytes = [NSJSONSerialization dataWithJSONObject:value[@"fieldGroupSnapshot"] options:0 error:nil];
   const auto snapshot = folly::parseJson([[[NSString alloc] initWithData:snapshotBytes encoding:NSUTF8StringEncoding] UTF8String]);
+  if (!fieldInputScopeCurrent(*scope, document, snapshot, _epoch) || fieldInputBinding(document).moduleLease != _lease.UTF8String) {
+    result.error = "field-input-focus-scope-retired"; return result;
+  }
   const auto target = fieldInputFocusTarget(document, snapshot, action);
   if (!target) { result.current = true; return result; }
   const auto row = fieldInputOriginal(snapshot, target);
@@ -307,7 +320,7 @@ BOOL CUIFieldInputOwnsView(UIView *view)
       NSDictionary *after = [self capture];
       NSDictionary *actual = nil;
       for (NSDictionary *entry in after[@"fieldGroupSnapshot"][@"originals"]) if ([entry[@"target"] integerValue] == target) actual = entry;
-      focus.current = after && ticket->identity.epoch == _epoch &&
+      focus.current = after && [self currentScope:*scope] &&
         [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target] == component &&
         [actual[@"nativeInstance"] isEqual:@(row.at("nativeInstance").asString().c_str())] &&
         [actual[@"editorInstance"] isEqual:@(row.at("editorInstance").asString().c_str())];
@@ -334,25 +347,37 @@ BOOL CUIFieldInputOwnsView(UIView *view)
     const auto snapshot = folly::parseJson([[[NSString alloc] initWithData:snapshotBytes encoding:NSUTF8StringEncoding] UTF8String]);
     const auto binding = fieldInputBinding(document);
     const auto target = static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
-    if (!target) return NO;
+    if (!target) throw std::invalid_argument("field-input-original-focus-retired");
     auto fabric = captureFabricFormDocument(*manager, static_cast<int32_t>(document.at("surfaceId").asInt()));
-    if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target)) return NO;
+    if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
+      throw std::invalid_argument("field-input-original-document-retired");
     const auto original = fabric.preorder[fabric.positions.at(target)].node;
     const auto state = fieldInputRuntime(binding.moduleLease);
-    if (!state || !state->ready()) return NO;
+    if (!state || !state->ready()) throw std::invalid_argument("field-input-runtime-retired");
     std::vector<TFieldInputBinding> bindings;
+    std::vector<FieldInputIdentity> scopes;
+    NSMutableDictionary<NSNumber *, CUIFieldInputBinding *> *scopeOwners = [NSMutableDictionary new];
     for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
       NSDictionary *current = [entry capture];
-      if (current && [entry outerRoot].window == _window) {
-        const auto field = fieldInputBinding(folly::parseJson([current[@"encodedDocument"] UTF8String]));
-        if (field.moduleLease == binding.moduleLease) bindings.push_back(field);
+      UIView *root = [entry outerRoot];
+      UIView *source = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target];
+      if (current && root.window == _window && [source isDescendantOfView:root]) {
+        const auto currentDocument = folly::parseJson([current[@"encodedDocument"] UTF8String]);
+        const auto field = fieldInputBinding(currentDocument);
+        if (field.moduleLease != binding.moduleLease) continue;
+        NSData *bytes = [NSJSONSerialization dataWithJSONObject:current[@"fieldGroupSnapshot"] options:0 error:nil];
+        const auto currentSnapshot = folly::parseJson([[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] UTF8String]);
+        bindings.push_back(field);
+        scopes.push_back(fieldInputIdentity(currentDocument, currentSnapshot, field, target, entry->_epoch));
+        if (scopeOwners[@(field.outerTarget)]) throw std::invalid_argument("field-input-original-group-ambiguous");
+        scopeOwners[@(field.outerTarget)] = entry;
       }
     }
     const auto groups = orderedFieldInputGroups(document, bindings, target);
     const auto identity = fieldInputIdentity(document, snapshot, binding, target, _epoch);
     const auto eventId = ++_eventId;
-    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(1000));
-    if (!ticket) return NO;
+    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(1000), std::move(scopes));
+    if (!ticket) throw std::invalid_argument("field-input-original-scope-frame-retired");
     FieldInputFrameLifetime lifetime(state->frames, ticket);
     UIKey *key = press.key; const auto flags = key.modifierFlags;
     const BOOL down = [phase isEqual:@"down"], cancel = [phase isEqual:@"cancel"];
@@ -384,11 +409,17 @@ BOOL CUIFieldInputOwnsView(UIView *view)
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
       });
     FieldInputDecision waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
-      return [self focus:action state:state ticket:ticket];
+      CUIFieldInputBinding *owner = scopeOwners[@(action.groupTarget)];
+      if (!owner) { FieldInputFocusResult failure; failure.error = "field-input-original-scope-retired"; return failure; }
+      return [owner focus:action state:state ticket:ticket];
     }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
     NSDictionary *after = [self capture];
-    const bool current = after && _epoch == identity.epoch && _window.isKeyWindow &&
+    bool current = after && _epoch == identity.epoch && _window.isKeyWindow &&
       [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target] == component;
+    for (const auto &scope : ticket->scopes) {
+      CUIFieldInputBinding *owner = scopeOwners[@(scope.outerTarget)];
+      current = current && owner && [owner currentScope:scope];
+    }
     const auto decision = state->frames.end(ticket, current);
     folly::dynamic record = folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))
       ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))

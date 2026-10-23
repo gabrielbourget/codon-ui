@@ -9,6 +9,8 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <algorithm>
+#include <unordered_set>
 
 namespace codon {
 struct FieldInputIdentity {
@@ -25,6 +27,14 @@ struct FieldInputIdentity {
         &mountRevision, &outerInstance, &inputInstance, &nativeInstance, &editorInstance})
       if (value->empty()) return false;
     return true;
+  }
+  bool sameScope(const FieldInputIdentity &other) const {
+    // Value/focus commits may advance the document/mount receipt while the
+    // original owner, complete binding and actual native objects remain live.
+    auto left = *this, right = other;
+    left.documentRevision.clear(); right.documentRevision.clear();
+    left.mountRevision.clear(); right.mountRevision.clear();
+    return left == right;
   }
 };
 struct FieldInputFocusAction {
@@ -57,6 +67,11 @@ class FieldInputDispatchFrames final {
     const int64_t eventId;
     const std::string phase;
     const Clock::time_point deadline;
+    const std::vector<FieldInputIdentity> scopes;
+    const FieldInputIdentity *scopeFor(int32_t outerTarget) const {
+      const auto found = std::find_if(scopes.begin(), scopes.end(), [&](const auto &scope) { return scope.outerTarget == outerTarget; });
+      return found == scopes.end() ? nullptr : &*found;
+    }
    private:
     friend class FieldInputDispatchFrames;
     bool started{false}, returned{false}, acknowledged{false}, current{false}, prevented{false};
@@ -67,19 +82,32 @@ class FieldInputDispatchFrames final {
     bool focusRunning{false};
     std::optional<FieldInputFocusAction> pendingFocus;
     std::optional<FieldInputFocusResult> focusResult;
-    Ticket(uint64_t serial, FieldInputIdentity value, int64_t event, std::string stage, Clock::time_point end)
-        : token(serial), identity(std::move(value)), eventId(event), phase(std::move(stage)), deadline(end) {}
+    Ticket(uint64_t serial, FieldInputIdentity value, int64_t event, std::string stage, Clock::time_point end,
+        std::vector<FieldInputIdentity> admitted)
+        : token(serial), identity(std::move(value)), eventId(event), phase(std::move(stage)), deadline(end), scopes(std::move(admitted)) {}
   };
   using Handle = std::shared_ptr<Ticket>;
 
   Handle begin(const FieldInputIdentity &identity, int64_t eventId, const std::string &phase,
-      std::chrono::milliseconds timeout) {
+      std::chrono::milliseconds timeout, std::vector<FieldInputIdentity> scopes = {}) {
     std::lock_guard lock(mutex_);
     if (!live_ || serial_ >= 9007199254740991ULL || !identity.valid() || eventId <= 0 || eventId > 9007199254740991LL ||
         (phase != "down" && phase != "up" && phase != "cancel" && phase != "pointer-start" &&
           phase != "pointer-end" && phase != "pointer-cancel") || timeout.count() <= 0 || timeout.count() > 1000)
       return nullptr;
-    auto ticket = Handle(new Ticket(++serial_, identity, eventId, phase, Clock::now() + timeout));
+    if (scopes.empty()) scopes.push_back(identity);
+    bool hasOriginal = false;
+    std::unordered_set<int32_t> roots, metadata;
+    for (const auto &scope : scopes) {
+      if (!scope.valid() || scope.surfaceId != identity.surfaceId || scope.target != identity.target ||
+          scope.documentId != identity.documentId || scope.documentRevision != identity.documentRevision ||
+          scope.windowId != identity.windowId || scope.nativeInstance != identity.nativeInstance ||
+          scope.editorInstance != identity.editorInstance || !metadata.insert(scope.metadataTarget).second ||
+          !roots.insert(scope.outerTarget).second || !roots.insert(scope.inputTarget).second) return nullptr;
+      hasOriginal |= scope == identity;
+    }
+    if (!hasOriginal) return nullptr;
+    auto ticket = Handle(new Ticket(++serial_, identity, eventId, phase, Clock::now() + timeout, std::move(scopes)));
     frames_.push_back(ticket);
     return ticket;
   }
@@ -98,7 +126,7 @@ class FieldInputDispatchFrames final {
         ticket->identity != identity || ticket->eventId != eventId || ticket->phase != phase ||
         Clock::now() >= ticket->deadline) return false;
     const bool cancel = phase == "cancel" || phase == "pointer-cancel";
-    if (focus && (cancel || (focus->groupTarget != identity.outerTarget && focus->groupTarget != identity.inputTarget) ||
+    if (focus && (cancel || !ticket->scopeFor(focus->groupTarget) ||
         (focus->kind != "first" && focus->kind != "next" && focus->kind != "previous" &&
           focus->kind != "physical-left" && focus->kind != "physical-right" && focus->kind != "press"))) return false;
     ticket->acknowledged = true;
@@ -125,7 +153,7 @@ class FieldInputDispatchFrames final {
         ticket->phase != phase || !ticket->started || ticket->returned || ticket->acknowledged ||
         ticket->pendingFocus || ticket->focusRunning || Clock::now() >= ticket->deadline ||
         phase == "cancel" || phase == "pointer-cancel" ||
-        (action.groupTarget != identity.outerTarget && action.groupTarget != identity.inputTarget) ||
+        !ticket->scopeFor(action.groupTarget) ||
         (action.kind != "first" && action.kind != "next" && action.kind != "previous" &&
           action.kind != "physical-left" && action.kind != "physical-right" && action.kind != "press"))
       return failure("field-input-focus-request-retired");
@@ -218,7 +246,9 @@ class FieldInputDispatchFrames final {
   }
   void retireBinding(const std::string &owner, const std::string &binding) {
     std::lock_guard lock(mutex_);
-    for (const auto &ticket : frames_) if (ticket->identity.ownerId == owner && ticket->identity.bindingId == binding) {
+    for (const auto &ticket : frames_) if (std::any_of(ticket->scopes.begin(), ticket->scopes.end(), [&](const auto &scope) {
+      return scope.ownerId == owner && scope.bindingId == binding;
+    })) {
       ticket->retired = true; ticket->focus.reset(); ticket->pendingFocus.reset();
     }
     condition_.notify_all();
