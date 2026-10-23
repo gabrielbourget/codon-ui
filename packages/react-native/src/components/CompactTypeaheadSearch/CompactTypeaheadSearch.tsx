@@ -345,7 +345,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
   }, [scope, host.layers, overlays, props.isDisabled, props.isReadOnly, floatingScope, windowActive, retire])
   const requestOpen = (next: boolean) => {
     const owner = current.current
-    if (!canAct()) return
+    if (!live.current) return
     if (
       owner.status &&
       owner.props.inputValue !== undefined &&
@@ -358,14 +358,14 @@ const CompactTypeaheadSearchInner = <T extends object>(
     owner.props.onOpenChange?.(next)
   }
   const changeQuery = (value: string) => {
-    if (!canAct() || current.current.props.isReadOnly) return
+    if (!live.current) return
     if (current.current.props.inputValue === undefined) setLocalQuery(value)
     if (current.current.props.isOpen === undefined) setLocalOpen(true)
     setSuppressed(false)
     current.current.props.onInputChange?.(value)
   }
   const changeSelection = (key: string | number | null) => {
-    if (!canAct() || current.current.props.isReadOnly) return
+    if (!live.current) return
     if (key !== null) {
       setSuppressed(true)
       if (current.current.props.isOpen === undefined) setLocalOpen(false)

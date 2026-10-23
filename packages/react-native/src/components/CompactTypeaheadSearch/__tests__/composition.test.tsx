@@ -53,6 +53,47 @@ const wrap = (child: ReactNode) => (
   </NativeThemeProvider>
 )
 
+it.each(["isDisabled", "isReadOnly"] as const)("preserves programmatic state requests under %s", async (guard) => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return null
+  }
+  const onInputChange = jest.fn(),
+    onChange = jest.fn(),
+    onOpenChange = jest.fn(),
+    editor = createRef<TextInput>()
+  await render(
+    wrap(
+      <CompactTypeaheadSearch
+        items={items}
+        accessibilityLabel="Query"
+        {...{ [guard]: true }}
+        value={null}
+        inputValue="held"
+        inputRef={editor}
+        onInputChange={onInputChange}
+        onChange={onChange}
+        onOpenChange={onOpenChange}
+        SearchIcon={<Capture />}
+      />,
+    ),
+  )
+  const original = editor.current!
+  const write = jest.spyOn(original, "setNativeProps")
+  await act(() => {
+    state!.setInputValue("programmatic")
+    state!.setValue(0)
+    state!.open(null, "manual")
+  })
+  expect(onInputChange).toHaveBeenCalledWith("programmatic")
+  expect(onChange).toHaveBeenCalledWith(0)
+  expect(onOpenChange).toHaveBeenCalledWith(true)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+  expect(editor.current).toBe(original)
+  expect(write).not.toHaveBeenCalled()
+})
+
 it("inherits named/default/null root contexts while retaining the caller's actual root ref and compact style defaults", async () => {
   const contextRef = createRef<View>(),
     callerRef = createRef<View>()

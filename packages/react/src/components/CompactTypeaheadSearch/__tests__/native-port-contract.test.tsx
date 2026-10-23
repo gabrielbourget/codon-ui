@@ -1,5 +1,7 @@
-import { render, screen, waitFor } from "@testing-library/react"
+import { act, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { useContext, type ContextType } from "react"
+import { ComboBoxStateContext } from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
 
 import CompactTypeaheadSearch from "../CompactTypeaheadSearch"
@@ -10,6 +12,37 @@ const items = [
 ]
 const base = { "aria-label": "Search", items, getItemKey: (item: (typeof items)[number]) => item.id }
 describe("native port ownership oracle", () => {
+  it.each(["isDisabled", "isReadOnly"] as const)("preserves programmatic state requests under %s", async (guard) => {
+    let state: ContextType<typeof ComboBoxStateContext> = null
+    const Capture = () => {
+      state = useContext(ComboBoxStateContext)
+      return null
+    }
+    const onInputChange = vi.fn(),
+      onChange = vi.fn(),
+      onOpenChange = vi.fn()
+    render(
+      <CompactTypeaheadSearch
+        {...base}
+        {...{ [guard]: true }}
+        value={null}
+        inputValue="held"
+        onInputChange={onInputChange}
+        onChange={onChange}
+        onOpenChange={onOpenChange}
+        SearchIcon={<Capture />}
+      />,
+    )
+    await act(() => {
+      state!.setInputValue("programmatic")
+      state!.setValue(0)
+      state!.open(null, "manual")
+    })
+    expect(onInputChange).toHaveBeenCalledWith("programmatic")
+    expect(onChange).toHaveBeenCalledWith(0)
+    expect(onOpenChange).toHaveBeenCalledWith(true)
+    expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("held")
+  })
   it.each([false, true])(
     "retains a consumed iterable with query-keyed item caching, query change=%s",
     async (changeQuery) => {
