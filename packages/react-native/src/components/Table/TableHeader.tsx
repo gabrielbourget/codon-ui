@@ -15,11 +15,13 @@ import { QueryGlyph } from "../SortAndFilterPanel/glyphs"
 import { Text } from "../Text/Text"
 
 import { NativeTableCellContext, NativeTableOptionsContext, useNativeTable } from "./context"
+import { TableFilterGlyph } from "./filterGlyphs"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { getNativeTableColumns } from "./rendering"
 import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { computeNextNativeTableSorts } from "./sorting"
 import { TableColumn } from "./TableCell"
+import { TableFilterPopover } from "./TableFilterPopover"
 import type { TNativeTableHeaderProps, TNativeTableHeaderComponent, TNativeTableColumnMetadata } from "./types"
 import { useTableAction } from "./useTableAction"
 
@@ -35,6 +37,83 @@ const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> 
   const content = useNativeContentContext()
   const sorting = table.queryControls?.sorting
   const sortable = !!sorting && !!column.sort?.enabled
+  const filtering = table.queryControls?.filtering
+  const mode = filtering?.mode ?? (filtering?.onFilterIconPress ? "external" : undefined)
+  const filterable =
+    !!column.filter?.enabled &&
+    !column.headerVisuallyHidden &&
+    ((mode === "external" && !!filtering?.onFilterIconPress) || (mode === "popover" && !!filtering?.onFiltersChange))
+  const group = filterable
+    ? filtering?.activeFilters.find((item) => item.criteriaID === column.filter!.criteriaID)
+    : undefined
+  const filterActive = !!group?.clauses.length
+  const filterColor = filterActive ? theme.colors.controlSelectedBackground : theme.colors.controlForeground
+  const filterIcon = (filterActive ? filtering?.icons?.active : filtering?.icons?.inactive) ?? (
+    <TableFilterGlyph active={filterActive} color={filterColor} />
+  )
+  const filter = !filterable ? null : mode === "popover" && filtering?.onFiltersChange ? (
+    <TableFilterPopover
+      column={column}
+      filterGroup={group}
+      activeFilters={filtering.activeFilters}
+      onFiltersChange={filtering.onFiltersChange}
+      isFilterActive={filterActive}
+      activeFilterIcon={
+        filtering.icons?.active ?? <TableFilterGlyph active color={theme.colors.controlSelectedBackground} />
+      }
+      inactiveFilterIcon={
+        filtering.icons?.inactive ?? <TableFilterGlyph active={false} color={theme.colors.controlForeground} />
+      }
+      labels={table.filteringLabels}
+      requestOpen={(run) => {
+        action.request(() => run())
+      }}
+    />
+  ) : (
+    <NativeButton
+      accessibilityLabel={table.filteringLabels.popover.triggerButtonAriaLabel({
+        criteriaName: column.name ?? column.id,
+      })}
+      accessibilityState={{ checked: filterActive }}
+      nativeStyle={(flags, visible) => ({
+        viewStyle: {
+          padding: 2,
+          borderWidth: 0,
+          borderRadius: 3,
+          backgroundColor: "transparent",
+          alignItems: "center",
+          justifyContent: "center",
+          flexShrink: 0,
+          ...(flags.isFocused && visible
+            ? { outlineWidth: 2, outlineOffset: 1, outlineColor: theme.colors.focusRing }
+            : {}),
+        },
+        textStyle: {},
+        foregroundColor: filterColor,
+        target: 0,
+      })}
+      onPress={() =>
+        action.request((next) => {
+          const controls = next.queryControls?.filtering
+          const metadata = currentColumn.current
+          if (
+            !metadata.filter?.enabled ||
+            metadata.headerVisuallyHidden ||
+            !controls?.onFilterIconPress ||
+            (controls.mode !== undefined && controls.mode !== "external")
+          )
+            return
+          controls.onFilterIconPress({
+            columnID: metadata.id,
+            columnName: metadata.name ?? metadata.id,
+            filterGroup: controls.activeFilters.find((item) => item.criteriaID === metadata.filter!.criteriaID),
+          })
+        })
+      }
+    >
+      {getNativeButtonContent(filterIcon, { color: filterColor })}
+    </NativeButton>
+  )
   const direction = sortable
     ? sorting.activeSorts.find((sort) => sort.criteriaID === column.sort!.criteriaID)?.sortDirection
     : undefined
@@ -52,7 +131,7 @@ const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> 
       {column.name ?? ""}
     </Text>
   )
-  if (!sortable) return name
+  if (!sortable && !filterable) return name
   const ascending = direction === TABLE_SORT_DIRECTION__ASCENDING
   const color = theme.colors.controlSelectedBackground
   return (
@@ -71,39 +150,44 @@ const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> 
               : "flex-start",
       }}
     >
-      <NativeButton
-        accessibilityLabel={column.name ?? ""}
-        onPress={() =>
-          action.request((next) => {
-            const owner = next.queryControls?.sorting
-            const metadata = currentColumn.current
-            if (owner && metadata.sort?.enabled)
-              owner.onSortChange(
-                computeNextNativeTableSorts({ activeSorts: owner.activeSorts, column: metadata, mode: owner.mode }),
-              )
-          })
-        }
-        nativeStyle={(flags, visible) => ({
-          viewStyle: {
-            minWidth: 0,
-            maxWidth: "100%",
-            flexShrink: 1,
-            padding: 0,
-            borderWidth: 0,
-            backgroundColor: "transparent",
-            alignItems: "center",
-            overflow: "hidden",
-            ...(flags.isFocused && visible
-              ? { outlineWidth: 2, outlineOffset: 2, outlineColor: theme.colors.focusRing }
-              : {}),
-          },
-          textStyle: {},
-          foregroundColor: content!.foregroundColor,
-          target: 0,
-        })}
-      >
-        {name}
-      </NativeButton>
+      {sortable ? (
+        <NativeButton
+          accessibilityLabel={column.name ?? ""}
+          onPress={() =>
+            action.request((next) => {
+              const owner = next.queryControls?.sorting
+              const metadata = currentColumn.current
+              if (owner && metadata.sort?.enabled)
+                owner.onSortChange(
+                  computeNextNativeTableSorts({ activeSorts: owner.activeSorts, column: metadata, mode: owner.mode }),
+                )
+            })
+          }
+          nativeStyle={(flags, visible) => ({
+            viewStyle: {
+              minWidth: 0,
+              maxWidth: "100%",
+              flexShrink: 1,
+              padding: 0,
+              borderWidth: 0,
+              backgroundColor: "transparent",
+              alignItems: "center",
+              overflow: "hidden",
+              ...(flags.isFocused && visible
+                ? { outlineWidth: 2, outlineOffset: 2, outlineColor: theme.colors.focusRing }
+                : {}),
+            },
+            textStyle: {},
+            foregroundColor: content!.foregroundColor,
+            target: 0,
+          })}
+        >
+          {name}
+        </NativeButton>
+      ) : (
+        name
+      )}
+      {filter}
       {direction && (
         <View
           accessible={false}
@@ -112,7 +196,7 @@ const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> 
           style={{ flexShrink: 0 }}
         >
           {getNativeButtonContent(
-            (ascending ? sorting.icons?.ascending : sorting.icons?.descending) ?? (
+            (ascending ? sorting?.icons?.ascending : sorting?.icons?.descending) ?? (
               <QueryGlyph kind={ascending ? "ascending" : "descending"} size={14} color={color} />
             ),
             { color },

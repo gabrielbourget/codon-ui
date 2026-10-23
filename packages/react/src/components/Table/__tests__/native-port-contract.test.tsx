@@ -3,9 +3,10 @@ import { userEvent } from "@testing-library/user-event"
 import { describe, expect, it, vi } from "vitest"
 
 import TableBody from "../components/TableBody/TableBody"
+import TableFilterPopover from "../components/TableFilterPopover/TableFilterPopover"
 import TableHeader from "../components/TableHeader/TableHeader"
 import type { TTableDataColumnMetadata } from "../helpers"
-import { TABLE_SORT_DIRECTION__ASCENDING, type TTableSortInstruction } from "../queryTypes"
+import { TABLE_SORT_DIRECTION__ASCENDING, type TTableSortInstruction, type TTableFilterGroup } from "../queryTypes"
 import Table from "../Table"
 
 const items = [
@@ -116,6 +117,118 @@ describe("native Table selection oracle", () => {
     expect(changed).not.toHaveBeenCalled()
     await user.click(rows[1])
     expect([...changed.mock.calls[0][0]]).toEqual(["beta"])
+  })
+})
+
+describe("native Table filtering oracle", () => {
+  const column: TTableDataColumnMetadata<(typeof items)[number]> = {
+    id: "name",
+    name: "Name",
+    isRowHeader: true,
+    filter: {
+      enabled: true,
+      criteriaID: "person",
+      queryKey: "user.name",
+      allowedOperationCodes: ["equal", "not-equal", "like"],
+    },
+  }
+  const group = (): TTableFilterGroup => ({
+    id: "applied-id",
+    criteriaID: "person",
+    criteriaName: "Old name",
+    dataType: "text",
+    joinOperator: "or",
+    clauses: [{ id: "held-clause", operationCode: "equal", argument: "applied" }],
+  })
+  it("normalizes isolated text drafts and contains form submission while replacing current owner groups", async () => {
+    const changed = vi.fn(),
+      outside = vi.fn(),
+      user = userEvent.setup()
+    const other = { ...group(), id: "other", criteriaID: "other" }
+    render(
+      <form
+        onSubmit={(event) => {
+          event.preventDefault()
+          outside()
+        }}
+      >
+        <TableFilterPopover
+          column={column}
+          filterGroup={group()}
+          activeFilters={[other, group()]}
+          onFiltersChange={changed}
+          isFilterActive
+          activeFilterIcon="Active"
+          inactiveFilterIcon="Inactive"
+        />
+      </form>,
+    )
+    await user.click(screen.getByRole("button", { name: "Filter by Name" }))
+    const input = screen.getByRole("textbox", { name: "Filter Name" })
+    await user.clear(input)
+    await user.type(input, "  requested  ")
+    expect(changed).not.toHaveBeenCalled()
+    await user.click(screen.getByRole("button", { name: "Apply" }))
+    expect(changed).toHaveBeenCalledWith([
+      other,
+      {
+        id: "person",
+        criteriaID: "person",
+        criteriaName: "Name",
+        queryKey: "user.name",
+        dataType: "text",
+        joinOperator: "or",
+        clauses: [{ id: "held-clause", operationCode: "equal", argument: "requested" }],
+      },
+    ])
+    expect(outside).not.toHaveBeenCalled()
+  })
+  it("keeps a dismissed draft until metadata or the applied group changes identity", async () => {
+    const user = userEvent.setup(),
+      applied = group(),
+      changed = vi.fn()
+    const node = (metadata = column) => (
+      <TableFilterPopover
+        column={metadata}
+        filterGroup={applied}
+        activeFilters={[applied]}
+        onFiltersChange={changed}
+        isFilterActive
+        activeFilterIcon="Active"
+        inactiveFilterIcon="Inactive"
+      />
+    )
+    const view = render(node())
+    await user.click(screen.getByRole("button", { name: "Filter by Name" }))
+    const input = screen.getByRole("textbox", { name: "Filter Name" })
+    await user.clear(input)
+    await user.type(input, "draft")
+    await user.keyboard("{Escape}")
+    await user.click(screen.getByRole("button", { name: "Filter by Name" }))
+    expect(screen.getByRole("textbox", { name: "Filter Name" })).toHaveValue("draft")
+    view.rerender(node({ ...column, name: "Revised" }))
+    expect(screen.getByRole("textbox", { name: "Filter Revised" })).toHaveValue("applied")
+    expect(changed).not.toHaveBeenCalled()
+  })
+  it("clears all matching criteria groups while retaining unrelated owner objects", async () => {
+    const changed = vi.fn(),
+      user = userEvent.setup(),
+      other = { ...group(), id: "other", criteriaID: "other" }
+    render(
+      <TableFilterPopover
+        column={column}
+        filterGroup={group()}
+        activeFilters={[other, group(), group()]}
+        onFiltersChange={changed}
+        isFilterActive
+        activeFilterIcon="Active"
+        inactiveFilterIcon="Inactive"
+      />,
+    )
+    await user.click(screen.getByRole("button", { name: "Filter by Name" }))
+    await user.click(screen.getByRole("button", { name: "Clear" }))
+    expect(changed).toHaveBeenCalledWith([other])
+    expect(changed.mock.calls[0][0][0]).toBe(other)
   })
 })
 

@@ -3,9 +3,12 @@ import type { View } from "react-native"
 
 // @ts-expect-error Table remains private until its complete component contract is implemented.
 import { Table as PublicTable } from "../src"
+import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"
+import { buildNativeTableFilterDraft } from "../src/components/Table/filterPopoverDraft"
 import { Table } from "../src/components/Table/Table"
 import { TableBody } from "../src/components/Table/TableBody"
 import { TableCell } from "../src/components/Table/TableCell"
+import { TableFilterPopover } from "../src/components/Table/TableFilterPopover"
 import { TableHeader } from "../src/components/Table/TableHeader"
 import type { TNativeTableColumnMetadata } from "../src/components/Table/types"
 
@@ -55,8 +58,37 @@ const query = (
     }}
   />
 )
-// @ts-expect-error Filtering remains required future Table work, not an ignored prop.
-const filtering = <Table queryControls={{ filtering: {} }} />
+const filtering = (
+  <Table queryControls={{ filtering: { activeFilters: [], mode: "popover", onFiltersChange: () => {} } }} />
+)
+// @ts-expect-error An onFiltersChange owner requires the explicit popover mode.
+const invalidFiltering = <Table queryControls={{ filtering: { activeFilters: [], onFiltersChange: () => {} } }} />
+const filterPopover = (
+  <TableFilterPopover
+    column={columns[0]}
+    activeFilters={[]}
+    onFiltersChange={() => {}}
+    isFilterActive={false}
+    activeFilterIcon={null}
+    inactiveFilterIcon={null}
+    data-testid="filters"
+    labels={{ argumentInput: { comboBox: { triggerButtonAriaLabel: "Show" } } }}
+  />
+)
+const filterDraft = buildNativeTableFilterDraft(columns[0])
+const clause = (
+  <FilterClauseRow
+    ref={view}
+    nativeID="filter-clause"
+    group={filterDraft}
+    clause={filterDraft.clauses[0]}
+    listIndex={0}
+    availableFilterCriteria={[]}
+    onModifyFilterClause={() => {}}
+    onDeleteFilterClause={() => {}}
+    customStyles={{ padding: 0 }}
+  />
+)
 // @ts-expect-error Native pointer/keyboard resizing has not been implemented by this view step.
 const resizing = <Table columnResizing={{ enabled: true }} />
 // @ts-expect-error Native body rows preserve canonical string/number keys.
@@ -67,4 +99,19 @@ const dom = <Table className="table" />
 const css = <Table style={{ tableLayout: "fixed" }} />
 // @ts-expect-error A cell cannot replace its original native ref with a DOM ref.
 const ref = <TableCell columnID="name" ref={createRef<{ getBoundingClientRect: () => { width: number } }>()} />
-void [PublicTable, composition, selection, action, query, filtering, resizing, key, dom, css, ref]
+void [
+  PublicTable,
+  composition,
+  selection,
+  action,
+  query,
+  filtering,
+  invalidFiltering,
+  filterPopover,
+  clause,
+  resizing,
+  key,
+  dom,
+  css,
+  ref,
+]

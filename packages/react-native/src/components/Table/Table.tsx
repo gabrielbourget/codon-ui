@@ -17,6 +17,7 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 import { Pagination } from "../Pagination/Pagination"
 
 import { NativeTableContext, NativeTableOptionsContext } from "./context"
+import { resolveNativeTableFilteringLabels } from "./filterLabels"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { computeNextNativeTableSorts } from "./sorting"
 import type { TNativeTableProps } from "./types"
@@ -52,6 +53,7 @@ const Receiver = <T extends object>({
     onRowAction,
     columns,
     queryControls,
+    filteringLabels,
     ...native
   } = props
   const sorting = queryControls?.sorting
@@ -112,6 +114,7 @@ const Receiver = <T extends object>({
         manager,
         onRowAction: clickableRows && onRowAction ? onRowAction : undefined,
         queryControls,
+        filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
         primarySort:
           primaryColumn && firstSort
             ? {

@@ -6,7 +6,40 @@ import type { MultipleSelectionStateProps } from "../../collection/state/useMult
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativePaginationProps } from "../Pagination/types"
 
-import type { TTableSortInstruction } from "./queryTypes"
+import type { TPartialNativeTableFilteringLabels } from "./filterLabels"
+import type { TAvailableListItem } from "./filterMetadata"
+import type {
+  TTableSortInstruction,
+  TTableFilterGroup,
+  TTableFilterArgumentDataType,
+  TTableFilterOperationCode,
+} from "./queryTypes"
+
+export type TNativeTableColumnFilterMetadata = {
+  enabled?: boolean
+  criteriaID: string
+  queryKey?: string
+  dataType?: TTableFilterArgumentDataType
+  allowedOperationCodes?: readonly TTableFilterOperationCode[]
+  usesTypeAheadInput?: boolean
+  typeAheadInputOnChange?: (value: string) => void
+  usesSelectInput?: boolean
+  usesComboBoxInput?: boolean
+  availableCriteriaArguments?: TAvailableListItem[]
+}
+export type TNativeTableFilterIconPressArgs = { columnID: string; columnName: string; filterGroup?: TTableFilterGroup }
+export type TNativeTableFilteringControls = {
+  activeFilters: TTableFilterGroup[]
+  icons?: { inactive?: ReactNode; active?: ReactNode }
+} & (
+  | { mode?: undefined; onFiltersChange?: undefined; onFilterIconPress?: undefined }
+  | {
+      mode?: "external"
+      onFiltersChange?: undefined
+      onFilterIconPress: (args: TNativeTableFilterIconPressArgs) => void
+    }
+  | { mode: "popover"; onFiltersChange: (next: TTableFilterGroup[]) => void; onFilterIconPress?: undefined }
+)
 
 export type TNativeTableColumnSortMetadata = { enabled?: boolean; criteriaID: string; queryKey?: string }
 export type TNativeTableSortingControls = {
@@ -18,6 +51,7 @@ export type TNativeTableSortingControls = {
 export type TNativeTableQueryControls = {
   sorting?: TNativeTableSortingControls
   pagination?: TNativePaginationProps
+  filtering?: TNativeTableFilteringControls
 }
 
 type TStyleProps = { customStyles?: StyleProp<TextStyle>; style?: StyleProp<TextStyle> }
@@ -44,6 +78,7 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
         accessor?: (row: T) => ReactNode
         isRowHeader?: boolean
         sort?: TNativeTableColumnSortMetadata
+        filter?: TNativeTableColumnFilterMetadata
         structuralPosition?: never
         structuralKind?: never
       }
@@ -55,6 +90,7 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
         accessor?: never
         isRowHeader?: never
         sort?: never
+        filter?: never
       }
   )
 export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
@@ -68,6 +104,7 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
     onRowAction?: (key: TNativeCollectionKey) => void
     columns?: TNativeTableColumnMetadata<T>[]
     queryControls?: TNativeTableQueryControls
+    filteringLabels?: TPartialNativeTableFilteringLabels
   }
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {

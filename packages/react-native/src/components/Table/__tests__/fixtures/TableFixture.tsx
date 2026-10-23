@@ -3,6 +3,7 @@ import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, Input, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../../.."
 import type { TTableSortInstruction } from "../../queryTypes"
+import type { TTableFilterGroup } from "../../queryTypes"
 import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
@@ -30,8 +31,17 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
   const [pageSize, setPageSize] = useState(10)
   const [pageRequests, setPageRequests] = useState<number[]>([])
   const [holdQuery, setHoldQuery] = useState(false)
+  const [filters, setFilters] = useState<TTableFilterGroup[]>([])
+  const [filterRequests, setFilterRequests] = useState<TTableFilterGroup[][]>([])
   const columns: TNativeTableColumnMetadata<TPerson>[] = [
-    { id: "name", name: "Person", isRowHeader: true, width: 110, sort: { enabled: true, criteriaID: "person" } },
+    {
+      id: "name",
+      name: "Person",
+      isRowHeader: true,
+      width: 110,
+      sort: { enabled: true, criteriaID: "person" },
+      filter: { enabled: true, criteriaID: "person", allowedOperationCodes: ["equal", "like", "not-equal"] },
+    },
     { id: "active", name: "Active", width: 70 },
     {
       id: "draft",
@@ -88,6 +98,14 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
                     if (!holdQuery) setSorts(next)
                   },
                 },
+                filtering: {
+                  mode: "popover",
+                  activeFilters: filters,
+                  onFiltersChange: (next) => {
+                    setFilterRequests((previous) => [...previous, next])
+                    if (!holdQuery) setFilters(next)
+                  },
+                },
                 pagination: {
                   showIncrementButtonsWithOnePage: true,
                   currentPage: page,
@@ -122,6 +140,8 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
             <Text testID="table-sort-requests">{JSON.stringify(sortRequests)}</Text>
             <Text testID="table-page">{page}</Text>
             <Text testID="table-page-requests">{JSON.stringify(pageRequests)}</Text>
+            <Text testID="table-filters">{JSON.stringify(filters)}</Text>
+            <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

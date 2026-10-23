@@ -6,6 +6,7 @@ import type { View } from "react-native"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 
+import type { resolveNativeTableFilteringLabels } from "./filterLabels"
 import type { TNativeTableQueryControls } from "./types"
 
 export const NativeTableOptionsContext = createContext<{
@@ -40,6 +41,7 @@ export type TNativeTableContext = {
   queryControls?: TNativeTableQueryControls
   primarySort?: { column: string; direction: "ascending" | "descending" }
   sortColumn: (columnID: string) => void
+  filteringLabels: ReturnType<typeof resolveNativeTableFilteringLabels>
 }
 export const NativeTableContext = createContext<TNativeTableContext | null>(null)
 export const useNativeTable = () => {
