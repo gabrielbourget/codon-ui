@@ -135,7 +135,7 @@ export const NativeFocusHost = forwardRef<
   })
   const [description, setDescription] = useState<TNativeDescriptionBinding | null>(null)
   const releaseForwardedRef = useRef<(() => void) | undefined>(undefined)
-  const keyboardFocusable = tabIndex === -1 ? false : (focusable ?? true)
+  const keyboardFocusable = tabIndex === -1 && !fieldInput ? false : (focusable ?? true)
   const inputScope = useNativeKeyScope()
   const floatingScope = useContext(NativeFloatingScopeContext)
   const windowActive = useContext(NativeFloatingWindowContext)
@@ -337,6 +337,7 @@ export const NativeFocusHost = forwardRef<
         }
         focusable={keyboardFocusable}
         keyboardFocusable={keyboardFocusable}
+        nativeTabStop={fieldInput ? (rest.nativeTabStop ?? tabIndex !== -1) : rest.nativeTabStop}
         capturedKeys={capturedKeys}
         onFocus={
           onBubbledFocus

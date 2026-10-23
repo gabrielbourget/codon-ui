@@ -1,6 +1,7 @@
 import {
   decodeNativeFieldInputPacket,
   moveNativeFieldFocus,
+  nativeFieldGroupKeyHandler,
   receiveNativeFieldKey,
   type TNativeFieldKeyEvent,
 } from "../fieldInput"
@@ -34,7 +35,7 @@ const packet = () => ({
     { target: 2, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2 },
   ],
 })
-const event = (data = packet()) => {
+const event = (data = packet(), extra: Partial<TNativeFieldKeyEvent["nativeEvent"]> = {}) => {
   let prevented = false,
     stopped = false
   return {
@@ -57,6 +58,7 @@ const event = (data = packet()) => {
       nativeDefaultHandled: false,
       timestamp: 10,
       fieldDispatch: JSON.stringify(data),
+      ...extra,
     },
     persist: jest.fn(),
     preventDefault: () => {
@@ -324,4 +326,120 @@ it.each([
   const data = packet()
   mutate(data)
   expect(() => decodeNativeFieldInputPacket(JSON.stringify(data))).toThrow()
+})
+
+it.each([
+  ["ltr", "ArrowLeft", "previous"],
+  ["ltr", "ArrowRight", "next"],
+  ["rtl", "ArrowLeft", "physical-left"],
+  ["rtl", "ArrowRight", "physical-right"],
+] as const)("routes the actual %s group %s action before its merged caller", (direction, key, kind) => {
+  const f = setup(),
+    original = event(packet(), { key, ctrlKey: true, shiftKey: true }),
+    trace: string[] = []
+  f.native.moveFieldFocus.mockImplementation((encoded) => {
+    expect(JSON.parse(encoded).action).toEqual({ groupTarget: 2, kind })
+    trace.push("native-focus")
+    return JSON.stringify({
+      requested: true,
+      observed: true,
+      current: true,
+      target: 13,
+      nativeInstance: "component:13",
+      editorInstance: "editor:13",
+      error: "",
+    })
+  })
+  const handler = nativeFieldGroupKeyHandler(f.scope, {
+    direction,
+    onKeyDown: (received) => {
+      expect(received).toBe(original)
+      expect(received.isPropagationStopped()).toBe(true)
+      trace.push("same-group-caller")
+    },
+  })
+  expect(handler(original, 3)).toBe(true)
+  expect(trace).toEqual(["native-focus", "same-group-caller"])
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ current: true, preventDefault: true })
+})
+
+it("retains nested input/outer callbacks from their actual group path and settles at the last ancestor", () => {
+  const f = setup(),
+    data = packet(),
+    trace: string[] = []
+  data.groups.push(
+    { target: 21, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 },
+    { target: 20, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 },
+  )
+  const parent = { ...f.scope, bindingId: "parent", bindingRevision: "parent-revision" }
+  const original = event(data, { key: "2" })
+  for (const [target, scope] of [
+    [3, f.scope],
+    [2, f.scope],
+    [21, parent],
+    [20, parent],
+  ] as const) {
+    nativeFieldGroupKeyHandler(scope, {
+      direction: "ltr",
+      onKeyDown: (received) => {
+        expect(received).toBe(original)
+        trace.push(String(target))
+      },
+    })(original, target)
+    if (target !== 20) expect(f.native.settleField).not.toHaveBeenCalled()
+  }
+  expect(trace).toEqual(["3", "2", "21", "20"])
+  expect(f.native.settleField).toHaveBeenCalledTimes(1)
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it("routes an admitted ancestor's action through its own scope and refuses cross-scope requests", () => {
+  const f = setup(),
+    data = packet()
+  data.groups.push({ target: 20, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 })
+  const parent = { ...f.scope, bindingId: "parent", bindingRevision: "parent-revision" }
+  const original = event(data)
+  expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 20, kind: "next" })).toBeNull()
+  expect(moveNativeFieldFocus(parent, original, { groupTarget: 2, kind: "next" })).toBeNull()
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  expect(moveNativeFieldFocus(parent, original, { groupTarget: 20, kind: "previous" })?.observed).toBe(true)
+  expect(JSON.parse(f.native.moveFieldFocus.mock.calls[0][0])).toMatchObject({
+    identity: data.identity,
+    action: { groupTarget: 20, kind: "previous" },
+  })
+})
+
+it.each(["up", "cancel"])("preserves the original %s caller without starting group navigation", (phase) => {
+  const f = setup(),
+    data = packet(),
+    down = jest.fn(),
+    up = jest.fn()
+  data.phase = phase
+  const original = event(data)
+  nativeFieldGroupKeyHandler(f.scope, { direction: "rtl", onKeyDown: down, onKeyUp: up })(original, 2)
+  expect(down).not.toHaveBeenCalled()
+  expect(up).toHaveBeenCalledWith(original)
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0]).preventDefault).toBe(false)
+})
+
+it("retires a group callback when the original focus notification unmounts its owner", () => {
+  const f = setup(),
+    caller = jest.fn(),
+    original = event()
+  f.native.moveFieldFocus.mockImplementation(() => {
+    f.retire()
+    return JSON.stringify({
+      requested: true,
+      observed: true,
+      current: false,
+      target: 13,
+      nativeInstance: "component:13",
+      editorInstance: "editor:13",
+      error: "",
+    })
+  })
+  nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onKeyDown: caller })(original, 3)
+  expect(caller).not.toHaveBeenCalled()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ current: false, preventDefault: false })
 })

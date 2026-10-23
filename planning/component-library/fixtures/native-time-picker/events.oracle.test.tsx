@@ -272,3 +272,71 @@ it("waits for touch release before selecting the placeholder run", async () => {
   await user.pointer({ target: group, keys: "[/TouchA]" })
   expect(document.activeElement).toBe(parts[0])
 })
+
+it("retains modified group navigation after the segment declines its own modified editing action", async () => {
+  render(
+    <>
+      {content}
+      <TimePicker value={new Time(13, 45)} aria-label="Clock" ComponentIcon={icon} />
+    </>,
+  )
+  const parts = screen.getAllByRole("spinbutton"),
+    user = userEvent.setup()
+  act(() => parts[1].focus())
+  await user.keyboard("{Control>}{Shift>}{ArrowRight}{/Shift}{/Control}")
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Icon action" }))
+})
+
+it("preserves controlled veto and readonly entry while retaining the original focused segment", async () => {
+  const change = vi.fn(),
+    down = vi.fn(),
+    up = vi.fn()
+  const node = (readonly: boolean) => (
+    <>
+      {content}
+      <TimePicker
+        value={new Time(13, 45)}
+        aria-label="Clock"
+        isReadOnly={readonly}
+        onChange={change}
+        onKeyDown={down}
+        onKeyUp={up}
+      />
+    </>
+  )
+  const view = render(node(false)),
+    original = screen.getAllByRole("spinbutton")[0],
+    user = userEvent.setup()
+  act(() => original.focus())
+  await user.keyboard("{ArrowUp}")
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(change.mock.calls[0][0].hour).toBe(14)
+  expect(original).toHaveAttribute("aria-valuenow", "13")
+  expect(down).toHaveBeenCalledTimes(2)
+  expect(up).toHaveBeenCalledTimes(2)
+  view.rerender(node(true))
+  expect(screen.getAllByRole("spinbutton")[0]).toBe(original)
+  expect(document.activeElement).toBe(original)
+  await user.keyboard("{ArrowUp}")
+  expect(change).toHaveBeenCalledTimes(1)
+  expect(document.activeElement).toBe(original)
+})
+
+it("retains the actual focused original on a disabled transition while refusing entry changes", async () => {
+  const change = vi.fn(),
+    node = (disabled: boolean) => (
+      <>
+        {content}
+        <TimePicker value={new Time(13, 45)} aria-label="Clock" isDisabled={disabled} onChange={change} />
+      </>
+    )
+  const view = render(node(false)),
+    original = screen.getAllByRole("spinbutton")[0]
+  act(() => original.focus())
+  view.rerender(node(true))
+  expect(screen.getAllByRole("spinbutton")[0]).toBe(original)
+  expect(document.activeElement).toBe(original)
+  await userEvent.setup().keyboard("{ArrowUp}")
+  expect(change).not.toHaveBeenCalled()
+  expect(document.activeElement).toBe(original)
+})

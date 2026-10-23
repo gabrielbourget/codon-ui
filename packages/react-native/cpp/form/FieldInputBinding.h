@@ -44,6 +44,11 @@ inline FieldInputIdentity fieldInputIdentity(const folly::dynamic &document, con
     snapshot.at("outerInstance").asString(), snapshot.at("inputInstance").asString(),
     original.at("nativeInstance").asString(), original.at("editorInstance").asString(), epoch};
 }
+inline bool fieldInputScopeCurrent(const FieldInputIdentity &expected, const folly::dynamic &document,
+    const folly::dynamic &snapshot, int64_t epoch) {
+  const auto binding = fieldInputBinding(document);
+  return fieldInputIdentity(document, snapshot, binding, expected.target, epoch).sameScope(expected);
+}
 inline folly::dynamic fieldInputPacket(const FieldInputDispatchFrames::Handle &ticket, const TFieldInputBinding &binding,
     const folly::dynamic &groups) {
   return folly::dynamic::object("moduleLease", binding.moduleLease)("token", ticket->token)("eventId", ticket->eventId)

@@ -142,3 +142,29 @@ it("gives the explicit group receiver the original event and its actual root tag
   expect(child).not.toHaveBeenCalled()
   expect(scope.native.settleField).not.toHaveBeenCalled()
 })
+
+it("keeps an admitted field's negative tab stop programmatically focusable while retaining its separate tab policy", async () => {
+  const scope = setup()
+  await render(
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-child" tabIndex={-1} />
+    </NativeFieldInputContext.Provider>,
+  )
+  expect(screen.getByTestId("field-child").props).toMatchObject({
+    keyboardFocusable: true,
+    focusable: true,
+    nativeTabStop: false,
+  })
+  await screen.rerender(
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-child" tabIndex={-1} focusable={false} />
+    </NativeFieldInputContext.Provider>,
+  )
+  expect(screen.getByTestId("field-child").props).toMatchObject({
+    keyboardFocusable: false,
+    focusable: false,
+    nativeTabStop: false,
+  })
+  await screen.rerender(<NativeFocusHost testID="field-child" tabIndex={-1} />)
+  expect(screen.getByTestId("field-child").props).toMatchObject({ keyboardFocusable: false, focusable: false })
+})

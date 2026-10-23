@@ -6,6 +6,7 @@ import type * as RN from "react-native"
 import { FormValidationContext } from "../../components/ComboBox/state/useFormValidationState"
 import type { TimeFieldStateOptions } from "../../date/state/useTimeFieldState"
 import { useTimeFieldState } from "../../date/state/useTimeFieldState"
+import type { TNativeFieldInputMetadata } from "../../input/fieldInputBinding"
 import FormDocument from "../../input/specs/NativeCUIFormDocument"
 import { NativeFormRegistryContext } from "../context"
 import type { TNativeDateSegmentFormTarget } from "../dateSegments"
@@ -58,7 +59,12 @@ const originals = () => ({
     }),
   ),
 })
-const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}, semanticBinding = "") => {
+const setup = async (
+  initial: Partial<TimeFieldStateOptions> = {},
+  errors = {},
+  semanticBinding = "",
+  fieldInput?: TNativeFieldInputMetadata,
+) => {
   const registry = new NativeFormRegistry(),
     original = originals()
   let actual: ReturnType<typeof originals> | null = original
@@ -73,6 +79,7 @@ const setup = async (initial: Partial<TimeFieldStateOptions> = {}, errors = {}, 
       () => actual,
       () => true,
       semanticBinding,
+      fieldInput,
     )
   }
   const content = (props: typeof initial, mode: "hidden" | "visible" = "visible") => (
@@ -276,4 +283,40 @@ it("clears native reset validation after an owner queues validation during the v
   await act(() => value.field().reset("native"))
   expect(value.state().displayValidation.isInvalid).toBe(false)
   expect(value.state().displayValidation.validationErrors).toEqual([])
+})
+
+it("composes the private field input declaration and original mount/record callbacks with existing form ownership", async () => {
+  const binding = jest.fn((ownerId: string) => JSON.stringify({ ownerId, bindingId: "private-group" })),
+    commit = jest.fn(),
+    record = jest.fn()
+  const value = await setup({}, {}, "", { binding, commit, record })
+  const metadata = screen.getByTestId("time-field-metadata", { includeHiddenElements: true })
+  expect(JSON.parse(metadata.props.fieldGroupBinding)).toEqual({
+    ownerId: metadata.props.ownerId,
+    bindingId: "private-group",
+  })
+  const packet = {
+    ownerId: metadata.props.ownerId,
+    descriptorId: metadata.props.descriptorId,
+    descriptorRevision: metadata.props.descriptorRevision,
+    target: 100,
+    originalTarget: 6,
+    surfaceId: 11,
+    windowId: "window:1",
+    epoch: 5,
+    sequence: 1,
+    mountRevision: "mount:1",
+    attached: true,
+    active: true,
+    complete: true,
+    metadataOnly: true,
+    originalClass: "CUIDateSegment",
+    error: "",
+  }
+  await act(() => metadata.props.onNativeFormCommit({ nativeEvent: packet }))
+  expect(commit).toHaveBeenCalledWith(packet)
+  const original = { nativeEvent: { record: "original-native-record" } }
+  await act(() => metadata.props.onNativeFieldInputRecord(original))
+  expect(record).toHaveBeenCalledWith(original)
+  expect(value.field().descriptor.ownedEditorBinding).toBe(metadata.props.ownedEditorBinding)
 })
