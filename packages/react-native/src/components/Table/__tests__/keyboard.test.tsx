@@ -1,7 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup } from "@testing-library/react-native"
-import { createRef } from "react"
+import { createRef, Fragment, useContext, useState, type ReactNode } from "react"
 import type * as RN from "react-native"
 
 import {
@@ -10,7 +10,10 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { createNativeCollectionBranch } from "../../../collection/CollectionBuilder"
+import { NativeSelectableCollectionContext } from "../../../collection/context"
 import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../../collection/renderer"
+import type { TNativeCollectionRootProps, TNativeCollectionBranchProps } from "../../../collection/renderer"
 import { nativeKeyToken } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { NativeFloatingLayerHost } from "../../../overlays/floating/NativeFloatingLayerHost"
@@ -19,9 +22,11 @@ import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { NativeThemeProvider } from "../../../theme"
 import { NativeButton } from "../../Button/Button"
 import { encodeCollectionKey } from "../../collection"
+import { useNativeTable } from "../context"
 import { Table } from "../Table"
 import { TableBody } from "../TableBody"
 import { TableHeader } from "../TableHeader"
+import { TableRow } from "../TableRow"
 import type { TNativeTableProps } from "../types"
 
 import { TableFixture } from "./fixtures/TableFixture"
@@ -86,12 +91,34 @@ const columns = [
   { id: "name", name: "Name", isRowHeader: true },
   { id: "age", name: "Age" },
 ]
-const node = (props: TNativeTableProps = {}, window = () => true) => (
+const RawBody = createNativeCollectionBranch<object, { children?: ReactNode }, RN.View>(
+  "body",
+  (_props, ref, parent) => {
+    const table = useNativeTable(),
+      renderer = useContext(NativeCollectionRendererContext)
+    const Native = jest.requireActual<typeof RN>("react-native")
+    return (
+      <Native.View ref={ref}>
+        <renderer.CollectionBranch collection={table.collection} parent={parent} />
+      </Native.View>
+    )
+  },
+  (props) => props.children,
+)
+const node = (props: TNativeTableProps = {}, window = () => true, explicitText = false) => (
   <NativeThemeProvider>
     <NativeFloatingWindowContext.Provider value={window}>
       <Table accessibilityLabel="Rows" {...props}>
         <TableHeader columns={columns} />
-        <TableBody items={items} columns={columns} />
+        {explicitText ? (
+          <RawBody>
+            {items.map((item) => (
+              <TableRow key={item.id} id={item.id} item={item} columns={columns} textValue={item.name} />
+            ))}
+          </RawBody>
+        ) : (
+          <TableBody items={items} columns={columns} />
+        )}
       </Table>
     </NativeFloatingWindowContext.Provider>
   </NativeThemeProvider>
@@ -112,7 +139,11 @@ const focused = async (host: THost) =>
     }),
   )
 const key = async (host: THost, value: string, overrides: Record<string, unknown> = {}, settle = true) => {
+  let prevented = false
   const event = {
+    get defaultPrevented() {
+      return prevented
+    },
     nativeEvent: {
       kind: "keyboard",
       ownerId: host.props.ownerId,
@@ -133,10 +164,12 @@ const key = async (host: THost, value: string, overrides: Record<string, unknown
       timestamp: 100,
       ...overrides,
     },
-    preventDefault: jest.fn(),
+    preventDefault: jest.fn(() => {
+      prevented = true
+    }),
     stopPropagation: jest.fn(),
     persist: jest.fn(),
-    isDefaultPrevented: () => false,
+    isDefaultPrevented: () => prevented,
   }
   await (settle ? act : rawAct)(() => host.props.onNativeKey(event))
   return event
@@ -154,6 +187,26 @@ it("enters the first row through the original root and supports row navigation w
   await focused(row("beta"))
   await key(row("beta"), "ArrowUp")
   expectFocus(row(0))
+})
+it("publishes the exact native root binding required by its queued focus admission", async () => {
+  await render(node())
+  const root = screen.getByTestId("table")
+  const binding = root.props.nativeCollectionBinding
+  expect(JSON.parse(binding)).toMatchObject({
+    descriptorId: "",
+    descriptorRevision: "",
+    metadataTarget: expect.any(Number),
+  })
+  await rawAct(() =>
+    root.props.onNativeFocusChange({
+      nativeEvent: { ownerId: root.props.ownerId, target: tag(root), isFocused: true, isFocusVisible: true },
+    }),
+  )
+  const requests = screen.container
+    .queryAll((host) => typeof host.props.actionRequests === "string")
+    .flatMap((host) => JSON.parse(host.props.actionRequests))
+  expect(requests).toEqual([expect.objectContaining({ binding, visibleTarget: tag(root) })])
+  await act(() => {})
 })
 it("enters cells from both directions and preserves the column vertically", async () => {
   await render(node())
@@ -357,7 +410,7 @@ it("retains the maintained scene's original held editor through grid navigation"
   expect(writes).not.toHaveBeenCalled()
 })
 
-const controlsFixture = async (scoped = false) => {
+const controlsFixture = async (scoped = false, explicitText = false) => {
   const first = createRef<RN.View>(),
     second = createRef<RN.View>(),
     disabled = createRef<RN.View>(),
@@ -388,7 +441,15 @@ const controlsFixture = async (scoped = false) => {
   const table = (
     <Table accessibilityLabel="Controls">
       <TableHeader columns={controlColumns} />
-      <TableBody columns={controlColumns} items={items} />
+      {explicitText ? (
+        <RawBody>
+          {items.map((item) => (
+            <TableRow key={item.id} id={item.id} item={item} columns={controlColumns} textValue={item.name} />
+          ))}
+        </RawBody>
+      ) : (
+        <TableBody columns={controlColumns} items={items} />
+      )}
     </Table>
   )
   await render(
@@ -512,6 +573,77 @@ it("routes original scoped child arrows through eligible siblings before leaving
   await scopedKey("ArrowDown", secondHost, cell(1, 1), scope.current, { altKey: true })
   expectFocus(cell(2, 1))
 })
+it("receives original scoped characters once and waits for native policy readiness before focus", async () => {
+  const { scope } = await controlsFixture(true, true)
+  const first = screen.getByRole("button", { name: "First" })
+  await focused(first)
+  for (const status of [false, true]) {
+    const host = screen.getByTestId("keys-host").props
+    await act(() =>
+      host.onNativeObservationStatus({
+        nativeEvent: {
+          ownerId: host.ownerId,
+          windowId: "table-window",
+          epoch: 1,
+          observationRevision: host.observationRevision,
+          ready: status,
+          windowActive: true,
+        },
+      }),
+    )
+  }
+  const host = screen.getByTestId("keys-host").props
+  const observation = host.observations.find(
+    (entry: { targetTag: number }) => entry.targetTag === tag(screen.getByTestId("table")),
+  )
+  expect(observation).toBeDefined()
+  const event = {
+    preventDefault: jest.fn(),
+    stopPropagation: jest.fn(),
+    persist: jest.fn(),
+    nativeEvent: {
+      ownerId: host.ownerId,
+      windowId: "table-window",
+      epoch: 1,
+      observationRevision: host.observationRevision,
+      eventId: 1,
+      observerIds: [observation.id],
+      target: jest.requireActual<typeof RN>("react-native").findNodeHandle(scope.current),
+      focusedTarget: tag(first),
+      key: "b",
+      code: "KeyB",
+      nativeCode: 1,
+      legacyKeyCode: 66,
+      location: 0,
+      repeat: false,
+      cancelled: false,
+      isComposing: false,
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      capsLock: false,
+      nativeModifierData: "",
+      defaultCaptured: false,
+      timestamp: 100,
+    },
+  }
+  await act(() => host.onNativeObservedKey(event))
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await ready()
+  expectFocus(row("beta"))
+  const calls = jest.mocked(Commands.requestKeyboardFocus).mock.calls.length
+  await act(() => screen.getByTestId("keys-host").props.onNativeObservedKey(event))
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(calls)
+  const space = screen
+    .getByTestId("keys-host")
+    .props.policies.find(
+      (entry: { targetTag: number; tokens: string[] }) =>
+        entry.targetTag === tag(screen.getByTestId("table")) && entry.tokens.includes("0000: "),
+    )
+  expect(space.tokens).not.toContain("0010: ")
+  expect(space.tokens).not.toContain("0001: ")
+})
 it("does not focus a child removed while native admission is pending", async () => {
   const { second } = await controlsFixture()
   await focused(row(0))
@@ -590,4 +722,156 @@ it("uses actual renderer rectangles for PageUp/PageDown and omits unmeasured pag
   expectFocus(row(0))
   await view.rerender(node())
   expect(row(0).props.capturedKeys.some((token: string) => token.endsWith(":PageDown"))).toBe(false)
+})
+
+it("searches explicit row text without changing held selection and resets its buffer after one second", async () => {
+  const changed = jest.fn()
+  await render(
+    node(
+      {
+        selectionMode: "multiple",
+        selectionBehavior: "replace",
+        selectedKeys: new Set([0]),
+        onSelectionChange: changed,
+      },
+      undefined,
+      true,
+    ),
+  )
+  await focused(row(0))
+  await key(row(0), "b", { nativeDefaultHandled: false })
+  expectFocus(row("beta"))
+  await focused(row("beta"))
+  await key(row("beta"), "e", { nativeDefaultHandled: false })
+  await act(() => jest.advanceTimersByTime(1000))
+  await key(row("beta"), "z", { nativeDefaultHandled: false })
+  expectFocus(row(0))
+  expect(changed).not.toHaveBeenCalled()
+})
+it("consumes search Space before the row press cycle and preserves ordinary Space after timeout", async () => {
+  const changed = jest.fn()
+  await render(
+    node({ selectionMode: "multiple", selectedKeys: new Set([0]), onSelectionChange: changed }, undefined, true),
+  )
+  await focused(row(0))
+  await key(row(0), "b", { nativeDefaultHandled: false })
+  await focused(row("beta"))
+  const space = await key(row("beta"), " ")
+  await key(row("beta"), " ", { phase: "up" })
+  expect(space.preventDefault).toHaveBeenCalled()
+  expect(changed).not.toHaveBeenCalled()
+  await act(() => jest.advanceTimersByTime(1000))
+  await key(row("beta"), " ")
+  await key(row("beta"), " ", { phase: "up" })
+  expect([...changed.mock.calls.at(-1)![0]]).toEqual([0, "beta"])
+})
+it("uses explicit row text from a cell origin and preserves the pinned ignored typeahead flag", async () => {
+  const content = (flag: boolean) => (
+    <NativeSelectableCollectionContext.Provider value={{ disallowTypeAhead: flag }}>
+      {node({ disabledKeys: ["beta"] }, undefined, true)}
+    </NativeSelectableCollectionContext.Provider>
+  )
+  const view = await render(content(false))
+  await focused(cell(1, 1))
+  await key(cell(1, 1), "l", { nativeDefaultHandled: false })
+  expectFocus(row("last"))
+  await view.rerender(content(true))
+  await act(() => jest.advanceTimersByTime(1000))
+  jest.mocked(Commands.requestKeyboardFocus).mockClear()
+  await key(row("last"), "z", { nativeDefaultHandled: false })
+  expectFocus(row(0))
+})
+it("retains the canonical wrapper's empty default search text", async () => {
+  await render(node())
+  await focused(row(0))
+  await key(row(0), "b", { nativeDefaultHandled: false })
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+const partialFixture = async (active = () => true) => {
+  let materialize!: (keys: (string | number)[]) => void
+  let rootProps!: TNativeCollectionRootProps
+  const renderRequested = jest.fn(),
+    scrollToKey = jest.fn()
+  const Root = (props: TNativeCollectionRootProps) => {
+    rootProps = props
+    return <DefaultNativeCollectionRenderer.CollectionRoot {...props} />
+  }
+  const Branch = (props: TNativeCollectionBranchProps) => {
+    const [visible, setVisible] = useState<(string | number)[]>([0])
+    if (props.parent.type !== "body") return <DefaultNativeCollectionRenderer.CollectionBranch {...props} />
+    materialize = setVisible
+    return [...props.collection.getChildren(props.parent.key)]
+      .filter((entry) => visible.includes(entry.key))
+      .map((entry) => <Fragment key={encodeCollectionKey(entry.key)}>{entry.render?.(entry)}</Fragment>)
+  }
+  await render(
+    <NativeCollectionRendererContext.Provider
+      value={{
+        ...DefaultNativeCollectionRenderer,
+        isVirtualized: true,
+        CollectionRoot: Root,
+        CollectionBranch: Branch,
+        layoutDelegate: {
+          getContentSize: () => ({ width: 100, height: 300 }),
+          getItemRect: () => null,
+          getVisibleRect: () => ({ x: 0, y: 0, width: 100, height: 100 }),
+          requestRendering: renderRequested,
+          scrollToKey,
+        },
+      }}
+    >
+      {node({}, active)}
+    </NativeCollectionRendererContext.Provider>,
+  )
+  return {
+    materialize: (keys: (string | number)[]) => act(() => materialize(keys)),
+    props: () => rootProps,
+    renderRequested,
+    scrollToKey,
+  }
+}
+it("persists the logical destination and observed key while its original view materializes", async () => {
+  const fixture = await partialFixture()
+  await focused(row(0))
+  await key(row(0), "ArrowDown")
+  expect(fixture.props().collection.size).toBe(3)
+  expect(fixture.props().persistedKeys).toEqual(new Set([0, "beta"]))
+  expect(fixture.renderRequested).toHaveBeenCalledTimes(1)
+  expect(fixture.renderRequested).toHaveBeenCalledWith("beta")
+  expect(fixture.scrollToKey).toHaveBeenCalledWith("beta")
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await fixture.materialize([0, "beta"])
+  expectFocus(row("beta"))
+  await focused(row("beta"))
+  expect(fixture.props().persistedKeys).toEqual(new Set(["beta"]))
+})
+it("retires an offscreen request when the window is lost and does not replay it on return", async () => {
+  let active = true
+  const fixture = await partialFixture(() => active)
+  await focused(row(0))
+  await key(row(0), "ArrowDown")
+  active = false
+  await fixture.materialize([0, "beta"])
+  active = true
+  await fixture.materialize([0, "beta"])
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+it("replaces an offscreen focus intent before an older view is mounted", async () => {
+  const fixture = await partialFixture()
+  await focused(row(0))
+  await key(row(0), "ArrowDown")
+  await key(row(0), "End")
+  await fixture.materialize([0, "beta"])
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+  await fixture.materialize([0, "beta", "last"])
+  expectFocus(row("last"))
+  expect(fixture.renderRequested.mock.calls).toEqual([["beta"], ["last"]])
+})
+it("retires a focus continuation when its renderer rejects the request", async () => {
+  const fixture = await partialFixture()
+  fixture.scrollToKey.mockImplementation(() => Promise.reject(new Error("render-request-rejected")))
+  await focused(row(0))
+  await key(row(0), "ArrowDown")
+  await fixture.materialize([0, "beta"])
+  expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
 })

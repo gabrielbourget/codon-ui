@@ -1,10 +1,12 @@
 import { fireEvent, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { SelectableCollectionContext, TableBody as AriaTableBody } from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
 
 import TableBody from "../components/TableBody/TableBody"
 import TableFilterPopover from "../components/TableFilterPopover/TableFilterPopover"
 import TableHeader from "../components/TableHeader/TableHeader"
+import TableRow from "../components/TableRow/TableRow"
 import type { TTableDataColumnMetadata } from "../helpers"
 import { TABLE_SORT_DIRECTION__ASCENDING, type TTableSortInstruction, type TTableFilterGroup } from "../queryTypes"
 import Table from "../Table"
@@ -21,6 +23,65 @@ describe("native Table keyboard oracle", () => {
     { id: "beta", name: "Beta", age: 30 },
     { id: "last", name: "Last", age: 40 },
   ]
+  it("uses a one-second search buffer without changing selection and consumes search Space", async () => {
+    const user = userEvent.setup(),
+      changed = vi.fn()
+    render(
+      <Table
+        aria-label="Search"
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={new Set([0])}
+        onSelectionChange={changed}
+      >
+        <TableHeader columns={gridColumns} />
+        <AriaTableBody items={rows}>
+          {(row) => <TableRow id={row.id} item={row} columns={gridColumns} textValue={row.name} />}
+        </AriaTableBody>
+      </Table>,
+    )
+    await user.tab()
+    await user.keyboard("be ")
+    expect(screen.getByRole("row", { name: "Beta" })).toHaveFocus()
+    expect(changed).not.toHaveBeenCalled()
+    await new Promise((resolve) => setTimeout(resolve, 1050))
+    await user.keyboard("z")
+    expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+    expect(changed).not.toHaveBeenCalled()
+  })
+  it("prefers explicit row text for cell-origin search and preserves the pinned ignored flag", async () => {
+    const user = userEvent.setup()
+    const content = (disabled = false) => (
+      <SelectableCollectionContext.Provider value={{ disallowTypeAhead: disabled }}>
+        <Table aria-label="Search" disabledKeys={["beta"]}>
+          <TableHeader columns={gridColumns} />
+          <AriaTableBody items={rows}>
+            {(row) => <TableRow id={row.id} item={row} columns={gridColumns} textValue={row.name} />}
+          </AriaTableBody>
+        </Table>
+      </SelectableCollectionContext.Provider>
+    )
+    const view = render(content())
+    await user.tab()
+    await user.keyboard("{ArrowLeft}l")
+    expect(screen.getByRole("row", { name: "Last" })).toHaveFocus()
+    view.rerender(content(true))
+    await new Promise((resolve) => setTimeout(resolve, 1050))
+    await user.keyboard("z")
+    expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+  })
+  it("does not infer collection search text from the canonical Cell render function", async () => {
+    const user = userEvent.setup()
+    render(
+      <Table aria-label="Default search">
+        <TableHeader columns={gridColumns} />
+        <TableBody items={rows} columns={gridColumns} />
+      </Table>,
+    )
+    await user.tab()
+    await user.keyboard("b")
+    expect(screen.getByRole("row", { name: "Zero" })).toHaveFocus()
+  })
   it("enters first/last cell children and walks eligible controls before leaving", async () => {
     const user = userEvent.setup()
     const controls = [

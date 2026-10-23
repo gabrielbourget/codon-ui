@@ -1,8 +1,9 @@
-import { useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, type RefObject } from "react"
+import { useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, useState, type RefObject } from "react"
 import { findNodeHandle, I18nManager, Platform, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import type { TNativeCollectionLayoutDelegate } from "../../collection/renderer"
+import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionKey, TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 import {
@@ -11,6 +12,7 @@ import {
   getNativeFocusedTarget,
   subscribeNativeFocus,
 } from "../../input/focus"
+import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeFocusEvent, TNativeKeyboardEvent } from "../../input/types"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
@@ -18,6 +20,7 @@ import { getNativeTagGroupNavigationSelection } from "../TagGroup/keyboard"
 
 import { getNativeTableCellFocusTargets, nativeTableCellContains, type TNativeTableFocusTarget } from "./cellFocus"
 import { getNativeTableKeyTokens, getNativeTableNavigationKey, NATIVE_TABLE_NAVIGATION_KEYS } from "./keyboard"
+import { getNativeTableSearchKey, nativeTableKeyCharacter } from "./typeahead"
 import type { TNativeTableProps } from "./types"
 
 type TTarget = { node: TNativeCollectionNode<object>; view: View }
@@ -27,14 +30,45 @@ type TOwner = {
   manager: SelectionManager
   root: RefObject<View | null>
   props: Pick<TNativeTableProps, "disallowSelectAll" | "escapeKeyBehavior" | "shouldFocusWrap">
+  rowHeaderColumns: ReadonlySet<string>
   layout?: TNativeCollectionLayoutDelegate
+  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }
-export const useTableKeyboard = (owner: TOwner) => {
+type TNativeTableKeyboard = {
+  register: (node: TNativeCollectionNode<object>, view: View | null) => void
+  observe: (key: TNativeCollectionKey, event: TNativeFocusEvent) => void
+  onFocus: (event: TNativeFocusEvent) => void
+  onKeyDown: (event: TNativeKeyboardEvent, cellKey?: TNativeCollectionKey) => void
+  keysFor: (from: TNativeCollectionKey | null) => string[]
+  canAct: () => boolean
+  requestedKey: TNativeCollectionKey | null
+  observedKey: TNativeCollectionKey | null
+  typeahead: (event: TNativeKeyboardEvent | TNativeObservedKeyboardEvent) => void
+  captureTypeahead: (event: TNativeKeyboardEvent) => void
+  hasSearch: boolean
+  typeaheadEnabled: boolean
+}
+export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
   const actions = useContext(NativeCollectionActionsContext)!
   const scope = useNativeKeyScope()
   const floating = useContext(NativeFloatingScopeContext)
   const window = useContext(NativeFloatingWindowContext)
   const targets = useRef(new Map<TNativeCollectionKey, TTarget>())
+  const [requestedKey, setRequestedKey] = useState<TNativeCollectionKey | null>(null)
+  const [observedKey, setObservedKey] = useState<TNativeCollectionKey | null>(null)
+  const [, refreshTargets] = useState(0)
+  const [hasSearch, setHasSearch] = useState(false)
+  const search = useRef({ value: "", timer: undefined as ReturnType<typeof setTimeout> | undefined, window: "" })
+  const typedEvents = useRef(new WeakSet<object>())
+  const pendingFocus = useRef<{
+    key: TNativeCollectionKey
+    node: TNativeCollectionNode<object>
+    window: string
+    input: ReturnType<NonNullable<typeof scope>["lastInput"]> | undefined
+    child?: TNativeTableFocusTarget
+    renderingRequested: boolean
+    commanded?: View
+  } | null>(null)
   const live = useRef(false)
   const current = useRef({ ...owner, scope, floating, window })
   useInsertionEffect(() => {
@@ -44,6 +78,8 @@ export const useTableKeyboard = (owner: TOwner) => {
     live.current = true
     return () => {
       live.current = false
+      pendingFocus.current = null
+      clearTimeout(search.current.timer)
       targets.current.clear()
     }
   }, [])
@@ -53,11 +89,66 @@ export const useTableKeyboard = (owner: TOwner) => {
     current.current.floating?.canAct() !== false &&
     current.current.window?.() !== false
   const register = useCallback((node: TNativeCollectionNode<object>, view: View | null) => {
-    if (view) targets.current.set(node.key, { node, view })
-    else if (targets.current.get(node.key)?.node === node) targets.current.delete(node.key)
+    if (view) {
+      const previous = targets.current.get(node.key)
+      targets.current.set(node.key, { node, view })
+      if (pendingFocus.current?.key === node.key && previous?.view !== view) refreshTargets((revision) => revision + 1)
+    } else if (targets.current.get(node.key)?.node === node) targets.current.delete(node.key)
   }, [])
-  const focus = (key: TNativeCollectionKey, child?: TNativeTableFocusTarget) => {
+  const focusWindow = () => {
+    const { receipt, scope } = current.current,
+      lease = receipt.lease
+    return JSON.stringify([
+      lease?.rootRevision,
+      lease?.target,
+      lease?.surfaceId,
+      lease?.windowId,
+      lease?.epoch,
+      scope?.acknowledgedSession(),
+    ])
+  }
+  const cancelFocus = () => {
+    pendingFocus.current = null
+    if (live.current) setRequestedKey(null)
+  }
+  const attemptFocus = () => {
+    const request = pendingFocus.current
+    if (!request) return
+    if (!eligible() || request.window !== focusWindow() || request.input !== current.current.scope?.lastInput()) {
+      cancelFocus()
+      return
+    }
+    if (current.current.receipt.status !== "confirmed") return
+    if (current.current.scope?.isNativeReady() === false) return
+    const { key, child } = request
+    if (!actions.bindingFor(request.node) || current.current.manager.focusedKey !== key) {
+      cancelFocus()
+      return
+    }
     const entry = targets.current.get(key)
+    if (!entry) {
+      if (!request.renderingRequested) {
+        request.renderingRequested = true
+        try {
+          current.current.layout?.requestRendering?.(key)
+          const scrolled = current.current.layout?.scrollToKey?.(key)
+          if (scrolled && "then" in scrolled)
+            void scrolled.then(
+              () => {
+                if (pendingFocus.current === request) attemptFocus()
+              },
+              () => {
+                if (pendingFocus.current === request) cancelFocus()
+              },
+            )
+        } catch (error) {
+          if (pendingFocus.current === request) cancelFocus()
+          throw error
+        }
+      }
+      return
+    }
+    if (request.commanded === entry.view) return
     const currentFocus = getNativeFocusedTarget()
     const children = entry && entry.node.type !== "item" ? getNativeTableCellFocusTargets(entry.view) : []
     const destination =
@@ -68,19 +159,120 @@ export const useTableKeyboard = (owner: TOwner) => {
       entry?.view
     const retained = destination && captureNativeFocusTarget(destination)
     const tag = entry && findNodeHandle(entry.view)
-    if (!eligible() || !entry || !tag) return
-    actions.request(entry.node, tag, () => {
-      if (
-        eligible() &&
-        targets.current.get(key) === entry &&
-        current.current.manager.focusedKey === key &&
-        destination &&
-        retained?.() &&
-        nativeTableCellContains(entry.view, destination)
-      )
-        focusNativeTarget(destination)
+    if (!eligible() || !tag) return
+    request.commanded = entry.view
+    actions.request(
+      request.node,
+      tag,
+      () => {
+        if (
+          pendingFocus.current === request &&
+          eligible() &&
+          targets.current.get(key) === entry &&
+          current.current.manager.focusedKey === key &&
+          destination &&
+          retained?.() &&
+          nativeTableCellContains(entry.view, destination)
+        )
+          focusNativeTarget(destination)
+        else if (pendingFocus.current === request) cancelFocus()
+      },
+      (outcome) => {
+        if (outcome !== "accepted" && pendingFocus.current === request) cancelFocus()
+      },
+    )
+  }
+  const focus = (key: TNativeCollectionKey, child?: TNativeTableFocusTarget) => {
+    const node = current.current.collection.getItem(key)
+    if (!eligible() || !node) return
+    pendingFocus.current = {
+      key,
+      node,
+      child,
+      window: focusWindow(),
+      input: current.current.scope?.lastInput(),
+      renderingRequested: false,
+    }
+    setRequestedKey(key)
+    attemptFocus()
+  }
+  const clearSearch = () => {
+    clearTimeout(search.current.timer)
+    search.current.value = ""
+    if (live.current) setHasSearch(false)
+  }
+  const typeahead = (event: TNativeKeyboardEvent | TNativeObservedKeyboardEvent) => {
+    const data = event.nativeEvent
+    if (
+      typedEvents.current.has(event) ||
+      !eligible() ||
+      current.current.receipt.status !== "confirmed" ||
+      data.cancelled ||
+      ("phase" in data && data.phase !== "down") ||
+      ("isComposing" in data && data.isComposing) ||
+      data.ctrlKey ||
+      data.metaKey
+    )
+      return
+    const character = nativeTableKeyCharacter(data.key)
+    if (!character || (!search.current.value.length && character === " ")) return
+    const target = "focusedTarget" in data ? data.focusedTarget : data.target
+    const original = [...targets.current.values()].some(
+      (entry) =>
+        findNodeHandle(entry.view) === target ||
+        getNativeTableCellFocusTargets(entry.view).some((child) => findNodeHandle(child) === target),
+    )
+    if (!original && target !== findNodeHandle(current.current.root.current)) return
+    if (search.current.window !== focusWindow()) clearSearch()
+    search.current.window = focusWindow()
+    if (!search.current.value.length && character === " ") return
+    typedEvents.current.add(event)
+    if (character === " " && search.current.value.trim().length) {
+      event.preventDefault()
+      event.stopPropagation()
+    }
+    search.current.value += character
+    setHasSearch(!!search.current.value.trim())
+    clearTimeout(search.current.timer)
+    search.current.timer = setTimeout(clearSearch, 1000)
+    const query = search.current.value,
+      window = search.current.window
+    event.persist?.()
+    const view = current.current.root.current,
+      tag = view && findNodeHandle(view)
+    if (!tag) return
+    actions.request(null, tag, () => {
+      if (!eligible() || current.current.root.current !== view || window !== focusWindow()) return
+      const owner = current.current
+      const key =
+        getNativeTableSearchKey(owner, query, owner.manager.focusedKey) ?? getNativeTableSearchKey(owner, query)
+      if (key != null) {
+        owner.manager.setFocusedKey(key)
+        focus(key)
+      }
     })
   }
+  const captureTypeahead = (event: TNativeKeyboardEvent) => {
+    if (event.nativeEvent.key === " ") typeahead(event)
+  }
+  useLayoutEffect(() => {
+    attemptFocus()
+  })
+  useLayoutEffect(
+    () =>
+      current.current.scope?.subscribe(() => {
+        if (
+          pendingFocus.current &&
+          (!eligible() ||
+            pendingFocus.current.input !== current.current.scope?.lastInput() ||
+            pendingFocus.current.window !== focusWindow())
+        )
+          cancelFocus()
+        else if (pendingFocus.current) attemptFocus()
+        if (!eligible() || (search.current.window && search.current.window !== focusWindow())) clearSearch()
+      }),
+    [scope],
+  )
   const observe = (key: TNativeCollectionKey, event: TNativeFocusEvent) => {
     const entry = targets.current.get(key)
     if (
@@ -92,6 +284,8 @@ export const useTableKeyboard = (owner: TOwner) => {
       return
     current.current.manager.setFocused(true)
     current.current.manager.setFocusedKey(key)
+    setObservedKey(key)
+    if (pendingFocus.current?.key === key) cancelFocus()
   }
   const onFocus = (event: TNativeFocusEvent) => {
     const { root } = current.current
@@ -122,16 +316,20 @@ export const useTableKeyboard = (owner: TOwner) => {
         const entry =
           focused && [...targets.current.values()].find((candidate) => nativeTableCellContains(candidate.view, focused))
         if (!entry) {
+          setObservedKey(null)
           if (focused !== current.current.root.current) current.current.manager.setFocused(false)
           return
         }
         current.current.manager.setFocused(true)
+        setObservedKey(entry.node.key)
+        if (pendingFocus.current?.key === entry.node.key) cancelFocus()
         if (current.current.scope?.lastInput()?.origin !== "keyboard")
           current.current.manager.setFocusedKey(entry.node.key)
       }),
     [],
   )
   const onKeyDown = (event: TNativeKeyboardEvent, cellKey?: TNativeCollectionKey) => {
+    if (!current.current.scope) typeahead(event)
     const data = event.nativeEvent
     if (!eligible() || data.phase !== "down" || data.cancelled || !data.nativeDefaultHandled || event.defaultPrevented)
       return
@@ -247,5 +445,19 @@ export const useTableKeyboard = (owner: TOwner) => {
       )
     })
   }
-  return { register, observe, onFocus, onKeyDown, keysFor, canAct: eligible }
+  return {
+    register,
+    observe,
+    onFocus,
+    onKeyDown,
+    keysFor,
+    canAct: eligible,
+    requestedKey,
+    observedKey,
+    typeahead,
+    captureTypeahead,
+    hasSearch,
+    // Pinned RAC TableInner removes disallowTypeAhead before calling useTable.
+    typeaheadEnabled: true,
+  }
 }

@@ -1,9 +1,12 @@
 import { useCallback, useContext, useMemo, useRef, useState } from "react"
 import { findNodeHandle, View } from "react-native"
 
+import { NativeCollectionActionsContext } from "../../collection/actions"
+import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
-import { NativeCollectionRendererContext } from "../../collection/renderer"
+import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
+import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { SelectionManager } from "../../collection/state/SelectionManager"
 import { useFocusedKeyReset } from "../../collection/state/useListState"
@@ -21,6 +24,7 @@ import { resolveNativeTableFilteringLabels } from "./filterLabels"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { resizeNativeTableColumn } from "./resizing"
 import { computeNextNativeTableSorts } from "./sorting"
+import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps } from "./types"
 import { useTableKeyboard } from "./useTableKeyboard"
 
@@ -28,12 +32,12 @@ const Receiver = <T extends object>({
   props,
   collection,
   selection,
-  confirmed,
+  receipt,
 }: {
   props: TNativeTableProps<T>
   collection: TNativeCollectionSnapshot<object>
   selection: ReturnType<typeof useMultipleSelectionState>
-  confirmed: boolean
+  receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }) => {
   const {
     children: _children,
@@ -68,6 +72,7 @@ const Receiver = <T extends object>({
   const manager = useMemo(() => new SelectionManager(collection, selection), [collection, selection])
   useFocusedKeyReset(collection, manager)
   const renderer = useContext(NativeCollectionRendererContext)
+  const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const [target, setTarget] = useState(0)
   const root = useRef<View | null>(null)
@@ -103,8 +108,18 @@ const Receiver = <T extends object>({
     }
   }
   visit(collection)
-  const keyboard = useTableKeyboard({ collection, manager, rows, root, props, layout: renderer.layoutDelegate })
-  if (confirmed && columnCount > 0 && rowHeaderColumns.size === 0)
+  const keyboard = useTableKeyboard({
+    collection,
+    manager,
+    rows,
+    root,
+    props,
+    layout: renderer.layoutDelegate,
+    receipt,
+    rowHeaderColumns,
+  })
+  const persistedKeys = useNativePersistedKeys(manager.focusedKey, keyboard.requestedKey, keyboard.observedKey)
+  if (receipt.status === "confirmed" && columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
   const styles = splitNativeTextStyle(
     resolveNativeStyle([{ width: "100%", flexShrink: 0 }, customStyles, style], "Table", "style"),
@@ -169,28 +184,31 @@ const Receiver = <T extends object>({
             selectionMode: manager.selectionMode,
           })}
         >
-          <NativeFocusHost
-            {...nativeViewProps(native)}
-            ref={bind}
-            testID={props.testID ?? "table"}
-            accessible={false}
-            focusable
-            nativeTabStop={manager.focusedKey == null}
-            capturedKeys={keyboard.keysFor(null)}
-            onKeyDown={keyboard.onKeyDown}
-            onFocus={(event) => {
-              keyboard.onFocus(event)
-              native.onFocus?.(event)
-            }}
-            role="grid"
-            style={styles.view}
-          >
-            <NativeContentContext.Provider
-              value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+          <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
+            <NativeFocusHost
+              {...nativeViewProps(native)}
+              ref={bind}
+              testID={props.testID ?? "table"}
+              accessible={false}
+              focusable
+              nativeTabStop={manager.focusedKey == null}
+              capturedKeys={keyboard.keysFor(null)}
+              onKeyDown={keyboard.onKeyDown}
+              onFocus={(event) => {
+                keyboard.onFocus(event)
+                native.onFocus?.(event)
+              }}
+              role="grid"
+              style={styles.view}
             >
-              <renderer.CollectionRoot collection={collection} />
-            </NativeContentContext.Provider>
-          </NativeFocusHost>
+              <TableTypeahead target={root} tag={target} />
+              <NativeContentContext.Provider
+                value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+              >
+                <renderer.CollectionRoot collection={collection} persistedKeys={persistedKeys} />
+              </NativeContentContext.Provider>
+            </NativeFocusHost>
+          </NativeCollectionItemBindingContext.Provider>
         </NativeCollectionSemanticsContext.Provider>
         {queryControls?.pagination && (
           <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
@@ -232,12 +250,7 @@ export const Table = <T extends object = object>(props: TNativeTableProps<T>) =>
     <NativeTableOptionsContext.Provider value={options}>
       <NativeCollectionBuilder<object> content={props.children}>
         {(collection, receipt) => (
-          <Receiver
-            props={props}
-            collection={collection}
-            selection={selection}
-            confirmed={receipt.status === "confirmed"}
-          />
+          <Receiver props={props} collection={collection} selection={selection} receipt={receipt} />
         )}
       </NativeCollectionBuilder>
     </NativeTableOptionsContext.Provider>

@@ -122,6 +122,7 @@ export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "childre
   }
 export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
   TStyleProps & {
+    textValue?: string
     id?: TNativeCollectionKey
     columnID: string
     isRowHeader?: boolean
@@ -130,12 +131,14 @@ export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
   }
 export type TNativeTableCellProps = Omit<ViewProps, "id" | "style"> &
   TStyleProps & {
+    textValue?: string
     id?: TNativeCollectionKey
     columnID: string
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
 export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "children" | "style"> &
   TStyleProps & {
+    textValue?: string
     id?: TNativeCollectionKey
     item: T
     columns: TNativeTableColumnMetadata<T>[]

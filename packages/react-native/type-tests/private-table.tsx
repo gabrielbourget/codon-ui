@@ -3,6 +3,7 @@ import type { View } from "react-native"
 
 // @ts-expect-error Table remains private until its complete component contract is implemented.
 import { Table as PublicTable } from "../src"
+import { NativeSelectableCollectionContext } from "../src/collection/context"
 import { FilterClauseRow } from "../src/components/Filtering/FilterClauseRow"
 import { buildNativeTableFilterDraft } from "../src/components/Table/filterPopoverDraft"
 import { Table } from "../src/components/Table/Table"
@@ -41,6 +42,20 @@ const selection = (
     shouldFocusWrap
   />
 )
+const textCell = (
+  <TableCell columnID="name" textValue="Explicit search text">
+    Visible text
+  </TableCell>
+)
+const ignoredTypeaheadFlag = (
+  <NativeSelectableCollectionContext.Provider value={{ disallowTypeAhead: true }}>
+    <Table />
+  </NativeSelectableCollectionContext.Provider>
+)
+// @ts-expect-error The inherited context flag is not a public Table prop in the canonical source.
+const invalidTypeaheadProp = <Table disallowTypeAhead />
+// @ts-expect-error Search metadata is a string, preserving the canonical textValue contract.
+const invalidTextValue = <TableCell columnID="name" textValue={0} />
 // @ts-expect-error Escape behavior retains the canonical finite policy.
 const invalidEscape = <Table escapeKeyBehavior="close" />
 const action = (
@@ -124,6 +139,10 @@ void [
   PublicTable,
   composition,
   selection,
+  textCell,
+  ignoredTypeaheadFlag,
+  invalidTypeaheadProp,
+  invalidTextValue,
   invalidEscape,
   action,
   query,

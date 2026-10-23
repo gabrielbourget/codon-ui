@@ -254,6 +254,7 @@ export const TableHeader = createNativeCollectionBranch<object, TNativeTableHead
               key={column.id}
               id={`header:${column.id}`}
               columnID={column.id}
+              textValue={column.headerAriaLabel}
               isRowHeader={column.isRowHeader}
               allowsSorting={options.sortingEnabled && !!column.sort?.enabled}
               accessibilityLabel={column.headerAriaLabel ?? column.name}

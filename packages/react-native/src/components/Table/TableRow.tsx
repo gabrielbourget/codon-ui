@@ -33,6 +33,7 @@ import { useTableAction } from "./useTableAction"
 const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
   const {
     id: _id,
+    textValue: _textValue,
     item: _item,
     columns: _columns,
     renderCell: _render,
@@ -165,6 +166,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         nativeAccessible={false}
         nativeInteraction={state.allowsSelection || state.hasAction}
         nativeProgrammaticFocusable
+        onKeyDown={table.keyboard.captureTypeahead}
         nativeRender={(props) => (
           <NativeFocusHost
             {...props}

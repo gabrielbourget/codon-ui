@@ -1,4 +1,4 @@
-import { useCallback, useContext, useRef, type ForwardedRef } from "react"
+import { forwardRef, useCallback, useContext, useRef, type ForwardedRef, type ReactNode } from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
@@ -25,12 +25,14 @@ import type { TNativeTableCellProps, TNativeTableColumnProps } from "./types"
 import { useTableAction } from "./useTableAction"
 
 const Cell = (
-  props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting">,
+  props: Omit<TNativeTableCellProps, "children"> &
+    Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting"> & { children?: ReactNode | (() => ReactNode) },
   ref: ForwardedRef<View>,
   node: TNativeCollectionNode<object>,
 ) => {
   const {
     id: _id,
+    textValue: _textValue,
     columnID,
     isRowHeader: _columnHeader,
     allowsSorting,
@@ -103,7 +105,7 @@ const Cell = (
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
       >
-        {getNativeButtonContent(children, styles.text)}
+        {getNativeButtonContent(typeof children === "function" ? children() : children, styles.text)}
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>
   )
@@ -134,6 +136,7 @@ const Cell = (
             nativeRole="columnheader"
             nativeInteraction={!!allowsSorting}
             nativeProgrammaticFocusable
+            onKeyDown={table.keyboard.captureTypeahead}
             nativeTabStop={table.manager.focusedKey === node.key}
             nativeRender={(props) => (
               <NativeFocusHost
@@ -200,5 +203,15 @@ const Cell = (
     </NativeCollectionItemBindingContext.Provider>
   )
 }
-export const TableCell = createNativeCollectionLeaf<object, TNativeTableCellProps, View>("cell", Cell)
+type TMetadataCellProps = Omit<TNativeTableCellProps, "children"> & { children: () => ReactNode }
+const CellMetadata = createNativeCollectionLeaf<object, TMetadataCellProps, View>("cell", Cell)
+export const TableCell = forwardRef<View, TNativeTableCellProps>((props, ref) => {
+  // Canonical Cell authors a render function; its plain visible text is not collection search metadata.
+  const content = useCallback(() => props.children, [props.children])
+  return (
+    <CellMetadata {...props} ref={ref}>
+      {content}
+    </CellMetadata>
+  )
+})
 export const TableColumn = createNativeCollectionLeaf<object, TNativeTableColumnProps, View>("column", Cell)
