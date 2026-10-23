@@ -1,8 +1,10 @@
 import { createContext } from "react"
+import type { NativeSyntheticEvent } from "react-native"
 
 import type { TNativeKeyboardEvent } from "./types"
 
-const PHASES = ["down", "up", "cancel"] as const
+const PHASES = ["down", "up", "cancel", "input"] as const
+const INPUT_KINDS = ["insert", "delete", "marked", "unmark"] as const
 const FOCUS_ACTIONS = ["first", "next", "previous", "physical-left", "physical-right", "press"] as const
 export type TNativeFieldFocusAction = Readonly<{ groupTarget: number; kind: (typeof FOCUS_ACTIONS)[number] }>
 export type TNativeFieldInputIdentity = Readonly<{
@@ -39,6 +41,18 @@ export type TNativeFieldInputPacket = Readonly<{
   groups: readonly TNativeFieldInputGroup[]
 }>
 export type TNativeFieldKeyEvent = TNativeKeyboardEvent & { nativeEvent: Readonly<{ fieldDispatch: string }> }
+export type TNativeFieldOwnedInputEvent = NativeSyntheticEvent<
+  Readonly<{
+    target: number
+    kind: string
+    surfaceId: number
+    windowId: string
+    focused: boolean
+    active: boolean
+    fieldDispatch: string
+  }>
+>
+export type TNativeFieldDispatchEvent = TNativeFieldKeyEvent | TNativeFieldOwnedInputEvent
 export type TNativeFieldFocusResult = Readonly<{
   requested: boolean
   observed: boolean
@@ -145,15 +159,23 @@ const request = (packet: TNativeFieldInputPacket) => ({
 })
 const packets = new WeakMap<object, TNativeFieldInputPacket>()
 const settled = new WeakSet<object>()
-const packetFor = (event: TNativeFieldKeyEvent) => {
+const packetFor = (event: TNativeFieldDispatchEvent) => {
   let packet = packets.get(event)
   if (!packet) {
     packet = decodeNativeFieldInputPacket(event.nativeEvent.fieldDispatch)
     if (
       packet.identity.target !== event.nativeEvent.target ||
-      (packet.phase === "cancel"
-        ? event.nativeEvent.phase !== "up" || !event.nativeEvent.cancelled
-        : packet.phase !== event.nativeEvent.phase || event.nativeEvent.cancelled)
+      (packet.phase === "input"
+        ? !INPUT_KINDS.includes(event.nativeEvent.kind as never) ||
+          !("surfaceId" in event.nativeEvent) ||
+          packet.identity.surfaceId !== event.nativeEvent.surfaceId ||
+          packet.identity.windowId !== event.nativeEvent.windowId ||
+          !event.nativeEvent.focused ||
+          !event.nativeEvent.active
+        : !("phase" in event.nativeEvent) ||
+          (packet.phase === "cancel"
+            ? event.nativeEvent.phase !== "up" || !event.nativeEvent.cancelled
+            : packet.phase !== event.nativeEvent.phase || event.nativeEvent.cancelled))
     )
       invalid()
     packets.set(event, packet)
@@ -167,12 +189,12 @@ const admitted = (scope: TNativeFieldInputScope, packet: TNativeFieldInputPacket
     (group) => group.bindingId === scope.bindingId && group.bindingRevision === scope.bindingRevision,
   ) &&
   scope.native.acceptsField(JSON.stringify(request(packet)))
-export const isNativeFieldInputCurrent = (scope: TNativeFieldInputScope, event: TNativeFieldKeyEvent) =>
+export const isNativeFieldInputCurrent = (scope: TNativeFieldInputScope, event: TNativeFieldDispatchEvent) =>
   !settled.has(event) && admitted(scope, packetFor(event))
 
 export const moveNativeFieldFocus = (
   scope: TNativeFieldInputScope,
-  event: TNativeFieldKeyEvent,
+  event: TNativeFieldDispatchEvent,
   action: TNativeFieldFocusAction,
 ): TNativeFieldFocusResult | null => {
   const packet = packetFor(event)
@@ -222,6 +244,51 @@ export const moveNativeFieldFocus = (
   })
 }
 
+const activeEvents = new WeakMap<TNativeFieldInputScope, TNativeFieldDispatchEvent[]>()
+const withinOriginalInput = (scope: TNativeFieldInputScope, event: TNativeFieldDispatchEvent, run: () => void) => {
+  const stack = activeEvents.get(scope) ?? []
+  activeEvents.set(scope, stack)
+  stack.push(event)
+  try {
+    run()
+  } finally {
+    stack.pop()
+    if (!stack.length) activeEvents.delete(scope)
+  }
+}
+
+// Native focus notifications may reenter source entry while its initiating
+// original key/input is still live. Authority belongs to that actual stack.
+export const activeNativeFieldInputEvent = (scope: TNativeFieldInputScope) => {
+  const event = activeEvents.get(scope)?.at(-1)
+  return event && isNativeFieldInputCurrent(scope, event) ? event : null
+}
+export const receiveNativeFieldOwnedInput = (
+  scope: TNativeFieldInputScope,
+  event: TNativeFieldOwnedInputEvent,
+  run: () => void,
+) => {
+  const packet = packetFor(event)
+  if (packet.phase !== "input" || settled.has(event) || !admitted(scope, packet)) return false
+  event.persist()
+  let failed = true
+  try {
+    withinOriginalInput(scope, event, run)
+    failed = false
+  } finally {
+    settled.add(event)
+    scope.native.settleField(
+      JSON.stringify({
+        ...request(packet),
+        current: !failed && admitted(scope, packet),
+        preventDefault: false,
+        focus: null,
+      }),
+    )
+  }
+  return true
+}
+
 // React performs the original bubbling. This receiver never enumerates child
 // callbacks, changes event methods, clones events or infers focus completion.
 export const receiveNativeFieldKey = (
@@ -231,6 +298,7 @@ export const receiveNativeFieldKey = (
 ) => {
   const packet = packetFor(event)
   if (
+    packet.phase === "input" ||
     settled.has(event) ||
     !admitted(scope, packet) ||
     (receiver.group &&
@@ -245,7 +313,7 @@ export const receiveNativeFieldKey = (
   event.persist()
   let failed = true
   try {
-    receiver.run()
+    withinOriginalInput(scope, event, receiver.run)
     failed = false
   } finally {
     if (failed || event.isPropagationStopped() || receiver.target === packet.groups.at(-1)!.target) {

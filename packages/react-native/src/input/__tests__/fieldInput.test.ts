@@ -1,5 +1,8 @@
 import {
   decodeNativeFieldInputPacket,
+  activeNativeFieldInputEvent,
+  receiveNativeFieldOwnedInput,
+  type TNativeFieldOwnedInputEvent,
   moveNativeFieldFocus,
   nativeFieldGroupKeyHandler,
   receiveNativeFieldKey,
@@ -442,4 +445,103 @@ it("retires a group callback when the original focus notification unmounts its o
   nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onKeyDown: caller })(original, 3)
   expect(caller).not.toHaveBeenCalled()
   expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ current: false, preventDefault: false })
+})
+
+const ownedInput = (kind = "insert", extra: Record<string, unknown> = {}) => {
+  const value = { ...packet(), phase: "input" }
+  const original = event() as unknown as TNativeFieldOwnedInputEvent
+  Object.assign(original.nativeEvent, {
+    kind,
+    surfaceId: 11,
+    windowId: "window:1",
+    focused: true,
+    active: true,
+    fieldDispatch: JSON.stringify(value),
+    ...extra,
+  })
+  return original
+}
+it.each(["insert", "delete", "marked", "unmark"])(
+  "settles original %s input once without inventing a cancellable edit",
+  (kind) => {
+    const f = setup(),
+      original = ownedInput(kind),
+      callback = jest.fn(() => {
+        expect(activeNativeFieldInputEvent(f.scope)).toBe(original)
+        expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 2, kind: "next" })?.observed).toBe(true)
+        original.preventDefault()
+      })
+    expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+    expect(receiveNativeFieldOwnedInput(f.scope, original, callback)).toBe(true)
+    expect(callback).toHaveBeenCalledTimes(1)
+    expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+    expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({
+      phase: "input",
+      current: true,
+      preventDefault: false,
+    })
+    expect(receiveNativeFieldOwnedInput(f.scope, original, callback)).toBe(false)
+    expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 2, kind: "next" })).toBeNull()
+  },
+)
+it("retains the initiating key during original focus notifications and restores its stack after nested input", () => {
+  const f = setup(),
+    key = event(),
+    input = ownedInput("unmark")
+  receiveNativeFieldKey(f.scope, key, {
+    target: 10,
+    group: false,
+    run: () => {
+      expect(activeNativeFieldInputEvent(f.scope)).toBe(key)
+      receiveNativeFieldOwnedInput(f.scope, input, () => {
+        expect(activeNativeFieldInputEvent(f.scope)).toBe(input)
+      })
+      expect(activeNativeFieldInputEvent(f.scope)).toBe(key)
+      f.retire()
+      expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+    },
+  })
+  expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+})
+it("reports a throwing original input as retired and releases its active scope", () => {
+  const f = setup(),
+    original = ownedInput()
+  expect(() =>
+    receiveNativeFieldOwnedInput(f.scope, original, () => {
+      throw new Error("original failure")
+    }),
+  ).toThrow("original failure")
+  expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ current: false, preventDefault: false })
+})
+it.each([
+  { kind: "focus" },
+  { surfaceId: 12 },
+  { windowId: "foreign" },
+  { focused: false },
+  { active: false },
+  { target: 99 },
+])("rejects foreign or inactive owned input %j before its original callback", (extra) => {
+  const f = setup(),
+    callback = jest.fn()
+  expect(() => receiveNativeFieldOwnedInput(f.scope, ownedInput("insert", extra), callback)).toThrow(
+    "invalid-native-field-input-packet",
+  )
+  expect(callback).not.toHaveBeenCalled()
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+it("rejects retired owned input and keeps key receivers out of direct input delivery", () => {
+  const f = setup(),
+    callback = jest.fn(),
+    original = ownedInput()
+  expect(
+    receiveNativeFieldKey(f.scope, original as unknown as TNativeFieldKeyEvent, {
+      target: 10,
+      group: false,
+      run: callback,
+    }),
+  ).toBe(false)
+  f.retire()
+  expect(receiveNativeFieldOwnedInput(f.scope, original, callback)).toBe(false)
+  expect(callback).not.toHaveBeenCalled()
 })

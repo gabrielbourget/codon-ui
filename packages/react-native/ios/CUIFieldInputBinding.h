@@ -13,3 +13,5 @@
 
 BOOL CUIFieldInputOwnsPress(UIPress *press, UIWindow *window);
 BOOL CUIFieldInputOwnsView(UIView *view);
+
+void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void));

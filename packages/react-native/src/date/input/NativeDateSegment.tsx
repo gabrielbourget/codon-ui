@@ -1,6 +1,7 @@
 import {
   forwardRef,
   useCallback,
+  useContext,
   useInsertionEffect,
   useLayoutEffect,
   useMemo,
@@ -10,6 +11,11 @@ import {
 } from "react"
 import { findNodeHandle, type NativeSyntheticEvent } from "react-native"
 
+import {
+  NativeFieldInputContext,
+  receiveNativeFieldOwnedInput,
+  type TNativeFieldOwnedInputEvent,
+} from "../../input/fieldInput"
 import { observeNativeFocus, registerNativeFocusTarget } from "../../input/focus"
 import { nativeViewProps, NativeViewContextBoundary } from "../../input/nativeViewProps"
 import SegmentHost, {
@@ -48,6 +54,8 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     () => `${bindingRevision}:native-segment-lease:${++segmentLeaseGenerations}`,
     [bindingRevision, segmentDisabled, segmentReadOnly, segmentEditable, keyboardMode],
   )
+  const fieldScope = useContext(NativeFieldInputContext)
+  const committedScope = useRef(fieldScope)
   const current = useRef(props)
   const identity = useRef({ ownerId, segmentId, bindingRevision: wireRevision })
   const assignedIdentity = useRef<typeof identity.current | null>(null)
@@ -60,6 +68,7 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
   const assignedForwarded = useRef(forwardedRef)
   useInsertionEffect(() => {
     current.current = props
+    committedScope.current = fieldScope
     forwarded.current = forwardedRef
     identity.current = { ownerId, segmentId, bindingRevision: wireRevision }
   })
@@ -165,7 +174,13 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
       (current.current.segmentDisabled || current.current.segmentReadOnly || !current.current.segmentEditable)
     )
       return
-    current.current.onNativeSegmentInput?.(event)
+    const scope = committedScope.current
+    if ("fieldDispatch" in data) {
+      if (!scope) return
+      receiveNativeFieldOwnedInput(scope, event as unknown as TNativeFieldOwnedInputEvent, () =>
+        current.current.onNativeSegmentInput?.(event),
+      )
+    } else current.current.onNativeSegmentInput?.(event)
   }, [])
   void onNativeSegmentInput
   return (

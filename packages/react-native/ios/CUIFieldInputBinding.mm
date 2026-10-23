@@ -9,6 +9,7 @@
 #import <React/RCTTextInputComponentView.h>
 #import <React/RCTTextInputNativeCommands.h>
 #include "../cpp/form/FieldInputBinding.h"
+#include "../cpp/FieldInputOriginalCapture.h"
 #include "../cpp/form/FabricFormDocument.h"
 #include <react/renderer/components/CodonNativeInputSpec/Props.h>
 
@@ -23,6 +24,8 @@ using namespace codon::form;
 - (NSDictionary *)capture;
 - (UIView *)outerRoot;
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
+- (void)emitOriginalInput:(UIView *)view emit:(void (^)(void))emit;
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat originalInput:(const RawEvent *)originalInput;
 - (UIWindow *)boundWindow;
 - (NSString *)moduleLease;
 @end
@@ -157,6 +160,13 @@ BOOL CUIFieldInputOwnsView(UIView *view)
 {
   CUIFieldInputBinding *binding = CUIFieldWinner(view.window);
   return binding && [view isDescendantOfView:[binding outerRoot]];
+}
+
+void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
+{
+  CUIFieldInputBinding *owner = CUIFieldWinner(view.window);
+  if (owner && [view isDescendantOfView:[owner outerRoot]]) [owner emitOriginalInput:view emit:emit];
+  else emit();
 }
 
 @implementation CUIFieldInputBinding {
@@ -348,11 +358,22 @@ BOOL CUIFieldInputOwnsView(UIView *view)
   }
   return result;
 }
+- (void)emitOriginalInput:(UIView *)view emit:(void (^)(void))emit
+{
+  const auto manager = _manager.lock();
+  if (!manager || !view.isFirstResponder) { emit(); return; }
+  const auto original = captureFieldOriginalInput(*manager, static_cast<int32_t>(view.tag), [&] { emit(); });
+  if (original) [self dispatch:nil phase:@"input" repeat:NO originalInput:&*original];
+}
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+{
+  return [self dispatch:press phase:phase repeat:repeat originalInput:nullptr];
+}
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat originalInput:(const RawEvent *)originalInput
 {
   NSDictionary *value = [self capture];
   const auto manager = _manager.lock();
-  if (!value || !manager || press.window != _window || !press.key) return NO;
+  if (!value || !manager || (!originalInput && (press.window != _window || !press.key))) return NO;
   try {
     const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
     NSData *snapshotBytes = [NSJSONSerialization dataWithJSONObject:value[@"fieldGroupSnapshot"] options:0 error:nil];
@@ -364,6 +385,10 @@ BOOL CUIFieldInputOwnsView(UIView *view)
     if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
       throw std::invalid_argument("field-input-original-document-retired");
     const auto original = fabric.preorder[fabric.positions.at(target)].node;
+    if (originalInput && (originalInput->type != "topNativeSegmentInput" ||
+        originalInput->shadowNodeFamily.lock() != original->getFamilyShared() ||
+        originalInput->eventTarget != original->getEventEmitter()->getEventTarget()))
+      throw std::invalid_argument("field-input-original-editor-retired");
     const auto state = fieldInputRuntime(binding.moduleLease);
     if (!state || !state->ready()) throw std::invalid_argument("field-input-runtime-retired");
     std::vector<TFieldInputBinding> bindings;
@@ -393,14 +418,14 @@ BOOL CUIFieldInputOwnsView(UIView *view)
     FieldInputFrameLifetime lifetime(state->frames, ticket);
     UIKey *key = press.key; const auto flags = key.modifierFlags;
     const BOOL down = [phase isEqual:@"down"], cancel = [phase isEqual:@"cancel"];
-    BOOL intrinsic = [_consumed containsObject:@(key.keyCode)];
+    BOOL intrinsic = !originalInput && [_consumed containsObject:@(key.keyCode)];
     UIView *component = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target];
     if (down && [component isKindOfClass:CUIFocusView.class]) intrinsic = [(CUIFocusView *)component capturesObservedKey:key];
     if (down && intrinsic) [_consumed addObject:@(key.keyCode)];
-    if (!down) [_consumed removeObject:@(key.keyCode)];
+    if (!down && !originalInput) [_consumed removeObject:@(key.keyCode)];
     const auto row = fieldInputOriginal(snapshot, target);
     const auto hostOwner = row.get_ptr("hostOwnerId");
-    folly::dynamic payload = folly::dynamic::object("kind", "keyboard")("ownerId", hostOwner ? hostOwner->asString() : binding.ownerId)("target", target)
+    folly::dynamic payload = originalInput ? folly::dynamic::object("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups))) : folly::dynamic::object("kind", "keyboard")("ownerId", hostOwner ? hostOwner->asString() : binding.ownerId)("target", target)
       ("key", CUIInputKeyName(key).UTF8String ?: "")("nativeCode", static_cast<int>(key.keyCode))("characters", key.characters.UTF8String ?: "")
       ("phase", down ? "down" : "up")("repeat", static_cast<bool>(repeat))("cancelled", static_cast<bool>(cancel))
       ("shiftKey", static_cast<bool>(flags & UIKeyModifierShift))("altKey", static_cast<bool>(flags & UIKeyModifierAlternate))
@@ -411,15 +436,15 @@ BOOL CUIFieldInputOwnsView(UIView *view)
       ("code", CUIPhysicalKeyCode(static_cast<int>(key.keyCode)))("location", CUIPhysicalKeyLocation(static_cast<int>(key.keyCode)))
       ("nativePressPhase", static_cast<int>(press.phase))("nativePressType", static_cast<int>(press.type));
     const auto before = payload;
-    CUIRecordWindowModality(_window, @"keyboard");
+    if (!originalInput) CUIRecordWindowModality(_window, @"keyboard");
     const std::weak_ptr<const RootShadowNode> weakRoot = fabric.root;
     const std::weak_ptr<UIManager> weakManager = manager;
     const auto revision = fabric.revision;
-    const bool scheduled = state->schedule(ticket, manager, original, "nativeFieldKey", std::move(payload),
-      HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000), [weakRoot, weakManager, revision] {
+    const bool scheduled = state->schedule(ticket, manager, original, originalInput ? "topNativeSegmentInput" : "nativeFieldKey", std::move(payload),
+      originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000), [weakRoot, weakManager, revision] {
         const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
-      });
+      }, originalInput ? originalInput->eventPayload : nullptr);
     FieldInputMountCursor mountCursor{fabric.root};
     FieldInputDecision waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
       CUIFieldInputBinding *owner = scopeOwners[@(action.groupTarget)];
@@ -445,7 +470,7 @@ BOOL CUIFieldInputOwnsView(UIView *view)
       current = current && owner && [owner currentScope:scope];
     }
     const auto decision = state->frames.end(ticket, current);
-    folly::dynamic record = folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))
+    folly::dynamic record = folly::dynamic::object("kind", originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
       ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
       ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
       ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)

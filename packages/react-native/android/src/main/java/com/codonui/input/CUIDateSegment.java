@@ -210,7 +210,10 @@ final class CUIDateSegment extends ReactViewGroup {
     data.putInt("selectionStart",Selection.getSelectionStart(document)); data.putInt("selectionEnd",Selection.getSelectionEnd(document));
     data.putInt("composingStart",BaseInputConnection.getComposingSpanStart(document)); data.putInt("composingEnd",BaseInputConnection.getComposingSpanEnd(document));
     data.putBoolean("focused",hasFocus()); data.putBoolean("active",active());
-    dispatcher.dispatchEvent(new SegmentEvent(surface,getId(),data));
+    Runnable emit = () -> dispatcher.dispatchEvent(new SegmentEvent(surface,getId(),data));
+    if (kind.equals("insert") || kind.equals("delete") || kind.equals("marked") || kind.equals("unmark"))
+      CUIFieldInputBinding.emitOwnedInput(this, emit);
+    else emit.run();
   }
   private static final class SegmentEvent extends Event<SegmentEvent> {
     private final WritableMap data;

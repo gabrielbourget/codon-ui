@@ -2,6 +2,7 @@
 #import "CUIFieldCustomContent.h"
 #import "CUIFieldSemantics.h"
 #import "CUIInputWindow.h"
+#import "CUIFieldInputBinding.h"
 #import <React/RCTConversions.h>
 #import <React/RCTMountingTransactionObserving.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
@@ -208,7 +209,10 @@ using namespace facebook::react;
   data.composingStart = _marked.location == NSNotFound ? -1 : (int)_marked.location;
   data.composingEnd = _marked.location == NSNotFound ? -1 : (int)NSMaxRange(_marked);
   data.focused = self.isFirstResponder; data.active = [self active];
-  std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter)->onNativeSegmentInput(data);
+  const auto emitter = std::static_pointer_cast<const CUIDateSegmentEventEmitter>(_eventEmitter);
+  if ([kind isEqual:@"insert"] || [kind isEqual:@"delete"] || [kind isEqual:@"marked"] || [kind isEqual:@"unmark"])
+    CUIEmitOwnedFieldInput(self, ^{ emitter->onNativeSegmentInput(data); });
+  else emitter->onNativeSegmentInput(data);
 }
 - (CUIDatePosition *)position:(NSInteger)index
 {

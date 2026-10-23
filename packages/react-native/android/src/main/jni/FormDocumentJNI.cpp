@@ -3,6 +3,7 @@
 #include "../../../../cpp/form/FormDocumentQuery.h"
 #include "../../../../cpp/form/FieldGroupQuery.h"
 #include "../../../../cpp/FieldInputRuntime.h"
+#include "../../../../cpp/FieldInputOriginalCapture.h"
 #include "../../../../cpp/form/FieldInputBinding.h"
 #include <ReactCommon/BindingsInstallerHolder.h>
 
@@ -86,10 +87,10 @@ static void nativeRetireBinding(jni::alias_ref<jclass>, jni::alias_ref<jstring> 
   const auto state = codon::fieldInputRuntime(lease->toStdString());
   if (state) state->frames.retireBinding(owner->toStdString(), binding->toStdString());
 }
-static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
+static jni::local_ref<jstring> dispatchFieldOriginal(
     jni::alias_ref<JFabricUIManager::javaobject> managerObject, jni::alias_ref<JFieldInputBinding::javaobject> owner,
     jni::alias_ref<jstring> documentValue, jni::alias_ref<jstring> snapshotValue, jni::alias_ref<jstring> keyValue,
-    jni::alias_ref<jstring> declarations, jdouble epoch) {
+    jni::alias_ref<jstring> declarations, jdouble epoch, const RawEvent *originalInput = nullptr) {
   using namespace codon;
   using namespace codon::form;
   if (!owner || !documentValue || !snapshotValue || !keyValue || !declarations) throw std::invalid_argument("field-input-native-original-record-required");
@@ -103,6 +104,10 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
   if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
     throw std::invalid_argument("field-input-original-document-retired");
   const auto original = fabric.preorder[fabric.positions.at(target)].node;
+  if (originalInput && (originalInput->type != "topNativeSegmentInput" ||
+      originalInput->shadowNodeFamily.lock() != original->getFamilyShared() ||
+      originalInput->eventTarget != original->getEventEmitter()->getEventTarget()))
+    throw std::invalid_argument("field-input-original-editor-retired");
   const auto targetRow = fieldInputOriginal(snapshot, target);
   if (const auto owner = targetRow.get_ptr("hostOwnerId")) key["ownerId"] = *owner;
   const auto state = fieldInputRuntime(binding.moduleLease);
@@ -119,7 +124,7 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
   const auto groups = orderedFieldInputGroups(document, registered, target);
   const auto identity = fieldInputIdentity(document, snapshot, binding, target, fieldInputInteger(folly::dynamic(epoch)));
   const auto eventId = fieldInputInteger(key.at("eventId"));
-  const auto phase = key.at("cancelled").asBool() ? "cancel" : key.at("phase").asString();
+  const auto phase = originalInput ? "input" : key.at("cancelled").asBool() ? "cancel" : key.at("phase").asString();
   const auto ticket = state->frames.begin(identity, eventId, phase, std::chrono::milliseconds(1000), std::move(scopes));
   if (!ticket) throw std::invalid_argument("field-input-original-frame-retired");
   FieldInputFrameLifetime lifetime(state->frames, ticket);
@@ -128,11 +133,11 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
   const std::weak_ptr<const RootShadowNode> weakRoot = fabric.root;
   const std::weak_ptr<UIManager> weakManager = manager;
   const auto revision = fabric.revision;
-  const bool scheduled = state->schedule(ticket, manager, original, "nativeFieldKey", std::move(key),
-    HighResTimeStamp::fromDOMHighResTimeStamp(before.at("timestamp").asDouble()), [weakRoot, weakManager, revision] {
+  const bool scheduled = state->schedule(ticket, manager, original, originalInput ? "topNativeSegmentInput" : "nativeFieldKey", std::move(key),
+    originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(before.at("timestamp").asDouble()), [weakRoot, weakManager, revision] {
       const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
-    });
+    }, originalInput ? originalInput->eventPayload : nullptr);
   FieldInputMountCursor mountCursor{fabric.root};
   const auto waited = scheduled ? state->frames.wait(ticket, [&](const FieldInputFocusAction &action) {
     static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentScopeSnapshot");
@@ -189,15 +194,37 @@ static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
     }
   } catch (const std::exception &) { current = false; }
   const auto decision = state->frames.end(ticket, current);
-  return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", "key")("event", before)("identity", encodeFieldInputIdentity(identity))
+  return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
     ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
     ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
     ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)
     ("scopeCurrent", current)("before", snapshot)("after", afterSnapshot)));
 }
 
+static jni::local_ref<jstring> nativeDispatchFieldKey(jni::alias_ref<jclass>,
+    jni::alias_ref<JFabricUIManager::javaobject> manager, jni::alias_ref<JFieldInputBinding::javaobject> owner,
+    jni::alias_ref<jstring> document, jni::alias_ref<jstring> snapshot, jni::alias_ref<jstring> key,
+    jni::alias_ref<jstring> declarations, jdouble epoch) {
+  return dispatchFieldOriginal(manager, owner, document, snapshot, key, declarations, epoch);
+}
+static jni::local_ref<jstring> nativeEmitOwnedInput(jni::alias_ref<jclass>,
+    jni::alias_ref<JFabricUIManager::javaobject> managerObject, jni::alias_ref<JFieldInputBinding::javaobject> owner,
+    jni::alias_ref<jstring> document, jni::alias_ref<jstring> snapshot, jni::alias_ref<jstring> input,
+    jni::alias_ref<jstring> declarations, jdouble epoch, jni::alias_ref<jobject> emitter) {
+  if (!emitter || !input) throw std::invalid_argument("field-input-original-emitter-required");
+  const auto manager = scopedManager(managerObject);
+  const auto record = folly::parseJson(input->toStdString());
+  static const auto run = jni::findClassStatic("java/lang/Runnable")->getMethod<void()>("run");
+  const auto original = codon::captureFieldOriginalInput(*manager, codon::form::fieldGroupTarget(record.at("target")), [&] { run(emitter); });
+  // An earlier focus/mount observer may already own this notification. Its
+  // original handoff retains first delivery; never start a nested UI/JS wait.
+  if (original) return dispatchFieldOriginal(managerObject, owner, document, snapshot, input, declarations, epoch, &*original);
+  return jni::make_jstring("");
+}
+
 void registerFormDocumentNatives() {
   JFieldInputBinding::javaClassStatic()->registerNatives({makeNativeMethod("nativeDispatchFieldKey", nativeDispatchFieldKey),
+    makeNativeMethod("nativeEmitOwnedInput", nativeEmitOwnedInput),
     makeNativeMethod("nativeRetireBinding", nativeRetireBinding), makeNativeMethod("nativeRecordFieldInput", nativeRecordFieldInput)});
   jni::findClassStatic("com/codonui/input/CUIEditorKeyboardDefaultsModule")->registerNatives({
     makeNativeMethod("nativeTakeFieldRecords", nativeTakeFieldRecords),

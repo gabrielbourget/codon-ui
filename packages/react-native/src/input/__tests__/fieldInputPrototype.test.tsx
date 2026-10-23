@@ -214,6 +214,64 @@ it("connects original segment entry, group callers and native binding lifetime w
     current: true,
     preventDefault: true,
   })
+  const authored = mockTargets.get("outer-negative-tab")!
+  jest.mocked(NativeDefaults!.moveFieldFocus).mockReturnValue(
+    JSON.stringify({
+      requested: true,
+      observed: true,
+      current: true,
+      target: authored.nativeTag,
+      nativeInstance: "authored:1",
+      editorInstance: "authored:1",
+      error: "",
+    }),
+  )
+  const inputPacket = JSON.parse(event.nativeEvent.fieldDispatch)
+  for (const [index, kind] of ["marked", "unmark", "insert", "delete"].entries()) {
+    const host = screen.getByTestId("outer-hour")
+    const originalInput = {
+      ...event,
+      nativeEvent: {
+        ...packet({
+          ownerId: host.props.ownerId,
+          segmentId: host.props.segmentId,
+          bindingRevision: host.props.bindingRevision,
+          target: target.nativeTag,
+          nativeInstance: "segment:outer-hour",
+          surfaceId: 11,
+          windowId: "window:1",
+          epoch: 1,
+          sequence: index + 2,
+          kind,
+          focused: true,
+          text: "9",
+          document: "9",
+          selectionStart: 1,
+          selectionEnd: 1,
+          nativeData: JSON.stringify({ method: kind, originalArguments: ["9"] }),
+        }),
+        fieldDispatch: JSON.stringify({ ...inputPacket, phase: "input", token: index + 10, eventId: index + 10 }),
+      },
+    }
+    record.mockClear()
+    await act(() => host.props.onNativeSegmentInput(originalInput))
+    expect(record).toHaveBeenCalledWith(
+      expect.objectContaining({ kind: "segment-input", data: originalInput.nativeEvent }),
+    )
+    const settle = JSON.parse(jest.mocked(NativeDefaults!.settleField).mock.calls.at(-1)![0])
+    expect(settle).toMatchObject({ token: index + 10, phase: "input", current: true, preventDefault: false })
+    if (kind === "insert" || kind === "unmark") {
+      expect(record).toHaveBeenCalledWith(
+        expect.objectContaining({
+          kind: "entry-focus",
+          result: expect.objectContaining({ observed: true, target: authored.nativeTag }),
+        }),
+      )
+    }
+    expect(jest.mocked(NativeDocument!.bindFieldInput).mock.calls).toHaveLength(installed)
+  }
+  expect(target.focus).toBe(originalFocus)
+  expect(target.setNativeProps).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByTestId("field-sdk-callback"))
   expect(JSON.parse(screen.getByTestId("outer-binding").props.accessibilityLabel)).toMatchObject({
     ready: true,

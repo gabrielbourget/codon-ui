@@ -28,6 +28,7 @@ import { useNativeTimeFieldForm } from "../../../../packages/react-native/src/fo
 import {
   NativeFieldInputContext,
   moveNativeFieldFocus,
+  activeNativeFieldInputEvent,
   nativeFieldGroupKeyHandler,
   receiveNativeFieldKey,
   type TNativeFieldInputScope,
@@ -68,14 +69,14 @@ type TPartProps = {
 }
 const Part = ({ segment, index, state, ownerId, name, locale, hosts, scope, outerTarget, record }: TPartProps) => {
   const id = nativeDateFieldSegmentId(segment, index),
-    original = useRef<TNativeDateSegmentRef | null>(null),
-    active = useRef<TNativeFieldKeyEvent | null>(null)
+    original = useRef<TNativeDateSegmentRef | null>(null)
   const navigate = (kind: "next" | "previous") => {
-    if (!active.current || !scope) {
+    const event = scope && activeNativeFieldInputEvent(scope)
+    if (!event || !scope) {
       record({ kind: "failure", gate: "owned-input-focus-phase", field: name, segment: segment.type })
       throw new Error("field-prototype-owned-input-dispatch-required")
     }
-    const result = moveNativeFieldFocus(scope, active.current, { groupTarget: outerTarget, kind })
+    const result = moveNativeFieldFocus(scope, event, { groupTarget: outerTarget, kind })
     record({ kind: "entry-focus", field: name, segment: segment.type, result })
   }
   const entry = useNativeDateSegmentEntry(segment, state, locale, {
@@ -144,13 +145,8 @@ const Part = ({ segment, index, state, ownerId, name, locale, hosts, scope, oute
           target,
           group: false,
           run: () => {
-            active.current = event
-            try {
-              record({ kind: "segment-key", field: name, data: event.nativeEvent })
-              entry.keyDown(event, composing.current)
-            } finally {
-              active.current = null
-            }
+            record({ kind: "segment-key", field: name, data: event.nativeEvent })
+            entry.keyDown(event, composing.current)
           },
         })
       }}

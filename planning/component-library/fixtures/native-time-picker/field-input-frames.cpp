@@ -1,6 +1,7 @@
 #include "../../../../packages/react-native/cpp/FieldInputDispatchFrames.h"
 #include "../../../../packages/react-native/cpp/FieldInputRecords.h"
 #include "../../../../packages/react-native/cpp/FieldInputOriginalEvents.h"
+#include "../../../../packages/react-native/cpp/FieldInputNativeOperation.h"
 #include <unordered_set>
 #include <atomic>
 #include <future>
@@ -414,5 +415,44 @@ int main() {
   check(received.size() == 200 && received.contains("A:0") && received.contains("B:99"));
   check(concurrentRecords.take().records.empty());
 
+  int manager = 1, otherManager = 2;
+  check(!FieldInputNativeOperation::contains(&manager));
+  {
+    FieldInputNativeOperation original(&manager);
+    check(FieldInputNativeOperation::contains(&manager));
+    check(!FieldInputNativeOperation::contains(&otherManager));
+    {
+      FieldInputNativeOperation nested(&otherManager);
+      check(FieldInputNativeOperation::contains(&manager));
+      check(FieldInputNativeOperation::contains(&otherManager));
+      check(std::async(std::launch::async, [&] { return !FieldInputNativeOperation::contains(&manager); }).get());
+    }
+    check(!FieldInputNativeOperation::contains(&otherManager));
+    try { FieldInputNativeOperation nested(&manager); throw std::runtime_error("original native failure"); }
+    catch (const std::runtime_error &) { check(FieldInputNativeOperation::contains(&manager)); }
+  }
+  check(!FieldInputNativeOperation::contains(&manager));
+  for (const std::string kind : {"input"}) {
+    FieldInputDispatchFrames inputFrames;
+    auto input = inputFrames.begin(identity, 1, kind, 1000ms);
+    check(input != nullptr);
+    check(inputFrames.startDelivery(input));
+    check(!inputFrames.acknowledge(input->token, identity, 1, kind, true, true, std::nullopt));
+    auto focus = std::async(std::launch::async, [&] { return inputFrames.requestFocus(input->token, identity, 1, kind, next); });
+    auto delivery = std::async(std::launch::async, [&] {
+      auto result = focus.get();
+      check(result.observed && result.current && result.target == 12);
+      check(inputFrames.acknowledge(input->token, identity, 1, kind, true, false, std::nullopt));
+      inputFrames.finishDelivery(input, false);
+    });
+    check(inputFrames.wait(input, [&](const FieldInputFocusAction &action) {
+      check(action == next);
+      return FieldInputFocusResult{true, true, true, 12, "component:12", "editor:12", ""};
+    }).disposition == FieldInputDisposition::Allowed);
+    delivery.get();
+    const auto result = inputFrames.end(input, true);
+    check(!result.originalDefaultPrevented && result.phasesComplete);
+    check(!inputFrames.accepts(input->token, identity, 1, kind));
+  }
   std::cout << assertions << " actual C++ field-input frame assertions passed; no SDK/default verdict\n";
 }
