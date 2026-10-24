@@ -10,6 +10,7 @@ import {
 } from "react"
 import { findNodeHandle, Platform, Pressable, ScrollView, Text, TextInput, View, type PointerEvent } from "react-native"
 
+import { NUMBER_INTL_PREPARATION } from "../../../../apps/native-showcase/src/runtime/number-format"
 import { getNativeDateSegmentSemantics } from "../../../../packages/react-native/src/date/entry/semantics"
 import { useNativeDateSegmentEntry } from "../../../../packages/react-native/src/date/entry/useNativeDateSegmentEntry"
 import {
@@ -22,6 +23,7 @@ import {
   type TNativeDateSegmentRef,
 } from "../../../../packages/react-native/src/date/input/NativeDateSegment"
 import type { DateFieldState, DateSegment } from "../../../../packages/react-native/src/date/state/useDateFieldState"
+import type { TimeValue } from "../../../../packages/react-native/src/date/state/types"
 import { useTimeFieldState } from "../../../../packages/react-native/src/date/state/useTimeFieldState"
 import { Time } from "../../../../packages/react-native/src/date/values"
 import { useNativeTimeFieldForm } from "../../../../packages/react-native/src/form/useTimeField"
@@ -53,6 +55,8 @@ import {
   NativeLocaleProvider,
   useNativeLocale,
 } from "../../../../packages/react-native/src/locale/NativeLocaleProvider"
+
+import { TIME_ENTRY_VALUES, timeEntryValueClass } from "./sdk"
 
 type TRecord = (row: Record<string, unknown>) => void
 const frame = { borderWidth: 1, padding: 8, margin: 4 } as const
@@ -161,6 +165,8 @@ const Part = ({ segment, index, state, ownerId, name, locale, hosts, scope, oute
 
 type TFieldProps = {
   name: string
+  value: TimeValue
+  onOwnerValueChange: (value: TimeValue) => void
   record: TRecord
   disabled: boolean
   readonly: boolean
@@ -174,6 +180,8 @@ type TFieldProps = {
 }
 const Field = ({
   name,
+  value,
+  onOwnerValueChange,
   record,
   disabled,
   readonly,
@@ -187,21 +195,23 @@ const Field = ({
 }: TFieldProps) => {
   const ownerId = useId(),
     { locale, direction } = useNativeLocale()
-  const [value, setValue] = useState(new Time(nested ? 8 : 13, nested ? 15 : 45))
-  const currentConfig = useRef({ echo, value })
+  const [nestedValue, setNestedValue] = useState<TimeValue>(() => new Time(8, 15))
+  const currentConfig = useRef({ echo, value, onOwnerValueChange })
   useInsertionEffect(() => {
-    currentConfig.current = { echo, value }
+    currentConfig.current = { echo, value, onOwnerValueChange }
   })
   const onChange = useCallback(
-    (next: Time | null) => {
+    (next: TimeValue | null) => {
       record({
         kind: "value-request",
         field: name,
         value: next?.toString() ?? null,
+        valueClass: next ? timeEntryValueClass(next) : null,
         held: currentConfig.current.value.toString(),
+        heldClass: timeEntryValueClass(currentConfig.current.value),
         echo: currentConfig.current.echo,
       })
-      if (next && currentConfig.current.echo) setValue(next)
+      if (next && currentConfig.current.echo) currentConfig.current.onOwnerValueChange(next)
     },
     [name, record],
   )
@@ -281,6 +291,19 @@ const Field = ({
         record({ kind: "native-field-input", field: name, data: JSON.parse(event.nativeEvent.record) }),
     },
   )
+  const snapshot = JSON.stringify({
+    field: name,
+    value: value.toString(),
+    valueClass: timeEntryValueClass(value),
+    locale,
+    direction,
+    intlPreparation: NUMBER_INTL_PREPARATION,
+    outerTarget,
+    inputTarget,
+    originalSegments: original?.rows.map((row) => row.identity) ?? [],
+    binding: session.status(),
+  })
+  useLayoutEffect(() => record({ kind: "field-state", ...JSON.parse(snapshot) }), [record, snapshot])
   const caller = useCallback(
     (event: TNativeKeyboardEvent) => {
       record({
@@ -354,7 +377,7 @@ const Field = ({
           style={frame}
         >
           {metadata}
-          <Text>
+          <Text testID={`${name}-value`} accessibilityLabel={snapshot}>
             {name}: {value.toString()}
           </Text>
           <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
@@ -413,6 +436,8 @@ const Field = ({
           {!nested && (
             <Field
               name="inner"
+              value={nestedValue}
+              onOwnerValueChange={setNestedValue}
               record={record}
               disabled={false}
               readonly={false}
@@ -430,6 +455,7 @@ const Field = ({
 }
 
 export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
+  const [value, setValue] = useState<TimeValue>(() => new Time(13, 45))
   const [disabled, setDisabled] = useState(false),
     [readonly, setReadonly] = useState(false),
     [echo, setEcho] = useState(true),
@@ -448,6 +474,8 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           {visible && (
             <Field
               name="outer"
+              value={value}
+              onOwnerValueChange={setValue}
               record={record}
               disabled={disabled}
               readonly={readonly}
@@ -460,6 +488,9 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
             />
           )}
           {[
+            ["time", () => setValue(TIME_ENTRY_VALUES[0])],
+            ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
+            ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
             ["unmount", () => setRemoveOnKey((value) => !value)],
             ["show", () => setVisible(true)],
             ["receipts", () => record({ kind: "native-receipts", ...takeNativeFieldInputRecords() })],

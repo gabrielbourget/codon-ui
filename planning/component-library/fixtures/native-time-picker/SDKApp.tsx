@@ -16,12 +16,6 @@ import type {
   DateSegmentType,
 } from "../../../../packages/react-native/src/date/state/useDateFieldState"
 import { useTimeFieldState } from "../../../../packages/react-native/src/date/state/useTimeFieldState"
-import {
-  CalendarDateTime,
-  Time,
-  ZonedDateTime,
-  parseZonedDateTime,
-} from "../../../../packages/react-native/src/date/values"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../../../packages/react-native/src/input/focus"
 import { nativeKeyToken } from "../../../../packages/react-native/src/input/keyScope"
 import {
@@ -33,23 +27,15 @@ import {
 import type { TNativeKeyboardEvent } from "../../../../packages/react-native/src/input/types"
 
 import { SOURCE_PRODUCER } from "./identity"
-import { createTimeEntryJournal, TIME_ENTRY_PROBE } from "./sdk"
+import {
+  createTimeEntryJournal,
+  TIME_ENTRY_PROBE,
+  TIME_ENTRY_VALUES as examples,
+  timeEntryValueClass as valueClass,
+} from "./sdk"
 
 type TController = ReturnType<typeof useNativeDateSegmentEntry>
 type TRow = Record<string, unknown>
-const valueClass = (value: TimeValue) =>
-  value instanceof ZonedDateTime
-    ? "ZonedDateTime"
-    : value instanceof CalendarDateTime
-      ? "CalendarDateTime"
-      : value instanceof Time
-        ? "Time"
-        : "foreign"
-const examples: TimeValue[] = [
-  new Time(13, 45, 7),
-  new CalendarDateTime(2024, 10, 1, 13, 45, 7),
-  parseZonedDateTime("2024-10-01T13:45:07[America/New_York]"),
-]
 
 type TPartProps = {
   segment: DateSegment
