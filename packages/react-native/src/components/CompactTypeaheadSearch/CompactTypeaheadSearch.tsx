@@ -12,7 +12,7 @@ import {
   type RefAttributes,
   type RefObject,
 } from "react"
-import { View, findNodeHandle, type TextInput, type TextStyle } from "react-native"
+import { ScrollView, View, findNodeHandle, type TextInput, type TextStyle } from "react-native"
 
 import { useNativeCollectionRefs, useNativeSlottedContext } from "../../collection/context"
 import { focusNativeTarget, getNativeFocusedTarget } from "../../input/focus"
@@ -39,6 +39,7 @@ import {
 } from "../ComboBox/collectionContext"
 import { NativeComboBoxItem } from "../ComboBox/ComboBoxItem"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { splitNativeTextStyle } from "../nativeTextStyle"
 import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
@@ -208,6 +209,20 @@ const CompactContent = <T extends object>({
       <PlaceholderText align="center">{text}</PlaceholderText>
     </View>
   )
+  const listStyle = splitNativeTextStyle(styles.list)
+  const statusPanel = (kind: string, content: ReactNode, text: string, primary = true) => (
+    <ScrollView
+      testID={primary ? "type-ahead-search-options" : `type-ahead-search-options-${kind}`}
+      accessibilityLabel={labels.suggestionsListAriaLabel}
+      role="list"
+      accessible={false}
+      keyboardShouldPersistTaps="always"
+      keyboardDismissMode="none"
+      style={[{ flexGrow: 0, flexShrink: 0 }, listStyle.view]}
+    >
+      {statusBlock(kind, content, text)}
+    </ScrollView>
+  )
   return (
     <>
       <NativeComboBoxGroup
@@ -242,6 +257,7 @@ const CompactContent = <T extends object>({
           onFocus={() => setFocused(true)}
           onBlur={blur}
           onKeyPress={clearSuppression}
+          onChange={clearSuppression}
         />
         {field.placement === "input" && field.metadata}
         <NativeComboBoxButton
@@ -268,28 +284,25 @@ const CompactContent = <T extends object>({
           value={{ foregroundColor: styles.list.color ?? styles.foreground, isButton: false }}
         >
           {status ? (
-            <View
-              testID="type-ahead-search-options"
-              accessibilityLabel={labels.suggestionsListAriaLabel}
-              style={styles.list}
-            >
+            <>
               {minimum
-                ? statusBlock(
+                ? statusPanel(
                     "minimum-query",
                     null,
                     labels.status.minimumInputLengthMessage({ minimumInputLength: props.minimumInputLength ?? 0 }),
                   )
                 : null}
               {props.isLoading
-                ? statusBlock(
+                ? statusPanel(
                     "loading",
                     getNativeButtonContent(
                       props.LoadingIndicator !== undefined ? props.LoadingIndicator : <NativeCompactLoadingIndicator />,
                     ),
                     labels.status.loadingMessage,
+                    !minimum,
                   )
                 : null}
-            </View>
+            </>
           ) : (
             <NativeComboBoxList
               key={query}

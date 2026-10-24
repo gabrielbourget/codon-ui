@@ -55,7 +55,7 @@ const wrap = (child: ReactNode) => (
   </NativeThemeProvider>
 )
 
-it.each(["programmatic", "soft-key", "physical-key"] as const)(
+it.each(["programmatic", "soft-key", "physical-key", "native-edit"] as const)(
   "preserves selection suppression ownership for %s",
   async (action) => {
     let state: ContextType<typeof NativeComboBoxStateContext> = null
@@ -97,11 +97,15 @@ it.each(["programmatic", "soft-key", "physical-key"] as const)(
         await fireEvent(row("type-ahead-search-input"), "keyPress", {
           nativeEvent: { key: "ArrowLeft", target: findNodeHandle(original) },
         })
-      } else {
+      } else if (action === "physical-key") {
         await fixture.observedKey(original, "ArrowLeft")
+      } else {
+        await fireEvent(row("type-ahead-search-input"), "change", {
+          nativeEvent: { text: "a", eventCount: 1, target: findNodeHandle(original) },
+        })
       }
       expect(row("type-ahead-search-minimum-query-state")).toBeOnTheScreen()
-      expect(changed).not.toHaveBeenCalled()
+      expect(changed.mock.calls).toEqual(action === "native-edit" ? [["a"]] : [])
     }
     expect(editor.current).toBe(original)
     expect(row("type-ahead-search-input").props.value).toBe("")

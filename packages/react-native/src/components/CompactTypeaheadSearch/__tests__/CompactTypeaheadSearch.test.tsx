@@ -330,6 +330,37 @@ it("CAP.compact-typeahead.023/.025/.026 composes loading and minimum guidance wi
     screen.queryByTestId("type-ahead-search-default-loading-indicator", { includeHiddenElements: true }),
   ).toBeNull()
 })
+it("keeps simultaneous minimum and loading panels independently labelled and scrollable", async () => {
+  const editor = createRef<TextInput>()
+  const node = (maxHeight: number) =>
+    wrapper({
+      inputRef: editor,
+      inputValue: "held",
+      isOpen: true,
+      isLoading: true,
+      minimumInputLength: 8,
+      customOptionsListStyles: { maxHeight, color: "tomato" },
+      labels: { suggestionsListAriaLabel: "Search guidance" },
+    })
+  const view = await render(node(75))
+  const original = editor.current!
+  const panels = screen.getAllByTestId(/^type-ahead-search-options(?:-loading)?$/, { includeHiddenElements: true })
+  expect(panels).toHaveLength(2)
+  for (const panel of panels) {
+    expect(panel.props.accessibilityLabel).toBe("Search guidance")
+    expect(panel.props.keyboardShouldPersistTaps).toBe("always")
+    expect(panel.props.keyboardDismissMode).toBe("none")
+    expect(panel).toHaveStyle({ maxHeight: 75 })
+    expect(panel.props.style.color).toBeUndefined()
+  }
+  await view.rerender(node(0))
+  for (const panel of screen.getAllByTestId(/^type-ahead-search-options(?:-loading)?$/, {
+    includeHiddenElements: true,
+  }))
+    expect(panel).toHaveStyle({ maxHeight: 0 })
+  expect(editor.current).toBe(original)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+})
 it("exposes one loading status while its spinner remains decorative", async () => {
   const { rerender } = await render(wrapper({ isOpen: true, isLoading: true, inputValue: "held" }))
   await ready()

@@ -12,6 +12,25 @@ const items = [
 ]
 const base = { "aria-label": "Search", items, getItemKey: (item: (typeof items)[number]) => item.id }
 describe("native port ownership oracle", () => {
+  it("renders independent named list panels for simultaneous minimum guidance and loading", () => {
+    render(
+      <CompactTypeaheadSearch
+        {...base}
+        inputValue="held"
+        minimumInputLength={8}
+        isOpen
+        isLoading
+        labels={{ suggestionsListAriaLabel: "Search guidance" }}
+        customOptionsListStyles={{ maxHeight: 75 }}
+      />,
+    )
+    const panels = screen.getAllByRole("listbox", { name: "Search guidance" })
+    expect(panels).toHaveLength(2)
+    expect(panels[0]).toContainElement(screen.getByTestId("type-ahead-search-minimum-query-state"))
+    expect(panels[1]).toContainElement(screen.getByTestId("type-ahead-search-loading-state"))
+    for (const panel of panels) expect(panel).toHaveStyle({ maxHeight: "75px" })
+    expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("held")
+  })
   it("exposes one default loading status and preserves an authored loading role", async () => {
     const node = (LoadingIndicator?: ReactNode) => (
       <CompactTypeaheadSearch {...base} inputValue="held" isOpen isLoading LoadingIndicator={LoadingIndicator} />
@@ -25,39 +44,44 @@ describe("native port ownership oracle", () => {
     expect(screen.getByRole("progressbar", { name: "Caller loading" })).toBeInTheDocument()
     expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("held")
   })
-  it("retains selection suppression through programmatic query requests and clears it on the next key", async () => {
-    let state: ContextType<typeof ComboBoxStateContext> = null
-    const Capture = () => {
-      state = useContext(ComboBoxStateContext)
-      return null
-    }
-    const node = (query: string) => (
-      <CompactTypeaheadSearch
-        {...base}
-        value={null}
-        inputValue={query}
-        isOpen
-        minimumInputLength={3}
-        SearchIcon={<Capture />}
-      />
-    )
-    const view = render(node("long"))
-    await act(() => {
-      state!.setValue(0)
-    })
-    await view.rerender(node(""))
-    expect(screen.queryByTestId("type-ahead-search-minimum-query-state")).toBeNull()
-    await act(() => {
-      state!.setInputValue("a")
-    })
-    expect(screen.queryByTestId("type-ahead-search-minimum-query-state")).toBeNull()
-    await act(() => {
-      screen.getByTestId("type-ahead-search-input").focus()
-    })
-    await userEvent.setup().keyboard("{ArrowLeft}")
-    expect(screen.getByTestId("type-ahead-search-minimum-query-state")).toBeInTheDocument()
-    expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("")
-  })
+  it.each(["key", "paste"])(
+    "retains selection suppression through programmatic requests and clears it on %s",
+    async (action) => {
+      let state: ContextType<typeof ComboBoxStateContext> = null
+      const Capture = () => {
+        state = useContext(ComboBoxStateContext)
+        return null
+      }
+      const node = (query: string) => (
+        <CompactTypeaheadSearch
+          {...base}
+          value={null}
+          inputValue={query}
+          isOpen
+          minimumInputLength={3}
+          SearchIcon={<Capture />}
+        />
+      )
+      const view = render(node("long"))
+      await act(() => {
+        state!.setValue(0)
+      })
+      await view.rerender(node(""))
+      expect(screen.queryByTestId("type-ahead-search-minimum-query-state")).toBeNull()
+      await act(() => {
+        state!.setInputValue("a")
+      })
+      expect(screen.queryByTestId("type-ahead-search-minimum-query-state")).toBeNull()
+      await act(() => {
+        screen.getByTestId("type-ahead-search-input").focus()
+      })
+      const user = userEvent.setup()
+      if (action === "paste") await user.paste("a")
+      else await user.keyboard("{ArrowLeft}")
+      expect(screen.getByTestId("type-ahead-search-minimum-query-state")).toBeInTheDocument()
+      expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("")
+    },
+  )
   it("keeps a controlled status popup open while focus moves to an authored search descendant", async () => {
     let state: ContextType<typeof ComboBoxStateContext> = null
     const Capture = () => {
