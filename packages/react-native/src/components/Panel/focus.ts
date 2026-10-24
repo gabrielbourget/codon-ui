@@ -1,4 +1,5 @@
 import {
+  createContext,
   useCallback,
   useContext,
   useInsertionEffect,
@@ -16,6 +17,7 @@ import { OverlayParentContext, OverlayRegistryContext } from "../../overlays/Nat
 
 type TTarget = View | TextInput
 type TScope = ReturnType<typeof useNativeKeyScope>
+export const NativePanelFocusIntentContext = createContext<string | number | undefined>(undefined)
 const subscribeNone = () => () => {}
 const zero = () => 0
 const sessionKey = (scope: TScope) => {
@@ -147,14 +149,16 @@ export const useNativePanelInitialFocus = (
   initialRef?: RefObject<TTarget | null>,
 ) => {
   const input = useNativeKeyScope()
+  const intent = useContext(NativePanelFocusIntentContext)
   const revision = useSyncExternalStore(input?.subscribe ?? subscribeNone, input?.snapshot ?? zero, zero)
-  const current = useRef({ open, ready, isActive, initialRef })
-  const acquired = useRef<string | null>(null)
+  const current = useRef({ open, ready, isActive, initialRef, intent, intentRevision: 0 })
+  const acquired = useRef<{ session: string; intentRevision: number } | null>(null)
   const appState = useRef(AppState.currentState)
   const appGeneration = useRef(0)
   const [appRevision, setAppRevision] = useState(0)
   useInsertionEffect(() => {
-    current.current = { open, ready, isActive, initialRef }
+    const intentRevision = current.current.intentRevision + Number(current.current.intent !== intent)
+    current.current = { open, ready, isActive, initialRef, intent, intentRevision }
     if (!open) acquired.current = null
   })
   const session = sessionKey(input)
@@ -177,12 +181,13 @@ export const useNativePanelInitialFocus = (
       !ready ||
       !isActive() ||
       !input?.isNativeReady() ||
-      acquired.current === session ||
+      (acquired.current?.session === session && acquired.current.intentRevision === current.current.intentRevision) ||
       appState.current !== "active"
     )
       return
     const ref = initialRef ?? root
     const target = ref.current
+    const intentRevision = current.current.intentRevision
     let retired = false
     const appEpoch = appGeneration.current
     const frame = requestAnimationFrame(() => {
@@ -195,17 +200,18 @@ export const useNativePanelInitialFocus = (
         !owner.ready ||
         !owner.isActive() ||
         owner.initialRef !== initialRef ||
+        owner.intentRevision !== intentRevision ||
         ref.current !== target ||
         input.snapshot() !== revision ||
         !input.isNativeReady() ||
         sessionKey(input) !== session
       )
         return
-      if (focusNativeTarget(target)) acquired.current = session
+      if (focusNativeTarget(target)) acquired.current = { session, intentRevision }
     })
     return () => {
       retired = true
       cancelAnimationFrame(frame)
     }
-  }, [open, ready, isActive, initialRef, root, input, revision, session, appRevision])
+  }, [open, ready, isActive, initialRef, root, input, revision, session, appRevision, intent])
 }

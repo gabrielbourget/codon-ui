@@ -9,7 +9,7 @@ import {
   type ReactElement,
   type RefAttributes,
 } from "react"
-import { AccessibilityInfo, Modal, Platform, Pressable, View, type ViewStyle } from "react-native"
+import { AccessibilityInfo, Modal, Platform, View, type ViewStyle } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
 import {
@@ -18,10 +18,12 @@ import {
 } from "../../overlays/floating/NativeFloatingLayerHost"
 import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
+import { NativeButton } from "../Button/Button"
 import { getNativeButtonContent } from "../Button/content"
+import type { TNativeButtonRenderState } from "../Button/types"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { NativeContentContext } from "../NativeContentContext"
-import { getNativeControlRadius, getNativeControlRootStyle, useNativeSelectionInteraction } from "../selection"
+import { getNativeControlRadius, getNativeControlRootStyle } from "../selection"
 
 import { SelectOptions } from "./SelectOptions"
 import type { TNativeSelectProps, TNativeSelectRef, TNativeSelectRenderState } from "./types"
@@ -62,6 +64,8 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
     customSelectedItemStyles,
     customSelectedItemTextStyles,
     customOptionsListStyles,
+    onFocus,
+    onBlur,
     accessibilityLabel,
     testID,
     "aria-label": aliasLabel,
@@ -139,7 +143,6 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
     },
     [forwardedRef],
   )
-  const { flags, handlers } = useNativeSelectionInteraction({}, isDisabled, false, () => selection.requestOpen(true))
   const state: TNativeSelectRenderState = { isOpen: selection.open, isDisabled, isReadOnly, isInvalid: errorState }
   const rootStyle = getNativeControlRootStyle(
     "Select",
@@ -152,38 +155,39 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
     style,
     state,
   )
-  const triggerStyle = getNativeControlRootStyle(
-    "Select",
-    {
-      width: "100%",
-      height: rootStyle.height != null ? "100%" : undefined,
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: theme.spacing.unit,
-      padding: theme.spacing.unit,
-      borderWidth: 1,
-      borderColor: errorState
-        ? theme.colors.validationErrorBorder
-        : warningState
-          ? theme.colors.validationWarningBorder
-          : successState
-            ? theme.colors.validationSuccessBorder
-            : theme.colors.controlBorder,
-      borderRadius: getNativeControlRadius(theme, geometry),
-      backgroundColor: flags.isPressed
-        ? theme.colors.controlPressedBackground
-        : flags.isHovered
-          ? theme.colors.controlHoverBackground
-          : theme.colors.controlBackground,
-      ...(enableFocusStyle && flags.isFocused
-        ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
-        : {}),
-    } as ViewStyle,
-    customSelectedItemStyles,
-    undefined,
-    state,
-  )
+  const triggerStyle = (flags: Pick<TNativeButtonRenderState, "isPressed" | "isHovered" | "isFocused">) =>
+    getNativeControlRootStyle(
+      "Select",
+      {
+        width: "100%",
+        height: rootStyle.height != null ? "100%" : undefined,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: theme.spacing.unit,
+        padding: theme.spacing.unit,
+        borderWidth: 1,
+        borderColor: errorState
+          ? theme.colors.validationErrorBorder
+          : warningState
+            ? theme.colors.validationWarningBorder
+            : successState
+              ? theme.colors.validationSuccessBorder
+              : theme.colors.controlBorder,
+        borderRadius: getNativeControlRadius(theme, geometry),
+        backgroundColor: flags.isPressed
+          ? theme.colors.controlPressedBackground
+          : flags.isHovered
+            ? theme.colors.controlHoverBackground
+            : theme.colors.controlBackground,
+        ...(enableFocusStyle && flags.isFocused
+          ? { outlineColor: theme.colors.focusRing, outlineWidth: 1.5, outlineOffset: offsetFocusRing ? 1.5 : 0 }
+          : {}),
+      } as ViewStyle,
+      customSelectedItemStyles,
+      undefined,
+      state,
+    )
   const textStyles = resolveNativeStyle(customSelectedItemTextStyles, "Select", "customSelectedItemTextStyles")
   // Validate list styles even while the modal is closed.
   resolveNativeStyle(customOptionsListStyles, "Select", "customOptionsListStyles")
@@ -214,22 +218,28 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
           isButton: true,
         }}
       >
-        <Pressable
-          {...handlers}
+        <NativeButton
+          onPress={() => selection.requestOpen(true)}
+          onFocus={onFocus}
+          onBlur={onBlur}
+          nativeProgrammaticFocusable
           ref={setTrigger}
-          accessible
-          role="button"
-          accessibilityRole="button"
+          nativeAccessible
+          nativeRole="button"
           accessibilityLabel={label}
           accessibilityHint={props.accessibilityHint}
           accessibilityValue={{ text: selectedText || placeholder }}
-          accessibilityState={{ disabled: isDisabled, expanded: selection.open }}
+          accessibilityState={{ expanded: selection.open }}
           aria-expanded={selection.open}
-          aria-disabled={isDisabled}
-          disabled={isDisabled}
+          isDisabled={isDisabled}
           focusable={!isDisabled}
           testID={`${identity}-trigger`}
-          style={triggerStyle}
+          nativeStyle={(flags) => ({
+            viewStyle: triggerStyle(flags),
+            textStyle: {},
+            foregroundColor: isPlaceholder ? theme.colors.controlPlaceholder : theme.colors.controlForeground,
+            target: 0,
+          })}
         >
           <View style={{ flex: 1 }}>
             {getNativeButtonContent(content, {
@@ -256,7 +266,7 @@ const SelectInner = <T,>(props: TNativeSelectProps<T>, forwardedRef: Ref<TNative
               getNativeButtonContent(ComponentIcon)
             )}
           </View>
-        </Pressable>
+        </NativeButton>
       </NativeContentContext.Provider>
       <Modal
         testID={`${identity}-window`}
