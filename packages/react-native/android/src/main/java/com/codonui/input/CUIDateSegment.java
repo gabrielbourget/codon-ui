@@ -80,7 +80,7 @@ final class CUIDateSegment extends ReactViewGroup {
   }
   JSONObject formSegmentIdentity() throws Exception {
     int surface = UIManagerHelper.getSurfaceId(this);
-    if (!active() || surface <= 0 || getId() <= 0 || ownerId.isEmpty() || segmentId.isEmpty() || bindingRevision.isEmpty()) return null;
+    if (!active() || surface <= 0 || getId() == View.NO_ID || getId() == 0 || ownerId.isEmpty() || segmentId.isEmpty() || bindingRevision.isEmpty()) return null;
     return new JSONObject().put("ownerId", ownerId).put("segmentId", segmentId).put("bindingRevision", bindingRevision)
       .put("target", getId()).put("nativeInstance", "android-date-segment:"+Integer.toHexString(System.identityHashCode(this)))
       .put("surfaceId", surface).put("windowId", CUIInputWindow.identity(this)).put("epoch", epoch);
