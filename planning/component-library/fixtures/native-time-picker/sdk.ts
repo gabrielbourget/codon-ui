@@ -22,13 +22,31 @@ export const timeEntryValueClass = (value: TimeValue) =>
 
 export const TIME_ENTRY_PROBE = "codon-owned-time-entry-01"
 export const createTimeEntryJournal = (producer: string, write: (encoded: string) => Promise<void>) => {
-  const rows: Record<string, unknown>[] = []
+  const rows: string[] = []
+  const payloads = new WeakMap<object, number>()
+  let payloadSequence = 0
   let pending = Promise.resolve()
   return {
     record: (value: Record<string, unknown>) => {
-      const row = { ...value, probe: TIME_ENTRY_PROBE, producer, sequence: rows.length + 1, observedAt: Date.now() }
+      const payload = value.data
+      let originalPayloadId: number | undefined
+      if (payload !== null && typeof payload === "object") {
+        originalPayloadId = payloads.get(payload)
+        if (originalPayloadId === undefined) {
+          originalPayloadId = ++payloadSequence
+          payloads.set(payload, originalPayloadId)
+        }
+      }
+      const row = JSON.stringify({
+        ...value,
+        originalPayloadId,
+        probe: TIME_ENTRY_PROBE,
+        producer,
+        sequence: rows.length + 1,
+        observedAt: Date.now(),
+      })
       rows.push(row)
-      const encoded = rows.map((item) => JSON.stringify(item)).join("\n") + "\n"
+      const encoded = rows.join("\n") + "\n"
       pending = pending.catch(() => {}).then(() => write(encoded))
       return pending
     },

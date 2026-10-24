@@ -207,6 +207,8 @@ it("connects original segment entry, group callers and native binding lifetime w
   expect(callbacks[1]).toMatchObject({ held: "13:45:00", heldClass: "Time", value: "14:45:00", valueClass: "Time" })
   expect(callbacks[2].data).toBe(event.nativeEvent)
   expect(callbacks[3].data).toBe(event.nativeEvent)
+  expect(callbacks[2].receiverTarget).toBe(binding.inputTarget)
+  expect(callbacks[3].receiverTarget).toBe(binding.outerTarget)
   expect(record).toHaveBeenCalledWith(
     expect.objectContaining({ kind: "field-state", field: "outer", value: "14:45:00", valueClass: "Time" }),
   )
@@ -407,6 +409,13 @@ it("connects original segment entry, group callers and native binding lifetime w
       { kind: "key", scopeCurrent: false, originalDefaultPrevented: true, renderPhasesComplete: true, after: null },
     ],
     dropped: 0,
+  })
+  const receiptSnapshot = JSON.parse(screen.getByTestId("field-sdk-receipt-snapshot").props.accessibilityLabel)
+  expect(receiptSnapshot.frames[0]).toMatchObject({
+    token: null,
+    phase: null,
+    scopeCurrent: false,
+    error: "missing-native-frame-error",
   })
   expect(findNodeHandle).toHaveBeenCalled()
   await screen.unmount()
