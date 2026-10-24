@@ -6,10 +6,11 @@ import { useNativeKeyboardObservation, useNativeKeyScope } from "../../input/Nat
 
 import { useNativeTable } from "./context"
 import { TableKeyPolicy } from "./TableCellKeys"
+import type { useNativeCollectionKeyboard } from "./useTableKeyboard"
 
 type TProps = { target: RefObject<View | null>; tag: number }
-const Observation = ({ target, tag }: TProps) => {
-  const { keyboard } = useNativeTable()
+type TKeyboard = ReturnType<typeof useNativeCollectionKeyboard>
+const Observation = ({ target, tag, keyboard }: TProps & { keyboard: TKeyboard }) => {
   useNativeKeyboardObservation({
     targetTag: tag,
     isEnabled: tag > 0 && keyboard.typeaheadEnabled,
@@ -32,4 +33,9 @@ const Observation = ({ target, tag }: TProps) => {
     />
   )
 }
-export const TableTypeahead = (props: TProps) => (useNativeKeyScope() ? <Observation {...props} /> : null)
+export const NativeCollectionTypeahead = (props: TProps & { keyboard: TKeyboard }) =>
+  useNativeKeyScope() ? <Observation {...props} /> : null
+export const TableTypeahead = (props: TProps) => {
+  const { keyboard } = useNativeTable()
+  return <NativeCollectionTypeahead {...props} keyboard={keyboard} />
+}

@@ -5,7 +5,7 @@ import { nativeKeyTokens } from "../../input/keyScope"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 
-import { useNativePanelInitialFocus } from "./focus"
+import { NativePanelFocusIntentContext, useNativePanelInitialFocus } from "./focus"
 import type { TNativePanelProps } from "./types"
 
 const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusView)
@@ -36,6 +36,10 @@ export const NativePanelSurface = forwardRef<
       if (event.nativeEvent.phase === "down" && !event.nativeEvent.repeat && !event.nativeEvent.cancelled) systemClose()
     },
   })
-  return <AnimatedFocusView {...props} ref={root} />
+  return (
+    <NativePanelFocusIntentContext.Provider value={undefined}>
+      <AnimatedFocusView {...props} ref={root} />
+    </NativePanelFocusIntentContext.Provider>
+  )
 })
 NativePanelSurface.displayName = "NativePanelSurface"
