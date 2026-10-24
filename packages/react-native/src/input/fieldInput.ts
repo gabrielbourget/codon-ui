@@ -195,6 +195,7 @@ const packetFor = (event: TNativeFieldDispatchEvent) => {
   }
   return packet
 }
+export const nativeFieldInputPacket = (event: TNativeFieldDispatchEvent) => packetFor(event)
 const admitted = (scope: TNativeFieldInputScope, packet: TNativeFieldInputPacket) =>
   scope.current() &&
   scope.native.getLease() === packet.moduleLease &&

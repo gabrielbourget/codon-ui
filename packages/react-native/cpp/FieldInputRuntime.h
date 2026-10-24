@@ -180,6 +180,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
       if (!state || !frame || !state->live_.load() || !state->frames.isCurrent(frame)) return;
       bool failed = true;
       std::string failure = "field-input-original-Fabric-target-retired";
+      FieldInputOriginalPointer pointerReceipt;
       try {
         const auto bridgeless = runtime.global().getProperty(runtime, "RN$Bridgeless");
         const auto microtasks = runtime.global().getProperty(runtime, "RN$enableMicrotasksInReact");
@@ -203,7 +204,6 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
                 // First delivery of this original native record, using the
                 // original Fabric target and React's own event handler.
                 const auto originalPayload = originalRecord ? originalRecord->eventPayload : nullptr;
-                FieldInputOriginalPointer pointerReceipt;
                 auto eventPayload = std::make_shared<ValueFactoryEventPayload>([&payload, &originalPayload, &state, &frame, &pointerReceipt](facebook::jsi::Runtime &runtime) {
                   if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
                   if (!originalPayload) {
@@ -261,7 +261,7 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
         }
       } catch (const std::exception &error) { failed = true; failure = error.what(); }
       catch (...) { failed = true; failure = "field-input-original-Fabric-dispatch-threw"; }
-      state->frames.finishHandler(frame, failed, failure);
+      state->frames.finishHandler(frame, failed, failure, pointerReceipt.prevented(runtime));
       if (failed) state->frames.finishPhases(frame, true, failure);
       else {
         try { state->queueMountPhase(runtime, frame, weakManager); }

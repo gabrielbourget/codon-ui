@@ -261,9 +261,11 @@ class FieldInputDispatchFrames final {
     }
     return *ticket->focusResult;
   }
-  void finishHandler(const Handle &ticket, bool failed, const std::string &error = "") {
+  void finishHandler(const Handle &ticket, bool failed, const std::string &error = "", bool originalPointerPrevented = false) {
     std::unique_lock lock(mutex_);
     if (!ticket || !ticket->started || ticket->returned || ticket->closed) return;
+    if (ticket->phase.starts_with("pointer-") && ticket->phase != "pointer-cancel")
+      ticket->prevented |= originalPointerPrevented;
     ticket->returned = true;
     ticket->originalDefaultPrevented = !failed && ticket->acknowledged && ticket->current && ticket->prevented &&
       Clock::now() < ticket->deadline;

@@ -204,7 +204,15 @@ for (const implementation of implementations) {
     ["pointer-cancel", "pen"],
     ["pointer-click", "touch"],
   ]) {
-    for (const action of ["none", "prevent", "stop", "both", "group-stop", "throw"]) {
+    for (const action of [
+      "none",
+      "prevent",
+      "stop",
+      "both",
+      "group-stop",
+      "throw",
+      ...(phase === "pointer-end" ? ["root-prevent"] : []),
+    ]) {
       const packet = {
         moduleLease: "module:1",
         token: 1,
@@ -236,7 +244,7 @@ for (const implementation of implementations) {
       }
       const settlements = [],
         order = [],
-        targets = [42, 3, 2].map((tag) => ({ tag }))
+        targets = [42, 3, 2, ...(action === "root-prevent" ? [1] : [])].map((tag) => ({ tag }))
       const scope = {
         bindingId: "field:1",
         bindingRevision: "rev:1",
@@ -279,6 +287,11 @@ for (const implementation of implementations) {
       original._dispatchListeners = targets.map((target, index) => (event) => {
         assert.equal(event, original)
         assert.equal(event.currentTarget, target)
+        if (index === 3) {
+          order.push(target.tag)
+          event.preventDefault()
+          return
+        }
         assert.equal(
           receiveNativeFieldPointer(scope, event, phase, {
             target: target.tag,
@@ -306,7 +319,9 @@ for (const implementation of implementations) {
           ? [42, 3]
           : action === "throw"
             ? [42]
-            : [42, 3, 2]
+            : action === "root-prevent"
+              ? [42, 3, 2, 1]
+              : [42, 3, 2]
       assert.deepEqual(order, expected)
       checks++
       assert.equal(settlements.length, 1)
@@ -327,6 +342,11 @@ for (const implementation of implementations) {
       checks++
       assert.equal(context.caughtError, action === "throw" ? error : null)
       checks++
+      if (action === "root-prevent") {
+        assert.equal(nativeEvent.returnValue, false)
+        assert.equal(settlements[0].preventDefault, false)
+        checks += 2
+      }
     }
   }
 }

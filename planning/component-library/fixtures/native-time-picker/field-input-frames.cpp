@@ -59,6 +59,31 @@ int main() {
     check(frames.wait(current).disposition == (cancel ? FieldInputDisposition::Allowed : FieldInputDisposition::Prevented));
     check(frames.end(current, true).disposition == (cancel ? FieldInputDisposition::Allowed : FieldInputDisposition::Prevented));
   }
+  for (const auto &phase : {"pointer-end", "pointer-click", "pointer-cancel", "down"}) {
+    auto bubbled = frames.begin(identity, 2, phase, 1000ms);
+    check(frames.startDelivery(bubbled));
+    check(frames.acknowledge(bubbled->token, identity, 2, phase, true, false, {}));
+    frames.finishHandler(bubbled, false, "", true);
+    frames.finishPhases(bubbled);
+    const bool pointer = std::string(phase) == "pointer-end" || std::string(phase) == "pointer-click";
+    const auto result = frames.end(bubbled, true);
+    check(result.disposition == (pointer ? FieldInputDisposition::Prevented : FieldInputDisposition::Allowed));
+    check(result.originalDefaultPrevented == pointer);
+  }
+  {
+    auto missing = frames.begin(identity, 2, "pointer-end", 1000ms);
+    check(frames.startDelivery(missing));
+    frames.finishHandler(missing, false, "", true); frames.finishPhases(missing);
+    auto result = frames.end(missing, true);
+    check(result.disposition == FieldInputDisposition::Unacknowledged && !result.originalDefaultPrevented);
+    auto late = frames.begin(identity, 2, "pointer-end", 5ms);
+    check(frames.startDelivery(late));
+    check(frames.acknowledge(late->token, identity, 2, "pointer-end", true, false, {}));
+    std::this_thread::sleep_for(9ms);
+    frames.finishHandler(late, false, "", true); frames.finishPhases(late);
+    result = frames.end(late, true);
+    check(result.disposition == FieldInputDisposition::TimedOut && !result.originalDefaultPrevented);
+  }
   {
     const auto originDeadline = FieldInputDispatchFrames::Clock::now() + 100ms;
     for (const auto &phase : {"pointer-end", "pointer-click"}) {

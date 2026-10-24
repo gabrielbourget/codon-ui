@@ -42,6 +42,16 @@
       "sourcePath": "packages/react-aria/src/interactions/useFocusWithin.ts",
       "sourceSHA256": "109b1f318e3e30f855797f55e88a8decf9222751ca5fe5fb9cd0b2fc4935c0d3",
       "sourceMapSHA256": "004db713aa6deb82a6df246930d6b0892001afb023f9fde60873dd904dc7a2b8"
+    },
+    "usePress": {
+      "sourcePath": "packages/react-aria/src/interactions/usePress.ts",
+      "sourceSHA256": "9704d9fa71e1efb8616009afc5006e1ed793c4f6f3f90af3d9e7e4d9d56535da",
+      "sourceMapSHA256": "af1c8ff1b878b7cc41e4f4b8848af351c94f425eb41a0190cf92c68fd75d3b86"
+    },
+    "filterDOMProps": {
+      "sourcePath": "packages/react-aria/src/utils/filterDOMProps.ts",
+      "sourceSHA256": "dbbf53d11152dea5ab0ac1a9276f7f5ad32eb1b9545e4e7e3a3f01d971da6600",
+      "sourceMapSHA256": "44753ac4ff2cd2dc6483b29e052f331f0729f5cbb9916b1fe9f48872a923e6fc"
     }
   },
   "translations": {
@@ -417,7 +427,8 @@
     "../field/focusEvent.ts": "8c5d2265c8fe0c3f2132715535e5e9ad33b65967976f11a2519038d5b6e2e505",
     "../field/document.ts": "032ca0f6df15ed9ab5605c5553bc4a9286118050253240937750565e9bd9bdd0",
     "../../../cpp/form/FieldGroupTraversal.h": "72022b30dc900fc6fb2adbaa13f244fee7216400a35526740439f222a23e9844",
-    "../../../cpp/form/FieldGroupQuery.h": "ba4cc0e2c49d9328846b7318380b051000388b55fef75bb3badefc770411ac6d"
+    "../../../cpp/form/FieldGroupQuery.h": "ba4cc0e2c49d9328846b7318380b051000388b55fef75bb3badefc770411ac6d",
+    "../../input/useFieldGroupPress.ts": "8754d1113d8f17b3925fb313d9c71259f58f3d3649a24eeec3b33a62a5cf122c"
   },
   "componentSources": {
     "DateField.tsx": {
@@ -447,6 +458,13 @@
       "sourcePath": "packages/react-aria-components/src/Text.tsx",
       "sourceSHA256": "b2995f9f6b6216c9d15a9eb25455293c53da57ba86e8bc45d193fae10ba413f6",
       "sourceMapSHA256": "22ee393649b5fabc2085a735442571754e2f0f4b4ee6d8c66917243cefe3ffd0"
+    },
+    "Group.tsx": {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "sourcePath": "packages/react-aria-components/src/Group.tsx",
+      "sourceSHA256": "6d2a0495c562e2bfad2efb9873231af0da367da99eaf9734d097f52e30497d3c",
+      "sourceMapSHA256": "8f9a75073cd3c5ec6631f3e9746f98dd99a17ba5a82e659e20f656f507e18c68"
     }
   },
   "canonicalWrapper": {

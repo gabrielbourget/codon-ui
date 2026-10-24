@@ -8,7 +8,7 @@ import {
   useState,
   useSyncExternalStore,
 } from "react"
-import { findNodeHandle, Platform, Pressable, ScrollView, Text, TextInput, View } from "react-native"
+import { findNodeHandle, Platform, Pressable, ScrollView, Text, TextInput, View, type PointerEvent } from "react-native"
 
 import { getNativeDateSegmentSemantics } from "../../../../packages/react-native/src/date/entry/semantics"
 import { useNativeDateSegmentEntry } from "../../../../packages/react-native/src/date/entry/useNativeDateSegmentEntry"
@@ -33,7 +33,9 @@ import {
   receiveNativeFieldKey,
   type TNativeFieldInputScope,
   type TNativeFieldKeyEvent,
+  type TNativeFieldPointerEvent,
 } from "../../../../packages/react-native/src/input/fieldInput"
+import { useNativeFieldGroupPress } from "../../../../packages/react-native/src/input/useFieldGroupPress"
 import {
   NativeFieldInputSession,
   type TNativeFieldInputPlan,
@@ -298,86 +300,131 @@ const Field = ({
     [record, name, veto, revision, removeOnKey, onRemove],
   )
   const group = scope ? nativeFieldGroupKeyHandler(scope, { direction, onKeyDown: caller, onKeyUp: caller }) : undefined
+  const pointerCaller = useCallback(
+    (event: TNativeFieldPointerEvent) => {
+      record({
+        kind: "group-pointer",
+        field: name,
+        revision,
+        data: event.nativeEvent,
+        prevented: event.defaultPrevented,
+        stopped: event.isPropagationStopped(),
+      })
+    },
+    [record, name, revision],
+  )
+  const pointerGroup = useNativeFieldGroupPress({
+    scope,
+    onPointerDown: pointerCaller,
+    onPointerUp: pointerCaller,
+    onPointerCancel: pointerCaller,
+    onClick: pointerCaller,
+  })
+  const rootPointerCaller = (phase: string, event: PointerEvent) => {
+    record({
+      kind: "field-pointer",
+      field: name,
+      revision,
+      phase,
+      data: event.nativeEvent,
+      prevented: event.defaultPrevented,
+      stopped: event.isPropagationStopped(),
+    })
+    if (veto) event.preventDefault()
+  }
   return (
     <NativeFieldInputContext.Provider value={scope}>
-      <NativeFocusHost
-        ref={bindOuter}
-        focusable={false}
-        testID={`${name}-outer`}
-        nativeFieldGroupHandler={group}
-        nativeFocusWithinObservation
-        nativeOnFocusWithin={(event) => {
-          focused.current = event.nativeEvent.within
-          record({ kind: "field-focus", field: name, data: event.nativeEvent })
-        }}
-        style={frame}
+      <View
+        testID={`${name}-root`}
+        onPointerDown={(event) => rootPointerCaller("down", event)}
+        onPointerUp={(event) => rootPointerCaller("up", event)}
+        onPointerCancel={(event) => rootPointerCaller("cancel", event)}
       >
-        {metadata}
-        <Text>
-          {name}: {value.toString()}
-        </Text>
-        <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
-          {JSON.stringify(session.status())}
-        </Text>
         <NativeFocusHost
-          ref={setInput}
+          ref={bindOuter}
           focusable={false}
-          testID={`${name}-input`}
+          testID={`${name}-outer`}
           nativeFieldGroupHandler={group}
-          style={{ flexDirection: "row" }}
-        >
-          {state.segments.map((segment, index) => (
-            <Part
-              key={nativeDateFieldSegmentId(segment, index)}
-              segment={segment}
-              index={index}
-              state={state}
-              ownerId={ownerId}
-              name={name}
-              locale={locale}
-              hosts={hosts}
-              scope={scope}
-              outerTarget={outerTarget}
-              record={record}
-            />
-          ))}
-        </NativeFocusHost>
-        <NativePressable
-          testID={`${name}-button`}
-          onKeyDown={(event) => {
-            record({ kind: "child-key", field: name, data: event.nativeEvent })
-            if (stop) event.stopPropagation()
+          nativeFieldGroupPointerHandler={pointerGroup}
+          nativeFocusWithinObservation
+          nativeOnFocusWithin={(event) => {
+            focused.current = event.nativeEvent.within
+            record({ kind: "field-focus", field: name, data: event.nativeEvent })
           }}
-          onPress={() => record({ kind: "child-press", field: name })}
           style={frame}
         >
-          <Text>Authored action</Text>
-        </NativePressable>
-        <NativePressable testID={`${name}-negative-tab`} tabIndex={-1} style={frame}>
-          <Text>Programmatic action</Text>
-        </NativePressable>
-        <TextInput
-          testID={`${name}-core-editor`}
-          defaultValue=""
-          accessibilityLabel={`${name} original core editor`}
-          onKeyPress={(event) => record({ kind: "core-key", field: name, data: event.nativeEvent })}
-          onChangeText={(text) => record({ kind: "core-change", field: name, text })}
-          style={frame}
-        />
-        {!nested && (
-          <Field
-            name="inner"
-            record={record}
-            disabled={false}
-            readonly={false}
-            echo={echo}
-            veto={veto}
-            stop={stop}
-            revision={revision}
-            nested
+          {metadata}
+          <Text>
+            {name}: {value.toString()}
+          </Text>
+          <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
+            {JSON.stringify(session.status())}
+          </Text>
+          <NativeFocusHost
+            ref={setInput}
+            focusable={false}
+            testID={`${name}-input`}
+            nativeFieldGroupHandler={group}
+            nativeFieldGroupPointerHandler={pointerGroup}
+            style={{ flexDirection: "row" }}
+          >
+            {state.segments.map((segment, index) => (
+              <Part
+                key={nativeDateFieldSegmentId(segment, index)}
+                segment={segment}
+                index={index}
+                state={state}
+                ownerId={ownerId}
+                name={name}
+                locale={locale}
+                hosts={hosts}
+                scope={scope}
+                outerTarget={outerTarget}
+                record={record}
+              />
+            ))}
+          </NativeFocusHost>
+          <NativePressable
+            testID={`${name}-button`}
+            onKeyDown={(event) => {
+              record({ kind: "child-key", field: name, data: event.nativeEvent })
+              if (stop) event.stopPropagation()
+            }}
+            onPointerDown={(event) => {
+              record({ kind: "child-pointer", field: name, data: event.nativeEvent })
+              if (stop) event.stopPropagation()
+            }}
+            onPress={() => record({ kind: "child-press", field: name })}
+            style={frame}
+          >
+            <Text>Authored action</Text>
+          </NativePressable>
+          <NativePressable testID={`${name}-negative-tab`} tabIndex={-1} style={frame}>
+            <Text>Programmatic action</Text>
+          </NativePressable>
+          <TextInput
+            testID={`${name}-core-editor`}
+            defaultValue=""
+            accessibilityLabel={`${name} original core editor`}
+            onKeyPress={(event) => record({ kind: "core-key", field: name, data: event.nativeEvent })}
+            onChangeText={(text) => record({ kind: "core-change", field: name, text })}
+            style={frame}
           />
-        )}
-      </NativeFocusHost>
+          {!nested && (
+            <Field
+              name="inner"
+              record={record}
+              disabled={false}
+              readonly={false}
+              echo={echo}
+              veto={veto}
+              stop={stop}
+              revision={revision}
+              nested
+            />
+          )}
+        </NativeFocusHost>
+      </View>
     </NativeFieldInputContext.Provider>
   )
 }
