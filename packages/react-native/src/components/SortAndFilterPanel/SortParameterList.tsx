@@ -22,6 +22,7 @@ import type { TTableSortInstruction } from "../Table/queryTypes"
 import { TableKeyPolicy } from "../Table/TableCellKeys"
 import { NativeCollectionTypeahead } from "../Table/TableTypeahead"
 import { useNativeCollectionKeyboard } from "../Table/useTableKeyboard"
+import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 
 import type { TQueryControlLabels } from "./controlLabels"
 import { QuerySortEntry, type TQuerySortEntryProps } from "./QueryControls"
@@ -30,6 +31,7 @@ export type TQuerySortParameterListProps = Omit<TQuerySortEntryProps, "parameter
   sortParameterList: TTableSortInstruction[]
   listLabels: TQueryControlLabels["sortParameterList"]
 }
+const BACKGROUND_TRANSITION = resolveNativeTagTransition()
 type TKeyboard = ReturnType<typeof useNativeCollectionKeyboard>
 const ListContext = createContext<{
   keyboard: TKeyboard
@@ -53,6 +55,13 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
   const merged = useNativeCollectionRefs(ref, register)
   const scope = useNativeKeyScope()
   const focused = list.manager.isFocused && list.manager.focusedKey === node.key
+  const reduced = useNativeTagReducedMotion()
+  const background = useNativeTagColor(
+    focused ? theme.colors.controlHoverBackground : "transparent",
+    BACKGROUND_TRANSITION,
+    reduced,
+    true,
+  )
   const { id: _id, textValue: _text, label, ...entry } = props
   const binding = actions.bindingFor(node)
   return (
@@ -81,7 +90,7 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
             flexDirection: "row",
             alignItems: "center",
             borderRadius: theme.radius.rounded,
-            backgroundColor: focused ? theme.colors.controlHoverBackground : undefined,
+            backgroundColor: background.rendered,
           }}
         >
           <TableKeyPolicy
