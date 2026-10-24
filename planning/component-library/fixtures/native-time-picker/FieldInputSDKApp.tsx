@@ -657,6 +657,13 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           token: dispatch?.token ?? null,
           groupTargets: dispatch?.groups.map((group: { target: number }) => group.target) ?? [],
           key: event?.key ?? null,
+          modifiers:
+            row.kind === "key"
+              ? { shiftKey: event?.shiftKey, altKey: event?.altKey, ctrlKey: event?.ctrlKey, metaKey: event?.metaKey }
+              : null,
+          nativeCode: event?.nativeCode ?? null,
+          nativeModifierData: event?.nativeModifierData ?? null,
+          repeat: event?.repeat ?? null,
           phase: dispatch?.phase ?? null,
           decision: row.decision ?? null,
           deliveryStarted: row.deliveryStarted === true,

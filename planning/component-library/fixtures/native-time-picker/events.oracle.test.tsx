@@ -23,6 +23,59 @@ const icon = (
   </>
 )
 
+it.each(Array.from({ length: 16 }, (_, mask) => mask))(
+  "preserves original group navigation and key-up with modifier mask %i",
+  async (mask) => {
+    const down = vi.fn(),
+      up = vi.fn(),
+      change = vi.fn()
+    render(
+      <>
+        {content}
+        <TimePicker
+          value={new Time(13, 45)}
+          aria-label="Clock"
+          onChange={change}
+          onKeyDown={down}
+          onKeyUp={up}
+          ComponentIcon={
+            <>
+              <button>Authored action</button>
+              <button tabIndex={-1}>Programmatic action</button>
+              <input aria-label="Original core editor" />
+            </>
+          }
+        />
+      </>,
+    )
+    const authored = screen.getByRole("button", { name: "Authored action" }),
+      next = screen.getByRole("button", { name: "Programmatic action" })
+    const modifiers = { shiftKey: !!(mask & 1), altKey: !!(mask & 2), ctrlKey: !!(mask & 4), metaKey: !!(mask & 8) }
+    act(() => authored.focus())
+    const keys = ["Shift", "Alt", "Control", "Meta"].filter((_, bit) => mask & (1 << bit))
+    await userEvent.setup().keyboard(
+      keys.map((key) => `{${key}>}`).join("") +
+        "{ArrowRight}" +
+        [...keys]
+          .reverse()
+          .map((key) => `{/${key}}`)
+          .join(""),
+    )
+    expect(document.activeElement).toBe(next)
+    const downs = down.mock.calls.filter(([event]) => event.key === "ArrowRight")
+    const ups = up.mock.calls.filter(([event]) => event.key === "ArrowRight")
+    expect(downs).toHaveLength(1)
+    expect(ups).toHaveLength(1)
+    expect(downs[0][0].target).toBe(authored)
+    expect(ups[0][0].target).toBe(next)
+    for (const [flag, value] of Object.entries(modifiers)) {
+      expect(downs[0][0][flag]).toBe(value)
+      expect(ups[0][0][flag]).toBe(value)
+    }
+    expect(change).not.toHaveBeenCalled()
+  },
+)
+
 it("navigates all authored focusable descendants in reading order without wrapping", async () => {
   render(
     <>
