@@ -14,11 +14,11 @@ def journal():
         rows.append(row)
         return row
     for index, name in enumerate(CASES):
-        add("field-state", field="outer", value=None, valueClass=None, disabled=False, readonly=False, veto=False)
+        add("field-state", field="outer", value=None, valueClass=None, disabled=False, readonly=False, veto=False, stop=index == 2)
         add("native-receipts", batch=index * 2 + 1, records=[], dropped=0)
         reports.append(dict(case=SETUPS[index], batch=index * 2 + 1))
         records = []
-        phases = ["pointer-start", "pointer-end", "pointer-click"] if index == 0 else ["pointer-start", "pointer-cancel"]
+        phases = ["pointer-start", "pointer-end", "pointer-click"] if index != 1 else ["pointer-start", "pointer-cancel"]
         for phase in phases:
             token += 1
             frame = copy.deepcopy(fixture()[-1]["records"][0])
@@ -32,9 +32,15 @@ def journal():
             frame.update(kind="pointer", event=dict(fieldDispatch=encoded), identity=copy.deepcopy(dispatch["identity"]), deliveryStarted=True, deliveryReturned=True, renderPhasesComplete=True, error="", decision="allowed")
             payload = dict(target=99, pointerId=index + 1, pointerType="touch", isPrimary=True, button=0, clientX=20, clientY=30)
             records.extend([dict(kind="original-pointer", token=token, eventId=token, payload=payload), frame])
-            add("group-pointer", field="outer", data={**payload, "fieldDispatch":encoded}, originalPayloadId=token)
+            event = {**payload, "fieldDispatch":encoded}
+            if index == 2 and phase == "pointer-start":
+                add("child-pointer", field="outer", data={**event,"cancelBubble":True}, originalPayloadId=token, stopped=True)
+            else:
+                groups = dispatch["groups"][:1] if phase in {"pointer-start", "pointer-click"} else dispatch["groups"]
+                for group in groups:add("group-pointer", field="outer", receiverTarget=group["target"], data=copy.deepcopy(event), originalPayloadId=token)
         if index == 0:
             records.append(dict(kind="focus", token=token, eventId=token, action="press", groupTarget=10, target=12, requested=True, observed=True, current=True, after=dict(focusedTarget=12)))
+        if index == 2:add("child-press", field="outer", data=dict(target=99))
         add("native-receipts", batch=index * 2 + 2, records=records, dropped=0)
         reports.append(dict(case=name, batch=index * 2 + 2))
     return rows, reports
@@ -68,6 +74,14 @@ class PointerContracts(unittest.TestCase):
             frames = [row for row in batch["records"] if row["kind"] == "pointer"]
             change(frames[-1]["before"])
             with self.assertRaises(AssertionError): validate(rows, "producer", reports)
+
+    def test_rejects_missing_authored_action_and_changed_pointer_receiver(self):
+        rows,reports=journal()
+        next(row for row in rows if row["kind"]=="child-press")["field"]="inner"
+        with self.assertRaises(AssertionError):validate(rows,"producer",reports)
+        rows,reports=journal()
+        next(row for row in rows if row["kind"]=="group-pointer")["receiverTarget"]=99
+        with self.assertRaises(AssertionError):validate(rows,"producer",reports)
 
 
 if __name__ == "__main__": unittest.main()

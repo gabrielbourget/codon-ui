@@ -1,8 +1,8 @@
 """Original touch/placeholder checkpoint; the complete adoption gate remains open."""
 from inspect_field_receipts import inspect, packet, key
 
-CASES = ("placeholder-touch-release", "placeholder-scroll-cancel")
-SETUPS = ("placeholder-touch-setup", "placeholder-scroll-setup")
+CASES = ("placeholder-touch-release", "placeholder-scroll-cancel", "authored-child-pointer-stop")
+SETUPS = ("placeholder-touch-setup", "placeholder-scroll-setup", "authored-pointer-stop-setup")
 
 
 def placeholder_target(frame):
@@ -40,6 +40,7 @@ def validate(rows, producer, checkpoints):
         states = [row for row in rows if row["kind"] == "field-state" and row["field"] == "outer" and row["sequence"] < end]
         assert states and states[-1]["value"] is None and states[-1]["valueClass"] is None
         assert all(states[-1][guard] is False for guard in ["disabled", "readonly", "veto"])
+        assert states[-1]["stop"] is (name == CASES[2])
         native = batches[report["batch"]]["records"]
         assert not any(row["kind"] == "failure" for row in native)
         frames = [row for row in native if row["kind"] == "pointer"]
@@ -58,8 +59,13 @@ def validate(rows, producer, checkpoints):
             assert payload["pointerType"] == "touch" and payload["isPrimary"] is True
             pointer_ids.add(payload["pointerId"])
             hit_targets.add(dispatch["identity"]["target"])
-            callbacks = [row for row in source if row["kind"] in {"group-pointer", "field-pointer"} and row["data"].get("fieldDispatch") and key(packet(row["data"]["fieldDispatch"])) == key(dispatch)]
-            assert callbacks and callbacks[0]["kind"] == "group-pointer", "Original group pointer callback missing"
+            callbacks = [row for row in source if row["kind"] in {"child-pointer", "group-pointer", "field-pointer"} and row["data"].get("fieldDispatch") and key(packet(row["data"]["fieldDispatch"])) == key(dispatch)]
+            if name == CASES[2] and dispatch["phase"] == "pointer-start":
+                assert [row["kind"] for row in callbacks] == ["child-pointer"] and callbacks[0]["stopped"] is True, "Original child's stop did not precede group press"
+            else:
+                assert callbacks and callbacks[0]["kind"] == "group-pointer", "Original group pointer callback missing"
+                groups = dispatch["groups"][:1] if dispatch["phase"] in {"pointer-start", "pointer-click"} else dispatch["groups"]
+                assert [row["receiverTarget"] for row in callbacks if row["kind"] == "group-pointer"] == [group["target"] for group in groups], "Original pointer group path differs"
         assert len(pointer_ids) == 1, "Pointer contact changed during the gesture"
         focuses = [row for row in native if row["kind"] == "focus"]
         assert phases[0] == "pointer-start"
@@ -74,7 +80,12 @@ def validate(rows, producer, checkpoints):
             assert focus["action"] == "press" and focus["groupTarget"] == click["identity"]["outerTarget"]
             assert focus["target"] == expected and focus["after"]["focusedTarget"] == expected
             assert all(focus[flag] is True for flag in ["requested", "observed", "current"])
-        else:
+        elif name == CASES[1]:
             assert "pointer-click" not in phases and phases[-1] in {"pointer-end", "pointer-cancel"}, "Scroll generated a group click or lacked termination"
             assert not focuses, "Cancelled scroll performed group press focus"
+        else:
+            assert phases == ["pointer-start", "pointer-end", "pointer-click"]
+            assert not focuses, "Stopped child started group press focus"
+            presses = [row for row in source if row["kind"] == "child-press" and row["field"] == "outer"]
+            assert len(presses) == 1, "Original authored action missing or repeated"
     return {"pointerCheckpointContracts": list(CASES), "nativeReceiptIntegrity": integrity["receiptIntegrity"], "fullInputSurface": False, "fullFamily": False, "fullGoal": False}

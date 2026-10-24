@@ -238,6 +238,34 @@ it("keeps independently owned nested fields in the outer committed traversal", a
   expect(outer).not.toHaveBeenCalled()
 })
 
+it("keeps a nested owner veto while its edit bubbles through the actual inner and outer groups", async () => {
+  const trace: string[] = [],
+    outerChange = vi.fn()
+  render(
+    <TimePicker
+      value={new Time(13, 45)}
+      aria-label="Outer clock"
+      onChange={outerChange}
+      onKeyDown={() => trace.push("outer-down")}
+      ComponentIcon={
+        <TimePicker
+          value={new Time(8, 15)}
+          aria-label="Inner clock"
+          onChange={(value) => trace.push("inner-change:" + value)}
+          onKeyDown={() => trace.push("inner-down")}
+        />
+      }
+    />,
+  )
+  const parts = screen.getAllByRole("spinbutton")
+  act(() => parts[3].focus())
+  await userEvent.setup().keyboard("{ArrowUp}")
+  expect(trace).toEqual(["inner-change:08:16:00", "inner-down", "inner-down", "outer-down"])
+  expect(outerChange).not.toHaveBeenCalled()
+  expect(parts[1]).toHaveAttribute("aria-valuenow", "45")
+  expect(parts[3]).toHaveAttribute("aria-valuenow", "15")
+})
+
 it("selects the final contiguous placeholder run at mouse start", async () => {
   render(
     <>
