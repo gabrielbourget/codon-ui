@@ -49,11 +49,19 @@ final class CUIFieldInputBinding {
     final boolean admitted, prevented;
     PointerDecision(boolean admitted, boolean prevented) { this.admitted = admitted; this.prevented = prevented; }
   }
-  static PointerDecision dispatchPointer(CUIFocusView originalRoot, MotionEvent event) {
+  static PointerDecision dispatchPointer(ViewGroup originalRoot, MotionEvent event) {
     UiThreadUtil.assertOnUiThread();
     if (ReactFeatureFlags.dispatchPointerEvents) return new PointerDecision(false, false);
+    // The outer keyboard scope owns the original physical dispatch. Descendant
+    // roots must not redispatch a MotionEvent Android may have transformed.
+    for (View ancestor = originalRoot.getParent() instanceof View ? (View)originalRoot.getParent() : null;
+         ancestor != null; ancestor = ancestor.getParent() instanceof View ? (View)ancestor.getParent() : null)
+      if (ancestor instanceof CUIKeyboardScope) return new PointerDecision(false, false);
     boolean registered = false;
-    for (CUIFieldInputBinding binding : bindings.keySet()) registered |= !binding.closed && binding.outer.get() == originalRoot;
+    for (CUIFieldInputBinding binding : bindings.keySet())
+      registered |= !binding.closed && (binding.outer.get() == originalRoot ||
+        (originalRoot instanceof CUIKeyboardScope && binding.outer.get() != null &&
+          binding.outer.get().getRootView() == originalRoot.getRootView()));
     if (!registered) return new PointerDecision(false, false);
     CUIFieldInputBinding selected = null;
     try {
@@ -64,17 +72,20 @@ final class CUIFieldInputBinding {
       for (TouchTargetHelper.ViewTarget target : path) if (target.getView() != null) { originalHit = target.getView(); break; }
       for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
         View root = binding.outer.get();
-        if (binding.closed || root == null || !descendant(originalHit, root) || binding.capture() == null) continue;
-        if (selected == null || descendant(root, selected.outer.get())) selected = binding;
+        JSONObject value = binding.capture();
+        if (binding.closed || root == null || value == null || root.getRootView() != originalRoot.getRootView() ||
+            !binding.containsOriginalView(value, originalHit)) continue;
+        if (selected == null || containsTarget(selected.capture(), root.getId())) selected = binding;
       }
-      if (selected == null || selected.outer.get() != originalRoot) return new PointerDecision(false, false);
+      if (selected == null || (selected.outer.get() != originalRoot && !(originalRoot instanceof CUIKeyboardScope)))
+        return new PointerDecision(false, false);
       return selected.emitPointer(originalRoot, event);
     } catch (Exception error) {
       if (selected != null) selected.record("pointer-failure", String.valueOf(error.getMessage()));
       return new PointerDecision(false, false);
     }
   }
-  private PointerDecision emitPointer(CUIFocusView originalRoot, MotionEvent event) throws Exception {
+  private PointerDecision emitPointer(ViewGroup originalRoot, MotionEvent event) throws Exception {
     JSONObject value = capture(); FabricUIManager manager = this.manager.get();
     if (value == null || manager == null) return new PointerDecision(false, false);
     int action = event.getActionMasked();
@@ -163,6 +174,31 @@ final class CUIFieldInputBinding {
       if (current == root) return true;
     return false;
   }
+  private static boolean containsTarget(JSONObject value, int target) throws Exception {
+    if (value == null) return false;
+    JSONObject group = new JSONObject(value.getString("encodedDocument")).getJSONObject("fieldGroup");
+    if (group.getInt("outerTarget") == target) return true;
+    JSONArray nodes = group.getJSONArray("nodes");
+    for (int index = 0; index < nodes.length(); index++)
+      if (nodes.getJSONObject(index).getInt("target") == target) return true;
+    return false;
+  }
+  private boolean containsOriginalView(JSONObject value, View view) throws Exception {
+    FabricUIManager manager = this.manager.get();
+    if (value == null || manager == null) return false;
+    JSONArray instances = value.getJSONObject("fieldGroupSnapshot").getJSONArray("instances");
+    for (View candidate = view; candidate != null; candidate = candidate.getParent() instanceof View ? (View)candidate.getParent() : null) {
+      boolean captured = false, member = false;
+      for (int index = 0; index < instances.length(); index++) {
+        JSONObject instance = instances.getJSONObject(index);
+        if (instance.getInt("nativeTarget") == candidate.getId() && manager.resolveView(candidate.getId()) == candidate) {
+          captured = true; member |= containsTarget(value, instance.getInt("target"));
+        }
+      }
+      if (captured) return member;
+    }
+    return false;
+  }
   static boolean inDefault(KeyEvent event) { return currentDefault.get() == event; }
   static KeyEvent beginDefault(KeyEvent event) {
     KeyEvent previous = currentDefault.get(); currentDefault.set(event); return previous;
@@ -192,11 +228,12 @@ final class CUIFieldInputBinding {
     try {
       for (CUIFieldInputBinding candidate : new ArrayList<>(bindings.keySet())) {
         JSONObject value = candidate.capture(); View outer = candidate.outer.get();
-        if (value == null || outer == null || !original.isFocused() || !descendant(original, outer)) continue;
+        if (value == null || outer == null || !original.isFocused() ||
+            value.getJSONObject("fieldGroupSnapshot").getInt("eventFocusedTarget") != original.getId()) continue;
         declarations.put(new JSONObject().put("encodedDocument", value.getString("encodedDocument"))
           .put("snapshot", value.getJSONObject("fieldGroupSnapshot")).put("epoch", candidate.epoch));
         if (selected != null && selected.outer.get() == outer) throw new IllegalStateException("field-input-original-group-ambiguous");
-        if (selected == null || descendant(outer, selected.outer.get())) selected = candidate;
+        if (selected == null || containsTarget(selected.capture(), outer.getId())) selected = candidate;
       }
     } catch (Exception error) {
       if (selected != null) selected.record("failure", String.valueOf(error.getMessage()));
@@ -230,12 +267,13 @@ final class CUIFieldInputBinding {
     JSONArray declarations = new JSONArray();
     for (CUIFieldInputBinding binding : candidates) {
       JSONObject value = binding.capture(); View outer = binding.outer.get();
-      if (value == null || outer == null || outer.getRootView() != window.getRootView() || !descendant(focused, outer)) continue;
       try {
+        if (value == null || outer == null || outer.getRootView() != window.getRootView() ||
+            value.getJSONObject("fieldGroupSnapshot").getInt("eventFocusedTarget") != focused.getId()) continue;
         declarations.put(new JSONObject().put("encodedDocument", value.getString("encodedDocument"))
           .put("snapshot", value.getJSONObject("fieldGroupSnapshot")).put("epoch", binding.epoch));
         if (selected != null && selected.outer.get() == outer) return null;
-        if (selected == null || descendant(outer, selected.outer.get())) selected = binding;
+        if (selected == null || containsTarget(selected.capture(), outer.getId())) selected = binding;
       } catch (Exception error) { binding.record("failure", String.valueOf(error.getMessage())); }
     }
     if (selected == null) return null;
@@ -244,7 +282,8 @@ final class CUIFieldInputBinding {
   private Decision dispatch(KeyEvent event, View focused, JSONArray declarations) {
     try {
       JSONObject value = capture(); FabricUIManager manager = this.manager.get();
-      if (value == null || manager == null || !descendant(focused, outer.get())) return null;
+      if (value == null || manager == null ||
+          value.getJSONObject("fieldGroupSnapshot").getInt("eventFocusedTarget") != focused.getId()) return null;
       boolean down = event.getAction() == KeyEvent.ACTION_DOWN;
       boolean intrinsic = consumed.contains(event.getKeyCode());
       if (down && focused instanceof CUIFocusView) intrinsic = ((CUIFocusView)focused).capturesObservedKey(event);
@@ -312,11 +351,12 @@ final class CUIFieldInputBinding {
     }
     if (nativeTarget <= 0) return "";
     View original = manager.resolveView(nativeTarget);
-    if (original == null || !descendant(original, root)) return "";
+    if (original == null || original.getRootView() != root.getRootView() || !containsTarget(value, target)) return "";
     JSONArray declarations = new JSONArray();
     for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
       View ancestor = binding.outer.get(); JSONObject current = binding.capture();
-      if (ancestor == null || current == null || !binding.lease.equals(lease) || !descendant(original, ancestor)) continue;
+      if (ancestor == null || current == null || !binding.lease.equals(lease) || ancestor.getRootView() != root.getRootView() ||
+          !containsTarget(current, target)) continue;
       declarations.put(new JSONObject().put("encodedDocument", current.getString("encodedDocument"))
         .put("snapshot", current.getJSONObject("fieldGroupSnapshot")).put("epoch", binding.epoch));
     }

@@ -56,6 +56,11 @@ export class NativeFieldGroupPress {
           const packet = nativeFieldInputPacket(event),
             data = event.nativeEvent,
             group = packet.groups.find((entry) => entry.target === target)!
+          if (!group.containsTarget) {
+            if (this.#contact?.pointerId === data.pointerId && phase !== "pointer-start") this.retire()
+            if (isNativeFieldInputCurrent(scope, event)) this.current()[callbacks[phase]]?.(event)
+            return
+          }
           const contact = this.#contact
           if (
             contact &&

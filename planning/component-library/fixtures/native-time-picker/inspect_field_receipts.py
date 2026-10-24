@@ -26,7 +26,8 @@ def packet(value):
     assert isinstance(data["groups"], list) and data["groups"], "Missing original group path"
     targets = []
     for group in data["groups"]:
-        assert set(group) == {"target", "bindingId", "bindingRevision", "scopeTarget"}
+        assert set(group) == {"target", "bindingId", "bindingRevision", "scopeTarget", "containsTarget"}
+        assert type(group["containsTarget"]) is bool
         positive(group["target"]); positive(group["scopeTarget"])
         assert all(isinstance(group[name], str) and group[name] for name in ["bindingId", "bindingRevision"])
         targets.append(group["target"])

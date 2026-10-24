@@ -1,6 +1,7 @@
 import { Time } from "@internationalized/date"
 import { act, cleanup, render, screen } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
+import { createPortal } from "react-dom"
 import { I18nProvider } from "react-aria-components"
 import { afterEach, expect, it, vi } from "vitest"
 
@@ -22,6 +23,44 @@ const icon = (
     <input aria-label="Icon editor" />
   </>
 )
+
+it("delivers field key callers through an authored portal outside its physical group", async () => {
+  const calls: unknown[][] = []
+  const portal = document.createElement("div")
+  document.body.append(portal)
+  try {
+    render(
+      <TimePicker
+        value={new Time(13, 45)}
+        aria-label="Clock"
+        ComponentIcon={createPortal(<button>Portaled action</button>, portal)}
+        onKeyDown={(event) => calls.push(["down", event.key, event.currentTarget.contains(event.target as Node)])}
+        onKeyUp={(event) => calls.push(["up", event.key, event.currentTarget.contains(event.target as Node)])}
+      />,
+    )
+    const button = screen.getByRole("button", { name: "Portaled action" })
+    expect(screen.getByTestId("time-picker").contains(button)).toBe(false)
+    const user = userEvent.setup()
+    await user.click(button)
+    expect(document.activeElement).toBe(button)
+    await user.keyboard("p")
+    expect(calls).toEqual([
+      ["down", "p", false],
+      ["up", "p", false],
+    ])
+    expect(document.activeElement).toBe(button)
+    calls.length = 0
+    await user.keyboard("{ArrowRight}")
+    expect(document.activeElement).toBe(button)
+    expect(calls).toEqual([
+      ["down", "ArrowRight", false],
+      ["up", "ArrowRight", false],
+    ])
+  } finally {
+    cleanup()
+    portal.remove()
+  }
+})
 
 it.each(Array.from({ length: 16 }, (_, mask) => mask))(
   "preserves original group navigation and key-up with modifier mask %i",

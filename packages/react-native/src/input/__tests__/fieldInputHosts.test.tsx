@@ -43,8 +43,8 @@ const originalEvent = () => {
     phase: "down",
     identity,
     groups: [
-      { target: 3, bindingId: "field:1", bindingRevision: "revision:1", scopeTarget: 2 },
-      { target: 2, bindingId: "field:1", bindingRevision: "revision:1", scopeTarget: 2 },
+      { target: 3, bindingId: "field:1", bindingRevision: "revision:1", scopeTarget: 2, containsTarget: true },
+      { target: 2, bindingId: "field:1", bindingRevision: "revision:1", scopeTarget: 2, containsTarget: true },
     ],
   }
   let prevented = false,

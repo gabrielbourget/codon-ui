@@ -11,6 +11,27 @@ inline int32_t fieldGroupTarget(const folly::dynamic &value) {
     throw std::invalid_argument("field-group-target-invalid");
   return static_cast<int32_t>(value.asDouble());
 }
+inline std::vector<TFieldGroupNode> fieldGroupMountedNodes(const folly::dynamic &document, const folly::dynamic &snapshot) {
+  std::vector<TFieldGroupNode> nodes;
+  for (const auto &node : document.at("nodes")) nodes.push_back({fieldGroupTarget(node.at("target")),
+    static_cast<int32_t>(node.at("parent").asInt()), node.at("hidden").asBool() || node.at("displayNone").asBool()});
+  std::vector<TFieldGroupNativePosition> mounted;
+  const auto &hierarchy = snapshot.at("nativeHierarchy");
+  if (!hierarchy.isArray()) throw std::invalid_argument("field-group-native-hierarchy-required");
+  for (const auto &row : hierarchy) {
+    if (!row.isObject() || row.size() != 3 || !row.at("order").isArray() || !row.at("parent").isInt() || row.at("parent").asInt() < 0)
+      throw std::invalid_argument("field-group-native-hierarchy-invalid");
+    TFieldGroupNativePosition native{fieldGroupTarget(row.at("target")),
+      row.at("parent").asInt() ? fieldGroupTarget(row.at("parent")) : 0, {}};
+    for (const auto &index : row.at("order")) {
+      if (!index.isInt() || index.asInt() < 0 || index.asInt() > INT32_MAX)
+        throw std::invalid_argument("field-group-native-order-invalid");
+      native.order.push_back(static_cast<int32_t>(index.asInt()));
+    }
+    mounted.push_back(std::move(native));
+  }
+  return fieldGroupPhysicalNodes(nodes, mounted);
+}
 
 // The plan is structural evidence only. The SDK resolver must still admit the
 // exact mounted metadata, whole original segment set, roots and window.
@@ -63,10 +84,8 @@ inline folly::dynamic fieldGroupPlan(const folly::dynamic &document, const folly
 }
 inline folly::dynamic fieldGroupSelection(const folly::dynamic &document, const folly::dynamic &snapshot) {
   const auto &plan = document.at("fieldGroup");
-  std::vector<TFieldGroupNode> nodes;
-  for (const auto &node : document.at("nodes")) nodes.push_back({fieldGroupTarget(node.at("target")),
-    static_cast<int32_t>(node.at("parent").asInt()), node.at("hidden").asBool() || node.at("displayNone").asBool()});
-  FieldGroupTraversal traversal(std::move(nodes), fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
+  FieldGroupTraversal traversal(fieldGroupMountedNodes(document, snapshot),
+    fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
   std::vector<TFieldGroupFocusable> originals;
   const auto focused = static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
   std::optional<double> focusedLeft;
@@ -76,6 +95,9 @@ inline folly::dynamic fieldGroupSelection(const folly::dynamic &document, const 
     if (row.at("eligible").asBool()) originals.push_back({target, row.at("placeholder").asBool(),
       row.at("rect").at("x").asDouble(), row.at("tabStop").asBool()});
   }
+  std::sort(originals.begin(), originals.end(), [&](const auto &first, const auto &second) {
+    return traversal.preorderPosition(first.target) < traversal.preorderPosition(second.target);
+  });
   traversal.admit(std::move(originals));
   return folly::dynamic::object("first", traversal.first())("next", traversal.logical(focused, 1))
     ("previous", traversal.logical(focused, -1))("physicalLeft", focusedLeft ? traversal.visual(*focusedLeft, -1) : 0)

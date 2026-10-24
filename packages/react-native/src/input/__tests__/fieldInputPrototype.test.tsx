@@ -172,6 +172,7 @@ const scenePacket = (
     bindingId: binding.bindingId,
     bindingRevision: binding.bindingRevision,
     scopeTarget: binding.outerTarget,
+    containsTarget: true,
   })
   const groups = (insideInput ? [binding.inputTarget, binding.outerTarget] : [binding.outerTarget]).map(group)
   if (name === "inner") {
@@ -451,6 +452,7 @@ it("connects original segment entry, group callers and native binding lifetime w
           bindingId: binding.bindingId,
           bindingRevision: binding.bindingRevision,
           scopeTarget: binding.outerTarget,
+          containsTarget: true,
         })),
       }),
     },

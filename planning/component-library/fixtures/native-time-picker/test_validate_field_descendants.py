@@ -23,7 +23,7 @@ def journal():
         if index in {6,7}:
             target=44 if index==6 else 45
             dispatch["identity"].update(ownerId="inner",bindingId="inner-binding",bindingRevision="inner-revision",outerTarget=50,inputTarget=51,outerInstance="inner-outer",inputInstance="inner-input",target=target,nativeInstance=str(target),editorInstance=str(target))
-            dispatch["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10) for t in [51,50,10]]
+            dispatch["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10, containsTarget=True) for t in [51,50,10]]
         event=dict(key="ArrowRight" if index in {0,1,2,5,6} else "7" if index==3 else "9" if index==4 else "ArrowUp" if index==7 else "f",target=dispatch["identity"]["target"],phase="down",fieldDispatch=json.dumps(dispatch))
         native.update(event=event,identity=copy.deepcopy(dispatch["identity"]),deliveryStarted=True,deliveryReturned=True,renderPhasesComplete=True,error="",decision="prevented" if index in {1,2,4,5,6,7,8,9} else "allowed",originalDefaultPrevented=index in {1,2,4,5,6,7,8,9})
         for snapshot in [native["before"],native["after"]]:
@@ -61,7 +61,7 @@ def journal():
             up["identity"].update(target=target,nativeInstance="core" if index>=8 else str(target),editorInstance="core-editor" if index>=8 else str(target))
             if index==5:
                 up["identity"].update(ownerId="inner",bindingId="inner-binding",bindingRevision="inner-revision",outerTarget=50,inputTarget=51,outerInstance="inner-outer",inputInstance="inner-input")
-                up["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10) for t in [51,50,10]]
+                up["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10, containsTarget=True) for t in [51,50,10]]
             up_event=dict(key=event["key"],target=target,phase="up",fieldDispatch=json.dumps(up))
             up_frame=copy.deepcopy(native);up_frame.update(event=up_event,identity=copy.deepcopy(up["identity"]))
             for snapshot in [up_frame["before"],up_frame["after"]]:

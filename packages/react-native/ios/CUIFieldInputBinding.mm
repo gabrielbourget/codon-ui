@@ -26,6 +26,7 @@ using namespace codon::form;
 @interface CUIFieldInputBinding ()
 - (NSDictionary *)capture;
 - (UIView *)outerRoot;
+- (BOOL)containsOriginalView:(UIView *)view;
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
 - (void)emitOriginalInput:(UIView *)view emit:(void (^)(void))emit;
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat originalInput:(const RawEvent *)originalInput;
@@ -80,7 +81,7 @@ static CUIFieldInputBinding *CUIFieldPointerOwner(UIView *surface, const RawEven
     if (!surface || outer.window != surface.window || CUIFieldPointerSurface(outer) != surface ||
         !CUIFieldContainsTarget([binding capture], family->getSurfaceId(), family->getTag())) continue;
     if (selected && [selected outerRoot] == outer) throw std::runtime_error("field-input-pointer-group-ambiguous");
-    if (!selected || [outer isDescendantOfView:[selected outerRoot]]) selected = binding;
+    if (!selected || CUIFieldContainsTarget([selected capture], family->getSurfaceId(), outer.tag)) selected = binding;
   }
   return selected;
 }
@@ -120,7 +121,7 @@ static void CUIRefreshFieldPointerHandlers(UIWindow *window)
       for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
         UIView *outer = [binding outerRoot];
         if (outer.window == surface.window && CUIFieldPointerSurface(outer) == surface &&
-            [touch.view isDescendantOfView:outer] && [binding capture]) return YES;
+            [binding containsOriginalView:touch.view]) return YES;
       }
       return NO;
     } emission:^(void (^emit)(void), void (^decision)(BOOL)) {
@@ -141,9 +142,9 @@ static CUIFieldInputBinding *CUIFieldWinner(UIWindow *window)
   for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
     NSDictionary *value = [binding capture];
     UIView *outer = [binding outerRoot];
-    if (outer.window != window || ![value[@"fieldGroupSnapshot"][@"focusedTarget"] integerValue]) continue;
+    if (outer.window != window || ![value[@"fieldGroupSnapshot"][@"eventFocusedTarget"] integerValue]) continue;
     if (selected && [selected outerRoot] == outer) return nil;
-    if (!selected || [outer isDescendantOfView:[selected outerRoot]]) selected = binding;
+    if (!selected || CUIFieldContainsTarget([selected capture], [value[@"fieldGroupSnapshot"][@"surfaceId"] intValue], outer.tag)) selected = binding;
   }
   return selected;
 }
@@ -263,13 +264,13 @@ BOOL CUIFieldInputOwnsPress(UIPress *press, UIWindow *window)
 BOOL CUIFieldInputOwnsView(UIView *view)
 {
   CUIFieldInputBinding *binding = CUIFieldWinner(view.window);
-  return binding && [view isDescendantOfView:[binding outerRoot]];
+  return binding && [binding containsOriginalView:view];
 }
 
 void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 {
   CUIFieldInputBinding *owner = CUIFieldWinner(view.window);
-  if (owner && [view isDescendantOfView:[owner outerRoot]]) [owner emitOriginalInput:view emit:emit];
+  if (owner && [owner containsOriginalView:view]) [owner emitOriginalInput:view emit:emit];
   else emit();
 }
 
@@ -299,6 +300,23 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   return self;
 }
 - (UIView *)outerRoot { return _outer; }
+- (BOOL)containsOriginalView:(UIView *)view
+{
+  NSDictionary *value = [self capture];
+  if (!value || view.window != _window) return NO;
+  const int32_t surface = [value[@"fieldGroupSnapshot"][@"surfaceId"] intValue];
+  for (UIView *candidate = view; candidate && candidate != _window; candidate = candidate.superview) {
+    BOOL captured = NO, member = NO;
+    for (NSDictionary *instance in value[@"fieldGroupSnapshot"][@"instances"])
+      if ([instance[@"nativeTarget"] integerValue] == candidate.tag &&
+          [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:candidate.tag] == candidate) {
+        captured = YES;
+        member = member || CUIFieldContainsTarget(value, surface, [instance[@"target"] intValue]);
+      }
+    if (captured) return member;
+  }
+  return NO;
+}
 - (UIWindow *)boundWindow { return _window; }
 - (NSString *)moduleLease { return _lease; }
 - (void)recordEncoded:(NSString *)encoded
@@ -417,7 +435,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   const auto manager = _manager.lock();
   if (!manager) { result.error = "field-input-focus-manager-retired"; return result; }
   std::unordered_set<int32_t> targets;
-  for (const auto &node : document.at("fieldGroup").at("nodes")) targets.insert(fieldGroupTarget(node.at("target")));
+  for (const auto &node : snapshot.at("instances")) targets.insert(fieldGroupTarget(node.at("target")));
   targets.insert(fieldGroupTarget(document.at("fieldGroup").at("outerTarget")));
   const BOOL wasFocused = original.isFirstResponder;
   if (wasFocused) return {false, true, true, target, row.at("nativeInstance").asString(), row.at("editorInstance").asString(), ""};
@@ -486,7 +504,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
       NSDictionary *current = [entry capture];
       UIView *root = [entry outerRoot];
-      if (!current || root.window != _window || ![view isDescendantOfView:root] || ![[entry moduleLease] isEqual:_lease]) continue;
+      if (!current || root.window != _window || ![entry containsOriginalView:view] || ![[entry moduleLease] isEqual:_lease]) continue;
       declarations.push_back(folly::dynamic::object("encodedDocument", [current[@"encodedDocument"] UTF8String])
         ("snapshot", json(current[@"fieldGroupSnapshot"]))("epoch", entry->_epoch));
     }
@@ -554,7 +572,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const auto binding = fieldInputBinding(document);
     const bool pointer = originalInput && isFieldInputOriginalPointer(originalInput->type);
     const auto family = originalInput ? originalInput->shadowNodeFamily.lock() : nullptr;
-    const auto target = pointer && family ? family->getTag() : static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
+    const auto target = pointer && family ? family->getTag() : static_cast<int32_t>(snapshot.at("eventFocusedTarget").asInt());
     if (!target) throw std::invalid_argument("field-input-original-focus-retired");
     auto fabric = captureFabricFormDocument(*manager, static_cast<int32_t>(document.at("surfaceId").asInt()));
     if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
@@ -572,8 +590,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
       NSDictionary *current = [entry capture];
       UIView *root = [entry outerRoot];
-      if (current && root.window == _window && CUIFieldContainsTarget(current, original->getSurfaceId(), target) &&
-          (root == _outer || [_outer isDescendantOfView:root])) {
+      if (current && root.window == _window && CUIFieldContainsTarget(current, original->getSurfaceId(), target)) {
         const auto currentDocument = folly::parseJson([current[@"encodedDocument"] UTF8String]);
         const auto field = fieldInputBinding(currentDocument);
         if (field.moduleLease != binding.moduleLease) continue;
@@ -585,7 +602,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
         scopeOwners[@(field.outerTarget)] = entry;
       }
     }
-    const auto groups = orderedFieldInputGroups(document, bindings, target);
+    const auto groups = orderedFieldInputGroups(document, bindings, target, snapshot);
     const auto identity = fieldInputIdentity(document, snapshot, binding, target, _epoch);
     const auto eventId = ++_eventId;
     const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(1000), std::move(scopes), deadline);

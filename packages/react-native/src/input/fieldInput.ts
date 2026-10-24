@@ -34,6 +34,7 @@ export type TNativeFieldInputGroup = Readonly<{
   bindingId: string
   bindingRevision: string
   scopeTarget: number
+  containsTarget: boolean
 }>
 export type TNativeFieldInputPacket = Readonly<{
   moduleLease: string
@@ -128,7 +129,7 @@ export const decodeNativeFieldInputPacket = (encoded: string): TNativeFieldInput
   const targets = new Set<number>()
   const groups = (value.groups as unknown[]).map((entry) => {
     const group = object(entry)
-    if (Object.keys(group).length !== 4) invalid()
+    if (Object.keys(group).length !== 5) invalid()
     const target = integer(group.target, true)
     if (targets.has(target)) invalid()
     targets.add(target)
@@ -137,6 +138,7 @@ export const decodeNativeFieldInputPacket = (encoded: string): TNativeFieldInput
       bindingId: text(group.bindingId),
       bindingRevision: text(group.bindingRevision),
       scopeTarget: integer(group.scopeTarget, true),
+      containsTarget: boolean(group.containsTarget),
     })
   })
   if (
@@ -384,10 +386,15 @@ export const nativeFieldGroupKeyHandler =
       group: true,
       run: () => {
         const data = event.nativeEvent
-        if (data.phase === "down" && !data.cancelled && (data.key === "ArrowLeft" || data.key === "ArrowRight")) {
+        const group = packetFor(event).groups.find((candidate) => candidate.target === target)!
+        if (
+          group.containsTarget &&
+          data.phase === "down" &&
+          !data.cancelled &&
+          (data.key === "ArrowLeft" || data.key === "ArrowRight")
+        ) {
           event.preventDefault()
           event.stopPropagation()
-          const group = packetFor(event).groups.find((candidate) => candidate.target === target)!
           moveNativeFieldFocus(scope, event, {
             groupTarget: group.scopeTarget,
             kind:

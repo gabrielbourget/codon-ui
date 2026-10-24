@@ -308,13 +308,20 @@ public final class CUIKeyboardScope extends ReactViewGroup {
       recordModality("pointer", event.getEventTime());
     }
     CUIInputWindow.beginPointer(this);
-    try { return super.dispatchTouchEvent(event); }
-    finally { CUIInputWindow.endPointer(this); }
+    try {
+      CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
+      if (decision.prevented) return true;
+      return super.dispatchTouchEvent(event) || decision.admitted;
+    } finally {
+      CUIInputWindow.endPointer(this);
+    }
   }
   @Override public boolean dispatchGenericMotionEvent(MotionEvent event) {
     if ((event.getActionMasked() == MotionEvent.ACTION_HOVER_MOVE || event.getActionMasked() == MotionEvent.ACTION_HOVER_ENTER)
         && event.getToolType(0) == MotionEvent.TOOL_TYPE_MOUSE) CUIMenuPointerPolicies.recordHover(this);
     if (event.getActionMasked() == MotionEvent.ACTION_SCROLL) CUIInputWindow.interacted(this);
+    CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
+    if (decision.prevented) return true;
     return super.dispatchGenericMotionEvent(event);
   }
 

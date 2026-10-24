@@ -103,7 +103,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
   const auto binding = fieldInputBinding(document);
   const auto target = fieldGroupTarget(key.at("target"));
   const bool pointer = originalInput && isFieldInputOriginalPointer(originalInput->type);
-  if (!pointer && snapshot.at("focusedTarget") != target) throw std::invalid_argument("field-input-original-focus-retired");
+  if (!pointer && snapshot.at("eventFocusedTarget") != target) throw std::invalid_argument("field-input-original-focus-retired");
   auto fabric = captureFabricFormDocument(*manager, fieldGroupTarget(document.at("surfaceId")));
   if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
     throw std::invalid_argument("field-input-original-document-retired");
@@ -125,7 +125,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     registered.push_back(scopeBinding);
     scopes.push_back(fieldInputIdentity(scopeDocument, entry.at("snapshot"), scopeBinding, target, fieldInputInteger(entry.at("epoch"))));
   }
-  const auto groups = orderedFieldInputGroups(document, registered, target);
+  const auto groups = orderedFieldInputGroups(document, registered, target, snapshot);
   const auto identity = fieldInputIdentity(document, snapshot, binding, target, fieldInputInteger(folly::dynamic(epoch)));
   const auto eventId = fieldInputInteger(key.at("eventId"));
   const auto phase = pointer ? fieldInputOriginalPointerPhase(originalInput->type) : originalInput ? "input" : key.at("cancelled").asBool() ? "cancel" : key.at("phase").asString();
@@ -158,7 +158,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     if (!selected) { result.current = true; return result; }
     const auto row = fieldInputOriginal(currentSnapshot, selected);
     std::unordered_set<int32_t> members;
-    for (const auto &node : currentDocument.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
+    for (const auto &node : currentSnapshot.at("instances")) members.insert(fieldGroupTarget(node.at("target")));
     members.insert(action.groupTarget);
     const auto request = folly::toJson(folly::dynamic::object("target", selected)("original", row)
       ("epoch", expectedScope->epoch)("scopeTarget", action.groupTarget)
