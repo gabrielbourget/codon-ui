@@ -32,6 +32,18 @@ def subphase_fixture():
     return rows
 
 
+def pointer_fixture():
+    rows=fixture();native=rows[-1]["records"][0]
+    dispatch=json.loads(native["event"]["fieldDispatch"]);dispatch["phase"]="pointer-start"
+    raw=dict(target=12,pointerId=4,pointerType="touch",button=0,isPrimary=True,clientX=23.5,clientY=40)
+    event={**raw,"fieldDispatch":json.dumps(dispatch),"cancelBubble":True}
+    native.update(kind="pointer",event={"fieldDispatch":json.dumps(dispatch)})
+    for row in rows[:-1]:
+        row.update(kind="group-pointer",data=copy.deepcopy(event),stopped=True,prevented=False)
+    rows[-1]["records"].append(dict(kind="original-pointer",token=1,eventId=1,payload=raw))
+    return rows
+
+
 class ReceiptIntegrity(unittest.TestCase):
     def test_joins_original_frames_and_keeps_acceptance_open(self):
         result = inspect(fixture(), "producer")
@@ -89,6 +101,24 @@ class ReceiptIntegrity(unittest.TestCase):
         for change in [lambda rows: rows[-1]["records"][-1]["packet"].update(token=99), lambda rows: rows[-1]["records"][0]["inputSubphases"][0]["identity"].update(nativeInstance="foreign")]:
             rows=subphase_fixture();change(rows)
             with self.assertRaises(AssertionError): inspect(rows,"producer")
+
+    def test_joins_sdk_pointer_payload_with_react_cancellation(self):
+        rows=pointer_fixture()
+        rows[-1]["records"][-1]["payload"]["pointerId"]=4.0
+        result=inspect(rows,"producer")
+        self.assertEqual(result["nativePointerPayloads"],1)
+        self.assertEqual(result["joinedCallbacks"],3)
+        self.assertFalse(result["fullInputSurface"])
+
+    def test_rejects_changed_pointer_arguments_missing_witness_or_foreign_fields(self):
+        for change in [lambda rows: rows[0]["data"].update(clientX=99), lambda rows: rows[0]["data"].pop("pointerId"), lambda rows: rows[0]["data"].update(cancelBubble=1), lambda rows: rows[0]["data"].update(invented=True), lambda rows: rows[-1]["records"].pop(), lambda rows: rows[-1]["records"][-1].update(eventId=99)]:
+            rows=pointer_fixture();change(rows)
+            with self.assertRaises(AssertionError):inspect(rows,"producer")
+
+    def test_rejects_duplicate_pointer_witness_and_replaced_payload(self):
+        for change in [lambda rows: rows[-1]["records"].append(copy.deepcopy(rows[-1]["records"][-1])), lambda rows: rows[1].update(originalPayloadId=99)]:
+            rows=pointer_fixture();change(rows)
+            with self.assertRaises(AssertionError):inspect(rows,"producer")
 
 
 if __name__ == "__main__": unittest.main()

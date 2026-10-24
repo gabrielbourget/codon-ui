@@ -1,15 +1,17 @@
-"""Four combined descendant contracts. This is not the complete adoption gate."""
+"""Combined descendant contracts. This is not the complete adoption gate."""
 from inspect_field_receipts import inspect, packet, key as dispatch_key
 
 CASES = (
     "authored-child-stops-group",
     "authored-child-before-group-navigation",
+    "negative-tab-to-original-core",
     "original-core-editor-default",
     "group-veto-before-core-editor-default",
 )
 SETUPS = (
     "authored-child-stop-setup",
     "authored-child-navigation-setup",
+    "negative-tab-navigation-setup",
     "core-editor-default-setup",
     "core-editor-veto-setup",
 )
@@ -31,7 +33,7 @@ def validate(rows, producer, checkpoints):
         native = batches[report["batch"]]["records"]
         assert not any(row["kind"] == "failure" for row in native), "Native descendant failure"
         assert not any(row["kind"] == "value-request" for row in source), "Descendant action changed the time owner"
-        expected_key = "ArrowRight" if index < 2 else "7" if index == 2 else "9"
+        expected_key = "ArrowRight" if index < 3 else "7" if index == 3 else "9"
         keys = [row for row in native if row["kind"] == "key" and row["event"].get("key") == expected_key and packet(row["event"]["fieldDispatch"])["phase"] == "down"]
         assert len(keys) == 1, "Missing or repeated original descendant key"
         frame = keys[0]
@@ -47,20 +49,29 @@ def validate(rows, producer, checkpoints):
             assert state["stop"] is True
             assert [row["kind"] for row in callbacks] == ["child-key"], "Stopped child reached group callbacks"
             assert not any(row["kind"] == "focus" for row in native), "Stopped group performed focus work"
-        elif index == 1:
+        elif index in {1, 2}:
             assert state["stop"] is False and state["direction"] == "ltr"
-            assert [row["kind"] for row in callbacks] == ["child-key"] + ["field-key"] * len(dispatch["groups"]), "Original child/group order differs"
+            expected_callbacks = (["child-key"] if index == 1 else []) + ["field-key"] * len(dispatch["groups"])
+            assert [row["kind"] for row in callbacks] == expected_callbacks, "Original child/group order differs"
             focuses = [row for row in native if row["kind"] == "focus"]
             assert focuses and all(row["requested"] and row["observed"] and row["current"] and row["after"]["focusedTarget"] == row["target"] for row in focuses), "Group navigation lacks actual focus observation"
-            core_batch = batches[reports[CASES[2]]["batch"]]
+            originals = [row for row in frame["before"]["originals"] if row["eligible"]]
+            current = next(i for i, row in enumerate(originals) if row["target"] == dispatch["identity"]["target"])
+            assert current + 1 < len(originals), "Original logical successor missing"
+            assert focuses[-1]["target"] == originals[current + 1]["target"], "Navigation skipped the original logical successor"
+            next_case = CASES[2] if index == 1 else CASES[3]
+            core_batch = batches[reports[next_case]["batch"]]
             core_keys = [row for row in core_batch["records"] if row["kind"] == "key" and row["event"].get("key") == "7" and packet(row["event"]["fieldDispatch"])["phase"] == "down"]
-            assert len(core_keys) == 1 and focuses[-1]["target"] == core_keys[0]["identity"]["target"], "Navigation did not reach the original core editor"
+            if index == 1:
+                core_keys = [row for row in core_batch["records"] if row["kind"] == "key" and row["event"].get("key") == "ArrowRight" and packet(row["event"]["fieldDispatch"])["phase"] == "down"]
+                assert originals[current + 1]["tabStop"] is False, "Negative-tab original missing from logical order"
+            assert len(core_keys) == 1 and focuses[-1]["target"] == core_keys[0]["identity"]["target"], "Navigation did not reach the next original key receiver"
         else:
-            assert state["veto"] is (index == 3)
+            assert state["veto"] is (index == 4)
             assert report["nativeValues"]["outer-core-editor"] == "7", "Original native editor value differs"
             changes = [row for row in source if row["kind"] == "core-change" and row["field"] == "outer"]
             raw_changes = [row for row in source if row["kind"] == "core-native-change" and row["field"] == "outer"]
-            if index == 2:
+            if index == 3:
                 assert [row["text"] for row in changes] == ["7"], "Original core edit callback missing or repeated"
                 assert len(raw_changes) == 1 and raw_changes[0]["data"]["text"] == "7", "Original native change payload differs"
                 assert raw_changes[0]["data"]["target"] == frame["identity"]["target"], "Another editor supplied the change callback"

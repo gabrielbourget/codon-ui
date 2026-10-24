@@ -169,8 +169,8 @@ const Part = ({ segment, index, state, ownerId, name, locale, hosts, scope, oute
 
 type TFieldProps = {
   name: string
-  value: TimeValue
-  onOwnerValueChange: (value: TimeValue) => void
+  value: TimeValue | null
+  onOwnerValueChange: (value: TimeValue | null) => void
   record: TRecord
   disabled: boolean
   readonly: boolean
@@ -199,7 +199,7 @@ const Field = ({
 }: TFieldProps) => {
   const ownerId = useId(),
     { locale, direction } = useNativeLocale()
-  const [nestedValue, setNestedValue] = useState<TimeValue>(() => new Time(8, 15))
+  const [nestedValue, setNestedValue] = useState<TimeValue | null>(() => new Time(8, 15))
   const currentConfig = useRef({ echo, value, onOwnerValueChange })
   useInsertionEffect(() => {
     currentConfig.current = { echo, value, onOwnerValueChange }
@@ -211,11 +211,11 @@ const Field = ({
         field: name,
         value: next?.toString() ?? null,
         valueClass: next ? timeEntryValueClass(next) : null,
-        held: currentConfig.current.value.toString(),
-        heldClass: timeEntryValueClass(currentConfig.current.value),
+        held: currentConfig.current.value?.toString() ?? null,
+        heldClass: currentConfig.current.value ? timeEntryValueClass(currentConfig.current.value) : null,
         echo: currentConfig.current.echo,
       })
-      if (next && currentConfig.current.echo) currentConfig.current.onOwnerValueChange(next)
+      if (currentConfig.current.echo) currentConfig.current.onOwnerValueChange(next)
     },
     [name, record],
   )
@@ -307,8 +307,8 @@ const Field = ({
   )
   const snapshot = JSON.stringify({
     field: name,
-    value: value.toString(),
-    valueClass: timeEntryValueClass(value),
+    value: value?.toString() ?? null,
+    valueClass: value ? timeEntryValueClass(value) : null,
     locale,
     direction,
     intlPreparation: NUMBER_INTL_PREPARATION,
@@ -321,6 +321,7 @@ const Field = ({
     outerTarget,
     inputTarget,
     originalSegments: original?.rows.map((row) => row.identity) ?? [],
+    placeholderSegments: state.segments.filter((segment) => segment.isPlaceholder).map((segment) => segment.type),
     binding: session.status(),
     keyboardReady: keyboardScope?.isNativeReady() ?? false,
   })
@@ -412,7 +413,7 @@ const Field = ({
         >
           {metadata}
           <Text testID={`${name}-value`} accessibilityLabel={snapshot}>
-            {name}: {value.toString()}
+            {name}: {value?.toString() ?? "empty"}
           </Text>
           <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
             {JSON.stringify(session.status())}
@@ -440,6 +441,17 @@ const Field = ({
                 record={record}
               />
             ))}
+            <NativeFocusHost
+              testID={`${name}-press-tail`}
+              focusable={false}
+              accessible
+              accessibilityLabel="Field end"
+              style={{ padding: 8 }}
+            >
+              <View pointerEvents="none">
+                <Text>Field end</Text>
+              </View>
+            </NativeFocusHost>
           </NativeFocusHost>
           <NativePressable
             testID={`${name}-button`}
@@ -495,7 +507,7 @@ const Field = ({
 }
 
 export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
-  const [value, setValue] = useState<TimeValue>(() => new Time(13, 45))
+  const [value, setValue] = useState<TimeValue | null>(() => new Time(13, 45))
   const requests = useRef<Record<string, unknown>[]>([])
   const observations = useRef<Record<string, unknown>[]>([])
   const callbacks = useRef<Record<string, unknown>[]>([])
@@ -553,6 +565,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           kind: row.kind,
           identity: row.identity ?? null,
           token: dispatch?.token ?? null,
+          groupTargets: dispatch?.groups.map((group: { target: number }) => group.target) ?? [],
           key: event?.key ?? null,
           phase: dispatch?.phase ?? null,
           decision: row.decision ?? null,
@@ -608,6 +621,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
         <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
           {[
             ["time", () => setValue(TIME_ENTRY_VALUES[0])],
+            ["empty", () => setValue(null)],
             ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
             ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
             ["unmount", () => setRemoveOnKey((value) => !value)],

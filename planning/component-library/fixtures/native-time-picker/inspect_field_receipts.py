@@ -71,13 +71,19 @@ def inspect(rows, producer):
             snapshot_identity(record["after"], dispatch["identity"])
         frames[identity] = record, dispatch
     assert frames, "No original native dispatch frames"
-    children = {}; original_inputs = {}
+    children = {}; original_inputs = {}; original_pointers = {}
     for identity, (record, parent) in frames.items():
         for child in record.get("inputSubphases", []):
             child_key = parent["moduleLease"], child["token"], child["eventId"], child["phase"]
             assert child_key not in frames and child_key not in children, "Duplicate original input subphase"
             children[child_key] = child
     for record in native:
+        if record["kind"] == "original-pointer":
+            pointer_key = positive(record["token"]), positive(record["eventId"])
+            assert pointer_key not in original_pointers, "Duplicate original pointer payload"
+            parents = [(identity, frame) for identity, (frame, dispatch) in frames.items() if identity[1:3] == pointer_key and frame["kind"] == "pointer"]
+            assert len(parents) == 1, "Original pointer payload has no unique native turn"
+            original_pointers[pointer_key] = record["payload"]
         if record["kind"] == "original-input":
             child_key = record["token"], record["eventId"]
             assert child_key not in original_inputs, "Duplicate original input payload"
@@ -97,7 +103,11 @@ def inspect(rows, producer):
         if identity in frames:
             record, original = frames[identity]
             assert dispatch == original, "Source packet differs from original native packet"
-            if record["kind"] != "input": assert data == record["event"], "Original public event payload changed"
+            if record["kind"] == "pointer":
+                pointer_key = dispatch["token"], dispatch["eventId"]
+                assert pointer_key in original_pointers, "Original native pointer payload missing"
+                pointer_payload(data, original_pointers[pointer_key])
+            elif record["kind"] != "input": assert data == record["event"], "Original public event payload changed"
         else:
             assert identity in children, "Source callback has no original native frame"
             child = children[identity]
@@ -127,4 +137,26 @@ def inspect(rows, producer):
         assert isinstance(command["command"], str) and command["command"]
         if command["callbackCompleted"] and command["current"] and not command["error"]:
             assert command["before"] and command["after"], "Command completion lacks actual native observations"
-    return {"receiptIntegrity": True, "nativeFrames": len(frames), "joinedCallbacks": sum(map(len, callbacks.values())), "unjoinedCallbackSequences": unjoined, "nativeSubphasePackets": len(original_inputs), "nativeFailures": [record for record in native if record["kind"] == "failure"], "nativeCommands": len(commands), "fullInputSurface": False, "fullFamily": False, "fullGoal": False, "scope": "Original receipt joins only; complete native scenario trial and acceptance parser remain required"}
+    return {"receiptIntegrity": True, "nativeFrames": len(frames), "joinedCallbacks": sum(map(len, callbacks.values())), "unjoinedCallbackSequences": unjoined, "nativeSubphasePackets": len(original_inputs), "nativePointerPayloads": len(original_pointers), "nativeFailures": [record for record in native if record["kind"] == "failure"], "nativeCommands": len(commands), "fullInputSurface": False, "fullFamily": False, "fullGoal": False, "scope": "Original receipt joins only; complete native scenario trial and acceptance parser remain required"}
+
+
+def pointer_payload(data, original):
+    # React's SyntheticEvent writes these flags onto the same original native payload.
+    cancellation = {"cancelBubble": True, "returnValue": False, "defaultPrevented": True}
+    assert "fieldDispatch" not in original, "Original SDK pointer already contains a dispatch packet"
+    assert set(data) <= set(original) | set(cancellation) | {"fieldDispatch"}, "Unexpected pointer payload property"
+    for name, value in original.items():
+        if name in cancellation and data.get(name) is cancellation[name]: continue
+        assert name in data and same_argument(data[name], value), "Original pointer argument changed"
+    for name, value in cancellation.items():
+        if name not in original and name in data:
+            assert data[name] is value, "Invalid React pointer cancellation flag"
+
+
+def same_argument(actual, original):
+    # JS has one numeric type; folly and JSON.stringify may encode 1.0 and 1.
+    if type(actual) in {int, float} and type(original) in {int, float}: return actual == original
+    if type(actual) is not type(original): return False
+    if isinstance(original, dict): return actual.keys() == original.keys() and all(same_argument(actual[name], value) for name, value in original.items())
+    if isinstance(original, list): return len(actual) == len(original) and all(same_argument(a, b) for a, b in zip(actual, original))
+    return actual == original
