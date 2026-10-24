@@ -28,6 +28,8 @@ type TNativeCompactTypeaheadOwnProps<T extends object> = Omit<ViewProps, "childr
   "data-testid"?: string
   "aria-label"?: string
   items?: Iterable<T>
+  defaultItems?: Iterable<T>
+  selectionMode?: "single"
   inputValue?: string
   defaultInputValue?: string
   onInputChange?: (value: string) => void
@@ -90,6 +92,7 @@ export type TNativeCompactTypeaheadSearchProps<T extends object = object> = TNat
     | "getTextValue"
     | "ComponentIcon"
     | "popoverIsOpen"
+    | "controlledItems"
     | "renderContent"
   >
 export type TNativeCompactTypeaheadEntry<T> = Readonly<{

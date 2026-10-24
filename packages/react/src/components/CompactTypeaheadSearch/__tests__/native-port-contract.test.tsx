@@ -12,6 +12,82 @@ const items = [
 ]
 const base = { "aria-label": "Search", items, getItemKey: (item: (typeof items)[number]) => item.id }
 describe("native port ownership oracle", () => {
+  it("delivers the original editor's key phases and lets a caller veto its text default", async () => {
+    const calls: unknown[][] = [],
+      query = vi.fn()
+    render(
+      <CompactTypeaheadSearch
+        {...base}
+        onInputChange={query}
+        onKeyDown={(event) => {
+          calls.push(["down", event.key, event.currentTarget.tagName, event.target === event.currentTarget])
+          if (event.key === "z") event.preventDefault()
+        }}
+        onKeyUp={(event) => {
+          calls.push(["up", event.key, event.currentTarget.tagName, event.target === event.currentTarget])
+        }}
+      />,
+    )
+    const input = screen.getByTestId("type-ahead-search-input")
+    const user = userEvent.setup()
+    await user.click(input)
+    await user.keyboard("z")
+    expect(calls).toEqual([
+      ["down", "z", "INPUT", true],
+      ["up", "z", "INPUT", true],
+    ])
+    expect(query).not.toHaveBeenCalled()
+    expect(input).toHaveValue("")
+  })
+  it("honors empty-collection refusal and keeps defaultItems behind the wrapper's controlled items", async () => {
+    const changed = vi.fn()
+    const defaults = [{ id: "default", name: "Default item" }]
+    const node = (allowsEmptyCollection: boolean) => (
+      <CompactTypeaheadSearch
+        aria-label="Search"
+        defaultItems={defaults}
+        allowsEmptyCollection={allowsEmptyCollection}
+        onOpenChange={changed}
+      />
+    )
+    const view = render(node(false))
+    const original = screen.getByTestId("type-ahead-search-input")
+    const user = userEvent.setup()
+    await user.click(screen.getByTestId("type-ahead-search-button"))
+    expect(changed.mock.calls).toEqual([[true], [false]])
+    expect(screen.queryByRole("listbox")).toBeNull()
+    changed.mockClear()
+    await view.rerender(node(true))
+    await user.click(screen.getByTestId("type-ahead-search-button"))
+    expect(changed.mock.calls).toEqual([[true]])
+    expect(screen.getByRole("listbox")).toBeInTheDocument()
+    expect(screen.queryByRole("option", { name: "Default item" })).toBeNull()
+    expect(screen.getByTestId("type-ahead-search-input")).toBe(original)
+  })
+  it.each(["Search", ""])("binds naming, description and detail aliases with direct label %j", (label) => {
+    render(
+      <>
+        <span id="search-label">Destination</span>
+        <span id="search-description">Choose a city</span>
+        <span id="search-details">Additional search information</span>
+        <CompactTypeaheadSearch
+          {...base}
+          aria-label={label}
+          aria-labelledby="search-label"
+          aria-describedby="search-description"
+          aria-details="search-details"
+        />
+      </>,
+    )
+    const input = screen.getByTestId("type-ahead-search-input")
+    expect(input.getAttribute("aria-labelledby")?.split(" ")).toEqual(
+      label ? [input.id, "search-label"] : ["search-label"],
+    )
+    expect(input).toHaveAttribute("aria-describedby", "search-description")
+    expect(input).toHaveAttribute("aria-details", "search-details")
+    expect(input).toHaveAccessibleName(label ? "Search Destination" : "Destination")
+    expect(input).toHaveAccessibleDescription("Choose a city")
+  })
   it("renders independent named list panels for simultaneous minimum guidance and loading", () => {
     render(
       <CompactTypeaheadSearch

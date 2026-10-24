@@ -30,7 +30,7 @@ export type TNativeTagComboBoxPartialLabels = Partial<Omit<TNativeTagComboBoxLab
 type TInnerComboProps<T extends object> = Partial<
   Omit<
     TNativeCollectionComboBoxProps<T>,
-    "items" | "getKey" | "getTextValue" | "value" | "defaultValue" | "onChange" | "renderItem"
+    "items" | "getKey" | "getTextValue" | "value" | "defaultValue" | "onChange" | "renderItem" | "controlledItems"
   >
 > & {
   labels?: Partial<TNativeTagComboBoxLabels["comboBox"]>
@@ -38,6 +38,7 @@ type TInnerComboProps<T extends object> = Partial<
 export type TNativeTagComboBoxProps<T extends object> = Omit<
   TNativeCollectionComboBoxProps<T>,
   | "items"
+  | "controlledItems"
   | "getKey"
   | "getTextValue"
   | "value"

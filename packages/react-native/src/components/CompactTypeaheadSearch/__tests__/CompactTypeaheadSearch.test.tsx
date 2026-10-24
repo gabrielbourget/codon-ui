@@ -68,6 +68,31 @@ it("CAP.compact-typeahead.001 renders actual compound hosts and caller root ref"
   expect(row("type-ahead-search-button")).toBeOnTheScreen()
   expect(ref.current).not.toBeNull()
 })
+it("honors empty-collection refusal without receiving defaultItems as wrapper results", async () => {
+  const editor = createRef<TextInput>(),
+    changed = jest.fn()
+  const node = (allowsEmptyCollection: boolean) =>
+    wrapper({
+      items: undefined,
+      defaultItems: [{ id: "default", name: "Default item" }],
+      allowsEmptyCollection,
+      inputRef: editor,
+      onOpenChange: changed,
+    })
+  const view = await render(node(false))
+  const original = editor.current!
+  await pressCompact(row("type-ahead-search-button"))
+  expect(changed.mock.calls).toEqual([[true], [false]])
+  expect(screen.queryByTestId("type-ahead-search-popover", { includeHiddenElements: true })).toBeNull()
+  changed.mockClear()
+  await view.rerender(node(true))
+  await pressCompact(row("type-ahead-search-button"))
+  expect(changed.mock.calls).toEqual([[true]])
+  expect(row("type-ahead-search-empty-state")).toBeOnTheScreen()
+  expect(screen.queryByTestId("type-ahead-search-option-string:default", { includeHiddenElements: true })).toBeNull()
+  expect(row("type-ahead-search").props.defaultItems).toBeUndefined()
+  expect(editor.current).toBe(original)
+})
 it("CAP.compact-typeahead.002/.003 preserves independent default and zero dimensions", async () => {
   const { rerender } = await render(wrapper())
   expect(row("type-ahead-search")).toHaveStyle({ width: "100%" })

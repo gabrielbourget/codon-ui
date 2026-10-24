@@ -32,6 +32,10 @@ export const ownedValue = <TagComboBox {...base} value={null} />
 export const domRef = <TagComboBox {...base} ref={createRef<HTMLDivElement>()} />
 // @ts-expect-error Nested ComboBox props cannot replace the owned selection callback.
 export const nestedOwner = <TagComboBox {...base} customComboBoxProps={{ onChange: () => {} }} />
+// @ts-expect-error Root/list state composition belongs to the private receiver.
+export const privateItems = <TagComboBox {...base} controlledItems={items} />
+// @ts-expect-error Nested customization cannot replace private collection admission.
+export const nestedPrivateItems = <TagComboBox {...base} customComboBoxProps={{ controlledItems: items }} />
 
 export const parentContracts = (
   <NativeComboBoxContext.Provider

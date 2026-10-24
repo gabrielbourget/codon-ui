@@ -55,6 +55,52 @@ const wrap = (child: ReactNode) => (
   </NativeThemeProvider>
 )
 
+it("routes accessibility aliases to the original editor's semantic binding", async () => {
+  const editor = createRef<TextInput>()
+  const node = (empty = false, native = false, label = "Search") =>
+    wrap(
+      <CompactTypeaheadSearch
+        items={items}
+        inputRef={editor}
+        inputValue="held"
+        accessibilityLabel={label}
+        aria-labelledby={empty ? "" : "search-label other-label"}
+        aria-describedby={empty ? "" : "search-description"}
+        aria-details={empty ? "" : "search-details"}
+        {...(native
+          ? { nativeLabelledBy: ["native-label"], nativeDescribedBy: [], nativeDetailsBy: ["native-details"] }
+          : {})}
+      />,
+    )
+  const view = await render(node())
+  const original = editor.current!
+  const binding = () =>
+    JSON.parse(
+      view.container.queryAll((node) => typeof node.props.semanticBinding === "string")[0].props.semanticBinding,
+    )
+  const first = binding()
+  const self = first.aliases.find(
+    (entry: { id: string; target: number }) => entry.target === findNodeHandle(original),
+  ).id
+  expect(first.labelledBy).toEqual([self, "search-label", "other-label"])
+  expect(first.describedBy).toEqual(["search-description"])
+  expect(first.detailsBy).toEqual(["search-details"])
+  await view.rerender(node(true))
+  expect(binding()).toMatchObject({ labelledBy: [], describedBy: [], detailsBy: [] })
+  await view.rerender(node(false, true))
+  expect(binding()).toMatchObject({
+    labelledBy: [self, "native-label"],
+    describedBy: [],
+    detailsBy: ["native-details"],
+  })
+  await view.rerender(node(false, false, ""))
+  expect(binding().labelledBy).toEqual(["search-label", "other-label"])
+  expect(row("type-ahead-search").props["aria-describedby"]).toBeUndefined()
+  expect(row("type-ahead-search").props["aria-details"]).toBeUndefined()
+  expect(editor.current).toBe(original)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+})
+
 it.each(["programmatic", "soft-key", "physical-key", "native-edit"] as const)(
   "preserves selection suppression ownership for %s",
   async (action) => {

@@ -28,6 +28,7 @@ import { NativeListStateContext } from "../../collection/state"
 import { NativeFormBehaviorContext } from "../../form/context"
 import { useNativeComboBoxField } from "../../form/useComboBoxField"
 import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/useFieldSemantics"
+import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
@@ -232,14 +233,23 @@ const Receiver = <T extends object>({
       ? actions?.bindingFor(activeRow.node)
       : ""
   const activeTarget = activeBinding && activeRow ? findNodeHandle(activeRow.target) : 0
+  const labelProps = nativeCompositeLabelProps(
+    {
+      id: props.id,
+      accessibilityLabel: props.accessibilityLabel ?? props["aria-label"],
+      nativeLabelledBy:
+        props.nativeLabelledBy ?? nativeAccessibilityIDs(props.accessibilityLabelledBy ?? props["aria-labelledby"]),
+    },
+    fieldIds.input,
+  )
   const semanticBinding = useNativeFieldSemantics({
     ids: fieldIds,
     refs: { input, label, description, errorMessage, value, list },
     inputAliases: props.id ? [props.id] : [],
-    labelledBy: props.nativeLabelledBy,
-    describedBy: props.nativeDescribedBy,
+    labelledBy: labelProps.nativeLabelledBy,
+    describedBy: props.nativeDescribedBy ?? nativeAccessibilityIDs(props["aria-describedby"]),
     errorMessageBy: props.nativeErrorMessageBy,
-    detailsBy: props.nativeDetailsBy,
+    detailsBy: props.nativeDetailsBy ?? nativeAccessibilityIDs(props["aria-details"]),
     labels: props.nativeAccessibilityLabels,
     flags: {
       disabled: !!props.isDisabled,
@@ -926,7 +936,7 @@ export const NativeCollectionComboBox = forwardRef(
             forwardedRef={ref}
             collection={collection}
             isCollectionPending={receipt.status !== "confirmed"}
-            controlledItems={inherited.items}
+            controlledItems={authored.controlledItems ?? inherited.items}
           />
         )}
       </NativeCollectionBuilder>

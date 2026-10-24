@@ -53,6 +53,9 @@ type TField = { metadata: ReactNode; placement: "input" | "root" }
 const BORDER_TRANSITION = resolveNativeTagTransition()
 const componentOptions = new Set([
   "items",
+  "controlledItems",
+  "defaultItems",
+  "selectionMode",
   "inputValue",
   "defaultInputValue",
   "onInputChange",
@@ -118,6 +121,10 @@ const componentOptions = new Set([
   "dependencies",
   "slot",
   "nativeLabelledBy",
+  "accessibilityLabelledBy",
+  "aria-labelledby",
+  "aria-describedby",
+  "aria-details",
   "nativeDescribedBy",
   "nativeErrorMessageBy",
   "nativeDetailsBy",
@@ -457,11 +464,12 @@ const CompactTypeaheadSearchInner = <T extends object>(
       ref={forwardedRef}
       testID={props.testID ?? props["data-testid"] ?? "type-ahead-search"}
       items={items}
+      controlledItems={resolvedItems}
       disabledKeys={disabledKeys}
       getKey={(item) => entries.find((entry) => entry.item === item)!.key}
       getTextValue={(item) => entries.find((entry) => entry.item === item)!.text}
       defaultFilter={() => true}
-      allowsEmptyCollection
+      allowsEmptyCollection={props.allowsEmptyCollection ?? true}
       isOpen={undefined}
       popoverIsOpen={open}
       inputValue={query}

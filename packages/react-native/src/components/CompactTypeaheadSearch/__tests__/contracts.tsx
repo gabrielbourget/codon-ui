@@ -10,6 +10,8 @@ const root = (
     ref={createRef<View>()}
     inputRef={createRef<TextInput>()}
     items={source}
+    defaultItems={source}
+    selectionMode="single"
     value={null}
     defaultValue={0}
     inputValue=""
@@ -58,6 +60,9 @@ const inheritedField = (
     }
     slot={null}
     nativeDescribedBy={["search-description"]}
+    aria-labelledby="visible-search-label"
+    aria-describedby="search-description"
+    aria-details="search-details"
     render={(props, state) => <NativeFocusHost {...props} testID={state.isInvalid ? "invalid" : "valid"} />}
   />
 )
@@ -65,4 +70,21 @@ const inheritedField = (
 const invalidFormValue = <CompactTypeaheadSearch formValue="object" />
 // @ts-expect-error Internal composition hooks are not part of the component API.
 const privateContent = <CompactTypeaheadSearch renderContent={() => null} />
-void [cssClass, domRef, nullQuery, cssWidth, inheritedField, invalidFormValue, privateContent]
+// @ts-expect-error Source root/list state composition is private to the wrapper.
+const privateItems = <CompactTypeaheadSearch controlledItems={source} />
+// @ts-expect-error Canonical CompactTypeaheadSearch has a single selected value.
+const multiple = <CompactTypeaheadSearch selectionMode="multiple" />
+// @ts-expect-error ARIA aliases contain whitespace-separated IDs; native relationships accept arrays separately.
+const invalidDescription = <CompactTypeaheadSearch aria-describedby={["description"]} />
+void [
+  cssClass,
+  domRef,
+  nullQuery,
+  cssWidth,
+  inheritedField,
+  invalidFormValue,
+  privateContent,
+  privateItems,
+  multiple,
+  invalidDescription,
+]
