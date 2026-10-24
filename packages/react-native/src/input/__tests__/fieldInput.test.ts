@@ -10,6 +10,7 @@ import {
   type TNativeFieldKeyEvent,
   type TNativeFieldPointerEvent,
 } from "../fieldInput"
+import { NativeFieldGroupPress } from "../useFieldGroupPress"
 
 const packet = () => ({
   moduleLease: "module:1",
@@ -129,6 +130,167 @@ const pointerEvent = (
   })
   return original
 }
+
+const pressRoots = { input: {}, outer: {} }
+const groupEvent = (
+  phase: "pointer-start" | "pointer-end" | "pointer-cancel" | "pointer-click",
+  pointerType = "touch",
+  options: Partial<TNativeFieldPointerEvent["nativeEvent"]> = {},
+  root = pressRoots.input,
+) => Object.assign(pointerEvent(phase, { pointerType, ...options }), { currentTarget: root })
+
+it("runs source mouse-start focus before the same group's caller and stops only subsequent ancestors", () => {
+  const f = setup(),
+    original = groupEvent("pointer-start", "mouse"),
+    trace: string[] = []
+  const press = new NativeFieldGroupPress(() => ({
+    scope: f.scope,
+    onPointerDown: (received) => {
+      expect(received).toBe(original)
+      expect(received.isPropagationStopped()).toBe(true)
+      trace.push("group-caller")
+    },
+  }))
+  const focus = f.native.moveFieldFocus.getMockImplementation()!
+  f.native.moveFieldFocus.mockImplementation((request) => {
+    expect(original.isPropagationStopped()).toBe(false)
+    expect(activeNativeFieldInputEvent(f.scope)).toBe(original)
+    expect(JSON.parse(request).action).toEqual({ groupTarget: 2, kind: "press" })
+    trace.push("original-focus")
+    return focus(request)
+  })
+  expect(press.receive(original, 3, "pointer-start")).toBe(true)
+  expect(trace).toEqual(["original-focus", "group-caller"])
+  expect(original.isDefaultPrevented()).toBe(false)
+  expect(press.receive(original, 2, "pointer-start")).toBe(false)
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it.each(["touch", "pen"])("waits for the actual %s click and retains shared input/outer press state", async (type) => {
+  const f = setup(),
+    received: TNativeFieldPointerEvent[] = []
+  const press = new NativeFieldGroupPress(() => ({ scope: f.scope, onPointerUp: (event) => received.push(event) }))
+  press.receive(groupEvent("pointer-start", type), 3, "pointer-start")
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  const up = groupEvent("pointer-end", type)
+  press.receive(up, 3, "pointer-end")
+  Object.assign(up, { currentTarget: pressRoots.outer })
+  press.receive(up, 2, "pointer-end")
+  await Promise.resolve()
+  expect(received).toEqual([up, up])
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  const click = groupEvent("pointer-click", type)
+  press.receive(click, 3, "pointer-click")
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+  expect(JSON.parse(f.native.moveFieldFocus.mock.calls[0][0])).toMatchObject({
+    phase: "pointer-click",
+    identity: packet().identity,
+    action: { groupTarget: 2, kind: "press" },
+  })
+  press.receive(groupEvent("pointer-click", type), 3, "pointer-click")
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it("preserves a child's original stop before group press state or focus exists", () => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope })),
+    down = groupEvent("pointer-start")
+  receiveNativeFieldPointer(f.scope, down, "pointer-start", {
+    target: 10,
+    group: false,
+    run: () => down.stopPropagation(),
+  })
+  expect(press.receive(down, 3, "pointer-start")).toBe(false)
+  press.receive(groupEvent("pointer-click"), 3, "pointer-click")
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it.each(["cancel", "retire"])("does not focus from a click after %s", (change) => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  if (change === "cancel") press.receive(groupEvent("pointer-cancel"), 3, "pointer-cancel")
+  else press.retire()
+  press.receive(groupEvent("pointer-click"), 3, "pointer-click")
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it.each([{ button: 1 }, { button: 2 }, { isPrimary: false }])(
+  "does not request native focus for ineligible source pointer data %j",
+  (options) => {
+    const f = setup(),
+      press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+    press.receive(groupEvent("pointer-start", "mouse", options), 3, "pointer-start")
+    press.receive(groupEvent("pointer-click", "touch", options), 3, "pointer-click")
+    expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  },
+)
+
+it("cancels an input press released in its outer group after the complete original bubble", async () => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  const up = groupEvent("pointer-end", "touch", {}, pressRoots.outer)
+  const data = JSON.parse(up.nativeEvent.fieldDispatch)
+  data.groups = [data.groups[1]]
+  Object.assign(up.nativeEvent, { fieldDispatch: JSON.stringify(data) })
+  press.receive(up, 2, "pointer-end")
+  await Promise.resolve()
+  press.receive(groupEvent("pointer-click", "touch", {}, pressRoots.outer), 2, "pointer-click")
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it("honors a later original ancestor's stop before document-style release cleanup", async () => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  const up = groupEvent("pointer-end", "touch", {}, pressRoots.outer)
+  const data = JSON.parse(up.nativeEvent.fieldDispatch)
+  data.groups = [data.groups[1]]
+  Object.assign(up.nativeEvent, { fieldDispatch: JSON.stringify(data) })
+  press.receive(up, 2, "pointer-end")
+  up.stopPropagation()
+  await Promise.resolve()
+  press.receive(groupEvent("pointer-click", "touch", {}, pressRoots.outer), 2, "pointer-click")
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it("uses current same-group callers without resetting a live contact", () => {
+  const f = setup(),
+    first = jest.fn(),
+    next = jest.fn()
+  let caller = first
+  const press = new NativeFieldGroupPress(() => ({ scope: f.scope, onClick: caller }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  caller = next
+  const click = groupEvent("pointer-click")
+  press.receive(click, 3, "pointer-click")
+  expect(first).not.toHaveBeenCalled()
+  expect(next).toHaveBeenCalledWith(click)
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it.each(["window", "surface", "root"])("retires a contact before a changed %s can request focus", (change) => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  const click = groupEvent("pointer-click", "touch", {}, change === "root" ? {} : pressRoots.input)
+  const data = JSON.parse(click.nativeEvent.fieldDispatch)
+  if (change === "window") data.identity.windowId = "window:2"
+  if (change === "surface") data.identity.surfaceId = 12
+  Object.assign(click.nativeEvent, { fieldDispatch: JSON.stringify(data) })
+  press.receive(click, 3, "pointer-click")
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
+
+it("does not invent a successful press when the SDK supplies only a release", async () => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start"), 3, "pointer-start")
+  press.receive(groupEvent("pointer-end"), 3, "pointer-end")
+  await Promise.resolve()
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+})
 
 it.each(["pointer-start", "pointer-end", "pointer-cancel", "pointer-click"] as const)(
   "carries the original SDK %s through child, input and outer receivers without adding public fields",

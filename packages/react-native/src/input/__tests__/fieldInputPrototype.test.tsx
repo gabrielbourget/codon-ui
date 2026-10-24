@@ -3,7 +3,7 @@ import type { ComponentType, Ref } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { packet } from "../../date/input/__tests__/packet"
-import type { TNativeFieldKeyEvent } from "../fieldInput"
+import type { TNativeFieldKeyEvent, TNativeFieldPointerEvent, TNativeFieldPointerPhase } from "../fieldInput"
 import NativeDefaults from "../specs/NativeCUIEditorKeyboardDefaults"
 import NativeDocument from "../specs/NativeCUIFormDocument"
 
@@ -227,6 +227,67 @@ it("connects original segment entry, group callers and native binding lifetime w
     }),
   )
   const inputPacket = JSON.parse(event.nativeEvent.fieldDispatch)
+  const pointer = (phase: TNativeFieldPointerPhase, pointerType: string, token: number) => {
+    let stopped = false,
+      prevented = false
+    return {
+      currentTarget: mockTargets.get("outer-input"),
+      nativeEvent: {
+        target: binding.inputTarget,
+        pointerId: 9,
+        pointerType,
+        isPrimary: true,
+        button: 0,
+        fieldDispatch: JSON.stringify({
+          ...inputPacket,
+          phase,
+          token,
+          eventId: token,
+          identity: { ...identity, target: binding.inputTarget },
+        }),
+      },
+      persist: jest.fn(),
+      stopPropagation: () => {
+        stopped = true
+      },
+      preventDefault: () => {
+        prevented = true
+      },
+      isPropagationStopped: () => stopped,
+      isDefaultPrevented: () => prevented,
+      get defaultPrevented() {
+        return prevented
+      },
+    } as unknown as TNativeFieldPointerEvent
+  }
+  const focusCalls = jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.length
+  record.mockClear()
+  const down = pointer("pointer-start", "touch", 40)
+  await act(() => screen.getByTestId("outer-input").props.onPointerDown(down))
+  expect(down.isPropagationStopped()).toBe(true)
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusCalls)
+  expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["group-pointer"])
+  record.mockClear()
+  const up = pointer("pointer-end", "touch", 41)
+  await act(() => {
+    screen.getByTestId("outer-input").props.onPointerUp(up)
+    Object.assign(up, { currentTarget: mockTargets.get("outer-outer") })
+    screen.getByTestId("outer-outer").props.onPointerUp(up)
+    screen.getByTestId("outer-root").props.onPointerUp(up)
+  })
+  expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["group-pointer", "group-pointer", "field-pointer"])
+  expect(record.mock.calls.every(([row]) => row.data === up.nativeEvent)).toBe(true)
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusCalls)
+  record.mockClear()
+  const click = pointer("pointer-click", "touch", 42)
+  await act(() => screen.getByTestId("outer-input").props.onClick(click))
+  expect(click.isPropagationStopped()).toBe(true)
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusCalls + 1)
+  expect(JSON.parse(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.at(-1)![0]).action).toEqual({
+    groupTarget: binding.outerTarget,
+    kind: "press",
+  })
+  expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["group-pointer"])
   for (const [index, kind] of ["marked", "unmark", "insert", "delete"].entries()) {
     const host = screen.getByTestId("outer-hour")
     const originalInput = {
