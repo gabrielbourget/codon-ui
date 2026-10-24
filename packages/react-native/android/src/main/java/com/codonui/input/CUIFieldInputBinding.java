@@ -303,9 +303,16 @@ final class CUIFieldInputBinding {
     UiThreadUtil.assertOnUiThread();
     FabricUIManager manager = this.manager.get();
     JSONObject value = capture(); View root = outer.get();
-    View original = manager == null ? null : manager.resolveView(target);
-    if (value == null || root == null || original == null || !descendant(original, root))
-      throw new IllegalStateException("field-input-pointer-original-retired");
+    if (value == null || root == null || manager == null) return "";
+    int nativeTarget = 0;
+    JSONArray instances = value.getJSONObject("fieldGroupSnapshot").getJSONArray("instances");
+    for (int index = 0; index < instances.length(); index++) {
+      JSONObject instance = instances.getJSONObject(index);
+      if (instance.getInt("target") == target) { nativeTarget = instance.getInt("nativeTarget"); break; }
+    }
+    if (nativeTarget <= 0) return "";
+    View original = manager.resolveView(nativeTarget);
+    if (original == null || !descendant(original, root)) return "";
     JSONArray declarations = new JSONArray();
     for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
       View ancestor = binding.outer.get(); JSONObject current = binding.capture();

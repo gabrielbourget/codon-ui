@@ -70,7 +70,7 @@ for name in ["dispatchEvent", "dispatchUniqueEvent", "addListener", "removeListe
         raise AssertionError("Incomplete SDK method " + name)
     method = source[start:end + 1]
     if name in ["dispatchEvent", "dispatchUniqueEvent"]:
-        assert method.index("willDispatchEvent(rawEvent)") < method.index("continueAfterListeners()") < method.index("eventQueue_.enqueue")
+        assert method.index("willDispatchEvent(rawEvent)") < method.index("continueAfterListeners(") < method.index("eventQueue_.enqueue")
     methods.append(method)
 (output / "dispatcher-event-excerpts.inc").write_text("// Copyright Meta Platforms, Inc. and affiliates. MIT; exact patched SDK source.\nnamespace facebook::react {\n" + "\n".join(methods) + "\n}\n")
 stubs = output / "stubs"

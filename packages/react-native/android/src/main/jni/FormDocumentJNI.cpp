@@ -285,15 +285,21 @@ static jni::local_ref<jstring> nativeEmitFieldPointer(jni::alias_ref<jclass>,
   static const auto run = jni::findClassStatic("java/lang/Runnable")->getMethod<void()>("run");
   jni::local_ref<jstring> receipt;
   folly::dynamic phases = folly::dynamic::array;
+  folly::dynamic retired = folly::dynamic::array;
   static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentPointerSnapshot");
   const bool prevented = continueFieldOriginalPointer(*manager, [&](const RawEvent &event) {
     const auto family = event.shadowNodeFamily.lock();
     return family && family->getSurfaceId() == source.at("surfaceId").asInt() && members.contains(family->getTag());
-  }, [&] { run(emitter); }, [&](const RawEvent &original, FieldInputDispatchFrames::Clock::time_point deadline) {
+  }, [&] { run(emitter); }, [&](const RawEvent &original, FieldInputDispatchFrames::Clock::time_point deadline) -> std::optional<bool> {
     folly::dynamic record = folly::dynamic::object;
     const auto family = original.shadowNodeFamily.lock();
     if (!family) throw std::runtime_error("field-input-pointer-family-retired");
-    const auto current = folly::parseJson(read(owner, family->getTag())->toStdString());
+    const auto value = read(owner, family->getTag());
+    if (!value || value->toStdString().empty()) {
+      retired.push_back(folly::dynamic::object("type", original.type)("target", family->getTag()));
+      return std::nullopt;
+    }
+    const auto current = folly::parseJson(value->toStdString());
     record["target"] = family->getTag();
     record["eventId"] = current.at("pointerEventId");
     const auto encoded = jni::make_jstring(folly::toJson(record));
@@ -309,8 +315,11 @@ static jni::local_ref<jstring> nativeEmitFieldPointer(jni::alias_ref<jclass>,
     auto aggregate = folly::parseJson(receipt->toStdString());
     aggregate["originalDefaultPrevented"] = prevented;
     aggregate["pointerPhases"] = std::move(phases);
+    aggregate["retiredPointerPhases"] = std::move(retired);
     return jni::make_jstring(folly::toJson(aggregate));
   }
+  if (!retired.empty()) return jni::make_jstring(folly::toJson(folly::dynamic::object("kind", "pointer-retired")
+    ("originalDefaultPrevented", false)("retiredPointerPhases", std::move(retired))));
   return jni::make_jstring("");
 }
 
