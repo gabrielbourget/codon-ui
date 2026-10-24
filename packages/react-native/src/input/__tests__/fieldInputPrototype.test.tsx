@@ -82,6 +82,10 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks())
 
 it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
+  const observations = jest.spyOn(
+    jest.requireActual<typeof import("../NativeKeyboardScope")>("../NativeKeyboardScope"),
+    "useNativeKeyboardObservation",
+  )
   const error = jest.spyOn(console, "error"),
     record = jest.fn()
   await render(<FieldInputSDKScene record={record} />)
@@ -136,6 +140,18 @@ it("connects original segment entry, group callers and native binding lifetime w
   })
   const target = mockTargets.get("outer-hour")!,
     originalFocus = target.focus
+  const observe = observations.mock.calls.filter(([spec]) => spec.targetTag === target.nativeTag).at(-1)![0]
+  const acknowledgements = jest.mocked(NativeDefaults!.settleField).mock.calls.length
+  const passive = { nativeEvent: { focusedTarget: target.nativeTag, key: "9", phase: "down" } }
+  await act(() => observe.onKeyDown(passive as unknown as Parameters<typeof observe.onKeyDown>[0]))
+  expect(record).toHaveBeenCalledWith(
+    expect.objectContaining({ kind: "field-observed-key", data: passive.nativeEvent }),
+  )
+  expect(JSON.parse(screen.getByTestId("field-sdk-observation-snapshot").props.accessibilityLabel)).toMatchObject({
+    field: "outer",
+    data: passive.nativeEvent,
+  })
+  expect(jest.mocked(NativeDefaults!.settleField).mock.calls).toHaveLength(acknowledgements)
   const metadata = screen
     .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
     .find((item) => item.props.editorTarget === target.nativeTag)!

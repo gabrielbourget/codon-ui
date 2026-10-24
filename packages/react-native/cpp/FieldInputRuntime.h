@@ -439,7 +439,8 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
         auto value = payload->asJSIValue(runtime);
         if (!value.isObject()) throw std::runtime_error("field-input-original-payload-invalid");
         records.append(folly::toJson(folly::dynamic::object("kind", "original-input")
-          ("token", input->token)("eventId", input->eventId)("payload", facebook::jsi::dynamicFromValue(runtime, value))));
+          ("token", input->token)("eventId", input->eventId)("packet", folly::parseJson(packet))
+          ("payload", facebook::jsi::dynamicFromValue(runtime, value))));
         auto object = value.asObject(runtime);
         if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
         object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, packet));

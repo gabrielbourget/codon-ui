@@ -47,7 +47,11 @@ import {
   takeNativeFieldInputRecords,
 } from "../../../../packages/react-native/src/input/fieldInputModule"
 import { NativeFocusHost } from "../../../../packages/react-native/src/input/NativeFocusView"
-import { NativeKeyboardScope } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
+import {
+  NativeKeyboardScope,
+  useNativeKeyboardObservation,
+  useNativeKeyScope,
+} from "../../../../packages/react-native/src/input/NativeKeyboardScope"
 import { NativePressable } from "../../../../packages/react-native/src/input/NativePressable"
 import NativeDocument from "../../../../packages/react-native/src/input/specs/NativeCUIFormDocument"
 import type { TNativeKeyboardEvent } from "../../../../packages/react-native/src/input/types"
@@ -256,6 +260,16 @@ const Field = ({
   const outerTarget = outer ? (findNodeHandle(outer) ?? 0) : 0,
     inputTarget = input ? (findNodeHandle(input) ?? 0) : 0
   const firstOriginalTarget = original?.rows[0].identity.target ?? 0
+  const keyboardScope = useNativeKeyScope()
+  useSyncExternalStore(keyboardScope?.subscribe ?? (() => () => {}), keyboardScope?.snapshot ?? (() => 0), () => 0)
+  useNativeKeyboardObservation({
+    targetTag: firstOriginalTarget,
+    isEnabled: firstOriginalTarget > 0,
+    lifetimeKey: `${ownerId}:original-key-observation:${firstOriginalTarget}`,
+    canAct: () => keyboardScope?.isNativeReady() === true && keyboardScope.isWindowActive() !== false,
+    onKeyDown: (event) =>
+      record({ kind: "field-observed-key", field: name, disabled, readonly, data: event.nativeEvent }),
+  })
   const lifetime = JSON.stringify([originalSignature, disabled, readonly, locale, veto, stop, revision, removeOnKey])
   const plan = useMemo<TNativeFieldInputPlan | null>(
     () =>
@@ -308,6 +322,7 @@ const Field = ({
     inputTarget,
     originalSegments: original?.rows.map((row) => row.identity) ?? [],
     binding: session.status(),
+    keyboardReady: keyboardScope?.isNativeReady() ?? false,
   })
   useLayoutEffect(() => record({ kind: "field-state", ...JSON.parse(snapshot) }), [record, snapshot])
   const receiverTarget = useRef(0)
@@ -476,9 +491,15 @@ const Field = ({
 export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const [value, setValue] = useState<TimeValue>(() => new Time(13, 45))
   const requests = useRef<Record<string, unknown>[]>([])
+  const observations = useRef<Record<string, unknown>[]>([])
+  const [observationSnapshot, setObservationSnapshot] = useState("{}")
   const receive = useCallback(
     (row: Record<string, unknown>) => {
       if (row.kind === "value-request") requests.current.push(row)
+      if (row.kind === "field-observed-key") {
+        observations.current.push(row)
+        setObservationSnapshot(JSON.stringify(row))
+      }
       record(row)
     },
     [record],
@@ -519,6 +540,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
         frames,
         failures,
         requests: requests.current,
+        observations: observations.current,
       }),
     )
   }
@@ -535,6 +557,9 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   return (
     <NativeLocaleProvider locale={locale}>
       <NativeKeyboardScope captureEnabled style={{ flex: 1 }}>
+        <Text testID="field-sdk-observation-snapshot" accessibilityLabel={observationSnapshot}>
+          Original passive key observation
+        </Text>
         <Text testID="field-sdk-receipt-snapshot" accessibilityLabel={receiptSnapshot}>
           Native receipt batches: {receiptBatches.current}
         </Text>
