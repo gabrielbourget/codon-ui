@@ -138,6 +138,8 @@ it("connects original segment entry, group callers and native binding lifetime w
     ready: true,
     error: "",
   })
+  expect(screen.getByTestId("outer-negative-tab").props.focusable).toBe(true)
+  expect(screen.getByTestId("outer-negative-tab").props.nativeTabStop).toBe(false)
   const target = mockTargets.get("outer-hour")!,
     originalFocus = target.focus
   const observe = observations.mock.calls.filter(([spec]) => spec.targetTag === target.nativeTag).at(-1)![0]
@@ -373,7 +375,7 @@ it("connects original segment entry, group callers and native binding lifetime w
   await act(() => screen.getByTestId("outer-hour").props.onNativeFieldKey(stale))
   expect(record).not.toHaveBeenCalled()
   await fireEvent.press(screen.getByTestId("field-sdk-receipts"))
-  expect(record).toHaveBeenCalledWith({ kind: "native-receipts", records: [], dropped: 0 })
+  expect(record).toHaveBeenCalledWith({ kind: "native-receipts", batch: 1, records: [], dropped: 0 })
   await fireEvent.press(screen.getByTestId("field-sdk-unmount"))
   const removingMetadata = screen
     .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
@@ -421,6 +423,7 @@ it("connects original segment entry, group callers and native binding lifetime w
   await fireEvent.press(screen.getByTestId("field-sdk-receipts"))
   expect(record).toHaveBeenCalledWith({
     kind: "native-receipts",
+    batch: 2,
     records: [
       { kind: "key", scopeCurrent: false, originalDefaultPrevented: true, renderPhasesComplete: true, after: null },
     ],
@@ -471,4 +474,37 @@ it("keeps the original combined scene hosts across all TimeValue owners and an A
   expect(record).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "value-request" }))
   expect(originalHour.setNativeProps).not.toHaveBeenCalled()
   expect(originalMinute.setNativeProps).not.toHaveBeenCalled()
+})
+
+it("retains ordinary core-editor callback signatures without using field acknowledgements", async () => {
+  const record = jest.fn()
+  await render(<FieldInputSDKScene record={record} />)
+  const core = screen.getByTestId("outer-core-editor")
+  const acknowledgements = jest.mocked(NativeDefaults!.settleField).mock.calls.length
+  const key = { nativeEvent: { key: "7", target: 77 } }
+  const change = { nativeEvent: { text: "7", target: 77, eventCount: 1 } }
+  const selection = { nativeEvent: { target: 77, selection: { start: 1, end: 1 } } }
+  await fireEvent(core, "keyPress", key)
+  await fireEvent(core, "change", change)
+  await fireEvent.changeText(core, "7")
+  await fireEvent(core, "selectionChange", selection)
+  expect(record).toHaveBeenCalledWith({ kind: "core-key", field: "outer", data: key.nativeEvent })
+  expect(record).toHaveBeenCalledWith({ kind: "core-native-change", field: "outer", data: change.nativeEvent })
+  expect(record).toHaveBeenCalledWith({ kind: "core-change", field: "outer", text: "7" })
+  expect(record).toHaveBeenCalledWith({ kind: "core-selection", field: "outer", data: selection.nativeEvent })
+  expect(jest.mocked(NativeDefaults!.settleField).mock.calls).toHaveLength(acknowledgements)
+  await fireEvent.press(screen.getByTestId("field-sdk-checkpoint"))
+  const receipt = record.mock.calls
+    .map(([row]) => row)
+    .filter((row) => row.kind === "native-receipts")
+    .at(-1)!
+  const summary = JSON.parse(screen.getByTestId("field-sdk-receipt-snapshot").props.accessibilityLabel)
+  expect(summary.batch).toBe(receipt.batch)
+  expect(summary.callbacks).toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({ kind: "core-key", key: "7", token: null }),
+      expect.objectContaining({ kind: "core-native-change", text: "7", token: null }),
+      expect.objectContaining({ kind: "core-selection", selection: { start: 1, end: 1 }, token: null }),
+    ]),
+  )
 })
