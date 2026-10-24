@@ -215,6 +215,101 @@ it.each(["isDisabled", "isReadOnly"] as const)("preserves programmatic state req
   expect(write).not.toHaveBeenCalled()
 })
 
+it.each([
+  ["isDisabled", false],
+  ["isReadOnly", false],
+  ["isDisabled", true],
+  ["isReadOnly", true],
+] as const)("retires selection focus when inherited %s changes, restored=%s", async (guard, restored) => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return null
+  }
+  const editor = createRef<TextInput>(),
+    onOpenChange = jest.fn(),
+    onChange = jest.fn()
+  const node = (blocked: boolean) =>
+    wrap(
+      <NativeComboBoxContext.Provider value={{ [guard]: blocked }}>
+        <CompactTypeaheadSearch
+          items={items}
+          value={null}
+          inputValue="held"
+          inputRef={editor}
+          onChange={onChange}
+          onOpenChange={onOpenChange}
+          SearchIcon={<Capture />}
+        />
+      </NativeComboBoxContext.Provider>,
+    )
+  const view = await render(node(false))
+  await fixture.ready()
+  const original = editor.current!,
+    focus = jest.spyOn(original, "focus"),
+    write = jest.spyOn(original, "setNativeProps")
+  await act(() => {
+    state!.setValue(0)
+  })
+  expect(onChange).toHaveBeenCalledWith(0)
+  await view.rerender(node(true))
+  if (restored) await view.rerender(node(false))
+  onOpenChange.mockClear()
+  await advance()
+  expect(onOpenChange).not.toHaveBeenCalled()
+  expect(focus).not.toHaveBeenCalled()
+  expect(write).not.toHaveBeenCalled()
+  expect(editor.current).toBe(original)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+})
+
+it.each([
+  ["isDisabled", "override"],
+  ["isReadOnly", "override"],
+  ["isDisabled", "named"],
+  ["isReadOnly", "named"],
+  ["isDisabled", "null"],
+  ["isReadOnly", "null"],
+] as const)("uses resolved %s context for selection focus with %s ownership", async (guard, ownership) => {
+  let state: ContextType<typeof NativeComboBoxStateContext> = null
+  const Capture = () => {
+    state = useContext(NativeComboBoxStateContext)
+    return null
+  }
+  const editor = createRef<TextInput>(),
+    onOpenChange = jest.fn()
+  await render(
+    wrap(
+      <NativeComboBoxContext.Provider
+        value={{ slots: { [NATIVE_DEFAULT_SLOT]: { [guard]: true }, search: { [guard]: false } } }}
+      >
+        <CompactTypeaheadSearch
+          {...(ownership === "override" ? { [guard]: false } : {})}
+          slot={ownership === "named" ? "search" : ownership === "null" ? null : undefined}
+          items={items}
+          value={null}
+          inputValue="held"
+          inputRef={editor}
+          onOpenChange={onOpenChange}
+          SearchIcon={<Capture />}
+        />
+      </NativeComboBoxContext.Provider>,
+    ),
+  )
+  await fixture.ready()
+  const original = editor.current!,
+    focus = jest.spyOn(original, "focus")
+  await act(() => {
+    state!.setValue(0)
+  })
+  onOpenChange.mockClear()
+  await advance()
+  expect(onOpenChange.mock.calls).toEqual([[false]])
+  expect(focus).toHaveBeenCalledTimes(1)
+  expect(editor.current).toBe(original)
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+})
+
 it("inherits named/default/null root contexts while retaining the caller's actual root ref and compact style defaults", async () => {
   const contextRef = createRef<View>(),
     callerRef = createRef<View>()

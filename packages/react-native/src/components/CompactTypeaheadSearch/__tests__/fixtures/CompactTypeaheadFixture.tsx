@@ -1,7 +1,8 @@
 import { useState, type Ref } from "react"
-import { ScrollView, View } from "react-native"
+import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, NativeFloatingLayerHost, NativeFocusView, NativeThemeProvider, Text } from "../../../.."
+import { NativeComboBoxContext } from "../../../ComboBox/collectionContext"
 import { CompactTypeaheadSearch } from "../../CompactTypeaheadSearch"
 import type { TNativeCompactTypeaheadKey } from "../../types"
 
@@ -11,7 +12,7 @@ const ITEMS = [
   { id: "", name: "Alpha empty" },
 ]
 const describe = (key: TNativeCompactTypeaheadKey | null) => `${typeof key}:${JSON.stringify(key)}`
-export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) => {
+export const CompactTypeaheadFixture = ({ hostRef, inputRef }: { hostRef?: Ref<View>; inputRef?: Ref<TextInput> }) => {
   const [query, setQuery] = useState("")
   const [selected, setSelected] = useState<TNativeCompactTypeaheadKey | null>(null)
   const [open, setOpen] = useState(false)
@@ -22,6 +23,8 @@ export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) =>
   const [custom, setCustom] = useState(false)
   const [dark, setDark] = useState(false)
   const [rtl, setRTL] = useState(false)
+  const [isDisabled, setDisabled] = useState(false)
+  const [isReadOnly, setReadOnly] = useState(false)
   const [events, setEvents] = useState<string[]>([])
   const record = (message: string) => setEvents((current) => [...current.slice(-11), message])
   const results = query.trim().length >= minimum ? ITEMS : []
@@ -33,7 +36,7 @@ export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) =>
           <Text>Type Alpha to inspect parent-curated typed keys, owner vetoes, status panels and native focus.</Text>
           <Text testID="compact-fixture-state">
             Query {JSON.stringify(query)}. Value {describe(selected)}. Open {String(open)}. Minimum {minimum}. Loading{" "}
-            {String(loading)}.
+            {String(loading)}. Disabled {String(isDisabled)}. Read only {String(isReadOnly)}.
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
             <Button onPress={() => setHoldQuery((current) => !current)}>Toggle query veto</Button>
@@ -43,6 +46,8 @@ export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) =>
             <Button onPress={() => setCustom((current) => !current)}>Toggle custom slots</Button>
             <Button onPress={() => setDark((current) => !current)}>Toggle theme</Button>
             <Button onPress={() => setRTL((current) => !current)}>Toggle RTL</Button>
+            <Button onPress={() => setDisabled((current) => !current)}>Toggle inherited disabled</Button>
+            <Button onPress={() => setReadOnly((current) => !current)}>Toggle inherited read only</Button>
             <Button
               onPress={() => {
                 setQuery("")
@@ -53,68 +58,71 @@ export const CompactTypeaheadFixture = ({ hostRef }: { hostRef?: Ref<View> }) =>
               Reset search
             </Button>
           </View>
-          <CompactTypeaheadSearch
-            accessibilityLabel="Compact search"
-            items={results}
-            inputValue={query}
-            value={selected}
-            isOpen={open}
-            minimumInputLength={minimum}
-            isLoading={loading}
-            SearchIcon={
-              custom ? (
-                <NativeFocusView
-                  testID="compact-search-descendant"
-                  focusable
-                  accessible
-                  accessibilityLabel="Custom search detail"
-                  onFocus={() => record("search-child:focus")}
-                >
-                  <Text>Find</Text>
-                </NativeFocusView>
-              ) : undefined
-            }
-            rtl={rtl}
-            getItemKey={(item) => item.id}
-            onInputChange={(text) => {
-              record(`query:${JSON.stringify(text)}`)
-              if (!holdQuery) setQuery(text)
-            }}
-            onChange={(key) => {
-              record(`select:${describe(key)}`)
-              if (!holdValue) {
-                setSelected(key)
-                setQuery("")
+          <NativeComboBoxContext.Provider value={{ isDisabled, isReadOnly }}>
+            <CompactTypeaheadSearch
+              accessibilityLabel="Compact search"
+              inputRef={inputRef}
+              items={results}
+              inputValue={query}
+              value={selected}
+              isOpen={open}
+              minimumInputLength={minimum}
+              isLoading={loading}
+              SearchIcon={
+                custom ? (
+                  <NativeFocusView
+                    testID="compact-search-descendant"
+                    focusable
+                    accessible
+                    accessibilityLabel="Custom search detail"
+                    onFocus={() => record("search-child:focus")}
+                  >
+                    <Text>Find</Text>
+                  </NativeFocusView>
+                ) : undefined
               }
-            }}
-            onOpenChange={(next) => {
-              record(`open:${next}`)
-              setOpen(next)
-            }}
-            labels={
-              custom
-                ? {
-                    inputButtonGroupAriaLabel: "Localized controls",
-                    searchButtonAriaLabel: "Run search",
-                    suggestionsListAriaLabel: "Curated results",
-                    status: {
-                      minimumInputLengthMessage: ({ minimumInputLength }) => `Need ${minimumInputLength}`,
-                      loadingMessage: "Searching parent results",
-                    },
-                  }
-                : undefined
-            }
-            customStyles={custom ? { marginTop: 3 } : undefined}
-            customInputButtonGroupStyles={custom ? { borderWidth: 2 } : undefined}
-            customInputStyles={custom ? { color: "#a66b00" } : undefined}
-            customButtonStyles={custom ? { borderRadius: 0 } : undefined}
-            customOptionsListStyles={custom ? { padding: 7 } : undefined}
-            renderItem={(item, args) => (
-              <Text
-                testID={`compact-result-${typeof item.id}-${item.id}`}
-              >{`${item.name} | ${args.query} | ${describe(args.itemKey)}`}</Text>
-            )}
-          />
+              rtl={rtl}
+              getItemKey={(item) => item.id}
+              onInputChange={(text) => {
+                record(`query:${JSON.stringify(text)}`)
+                if (!holdQuery) setQuery(text)
+              }}
+              onChange={(key) => {
+                record(`select:${describe(key)}`)
+                if (!holdValue) {
+                  setSelected(key)
+                  setQuery("")
+                }
+              }}
+              onOpenChange={(next) => {
+                record(`open:${next}`)
+                setOpen(next)
+              }}
+              labels={
+                custom
+                  ? {
+                      inputButtonGroupAriaLabel: "Localized controls",
+                      searchButtonAriaLabel: "Run search",
+                      suggestionsListAriaLabel: "Curated results",
+                      status: {
+                        minimumInputLengthMessage: ({ minimumInputLength }) => `Need ${minimumInputLength}`,
+                        loadingMessage: "Searching parent results",
+                      },
+                    }
+                  : undefined
+              }
+              customStyles={custom ? { marginTop: 3 } : undefined}
+              customInputButtonGroupStyles={custom ? { borderWidth: 2 } : undefined}
+              customInputStyles={custom ? { color: "#a66b00" } : undefined}
+              customButtonStyles={custom ? { borderRadius: 0 } : undefined}
+              customOptionsListStyles={custom ? { padding: 7 } : undefined}
+              renderItem={(item, args) => (
+                <Text
+                  testID={`compact-result-${typeof item.id}-${item.id}`}
+                >{`${item.name} | ${args.query} | ${describe(args.itemKey)}`}</Text>
+              )}
+            />
+          </NativeComboBoxContext.Provider>
           <Text testID="compact-fixture-events">{events.join("\n") || "No requests"}</Text>
         </ScrollView>
       </NativeFloatingLayerHost>
