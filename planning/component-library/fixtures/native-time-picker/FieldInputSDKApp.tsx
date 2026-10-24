@@ -298,18 +298,26 @@ const Field = ({
     locale,
     direction,
     intlPreparation: NUMBER_INTL_PREPARATION,
+    disabled,
+    readonly,
+    echo,
+    veto,
+    stop,
+    revision,
     outerTarget,
     inputTarget,
     originalSegments: original?.rows.map((row) => row.identity) ?? [],
     binding: session.status(),
   })
   useLayoutEffect(() => record({ kind: "field-state", ...JSON.parse(snapshot) }), [record, snapshot])
+  const receiverTarget = useRef(0)
   const caller = useCallback(
     (event: TNativeKeyboardEvent) => {
       record({
         kind: "field-key",
         field: name,
         revision,
+        receiverTarget: receiverTarget.current,
         data: event.nativeEvent,
         prevented: event.defaultPrevented,
         stopped: event.isPropagationStopped(),
@@ -323,6 +331,17 @@ const Field = ({
     [record, name, veto, revision, removeOnKey, onRemove],
   )
   const group = scope ? nativeFieldGroupKeyHandler(scope, { direction, onKeyDown: caller, onKeyUp: caller }) : undefined
+  const receiveGroup = group
+    ? (event: TNativeFieldKeyEvent, target: number) => {
+        const previous = receiverTarget.current
+        receiverTarget.current = target
+        try {
+          return group(event, target)
+        } finally {
+          receiverTarget.current = previous
+        }
+      }
+    : undefined
   const pointerCaller = useCallback(
     (event: TNativeFieldPointerEvent) => {
       record({
@@ -367,7 +386,7 @@ const Field = ({
           ref={bindOuter}
           focusable={false}
           testID={`${name}-outer`}
-          nativeFieldGroupHandler={group}
+          nativeFieldGroupHandler={receiveGroup}
           nativeFieldGroupPointerHandler={pointerGroup}
           nativeFocusWithinObservation
           nativeOnFocusWithin={(event) => {
@@ -387,7 +406,7 @@ const Field = ({
             ref={setInput}
             focusable={false}
             testID={`${name}-input`}
-            nativeFieldGroupHandler={group}
+            nativeFieldGroupHandler={receiveGroup}
             nativeFieldGroupPointerHandler={pointerGroup}
             style={{ flexDirection: "row" }}
           >
@@ -456,6 +475,53 @@ const Field = ({
 
 export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const [value, setValue] = useState<TimeValue>(() => new Time(13, 45))
+  const requests = useRef<Record<string, unknown>[]>([])
+  const receive = useCallback(
+    (row: Record<string, unknown>) => {
+      if (row.kind === "value-request") requests.current.push(row)
+      record(row)
+    },
+    [record],
+  )
+  const [receiptSnapshot, setReceiptSnapshot] = useState("{}")
+  const receiptBatches = useRef(0)
+  const receipts = () => {
+    const batch = takeNativeFieldInputRecords()
+    receive({ kind: "native-receipts", ...batch })
+    const frames = batch.records
+      .filter((row) => ["key", "pointer", "input"].includes(String(row.kind)))
+      .map((row) => {
+        const event = row.event as Record<string, unknown> | undefined
+        const dispatch = typeof event?.fieldDispatch === "string" ? JSON.parse(event.fieldDispatch) : null
+        const before = row.before as Record<string, unknown> | null
+        const after = row.after as Record<string, unknown> | null
+        return {
+          kind: row.kind,
+          identity: row.identity ?? null,
+          token: dispatch?.token ?? null,
+          key: event?.key ?? null,
+          phase: dispatch?.phase ?? null,
+          decision: row.decision ?? null,
+          deliveryStarted: row.deliveryStarted === true,
+          deliveryReturned: row.deliveryReturned === true,
+          renderPhasesComplete: row.renderPhasesComplete === true,
+          scopeCurrent: row.scopeCurrent === true,
+          beforeFocusedTarget: before?.focusedTarget ?? null,
+          afterFocusedTarget: after?.focusedTarget ?? null,
+          error: row.error ?? "missing-native-frame-error",
+        }
+      })
+    const failures = batch.records.filter((row) => row.kind === "failure")
+    setReceiptSnapshot(
+      JSON.stringify({
+        batch: ++receiptBatches.current,
+        dropped: batch.dropped,
+        frames,
+        failures,
+        requests: requests.current,
+      }),
+    )
+  }
   const [disabled, setDisabled] = useState(false),
     [readonly, setReadonly] = useState(false),
     [echo, setEcho] = useState(true),
@@ -469,14 +535,24 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   return (
     <NativeLocaleProvider locale={locale}>
       <NativeKeyboardScope captureEnabled style={{ flex: 1 }}>
-        <ScrollView contentContainerStyle={{ padding: 20 }}>
+        <Text testID="field-sdk-receipt-snapshot" accessibilityLabel={receiptSnapshot}>
+          Native receipt batches: {receiptBatches.current}
+        </Text>
+        <Pressable testID="field-sdk-checkpoint" onPress={receipts} style={frame}>
+          <Text>Check original receipts</Text>
+        </Pressable>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="none"
+          contentContainerStyle={{ padding: 20 }}
+        >
           <Text>Original field input prototype</Text>
           {visible && (
             <Field
               name="outer"
               value={value}
               onOwnerValueChange={setValue}
-              record={record}
+              record={receive}
               disabled={disabled}
               readonly={readonly}
               echo={echo}
@@ -493,7 +569,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
             ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
             ["unmount", () => setRemoveOnKey((value) => !value)],
             ["show", () => setVisible(true)],
-            ["receipts", () => record({ kind: "native-receipts", ...takeNativeFieldInputRecords() })],
+            ["receipts", receipts],
             ["disabled", () => setDisabled((value) => !value)],
             ["readonly", () => setReadonly((value) => !value)],
             ["echo", () => setEcho((value) => !value)],
