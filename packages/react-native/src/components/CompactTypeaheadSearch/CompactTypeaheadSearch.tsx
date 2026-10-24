@@ -305,6 +305,9 @@ const CompactTypeaheadSearchInner = <T extends object>(
   props: TNativeCompactTypeaheadSearchProps<T>,
   forwardedRef: ForwardedRef<TNativeCompactTypeaheadRef>,
 ) => {
+  const inherited = useNativeSlottedContext(NativeComboBoxContext, props.slot)
+  const isDisabled = props.isDisabled ?? inherited?.isDisabled ?? false
+  const isReadOnly = props.isReadOnly ?? inherited?.isReadOnly ?? false
   const minimumLength = props.minimumInputLength ?? 0
   if (!Number.isFinite(minimumLength) || minimumLength < 0)
     throw new TypeError("CompactTypeaheadSearch: minimumInputLength must be finite and nonnegative")
@@ -336,14 +339,14 @@ const CompactTypeaheadSearchInner = <T extends object>(
   const pending = useRef<ReturnType<typeof setTimeout> | null>(null)
   const live = useRef(false)
   const rootWithin = useRef<boolean | null>(null)
-  const current = useRef({ props, status, scope, floatingScope, windowActive })
+  const current = useRef({ props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly })
   useInsertionEffect(() => {
-    current.current = { props, status, scope, floatingScope, windowActive }
+    current.current = { props, status, scope, floatingScope, windowActive, isDisabled, isReadOnly }
   })
   const canAct = () =>
     live.current &&
     host.live.current &&
-    !current.current.props.isDisabled &&
+    !current.current.isDisabled &&
     current.current.scope?.isWindowActive() !== false &&
     current.current.floatingScope?.canAct() !== false &&
     current.current.windowActive?.() !== false
@@ -372,14 +375,14 @@ const CompactTypeaheadSearchInner = <T extends object>(
   }, [retire])
   useInsertionEffect(() => {
     const changed = () => {
-      if (!canAct() || current.current.props.isReadOnly) retire()
+      if (!canAct() || current.current.isReadOnly) retire()
     }
     const releases = [scope?.subscribe(changed), host.layers.subscribe(changed), overlays?.subscribe(changed)]
     changed()
     return () => {
       for (const release of releases) release?.()
     }
-  }, [scope, host.layers, overlays, props.isDisabled, props.isReadOnly, floatingScope, windowActive, retire])
+  }, [scope, host.layers, overlays, isDisabled, isReadOnly, floatingScope, windowActive, retire])
   const requestOpen = (next: boolean) => {
     const owner = current.current
     if (!live.current) return
@@ -416,7 +419,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
       const owner = current.current
       if (
         !canAct() ||
-        owner.props.isReadOnly ||
+        owner.isReadOnly ||
         input.current !== editor ||
         JSON.stringify(owner.scope?.acknowledgedSession() ?? null) !== session
       )
@@ -427,7 +430,6 @@ const CompactTypeaheadSearchInner = <T extends object>(
     }, 0)
   }
   const theme = useNativeTheme()
-  const inherited = useNativeSlottedContext(NativeComboBoxContext, props.slot)
   return (
     <NativeCollectionComboBox
       {...props}

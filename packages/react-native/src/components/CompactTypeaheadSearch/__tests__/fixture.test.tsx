@@ -1,7 +1,8 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, screen } from "@testing-library/react-native"
-import { AccessibilityInfo, findNodeHandle } from "react-native"
+import { createRef } from "react"
+import { AccessibilityInfo, findNodeHandle, type TextInput } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -98,3 +99,25 @@ it("SCENE.compact.004 preserves custom descendant focus and closes after observe
   expect(row("compact-fixture-state")).toHaveTextContent(/Query ""\. Value object:null\. Open false/)
   expect(fixture.target("compact-search-descendant")).toBe(descendant)
 })
+
+it.each(["disabled", "read only"] as const)(
+  "SCENE.compact.005 retains the editor and query through inherited %s",
+  async (guard) => {
+    const editor = createRef<TextInput>()
+    await render(<CompactTypeaheadFixture hostRef={fixture.hostRef} inputRef={editor} />)
+    await press("CompactTypeaheadSearch Search Button")
+    await fireEvent.changeText(row("type-ahead-search-input"), "Alpha")
+    await fixture.ready()
+    const original = editor.current!
+    await press(`Toggle inherited ${guard}`)
+    expect(row("type-ahead-search-input").props.editable).toBe(false)
+    await fireEvent.changeText(row("type-ahead-search-input"), "blocked")
+    expect(row("type-ahead-search-input").props.value).toBe("Alpha")
+    expect(row("compact-fixture-events")).not.toHaveTextContent(/blocked/)
+    await press(`Toggle inherited ${guard}`)
+    expect(row("type-ahead-search-input").props.editable).toBe(true)
+    expect(editor.current).toBe(original)
+    await fireEvent.changeText(row("type-ahead-search-input"), "Beta")
+    expect(row("type-ahead-search-input").props.value).toBe("Beta")
+  },
+)
