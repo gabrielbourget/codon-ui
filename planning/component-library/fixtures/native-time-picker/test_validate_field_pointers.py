@@ -3,7 +3,7 @@ import json
 import unittest
 
 from test_inspect_field_receipts import fixture
-from validate_field_pointers import CASES, SETUPS, validate
+from validate_field_pointers import CASES, SETUPS, validate, validate_streams
 
 
 def journal():
@@ -46,7 +46,36 @@ def journal():
     return rows, reports
 
 
+def streams_journal():
+    original,reports=journal();rows=[];selected=[]
+    names=[("placeholder-scroll-setup","placeholder-scroll-cancel","outside-release"),
+           ("authored-pointer-stop-setup","authored-child-pointer-stop","outside-origin"),
+           ("placeholder-touch-setup","placeholder-touch-release","fresh-pointer-stream")]
+    source_reports={row["case"]:row for row in reports}
+    for index,(setup_name,case_name,name) in enumerate(names):
+        setup_batch,case_batch=source_reports[setup_name]["batch"],source_reports[case_name]["batch"]
+        before=next(row for row in original if row.get("batch")==setup_batch)["sequence"]
+        end=next(row for row in original if row.get("batch")==case_batch)["sequence"]
+        part=copy.deepcopy([row for row in original if before<=row["sequence"]<=end])
+        if name=="outside-origin":
+            part=[row for row in part if row["kind"]=="native-receipts"]
+            for row in part:row["records"]=[]
+        for row in part:
+            row["sequence"]=len(rows)+1
+            if "batch" in row:row["batch"]=index*2+(1 if row["batch"]==setup_batch else 2)
+            rows.append(row)
+        selected.extend([dict(case=name+"-setup",batch=index*2+1),dict(case=name,batch=index*2+2)])
+    return rows,selected
+
+
 class PointerContracts(unittest.TestCase):
+    def test_outside_stream_retirement_and_fresh_recovery(self):
+        rows,reports=streams_journal()
+        self.assertTrue(validate_streams(rows,"producer",reports)["nativeStreamBoundaryContracts"])
+        rows,reports=streams_journal()
+        next(row for row in rows if row.get("batch")==4)["records"].append(dict(kind="focus"))
+        with self.assertRaises(AssertionError):validate_streams(rows,"producer",reports)
+
     def test_placeholder_release_and_scroll_do_not_close_adoption(self):
         rows, reports = journal()
         result = validate(rows, "producer", reports)

@@ -300,6 +300,26 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertFalse(cancelFrames.contains { $0["phase"] as? String == "pointer-click" })
     XCTAssertTrue(try XCTUnwrap(cancelled["focusActions"] as? [[String: Any]]).isEmpty)
 
+    let streamTail = reveal("outer-press-tail", towardStart: true)
+    let insideStream = streamTail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let outsideStream = app.coordinate(withNormalizedOffset: .zero).withOffset(
+      CGVector(dx: element("outer-outer").frame.maxX + 8, dy: streamTail.frame.midY))
+    _ = try receipt("outside-release-setup")
+    insideStream.press(forDuration: 0.05, thenDragTo: outsideStream)
+    let outsideRelease = try receipt("outside-release")
+    XCTAssertTrue(try XCTUnwrap(outsideRelease["focusActions"] as? [[String: Any]]).isEmpty)
+    _ = try receipt("outside-origin-setup")
+    outsideStream.press(forDuration: 0.05, thenDragTo: insideStream)
+    let outsideOrigin = try receipt("outside-origin")
+    XCTAssertTrue(try XCTUnwrap(outsideOrigin["focusActions"] as? [[String: Any]]).isEmpty)
+    _ = try receipt("fresh-pointer-stream-setup")
+    streamTail.tap()
+    let freshStream = try receipt("fresh-pointer-stream")
+    let freshFocus = try XCTUnwrap((freshStream["focusActions"] as? [[String: Any]])?.first)
+    XCTAssertEqual((freshStream["focusActions"] as? [[String: Any]])?.count, 1)
+    XCTAssertEqual(freshFocus["target"] as? Int, originalHourTarget)
+    XCTAssertEqual(freshFocus["observed"] as? Bool, true)
+
     control("stop")
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
     let authored = reveal("outer-button", towardStart: false)

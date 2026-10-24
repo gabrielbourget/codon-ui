@@ -5,7 +5,6 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.config.ReactFeatureFlags;
-import com.facebook.react.uimanager.TouchTargetHelper;
 import com.facebook.react.uimanager.UIManagerHelper;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import android.view.View;
@@ -57,33 +56,29 @@ final class CUIFieldInputBinding {
     for (View ancestor = originalRoot.getParent() instanceof View ? (View)originalRoot.getParent() : null;
          ancestor != null; ancestor = ancestor.getParent() instanceof View ? (View)ancestor.getParent() : null)
       if (ancestor instanceof CUIKeyboardScope) return new PointerDecision(false, false);
-    boolean registered = false;
-    for (CUIFieldInputBinding binding : bindings.keySet())
-      registered |= !binding.closed && (binding.outer.get() == originalRoot ||
-        (originalRoot instanceof CUIKeyboardScope && binding.outer.get() != null &&
-          binding.outer.get().getRootView() == originalRoot.getRootView()));
-    if (!registered) return new PointerDecision(false, false);
+    ViewGroup surface = pointerSurface(originalRoot);
+    if (surface == null) return new PointerDecision(false, false);
     CUIFieldInputBinding selected = null;
     try {
-      float[] coordinates = new float[2];
-      java.util.List<TouchTargetHelper.ViewTarget> path = TouchTargetHelper.findTargetPathAndCoordinatesForTouch(
-        event.getX(), event.getY(), originalRoot, coordinates);
-      View originalHit = originalRoot;
-      for (TouchTargetHelper.ViewTarget target : path) if (target.getView() != null) { originalHit = target.getView(); break; }
       for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
         View root = binding.outer.get();
-        JSONObject value = binding.capture();
-        if (binding.closed || root == null || value == null || root.getRootView() != originalRoot.getRootView() ||
-            !binding.containsOriginalView(value, originalHit)) continue;
-        if (selected == null || containsTarget(selected.capture(), root.getId())) selected = binding;
+        if (binding.closed || root == null || pointerSurface(root) != surface || binding.capture() == null ||
+            (root != originalRoot && !(originalRoot instanceof CUIKeyboardScope))) continue;
+        selected = binding;
+        break;
       }
-      if (selected == null || (selected.outer.get() != originalRoot && !(originalRoot instanceof CUIKeyboardScope)))
-        return new PointerDecision(false, false);
-      return selected.emitPointer(originalRoot, event);
+      // The original SDK must see outside phases too, to retire its down path
+      // and preserve primary/multi-pointer data. Only field targets are emitted.
+      return selected == null ? new PointerDecision(false, false) : selected.emitPointer(originalRoot, event);
     } catch (Exception error) {
       if (selected != null) selected.record("pointer-failure", String.valueOf(error.getMessage()));
       return new PointerDecision(false, false);
     }
+  }
+  private static ViewGroup pointerSurface(View original) {
+    for (View view = original; view != null; view = view.getParent() instanceof View ? (View)view.getParent() : null)
+      if (view instanceof ReactRootView) return (ViewGroup)view;
+    return null;
   }
   private PointerDecision emitPointer(ViewGroup originalRoot, MotionEvent event) throws Exception {
     JSONObject value = capture(); FabricUIManager manager = this.manager.get();
@@ -91,27 +86,35 @@ final class CUIFieldInputBinding {
     int action = event.getActionMasked();
     if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_BUTTON_PRESS)
       CUIInputWindow.record(originalRoot, "pointer");
-    ViewGroup surface = null;
-    for (View view = originalRoot; view != null; view = view.getParent() instanceof View ? (View)view.getParent() : null)
-      if (view instanceof ReactRootView) { surface = (ViewGroup)view; break; }
+    ViewGroup surface = pointerSurface(originalRoot);
     EventDispatcher events = UIManagerHelper.getEventDispatcherForReactTag((com.facebook.react.bridge.ReactContext)originalRoot.getContext(), originalRoot.getId());
     if (surface == null || events == null) throw new IllegalStateException("field-input-original-pointer-dispatcher-unavailable");
-    if (pointerDispatcher == null || !pointerDispatcher.matches(surface, events)) pointerDispatcher = new CUIFieldPointerDispatcher(surface, events);
+    final CUIFieldPointerDispatcher dispatcher = CUIFieldPointerDispatcher.forSurface(surface, events);
+    pointerDispatcher = dispatcher;
     java.util.Set<Integer> members = new java.util.HashSet<>();
-    JSONObject document = new JSONObject(value.getString("encodedDocument")), plan = document.getJSONObject("fieldGroup");
-    members.add(plan.getInt("outerTarget"));
-    JSONArray nodes = plan.getJSONArray("nodes");
-    for (int index = 0; index < nodes.length(); index++) members.add(nodes.getJSONObject(index).getInt("target"));
-    CUIOriginalInputEmission emission = new CUIOriginalInputEmission(() -> pointerDispatcher.dispatch(event, members));
+    JSONObject document = new JSONObject(value.getString("encodedDocument"));
+    for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
+      View root = binding.outer.get(); JSONObject current = binding.capture();
+      if (current == null || root == null || pointerSurface(root) != surface || binding.manager.get() != manager || !binding.lease.equals(lease)) continue;
+      binding.pointerDispatcher = dispatcher;
+      JSONObject currentDocument = new JSONObject(current.getString("encodedDocument"));
+      if (currentDocument.getInt("surfaceId") != document.getInt("surfaceId"))
+        throw new IllegalStateException("field-input-pointer-surface-ambiguous");
+      JSONObject plan = currentDocument.getJSONObject("fieldGroup");
+      members.add(plan.getInt("outerTarget"));
+      JSONArray nodes = plan.getJSONArray("nodes");
+      for (int index = 0; index < nodes.length(); index++) members.add(nodes.getJSONObject(index).getInt("target"));
+    }
+    CUIOriginalInputEmission emission = new CUIOriginalInputEmission(() -> dispatcher.dispatch(event, members));
     String receipt;
     try {
-      receipt = nativeEmitFieldPointer(manager, this, value.getString("encodedDocument"), emission);
+      receipt = nativeEmitFieldPointer(manager, this, document.put("pointerMembers", new JSONArray(members)).toString(), emission);
     } catch (Exception failure) {
       emission.rethrowOriginalFailure();
       if (!emission.wasInvoked()) emission.run();
       throw failure;
     }
-    if (receipt.isEmpty()) return new PointerDecision(true, false);
+    if (receipt.isEmpty()) return new PointerDecision(false, false);
     JSONObject record = new JSONObject(receipt); emitRecord(record.toString());
     return new PointerDecision(true, record.getBoolean("originalDefaultPrevented"));
   }
@@ -181,22 +184,6 @@ final class CUIFieldInputBinding {
     JSONArray nodes = group.getJSONArray("nodes");
     for (int index = 0; index < nodes.length(); index++)
       if (nodes.getJSONObject(index).getInt("target") == target) return true;
-    return false;
-  }
-  private boolean containsOriginalView(JSONObject value, View view) throws Exception {
-    FabricUIManager manager = this.manager.get();
-    if (value == null || manager == null) return false;
-    JSONArray instances = value.getJSONObject("fieldGroupSnapshot").getJSONArray("instances");
-    for (View candidate = view; candidate != null; candidate = candidate.getParent() instanceof View ? (View)candidate.getParent() : null) {
-      boolean captured = false, member = false;
-      for (int index = 0; index < instances.length(); index++) {
-        JSONObject instance = instances.getJSONObject(index);
-        if (instance.getInt("nativeTarget") == candidate.getId() && manager.resolveView(candidate.getId()) == candidate) {
-          captured = true; member |= containsTarget(value, instance.getInt("target"));
-        }
-      }
-      if (captured) return member;
-    }
     return false;
   }
   static boolean inDefault(KeyEvent event) { return currentDefault.get() == event; }
@@ -338,11 +325,28 @@ final class CUIFieldInputBinding {
     return value.put("scopeEpoch", selected.epoch).toString();
   }
   @DoNotStrip
+  CUIFieldInputBinding currentPointerOwner(int target) throws Exception {
+    UiThreadUtil.assertOnUiThread();
+    FabricUIManager manager = this.manager.get();
+    ViewGroup surface = pointerDispatcher == null ? null : pointerDispatcher.surface();
+    if (surface == null || manager == null) return null;
+    CUIFieldInputBinding selected = null;
+    JSONObject value = null;
+    for (CUIFieldInputBinding candidate : new ArrayList<>(bindings.keySet())) {
+      View root = candidate.outer.get(); JSONObject current = candidate.capture();
+      if (current == null || root == null || candidate.manager.get() != manager || !candidate.lease.equals(lease) ||
+          pointerSurface(root) != surface || !containsTarget(current, target)) continue;
+      if (selected != null && selected.outer.get() == root) throw new IllegalStateException("field-input-original-group-ambiguous");
+      if (selected == null || containsTarget(value, root.getId())) { selected = candidate; value = current; }
+    }
+    return selected;
+  }
+  @DoNotStrip
   String currentPointerSnapshot(int target) throws Exception {
     UiThreadUtil.assertOnUiThread();
     FabricUIManager manager = this.manager.get();
     JSONObject value = capture(); View root = outer.get();
-    if (value == null || root == null || manager == null) return "";
+    if (value == null || root == null || manager == null || !containsTarget(value, target)) return "";
     int nativeTarget = 0;
     JSONArray instances = value.getJSONObject("fieldGroupSnapshot").getJSONArray("instances");
     for (int index = 0; index < instances.length(); index++) {
@@ -355,7 +359,7 @@ final class CUIFieldInputBinding {
     JSONArray declarations = new JSONArray();
     for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
       View ancestor = binding.outer.get(); JSONObject current = binding.capture();
-      if (ancestor == null || current == null || !binding.lease.equals(lease) || ancestor.getRootView() != root.getRootView() ||
+      if (ancestor == null || current == null || binding.manager.get() != manager || !binding.lease.equals(lease) || ancestor.getRootView() != root.getRootView() ||
           !containsTarget(current, target)) continue;
       declarations.put(new JSONObject().put("encodedDocument", current.getString("encodedDocument"))
         .put("snapshot", current.getJSONObject("fieldGroupSnapshot")).put("epoch", binding.epoch));

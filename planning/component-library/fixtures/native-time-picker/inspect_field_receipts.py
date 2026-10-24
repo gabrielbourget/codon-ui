@@ -166,7 +166,7 @@ def same_argument(actual, original):
 
 def validate_combined(rows, producer, checkpoints):
     from validate_field_descendants import validate as descendants, validate_portals
-    from validate_field_pointers import validate as pointers
+    from validate_field_pointers import validate as pointers, validate_streams
     from validate_field_key_profiles import validate as key_profiles, completed
     from validate_field_mutations import validate as mutations, validate_busy
     integrity = inspect(rows, producer)
@@ -216,6 +216,7 @@ def validate_combined(rows, producer, checkpoints):
         "values": matched_values,
         "descendants": descendants(rows, producer, checkpoints),
         "pointers": pointers(rows, producer, checkpoints),
+        "pointerStreams": validate_streams(rows, producer, checkpoints),
         "keyProfiles": key_profiles(rows, producer, checkpoints),
         "mutations": mutations(rows, producer, checkpoints),
         "portals": validate_portals(rows, producer, checkpoints),

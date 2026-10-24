@@ -89,3 +89,32 @@ def validate(rows, producer, checkpoints):
             presses = [row for row in source if row["kind"] == "child-press" and row["field"] == "outer"]
             assert len(presses) == 1, "Original authored action missing or repeated"
     return {"pointerCheckpointContracts": list(CASES), "nativeReceiptIntegrity": integrity["receiptIntegrity"], "fullInputSurface": False, "fullFamily": False, "fullGoal": False}
+
+
+def validate_streams(rows, producer, checkpoints):
+    integrity = inspect(rows, producer)
+    reports = {row["case"]: row for row in checkpoints}
+    assert len(reports)==len(checkpoints)
+    batches = {row["batch"]: row for row in rows if row["kind"]=="native-receipts"}
+    for name in ["outside-release", "outside-origin", "fresh-pointer-stream"]:
+        assert name in reports and name+"-setup" in reports, "Missing native stream boundary trial"
+        setup,report = reports[name+"-setup"],reports[name]
+        assert setup["batch"]<report["batch"]
+        start,end=batches[setup["batch"]]["sequence"],batches[report["batch"]]["sequence"]
+        source=[row for row in rows if start<row["sequence"]<end]
+        assert not any(row["kind"]=="value-request" for row in source)
+        native=batches[report["batch"]]["records"]
+        assert not any(row["kind"]=="failure" for row in native)
+        frames=[row for row in native if row["kind"]=="pointer"]
+        phases=[packet(row["event"]["fieldDispatch"])["phase"] for row in frames]
+        focuses=[row for row in native if row["kind"]=="focus"]
+        if name!="fresh-pointer-stream":
+            assert not focuses and "pointer-click" not in phases, "An outside stream performed field press focus/click"
+            if name=="outside-release":assert phases and phases[0]=="pointer-start"
+            else:assert "pointer-start" not in phases, "Outside origin was admitted as a field start"
+        else:
+            assert phases==["pointer-start","pointer-end","pointer-click"]
+            assert len(focuses)==1 and all(focuses[0][flag] is True for flag in ["requested","observed","current"])
+            assert focuses[0]["token"]==packet(frames[-1]["event"]["fieldDispatch"])["token"]
+            assert focuses[0]["action"]=="press" and focuses[0]["target"]==placeholder_target(frames[-1])
+    return {"nativeStreamBoundaryContracts":True,"nativeReceiptIntegrity":integrity["receiptIntegrity"],"fullInputSurface":False,"fullFamily":False,"fullGoal":False}
