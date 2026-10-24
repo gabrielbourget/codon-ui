@@ -5,6 +5,7 @@ import XCTest
 final class FieldInputTrialTests: XCTestCase {
   private let app = XCUIApplication(bundleIdentifier: "dev.codonui.showcase")
   private var originalWindow: String?
+  private var originalHourTarget: Int?
   private var originalObjects: [Int: (String, String)] = [:]
   override func setUpWithError() throws {
     continueAfterFailure = false
@@ -55,6 +56,12 @@ final class FieldInputTrialTests: XCTestCase {
     let frames = try XCTUnwrap(row["frames"] as? [[String: Any]])
     let keys = frames.filter { $0["kind"] as? String == "key" && $0["phase"] as? String == "down" }
     XCTAssertFalse(keys.isEmpty, "Original key frame missing: " + name)
+    for key in keys {
+      let identity = try XCTUnwrap(key["identity"] as? [String: Any])
+      let target = try XCTUnwrap(identity["target"] as? Int)
+      if let originalHourTarget { XCTAssertEqual(target, originalHourTarget) }
+      else { originalHourTarget = target }
+    }
     for key in frames {
       let identity = try XCTUnwrap(key["identity"] as? [String: Any])
       let window = try XCTUnwrap(identity["windowId"] as? String)
@@ -80,6 +87,25 @@ final class FieldInputTrialTests: XCTestCase {
     attachment.lifetime = .keepAlways
     add(attachment)
     return row
+  }
+  private func guardCheckpoint(_ name: String, requestCount: Int) throws {
+    let previous = read("field-sdk-receipt-snapshot")?["batch"] as? Int ?? 0
+    element("field-sdk-checkpoint").tap()
+    let row = try wait("field-sdk-receipt-snapshot") { ($0["batch"] as? Int ?? 0) > previous }
+    XCTAssertEqual(row["dropped"] as? Int, 0)
+    XCTAssertTrue(try XCTUnwrap(row["failures"] as? [[String: Any]]).isEmpty)
+    let observation = try XCTUnwrap((row["observations"] as? [[String: Any]])?.last)
+    XCTAssertEqual(observation["field"] as? String, "outer")
+    XCTAssertEqual(observation[name] as? Bool, true)
+    XCTAssertEqual((observation["data"] as? [String: Any])?["key"] as? String, "9")
+    XCTAssertEqual((observation["data"] as? [String: Any])?["focusedTarget"] as? Int, originalHourTarget)
+    XCTAssertEqual((row["requests"] as? [[String: Any]])?.count, requestCount)
+    let frames = try XCTUnwrap(row["frames"] as? [[String: Any]])
+    XCTAssertTrue(frames.allSatisfy { ($0["error"] as? String) == "" })
+    let attachment = XCTAttachment(string: element("field-sdk-receipt-snapshot").label)
+    attachment.name = "original-" + name + "-key-refusal"
+    attachment.lifetime = .keepAlways
+    add(attachment)
   }
   func testOriginalValueClassRequestsCheckpoint() throws {
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
@@ -117,6 +143,21 @@ final class FieldInputTrialTests: XCTestCase {
       XCTAssertEqual((localized["requests"] as? [[String: Any]])?.last?["value"] as? String, requested)
       XCTAssertEqual((localized["requests"] as? [[String: Any]])?.last?["valueClass"] as? String, valueClass)
       control("locale")
+    }
+    for guardName in ["readonly", "disabled"] {
+      revealHour().tap()
+      control(guardName)
+      _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+      _ = try wait("outer-value") { $0[guardName] as? Bool == true && $0["keyboardReady"] as? Bool == true }
+      element("outer-hour").typeKey("9", modifierFlags: [])
+      _ = try wait("field-sdk-observation-snapshot") { row in
+        let data = row["data"] as? [String: Any]
+        return row[guardName] as? Bool == true && data?["key"] as? String == "9" &&
+          data?["focusedTarget"] as? Int == self.originalHourTarget
+      }
+      try guardCheckpoint(guardName, requestCount: count)
+      XCTAssertEqual(read("outer-value")?["value"] as? String, "2024-10-01T13:45:07-04:00[America/New_York]")
+      control(guardName)
     }
   }
 }

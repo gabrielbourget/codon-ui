@@ -81,8 +81,12 @@ def inspect(rows, producer):
         if record["kind"] == "original-input":
             child_key = record["token"], record["eventId"]
             assert child_key not in original_inputs, "Duplicate original input payload"
-            original_inputs[child_key] = record["payload"]
-    callbacks = {}; payload_ids = {}; payload_frames = {}; unjoined = []; pending_subphases = []
+            original = packet(json.dumps(record["packet"]))
+            assert (original["token"], original["eventId"]) == child_key, "Native input packet belongs to another subphase"
+            assert key(original) in children, "Native input packet has no parent subphase result"
+            assert original["identity"] == children[key(original)]["identity"], "Native input packet scope differs from parent result"
+            original_inputs[child_key] = record["payload"], original
+    callbacks = {}; payload_ids = {}; payload_frames = {}; unjoined = []
     for row in rows:
         if row["kind"] not in CALLBACKS: continue
         data = row["data"]
@@ -100,16 +104,17 @@ def inspect(rows, producer):
             assert dispatch["identity"] == child["identity"], "Original input subphase identity changed"
             payload_key = dispatch["token"], dispatch["eventId"]
             assert payload_key in original_inputs, "Original input payload missing"
-            for name, value in original_inputs[payload_key].items():
+            payload, original = original_inputs[payload_key]
+            assert dispatch == original, "Original native subphase group packet changed"
+            for name, value in payload.items():
                 assert data.get(name) == value, "Original input argument changed"
-            pending_subphases.append(row["sequence"])
         payload = positive(row["originalPayloadId"])
         assert payload_ids.setdefault(identity, payload) == payload, "Original event payload was replaced between receivers"
         assert payload_frames.setdefault(payload, identity) == identity, "Original payload identity reused for another native turn"
         callbacks.setdefault(identity, []).append(row)
     for identity, receivers in callbacks.items():
-        if identity not in frames: continue
-        groups = frames[identity][1]["groups"]
+        if identity in frames: groups = frames[identity][1]["groups"]
+        else: groups = original_inputs[(identity[1], identity[2])][1]["groups"]
         expected = [group["target"] for group in groups]
         actual = [row["receiverTarget"] for row in receivers if row["kind"] == "field-key"]
         assert actual == expected[:len(actual)], "Original group order/membership changed"
@@ -122,4 +127,4 @@ def inspect(rows, producer):
         assert isinstance(command["command"], str) and command["command"]
         if command["callbackCompleted"] and command["current"] and not command["error"]:
             assert command["before"] and command["after"], "Command completion lacks actual native observations"
-    return {"receiptIntegrity": True, "nativeFrames": len(frames), "joinedCallbacks": sum(map(len, callbacks.values())), "unjoinedCallbackSequences": unjoined, "subphaseGroupCustodyNotYetVerified": pending_subphases, "nativeFailures": [record for record in native if record["kind"] == "failure"], "nativeCommands": len(commands), "fullInputSurface": False, "fullFamily": False, "fullGoal": False, "scope": "Original receipt joins only; complete native scenario trial and acceptance parser remain required"}
+    return {"receiptIntegrity": True, "nativeFrames": len(frames), "joinedCallbacks": sum(map(len, callbacks.values())), "unjoinedCallbackSequences": unjoined, "nativeSubphasePackets": len(original_inputs), "nativeFailures": [record for record in native if record["kind"] == "failure"], "nativeCommands": len(commands), "fullInputSurface": False, "fullFamily": False, "fullGoal": False, "scope": "Original receipt joins only; complete native scenario trial and acceptance parser remain required"}

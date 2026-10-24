@@ -20,6 +20,18 @@ def fixture():
     return rows
 
 
+def subphase_fixture():
+    rows=fixture();batch=rows[-1];parent=batch["records"][0]
+    dispatch=json.loads(rows[0]["data"]["fieldDispatch"])
+    dispatch.update(token=2,eventId=2,phase="input")
+    raw=dict(target=12,kind="insert",text="٢")
+    parent["inputSubphases"]=[dict(token=2,eventId=2,phase="input",identity=copy.deepcopy(dispatch["identity"]))]
+    batch["records"].append(dict(kind="original-input",token=2,eventId=2,packet=copy.deepcopy(dispatch),payload=raw))
+    rows.insert(-1,dict(kind="segment-input",probe=PROBE,producer="producer",originalPayloadId=2,data={**raw,"fieldDispatch":json.dumps(dispatch)}))
+    for index,item in enumerate(rows):item["sequence"]=index+1
+    return rows
+
+
 class ReceiptIntegrity(unittest.TestCase):
     def test_joins_original_frames_and_keeps_acceptance_open(self):
         result = inspect(fixture(), "producer")
@@ -56,21 +68,27 @@ class ReceiptIntegrity(unittest.TestCase):
             rows=fixture();change(rows)
             with self.assertRaises(AssertionError): inspect(rows,"producer")
 
-    def test_preserves_subphase_arguments_without_claiming_unverified_group_custody(self):
-        rows=fixture();batch=rows[-1];parent=batch["records"][0]
-        dispatch=json.loads(rows[0]["data"]["fieldDispatch"])
-        dispatch.update(token=2,eventId=2,phase="input")
-        raw=dict(target=12,kind="insert",text="٢")
-        parent["inputSubphases"]=[dict(token=2,eventId=2,phase="input",identity=copy.deepcopy(dispatch["identity"]))]
-        batch["records"].append(dict(kind="original-input",token=2,eventId=2,payload=raw))
-        row=dict(kind="segment-input",probe=PROBE,producer="producer",originalPayloadId=2,data={**raw,"fieldDispatch":json.dumps(dispatch)})
-        rows.insert(-1,row)
-        for index,item in enumerate(rows):item["sequence"]=index+1
+    def test_joins_actual_native_subphase_packet_and_arguments(self):
+        rows=subphase_fixture()
         result=inspect(rows,"producer")
-        self.assertEqual(result["subphaseGroupCustodyNotYetVerified"],[4])
+        self.assertEqual(result["nativeSubphasePackets"],1)
+        self.assertEqual(result["joinedCallbacks"],4)
         self.assertFalse(result["fullInputSurface"])
-        row["data"]["text"]="wrong"
+        rows[-2]["data"]["text"]="wrong"
         with self.assertRaises(AssertionError): inspect(rows,"producer")
+
+    def test_rejects_missing_native_packet_and_changed_subphase_group_path(self):
+        rows=subphase_fixture();rows[-1]["records"][-1].pop("packet")
+        with self.assertRaises((AssertionError,KeyError)): inspect(rows,"producer")
+        for change in [lambda packet: packet["groups"].reverse(), lambda packet: packet["groups"][0].update(scopeTarget=99), lambda packet: packet["identity"].update(windowId="foreign")]:
+            rows=subphase_fixture();source=rows[-2]["data"]
+            dispatch=json.loads(source["fieldDispatch"]);change(dispatch);source["fieldDispatch"]=json.dumps(dispatch)
+            with self.assertRaises(AssertionError): inspect(rows,"producer")
+
+    def test_rejects_native_subphase_packet_token_and_parent_mismatch(self):
+        for change in [lambda rows: rows[-1]["records"][-1]["packet"].update(token=99), lambda rows: rows[-1]["records"][0]["inputSubphases"][0]["identity"].update(nativeInstance="foreign")]:
+            rows=subphase_fixture();change(rows)
+            with self.assertRaises(AssertionError): inspect(rows,"producer")
 
 
 if __name__ == "__main__": unittest.main()
