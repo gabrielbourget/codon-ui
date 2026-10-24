@@ -1,5 +1,6 @@
 #import "CUIFieldInputBinding.h"
 #import "CUIFieldGroupDocument.h"
+#import "CUIFieldPointerHandler.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import "CUIInputWindow.h"
 #import "CUIFocusView.h"
@@ -8,6 +9,8 @@
 #import <React/RCTAssert.h>
 #import <React/RCTTextInputComponentView.h>
 #import <React/RCTTextInputNativeCommands.h>
+#import <React/RCTSurfaceTouchHandler.h>
+#import <React/RCTUtils.h>
 #include "../cpp/form/FieldInputBinding.h"
 #include "../cpp/FieldInputOriginalCapture.h"
 #include "../cpp/form/FabricFormDocument.h"
@@ -26,11 +29,112 @@ using namespace codon::form;
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
 - (void)emitOriginalInput:(UIView *)view emit:(void (^)(void))emit;
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat originalInput:(const RawEvent *)originalInput;
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+  originalInput:(const RawEvent *)originalInput deadline:(FieldInputDispatchFrames::Clock::time_point)deadline;
+- (void)emitOriginalPointers:(void (^)(void))emit decision:(void (^)(BOOL))decision;
+- (void)record:(NSDictionary *)value;
+- (void)pointerFailure:(NSString *)error;
 - (UIWindow *)boundWindow;
 - (NSString *)moduleLease;
 @end
 
 static NSHashTable<CUIFieldInputBinding *> *CUIFieldInputs;
+static NSMapTable<UIView *, CUIFieldPointerHandler *> *CUIFieldPointers;
+static BOOL CUIFieldInputWindowActive(UIWindow *window)
+{
+  return window && window.isKeyWindow && UIApplication.sharedApplication.applicationState == UIApplicationStateActive &&
+    (!window.windowScene || window.windowScene.activationState == UISceneActivationStateForegroundActive);
+}
+static UIView *CUIFieldPointerSurface(UIView *view)
+{
+  for (UIView *ancestor = view; ancestor; ancestor = ancestor.superview)
+    for (UIGestureRecognizer *recognizer in ancestor.gestureRecognizers)
+      if ([recognizer isKindOfClass:RCTSurfaceTouchHandler.class]) return ancestor;
+  return nil;
+}
+static BOOL CUIFieldPointerSurfaceOccupied(UIView *surface)
+{
+  for (UIGestureRecognizer *recognizer in surface.gestureRecognizers)
+    if ([recognizer isKindOfClass:RCTSurfacePointerHandler.class] &&
+        ![recognizer isKindOfClass:CUIFieldPointerHandler.class]) return YES;
+  return NO;
+}
+static BOOL CUIFieldContainsTarget(NSDictionary *value, int32_t surface, int32_t target)
+{
+  if (!value) return NO;
+  const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
+  if (document.at("surfaceId").asInt() != surface) return NO;
+  const auto &plan = document.at("fieldGroup");
+  if (plan.at("outerTarget").asInt() == target) return YES;
+  for (const auto &node : plan.at("nodes")) if (node.at("target").asInt() == target) return YES;
+  return NO;
+}
+static CUIFieldInputBinding *CUIFieldPointerOwner(UIView *surface, const RawEvent &event)
+{
+  if (!CUIFieldInputWindowActive(surface.window)) return nil;
+  const auto family = event.shadowNodeFamily.lock();
+  if (!family) return nil;
+  CUIFieldInputBinding *selected = nil;
+  for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
+    UIView *outer = [binding outerRoot];
+    if (!surface || outer.window != surface.window || CUIFieldPointerSurface(outer) != surface ||
+        !CUIFieldContainsTarget([binding capture], family->getSurfaceId(), family->getTag())) continue;
+    if (selected && [selected outerRoot] == outer) throw std::runtime_error("field-input-pointer-group-ambiguous");
+    if (!selected || [outer isDescendantOfView:[selected outerRoot]]) selected = binding;
+  }
+  return selected;
+}
+static void CUIRefreshFieldPointerHandlers(UIWindow *window)
+{
+  if (!window) return;
+  if (!CUIFieldPointers) CUIFieldPointers = [NSMapTable weakToStrongObjectsMapTable];
+  NSHashTable<UIView *> *wanted = [NSHashTable weakObjectsHashTable];
+  const BOOL active = CUIFieldInputWindowActive(window);
+  if (active) {
+    for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
+      UIView *outer = [binding outerRoot];
+      if ([binding boundWindow] != window || outer.window != window) continue;
+      if (RCTGetDispatchW3CPointerEvents()) {
+        [binding pointerFailure:@"field-input-pointer-sdk-coexistence-unqualified"]; continue;
+      }
+      UIView *surface = CUIFieldPointerSurface(outer);
+      if (!surface) { [binding pointerFailure:@"field-input-pointer-original-surface-unavailable"]; continue; }
+      if (CUIFieldPointerSurfaceOccupied(surface)) {
+        [binding pointerFailure:@"field-input-pointer-sdk-coexistence-unqualified"]; continue;
+      }
+      [binding pointerFailure:nil]; [wanted addObject:surface];
+    }
+  }
+  for (UIView *surface in CUIFieldPointers.keyEnumerator.allObjects) {
+    if ((surface.window == window || !surface.window) && ![wanted containsObject:surface]) {
+      [[CUIFieldPointers objectForKey:surface] retire]; [CUIFieldPointers removeObjectForKey:surface];
+    }
+  }
+  for (UIView *surface in wanted.allObjects) {
+    if ([CUIFieldPointers objectForKey:surface]) continue;
+    __weak UIView *weakSurface = surface;
+    CUIFieldPointerHandler *handler = [[CUIFieldPointerHandler alloc] initWithSurface:surface accepts:^BOOL(UITouch *touch) {
+      UIView *surface = weakSurface;
+      if (!surface || !CUIFieldInputWindowActive(surface.window) || RCTGetDispatchW3CPointerEvents() ||
+          CUIFieldPointerSurfaceOccupied(surface)) return NO;
+      for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
+        UIView *outer = [binding outerRoot];
+        if (outer.window == surface.window && CUIFieldPointerSurface(outer) == surface &&
+            [touch.view isDescendantOfView:outer] && [binding capture]) return YES;
+      }
+      return NO;
+    } emission:^(void (^emit)(void), void (^decision)(BOOL)) {
+      UIView *surface = weakSurface;
+      if (!surface) { emit(); return; }
+      for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects)
+        if (CUIFieldPointerSurface([binding outerRoot]) == surface && [binding capture]) {
+          [binding emitOriginalPointers:emit decision:decision]; return;
+        }
+      emit();
+    }];
+    [CUIFieldPointers setObject:handler forKey:surface];
+  }
+}
 static CUIFieldInputBinding *CUIFieldWinner(UIWindow *window)
 {
   CUIFieldInputBinding *selected = nil;
@@ -134,12 +238,12 @@ static void CUIRefreshFieldInputWindow(UIWindow *window);
 static void CUIRefreshFieldInputWindow(UIWindow *window)
 {
   if (!window) return;
+  CUIRefreshFieldPointerHandlers(window);
   if (!CUIFieldWindows) CUIFieldWindows = [NSMapTable weakToStrongObjectsMapTable];
   CUIFieldInputWindow *router = [CUIFieldWindows objectForKey:window];
   BOOL needed = NO;
   for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) if ([binding boundWindow] == window) { needed = YES; break; }
-  const BOOL active = window.isKeyWindow && UIApplication.sharedApplication.applicationState == UIApplicationStateActive &&
-    (!window.windowScene || window.windowScene.activationState == UISceneActivationStateForegroundActive);
+  const BOOL active = CUIFieldInputWindowActive(window);
   if ((!needed && !router.held.count) || !active) {
     [window removeGestureRecognizer:router.observer]; [window removeGestureRecognizer:router.veto];
     [router.held removeAllObjects]; [CUIFieldWindows removeObjectForKey:window]; return;
@@ -176,7 +280,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   __weak UIWindow *_window;
   std::weak_ptr<UIManager> _manager;
   NSDictionary *(^_snapshot)(void);
-  NSString *_bindingId, *_ownerId, *_lease, *_fingerprint, *_error, *_outerInstance, *_inputInstance;
+  NSString *_bindingId, *_ownerId, *_lease, *_fingerprint, *_error, *_pointerError, *_outerInstance, *_inputInstance;
   NSUInteger _epoch, _eventId;
   BOOL _closed, _capturing;
   NSMutableSet<NSNumber *> *_consumed;
@@ -207,6 +311,12 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 {
   NSData *bytes = [NSJSONSerialization dataWithJSONObject:value options:NSJSONWritingSortedKeys error:nil];
   if (bytes) [self recordEncoded:[[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding]];
+}
+- (void)pointerFailure:(NSString *)error
+{
+  if ((_pointerError == error) || [_pointerError isEqual:error]) return;
+  _pointerError = [error copy];
+  if (error) [self record:@{@"kind":@"pointer-failure", @"error":error}];
 }
 - (void)retirePending
 {
@@ -394,6 +504,44 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 }
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat originalInput:(const RawEvent *)originalInput
 {
+  return [self dispatch:press phase:phase repeat:repeat originalInput:originalInput deadline:FieldInputDispatchFrames::Clock::time_point::max()];
+}
+- (void)emitOriginalPointers:(void (^)(void))emit decision:(void (^)(BOOL))decision
+{
+  const auto manager = _manager.lock();
+  UIView *surface = CUIFieldPointerSurface(_outer);
+  if (!manager || !surface) { emit(); return; }
+  std::unordered_set<int32_t> members;
+  int32_t surfaceId = 0;
+  for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects)
+    if (CUIFieldPointerSurface([binding outerRoot]) == surface) {
+      NSDictionary *value = [binding capture]; if (!value) continue;
+      const auto document = folly::parseJson([value[@"encodedDocument"] UTF8String]);
+      const auto currentSurface = static_cast<int32_t>(document.at("surfaceId").asInt());
+      if (surfaceId && surfaceId != currentSurface) throw std::runtime_error("field-input-pointer-surface-ambiguous");
+      surfaceId = currentSurface;
+      members.insert(fieldGroupTarget(document.at("fieldGroup").at("outerTarget")));
+      for (const auto &node : document.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
+    }
+  continueFieldOriginalPointer(*manager, [&](const RawEvent &event) {
+    const auto family = event.shadowNodeFamily.lock();
+    return family && family->getSurfaceId() == surfaceId && members.contains(family->getTag());
+  }, [&] { emit(); }, [&](const RawEvent &original, FieldInputDispatchFrames::Clock::time_point deadline) -> std::optional<bool> {
+    CUIFieldInputBinding *owner = CUIFieldPointerOwner(surface, original);
+    if (!owner) {
+      [self record:@{@"kind":@"pointer-retired", @"phase":@(fieldInputOriginalPointerPhase(original.type))}];
+      return std::nullopt;
+    }
+    NSString *phase = @(fieldInputOriginalPointerPhase(original.type));
+    if ([phase isEqual:@"pointer-start"]) CUIRecordWindowModality(surface.window, @"pointer");
+    const BOOL prevented = [owner dispatch:nil phase:phase repeat:NO originalInput:&original deadline:deadline];
+    decision(prevented);
+    return static_cast<bool>(prevented);
+  });
+}
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
+  originalInput:(const RawEvent *)originalInput deadline:(FieldInputDispatchFrames::Clock::time_point)deadline
+{
   NSDictionary *value = [self capture];
   const auto manager = _manager.lock();
   if (!value || !manager || (!originalInput && (press.window != _window || !press.key))) return NO;
@@ -402,13 +550,15 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     NSData *snapshotBytes = [NSJSONSerialization dataWithJSONObject:value[@"fieldGroupSnapshot"] options:0 error:nil];
     const auto snapshot = folly::parseJson([[[NSString alloc] initWithData:snapshotBytes encoding:NSUTF8StringEncoding] UTF8String]);
     const auto binding = fieldInputBinding(document);
-    const auto target = static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
+    const bool pointer = originalInput && isFieldInputOriginalPointer(originalInput->type);
+    const auto family = originalInput ? originalInput->shadowNodeFamily.lock() : nullptr;
+    const auto target = pointer && family ? family->getTag() : static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
     if (!target) throw std::invalid_argument("field-input-original-focus-retired");
     auto fabric = captureFabricFormDocument(*manager, static_cast<int32_t>(document.at("surfaceId").asInt()));
     if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
       throw std::invalid_argument("field-input-original-document-retired");
     const auto original = fabric.preorder[fabric.positions.at(target)].node;
-    if (originalInput && (originalInput->type != "topNativeSegmentInput" ||
+    if (originalInput && ((!pointer && originalInput->type != "topNativeSegmentInput") ||
         originalInput->shadowNodeFamily.lock() != original->getFamilyShared() ||
         originalInput->eventTarget != original->getEventEmitter()->getEventTarget()))
       throw std::invalid_argument("field-input-original-editor-retired");
@@ -420,8 +570,8 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     for (CUIFieldInputBinding *entry in CUIFieldInputs.allObjects) {
       NSDictionary *current = [entry capture];
       UIView *root = [entry outerRoot];
-      UIView *source = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target];
-      if (current && root.window == _window && [source isDescendantOfView:root]) {
+      if (current && root.window == _window && CUIFieldContainsTarget(current, original->getSurfaceId(), target) &&
+          (root == _outer || [_outer isDescendantOfView:root])) {
         const auto currentDocument = folly::parseJson([current[@"encodedDocument"] UTF8String]);
         const auto field = fieldInputBinding(currentDocument);
         if (field.moduleLease != binding.moduleLease) continue;
@@ -436,7 +586,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const auto groups = orderedFieldInputGroups(document, bindings, target);
     const auto identity = fieldInputIdentity(document, snapshot, binding, target, _epoch);
     const auto eventId = ++_eventId;
-    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(1000), std::move(scopes));
+    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(1000), std::move(scopes), deadline);
     if (!ticket) throw std::invalid_argument("field-input-original-scope-frame-retired");
     FieldInputFrameLifetime lifetime(state->frames, ticket);
     UIKey *key = press.key; const auto flags = key.modifierFlags;
@@ -446,7 +596,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     if (down && [component isKindOfClass:CUIFocusView.class]) intrinsic = [(CUIFocusView *)component capturesObservedKey:key];
     if (down && intrinsic) [_consumed addObject:@(key.keyCode)];
     if (!down && !originalInput) [_consumed removeObject:@(key.keyCode)];
-    const auto row = fieldInputOriginal(snapshot, target);
+    const auto row = fieldInputTargetInstance(snapshot, target);
     const auto hostOwner = row.get_ptr("hostOwnerId");
     folly::dynamic payload = originalInput ? folly::dynamic::object("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups))) : folly::dynamic::object("kind", "keyboard")("ownerId", hostOwner ? hostOwner->asString() : binding.ownerId)("target", target)
       ("key", CUIInputKeyName(key).UTF8String ?: "")("nativeCode", static_cast<int>(key.keyCode))("characters", key.characters.UTF8String ?: "")
@@ -463,7 +613,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const std::weak_ptr<const RootShadowNode> weakRoot = fabric.root;
     const std::weak_ptr<UIManager> weakManager = manager;
     const auto revision = fabric.revision;
-    const bool scheduled = state->schedule(ticket, manager, original, originalInput ? "topNativeSegmentInput" : "nativeFieldKey", std::move(payload),
+    const bool scheduled = state->schedule(ticket, manager, original, originalInput ? originalInput->type : "nativeFieldKey", std::move(payload),
       originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000), [weakRoot, weakManager, revision] {
         const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
@@ -495,7 +645,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       });
     }, [&](const FieldInputDispatchFrames::Handle &ticket, const FieldInputCommandAction &command) {
       const auto current = [&] {
-        if (![NSThread isMainThread] || !state->frames.isCurrent(ticket) || _epoch != identity.epoch || !_window.isKeyWindow)
+        if (![NSThread isMainThread] || !state->frames.isCurrent(ticket) || _epoch != identity.epoch || !CUIFieldInputWindowActive(_window))
           return false;
         for (const auto &scope : ticket->scopes) {
           CUIFieldInputBinding *owner = scopeOwner(scope.outerTarget);
@@ -524,7 +674,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       return result;
     }) : FieldInputDecision{FieldInputDisposition::Retired, {}, false, false};
     NSDictionary *after = [self capture];
-    bool current = after && _epoch == identity.epoch && _window.isKeyWindow &&
+    bool current = after && _epoch == identity.epoch && CUIFieldInputWindowActive(_window) &&
       [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target] == component;
     for (const auto &scope : ticket->scopes) {
       CUIFieldInputBinding *owner = scopeOwners[@(scope.outerTarget)];
@@ -532,7 +682,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     }
     const auto subphases = fieldInputSubphaseResults(state->frames, ticket);
   const auto decision = state->frames.end(ticket, current);
-    folly::dynamic record = folly::dynamic::object("kind", originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
+    folly::dynamic record = folly::dynamic::object("kind", pointer ? "pointer" : originalInput ? "input" : "key")("event", before)("identity", encodeFieldInputIdentity(identity))
       ("wait", fieldInputDispositionName(waited.disposition))("decision", fieldInputDispositionName(decision.disposition))
       ("deliveryStarted", decision.deliveryStarted)("deliveryReturned", decision.deliveryReturned)("error", decision.error)
       ("originalDefaultPrevented", decision.originalDefaultPrevented)("renderPhasesComplete", decision.phasesComplete)

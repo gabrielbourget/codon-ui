@@ -192,7 +192,7 @@ index 0000000000000000000000000000000000000000..c6c2bcc40f92410ff613d3fc88ebc963
 +  }
 +}
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
-index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..41800e8bf87264d1e95891cf97908e8a8a4fcaa8 100644
+index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b6047a2fe 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
 +++ b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 @@ -25,7 +25,10 @@ EventDispatcher::EventDispatcher(
@@ -203,7 +203,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..41800e8bf87264d1e95891cf97908e8a
 +  const bool handled = eventListeners_.willDispatchEvent(rawEvent);
 +  // willDispatchEvent has released its shared lock before any bounded UI/JS
 +  // service can add or remove listeners on this same dispatcher.
-+  if (rawEvent.continueAfterListeners() || handled) {
++  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
  
@@ -231,7 +231,7 @@ index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..41800e8bf87264d1e95891cf97908e8a
 +  const bool handled = eventListeners_.willDispatchEvent(rawEvent);
 +  // willDispatchEvent has released its shared lock before any bounded UI/JS
 +  // service can add or remove listeners on this same dispatcher.
-+  if (rawEvent.continueAfterListeners() || handled) {
++  if (rawEvent.continueAfterListeners(handled)) {
      return;
    }
  
@@ -302,10 +302,10 @@ index f525767478aa700f3b1978a0b4f2dc8c7d3b7730..930f66425c2cb0dbe7b446d5354b4122
     * Called on any enqueue operation.
 diff --git a/ReactCommon/react/renderer/core/NativeEventContinuation.h b/ReactCommon/react/renderer/core/NativeEventContinuation.h
 new file mode 100644
-index 0000000000000000000000000000000000000000..875d42b2b9c1acd72d033a9dc4349e36120b0807
+index 0000000000000000000000000000000000000000..5ca4b46bd70a47bd500606b911458b3dc1fe73e5
 --- /dev/null
 +++ b/ReactCommon/react/renderer/core/NativeEventContinuation.h
-@@ -0,0 +1,50 @@
+@@ -0,0 +1,61 @@
 +/*
 + * Copyright (c) Meta Platforms, Inc. and affiliates.
 + *
@@ -316,6 +316,7 @@ index 0000000000000000000000000000000000000000..875d42b2b9c1acd72d033a9dc4349e36
 +
 +#include <atomic>
 +#include <functional>
++#include <memory>
 +#include <stdexcept>
 +#include <thread>
 +#include <utility>
@@ -335,32 +336,42 @@ index 0000000000000000000000000000000000000000..875d42b2b9c1acd72d033a9dc4349e36
 +// Claimed on the original event stack, invoked only after the listener lock.
 +// Callback completion is not a JS delivery, focus or native-default receipt.
 +class NativeEventContinuation final {
++  struct Conditional {};
 + public:
 +  explicit NativeEventContinuation(std::function<void()> callback)
-+      : thread_(std::this_thread::get_id()), callback_(std::move(callback)) {
-+    if (!callback_) throw std::invalid_argument("native-event-continuation-required");
++      : NativeEventContinuation(accepting(std::move(callback)), Conditional{}) {}
++  static std::shared_ptr<NativeEventContinuation> conditional(std::function<bool()> callback) {
++    return std::shared_ptr<NativeEventContinuation>(new NativeEventContinuation(std::move(callback), Conditional{}));
 +  }
-+  void run() {
++  bool run() {
 +    if (NativeEventListenerScope::active())
 +      throw std::runtime_error("native-event-continuation-listener-stack-active");
 +    if (thread_ != std::this_thread::get_id())
 +      throw std::runtime_error("native-event-continuation-wrong-thread");
 +    bool expected = false;
-+    if (!claimed_.compare_exchange_strong(expected, true)) return;
++    if (!claimed_.compare_exchange_strong(expected, true)) return true;
 +    auto callback = std::move(callback_);
-+    callback();
++    return callback();
 +  }
 + private:
++  NativeEventContinuation(std::function<bool()> callback, Conditional)
++      : thread_(std::this_thread::get_id()), callback_(std::move(callback)) {
++    if (!callback_) throw std::invalid_argument("native-event-continuation-required");
++  }
++  static std::function<bool()> accepting(std::function<void()> callback) {
++    if (!callback) throw std::invalid_argument("native-event-continuation-required");
++    return [callback = std::move(callback)] { callback(); return true; };
++  }
 +  const std::thread::id thread_;
 +  std::atomic<bool> claimed_{false};
-+  std::function<void()> callback_;
++  std::function<bool()> callback_;
 +};
 +} // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/core/RawEvent.cpp b/ReactCommon/react/renderer/core/RawEvent.cpp
-index bced302982b13fb1e140c34173d7609b060974d5..1c7e57c90b4da3c766ed4ed3dcd5b2e003ebf234 100644
+index bced302982b13fb1e140c34173d7609b060974d5..7cea30ec80abe43885083290bcab0a5b8c6fc0f1 100644
 --- a/ReactCommon/react/renderer/core/RawEvent.cpp
 +++ b/ReactCommon/react/renderer/core/RawEvent.cpp
-@@ -25,4 +25,17 @@ RawEvent::RawEvent(
+@@ -25,4 +25,25 @@ RawEvent::RawEvent(
        isUnique(isUnique),
        eventStartTimeStamp(eventStartTimeStamp) {}
  
@@ -371,15 +382,23 @@ index bced302982b13fb1e140c34173d7609b060974d5..1c7e57c90b4da3c766ed4ed3dcd5b2e0
 +}
 +
 +bool RawEvent::continueAfterListeners() {
-+  const auto continuation = nativeContinuation_;
-+  if (!continuation) return false;
-+  continuation->run();
++  return continueAfterListeners(false);
++}
++
++bool RawEvent::deferAfterListenersIfAccepted(std::function<bool()> callback) const {
++  if (nativeContinuation_) return false;
++  nativeContinuation_ = NativeEventContinuation::conditional(std::move(callback));
 +  return true;
++}
++
++bool RawEvent::continueAfterListeners(bool handled) {
++  const auto continuation = nativeContinuation_;
++  return continuation ? continuation->run() : handled;
 +}
 +
  } // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/core/RawEvent.h b/ReactCommon/react/renderer/core/RawEvent.h
-index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..821163e5962462e0a38be5d61db7d8a83e7146a2 100644
+index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..a2694682a3187434f87dfe92cd0ecbe3d772f4bc 100644
 --- a/ReactCommon/react/renderer/core/RawEvent.h
 +++ b/ReactCommon/react/renderer/core/RawEvent.h
 @@ -8,6 +8,8 @@
@@ -391,7 +410,7 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..821163e5962462e0a38be5d61db7d8a8
  #include <string>
  
  #include <react/renderer/core/EventLogger.h>
-@@ -88,6 +90,15 @@ struct RawEvent {
+@@ -88,6 +90,19 @@ struct RawEvent {
    // time if not specified by the client (e.g., when MotionEvent was triggered
    // on the Android native side).
    HighResTimeStamp eventStartTimeStamp;
@@ -400,7 +419,11 @@ index 3111ee7cddfe9f8ed92093413e4ff928bf17215a..821163e5962462e0a38be5d61db7d8a8
 +  // work until the dispatcher's listener lock is released. Copies retain the
 +  // same once-only continuation; ordinary events allocate nothing here.
 +  bool deferAfterListeners(std::function<void()> callback) const;
++  // Declining before first delivery leaves this same original event on its
++  // dispatcher's ordinary queue path; no event is re-emitted or replayed.
++  bool deferAfterListenersIfAccepted(std::function<bool()> callback) const;
 +  bool continueAfterListeners();
++  bool continueAfterListeners(bool handled);
 +
 + private:
 +  mutable std::shared_ptr<NativeEventContinuation> nativeContinuation_;

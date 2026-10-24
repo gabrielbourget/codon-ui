@@ -94,6 +94,40 @@ int main() {
     manager.dispatcher.dispatchEvent(makeEvent());
     check(manager.dispatcher.eventQueue_.events.size() == 1);
   }
+  {
+    UIManager manager;
+    std::vector<std::string> received;
+    int nestedEmission = 0;
+    codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+      manager.dispatcher.dispatchEvent(makeEvent());
+      auto click = makeEvent(); click.type = "topClick";
+      manager.dispatcher.dispatchEvent(std::move(click));
+    }, [&](const RawEvent &event, auto) {
+      received.push_back(event.type);
+      if (event.type == "topPointerDown") {
+        codon::FieldInputNativeOperation native(&manager);
+        check(!codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+          nestedEmission++;
+          auto cancelled = makeEvent(); cancelled.type = "topPointerCancel";
+          manager.dispatcher.dispatchEvent(std::move(cancelled));
+        }, [&](const RawEvent &, auto) { check(false); return true; }));
+      }
+      return false;
+    });
+    check(received == (std::vector<std::string>{"topPointerDown", "topClick"}) && nestedEmission == 1);
+    check(manager.dispatcher.eventQueue_.events.size() == 1);
+    const auto &cancelled = manager.dispatcher.eventQueue_.events[0];
+    check(cancelled.type == "topPointerCancel" && cancelled.eventTarget == target && cancelled.eventPayload == payload && cancelled.eventStartTimeStamp.value == 41);
+  }
+  {
+    UIManager manager, unrelated;
+    codon::FieldInputNativeOperation other(&unrelated);
+    int received = 0;
+    check(codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+      manager.dispatcher.dispatchEvent(makeEvent());
+    }, [&](const RawEvent &, auto) { received++; return true; }));
+    check(received == 1 && manager.dispatcher.eventQueue_.events.empty());
+  }
   for (bool unique : {false, true}) {
     EventDispatcher dispatcher;
     const auto logger = std::make_shared<ModelLogger>(); dispatcher.eventLogger_ = logger;
@@ -104,6 +138,33 @@ int main() {
     check(queued.eventPayload == payload && queued.eventTarget == target && queued.shadowNodeFamily.lock() == family);
     check(queued.eventStartTimeStamp.value == 41 && queued.category == RawEvent::Category::Discrete && queued.isUnique == unique);
     check(logger->calls == (unique ? 0 : 1) && queued.loggingTag == (unique ? 0 : 77));
+  }
+  for (bool unique : {false, true}) {
+    EventDispatcher dispatcher;
+    auto logger = std::make_shared<ModelLogger>(); dispatcher.eventLogger_ = logger;
+    int callbacks = 0;
+    std::optional<RawEvent> copy;
+    auto listener = std::make_shared<const EventListener>([&](const RawEvent &event) {
+      const bool claimed = event.deferAfterListenersIfAccepted([&] { callbacks++; return false; });
+      copy.emplace(event);
+      return claimed;
+    });
+    dispatcher.addListener(listener);
+    if (unique) dispatcher.dispatchUniqueEvent(makeEvent(unique)); else dispatcher.dispatchEvent(makeEvent(unique));
+    check(callbacks == 1 && dispatcher.eventQueue_.events.size() == 1);
+    const auto &original = dispatcher.eventQueue_.events[0];
+    check(original.eventPayload == payload && original.eventTarget == target && original.shadowNodeFamily.lock() == family);
+    check(original.eventStartTimeStamp.value == 41 && original.isUnique == unique && logger->calls == (unique ? 0 : 1));
+    check(copy->continueAfterListeners() && callbacks == 1);
+  }
+  {
+    UIManager manager; int received = 0;
+    check(!codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+      manager.dispatcher.dispatchEvent(makeEvent());
+    }, [&](const RawEvent &, auto) -> std::optional<bool> { received++; return std::nullopt; }));
+    check(received == 1 && manager.dispatcher.eventQueue_.events.size() == 1);
+    manager.dispatcher.dispatchEvent(makeEvent());
+    check(manager.dispatcher.eventQueue_.events.size() == 2 && received == 1);
   }
   for (bool unique : {false, true}) {
     EventDispatcher dispatcher;
