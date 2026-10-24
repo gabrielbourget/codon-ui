@@ -447,16 +447,20 @@ const Field = ({
               record({ kind: "child-key", field: name, data: event.nativeEvent })
               if (stop) event.stopPropagation()
             }}
+            onKeyUp={(event) => {
+              record({ kind: "child-key", field: name, data: event.nativeEvent })
+              if (stop) event.stopPropagation()
+            }}
             onPointerDown={(event) => {
               record({ kind: "child-pointer", field: name, data: event.nativeEvent })
               if (stop) event.stopPropagation()
             }}
-            onPress={() => record({ kind: "child-press", field: name })}
+            onPress={(event) => record({ kind: "child-press", field: name, data: event.nativeEvent })}
             style={frame}
           >
             <Text>Authored action</Text>
           </NativePressable>
-          <NativePressable testID={`${name}-negative-tab`} tabIndex={-1} style={frame}>
+          <NativePressable testID={`${name}-negative-tab`} tabIndex={-1} nativeProgrammaticFocusable style={frame}>
             <Text>Programmatic action</Text>
           </NativePressable>
           <TextInput
@@ -464,7 +468,9 @@ const Field = ({
             defaultValue=""
             accessibilityLabel={`${name} original core editor`}
             onKeyPress={(event) => record({ kind: "core-key", field: name, data: event.nativeEvent })}
+            onChange={(event) => record({ kind: "core-native-change", field: name, data: event.nativeEvent })}
             onChangeText={(text) => record({ kind: "core-change", field: name, text })}
+            onSelectionChange={(event) => record({ kind: "core-selection", field: name, data: event.nativeEvent })}
             style={frame}
           />
           {!nested && (
@@ -492,10 +498,36 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const [value, setValue] = useState<TimeValue>(() => new Time(13, 45))
   const requests = useRef<Record<string, unknown>[]>([])
   const observations = useRef<Record<string, unknown>[]>([])
+  const callbacks = useRef<Record<string, unknown>[]>([])
   const [observationSnapshot, setObservationSnapshot] = useState("{}")
   const receive = useCallback(
     (row: Record<string, unknown>) => {
       if (row.kind === "value-request") requests.current.push(row)
+      if (
+        [
+          "segment-key",
+          "field-key",
+          "child-key",
+          "child-press",
+          "core-key",
+          "core-native-change",
+          "core-change",
+          "core-selection",
+        ].includes(String(row.kind))
+      ) {
+        const data = row.data as Record<string, unknown> | undefined
+        const selection = data?.selection as { start: number; end: number } | undefined
+        callbacks.current.push({
+          kind: row.kind,
+          field: row.field,
+          receiverTarget: row.receiverTarget ?? null,
+          key: data?.key ?? null,
+          dispatch: typeof data?.fieldDispatch === "string" ? data.fieldDispatch : null,
+          text: row.text ?? data?.text ?? null,
+          revision: row.revision ?? null,
+          selection: selection ? { start: selection.start, end: selection.end } : null,
+        })
+      }
       if (row.kind === "field-observed-key") {
         observations.current.push(row)
         setObservationSnapshot(JSON.stringify(row))
@@ -508,7 +540,8 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const receiptBatches = useRef(0)
   const receipts = () => {
     const batch = takeNativeFieldInputRecords()
-    receive({ kind: "native-receipts", ...batch })
+    const batchNumber = ++receiptBatches.current
+    receive({ kind: "native-receipts", batch: batchNumber, ...batch })
     const frames = batch.records
       .filter((row) => ["key", "pointer", "input"].includes(String(row.kind)))
       .map((row) => {
@@ -533,14 +566,20 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
         }
       })
     const failures = batch.records.filter((row) => row.kind === "failure")
+    const callbackSnapshot = callbacks.current.map(({ dispatch, ...row }) => {
+      const packet = typeof dispatch === "string" ? JSON.parse(dispatch) : null
+      return { ...row, token: packet?.token ?? null, phase: packet?.phase ?? null }
+    })
     setReceiptSnapshot(
       JSON.stringify({
-        batch: ++receiptBatches.current,
+        batch: batchNumber,
         dropped: batch.dropped,
         frames,
         failures,
         requests: requests.current,
         observations: observations.current,
+        callbacks: callbackSnapshot,
+        focusActions: batch.records.filter((row) => row.kind === "focus"),
       }),
     )
   }
@@ -566,7 +605,29 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
         <Pressable testID="field-sdk-checkpoint" onPress={receipts} style={frame}>
           <Text>Check original receipts</Text>
         </Pressable>
+        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+          {[
+            ["time", () => setValue(TIME_ENTRY_VALUES[0])],
+            ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
+            ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
+            ["unmount", () => setRemoveOnKey((value) => !value)],
+            ["show", () => setVisible(true)],
+            ["receipts", receipts],
+            ["disabled", () => setDisabled((value) => !value)],
+            ["readonly", () => setReadonly((value) => !value)],
+            ["echo", () => setEcho((value) => !value)],
+            ["veto", () => setVeto((value) => !value)],
+            ["stop", () => setStop((value) => !value)],
+            ["callback", () => setRevision((value) => value + 1)],
+            ["locale", () => setLocale((value) => (value === "en-GB" ? "ar-EG" : "en-GB"))],
+          ].map(([name, action]) => (
+            <Pressable key={name as string} testID={`field-sdk-${name}`} onPress={action as () => void} style={frame}>
+              <Text>{name as string}</Text>
+            </Pressable>
+          ))}
+        </View>
         <ScrollView
+          testID="field-sdk-content"
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="none"
           contentContainerStyle={{ padding: 20 }}
@@ -588,25 +649,6 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
               onRemove={removeField}
             />
           )}
-          {[
-            ["time", () => setValue(TIME_ENTRY_VALUES[0])],
-            ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
-            ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
-            ["unmount", () => setRemoveOnKey((value) => !value)],
-            ["show", () => setVisible(true)],
-            ["receipts", receipts],
-            ["disabled", () => setDisabled((value) => !value)],
-            ["readonly", () => setReadonly((value) => !value)],
-            ["echo", () => setEcho((value) => !value)],
-            ["veto", () => setVeto((value) => !value)],
-            ["stop", () => setStop((value) => !value)],
-            ["callback", () => setRevision((value) => value + 1)],
-            ["locale", () => setLocale((value) => (value === "en-GB" ? "ar-EG" : "en-GB"))],
-          ].map(([name, action]) => (
-            <Pressable key={name as string} testID={`field-sdk-${name}`} onPress={action as () => void} style={frame}>
-              <Text>{name as string}</Text>
-            </Pressable>
-          ))}
         </ScrollView>
       </NativeKeyboardScope>
     </NativeLocaleProvider>
