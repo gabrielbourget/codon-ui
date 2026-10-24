@@ -74,12 +74,14 @@ jest.mock("../specs/NativeCUIFormDocument", () => ({
     unbindFieldInput: jest.fn(async () => true),
   },
 }))
-afterEach(() => jest.restoreAllMocks())
-
-it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
+beforeEach(() => {
   jest
     .spyOn(jest.requireActual("react-native"), "findNodeHandle")
     .mockImplementation((target: unknown) => (target as { nativeTag?: number })?.nativeTag ?? 999)
+})
+afterEach(() => jest.restoreAllMocks())
+
+it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
   const error = jest.spyOn(console, "error"),
     record = jest.fn()
   await render(<FieldInputSDKScene record={record} />)
@@ -200,10 +202,14 @@ it("connects original segment entry, group callers and native binding lifetime w
   await act(() => screen.getByTestId("outer-hour").props.onNativeFieldKey(event))
   await act(() => screen.getByTestId("outer-input").props.onNativeFieldKey(event))
   await act(() => screen.getByTestId("outer-outer").props.onNativeFieldKey(event))
-  expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["segment-key", "value-request", "field-key", "field-key"])
-  expect(record.mock.calls[1][0]).toMatchObject({ held: "13:45:00", value: "14:45:00" })
-  expect(record.mock.calls[2][0].data).toBe(event.nativeEvent)
-  expect(record.mock.calls[3][0].data).toBe(event.nativeEvent)
+  const callbacks = record.mock.calls.map(([row]) => row).filter((row) => row.kind !== "field-state")
+  expect(callbacks.map((row) => row.kind)).toEqual(["segment-key", "value-request", "field-key", "field-key"])
+  expect(callbacks[1]).toMatchObject({ held: "13:45:00", heldClass: "Time", value: "14:45:00", valueClass: "Time" })
+  expect(callbacks[2].data).toBe(event.nativeEvent)
+  expect(callbacks[3].data).toBe(event.nativeEvent)
+  expect(record).toHaveBeenCalledWith(
+    expect.objectContaining({ kind: "field-state", field: "outer", value: "14:45:00", valueClass: "Time" }),
+  )
   expect(jest.mocked(NativeDocument!.bindFieldInput).mock.calls).toHaveLength(installed)
   expect(mockTargets.get("outer-hour")).toBe(target)
   expect(target.focus).toBe(originalFocus)
@@ -408,4 +414,36 @@ it("connects original segment entry, group callers and native binding lifetime w
     await Promise.resolve()
   })
   expect(error).not.toHaveBeenCalled()
+})
+
+it("keeps the original combined scene hosts across all TimeValue owners and an Arabic locale change", async () => {
+  const record = jest.fn()
+  await render(<FieldInputSDKScene record={record} />)
+  const originalHour = mockTargets.get("outer-hour")!,
+    originalMinute = mockTargets.get("outer-minute")!,
+    originalInner = mockTargets.get("inner-hour")!
+  const value = (name = "outer") => JSON.parse(screen.getByTestId(`${name}-value`).props.accessibilityLabel)
+  expect(value()).toMatchObject({ value: "13:45:00", valueClass: "Time", locale: "en-GB", direction: "ltr" })
+  for (const [control, expectedValue, valueClass] of [
+    ["calendar", "2024-10-01T13:45:07", "CalendarDateTime"],
+    ["zoned", "2024-10-01T13:45:07-04:00[America/New_York]", "ZonedDateTime"],
+    ["time", "13:45:07", "Time"],
+  ]) {
+    await fireEvent.press(screen.getByTestId(`field-sdk-${control}`))
+    expect(value()).toMatchObject({ value: expectedValue, valueClass })
+    expect(screen.getByTestId("outer-hour").props.displayText).toBe("13")
+    expect(mockTargets.get("outer-hour")).toBe(originalHour)
+    expect(mockTargets.get("outer-minute")).toBe(originalMinute)
+    expect(value("inner")).toMatchObject({ value: "08:15:00", valueClass: "Time" })
+    expect(mockTargets.get("inner-hour")).toBe(originalInner)
+    await fireEvent.press(screen.getByTestId("field-sdk-locale"))
+    expect(value()).toMatchObject({ value: expectedValue, valueClass, locale: "ar-EG", direction: "rtl" })
+    expect(screen.getByTestId("outer-hour").props.displayText).toBe("١٣")
+    expect(mockTargets.get("outer-hour")).toBe(originalHour)
+    expect(mockTargets.get("outer-minute")).toBe(originalMinute)
+    await fireEvent.press(screen.getByTestId("field-sdk-locale"))
+  }
+  expect(record).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "value-request" }))
+  expect(originalHour.setNativeProps).not.toHaveBeenCalled()
+  expect(originalMinute.setNativeProps).not.toHaveBeenCalled()
 })
