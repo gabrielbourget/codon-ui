@@ -39,6 +39,7 @@ import {
 } from "../ComboBox/collectionContext"
 import { NativeComboBoxItem } from "../ComboBox/ComboBoxItem"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
 import { NativeCompactLoadingIndicator, NativeCompactSearchIcon } from "./affordances"
@@ -48,6 +49,7 @@ import { getCompactTypeaheadStyles } from "./styles"
 import type { TNativeCompactTypeaheadRef, TNativeCompactTypeaheadSearchProps } from "./types"
 
 type TField = { metadata: ReactNode; placement: "input" | "root" }
+const BORDER_TRANSITION = resolveNativeTagTransition()
 const componentOptions = new Set([
   "items",
   "inputValue",
@@ -171,6 +173,8 @@ const CompactContent = <T extends object>({
     isDisabled: flags.isDisabled,
   }
   const styles = getCompactTypeaheadStyles(theme, calibration, flags, focused)
+  const reduced = useNativeTagReducedMotion()
+  const border = useNativeTagColor(styles.group.borderColor, BORDER_TRANSITION, reduced, true)
   const current = useRef({ status, requestOpen })
   useInsertionEffect(() => {
     current.current = { status, requestOpen }
@@ -224,9 +228,10 @@ const CompactContent = <T extends object>({
           }
           return inheritedGroup?.render ? inheritedGroup.render(observed, flags) : <NativeFocusHost {...observed} />
         }}
-        style={({ isFocusWithin }) =>
-          getCompactTypeaheadStyles(theme, calibration, flags, focused || isFocusWithin).group
-        }
+        style={({ isFocusWithin }) => ({
+          ...getCompactTypeaheadStyles(theme, calibration, flags, focused || isFocusWithin).group,
+          borderColor: border.rendered,
+        })}
         onLayout={(event) => {
           if (Number.isFinite(event.nativeEvent.layout.width)) setGroupWidth(event.nativeEvent.layout.width)
         }}

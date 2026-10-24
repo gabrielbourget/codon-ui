@@ -2,7 +2,15 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, screen } from "@testing-library/react-native"
 import { createRef, type ReactNode, type RefAttributes, useState } from "react"
-import { AccessibilityInfo, findNodeHandle, type View } from "react-native"
+import {
+  AccessibilityInfo,
+  Animated,
+  findNodeHandle,
+  processColor,
+  StyleSheet,
+  type TextInput,
+  type View,
+} from "react-native"
 
 import { NativeFloatingLayerHost, NativeThemeProvider, Text } from "../../.."
 import {
@@ -165,6 +173,43 @@ it("CAP.compact-typeahead.011 gives error precedence over warning and success", 
   await render(wrapper({ errorState: true, warningState: true, successState: true }))
   expect(row("type-ahead-search-group")).toHaveStyle({ borderColor: "#b73434" })
 })
+it("transitions validation and authored borders without replacing the held editor", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing")
+  const inputRef = createRef<TextInput>()
+  const { rerender } = await render(wrapper({ inputValue: "held", inputRef }))
+  const original = inputRef.current!
+  const write = jest.spyOn(original, "setNativeProps")
+  const color = () => StyleSheet.flatten(row("type-ahead-search-group").props.style).borderColor
+  const initial = processColor(color())
+  timing.mockClear()
+  await rerender(wrapper({ inputValue: "held", inputRef, errorState: true }))
+  expect(timing).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ duration: 250, delay: 0, useNativeDriver: false, isInteraction: false }),
+  )
+  expect(processColor(color())).toBe(initial)
+  await act(() => jest.advanceTimersByTime(100))
+  const interrupted = processColor(color())
+  expect(interrupted).not.toBe(processColor("#b73434"))
+  await rerender(
+    wrapper({ inputValue: "held", inputRef, errorState: true, customInputButtonGroupStyles: { borderColor: "blue" } }),
+  )
+  expect(processColor(color())).toBe(interrupted)
+  await act(() => jest.advanceTimersByTime(350))
+  expect(processColor(color())).toBe(processColor("blue"))
+  expect(inputRef.current).toBe(original)
+  expect(write).not.toHaveBeenCalled()
+  expect(row("type-ahead-search-input").props.value).toBe("held")
+})
+it("applies validation borders immediately under Reduce Motion", async () => {
+  const timing = jest.spyOn(Animated, "timing")
+  const { rerender } = await render(wrapper())
+  timing.mockClear()
+  await rerender(wrapper({ warningState: true }))
+  expect(row("type-ahead-search-group")).toHaveStyle({ borderColor: "#a66b00" })
+  expect(timing).not.toHaveBeenCalled()
+})
 it("CAP.compact-typeahead.015 consumes all wrapper data and customization props", async () => {
   await render(
     wrapper({
@@ -284,6 +329,25 @@ it("CAP.compact-typeahead.023/.025/.026 composes loading and minimum guidance wi
   expect(
     screen.queryByTestId("type-ahead-search-default-loading-indicator", { includeHiddenElements: true }),
   ).toBeNull()
+})
+it("exposes one loading status while its spinner remains decorative", async () => {
+  const { rerender } = await render(wrapper({ isOpen: true, isLoading: true, inputValue: "held" }))
+  await ready()
+  expect(screen.getAllByRole("status")).toHaveLength(1)
+  expect(screen.getByRole("status", { name: "Loading" })).toBeOnTheScreen()
+  expect(screen.queryByRole("progressbar")).toBeNull()
+  expect(row("circle-loader").props.accessibilityLiveRegion).toBe("none")
+  await rerender(
+    wrapper({
+      isOpen: true,
+      isLoading: true,
+      inputValue: "held",
+      LoadingIndicator: <Text accessible accessibilityRole="progressbar" accessibilityLabel="Caller loading" />,
+    }),
+  )
+  expect(screen.queryByRole("status")).toBeNull()
+  expect(screen.getByRole("progressbar", { name: "Caller loading" })).toBeOnTheScreen()
+  expect(row("type-ahead-search-input").props.value).toBe("held")
 })
 it("CAP.compact-typeahead.027/.028 passes original caller-curated items and held query metadata without filtering", async () => {
   const renderer = jest.fn((item, args) => (

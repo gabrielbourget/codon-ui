@@ -24,10 +24,20 @@ export const NativeCompactSearchIcon = () => {
 export const NativeCompactLoadingIndicator = () => (
   <View
     testID="type-ahead-search-default-loading-indicator"
+    accessible
     role="status"
     accessibilityLabel="Loading"
     style={{ minWidth: 24, minHeight: 24, alignItems: "center", justifyContent: "center" }}
   >
-    <CircleLoader size={18} spinnerTrackWidth={2.5} spinnerTrackIsTransparent duration={850} />
+    <CircleLoader
+      size={18}
+      spinnerTrackWidth={2.5}
+      spinnerTrackIsTransparent
+      duration={850}
+      accessible={false}
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      accessibilityLiveRegion="none"
+    />
   </View>
 )
