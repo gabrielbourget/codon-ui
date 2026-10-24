@@ -123,6 +123,40 @@ final class FieldInputTrialTests: XCTestCase {
     let frames = try XCTUnwrap(row["frames"] as? [[String: Any]])
     XCTAssertTrue(frames.allSatisfy { ($0["error"] as? String) == "" })
   }
+  private func navigationProfile(_ name: String, requestCount: Int, mask: Int, steps: Int) throws {
+    let row = try checkpoint(name, requestCount: requestCount, hourTarget: false)
+    let frames = try XCTUnwrap(row["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "key" && $0["key"] as? String == "ArrowRight" }
+    let focuses = try XCTUnwrap(row["focusActions"] as? [[String: Any]])
+    XCTAssertEqual(frames.count, steps * 2)
+    XCTAssertEqual(focuses.count, steps)
+    for (index, frame) in frames.enumerated() {
+      XCTAssertEqual(frame["phase"] as? String, index % 2 == 0 ? "down" : "up")
+      let flags = try XCTUnwrap(frame["modifiers"] as? [String: Bool])
+      for (bit, flag) in ["shiftKey", "altKey", "ctrlKey", "metaKey"].enumerated() {
+        XCTAssertEqual(flags[flag], mask & (1 << bit) != 0)
+      }
+      XCTAssertEqual(frame["repeat"] as? Bool, false)
+      XCTAssertGreaterThan(try XCTUnwrap(frame["nativeCode"] as? Int), 0)
+      XCTAssertFalse(try XCTUnwrap(frame["nativeModifierData"] as? String).isEmpty)
+      if index % 2 == 0 {
+        let focus = focuses[index / 2]
+        XCTAssertEqual(focus["token"] as? Int, frame["token"] as? Int)
+        XCTAssertEqual(focus["action"] as? String, "next")
+        XCTAssertEqual(focus["observed"] as? Bool, true)
+        let target = try XCTUnwrap((frame["identity"] as? [String: Any])?["target"] as? Int)
+        let originals = try XCTUnwrap((focus["after"] as? [String: Any])?["originals"] as? [[String: Any]])
+          .filter { $0["eligible"] as? Bool == true }
+        let position = try XCTUnwrap(originals.firstIndex { $0["target"] as? Int == target })
+        XCTAssertLessThan(position + 1, originals.count)
+        XCTAssertEqual(focus["target"] as? Int, originals[position + 1]["target"] as? Int)
+        XCTAssertEqual((frames[index + 1]["identity"] as? [String: Any])?["target"] as? Int, focus["target"] as? Int)
+        if index > 0 {
+          XCTAssertEqual(target, (frames[index - 1]["identity"] as? [String: Any])?["target"] as? Int)
+        }
+      }
+    }
+  }
   func testOriginalValueClassRequestsCheckpoint() throws {
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
     control("echo")
@@ -323,5 +357,20 @@ final class FieldInputTrialTests: XCTestCase {
       XCTAssertTrue(try XCTUnwrap(row["focusActions"] as? [[String: Any]]).isEmpty)
     }
     control("command-off")
+    for mask in 0..<16 {
+      try focusAuthoredButton()
+      _ = try receipt("modifier-\(mask)-setup")
+      var flags: XCUIElement.KeyModifierFlags = []
+      if mask & 1 != 0 { flags.insert(.shift) }
+      if mask & 2 != 0 { flags.insert(.option) }
+      if mask & 4 != 0 { flags.insert(.control) }
+      if mask & 8 != 0 { flags.insert(.command) }
+      app.typeKey(.rightArrow, modifierFlags: flags)
+      try navigationProfile("modifier-\(mask)", requestCount: count, mask: mask, steps: 1)
+    }
+    try focusAuthoredButton()
+    _ = try receipt("consecutive-original-navigation-setup")
+    for _ in 0..<4 { app.typeKey(.rightArrow, modifierFlags: []) }
+    try navigationProfile("consecutive-original-navigation", requestCount: count, mask: 0, steps: 4)
   }
 }

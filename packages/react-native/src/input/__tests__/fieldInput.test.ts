@@ -480,6 +480,43 @@ it("settles a child's original stop without invoking a group or replaying a chil
   expect(JSON.parse(f.native.settleField.mock.calls[0][0]).preventDefault).toBe(false)
 })
 
+it.each(Array.from({ length: 16 }, (_, mask) => mask))(
+  "retains source navigation and original key-up flags for modifier mask %i",
+  (mask) => {
+    const f = setup(),
+      down = jest.fn(),
+      up = jest.fn()
+    const modifiers = {
+      shiftKey: !!(mask & 1),
+      altKey: !!(mask & 2),
+      ctrlKey: !!(mask & 4),
+      metaKey: !!(mask & 8),
+      nativeModifierData: String(mask),
+    }
+    const original = event(packet(), modifiers)
+    const handler = nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onKeyDown: down, onKeyUp: up })
+    handler(original, 3)
+    handler(original, 2)
+    expect(down).toHaveBeenCalledTimes(1)
+    expect(down).toHaveBeenCalledWith(original)
+    expect(original.nativeEvent).toMatchObject(modifiers)
+    expect(original.isDefaultPrevented()).toBe(true)
+    expect(original.isPropagationStopped()).toBe(true)
+    expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+    const next = packet()
+    next.phase = "up"
+    next.token = 2
+    next.eventId = 2
+    next.identity.target = 13
+    const release = event(next, modifiers)
+    handler(release, 3)
+    handler(release, 2)
+    expect(up.mock.calls.map(([received]) => received)).toEqual([release, release])
+    expect(release.nativeEvent).toMatchObject({ target: 13, phase: "up", ...modifiers })
+    expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+  },
+)
+
 it("keeps same-group navigation, original focus result and caller order before its propagation stop", () => {
   const f = setup(),
     original = event(),
