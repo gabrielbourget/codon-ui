@@ -2,7 +2,7 @@
 import json
 
 PROBE = "codon-owned-time-entry-01"
-CALLBACKS = {"segment-key", "field-key", "child-key", "core-key", "segment-input", "group-pointer", "field-pointer", "child-pointer"}
+CALLBACKS = {"segment-key", "field-key", "child-key", "core-key", "segment-input", "group-pointer", "field-pointer", "child-pointer", "original-command-call", "original-command-return"}
 IDENTITY_FIELDS = {"ownerId", "bindingId", "bindingRevision", "metadataTarget", "outerTarget", "inputTarget", "surfaceId", "target", "documentId", "documentRevision", "windowId", "mountRevision", "outerInstance", "inputInstance", "nativeInstance", "editorInstance", "epoch"}
 PHASES = {"down", "up", "cancel", "input", "pointer-start", "pointer-end", "pointer-cancel", "pointer-click"}
 
@@ -106,8 +106,10 @@ def inspect(rows, producer):
             if record["kind"] == "pointer":
                 pointer_key = dispatch["token"], dispatch["eventId"]
                 assert pointer_key in original_pointers, "Original native pointer payload missing"
-                pointer_payload(data, original_pointers[pointer_key])
-            elif record["kind"] != "input": assert data == record["event"], "Original public event payload changed"
+                original = original_pointers[pointer_key]
+                assert "fieldDispatch" not in original, "Original SDK pointer already contains a dispatch packet"
+                public_payload(data, {**original, "fieldDispatch": record["event"]["fieldDispatch"]})
+            elif record["kind"] != "input": public_payload(data, record["event"])
         else:
             assert identity in children, "Source callback has no original native frame"
             child = children[identity]
@@ -140,17 +142,16 @@ def inspect(rows, producer):
     return {"receiptIntegrity": True, "nativeFrames": len(frames), "joinedCallbacks": sum(map(len, callbacks.values())), "unjoinedCallbackSequences": unjoined, "nativeSubphasePackets": len(original_inputs), "nativePointerPayloads": len(original_pointers), "nativeFailures": [record for record in native if record["kind"] == "failure"], "nativeCommands": len(commands), "fullInputSurface": False, "fullFamily": False, "fullGoal": False, "scope": "Original receipt joins only; complete native scenario trial and acceptance parser remain required"}
 
 
-def pointer_payload(data, original):
+def public_payload(data, original):
     # React's SyntheticEvent writes these flags onto the same original native payload.
-    cancellation = {"cancelBubble": True, "returnValue": False, "defaultPrevented": True}
-    assert "fieldDispatch" not in original, "Original SDK pointer already contains a dispatch packet"
-    assert set(data) <= set(original) | set(cancellation) | {"fieldDispatch"}, "Unexpected pointer payload property"
+    cancellation = {"cancelBubble": True, "returnValue": False}
+    assert set(data) <= set(original) | set(cancellation), "Unexpected public payload property"
     for name, value in original.items():
         if name in cancellation and data.get(name) is cancellation[name]: continue
-        assert name in data and same_argument(data[name], value), "Original pointer argument changed"
+        assert name in data and same_argument(data[name], value), "Original public argument changed"
     for name, value in cancellation.items():
         if name not in original and name in data:
-            assert data[name] is value, "Invalid React pointer cancellation flag"
+            assert data[name] is value, "Invalid React cancellation flag"
 
 
 def same_argument(actual, original):
