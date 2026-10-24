@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react"
 import { userEvent } from "@testing-library/user-event"
-import { useContext, type ContextType } from "react"
+import { useContext, type ContextType, type ReactNode } from "react"
 import { ComboBoxStateContext } from "react-aria-components"
 import { describe, expect, it, vi } from "vitest"
 
@@ -12,6 +12,19 @@ const items = [
 ]
 const base = { "aria-label": "Search", items, getItemKey: (item: (typeof items)[number]) => item.id }
 describe("native port ownership oracle", () => {
+  it("exposes one default loading status and preserves an authored loading role", async () => {
+    const node = (LoadingIndicator?: ReactNode) => (
+      <CompactTypeaheadSearch {...base} inputValue="held" isOpen isLoading LoadingIndicator={LoadingIndicator} />
+    )
+    const view = render(node())
+    await waitFor(() => expect(screen.getByRole("status", { name: "Loading" })).toBeInTheDocument())
+    expect(screen.getAllByRole("status")).toHaveLength(1)
+    expect(screen.queryByRole("progressbar")).toBeNull()
+    await view.rerender(node(<div role="progressbar" aria-label="Caller loading" />))
+    expect(screen.queryByRole("status")).toBeNull()
+    expect(screen.getByRole("progressbar", { name: "Caller loading" })).toBeInTheDocument()
+    expect(screen.getByTestId("type-ahead-search-input")).toHaveValue("held")
+  })
   it("retains selection suppression through programmatic query requests and clears it on the next key", async () => {
     let state: ContextType<typeof ComboBoxStateContext> = null
     const Capture = () => {
