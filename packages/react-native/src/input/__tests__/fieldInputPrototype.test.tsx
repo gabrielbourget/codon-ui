@@ -335,6 +335,49 @@ it("records the original authored pointer stop before any group press contact", 
   ).toBe(true)
 })
 
+it("calls the original core focus ref without substituting field focus and commits only the mixed transaction", async () => {
+  const record = jest.fn()
+  await renderAdmittedScene(record)
+  const focusRequests = jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.length
+  for (const [index, mode] of ["command-only", "command-mixed"].entries()) {
+    await fireEvent.press(screen.getByTestId(`field-sdk-${mode}`))
+    const dispatch = scenePacket("outer", "outer-button", "down", 110 + index, false)
+    const event = originalFieldEvent({
+      kind: "keyboard",
+      ownerId: dispatch.identity.ownerId,
+      target: dispatch.identity.target,
+      key: "f",
+      phase: "down",
+      cancelled: false,
+      nativeDefaultHandled: false,
+      fieldDispatch: JSON.stringify(dispatch),
+    }) as unknown as TNativeFieldKeyEvent
+    record.mockClear()
+    await act(() => {
+      screen.getByTestId("outer-button").props.onNativeFieldKey(event)
+      screen.getByTestId("outer-outer").props.onNativeFieldKey(event)
+    })
+    const calls = record.mock.calls
+      .map(([row]) => row)
+      .filter((row) => ["original-command-call", "original-command-return"].includes(String(row.kind)))
+    expect(calls.map((row) => row.kind)).toEqual(["original-command-call", "original-command-return"])
+    expect(calls.every((row) => row.data === event.nativeEvent)).toBe(true)
+    expect(calls[1]).toMatchObject({
+      sameRef: true,
+      sameMethod: true,
+      command: "focus",
+      mode: index === 0 ? "original-only" : "mixed",
+    })
+    expect(event.isDefaultPrevented()).toBe(true)
+    const state = JSON.parse(screen.getByTestId("outer-value").props.accessibilityLabel)
+    expect(state.commandTransactions).toBe(index)
+    expect(calls[0].target).toBe(state.coreTarget)
+    expect(calls[0].target).not.toBe(dispatch.identity.target)
+    expect(record).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "value-request" }))
+  }
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusRequests)
+})
+
 it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
   const observations = jest.spyOn(
     jest.requireActual<typeof import("../NativeKeyboardScope")>("../NativeKeyboardScope"),
@@ -699,13 +742,16 @@ it("retains ordinary core-editor callback signatures without using field acknowl
   const core = screen.getByTestId("outer-core-editor")
   const acknowledgements = jest.mocked(NativeDefaults!.settleField).mock.calls.length
   const key = { nativeEvent: { key: "7", target: 77 } }
+  const focus = { nativeEvent: { target: 77 } }
   const change = { nativeEvent: { text: "7", target: 77, eventCount: 1 } }
   const selection = { nativeEvent: { target: 77, selection: { start: 1, end: 1 } } }
   await fireEvent(core, "keyPress", key)
+  await fireEvent(core, "focus", focus)
   await fireEvent(core, "change", change)
   await fireEvent.changeText(core, "7")
   await fireEvent(core, "selectionChange", selection)
   expect(record).toHaveBeenCalledWith({ kind: "core-key", field: "outer", data: key.nativeEvent })
+  expect(record).toHaveBeenCalledWith({ kind: "core-focus", field: "outer", data: focus.nativeEvent })
   expect(record).toHaveBeenCalledWith({ kind: "core-native-change", field: "outer", data: change.nativeEvent })
   expect(record).toHaveBeenCalledWith({ kind: "core-change", field: "outer", text: "7" })
   expect(record).toHaveBeenCalledWith({ kind: "core-selection", field: "outer", data: selection.nativeEvent })

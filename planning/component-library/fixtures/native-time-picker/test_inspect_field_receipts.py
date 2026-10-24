@@ -121,5 +121,14 @@ class ReceiptIntegrity(unittest.TestCase):
             rows=pointer_fixture();change(rows)
             with self.assertRaises(AssertionError):inspect(rows,"producer")
 
+    def test_accepts_actual_react_key_cancellation_without_changing_original_arguments(self):
+        rows=fixture()
+        rows[1]["data"].update(returnValue=False,cancelBubble=True)
+        rows[2]["data"].update(returnValue=False,cancelBubble=True)
+        self.assertTrue(inspect(rows,"producer")["receiptIntegrity"])
+        for values in [dict(returnValue=0),dict(cancelBubble=1),dict(defaultPrevented=True),dict(key="ArrowDown")]:
+            rows=fixture();rows[1]["data"].update(values)
+            with self.assertRaises(AssertionError):inspect(rows,"producer")
+
 
 if __name__ == "__main__": unittest.main()

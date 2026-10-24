@@ -53,6 +53,14 @@ final class FieldInputTrialTests: XCTestCase {
     return target
   }
   private func revealHour() -> XCUIElement { reveal("outer-hour", towardStart: true) }
+  private func focusAuthoredButton() throws {
+    _ = reveal("outer-button", towardStart: false)
+    control("focus-button")
+    _ = try wait("outer-value") { row in
+      guard let target = row["buttonTarget"] as? Int, target > 0 else { return false }
+      return row["observedFocusTarget"] as? Int == target
+    }
+  }
   private func receipt(_ name: String, nativeEditors: [String] = []) throws -> [String: Any] {
     let previous = read("field-sdk-receipt-snapshot")?["batch"] as? Int ?? 0
     element("field-sdk-checkpoint").tap()
@@ -61,7 +69,7 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(row["failures"] as? [[String: Any]]).isEmpty)
     var report = row
     report["case"] = name
-    report["nativeValues"] = Dictionary(uniqueKeysWithValues: nativeEditors.map { ($0, element($0).value as? String ?? "") })
+    report["nativeValues"] = Dictionary(uniqueKeysWithValues: nativeEditors.map { ($0, element($0).value as? String ?? element($0).label) })
     let encoded = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys])
     let attachment = XCTAttachment(string: String(decoding: encoded, as: UTF8.self))
     attachment.name = name
@@ -168,7 +176,7 @@ final class FieldInputTrialTests: XCTestCase {
       control(guardName)
     }
 
-    reveal("outer-button", towardStart: false).tap()
+    try focusAuthoredButton()
     control("stop")
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
     _ = try receipt("authored-child-stop-setup")
@@ -183,7 +191,7 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(stopped["focusActions"] as? [[String: Any]]).isEmpty)
     control("stop")
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
-    reveal("outer-button", towardStart: false).tap()
+    try focusAuthoredButton()
     _ = try receipt("authored-child-navigation-setup")
     element("outer-button").typeKey(.rightArrow, modifierFlags: [])
     let navigated = try checkpoint("authored-child-before-group-navigation", requestCount: count, hourTarget: false)
@@ -290,5 +298,30 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertEqual(request["valueClass"] as? String, "Time")
     XCTAssertEqual(read("inner-value")?["value"] as? String, "08:15:00")
     XCTAssertTrue(read("outer-value")?["value"] is NSNull)
+
+    for (mode, name, transactions) in [("command-only", "original-ref-command-only", 0), ("command-mixed", "original-ref-mixed-transaction", 1)] {
+      control(mode)
+      _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+      try focusAuthoredButton()
+      _ = try receipt(name + "-setup")
+      element("outer-button").typeKey("f", modifierFlags: [])
+      let row = try checkpoint(name, requestCount: count, hourTarget: false, nativeEditors: ["outer-core-editor", "outer-command-transactions"])
+      let commands = try XCTUnwrap(row["commands"] as? [[String: Any]])
+      let nativeCommands = commands.filter { $0["kind"] as? String == "command-native" }
+      XCTAssertEqual(nativeCommands.count, 1)
+      let command = try XCTUnwrap(nativeCommands.first)
+      XCTAssertEqual(command["command"] as? String, "focus")
+      XCTAssertEqual(command["callbackCompleted"] as? Bool, true)
+      XCTAssertEqual(command["current"] as? Bool, true)
+      let value = try XCTUnwrap(read("outer-value"))
+      let coreTarget = try XCTUnwrap(value["coreTarget"] as? Int)
+      XCTAssertEqual(command["target"] as? Int, coreTarget)
+      XCTAssertEqual((command["after"] as? [String: Any])?["focusedTarget"] as? Int, coreTarget)
+      XCTAssertEqual(value["commandTransactions"] as? Int, transactions)
+      XCTAssertEqual(element("outer-command-transactions").label, String(transactions))
+      XCTAssertEqual(element("outer-core-editor").value as? String, "7")
+      XCTAssertTrue(try XCTUnwrap(row["focusActions"] as? [[String: Any]]).isEmpty)
+    }
+    control("command-off")
   }
 }

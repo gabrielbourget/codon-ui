@@ -53,6 +53,7 @@ import {
   useNativeKeyScope,
 } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
 import { NativePressable } from "../../../../packages/react-native/src/input/NativePressable"
+import { focusNativeTarget } from "../../../../packages/react-native/src/input/focus"
 import NativeDocument from "../../../../packages/react-native/src/input/specs/NativeCUIFormDocument"
 import type { TNativeKeyboardEvent } from "../../../../packages/react-native/src/input/types"
 import {
@@ -63,6 +64,8 @@ import {
 import { TIME_ENTRY_VALUES, timeEntryValueClass } from "./sdk"
 
 type TRecord = (row: Record<string, unknown>) => void
+const COMMAND_MODES = ["none", "original-only", "mixed"] as const
+type TCommandMode = (typeof COMMAND_MODES)[number]
 const frame = { borderWidth: 1, padding: 8, margin: 4 } as const
 
 type TPartProps = {
@@ -178,6 +181,8 @@ type TFieldProps = {
   veto: boolean
   stop: boolean
   revision: number
+  commandMode?: TCommandMode
+  onButtonRef?: (target: View | null) => void
   nested?: boolean
   removeOnKey?: boolean
   onRemove?: () => void
@@ -193,6 +198,8 @@ const Field = ({
   veto,
   stop,
   revision,
+  commandMode = "none",
+  onButtonRef,
   nested = false,
   removeOnKey = false,
   onRemove,
@@ -200,6 +207,17 @@ const Field = ({
   const ownerId = useId(),
     { locale, direction } = useNativeLocale()
   const [nestedValue, setNestedValue] = useState<TimeValue | null>(() => new Time(8, 15))
+  const originalCore = useRef<TextInput | null>(null)
+  const originalButton = useRef<View | null>(null)
+  const bindButton = useCallback(
+    (target: View | null) => {
+      originalButton.current = target
+      onButtonRef?.(target)
+    },
+    [onButtonRef],
+  )
+  const [observedFocusTarget, setObservedFocusTarget] = useState(0)
+  const [commandTransactions, setCommandTransactions] = useState(0)
   const currentConfig = useRef({ echo, value, onOwnerValueChange })
   useInsertionEffect(() => {
     currentConfig.current = { echo, value, onOwnerValueChange }
@@ -318,6 +336,11 @@ const Field = ({
     veto,
     stop,
     revision,
+    commandMode,
+    commandTransactions,
+    coreTarget: originalCore.current ? findNodeHandle(originalCore.current) : null,
+    buttonTarget: originalButton.current ? findNodeHandle(originalButton.current) : null,
+    observedFocusTarget,
     outerTarget,
     inputTarget,
     originalSegments: original?.rows.map((row) => row.identity) ?? [],
@@ -339,12 +362,43 @@ const Field = ({
         stopped: event.isPropagationStopped(),
       })
       if (veto) event.preventDefault()
+      if (
+        commandMode !== "none" &&
+        event.nativeEvent.phase === "down" &&
+        event.nativeEvent.key === "f" &&
+        receiverTarget.current === outerTarget
+      ) {
+        event.preventDefault()
+        const core = originalCore.current
+        if (!core) throw new Error("field-prototype-original-core-ref-missing")
+        const focus = core.focus
+        record({
+          kind: "original-command-call",
+          field: name,
+          mode: commandMode,
+          command: "focus",
+          target: findNodeHandle(core),
+          data: event.nativeEvent,
+        })
+        if (commandMode === "mixed") setCommandTransactions((count) => count + 1)
+        core.focus()
+        record({
+          kind: "original-command-return",
+          field: name,
+          mode: commandMode,
+          command: "focus",
+          target: findNodeHandle(core),
+          sameRef: originalCore.current === core,
+          sameMethod: core.focus === focus,
+          data: event.nativeEvent,
+        })
+      }
       if (removeOnKey && event.nativeEvent.phase === "down") {
         event.preventDefault()
         onRemove?.()
       }
     },
-    [record, name, veto, revision, removeOnKey, onRemove],
+    [record, name, veto, revision, removeOnKey, onRemove, commandMode, outerTarget],
   )
   const group = scope ? nativeFieldGroupKeyHandler(scope, { direction, onKeyDown: caller, onKeyUp: caller }) : undefined
   const receiveGroup = group
@@ -417,6 +471,7 @@ const Field = ({
           nativeFocusWithinObservation
           nativeOnFocusWithin={(event) => {
             focused.current = event.nativeEvent.within
+            setObservedFocusTarget(event.nativeEvent.within ? event.nativeEvent.focusedTarget : 0)
             record({ kind: "field-focus", field: name, data: event.nativeEvent })
           }}
           style={frame}
@@ -428,6 +483,7 @@ const Field = ({
           <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
             {JSON.stringify(session.status())}
           </Text>
+          <Text testID={`${name}-command-transactions`}>{commandTransactions}</Text>
           <NativeFocusHost
             ref={setInput}
             focusable={false}
@@ -464,6 +520,7 @@ const Field = ({
             </NativeFocusHost>
           </NativeFocusHost>
           <NativePressable
+            ref={bindButton}
             testID={`${name}-button`}
             onKeyDown={(event) => {
               record({ kind: "child-key", field: name, data: event.nativeEvent })
@@ -492,10 +549,12 @@ const Field = ({
             <Text>Programmatic action</Text>
           </NativePressable>
           <TextInput
+            ref={originalCore}
             testID={`${name}-core-editor`}
             defaultValue=""
             accessibilityLabel={`${name} original core editor`}
             onKeyPress={(event) => record({ kind: "core-key", field: name, data: event.nativeEvent })}
+            onFocus={(event) => record({ kind: "core-focus", field: name, data: event.nativeEvent })}
             onChange={(event) => record({ kind: "core-native-change", field: name, data: event.nativeEvent })}
             onChangeText={(text) => record({ kind: "core-change", field: name, text })}
             onSelectionChange={(event) => record({ kind: "core-selection", field: name, data: event.nativeEvent })}
@@ -527,6 +586,10 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const requests = useRef<Record<string, unknown>[]>([])
   const observations = useRef<Record<string, unknown>[]>([])
   const callbacks = useRef<Record<string, unknown>[]>([])
+  const authoredButton = useRef<View | null>(null)
+  const bindAuthoredButton = useCallback((target: View | null) => {
+    authoredButton.current = target
+  }, [])
   const [observationSnapshot, setObservationSnapshot] = useState("{}")
   const receive = useCallback(
     (row: Record<string, unknown>) => {
@@ -541,6 +604,9 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           "group-pointer",
           "field-pointer",
           "core-key",
+          "core-focus",
+          "original-command-call",
+          "original-command-return",
           "core-native-change",
           "core-change",
           "core-selection",
@@ -558,6 +624,9 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           revision: row.revision ?? null,
           stopped: row.stopped ?? null,
           prevented: row.prevented ?? null,
+          target: row.target ?? data?.target ?? null,
+          sameRef: row.sameRef ?? null,
+          sameMethod: row.sameMethod ?? null,
           selection: selection ? { start: selection.start, end: selection.end } : null,
         })
       }
@@ -614,6 +683,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
         observations: observations.current,
         callbacks: callbackSnapshot,
         focusActions: batch.records.filter((row) => row.kind === "focus"),
+        commands: batch.records.filter((row) => row.kind === "command-native" || row.kind === "command"),
       }),
     )
   }
@@ -623,6 +693,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
     [veto, setVeto] = useState(false),
     [stop, setStop] = useState(false),
     [revision, setRevision] = useState(0),
+    [commandMode, setCommandMode] = useState<TCommandMode>("none"),
     [locale, setLocale] = useState("en-GB"),
     [visible, setVisible] = useState(true),
     [removeOnKey, setRemoveOnKey] = useState(false)
@@ -654,6 +725,18 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
             ["veto", () => setVeto((value) => !value)],
             ["stop", () => setStop((value) => !value)],
             ["callback", () => setRevision((value) => value + 1)],
+            ["command-only", () => setCommandMode("original-only")],
+            ["command-mixed", () => setCommandMode("mixed")],
+            ["command-off", () => setCommandMode("none")],
+            [
+              "focus-button",
+              () =>
+                record({
+                  kind: "setup-focus-request",
+                  field: "outer",
+                  requested: focusNativeTarget(authoredButton.current),
+                }),
+            ],
             ["locale", () => setLocale((value) => (value === "en-GB" ? "ar-EG" : "en-GB"))],
           ].map(([name, action]) => (
             <Pressable key={name as string} testID={`field-sdk-${name}`} onPress={action as () => void} style={frame}>
@@ -680,6 +763,8 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
               veto={veto}
               stop={stop}
               revision={revision}
+              commandMode={commandMode}
+              onButtonRef={bindAuthoredButton}
               removeOnKey={removeOnKey}
               onRemove={removeField}
             />
