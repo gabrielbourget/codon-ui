@@ -1,0 +1,46 @@
+package com.codonui.input;
+
+import android.view.MotionEvent;
+import android.view.ViewGroup;
+import com.facebook.react.uimanager.JSPointerDispatcher;
+import com.facebook.react.uimanager.events.BatchEventDispatchedListener;
+import com.facebook.react.uimanager.events.Event;
+import com.facebook.react.uimanager.events.EventDispatcher;
+import com.facebook.react.uimanager.events.EventDispatcherListener;
+import java.util.Set;
+
+// One original SDK dispatcher, scoped to the admitted field's logical targets.
+// The original native MotionEvent still reaches its normal native owner once.
+final class CUIFieldPointerDispatcher implements EventDispatcher {
+  private final ViewGroup surface;
+  private final JSPointerDispatcher pointers;
+  private final EventDispatcher original;
+  private Set<Integer> members;
+
+  CUIFieldPointerDispatcher(ViewGroup surface, EventDispatcher original) {
+    this.surface = surface;
+    this.original = original;
+    pointers = new JSPointerDispatcher(surface);
+  }
+  boolean matches(ViewGroup surface, EventDispatcher original) { return this.surface == surface && this.original == original; }
+  void dispatch(MotionEvent event, Set<Integer> members) {
+    Set<Integer> previous = this.members;
+    this.members = members;
+    MotionEvent inSurface = MotionEvent.obtain(event);
+    try {
+      int[] position = new int[2]; surface.getLocationOnScreen(position);
+      inSurface.setLocation(event.getRawX() - position[0], event.getRawY() - position[1]);
+      pointers.handleMotionEvent(inSurface, this, false);
+    } finally { inSurface.recycle(); this.members = previous; }
+  }
+  @Override public void dispatchEvent(Event event) {
+    if (members != null && members.contains(event.getViewTag())) original.dispatchEvent(event);
+    else event.dispose();
+  }
+  @Override public void dispatchAllEvents() { original.dispatchAllEvents(); }
+  @Override public void addListener(EventDispatcherListener listener) { original.addListener(listener); }
+  @Override public void removeListener(EventDispatcherListener listener) { original.removeListener(listener); }
+  @Override public void addBatchEventDispatchedListener(BatchEventDispatchedListener listener) { original.addBatchEventDispatchedListener(listener); }
+  @Override public void removeBatchEventDispatchedListener(BatchEventDispatchedListener listener) { original.removeBatchEventDispatchedListener(listener); }
+  @Override public void onCatalystInstanceDestroyed() { original.onCatalystInstanceDestroyed(); }
+}

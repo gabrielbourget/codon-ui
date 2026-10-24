@@ -34,9 +34,14 @@ inline const folly::dynamic &fieldInputOriginal(const folly::dynamic &snapshot, 
   for (const auto &row : snapshot.at("originals")) if (row.at("target") == target) return row;
   throw std::invalid_argument("field-input-original-target-retired");
 }
+inline const folly::dynamic &fieldInputTargetInstance(const folly::dynamic &snapshot, int32_t target) {
+  if (const auto instances = snapshot.get_ptr("instances"))
+    for (const auto &row : *instances) if (row.at("target") == target) return row;
+  return fieldInputOriginal(snapshot, target);
+}
 inline FieldInputIdentity fieldInputIdentity(const folly::dynamic &document, const folly::dynamic &snapshot,
     const TFieldInputBinding &binding, int32_t target, int64_t epoch) {
-  const auto &original = fieldInputOriginal(snapshot, target), &field = document.at("fieldGroup").at("field");
+  const auto &original = fieldInputTargetInstance(snapshot, target), &field = document.at("fieldGroup").at("field");
   return {binding.ownerId, binding.bindingId, binding.bindingRevision,
     fieldGroupTarget(field.at("metadataTarget")), binding.outerTarget, binding.inputTarget,
     fieldGroupTarget(document.at("surfaceId")), target, document.at("documentId").asString(), document.at("revision").asString(),

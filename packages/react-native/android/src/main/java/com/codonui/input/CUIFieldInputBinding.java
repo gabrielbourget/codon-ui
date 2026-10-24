@@ -1,6 +1,13 @@
 package com.codonui.input;
 
 import android.view.KeyEvent;
+import android.view.MotionEvent;
+import android.view.ViewGroup;
+import com.facebook.react.ReactRootView;
+import com.facebook.react.config.ReactFeatureFlags;
+import com.facebook.react.uimanager.TouchTargetHelper;
+import com.facebook.react.uimanager.UIManagerHelper;
+import com.facebook.react.uimanager.events.EventDispatcher;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.os.SystemClock;
@@ -35,6 +42,68 @@ final class CUIFieldInputBinding {
     String document, String snapshot, String input, String declarations, double epoch, Runnable emit);
   private static native void nativeRecordFieldInput(String lease, String encoded);
   private static native void nativeRetireBinding(String lease, String owner, String binding);
+  private static native String nativeEmitFieldPointer(FabricUIManager manager, CUIFieldInputBinding owner,
+    String document, Runnable emit);
+  private CUIFieldPointerDispatcher pointerDispatcher;
+  static final class PointerDecision {
+    final boolean admitted, prevented;
+    PointerDecision(boolean admitted, boolean prevented) { this.admitted = admitted; this.prevented = prevented; }
+  }
+  static PointerDecision dispatchPointer(CUIFocusView originalRoot, MotionEvent event) {
+    UiThreadUtil.assertOnUiThread();
+    if (ReactFeatureFlags.dispatchPointerEvents) return new PointerDecision(false, false);
+    boolean registered = false;
+    for (CUIFieldInputBinding binding : bindings.keySet()) registered |= !binding.closed && binding.outer.get() == originalRoot;
+    if (!registered) return new PointerDecision(false, false);
+    CUIFieldInputBinding selected = null;
+    try {
+      float[] coordinates = new float[2];
+      java.util.List<TouchTargetHelper.ViewTarget> path = TouchTargetHelper.findTargetPathAndCoordinatesForTouch(
+        event.getX(), event.getY(), originalRoot, coordinates);
+      View originalHit = originalRoot;
+      for (TouchTargetHelper.ViewTarget target : path) if (target.getView() != null) { originalHit = target.getView(); break; }
+      for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
+        View root = binding.outer.get();
+        if (binding.closed || root == null || !descendant(originalHit, root) || binding.capture() == null) continue;
+        if (selected == null || descendant(root, selected.outer.get())) selected = binding;
+      }
+      if (selected == null || selected.outer.get() != originalRoot) return new PointerDecision(false, false);
+      return selected.emitPointer(originalRoot, event);
+    } catch (Exception error) {
+      if (selected != null) selected.record("pointer-failure", String.valueOf(error.getMessage()));
+      return new PointerDecision(false, false);
+    }
+  }
+  private PointerDecision emitPointer(CUIFocusView originalRoot, MotionEvent event) throws Exception {
+    JSONObject value = capture(); FabricUIManager manager = this.manager.get();
+    if (value == null || manager == null) return new PointerDecision(false, false);
+    int action = event.getActionMasked();
+    if (action == MotionEvent.ACTION_DOWN || action == MotionEvent.ACTION_POINTER_DOWN || action == MotionEvent.ACTION_BUTTON_PRESS)
+      CUIInputWindow.record(originalRoot, "pointer");
+    ViewGroup surface = null;
+    for (View view = originalRoot; view != null; view = view.getParent() instanceof View ? (View)view.getParent() : null)
+      if (view instanceof ReactRootView) { surface = (ViewGroup)view; break; }
+    EventDispatcher events = UIManagerHelper.getEventDispatcherForReactTag((com.facebook.react.bridge.ReactContext)originalRoot.getContext(), originalRoot.getId());
+    if (surface == null || events == null) throw new IllegalStateException("field-input-original-pointer-dispatcher-unavailable");
+    if (pointerDispatcher == null || !pointerDispatcher.matches(surface, events)) pointerDispatcher = new CUIFieldPointerDispatcher(surface, events);
+    java.util.Set<Integer> members = new java.util.HashSet<>();
+    JSONObject document = new JSONObject(value.getString("encodedDocument")), plan = document.getJSONObject("fieldGroup");
+    members.add(plan.getInt("outerTarget"));
+    JSONArray nodes = plan.getJSONArray("nodes");
+    for (int index = 0; index < nodes.length(); index++) members.add(nodes.getJSONObject(index).getInt("target"));
+    CUIOriginalInputEmission emission = new CUIOriginalInputEmission(() -> pointerDispatcher.dispatch(event, members));
+    String receipt;
+    try {
+      receipt = nativeEmitFieldPointer(manager, this, value.getString("encodedDocument"), emission);
+    } catch (Exception failure) {
+      emission.rethrowOriginalFailure();
+      if (!emission.wasInvoked()) emission.run();
+      throw failure;
+    }
+    if (receipt.isEmpty()) return new PointerDecision(true, false);
+    JSONObject record = new JSONObject(receipt); emitRecord(record.toString());
+    return new PointerDecision(true, record.getBoolean("originalDefaultPrevented"));
+  }
   private static native boolean nativeOriginalCommandCurrent(long token);
   private static native String nativePerformOriginalCommand(long token);
 
@@ -228,6 +297,23 @@ final class CUIFieldInputBinding {
     JSONObject value = selected.capture();
     if (value == null) throw new IllegalStateException("field-input-current-scope-retired");
     return value.put("scopeEpoch", selected.epoch).toString();
+  }
+  @DoNotStrip
+  String currentPointerSnapshot(int target) throws Exception {
+    UiThreadUtil.assertOnUiThread();
+    FabricUIManager manager = this.manager.get();
+    JSONObject value = capture(); View root = outer.get();
+    View original = manager == null ? null : manager.resolveView(target);
+    if (value == null || root == null || original == null || !descendant(original, root))
+      throw new IllegalStateException("field-input-pointer-original-retired");
+    JSONArray declarations = new JSONArray();
+    for (CUIFieldInputBinding binding : new ArrayList<>(bindings.keySet())) {
+      View ancestor = binding.outer.get(); JSONObject current = binding.capture();
+      if (ancestor == null || current == null || !binding.lease.equals(lease) || !descendant(original, ancestor)) continue;
+      declarations.put(new JSONObject().put("encodedDocument", current.getString("encodedDocument"))
+        .put("snapshot", current.getJSONObject("fieldGroupSnapshot")).put("epoch", binding.epoch));
+    }
+    return value.put("scopeEpoch", epoch).put("pointerEventId", ++eventId).put("pointerDeclarations", declarations).toString();
   }
   @DoNotStrip
   void checkCommandBoundary(int surface) {

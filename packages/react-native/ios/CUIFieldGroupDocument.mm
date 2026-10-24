@@ -74,7 +74,11 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
       @"binding":nestedBinding, @"segments":nestedSegments}];
   }
   NSMutableArray *originals = [NSMutableArray new], *components = [NSMutableArray new], *backedOriginals = [NSMutableArray new];
+  NSMutableArray *instances = [NSMutableArray new];
   NSMutableArray<NSNumber *> *targets = [NSMutableArray new];
+  NSMutableDictionary<NSNumber *, NSNumber *> *parents = [NSMutableDictionary new];
+  for (NSDictionary *node in plan[@"nodes"]) parents[node[@"target"]] = node[@"parent"];
+  [instances addObject:@{@"target":plan[@"outerTarget"], @"nativeTarget":plan[@"outerTarget"], @"nativeInstance":CUIGroupInstance(outer), @"editorInstance":CUIGroupInstance(outer)}];
   NSNumber *focused = @0;
   for (NSDictionary *node in plan[@"nodes"]) {
     if (![node[@"visible"] boolValue]) continue;
@@ -84,7 +88,24 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
     NSDictionary *policy = node[@"fieldFocus"];
     if (!component) {
       if (core || [policy[@"candidate"] boolValue]) CUIGroupFail(@"field-group-original-unavailable");
-      continue; // An unmounted non-focusable layout node may be flattened.
+      NSNumber *ancestor = node[@"parent"]; UIView *backed = nil;
+      NSMutableSet<NSNumber *> *visited = [NSMutableSet new];
+      while (ancestor.integerValue > 0 && ![visited containsObject:ancestor]) {
+        [visited addObject:ancestor];
+        backed = [ancestor isEqual:plan[@"outerTarget"]] ? outer : resolve(ancestor);
+        if (backed) break;
+        ancestor = parents[ancestor];
+      }
+      if (!backed || backed.window != outer.window || ![backed isDescendantOfView:outer]) CUIGroupFail(@"field-group-hit-backing-unavailable");
+      UIView *backedEditor = backed;
+      if ([backed isKindOfClass:RCTTextInputComponentView.class]) {
+        id element = [(RCTTextInputComponentView *)backed accessibilityElement];
+        if (![element isKindOfClass:UIView.class]) CUIGroupFail(@"field-group-hit-editor-unavailable");
+        backedEditor = element;
+      }
+      [instances addObject:@{@"target":node[@"target"], @"nativeTarget":@(backed.tag), @"nativeInstance":CUIGroupInstance(backed), @"editorInstance":CUIGroupInstance(backedEditor)}];
+      [components addObject:backed]; [backedOriginals addObject:backedEditor]; [targets addObject:@(backed.tag)];
+      continue;
     }
     if (component.window != outer.window || ![component isDescendantOfView:outer])
       CUIGroupFail(@"field-group-original-window-or-containment-retired");
@@ -98,6 +119,8 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
       if (![element isKindOfClass:UITextField.class] && ![element isKindOfClass:UITextView.class]) CUIGroupFail(@"field-group-backed-editor-unavailable");
       original = (UIView *)element;
     }
+    [instances addObject:@{@"target":node[@"target"], @"nativeTarget":node[@"target"], @"nativeInstance":CUIGroupInstance(component), @"editorInstance":CUIGroupInstance(original)}];
+    [components addObject:component]; [backedOriginals addObject:original]; [targets addObject:node[@"target"]];
     BOOL visible = [node[@"visible"] boolValue] && CUIGroupVisible(original, outer.window);
     BOOL enabled = !(original.accessibilityTraits & UIAccessibilityTraitNotEnabled) &&
       (![original isKindOfClass:UIControl.class] || [(UIControl *)original isEnabled]);
@@ -120,7 +143,7 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
       @"rect":@{@"x":@(rectangle.origin.x), @"y":@(rectangle.origin.y), @"width":@(rectangle.size.width), @"height":@(rectangle.size.height)}} mutableCopy];
     if (hostOwner) row[@"hostOwnerId"] = hostOwner;
     if ([original isKindOfClass:CUIDateSegment.class]) row[@"segment"] = [(CUIDateSegment *)original formSegmentIdentity] ?: NSNull.null;
-    [originals addObject:row]; [components addObject:component]; [backedOriginals addObject:original]; [targets addObject:node[@"target"]];
+    [originals addObject:row];
   }
   // Read callbacks/getters may invalidate ownership. Recheck the actual objects,
   // complete native set and mount before returning any snapshot.
@@ -145,5 +168,5 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
   return @{@"documentId":document[@"documentId"], @"revision":document[@"revision"], @"surfaceId":document[@"surfaceId"],
     @"windowId":mount[@"windowId"], @"outerTarget":plan[@"outerTarget"], @"inputTarget":plan[@"inputTarget"],
     @"outerInstance":CUIGroupInstance(outer), @"inputInstance":CUIGroupInstance(input),
-    @"field":field, @"mount":mount, @"focusedTarget":focused, @"originals":originals};
+    @"field":field, @"mount":mount, @"focusedTarget":focused, @"originals":originals, @"instances":instances};
 }

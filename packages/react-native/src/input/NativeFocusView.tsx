@@ -310,9 +310,12 @@ export const NativeFocusHost = forwardRef<
   )
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
-  const pointerHandler = (phase: TNativeFieldPointerPhase, caller: ViewProps["onPointerDown"]) => {
+  const pointerHandler = <TEvent extends NativeSyntheticEvent<object>>(
+    phase: TNativeFieldPointerPhase,
+    caller: ((event: TEvent) => void) | undefined,
+  ) => {
     if (!fieldInput) return caller
-    return (event: Parameters<NonNullable<ViewProps["onPointerDown"]>>[0]) => {
+    return (event: TEvent) => {
       if (!("fieldDispatch" in event.nativeEvent)) {
         caller?.(event)
         return
@@ -322,9 +325,9 @@ export const NativeFocusHost = forwardRef<
       const target = findNodeHandle(original)
       if (target == null) return
       if (nativeFieldGroupPointerHandler)
-        nativeFieldGroupPointerHandler(event as TNativeFieldPointerEvent, target, phase)
+        nativeFieldGroupPointerHandler(event as unknown as TNativeFieldPointerEvent, target, phase)
       else
-        receiveNativeFieldPointer(fieldInput, event as TNativeFieldPointerEvent, phase, {
+        receiveNativeFieldPointer(fieldInput, event as unknown as TNativeFieldPointerEvent, phase, {
           target,
           group: false,
           run: () => caller?.(event),
@@ -338,6 +341,7 @@ export const NativeFocusHost = forwardRef<
         onPointerDown={pointerHandler("pointer-start", rest.onPointerDown)}
         onPointerUp={pointerHandler("pointer-end", rest.onPointerUp)}
         onPointerCancel={pointerHandler("pointer-cancel", rest.onPointerCancel)}
+        {...{ onClick: pointerHandler("pointer-click", rest.onClick) }}
         nativeLabelledBy={rest.nativeLabelledBy ?? (typeof labelledBy === "string" ? [labelledBy] : labelledBy)}
         nativeDescriptionTag={rest.nativeDescriptionTag ?? description?.tag ?? 0}
         nativeDescriptionLabel={rest.nativeDescriptionLabel ?? description?.label}

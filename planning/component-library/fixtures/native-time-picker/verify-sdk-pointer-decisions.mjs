@@ -202,6 +202,7 @@ for (const implementation of implementations) {
     ["pointer-start", "mouse"],
     ["pointer-end", "touch"],
     ["pointer-cancel", "pen"],
+    ["pointer-click", "touch"],
   ]) {
     for (const action of ["none", "prevent", "stop", "both", "group-stop", "throw"]) {
       const packet = {
@@ -260,7 +261,13 @@ for (const implementation of implementations) {
       const original = context.SyntheticEvent.getPooled(
         {
           registrationName:
-            phase === "pointer-start" ? "onPointerDown" : phase === "pointer-end" ? "onPointerUp" : "onPointerCancel",
+            phase === "pointer-start"
+              ? "onPointerDown"
+              : phase === "pointer-end"
+                ? "onPointerUp"
+                : phase === "pointer-cancel"
+                  ? "onPointerCancel"
+                  : "onClick",
         },
         targets[0],
         nativeEvent,

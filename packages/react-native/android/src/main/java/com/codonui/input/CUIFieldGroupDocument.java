@@ -95,7 +95,12 @@ final class CUIFieldGroupDocument {
         throw new IllegalStateException("field-group-nested-whole-segment-set-retired");
       nestedOwners.add(nested); nestedMounts.add(nestedMount); nestedSets.add(nestedSegments);
     }
-    JSONArray originals = new JSONArray(), nodes = plan.getJSONArray("nodes");
+    JSONArray originals = new JSONArray(), instances = new JSONArray(), nodes = plan.getJSONArray("nodes");
+    java.util.Map<Integer, Integer> parents = new java.util.HashMap<>();
+    for (int index = 0; index < nodes.length(); index++) {
+      JSONObject node = nodes.getJSONObject(index); parents.put(node.getInt("target"), node.getInt("parent"));
+    }
+    instances.put(new JSONObject().put("target", outer.getId()).put("nativeTarget", outer.getId()).put("nativeInstance", instance(outer)).put("editorInstance", instance(outer)));
     ArrayList<View> currentOriginals = new ArrayList<>();
     int focused = 0;
     for (int index = 0; index < nodes.length(); index++) {
@@ -106,7 +111,19 @@ final class CUIFieldGroupDocument {
       boolean core = "TextInput".equals(name) || "AndroidTextInput".equals(name);
       if (original == null) {
         if (core || (policy != null && policy.getBoolean("candidate"))) throw new IllegalStateException("field-group-original-unavailable");
-        continue; // Flattened non-focusable layout nodes do not invent views.
+        int ancestor = node.getInt("parent"); View backed = null;
+        java.util.Set<Integer> visited = new java.util.HashSet<>();
+        while (ancestor > 0 && visited.add(ancestor)) {
+          backed = ancestor == outer.getId() ? outer : resolve(manager, ancestor);
+          if (backed != null) break;
+          ancestor = parents.getOrDefault(ancestor, 0);
+        }
+        if (backed == null || !descendant(backed, outer) || backed.getRootView() != outer.getRootView())
+          throw new IllegalStateException("field-group-hit-backing-unavailable");
+        instances.put(new JSONObject().put("target", node.getInt("target")).put("nativeTarget", backed.getId())
+          .put("nativeInstance", instance(backed)).put("editorInstance", instance(backed)));
+        currentOriginals.add(backed);
+        continue;
       }
       if (!descendant(original, outer) || original.getRootView() != outer.getRootView() ||
           !CUIInputWindow.identity(original).equals(CUIInputWindow.identity(outer)))
@@ -116,6 +133,8 @@ final class CUIFieldGroupDocument {
         original instanceof CUIFocusView ? ((CUIFocusView)original).fieldInputOwnerId() : null;
       if (policy != null && policy.has("ownerId") && !policy.getString("ownerId").equals(hostOwner))
         throw new IllegalStateException("field-group-original-host-owner-retired");
+      instances.put(new JSONObject().put("target", original.getId()).put("nativeTarget", original.getId()).put("nativeInstance", instance(original)).put("editorInstance", instance(original)));
+      currentOriginals.add(original);
       boolean eligible = node.getBoolean("visible") && visible(original, outer) && original.isEnabled() &&
         original.isFocusable() && (policy == null || policy.getBoolean("focusable"));
       if (!eligible && !original.isFocused()) continue;
@@ -141,7 +160,7 @@ final class CUIFieldGroupDocument {
           .put("width", rectangle.width() / density).put("height", rectangle.height() / density));
       if (original instanceof CUIDateSegment) row.put("segment", ((CUIDateSegment)original).formSegmentIdentity());
       if (hostOwner != null) row.put("hostOwnerId", hostOwner);
-      originals.put(row); currentOriginals.add(original);
+      originals.put(row);
     }
     if (resolve(manager, plan.getInt("outerTarget")) != outer || resolve(manager, plan.getInt("inputTarget")) != input ||
         resolve(manager, field.getInt("metadataTarget")) != metadata || metadata.originalForMountSnapshot(mount) != primary ||
@@ -159,6 +178,6 @@ final class CUIFieldGroupDocument {
     return new JSONObject().put("documentId", document.getString("documentId")).put("revision", document.getString("revision"))
       .put("surfaceId", document.getInt("surfaceId")).put("windowId", mount.getString("windowId"))
       .put("outerTarget", outer.getId()).put("inputTarget", input.getId()).put("outerInstance", instance(outer)).put("inputInstance", instance(input))
-      .put("field", field).put("mount", mount).put("focusedTarget", focused).put("originals", originals);
+      .put("field", field).put("mount", mount).put("focusedTarget", focused).put("originals", originals).put("instances", instances);
   }
 }
