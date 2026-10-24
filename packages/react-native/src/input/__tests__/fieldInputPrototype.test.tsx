@@ -12,6 +12,17 @@ import type {
 import NativeDefaults from "../specs/NativeCUIEditorKeyboardDefaults"
 import NativeDocument from "../specs/NativeCUIFormDocument"
 
+// The fixture is outside this package; its imports must use the native peer
+// rather than whichever React version the repository happens to hoist.
+const fixtureReactPeers = {
+  react: jest.requireActual<typeof import("react")>("react"),
+  "react/jsx-runtime": jest.requireActual("react/jsx-runtime"),
+  "react/jsx-dev-runtime": jest.requireActual("react/jsx-dev-runtime"),
+}
+for (const [name, peer] of Object.entries(fixtureReactPeers)) {
+  jest.doMock(name, () => peer, { virtual: true })
+}
+
 const { FieldInputSDKScene } = jest.requireActual<{
   FieldInputSDKScene: ComponentType<{ record: (row: Record<string, unknown>) => void }>
 }>("../../../../../planning/component-library/fixtures/native-time-picker/FieldInputSDKApp")
