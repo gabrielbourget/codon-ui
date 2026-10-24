@@ -126,7 +126,7 @@ def inspect(rows, producer):
         if identity in frames: groups = frames[identity][1]["groups"]
         else: groups = original_inputs[(identity[1], identity[2])][1]["groups"]
         expected = [group["target"] for group in groups]
-        actual = [row["receiverTarget"] for row in receivers if row["kind"] == "field-key"]
+        actual = [row["receiverTarget"] for row in receivers if row["kind"] in {"field-key", "group-pointer"}]
         assert actual == expected[:len(actual)], "Original group order/membership changed"
         assert len(actual) == len(set(actual)), "Original group callback duplicated"
     commands = [record for record in native if record["kind"] == "command-native"]

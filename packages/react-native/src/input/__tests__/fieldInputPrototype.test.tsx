@@ -3,7 +3,12 @@ import type { ComponentType, Ref } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { packet } from "../../date/input/__tests__/packet"
-import type { TNativeFieldKeyEvent, TNativeFieldPointerEvent, TNativeFieldPointerPhase } from "../fieldInput"
+import type {
+  TNativeFieldInputPacket,
+  TNativeFieldKeyEvent,
+  TNativeFieldPointerEvent,
+  TNativeFieldPointerPhase,
+} from "../fieldInput"
 import NativeDefaults from "../specs/NativeCUIEditorKeyboardDefaults"
 import NativeDocument from "../specs/NativeCUIFormDocument"
 
@@ -75,19 +80,14 @@ jest.mock("../specs/NativeCUIFormDocument", () => ({
   },
 }))
 beforeEach(() => {
+  jest.clearAllMocks()
   jest
     .spyOn(jest.requireActual("react-native"), "findNodeHandle")
     .mockImplementation((target: unknown) => (target as { nativeTag?: number })?.nativeTag ?? 999)
 })
 afterEach(() => jest.restoreAllMocks())
 
-it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
-  const observations = jest.spyOn(
-    jest.requireActual<typeof import("../NativeKeyboardScope")>("../NativeKeyboardScope"),
-    "useNativeKeyboardObservation",
-  )
-  const error = jest.spyOn(console, "error"),
-    record = jest.fn()
+const renderAdmittedScene = async (record: (row: Record<string, unknown>) => void) => {
   await render(<FieldInputSDKScene record={record} />)
   for (const name of ["outer-hour", "outer-minute", "inner-hour", "inner-minute"]) {
     const host = screen.getByTestId(name),
@@ -134,6 +134,215 @@ it("connects original segment entry, group callers and native binding lifetime w
       await Promise.resolve()
     })
   }
+}
+
+const originalFieldEvent = <T extends object>(nativeEvent: T) => {
+  let stopped = false,
+    prevented = false
+  return {
+    nativeEvent,
+    persist: jest.fn(),
+    stopPropagation: () => {
+      stopped = true
+    },
+    preventDefault: () => {
+      prevented = true
+    },
+    isPropagationStopped: () => stopped,
+    isDefaultPrevented: () => prevented,
+    get defaultPrevented() {
+      return prevented
+    },
+  }
+}
+
+const scenePacket = (
+  name: "outer" | "inner",
+  hit: string,
+  phase: TNativeFieldInputPacket["phase"],
+  token: number,
+  insideInput = true,
+): TNativeFieldInputPacket => {
+  const metadata = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((item) => item.props.editorTarget === mockTargets.get(`${name}-hour`)!.nativeTag)!
+  const binding = JSON.parse(metadata.props.fieldGroupBinding)
+  const group = (target: number) => ({
+    target,
+    bindingId: binding.bindingId,
+    bindingRevision: binding.bindingRevision,
+    scopeTarget: binding.outerTarget,
+  })
+  const groups = (insideInput ? [binding.inputTarget, binding.outerTarget] : [binding.outerTarget]).map(group)
+  if (name === "inner") {
+    const parent = scenePacket("outer", "outer-hour", phase, token).groups.at(-1)!
+    groups.push(parent)
+  }
+  return {
+    moduleLease: "module:1",
+    token,
+    eventId: token,
+    phase,
+    groups,
+    identity: {
+      ownerId: metadata.props.ownerId,
+      bindingId: binding.bindingId,
+      bindingRevision: binding.bindingRevision,
+      metadataTarget: mockTargets.get(metadata.props.testID)!.nativeTag,
+      outerTarget: binding.outerTarget,
+      inputTarget: binding.inputTarget,
+      surfaceId: 11,
+      target: mockTargets.get(hit)!.nativeTag,
+      documentId: "document:1",
+      documentRevision: "7",
+      windowId: "window:1",
+      mountRevision: "mount:1",
+      outerInstance: `${name}:outer`,
+      inputInstance: `${name}:input`,
+      nativeInstance: hit,
+      editorInstance: hit,
+      epoch: 1,
+    },
+  }
+}
+
+it("keeps nested navigation local and bubbles its held-owner edit through the actual ancestor path", async () => {
+  const record = jest.fn()
+  await renderAdmittedScene(record)
+  await fireEvent.press(screen.getByTestId("field-sdk-echo"))
+  await fireEvent.press(screen.getByTestId("field-sdk-empty"))
+  const originalInner = mockTargets.get("inner-minute")!
+  const dispatch = scenePacket("inner", "inner-hour", "down", 90)
+  const navigation = originalFieldEvent({
+    kind: "keyboard",
+    ownerId: dispatch.identity.ownerId,
+    target: dispatch.identity.target,
+    key: "ArrowRight",
+    phase: "down",
+    cancelled: false,
+    nativeDefaultHandled: false,
+    fieldDispatch: JSON.stringify(dispatch),
+  }) as unknown as TNativeFieldKeyEvent
+  jest.mocked(NativeDefaults!.moveFieldFocus).mockReturnValue(
+    JSON.stringify({
+      requested: true,
+      observed: true,
+      current: true,
+      target: originalInner.nativeTag,
+      nativeInstance: "inner-minute",
+      editorInstance: "inner-minute",
+      error: "",
+    }),
+  )
+  record.mockClear()
+  const focusCount = jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.length
+  for (const id of ["inner-hour", "inner-input", "inner-outer", "outer-outer"])
+    await act(() => screen.getByTestId(id).props.onNativeFieldKey(navigation))
+  expect(record.mock.calls.map(([row]) => [row.kind, row.field])).toEqual([
+    ["segment-key", "inner"],
+    ["field-key", "inner"],
+  ])
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusCount + 1)
+  expect(JSON.parse(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.at(-1)![0]).action).toEqual({
+    groupTarget: dispatch.identity.outerTarget,
+    kind: "next",
+  })
+  const editPacket = scenePacket("inner", "inner-minute", "down", 91)
+  const edit = originalFieldEvent({
+    ...navigation.nativeEvent,
+    key: "ArrowUp",
+    target: editPacket.identity.target,
+    fieldDispatch: JSON.stringify(editPacket),
+  }) as unknown as TNativeFieldKeyEvent
+  record.mockClear()
+  const acknowledgements = jest.mocked(NativeDefaults!.settleField).mock.calls.length
+  for (const id of ["inner-minute", "inner-input", "inner-outer", "outer-outer"])
+    await act(() => screen.getByTestId(id).props.onNativeFieldKey(edit))
+  const rows = record.mock.calls.map(([row]) => row).filter((row) => row.kind !== "field-state")
+  expect(rows.map((row) => [row.kind, row.field])).toEqual([
+    ["segment-key", "inner"],
+    ["value-request", "inner"],
+    ["field-key", "inner"],
+    ["field-key", "inner"],
+    ["field-key", "outer"],
+  ])
+  expect(rows[1]).toMatchObject({
+    held: "08:15:00",
+    heldClass: "Time",
+    value: "08:16:00",
+    valueClass: "Time",
+    echo: false,
+  })
+  expect(rows.filter((row) => row.kind === "field-key").map((row) => row.receiverTarget)).toEqual(
+    editPacket.groups.map((row) => row.target),
+  )
+  expect(rows.filter((row) => row.data).every((row) => row.data === edit.nativeEvent)).toBe(true)
+  expect(jest.mocked(NativeDefaults!.settleField).mock.calls).toHaveLength(acknowledgements + 1)
+  expect(JSON.parse(screen.getByTestId("outer-value").props.accessibilityLabel)).toMatchObject({
+    value: null,
+    valueClass: null,
+  })
+  expect(JSON.parse(screen.getByTestId("inner-value").props.accessibilityLabel)).toMatchObject({
+    value: "08:15:00",
+    valueClass: "Time",
+  })
+  expect(mockTargets.get("inner-minute")).toBe(originalInner)
+  expect(originalInner.setNativeProps).not.toHaveBeenCalled()
+})
+
+it("records the original authored pointer stop before any group press contact", async () => {
+  const record = jest.fn()
+  await renderAdmittedScene(record)
+  await fireEvent.press(screen.getByTestId("field-sdk-stop"))
+  const dispatch = scenePacket("outer", "outer-button", "pointer-start", 95, false)
+  const down = originalFieldEvent({
+    target: dispatch.identity.target,
+    pointerId: 8,
+    pointerType: "touch",
+    isPrimary: true,
+    button: 0,
+    fieldDispatch: JSON.stringify(dispatch),
+  }) as unknown as TNativeFieldPointerEvent
+  record.mockClear()
+  const focusCount = jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls.length
+  await act(() => {
+    screen.getByTestId("outer-button").props.onPointerDown(down)
+    screen.getByTestId("outer-outer").props.onPointerDown(down)
+  })
+  expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["child-pointer"])
+  expect(record.mock.calls[0][0]).toMatchObject({ data: down.nativeEvent, stopped: true })
+  for (const [index, phase, handler] of [
+    [1, "pointer-end", "onPointerUp"],
+    [2, "pointer-click", "onClick"],
+  ] as const) {
+    const packet = { ...dispatch, token: 95 + index, eventId: 95 + index, phase }
+    const event = originalFieldEvent({
+      ...down.nativeEvent,
+      fieldDispatch: JSON.stringify(packet),
+    }) as unknown as TNativeFieldPointerEvent
+    await act(() => screen.getByTestId("outer-outer").props[handler](event))
+  }
+  expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusCount)
+  await fireEvent.press(screen.getByTestId("field-sdk-checkpoint"))
+  const snapshot = JSON.parse(screen.getByTestId("field-sdk-receipt-snapshot").props.accessibilityLabel)
+  expect(snapshot.callbacks.filter((row: { token: number }) => row.token === 95)).toMatchObject([
+    { kind: "child-pointer", stopped: true },
+  ])
+  expect(
+    snapshot.callbacks
+      .filter((row: { kind: string }) => row.kind === "group-pointer")
+      .every((row: { receiverTarget: number }) => row.receiverTarget === dispatch.identity.outerTarget),
+  ).toBe(true)
+})
+
+it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
+  const observations = jest.spyOn(
+    jest.requireActual<typeof import("../NativeKeyboardScope")>("../NativeKeyboardScope"),
+    "useNativeKeyboardObservation",
+  )
+  const error = jest.spyOn(console, "error"),
+    record = jest.fn()
+  await renderAdmittedScene(record)
   expect(JSON.parse(screen.getByTestId("outer-binding").props.accessibilityLabel)).toMatchObject({
     ready: true,
     error: "",

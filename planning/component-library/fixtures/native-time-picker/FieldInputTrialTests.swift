@@ -255,5 +255,40 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertEqual(cancelFrames.first?["phase"] as? String, "pointer-start")
     XCTAssertFalse(cancelFrames.contains { $0["phase"] as? String == "pointer-click" })
     XCTAssertTrue(try XCTUnwrap(cancelled["focusActions"] as? [[String: Any]]).isEmpty)
+
+    control("stop")
+    _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+    let authored = reveal("outer-button", towardStart: false)
+    _ = try receipt("authored-pointer-stop-setup")
+    authored.tap()
+    let childPress = try checkpoint("authored-child-pointer-stop", requestCount: count, hourTarget: false, requiresKey: false)
+    let childFrames = try XCTUnwrap(childPress["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "pointer" && $0["phase"] as? String == "pointer-start" }
+    let childToken = try XCTUnwrap(childFrames.first?["token"] as? Int)
+    let childCallbacks = try XCTUnwrap(childPress["callbacks"] as? [[String: Any]])
+      .filter { $0["token"] as? Int == childToken }
+    XCTAssertEqual(childCallbacks.compactMap { $0["kind"] as? String }, ["child-pointer"])
+    XCTAssertEqual(childCallbacks.first?["stopped"] as? Bool, true)
+    XCTAssertTrue(try XCTUnwrap(childPress["focusActions"] as? [[String: Any]]).isEmpty)
+    control("stop")
+
+    reveal("outer-core-editor", towardStart: false).tap()
+    _ = try receipt("outer-to-nested-setup")
+    element("outer-core-editor").typeKey(.rightArrow, modifierFlags: [])
+    _ = try checkpoint("outer-core-to-nested-hour", requestCount: count, hourTarget: false)
+    _ = try receipt("nested-navigation-setup")
+    element("inner-hour").typeKey(.rightArrow, modifierFlags: [])
+    _ = try checkpoint("nested-hour-to-minute", requestCount: count, hourTarget: false)
+    _ = try receipt("nested-owner-veto-setup")
+    element("inner-minute").typeKey(.upArrow, modifierFlags: [])
+    count += 1
+    let nestedRequest = try checkpoint("nested-owner-veto", requestCount: count, hourTarget: false)
+    let request = try XCTUnwrap((nestedRequest["requests"] as? [[String: Any]])?.last)
+    XCTAssertEqual(request["field"] as? String, "inner")
+    XCTAssertEqual(request["held"] as? String, "08:15:00")
+    XCTAssertEqual(request["value"] as? String, "08:16:00")
+    XCTAssertEqual(request["valueClass"] as? String, "Time")
+    XCTAssertEqual(read("inner-value")?["value"] as? String, "08:15:00")
+    XCTAssertTrue(read("outer-value")?["value"] is NSNull)
   }
 }

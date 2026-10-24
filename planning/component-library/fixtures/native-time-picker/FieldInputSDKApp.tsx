@@ -364,6 +364,7 @@ const Field = ({
         kind: "group-pointer",
         field: name,
         revision,
+        receiverTarget: receiverTarget.current,
         data: event.nativeEvent,
         prevented: event.defaultPrevented,
         stopped: event.isPropagationStopped(),
@@ -378,6 +379,15 @@ const Field = ({
     onPointerCancel: pointerCaller,
     onClick: pointerCaller,
   })
+  const receivePointerGroup = (...args: Parameters<typeof pointerGroup>) => {
+    const previous = receiverTarget.current
+    receiverTarget.current = args[1]
+    try {
+      return pointerGroup(...args)
+    } finally {
+      receiverTarget.current = previous
+    }
+  }
   const rootPointerCaller = (phase: string, event: PointerEvent) => {
     record({
       kind: "field-pointer",
@@ -403,7 +413,7 @@ const Field = ({
           focusable={false}
           testID={`${name}-outer`}
           nativeFieldGroupHandler={receiveGroup}
-          nativeFieldGroupPointerHandler={pointerGroup}
+          nativeFieldGroupPointerHandler={receivePointerGroup}
           nativeFocusWithinObservation
           nativeOnFocusWithin={(event) => {
             focused.current = event.nativeEvent.within
@@ -423,7 +433,7 @@ const Field = ({
             focusable={false}
             testID={`${name}-input`}
             nativeFieldGroupHandler={receiveGroup}
-            nativeFieldGroupPointerHandler={pointerGroup}
+            nativeFieldGroupPointerHandler={receivePointerGroup}
             style={{ flexDirection: "row" }}
           >
             {state.segments.map((segment, index) => (
@@ -464,8 +474,14 @@ const Field = ({
               if (stop) event.stopPropagation()
             }}
             onPointerDown={(event) => {
-              record({ kind: "child-pointer", field: name, data: event.nativeEvent })
               if (stop) event.stopPropagation()
+              record({
+                kind: "child-pointer",
+                field: name,
+                data: event.nativeEvent,
+                stopped: event.isPropagationStopped(),
+                prevented: event.defaultPrevented,
+              })
             }}
             onPress={(event) => record({ kind: "child-press", field: name, data: event.nativeEvent })}
             style={frame}
@@ -521,6 +537,9 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           "field-key",
           "child-key",
           "child-press",
+          "child-pointer",
+          "group-pointer",
+          "field-pointer",
           "core-key",
           "core-native-change",
           "core-change",
@@ -537,6 +556,8 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           dispatch: typeof data?.fieldDispatch === "string" ? data.fieldDispatch : null,
           text: row.text ?? data?.text ?? null,
           revision: row.revision ?? null,
+          stopped: row.stopped ?? null,
+          prevented: row.prevented ?? null,
           selection: selection ? { start: selection.start, end: selection.end } : null,
         })
       }

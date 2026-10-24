@@ -40,6 +40,7 @@ def pointer_fixture():
     native.update(kind="pointer",event={"fieldDispatch":json.dumps(dispatch)})
     for row in rows[:-1]:
         row.update(kind="group-pointer",data=copy.deepcopy(event),stopped=True,prevented=False)
+    rows[0]["kind"]="child-pointer"
     rows[-1]["records"].append(dict(kind="original-pointer",token=1,eventId=1,payload=raw))
     return rows
 

@@ -91,3 +91,26 @@ it("honors a child's original pointer stop before field press state and focus", 
   pointer(icon, "click", "touch")
   expect(document.activeElement).toBe(outside)
 })
+
+it("retains the authored action once when its original pointer start stops before the group", () => {
+  const action = vi.fn()
+  render(
+    <>
+      <button>Outside</button>
+      <TimePicker
+        aria-label="Clock"
+        ComponentIcon={
+          <button onPointerDown={(event) => event.stopPropagation()} onClick={action}>
+            Authored action
+          </button>
+        }
+      />
+    </>,
+  )
+  const outside = screen.getByRole("button", { name: "Outside" }),
+    authored = screen.getByRole("button", { name: "Authored action" })
+  act(() => outside.focus())
+  for (const phase of ["pointerdown", "pointerup", "click"]) pointer(authored, phase, "touch")
+  expect(action).toHaveBeenCalledTimes(1)
+  expect(document.activeElement).toBe(outside)
+})
