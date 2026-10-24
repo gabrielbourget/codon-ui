@@ -1,7 +1,12 @@
 import { act, render, screen } from "@testing-library/react-native"
 import { findNodeHandle } from "react-native"
 
-import { NativeFieldInputContext, type TNativeFieldKeyEvent } from "../fieldInput"
+import {
+  NativeFieldInputContext,
+  type TNativeFieldKeyEvent,
+  type TNativeFieldPointerEvent,
+  type TNativeFieldPointerPhase,
+} from "../fieldInput"
 import { NativeFocusHost } from "../NativeFocusView"
 import type { TNativeKeyboardEvent } from "../types"
 
@@ -81,6 +86,105 @@ const setup = () => ({
   },
 })
 afterEach(() => jest.restoreAllMocks())
+
+const originalPointer = (phase: TNativeFieldPointerPhase) => {
+  const original = originalEvent() as unknown as TNativeFieldPointerEvent
+  const packet = JSON.parse(original.nativeEvent.fieldDispatch)
+  packet.phase = phase
+  const payload = original.nativeEvent as unknown as Record<string, unknown>
+  for (const key of Object.keys(payload)) delete payload[key]
+  Object.assign(payload, {
+    target: 10,
+    pointerId: 0,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    fieldDispatch: JSON.stringify(packet),
+  })
+  return original
+}
+
+it.each([
+  ["onPointerDown", "pointer-start"],
+  ["onPointerUp", "pointer-end"],
+  ["onPointerCancel", "pointer-cancel"],
+] as const)("carries the actual host %s event through the shared field receiver", async (name, phase) => {
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(10)
+  const scope = setup(),
+    event = originalPointer(phase),
+    caller = jest.fn((received: TNativeFieldPointerEvent) => {
+      expect(received).toBe(event)
+      received.preventDefault()
+      received.stopPropagation()
+    })
+  await render(
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-pointer" {...{ [name]: caller }} />
+    </NativeFieldInputContext.Provider>,
+  )
+  await act(() => screen.getByTestId("field-pointer").props[name](event))
+  expect(caller).toHaveBeenCalledTimes(1)
+  expect(scope.native.settleField).toHaveBeenCalledTimes(1)
+  expect(JSON.parse(scope.native.settleField.mock.calls[0][0])).toMatchObject({
+    phase,
+    preventDefault: phase !== "pointer-cancel",
+  })
+})
+
+it("keeps ordinary pointer callbacks intact both outside and inside a field context", async () => {
+  const caller = jest.fn(),
+    original = { nativeEvent: { target: 10, pointerId: 0 } }
+  await render(<NativeFocusHost testID="field-pointer" onPointerDown={caller} />)
+  expect(screen.getByTestId("field-pointer").props.onPointerDown).toBe(caller)
+  const scope = setup()
+  await screen.rerender(
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-pointer" onPointerDown={caller} />
+    </NativeFieldInputContext.Provider>,
+  )
+  await act(() => screen.getByTestId("field-pointer").props.onPointerDown(original))
+  expect(caller).toHaveBeenCalledTimes(1)
+  expect(caller).toHaveBeenCalledWith(original)
+  expect(scope.native.acceptsField).not.toHaveBeenCalled()
+  expect(scope.native.settleField).not.toHaveBeenCalled()
+})
+
+it("uses current pointer callbacks and refuses a retired native field lease", async () => {
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(10)
+  const scope = setup(),
+    first = jest.fn(),
+    next = jest.fn()
+  const node = (caller: () => void) => (
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-pointer" onPointerDown={caller} />
+    </NativeFieldInputContext.Provider>
+  )
+  await render(node(first))
+  await screen.rerender(node(next))
+  await act(() => screen.getByTestId("field-pointer").props.onPointerDown(originalPointer("pointer-start")))
+  expect(first).not.toHaveBeenCalled()
+  expect(next).toHaveBeenCalledTimes(1)
+  scope.native.getLease = () => "retired"
+  await act(() => screen.getByTestId("field-pointer").props.onPointerDown(originalPointer("pointer-start")))
+  expect(next).toHaveBeenCalledTimes(1)
+})
+
+it("routes the original pointer and actual group target to its explicit policy without invoking the child path", async () => {
+  jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(2)
+  const scope = setup(),
+    group = jest.fn(),
+    child = jest.fn(),
+    event = originalPointer("pointer-end")
+  await render(
+    <NativeFieldInputContext.Provider value={scope}>
+      <NativeFocusHost testID="field-group" nativeFieldGroupPointerHandler={group} onPointerUp={child} />
+    </NativeFieldInputContext.Provider>,
+  )
+  await act(() => screen.getByTestId("field-group").props.onPointerUp(event))
+  expect(group).toHaveBeenCalledWith(event, 2, "pointer-end")
+  expect(child).not.toHaveBeenCalled()
+  expect(scope.native.settleField).not.toHaveBeenCalled()
+})
 
 it("delivers the original child event through the context and settles its own stop/default before returning", async () => {
   jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(10)
