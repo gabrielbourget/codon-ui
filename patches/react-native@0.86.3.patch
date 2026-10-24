@@ -885,6 +885,93 @@ index 0000000000000000000000000000000000000000..ca613b3392d37e892682337ffea41b60
 +  std::shared_ptr<State> state_ = std::make_shared<State>();
 +};
 +} // namespace facebook::react
+diff --git a/ReactCommon/react/renderer/uimanager/NativeEventPayloads.h b/ReactCommon/react/renderer/uimanager/NativeEventPayloads.h
+new file mode 100644
+index 0000000000000000000000000000000000000000..66a01c4dc10f9687bdac2d50792f295c77244045
+--- /dev/null
++++ b/ReactCommon/react/renderer/uimanager/NativeEventPayloads.h
+@@ -0,0 +1,81 @@
++/* Copyright (c) Meta Platforms, Inc. and affiliates. MIT license. */
++#pragma once
++
++#include <jsi/jsi.h>
++#include <atomic>
++#include <functional>
++#include <memory>
++#include <mutex>
++#include <stdexcept>
++#include <string>
++#include <thread>
++#include <vector>
++
++namespace facebook::react {
++class EventTarget;
++// An optional observer at actual JS delivery, after SDK pointer processing.
++// It never replaces the original payload type, handler or event processor.
++class NativeEventPayloads final {
++ public:
++  using Completion = std::function<void(bool)>;
++  using Handler = std::function<Completion(jsi::Runtime &, EventTarget *, const std::string &, jsi::Value &)>;
++ private:
++  struct Entry {
++    std::thread::id thread{std::this_thread::get_id()};
++    Handler handler;
++    std::atomic<bool> active{true};
++    explicit Entry(Handler value) : handler(std::move(value)) {}
++  };
++  struct State {
++    std::mutex mutex;
++    bool live{true};
++    std::vector<std::shared_ptr<Entry>> entries;
++  };
++ public:
++  class Registration final {
++   public:
++    Registration(std::shared_ptr<State> state, std::shared_ptr<Entry> entry) : state_(std::move(state)), entry_(std::move(entry)) {}
++    ~Registration() { retire(); }
++    Registration(const Registration &) = delete;
++    Registration &operator=(const Registration &) = delete;
++    void retire() {
++      entry_->active.store(false);
++      std::lock_guard lock(state_->mutex);
++      auto &entries = state_->entries;
++      for (auto it = entries.begin(); it != entries.end(); ++it) if (*it == entry_) { entries.erase(it); break; }
++    }
++   private:
++    std::shared_ptr<State> state_;
++    std::shared_ptr<Entry> entry_;
++  };
++  NativeEventPayloads() : state_(std::make_shared<State>()) {}
++  ~NativeEventPayloads() {
++    std::lock_guard lock(state_->mutex);
++    state_->live = false;
++    for (const auto &entry : state_->entries) entry->active.store(false);
++  }
++  NativeEventPayloads(const NativeEventPayloads &) = delete;
++  NativeEventPayloads &operator=(const NativeEventPayloads &) = delete;
++  std::shared_ptr<Registration> enter(Handler handler) {
++    if (!handler) throw std::invalid_argument("native-event-payload-handler-required");
++    auto entry = std::make_shared<Entry>(std::move(handler));
++    auto registration = std::make_shared<Registration>(state_, entry);
++    std::lock_guard lock(state_->mutex);
++    if (!state_->live) throw std::runtime_error("native-event-payload-binding-retired");
++    state_->entries.push_back(entry);
++    return registration;
++  }
++  Completion before(jsi::Runtime &runtime, EventTarget *target, const std::string &type, jsi::Value &payload) const {
++    std::shared_ptr<Entry> selected;
++    {
++      std::lock_guard lock(state_->mutex);
++      if (!state_->live) return {};
++      for (auto it = state_->entries.rbegin(); it != state_->entries.rend(); ++it)
++        if ((*it)->active.load() && (*it)->thread == std::this_thread::get_id()) { selected = *it; break; }
++    }
++    return selected && selected->active.load() ? selected->handler(runtime, target, type, payload) : Completion{};
++  }
++ private:
++  std::shared_ptr<State> state_;
++};
++} // namespace facebook::react
 diff --git a/ReactCommon/react/renderer/uimanager/UIManager.cpp b/ReactCommon/react/renderer/uimanager/UIManager.cpp
 index 4d640400dc129724b1a46e429fc90da2fb1919cc..3bde3e14a4b85bc44ea07253c383204a968761d3 100644
 --- a/ReactCommon/react/renderer/uimanager/UIManager.cpp
@@ -929,3 +1016,75 @@ index 28b8729e3e01ebe37d3e082ea24e7642e9568ead..93e467a5d54e78b0dab47df6f8d27013
    SharedComponentDescriptorRegistry componentDescriptorRegistry_;
    UIManagerDelegate *delegate_{};
    UIManagerAnimationDelegate *animationDelegate_{nullptr};
+diff --git a/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp b/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
+index c79fc75df5b44609b066cdda67b446ac778bbee0..7a3ee18b24874d7b003f504157c5447fff94d7d3 100644
+--- a/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
++++ b/ReactCommon/react/renderer/uimanager/UIManagerBinding.cpp
+@@ -154,13 +154,22 @@ void UIManagerBinding::dispatchEventToJS(
+   }
+ 
+   currentEventPriority_ = priority;
++  auto completion = !instanceHandle.isNull() && payload.isObject()
++      ? nativeEventPayloads_.before(runtime, eventTarget, type, payload)
++      : NativeEventPayloads::Completion{};
+   if (eventHandler_) {
+-    eventHandler_->call(
+-        runtime,
+-        std::move(instanceHandle),
+-        jsi::String::createFromUtf8(runtime, type),
+-        std::move(payload));
+-  }
++    try {
++      eventHandler_->call(
++          runtime,
++          std::move(instanceHandle),
++          jsi::String::createFromUtf8(runtime, type),
++          std::move(payload));
++    } catch (...) {
++      if (completion) { try { completion(false); } catch (...) {} }
++      throw;
++    }
++    if (completion) completion(true);
++  } else if (completion) completion(false);
+   currentEventPriority_ = ReactEventPriority::Default;
+ }
+ 
+@@ -1225,6 +1234,10 @@ UIManager& UIManagerBinding::getUIManager() {
+   return *uiManager_;
+ }
+ 
++NativeEventPayloads& UIManagerBinding::getNativeEventPayloads() {
++  return nativeEventPayloads_;
++}
++
+ PointerEventsProcessor& UIManagerBinding::getPointerEventsProcessor() {
+   return pointerEventsProcessor_;
+ }
+diff --git a/ReactCommon/react/renderer/uimanager/UIManagerBinding.h b/ReactCommon/react/renderer/uimanager/UIManagerBinding.h
+index 0d1910b442b67da7453506410363d7fad28c22e9..6514ae38758379bd7d39c97424ce8cc4906fbbad 100644
+--- a/ReactCommon/react/renderer/uimanager/UIManagerBinding.h
++++ b/ReactCommon/react/renderer/uimanager/UIManagerBinding.h
+@@ -10,6 +10,7 @@
+ #include <jsi/jsi.h>
+ #include <react/renderer/core/RawValue.h>
+ #include <react/renderer/uimanager/PointerEventsProcessor.h>
++#include <react/renderer/uimanager/NativeEventPayloads.h>
+ #include <react/renderer/uimanager/UIManager.h>
+ #include <react/renderer/uimanager/primitives.h>
+ #include <react/timing/primitives.h>
+@@ -64,6 +65,7 @@ class UIManagerBinding : public jsi::HostObject {
+    */
+   jsi::Value get(jsi::Runtime &runtime, const jsi::PropNameID &name) override;
+ 
++  NativeEventPayloads &getNativeEventPayloads();
+   UIManager &getUIManager();
+   PointerEventsProcessor &getPointerEventsProcessor();
+ 
+@@ -80,6 +82,7 @@ class UIManagerBinding : public jsi::HostObject {
+       const EventPayload &payload,
+       HighResTimeStamp eventTimestamp) const;
+ 
++  mutable NativeEventPayloads nativeEventPayloads_;
+   std::shared_ptr<UIManager> uiManager_;
+   std::unique_ptr<jsi::Function> eventHandler_;
+   mutable PointerEventsProcessor pointerEventsProcessor_;

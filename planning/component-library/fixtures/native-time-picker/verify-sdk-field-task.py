@@ -41,10 +41,12 @@ inventory = {
     "patchSHA256": hashlib.sha256(patch).hexdigest(),
     "sourceFiles": {name: hashlib.sha256((sdk / name).read_bytes()).hexdigest() for name in sorted(set(re.findall(r"^diff --git a/(.*?) b/", patch.decode(), re.M)))},
     "changedExistingMethods": [
+        "UIManagerBinding::dispatchEventToJS (internal renderer helper after original pointer processing)",
         "MountItemDispatcher::addViewCommandMountItem", "Scheduler::uiManagerDidDispatchCommand", "EventDispatcher::dispatchEvent/dispatchUniqueEvent", "EventListenerContainer::willDispatchEvent",
         "RuntimeScheduler_Modern::runEventLoopTick/executeTask/performMicrotaskCheckpoint/scheduleRenderingUpdate",
     ],
     "additiveMethods": [
+        "UIManagerBinding::getNativeEventPayloads; NativeEventPayloads constructor/destructor/enter/before/deleted copy operations; Entry/State/Registration construction/destruction/retire",
         "EventQueue/EventDispatcher/Scheduler::dispatchOriginalNativeEvents",
         "FabricUIManager::checkNativeEventCommandBoundary/beginNativeEventCommand",
         "MountItemDispatcher::checkNativeEventCommandBoundary/beginNativeEventCommand/endNativeEventCapture/nativeEventSurfaceCurrent/drainNativeEventCommands",

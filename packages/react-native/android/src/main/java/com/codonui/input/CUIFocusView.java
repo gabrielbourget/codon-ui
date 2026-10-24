@@ -428,6 +428,21 @@ public final class CUIFocusView extends ReactViewGroup implements View.OnClickLi
   }
 
   @Override
+  public boolean dispatchTouchEvent(MotionEvent event) {
+    CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
+    if (decision.prevented) return true;
+    boolean handled = super.dispatchTouchEvent(event);
+    return handled || decision.admitted;
+  }
+
+  @Override
+  public boolean dispatchGenericMotionEvent(MotionEvent event) {
+    CUIFieldInputBinding.PointerDecision decision = CUIFieldInputBinding.dispatchPointer(this, event);
+    if (decision.prevented) return true;
+    return super.dispatchGenericMotionEvent(event);
+  }
+
+  @Override
   public boolean onTouchEvent(MotionEvent event) {
     if (event.getActionMasked() == MotionEvent.ACTION_DOWN) { origin = "pointer"; CUIInputWindow.record(this, "pointer"); }
     return super.onTouchEvent(event);

@@ -119,12 +119,16 @@ class FieldInputDispatchFrames final {
   using Handle = std::shared_ptr<Ticket>;
 
   Handle begin(const FieldInputIdentity &identity, int64_t eventId, const std::string &phase,
-      std::chrono::milliseconds timeout, std::vector<FieldInputIdentity> scopes = {}) {
+      std::chrono::milliseconds timeout, std::vector<FieldInputIdentity> scopes = {},
+      Clock::time_point originDeadline = Clock::time_point::max()) {
     std::lock_guard lock(mutex_);
     if (!live_ || serial_ >= 9007199254740991ULL || !identity.valid() || eventId <= 0 || eventId > 9007199254740991LL ||
         (phase != "down" && phase != "up" && phase != "cancel" && phase != "pointer-start" &&
-          phase != "pointer-end" && phase != "pointer-cancel" && phase != "input") || timeout.count() <= 0 || timeout.count() > 1000)
+          phase != "pointer-end" && phase != "pointer-cancel" && phase != "pointer-click" && phase != "input") ||
+        timeout.count() <= 0 || timeout.count() > 1000)
       return nullptr;
+    const auto deadline = std::min(Clock::now() + timeout, originDeadline);
+    if (Clock::now() >= deadline) return nullptr;
     if (scopes.empty()) scopes.push_back(identity);
     bool hasOriginal = false;
     std::unordered_set<int32_t> roots, metadata;
@@ -137,7 +141,7 @@ class FieldInputDispatchFrames final {
       hasOriginal |= scope == identity;
     }
     if (!hasOriginal) return nullptr;
-    auto ticket = Handle(new Ticket(++serial_, identity, eventId, phase, Clock::now() + timeout, std::move(scopes)));
+    auto ticket = Handle(new Ticket(++serial_, identity, eventId, phase, deadline, std::move(scopes)));
     frames_.push_back(ticket);
     return ticket;
   }

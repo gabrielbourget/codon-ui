@@ -50,7 +50,7 @@ int main() {
   check(!frames.acknowledge(ticket->token, identity, 1, "down", true, true, next));
   check(!frames.startDelivery(ticket));
 
-  for (const auto &phase : {"down", "up", "cancel", "pointer-start", "pointer-end", "pointer-cancel"}) {
+  for (const auto &phase : {"down", "up", "cancel", "pointer-start", "pointer-end", "pointer-cancel", "pointer-click"}) {
     auto current = frames.begin(identity, 2, phase, 1000ms);
     check(frames.startDelivery(current));
     check(frames.acknowledge(current->token, identity, 2, phase, true, true, {}));
@@ -58,6 +58,22 @@ int main() {
     const bool cancel = std::string(phase) == "cancel" || std::string(phase) == "pointer-cancel";
     check(frames.wait(current).disposition == (cancel ? FieldInputDisposition::Allowed : FieldInputDisposition::Prevented));
     check(frames.end(current, true).disposition == (cancel ? FieldInputDisposition::Allowed : FieldInputDisposition::Prevented));
+  }
+  {
+    const auto originDeadline = FieldInputDispatchFrames::Clock::now() + 100ms;
+    for (const auto &phase : {"pointer-end", "pointer-click"}) {
+      auto original = frames.begin(identity, 2, phase, 1000ms, {}, originDeadline);
+      check(original && original->deadline == originDeadline);
+      check(frames.startDelivery(original));
+      check(frames.acknowledge(original->token, identity, 2, phase, true, false, {}));
+      frames.finishDelivery(original, false);
+      check(frames.end(original, true).disposition == FieldInputDisposition::Allowed);
+    }
+    check(!frames.begin(identity, 2, "pointer-click", 1000ms, {}, FieldInputDispatchFrames::Clock::now() - 1ms));
+    const auto before = FieldInputDispatchFrames::Clock::now();
+    auto bounded = frames.begin(identity, 2, "pointer-click", 10ms, {}, before + 1000ms);
+    check(bounded && bounded->deadline < before + 100ms);
+    frames.end(bounded, false);
   }
   auto cancelled = frames.begin(identity, 3, "cancel", 1000ms);
   check(frames.startDelivery(cancelled));
@@ -353,6 +369,7 @@ int main() {
   check(!validation.begin(identity, 1, "repeat", 100ms));
   check(!validation.begin(identity, 1, "down", 0ms));
   check(!validation.begin(identity, 1, "down", 1001ms));
+  check(!validation.begin(identity, 1, "pointer-click", std::chrono::milliseconds::max()));
   FieldInputOriginalEvents<int> originalEvents;
   std::vector<int> emitted;
   originalEvents.append({1, 2, 3});

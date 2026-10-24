@@ -290,7 +290,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   if (!fieldInputScopeCurrent(*scope, document, snapshot, _epoch) || fieldInputBinding(document).moduleLease != _lease.UTF8String) {
     result.error = "field-input-focus-scope-retired"; return result;
   }
-  const auto target = fieldInputFocusTarget(document, snapshot, action);
+  const auto target = fieldInputFocusTarget(document, snapshot, action, ticket->identity.target);
   if (!target) { result.current = true; return result; }
   const auto row = fieldInputOriginal(snapshot, target);
   UIView *component = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target];

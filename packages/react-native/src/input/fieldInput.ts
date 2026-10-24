@@ -4,7 +4,7 @@ import type { NativeSyntheticEvent, PointerEvent } from "react-native"
 import type { TNativeKeyboardEvent } from "./types"
 
 const KEY_PHASES = ["down", "up", "cancel"] as const
-const POINTER_PHASES = ["pointer-start", "pointer-end", "pointer-cancel"] as const
+const POINTER_PHASES = ["pointer-start", "pointer-end", "pointer-cancel", "pointer-click"] as const
 export type TNativeFieldPointerPhase = (typeof POINTER_PHASES)[number]
 const PHASES = [...KEY_PHASES, "input", ...POINTER_PHASES] as const
 const INPUT_KINDS = ["insert", "delete", "marked", "unmark"] as const

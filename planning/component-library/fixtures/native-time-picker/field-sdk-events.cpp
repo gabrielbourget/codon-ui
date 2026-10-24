@@ -55,6 +55,45 @@ int main() {
   const auto makeEvent = [&](bool unique = false) {
     return RawEvent("topPointerDown", payload, target, family, RawEvent::Category::Discrete, unique, HighResTimeStamp{41});
   };
+  {
+    UIManager manager;
+    std::vector<std::string> delivered;
+    std::optional<codon::FieldInputDispatchFrames::Clock::time_point> originDeadline;
+    int emitted = 0;
+    const bool prevented = codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+      emitted++;
+      for (const auto *type : {"topPointerUp", "topFocus", "topClick"}) {
+        auto event = makeEvent(); event.type = type;
+        manager.dispatcher.dispatchEvent(std::move(event));
+      }
+    }, [&](const RawEvent &event, auto deadline) {
+      check(!NativeEventListenerScope::active());
+      check(event.eventTarget == target && event.eventPayload == payload && event.shadowNodeFamily.lock() == family);
+      check(event.eventStartTimeStamp.value == 41);
+      check(deadline > codon::FieldInputDispatchFrames::Clock::now());
+      if (!originDeadline) originDeadline = deadline;
+      check(deadline == *originDeadline);
+      delivered.push_back(event.type);
+      return event.type == "topPointerUp";
+    });
+    check(emitted == 1 && prevented);
+    check(delivered == (std::vector<std::string>{"topPointerUp", "topClick"}));
+    check(manager.dispatcher.eventQueue_.events.size() == 1 && manager.dispatcher.eventQueue_.events[0].type == "topFocus");
+    manager.dispatcher.dispatchEvent(makeEvent());
+    check(manager.dispatcher.eventQueue_.events.size() == 2);
+  }
+  {
+    UIManager manager;
+    const auto originalError = std::make_shared<const std::string>("original-pointer-failure");
+    try {
+      codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] {
+        manager.dispatcher.dispatchEvent(makeEvent());
+      }, [&](const RawEvent &, auto) -> bool { throw originalError; });
+      check(false);
+    } catch (const std::shared_ptr<const std::string> &error) { check(error == originalError); }
+    manager.dispatcher.dispatchEvent(makeEvent());
+    check(manager.dispatcher.eventQueue_.events.size() == 1);
+  }
   for (bool unique : {false, true}) {
     EventDispatcher dispatcher;
     const auto logger = std::make_shared<ModelLogger>(); dispatcher.eventLogger_ = logger;

@@ -107,7 +107,7 @@ const setup = () => {
 }
 
 const pointerEvent = (
-  phase: "pointer-start" | "pointer-end" | "pointer-cancel" = "pointer-start",
+  phase: "pointer-start" | "pointer-end" | "pointer-cancel" | "pointer-click" = "pointer-start",
   options: Partial<TNativeFieldPointerEvent["nativeEvent"]> = {},
 ) => {
   const data = { ...packet(), phase }
@@ -130,7 +130,7 @@ const pointerEvent = (
   return original
 }
 
-it.each(["pointer-start", "pointer-end", "pointer-cancel"] as const)(
+it.each(["pointer-start", "pointer-end", "pointer-cancel", "pointer-click"] as const)(
   "carries the original SDK %s through child, input and outer receivers without adding public fields",
   (phase) => {
     const f = setup(),

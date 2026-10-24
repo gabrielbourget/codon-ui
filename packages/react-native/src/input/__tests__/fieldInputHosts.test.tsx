@@ -108,6 +108,7 @@ it.each([
   ["onPointerDown", "pointer-start"],
   ["onPointerUp", "pointer-end"],
   ["onPointerCancel", "pointer-cancel"],
+  ["onClick", "pointer-click"],
 ] as const)("carries the actual host %s event through the shared field receiver", async (name, phase) => {
   jest.spyOn(jest.requireActual("react-native"), "findNodeHandle").mockReturnValue(10)
   const scope = setup(),

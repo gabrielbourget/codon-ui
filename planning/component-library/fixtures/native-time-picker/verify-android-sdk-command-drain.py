@@ -20,7 +20,7 @@ output.mkdir(parents=True, exist_ok=False)
 assert json.loads((sdk / "package.json").read_text())["version"] == "0.86.3"
 patch = args.patch.read_bytes()
 files = sorted(set(re.findall(r'^diff --git a/(.*?) b/', patch.decode(), re.M)))
-assert len(files) == 22 and all((sdk / name).is_file() for name in files)
+assert len(files) == 25 and all((sdk / name).is_file() for name in files)
 android = sdk / "ReactAndroid/src/main/java/com/facebook/react"
 implementations = [
     android / "fabric/mounting/MountItemDispatcher.kt", android / "fabric/mounting/NativeEventCommandScope.kt",
@@ -31,6 +31,7 @@ inventory = {
     "sdk": "react-native@0.86.3", "patchSHA256": hashlib.sha256(patch).hexdigest(),
     "sourceFiles": {name: hashlib.sha256((sdk / name).read_bytes()).hexdigest() for name in files},
     "changedExistingMethods": [
+        "UIManagerBinding::dispatchEventToJS (internal renderer helper after original pointer processing)",
         "Scheduler::uiManagerDidDispatchCommand", "EventDispatcher::dispatchEvent/dispatchUniqueEvent", "EventListenerContainer::willDispatchEvent",
         "RuntimeScheduler_Modern::runEventLoopTick/executeTask/performMicrotaskCheckpoint/scheduleRenderingUpdate",
         "MountItemDispatcher::addViewCommandMountItem (internal renderer enqueue, not a replaced delegate)",
@@ -42,6 +43,7 @@ inventory = {
         "NativeEventCommandScope::captured original item getSurfaceId/toString/execute",
     ],
     "additiveCPPMethods": [
+        "UIManagerBinding::getNativeEventPayloads; NativeEventPayloads constructor/destructor/enter/before/deleted copy operations; Entry/State/Registration construction/destruction/retire",
         "UIManager::getNativeEventCommands; NativeEventCommand constructor/status/claim/cancel/executeOriginal",
         "NativeEventCommands Entry/Registration/Route constructors; registry constructor/destructor/enter/captureCurrentThread; Registration destructor/retire; Route current/dispatchOriginal; deleted copy operations",
         "RawEvent::deferAfterListeners/continueAfterListeners; NativeEventContinuation constructor/run; NativeEventListenerScope constructor/destructor/active/deleted copy operations",

@@ -6,6 +6,7 @@
 #include "FieldInputOriginalEvents.h"
 #include "FieldInputNativeOperation.h"
 #include "FieldInputSubphase.h"
+#include "FieldInputOriginalPointer.h"
 #include "FieldInputTaskScope.h"
 #include "FieldInputOriginalCommand.h"
 #include <ReactCommon/CallInvoker.h>
@@ -159,10 +160,13 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
     }
     if (!ticket || !manager || !original || original->getTag() != ticket->identity.target ||
         original->getSurfaceId() != ticket->identity.surfaceId || !original->getEventEmitter() ||
-        (type != "nativeFieldKey" && type != "nativeFieldPointer" && type != "topNativeSegmentInput") || !payload.isObject()) return false;
+        (type != "nativeFieldKey" && type != "nativeFieldPointer" && type != "topNativeSegmentInput" && !isFieldInputOriginalPointer(type)) || !payload.isObject()) return false;
     const auto scheduler = fieldInputRuntimeScheduler(*manager);
-    if (!scheduler || ((type == "topNativeSegmentInput") != (originalEvent != nullptr)) ||
-        (originalEvent && ticket->phase != "input")) return false;
+    const bool pointer = isFieldInputOriginalPointer(type);
+    if (!scheduler || ((type == "topNativeSegmentInput" || pointer) != (originalEvent != nullptr)) ||
+        (originalEvent && (originalEvent->type != type || (pointer ?
+          ticket->phase != fieldInputOriginalPointerPhase(type) :
+          ticket->phase != "input")))) return false;
     const auto originalRecord = originalEvent ? std::make_shared<const RawEvent>(*originalEvent) : nullptr;
     std::weak_ptr<FieldInputRuntime> weakSelf = shared_from_this();
     std::weak_ptr<FieldInputDispatchFrames::Ticket> weakTicket = ticket;
@@ -199,7 +203,8 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
                 // First delivery of this original native record, using the
                 // original Fabric target and React's own event handler.
                 const auto originalPayload = originalRecord ? originalRecord->eventPayload : nullptr;
-                auto eventPayload = std::make_shared<ValueFactoryEventPayload>([&payload, &originalPayload, &state, &frame](facebook::jsi::Runtime &runtime) {
+                FieldInputOriginalPointer pointerReceipt;
+                auto eventPayload = std::make_shared<ValueFactoryEventPayload>([&payload, &originalPayload, &state, &frame, &pointerReceipt](facebook::jsi::Runtime &runtime) {
                   if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
                   if (!originalPayload) {
                     auto value = facebook::jsi::valueFromDynamic(runtime, payload);
@@ -213,16 +218,37 @@ class FieldInputRuntime final : public std::enable_shared_from_this<FieldInputRu
                   auto object = value.asObject(runtime);
                   if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
                   object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, payload.at("fieldDispatch").asString()));
+                  pointerReceipt.retain(runtime, value);
                   if (!state->frames.isCurrent(frame)) throw std::runtime_error("field-input-original-dispatch-expired");
                   return value;
                 });
                 if (originalRecord) {
                   auto event = *originalRecord;
-                  event.eventPayload = eventPayload;
+                  const bool pointer = isFieldInputOriginalPointer(originalRecord->type);
+                  bool retargeted = false;
+                  auto payloadScope = pointer ? binding->getNativeEventPayloads().enter(
+                    [&](facebook::jsi::Runtime &runtime, EventTarget *target, const std::string &type, facebook::jsi::Value &value) -> NativeEventPayloads::Completion {
+                      if (type != originalRecord->type || !target) return {};
+                      pointerReceipt.retain(runtime, value);
+                      if (target->getTag() != frame->identity.target) { retargeted = true; return {}; }
+                      if (!state->frames.isCurrent(frame) || !value.isObject()) throw std::runtime_error("field-input-pointer-payload-retired");
+                      auto object = value.asObject(runtime);
+                      if (object.hasProperty(runtime, "fieldDispatch")) throw std::runtime_error("field-input-original-packet-ambiguous");
+                      state->records.append(folly::toJson(folly::dynamic::object("kind", "original-pointer")
+                        ("token", frame->token)("eventId", frame->eventId)("payload", facebook::jsi::dynamicFromValue(runtime, value))));
+                      object.setProperty(runtime, "fieldDispatch", facebook::jsi::String::createFromUtf8(runtime, payload.at("fieldDispatch").asString()));
+                      return [&](bool delivered) {
+                        if (delivered && pointerReceipt.stopped(runtime) && state->frames.accepts(frame->token, frame->identity, frame->eventId, frame->phase))
+                          state->frames.acknowledge(frame->token, frame->identity, frame->eventId, frame->phase,
+                            state->frames.isCurrent(frame), pointerReceipt.prevented(runtime), std::nullopt);
+                      };
+                    }) : nullptr;
+                  if (!pointer) event.eventPayload = eventPayload;
                   const auto scheduler = dynamic_cast<Scheduler *>(manager->getDelegate());
                   std::vector<RawEvent> originals; originals.push_back(std::move(event));
                   if (!scheduler || !scheduler->dispatchOriginalNativeEvents(runtime, std::move(originals)))
                     throw std::runtime_error("field-input-original-event-dispatcher-retired");
+                  if (retargeted) throw std::runtime_error("field-input-sdk-pointer-retarget-unadmitted");
                 } else {
                   binding->dispatchEvent(runtime, target.get(), eventType, ReactEventPriority::Discrete, *eventPayload, timestamp);
                 }
