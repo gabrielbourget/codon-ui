@@ -161,7 +161,8 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     for (const auto &node : currentDocument.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
     members.insert(action.groupTarget);
     const auto request = folly::toJson(folly::dynamic::object("target", selected)("original", row)
-      ("epoch", expectedScope->epoch)("scopeTarget", action.groupTarget));
+      ("epoch", expectedScope->epoch)("scopeTarget", action.groupTarget)
+      ("token", ticket->token)("eventId", ticket->eventId)("action", action.kind));
     return state->captureFocusEvents(ticket, manager, [&](const RawEvent &event) {
       const auto family = event.shadowNodeFamily.lock();
       return family && family->getSurfaceId() == identity.surfaceId && members.contains(family->getTag()) && event.type != "topNativeFieldKey";

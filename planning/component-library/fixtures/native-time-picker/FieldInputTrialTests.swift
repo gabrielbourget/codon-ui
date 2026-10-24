@@ -69,11 +69,11 @@ final class FieldInputTrialTests: XCTestCase {
     add(attachment)
     return row
   }
-  private func checkpoint(_ name: String, requestCount: Int, hourTarget: Bool = true, nativeEditors: [String] = []) throws -> [String: Any] {
+  private func checkpoint(_ name: String, requestCount: Int, hourTarget: Bool = true, nativeEditors: [String] = [], requiresKey: Bool = true) throws -> [String: Any] {
     let row = try receipt(name, nativeEditors: nativeEditors)
     let frames = try XCTUnwrap(row["frames"] as? [[String: Any]])
     let keys = frames.filter { $0["kind"] as? String == "key" && $0["phase"] as? String == "down" }
-    XCTAssertFalse(keys.isEmpty, "Original key frame missing: " + name)
+    if requiresKey { XCTAssertFalse(keys.isEmpty, "Original key frame missing: " + name) }
     for key in keys {
       let identity = try XCTUnwrap(key["identity"] as? [String: Any])
       let target = try XCTUnwrap(identity["target"] as? Int)
@@ -192,7 +192,11 @@ final class FieldInputTrialTests: XCTestCase {
     let navigationToken = try XCTUnwrap(navigationKeys.last?["token"] as? Int)
     let navigationCallbacks = try XCTUnwrap(navigated["callbacks"] as? [[String: Any]])
       .filter { $0["token"] as? Int == navigationToken }
-    XCTAssertEqual(navigationCallbacks.map { $0["kind"] as? String }, ["child-key", "field-key"])
+    let navigationGroups = try XCTUnwrap(navigationKeys.last?["groupTargets"] as? [Int])
+    XCTAssertEqual(navigationCallbacks.map { $0["kind"] as? String }, ["child-key"] + Array(repeating: "field-key", count: navigationGroups.count))
+    _ = try receipt("negative-tab-navigation-setup")
+    element("outer-negative-tab").typeKey(.rightArrow, modifierFlags: [])
+    _ = try checkpoint("negative-tab-to-original-core", requestCount: count, hourTarget: false)
 
     let core = reveal("outer-core-editor", towardStart: false)
     core.tap()
@@ -214,5 +218,42 @@ final class FieldInputTrialTests: XCTestCase {
       .filter { $0["kind"] as? String == "core-change" && $0["field"] as? String == "outer" }
     XCTAssertEqual(refusedChanges.count, 1)
     control("veto")
+
+    core.tap()
+    control("empty")
+    let empty = try wait("outer-value") { row in
+      row["value"] is NSNull && row["valueClass"] is NSNull &&
+        Set(row["placeholderSegments"] as? [String] ?? []).isSuperset(of: ["hour", "minute"])
+    }
+    _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+    let tail = reveal("outer-press-tail", towardStart: true)
+    _ = try receipt("placeholder-touch-setup")
+    tail.tap()
+    let pressed = try checkpoint("placeholder-touch-release", requestCount: count, hourTarget: false, requiresKey: false)
+    let pressFrames = try XCTUnwrap(pressed["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "pointer" }
+    XCTAssertEqual(pressFrames.compactMap { $0["phase"] as? String }, ["pointer-start", "pointer-end", "pointer-click"])
+    let click = try XCTUnwrap(pressFrames.last)
+    let focus = try XCTUnwrap((pressed["focusActions"] as? [[String: Any]])?.first)
+    XCTAssertEqual((pressed["focusActions"] as? [[String: Any]])?.count, 1)
+    XCTAssertEqual(focus["token"] as? Int, click["token"] as? Int)
+    XCTAssertEqual(focus["action"] as? String, "press")
+    XCTAssertEqual(focus["target"] as? Int, originalHourTarget)
+    XCTAssertEqual(focus["observed"] as? Bool, true)
+    XCTAssertEqual(read("outer-value")?["outerTarget"] as? Int, empty["outerTarget"] as? Int)
+    XCTAssertEqual(read("outer-value")?["inputTarget"] as? Int, empty["inputTarget"] as? Int)
+    XCTAssertEqual(read("inner-value")?["value"] as? String, "08:15:00")
+
+    let scrollTail = reveal("outer-press-tail", towardStart: true)
+    _ = try receipt("placeholder-scroll-setup")
+    let start = scrollTail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let end = start.withOffset(CGVector(dx: 0, dy: 100))
+    start.press(forDuration: 0.05, thenDragTo: end)
+    let cancelled = try checkpoint("placeholder-scroll-cancel", requestCount: count, hourTarget: false, requiresKey: false)
+    let cancelFrames = try XCTUnwrap(cancelled["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "pointer" }
+    XCTAssertEqual(cancelFrames.first?["phase"] as? String, "pointer-start")
+    XCTAssertFalse(cancelFrames.contains { $0["phase"] as? String == "pointer-click" })
+    XCTAssertTrue(try XCTUnwrap(cancelled["focusActions"] as? [[String: Any]]).isEmpty)
   }
 }

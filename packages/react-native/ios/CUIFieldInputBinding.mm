@@ -459,7 +459,9 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       focus.observed = observed->load();
       focus.target = target; focus.nativeInstance = row.at("nativeInstance").asString(); focus.editorInstance = row.at("editorInstance").asString();
       if (focus.requested && !focus.observed) focus.error = "field-input-original-focus-not-observed";
-      [self record:@{@"kind":@"focus", @"target":@(target), @"requested":@(focus.requested), @"observed":@(focus.observed),
+      [self record:@{@"kind":@"focus", @"token":@(ticket->token), @"eventId":@(ticket->eventId),
+        @"groupTarget":@(action.groupTarget), @"action":@(action.kind.c_str()),
+        @"target":@(target), @"requested":@(focus.requested), @"observed":@(focus.observed),
         @"current":@(focus.current), @"nativeCommandResult":commandResult, @"after":after[@"fieldGroupSnapshot"] ?: NSNull.null}];
       return focus;
     });

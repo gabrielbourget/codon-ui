@@ -410,6 +410,8 @@ final class CUIFieldInputBinding {
         .put("nativeInstance", expected.getString("nativeInstance")).put("editorInstance", expected.getString("editorInstance"))
         .put("error", completed ? "" : "field-input-original-focus-not-observed");
       emitRecord(new JSONObject(response.toString()).put("kind", "focus")
+        .put("token", request.optLong("token")).put("eventId", request.optLong("eventId"))
+        .put("groupTarget", request.getInt("scopeTarget")).put("action", request.optString("action"))
         .put("nativeCommandResult", commandResult).put("after", after == null ? JSONObject.NULL : after.getJSONObject("fieldGroupSnapshot")).toString());
       return response.toString();
     } catch (Exception error) {
