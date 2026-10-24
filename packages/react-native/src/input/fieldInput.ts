@@ -1,9 +1,12 @@
 import { createContext } from "react"
-import type { NativeSyntheticEvent } from "react-native"
+import type { NativeSyntheticEvent, PointerEvent } from "react-native"
 
 import type { TNativeKeyboardEvent } from "./types"
 
-const PHASES = ["down", "up", "cancel", "input"] as const
+const KEY_PHASES = ["down", "up", "cancel"] as const
+const POINTER_PHASES = ["pointer-start", "pointer-end", "pointer-cancel"] as const
+export type TNativeFieldPointerPhase = (typeof POINTER_PHASES)[number]
+const PHASES = [...KEY_PHASES, "input", ...POINTER_PHASES] as const
 const INPUT_KINDS = ["insert", "delete", "marked", "unmark"] as const
 const FOCUS_ACTIONS = ["first", "next", "previous", "physical-left", "physical-right", "press"] as const
 export type TNativeFieldFocusAction = Readonly<{ groupTarget: number; kind: (typeof FOCUS_ACTIONS)[number] }>
@@ -41,6 +44,9 @@ export type TNativeFieldInputPacket = Readonly<{
   groups: readonly TNativeFieldInputGroup[]
 }>
 export type TNativeFieldKeyEvent = TNativeKeyboardEvent & { nativeEvent: Readonly<{ fieldDispatch: string }> }
+export type TNativeFieldPointerEvent = PointerEvent & {
+  nativeEvent: Readonly<{ target: number; fieldDispatch: string }>
+}
 export type TNativeFieldOwnedInputEvent = NativeSyntheticEvent<
   Readonly<{
     target: number
@@ -52,7 +58,7 @@ export type TNativeFieldOwnedInputEvent = NativeSyntheticEvent<
     fieldDispatch: string
   }>
 >
-export type TNativeFieldDispatchEvent = TNativeFieldKeyEvent | TNativeFieldOwnedInputEvent
+export type TNativeFieldDispatchEvent = TNativeFieldKeyEvent | TNativeFieldOwnedInputEvent | TNativeFieldPointerEvent
 export type TNativeFieldFocusResult = Readonly<{
   requested: boolean
   observed: boolean
@@ -166,16 +172,23 @@ const packetFor = (event: TNativeFieldDispatchEvent) => {
     if (
       packet.identity.target !== event.nativeEvent.target ||
       (packet.phase === "input"
-        ? !INPUT_KINDS.includes(event.nativeEvent.kind as never) ||
+        ? !("kind" in event.nativeEvent) ||
+          !INPUT_KINDS.includes(event.nativeEvent.kind as never) ||
           !("surfaceId" in event.nativeEvent) ||
           packet.identity.surfaceId !== event.nativeEvent.surfaceId ||
           packet.identity.windowId !== event.nativeEvent.windowId ||
           !event.nativeEvent.focused ||
           !event.nativeEvent.active
-        : !("phase" in event.nativeEvent) ||
-          (packet.phase === "cancel"
-            ? event.nativeEvent.phase !== "up" || !event.nativeEvent.cancelled
-            : packet.phase !== event.nativeEvent.phase || event.nativeEvent.cancelled))
+        : POINTER_PHASES.includes(packet.phase as never)
+          ? !("pointerId" in event.nativeEvent) ||
+            !Number.isSafeInteger(event.nativeEvent.pointerId) ||
+            event.nativeEvent.pointerId < 0 ||
+            typeof event.nativeEvent.pointerType !== "string" ||
+            typeof event.nativeEvent.isPrimary !== "boolean"
+          : !("phase" in event.nativeEvent) ||
+            (packet.phase === "cancel"
+              ? event.nativeEvent.phase !== "up" || !event.nativeEvent.cancelled
+              : packet.phase !== event.nativeEvent.phase || event.nativeEvent.cancelled))
     )
       invalid()
     packets.set(event, packet)
@@ -202,6 +215,7 @@ export const moveNativeFieldFocus = (
     !admitted(scope, packet) ||
     settled.has(event) ||
     packet.phase === "cancel" ||
+    packet.phase === "pointer-cancel" ||
     !FOCUS_ACTIONS.includes(action.kind) ||
     !packet.groups.some(
       (group) =>
@@ -291,9 +305,9 @@ export const receiveNativeFieldOwnedInput = (
 
 // React performs the original bubbling. This receiver never enumerates child
 // callbacks, changes event methods, clones events or infers focus completion.
-export const receiveNativeFieldKey = (
+const receiveNativeFieldBubblingEvent = (
   scope: TNativeFieldInputScope,
-  event: TNativeFieldKeyEvent,
+  event: TNativeFieldKeyEvent | TNativeFieldPointerEvent,
   receiver: Readonly<{ target: number; group: boolean; run: () => void }>,
 ) => {
   const packet = packetFor(event)
@@ -324,7 +338,10 @@ export const receiveNativeFieldKey = (
           ...request(packet),
           current,
           preventDefault:
-            current && packet.phase !== "cancel" && (event.defaultPrevented || event.isDefaultPrevented()),
+            current &&
+            packet.phase !== "cancel" &&
+            packet.phase !== "pointer-cancel" &&
+            (event.defaultPrevented || event.isDefaultPrevented()),
           focus: null,
         }),
       )
@@ -332,6 +349,24 @@ export const receiveNativeFieldKey = (
   }
   return true
 }
+
+export const receiveNativeFieldKey = (
+  scope: TNativeFieldInputScope,
+  event: TNativeFieldKeyEvent,
+  receiver: Readonly<{ target: number; group: boolean; run: () => void }>,
+) => KEY_PHASES.includes(packetFor(event).phase as never) && receiveNativeFieldBubblingEvent(scope, event, receiver)
+
+// The actual SDK handler supplies its phase. No public event field or method
+// is added to identify it, and React retains ownership of propagation.
+export const receiveNativeFieldPointer = (
+  scope: TNativeFieldInputScope,
+  event: TNativeFieldPointerEvent,
+  phase: TNativeFieldPointerPhase,
+  receiver: Readonly<{ target: number; group: boolean; run: () => void }>,
+) =>
+  POINTER_PHASES.includes(phase) &&
+  packetFor(event).phase === phase &&
+  receiveNativeFieldBubblingEvent(scope, event, receiver)
 
 export const nativeFieldGroupKeyHandler =
   (

@@ -16,7 +16,14 @@ import { NativeCollectionSemanticsContext } from "../collection/semantics"
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../overlays/floating/scope"
 
 import { receiveNativeAccessibilityInspection, registerNativeAccessibilityInspector } from "./accessibilityInspection"
-import { NativeFieldInputContext, receiveNativeFieldKey, type TNativeFieldKeyEvent } from "./fieldInput"
+import {
+  NativeFieldInputContext,
+  receiveNativeFieldKey,
+  receiveNativeFieldPointer,
+  type TNativeFieldKeyEvent,
+  type TNativeFieldPointerEvent,
+  type TNativeFieldPointerPhase,
+} from "./fieldInput"
 import { observeNativeFocus, registerNativeFocusTarget, retireNativeFocusObservation } from "./focus"
 import { NativeFocusWithinSession, type TNativeFocusWithinEvent } from "./focusWithin"
 import { NativeMotionColorSampler, registerNativeMotionColorSampler } from "./motionColors"
@@ -50,6 +57,11 @@ export const NativeFocusHost = forwardRef<
   TNativeFocusViewProps & {
     nativePressable?: boolean
     nativeFieldGroupHandler?: (event: TNativeFieldKeyEvent, target: number) => void
+    nativeFieldGroupPointerHandler?: (
+      event: TNativeFieldPointerEvent,
+      target: number,
+      phase: TNativeFieldPointerPhase,
+    ) => void
     nativeTabStop?: boolean
     nativeMotionColorObservation?: boolean
     nativeMotionGeometryObservation?: boolean
@@ -84,6 +96,7 @@ export const NativeFocusHost = forwardRef<
     onKeyDown,
     onKeyUp,
     nativeFieldGroupHandler,
+    nativeFieldGroupPointerHandler,
     onFocus,
     onBlur,
     focusable,
@@ -297,10 +310,34 @@ export const NativeFocusHost = forwardRef<
   )
   const normalized = nativeViewProps(rest)
   const labelledBy = normalized.accessibilityLabelledBy
+  const pointerHandler = (phase: TNativeFieldPointerPhase, caller: ViewProps["onPointerDown"]) => {
+    if (!fieldInput) return caller
+    return (event: Parameters<NonNullable<ViewProps["onPointerDown"]>>[0]) => {
+      if (!("fieldDispatch" in event.nativeEvent)) {
+        caller?.(event)
+        return
+      }
+      const original = nativeTarget.current
+      if (!attached.current || !original) return
+      const target = findNodeHandle(original)
+      if (target == null) return
+      if (nativeFieldGroupPointerHandler)
+        nativeFieldGroupPointerHandler(event as TNativeFieldPointerEvent, target, phase)
+      else
+        receiveNativeFieldPointer(fieldInput, event as TNativeFieldPointerEvent, phase, {
+          target,
+          group: false,
+          run: () => caller?.(event),
+        })
+    }
+  }
   return (
     <NativeViewContextBoundary>
       <FocusHost
         {...normalized}
+        onPointerDown={pointerHandler("pointer-start", rest.onPointerDown)}
+        onPointerUp={pointerHandler("pointer-end", rest.onPointerUp)}
+        onPointerCancel={pointerHandler("pointer-cancel", rest.onPointerCancel)}
         nativeLabelledBy={rest.nativeLabelledBy ?? (typeof labelledBy === "string" ? [labelledBy] : labelledBy)}
         nativeDescriptionTag={rest.nativeDescriptionTag ?? description?.tag ?? 0}
         nativeDescriptionLabel={rest.nativeDescriptionLabel ?? description?.label}

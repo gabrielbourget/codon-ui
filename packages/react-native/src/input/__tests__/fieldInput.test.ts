@@ -6,7 +6,9 @@ import {
   moveNativeFieldFocus,
   nativeFieldGroupKeyHandler,
   receiveNativeFieldKey,
+  receiveNativeFieldPointer,
   type TNativeFieldKeyEvent,
+  type TNativeFieldPointerEvent,
 } from "../fieldInput"
 
 const packet = () => ({
@@ -103,6 +105,173 @@ const setup = () => {
     },
   }
 }
+
+const pointerEvent = (
+  phase: "pointer-start" | "pointer-end" | "pointer-cancel" = "pointer-start",
+  options: Partial<TNativeFieldPointerEvent["nativeEvent"]> = {},
+) => {
+  const data = { ...packet(), phase }
+  const original = event() as unknown as TNativeFieldPointerEvent
+  // SDK pointers do not have the custom keyboard phase/kind fields.
+  const payload = original.nativeEvent as unknown as Record<string, unknown>
+  for (const key of Object.keys(payload)) delete payload[key]
+  Object.assign(payload, {
+    target: data.identity.target,
+    pointerId: 0,
+    pointerType: "mouse",
+    isPrimary: true,
+    button: 0,
+    buttons: phase === "pointer-start" ? 1 : 0,
+    clientX: 27,
+    clientY: 18,
+    fieldDispatch: JSON.stringify(data),
+    ...options,
+  })
+  return original
+}
+
+it.each(["pointer-start", "pointer-end", "pointer-cancel"] as const)(
+  "carries the original SDK %s through child, input and outer receivers without adding public fields",
+  (phase) => {
+    const f = setup(),
+      original = pointerEvent(phase),
+      payload = original.nativeEvent,
+      publicKeys = Object.keys(payload),
+      trace: number[] = []
+    const methods = [original.preventDefault, original.stopPropagation, original.persist]
+    for (const [target, group] of [
+      [10, false],
+      [3, true],
+      [2, true],
+    ] as const) {
+      expect(
+        receiveNativeFieldPointer(f.scope, original, phase, {
+          target,
+          group,
+          run: () => {
+            expect(activeNativeFieldInputEvent(f.scope)).toBe(original)
+            expect(original.nativeEvent).toBe(payload)
+            expect(payload.pointerId).toBe(0)
+            trace.push(target)
+          },
+        }),
+      ).toBe(true)
+      if (target !== 2) expect(f.native.settleField).not.toHaveBeenCalled()
+    }
+    expect(trace).toEqual([10, 3, 2])
+    expect(Object.keys(payload)).toEqual(publicKeys)
+    expect([original.preventDefault, original.stopPropagation, original.persist]).toEqual(methods)
+    expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+    expect(f.native.settleField).toHaveBeenCalledTimes(1)
+    expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ phase, current: true })
+    expect(receiveNativeFieldPointer(f.scope, original, phase, { target: 2, group: true, run: jest.fn() })).toBe(false)
+  },
+)
+
+it("settles original pointer stop/prevent decisions before any ancestor or later focus request", () => {
+  const f = setup(),
+    original = pointerEvent(),
+    group = jest.fn()
+  receiveNativeFieldPointer(f.scope, original, "pointer-start", {
+    target: 10,
+    group: false,
+    run: () => {
+      original.preventDefault()
+      original.stopPropagation()
+    },
+  })
+  expect(receiveNativeFieldPointer(f.scope, original, "pointer-start", { target: 3, group: true, run: group })).toBe(
+    false,
+  )
+  expect(group).not.toHaveBeenCalled()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ preventDefault: true })
+  expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 2, kind: "press" })).toBeNull()
+})
+
+it.each(["mouse", "touch", "pen"])("retains the actual %s pointer and observed press-focus result", (pointerType) => {
+  const f = setup(),
+    original = pointerEvent("pointer-end", { pointerType }),
+    trace: string[] = []
+  const prevent = original.preventDefault
+  receiveNativeFieldPointer(f.scope, original, "pointer-end", {
+    target: 3,
+    group: true,
+    run: () => {
+      const result = moveNativeFieldFocus(f.scope, original, { groupTarget: 2, kind: "press" })
+      expect(result).toMatchObject({ requested: true, observed: true, current: true, target: 13 })
+      trace.push("observed-focus")
+      original.stopPropagation()
+      trace.push("same-group-caller")
+    },
+  })
+  expect(trace).toEqual(["observed-focus", "same-group-caller"])
+  expect(original.preventDefault).toBe(prevent)
+  expect(original.isDefaultPrevented()).toBe(false)
+  expect(JSON.parse(f.native.moveFieldFocus.mock.calls[0][0])).toMatchObject({
+    phase: "pointer-end",
+    identity: packet().identity,
+    action: { groupTarget: 2, kind: "press" },
+  })
+})
+
+it("does not admit pointer packets to a keyboard receiver or a mismatched actual pointer phase", () => {
+  const f = setup(),
+    original = pointerEvent(),
+    run = jest.fn()
+  expect(
+    receiveNativeFieldKey(f.scope, original as unknown as TNativeFieldKeyEvent, { target: 3, group: true, run }),
+  ).toBe(false)
+  expect(receiveNativeFieldPointer(f.scope, original, "pointer-end", { target: 3, group: true, run })).toBe(false)
+  expect(run).not.toHaveBeenCalled()
+  expect(f.native.settleField).not.toHaveBeenCalled()
+})
+
+it("lets cancellation reach its original caller while refusing focus and native-default cancellation", () => {
+  const f = setup(),
+    original = pointerEvent("pointer-cancel"),
+    run = jest.fn(() => {
+      original.preventDefault()
+      expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 2, kind: "press" })).toBeNull()
+    })
+  receiveNativeFieldPointer(f.scope, original, "pointer-cancel", { target: 2, group: true, run })
+  expect(run).toHaveBeenCalledTimes(1)
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ preventDefault: false, current: true })
+})
+
+it.each(["unmount", "throw"])("retires the original pointer turn after callback %s", (change) => {
+  const f = setup(),
+    original = pointerEvent(),
+    failure = new Error("original-pointer-callback")
+  const receive = () =>
+    receiveNativeFieldPointer(f.scope, original, "pointer-start", {
+      target: 2,
+      group: true,
+      run: () => {
+        original.preventDefault()
+        if (change === "throw") throw failure
+        f.retire()
+      },
+    })
+  if (change === "throw") expect(receive).toThrow(failure)
+  else expect(receive()).toBe(true)
+  expect(activeNativeFieldInputEvent(f.scope)).toBeNull()
+  expect(JSON.parse(f.native.settleField.mock.calls[0][0])).toMatchObject({ current: false, preventDefault: false })
+})
+
+it.each([{ target: 99 }, { pointerId: -1 }, { pointerId: 1.5 }, { pointerType: undefined }, { isPrimary: undefined }])(
+  "rejects inconsistent original SDK pointer evidence %j",
+  (options) => {
+    const f = setup(),
+      original = pointerEvent("pointer-start", options),
+      run = jest.fn()
+    expect(() =>
+      receiveNativeFieldPointer(f.scope, original, "pointer-start", { target: 3, group: true, run }),
+    ).toThrow("invalid-native-field-input-packet")
+    expect(run).not.toHaveBeenCalled()
+    expect(f.native.settleField).not.toHaveBeenCalled()
+  },
+)
 
 it("retains each original receiver event and acknowledges only the last actual group", () => {
   const f = setup(),
