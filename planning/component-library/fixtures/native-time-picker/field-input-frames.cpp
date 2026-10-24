@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 int main() {
   int assertions = 0;
-  const auto check = [&](bool value) { if (!value) throw std::runtime_error("field-input frame assertion failed"); ++assertions; };
+  const auto check = [&](bool value) { if (!value) throw std::runtime_error("field-input frame assertion failed: " + std::to_string(assertions + 1)); ++assertions; };
   const FieldInputIdentity identity{"owner", "binding", "revision", 15, 2, 3, 11, 10,
     "document", "7", "window", "mount:7", "outer:1", "input:1", "component:10", "editor:10", 2};
   const FieldInputFocusAction next{2, "next"};
@@ -376,6 +376,36 @@ int main() {
   completedBeforeTeardown.retire();
   check(completedBeforeTeardown.end(completed, false).originalDefaultPrevented);
   check(!completedBeforeTeardown.end(completed, false).originalDefaultPrevented);
+
+  for (const int retirementStage : {0, 1, 2}) {
+    FieldInputDispatchFrames mutated;
+    auto original = mutated.begin(identity, 70, "down", 1000ms);
+    check(mutated.startDelivery(original));
+    check(mutated.acknowledge(original->token, identity, 70, "down", true, true, {}));
+    if (retirementStage >= 1) mutated.finishHandler(original, false);
+    if (retirementStage == 2) mutated.finishPhases(original);
+    mutated.retireBinding(identity.ownerId, identity.bindingId);
+    auto waitingForOriginal = std::async(std::launch::async, [&] { return mutated.wait(original); });
+    if (retirementStage < 2) {
+      check(waitingForOriginal.wait_for(15ms) == std::future_status::timeout);
+      mutated.finishDelivery(original, false);
+    }
+    check(waitingForOriginal.get().disposition == FieldInputDisposition::Retired);
+    check(!mutated.accepts(original->token, identity, 70, "down"));
+    auto result = mutated.end(original, false);
+    check(result.disposition == FieldInputDisposition::Retired);
+    check(result.deliveryStarted);
+    check(result.deliveryReturned);
+    check(result.phasesComplete);
+    check(result.originalDefaultPrevented);
+    auto replacement = identity; replacement.bindingRevision = "replacement";
+    auto fresh = mutated.begin(replacement, 71, "down", 1000ms);
+    check(mutated.startDelivery(fresh));
+    check(!mutated.acknowledge(original->token, identity, 70, "down", true, true, {}));
+    check(mutated.acknowledge(fresh->token, replacement, 71, "down", true, false, {}));
+    mutated.finishDelivery(fresh, false);
+    check(mutated.end(fresh, true).disposition == FieldInputDisposition::Allowed);
+  }
 
   auto retiring = frames.begin(identity, 12, "down", 1000ms);
   auto retirement = std::async(std::launch::async, [&] { return frames.wait(retiring); });

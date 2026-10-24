@@ -14,8 +14,8 @@ import {
 } from "react-native"
 import type * as RN from "react-native"
 
+import type { TNativeFieldInputScope, TNativeFieldKeyEvent } from "../../../input/fieldInput"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
-import { useNativeKeyPolicy } from "../../../input/NativeKeyboardScope"
 import type { TNativeKeyboardEvent } from "../../../input/types"
 import { NativeLocaleProvider } from "../../../locale/NativeLocaleProvider"
 import { NativeThemeProvider } from "../../../theme"
@@ -43,10 +43,18 @@ jest.mock("../../../input/specs/CUIFieldBindingNativeComponent", () => ({
     ),
 }))
 jest.mock("../../../input/NativeFocusView", () => ({ NativeFocusHost: jest.requireActual("react-native").View }))
-jest.mock("../../../input/NativeKeyboardScope", () => ({ useNativeKeyPolicy: jest.fn() }))
+let mockFieldScope: TNativeFieldInputScope | null = null
+jest.mock("../../../input/useFieldInputBinding", () => ({
+  useNativeFieldInputBinding: () => ({
+    scope: mockFieldScope,
+    metadata: { binding: () => "", commit: () => {} },
+    status: { ready: false },
+  }),
+}))
 
 let tags: WeakMap<object, number>, nextTag: number
 beforeEach(() => {
+  mockFieldScope = null
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   tags = new WeakMap()
   nextTag = 100
@@ -401,7 +409,101 @@ it("keeps parent form metadata ahead of an independently owned field in the icon
   expect(metadata[1]).toBe(nested)
 })
 
+const rendererScope = (): TNativeFieldInputScope => ({
+  bindingId: "renderer",
+  bindingRevision: "renderer:1",
+  current: () => true,
+  native: {
+    getLease: () => "module:renderer",
+    acceptsField: () => true,
+    settleField: () => true,
+    moveFieldFocus: () =>
+      JSON.stringify({
+        requested: true,
+        observed: true,
+        current: true,
+        target: 102,
+        nativeInstance: "component:102",
+        editorInstance: "editor:102",
+        error: "",
+      }),
+  },
+})
+const rendererDispatch = (phase: "down" | "up") =>
+  JSON.stringify({
+    moduleLease: "module:renderer",
+    token: phase === "down" ? 1 : 2,
+    eventId: phase === "down" ? 1 : 2,
+    phase,
+    identity: {
+      ownerId: "renderer",
+      bindingId: "renderer",
+      bindingRevision: "renderer:1",
+      metadataTarget: 15,
+      outerTarget: 2,
+      inputTarget: 3,
+      surfaceId: 11,
+      target: 101,
+      documentId: "document",
+      documentRevision: "1",
+      windowId: "window",
+      mountRevision: "mount",
+      outerInstance: "outer",
+      inputInstance: "input",
+      nativeInstance: "component:101",
+      editorInstance: "editor:101",
+      epoch: 1,
+    },
+    groups: [3, 2].map((target) => ({
+      target,
+      bindingId: "renderer",
+      bindingRevision: "renderer:1",
+      scopeTarget: 2,
+      containsTarget: true,
+    })),
+  })
+
+const rendererKeyEvent = (phase: "down" | "up", key: string) => {
+  let prevented = false,
+    stopped = false
+  return {
+    nativeEvent: {
+      kind: "keyboard",
+      ownerId: "window",
+      target: 101,
+      key,
+      nativeCode: 82,
+      characters: "",
+      phase,
+      repeat: false,
+      cancelled: false,
+      shiftKey: false,
+      altKey: false,
+      ctrlKey: false,
+      metaKey: false,
+      capsLock: false,
+      nativeModifierData: "0",
+      nativeDefaultHandled: true,
+      timestamp: 100,
+      fieldDispatch: rendererDispatch(phase),
+    },
+    persist: jest.fn(),
+    preventDefault: jest.fn(() => {
+      prevented = true
+    }),
+    stopPropagation: jest.fn(() => {
+      stopped = true
+    }),
+    isPropagationStopped: () => stopped,
+    isDefaultPrevented: () => prevented,
+    get defaultPrevented() {
+      return prevented
+    },
+  } as unknown as TNativeFieldKeyEvent
+}
+
 it("routes an accepted key release to onKeyUp once per source group without repeating key-down effects", async () => {
+  mockFieldScope = rendererScope()
   const order: string[] = [],
     down = jest.fn((event: TNativeKeyboardEvent) => order.push(`down:${event.nativeEvent.phase}`)),
     up = jest.fn((event: TNativeKeyboardEvent) => order.push(`up:${event.nativeEvent.phase}`))
@@ -415,68 +517,28 @@ it("routes an accepted key release to onKeyUp once per source group without repe
   )
   await send(0)
   await send(0, { kind: "focus", focused: true, sequence: 2 })
-  const policy = () =>
-    jest
-      .mocked(useNativeKeyPolicy)
-      .mock.calls.map(([value]) => value)
-      .filter((value) => value.targetTag === 101)
-      .at(-1)!
-  expect(policy().canAct()).toBe(true)
-  const event = (phase: "down" | "up") =>
-    ({
-      nativeEvent: {
-        kind: "keyboard",
-        ownerId: "window",
-        target: 101,
-        key: "ArrowUp",
-        code: "ArrowUp",
-        nativeCode: 82,
-        characters: "",
-        phase,
-        repeat: false,
-        cancelled: false,
-        shiftKey: false,
-        altKey: false,
-        ctrlKey: false,
-        metaKey: false,
-        capsLock: false,
-        nativeModifierData: "0",
-        nativeDefaultHandled: true,
-        timestamp: 100,
-      },
-      preventDefault: jest.fn(),
-      stopPropagation: jest.fn(),
-      isPropagationStopped: () => false,
-    }) as unknown as TNativeKeyboardEvent
-  const pressed = event("down"),
-    released = event("up")
-  await act(() => policy().onKey(pressed))
-  await act(() => policy().onKey(released))
+  const pressed = rendererKeyEvent("down", "ArrowUp"),
+    released = rendererKeyEvent("up", "ArrowUp")
+  await act(() => segment(0).props.onNativeFieldKey(pressed))
+  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(pressed, 3))
+  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(pressed, 2))
+  await act(() => segment(0).props.onNativeFieldKey(released))
+  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(released, 3))
+  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(released, 2))
   expect(order).toEqual(["change", "down:down", "down:down", "up:up", "up:up"])
   expect(down.mock.calls.every(([value]) => value === pressed)).toBe(true)
   expect(up.mock.calls.every(([value]) => value === released)).toBe(true)
 })
 
 it("retains the same-group callback after navigation stops propagation to the outer group", async () => {
+  mockFieldScope = rendererScope()
   const down = jest.fn()
   await render(<NativeTimePickerRenderer value={new Time(13, 45)} onKeyDown={down} />)
   await send(0)
   await send(0, { kind: "focus", focused: true, sequence: 2 })
-  const policy = jest
-    .mocked(useNativeKeyPolicy)
-    .mock.calls.map(([value]) => value)
-    .filter((value) => value.targetTag === 101)
-    .at(-1)!
-  let stopped = false
-  const event = {
-    nativeEvent: { phase: "down", key: "ArrowRight", cancelled: false },
-    preventDefault: jest.fn(),
-    stopPropagation: jest.fn(() => {
-      stopped = true
-    }),
-    isPropagationStopped: () => stopped,
-  } as unknown as TNativeKeyboardEvent
-  await act(() => policy.onKey(event))
+  const event = rendererKeyEvent("down", "ArrowRight")
+  await act(() => screen.getByTestId("time-picker-input").props.nativeFieldGroupHandler(event, 3))
+  await act(() => screen.getByTestId("time-picker-group").props.nativeFieldGroupHandler(event, 2))
   expect(event.preventDefault).toHaveBeenCalledTimes(1)
   expect(event.stopPropagation).toHaveBeenCalledTimes(1)
   expect(down).toHaveBeenCalledTimes(1)

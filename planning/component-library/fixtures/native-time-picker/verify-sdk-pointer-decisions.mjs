@@ -238,8 +238,8 @@ for (const implementation of implementations) {
           epoch: 2,
         },
         groups: [
-          { target: 3, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2 },
-          { target: 2, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2 },
+          { target: 3, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2, containsTarget: true },
+          { target: 2, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2, containsTarget: true },
         ],
       }
       const settlements = [],

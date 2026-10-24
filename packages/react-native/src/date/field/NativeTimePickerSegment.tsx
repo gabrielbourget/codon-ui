@@ -1,28 +1,20 @@
 import { useCallback, useRef, useState } from "react"
 import { findNodeHandle, Platform, Text, type TextStyle } from "react-native"
 
-import { getNativeFocusedTarget } from "../../input/focus"
-import { nativeKeyToken, nativeKeyTokens } from "../../input/keyScope"
-import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
-import type { TNativeKeyboardEvent } from "../../input/types"
-import { handleNativeDateGroupKey } from "../entry/groupKey"
+import {
+  activeNativeFieldInputEvent,
+  moveNativeFieldFocus,
+  receiveNativeFieldKey,
+  type TNativeFieldInputScope,
+  type TNativeFieldKeyEvent,
+} from "../../input/fieldInput"
 import { getNativeDateSegmentSemantics } from "../entry/semantics"
 import { useNativeDateSegmentEntry } from "../entry/useNativeDateSegmentEntry"
 import { NativeDateSegment, type TNativeDateSegmentInput, type TNativeDateSegmentRef } from "../input/NativeDateSegment"
 import type { DateFieldState, DateSegment } from "../state/useDateFieldState"
 
 import type { getNativeTimePickerAppearance } from "./appearance"
-import type { NativeDateFieldFocusManager } from "./focus"
 import type { NativeDateFieldHostSet } from "./hostSet"
-
-const unmodified = (key: string) =>
-  nativeKeyToken({ key, shiftKey: false, altKey: false, ctrlKey: false, metaKey: false })
-const tokens = [
-  ...["ArrowUp", "ArrowDown", "PageUp", "PageDown", "Home", "End", "Backspace", "Delete"].map(unmodified),
-  ...nativeKeyTokens("ArrowLeft"),
-  ...nativeKeyTokens("ArrowRight"),
-  ...nativeKeyTokens("a").filter((token) => token[2] === "1"),
-]
 
 type TProps = {
   ownerId: string
@@ -32,25 +24,43 @@ type TProps = {
   locale: string
   direction: "ltr" | "rtl"
   hostSet: NativeDateFieldHostSet
-  focus: NativeDateFieldFocusManager
+  scope: TNativeFieldInputScope | null
+  outerTarget: number
   appearance: ReturnType<typeof getNativeTimePickerAppearance>
   inheritedText: TextStyle
   label?: string
   testID: string
-  onKeyDown?: (event: TNativeKeyboardEvent) => void
-  onKeyUp?: (event: TNativeKeyboardEvent) => void
 }
 
 // The fixed Codon wrapper renders each formatter segment. Literal separators
 // use the same visual surface but never become duplicate editable targets.
 export const NativeTimePickerSegment = (props: TProps) => {
-  const { segment, state, locale, direction, ownerId, segmentId, hostSet, focus, appearance, inheritedText, testID } =
-    props
+  const {
+    segment,
+    state,
+    locale,
+    direction,
+    ownerId,
+    segmentId,
+    hostSet,
+    scope,
+    outerTarget,
+    appearance,
+    inheritedText,
+    testID,
+  } = props
   const original = useRef<TNativeDateSegmentRef | null>(null)
-  const [target, setTarget] = useState(0)
   const [focused, setFocused] = useState(false)
   const composing = useRef(false)
-  const entry = useNativeDateSegmentEntry(segment, state, locale, focus)
+  const navigate = (kind: "next" | "previous") => {
+    const event = scope && activeNativeFieldInputEvent(scope)
+    if (!scope || !event) throw new Error("time-field-original-input-dispatch-required")
+    moveNativeFieldFocus(scope, event, { groupTarget: outerTarget, kind })
+  }
+  const entry = useNativeDateSegmentEntry(segment, state, locale, {
+    focusNext: () => navigate("next"),
+    focusPrevious: () => navigate("previous"),
+  })
   const semantics = getNativeDateSegmentSemantics(
     segment,
     state,
@@ -65,33 +75,9 @@ export const NativeTimePickerSegment = (props: TProps) => {
       if (previous) hostSet.detach(segmentId, previous)
       original.current = value
       if (value) hostSet.attach(segmentId, value)
-      setTarget(value ? (findNodeHandle(value) ?? 0) : 0)
     },
     [hostSet, segmentId],
   )
-  useNativeKeyPolicy({
-    tokens,
-    excludeEditable: false,
-    excludeComposing: false,
-    isEnabled: target > 0 && !state.isDisabled && !semantics.hidden,
-    targetTag: target,
-    lifetimeKey: `${ownerId}:${segmentId}:${target}:${state.isDisabled}`,
-    canAct: () => original.current !== null && getNativeFocusedTarget() === original.current,
-    onKey: (event) => {
-      if (event.nativeEvent.phase === "down") {
-        entry.keyDown(event, composing.current)
-        if (event.isPropagationStopped()) return
-        handleNativeDateGroupKey(event, direction, focus)
-      }
-      const callback = event.nativeEvent.phase === "up" ? props.onKeyUp : props.onKeyDown
-      // Both canonical Group layers inherit the field handler. Retain its
-      // original event and multiplicity after segment/default handling.
-      // A group's merged caller still runs when that same group's navigation
-      // stopped bubbling. Only the following ancestor group is suppressed.
-      callback?.(event)
-      if (!event.isPropagationStopped()) callback?.(event)
-    },
-  })
   const receive = (event: TNativeDateSegmentInput) => {
     if (!original.current) return
     const data = event.nativeEvent
@@ -178,6 +164,18 @@ export const NativeTimePickerSegment = (props: TProps) => {
         else if (event.nativeEvent.actionName === "decrement") entry.adjust("decrement")
       }}
       onNativeSegmentInput={receive}
+      onNativeFieldKey={(raw) => {
+        const target = original.current && findNodeHandle(original.current)
+        if (!scope || !target) return
+        const event = raw as unknown as TNativeFieldKeyEvent
+        receiveNativeFieldKey(scope, event, {
+          target,
+          group: false,
+          run: () => {
+            if (event.nativeEvent.phase === "down") entry.keyDown(event, composing.current)
+          },
+        })
+      }}
       testID={testID}
       style={[appearance.segment, focused ? appearance.focusedSegment : undefined]}
     >
