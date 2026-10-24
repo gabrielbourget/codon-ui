@@ -33,6 +33,8 @@ type TOwner = {
   rowHeaderColumns: ReadonlySet<string>
   layout?: TNativeCollectionLayoutDelegate
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
+  allowItemDescendantKeys?: boolean
+  canAct?: () => boolean
 }
 type TNativeTableKeyboard = {
   register: (node: TNativeCollectionNode<object>, view: View | null) => void
@@ -48,7 +50,7 @@ type TNativeTableKeyboard = {
   hasSearch: boolean
   typeaheadEnabled: boolean
 }
-export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
+export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard => {
   const actions = useContext(NativeCollectionActionsContext)!
   const scope = useNativeKeyScope()
   const floating = useContext(NativeFloatingScopeContext)
@@ -85,6 +87,7 @@ export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
   }, [])
   const eligible = () =>
     live.current &&
+    current.current.canAct?.() !== false &&
     current.current.scope?.isWindowActive() !== false &&
     current.current.floating?.canAct() !== false &&
     current.current.window?.() !== false
@@ -341,7 +344,10 @@ export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
       cellKey != null
         ? targets.current.get(cellKey)
         : [...targets.current.values()].find((candidate) => findNodeHandle(candidate.view) === data.target)
-    const children = entry && entry.node.type !== "item" ? getNativeTableCellFocusTargets(entry.view) : []
+    const children =
+      entry && (entry.node.type !== "item" || current.current.allowItemDescendantKeys)
+        ? getNativeTableCellFocusTargets(entry.view)
+        : []
     const active =
       entry &&
       (findNodeHandle(entry.view) === focusedTag
@@ -462,3 +468,4 @@ export const useTableKeyboard = (owner: TOwner): TNativeTableKeyboard => {
     typeaheadEnabled: true,
   }
 }
+export const useTableKeyboard = useNativeCollectionKeyboard

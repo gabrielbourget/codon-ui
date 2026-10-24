@@ -18,13 +18,8 @@ import type { TNativeSelectRef } from "../Select/types"
 import { QueryActiveFilters } from "./ActiveFilters"
 import { useNativeQueryDraftController, type TNativeQueryControllerProps } from "./controller"
 import { resolveNativeSortAndFilterPanelLabels, type TPartialNativeSortAndFilterPanelLabels } from "./labels"
-import {
-  QueryActiveSorts,
-  QueryPanelFooter,
-  QueryPanelHeader,
-  QuerySortCriteriaField,
-  QuerySortEntry,
-} from "./QueryControls"
+import { QueryActiveSorts, QueryPanelFooter, QueryPanelHeader, QuerySortCriteriaField } from "./QueryControls"
+import { QuerySortParameterList } from "./SortParameterList"
 
 export const NATIVE_QUERY_FOCUS_TARGETS = ["sort", "filter"] as const
 export type TNativeQueryFocusTarget = (typeof NATIVE_QUERY_FOCUS_TARGETS)[number]
@@ -133,33 +128,21 @@ const QueryPanelBody = ({
             canAct={() => props.isOpen}
             onDeleteSortParameter={controller.removeSort}
           />
-          <View
-            accessibilityLabel={labels.sortParameterList.listAriaLabel}
-            style={{ width: "100%", gap: theme.spacing.unit }}
-          >
-            {controller.draft.sortInstructions.map((parameter) => (
-              <View
-                key={parameter.id}
-                accessibilityLabel={labels.sortParameterList.itemAriaLabel({
-                  criteriaName: parameter.criteriaName,
-                  sortDirection: parameter.sortDirection,
-                })}
-              >
-                <QuerySortEntry
-                  parameter={parameter}
-                  availableSortCriteria={controller.availableSortCriteria}
-                  labels={labels.sortEntry}
-                  canAct={() => props.isOpen}
-                  onModifySortParameter={({ listItemID, sortCriteriaID }) =>
-                    controller.modifySort(listItemID, sortCriteriaID)
-                  }
-                  onSortAscending={(id) => controller.setSortDirection(id, "Ascending")}
-                  onSortDescending={(id) => controller.setSortDirection(id, "Descending")}
-                  onDeleteSortParameter={controller.removeSort}
-                />
-              </View>
-            ))}
-          </View>
+          {controller.draft.sortInstructions.length > 0 && (
+            <QuerySortParameterList
+              sortParameterList={controller.draft.sortInstructions}
+              availableSortCriteria={controller.availableSortCriteria}
+              labels={labels.sortEntry}
+              listLabels={labels.sortParameterList}
+              canAct={() => props.isOpen}
+              onModifySortParameter={({ listItemID, sortCriteriaID }) =>
+                controller.modifySort(listItemID, sortCriteriaID)
+              }
+              onSortAscending={(id) => controller.setSortDirection(id, "Ascending")}
+              onSortDescending={(id) => controller.setSortDirection(id, "Descending")}
+              onDeleteSortParameter={controller.removeSort}
+            />
+          )}
         </View>
         {separator}
         <QueryActiveFilters
