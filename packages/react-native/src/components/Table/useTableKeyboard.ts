@@ -95,6 +95,16 @@ export const useNativeCollectionKeyboard = (owner: TOwner): TNativeTableKeyboard
     if (view) {
       const previous = targets.current.get(node.key)
       targets.current.set(node.key, { node, view })
+      const focused = getNativeFocusedTarget()
+      if (
+        eligible() &&
+        current.current.collection.getItem(node.key) === node &&
+        focused &&
+        nativeTableCellContains(view, focused)
+      ) {
+        current.current.manager.setFocused(true)
+        setObservedKey(node.key)
+      }
       if (pendingFocus.current?.key === node.key && previous?.view !== view) refreshTargets((revision) => revision + 1)
     } else if (targets.current.get(node.key)?.node === node) targets.current.delete(node.key)
   }, [])

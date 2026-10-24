@@ -1,6 +1,7 @@
 import "../../../collection/__tests__/nativeReceipts"
 
 import { act as rawAct, cleanup, within } from "@testing-library/react-native"
+import { AccessibilityInfo, Animated, Easing, PlatformColor, processColor, StyleSheet } from "react-native"
 import type * as RN from "react-native"
 
 import {
@@ -110,6 +111,7 @@ const expectFocus = (host: THost) =>
 beforeEach(() => {
   jest.useFakeTimers()
   jest.clearAllMocks()
+  jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   mockViews.clear()
   const native = jest.requireActual<typeof RN>("react-native"),
     base = jest.mocked(native.findNodeHandle).getMockImplementation()!,
@@ -223,4 +225,57 @@ it("uses the current caller availability guard without an extra focus backend", 
   active = false
   await key(option(), "ArrowDown")
   expect(Commands.requestKeyboardFocus).not.toHaveBeenCalled()
+})
+
+const background = () => StyleSheet.flatten(option().props.style).backgroundColor ?? "transparent"
+it("keeps unselectable sort options free of hover state and changes only the actual focused item", async () => {
+  await render(tree())
+  const first = option(),
+    original = mockViews.get(first.props.ownerId)
+  expect(first.props.onPointerEnter).toBeUndefined()
+  expect(processColor(background())).toBe(processColor("transparent"))
+  await observe(first)
+  expect(processColor(background())).toBe(processColor("#efefef"))
+  await observe(option("name"))
+  expect(processColor(background())).toBe(processColor("transparent"))
+  expect(first.props.accessibilityState?.selected).toBeUndefined()
+  expect(mockViews.get(option().props.ownerId)).toBe(original)
+})
+it("uses the source 250ms ease-in-out focus transition and interrupts it at the current core Animated color", async () => {
+  jest.mocked(AccessibilityInfo.isReduceMotionEnabled).mockResolvedValue(false)
+  const timing = jest.spyOn(Animated, "timing")
+  await render(tree())
+  await observe(option())
+  expect(timing).toHaveBeenCalledWith(
+    expect.anything(),
+    expect.objectContaining({ duration: 250, delay: 0, useNativeDriver: false, isInteraction: false }),
+  )
+  expect(timing.mock.calls.at(-1)![1].easing?.(0.25)).toBeCloseTo(Easing.bezier(0.42, 0, 0.58, 1)(0.25))
+  await act(() => jest.advanceTimersByTime(125))
+  const midpoint = processColor(background())
+  expect(midpoint).not.toBe(processColor("transparent"))
+  expect(midpoint).not.toBe(processColor("#efefef"))
+  await observe(option("name"))
+  expect(processColor(background())).toBe(midpoint)
+  await act(() => jest.advanceTimersByTime(300))
+  expect(processColor(background())).toBe(processColor("transparent"))
+})
+
+it("uses current theme colors and opaque native colors without replacing the sort option", async () => {
+  const nativeColor = PlatformColor("systemBlueColor")
+  const node = (mode: "light" | "dark", color?: RN.ColorValue) => (
+    <NativeThemeProvider mode={mode} overrides={color ? { colors: { controlHoverBackground: color } } : undefined}>
+      <QuerySortParameterList {...props()} />
+    </NativeThemeProvider>
+  )
+  const view = await render(node("light"))
+  await observe(option())
+  const original = mockViews.get(option().props.ownerId)
+  const commands = jest.mocked(Commands.requestKeyboardFocus).mock.calls.length
+  await view.rerender(node("dark"))
+  expect(processColor(background())).toBe(processColor("#2c2c2c"))
+  await view.rerender(node("dark", nativeColor))
+  expect(background()).toEqual(nativeColor)
+  expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(commands)
+  expect(mockViews.get(option().props.ownerId)).toBe(original)
 })
