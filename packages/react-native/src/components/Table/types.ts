@@ -177,6 +177,7 @@ export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "chi
   }
 export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
+    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableBodyRenderState) => ReactElement
     items?: T[]
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry
@@ -185,9 +186,10 @@ export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children"
     customRowStyles?: StyleProp<TextStyle>
     isLoading?: boolean
     renderLoadingState?: () => ReactNode
-    renderEmptyState?: () => ReactNode
+    renderEmptyState?: (state?: TNativeTableBodyRenderState) => ReactNode
     dependencies?: readonly unknown[]
   }
+export type TNativeTableBodyRenderState = Readonly<{ isEmpty: boolean; isDropTarget: boolean }>
 export type TNativeTableHeaderComponent = <T extends object>(
   props: TNativeTableHeaderProps<T> & RefAttributes<View>,
 ) => ReactNode

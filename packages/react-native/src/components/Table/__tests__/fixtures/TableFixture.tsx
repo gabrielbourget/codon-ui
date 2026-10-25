@@ -8,7 +8,7 @@ import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
 import { TableRow } from "../../TableRow"
-import type { TNativeTableColumnMetadata, TNativeTableHeaderProps } from "../../types"
+import type { TNativeTableColumnMetadata, TNativeTableHeaderProps, TNativeTableBodyProps } from "../../types"
 
 import { TableCellFixture } from "./TableCellFixture"
 
@@ -19,6 +19,9 @@ const people: TPerson[] = [
 ]
 const renderHeader: NonNullable<TNativeTableHeaderProps<TPerson>["render"]> = (props, state) => (
   <View {...props} style={[props.style, { opacity: state.isHovered ? 0.85 : 1 }]} />
+)
+const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props, state) => (
+  <View {...props} style={[props.style, { opacity: state.isEmpty ? 0.85 : 1 }]} />
 )
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
   const [headerHovered, setHeaderHovered] = useState(false)
@@ -146,6 +149,8 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
                 render={renderHeader}
               />
               <TableBody
+                testID="table-body"
+                render={renderBody}
                 items={empty ? [] : reversed ? [...people].reverse() : people}
                 columns={columns}
                 renderEmptyState={() => "No people"}

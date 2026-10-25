@@ -4,6 +4,8 @@ import { Cell, Row, TableBody, type CellRenderProps } from "react-aria-component
 import { afterEach, expect, it, vi } from "vitest"
 
 import Card from "../../Card/Card"
+import type { TTableBodyProps } from "../components/TableBody/helpers"
+import SourceTableBody from "../components/TableBody/TableBody"
 import type { TCellProps } from "../components/TableCell/helpers"
 import TableCell from "../components/TableCell/TableCell"
 import TableHeader from "../components/TableHeader/TableHeader"
@@ -202,4 +204,34 @@ it("keeps the same canonical Cell and held editor when its native-element render
   expect(view.getByTestId("rendered-cell")).toHaveStyle({ opacity: 0 })
   expect(view.getByTestId("cell-editor")).toBe(input)
   expect(input).toHaveValue("")
+})
+
+it("forwards the canonical Body render values to empty rendering and preserves the original body through renderer changes", () => {
+  const empty = vi.fn(() => "No source rows")
+  const receiver = vi.fn<NonNullable<TTableBodyProps<{ name: string }>["render"]>>((props, state) => (
+    <tbody {...(props as ComponentPropsWithRef<"tbody">)} data-testid="source-body" data-empty={state.isEmpty} />
+  ))
+  const content = (items: { name: string }[], custom = true) => (
+    <Table aria-label="Body source">
+      <TableHeader columns={columns} />
+      <SourceTableBody
+        data-testid="source-body"
+        columns={columns}
+        items={items}
+        rowKey={(row) => row.name}
+        renderEmptyState={empty}
+        render={custom ? receiver : undefined}
+      />
+    </Table>
+  )
+  const view = render(content([{ name: "Alpha" }], false))
+  const body = view.getByTestId("source-body")
+  view.rerender(content([{ name: "Alpha" }]))
+  expect(view.getByTestId("source-body")).toBe(body)
+  expect(receiver.mock.calls.at(-1)![1]).toEqual({ isEmpty: false, isDropTarget: false })
+  view.rerender(content([]))
+  expect(view.getByTestId("source-body")).toBe(body)
+  expect(receiver.mock.calls.at(-1)![1]).toEqual({ isEmpty: true, isDropTarget: false })
+  expect(empty).toHaveBeenCalledWith({ isEmpty: true, isDropTarget: false })
+  expect(view.getByText("No source rows")).toBeInTheDocument()
 })

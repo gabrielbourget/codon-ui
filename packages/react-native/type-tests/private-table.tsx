@@ -17,6 +17,7 @@ import type {
   TNativeTableHeaderProps,
   TNativeTableHeaderRenderState,
   TNativeTableCellProps,
+  TNativeTableBodyProps,
   TNativeTableProps,
 } from "../src/components/Table/types"
 import { NativeFocusView } from "../src/input/NativeFocusView"
@@ -80,6 +81,19 @@ export const cellRenderer = (
 )
 // @ts-expect-error The Cell renderer must return its native root.
 export const invalidCellRender: TNativeTableCellProps["render"] = () => null
+export const bodyRenderer = (
+  <TableBody
+    columns={columns}
+    render={(props, state) => {
+      const empty: boolean = state.isEmpty
+      const drop: boolean = state.isDropTarget
+      void drop
+      return <View {...props} style={[props.style, { opacity: empty ? 0.5 : 1 }]} />
+    }}
+  />
+)
+// @ts-expect-error Body render callbacks must return the original native root element.
+export const invalidBodyRenderer: TNativeTableBodyProps<object>["render"] = () => null
 export const linkedRow = (
   <TableRow
     id={0}
