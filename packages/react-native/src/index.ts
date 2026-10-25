@@ -340,6 +340,7 @@ export {
   NATIVE_DEFAULT_SLOT,
   NativeSelectableCollectionContext,
   NativeSelectionIndicatorContext,
+  useNativeContextProps,
 } from "./collection/context"
 export type {
   TNativeContextValue,

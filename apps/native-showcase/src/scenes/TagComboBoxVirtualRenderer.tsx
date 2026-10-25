@@ -7,11 +7,9 @@ import {
   type TNativeCollectionRect,
   type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
-} from "../../../../packages/react-native/src/collection/renderer"
-import type {
-  TNativeCollectionKey,
-  TNativeCollectionNode,
-} from "../../../../packages/react-native/src/collection/snapshot"
+  type TNativeCollectionKey,
+  type TNativeCollectionNode,
+} from "../../../../packages/react-native/src"
 
 type TNode = TNativeCollectionNode<unknown>
 type TCellProps = ComponentProps<NonNullable<VirtualizedListProps<TNode>["CellRendererComponent"]>>

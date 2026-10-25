@@ -7,6 +7,8 @@ import {
   TagComboBoxItem,
   NativeComboBoxContext,
   NativeComboBoxInputContext,
+  NativeComboBoxPopoverContext,
+  useNativeContextProps,
   NativeForm,
   NativeFormAction,
   submitNativeForm,
@@ -86,6 +88,21 @@ export const FormActions = async () => {
 export const Labels = resolveCompactTypeaheadSearchLabels()
 export const Status: PartialCompactTypeaheadSearchStatusLabels = { loadingMessage: "Searching" }
 export const Sizes = AVAILABLE_TYPE_AHEAD_SEARCH_SIZES
+export const PublicPopoverBridge = () => {
+  const [props, ref] = useNativeContextProps({ slot: "popup" }, createRef<View>(), NativeComboBoxPopoverContext)
+  return (
+    <NativeComboBoxPopoverContext.Provider value={{ ...props, ref }}>{Fields}</NativeComboBoxPopoverContext.Provider>
+  )
+}
+// @ts-expect-error Native slot names remain strings/null at the public receiver boundary.
+export const InvalidSlot = () => useNativeContextProps({ slot: 0 }, undefined, NativeComboBoxPopoverContext)
+export const InvalidContextRef = () =>
+  useNativeContextProps(
+    {},
+    createRef<HTMLDivElement>(),
+    // @ts-expect-error Context refs retain their actual native host type.
+    NativeComboBoxPopoverContext,
+  )
 // @ts-expect-error Root/list state composition stays private to owned compounds.
 export const PrivateItems = <CompactTypeaheadSearch controlledItems={items} />
 // @ts-expect-error Rendering the owned scaffold is not a public TagComboBox customization channel.
