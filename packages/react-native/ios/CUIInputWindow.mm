@@ -3,7 +3,6 @@
 #import "CUIMenuPointerPolicies.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
 #import <objc/runtime.h>
-#import <os/log.h>
 
 NSNotificationName const CUIInputFocusChangedNotification = @"CUIInputFocusChanged";
 void CUIReportInputFocusChanged(UIView *target, BOOL focused)
@@ -243,14 +242,7 @@ void CUIRefreshKeyboardObservation(UIWindow *window)
 
 void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
 {
-  CUIWindowInputState *state = CUIWindowInput(press.window);
-  NSDictionary *trace = @{@"stage":@"native-source", @"nativeCode":@(press.key.keyCode), @"phase":phase,
-    @"windowId":CUIInputWindowIdentity(press.window), @"observerPresent":@(state.keyboardObserver != nil),
-    @"observerWindowMatches":@(state.keyboardObserver.view.window == press.window), @"scopeCount":@(CUIInputScopes(press.window).count)};
-  NSData *traceBytes = [NSJSONSerialization dataWithJSONObject:trace options:0 error:nil];
-  NSString *traceJSON = [[NSString alloc] initWithData:traceBytes encoding:NSUTF8StringEncoding];
-  os_log_with_type(OS_LOG_DEFAULT, OS_LOG_TYPE_DEFAULT, "CUI_TIMEPICKER_OBSERVE %{public}s", (traceJSON ?: @"{}").UTF8String);
-  [state.keyboardObserver observePress:press phase:phase];
+  [CUIWindowInput(press.window).keyboardObserver observePress:press phase:phase];
 }
 
 @implementation CUIPassiveKeyboardObserver
@@ -277,8 +269,8 @@ void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
 }
 - (void)observePress:(UIPress *)press phase:(NSString *)phase
 {
-  UIWindow *window = self.view.window;
-  if (!press.key || press.window != window) return;
+  UIWindow *window = press.window;
+  if (!press.key || !window || CUIWindowInput(window).keyboardObserver != self) return;
   NSDictionary *record = [self.records objectForKey:press];
   if ([record[@"timestamp"] doubleValue] == press.timestamp && [record[@"phase"] isEqual:phase]) return;
   // The original field responder and UIKit's passive recognizer can see the same press.

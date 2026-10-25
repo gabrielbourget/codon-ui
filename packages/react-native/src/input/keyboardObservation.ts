@@ -89,7 +89,6 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
   const flush = () => {
     const next = JSON.stringify([registrations(), revision, ready, active, windowId, epoch])
     if (next === published) return
-    console.warn("CUI_TIMEPICKER_OBSERVE", JSON.stringify({ stage: "js-registration", ownerId, wire: next }))
     published = next
     version++
     for (const listener of [...listeners]) listener()
@@ -146,10 +145,6 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
       }
     },
     acceptStatus: (status: TNativeKeyboardObservationStatus) => {
-      console.warn(
-        "CUI_TIMEPICKER_OBSERVE",
-        JSON.stringify({ stage: "js-status", status, ownerId, windowId, epoch, revision, statusRevision }),
-      )
       if (
         disposed ||
         status.ownerId !== ownerId ||
@@ -187,30 +182,6 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
     },
     dispatch: (event: TNativeObservedKeyboardEvent) => {
       const data = event.nativeEvent
-      console.warn(
-        "CUI_TIMEPICKER_OBSERVE",
-        JSON.stringify({
-          stage: "js-dispatch",
-          data,
-          ownerId,
-          enabled,
-          active,
-          ready,
-          windowId,
-          epoch,
-          revision,
-          statusRevision,
-          lastEventId,
-          registrations: [...entries.values()].map(({ id, options, bornRevision, acknowledged }) => ({
-            id,
-            bornRevision,
-            acknowledged,
-            enabled: options.isEnabled,
-            target: options.targetTag ?? 0,
-            lifetime: options.lifetimeKey,
-          })),
-        }),
-      )
       if (
         disposed ||
         !enabled ||
@@ -256,9 +227,7 @@ export const createNativeKeyboardObservations = (ownerId: string) => {
         )
           continue
         try {
-          const canAct = entry.options.canAct()
-          console.warn("CUI_TIMEPICKER_OBSERVE", JSON.stringify({ stage: "js-caller", id, canAct }))
-          if (!canAct) continue
+          if (!entry.options.canAct()) continue
           delivered = true
           entry.options.onKeyDown(event)
         } catch (error) {

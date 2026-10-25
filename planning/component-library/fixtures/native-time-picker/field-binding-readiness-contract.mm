@@ -254,7 +254,8 @@ static void responderChecks() {
   UIWindow *window = [UIWindow new]; window.identity = @"original-window"; window.active = YES;
   UIWindow *foreign = [UIWindow new]; foreign.identity = @"foreign-window"; foreign.active = YES;
   CUIFieldInputWindow *router = [CUIFieldInputWindow new]; router.window = window;
-  window.window = window;
+  // The original cohort reached the observer with a mismatched view.window.
+  check(window.window == nil);
   CUIWindowInputState *inputState = [CUIWindowInputState new];
   inputState.keyboardObserver = [CUIPassiveKeyboardObserver new]; inputState.keyboardObserver.view = window;
   windowInputs = [NSMapTable weakToStrongObjectsMapTable]; [windowInputs setObject:inputState forKey:window];
@@ -372,6 +373,20 @@ static void responderChecks() {
   passive.window = window; passive.key = nil;
   [inputState.keyboardObserver pressesBegan:passiveSet withEvent:nil]; CUIObserveKeyboardPress(passive, @"down");
   check(observation.events.count == observed + 1);
+  passive.key = [UIKey new]; passive.key.keyCode = 38; passive.timestamp = 33;
+  CUIPassiveKeyboardObserver *retired = inputState.keyboardObserver;
+  inputState.keyboardObserver = nil;
+  [retired pressesBegan:passiveSet withEvent:nil]; CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 1);
+  inputState.keyboardObserver = [CUIPassiveKeyboardObserver new]; inputState.keyboardObserver.view = window;
+  [retired pressesBegan:passiveSet withEvent:nil];
+  check(observation.events.count == observed + 1);
+  CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 2);
+  check(![observation.events.lastObject[@"repeat"] boolValue]);
+  passive.timestamp = 34; passive.window = nil;
+  [inputState.keyboardObserver pressesBegan:passiveSet withEvent:nil]; CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 2);
   check(inputState.observedEventId == observation.events.count);
 }
 

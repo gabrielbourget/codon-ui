@@ -7,7 +7,6 @@
 #import "CUIFieldInputBinding.h"
 #include "../cpp/CUIEditorKeyboardDefaultRegistry.h"
 #import <UIKit/UIGestureRecognizerSubclass.h>
-#import <os/log.h>
 #import <react/renderer/components/CodonNativeInputSpec/ComponentDescriptors.h>
 #import <react/renderer/components/CodonNativeInputSpec/EventEmitters.h>
 #import <react/renderer/components/CodonNativeInputSpec/Props.h>
@@ -465,33 +464,12 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   if (_eventEmitter) std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeEditorKeyboardDecision(result);
   return decision == codon::EditorKeyDisposition::Prevented;
 }
-- (BOOL)hasKeyboardObservations
-{
-  const BOOL ready = _observations.count > 0 && [self captureReady];
-  NSDictionary *trace = @{@"stage":@"native-registration", @"ownerId":_ownerId,
-    @"windowId":CUIInputWindowIdentity(self.window), @"epoch":@(_windowEpoch), @"revision":@(_observationRevision),
-    @"ready":@(ready), @"acceptedWindowId":_acceptedWindowId, @"acceptedEpoch":@(_acceptedEpoch),
-    @"registrations":_observations};
-  NSData *traceBytes = [NSJSONSerialization dataWithJSONObject:trace options:0 error:nil];
-  NSString *traceJSON = [[NSString alloc] initWithData:traceBytes encoding:NSUTF8StringEncoding];
-  os_log_with_type(OS_LOG_DEFAULT, OS_LOG_TYPE_DEFAULT, "CUI_TIMEPICKER_OBSERVE %{public}s", (traceJSON ?: @"{}").UTF8String);
-  return ready;
-}
+- (BOOL)hasKeyboardObservations { return _observations.count > 0 && [self captureReady]; }
 - (BOOL)capturesObservedPress:(UIPress *)press { return _keyboard.held[@(press.key.keyCode)] != nil || [self hasPolicyForPress:press]; }
 - (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured
 {
-  UIView *focused = CUIInputFocusedView(self.window);
-  NSMutableArray *tracePath = [NSMutableArray new];
-  for (UIView *view = focused; view; view = view.superview) [tracePath addObject:@(view.tag)];
-  NSDictionary *trace = @{@"stage":@"native-admission", @"nativeCode":@(press.key.keyCode), @"eventId":@(eventId),
-    @"ownerId":_ownerId, @"windowId":CUIInputWindowIdentity(self.window), @"epoch":@(_windowEpoch),
-    @"revision":@(_observationRevision), @"emitterPresent":@(_eventEmitter != nullptr),
-    @"captureReady":@([self captureReady]), @"pressWindowMatches":@(press.window == self.window),
-    @"registrations":_observations, @"focusPath":tracePath};
-  NSData *traceBytes = [NSJSONSerialization dataWithJSONObject:trace options:0 error:nil];
-  NSString *traceJSON = [[NSString alloc] initWithData:traceBytes encoding:NSUTF8StringEncoding];
-  os_log_with_type(OS_LOG_DEFAULT, OS_LOG_TYPE_DEFAULT, "CUI_TIMEPICKER_OBSERVE %{public}s", (traceJSON ?: @"{}").UTF8String);
   if (!_eventEmitter || ![self hasKeyboardObservations] || press.window != self.window) return;
+  UIView *focused = CUIInputFocusedView(self.window);
   CUIKeyboardScopeEventEmitter::OnNativeObservedKey data{};
   for (NSDictionary *observation in _observations) {
     NSInteger tag = [observation[@"targetTag"] integerValue];
@@ -515,7 +493,6 @@ static UIView *CUIEditorViewWithTag(UIView *root, NSInteger tag)
   data.ctrlKey = flags & UIKeyModifierControl; data.metaKey = flags & UIKeyModifierCommand; data.capsLock = flags & UIKeyModifierAlphaShift;
   data.nativeModifierData = std::to_string((unsigned long long)flags); data.defaultCaptured = captured; data.timestamp = press.timestamp * 1000;
   std::static_pointer_cast<const CUIKeyboardScopeEventEmitter>(_eventEmitter)->onNativeObservedKey(data);
-  os_log_with_type(OS_LOG_DEFAULT, OS_LOG_TYPE_DEFAULT, "CUI_TIMEPICKER_OBSERVE {\"stage\":\"native-enqueued\",\"eventId\":%{public}lu}", (unsigned long)eventId);
 }
 - (NSString *)policyForPress:(UIPress *)press
 {
