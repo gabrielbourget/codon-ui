@@ -134,10 +134,10 @@ export const decodeNativeFormDocument = (
         !positions.has(binding.rootTarget)
       )
         fail()
-      const descendant = (target: number) => {
+      const descendant = (target: number, rootTarget = binding.rootTarget) => {
         let current = target
         while (current) {
-          if (current === binding.rootTarget) return true
+          if (current === rootTarget) return true
           current = nodes[positions.get(current) ?? -1]?.parent ?? 0
         }
         return false
@@ -154,6 +154,19 @@ export const decodeNativeFormDocument = (
         actual.some((node, index) => node.target !== binding.segments[index].target)
       )
         fail()
+      for (const group of binding.groups ?? []) {
+        const node = nodes[positions.get(group.target) ?? -1]
+        if (!node || !["View", "CUIFocusView"].includes(node.component) || !descendant(group.target)) fail()
+        const actualGroup = actual.filter((segment) => descendant(segment.target, group.target))
+        if (
+          actualGroup.length !== group.segmentIds.length ||
+          actualGroup.some(
+            (segment, index) =>
+              binding.segments.find((row) => row.segmentId === group.segmentIds[index])?.target !== segment.target,
+          )
+        )
+          fail()
+      }
       for (const segment of binding.segments) {
         if (
           ownedDateTargets.has(segment.target) ||

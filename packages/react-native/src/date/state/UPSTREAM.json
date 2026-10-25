@@ -27,6 +27,16 @@
       "sourcePath": "packages/react-stately/src/datepicker/placeholders.ts",
       "sourceSHA256": "05de557e46e7d4e1b2a1844ddc4a63f4c8b4e5887b7b2ab8fca84e1c0ee058b6",
       "sourceMapSHA256": "8b036d5c9ef82deb111033bf3f07d2ac3f78664edb20133db15a5d45d1cf1730"
+    },
+    "useDatePickerState": {
+      "sourcePath": "packages/react-stately/src/datepicker/useDatePickerState.ts",
+      "sourceSHA256": "b97ed0f36f8a28f018b510a9460398d375e202c3e5e70756c81ca549be3e8f8e",
+      "sourceMapSHA256": "fee8ce073a317a6faad446e2844de27e46ef576df1c1ea7ecb6aadbabc0a3938"
+    },
+    "useDateRangePickerState": {
+      "sourcePath": "packages/react-stately/src/datepicker/useDateRangePickerState.ts",
+      "sourceSHA256": "407af158872ca2ca1efffa89c5c078b3822702e38de761eab3d5054d862cb62d",
+      "sourceMapSHA256": "5080e38958cdf11b5f55eaa6361003ea1a8c996330799e0d5039cce32d7c8025"
     }
   },
   "messageLocales": [
@@ -71,7 +81,8 @@
     "Retain full source state/partial date algorithms and public state types; explicit typed dynamic lookups preserve source behavior without DOM ambient types",
     "No private dependency runtime imports; source maps are extraction provenance only",
     "The only date validation templates are plain strings or one minValue/maxValue interpolation; preserve all 34 dictionaries through an owned private formatter, not a new string-runtime dependency",
-    "Preserve source undefined literal-segment flags exactly; typed declaration cleanup does not normalize their runtime values"
+    "Preserve source undefined literal-segment flags exactly; typed declaration cleanup does not normalize their runtime values",
+    "Date picker/range picker state retains the exact pinned value/date/time transaction algorithms while sharing the existing owned form validation context, controlled state and overlay state, including server errors and reset. Approved roadmap3.5.53.24; calendar hooks continue through audited public neutral entries."
   ],
   "approval": "Complete roadmap 3.5.52, directly approved by Gabriel on 2026-10-22",
   "verification": "50 focused native source cases pass across actual pinned time-state traces, controlled veto/class/null/partial/guard/validation/locale and shared state regressions; no SDK or public TimePicker delivery claim",
@@ -82,6 +93,8 @@
     "placeholders.ts": "98de0b62d08152d8a751fbe0e32047a4497030feb2d959d302b480c5045a9b10",
     "types.ts": "8f9ab0432bb58bdd1f06e3071d1378c93e9778531ae0a6b33313979120251fbe",
     "useDateFieldState.ts": "123f39f6a0a774d876f9472d45e08a200d3906ac7c372d92962a63db720f45a8",
+    "useDatePickerState.ts": "e6e988306c05742952f52376578254de434f7f07e4046db910801061b06064e7",
+    "useDateRangePickerState.ts": "8a2719ab826a7b8183f0f1927f0f3c411f77e0ad79b0dd4d22af1b947f9c1883",
     "useTimeFieldState.ts": "7a3ae097de994debdbf028dae0e3b882d554e071c34030c70f597b8424d70295",
     "utils.ts": "b1200c1c58cd6ae461f583a59e198ad58b2b7e28d3b4d7032e641161267467b6"
   },

@@ -12,6 +12,9 @@ export const nativeDateFieldSegmentId = (segment: DateSegment, index: number) =>
 // Only accepted original-host observations supply physical identities. A render
 // cannot turn an attached ref into a mounted/active native form target.
 export class NativeDateFieldHostSet {
+  constructor(private readonly slot?: string) {}
+  segmentId = (segment: DateSegment, index: number) =>
+    this.slot ? `${this.slot}:${nativeDateFieldSegmentId(segment, index)}` : nativeDateFieldSegmentId(segment, index)
   #root: View | null = null
   #rootTarget = 0
   #hosts = new Map<string, THost>()
@@ -62,7 +65,7 @@ export class NativeDateFieldHostSet {
     const rows: TNativeDateFieldFocusRow[] = []
     for (const [index, segment] of segments.entries()) {
       if (segment.type === "literal") continue
-      const host = this.#hosts.get(nativeDateFieldSegmentId(segment, index)),
+      const host = this.#hosts.get(this.segmentId(segment, index)),
         frame = host?.frame
       if (!host || !frame?.active || !frame.identity.windowId) return null
       rows.push({

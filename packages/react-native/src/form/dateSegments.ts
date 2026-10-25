@@ -9,10 +9,18 @@ export type TNativeDateSegmentFormIdentity = Readonly<
   >
 >
 export type TNativeDateSegmentFormTarget = Readonly<{ original: View; identity: TNativeDateSegmentFormIdentity }>
+export const NATIVE_DATE_INPUT_SLOTS = ["value", "start", "end"] as const
+export type TNativeDateInputSlot = (typeof NATIVE_DATE_INPUT_SLOTS)[number]
+export type TNativeDateInputGroup = Readonly<{
+  slot: TNativeDateInputSlot
+  target: number
+  segmentIds: readonly string[]
+}>
 export type TNativeDateFieldFormBinding = Readonly<{
   kind: "date-field"
   rootTarget: number
   segments: readonly TNativeDateSegmentFormIdentity[]
+  groups?: readonly TNativeDateInputGroup[]
 }>
 
 const invalid = (): never => {
@@ -58,10 +66,39 @@ export const decodeNativeDateFieldBinding = (encoded: string): TNativeDateFieldF
     )
   )
     invalid()
+  const rootTarget = integer(value.rootTarget, true)
+  let groups: readonly TNativeDateInputGroup[] | undefined
+  if (value.groups !== undefined) {
+    if (!Array.isArray(value.groups)) invalid()
+    const supplied = value.groups as unknown[]
+    if (supplied.length !== 1 && supplied.length !== 2) invalid()
+    const groupTargets = new Set<number>()
+    groups = Object.freeze(
+      supplied.map((item, index) => {
+        const row = object(item)
+        const slot = supplied.length === 1 ? "value" : index === 0 ? "start" : "end"
+        if (
+          Object.keys(row).length !== 3 ||
+          row.slot !== slot ||
+          !Array.isArray(row.segmentIds) ||
+          !row.segmentIds.length
+        )
+          invalid()
+        const target = integer(row.target, true)
+        if (target === rootTarget || targets.has(target) || groupTargets.has(target)) invalid()
+        groupTargets.add(target)
+        return Object.freeze({ slot, target, segmentIds: Object.freeze((row.segmentIds as unknown[]).map(text)) })
+      }),
+    )
+    const groupedIds = groups.flatMap((group) => group.segmentIds)
+    if (groupedIds.length !== segments.length || groupedIds.some((id, index) => id !== segments[index].segmentId))
+      invalid()
+  }
   return Object.freeze({
     kind: "date-field",
-    rootTarget: integer(value.rootTarget, true),
+    rootTarget,
     segments: Object.freeze(segments),
+    ...(groups ? { groups } : {}),
   })
 }
 
@@ -76,8 +113,17 @@ export const nativeDateSegmentFormIdentity = (data: NativeDateSegmentData): TNat
     windowId: data.windowId,
     epoch: data.epoch,
   })
-export const encodeNativeDateFieldBinding = (rootTarget: number, segments: readonly TNativeDateSegmentFormTarget[]) => {
-  const encoded = JSON.stringify({ kind: "date-field", rootTarget, segments: segments.map((row) => row.identity) })
+export const encodeNativeDateFieldBinding = (
+  rootTarget: number,
+  segments: readonly TNativeDateSegmentFormTarget[],
+  groups?: readonly TNativeDateInputGroup[],
+) => {
+  const encoded = JSON.stringify({
+    kind: "date-field",
+    rootTarget,
+    segments: segments.map((row) => row.identity),
+    ...(groups ? { groups } : {}),
+  })
   decodeNativeDateFieldBinding(encoded)
   return encoded
 }

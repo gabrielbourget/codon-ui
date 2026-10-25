@@ -55,6 +55,29 @@ final class CUIOwnedDateField {
             !targets.add(row.getInt("target")) || !CUIFormActionAdmission.same(original.formSegmentIdentity(), row)) return null;
         owner = row.getString("ownerId");
       }
+      if (value.has("groups")) {
+        JSONArray groups = value.getJSONArray("groups");
+        if (groups.length() != 1 && groups.length() != 2) return null;
+        HashSet<Integer> groupTargets = new HashSet<>(); int offset = 0;
+        for (int index = 0; index < groups.length(); index++) {
+          JSONObject group = groups.getJSONObject(index);
+          String slot = groups.length() == 1 ? "value" : index == 0 ? "start" : "end";
+          if (group.length() != 3 || !slot.equals(group.getString("slot")) || !integer(group.get("target"), true) ||
+              !groupTargets.add(group.getInt("target")) || targets.contains(group.getInt("target"))) return null;
+          View groupRoot = manager.resolveView(group.getInt("target"));
+          if (!(groupRoot instanceof ReactViewGroup) || groupRoot == root || !descendant(groupRoot, root) ||
+              !groupRoot.isAttachedToWindow() || !CUIInputWindow.identity(groupRoot).equals(window)) return null;
+          JSONArray segmentIds = group.getJSONArray("segmentIds");
+          ArrayList<CUIDateSegment> members = new ArrayList<>(); collect(groupRoot, owner, members);
+          if (members.isEmpty() || members.size() != segmentIds.length() || offset + members.size() > originals.size()) return null;
+          for (int member = 0; member < members.size(); member++) {
+            if (members.get(member) != originals.get(offset + member) || !(segmentIds.get(member) instanceof String) ||
+                !segmentIds.getString(member).equals(expected.getJSONObject(offset + member).getString("segmentId"))) return null;
+          }
+          offset += members.size();
+        }
+        if (offset != originals.size()) return null;
+      }
       return originals;
     } catch (Exception retired) { return null; }
   }

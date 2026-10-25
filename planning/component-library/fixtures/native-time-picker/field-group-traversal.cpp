@@ -124,5 +124,24 @@ int main() {
   }
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{3,3}},2,3); });
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{0,2}},2,3); });
+  {
+    FieldGroupTraversal range({{1,0},{2,1},{3,2},{10,3},{11,10},{12,10},{20,3},{21,20},{22,20},{30,2}},2,3);
+    range.admit({{11,false,30},{12,true,10},{21,false,70},{22,true,50},{30,false,90}});
+    const auto start = range.within(10), end = range.within(20);
+    check(start.first() == 11);
+    check(start.logical(11, 1) == 12);
+    check(start.logical(12, 1) == 0);
+    check(start.visual(10, 1) == 11);
+    check(start.visual(30, 1) == 0);
+    check(end.first() == 21);
+    check(end.logical(22, -1) == 21);
+    check(end.logical(21, -1) == 0);
+    check(end.visual(70, -1) == 22);
+    check(end.press(20) == 22);
+    check(range.logical(12, 1) == 21);
+    rejects([&] { range.within(2); });
+    rejects([&] { range.within(30); });
+    rejects([&] { range.within(99); });
+  }
   std::cout << assertions << " actual C++ field-group traversal assertions passed\n";
 }

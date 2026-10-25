@@ -82,6 +82,21 @@ inline folly::dynamic fieldGroupPlan(const folly::dynamic &document, const folly
   return folly::dynamic::object("outerTarget", outer)("inputTarget", input)("field", *field)
     ("mount", mount)("nodes", std::move(descendants));
 }
+inline int32_t fieldGroupDateInputRoot(const folly::dynamic &document, const FieldGroupTraversal &traversal, int32_t target) {
+  const auto owned = folly::parseJson(document.at("fieldGroup").at("field").at("ownedEditorBinding").asString());
+  const auto groups = owned.get_ptr("groups");
+  if (!groups) return 0;
+  if (!groups->isArray()) throw std::invalid_argument("field-group-date-input-invalid");
+  int32_t selected = 0;
+  for (const auto &group : *groups) {
+    const auto root = fieldGroupTarget(group.at("target"));
+    if (traversal.descendant(target, root)) {
+      if (selected) throw std::invalid_argument("field-group-date-input-ambiguous");
+      selected = root;
+    }
+  }
+  return selected;
+}
 inline folly::dynamic fieldGroupSelection(const folly::dynamic &document, const folly::dynamic &snapshot) {
   const auto &plan = document.at("fieldGroup");
   FieldGroupTraversal traversal(fieldGroupMountedNodes(document, snapshot),
@@ -99,6 +114,7 @@ inline folly::dynamic fieldGroupSelection(const folly::dynamic &document, const 
     return traversal.preorderPosition(first.target) < traversal.preorderPosition(second.target);
   });
   traversal.admit(std::move(originals));
+  if (const auto root = fieldGroupDateInputRoot(document, traversal, focused)) traversal = traversal.within(root);
   return folly::dynamic::object("first", traversal.first())("next", traversal.logical(focused, 1))
     ("previous", traversal.logical(focused, -1))("physicalLeft", focusedLeft ? traversal.visual(*focusedLeft, -1) : 0)
     ("physicalRight", focusedLeft ? traversal.visual(*focusedLeft, 1) : 0);

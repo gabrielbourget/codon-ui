@@ -161,6 +161,12 @@ class FieldGroupTraversal final {
     originals_ = std::move(originals);
   }
   int32_t first() const { return originals_.empty() ? 0 : originals_.front().target; }
+  FieldGroupTraversal within(int32_t root) const {
+    if (!descendant(root, input_)) throw std::invalid_argument("field-group-date-input-retired");
+    auto result = *this;
+    std::erase_if(result.originals_, [&](const auto &row) { return !descendant(row.target, root); });
+    return result;
+  }
   int32_t logical(int32_t current, int direction) const {
     validateDirection(direction);
     if (originals_.empty()) return 0;

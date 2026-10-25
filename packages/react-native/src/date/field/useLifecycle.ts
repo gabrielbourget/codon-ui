@@ -13,14 +13,14 @@ export type TNativeDateFieldFocusProps = Readonly<{
 // Called only with the original NativeFocusView within observation. Its existing
 // session admits target/window/scope/sequence; canAct retains the field's owner.
 export const useNativeDateFieldLifecycle = (
-  state: DateFieldState,
+  state: Pick<DateFieldState, "isDisabled" | "confirmPlaceholder" | "commitValidation"> & { value: unknown },
   props: TNativeDateFieldFocusProps,
   canAct: (event: TNativeFocusWithinEvent) => boolean,
 ) => {
   const current = useRef({ state, props, canAct })
   const active = useRef(false)
   const within = useRef(false)
-  const valueOnFocus = useRef<DateFieldState["value"]>(null)
+  const valueOnFocus = useRef<unknown>(null)
   useInsertionEffect(() => {
     current.current = { state, props, canAct }
   })
