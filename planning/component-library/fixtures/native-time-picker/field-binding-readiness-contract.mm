@@ -24,12 +24,7 @@
 - (void)record:(NSDictionary *)record { [_records addObject:record]; }
 @end
 
-@interface UIWindow : NSObject
-@property(nonatomic, copy) NSString *identity;
-@property(nonatomic) BOOL active;
-@end
-@implementation UIWindow
-@end
+@class UIWindow;
 @interface UIKey : NSObject
 @property(nonatomic) NSInteger keyCode;
 @end
@@ -43,30 +38,102 @@
 @end
 @implementation UIPress
 @end
-@interface CUIFieldKeyRecognizer : NSObject
-@property(nonatomic, weak) UIWindow *view;
-@property(nonatomic) BOOL enabled;
-@property(nonatomic, copy) NSArray<NSNumber *> *allowedPressTypes;
+@class UIView;
+@class UIPressesEvent;
+typedef BOOL (^RCTTextInputPressHandler)(UIView *, UIPress *, NSString *);
+static NSMutableArray<NSString *> *trace;
+@protocol RCTBackedTextInputViewProtocol
+@property(nonatomic, copy) RCTTextInputPressHandler nativeKeyPressHandler;
 @end
-@implementation CUIFieldKeyRecognizer
-@end
-@interface CUIFieldInputWindow : NSObject
+@interface UIView : NSObject <RCTBackedTextInputViewProtocol>
 @property(nonatomic, weak) UIWindow *window;
-@property(nonatomic, strong) CUIFieldKeyRecognizer *observer;
-@property(nonatomic, strong) CUIFieldKeyRecognizer *veto;
-@property(nonatomic, strong) NSMutableSet<NSString *> *observedKeyBoundaries;
+@property(nonatomic) NSInteger tag;
+@property(nonatomic, getter=isFirstResponder) BOOL firstResponder;
+@property(nonatomic, copy) RCTTextInputPressHandler nativeKeyPressHandler;
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
 @end
-@implementation CUIFieldInputWindow
+@implementation UIView
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { (void)event; if (presses.count) [trace addObject:@"default:down"]; }
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { (void)event; if (presses.count) [trace addObject:@"default:up"]; }
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { (void)event; if (presses.count) [trace addObject:@"default:cancel"]; }
+@end
+@interface UIWindow : UIView
+@property(nonatomic, copy) NSString *identity;
+@property(nonatomic) BOOL active;
+@end
+@implementation UIWindow
 @end
 @interface CUIFieldInputBinding : Binding
 @property(nonatomic, weak) UIWindow *boundWindow;
+@property(nonatomic, copy) NSDictionary *identity;
+@property(nonatomic) BOOL member;
+@property(nonatomic) BOOL captureDown;
+@property(nonatomic) BOOL captureUp;
+@property(nonatomic, strong) NSMutableArray<NSDictionary *> *dispatches;
+@property(nonatomic, copy) void (^onDispatch)(void);
+- (NSDictionary *)keyIdentity;
+- (BOOL)containsOriginalView:(UIView *)view;
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat;
 @end
 @implementation CUIFieldInputBinding
+- (NSDictionary *)keyIdentity { return self.identity; }
+- (BOOL)containsOriginalView:(UIView *)view { return self.member && view.window == self.boundWindow; }
+- (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat {
+  [trace addObject:[@"dispatch:" stringByAppendingString:phase]];
+  [self.dispatches addObject:@{@"press":press, @"phase":phase, @"repeat":@(repeat)}];
+  void (^callback)(void) = self.onDispatch; self.onDispatch = nil;
+  if (callback) callback();
+  return [phase isEqual:@"down"] ? self.captureDown : self.captureUp;
+}
+@end
+@interface CUIFieldInputWindow : NSObject
+@property(nonatomic, weak) UIWindow *window;
+@property(nonatomic, strong) NSMapTable<UIPress *, NSMutableDictionary *> *records;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSDictionary *> *held;
+@property(nonatomic, strong) NSMutableSet<NSString *> *observedKeyBoundaries;
+@property(nonatomic, strong) NSHashTable<UIView<RCTBackedTextInputViewProtocol> *> *editors;
+@property(nonatomic, copy) RCTTextInputPressHandler editorHandler;
+- (BOOL)handlePress:(UIPress *)press phase:(NSString *)phase receiver:(UIView *)receiver;
+- (void)retire;
 @end
 static NSHashTable<CUIFieldInputBinding *> *CUIFieldInputs;
+static NSMapTable<UIWindow *, CUIFieldInputWindow *> *CUIFieldWindows;
+static CUIFieldInputBinding *winner;
+static CUIFieldInputBinding *CUIFieldWinner(UIWindow *window) { return winner.boundWindow == window ? winner : nil; }
 static NSString *CUIInputWindowIdentity(UIWindow *window) { return window.identity; }
 static BOOL CUIFieldInputWindowActive(UIWindow *window) { return window.active; }
+#include "sdk-press-filter.inc"
 #include "owned-key-boundary.inc"
+#include "owned-key-entry.inc"
+#include "owned-key-route.inc"
+@interface RCTUITextField : UIView
+@end
+@implementation RCTUITextField
+#include "sdk-field-presses.inc"
+@end
+@interface RCTUITextView : UIView
+@end
+@implementation RCTUITextView
+#include "sdk-view-presses.inc"
+@end
+@interface CUIDateSegment : UIView
+@end
+@implementation CUIDateSegment
+#include "owned-segment-presses.inc"
+@end
+@interface CUIFocusView : UIView
+- (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled;
+@end
+@implementation CUIFocusView
+- (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled {
+  (void)down; (void)cancelled;
+  if (presses.count) [trace addObject:@"ordinary-focus"];
+  return presses;
+}
+#include "owned-focus-presses.inc"
+@end
 
 static NSUInteger assertions = 0;
 static void check(BOOL value) {
@@ -76,47 +143,85 @@ static void check(BOOL value) {
 static NSString *encoded(NSDictionary *value) {
   return [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value options:0 error:nullptr] encoding:NSUTF8StringEncoding];
 }
-static void keyBoundaryChecks() {
+static NSUInteger responderCases = 0;
+static void responderChecks() {
+  trace = [NSMutableArray new];
   UIWindow *window = [UIWindow new]; window.identity = @"original-window"; window.active = YES;
-  UIWindow *foreign = [UIWindow new]; foreign.identity = @"foreign-window";
+  UIWindow *foreign = [UIWindow new]; foreign.identity = @"foreign-window"; foreign.active = YES;
   CUIFieldInputWindow *router = [CUIFieldInputWindow new]; router.window = window;
-  router.observedKeyBoundaries = [NSMutableSet new];
-  router.observer = [CUIFieldKeyRecognizer new]; router.observer.view = window; router.observer.enabled = YES;
-  router.veto = [CUIFieldKeyRecognizer new]; router.veto.view = window; router.veto.enabled = YES;
-  router.veto.allowedPressTypes = @[@0, @4];
-  CUIFieldInputBinding *binding = [CUIFieldInputBinding new]; binding.boundWindow = foreign; binding->_records = [NSMutableArray new];
-  CUIFieldInputs = [NSHashTable weakObjectsHashTable]; [CUIFieldInputs addObject:binding];
-  CUIRecordFieldKeyBoundary(nil, @"installation", nil, nil);
-  CUIRecordFieldKeyBoundary(router, @"installation", nil, nil);
-  check(binding->_records.count == 0); check(router.observedKeyBoundaries.count == 0);
-  binding.boundWindow = window;
-  CUIRecordFieldKeyBoundary(router, @"installation", nil, nil);
-  NSDictionary *installed = binding->_records.lastObject;
-  check(binding->_records.count == 1); check([installed[@"windowId"] isEqual:window.identity]);
-  check([installed[@"observerAttached"] boolValue] && [installed[@"vetoAttached"] boolValue]);
-  check([installed[@"observerEnabled"] boolValue] && [installed[@"vetoEnabled"] boolValue]);
-  check(installed[@"observerPressTypes"] == NSNull.null); check([installed[@"vetoPressTypes"] isEqual:@[@0, @4]]);
-  check(![installed[@"hasOriginalPress"] boolValue]); check(installed[@"nativeCode"] == NSNull.null);
-  UIPress *press = [UIPress new]; press.key = [UIKey new]; press.key.keyCode = 82; press.window = window; press.timestamp = 7.5;
-  CUIRecordFieldKeyBoundary(router, @"delegate", press, nil);
-  NSDictionary *original = binding->_records.lastObject;
-  check([original[@"hasOriginalPress"] boolValue] && [original[@"hasOriginalKey"] boolValue]);
-  check([original[@"pressWindowMatches"] boolValue]); check([original[@"nativeCode"] integerValue] == 82);
-  check([original[@"timestamp"] doubleValue] == 7.5); check(![original[@"hasSelectedBinding"] boolValue]);
-  for (NSUInteger index = 0; index < 100; index++) CUIRecordFieldKeyBoundary(router, @"delegate", press, binding);
-  check(binding->_records.count == 2); check([binding->_records.lastObject isEqual:original]);
-  CUIRecordFieldKeyBoundary(router, @"selection", press, binding);
-  check([binding->_records.lastObject[@"hasSelectedBinding"] boolValue]);
-  press.window = foreign; press.key = nil;
-  CUIRecordFieldKeyBoundary(router, @"foreign", press, nil);
-  check(![binding->_records.lastObject[@"pressWindowMatches"] boolValue]);
-  check(![binding->_records.lastObject[@"hasOriginalKey"] boolValue]); check(binding->_records.lastObject[@"nativeCode"] == NSNull.null);
-  NSUInteger count = binding->_records.count;
-  router.window = nil; binding.boundWindow = nil;
-  CUIRecordFieldKeyBoundary(router, @"retired", press, nil);
-  check(binding->_records.count == count); check(![router.observedKeyBoundaries containsObject:@"retired"]);
-  check(press.window == foreign && press.key == nil && press.timestamp == 7.5);
+  router.observedKeyBoundaries = [NSMutableSet new]; router.records = [NSMapTable weakToStrongObjectsMapTable];
+  router.held = [NSMutableDictionary new]; router.editors = [NSHashTable weakObjectsHashTable];
+  router.editorHandler = ^BOOL(UIView *view, UIPress *press, NSString *phase) { return CUIHandleFieldResponderPress(view, press, phase); };
+  CUIFieldWindows = [NSMapTable weakToStrongObjectsMapTable]; [CUIFieldWindows setObject:router forKey:window];
+  winner = [CUIFieldInputBinding new]; winner.boundWindow = window; winner.member = YES;
+  winner->_records = [NSMutableArray new]; winner.dispatches = [NSMutableArray new];
+  CUIFieldInputs = [NSHashTable weakObjectsHashTable]; [CUIFieldInputs addObject:winner];
+  for (Class type in @[RCTUITextField.class, RCTUITextView.class, CUIDateSegment.class, CUIFocusView.class]) {
+    UIView *view = [type new]; view.window = window; view.firstResponder = YES; view.tag = 17;
+    view.nativeKeyPressHandler = router.editorHandler; [router.editors addObject:view];
+    winner.identity = @{@"owner":@"original", @"epoch":@1}; winner.captureDown = YES; winner.captureUp = NO;
+    UIPress *press = [UIPress new]; press.key = [UIKey new]; press.key.keyCode = 82; press.window = window; press.timestamp = 10;
+    NSSet *presses = [NSSet setWithObject:press];
+    [trace removeAllObjects]; [winner.dispatches removeAllObjects];
+    [view pressesBegan:presses withEvent:nil];
+    check([trace isEqual:@[@"dispatch:down"]]); check(winner.dispatches.lastObject[@"press"] == press);
+    check(![winner.dispatches.lastObject[@"repeat"] boolValue]); responderCases++;
+    [view pressesBegan:presses withEvent:nil]; check(winner.dispatches.count == 1); check(trace.count == 1); responderCases++;
+    press.timestamp = 11; [view pressesBegan:presses withEvent:nil];
+    check(winner.dispatches.count == 2); check([winner.dispatches.lastObject[@"repeat"] boolValue]); responderCases++;
+    winner.identity = @{@"owner":@"replacement", @"epoch":@2}; press.timestamp = 12;
+    [view pressesBegan:presses withEvent:nil]; check(winner.dispatches.count == 2);
+    [view pressesEnded:presses withEvent:nil]; check(winner.dispatches.count == 2); check(router.held.count == 0); responderCases++;
+    [trace removeAllObjects]; [winner.dispatches removeAllObjects];
+    winner.captureDown = NO; press.timestamp = 13; [view pressesBegan:presses withEvent:nil];
+    check([trace.firstObject isEqual:@"dispatch:down"]); check([trace.lastObject isEqual:@"default:down"]);
+    check(winner.dispatches.count == 1); responderCases++;
+    [trace removeAllObjects]; [view pressesCancelled:presses withEvent:nil];
+    check([trace.firstObject isEqual:@"dispatch:cancel"]); check([trace.lastObject isEqual:@"default:cancel"]);
+    check(router.held.count == 0); responderCases++;
+    winner.captureDown = YES; press.timestamp = 14; [view pressesBegan:presses withEvent:nil];
+    [trace removeAllObjects]; [view pressesEnded:presses withEvent:nil];
+    check([trace isEqual:@[@"dispatch:up"]]); check(router.held.count == 0); responderCases++;
+    NSUInteger count = winner.dispatches.count;
+    press.window = foreign; check(!CUIHandleFieldResponderPress(view, press, @"down"));
+    press.window = window; view.firstResponder = NO; check(!CUIHandleFieldResponderPress(view, press, @"down"));
+    view.firstResponder = YES; window.active = NO; check(!CUIHandleFieldResponderPress(view, press, @"down"));
+    window.active = YES; check(!CUIHandleFieldResponderPress(view, press, @"invented"));
+    press.key = nil; check(!CUIHandleFieldResponderPress(view, press, @"down"));
+    check(winner.dispatches.count == count); responderCases++;
+    [trace removeAllObjects]; [CUIFieldWindows removeObjectForKey:window];
+    [view pressesBegan:presses withEvent:nil]; check([trace.lastObject isEqual:@"default:down"]);
+    check(winner.dispatches.count == count); [CUIFieldWindows setObject:router forKey:window]; responderCases++;
+  }
+  UIView *original = [UIView new]; original.window = window; original.firstResponder = YES;
+  UIPress *cancelled = [UIPress new]; cancelled.key = [UIKey new]; cancelled.key.keyCode = 9; cancelled.window = window; cancelled.timestamp = 20;
+  winner.onDispatch = ^{ [router retire]; };
+  check(CUIHandleFieldResponderPress(original, cancelled, @"down"));
+  check(router.held.count == 0); responderCases++;
+  NSUInteger count = winner.dispatches.count;
+  winner.member = NO; cancelled.timestamp = 21;
+  check(!CUIHandleFieldResponderPress(original, cancelled, @"down")); check(winner.dispatches.count == count); responderCases++;
+  winner.member = YES;
+  UIPress *unrelated = [UIPress new]; NSSet *mixed = [NSSet setWithObjects:cancelled, unrelated, nil];
+  check(RCTTextInputRemainingPresses(original, mixed, @"down", nil) == mixed); responderCases++;
+  RCTTextInputPressHandler pass = ^BOOL(UIView *view, UIPress *press, NSString *phase) { (void)view; (void)press; (void)phase; return NO; };
+  check(RCTTextInputRemainingPresses(original, mixed, @"down", pass) == mixed); responderCases++;
+  NSSet *remaining = RCTTextInputRemainingPresses(original, mixed, @"down", ^BOOL(UIView *view, UIPress *press, NSString *phase) {
+    check(view == original); check([phase isEqual:@"down"]); return press == cancelled;
+  });
+  check(remaining.count == 1 && remaining.anyObject == unrelated); check(mixed.count == 2); responderCases++;
+  UIView<RCTBackedTextInputViewProtocol> *owned = [UIView new], *occupied = [UIView new];
+  owned.nativeKeyPressHandler = router.editorHandler;
+  RCTTextInputPressHandler other = ^BOOL(UIView *view, UIPress *press, NSString *phase) { (void)view; (void)press; (void)phase; return NO; };
+  occupied.nativeKeyPressHandler = other; [router.editors addObject:owned]; [router.editors addObject:occupied];
+  [router retire]; check(owned.nativeKeyPressHandler == nil); check(occupied.nativeKeyPressHandler == other);
+  check(router.editors.count == 0 && router.records.count == 0 && router.held.count == 0); responderCases++;
+  check([winner->_records.firstObject[@"stage"] isEqual:@"original-responder-entry"]);
+  check([winner->_records.firstObject[@"receiverTarget"] integerValue] == 17);
+  check([winner->_records.firstObject[@"nativeCode"] integerValue] == 82);
+  check([winner->_records.firstObject[@"timestamp"] doubleValue] == 10); responderCases++;
 }
+
 int main() {
   @autoreleasepool {
     Binding *binding = [Binding new];
@@ -155,7 +260,7 @@ int main() {
       check([record[@"generation"] unsignedIntegerValue] == ++generation);
       check(record.count == 11); check([record[@"ownerToken"] isEqual:@"owner:1"]);
     }
-    keyBoundaryChecks();
-    printf("{\"cases\":15,\"assertions\":%lu,\"nativeActions\":0}\n", (unsigned long)assertions);
+    responderChecks();
+    printf("{\"responderCases\":%lu,\"assertions\":%lu,\"nativeActions\":0}\n", (unsigned long)responderCases, (unsigned long)assertions);
   }
 }

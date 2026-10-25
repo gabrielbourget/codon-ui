@@ -19,3 +19,6 @@ BOOL CUIFieldInputOwnsPress(UIPress *press, UIWindow *window);
 BOOL CUIFieldInputOwnsView(UIView *view);
 
 void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void));
+
+BOOL CUIHandleFieldResponderPress(UIView *receiver, UIPress *press, NSString *phase);
+NSSet<UIPress *> *CUIFieldInputRemainingPresses(UIView *receiver, NSSet<UIPress *> *presses, NSString *phase);
