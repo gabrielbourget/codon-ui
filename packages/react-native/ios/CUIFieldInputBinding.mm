@@ -493,6 +493,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 - (FieldInputFocusResult)focus:(const FieldInputFocusAction &)action state:(const std::shared_ptr<FieldInputRuntime> &)state
                        ticket:(const FieldInputDispatchFrames::Handle &)ticket
 {
+  const auto serviceStarted = FieldInputDispatchFrames::Clock::now();
   FieldInputFocusResult result;
   const auto scope = ticket->scopeFor(action.groupTarget);
   NSDictionary *value = [self capture];
@@ -540,6 +541,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     }, [&] {
       FieldInputFocusResult focus;
       id commandResult = NSNull.null;
+      const auto commandStarted = FieldInputDispatchFrames::Clock::now();
       if ([component isKindOfClass:CUIDateSegment.class]) {
         NSDictionary *identity = [NSJSONSerialization JSONObjectWithData:[@(folly::toJson(row.at("segment")).c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
         commandResult = @([(CUIDateSegment *)component requestFormSegmentFocus:identity]); focus.requested = true;
@@ -548,11 +550,15 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       } else if ([component isKindOfClass:CUIFocusView.class]) {
         [(CUIFocusView *)component requestKeyboardFocus:[(CUIFocusView *)component motionSnapshotIdentity][@"ownerId"]]; focus.requested = true;
       } else { focus.error = "field-input-original-focus-command-unavailable"; return focus; }
+      const auto commandReturned = FieldInputDispatchFrames::Clock::now();
       for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) {
         UIView *root = [binding outerRoot];
         if (root.window == _window && [root isKindOfClass:CUIFocusView.class]) [(CUIFocusView *)root synchronizeFieldInputFocus];
       }
+      const auto synchronized = FieldInputDispatchFrames::Clock::now();
       NSDictionary *after = [self capture];
+      const auto captured = FieldInputDispatchFrames::Clock::now();
+      const auto milliseconds = [](auto start, auto finish) { return std::chrono::duration<double, std::milli>(finish - start).count(); };
       NSDictionary *actual = nil;
       for (NSDictionary *entry in after[@"fieldGroupSnapshot"][@"originals"]) if ([entry[@"target"] integerValue] == target) actual = entry;
       focus.current = after && [self currentScope:*scope] &&
@@ -562,10 +568,17 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       focus.observed = observed->load();
       focus.target = target; focus.nativeInstance = row.at("nativeInstance").asString(); focus.editorInstance = row.at("editorInstance").asString();
       if (focus.requested && !focus.observed) focus.error = "field-input-original-focus-not-observed";
+      const auto validated = FieldInputDispatchFrames::Clock::now();
       [self record:@{@"kind":@"focus", @"token":@(ticket->token), @"eventId":@(ticket->eventId),
         @"groupTarget":@(action.groupTarget), @"action":@(action.kind.c_str()),
         @"target":@(target), @"requested":@(focus.requested), @"observed":@(focus.observed),
-        @"current":@(focus.current), @"nativeCommandResult":commandResult, @"after":after[@"fieldGroupSnapshot"] ?: NSNull.null}];
+        @"current":@(focus.current), @"nativeCommandResult":commandResult,
+        @"elapsedMilliseconds":@{@"prepare":@(milliseconds(serviceStarted, commandStarted)),
+          @"command":@(milliseconds(commandStarted, commandReturned)),
+          @"synchronize":@(milliseconds(commandReturned, synchronized)),
+          @"snapshot":@(milliseconds(synchronized, captured)), @"validation":@(milliseconds(captured, validated)),
+          @"totalBeforeReceipt":@(milliseconds(serviceStarted, validated))},
+        @"after":after[@"fieldGroupSnapshot"] ?: NSNull.null}];
       return focus;
     });
   } @finally {

@@ -1,4 +1,4 @@
-"""Compile the actual owned rejected-read diagnostic against Foundation; no guest actions."""
+"""Compile the actual owned coherent-read helper against Foundation; no guest actions."""
 import argparse
 import hashlib
 import json
@@ -18,7 +18,8 @@ source = source_path.read_text()
 start = source.index("static NSString *CUIFieldInputReadDifference(")
 end = source.index("\nstatic NSDictionary *CUIAdmitFormAction", start)
 excerpt = source[start:end]
-assert "if (result != after)" in source
+assert "return CUIReadCoherentFieldInputDocument([&]" in source
+assert "attempt < 2" in excerpt and "if (before == after) return document" in excerpt
 assert 'reason:[@"field-input-document-retired-during-read "' in source
 (output / "owned-read-difference.inc").write_text(excerpt)
 executable = output / "field-document-read-contract"
@@ -30,6 +31,8 @@ subprocess.run([
 result = json.loads(subprocess.check_output([str(executable)], text=True, timeout=8))
 result.update({"sourceSHA256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
                "excerptSHA256": hashlib.sha256(excerpt.encode()).hexdigest(),
-               "scope": "Actual owned diagnostic only; rejection unchanged; no installed or component acceptance"})
+               "contractSHA256": hashlib.sha256((fixture / "field-document-read-contract.mm").read_bytes()).hexdigest(),
+               "verifierSHA256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+               "scope": "Actual owned bounded coherent-read helper and rejected-read diagnostic; Foundation SDK-read model only, no installed or component acceptance"})
 (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 print(json.dumps(result))

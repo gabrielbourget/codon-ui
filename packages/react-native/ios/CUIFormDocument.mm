@@ -18,6 +18,7 @@
 #include <atomic>
 #include <cmath>
 #include <climits>
+#include <functional>
 #include <stdexcept>
 
 static NSString *CUIFieldInputReadDifference(const std::string &beforeEncoded, const std::string &afterEncoded)
@@ -38,6 +39,38 @@ static NSString *CUIFieldInputReadDifference(const std::string &beforeEncoded, c
     @"structuralEqual":@([before isEqual:after]), @"changedTopLevelKeys":changed};
   NSData *encoded = [NSJSONSerialization dataWithJSONObject:difference options:NSJSONWritingSortedKeys error:nullptr];
   return [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
+}
+
+static BOOL CUIFieldInputOnlyRevisionChanged(const std::string &beforeEncoded, const std::string &afterEncoded)
+{
+  NSMutableDictionary *before = [NSJSONSerialization JSONObjectWithData:[@(beforeEncoded.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nullptr];
+  NSMutableDictionary *after = [NSJSONSerialization JSONObjectWithData:[@(afterEncoded.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nullptr];
+  if (![before isKindOfClass:NSMutableDictionary.class] || ![after isKindOfClass:NSMutableDictionary.class] ||
+      ![before[@"revision"] isKindOfClass:NSString.class] || ![after[@"revision"] isKindOfClass:NSString.class] ||
+      [before[@"revision"] isEqual:after[@"revision"]]) return NO;
+  [before removeObjectForKey:@"revision"]; [after removeObjectForKey:@"revision"];
+  return [before isEqual:after];
+}
+
+static NSDictionary *CUIReadCoherentFieldInputDocument(const std::function<std::string()> &query,
+    const std::function<NSDictionary *(NSDictionary *)> &readOriginals)
+{
+  std::string before = query();
+  for (NSUInteger attempt = 0; attempt < 2; attempt++) {
+    NSMutableDictionary *document = [NSJSONSerialization JSONObjectWithData:[@(before.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nullptr];
+    document[@"encodedDocument"] = @(before.c_str());
+    NSDictionary *originals = readOriginals(document);
+    if (!originals) @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-snapshot-unavailable" userInfo:nil];
+    document[@"fieldGroupSnapshot"] = originals;
+    const auto after = query();
+    if (before == after) return document;
+    // Discard the first SDK observation. A single publication with identical
+    // content may be read again; the returned observation must match exactly.
+    if (attempt == 0 && CUIFieldInputOnlyRevisionChanged(before, after)) { before = after; continue; }
+    @throw [NSException exceptionWithName:@"CUI.FieldInput"
+      reason:[@"field-input-document-retired-during-read " stringByAppendingString:CUIFieldInputReadDifference(before, after)] userInfo:nil];
+  }
+  @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-snapshot-unavailable" userInfo:nil];
 }
 
 static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictionary *document, NSDictionary *request)
@@ -277,15 +310,9 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   NSData *requestBytes = [NSJSONSerialization dataWithJSONObject:request options:NSJSONWritingSortedKeys error:nil];
   const std::string group([[[NSString alloc] initWithData:requestBytes encoding:NSUTF8StringEncoding] UTF8String]);
   const auto check = [&] { if (!_valid.load()) throw std::runtime_error("field-input-module-retired"); };
-  const auto result = codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group);
-  NSMutableDictionary *document = [[NSJSONSerialization JSONObjectWithData:[@(result.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nil] mutableCopy];
-  document[@"encodedDocument"] = @(result.c_str());
-  document[@"fieldGroupSnapshot"] = CUIReadFieldGroupDocument(presenter, document);
-  const auto after = codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group);
-  if (result != after)
-    @throw [NSException exceptionWithName:@"CUI.FieldInput"
-      reason:[@"field-input-document-retired-during-read " stringByAppendingString:CUIFieldInputReadDifference(result, after)] userInfo:nil];
-  return document;
+  return CUIReadCoherentFieldInputDocument([&] {
+    return codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group);
+  }, [&](NSDictionary *document) { return CUIReadFieldGroupDocument(presenter, document); });
 }
 - (void)bindFieldInput:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject
 {
