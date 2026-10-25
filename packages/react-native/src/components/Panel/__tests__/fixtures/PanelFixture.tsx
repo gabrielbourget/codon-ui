@@ -27,6 +27,7 @@ export const PanelFixture = ({
   const [veto, setVeto] = useState(true)
   const [right, setRight] = useState(false)
   const [blur, setBlur] = useState(false)
+  const [expanded, setExpanded] = useState(false)
   const [mode, setMode] = useState<"light" | "dark">("light")
   const [requests, setRequests] = useState(0)
   const [focused, setFocused] = useState("None observed")
@@ -58,6 +59,7 @@ export const PanelFixture = ({
                   setVeto(true)
                   setRight(false)
                   setBlur(false)
+                  setExpanded(false)
                   setRequests(0)
                   setFocused("None observed")
                 }}
@@ -74,16 +76,19 @@ export const PanelFixture = ({
                 initialFocusRef={closeTarget}
                 restoreFocusRef={opener}
                 position={right ? "right" : "left"}
-                horizontalGap={0}
+                horizontalGap={expanded ? 12 : 0}
+                width={expanded ? 360 : undefined}
+                backgroundColor={expanded ? "lavender" : undefined}
                 panelGeometry="rounded"
                 overlayBlur={blur}
-                customStyles={{ color: "navy" }}
+                customStyles={{ color: expanded ? "teal" : "navy", borderRadius: expanded ? 20 : undefined }}
               >
                 <Text>Arbitrary panel content</Text>
                 <Input ref={inputRef} accessibilityLabel="Held query" value="" onChange={() => {}} />
                 <Text>Owner veto: {String(veto)}</Text>
                 <Button onPress={() => setVeto(!veto)}>Toggle veto</Button>
                 <Button onPress={() => setRight(!right)}>Toggle physical side</Button>
+                <Button onPress={() => setExpanded(!expanded)}>Toggle panel appearance</Button>
                 <Button onPress={() => setMode(mode === "light" ? "dark" : "light")}>Toggle scene theme</Button>
                 {adapter && <Button onPress={() => setBlur(!blur)}>Toggle configured blur</Button>}
                 <Button
