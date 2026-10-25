@@ -26,7 +26,10 @@ type TProps = {
   hostSet: NativeDateFieldHostSet
   scope: TNativeFieldInputScope | null
   outerTarget: number
-  appearance: ReturnType<typeof getNativeTimePickerAppearance>
+  appearance: Pick<
+    ReturnType<typeof getNativeTimePickerAppearance>,
+    "text" | "placeholder" | "segment" | "focusedSegment"
+  >
   inheritedText: TextStyle
   label?: string
   testID: string

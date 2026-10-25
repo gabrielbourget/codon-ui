@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, TimePicker, CompactTypeaheadSearch, TagComboBox, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, TimePicker, DateTimePicker, DateTimeRangePicker, CompactTypeaheadSearch, TagComboBox, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -801,3 +801,42 @@ Toaster and toast expose the native notification family with original typed IDs,
 The default expansion predicate observes Alt plus physical KeyE, including repeat. Unrestricted string-array predicates retain empty/modifier-only arrays and mapped Event/UIEvent/KeyboardEvent property truthiness. A private per-window observation protocol is independent of consuming key policies and leaves the existing public keyboard/press/focus event shapes unchanged. Standard modifier, repeat, composition, physical code and location data come from native records; logical characters remain separate. Unknown platform mappings stay Unidentified with their acceptance cases open. Private target/view predicates mean actual native target/window presence; defaultPrevented/returnValue predicates mean the existing synchronous native capture disposition. These are native host equivalents, with no fabricated DOM event or editor ref.
 
 Rebuild the consumer native binaries for this owned schema change. Source oracles, compiled mapping tables and both adapter compiler checks do not establish actual passive/default delivery, native focus completion, held editor values, motion, accessibility or profile/rendering acceptance. The ledger tracks those obligations separately.
+
+## DateTimePicker and DateTimeRangePicker
+
+The date pickers expose native segmented inputs and a locale-ordered calendar through the public package entry. Their source integration keeps installed input, focus timing, pointer/scroll behavior, accessibility and device-profile acceptance open in the component-library roadmap.
+
+Values use the pinned @internationalized/date3.12.1 date classes. Calendar selection retains CalendarDate, CalendarDateTime or ZonedDateTime values, original calendars and time zones, and independent range endpoint times. Controlled owners may retain a value to decline a request; null controls an empty picker. Incomplete endpoint drafts remain separate from a complete range request.
+
+```tsx
+import { CalendarDateTime } from "@internationalized/date"
+import { useState } from "react"
+import {
+  DateTimePicker,
+  DateTimeRangePicker,
+  NativeFloatingLayerHost,
+  NativeLocaleProvider,
+} from "@codon-ui/react-native"
+
+const Dates = () => {
+  const [value, setValue] = useState<CalendarDateTime | null>(new CalendarDateTime(2024, 11, 1, 13, 45))
+  return (
+    <NativeFloatingLayerHost>
+      <NativeLocaleProvider locale="en-US">
+        <DateTimePicker accessibilityLabel="Appointment" value={value} onChange={setValue} name="appointment" />
+        <DateTimeRangePicker accessibilityLabel="Interval" startName="date" endName="date" />
+      </NativeLocaleProvider>
+    </NativeFloatingLayerHost>
+  )
+}
+```
+
+Single pickers show two months by default; range pickers show one. Both default to narrow weekdays, a24-hour cycle and leading zeros. multiMonth, dayLength, firstDayOfWeek, pageBehavior, minValue/maxValue and isDateUnavailable retain their distinct calendar behavior. allowsNonContiguousRanges controls whether a range can span unavailable days. NativeLocaleProvider drives locale/calendar formatting and direction; the host owns Intl support.
+
+The calendar supports day/week arrows, Home/End, month/year paging and Enter/Space selection. Alt+Arrow opens from the original field group. Range interactions include anchor/highlight/commit, reverse selection, existing-boundary dragging and the source200ms touch-versus-scroll delay. Original native window/day registrations admit physical pointer work; a requested focus remains separate from native focus observation. Platform acceptance of those paths is still required.
+
+NativeDatePickerContext and NativeDateRangePickerContext provide base picker props, refs and named/default/null slots. NativeDatePickerStateContext and NativeDateRangePickerStateContext expose the corresponding complete logical state. Wrapper appearance is calibrated before those base contexts, matching the source precedence. Root render callbacks must preserve the supplied original ref, host props and generated children; NativeFocusView is the corresponding native root.
+
+Every input/button/group/popover/dialog/calendar/header/navigation/grid/header-cell/body/day style owner is independent. Root style callbacks receive focus/visibility, open/disabled/readonly/required/invalid flags and state. NativeForm submits exact DateValue.toString entries: one named date, or ordered startName/endName entries with duplicates retained. Disabled fields are excluded, readonly values remain included, and reset/custom/server/required validation shares the existing original segmented-field receiver.
+
+The maintained DatePickerFixture under packages/react-native/src/date/picker/**tests**/fixtures exercises the public components with owner vetoes, three value classes, DST/zone values, RTL/non-Gregorian locales, a large-text fixture, form actions, range rules, original refs and a held-empty caller editor. These source examples do not replace native qualification.

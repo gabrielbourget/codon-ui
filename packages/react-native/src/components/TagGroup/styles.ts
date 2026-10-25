@@ -1,9 +1,9 @@
-import { Platform, processColor, type ColorValue, type TextStyle } from "react-native"
+import { Platform, type TextStyle } from "react-native"
 
 import type { TNativeTheme } from "../../theme/types"
 import { AVAILABLE_CORNER_GEOMETRY_CODES } from "../../tokens/geometry"
 import { AVAILABLE_THEMING_ORDER_CODES } from "../../tokens/theme-order"
-import { resolveNativeStyle, validateNativeColor } from "../colors"
+import { mixNativeSRGBColors, resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { getNativeControlRadius } from "../selection"
@@ -47,17 +47,6 @@ export const getNativeTagGroupStyles = (theme: TNativeTheme, props: TNativeTagGr
   }
 }
 
-const mix = (color: ColorValue, other: ColorValue, ratio: number): ColorValue => {
-  const first = processColor(color),
-    second = processColor(other)
-  if (typeof first !== "number" || typeof second !== "number") return color
-  const a = ((first >>> 24) / 255) * ratio,
-    b = ((second >>> 24) / 255) * (1 - ratio),
-    alpha = a + b
-  const channel = (shift: number) =>
-    alpha ? Math.round((((first >>> shift) & 255) * a + ((second >>> shift) & 255) * b) / alpha) : 0
-  return `rgba(${channel(16)}, ${channel(8)}, ${channel(0)}, ${alpha})`
-}
 export const getNativeGroupedTagColors = (
   theme: TNativeTheme,
   props: TNativeGroupedTagVisualProps,
@@ -115,14 +104,17 @@ export const getNativeGroupedTagColors = (
             ? colors.controlSelectedHoverBackground
             : selected
         : active && state.isPressed
-          ? mix(selected, selectedOther, 0.75)
+          ? mixNativeSRGBColors(selected, selectedOther, 0.75)
           : active && state.isHovered
-            ? mix(selected, selectedOther, 0.85)
+            ? mixNativeSRGBColors(selected, selectedOther, 0.85)
             : selected
   else if (active && state.isPressed)
-    background = props.order === "secondary" ? colors.controlPressedBackground : mix(selected, colors.background, 0.25)
+    background =
+      props.order === "secondary"
+        ? colors.controlPressedBackground
+        : mixNativeSRGBColors(selected, colors.background, 0.25)
   else if (active && state.isHovered)
-    background = mix(selected, colors.background, props.order === "secondary" ? 0.4 : 0.15)
+    background = mixNativeSRGBColors(selected, colors.background, props.order === "secondary" ? 0.4 : 0.15)
   return {
     color: state.isSelected ? foreground : colors.controlForeground,
     backgroundColor: background,

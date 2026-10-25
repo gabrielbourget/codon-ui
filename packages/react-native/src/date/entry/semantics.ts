@@ -57,3 +57,24 @@ export const getNativeDateSegmentSemantics = (
 }
 
 export const isEditableNativeDateSegment = (type: DateSegmentType) => type !== "literal" && type !== "timeZoneName"
+
+export const getNativeDateInputLabel = (locale: string, slot: "value" | "start" | "end", label?: string) =>
+  slot === "value"
+    ? label
+    : [dictionary.getStringForLocale(slot === "start" ? "startDate" : "endDate", locale), label]
+        .filter(Boolean)
+        .join(", ")
+
+export const getNativeDatePickerDescription = (
+  formatted: string | { start: string; end: string } | null,
+  locale: string,
+) => {
+  const strings = new LocalizedStringFormatter(locale, dictionary)
+  return typeof formatted === "string"
+    ? formatted
+      ? strings.format("selectedDateDescription", { date: formatted })
+      : ""
+    : formatted
+      ? strings.format("selectedRangeDescription", { startDate: formatted.start, endDate: formatted.end })
+      : ""
+}

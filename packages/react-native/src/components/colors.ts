@@ -109,3 +109,15 @@ export const resolveNativeStyle = <T extends TextStyle | ViewStyle>(
   validateNativeFilterColors(values.filter, component, `${field}.filter`)
   return resolved
 }
+
+export const mixNativeSRGBColors = (color: ColorValue, other: ColorValue, ratio: number): ColorValue => {
+  const first = processColor(color),
+    second = processColor(other)
+  if (typeof first !== "number" || typeof second !== "number") return color
+  const a = ((first >>> 24) / 255) * ratio,
+    b = ((second >>> 24) / 255) * (1 - ratio),
+    alpha = a + b
+  const channel = (shift: number) =>
+    alpha ? Math.round((((first >>> shift) & 255) * a + ((second >>> shift) & 255) * b) / alpha) : 0
+  return `rgba(${channel(16)}, ${channel(8)}, ${channel(0)}, ${alpha})`
+}

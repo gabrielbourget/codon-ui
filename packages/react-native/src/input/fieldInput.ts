@@ -378,6 +378,7 @@ export const nativeFieldGroupKeyHandler =
       direction: "ltr" | "rtl"
       onKeyDown?: (event: TNativeKeyboardEvent) => void
       onKeyUp?: (event: TNativeKeyboardEvent) => void
+      onContainedKeyDown?: (event: TNativeKeyboardEvent) => void
     }>,
   ) =>
   (event: TNativeFieldKeyEvent, target: number) =>
@@ -387,6 +388,7 @@ export const nativeFieldGroupKeyHandler =
       run: () => {
         const data = event.nativeEvent
         const group = packetFor(event).groups.find((candidate) => candidate.target === target)!
+        if (group.containsTarget && data.phase === "down" && !data.cancelled) props.onContainedKeyDown?.(event)
         if (
           group.containsTarget &&
           data.phase === "down" &&
