@@ -19,6 +19,10 @@ start = source.index("- (void)publishReadiness:(BOOL)ready error:(NSString *)err
 end = source.index("\n- (UIView *)outerRoot", start)
 excerpt = source[start:end]
 (output / "owned-readiness.inc").write_text(excerpt)
+boundary_start = source.index("static void CUIRecordFieldKeyBoundary(")
+boundary_end = source.index("\n@implementation CUIFieldInputWindow", boundary_start)
+boundary_excerpt = source[boundary_start:boundary_end]
+(output / "owned-key-boundary.inc").write_text(boundary_excerpt)
 executable = output / "field-binding-readiness-contract"
 subprocess.run([
     "/usr/bin/clang++", "-std=c++20", "-fobjc-arc", "-fblocks", "-Wall", "-Wextra", "-Werror",
@@ -28,6 +32,7 @@ subprocess.run([
 result = json.loads(subprocess.check_output([str(executable)], text=True, timeout=8))
 result.update({"sourceSHA256": hashlib.sha256(source_path.read_bytes()).hexdigest(),
                "excerptSHA256": hashlib.sha256(excerpt.encode()).hexdigest(),
-               "scope": "Actual owned publisher only; no installed or component acceptance"})
+               "keyBoundaryExcerptSHA256": hashlib.sha256(boundary_excerpt.encode()).hexdigest(),
+               "scope": "Actual owned publisher and bounded key diagnostics; UIKit delivery and component acceptance unproved"})
 (output / "result.json").write_text(json.dumps(result, indent=2) + "\n")
 print(json.dumps(result))

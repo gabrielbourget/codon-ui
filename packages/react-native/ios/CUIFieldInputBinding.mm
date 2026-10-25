@@ -159,11 +159,35 @@ static CUIFieldInputBinding *CUIFieldWinner(UIWindow *window)
 @property(nonatomic, strong) CUIFieldKeyRecognizer *veto;
 @property(nonatomic, strong) NSMapTable<UIPress *, NSMutableDictionary *> *records;
 @property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSString *> *held;
+@property(nonatomic, strong) NSMutableSet<NSString *> *observedKeyBoundaries;
 - (NSMutableDictionary *)down:(UIPress *)press delivered:(BOOL)delivered;
 - (void)finish:(UIPress *)press cancelled:(BOOL)cancelled;
 @end
 static NSMapTable<UIWindow *, CUIFieldInputWindow *> *CUIFieldWindows;
 static void CUIRefreshFieldInputWindow(UIWindow *window);
+// Observe the first original press at each existing boundary without acquiring
+// a document, choosing an owner or granting input/default authority.
+static void CUIRecordFieldKeyBoundary(CUIFieldInputWindow *router, NSString *stage, UIPress *press,
+                                     CUIFieldInputBinding *selected)
+{
+  UIWindow *window = router.window;
+  if (!window || [router.observedKeyBoundaries containsObject:stage]) return;
+  CUIFieldInputBinding *sink = nil;
+  for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects)
+    if ([binding boundWindow] == window) { sink = binding; break; }
+  if (!sink) return;
+  [router.observedKeyBoundaries addObject:stage];
+  UIKey *key = press.key;
+  [sink record:@{@"kind":@"key-boundary", @"stage":stage,
+    @"windowId":CUIInputWindowIdentity(window), @"windowActive":@(CUIFieldInputWindowActive(window)),
+    @"observerAttached":@(router.observer.view == window), @"vetoAttached":@(router.veto.view == window),
+    @"observerEnabled":@(router.observer.enabled), @"vetoEnabled":@(router.veto.enabled),
+    @"observerPressTypes":router.observer.allowedPressTypes ?: NSNull.null, @"vetoPressTypes":router.veto.allowedPressTypes ?: NSNull.null,
+    @"hasOriginalPress":@(press != nil), @"hasOriginalKey":@(key != nil),
+    @"pressWindowMatches":@(press && press.window == window),
+    @"pressType":press ? @(press.type) : NSNull.null, @"nativeCode":key ? @(key.keyCode) : NSNull.null,
+    @"timestamp":press ? @(press.timestamp) : NSNull.null, @"hasSelectedBinding":@(selected != nil)}];
+}
 @implementation CUIFieldInputWindow
 - (NSMutableDictionary *)down:(UIPress *)press delivered:(BOOL)delivered
 {
@@ -171,6 +195,7 @@ static void CUIRefreshFieldInputWindow(UIWindow *window);
   BOOL repeatedCallback = delivered && [record[@"delivered"] boolValue];
   if (!record || [record[@"timestamp"] doubleValue] != press.timestamp || repeatedCallback) {
     CUIFieldInputBinding *owner = CUIFieldWinner(self.window);
+    CUIRecordFieldKeyBoundary(self, @"owner-selection", press, owner);
     BOOL repeat = self.held[@(press.key.keyCode)] != nil;
     record = [@{@"timestamp":@(press.timestamp), @"admitted":@(owner != nil), @"capture":@NO, @"delivered":@NO} mutableCopy];
     // Store the original down before dispatch: a focus action may change which
@@ -208,6 +233,7 @@ static void CUIRefreshFieldInputWindow(UIWindow *window);
 }
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)recognizer shouldReceivePress:(UIPress *)press
 {
+  CUIRecordFieldKeyBoundary(_router, _veto ? @"veto-delegate" : @"observer-delegate", press, nil);
   if (!press.key || press.window != _router.window) return NO;
   NSDictionary *record = [_router down:press delivered:NO];
   return [record[_veto ? @"capture" : @"admitted"] boolValue];
@@ -223,7 +249,10 @@ static void CUIRefreshFieldInputWindow(UIWindow *window);
     self.state = self.state == UIGestureRecognizerStatePossible ? UIGestureRecognizerStateBegan : UIGestureRecognizerStateChanged;
     return;
   }
-  for (UIPress *press in presses) if (press.key) [_router down:press delivered:YES];
+  for (UIPress *press in presses) if (press.key) {
+    CUIRecordFieldKeyBoundary(_router, @"original-press-delivery", press, nil);
+    [_router down:press delivered:YES];
+  }
 }
 - (void)finish:(NSSet<UIPress *> *)presses cancelled:(BOOL)cancelled
 {
@@ -251,10 +280,11 @@ static void CUIRefreshFieldInputWindow(UIWindow *window)
     [router.held removeAllObjects]; [CUIFieldWindows removeObjectForKey:window]; return;
   }
   if (router) return;
-  router = [CUIFieldInputWindow new]; router.window = window; router.records = [NSMapTable weakToStrongObjectsMapTable]; router.held = [NSMutableDictionary new];
+  router = [CUIFieldInputWindow new]; router.window = window; router.records = [NSMapTable weakToStrongObjectsMapTable]; router.held = [NSMutableDictionary new]; router.observedKeyBoundaries = [NSMutableSet new];
   router.observer = [[CUIFieldKeyRecognizer alloc] initWithRouter:router veto:NO];
   router.veto = [[CUIFieldKeyRecognizer alloc] initWithRouter:router veto:YES];
   [CUIFieldWindows setObject:router forKey:window]; [window addGestureRecognizer:router.observer]; [window addGestureRecognizer:router.veto];
+  CUIRecordFieldKeyBoundary(router, @"recognizer-installation", nil, nil);
 }
 BOOL CUIFieldInputOwnsPress(UIPress *press, UIWindow *window)
 {
