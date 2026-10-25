@@ -4,6 +4,7 @@ import { findNodeHandle, View } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { NativeCollectionBuilder } from "../../collection/CollectionBuilder"
+import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
@@ -40,9 +41,12 @@ const Receiver = <T extends object>({
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }) => {
   const {
+    ref: consumerRef,
     children: _children,
+    geometry: _geometry,
     style,
     customStyles,
+    hoverColor,
     zebra,
     zebraColor,
     labels: _labels,
@@ -81,6 +85,7 @@ const Receiver = <T extends object>({
     root.current = view
     setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
   }, [])
+  const mergedRef = useNativeCollectionRefs(bind, consumerRef)
   const registerHeader = useCallback(
     (id: string, target: number) =>
       setHeaderTargets((previous) => {
@@ -133,6 +138,7 @@ const Receiver = <T extends object>({
         headerCount,
         rowHeaderColumns,
         columnCount,
+        hoverColor: hoverColor ?? "transparent",
         zebra: !!zebra,
         zebraColor: zebraColor ?? "transparent",
         headerTargets,
@@ -187,7 +193,7 @@ const Receiver = <T extends object>({
           <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
             <NativeFocusHost
               {...nativeViewProps(native)}
-              ref={bind}
+              ref={mergedRef}
               testID={props.testID ?? "table"}
               accessible={false}
               focusable

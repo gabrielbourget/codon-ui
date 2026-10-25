@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import type { View } from "react-native"
+import { View } from "react-native"
 
 // @ts-expect-error Table remains private until its complete component contract is implemented.
 import { Table as PublicTable } from "../src"
@@ -12,7 +12,15 @@ import { TableCell } from "../src/components/Table/TableCell"
 import { TableFilterPopover } from "../src/components/Table/TableFilterPopover"
 import { TableHeader } from "../src/components/Table/TableHeader"
 import { TableRow } from "../src/components/Table/TableRow"
-import type { TNativeTableColumnMetadata } from "../src/components/Table/types"
+import type {
+  TNativeTableColumnMetadata,
+  TNativeTableHeaderProps,
+  TNativeTableHeaderRenderState,
+  TNativeTableCellProps,
+  TNativeTableBodyProps,
+  TNativeTableProps,
+} from "../src/components/Table/types"
+import { NativeFocusView } from "../src/input/NativeFocusView"
 
 const rows = [{ id: 0, name: "Alpha" }]
 const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
@@ -20,6 +28,72 @@ const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
   { id: "action", role: "structural", structuralKind: "action", structuralPosition: "right", width: 0 },
 ]
 const view = createRef<View>()
+export const tableRef = <Table ref={view} />
+export const tableCallbackRef = (
+  <Table
+    ref={(target) => {
+      const original: View | null = target
+      return () => void original
+    }}
+  />
+)
+// @ts-expect-error The root ref must receive the original native View, not a focus-shaped proxy.
+export const invalidTableRef: TNativeTableProps["ref"] = createRef<{ focus: () => void }>()
+export const rootGeometry = <Table geometry="round" />
+// @ts-expect-error Root geometry retains the canonical finite token domain.
+export const invalidRootGeometry: TNativeTableProps["geometry"] = "circular"
+export const headerRenderer = (
+  <TableHeader
+    columns={columns}
+    onHoverChange={(hovered) => {
+      const value: boolean = hovered
+      void value
+    }}
+    render={(props, state) => {
+      const hovered: boolean = state.isHovered
+      return <View {...props} style={[props.style, { opacity: hovered ? 0.5 : 1 }]} />
+    }}
+  />
+)
+// @ts-expect-error Header hover state retains the original boolean domain.
+export const invalidHeaderHover: TNativeTableHeaderRenderState["isHovered"] = "hovered"
+// @ts-expect-error A native render callback must return its single original native root.
+export const invalidHeaderRender: TNativeTableHeaderProps<object>["render"] = () => null
+export const cellRenderer = (
+  <TableCell
+    id="rendered"
+    columnID="name"
+    render={(props, state) => {
+      const selected: boolean = state.isSelected
+      const column: number | null | undefined = state.columnIndex
+      // @ts-expect-error Only the children function receives defaultChildren.
+      void state.defaultChildren
+      void column
+      return <NativeFocusView {...props} style={[props.style, { opacity: selected ? 1 : 0.5 }]} />
+    }}
+  >
+    {(state) => {
+      const original: undefined = state.defaultChildren
+      void original
+      return "Value"
+    }}
+  </TableCell>
+)
+// @ts-expect-error The Cell renderer must return its native root.
+export const invalidCellRender: TNativeTableCellProps["render"] = () => null
+export const bodyRenderer = (
+  <TableBody
+    columns={columns}
+    render={(props, state) => {
+      const empty: boolean = state.isEmpty
+      const drop: boolean = state.isDropTarget
+      void drop
+      return <View {...props} style={[props.style, { opacity: empty ? 0.5 : 1 }]} />
+    }}
+  />
+)
+// @ts-expect-error Body render callbacks must return the original native root element.
+export const invalidBodyRenderer: TNativeTableBodyProps<object>["render"] = () => null
 export const linkedRow = (
   <TableRow
     id={0}

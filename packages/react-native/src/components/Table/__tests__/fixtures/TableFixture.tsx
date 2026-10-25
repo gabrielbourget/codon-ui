@@ -8,14 +8,23 @@ import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
 import { TableRow } from "../../TableRow"
-import type { TNativeTableColumnMetadata } from "../../types"
+import type { TNativeTableColumnMetadata, TNativeTableHeaderProps, TNativeTableBodyProps } from "../../types"
+
+import { TableCellFixture } from "./TableCellFixture"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
   { id: "a", name: "Alpha", active: false },
   { id: "b", name: "Beta", active: true },
 ]
-export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
+const renderHeader: NonNullable<TNativeTableHeaderProps<TPerson>["render"]> = (props, state) => (
+  <View {...props} style={[props.style, { opacity: state.isHovered ? 0.85 : 1 }]} />
+)
+const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props, state) => (
+  <View {...props} style={[props.style, { opacity: state.isEmpty ? 0.85 : 1 }]} />
+)
+export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
+  const [headerHovered, setHeaderHovered] = useState(false)
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [empty, setEmpty] = useState(false)
@@ -81,7 +90,9 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
               <Button onPress={() => setHoldQuery((value) => !value)}>Toggle query veto</Button>
             </View>
             <Table
+              ref={tableRef}
               accessibilityLabel="People"
+              hoverColor={dark ? "#444444" : "#ddeeff"}
               zebra
               zebraColor={dark ? "#333333" : "#eeeeee"}
               selectionMode="multiple"
@@ -131,8 +142,15 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
                 },
               }}
             >
-              <TableHeader columns={columns} />
+              <TableHeader
+                testID="table-header"
+                columns={columns}
+                onHoverChange={setHeaderHovered}
+                render={renderHeader}
+              />
               <TableBody
+                testID="table-body"
+                render={renderBody}
                 items={empty ? [] : reversed ? [...people].reverse() : people}
                 columns={columns}
                 renderEmptyState={() => "No people"}
@@ -143,6 +161,7 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
               />
             </Table>
             <Text testID="table-requests">{JSON.stringify(requests)}</Text>
+            <Text testID="table-header-hover">{String(headerHovered)}</Text>
             <Text testID="table-selection">{selected === "all" ? "all" : JSON.stringify([...selected])}</Text>
             <Text testID="table-selection-requests">{JSON.stringify(selectionRequests)}</Text>
             <Text testID="table-actions">{JSON.stringify(actions)}</Text>
@@ -154,6 +173,7 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
             <Text testID="table-widths">{JSON.stringify(widths)}</Text>
             <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
+            <TableCellFixture />
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

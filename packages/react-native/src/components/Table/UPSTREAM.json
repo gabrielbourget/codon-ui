@@ -1,0 +1,39 @@
+{
+  "status": "Private Table hover/header-render construction; full Table delivery and native acceptance remain open",
+  "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
+  "license": "../../collection/LICENSE.react-aria.md",
+  "sources": [
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/interactions/useHover.mjs",
+      "distributionSHA256": "09eab90116e04b344aa84d0239bfad09f495cdb12a0487d964d1081c66fa3d7f",
+      "sourceMapSHA256": "cb35394e6f774b137a8d395e117a7d4d1e86a89665d62009ae6304df4d61b6f8",
+      "sourcePath": "packages/react-aria/src/interactions/useHover.ts",
+      "sourceContentSHA256": "894900f122a0a2dbca8ddcb443b50e9a8d9c0bfdd6a5197202bd0b2958539dd1",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/interactions/useHover.ts"
+    },
+    {
+      "package": "react-aria-components",
+      "version": "1.17.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/Table.mjs",
+      "distributionSHA256": "ff057462ceefd06e91476e96ae0dcb32e11fe8f20a0b4a74b97f1ff327cb9a2d",
+      "sourceMapSHA256": "9835808da2dce7fc807ee069ca0100b3f62b07617e59bb3659aebf415c23ae33",
+      "sourcePath": "packages/react-aria-components/src/Table.tsx",
+      "sourceContentSHA256": "3248ea0c744e2cf4471b6b9bfeac58af4e5cc4ecb37e12bf31ce505e72454c5d",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria-components/src/Table.tsx"
+    }
+  ],
+  "adaptations": [
+    "Header render callbacks retain the original native View/ref, children and one live isHovered field.",
+    "Native PointerEvent objects replace DOM HoverEvent objects, matching the existing native Button callback boundary; no synthetic public event is created.",
+    "Original native View pointer routing and existing input/floating-window eligibility replace DOM containment/document listeners. Native resize/hover/window delivery and all installed/profile proof remain open.",
+    "One component-local helper shares pointer lifetime across existing header, row and cell hosts; row CSS paint remains independent of selection/action admission.",
+    "Canonical Motion-wrapped Row callback correspondence is retained as a separate open gate; the Header increment does not invent a Row callback implementation.",
+    "Cell render callbacks receive raw native Cell values; only the children function receives defaultChildren. Default and custom paths use the same public NativeFocusView and preserve opaque keyboard/collection props.",
+    "A Table-local target ref bridge refreshes cell/column/row metadata registration without detaching a stable consumer ref. Physical target and caller-ref changes retain ordinary cleanup and registration ownership.",
+    "Body render and empty callbacks receive committed isEmpty/isDropTarget values through the original View/ref and collection children; drop-target stays false under the existing private non-DnD boundary."
+  ]
+}

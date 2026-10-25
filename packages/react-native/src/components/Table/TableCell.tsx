@@ -1,24 +1,14 @@
-import {
-  forwardRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ForwardedRef,
-  type ReactNode,
-} from "react"
+import { forwardRef, useCallback, useContext, useRef, useState, type ForwardedRef, type ReactNode } from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusHost } from "../../input/NativeFocusView"
+import { NativeFocusHost, NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativePressable } from "../../input/NativePressable"
 import { nativeViewProps } from "../../input/nativeViewProps"
@@ -33,6 +23,8 @@ import { NativeTableCellContext, useNativeTable } from "./context"
 import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableCellProps, TNativeTableColumnProps, TNativeTableCellRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
+import { useTableHover } from "./useTableHover"
+import { useTableTargetRef } from "./useTableTargetRef"
 
 const Cell = (
   props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting">,
@@ -47,6 +39,7 @@ const Cell = (
     allowsSorting,
     alignment,
     children,
+    render,
     customStyles,
     style,
     ...native
@@ -55,14 +48,6 @@ const Cell = (
   const scope = useNativeKeyScope()
   const [focused, setFocused] = useState(false)
   const [focusVisible, setFocusVisible] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  useLayoutEffect(
-    () =>
-      scope?.subscribe(() => {
-        if (scope.isWindowActive() === false) setHovered(false)
-      }),
-    [scope],
-  )
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
@@ -82,13 +67,8 @@ const Cell = (
   const target = useRef<View | null>(null)
   const width = useRef<number | null>(null)
   const action = useTableAction(node, target)
-  const keyboardRef = useCallback(
-    (view: View | null) => table.keyboard.register(node, view),
-    [node, table.keyboard.register],
-  )
-  const keyboardTargetRef = useNativeCollectionRefs(target, keyboardRef)
-  const originalRef = useNativeCollectionRefs(keyboardTargetRef, bindHeader)
-  const mergedRef = useNativeCollectionRefs(ref, originalRef)
+  const hover = useTableHover(target, action.isActive, native)
+  const mergedRef = useTableTargetRef(target, ref, { node, register: table.keyboard.register, header: bindHeader })
   const textAlign = alignment === "Center" ? "center" : alignment === "Right" ? "right" : "auto"
   const authored = resolveNativeStyle([customStyles, style], heading ? "TableColumn" : "TableCell", "style")
   const fluid = authored.width == null || authored.width === "auto"
@@ -130,7 +110,7 @@ const Cell = (
     isPressed: false,
     isFocused: focused,
     isFocusVisible: focused && focusVisible,
-    isHovered: hovered,
+    isHovered: hover.isHovered,
     isSelected: !!parent && table.manager.isSelected(parent.key),
     isDisabled: !!parent && table.manager.isDisabled(parent.key),
     id: node.key,
@@ -141,6 +121,7 @@ const Cell = (
     level,
     defaultChildren: undefined,
   }
+  const { defaultChildren: _defaultChildren, ...renderValues } = renderState
   const rendered = (
     <NativeTableCellContext.Provider value={{ node, target, width }}>
       <TableCellKeys node={node} target={target} binding={actions?.bindingFor(node) ?? ""} />
@@ -231,9 +212,10 @@ const Cell = (
             nativeInteraction={false}
             nativeProgrammaticFocusable
             nativeTabStop={table.manager.focusedKey === node.key}
-            nativeRender={(props) => (
-              <NativeFocusHost {...props} capturedKeys={scope ? [] : table.keyboard.keysFor(node.key)} />
-            )}
+            nativeRender={(props) => {
+              const hostProps = { ...props, capturedKeys: scope ? [] : table.keyboard.keysFor(node.key) }
+              return render ? render(hostProps, renderValues) : <NativeFocusView {...hostProps} />
+            }}
             onFocus={(event) => {
               if (event.nativeEvent.target !== findNodeHandle(target.current)) return
               setFocused(true)
@@ -248,14 +230,8 @@ const Cell = (
               native.onBlur?.(event)
             }}
             onFocusVisibilityChange={setFocusVisible}
-            onPointerEnter={(event) => {
-              native.onPointerEnter?.(event)
-              if (event.nativeEvent.pointerType !== "touch" && action.isActive()) setHovered(true)
-            }}
-            onPointerLeave={(event) => {
-              native.onPointerLeave?.(event)
-              if (event.nativeEvent.pointerType !== "touch") setHovered(false)
-            }}
+            onPointerEnter={hover.onPointerEnter}
+            onPointerLeave={hover.onPointerLeave}
             onKeyDown={table.keyboard.onKeyDown}
             style={{
               ...(focused ? { outlineWidth: focusVisible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),

@@ -2,7 +2,7 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
-import type { TextInput } from "react-native"
+import type { TextInput, View } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -10,7 +10,9 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeThemeProvider } from "../../../theme"
 
+import { TableCellFixture } from "./fixtures/TableCellFixture"
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -28,8 +30,11 @@ const press = async (name: string) => {
 }
 it("keeps the same held editor through row reorder and theme changes without writing its value", async () => {
   const editor = createRef<TextInput>()
-  await render(<TableFixture editorRef={editor} />)
+  const table = createRef<View>()
+  await render(<TableFixture editorRef={editor} tableRef={table} />)
   const original = editor.current!
+  const originalTable = table.current!
+  expect(originalTable).not.toBeNull()
   const write = jest.spyOn(original, "setNativeProps")
   await press("Reverse rows")
   await press("Toggle theme")
@@ -37,6 +42,7 @@ it("keeps the same held editor through row reorder and theme changes without wri
   expect(screen.getByTestId("table-requests")).toHaveTextContent('["requested"]')
   expect(screen.getByTestId("table-editor").props.value).toBe("held")
   expect(editor.current).toBe(original)
+  expect(table.current).toBe(originalTable)
   expect(write).not.toHaveBeenCalled()
 })
 it("replaces rows with loading content then empty content under the fixture owner", async () => {
@@ -48,6 +54,60 @@ it("replaces rows with loading content then empty content under the fixture owne
   await press("Toggle loading")
   expect(screen.getByText("No people")).toBeOnTheScreen()
   expect(screen.queryByText("Loading")).toBeNull()
+})
+
+it("keeps the held editor and its value through row hover and theme changes", async () => {
+  const editor = createRef<TextInput>()
+  await render(<TableFixture editorRef={editor} />)
+  const original = editor.current!
+  const write = jest.spyOn(original, "setNativeProps")
+  await fireEvent(screen.getByTestId("table-header"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-header-hover")).toHaveTextContent("true")
+  expect(screen.getByTestId("table-header")).toHaveStyle({ opacity: 0.85 })
+  await fireEvent(screen.getByTestId("table-row-string:a"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  await press("Toggle theme")
+  await fireEvent(screen.getByTestId("table-header"), "pointerLeave", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-header-hover")).toHaveTextContent("false")
+  await fireEvent(screen.getByTestId("table-row-string:a"), "pointerLeave", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(editor.current).toBe(original)
+  expect(screen.getByTestId("table-editor").props.value).toBe("held")
+  expect(write).not.toHaveBeenCalled()
+  expect(screen.getByTestId("table-requests")).toHaveTextContent(/^\[\]$/)
+})
+
+it("adds and removes the Cell renderer without replacing its original held editor", async () => {
+  const editor = createRef<TextInput>()
+  await render(
+    <NativeThemeProvider>
+      <TableCellFixture editorRef={editor} />
+    </NativeThemeProvider>,
+  )
+  const input = editor.current!
+  const write = jest.spyOn(input, "setNativeProps")
+  await press("Toggle cell renderer")
+  expect(editor.current).toBe(input)
+  await fireEvent(screen.getByTestId("table-custom-cell"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse" },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-custom-cell")).toHaveStyle({ opacity: 0.85 })
+  await press("Toggle cell renderer")
+  expect(editor.current).toBe(input)
+  expect(screen.getByTestId("table-custom-cell-editor").props.value).toBe("")
+  expect(screen.getByTestId("table-custom-cell-requests")).toHaveTextContent(/^\[\]$/)
+  expect(write).not.toHaveBeenCalled()
 })
 
 it("keeps selection veto/echo and nested editor ownership separate from row actions", async () => {

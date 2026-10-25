@@ -1,8 +1,9 @@
-import type { ReactNode, RefAttributes } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
 
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
+import type { TNativeFocusViewProps } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeLinkProps } from "../Link/types"
 import type { TNativePaginationProps } from "../Pagination/types"
@@ -15,6 +16,7 @@ import type {
   TTableFilterArgumentDataType,
   TTableFilterOperationCode,
 } from "./queryTypes"
+import type { TNativeTableHoverEvents } from "./useTableHover"
 
 export type TNativeTableColumnFilterMetadata = {
   enabled?: boolean
@@ -101,9 +103,12 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
       }
   )
 export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
+  RefAttributes<View> &
   TStyleProps &
   MultipleSelectionStateProps & {
     children?: ReactNode
+    geometry?: TCornerGeometry
+    hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue
     labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
@@ -120,7 +125,9 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
     columns: TNativeTableColumnMetadata<T>[]
-  }
+    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableHeaderRenderState) => ReactElement
+  } & TNativeTableHoverEvents
+export type TNativeTableHeaderRenderState = Readonly<{ isHovered: boolean }>
 export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
   TStyleProps & {
     textValue?: string
@@ -145,9 +152,11 @@ export type TNativeTableCellRenderState = Readonly<{
   level: number
   defaultChildren: undefined
 }>
+export type TNativeTableCellRenderValues = Omit<TNativeTableCellRenderState, "defaultChildren">
 export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children"> &
   TStyleProps & {
     children?: ReactNode | ((state: TNativeTableCellRenderState) => ReactNode)
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableCellRenderValues) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
     columnID: string
@@ -168,6 +177,7 @@ export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "chi
   }
 export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
+    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableBodyRenderState) => ReactElement
     items?: T[]
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry
@@ -176,9 +186,10 @@ export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children"
     customRowStyles?: StyleProp<TextStyle>
     isLoading?: boolean
     renderLoadingState?: () => ReactNode
-    renderEmptyState?: () => ReactNode
+    renderEmptyState?: (state?: TNativeTableBodyRenderState) => ReactNode
     dependencies?: readonly unknown[]
   }
+export type TNativeTableBodyRenderState = Readonly<{ isEmpty: boolean; isDropTarget: boolean }>
 export type TNativeTableHeaderComponent = <T extends object>(
   props: TNativeTableHeaderProps<T> & RefAttributes<View>,
 ) => ReactNode

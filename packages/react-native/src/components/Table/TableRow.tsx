@@ -1,9 +1,8 @@
-import { useCallback, useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
+import { useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -17,6 +16,7 @@ import { resolveNativeStyle } from "../colors"
 import { openNativeLink } from "../Link/navigation"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import {
   getNativeTagGroupActionState,
   getNativeTagGroupPressIntent,
@@ -30,6 +30,11 @@ import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { TableCell } from "./TableCell"
 import type { TNativeTableRowComponent, TNativeTableRowProps } from "./types"
 import { useTableAction } from "./useTableAction"
+import { useTableHover } from "./useTableHover"
+import { useTableTargetRef } from "./useTableTargetRef"
+
+const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
+const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
 
 const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
   const {
@@ -59,12 +64,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     navigation.current = props
   })
   if (props.href !== undefined && typeof props.href !== "string") throw new TypeError("TableRow: href must be a string")
-  const keyboardRef = useCallback(
-    (view: View | null) => table.keyboard.register(node, view),
-    [node, table.keyboard.register],
-  )
-  const keyboardTargetRef = useNativeCollectionRefs(original, keyboardRef)
-  const boundRef = useNativeCollectionRefs(ref, keyboardTargetRef)
+  const boundRef = useTableTargetRef(original, ref, { node, register: table.keyboard.register })
   const action = useTableAction(node, original)
   const state = getNativeTagGroupActionState({
     mode: table.manager.canSelectItem(node.key) ? table.manager.selectionMode : "none",
@@ -74,6 +74,10 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     hasAction: !!(table.onRowAction || props.onAction),
     isLink: table.manager.isLink(node.key),
     linkBehavior: "action",
+  })
+  const hover = useTableHover(original, action.isActive, {
+    onPointerEnter: native.onPointerEnter,
+    onPointerLeave: native.onPointerLeave,
   })
   type TPointer = (typeof NATIVE_TAG_GROUP_POINTER_TYPES)[number]
   type TMetadata = {
@@ -166,7 +170,16 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const styles = splitNativeTextStyle(
     resolveNativeStyle(
       [
-        { flexDirection: "row", backgroundColor: table.zebra && ordinal % 2 === 1 ? table.zebraColor : "transparent" },
+        {
+          flexDirection: "row",
+          // The canonical zebra selector outranks :hover; inline row styles outrank both.
+          backgroundColor:
+            table.zebra && ordinal % 2 === 1
+              ? table.zebraColor
+              : hover.isPointerOver
+                ? table.hoverColor
+                : "transparent",
+        },
         customStyles,
         style,
       ],
@@ -174,6 +187,11 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
       "style",
     ),
   )
+  const reduced = useNativeTagReducedMotion()
+  const backgroundColor = useNativeTagColor(styles.view.backgroundColor, BACKGROUND_TRANSITION, reduced, true).rendered
+  const targetForeground = styles.text.color ?? content!.foregroundColor
+  const foregroundColor =
+    useNativeTagColor(targetForeground, FOREGROUND_TRANSITION, reduced, true).rendered ?? targetForeground
   return (
     <NativeCollectionItemBindingContext.Provider value={action.binding}>
       <NativeButton
@@ -209,15 +227,18 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           viewStyle: {
             ...(flags.isFocused ? { outlineWidth: visible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),
             ...styles.view,
+            backgroundColor,
           },
-          textStyle: styles.text,
-          foregroundColor: styles.text.color ?? content!.foregroundColor,
+          textStyle: { ...styles.text, color: foregroundColor },
+          foregroundColor,
           target: 0,
         })}
         onFocus={(event) => {
           table.keyboard.observe(node.key, event)
           native.onFocus?.(event)
         }}
+        onPointerEnter={hover.onPointerEnter}
+        onPointerLeave={hover.onPointerLeave}
         onPointerDown={(event: PointerEvent) => {
           native.onPointerDown?.(event)
           const data = event.nativeEvent
@@ -252,9 +273,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           press("long", event)
         }}
       >
-        <NativeContentContext.Provider
-          value={{ foregroundColor: styles.text.color ?? content!.foregroundColor, isButton: false }}
-        >
+        <NativeContentContext.Provider value={{ foregroundColor, isButton: false }}>
           <renderer.CollectionBranch collection={table.collection} parent={node} />
         </NativeContentContext.Provider>
       </NativeButton>

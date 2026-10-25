@@ -27,6 +27,7 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
     isLoading,
     renderLoadingState: _loading,
     renderEmptyState,
+    render,
     style,
     customStyles,
     ...native
@@ -35,19 +36,24 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
   const content = useNativeContentContext()
   const renderer = useContext(NativeCollectionRendererContext)
   const styles = splitNativeTextStyle(resolveNativeStyle([customStyles, style], "TableBody", "style"))
-  return (
-    <View {...nativeViewProps(native)} ref={ref} style={styles.view}>
+  const renderState = { isEmpty: table.collection.size === 0, isDropTarget: false }
+  const hostProps = {
+    ...nativeViewProps(native),
+    ref,
+    style: styles.view,
+    children: (
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? content!.foregroundColor, isButton: false }}
       >
         {!isLoading && items.length === 0 && renderEmptyState ? (
-          getNativeButtonContent(renderEmptyState(), styles.text)
+          getNativeButtonContent(renderEmptyState(renderState), styles.text)
         ) : (
           <renderer.CollectionBranch collection={table.collection} parent={node} />
         )}
       </NativeContentContext.Provider>
-    </View>
-  )
+    ),
+  }
+  return render ? render(hostProps, renderState) : <View {...hostProps} />
 }
 export const TableBody = createNativeCollectionBranch<object, TNativeTableBodyProps<object>, View>(
   "body",
