@@ -82,6 +82,7 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
             </View>
             <Table
               accessibilityLabel="People"
+              hoverColor={dark ? "#444444" : "#ddeeff"}
               zebra
               zebraColor={dark ? "#333333" : "#eeeeee"}
               selectionMode="multiple"

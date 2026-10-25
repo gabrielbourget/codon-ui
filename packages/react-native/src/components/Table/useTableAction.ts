@@ -1,4 +1,4 @@
-import { useContext, useInsertionEffect, useRef, type RefObject } from "react"
+import { useCallback, useContext, useInsertionEffect, useRef, type RefObject } from "react"
 import { findNodeHandle, type View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
@@ -25,11 +25,14 @@ export const useTableAction = (node: TNativeCollectionNode<object>, target: RefO
       live.current = false
     }
   }, [])
-  const eligible = () =>
-    live.current &&
-    current.current.scope?.isWindowActive() !== false &&
-    current.current.floating?.canAct() !== false &&
-    current.current.window?.() !== false
+  const eligible = useCallback(
+    () =>
+      live.current &&
+      current.current.scope?.isWindowActive() !== false &&
+      current.current.floating?.canAct() !== false &&
+      current.current.window?.() !== false,
+    [],
+  )
   return {
     isActive: eligible,
     binding: actions.bindingFor(node),

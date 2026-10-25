@@ -50,6 +50,26 @@ it("replaces rows with loading content then empty content under the fixture owne
   expect(screen.queryByText("Loading")).toBeNull()
 })
 
+it("keeps the held editor and its value through row hover and theme changes", async () => {
+  const editor = createRef<TextInput>()
+  await render(<TableFixture editorRef={editor} />)
+  const original = editor.current!
+  const write = jest.spyOn(original, "setNativeProps")
+  await fireEvent(screen.getByTestId("table-row-string:a"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  await press("Toggle theme")
+  await fireEvent(screen.getByTestId("table-row-string:a"), "pointerLeave", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(editor.current).toBe(original)
+  expect(screen.getByTestId("table-editor").props.value).toBe("held")
+  expect(write).not.toHaveBeenCalled()
+  expect(screen.getByTestId("table-requests")).toHaveTextContent(/^\[\]$/)
+})
+
 it("keeps selection veto/echo and nested editor ownership separate from row actions", async () => {
   const editor = createRef<TextInput>()
   await render(<TableFixture editorRef={editor} />)

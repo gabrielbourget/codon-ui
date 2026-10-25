@@ -36,6 +36,7 @@ export type TNativeTableContext = {
   headerCount: number
   rowHeaderColumns: ReadonlySet<string>
   columnCount: number
+  hoverColor: ColorValue
   zebra: boolean
   zebraColor: ColorValue
   headerTargets: ReadonlyMap<string, number>

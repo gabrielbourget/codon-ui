@@ -104,6 +104,7 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
   TStyleProps &
   MultipleSelectionStateProps & {
     children?: ReactNode
+    hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue
     labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
