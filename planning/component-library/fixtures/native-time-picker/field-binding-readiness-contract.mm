@@ -88,10 +88,17 @@ static NSMutableArray<NSString *> *trace;
   return [phase isEqual:@"down"] ? self.captureDown : self.captureUp;
 }
 @end
+@interface CUIFieldKeyHold : NSObject
+@property(nonatomic, weak) UIView *receiver;
+@property(nonatomic, copy) NSDictionary *identity;
+@property(nonatomic) BOOL capture;
+@end
+@implementation CUIFieldKeyHold
+@end
 @interface CUIFieldInputWindow : NSObject
 @property(nonatomic, weak) UIWindow *window;
 @property(nonatomic, strong) NSMapTable<UIPress *, NSMutableDictionary *> *records;
-@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSDictionary *> *held;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, CUIFieldKeyHold *> *held;
 @property(nonatomic, strong) NSMutableSet<NSString *> *observedKeyBoundaries;
 @property(nonatomic, strong) NSHashTable<UIView<RCTBackedTextInputViewProtocol> *> *editors;
 @property(nonatomic, copy) RCTTextInputPressHandler editorHandler;
@@ -182,6 +189,13 @@ static void responderChecks() {
     winner.captureDown = YES; press.timestamp = 14; [view pressesBegan:presses withEvent:nil];
     [trace removeAllObjects]; [view pressesEnded:presses withEvent:nil];
     check([trace isEqual:@[@"dispatch:up"]]); check(router.held.count == 0); responderCases++;
+    press.timestamp = 15; [view pressesBegan:presses withEvent:nil];
+    view.firstResponder = NO; [trace removeAllObjects]; [view pressesEnded:presses withEvent:nil];
+    check([trace isEqual:@[@"dispatch:up"]]); check(router.held.count == 0); responderCases++;
+    view.firstResponder = YES; press.timestamp = 16; [view pressesBegan:presses withEvent:nil];
+    view.firstResponder = NO; view.window = nil; [trace removeAllObjects]; [view pressesCancelled:presses withEvent:nil];
+    check(trace.count == 0); check(router.held.count == 0); responderCases++;
+    view.window = window; view.firstResponder = YES;
     NSUInteger count = winner.dispatches.count;
     press.window = foreign; check(!CUIHandleFieldResponderPress(view, press, @"down"));
     press.window = window; view.firstResponder = NO; check(!CUIHandleFieldResponderPress(view, press, @"down"));
@@ -210,6 +224,12 @@ static void responderChecks() {
     check(view == original); check([phase isEqual:@"down"]); return press == cancelled;
   });
   check(remaining.count == 1 && remaining.anyObject == unrelated); check(mixed.count == 2); responderCases++;
+  cancelled.key = [UIKey new]; cancelled.key.keyCode = 30; cancelled.timestamp = 22;
+  check(CUIHandleFieldResponderPress(original, cancelled, @"down"));
+  CUIRetireFieldKeyHolds(router, window, @[winner.identity]); check(router.held.count == 1);
+  CUIRetireFieldKeyHolds(router, window, @[]); check(router.held.count == 0); responderCases++;
+  cancelled.timestamp = 23; check(CUIHandleFieldResponderPress(original, cancelled, @"down"));
+  original.window = nil; CUIRetireFieldKeyHolds(router, window, @[winner.identity]); check(router.held.count == 0); responderCases++;
   UIView<RCTBackedTextInputViewProtocol> *owned = [UIView new], *occupied = [UIView new];
   owned.nativeKeyPressHandler = router.editorHandler;
   RCTTextInputPressHandler other = ^BOOL(UIView *view, UIPress *press, NSString *phase) { (void)view; (void)press; (void)phase; return NO; };

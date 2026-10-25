@@ -151,10 +151,17 @@ static CUIFieldInputBinding *CUIFieldWinner(UIWindow *window)
   }
   return selected;
 }
+@interface CUIFieldKeyHold : NSObject
+@property(nonatomic, weak) UIView *receiver;
+@property(nonatomic, copy) NSDictionary *identity;
+@property(nonatomic) BOOL capture;
+@end
+@implementation CUIFieldKeyHold
+@end
 @interface CUIFieldInputWindow : NSObject
 @property(nonatomic, weak) UIWindow *window;
 @property(nonatomic, strong) NSMapTable<UIPress *, NSMutableDictionary *> *records;
-@property(nonatomic, strong) NSMutableDictionary<NSNumber *, NSDictionary *> *held;
+@property(nonatomic, strong) NSMutableDictionary<NSNumber *, CUIFieldKeyHold *> *held;
 @property(nonatomic, strong) NSMutableSet<NSString *> *observedKeyBoundaries;
 @property(nonatomic, strong) NSHashTable<UIView<RCTBackedTextInputViewProtocol> *> *editors;
 @property(nonatomic, copy) RCTTextInputPressHandler editorHandler;
@@ -186,35 +193,39 @@ static void CUIRecordFieldKeyBoundary(CUIFieldInputWindow *router, NSString *sta
 - (BOOL)handlePress:(UIPress *)press phase:(NSString *)phase receiver:(UIView *)receiver
 {
   if (![@[@"down", @"up", @"cancel"] containsObject:phase]) return NO;
-  if (!press.key || press.window != self.window || receiver.window != self.window ||
-      !receiver.isFirstResponder || !CUIFieldInputWindowActive(self.window)) return NO;
+  if (!press.key || press.window != self.window || !CUIFieldInputWindowActive(self.window)) return NO;
   NSMutableDictionary *record = [self.records objectForKey:press];
   if ([record[@"timestamp"] doubleValue] == press.timestamp && [record[@"phase"] isEqual:phase])
     return [record[@"capture"] boolValue];
+  NSNumber *code = @(press.key.keyCode);
+  CUIFieldKeyHold *held = self.held[code];
+  const BOOL down = [phase isEqual:@"down"];
+  const BOOL focusedReceiver = receiver.window == self.window && receiver.isFirstResponder;
+  if (down ? !focusedReceiver : (!held || (receiver != held.receiver && !focusedReceiver))) return NO;
   record = [@{@"timestamp":@(press.timestamp), @"phase":phase, @"admitted":@NO, @"capture":@NO} mutableCopy];
   [self.records setObject:record forKey:press];
   CUIFieldInputBinding *owner = CUIFieldWinner(self.window);
   CUIRecordFieldKeyBoundary(self, @"original-responder-entry", receiver, press, owner);
-  NSNumber *code = @(press.key.keyCode);
-  NSDictionary *held = self.held[code];
   const BOOL admitted = owner && [owner containsOriginalView:receiver];
-  const BOOL current = admitted && (!held || [held[@"identity"] isEqual:[owner keyIdentity]]);
-  BOOL capture = [held[@"capture"] boolValue];
-  if ([phase isEqual:@"down"]) {
+  const BOOL current = admitted && (!held || [held.identity isEqual:[owner keyIdentity]]);
+  BOOL capture = held.capture;
+  if (down) {
     if (current) {
-      NSDictionary *identity = [owner keyIdentity];
-      NSMutableDictionary *nextHeld = [@{@"identity":identity, @"capture":@(capture)} mutableCopy];
-      self.held[code] = nextHeld;
+      CUIFieldKeyHold *nextHeld = held ?: [CUIFieldKeyHold new];
+      if (!held) { nextHeld.receiver = receiver; nextHeld.identity = [owner keyIdentity]; self.held[code] = nextHeld; }
       capture = [owner dispatch:press phase:phase repeat:held != nil];
-      if (self.held[code] == nextHeld) nextHeld[@"capture"] = @(capture || [held[@"capture"] boolValue]);
+      if (self.held[code] == nextHeld) nextHeld.capture |= capture;
     }
   } else {
+    // UIKit may finish at the original responder after focus or hierarchy loss.
+    // Retire that hold before callbacks; never borrow a replacement owner's turn.
     [self.held removeObjectForKey:code];
     if (held && current) capture |= [owner dispatch:press phase:phase repeat:NO];
   }
   record[@"admitted"] = @(admitted); record[@"capture"] = @(capture);
   return capture;
 }
+
 - (void)retire
 {
   for (UIView<RCTBackedTextInputViewProtocol> *editor in self.editors.allObjects)
@@ -224,7 +235,7 @@ static void CUIRecordFieldKeyBoundary(CUIFieldInputWindow *router, NSString *sta
 @end
 BOOL CUIHandleFieldResponderPress(UIView *receiver, UIPress *press, NSString *phase)
 {
-  CUIFieldInputWindow *router = [CUIFieldWindows objectForKey:receiver.window];
+  CUIFieldInputWindow *router = [CUIFieldWindows objectForKey:press.window];
   return router && [router handlePress:press phase:phase receiver:receiver];
 }
 NSSet<UIPress *> *CUIFieldInputRemainingPresses(UIView *receiver, NSSet<UIPress *> *presses, NSString *phase)
@@ -233,6 +244,13 @@ NSSet<UIPress *> *CUIFieldInputRemainingPresses(UIView *receiver, NSSet<UIPress 
     return CUIHandleFieldResponderPress(view, press, originalPhase);
   });
 }
+static void CUIRetireFieldKeyHolds(CUIFieldInputWindow *router, UIWindow *window, NSArray<NSDictionary *> *identities)
+{
+  for (NSNumber *code in router.held.allKeys) {
+    CUIFieldKeyHold *held = router.held[code];
+    if (held.receiver.window != window || ![identities containsObject:held.identity]) [router.held removeObjectForKey:code];
+  }
+}
 static void CUIRefreshFieldInputWindow(UIWindow *window)
 {
   if (!window) return;
@@ -240,9 +258,10 @@ static void CUIRefreshFieldInputWindow(UIWindow *window)
   if (!CUIFieldWindows) CUIFieldWindows = [NSMapTable weakToStrongObjectsMapTable];
   CUIFieldInputWindow *router = [CUIFieldWindows objectForKey:window];
   BOOL needed = NO;
+  NSMutableArray<NSDictionary *> *identities = [NSMutableArray new];
   NSHashTable<UIView<RCTBackedTextInputViewProtocol> *> *wanted = [NSHashTable weakObjectsHashTable];
   for (CUIFieldInputBinding *binding in CUIFieldInputs.allObjects) if ([binding boundWindow] == window) {
-    needed = YES;
+    needed = YES; [identities addObject:[binding keyIdentity]];
     for (UIView<RCTBackedTextInputViewProtocol> *editor in binding.keyEditors.allObjects)
       if (editor.window == window) [wanted addObject:editor];
   }
@@ -256,11 +275,12 @@ static void CUIRefreshFieldInputWindow(UIWindow *window)
     __weak CUIFieldInputWindow *weakRouter = router;
     router.editorHandler = ^BOOL(UIView *receiver, UIPress *press, NSString *phase) {
       CUIFieldInputWindow *current = weakRouter;
-      if (!current || [CUIFieldWindows objectForKey:receiver.window] != current) return NO;
+      if (!current || [CUIFieldWindows objectForKey:press.window] != current) return NO;
       return [current handlePress:press phase:phase receiver:receiver];
     };
     [CUIFieldWindows setObject:router forKey:window];
   }
+  CUIRetireFieldKeyHolds(router, window, identities);
   for (UIView<RCTBackedTextInputViewProtocol> *editor in router.editors.allObjects) if (![wanted containsObject:editor]) {
     if (editor.nativeKeyPressHandler == router.editorHandler) editor.nativeKeyPressHandler = nil;
     [router.editors removeObject:editor];
