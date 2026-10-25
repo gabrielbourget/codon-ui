@@ -240,6 +240,8 @@ Omit children for default options. TagComboBoxItem is the native compound's comm
 
 Both compounds support name, form, formValue="key"/"text", required/custom/server validation and reset through NativeForm. NativeFormAction supplies native submit/reset controls; submitNativeForm/resetNativeForm operate on the original form View. onSubmit/onReset receive the original form request and can prevent its default. The form serializes the field's selected key or query according to formValue; TagComboBox's selectedItems array remains caller-owned. NativeComboBoxLabel, NativeComboBoxText, NativeComboBoxFieldError and NativeComboBoxValue expose the corresponding field slots/state where a custom scaffold supplies them.
 
+useNativeContextProps merges an authored receiver's selected context props and original host ref, preserving default/named/null slots, callback order and React19 ref cleanup. NativeCollectionRendererContext, DefaultNativeCollectionRenderer and NativeCollectionCellFocusContext support an authored VirtualizedList renderer while CUI retains committed item identities and native bindings. The maintained TagComboBox example uses these public exports for its popup, form and virtualized options.
+
 These two source integrations follow the approved remaining-component priority. Focused source, public types and maintained examples are distinct from the open installed keyboard/default, accessibility, virtualization and profile gates in the canonical roadmap. They do not close TimePicker milestone44 or promote native acceptance.
 
 ## TimePicker

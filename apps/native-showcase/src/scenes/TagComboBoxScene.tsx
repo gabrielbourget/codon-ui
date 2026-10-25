@@ -4,6 +4,12 @@ import { findNodeHandle, TextInput, View } from "react-native"
 import {
   NativeComboBoxContext,
   NativeComboBoxPopoverContext,
+  NativeCollectionRendererContext,
+  NativeFocusView,
+  Button,
+  Text,
+  useNativeContextProps,
+  useNativeTheme,
   TagComboBox,
   NativeForm,
   NativeFormAction,
@@ -14,13 +20,6 @@ import {
   type TNativeFormRequest,
   type TNativeFormResult,
 } from "../../../../packages/react-native/src"
-import { useNativeContextProps } from "../../../../packages/react-native/src/collection/context"
-import { NativeCollectionRendererContext } from "../../../../packages/react-native/src/collection/renderer"
-import { Button } from "../../../../packages/react-native/src/components/Button/Button"
-import type { TNativeFloatingHostRender } from "../../../../packages/react-native/src/components/ClickPopover/ClickPopover"
-import { Text } from "../../../../packages/react-native/src/components/Text/Text"
-import { NativeFocusView } from "../../../../packages/react-native/src/input/NativeFocusView"
-import { useNativeTheme } from "../../../../packages/react-native/src/theme"
 
 import { useTagComboVirtualRenderer } from "./TagComboBoxVirtualRenderer"
 
@@ -46,7 +45,7 @@ export const TagComboBoxScene = () => {
   const [rtl, setRTL] = useState(false)
   const renderer = useTagComboVirtualRenderer(virtual)
   const [inheritedPopup, inheritedPopupRef] = useNativeContextProps({}, undefined, NativeComboBoxPopoverContext)
-  const renderVirtualPopup = useCallback<TNativeFloatingHostRender>(
+  const renderVirtualPopup = useCallback<NonNullable<typeof inheritedPopup.render>>(
     (props, state) => {
       const host = {
         ...props,

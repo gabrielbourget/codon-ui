@@ -1,5 +1,5 @@
 import { useCallback, useLayoutEffect, useMemo, useRef, useState, type ComponentProps } from "react"
-import { View, VirtualizedList, useWindowDimensions, type FocusEvent, type VirtualizedListProps } from "react-native"
+import { View, VirtualizedList, useWindowDimensions, type VirtualizedListProps } from "react-native"
 
 import {
   DefaultNativeCollectionRenderer,
@@ -7,14 +7,13 @@ import {
   type TNativeCollectionRect,
   type TNativeCollectionRenderer,
   type TNativeCollectionRootProps,
-} from "../../../../packages/react-native/src/collection/renderer"
-import type {
-  TNativeCollectionKey,
-  TNativeCollectionNode,
-} from "../../../../packages/react-native/src/collection/snapshot"
+  type TNativeCollectionKey,
+  type TNativeCollectionNode,
+} from "../../../../packages/react-native/src"
 
 type TNode = TNativeCollectionNode<unknown>
 type TCellProps = ComponentProps<NonNullable<VirtualizedListProps<TNode>["CellRendererComponent"]>>
+type TCellFocusEvent = Parameters<NonNullable<TCellProps["onFocusCapture"]>>[0]
 type TBridge = {
   data: TNode[]
   view: VirtualizedList<TNode> | null
@@ -78,7 +77,7 @@ const VirtualTagComboRoot = ({
           <NativeCollectionCellFocusContext.Provider
             value={(event) => {
               // The pinned CellRenderer only reads its key; forward the original native focus event unchanged.
-              onFocusCapture?.(event as unknown as FocusEvent)
+              onFocusCapture?.(event as unknown as TCellFocusEvent)
               if (request.current === item.key) {
                 request.current = null
                 setRequestedKey(null)
