@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, TimePicker, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, TimePicker, CompactTypeaheadSearch, TagComboBox, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -164,6 +164,83 @@ NumberInput composes the existing Input and two Buttons into independently named
 The private decimal model limits precision to six fractional digits and representable safe integer units. Bounds, optional min-anchored step, nearest rounding and single-press stepping have explicit semantics; hold-repeat, exponent/hex syntax, currency/percent/unit formatting and general web NumberField behavior are excluded. The exact @internationalized/number 3.6.6 utility owns locale symbols and parsing. Hosts own localized names, read-only explanations and validation messages. Per-part native styling, guard behavior and target minima follow the existing controls without adding palette roles.
 
 Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
+
+## CompactTypeaheadSearch
+
+CompactTypeaheadSearch is a public generic compound with an original native TextInput, search button, suggestions and independent minimum-query/loading status panels. Supply caller-curated items with getItemKey/getItemTextValue; the wrapper does not add a query filter. String and number keys remain distinct, including numeric zero and an empty string. renderItem receives the original item plus query, textValue and itemKey.
+
+```tsx
+import { useState } from "react"
+import { CompactTypeaheadSearch } from "@codon-ui/react-native"
+
+const choices = [
+  { id: 0, name: "Alpha" },
+  { id: "0", name: "Beta" },
+]
+
+export const SearchExample = () => {
+  const [query, setQuery] = useState("")
+  const [value, setValue] = useState<string | number | null>(null)
+  return (
+    <CompactTypeaheadSearch
+      accessibilityLabel="Search choices"
+      items={choices.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))}
+      getItemKey={(item) => item.id}
+      getItemTextValue={(item) => item.name}
+      inputValue={query}
+      onInputChange={setQuery}
+      value={value}
+      onChange={setValue}
+      minimumInputLength={0}
+    />
+  )
+}
+```
+
+value, inputValue and isOpen have independent ownership. Omit each controlled prop to use its default/uncontrolled behavior; retain it to decline requests. A selection requests onChange before deferred close/focus, and isLoading can coexist with minimumInputLength guidance. labels, DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS and resolveCompactTypeaheadSearchLabels cover group/button/list/status naming. The exported size constants describe small, medium and large text.
+
+The root ref is its original View and inputRef is the original TextInput. onKeyDown/onKeyUp receive that input's original event with target/currentTarget and composition state; preventDefault participates in the existing native editor-default acknowledgement. NativeComboBoxContext and the input/group/button/popover/list contexts retain named/default/null slot precedence. The root render/style callbacks and independent input/button/group/options style slots retain their native owners, explicit zero values, validation precedence and border transitions.
+
+## TagComboBox
+
+TagComboBox composes removable tags with the same collection-backed editor. selectedItems is always caller-owned. onSelectedItemsChange requests a copied array and change details containing action, changedItems and changedKeys; retaining selectedItems declines the request. Only owner-echoed selections disappear from the available suggestions. Selection requests precede the empty-query request, and selected tags remain independent of the draft query.
+
+```tsx
+import { useState } from "react"
+import { TagComboBox, TagComboBoxItem } from "@codon-ui/react-native"
+
+type TChoice = { id: string; name: string }
+const choices: TChoice[] = [
+  { id: "alpha", name: "Alpha" },
+  { id: "beta", name: "Beta" },
+]
+
+export const TagsExample = () => {
+  const [selected, setSelected] = useState<TChoice[]>([])
+  return (
+    <TagComboBox
+      accessibilityLabel="Choose tags"
+      items={choices}
+      selectedItems={selected}
+      onSelectedItemsChange={setSelected}
+      getItemKey={(item) => item.id}
+      getItemTextValue={(item) => item.name}
+    >
+      {(item) => (
+        <TagComboBoxItem id={item.id} textValue={item.name}>
+          {item.name}
+        </TagComboBoxItem>
+      )}
+    </TagComboBox>
+  )
+}
+```
+
+Omit children for default options. TagComboBoxItem is the native compound's committed collection item receiver; it supports native refs, item render state, text/description slots, links and item actions. renderTagContent and customTagGroupProps/customTagProps/customComboBoxProps customize their respective owners. Independent root/tag-group/tag/ComboBox style slots preserve precedence. labels names each group, query, trigger, empty list and close action. Native descendant focus drives the root outline, including custom children, and existing native motion honors reduced motion and interrupted border transitions.
+
+Both compounds support name, form, formValue="key"/"text", required/custom/server validation and reset through NativeForm. NativeFormAction supplies native submit/reset controls; submitNativeForm/resetNativeForm operate on the original form View. onSubmit/onReset receive the original form request and can prevent its default. The form serializes the field's selected key or query according to formValue; TagComboBox's selectedItems array remains caller-owned. NativeComboBoxLabel, NativeComboBoxText, NativeComboBoxFieldError and NativeComboBoxValue expose the corresponding field slots/state where a custom scaffold supplies them.
+
+These two source integrations follow the approved remaining-component priority. Focused source, public types and maintained examples are distinct from the open installed keyboard/default, accessibility, virtualization and profile gates in the canonical roadmap. They do not close TimePicker milestone44 or promote native acceptance.
 
 ## TimePicker
 

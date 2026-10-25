@@ -715,6 +715,8 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const auto row = fieldInputTargetInstance(snapshot, target);
     const auto hostOwner = row.get_ptr("hostOwnerId");
     const auto eventTimestamp = originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000);
+    UIView *focused = CUIInputFocusedView(_window);
+    const BOOL composing = [focused conformsToProtocol:@protocol(UITextInput)] && ((id<UITextInput>)focused).markedTextRange != nil;
     folly::dynamic payload = originalInput ? folly::dynamic::object("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups))) : folly::dynamic::object("kind", "keyboard")("ownerId", hostOwner ? hostOwner->asString() : binding.ownerId)("target", target)
       ("key", CUIInputKeyName(key).UTF8String ?: "")("nativeCode", static_cast<int>(key.keyCode))("characters", key.characters.UTF8String ?: "")
       ("phase", down ? "down" : "up")("repeat", static_cast<bool>(repeat))("cancelled", static_cast<bool>(cancel))
@@ -724,6 +726,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       ("nativeDefaultHandled", static_cast<bool>(intrinsic))("timestamp", press.timestamp * 1000)
       ("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups)))
       ("code", CUIPhysicalKeyCode(static_cast<int>(key.keyCode)))("location", CUIPhysicalKeyLocation(static_cast<int>(key.keyCode)))
+      ("isComposing", static_cast<bool>(composing))
       ("nativePressPhase", static_cast<int>(press.phase))("nativePressType", static_cast<int>(press.type));
     if (!originalInput) payload["timeStamp"] = eventTimestamp.toDOMHighResTimeStamp();
     const auto before = payload;

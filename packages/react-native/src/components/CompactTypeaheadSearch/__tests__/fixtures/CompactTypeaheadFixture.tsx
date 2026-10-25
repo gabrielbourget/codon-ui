@@ -1,10 +1,16 @@
 import { useState, type Ref } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
-import { Button, NativeFloatingLayerHost, NativeFocusView, NativeThemeProvider, Text } from "../../../.."
-import { NativeComboBoxContext } from "../../../ComboBox/collectionContext"
-import { CompactTypeaheadSearch } from "../../CompactTypeaheadSearch"
-import type { TNativeCompactTypeaheadKey } from "../../types"
+import {
+  Button,
+  CompactTypeaheadSearch,
+  NativeComboBoxContext,
+  NativeFloatingLayerHost,
+  NativeFocusView,
+  NativeThemeProvider,
+  Text,
+  type TNativeCompactTypeaheadKey,
+} from "../../../.."
 
 const ITEMS = [
   { id: 0, name: "Alpha numeric" },
@@ -32,7 +38,7 @@ export const CompactTypeaheadFixture = ({ hostRef, inputRef }: { hostRef?: Ref<V
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
       <NativeFloatingLayerHost ref={hostRef} testID="host">
         <ScrollView contentContainerStyle={{ padding: 15, gap: 10 }}>
-          <Text elementType="h1">Private CompactTypeaheadSearch fixture</Text>
+          <Text elementType="h1">CompactTypeaheadSearch source fixture</Text>
           <Text>Type Alpha to inspect parent-curated typed keys, owner vetoes, status panels and native focus.</Text>
           <Text testID="compact-fixture-state">
             Query {JSON.stringify(query)}. Value {describe(selected)}. Open {String(open)}. Minimum {minimum}. Loading{" "}

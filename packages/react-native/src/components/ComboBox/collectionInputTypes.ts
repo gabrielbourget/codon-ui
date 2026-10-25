@@ -5,12 +5,15 @@ import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeInputHostRender } from "../Input/Input"
 import type { TNativeInputProps, TNativeInputRenderState } from "../Input/types"
 
+import type { TNativeComboBoxKeyboardCallbacks } from "./types"
+
 export type TNativeComboBoxInputRenderState = TNativeInputRenderState &
   Readonly<{
     isHovered: boolean
     isFocusVisible: boolean
   }>
 export type TNativeComboBoxInputProps = Omit<TNativeInputProps, "style"> &
+  TNativeComboBoxKeyboardCallbacks &
   TNativeSlotProps & {
     isInvalid?: boolean
     style?:

@@ -29,12 +29,14 @@ import { NativeFormBehaviorContext } from "../../form/context"
 import { useNativeComboBoxField } from "../../form/useComboBoxField"
 import { useNativeFieldSemantics, useNativeFieldSemanticRef } from "../../form/useFieldSemantics"
 import { nativeAccessibilityIDs, nativeCompositeLabelProps } from "../../input/accessibilityReferences"
+import { NativeFieldInputContext } from "../../input/fieldInput"
 import type { TNativeObservedKeyboardEvent } from "../../input/keyboardObservation"
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import type { TNativeWindowPointerEvent } from "../../input/nativeWindowPointers"
 import type { TNativePressEvent } from "../../input/types"
 import type { TNativeKeyboardEvent } from "../../input/types"
+import { useNativeFieldInputBinding } from "../../input/useFieldInputBinding"
 import { useNativeTheme } from "../../theme"
 import { encodeCollectionKey, validateCollectionKey } from "../collection"
 import { NativeContentContext } from "../NativeContentContext"
@@ -70,6 +72,7 @@ import type {
   TNativeComboBoxSubmitEvent,
 } from "./collectionTypes"
 import { NativeComboBoxItem } from "./ComboBoxItem"
+import { NativeComboBoxEditorKeysContext } from "./editorKeys"
 import { createNativeComboBoxFilter } from "./filter"
 import { getNativeComboBoxInputRequest, type TNativeComboBoxItemRequest } from "./itemActions"
 import { NativeComboBoxKeyBinding } from "./keyboard"
@@ -136,6 +139,8 @@ const Authoring = <T extends object>({ props }: { props: TNativeCollectionComboB
           },
   })
 }
+let nextEditorBindingRevision = 0
+
 const Receiver = <T extends object>({
   props,
   forwardedRef,
@@ -202,6 +207,10 @@ const Receiver = <T extends object>({
   const [list, listRef] = useNativeFieldSemanticRef<View>()
   const input = useRef<TextInput>(null)
   const anchor = useRef<View>(null)
+  const [outerRoot, setOuterRoot] = useState<View | null>(null)
+  const [inputRoot, setInputRoot] = useState<View | null>(null)
+  const bindRoot = useNativeCollectionRefs<View>(forwardedRef, setOuterRoot)
+  const bindAnchor = useNativeCollectionRefs<View>(anchor, setInputRoot)
   const popup = useRef<View>(null)
   const scroll = useRef<TNativeCollectionScrollHost | null>(null)
   const listMetrics = useRef(createNativeComboBoxListMetrics())
@@ -213,6 +222,56 @@ const Receiver = <T extends object>({
   const rows = useRef(new Map<string | number, { node: TNativeCollectionNode<unknown>; target: View }>())
   const [, setSemanticTargetsRevision] = useState(0)
   const inputTarget = originalInput?.target ?? 0
+  const [editorKeyListeners, setEditorKeyListeners] = useState(0)
+  const editorKeyListenerCount = useRef(0)
+  const originalKeyCallbacks = !!(
+    editorKeyListeners ||
+    props.onKeyDown ||
+    props.onKeyUp ||
+    props.inputProps?.onKeyDown ||
+    props.inputProps?.onKeyUp
+  )
+  const inheritedFieldInput = useContext(NativeFieldInputContext)
+  const editorBindingRevision = useMemo(
+    () => `${fieldId}:editor:${++nextEditorBindingRevision}`,
+    [fieldId, outerRoot, inputRoot, originalInput, props.isDisabled, props.isReadOnly],
+  )
+  const editorPlan = useMemo(() => {
+    if (!originalKeyCallbacks || !outerRoot || !inputRoot || !originalInput) return null
+    const outerTarget = findNodeHandle(outerRoot),
+      inputTarget = findNodeHandle(inputRoot)
+    return outerTarget && inputTarget && outerTarget !== inputTarget
+      ? {
+          bindingId: fieldId,
+          bindingRevision: editorBindingRevision,
+          outer: outerRoot,
+          outerTarget,
+          input: inputRoot,
+          inputTarget,
+          originalTarget: originalInput.target,
+        }
+      : null
+  }, [originalKeyCallbacks, outerRoot, inputRoot, originalInput, fieldId, editorBindingRevision])
+  const editorBinding = useNativeFieldInputBinding(editorPlan, originalKeyCallbacks)
+  const originalKeyDown = useRef<(event: TNativeKeyboardEvent) => void>(() => {})
+  const registerEditorKeys = useCallback(() => {
+    editorKeyListenerCount.current++
+    setEditorKeyListeners(editorKeyListenerCount.current)
+    let registered = true
+    return () => {
+      if (!registered) return
+      registered = false
+      editorKeyListenerCount.current--
+      if (live.current) setEditorKeyListeners(editorKeyListenerCount.current)
+    }
+  }, [])
+  const editorKeys = useMemo(
+    () => ({
+      register: registerEditorKeys,
+      ownedKeyDown: (event: TNativeKeyboardEvent) => originalKeyDown.current(event),
+    }),
+    [registerEditorKeys],
+  )
   const bindInput = useCallback((target: TextInput | null) => {
     input.current = target
     if (target) {
@@ -271,6 +330,7 @@ const Receiver = <T extends object>({
     () => input.current,
     () => focused,
     semanticBinding,
+    originalKeyCallbacks ? editorBinding.metadata : undefined,
   )
   const inputScope = useNativeKeyScope()
   const pendingCommit = useRef<
@@ -628,7 +688,7 @@ const Receiver = <T extends object>({
     })
     return true
   }
-  const onKey = (event: TNativeKeyboardEvent) => {
+  const onKey = (event: TNativeKeyboardEvent, capturedByField = false) => {
     const data = event.nativeEvent,
       owner = current.current
     if (
@@ -637,7 +697,7 @@ const Receiver = <T extends object>({
       owner.props.isReadOnly ||
       data.cancelled ||
       data.phase !== "down" ||
-      !data.nativeDefaultHandled ||
+      (!data.nativeDefaultHandled && !capturedByField) ||
       event.defaultPrevented ||
       event.isDefaultPrevented?.()
     )
@@ -722,6 +782,21 @@ const Receiver = <T extends object>({
       owner.state.selectionManager.setFocusedKey(null)
     }
   }
+  useInsertionEffect(() => {
+    originalKeyDown.current = (event) => {
+      const data = event.nativeEvent
+      if (!live.current || current.current.props.isDisabled || current.current.props.isReadOnly) return
+      if ((data as typeof data & { isComposing?: boolean }).isComposing) return
+      const captures = [
+        "ArrowDown",
+        "ArrowUp",
+        ...(current.current.state.isOpen ? ["Home", "End", "PageUp", "PageDown", "Enter", "Escape"] : []),
+      ].includes(data.key)
+      if (!captures || data.cancelled || data.phase !== "down") return
+      onKey(event, true)
+      event.preventDefault()
+    }
+  })
   const [groupProps, groupRef] = useNativeContextProps(
     {
       slot: undefined,
@@ -733,7 +808,7 @@ const Receiver = <T extends object>({
       style: [styles.group, { flexDirection: "row" as const, alignItems: "center" as const }],
       accessibilityState: { disabled: !!props.isDisabled },
     },
-    anchor,
+    bindAnchor,
     NativeComboBoxGroupContext,
   )
   const nativeGroupProps = groupProps
@@ -761,7 +836,7 @@ const Receiver = <T extends object>({
   const { clearContexts: _clearContexts, ...nativePopupProps } = popupProps
   const renderRoot = ({ children }: { children: ReactNode }) => {
     const hostProps = {
-      ref: forwardedRef,
+      ref: bindRoot,
       nativeID: props.nativeID,
       onLayout: props.onLayout,
       pointerEvents: props.pointerEvents,
@@ -783,138 +858,143 @@ const Receiver = <T extends object>({
     return props.render ? props.render(hostProps, flags) : <NativeFocusHost {...hostProps} />
   }
   return (
-    <NativeComboBoxFieldIdsContext.Provider value={fieldIds}>
-      <NativeComboBoxInputContext.Provider value={inputProps}>
-        <NativeComboBoxButtonContext.Provider value={{ ...buttonProps, ref: triggerRef }}>
-          <NativeComboBoxLabelContext.Provider
-            value={{ nativeID: fieldIds.label, ref: labelRef, labelTarget: input, isDisabled: !!props.isDisabled }}
-          >
-            <NativeComboBoxTextContext.Provider
-              value={{
-                slots: {
-                  description: { nativeID: fieldIds.description, ref: descriptionRef },
-                  errorMessage: { nativeID: fieldIds.errorMessage, ref: errorMessageRef },
-                },
-              }}
-            >
-              <NativeComboBoxFieldErrorContext.Provider value={state.displayValidation}>
-                <NativeComboBoxValueContext.Provider
-                  value={{ nativeID: fieldIds.value, locale: props.locale, ref: valueRef }}
+    <NativeFieldInputContext.Provider value={originalKeyCallbacks ? editorBinding.scope : inheritedFieldInput}>
+      <NativeComboBoxEditorKeysContext.Provider value={editorKeys}>
+        <NativeComboBoxFieldIdsContext.Provider value={fieldIds}>
+          <NativeComboBoxInputContext.Provider value={inputProps}>
+            <NativeComboBoxButtonContext.Provider value={{ ...buttonProps, ref: triggerRef }}>
+              <NativeComboBoxLabelContext.Provider
+                value={{ nativeID: fieldIds.label, ref: labelRef, labelTarget: input, isDisabled: !!props.isDisabled }}
+              >
+                <NativeComboBoxTextContext.Provider
+                  value={{
+                    slots: {
+                      description: { nativeID: fieldIds.description, ref: descriptionRef },
+                      errorMessage: { nativeID: fieldIds.errorMessage, ref: errorMessageRef },
+                    },
+                  }}
                 >
-                  <NativeComboBoxOverlayTriggerStateContext.Provider value={state}>
-                    <NativeComboBoxGroupContext.Provider
-                      value={{
-                        ref: groupRef,
-                        isDisabled: !!props.isDisabled,
-                        isInvalid: state.displayValidation.isInvalid,
-                      }}
+                  <NativeComboBoxFieldErrorContext.Provider value={state.displayValidation}>
+                    <NativeComboBoxValueContext.Provider
+                      value={{ nativeID: fieldIds.value, locale: props.locale, ref: valueRef }}
                     >
-                      <NativeComboBoxListEnvironmentContext.Provider
-                        value={{
-                          scrollRef: scroll,
-                          isOpen: props.popoverIsOpen ?? state.isOpen,
-                          isCollectionPending,
-                          metrics: listMetrics,
-                          contentRef: scrollContent,
-                          revealFocusedRow,
-                          registerRenderer: registerListRenderer,
-                        }}
-                      >
-                        <NativeComboBoxListContext.Provider
+                      <NativeComboBoxOverlayTriggerStateContext.Provider value={state}>
+                        <NativeComboBoxGroupContext.Provider
                           value={{
-                            ref: listRef,
-                            style: props.customOptionsListStyles,
-                            role: "list",
-                            accessible: false,
-                            autoFocus: state.focusStrategy || true,
-                            shouldUseVirtualFocus: true,
-                            shouldSelectOnPressUp: true,
-                            shouldFocusOnHover: true,
-                            linkBehavior: "selection",
-                            itemBehavior: "action",
-                            shouldFocusWrap: props.shouldFocusWrap ?? true,
+                            ref: groupRef,
+                            isDisabled: !!props.isDisabled,
+                            isInvalid: state.displayValidation.isInvalid,
                           }}
                         >
-                          <NativeComboBoxPopoverContext.Provider
+                          <NativeComboBoxListEnvironmentContext.Provider
                             value={{
-                              ...nativePopupProps,
-                              ref: popupRef,
-                              trigger: "ComboBox",
-                              clearContexts: NATIVE_COMBO_BOX_POPOVER_CONTEXTS,
+                              scrollRef: scroll,
+                              isOpen: props.popoverIsOpen ?? state.isOpen,
+                              isCollectionPending,
+                              metrics: listMetrics,
+                              contentRef: scrollContent,
+                              revealFocusedRow,
+                              registerRenderer: registerListRenderer,
                             }}
                           >
-                            <NativeComboBoxStateContext.Provider value={state}>
-                              <NativeListStateContext.Provider value={state}>
-                                <NativeComboBoxOptionsContext.Provider
-                                  value={{
-                                    input,
-                                    isDisabled: !!props.isDisabled,
-                                    isReadOnly: !!props.isReadOnly,
-                                    isVirtualized: !!renderer.isVirtualized,
-                                    register,
-                                    registerPointerOption: pointerSelection.registerOption,
-                                    press,
-                                  }}
-                                >
-                                  <NativeContentContext.Provider
-                                    value={{ foregroundColor: styles.foreground, isButton: false }}
-                                  >
-                                    {renderRoot({
-                                      children: (
-                                        <>
-                                          <NativeComboBoxKeyBinding
-                                            target={inputTarget}
-                                            open={state.isOpen}
-                                            enabled={!props.isDisabled && !props.isReadOnly}
-                                            lifetime={`${inputTarget}:${state.isOpen}`}
-                                            onKey={onKey}
-                                            observe={observeKey}
-                                          />
-                                          {props.renderContent ? (
-                                            props.renderContent(field)
-                                          ) : (
+                            <NativeComboBoxListContext.Provider
+                              value={{
+                                ref: listRef,
+                                style: props.customOptionsListStyles,
+                                role: "list",
+                                accessible: false,
+                                autoFocus: state.focusStrategy || true,
+                                shouldUseVirtualFocus: true,
+                                shouldSelectOnPressUp: true,
+                                shouldFocusOnHover: true,
+                                linkBehavior: "selection",
+                                itemBehavior: "action",
+                                shouldFocusWrap: props.shouldFocusWrap ?? true,
+                              }}
+                            >
+                              <NativeComboBoxPopoverContext.Provider
+                                value={{
+                                  ...nativePopupProps,
+                                  ref: popupRef,
+                                  trigger: "ComboBox",
+                                  clearContexts: NATIVE_COMBO_BOX_POPOVER_CONTEXTS,
+                                }}
+                              >
+                                <NativeComboBoxStateContext.Provider value={state}>
+                                  <NativeListStateContext.Provider value={state}>
+                                    <NativeComboBoxOptionsContext.Provider
+                                      value={{
+                                        input,
+                                        isDisabled: !!props.isDisabled,
+                                        isReadOnly: !!props.isReadOnly,
+                                        isVirtualized: !!renderer.isVirtualized,
+                                        register,
+                                        registerPointerOption: pointerSelection.registerOption,
+                                        press,
+                                      }}
+                                    >
+                                      <NativeContentContext.Provider
+                                        value={{ foregroundColor: styles.foreground, isButton: false }}
+                                      >
+                                        {renderRoot({
+                                          children: (
                                             <>
-                                              <NativeComboBoxGroup {...nativeGroupProps}>
-                                                <NativeComboBoxInput />
-                                                {field.placement === "input" && field.metadata}
-                                                <NativeCollectionComboBoxTrigger
-                                                  owner={props}
-                                                  foreground={styles.foreground}
-                                                />
-                                              </NativeComboBoxGroup>
-                                              <NativeComboBoxPopover>
-                                                <NativeComboBoxList
-                                                  nativeID={fieldIds.list}
-                                                  testID={`${identity}-list`}
-                                                  renderEmptyState={() => (
-                                                    <PlaceholderText align="center" testID={`${identity}-empty`}>
-                                                      {props.emptyListMessage ?? "No items remaining to select"}
-                                                    </PlaceholderText>
-                                                  )}
-                                                />
-                                              </NativeComboBoxPopover>
-                                              {field.placement === "root" && field.metadata}
+                                              <NativeComboBoxKeyBinding
+                                                target={inputTarget}
+                                                open={state.isOpen}
+                                                enabled={!props.isDisabled && !props.isReadOnly}
+                                                lifetime={`${inputTarget}:${state.isOpen}`}
+                                                onKey={onKey}
+                                                observe={observeKey}
+                                                capture={!originalKeyCallbacks}
+                                              />
+                                              {props.renderContent ? (
+                                                props.renderContent(field)
+                                              ) : (
+                                                <>
+                                                  <NativeComboBoxGroup {...nativeGroupProps}>
+                                                    <NativeComboBoxInput />
+                                                    {field.placement === "input" && field.metadata}
+                                                    <NativeCollectionComboBoxTrigger
+                                                      owner={props}
+                                                      foreground={styles.foreground}
+                                                    />
+                                                  </NativeComboBoxGroup>
+                                                  <NativeComboBoxPopover>
+                                                    <NativeComboBoxList
+                                                      nativeID={fieldIds.list}
+                                                      testID={`${identity}-list`}
+                                                      renderEmptyState={() => (
+                                                        <PlaceholderText align="center" testID={`${identity}-empty`}>
+                                                          {props.emptyListMessage ?? "No items remaining to select"}
+                                                        </PlaceholderText>
+                                                      )}
+                                                    />
+                                                  </NativeComboBoxPopover>
+                                                  {field.placement === "root" && field.metadata}
+                                                </>
+                                              )}
                                             </>
-                                          )}
-                                        </>
-                                      ),
-                                    })}
-                                  </NativeContentContext.Provider>
-                                </NativeComboBoxOptionsContext.Provider>
-                              </NativeListStateContext.Provider>
-                            </NativeComboBoxStateContext.Provider>
-                          </NativeComboBoxPopoverContext.Provider>
-                        </NativeComboBoxListContext.Provider>
-                      </NativeComboBoxListEnvironmentContext.Provider>
-                    </NativeComboBoxGroupContext.Provider>
-                  </NativeComboBoxOverlayTriggerStateContext.Provider>
-                </NativeComboBoxValueContext.Provider>
-              </NativeComboBoxFieldErrorContext.Provider>
-            </NativeComboBoxTextContext.Provider>
-          </NativeComboBoxLabelContext.Provider>
-        </NativeComboBoxButtonContext.Provider>
-      </NativeComboBoxInputContext.Provider>
-    </NativeComboBoxFieldIdsContext.Provider>
+                                          ),
+                                        })}
+                                      </NativeContentContext.Provider>
+                                    </NativeComboBoxOptionsContext.Provider>
+                                  </NativeListStateContext.Provider>
+                                </NativeComboBoxStateContext.Provider>
+                              </NativeComboBoxPopoverContext.Provider>
+                            </NativeComboBoxListContext.Provider>
+                          </NativeComboBoxListEnvironmentContext.Provider>
+                        </NativeComboBoxGroupContext.Provider>
+                      </NativeComboBoxOverlayTriggerStateContext.Provider>
+                    </NativeComboBoxValueContext.Provider>
+                  </NativeComboBoxFieldErrorContext.Provider>
+                </NativeComboBoxTextContext.Provider>
+              </NativeComboBoxLabelContext.Provider>
+            </NativeComboBoxButtonContext.Provider>
+          </NativeComboBoxInputContext.Provider>
+        </NativeComboBoxFieldIdsContext.Provider>
+      </NativeComboBoxEditorKeysContext.Provider>
+    </NativeFieldInputContext.Provider>
   )
 }
 export const NativeCollectionComboBox = forwardRef(

@@ -1,9 +1,10 @@
 import "../../../collection/__tests__/nativeReceipts"
 
+import { cleanup } from "@testing-library/react-native"
 import { createRef, useState } from "react"
 import * as RN from "react-native"
 
-import { NativeThemeProvider, Text } from "../../.."
+import { NativeThemeProvider, TagComboBox, TagComboBoxItem, Text } from "../../.."
 import {
   actWithNativeCollections as act,
   renderWithNativeCollections as render,
@@ -18,7 +19,6 @@ import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { resolveNativeTheme } from "../../../theme/defaults"
 import { NativeComboBoxGroupContext, NativeComboBoxPopoverContext } from "../../ComboBox/collectionContext"
 import { getNativeTagComboBoxStyles } from "../styles"
-import { TagComboBox } from "../TagComboBox"
 import type { TNativeTagComboBoxProps } from "../types"
 
 jest.mock("react-native-safe-area-context", () => ({
@@ -140,7 +140,8 @@ beforeEach(() => {
   })
   jest.spyOn(RN.AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })
-afterEach(() => {
+afterEach(async () => {
+  await cleanup()
   jest.restoreAllMocks()
   jest.clearAllTimers()
   jest.useRealTimers()
@@ -226,6 +227,44 @@ it("CAP.tag-combobox.005 binds observed root focus and preserves explicit disabl
   await fireEvent(row("tag-combobox"), "focus", { nativeEvent: { target: 17 } })
   expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBe(1.5)
   await view.rerender(node({ enableFocusStyle: false, offsetFocusRing: false }))
+  expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBeUndefined()
+})
+it("CAP.tag-combobox.005 follows original descendant focus observations and retires stale focus", async () => {
+  modelOriginalFormTargets()
+  const root = createRef<RN.View>()
+  await render(wrap(<TagComboBox {...base} ref={root} isOpen />))
+  await ready()
+  const props = row("tag-combobox").props
+  expect(props.nativeFocusWithinBinding).toEqual(expect.any(String))
+  expect(props.nativeFocusWithinBinding).not.toBe("")
+  const data = {
+    ownerId: props.ownerId,
+    bindingId: props.nativeFocusWithinBinding,
+    target: RN.findNodeHandle(root.current),
+    surfaceId: 1,
+    windowId: "source-model-window",
+    scopeOwnerId: row("fixture-host").props.ownerId,
+    scopeEpoch: 1,
+    sequence: 2,
+    attached: true,
+    active: true,
+    within: true,
+    focusedTarget: 313,
+    textInputFocused: true,
+    origin: "keyboard",
+    observedAt: 100,
+  }
+  await act(() => props.onNativeFocusWithin({ nativeEvent: data }))
+  expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBe(1.5)
+  await act(() => props.onNativeFocusWithin({ nativeEvent: { ...data, sequence: 1, within: false } }))
+  expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBe(1.5)
+  await act(() =>
+    props.onNativeFocusWithin({
+      nativeEvent: { ...data, sequence: 3, within: false, focusedTarget: 0, textInputFocused: false },
+    }),
+  )
+  expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBeUndefined()
+  await fireEvent(row("tag-combobox"), "focus", { nativeEvent: { target: 313 } })
   expect(RN.StyleSheet.flatten(row("tag-combobox").props.style).outlineWidth).toBeUndefined()
 })
 it("CAP.tag-combobox.006/.007 keeps disabled and controlled false open state authoritative", async () => {
@@ -350,6 +389,24 @@ it("CAP.tag-combobox.020/.021 keeps text accessors, custom content and nullish/f
   expect(screen.getByText("Group: First", hidden)).toBeOnTheScreen()
   await view.rerender(node({ selectedItems: [items[0]], renderTagContent: () => false }))
   expect(screen.queryByText("Zero", hidden)).toBeNull()
+})
+it("retains caller-curated options and public item authoring independently of the held query", async () => {
+  const change = jest.fn()
+  await render(
+    node({
+      inputValue: "unrelated query",
+      isOpen: true,
+      onSelectedItemsChange: change,
+      children: (item) => (
+        <TagComboBoxItem id={item.key} textValue={item.label}>
+          {item.label}
+        </TagComboBoxItem>
+      ),
+    }),
+  )
+  await choose()
+  expect(change.mock.calls[0][0][0]).toBe(items[1])
+  expect(row("combo-box-input").props.value).toBe("unrelated query")
 })
 it("retains cached one-shot items through registration renders and controlled callbacks", async () => {
   const change = jest.fn(),

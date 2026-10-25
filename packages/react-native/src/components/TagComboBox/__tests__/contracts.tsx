@@ -36,6 +36,10 @@ export const nestedOwner = <TagComboBox {...base} customComboBoxProps={{ onChang
 export const privateItems = <TagComboBox {...base} controlledItems={items} />
 // @ts-expect-error Nested customization cannot replace private collection admission.
 export const nestedPrivateItems = <TagComboBox {...base} customComboBoxProps={{ controlledItems: items }} />
+// @ts-expect-error The wrapper owns its native composition renderer.
+export const privateRenderer = <TagComboBox {...base} renderContent={() => null} />
+// @ts-expect-error Nested customization cannot replace wrapper popup ownership.
+export const privatePopup = <TagComboBox {...base} customComboBoxProps={{ popoverIsOpen: true }} />
 
 export const parentContracts = (
   <NativeComboBoxContext.Provider

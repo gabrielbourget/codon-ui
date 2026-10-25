@@ -8,6 +8,11 @@ export type TNativeCompactTypeaheadLabels = {
     emptyListMessage: string
   }
 }
+export type TNativeCompactTypeaheadStatusLabels = TNativeCompactTypeaheadLabels["status"]
+export type TPartialNativeCompactTypeaheadStatusLabels = Partial<TNativeCompactTypeaheadStatusLabels>
+export type TPartialNativeCompactTypeaheadLabels = Partial<Omit<TNativeCompactTypeaheadLabels, "status">> & {
+  status?: TPartialNativeCompactTypeaheadStatusLabels
+}
 export const DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS: TNativeCompactTypeaheadLabels = {
   inputButtonGroupAriaLabel: "CompactTypeaheadSearch Input Button Group",
   searchButtonAriaLabel: "CompactTypeaheadSearch Search Button",
@@ -18,14 +23,17 @@ export const DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS: TNativeCompactTypeaheadLab
     emptyListMessage: "No matching results found",
   },
 }
-export const resolveCompactTypeaheadLabels = (props: {
+export type TNativeResolveCompactTypeaheadSearchLabelsArgs = {
   labels?: Partial<Omit<TNativeCompactTypeaheadLabels, "status">> & {
     status?: Partial<TNativeCompactTypeaheadLabels["status"]>
   }
   minimumInputLengthMessage?: string
   loadingMessage?: string
   emptyListMessage?: string
-}): TNativeCompactTypeaheadLabels => ({
+}
+export const resolveCompactTypeaheadLabels = (
+  props: TNativeResolveCompactTypeaheadSearchLabelsArgs = {},
+): TNativeCompactTypeaheadLabels => ({
   ...DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS,
   ...props.labels,
   status: {

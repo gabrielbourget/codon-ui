@@ -12,6 +12,7 @@ import {
 import { findNodeHandle, type TextInput, type View } from "react-native"
 
 import type { ComboBoxState } from "../components/ComboBox/state/types"
+import type { TNativeFieldInputMetadata } from "../input/fieldInputBinding"
 import type { NativeFormCommitData } from "../input/specs/CUIFormRootNativeComponent"
 
 import { nativeComboBoxFieldData, type TNativeComboBoxFieldOptions } from "./comboBox"
@@ -29,6 +30,7 @@ export const useNativeComboBoxField = <T extends object>(
   currentEditor: () => TextInput | null,
   isFocusObserved: () => boolean,
   semanticBinding = "",
+  fieldInput?: TNativeFieldInputMetadata,
 ) => {
   const registry = useContext(NativeFormRegistryContext)
   const ownerId = useId()
@@ -114,6 +116,7 @@ export const useNativeComboBoxField = <T extends object>(
         semantics.current = new NativeFieldSemanticSession(receipt.current!)
       }
       semantics.current.observe(owner.semanticBinding)
+      return true
     },
     [ownerId, descriptorId],
   )
@@ -168,7 +171,11 @@ export const useNativeComboBoxField = <T extends object>(
         hasFormAssociation={props.form !== undefined}
         formId={props.form ?? ""}
         semanticBinding={semanticBinding}
-        onNativeFormCommit={(event) => receive(event.nativeEvent)}
+        fieldGroupBinding={fieldInput?.binding(ownerId)}
+        onNativeFieldInputRecord={fieldInput?.receive}
+        onNativeFormCommit={(event) => {
+          if (receive(event.nativeEvent)) fieldInput?.commit(receipt.current?.getSnapshot() ?? event.nativeEvent)
+        }}
       />
     ),
   } as const

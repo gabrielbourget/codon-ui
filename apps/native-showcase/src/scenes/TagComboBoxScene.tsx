@@ -1,25 +1,24 @@
 import { useCallback, useMemo, useRef, useState } from "react"
 import { findNodeHandle, TextInput, View } from "react-native"
 
+import {
+  NativeComboBoxContext,
+  NativeComboBoxPopoverContext,
+  TagComboBox,
+  NativeForm,
+  NativeFormAction,
+  resetNativeForm,
+  submitNativeForm,
+  type TNativeTagComboBoxChangeDetails,
+  type TNativeFormAction,
+  type TNativeFormRequest,
+  type TNativeFormResult,
+} from "../../../../packages/react-native/src"
 import { useNativeContextProps } from "../../../../packages/react-native/src/collection/context"
 import { NativeCollectionRendererContext } from "../../../../packages/react-native/src/collection/renderer"
 import { Button } from "../../../../packages/react-native/src/components/Button/Button"
 import type { TNativeFloatingHostRender } from "../../../../packages/react-native/src/components/ClickPopover/ClickPopover"
-import {
-  NativeComboBoxContext,
-  NativeComboBoxPopoverContext,
-} from "../../../../packages/react-native/src/components/ComboBox/collectionContext"
-import { TagComboBox } from "../../../../packages/react-native/src/components/TagComboBox/TagComboBox"
-import type { TNativeTagComboBoxChangeDetails } from "../../../../packages/react-native/src/components/TagComboBox/types"
 import { Text } from "../../../../packages/react-native/src/components/Text/Text"
-import { resetNativeForm, submitNativeForm } from "../../../../packages/react-native/src/form/actions"
-import { NativeForm } from "../../../../packages/react-native/src/form/NativeForm"
-import { NativeFormAction } from "../../../../packages/react-native/src/form/NativeFormAction"
-import type {
-  TNativeFormAction,
-  TNativeFormRequest,
-  TNativeFormResult,
-} from "../../../../packages/react-native/src/form/types"
 import { NativeFocusView } from "../../../../packages/react-native/src/input/NativeFocusView"
 import { useNativeTheme } from "../../../../packages/react-native/src/theme"
 
@@ -39,7 +38,7 @@ const VIRTUAL_ITEMS: TItem[] = [
 const keyLabel = (key: TItem["id"]) => `${typeof key}:${JSON.stringify(key)}`
 const itemLabels = (items: readonly TItem[]) => items.map((item) => keyLabel(item.id)).join(", ") || "empty"
 
-// Exercises the private composition; incomplete inherited contracts remain in the family ledger.
+// Exercises the public source composition; installed acceptance stays in the family ledger.
 export const TagComboBoxScene = () => {
   const theme = useNativeTheme()
   const [items, setItems] = useState(ITEMS)

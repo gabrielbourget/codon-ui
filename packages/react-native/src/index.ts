@@ -28,6 +28,100 @@ export type {
 } from "./components/Counter/types"
 
 export { TypeaheadSearch } from "./components/TypeaheadSearch/TypeaheadSearch"
+export { CompactTypeaheadSearch } from "./components/CompactTypeaheadSearch/CompactTypeaheadSearch"
+export type {
+  TNativeCompactTypeaheadSearchComponent,
+  TNativeCompactTypeaheadSearchComponent as TCompactTypeaheadSearchComponent,
+} from "./components/CompactTypeaheadSearch/CompactTypeaheadSearch"
+export {
+  TYPE_AHEAD_SEARCH_SIZE__SM,
+  TYPE_AHEAD_SEARCH_SIZE__MD,
+  TYPE_AHEAD_SEARCH_SIZE__LG,
+  AVAILABLE_TYPE_AHEAD_SEARCH_SIZES,
+} from "./components/CompactTypeaheadSearch/types"
+export type {
+  TNativeCompactTypeaheadSearchProps,
+  TNativeCompactTypeaheadSearchProps as CompactTypeaheadSearchProps,
+  TNativeCompactTypeaheadRenderItemArgs,
+  TNativeCompactTypeaheadRenderItemArgs as CompactTypeaheadSearchRenderItemArgs,
+  TNativeCompactTypeaheadTextSize,
+  TNativeCompactTypeaheadTextSize as AvailableCompactTypeaheadSearchSizes,
+  TNativeCompactTypeaheadRef,
+  TNativeCompactTypeaheadKey,
+  TNativeCompactTypeaheadRenderState,
+  TNativeCompactTypeaheadStyleState,
+} from "./components/CompactTypeaheadSearch/types"
+export {
+  DEFAULT_COMPACT_TYPEAHEAD_SEARCH_LABELS,
+  resolveCompactTypeaheadLabels as resolveCompactTypeaheadSearchLabels,
+} from "./components/CompactTypeaheadSearch/labels"
+export type {
+  TNativeCompactTypeaheadLabels,
+  TNativeCompactTypeaheadLabels as CompactTypeaheadSearchLabels,
+  TNativeCompactTypeaheadStatusLabels,
+  TNativeCompactTypeaheadStatusLabels as CompactTypeaheadSearchStatusLabels,
+  TPartialNativeCompactTypeaheadLabels,
+  TPartialNativeCompactTypeaheadLabels as PartialCompactTypeaheadSearchLabels,
+  TPartialNativeCompactTypeaheadStatusLabels,
+  TPartialNativeCompactTypeaheadStatusLabels as PartialCompactTypeaheadSearchStatusLabels,
+  TNativeResolveCompactTypeaheadSearchLabelsArgs,
+} from "./components/CompactTypeaheadSearch/labels"
+export { TagComboBox } from "./components/TagComboBox/TagComboBox"
+export { NATIVE_TAG_COMBOBOX_CHANGE_ACTIONS } from "./components/TagComboBox/types"
+export type {
+  TNativeTagComboBoxProps,
+  TNativeTagComboBoxProps as TagComboBoxProps,
+  TNativeTagComboBoxChangeDetails,
+  TNativeTagComboBoxChangeDetails as TagComboBoxChangeDetails,
+  TNativeTagComboBoxRef,
+  TNativeTagComboBoxLabels,
+  TNativeTagComboBoxPartialLabels,
+} from "./components/TagComboBox/types"
+export { NativeComboBoxItem as TagComboBoxItem } from "./components/ComboBox/ComboBoxItem"
+export type {
+  TNativeComboBoxItemProps as TagComboBoxItemProps,
+  TNativeComboBoxItemRenderState as TagComboBoxItemRenderState,
+} from "./components/ComboBox/ComboBoxItem"
+export {
+  NativeComboBoxContext,
+  NativeComboBoxStateContext,
+  NativeComboBoxGroupContext,
+  NativeComboBoxInputContext,
+  NativeComboBoxButtonContext,
+  NativeComboBoxPopoverContext,
+  NativeComboBoxListContext,
+  NativeComboBoxLabelContext,
+  NativeComboBoxTextContext,
+  NativeComboBoxValueContext,
+  NativeComboBoxOverlayTriggerStateContext,
+} from "./components/ComboBox/collectionContext"
+export {
+  NativeComboBoxLabel,
+  NativeComboBoxText,
+  NativeComboBoxFieldError,
+  NativeComboBoxValue,
+} from "./components/ComboBox/fieldParts"
+export type {
+  TNativeComboBoxFieldErrorProps,
+  TNativeComboBoxValueProps,
+  TNativeComboBoxValueState,
+} from "./components/ComboBox/fieldParts"
+export type { TNativeComboBoxKeyboardEvent } from "./components/ComboBox/types"
+export { NativeForm } from "./form/NativeForm"
+export { NativeFormContext } from "./form/context"
+export { NativeFormAction } from "./form/NativeFormAction"
+export type { TNativeFormActionProps } from "./form/NativeFormAction"
+export { submitNativeForm, resetNativeForm } from "./form/actions"
+export type {
+  TNativeFormProps,
+  TNativeFormRequest,
+  TNativeFormResult,
+  TNativeFormAction,
+  TNativeFormEntry,
+  TNativeFormFocusResult,
+  TNativeFormOrigin,
+  TNativeFormValidation,
+} from "./form/types"
 export {
   AVAILABLE_TYPEAHEAD_SEARCH_STATUSES,
   TYPEAHEAD_SEARCH_STATUS__IDLE,

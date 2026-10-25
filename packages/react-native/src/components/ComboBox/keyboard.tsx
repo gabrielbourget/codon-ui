@@ -10,6 +10,7 @@ export const NativeComboBoxKeyBinding = ({
   lifetime,
   onKey,
   observe,
+  capture = true,
 }: {
   target: number
   open: boolean
@@ -17,6 +18,7 @@ export const NativeComboBoxKeyBinding = ({
   lifetime: string
   onKey: (event: TNativeKeyboardEvent) => void
   observe: (event: TNativeObservedKeyboardEvent) => void
+  capture?: boolean
 }) => {
   useNativeKeyPolicy({
     tokens: [
@@ -26,7 +28,7 @@ export const NativeComboBoxKeyBinding = ({
     targetTag: target,
     excludeEditable: false,
     excludeComposing: true,
-    isEnabled: enabled && target > 0,
+    isEnabled: enabled && capture && target > 0,
     lifetimeKey: lifetime,
     canAct: () => enabled,
     onKey,
