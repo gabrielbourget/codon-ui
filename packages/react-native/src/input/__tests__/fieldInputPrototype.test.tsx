@@ -151,6 +151,7 @@ const admitCurrentOriginals = async () => {
           metadataOnly: true,
           originalClass: "CUIDateSegment",
           error: "",
+          timeStamp: 123.5,
         },
       })
       await Promise.resolve()
@@ -162,6 +163,37 @@ const renderAdmittedScene = async (record: (row: Record<string, unknown>) => voi
   await render(<FieldInputSDKScene record={record} />)
   await admitCurrentOriginals()
 }
+
+it("binds the validated mount receipt when Fabric adds event metadata and withdraws an incomplete mount", async () => {
+  await renderAdmittedScene(jest.fn())
+  const requests = jest.mocked(NativeDocument!.bindFieldInput).mock.calls.map(([encoded]) => JSON.parse(encoded))
+  expect(requests).toHaveLength(2)
+  for (const request of requests) {
+    expect(request.mount).not.toHaveProperty("timeStamp")
+    expect(request.mount).toMatchObject({ active: true, complete: true, mountRevision: "mount:1" })
+  }
+  const original = requests.find(
+    (request) => request.mount.originalTarget === mockTargets.get("outer-hour")!.nativeTag,
+  )!
+  const metadata = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((host) => host.props.editorTarget === original.mount.originalTarget)!
+  const incomplete = Object.freeze({
+    ...original.mount,
+    epoch: original.mount.epoch + 1,
+    sequence: original.mount.sequence + 1,
+    active: false,
+    complete: false,
+    error: "form-metadata-incomplete",
+    timeStamp: 124.5,
+  })
+  await act(() => metadata.props.onNativeFormCommit({ nativeEvent: incomplete }))
+  expect(JSON.parse(screen.getByTestId("outer-binding").props.accessibilityLabel).ready).toBe(false)
+  expect(NativeDocument!.unbindFieldInput).toHaveBeenCalledWith(
+    JSON.stringify({ metadataTarget: original.mount.target, ownerToken: `owner:${original.requestId}` }),
+  )
+  expect(incomplete.timeStamp).toBe(124.5)
+})
 
 const originalFieldEvent = <T extends object>(nativeEvent: T) => {
   let stopped = false,

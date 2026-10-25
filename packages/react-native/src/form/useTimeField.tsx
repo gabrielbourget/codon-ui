@@ -197,7 +197,7 @@ export const useNativeTimeFieldForm = (
       fieldGroupBinding={fieldInput?.binding(ownerId)}
       onNativeFieldInputRecord={fieldInput?.record}
       onNativeFormCommit={(event) => {
-        if (receive(event.nativeEvent)) fieldInput?.commit(event.nativeEvent)
+        if (receive(event.nativeEvent)) fieldInput?.commit(receipt.current?.getSnapshot() ?? event.nativeEvent)
       }}
     />
   )
