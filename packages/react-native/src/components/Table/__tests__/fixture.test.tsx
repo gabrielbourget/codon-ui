@@ -10,7 +10,9 @@ import {
   renderWithNativeCollections as render,
   screen,
 } from "../../../collection/__tests__/nativeReceipts"
+import { NativeThemeProvider } from "../../../theme"
 
+import { TableCellFixture } from "./fixtures/TableCellFixture"
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -83,6 +85,29 @@ it("keeps the held editor and its value through row hover and theme changes", as
   expect(screen.getByTestId("table-editor").props.value).toBe("held")
   expect(write).not.toHaveBeenCalled()
   expect(screen.getByTestId("table-requests")).toHaveTextContent(/^\[\]$/)
+})
+
+it("adds and removes the Cell renderer without replacing its original held editor", async () => {
+  const editor = createRef<TextInput>()
+  await render(
+    <NativeThemeProvider>
+      <TableCellFixture editorRef={editor} />
+    </NativeThemeProvider>,
+  )
+  const input = editor.current!
+  const write = jest.spyOn(input, "setNativeProps")
+  await press("Toggle cell renderer")
+  expect(editor.current).toBe(input)
+  await fireEvent(screen.getByTestId("table-custom-cell"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse" },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-custom-cell")).toHaveStyle({ opacity: 0.85 })
+  await press("Toggle cell renderer")
+  expect(editor.current).toBe(input)
+  expect(screen.getByTestId("table-custom-cell-editor").props.value).toBe("")
+  expect(screen.getByTestId("table-custom-cell-requests")).toHaveTextContent(/^\[\]$/)
+  expect(write).not.toHaveBeenCalled()
 })
 
 it("keeps selection veto/echo and nested editor ownership separate from row actions", async () => {

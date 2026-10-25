@@ -10,6 +10,8 @@ import { TableHeader } from "../../TableHeader"
 import { TableRow } from "../../TableRow"
 import type { TNativeTableColumnMetadata, TNativeTableHeaderProps } from "../../types"
 
+import { TableCellFixture } from "./TableCellFixture"
+
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
   { id: "a", name: "Alpha", active: false },
@@ -166,6 +168,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
             <Text testID="table-widths">{JSON.stringify(widths)}</Text>
             <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
+            <TableCellFixture />
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>

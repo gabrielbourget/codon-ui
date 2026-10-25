@@ -16,8 +16,10 @@ import type {
   TNativeTableColumnMetadata,
   TNativeTableHeaderProps,
   TNativeTableHeaderRenderState,
+  TNativeTableCellProps,
   TNativeTableProps,
 } from "../src/components/Table/types"
+import { NativeFocusView } from "../src/input/NativeFocusView"
 
 const rows = [{ id: 0, name: "Alpha" }]
 const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
@@ -56,6 +58,28 @@ export const headerRenderer = (
 export const invalidHeaderHover: TNativeTableHeaderRenderState["isHovered"] = "hovered"
 // @ts-expect-error A native render callback must return its single original native root.
 export const invalidHeaderRender: TNativeTableHeaderProps<object>["render"] = () => null
+export const cellRenderer = (
+  <TableCell
+    id="rendered"
+    columnID="name"
+    render={(props, state) => {
+      const selected: boolean = state.isSelected
+      const column: number | null | undefined = state.columnIndex
+      // @ts-expect-error Only the children function receives defaultChildren.
+      void state.defaultChildren
+      void column
+      return <NativeFocusView {...props} style={[props.style, { opacity: selected ? 1 : 0.5 }]} />
+    }}
+  >
+    {(state) => {
+      const original: undefined = state.defaultChildren
+      void original
+      return "Value"
+    }}
+  </TableCell>
+)
+// @ts-expect-error The Cell renderer must return its native root.
+export const invalidCellRender: TNativeTableCellProps["render"] = () => null
 export const linkedRow = (
   <TableRow
     id={0}

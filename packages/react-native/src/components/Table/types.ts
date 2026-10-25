@@ -3,6 +3,7 @@ import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-na
 
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
+import type { TNativeFocusViewProps } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeLinkProps } from "../Link/types"
 import type { TNativePaginationProps } from "../Pagination/types"
@@ -151,9 +152,11 @@ export type TNativeTableCellRenderState = Readonly<{
   level: number
   defaultChildren: undefined
 }>
+export type TNativeTableCellRenderValues = Omit<TNativeTableCellRenderState, "defaultChildren">
 export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children"> &
   TStyleProps & {
     children?: ReactNode | ((state: TNativeTableCellRenderState) => ReactNode)
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableCellRenderValues) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
     columnID: string

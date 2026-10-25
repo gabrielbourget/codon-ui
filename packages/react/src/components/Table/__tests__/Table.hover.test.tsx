@@ -1,9 +1,11 @@
 import { act, fireEvent, render, waitFor } from "@testing-library/react"
-import type { ComponentPropsWithRef } from "react"
-import { Cell, Row, TableBody } from "react-aria-components"
+import type { ComponentPropsWithRef, ReactNode } from "react"
+import { Cell, Row, TableBody, type CellRenderProps } from "react-aria-components"
 import { afterEach, expect, it, vi } from "vitest"
 
 import Card from "../../Card/Card"
+import type { TCellProps } from "../components/TableCell/helpers"
+import TableCell from "../components/TableCell/TableCell"
 import TableHeader from "../components/TableHeader/TableHeader"
 import TableRow from "../components/TableRow/TableRow"
 import type { TTableColumnMetadata } from "../helpers"
@@ -126,3 +128,78 @@ it.each([
     expect(change.mock.calls).toEqual(expectedChange)
   },
 )
+
+it("separates raw Cell render values from the children function's defaultChildren", () => {
+  vi.stubGlobal("PointerEvent", MouseEvent)
+  const child = vi.fn((_state: CellRenderProps & { defaultChildren?: ReactNode }) => "Held content")
+  const receiver = vi.fn<NonNullable<TCellProps["render"]>>((props, state) => (
+    <td
+      {...(props as ComponentPropsWithRef<"td">)}
+      data-testid="rendered-cell"
+      data-hovered={String(state.isHovered)}
+    />
+  ))
+  const view = render(
+    <Table
+      aria-label="Cell source"
+      selectionMode="multiple"
+      selectionBehavior="replace"
+      selectedKeys={new Set(["row"])}
+    >
+      <TableHeader columns={columns} />
+      <TableBody>
+        <Row id="row">
+          <TableCell id="cell" render={receiver}>
+            {child}
+          </TableCell>
+        </Row>
+      </TableBody>
+    </Table>,
+  )
+  const state = receiver.mock.calls.at(-1)![1]
+  expect(state).toMatchObject({
+    isSelected: true,
+    isDisabled: false,
+    isFocused: false,
+    isFocusVisible: false,
+    isHovered: false,
+    columnIndex: 0,
+    level: 1,
+  })
+  expect(Object.hasOwn(state, "defaultChildren")).toBe(false)
+  expect(child.mock.calls.at(-1)![0]).toHaveProperty("defaultChildren", undefined)
+  fireEvent(view.getByTestId("rendered-cell"), pointer("pointerover"))
+  expect(view.getByTestId("rendered-cell")).toHaveAttribute("data-hovered", "true")
+})
+
+it("keeps the same canonical Cell and held editor when its native-element renderer is inserted and replaced", () => {
+  const first: NonNullable<TCellProps["render"]> = (props) => (
+    <td {...(props as ComponentPropsWithRef<"td">)} style={{ ...props.style, opacity: 0.8 }} />
+  )
+  const second: NonNullable<TCellProps["render"]> = (props) => (
+    <td {...(props as ComponentPropsWithRef<"td">)} style={{ ...props.style, opacity: 0 }} />
+  )
+  const content = (renderer?: typeof first) => (
+    <Table aria-label="Cell source">
+      <TableHeader columns={columns} />
+      <TableBody>
+        <Row id="row">
+          <TableCell data-testid="rendered-cell" render={renderer}>
+            <input data-testid="cell-editor" value="" onChange={() => undefined} />
+          </TableCell>
+        </Row>
+      </TableBody>
+    </Table>
+  )
+  const view = render(content())
+  const cell = view.getByTestId("rendered-cell"),
+    input = view.getByTestId("cell-editor")
+  view.rerender(content(first))
+  expect(view.getByTestId("rendered-cell")).toBe(cell)
+  expect(view.getByTestId("cell-editor")).toBe(input)
+  view.rerender(content(second))
+  expect(view.getByTestId("rendered-cell")).toBe(cell)
+  expect(view.getByTestId("rendered-cell")).toHaveStyle({ opacity: 0 })
+  expect(view.getByTestId("cell-editor")).toBe(input)
+  expect(input).toHaveValue("")
+})

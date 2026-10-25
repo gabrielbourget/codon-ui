@@ -1,9 +1,8 @@
-import { useCallback, useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
+import { useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -32,6 +31,7 @@ import { TableCell } from "./TableCell"
 import type { TNativeTableRowComponent, TNativeTableRowProps } from "./types"
 import { useTableAction } from "./useTableAction"
 import { useTableHover } from "./useTableHover"
+import { useTableTargetRef } from "./useTableTargetRef"
 
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
@@ -64,12 +64,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     navigation.current = props
   })
   if (props.href !== undefined && typeof props.href !== "string") throw new TypeError("TableRow: href must be a string")
-  const keyboardRef = useCallback(
-    (view: View | null) => table.keyboard.register(node, view),
-    [node, table.keyboard.register],
-  )
-  const keyboardTargetRef = useNativeCollectionRefs(original, keyboardRef)
-  const boundRef = useNativeCollectionRefs(ref, keyboardTargetRef)
+  const boundRef = useTableTargetRef(original, ref, { node, register: table.keyboard.register })
   const action = useTableAction(node, original)
   const state = getNativeTagGroupActionState({
     mode: table.manager.canSelectItem(node.key) ? table.manager.selectionMode : "none",

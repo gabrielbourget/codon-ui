@@ -31,6 +31,8 @@
     "Native PointerEvent objects replace DOM HoverEvent objects, matching the existing native Button callback boundary; no synthetic public event is created.",
     "Original native View pointer routing and existing input/floating-window eligibility replace DOM containment/document listeners. Native resize/hover/window delivery and all installed/profile proof remain open.",
     "One component-local helper shares pointer lifetime across existing header, row and cell hosts; row CSS paint remains independent of selection/action admission.",
-    "Canonical Motion-wrapped Row callback correspondence is retained as a separate open gate; the Header increment does not invent a Row callback implementation."
+    "Canonical Motion-wrapped Row callback correspondence is retained as a separate open gate; the Header increment does not invent a Row callback implementation.",
+    "Cell render callbacks receive raw native Cell values; only the children function receives defaultChildren. Default and custom paths use the same public NativeFocusView and preserve opaque keyboard/collection props.",
+    "A Table-local target ref bridge refreshes cell/column/row metadata registration without detaching a stable consumer ref. Physical target and caller-ref changes retain ordinary cleanup and registration ownership."
   ]
 }
