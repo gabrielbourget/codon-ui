@@ -105,6 +105,33 @@ const fixture = (props: TNativeMotionOwnerProps = {}, more: Partial<TNativeMotio
   }
   return { owner, settings, rectangle, interactions, errors, dispose }
 }
+it.each([
+  [false, false],
+  [true, false],
+  [false, true],
+  [true, true],
+])("retains original tap callbacks with prevented pointer down=%s/up=%s", async (preventDown, preventUp) => {
+  const start = jest.fn(),
+    tap = jest.fn(),
+    cancel = jest.fn()
+  const f = fixture({ onTapStart: start, onTap: tap, onTapCancel: cancel })
+  const down = touch(10),
+    up = touch(20)
+  if (preventDown) down.preventDefault()
+  if (preventUp) up.preventDefault()
+  f.interactions.start(down, "pointer")
+  f.interactions.end(up, true, "pointer")
+  await flush()
+  expect(start).toHaveBeenCalledTimes(1)
+  expect(tap).toHaveBeenCalledTimes(1)
+  expect(start.mock.calls[0][0]).toBe(down)
+  expect(tap.mock.calls[0][0]).toBe(up)
+  expect(down.isDefaultPrevented()).toBe(preventDown)
+  expect(up.isDefaultPrevented()).toBe(preventUp)
+  expect(cancel).not.toHaveBeenCalled()
+  f.dispose()
+})
+
 beforeEach(() => {
   mockScope = null
   jest.spyOn(jest.requireActual<typeof import("react-native")>("react-native"), "findNodeHandle").mockReturnValue(17)

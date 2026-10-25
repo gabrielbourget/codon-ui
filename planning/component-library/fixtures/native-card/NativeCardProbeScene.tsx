@@ -20,6 +20,7 @@ export const NativeCardProbeScene = () => {
     [wide, setWide] = useState(false),
     [dark, setDark] = useState(false),
     [skip, setSkip] = useState(false),
+    [preventPointer, setPreventPointer] = useState(false),
     [modal, setModal] = useState(false),
     [value, setValue] = useState("")
   const [journal, setJournal] = useState<readonly unknown[]>([])
@@ -75,6 +76,7 @@ export const NativeCardProbeScene = () => {
           <Button title="Toggle layout width" onPress={() => setWide((current) => !current)} />
           <Button title="Toggle theme" onPress={() => setDark((current) => !current)} />
           <Button title="Toggle skip" onPress={() => setSkip((current) => !current)} />
+          <Button title="Toggle pointer default prevention" onPress={() => setPreventPointer((current) => !current)} />
           <Button title="Open native modal window" onPress={() => setModal(true)} />
           <NativeMotionConfig reducedMotion="user" skipAnimations={skip}>
             <Card
@@ -102,6 +104,20 @@ export const NativeCardProbeScene = () => {
                     exit={{ opacity: 0, transition: { duration: 0.3 } }}
                     whileHover={{ scale: 1.01 }}
                     whileTap={{ scale: 0.98 }}
+                    onPointerDown={(event) => {
+                      if (preventPointer) event.preventDefault()
+                      append({ event: "pointer-down", prevented: event.isDefaultPrevented(), ...identity() })
+                    }}
+                    onPointerUp={(event) => {
+                      if (preventPointer) event.preventDefault()
+                      append({ event: "pointer-up", prevented: event.isDefaultPrevented(), ...identity() })
+                    }}
+                    onPanSessionStart={(event, info) =>
+                      append({ event: "pan-session", native: event.nativeEvent, info })
+                    }
+                    onPanStart={(event, info) => append({ event: "pan-start", native: event.nativeEvent, info })}
+                    onPan={(event, info) => append({ event: "pan", native: event.nativeEvent, info })}
+                    onPanEnd={(event, info) => append({ event: "pan-end", native: event.nativeEvent, info })}
                     onTapStart={(event, info) => append({ event: "card-tap-start", native: event.nativeEvent, info })}
                     onTap={(event, info) => append({ event: "card-tap", native: event.nativeEvent, info })}
                     onTapCancel={(event, info) => append({ event: "card-tap-cancel", native: event.nativeEvent, info })}

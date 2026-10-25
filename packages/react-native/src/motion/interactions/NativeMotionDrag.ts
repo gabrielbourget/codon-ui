@@ -237,8 +237,7 @@ export class NativeMotionDrag {
       !props.drag ||
       this.owner.presenceContext?.isPresent === false ||
       !this.owner.captureAnimationLease()() ||
-      !isNativeMotionPrimaryPointer(event) ||
-      event.isDefaultPrevented?.()
+      !isNativeMotionPrimaryPointer(event)
     )
       return
     const source = nativePanEventSource(event)
