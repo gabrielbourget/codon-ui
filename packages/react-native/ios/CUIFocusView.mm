@@ -796,19 +796,22 @@ static NSInteger CUICollectionInteger(NSDictionary *fields, NSString *key)
 
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *remaining = [self processPresses:presses down:YES cancelled:NO];
+  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"down");
+  NSSet *remaining = [self processPresses:original down:YES cancelled:NO];
   if (remaining.count) [super pressesBegan:remaining withEvent:event];
 }
 
 - (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *remaining = [self processPresses:presses down:NO cancelled:NO];
+  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"up");
+  NSSet *remaining = [self processPresses:original down:NO cancelled:NO];
   if (remaining.count) [super pressesEnded:remaining withEvent:event];
 }
 
 - (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  NSSet *remaining = [self processPresses:presses down:NO cancelled:YES];
+  NSSet *original = CUIFieldInputRemainingPresses(self, presses, @"cancel");
+  NSSet *remaining = [self processPresses:original down:NO cancelled:YES];
   if (remaining.count) [super pressesCancelled:remaining withEvent:event];
 }
 

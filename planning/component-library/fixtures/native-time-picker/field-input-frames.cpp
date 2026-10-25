@@ -19,6 +19,30 @@ int main() {
     "document", "7", "window", "mount:7", "outer:1", "input:1", "component:10", "editor:10", 2};
   const FieldInputFocusAction next{2, "next"};
   FieldInputDispatchFrames frames;
+  for (const auto &phase : {"pointer-start", "pointer-end", "pointer-cancel", "pointer-click"}) {
+    const auto before = FieldInputDispatchFrames::Clock::now();
+    auto pointer = frames.begin(identity, 1, phase, 5000ms);
+    check(pointer && pointer->deadline >= before + 5000ms && pointer->deadline < before + 5100ms);
+    check(frames.startDelivery(pointer));
+    auto input = frames.beginInput(pointer, identity, 2, {identity});
+    check(input && input->deadline == pointer->deadline);
+    check(frames.end(pointer, false).disposition == FieldInputDisposition::Retired);
+    check(!frames.begin(identity, 1, phase, 5001ms));
+    const auto originDeadline = FieldInputDispatchFrames::Clock::now() + 100ms;
+    pointer = frames.begin(identity, 1, phase, 5000ms, {}, originDeadline);
+    check(pointer && pointer->deadline == originDeadline);
+    frames.end(pointer, false);
+    check(!frames.begin(identity, 1, phase, 5000ms, {}, FieldInputDispatchFrames::Clock::now() - 1ms));
+  }
+  for (const auto &phase : {"down", "up", "cancel", "input"}) {
+    check(!frames.begin(identity, 1, phase, 1001ms));
+    check(!frames.begin(identity, 1, phase, 2000ms));
+    check(!frames.begin(identity, 1, phase, 5000ms));
+    const auto before = FieldInputDispatchFrames::Clock::now();
+    auto original = frames.begin(identity, 1, phase, 1000ms);
+    check(original && original->deadline >= before + 1000ms && original->deadline < before + 1100ms);
+    frames.end(original, false);
+  }
   auto ticket = frames.begin(identity, 1, "down", 1000ms);
   check(ticket != nullptr);
   check(!frames.acknowledge(ticket->token, identity, 1, "down", true, true, next));

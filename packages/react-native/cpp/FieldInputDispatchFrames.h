@@ -122,10 +122,11 @@ class FieldInputDispatchFrames final {
       std::chrono::milliseconds timeout, std::vector<FieldInputIdentity> scopes = {},
       Clock::time_point originDeadline = Clock::time_point::max()) {
     std::lock_guard lock(mutex_);
+    const bool pointer = phase == "pointer-start" || phase == "pointer-end" || phase == "pointer-cancel" || phase == "pointer-click";
     if (!live_ || serial_ >= 9007199254740991ULL || !identity.valid() || eventId <= 0 || eventId > 9007199254740991LL ||
         (phase != "down" && phase != "up" && phase != "cancel" && phase != "pointer-start" &&
           phase != "pointer-end" && phase != "pointer-cancel" && phase != "pointer-click" && phase != "input") ||
-        timeout.count() <= 0 || timeout.count() > 1000)
+        timeout.count() <= 0 || timeout.count() > (pointer ? 5000 : 1000))
       return nullptr;
     const auto deadline = std::min(Clock::now() + timeout, originDeadline);
     if (Clock::now() >= deadline) return nullptr;

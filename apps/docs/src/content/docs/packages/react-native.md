@@ -3,7 +3,7 @@ title: "@codon-ui/react-native"
 description: Private native foundation and explicit platform support limits.
 ---
 
-@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
+@codon-ui/react-native owns canonical native source independently of the web React package. Its public entry exports native Text, PlaceholderText, Avatar, Tag, Link, Breadcrumbs, Toaster, ThumbnailImage, ThumbnailShowcase, Button, ToggleButton, ToggleSwitcher, Switch, Checkbox, CheckboxGroup, Input, TextArea, Radio, RadioGroup, NumberInput, TimePicker, Pagination, Select, ListBoxItem, ComboBox, Modal, AlertDialog, ClickPopover, Tooltip, HoverPopover, LinearProgress, Meter, Indicator, LineSegment, CircleLoader and LaggingLinesLoader with their public props/ref/state types, plus NativeThemeProvider, NativeOverlayProvider, NativeBackdropHost, NativeFloatingLayerHost, useNativeTheme and the public theme types. Source availability and installed-platform acceptance are recorded separately in the component-library roadmap.
 
 ## Host And Package Ownership
 
@@ -164,6 +164,33 @@ NumberInput composes the existing Input and two Buttons into independently named
 The private decimal model limits precision to six fractional digits and representable safe integer units. Bounds, optional min-anchored step, nearest rounding and single-press stepping have explicit semantics; hold-repeat, exponent/hex syntax, currency/percent/unit formatting and general web NumberField behavior are excluded. The exact @internationalized/number 3.6.6 utility owns locale symbols and parsing. Hosts own localized names, read-only explanations and validation messages. Per-part native styling, guard behavior and target minima follow the existing controls without adding palette roles.
 
 Consumers must prepare required Intl.NumberFormat operations, selected locales and numbering systems before importing the native barrel. Missing formatToParts raises a contextual TypeError. The showcase explicitly prepares English/French regional data with its approved exact FormatJS dependencies when native support is inadequate; an adequate formatter is preserved. That app bootstrap also accepts the published Number/BigInt toLocaleString effects. The library does not install a global polyfill. Consumer applications choose and verify their own runtime setup and locale data.
+
+## TimePicker
+
+TimePicker exposes the complete segmented-field source through the public native entry. Its source-first integration leaves milestone44 and complete original native input/ref/default qualification open; the canonical roadmap owns the current acceptance verdict. Public availability and source examples do not establish installed keyboard, IME, focus timing, accessibility or profile acceptance.
+
+Values are Time, CalendarDateTime or ZonedDateTime objects from the pinned @internationalized/date3.12.1 runtime. value={null} explicitly controls an empty field; omit value to initialize uncontrolled state with defaultValue. onChange requests a value of the owner's class or null, preserving calendar/date/time-zone fields. A controlled owner can decline a request by retaining its value. The exported component accepts the complete TimeValue union; `TimePickerProps<T>` additionally describes a specific supported value class.
+
+```tsx
+import { Time } from "@internationalized/date"
+import { useState } from "react"
+import { NativeLocaleProvider, TimePicker, type TNativeTimePickerValue } from "@codon-ui/react-native"
+
+export const StartTime = () => {
+  const [value, setValue] = useState<TNativeTimePickerValue | null>(new Time(13, 45, 7))
+  return (
+    <NativeLocaleProvider locale="en-GB">
+      <TimePicker accessibilityLabel="Start time" value={value} onChange={setValue} granularity="second" />
+    </NativeLocaleProvider>
+  )
+}
+```
+
+The wrapper defaults to24-hour display and leading zeros; hourCycle={12}, granularity, hideTimeZone, placeholderValue and minValue/maxValue retain the typed date-field semantics. NativeLocaleProvider supplies locale and derived direction. The host owns required Intl support and locale data. The source contract keeps readonly segments focusable while rejecting edits; disabled blocks focus and editing. Native keyboard/focus callbacks retain their original events. TNativeTimePickerRef is the actual outer native View, while the component owns its original editable segment hosts.
+
+NativeTimeFieldContext supplies inherited field props, refs and named slots; explicit caller props and slot={null} preserve their context precedence and opt-out rules. NativeTimeFieldStateContext exposes the field state to descendants. TimePicker owns the segmented-input/clock scaffold. ComponentIcon replaces the clock; render receives the root props and current render state, and a custom root must preserve the supplied ref and generated children. NativeTimeFieldLabel, NativeTimeFieldText and NativeTimeFieldError consume the label, description/errorMessage and validation slots when rendered inside those field providers.
+
+height, width, textSize, geometry, enableFocusStyle and offsetFocusRing control presentation. customStyles, customInputIconGroupStyles and customInputStyles keep the root, input/icon group and input independently owned. Final root style follows computed dimensions and customStyles; its callback receives state and defaultStyle. errorState takes border precedence over warningState and successState. Native style arrays, registered styles, platform colors, live theme updates and Reduce Motion retain the source contract. name/form metadata uses timeValue.toString() serialization, including time-only serialization for date-bearing values; it adds no browser submission or navigation.
 
 ## FormField
 

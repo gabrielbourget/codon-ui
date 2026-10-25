@@ -12,6 +12,8 @@ void CUIReportInputFocusChanged(UIView *target, BOOL focused)
 
 @interface CUIPassiveKeyboardObserver : UIGestureRecognizer <UIGestureRecognizerDelegate>
 @property(nonatomic, strong) NSMutableSet<NSNumber *> *held;
+@property(nonatomic, strong) NSMapTable<UIPress *, NSDictionary *> *records;
+- (void)observePress:(UIPress *)press phase:(NSString *)phase;
 @end
 
 @interface CUIPassiveWindowPointerObserver : UIGestureRecognizer <UIGestureRecognizerDelegate>
@@ -238,6 +240,11 @@ void CUIRefreshKeyboardObservation(UIWindow *window)
   }
 }
 
+void CUIObserveKeyboardPress(UIPress *press, NSString *phase)
+{
+  [CUIWindowInput(press.window).keyboardObserver observePress:press phase:phase];
+}
+
 @implementation CUIPassiveKeyboardObserver
 - (instancetype)init
 {
@@ -247,6 +254,7 @@ void CUIRefreshKeyboardObservation(UIWindow *window)
     self.delaysTouchesEnded = NO;
     self.delegate = self;
     _held = [NSMutableSet set];
+    _records = [NSMapTable weakToStrongObjectsMapTable];
   }
   return self;
 }
@@ -257,29 +265,36 @@ void CUIRefreshKeyboardObservation(UIWindow *window)
 - (BOOL)canBePreventedByGestureRecognizer:(UIGestureRecognizer *)other { return NO; }
 - (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
 {
-  UIWindow *window = self.view.window;
+  for (UIPress *press in presses) [self observePress:press phase:@"down"];
+}
+- (void)observePress:(UIPress *)press phase:(NSString *)phase
+{
+  UIWindow *window = press.window;
+  if (!press.key || !window || CUIWindowInput(window).keyboardObserver != self) return;
+  NSDictionary *record = [self.records objectForKey:press];
+  if ([record[@"timestamp"] doubleValue] == press.timestamp && [record[@"phase"] isEqual:phase]) return;
+  // The original field responder and UIKit's passive recognizer can see the same press.
+  [self.records setObject:@{@"timestamp":@(press.timestamp), @"phase":phase} forKey:press];
+  NSNumber *code = @(press.key.keyCode);
+  if (![phase isEqual:@"down"]) { [self.held removeObject:code]; return; }
+  BOOL repeat = [self.held containsObject:code];
+  [self.held addObject:code];
   CUIWindowInputState *state = CUIWindowInput(window);
   NSArray *scopes = CUIInputScopes(window);
-  for (UIPress *press in presses) {
-    if (!press.key || press.window != window) continue;
-    NSNumber *code = @(press.key.keyCode);
-    BOOL repeat = [self.held containsObject:code];
-    [self.held addObject:code];
-    UIView *focused = CUIInputFocusedView(window);
-    BOOL captured = [focused isKindOfClass:CUIFocusView.class] && [(CUIFocusView *)focused capturesObservedKey:press.key];
-    for (id<CUIKeyboardObservationScope> scope in scopes) captured |= [scope capturesObservedPress:press];
-    NSUInteger eventId = ++state.observedEventId;
-    for (id<CUIKeyboardObservationScope> scope in scopes) [scope observePress:press repeat:repeat eventId:eventId captured:captured];
-  }
+  UIView *focused = CUIInputFocusedView(window);
+  BOOL captured = [focused isKindOfClass:CUIFocusView.class] && [(CUIFocusView *)focused capturesObservedKey:press.key];
+  for (id<CUIKeyboardObservationScope> scope in scopes) captured |= [scope capturesObservedPress:press];
+  NSUInteger eventId = ++state.observedEventId;
+  for (id<CUIKeyboardObservationScope> scope in scopes) [scope observePress:press repeat:repeat eventId:eventId captured:captured];
 }
-- (void)finishPresses:(NSSet<UIPress *> *)presses
+- (void)finishPresses:(NSSet<UIPress *> *)presses phase:(NSString *)phase
 {
-  for (UIPress *press in presses) if (press.key) [self.held removeObject:@(press.key.keyCode)];
+  for (UIPress *press in presses) [self observePress:press phase:phase];
   if (!self.held.count) self.state = UIGestureRecognizerStateFailed;
 }
-- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses]; }
-- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses]; }
-- (void)reset { [self.held removeAllObjects]; [super reset]; }
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses phase:@"up"]; }
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event { [self finishPresses:presses phase:@"cancel"]; }
+- (void)reset { [self.held removeAllObjects]; [self.records removeAllObjects]; [super reset]; }
 @end
 
 NSString *CUIInputKeyName(UIKey *key)

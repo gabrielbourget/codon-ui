@@ -30,6 +30,10 @@ final class CUIFieldInputBinding {
   private final WeakReference<CUIFormMetadataView> metadata;
   private final WeakReference<FabricUIManager> manager;
   private final Snapshot snapshot;
+  private final JSONObject registration;
+  private JSONObject status;
+  private long statusGeneration;
+  private boolean statusPublished;
   private WeakReference<View> outer = new WeakReference<>(null), input = new WeakReference<>(null);
   private String outerInstance = "", inputInstance = "", bindingId = "", ownerId = "", lease = "", fingerprint = "", lastError = "";
   private long epoch = 1, eventId;
@@ -121,22 +125,53 @@ final class CUIFieldInputBinding {
   private static native boolean nativeOriginalCommandCurrent(long token);
   private static native String nativePerformOriginalCommand(long token);
 
-  CUIFieldInputBinding(CUIFormMetadataView metadata, FabricUIManager manager, Snapshot snapshot) {
+  CUIFieldInputBinding(CUIFormMetadataView metadata, FabricUIManager manager, JSONObject registration, View outer, View input, Snapshot snapshot) throws Exception {
     UiThreadUtil.assertOnUiThread();
     this.metadata = new WeakReference<>(metadata); this.manager = new WeakReference<>(manager); this.snapshot = snapshot;
-    bindings.put(this, true); refresh();
+    this.registration = new JSONObject(registration.toString()); this.status = this.registration;
+    this.outer = new WeakReference<>(outer); this.input = new WeakReference<>(input);
+    bindingId = registration.getString("bindingId"); ownerId = registration.getString("ownerId"); lease = registration.getString("moduleLease");
+    bindings.put(this, true);
+  }
+  JSONObject registrationReceipt() throws Exception {
+    return new JSONObject().put("requestId", registration.getString("requestId"))
+      .put("ownerToken", registration.getString("ownerToken")).put("metadataTarget", registration.getInt("metadataTarget"))
+      .put("status", new JSONObject(status.toString()));
+  }
+  private void publishReadiness(boolean ready, String error) {
+    try {
+      CUIFormMetadataView original = metadata.get();
+      JSONObject declaration = null;
+      try { if (original != null && !original.fieldGroupBinding.isEmpty()) declaration = new JSONObject(original.fieldGroupBinding); }
+      catch (org.json.JSONException invalidDeclaration) { /* A failed capture retains the last admitted identity. */ }
+      boolean originalDeclaration = original != null && declaration != null && original.ownerId.equals(registration.getString("ownerId")) &&
+        declaration.optString("ownerId").equals(registration.getString("ownerId")) &&
+        declaration.optString("moduleLease").equals(registration.getString("moduleLease")) &&
+        declaration.optString("bindingId").equals(registration.getString("bindingId"));
+      String revision = originalDeclaration ? declaration.optString("bindingRevision", status.getString("bindingRevision")) : status.getString("bindingRevision");
+      if (statusPublished && status.getString("bindingRevision").equals(revision) && status.getBoolean("ready") == ready) return;
+      status = new JSONObject(registration.toString()).put("bindingRevision", revision).put("generation", ++statusGeneration)
+        .put("ready", ready).put("error", error);
+      statusPublished = true; emitRecord(status.toString());
+    } catch (org.json.JSONException invalid) { throw new IllegalStateException("field-input-status-invalid", invalid); }
   }
   private JSONObject capture() {
     if (closed || capturing || metadata.get() == null || manager.get() == null) return null;
     capturing = true;
     try {
       CUIFormMetadataView metadata = this.metadata.get(); FabricUIManager manager = this.manager.get();
-      JSONObject value = snapshot.read(), declaration = new JSONObject(metadata.fieldGroupBinding);
+      JSONObject declaration = new JSONObject(metadata.fieldGroupBinding);
+      if (!metadata.ownerId.equals(registration.getString("ownerId")) ||
+          !declaration.getString("ownerId").equals(registration.getString("ownerId")) ||
+          !declaration.getString("moduleLease").equals(registration.getString("moduleLease")) ||
+          !declaration.getString("bindingId").equals(registration.getString("bindingId")))
+        throw new IllegalStateException("field-input-original-binding-retired");
+      JSONObject value = snapshot.read();
       JSONObject current = value.getJSONObject("fieldGroupSnapshot");
       if ((!bindingId.isEmpty() && !bindingId.equals(declaration.getString("bindingId"))) ||
           (!ownerId.isEmpty() && !ownerId.equals(declaration.getString("ownerId")))) throw new IllegalStateException("field-input-original-binding-retired");
       View outer = manager.resolveView(declaration.getInt("outerTarget")), input = manager.resolveView(declaration.getInt("inputTarget"));
-      if (outer == null || input == null || (!outerInstance.isEmpty() && !outerInstance.equals(current.getString("outerInstance"))) ||
+      if (outer == null || input == null || outer != this.outer.get() || input != this.input.get() || (!outerInstance.isEmpty() && !outerInstance.equals(current.getString("outerInstance"))) ||
           (!inputInstance.isEmpty() && !inputInstance.equals(current.getString("inputInstance"))))
         throw new IllegalStateException("field-input-original-root-instance-retired");
       String fingerprint = new JSONArray().put(value.getString("documentId")).put(value.getInt("surfaceId"))
@@ -146,13 +181,11 @@ final class CUIFieldInputBinding {
       this.fingerprint = fingerprint; this.outer = new WeakReference<>(outer); this.input = new WeakReference<>(input);
       outerInstance = current.getString("outerInstance"); inputInstance = current.getString("inputInstance");
       bindingId = declaration.getString("bindingId"); ownerId = declaration.getString("ownerId"); lease = declaration.getString("moduleLease");
-      lastError = ""; return value;
+      lastError = ""; publishReadiness(true, ""); return value;
     } catch (Exception error) {
       retirePending();
-      if (!lastError.equals(String.valueOf(error.getMessage()))) {
-        lastError = String.valueOf(error.getMessage());
-        record("status", lastError);
-      }
+      lastError = String.valueOf(error.getMessage());
+      publishReadiness(false, lastError);
       return null;
     } finally { capturing = false; }
   }
@@ -170,7 +203,7 @@ final class CUIFieldInputBinding {
     if (!lease.isEmpty() && !bindingId.isEmpty()) nativeRetireBinding(lease, ownerId, bindingId);
     consumed.clear();
   }
-  void retire() { if (closed) return; closed = true; retirePending(); bindings.remove(this); }
+  void retire() { if (closed) return; publishReadiness(false, "field-input-registration-retired"); closed = true; retirePending(); bindings.remove(this); }
   private static boolean descendant(View view, View root) {
     if (root == null) return false;
     for (View current = view; current != null; current = current.getParent() instanceof View ? (View)current.getParent() : null)

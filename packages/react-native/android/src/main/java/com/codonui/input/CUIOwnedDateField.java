@@ -22,7 +22,7 @@ final class CUIOwnedDateField {
       for (int index = 0; index < group.getChildCount(); index++) collect(group.getChildAt(index), owner, result);
     }
   }
-  private static boolean descendant(View view, View root) {
+  static boolean descendant(View view, View root) {
     for (View current = view; current != null; current = current.getParent() instanceof View ? (View)current.getParent() : null)
       if (current == root) return true;
     return false;

@@ -39,13 +39,15 @@ inline bool continueFieldOriginalInput(facebook::react::UIManager &manager, int3
 inline bool continueFieldOriginalPointer(facebook::react::UIManager &manager,
     const std::function<bool(const facebook::react::RawEvent &)> &belongs,
     const std::function<void()> &emit,
-    const std::function<std::optional<bool>(const facebook::react::RawEvent &, FieldInputDispatchFrames::Clock::time_point)> &receive) {
+    const std::function<std::optional<bool>(const facebook::react::RawEvent &, FieldInputDispatchFrames::Clock::time_point)> &receive,
+    std::chrono::milliseconds timeout = std::chrono::milliseconds(1000)) {
   using namespace facebook::react;
   if (!belongs || !emit || !receive) throw std::invalid_argument("field-input-pointer-receiver-required");
+  if (timeout.count() <= 0 || timeout.count() > 5000) throw std::invalid_argument("field-input-pointer-timeout-invalid");
   if (FieldInputNativeOperation::contains(&manager)) { emit(); return false; }
   if (NativeEventListenerScope::active()) throw std::runtime_error("field-input-original-listener-stack-active");
   bool prevented = false, receiving = false;
-  const auto deadline = FieldInputDispatchFrames::Clock::now() + std::chrono::milliseconds(1000);
+  const auto deadline = FieldInputDispatchFrames::Clock::now() + timeout;
   const auto thread = std::this_thread::get_id();
   const auto listener = std::make_shared<const EventListener>([&](const RawEvent &event) {
     if (receiving || std::this_thread::get_id() != thread || !event.eventTarget || !event.eventPayload ||

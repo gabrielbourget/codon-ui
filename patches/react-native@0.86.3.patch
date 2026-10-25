@@ -1,3 +1,121 @@
+diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.h b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
+index be946f87bbe3112dbeb7619b3f93e19d86eb6ec2..3038784f13890da03449535e00b8daacda186a3d 100644
+--- a/Libraries/Text/TextInput/Multiline/RCTUITextView.h
++++ b/Libraries/Text/TextInput/Multiline/RCTUITextView.h
+@@ -21,6 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
+ - (instancetype)initWithCoder:(NSCoder *)decoder NS_UNAVAILABLE;
+
+ @property (nonatomic, weak) id<RCTBackedTextInputDelegate> textInputDelegate;
++@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
+
+ @property (nonatomic, assign) BOOL contextMenuHidden;
+ @property (nonatomic, assign, readonly) BOOL textWasPasted;
+diff --git a/Libraries/Text/TextInput/Multiline/RCTUITextView.mm b/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+index cbda3771e97cfa375976621f30e4939988156a1f..c6cd68062abf796b11abd060ba65c4c9a36275b3 100644
+--- a/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
++++ b/Libraries/Text/TextInput/Multiline/RCTUITextView.mm
+@@ -35,6 +35,24 @@ static UIColor *defaultPlaceholderColor(void)
+   return [UIColor placeholderTextColor];
+ }
+
++- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"down", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesBegan:remaining withEvent:event];
++}
++
++- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"up", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesEnded:remaining withEvent:event];
++}
++
++- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"cancel", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesCancelled:remaining withEvent:event];
++}
++
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+   if (self = [super initWithFrame:frame]) {
+diff --git a/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h b/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
+index b67beb956481ab7bab5d3799a3d2de9d5d3873a6..9ba09826eac8408bde3da47b347f43495a01a5b1 100644
+--- a/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
++++ b/Libraries/Text/TextInput/RCTBackedTextInputViewProtocol.h
+@@ -12,8 +12,13 @@
+
+ NS_ASSUME_NONNULL_BEGIN
+
++typedef BOOL (^RCTTextInputPressHandler)(UIView *view, UIPress *press, NSString *phase);
++
+ @protocol RCTBackedTextInputViewProtocol <UITextInput>
+
++// Optional scoped original-press handling, before UIKit performs its default.
++@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
++
+ @property (nonatomic, copy, nullable) NSAttributedString *attributedText;
+ @property (nonatomic, copy, nullable) NSString *placeholder;
+ @property (nonatomic, strong, nullable) UIColor *placeholderColor;
+@@ -58,4 +63,17 @@ NS_ASSUME_NONNULL_BEGIN
+
+ @end
+
++static inline NSSet<UIPress *> *RCTTextInputRemainingPresses(
++    UIView *view, NSSet<UIPress *> *presses, NSString *phase, RCTTextInputPressHandler _Nullable handler)
++{
++  if (!handler) return presses;
++  NSMutableSet<UIPress *> *remaining = nil;
++  for (UIPress *press in presses) {
++    if (!handler(view, press, phase)) continue;
++    if (!remaining) remaining = [presses mutableCopy];
++    [remaining removeObject:press];
++  }
++  return remaining ?: presses;
++}
++
+ NS_ASSUME_NONNULL_END
+diff --git a/Libraries/Text/TextInput/Singleline/RCTUITextField.h b/Libraries/Text/TextInput/Singleline/RCTUITextField.h
+index fe6d957aa2c7bad2eb6c24d5b5cad7cfce87d5c0..be2967927af48013fbe71f7cb2746245e90f3dd5 100644
+--- a/Libraries/Text/TextInput/Singleline/RCTUITextField.h
++++ b/Libraries/Text/TextInput/Singleline/RCTUITextField.h
+@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
+ - (instancetype)initWithCoder:(NSCoder *)decoder NS_UNAVAILABLE;
+
+ @property (nonatomic, weak) id<RCTBackedTextInputDelegate> textInputDelegate;
++@property (nonatomic, copy, nullable) RCTTextInputPressHandler nativeKeyPressHandler;
+
+ @property (nonatomic, assign) BOOL caretHidden;
+ @property (nonatomic, assign) BOOL contextMenuHidden;
+diff --git a/Libraries/Text/TextInput/Singleline/RCTUITextField.mm b/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
+index 052c003476d18c7c75b1ae2890d0d221af5b57e3..867e87253d96b5d4f38c48507e338cfbcf6fc01e 100644
+--- a/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
++++ b/Libraries/Text/TextInput/Singleline/RCTUITextField.mm
+@@ -24,6 +24,24 @@
+ // This variable is unused.
+ @synthesize dataDetectorTypes;
+
++- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"down", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesBegan:remaining withEvent:event];
++}
++
++- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"up", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesEnded:remaining withEvent:event];
++}
++
++- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
++{
++  NSSet<UIPress *> *remaining = RCTTextInputRemainingPresses(self, presses, @"cancel", self.nativeKeyPressHandler);
++  if (remaining.count) [super pressesCancelled:remaining withEvent:event];
++}
++
+ - (instancetype)initWithFrame:(CGRect)frame
+ {
+   if (self = [super initWithFrame:frame]) {
 diff --git a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java b/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java
 index 9c29ee6213deaa7293fb64dfc0d614af1f937cdf..0c11beb3e572ac4ef36b5db3c865e862db2e7f99 100644
 --- a/ReactAndroid/src/main/java/com/facebook/react/fabric/FabricUIManager.java

@@ -547,6 +547,27 @@ export type {
   TNativeNumberInputStyleState,
 } from "./components/NumberInput/types"
 
+export { TimePicker } from "./components/TimePicker/TimePicker"
+export {
+  TIME_PICKER_SIZE__SM,
+  TIME_PICKER_SIZE__MD,
+  TIME_PICKER_SIZE__LG,
+  AVAILABLE_TIMEPICKER_TEXT_SIZES,
+} from "./components/TimePicker/types"
+export type {
+  TNativeTimePickerProps,
+  TNativeTimePickerProps as TimePickerProps,
+  TNativeTimePickerRef,
+  TNativeTimePickerRenderState,
+  TNativeTimePickerStyleState,
+  TNativeTimePickerTextSize,
+  TNativeTimePickerLabels,
+  TPartialNativeTimePickerLabels,
+  TNativeTimePickerValue,
+} from "./components/TimePicker/types"
+export { NativeTimeFieldContext, NativeTimeFieldStateContext } from "./date/field/context"
+export { NativeTimeFieldLabel, NativeTimeFieldText, NativeTimeFieldError } from "./date/field/parts"
+
 export { NativeOverlayProvider } from "./overlays/NativeOverlayProvider"
 export { NativeBackdropHost } from "./overlays/backdrop/NativeBackdropHost"
 export type {

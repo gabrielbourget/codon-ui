@@ -29,7 +29,7 @@ import type { DateFieldState, DateSegment } from "../../../../packages/react-nat
 import type { TimeValue } from "../../../../packages/react-native/src/date/state/types"
 import { useTimeFieldState } from "../../../../packages/react-native/src/date/state/useTimeFieldState"
 import { Time } from "../../../../packages/react-native/src/date/values"
-import { NativeTimePickerRenderer } from "../../../../packages/react-native/src/date/field/NativeTimePickerRenderer"
+import { TimePicker as NativeTimePickerRenderer } from "@codon-ui/react-native"
 import { NativeTimeFieldStateContext } from "../../../../packages/react-native/src/date/field/context"
 import { useNativeTimeFieldForm } from "../../../../packages/react-native/src/form/useTimeField"
 import {

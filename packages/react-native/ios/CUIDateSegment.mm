@@ -161,6 +161,21 @@ using namespace facebook::react;
   [super touchesEnded:touches withEvent:event];
   if (touches.count == 1 && CGRectContainsPoint(self.bounds, [touches.anyObject locationInView:self])) [self becomeFirstResponder];
 }
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
+{
+  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"down");
+  if (remaining.count) [super pressesBegan:remaining withEvent:event];
+}
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
+{
+  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"up");
+  if (remaining.count) [super pressesEnded:remaining withEvent:event];
+}
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event
+{
+  NSSet<UIPress *> *remaining = CUIFieldInputRemainingPresses(self, presses, @"cancel");
+  if (remaining.count) [super pressesCancelled:remaining withEvent:event];
+}
 - (NSDictionary *)formSegmentIdentity
 {
   if (![self active] || _surface <= 0 || self.tag <= 0 || !_ownerId.length || !_segmentId.length || !_bindingRevision.length) return nil;
