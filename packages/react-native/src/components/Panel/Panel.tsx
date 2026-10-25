@@ -15,6 +15,7 @@ import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
 
+import { useNativePanelAppearance } from "./appearance"
 import { useNativePanelReturnFocus } from "./focus"
 import { useNativePanelMotion } from "./motion"
 import { NativePanelSurface } from "./PanelSurface"
@@ -35,6 +36,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   useLayoutEffect(() => returnFocus(overlay.mounted))
   const dismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
   const styles = getNativePanelStyles(props, theme, viewportWidth ?? window.width)
+  const appearance = useNativePanelAppearance(styles.view, styles.text, motion.reduced !== false || !motion.present)
   const identity = props.testID ?? props["data-testid"] ?? "panel"
   const label = props.accessibilityLabel ?? props["aria-label"]
   const current = useRef({ props, open, live: true })
@@ -122,7 +124,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                       setWidth(next)
                   }}
                   style={[
-                    styles.view,
+                    appearance.view,
                     {
                       transform: [
                         {
@@ -139,9 +141,9 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                   ]}
                 >
                   <NativeContentContext.Provider
-                    value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+                    value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
                   >
-                    {getNativeButtonContent(props.children, styles.text)}
+                    {getNativeButtonContent(props.children, appearance.text)}
                   </NativeContentContext.Provider>
                 </NativePanelSurface>
               </NativeFloatingWindowHost>

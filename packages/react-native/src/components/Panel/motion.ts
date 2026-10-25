@@ -68,5 +68,5 @@ export const useNativePanelMotion = (open: boolean, width: number | null) => {
       animation.stop()
     }
   }, [open, width, reduced, progress])
-  return { present: open || retained, progress }
+  return { present: open || retained, progress, reduced }
 }
