@@ -1,13 +1,4 @@
-import {
-  useCallback,
-  useContext,
-  useEffect,
-  useId,
-  useInsertionEffect,
-  useRef,
-  useState,
-  type ForwardedRef,
-} from "react"
+import { useCallback, useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
@@ -16,7 +7,6 @@ import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
@@ -41,6 +31,7 @@ import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { TableCell } from "./TableCell"
 import type { TNativeTableRowComponent, TNativeTableRowProps } from "./types"
 import { useTableAction } from "./useTableAction"
+import { useTableHover } from "./useTableHover"
 
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
@@ -80,18 +71,6 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const keyboardTargetRef = useNativeCollectionRefs(original, keyboardRef)
   const boundRef = useNativeCollectionRefs(ref, keyboardTargetRef)
   const action = useTableAction(node, original)
-  const canHover = action.isActive
-  const input = useNativeKeyScope()
-  const [hovered, setHovered] = useState(false)
-  useEffect(() => {
-    const cancelInactiveHover = () => {
-      if (!canHover()) setHovered(false)
-    }
-    return input?.subscribe(cancelInactiveHover)
-  }, [canHover, input])
-  useEffect(() => {
-    if (!canHover()) setHovered(false)
-  })
   const state = getNativeTagGroupActionState({
     mode: table.manager.canSelectItem(node.key) ? table.manager.selectionMode : "none",
     behavior: table.manager.selectionBehavior,
@@ -100,6 +79,10 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     hasAction: !!(table.onRowAction || props.onAction),
     isLink: table.manager.isLink(node.key),
     linkBehavior: "action",
+  })
+  const hover = useTableHover(original, action.isActive, {
+    onPointerEnter: native.onPointerEnter,
+    onPointerLeave: native.onPointerLeave,
   })
   type TPointer = (typeof NATIVE_TAG_GROUP_POINTER_TYPES)[number]
   type TMetadata = {
@@ -196,7 +179,11 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           flexDirection: "row",
           // The canonical zebra selector outranks :hover; inline row styles outrank both.
           backgroundColor:
-            table.zebra && ordinal % 2 === 1 ? table.zebraColor : hovered ? table.hoverColor : "transparent",
+            table.zebra && ordinal % 2 === 1
+              ? table.zebraColor
+              : hover.isPointerOver
+                ? table.hoverColor
+                : "transparent",
         },
         customStyles,
         style,
@@ -255,14 +242,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           table.keyboard.observe(node.key, event)
           native.onFocus?.(event)
         }}
-        onPointerEnter={(event) => {
-          native.onPointerEnter?.(event)
-          if (event.nativeEvent.pointerType !== "touch" && action.isActive()) setHovered(true)
-        }}
-        onPointerLeave={(event) => {
-          native.onPointerLeave?.(event)
-          if (event.nativeEvent.pointerType !== "touch") setHovered(false)
-        }}
+        onPointerEnter={hover.onPointerEnter}
+        onPointerLeave={hover.onPointerLeave}
         onPointerDown={(event: PointerEvent) => {
           native.onPointerDown?.(event)
           const data = event.nativeEvent

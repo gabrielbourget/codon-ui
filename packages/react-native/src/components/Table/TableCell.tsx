@@ -1,13 +1,4 @@
-import {
-  forwardRef,
-  useCallback,
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type ForwardedRef,
-  type ReactNode,
-} from "react"
+import { forwardRef, useCallback, useContext, useRef, useState, type ForwardedRef, type ReactNode } from "react"
 import type { View } from "react-native"
 import { findNodeHandle } from "react-native"
 
@@ -33,6 +24,7 @@ import { NativeTableCellContext, useNativeTable } from "./context"
 import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableCellProps, TNativeTableColumnProps, TNativeTableCellRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
+import { useTableHover } from "./useTableHover"
 
 const Cell = (
   props: TNativeTableCellProps & Pick<TNativeTableColumnProps, "isRowHeader" | "allowsSorting">,
@@ -55,14 +47,6 @@ const Cell = (
   const scope = useNativeKeyScope()
   const [focused, setFocused] = useState(false)
   const [focusVisible, setFocusVisible] = useState(false)
-  const [hovered, setHovered] = useState(false)
-  useLayoutEffect(
-    () =>
-      scope?.subscribe(() => {
-        if (scope.isWindowActive() === false) setHovered(false)
-      }),
-    [scope],
-  )
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
@@ -82,6 +66,7 @@ const Cell = (
   const target = useRef<View | null>(null)
   const width = useRef<number | null>(null)
   const action = useTableAction(node, target)
+  const hover = useTableHover(target, action.isActive, native)
   const keyboardRef = useCallback(
     (view: View | null) => table.keyboard.register(node, view),
     [node, table.keyboard.register],
@@ -130,7 +115,7 @@ const Cell = (
     isPressed: false,
     isFocused: focused,
     isFocusVisible: focused && focusVisible,
-    isHovered: hovered,
+    isHovered: hover.isHovered,
     isSelected: !!parent && table.manager.isSelected(parent.key),
     isDisabled: !!parent && table.manager.isDisabled(parent.key),
     id: node.key,
@@ -248,14 +233,8 @@ const Cell = (
               native.onBlur?.(event)
             }}
             onFocusVisibilityChange={setFocusVisible}
-            onPointerEnter={(event) => {
-              native.onPointerEnter?.(event)
-              if (event.nativeEvent.pointerType !== "touch" && action.isActive()) setHovered(true)
-            }}
-            onPointerLeave={(event) => {
-              native.onPointerLeave?.(event)
-              if (event.nativeEvent.pointerType !== "touch") setHovered(false)
-            }}
+            onPointerEnter={hover.onPointerEnter}
+            onPointerLeave={hover.onPointerLeave}
             onKeyDown={table.keyboard.onKeyDown}
             style={{
               ...(focused ? { outlineWidth: focusVisible ? 2 : 1.5, outlineColor: theme.colors.focusRing } : {}),

@@ -8,14 +8,18 @@ import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
 import { TableRow } from "../../TableRow"
-import type { TNativeTableColumnMetadata } from "../../types"
+import type { TNativeTableColumnMetadata, TNativeTableHeaderProps } from "../../types"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
   { id: "a", name: "Alpha", active: false },
   { id: "b", name: "Beta", active: true },
 ]
+const renderHeader: NonNullable<TNativeTableHeaderProps<TPerson>["render"]> = (props, state) => (
+  <View {...props} style={[props.style, { opacity: state.isHovered ? 0.85 : 1 }]} />
+)
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
+  const [headerHovered, setHeaderHovered] = useState(false)
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [empty, setEmpty] = useState(false)
@@ -133,7 +137,12 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
                 },
               }}
             >
-              <TableHeader columns={columns} />
+              <TableHeader
+                testID="table-header"
+                columns={columns}
+                onHoverChange={setHeaderHovered}
+                render={renderHeader}
+              />
               <TableBody
                 items={empty ? [] : reversed ? [...people].reverse() : people}
                 columns={columns}
@@ -145,6 +154,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
               />
             </Table>
             <Text testID="table-requests">{JSON.stringify(requests)}</Text>
+            <Text testID="table-header-hover">{String(headerHovered)}</Text>
             <Text testID="table-selection">{selected === "all" ? "all" : JSON.stringify([...selected])}</Text>
             <Text testID="table-selection-requests">{JSON.stringify(selectionRequests)}</Text>
             <Text testID="table-actions">{JSON.stringify(actions)}</Text>

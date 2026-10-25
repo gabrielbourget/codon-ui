@@ -1,5 +1,5 @@
 import { createRef } from "react"
-import type { View } from "react-native"
+import { View } from "react-native"
 
 // @ts-expect-error Table remains private until its complete component contract is implemented.
 import { Table as PublicTable } from "../src"
@@ -12,7 +12,12 @@ import { TableCell } from "../src/components/Table/TableCell"
 import { TableFilterPopover } from "../src/components/Table/TableFilterPopover"
 import { TableHeader } from "../src/components/Table/TableHeader"
 import { TableRow } from "../src/components/Table/TableRow"
-import type { TNativeTableColumnMetadata, TNativeTableProps } from "../src/components/Table/types"
+import type {
+  TNativeTableColumnMetadata,
+  TNativeTableHeaderProps,
+  TNativeTableHeaderRenderState,
+  TNativeTableProps,
+} from "../src/components/Table/types"
 
 const rows = [{ id: 0, name: "Alpha" }]
 const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
@@ -34,6 +39,23 @@ export const invalidTableRef: TNativeTableProps["ref"] = createRef<{ focus: () =
 export const rootGeometry = <Table geometry="round" />
 // @ts-expect-error Root geometry retains the canonical finite token domain.
 export const invalidRootGeometry: TNativeTableProps["geometry"] = "circular"
+export const headerRenderer = (
+  <TableHeader
+    columns={columns}
+    onHoverChange={(hovered) => {
+      const value: boolean = hovered
+      void value
+    }}
+    render={(props, state) => {
+      const hovered: boolean = state.isHovered
+      return <View {...props} style={[props.style, { opacity: hovered ? 0.5 : 1 }]} />
+    }}
+  />
+)
+// @ts-expect-error Header hover state retains the original boolean domain.
+export const invalidHeaderHover: TNativeTableHeaderRenderState["isHovered"] = "hovered"
+// @ts-expect-error A native render callback must return its single original native root.
+export const invalidHeaderRender: TNativeTableHeaderProps<object>["render"] = () => null
 export const linkedRow = (
   <TableRow
     id={0}

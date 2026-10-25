@@ -59,11 +59,22 @@ it("keeps the held editor and its value through row hover and theme changes", as
   await render(<TableFixture editorRef={editor} />)
   const original = editor.current!
   const write = jest.spyOn(original, "setNativeProps")
+  await fireEvent(screen.getByTestId("table-header"), "pointerEnter", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-header-hover")).toHaveTextContent("true")
+  expect(screen.getByTestId("table-header")).toHaveStyle({ opacity: 0.85 })
   await fireEvent(screen.getByTestId("table-row-string:a"), "pointerEnter", {
     nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
     persist: jest.fn(),
   })
   await press("Toggle theme")
+  await fireEvent(screen.getByTestId("table-header"), "pointerLeave", {
+    nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
+    persist: jest.fn(),
+  })
+  expect(screen.getByTestId("table-header-hover")).toHaveTextContent("false")
   await fireEvent(screen.getByTestId("table-row-string:a"), "pointerLeave", {
     nativeEvent: { pointerType: "mouse", pageX: 20, pageY: 30 },
     persist: jest.fn(),

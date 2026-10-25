@@ -1,4 +1,4 @@
-import type { ReactNode, RefAttributes } from "react"
+import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
 
 import type { TNativeCollectionKey } from "../../collection/snapshot"
@@ -15,6 +15,7 @@ import type {
   TTableFilterArgumentDataType,
   TTableFilterOperationCode,
 } from "./queryTypes"
+import type { TNativeTableHoverEvents } from "./useTableHover"
 
 export type TNativeTableColumnFilterMetadata = {
   enabled?: boolean
@@ -123,7 +124,9 @@ export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "chil
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
     columns: TNativeTableColumnMetadata<T>[]
-  }
+    render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableHeaderRenderState) => ReactElement
+  } & TNativeTableHoverEvents
+export type TNativeTableHeaderRenderState = Readonly<{ isHovered: boolean }>
 export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
   TStyleProps & {
     textValue?: string

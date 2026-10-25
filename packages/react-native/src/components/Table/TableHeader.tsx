@@ -2,6 +2,7 @@ import { useContext, useInsertionEffect, useRef, type ForwardedRef } from "react
 import { View } from "react-native"
 
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
+import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeViewProps } from "../../input/nativeViewProps"
@@ -25,6 +26,7 @@ import { TableColumnResizer } from "./TableColumnResizer"
 import { TableFilterPopover } from "./TableFilterPopover"
 import type { TNativeTableHeaderProps, TNativeTableHeaderComponent, TNativeTableColumnMetadata } from "./types"
 import { useTableAction } from "./useTableAction"
+import { useTableHover } from "./useTableHover"
 
 const HeaderContent = ({ column }: { column: TNativeTableColumnMetadata<object> }) => {
   const table = useNativeTable()
@@ -213,22 +215,41 @@ const Header = (
   ref: ForwardedRef<View>,
   node: TNativeCollectionNode<object>,
 ) => {
-  const { columns: _columns, style, customStyles, ...native } = props
+  const {
+    columns: _columns,
+    onHoverStart: _hoverStart,
+    onHoverEnd: _hoverEnd,
+    onHoverChange: _hoverChange,
+    render,
+    style,
+    customStyles,
+    ...native
+  } = props
   const table = useNativeTable()
   const content = useNativeContentContext()
   const renderer = useContext(NativeCollectionRendererContext)
+  const target = useRef<View | null>(null)
+  const mergedRef = useNativeCollectionRefs(target, ref)
+  const action = useTableAction(node, target)
+  const hover = useTableHover(target, action.isActive, props)
   const styles = splitNativeTextStyle(
     resolveNativeStyle([{ flexDirection: "row" }, customStyles, style], "TableHeader", "style"),
   )
-  return (
-    <View {...nativeViewProps(native)} ref={ref} style={styles.view}>
+  const hostProps = {
+    ...nativeViewProps(native),
+    ref: mergedRef,
+    style: styles.view,
+    onPointerEnter: hover.onPointerEnter,
+    onPointerLeave: hover.onPointerLeave,
+    children: (
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? content!.foregroundColor, isButton: false }}
       >
         <renderer.CollectionBranch collection={table.collection} parent={node} />
       </NativeContentContext.Provider>
-    </View>
-  )
+    ),
+  }
+  return render ? render(hostProps, { isHovered: hover.isHovered }) : <View {...hostProps} />
 }
 export const TableHeader = createNativeCollectionBranch<object, TNativeTableHeaderProps<object>, View>(
   "header",
