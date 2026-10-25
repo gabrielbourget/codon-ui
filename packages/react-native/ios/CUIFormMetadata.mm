@@ -24,6 +24,7 @@ using namespace facebook::react;
   SurfaceId _surface;
   NSDictionary *_mountSnapshot;
   NSString *_lastMount;
+  NSString *_transactionWitness;
   BOOL _applicationActive, _lastActive;
   NSString *_semanticBinding, *_semanticOwner;
   void (^_semanticRefresh)(void);
@@ -119,6 +120,7 @@ using namespace facebook::react;
   [self publish:self.window != nil surface:_surface mount:_lastMount];
   return _mountSnapshot;
 }
+- (NSString *)formTransactionWitness { return self.window ? _transactionWitness ?: @"unmounted" : @"unmounted"; }
 - (UIView *)originalForMountSnapshot:(NSDictionary *)snapshot
 {
   NSDictionary *current = [self formMountSnapshot];
@@ -130,6 +132,7 @@ using namespace facebook::react;
   [self resetSemanticAccessibilityFocus];
   [super didMoveToWindow];
   if (_boundWindow == self.window) return;
+  _transactionWitness = nil;
   if (_boundWindow) [self publish:NO surface:_surface mount:@"detached"];
   _epoch++; _boundWindow = self.window; _boundOriginal = nil; _boundEditor = nil; _signature = @"";
   _windowId = self.window ? CUIInputWindowIdentity(self.window) : @"";
@@ -196,6 +199,8 @@ using namespace facebook::react;
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
+  _transactionWitness = self.window ? [NSString stringWithFormat:@"ios-surface:%d:mount:%lld",
+      transaction.getSurfaceId(), (long long)transaction.getNumber()] : nil;
   [self publish:self.window != nil surface:transaction.getSurfaceId()
       mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
   [self refreshSemantics];
@@ -210,6 +215,7 @@ using namespace facebook::react;
   [self resetSemanticAccessibilityFocus];
   _epoch++; _boundWindow = nil; _boundOriginal = nil; _boundEditor = nil; _windowId = @""; _signature = @""; _identity = @""; _surface = -1;
   _mountSnapshot = nil; _lastMount = @"retired"; _lastActive = NO;
+  _transactionWitness = nil;
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";
   self.semanticBinding = @"";

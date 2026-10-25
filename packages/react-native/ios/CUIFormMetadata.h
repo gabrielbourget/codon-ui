@@ -11,6 +11,7 @@
 @property (nonatomic, copy) NSString *fieldGroupBinding;
 - (BOOL)isFieldBinding;
 - (NSDictionary *)formMountSnapshot;
+- (NSString *)formTransactionWitness;
 - (UIView *)originalForMountSnapshot:(NSDictionary *)snapshot;
 - (void)setSemanticContribution:(id<CUIFieldSemanticContribution>)contribution;
 - (void)setSemanticRefresh:(void (^)(void))refresh owner:(NSString *)owner;

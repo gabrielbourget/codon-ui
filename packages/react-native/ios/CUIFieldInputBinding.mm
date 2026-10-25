@@ -477,9 +477,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 }
 - (NSString *)mountWitness
 {
-  NSDictionary *mount = [_metadata formMountSnapshot];
-  NSData *bytes = mount ? [NSJSONSerialization dataWithJSONObject:mount options:NSJSONWritingSortedKeys error:nil] : nil;
-  return bytes ? [[NSString alloc] initWithData:bytes encoding:NSUTF8StringEncoding] : @"unmounted";
+  return [_metadata formTransactionWitness] ?: @"unmounted";
 }
 - (BOOL)currentScope:(const FieldInputIdentity &)expected
 {
