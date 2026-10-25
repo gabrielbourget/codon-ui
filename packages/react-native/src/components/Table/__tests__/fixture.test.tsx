@@ -2,7 +2,7 @@ import "../../../collection/__tests__/nativeReceipts"
 
 import { cleanup, userEvent } from "@testing-library/react-native"
 import { createRef } from "react"
-import type { TextInput } from "react-native"
+import type { TextInput, View } from "react-native"
 
 import {
   actWithNativeCollections as act,
@@ -28,8 +28,11 @@ const press = async (name: string) => {
 }
 it("keeps the same held editor through row reorder and theme changes without writing its value", async () => {
   const editor = createRef<TextInput>()
-  await render(<TableFixture editorRef={editor} />)
+  const table = createRef<View>()
+  await render(<TableFixture editorRef={editor} tableRef={table} />)
   const original = editor.current!
+  const originalTable = table.current!
+  expect(originalTable).not.toBeNull()
   const write = jest.spyOn(original, "setNativeProps")
   await press("Reverse rows")
   await press("Toggle theme")
@@ -37,6 +40,7 @@ it("keeps the same held editor through row reorder and theme changes without wri
   expect(screen.getByTestId("table-requests")).toHaveTextContent('["requested"]')
   expect(screen.getByTestId("table-editor").props.value).toBe("held")
   expect(editor.current).toBe(original)
+  expect(table.current).toBe(originalTable)
   expect(write).not.toHaveBeenCalled()
 })
 it("replaces rows with loading content then empty content under the fixture owner", async () => {

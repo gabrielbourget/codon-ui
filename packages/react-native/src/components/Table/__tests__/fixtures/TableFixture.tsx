@@ -15,7 +15,7 @@ const people: TPerson[] = [
   { id: "a", name: "Alpha", active: false },
   { id: "b", name: "Beta", active: true },
 ]
-export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
+export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
   const [empty, setEmpty] = useState(false)
@@ -81,6 +81,7 @@ export const TableFixture = ({ editorRef }: { editorRef?: Ref<TextInput> }) => {
               <Button onPress={() => setHoldQuery((value) => !value)}>Toggle query veto</Button>
             </View>
             <Table
+              ref={tableRef}
               accessibilityLabel="People"
               hoverColor={dark ? "#444444" : "#ddeeff"}
               zebra

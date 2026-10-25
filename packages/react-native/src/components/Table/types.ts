@@ -101,9 +101,11 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
       }
   )
 export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
+  RefAttributes<View> &
   TStyleProps &
   MultipleSelectionStateProps & {
     children?: ReactNode
+    geometry?: TCornerGeometry
     hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue

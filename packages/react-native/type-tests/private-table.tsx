@@ -12,7 +12,7 @@ import { TableCell } from "../src/components/Table/TableCell"
 import { TableFilterPopover } from "../src/components/Table/TableFilterPopover"
 import { TableHeader } from "../src/components/Table/TableHeader"
 import { TableRow } from "../src/components/Table/TableRow"
-import type { TNativeTableColumnMetadata } from "../src/components/Table/types"
+import type { TNativeTableColumnMetadata, TNativeTableProps } from "../src/components/Table/types"
 
 const rows = [{ id: 0, name: "Alpha" }]
 const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
@@ -20,6 +20,20 @@ const columns: TNativeTableColumnMetadata<(typeof rows)[number]>[] = [
   { id: "action", role: "structural", structuralKind: "action", structuralPosition: "right", width: 0 },
 ]
 const view = createRef<View>()
+export const tableRef = <Table ref={view} />
+export const tableCallbackRef = (
+  <Table
+    ref={(target) => {
+      const original: View | null = target
+      return () => void original
+    }}
+  />
+)
+// @ts-expect-error The root ref must receive the original native View, not a focus-shaped proxy.
+export const invalidTableRef: TNativeTableProps["ref"] = createRef<{ focus: () => void }>()
+export const rootGeometry = <Table geometry="round" />
+// @ts-expect-error Root geometry retains the canonical finite token domain.
+export const invalidRootGeometry: TNativeTableProps["geometry"] = "circular"
 export const linkedRow = (
   <TableRow
     id={0}
