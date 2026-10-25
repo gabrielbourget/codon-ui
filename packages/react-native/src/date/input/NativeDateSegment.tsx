@@ -175,6 +175,12 @@ export const NativeDateSegment = forwardRef<TNativeDateSegmentRef, TNativeDateSe
     )
       return
     const scope = committedScope.current
+    if (
+      scope &&
+      ["insert", "delete", "marked", "unmark"].includes(data.kind) &&
+      (!scope.current() || !("fieldDispatch" in data))
+    )
+      return
     if ("fieldDispatch" in data) {
       if (!scope) return
       receiveNativeFieldOwnedInput(scope, event as unknown as TNativeFieldOwnedInputEvent, () =>

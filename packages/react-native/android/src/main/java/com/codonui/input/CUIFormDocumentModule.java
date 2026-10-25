@@ -202,21 +202,39 @@ public final class CUIFormDocumentModule extends NativeCUIFormDocumentSpec {
         CUIFormMetadataView metadata = (CUIFormMetadataView)original;
         if (metadata.originalForMountSnapshot(mount) == null || !metadata.fieldGroupBinding.equals(request.getString("fieldGroupBinding")))
           throw new IllegalStateException("field-input-bind-original-retired");
-        fieldInputSnapshot(manager, metadata);
+        JSONObject declaration = new JSONObject(metadata.fieldGroupBinding);
+        if (declaration.length() != 7 || declaration.getInt("version") != 1 || !metadata.ownerId.equals(declaration.getString("ownerId")) ||
+            declaration.getString("bindingId").isEmpty() || declaration.getString("bindingRevision").isEmpty() ||
+            CUIEditorKeyboardDefaultsModule.forLease(declaration.getString("moduleLease")) == null)
+          throw new IllegalStateException("field-input-registration-invalid");
+        for (String key : new String[]{"ownerId", "bindingId", "bindingRevision", "moduleLease"})
+          if (!(declaration.get(key) instanceof String) || declaration.getString(key).isEmpty())
+            throw new IllegalStateException("field-input-registration-invalid");
+        View outer = manager.resolveView(positiveInteger(declaration, "outerTarget")), input = manager.resolveView(positiveInteger(declaration, "inputTarget"));
+        if (!(outer instanceof com.facebook.react.views.view.ReactViewGroup) || !(input instanceof com.facebook.react.views.view.ReactViewGroup) ||
+            outer == input || !CUIOwnedDateField.descendant(input, outer) || !CUIOwnedDateField.descendant(metadata, outer))
+          throw new IllegalStateException("field-input-registration-roots-retired");
+        java.util.List<CUIDateSegment> segments = CUIOwnedDateField.resolveAll(manager, metadata, metadata.ownedEditorBinding, metadata.originalTarget, mount.getInt("surfaceId"));
+        if (segments == null || segments.isEmpty()) throw new IllegalStateException("field-input-registration-segments-retired");
+        for (View segment : segments) if (!CUIOwnedDateField.descendant(segment, input)) throw new IllegalStateException("field-input-registration-input-retired");
         CUIFieldInputBinding previous = fieldInputs.get(metadata); if (previous != null) previous.retire();
         WeakReference<CUIFormDocumentModule> module = new WeakReference<>(this);
         WeakReference<CUIFormMetadataView> target = new WeakReference<>(metadata);
         WeakReference<FabricUIManager> fabric = new WeakReference<>(manager);
-        CUIFieldInputBinding binding = new CUIFieldInputBinding(metadata, manager, () -> {
+        String owner = semanticModuleId + ":input:" + nonce;
+        JSONObject registration = new JSONObject().put("kind", "binding-status").put("requestId", nonce).put("ownerToken", owner)
+          .put("metadataTarget", metadata.getId()).put("ownerId", metadata.ownerId).put("moduleLease", declaration.getString("moduleLease"))
+          .put("bindingId", declaration.getString("bindingId")).put("bindingRevision", declaration.getString("bindingRevision"))
+          .put("generation", 0).put("ready", false).put("error", "field-input-awaiting-current-document");
+        CUIFieldInputBinding binding = new CUIFieldInputBinding(metadata, manager, registration, outer, input, () -> {
           CUIFormDocumentModule current = module.get(); CUIFormMetadataView view = target.get(); FabricUIManager active = fabric.get();
           if (current == null || view == null || active == null) throw new IllegalStateException("field-input-owner-retired");
           return current.fieldInputSnapshot(active, view);
         });
-        String owner = semanticModuleId + ":input:" + nonce;
         fieldInputs.put(metadata, binding); fieldInputOwners.put(metadata, owner);
         WeakReference<CUIFieldInputBinding> refresh = new WeakReference<>(binding);
         metadata.setFieldInputRefresh(() -> { CUIFieldInputBinding current = refresh.get(); if (current != null) current.refresh(); }, owner);
-        promise.resolve(new JSONObject().put("requestId", nonce).put("ownerToken", owner).put("metadataTarget", metadata.getId()).toString());
+        promise.resolve(binding.registrationReceipt().toString());
       } catch (Exception error) { promise.reject("E_CUI_FIELD_INPUT", error); }
     });
   }

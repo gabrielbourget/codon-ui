@@ -6,7 +6,11 @@
 - (instancetype)initWithMetadata:(CUIFieldBinding *)metadata
                       presenter:(RCTSurfacePresenter *)presenter
                         manager:(std::shared_ptr<facebook::react::UIManager>)manager
+                   registration:(NSDictionary *)registration
+                          outer:(UIView *)outer
+                          input:(UIView *)input
                        snapshot:(NSDictionary *(^)(void))snapshot;
+- (NSDictionary *)registrationReceipt;
 - (void)refresh;
 - (void)retire;
 @end

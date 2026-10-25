@@ -111,6 +111,7 @@ using namespace facebook::react;
   if ([notification.name isEqual:UIApplicationDidBecomeActiveNotification] || [notification.name isEqual:UISceneDidActivateNotification]) _applicationActive = YES;
   [self publish:self.window != nil surface:_surface mount:_lastMount];
   [self refreshSemantics];
+  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)dealloc { [_semanticContribution retire]; [NSNotificationCenter.defaultCenter removeObserver:self]; }
 - (NSDictionary *)formMountSnapshot
@@ -132,6 +133,8 @@ using namespace facebook::react;
   if (_boundWindow) [self publish:NO surface:_surface mount:@"detached"];
   _epoch++; _boundWindow = self.window; _boundOriginal = nil; _boundEditor = nil; _signature = @"";
   _windowId = self.window ? CUIInputWindowIdentity(self.window) : @"";
+  [self publish:self.window != nil surface:_surface mount:_lastMount];
+  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)publish:(BOOL)attached surface:(SurfaceId)surface mount:(NSString *)mount
 {
@@ -190,16 +193,17 @@ using namespace facebook::react;
     CUIFormRootEventEmitter::OnNativeFormCommit value{}; fill(value);
     std::static_pointer_cast<const CUIFormRootEventEmitter>(_eventEmitter)->onNativeFormCommit(value);
   }
-  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)mountingTransactionDidMount:(const MountingTransaction &)transaction withSurfaceTelemetry:(const SurfaceTelemetry &)surfaceTelemetry
 {
   [self publish:self.window != nil surface:transaction.getSurfaceId()
       mount:[NSString stringWithFormat:@"ios-surface:%d:mount:%lld", transaction.getSurfaceId(), (long long)transaction.getNumber()]];
   [self refreshSemantics];
+  if (_fieldInputRefresh) _fieldInputRefresh();
 }
 - (void)prepareForRecycle
 {
+  void (^refresh)(void) = _fieldInputRefresh;
   _fieldInputRefresh = nil; _fieldInputOwner = nil;
   [self publish:NO surface:_surface mount:@"retired"];
   [self clearSemanticRefreshForOwner:_semanticOwner];
@@ -209,7 +213,9 @@ using namespace facebook::react;
   self.originalTarget = 0;
   self.ownedEditorBinding = @"";
   self.semanticBinding = @"";
+  self.fieldGroupBinding = @"";
   [super prepareForRecycle];
+  if (refresh) refresh();
 }
 @end
 

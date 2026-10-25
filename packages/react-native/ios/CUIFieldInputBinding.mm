@@ -34,6 +34,7 @@ using namespace codon::form;
   originalInput:(const RawEvent *)originalInput deadline:(FieldInputDispatchFrames::Clock::time_point)deadline;
 - (void)emitOriginalPointers:(void (^)(void))emit decision:(void (^)(BOOL))decision;
 - (void)record:(NSDictionary *)value;
+- (void)publishReadiness:(BOOL)ready error:(NSString *)error;
 - (void)pointerFailure:(NSString *)error;
 - (UIWindow *)boundWindow;
 - (NSString *)moduleLease;
@@ -281,23 +282,49 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   __weak UIWindow *_window;
   std::weak_ptr<UIManager> _manager;
   NSDictionary *(^_snapshot)(void);
+  NSDictionary *_registration, *_status;
+  NSUInteger _statusGeneration;
+  BOOL _statusPublished;
   NSString *_bindingId, *_ownerId, *_lease, *_fingerprint, *_error, *_pointerError, *_outerInstance, *_inputInstance;
   NSUInteger _epoch, _eventId;
   BOOL _closed, _capturing;
   NSMutableSet<NSNumber *> *_consumed;
 }
 - (instancetype)initWithMetadata:(CUIFieldBinding *)metadata presenter:(RCTSurfacePresenter *)presenter
-                        manager:(std::shared_ptr<UIManager>)manager snapshot:(NSDictionary *(^)(void))snapshot
+                        manager:(std::shared_ptr<UIManager>)manager registration:(NSDictionary *)registration
+                          outer:(UIView *)outer input:(UIView *)input snapshot:(NSDictionary *(^)(void))snapshot
 {
   if ((self = [super init])) {
     RCTAssertMainQueue();
     _metadata = metadata; _presenter = presenter; _manager = manager; _snapshot = [snapshot copy];
+    _registration = [registration copy]; _status = _registration; _outer = outer; _input = input;
+    _lease = registration[@"moduleLease"]; _bindingId = registration[@"bindingId"]; _ownerId = registration[@"ownerId"];
     _epoch = 1; _consumed = [NSMutableSet new];
     if (!CUIFieldInputs) CUIFieldInputs = [NSHashTable weakObjectsHashTable];
     [CUIFieldInputs addObject:self];
-    [self refresh];
   }
   return self;
+}
+- (NSDictionary *)registrationReceipt
+{
+  return @{@"requestId":_registration[@"requestId"], @"ownerToken":_registration[@"ownerToken"],
+    @"metadataTarget":_registration[@"metadataTarget"], @"status":_status};
+}
+- (void)publishReadiness:(BOOL)ready error:(NSString *)error
+{
+  NSString *encodedDeclaration = _metadata.fieldGroupBinding;
+  id decodedDeclaration = encodedDeclaration.length ? [NSJSONSerialization JSONObjectWithData:[encodedDeclaration dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nullptr] : nil;
+  NSDictionary *declaration = [decodedDeclaration isKindOfClass:NSDictionary.class] ? decodedDeclaration : nil;
+  BOOL originalDeclaration = [_metadata.ownerId isEqual:_registration[@"ownerId"]] &&
+    [declaration[@"ownerId"] isEqual:_registration[@"ownerId"]] &&
+    [declaration[@"moduleLease"] isEqual:_registration[@"moduleLease"]] &&
+    [declaration[@"bindingId"] isEqual:_registration[@"bindingId"]];
+  NSString *revision = originalDeclaration && [declaration[@"bindingRevision"] isKindOfClass:NSString.class] ? declaration[@"bindingRevision"] : _status[@"bindingRevision"];
+  if (_statusPublished && [_status[@"bindingRevision"] isEqual:revision] && [_status[@"ready"] boolValue] == ready) return;
+  NSMutableDictionary *status = [_registration mutableCopy];
+  status[@"bindingRevision"] = revision; status[@"generation"] = @(++_statusGeneration);
+  status[@"ready"] = @(ready); status[@"error"] = error ?: @"";
+  _status = [status copy]; _statusPublished = YES; [self record:_status];
 }
 - (UIView *)outerRoot { return _outer; }
 - (BOOL)containsOriginalView:(UIView *)view
@@ -348,6 +375,14 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
   _capturing = YES;
   @try {
     try {
+      NSString *encodedDeclaration = _metadata.fieldGroupBinding;
+      id decodedDeclaration = encodedDeclaration.length ? [NSJSONSerialization JSONObjectWithData:[encodedDeclaration dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nullptr] : nil;
+      NSDictionary *declaration = [decodedDeclaration isKindOfClass:NSDictionary.class] ? decodedDeclaration : nil;
+      if (![_metadata.ownerId isEqual:_registration[@"ownerId"]] ||
+          ![declaration[@"ownerId"] isEqual:_registration[@"ownerId"]] ||
+          ![declaration[@"moduleLease"] isEqual:_registration[@"moduleLease"]] ||
+          ![declaration[@"bindingId"] isEqual:_registration[@"bindingId"]])
+        throw std::runtime_error("field-input-original-binding-retired");
       NSDictionary *value = _snapshot();
       if (!value) throw std::runtime_error("field-input-snapshot-unavailable");
       NSString *encoded = value[@"encodedDocument"];
@@ -359,7 +394,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       NSDictionary *snapshot = value[@"fieldGroupSnapshot"];
       UIView *outer = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:binding.outerTarget];
       UIView *input = [_presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:binding.inputTarget];
-      if (!outer || !input || (_outerInstance && ![_outerInstance isEqual:snapshot[@"outerInstance"]]) ||
+      if (!outer || !input || outer != _outer || input != _input || (_outerInstance && ![_outerInstance isEqual:snapshot[@"outerInstance"]]) ||
           (_inputInstance && ![_inputInstance isEqual:snapshot[@"inputInstance"]]))
         throw std::runtime_error("field-input-original-root-instance-retired");
       NSString *fingerprint = [@[value[@"documentId"], value[@"surfaceId"], snapshot[@"windowId"], snapshot[@"outerInstance"],
@@ -368,16 +403,15 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       _fingerprint = fingerprint; _bindingId = @(binding.bindingId.c_str()); _ownerId = @(binding.ownerId.c_str());
       _lease = @(binding.moduleLease.c_str()); _outer = outer; _input = input; _error = nil;
       _outerInstance = snapshot[@"outerInstance"]; _inputInstance = snapshot[@"inputInstance"];
+      [self publishReadiness:YES error:@""];
       return value;
     } catch (const std::exception &error) {
       @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@(error.what()) userInfo:nil];
     }
   } @catch (NSException *error) {
     [self retirePending];
-    if (![_error isEqual:error.reason]) {
-      _error = error.reason;
-      [self record:@{@"kind":@"status", @"ready":@NO, @"error":error.reason ?: @"field-input-capture-failed"}];
-    }
+    _error = error.reason;
+    [self publishReadiness:NO error:error.reason ?: @"field-input-capture-failed"];
     return nil;
   } @finally { _capturing = NO; }
 }
@@ -720,6 +754,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
 - (void)retire
 {
   if (_closed) return;
+  [self publishReadiness:NO error:@"field-input-registration-retired"];
   _closed = YES; [self retirePending];
   UIWindow *window = _window; _window = nil;
   [CUIFieldInputs removeObject:self]; _snapshot = nil; CUIRefreshFieldInputWindow(window);

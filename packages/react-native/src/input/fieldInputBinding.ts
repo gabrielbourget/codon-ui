@@ -15,6 +15,7 @@ export type TNativeFieldInputPlan = Readonly<{
 export type TNativeFieldInputMetadata = Readonly<{
   binding: (ownerId: string) => string
   commit: (mount: NativeFormCommitData) => void
+  receive: (event: NativeSyntheticEvent<Readonly<{ record: string }>>) => void
   record?: (event: NativeSyntheticEvent<Readonly<{ record: string }>>) => void
 }>
 type TModule = TNativeFieldInputScope["native"]
@@ -22,7 +23,44 @@ type TDocumentModule = Readonly<{
   bindFieldInput: (request: string) => Promise<string>
   unbindFieldInput: (request: string) => Promise<boolean>
 }>
-type TReceipt = Readonly<{ requestId: string; ownerToken: string; metadataTarget: number }>
+type TBindingStatus = Readonly<{
+  kind: "binding-status"
+  requestId: string
+  ownerToken: string
+  metadataTarget: number
+  ownerId: string
+  moduleLease: string
+  bindingId: string
+  bindingRevision: string
+  generation: number
+  ready: boolean
+  error: string
+}>
+type TReceipt = Readonly<{ requestId: string; ownerToken: string; metadataTarget: number; status: TBindingStatus }>
+type TPending = { requestId: string; mount: NativeFormCommitData; statuses: Map<string, TBindingStatus> }
+const bindingStatus = (value: unknown): value is TBindingStatus => {
+  if (!value || typeof value !== "object" || Array.isArray(value) || Object.keys(value).length !== 11) return false
+  const status = value as TBindingStatus
+  return (
+    status.kind === "binding-status" &&
+    [
+      status.requestId,
+      status.ownerToken,
+      status.ownerId,
+      status.moduleLease,
+      status.bindingId,
+      status.bindingRevision,
+    ].every((item) => typeof item === "string" && item.length > 0) &&
+    Number.isSafeInteger(status.metadataTarget) &&
+    status.metadataTarget > 0 &&
+    Number.isSafeInteger(status.generation) &&
+    status.generation >= 0 &&
+    typeof status.ready === "boolean" &&
+    (!status.ready || status.generation > 0) &&
+    typeof status.error === "string" &&
+    (!status.ready || status.error === "")
+  )
+}
 let requests = 0
 
 // This session owns only a committed field's two original roots and binding
@@ -30,7 +68,7 @@ let requests = 0
 export class NativeFieldInputSession {
   #plan: TNativeFieldInputPlan | null = null
   #bound: TReceipt | null = null
-  #pending: object | null = null
+  #pending: TPending | null = null
   #failed: TNativeFieldInputPlan | null = null
   #closed = false
   #lease: string
@@ -53,11 +91,19 @@ export class NativeFieldInputSession {
     }
   }
   version = () => this.#version
+  #ready = () =>
+    !!this.#bound &&
+    !this.#closed &&
+    this.native.getLease() === this.#lease &&
+    this.#bound.status.ready &&
+    this.#bound.status.bindingId === this.#plan?.bindingId &&
+    this.#bound.status.bindingRevision === this.#plan?.bindingRevision
   status = () =>
     Object.freeze({
-      ready: !!this.#bound && !this.#closed && this.native.getLease() === this.#lease,
-      pending: !!this.#pending,
-      error: this.#error,
+      ready: this.#ready(),
+      pending:
+        !!this.#pending || (!!this.#bound && !this.#ready() && !this.#closed && this.native.getLease() === this.#lease),
+      error: this.#bound?.status.error ?? this.#error,
     })
   #changed = () => {
     this.#version++
@@ -131,9 +177,46 @@ export class NativeFieldInputSession {
       bindingId: plan.bindingId,
       bindingRevision: plan.bindingRevision,
       native: this.native,
-      current: () => !this.#closed && this.#plan === plan && !!this.#bound && this.native.getLease() === this.#lease,
+      current: () => this.#plan === plan && this.#ready(),
     })
   metadataFor = (plan: TNativeFieldInputPlan | null): TNativeFieldInputMetadata => ({
+    receive: (event) => {
+      if (this.#closed || !plan || this.#plan !== plan || this.native.getLease() !== this.#lease) return
+      let status: unknown
+      try {
+        status = JSON.parse(event.nativeEvent.record)
+      } catch {
+        return
+      }
+      if (
+        !bindingStatus(status) ||
+        status.moduleLease !== this.#lease ||
+        status.bindingId !== plan.bindingId ||
+        status.bindingRevision !== plan.bindingRevision
+      )
+        return
+      const receipt = this.#bound
+      if (receipt) {
+        if (
+          status.requestId !== receipt.requestId ||
+          status.ownerToken !== receipt.ownerToken ||
+          status.metadataTarget !== receipt.metadataTarget ||
+          status.ownerId !== receipt.status.ownerId ||
+          status.generation <= receipt.status.generation
+        )
+          return
+        this.#bound = Object.freeze({ ...receipt, status: Object.freeze(status) })
+        this.#changed()
+      } else if (
+        this.#pending?.requestId === status.requestId &&
+        this.#pending.mount.target === status.metadataTarget &&
+        this.#pending.mount.ownerId === status.ownerId
+      ) {
+        const previous = this.#pending.statuses.get(status.ownerToken)
+        if (!previous || status.generation > previous.generation)
+          this.#pending.statuses.set(status.ownerToken, Object.freeze(status))
+      }
+    },
     binding: (ownerId) => {
       return !plan || this.#closed
         ? ""
@@ -173,8 +256,8 @@ export class NativeFieldInputSession {
       if (this.#bound?.metadataTarget === mount.target || this.#pending || this.#failed === plan) return
       this.#withdraw()
       this.#mountKey = mountKey
-      const pending = {},
-        requestId = `${plan.bindingId}:input:${++requests}`
+      const requestId = `${plan.bindingId}:input:${++requests}`,
+        pending: TPending = { requestId, mount, statuses: new Map() }
       this.#pending = pending
       const fieldGroupBinding = this.metadataFor(plan).binding(mount.ownerId)
       this.#changed()
@@ -185,13 +268,26 @@ export class NativeFieldInputSession {
             !receipt ||
             typeof receipt !== "object" ||
             Array.isArray(receipt) ||
-            Object.keys(receipt).length !== 3 ||
+            Object.keys(receipt).length !== 4 ||
             receipt.requestId !== requestId ||
             typeof receipt.ownerToken !== "string" ||
             !receipt.ownerToken ||
             receipt.metadataTarget !== mount.target
           )
             throw new Error("field-input-binding-response-invalid")
+          if (
+            !bindingStatus(receipt.status) ||
+            receipt.status.requestId !== requestId ||
+            receipt.status.ownerToken !== receipt.ownerToken ||
+            receipt.status.metadataTarget !== mount.target ||
+            receipt.status.ownerId !== mount.ownerId ||
+            receipt.status.moduleLease !== this.#lease ||
+            receipt.status.bindingId !== plan.bindingId ||
+            receipt.status.bindingRevision !== plan.bindingRevision
+          ) {
+            this.#release(receipt)
+            throw new Error("field-input-binding-response-invalid")
+          }
           if (
             this.#closed ||
             this.#pending !== pending ||
@@ -202,8 +298,13 @@ export class NativeFieldInputSession {
             this.#release(receipt)
             return
           }
+          const observed = pending.statuses.get(receipt.ownerToken)
           this.#pending = null
-          this.#bound = Object.freeze(receipt)
+          this.#bound = Object.freeze({
+            ...receipt,
+            status:
+              observed && observed.generation > receipt.status.generation ? observed : Object.freeze(receipt.status),
+          })
           this.#changed()
         })
         .catch((error: unknown) => {

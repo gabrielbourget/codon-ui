@@ -76,6 +76,7 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     finally { refreshingSemantics = false; }
   }
   void setFieldInputRefresh(Runnable refresh, String owner) { fieldInputRefresh = refresh; fieldInputOwner = owner; if (refresh != null) refresh.run(); }
+  private void refreshFieldInput() { if (fieldInputRefresh != null) fieldInputRefresh.run(); }
   void clearFieldInputRefresh(String owner) { if (owner.equals(fieldInputOwner)) { fieldInputRefresh = null; fieldInputOwner = null; } }
   void emitFieldInputRecord(String record) {
     if (!fieldBinding || !(getContext() instanceof ReactContext)) return;
@@ -113,20 +114,22 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
   }
   @Override protected void onAttachedToWindow() {
     super.onAttachedToWindow(); epoch++; window = CUIInputWindow.identity(this); signature = ""; connect();
+    publish(true, lastMount); refreshFieldInput();
   }
   @Override protected void onDetachedFromWindow() {
     setSemanticContribution(null);
     resetSemanticAccessibilityFocus();
-    publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow();
+    publish(false, "detached"); disconnect(); epoch++; signature = ""; super.onDetachedFromWindow(); refreshFieldInput();
   }
   void retire() {
-    fieldInputRefresh = null; fieldInputOwner = null;
+    Runnable refresh = fieldInputRefresh; fieldInputRefresh = null; fieldInputOwner = null;
     setSemanticContribution(null); semanticRefresh = null; semanticOwner = null;
     publish(false, "retired"); disconnect(); epoch++; signature = ""; identity = ""; original.clear();
     ownerId = ""; descriptorId = ""; descriptorRevision = ""; originalTarget = 0;
     mountSnapshot = null; lastMount = "retired"; lastActive = false;
     semanticBinding = ""; ownedEditorBinding = ""; fieldGroupBinding = "";
     resetSemanticAccessibilityFocus();
+    if (refresh != null) refresh.run();
   }
 
   JSONObject formMountSnapshot() throws Exception {
@@ -137,11 +140,11 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     JSONObject current = formMountSnapshot();
     return CUIFormActionAdmission.same(expected, current) && current.getBoolean("complete") && current.getBoolean("active") ? original.get() : null;
   }
-  @Override public void onWindowFocusChanged(boolean focused) { super.onWindowFocusChanged(focused); publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
-  @Override protected void onWindowVisibilityChanged(int visibility) { super.onWindowVisibilityChanged(visibility); publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
-  @Override public void onHostResume() { resumed = true; publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
-  @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); refreshSemantics(); }
-  @Override public void onHostDestroy() { resumed = false; setSemanticContribution(null); publish(false, "retired"); disconnect(); }
+  @Override public void onWindowFocusChanged(boolean focused) { super.onWindowFocusChanged(focused); publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
+  @Override protected void onWindowVisibilityChanged(int visibility) { super.onWindowVisibilityChanged(visibility); publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
+  @Override public void onHostResume() { resumed = true; publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
+  @Override public void onHostPause() { resumed = false; publish(isAttachedToWindow(), lastMount); refreshSemantics(); refreshFieldInput(); }
+  @Override public void onHostDestroy() { resumed = false; setSemanticContribution(null); publish(false, "retired"); refreshFieldInput(); disconnect(); }
 
   private void publish(boolean attached, String mountRevision) {
     if (ownerId == null || ownerId.isEmpty() || descriptorId.isEmpty() || descriptorRevision.isEmpty()) { mountSnapshot = null; return; }
@@ -191,9 +194,8 @@ final class CUIFormMetadataView extends CUICollectionNode implements UIManagerLi
     data.putBoolean("metadataOnly", metadataOnly); data.putString("originalClass", originalClass); data.putString("error", error);
     data.putBoolean("active", active);
     dispatcher.dispatchEvent(new CommitEvent(surface, getId(), data));
-    if (fieldInputRefresh != null) fieldInputRefresh.run();
   }
-  @Override public void didMountItems(UIManager manager) { if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); refreshSemantics(); } }
+  @Override public void didMountItems(UIManager manager) { if (this.manager == manager) { publish(true, "android-ui-mount-batch:" + ++mountBatch); refreshSemantics(); refreshFieldInput(); } }
   @Override public void willDispatchViewUpdates(UIManager manager) {}
   @Override public void willMountItems(UIManager manager) {}
   @Override public void didDispatchMountItems(UIManager manager) {}

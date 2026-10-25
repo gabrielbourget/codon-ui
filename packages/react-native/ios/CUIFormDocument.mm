@@ -14,6 +14,7 @@
 #import <React/RCTSurfacePresenter.h>
 #include "../cpp/form/FormDocumentQuery.h"
 #include "../cpp/form/FieldGroupQuery.h"
+#include "../cpp/FieldInputRuntime.h"
 #include <atomic>
 #include <cmath>
 #include <climits>
@@ -299,18 +300,41 @@ RCT_EXPORT_MODULE(CUIFormDocument)
       CUIFieldBinding *metadata = (id)[presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[mount[@"target"] integerValue]];
       if (![metadata isKindOfClass:CUIFieldBinding.class] || ![metadata originalForMountSnapshot:mount] ||
           ![metadata.fieldGroupBinding isEqual:request[@"fieldGroupBinding"]]) throw std::invalid_argument("field-input-bind-original-retired");
-      [self fieldInputSnapshot:metadata];
+      NSDictionary *declaration = [NSJSONSerialization JSONObjectWithData:[metadata.fieldGroupBinding dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nil];
+      if (![declaration isKindOfClass:NSDictionary.class] || declaration.count != 7 || [declaration[@"version"] intValue] != 1 ||
+          ![declaration[@"ownerId"] isEqual:metadata.ownerId]) throw std::invalid_argument("field-input-registration-invalid");
+      for (NSString *key in @[@"bindingId", @"bindingRevision", @"moduleLease"])
+        if (![declaration[key] isKindOfClass:NSString.class] || ![declaration[key] length]) throw std::invalid_argument("field-input-registration-invalid");
+      for (NSString *key in @[@"outerTarget", @"inputTarget"])
+        if (![declaration[key] isKindOfClass:NSNumber.class] || [declaration[key] doubleValue] != [declaration[key] integerValue] ||
+            [declaration[key] integerValue] <= 0 || [declaration[key] integerValue] > INT_MAX) throw std::invalid_argument("field-input-registration-invalid");
+      if (!presenter.scheduler.uiManager) throw std::invalid_argument("field-input-Fabric-unavailable");
+      const auto runtime = codon::fieldInputRuntime([declaration[@"moduleLease"] UTF8String]);
+      if (!runtime || !runtime->ready()) throw std::invalid_argument("field-input-module-retired");
+      UIView *outer = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[declaration[@"outerTarget"] integerValue]];
+      UIView *input = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:[declaration[@"inputTarget"] integerValue]];
+      if (![outer isKindOfClass:RCTViewComponentView.class] || ![input isKindOfClass:RCTViewComponentView.class] || outer == input ||
+          ![input isDescendantOfView:outer] || ![metadata isDescendantOfView:outer]) throw std::invalid_argument("field-input-registration-roots-retired");
+      NSArray<CUIDateSegment *> *segments = CUIResolveOwnedDateFieldSegments(metadata, metadata.ownedEditorBinding,
+        metadata.originalTarget, [mount[@"surfaceId"] intValue]);
+      if (!segments.count) throw std::invalid_argument("field-input-registration-segments-retired");
+      for (UIView *segment in segments) if (![segment isDescendantOfView:input]) throw std::invalid_argument("field-input-registration-input-retired");
       [[_fieldInputs objectForKey:metadata] retire];
+      NSString *owner = [NSString stringWithFormat:@"%@:input:%@", _semanticModuleId, nonce];
+      NSDictionary *registration = @{@"kind":@"binding-status", @"requestId":nonce, @"ownerToken":owner,
+        @"metadataTarget":@(metadata.tag), @"ownerId":metadata.ownerId, @"moduleLease":declaration[@"moduleLease"],
+        @"bindingId":declaration[@"bindingId"], @"bindingRevision":declaration[@"bindingRevision"],
+        @"generation":@0, @"ready":@NO, @"error":@"field-input-awaiting-current-document"};
       __weak CUIFormDocument *weakSelf = self; __weak CUIFieldBinding *weakMetadata = metadata;
-      CUIFieldInputBinding *binding = [[CUIFieldInputBinding alloc] initWithMetadata:metadata presenter:presenter manager:presenter.scheduler.uiManager snapshot:^NSDictionary * {
+      CUIFieldInputBinding *binding = [[CUIFieldInputBinding alloc] initWithMetadata:metadata presenter:presenter manager:presenter.scheduler.uiManager
+        registration:registration outer:outer input:input snapshot:^NSDictionary * {
         CUIFormDocument *module = weakSelf; CUIFieldBinding *original = weakMetadata;
         return module && original ? [module fieldInputSnapshot:original] : nil;
       }];
-      NSString *owner = [NSString stringWithFormat:@"%@:input:%@", _semanticModuleId, nonce];
       [_fieldInputs setObject:binding forKey:metadata]; [_fieldInputOwners setObject:owner forKey:metadata];
       __weak CUIFieldInputBinding *weakBinding = binding;
       [metadata setFieldInputRefresh:^{ [weakBinding refresh]; } owner:owner];
-      NSDictionary *response = @{@"requestId":nonce, @"ownerToken":owner, @"metadataTarget":@(metadata.tag)};
+      NSDictionary *response = [binding registrationReceipt];
       resolve([[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:response options:NSJSONWritingSortedKeys error:nil] encoding:NSUTF8StringEncoding]);
     } catch (const std::exception &error) { reject(@"E_CUI_FIELD_INPUT", @(error.what()), nil); }
   } @catch (NSException *error) { reject(@"E_CUI_FIELD_INPUT", error.reason, nil); }

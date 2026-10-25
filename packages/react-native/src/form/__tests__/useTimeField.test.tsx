@@ -288,8 +288,9 @@ it("clears native reset validation after an owner queues validation during the v
 it("composes the private field input declaration and original mount/record callbacks with existing form ownership", async () => {
   const binding = jest.fn((ownerId: string) => JSON.stringify({ ownerId, bindingId: "private-group" })),
     commit = jest.fn(),
+    receive = jest.fn(),
     record = jest.fn()
-  const value = await setup({}, {}, "", { binding, commit, record })
+  const value = await setup({}, {}, "", { binding, commit, receive, record })
   const metadata = screen.getByTestId("time-field-metadata", { includeHiddenElements: true })
   expect(JSON.parse(metadata.props.fieldGroupBinding)).toEqual({
     ownerId: metadata.props.ownerId,
@@ -317,6 +318,8 @@ it("composes the private field input declaration and original mount/record callb
   expect(commit).toHaveBeenCalledWith(packet)
   const original = { nativeEvent: { record: "original-native-record" } }
   await act(() => metadata.props.onNativeFieldInputRecord(original))
+  expect(receive).toHaveBeenCalledWith(original)
   expect(record).toHaveBeenCalledWith(original)
+  expect(receive.mock.invocationCallOrder[0]).toBeLessThan(record.mock.invocationCallOrder[0])
   expect(value.field().descriptor.ownedEditorBinding).toBe(metadata.props.ownedEditorBinding)
 })

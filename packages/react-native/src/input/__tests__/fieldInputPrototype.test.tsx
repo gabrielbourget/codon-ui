@@ -28,6 +28,7 @@ const { FieldInputSDKScene } = jest.requireActual<{
 }>("../../../../../planning/component-library/fixtures/native-time-picker/FieldInputSDKApp")
 
 const mockTargets = new Map<string, { nativeTag: number; focus: () => void; setNativeProps: () => void }>()
+const mockBindingStatuses = new Map<number, Record<string, unknown>>()
 let mockTags = 100
 jest.mock("../specs/CUIFocusViewNativeComponent", () => ({
   __esModule: true,
@@ -59,6 +60,23 @@ jest.mock("../specs/CUIFieldBindingNativeComponent", () => ({
     const [original] = React.useState(() => ({ nativeTag: ++mockTags, focus: jest.fn(), setNativeProps: jest.fn() }))
     React.useImperativeHandle(ref, () => original as unknown as View, [original])
     mockTargets.set(testID, original)
+    React.useLayoutEffect(() => {
+      const previous = mockBindingStatuses.get(original.nativeTag)
+      if (!previous || !props.fieldGroupBinding) return
+      const declaration = JSON.parse(String(props.fieldGroupBinding))
+      const status = {
+        ...previous,
+        bindingRevision: declaration.bindingRevision,
+        generation: Number(previous.generation) + 1,
+        ready: true,
+        error: "",
+      }
+      mockBindingStatuses.set(original.nativeTag, status)
+      const receive = props.onNativeFieldInputRecord as
+        | undefined
+        | ((mockEvent: { nativeEvent: { record: string } }) => void)
+      receive?.({ nativeEvent: { record: JSON.stringify(status) } })
+    }, [props.fieldGroupBinding, original])
     return React.createElement(jest.requireActual("react-native").View, { ...props, testID })
   }),
 }))
@@ -80,11 +98,27 @@ jest.mock("../specs/NativeCUIFormDocument", () => ({
   __esModule: true,
   default: {
     bindFieldInput: jest.fn(async (encoded: string) => {
-      const request = JSON.parse(encoded)
-      return JSON.stringify({
+      const request = JSON.parse(encoded),
+        declaration = JSON.parse(request.fieldGroupBinding)
+      const status = {
+        kind: "binding-status",
         requestId: request.requestId,
         ownerToken: `owner:${request.requestId}`,
         metadataTarget: request.mount.target,
+        ownerId: request.mount.ownerId,
+        moduleLease: declaration.moduleLease,
+        bindingId: declaration.bindingId,
+        bindingRevision: declaration.bindingRevision,
+        generation: 1,
+        ready: true,
+        error: "",
+      }
+      mockBindingStatuses.set(request.mount.target, status)
+      return JSON.stringify({
+        requestId: request.requestId,
+        ownerToken: status.ownerToken,
+        metadataTarget: request.mount.target,
+        status,
       })
     }),
     unbindFieldInput: jest.fn(async () => true),
@@ -101,6 +135,7 @@ jest.mock("../specs/NativeCUIFormDocument", () => ({
 }))
 beforeEach(() => {
   jest.clearAllMocks()
+  mockBindingStatuses.clear()
   jest
     .spyOn(jest.requireActual("react-native"), "findNodeHandle")
     .mockImplementation((target: unknown) => (target as { nativeTag?: number })?.nativeTag ?? 999)
@@ -919,6 +954,52 @@ it("retains ordinary core-editor callback signatures without using field acknowl
       expect.objectContaining({ kind: "core-selection", selection: { start: 1, end: 1 }, token: null }),
     ]),
   )
+})
+
+it("refuses candidate edits after native registration becomes inactive", async () => {
+  const rows: Record<string, unknown>[] = []
+  await renderAdmittedScene((row) => rows.push(row))
+  await act(() => fireEvent.press(screen.getByTestId("field-sdk-candidate")))
+  await admitCurrentOriginals()
+  const hour = screen
+    .getAllByTestId(/^candidate-time-segment-/)
+    .find((host) => typeof host.props.segmentId === "string" && host.props.segmentId.endsWith(":hour"))!
+  const metadata = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((host) => host.props.editorTarget === mockTargets.get(hour.props.testID)!.nativeTag)!
+  const previous = mockBindingStatuses.get(mockTargets.get(metadata.props.testID)!.nativeTag)!
+  await act(() =>
+    metadata.props.onNativeFieldInputRecord({
+      nativeEvent: {
+        record: JSON.stringify({
+          ...previous,
+          generation: Number(previous.generation) + 1,
+          ready: false,
+          error: "document-current-read-unavailable",
+        }),
+      },
+    }),
+  )
+  rows.length = 0
+  await act(() =>
+    hour.props.onNativeSegmentInput({
+      nativeEvent: packet({
+        kind: "insert",
+        text: "2",
+        ownerId: hour.props.ownerId,
+        segmentId: hour.props.segmentId,
+        bindingRevision: hour.props.bindingRevision,
+        target: mockTargets.get(hour.props.testID)!.nativeTag,
+        nativeInstance: `segment:${hour.props.testID}`,
+        surfaceId: 11,
+        windowId: "window:1",
+        epoch: 1,
+        sequence: 2,
+        focused: true,
+      }),
+    }),
+  )
+  expect(rows.filter((row) => row.kind === "value-request")).toEqual([])
 })
 
 it("connects the actual private TimePicker candidate to original segment and group phases", async () => {
