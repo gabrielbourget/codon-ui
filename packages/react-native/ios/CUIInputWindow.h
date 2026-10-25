@@ -25,6 +25,7 @@ void CUIUnregisterInputScope(UIWindow *window, UIView *scope);
 NSArray<UIView *> *CUIInputScopes(UIWindow *window);
 NSInteger CUINextInputPolicyOrder(UIWindow *window);
 void CUIRefreshKeyboardObservation(UIWindow *window);
+void CUIObserveKeyboardPress(UIPress *press, NSString *phase);
 void CUIRefreshWindowPointerObservation(UIWindow *window);
 void CUIActivateWindowPointer(UIView *target);
 

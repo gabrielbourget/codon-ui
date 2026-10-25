@@ -133,12 +133,14 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
   if (!ticket) throw std::invalid_argument("field-input-original-frame-retired");
   FieldInputFrameLifetime lifetime(state->frames, ticket);
   key["fieldDispatch"] = folly::toJson(fieldInputPacket(ticket, binding, groups));
+  const auto eventTimestamp = originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(key.at("timestamp").asDouble());
+  if (!originalInput) key["timeStamp"] = eventTimestamp.toDOMHighResTimeStamp();
   const auto before = key;
   const std::weak_ptr<const RootShadowNode> weakRoot = fabric.root;
   const std::weak_ptr<UIManager> weakManager = manager;
   const auto revision = fabric.revision;
   const bool scheduled = state->schedule(ticket, manager, original, originalInput ? originalInput->type : "nativeFieldKey", std::move(key),
-    originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(before.at("timestamp").asDouble()), [weakRoot, weakManager, revision] {
+    eventTimestamp, [weakRoot, weakManager, revision] {
       const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
       return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
     }, originalInput);

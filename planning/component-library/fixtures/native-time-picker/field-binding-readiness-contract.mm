@@ -1,5 +1,20 @@
 #import <Foundation/Foundation.h>
 #include <stdexcept>
+#include <map>
+#include <string>
+#include <react/timing/primitives.h>
+
+using facebook::react::HighResTimeStamp;
+struct TimestampValue {
+  double value{};
+  double asDouble() const { return value; }
+  TimestampValue &operator=(double next) { value = next; return *this; }
+};
+struct TimestampPayload : std::map<std::string, TimestampValue> {
+  bool hasProperty(int &, const char *name) const { return contains(name); }
+  void setProperty(int &, const char *name, double value) { (*this)[name] = value; }
+};
+struct OriginalTime { HighResTimeStamp eventStartTimeStamp; };
 
 @interface Metadata : NSObject
 @property NSString *ownerId;
@@ -64,6 +79,62 @@ static NSMutableArray<NSString *> *trace;
 @property(nonatomic) BOOL active;
 @end
 @implementation UIWindow
+@end
+typedef NSInteger UIGestureRecognizerState;
+static const UIGestureRecognizerState UIGestureRecognizerStateFailed = 5;
+@protocol UIGestureRecognizerDelegate
+@end
+@class UITouch;
+@interface UIGestureRecognizer : NSObject
+@property(nonatomic, weak) UIView *view;
+@property(nonatomic, weak) id delegate;
+@property(nonatomic) BOOL cancelsTouchesInView, delaysTouchesBegan, delaysTouchesEnded;
+@property(nonatomic) UIGestureRecognizerState state;
+- (instancetype)initWithTarget:(id)target action:(SEL)action;
+- (void)reset;
+@end
+@implementation UIGestureRecognizer
+- (instancetype)initWithTarget:(id)target action:(SEL)action { (void)target; (void)action; return [super init]; }
+- (void)reset {}
+@end
+@protocol CUIKeyboardObservationScope
+- (BOOL)capturesObservedPress:(UIPress *)press;
+- (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured;
+@end
+@interface CUIPassiveKeyboardObserver : UIGestureRecognizer <UIGestureRecognizerDelegate>
+@property(nonatomic, strong) NSMutableSet<NSNumber *> *held;
+@property(nonatomic, strong) NSMapTable<UIPress *, NSDictionary *> *records;
+- (void)observePress:(UIPress *)press phase:(NSString *)phase;
+- (void)pressesBegan:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+- (void)pressesEnded:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+- (void)pressesCancelled:(NSSet<UIPress *> *)presses withEvent:(UIPressesEvent *)event;
+@end
+@interface CUIWindowInputState : NSObject
+@property(nonatomic, strong) CUIPassiveKeyboardObserver *keyboardObserver;
+@property(nonatomic) NSUInteger observedEventId;
+@end
+@implementation CUIWindowInputState
+@end
+@interface CUIFocusView : UIView
+- (BOOL)capturesObservedKey:(UIKey *)key;
+- (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled;
+@end
+static NSMapTable<UIWindow *, CUIWindowInputState *> *windowInputs;
+static NSArray *observationScopes;
+static UIView *inputFocus;
+static CUIWindowInputState *CUIWindowInput(UIWindow *window) { return [windowInputs objectForKey:window]; }
+static NSArray *CUIInputScopes(UIWindow *window) { return window.active ? observationScopes : @[]; }
+static UIView *CUIInputFocusedView(UIWindow *window) { return inputFocus.window == window ? inputFocus : nil; }
+#include "owned-key-observation.inc"
+@interface ObservationScope : NSObject <CUIKeyboardObservationScope>
+@property(nonatomic) BOOL captures;
+@property(nonatomic, strong) NSMutableArray<NSDictionary *> *events;
+@end
+@implementation ObservationScope
+- (BOOL)capturesObservedPress:(UIPress *)press { (void)press; return self.captures; }
+- (void)observePress:(UIPress *)press repeat:(BOOL)repeat eventId:(NSUInteger)eventId captured:(BOOL)captured {
+  [self.events addObject:@{@"press":press, @"repeat":@(repeat), @"eventId":@(eventId), @"captured":@(captured)}];
+}
 @end
 @interface CUIFieldInputBinding : Binding
 @property(nonatomic, weak) UIWindow *boundWindow;
@@ -130,10 +201,8 @@ static BOOL CUIFieldInputWindowActive(UIWindow *window) { return window.active; 
 @implementation CUIDateSegment
 #include "owned-segment-presses.inc"
 @end
-@interface CUIFocusView : UIView
-- (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled;
-@end
 @implementation CUIFocusView
+- (BOOL)capturesObservedKey:(UIKey *)key { (void)key; return NO; }
 - (NSSet<UIPress *> *)processPresses:(NSSet<UIPress *> *)presses down:(BOOL)down cancelled:(BOOL)cancelled {
   (void)down; (void)cancelled;
   if (presses.count) [trace addObject:@"ordinary-focus"];
@@ -150,12 +219,47 @@ static void check(BOOL value) {
 static NSString *encoded(NSDictionary *value) {
   return [[NSString alloc] initWithData:[NSJSONSerialization dataWithJSONObject:value options:0 error:nullptr] encoding:NSUTF8StringEncoding];
 }
+static void timestampChecks() {
+  const OriginalTime *originalInput = nullptr;
+  UIPress *press = [UIPress new]; press.timestamp = 814765.5919630059;
+  TimestampPayload payload; payload["timestamp"] = press.timestamp * 1000;
+  {
+    #include "ios-key-timestamp.inc"
+    auto &payloadObject = payload; int runtime = 0;
+    #include "sdk-key-timestamp.inc"
+    check(payload.at("timeStamp").asDouble() == eventTimestamp.toDOMHighResTimeStamp());
+    check(payload.at("timestamp").asDouble() == press.timestamp * 1000);
+  }
+  TimestampPayload key; key["timestamp"] = 814765591.9630059;
+  {
+    #include "android-key-timestamp.inc"
+    const double witnessed = key.at("timeStamp").asDouble();
+    auto &payloadObject = key; int runtime = 0;
+    #include "sdk-key-timestamp.inc"
+    check(key.at("timeStamp").asDouble() == witnessed);
+    check(witnessed == eventTimestamp.toDOMHighResTimeStamp());
+    check(witnessed != key.at("timestamp").asDouble());
+  }
+  // The old witness omitted the SDK property; the unchanged SDK adds it.
+  TimestampPayload oldPayload;
+  auto &payloadObject = oldPayload; int runtime = 0;
+  const auto eventTimestamp = HighResTimeStamp::fromDOMHighResTimeStamp(814765591.9630059);
+  check(!oldPayload.contains("timeStamp"));
+  #include "sdk-key-timestamp.inc"
+  check(oldPayload.contains("timeStamp"));
+}
 static NSUInteger responderCases = 0;
 static void responderChecks() {
   trace = [NSMutableArray new];
   UIWindow *window = [UIWindow new]; window.identity = @"original-window"; window.active = YES;
   UIWindow *foreign = [UIWindow new]; foreign.identity = @"foreign-window"; foreign.active = YES;
   CUIFieldInputWindow *router = [CUIFieldInputWindow new]; router.window = window;
+  window.window = window;
+  CUIWindowInputState *inputState = [CUIWindowInputState new];
+  inputState.keyboardObserver = [CUIPassiveKeyboardObserver new]; inputState.keyboardObserver.view = window;
+  windowInputs = [NSMapTable weakToStrongObjectsMapTable]; [windowInputs setObject:inputState forKey:window];
+  ObservationScope *observation = [ObservationScope new]; observation.events = [NSMutableArray new];
+  observationScopes = @[observation];
   router.observedKeyBoundaries = [NSMutableSet new]; router.records = [NSMapTable weakToStrongObjectsMapTable];
   router.held = [NSMutableDictionary new]; router.editors = [NSHashTable weakObjectsHashTable];
   router.editorHandler = ^BOOL(UIView *view, UIPress *press, NSString *phase) { return CUIHandleFieldResponderPress(view, press, phase); };
@@ -172,20 +276,28 @@ static void responderChecks() {
     [trace removeAllObjects]; [winner.dispatches removeAllObjects];
     [view pressesBegan:presses withEvent:nil];
     check([trace isEqual:@[@"dispatch:down"]]); check(winner.dispatches.lastObject[@"press"] == press);
+    check(observation.events.lastObject[@"press"] == press);
+    NSUInteger observed = observation.events.count;
+    [inputState.keyboardObserver pressesBegan:presses withEvent:nil];
+    check(observation.events.count == observed);
     check(![winner.dispatches.lastObject[@"repeat"] boolValue]); responderCases++;
     [view pressesBegan:presses withEvent:nil]; check(winner.dispatches.count == 1); check(trace.count == 1); responderCases++;
     press.timestamp = 11; [view pressesBegan:presses withEvent:nil];
     check(winner.dispatches.count == 2); check([winner.dispatches.lastObject[@"repeat"] boolValue]); responderCases++;
+    check([observation.events.lastObject[@"repeat"] boolValue]);
     winner.identity = @{@"owner":@"replacement", @"epoch":@2}; press.timestamp = 12;
     [view pressesBegan:presses withEvent:nil]; check(winner.dispatches.count == 2);
     [view pressesEnded:presses withEvent:nil]; check(winner.dispatches.count == 2); check(router.held.count == 0); responderCases++;
     [trace removeAllObjects]; [winner.dispatches removeAllObjects];
-    winner.captureDown = NO; press.timestamp = 13; [view pressesBegan:presses withEvent:nil];
+    winner.captureDown = NO; press.timestamp = 13; observed = observation.events.count;
+    [view pressesBegan:presses withEvent:nil];
     check([trace.firstObject isEqual:@"dispatch:down"]); check([trace.lastObject isEqual:@"default:down"]);
+    check(observation.events.count == observed + 1); check(![observation.events.lastObject[@"captured"] boolValue]);
     check(winner.dispatches.count == 1); responderCases++;
     [trace removeAllObjects]; [view pressesCancelled:presses withEvent:nil];
     check([trace.firstObject isEqual:@"dispatch:cancel"]); check([trace.lastObject isEqual:@"default:cancel"]);
     check(router.held.count == 0); responderCases++;
+    check(inputState.keyboardObserver.held.count == 0);
     winner.captureDown = YES; press.timestamp = 14; [view pressesBegan:presses withEvent:nil];
     [trace removeAllObjects]; [view pressesEnded:presses withEvent:nil];
     check([trace isEqual:@[@"dispatch:up"]]); check(router.held.count == 0); responderCases++;
@@ -240,6 +352,27 @@ static void responderChecks() {
   check([winner->_records.firstObject[@"receiverTarget"] integerValue] == 17);
   check([winner->_records.firstObject[@"nativeCode"] integerValue] == 82);
   check([winner->_records.firstObject[@"timestamp"] doubleValue] == 10); responderCases++;
+  UIPress *passive = [UIPress new]; passive.key = [UIKey new]; passive.key.keyCode = 38; passive.window = window; passive.timestamp = 30;
+  NSSet *passiveSet = [NSSet setWithObject:passive];
+  observation.captures = YES;
+  [inputState.keyboardObserver reset];
+  [inputState.keyboardObserver pressesBegan:passiveSet withEvent:nil];
+  NSUInteger observed = observation.events.count;
+  check([observation.events.lastObject[@"captured"] boolValue]);
+  check(![observation.events.lastObject[@"repeat"] boolValue]);
+  CUIObserveKeyboardPress(passive, @"down"); check(observation.events.count == observed);
+  [inputState.keyboardObserver pressesEnded:passiveSet withEvent:nil];
+  passive.timestamp = 31; CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 1); check(![observation.events.lastObject[@"repeat"] boolValue]);
+  [inputState.keyboardObserver pressesCancelled:passiveSet withEvent:nil];
+  check(inputState.keyboardObserver.held.count == 0);
+  passive.timestamp = 32; passive.window = foreign;
+  [inputState.keyboardObserver pressesBegan:passiveSet withEvent:nil]; CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 1);
+  passive.window = window; passive.key = nil;
+  [inputState.keyboardObserver pressesBegan:passiveSet withEvent:nil]; CUIObserveKeyboardPress(passive, @"down");
+  check(observation.events.count == observed + 1);
+  check(inputState.observedEventId == observation.events.count);
 }
 
 int main() {
@@ -281,6 +414,7 @@ int main() {
       check(record.count == 11); check([record[@"ownerToken"] isEqual:@"owner:1"]);
     }
     responderChecks();
+    timestampChecks();
     printf("{\"responderCases\":%lu,\"assertions\":%lu,\"nativeActions\":0}\n", (unsigned long)responderCases, (unsigned long)assertions);
   }
 }

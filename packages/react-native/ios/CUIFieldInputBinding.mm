@@ -204,6 +204,7 @@ static void CUIRecordFieldKeyBoundary(CUIFieldInputWindow *router, NSString *sta
   if (down ? !focusedReceiver : (!held || (receiver != held.receiver && !focusedReceiver))) return NO;
   record = [@{@"timestamp":@(press.timestamp), @"phase":phase, @"admitted":@NO, @"capture":@NO} mutableCopy];
   [self.records setObject:record forKey:press];
+  CUIObserveKeyboardPress(press, phase);
   CUIFieldInputBinding *owner = CUIFieldWinner(self.window);
   CUIRecordFieldKeyBoundary(self, @"original-responder-entry", receiver, press, owner);
   const BOOL admitted = owner && [owner containsOriginalView:receiver];
@@ -713,6 +714,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     if (!down && !originalInput) [_consumed removeObject:@(key.keyCode)];
     const auto row = fieldInputTargetInstance(snapshot, target);
     const auto hostOwner = row.get_ptr("hostOwnerId");
+    const auto eventTimestamp = originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000);
     folly::dynamic payload = originalInput ? folly::dynamic::object("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups))) : folly::dynamic::object("kind", "keyboard")("ownerId", hostOwner ? hostOwner->asString() : binding.ownerId)("target", target)
       ("key", CUIInputKeyName(key).UTF8String ?: "")("nativeCode", static_cast<int>(key.keyCode))("characters", key.characters.UTF8String ?: "")
       ("phase", down ? "down" : "up")("repeat", static_cast<bool>(repeat))("cancelled", static_cast<bool>(cancel))
@@ -723,13 +725,14 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
       ("fieldDispatch", folly::toJson(fieldInputPacket(ticket, binding, groups)))
       ("code", CUIPhysicalKeyCode(static_cast<int>(key.keyCode)))("location", CUIPhysicalKeyLocation(static_cast<int>(key.keyCode)))
       ("nativePressPhase", static_cast<int>(press.phase))("nativePressType", static_cast<int>(press.type));
+    if (!originalInput) payload["timeStamp"] = eventTimestamp.toDOMHighResTimeStamp();
     const auto before = payload;
     if (!originalInput) CUIRecordWindowModality(_window, @"keyboard");
     const std::weak_ptr<const RootShadowNode> weakRoot = fabric.root;
     const std::weak_ptr<UIManager> weakManager = manager;
     const auto revision = fabric.revision;
     const bool scheduled = state->schedule(ticket, manager, original, originalInput ? originalInput->type : "nativeFieldKey", std::move(payload),
-      originalInput ? originalInput->eventStartTimeStamp : HighResTimeStamp::fromDOMHighResTimeStamp(press.timestamp * 1000), [weakRoot, weakManager, revision] {
+      eventTimestamp, [weakRoot, weakManager, revision] {
         const auto manager = weakManager.lock(); const auto root = weakRoot.lock();
         return manager && root && isFabricFormDocumentCurrent(*manager, {root, revision, {}, {}});
       }, originalInput);

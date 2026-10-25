@@ -46,6 +46,17 @@ def pointer_fixture():
 
 
 class ReceiptIntegrity(unittest.TestCase):
+    def test_requires_the_exact_sdk_timestamp_in_the_native_key_witness(self):
+        rows = fixture()
+        for row in rows[:-1]: row["data"]["timeStamp"] = 814765591.963005
+        with self.assertRaisesRegex(AssertionError, "Unexpected public payload property"):
+            inspect(rows, "producer")
+        rows[-1]["records"][0]["event"]["timeStamp"] = 814765591.963005
+        self.assertTrue(inspect(rows, "producer")["receiptIntegrity"])
+        rows[0]["data"]["timeStamp"] = 814765591.9630059
+        with self.assertRaisesRegex(AssertionError, "Original public argument changed"):
+            inspect(rows, "producer")
+
     def test_joins_original_frames_and_keeps_acceptance_open(self):
         result = inspect(fixture(), "producer")
         self.assertTrue(result["receiptIntegrity"])
