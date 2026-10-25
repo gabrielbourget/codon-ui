@@ -1,6 +1,7 @@
 import type { ReactNode, Ref } from "react"
 import type {
   ColorValue,
+  NativeSyntheticEvent,
   StyleProp,
   TextInput,
   TextInputProps,
@@ -10,6 +11,7 @@ import type {
   ViewStyle,
 } from "react-native"
 
+import type { TNativeKeyboardData } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
 import type { TNativeButtonRootStyle } from "../Button/types"
 import type { TNativeSelectionState } from "../selection"
@@ -21,6 +23,14 @@ export const AVAILABLE_COMBOBOX_SIZES = [COMBOBOX_SIZE__SM, COMBOBOX_SIZE__MD, C
 export type TNativeComboBoxSize = (typeof AVAILABLE_COMBOBOX_SIZES)[number]
 export type TNativeComboBoxKey = string | number
 export type TNativeComboBoxRef = View
+export type TNativeComboBoxKeyboardEvent = NativeSyntheticEvent<
+  TNativeKeyboardData & Readonly<{ isComposing: boolean }>
+> &
+  Readonly<{ target: TextInput; currentTarget: TextInput }>
+export type TNativeComboBoxKeyboardCallbacks = {
+  onKeyDown?: (event: TNativeComboBoxKeyboardEvent) => void
+  onKeyUp?: (event: TNativeComboBoxKeyboardEvent) => void
+}
 export type TNativeComboBoxRootStyle = ViewStyle & { color?: ColorValue }
 export type TNativeComboBoxRenderState = Readonly<{
   isOpen: boolean

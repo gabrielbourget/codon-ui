@@ -24,6 +24,7 @@ import { useNativeFloatingHost } from "../../overlays/floating/NativeFloatingLay
 import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../overlays/floating/scope"
 import { OverlayRegistryContext } from "../../overlays/NativeOverlayProvider"
 import { useNativeTheme } from "../../theme"
+import { useNativeBorderTransition } from "../borderMotion"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeCollectionComboBox } from "../ComboBox/CollectionComboBox"
 import { NativeComboBoxGroup } from "../ComboBox/CollectionComboBoxGroup"
@@ -40,7 +41,6 @@ import {
 import { NativeComboBoxItem } from "../ComboBox/ComboBoxItem"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
-import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 import { PlaceholderText } from "../Text/variants/PlaceholderText/PlaceholderText"
 
 import { NativeCompactLoadingIndicator, NativeCompactSearchIcon } from "./affordances"
@@ -50,7 +50,6 @@ import { getCompactTypeaheadStyles } from "./styles"
 import type { TNativeCompactTypeaheadRef, TNativeCompactTypeaheadSearchProps } from "./types"
 
 type TField = { metadata: ReactNode; placement: "input" | "root" }
-const BORDER_TRANSITION = resolveNativeTagTransition()
 const componentOptions = new Set([
   "items",
   "controlledItems",
@@ -132,6 +131,8 @@ const componentOptions = new Set([
   "onFocus",
   "onBlur",
   "onFocusChange",
+  "onKeyDown",
+  "onKeyUp",
   "data-testid",
 ])
 const CompactContent = <T extends object>({
@@ -181,8 +182,7 @@ const CompactContent = <T extends object>({
     isDisabled: flags.isDisabled,
   }
   const styles = getCompactTypeaheadStyles(theme, calibration, flags, focused)
-  const reduced = useNativeTagReducedMotion()
-  const border = useNativeTagColor(styles.group.borderColor, BORDER_TRANSITION, reduced, true)
+  const border = useNativeBorderTransition(styles.group, theme.colors.controlBorder)
   const current = useRef({ status, requestOpen })
   useInsertionEffect(() => {
     current.current = { status, requestOpen }
@@ -252,7 +252,7 @@ const CompactContent = <T extends object>({
         }}
         style={({ isFocusWithin }) => ({
           ...getCompactTypeaheadStyles(theme, calibration, flags, focused || isFocusWithin).group,
-          borderColor: border.rendered,
+          ...border,
         })}
         onLayout={(event) => {
           if (Number.isFinite(event.nativeEvent.layout.width)) setGroupWidth(event.nativeEvent.layout.width)
@@ -461,6 +461,15 @@ const CompactTypeaheadSearchInner = <T extends object>(
       renderItem={undefined}
       onFocus={props.onFocus ?? undefined}
       onBlur={props.onBlur ?? undefined}
+      onKeyDown={
+        props.onKeyDown || props.onKeyUp
+          ? (event) => {
+              clearSuppression()
+              props.onKeyDown?.(event)
+            }
+          : undefined
+      }
+      onKeyUp={props.onKeyUp}
       ref={forwardedRef}
       testID={props.testID ?? props["data-testid"] ?? "type-ahead-search"}
       items={items}
@@ -542,6 +551,7 @@ const CompactTypeaheadSearchInner = <T extends object>(
     </NativeCollectionComboBox>
   )
 }
-export const CompactTypeaheadSearch = forwardRef(CompactTypeaheadSearchInner) as <T extends object = object>(
+export type TNativeCompactTypeaheadSearchComponent = <T extends object = object>(
   props: TNativeCompactTypeaheadSearchProps<T> & RefAttributes<TNativeCompactTypeaheadRef>,
 ) => ReactElement | null
+export const CompactTypeaheadSearch = forwardRef(CompactTypeaheadSearchInner) as TNativeCompactTypeaheadSearchComponent

@@ -2,6 +2,8 @@ package com.codonui.input;
 
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.inputmethod.BaseInputConnection;
+import android.text.Editable;
 import android.view.ViewGroup;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.config.ReactFeatureFlags;
@@ -311,9 +313,12 @@ final class CUIFieldInputBinding {
       if (!down) consumed.remove(event.getKeyCode());
       int unicode = event.getUnicodeChar();
       String characters = unicode > 0 && Character.isValidCodePoint(unicode) ? new String(Character.toChars(unicode)) : "";
+      Editable text = focused instanceof ReactEditText ? ((ReactEditText)focused).getText() : null;
+      boolean composing = text != null && BaseInputConnection.getComposingSpanStart(text) >= 0;
       JSONObject key = new JSONObject().put("kind", "keyboard").put("ownerId", ownerId).put("target", focused.getId())
         .put("key", CUIInputWindow.keyName(event)).put("nativeCode", event.getKeyCode()).put("characters", characters)
         .put("phase", down ? "down" : "up").put("repeat", down && event.getRepeatCount() > 0).put("cancelled", event.isCanceled())
+        .put("isComposing", composing)
         .put("shiftKey", event.isShiftPressed()).put("altKey", event.isAltPressed()).put("ctrlKey", event.isCtrlPressed()).put("metaKey", event.isMetaPressed())
         .put("capsLock", event.isCapsLockOn()).put("nativeModifierData", Integer.toUnsignedString(event.getMetaState()))
         .put("nativeDefaultHandled", intrinsic).put("timestamp", event.getEventTime()).put("eventId", ++eventId)

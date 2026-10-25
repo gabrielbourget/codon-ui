@@ -24,7 +24,10 @@ export const NativeComboBoxContext =
   createContext<
     TNativeContextValue<
       Partial<
-        Omit<TNativeCollectionComboBoxParentProps<object>, "getKey" | "getTextValue" | "children" | "renderItem">
+        Omit<
+          TNativeCollectionComboBoxParentProps<object>,
+          "getKey" | "getTextValue" | "children" | "renderItem" | "controlledItems" | "renderContent" | "popoverIsOpen"
+        >
       >,
       View
     >

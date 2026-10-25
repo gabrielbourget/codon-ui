@@ -6,7 +6,7 @@ import type { TNativeFocusViewProps } from "../../input/types"
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 
 import type { ComboBoxStateOptions } from "./state/types"
-import type { TNativeComboBoxProps, TNativeComboBoxRootStyle } from "./types"
+import type { TNativeComboBoxProps, TNativeComboBoxRootStyle, TNativeComboBoxKeyboardCallbacks } from "./types"
 
 export type TNativeComboBoxSubmitEvent = Parameters<NonNullable<TextInputProps["onSubmitEditing"]>>[0]
 
@@ -20,10 +20,11 @@ export type TNativeCollectionComboBoxRenderState = Readonly<{
 export type TNativeCollectionComboBoxStyleState = TNativeCollectionComboBoxRenderState & {
   defaultStyle: TNativeComboBoxRootStyle
 }
-export type TNativeCollectionComboBoxProps<T extends object> = Omit<
-  TNativeComboBoxProps<T>,
-  "style" | "accessibilityLabel" | "aria-label" | "onOpenChange" | "customOptionsListStyles"
-> &
+export type TNativeCollectionComboBoxProps<T extends object> = TNativeComboBoxKeyboardCallbacks &
+  Omit<
+    TNativeComboBoxProps<T>,
+    "style" | "accessibilityLabel" | "aria-label" | "onOpenChange" | "customOptionsListStyles" | "inputProps"
+  > &
   Pick<
     ComboBoxStateOptions<T>,
     | "onOpenChange"
@@ -37,6 +38,7 @@ export type TNativeCollectionComboBoxProps<T extends object> = Omit<
     | "shouldCloseOnBlur"
   > & {
     autoFocus?: TextInputProps["autoFocus"]
+    inputProps?: TNativeComboBoxProps<T>["inputProps"] & TNativeComboBoxKeyboardCallbacks
     inputMode?: TextInputProps["inputMode"]
     accessibilityLabel?: string
     customOptionsListStyles?: StyleProp<TextStyle>

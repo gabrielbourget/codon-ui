@@ -3,10 +3,21 @@ import type { ColorValue, StyleProp, TextInput, TextStyle, View, ViewProps } fro
 
 import type { TNativeFloatingPlacement } from "../../overlays/floating/placement"
 import type { TCornerGeometry } from "../../tokens/geometry"
+import type { TNativeComboBoxInputProps } from "../ComboBox/collectionInputTypes"
 import type { TNativeCollectionComboBoxProps } from "../ComboBox/collectionTypes"
-import type { TNativeInputProps, TNativeInputSize } from "../Input/types"
+import type { TNativeInputSize } from "../Input/types"
 
-import type { TNativeCompactTypeaheadLabels } from "./labels"
+import type { TPartialNativeCompactTypeaheadLabels } from "./labels"
+
+export const TYPE_AHEAD_SEARCH_SIZE__SM = "small"
+export const TYPE_AHEAD_SEARCH_SIZE__MD = "medium"
+export const TYPE_AHEAD_SEARCH_SIZE__LG = "large"
+export const AVAILABLE_TYPE_AHEAD_SEARCH_SIZES = [
+  TYPE_AHEAD_SEARCH_SIZE__SM,
+  TYPE_AHEAD_SEARCH_SIZE__MD,
+  TYPE_AHEAD_SEARCH_SIZE__LG,
+] as const
+export type TNativeCompactTypeaheadTextSize = (typeof AVAILABLE_TYPE_AHEAD_SEARCH_SIZES)[number]
 
 export type TNativeCompactTypeaheadKey = string | number
 export type TNativeCompactTypeaheadRef = View
@@ -52,14 +63,12 @@ type TNativeCompactTypeaheadOwnProps<T extends object> = Omit<ViewProps, "childr
   minimumInputLengthMessage?: string
   loadingMessage?: string
   emptyListMessage?: string
-  labels?: Partial<Omit<TNativeCompactTypeaheadLabels, "status">> & {
-    status?: Partial<TNativeCompactTypeaheadLabels["status"]>
-  }
+  labels?: TPartialNativeCompactTypeaheadLabels
   getItemKey?: (item: T) => TNativeCompactTypeaheadKey
   getItemTextValue?: (item: T) => string
   renderItem?: (item: T, args: TNativeCompactTypeaheadRenderItemArgs) => ReactNode
   inputRef?: Ref<TextInput>
-  inputProps?: Omit<TNativeInputProps, "value" | "defaultValue" | "onChangeText" | "style" | "customStyles">
+  inputProps?: Omit<TNativeComboBoxInputProps, "value" | "defaultValue" | "onChangeText" | "style" | "customStyles">
   height?: TextStyle["height"]
   width?: TextStyle["width"]
   color?: ColorValue

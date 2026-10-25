@@ -11,6 +11,7 @@ import {
 
 import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
+import { useNativeBorderTransition } from "../borderMotion"
 import { NativeCollectionComboBox } from "../ComboBox/CollectionComboBox"
 import { NativeContentContext } from "../NativeContentContext"
 import { Tag } from "../TagGroup/Tag"
@@ -87,6 +88,7 @@ const TagComboBoxInner = <T extends object>(
     [focused, setFocused] = useState(false)
   const current = useRef(props),
     live = useRef(false),
+    observedWithin = useRef(false),
     focusEpoch = useRef(0),
     frame = useRef<ReturnType<typeof requestAnimationFrame> | null>(null)
   useInsertionEffect(() => {
@@ -102,6 +104,7 @@ const TagComboBoxInner = <T extends object>(
     }
   }, [])
   const observedFocus = (value: boolean) => {
+    if (observedWithin.current) return
     const generation = ++focusEpoch.current
     if (frame.current !== null) cancelAnimationFrame(frame.current)
     if (value) {
@@ -114,6 +117,13 @@ const TagComboBoxInner = <T extends object>(
           setFocused(false)
         }
       })
+  }
+  const observeWithin = (value: boolean) => {
+    observedWithin.current = true
+    focusEpoch.current++
+    if (frame.current !== null) cancelAnimationFrame(frame.current)
+    frame.current = null
+    setFocused(value)
   }
   const changeInput = (value: string) => {
     if (!live.current) return
@@ -138,6 +148,7 @@ const TagComboBoxInner = <T extends object>(
   const resolved = getNativeTagComboBoxLabels(props),
     theme = useNativeTheme(),
     styles = getNativeTagComboBoxStyles(theme, props, focused)
+  const border = useNativeBorderTransition(styles.view, theme.colors.controlBorder)
   const {
     customStyles: nestedComboStyles,
     customInputButtonGroupStyles: nestedGroupStyles,
@@ -162,8 +173,11 @@ const TagComboBoxInner = <T extends object>(
         collapsable={collapsable}
         onBubbledFocus={() => observedFocus(true)}
         onBubbledBlur={() => observedFocus(false)}
+        nativeFocusWithinObservation
+        nativeOnFocusWithin={(event) => observeWithin(event.nativeEvent.within)}
+        nativeOnFocusWithinRetired={() => observeWithin(false)}
         testID={testID ?? aliasID ?? "tag-combobox"}
-        style={styles.view}
+        style={[styles.view, border]}
       >
         <TagGroup
           {...innerTags}
@@ -203,6 +217,7 @@ const TagComboBoxInner = <T extends object>(
           {...innerCombo}
           {...comboProps}
           items={available}
+          controlledItems={available}
           getKey={getItemKey}
           getTextValue={getItemTextValue}
           value={null}
