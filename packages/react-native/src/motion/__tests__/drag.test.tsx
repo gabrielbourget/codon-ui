@@ -160,6 +160,31 @@ it("moves the owned x/y values with original events, threshold, callback phases 
   expect(f.drag.isDragging).toBe(false)
   expect(f.errors).not.toHaveBeenCalled()
 })
+it.each([false, true])("retains drag callbacks when the original pointer default prevention is%s", async (prevent) => {
+  const start = jest.fn(),
+    move = jest.fn(),
+    end = jest.fn()
+  const f = fixture({ drag: true, dragMomentum: false, onDragStart: start, onDrag: move, onDragEnd: end })
+  const down = pointer(),
+    moved = pointer(8, 6),
+    released = pointer(10, 9)
+  Object.assign(down, { isDefaultPrevented: () => prevent })
+  await turn()
+  f.drag.start(down)
+  await turn()
+  f.drag.move(moved)
+  await flush(1016)
+  f.drag.finish(released)
+  await flush(1032)
+  expect(start).toHaveBeenCalledTimes(1)
+  expect(start.mock.calls[0][0]).toBe(moved)
+  expect(move.mock.calls[0][0]).toBe(moved)
+  expect(end.mock.calls[0][0]).toBe(released)
+  expect(down.isDefaultPrevented()).toBe(prevent)
+  expect(f.owner.getValue("x")!.get()).toBe(8)
+  expect(f.owner.getValue("y")!.get()).toBe(6)
+  expect(f.errors).not.toHaveBeenCalled()
+})
 it.each([false, 0, { left: 0, right: 0.5 }])("honors numeric relative bounds and elastic %p", async (elastic) => {
   const f = fixture({ drag: "x", dragConstraints: { left: -10, right: 20 }, dragElastic: elastic })
   await turn()

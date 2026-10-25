@@ -139,6 +139,8 @@ const run = async (module, native, scenario) => {
     getValue,
     getTransformPagePoint: () => (scenario.pointScale ? (p) => ({ x: p.x * 2, y: p.y * 2 }) : undefined),
     captureAnimationLease: () => () => true,
+    // This comparison has no mounted projection node; projection binding is exercised separately.
+    subscribeProjectionNode: () => () => {},
     animationState: {
       setActive: (_, value) => {
         if (active !== value) {
@@ -189,8 +191,19 @@ const run = async (module, native, scenario) => {
           id,
           nativeEvent: { type, pageX: x, pageY: y, pointerId: 1, pointerType: "touch", isPrimary: true, button: 0 },
           persist() {},
+          isDefaultPrevented: () => !!scenario.preventDefault,
         }
-      : { id, type, pageX: x, pageY: y, pointerId: 1, pointerType: "touch", isPrimary: true, button: 0 }
+      : {
+          id,
+          type,
+          pageX: x,
+          pageY: y,
+          pointerId: 1,
+          pointerType: "touch",
+          isPrimary: true,
+          button: 0,
+          defaultPrevented: !!scenario.preventDefault,
+        }
   const flush = async (timestamp) => {
     module.frameData.timestamp = timestamp
     module.time.set(timestamp)
@@ -262,6 +275,9 @@ for (const scenario of [
   { drag: "x", dragTransition: { power: 0.4, timeConstant: 200, restDelta: 0.2 } },
   { drag: true, pointScale: true, ref: true },
   { drag: true, pointScale: true, cursor: true },
+  { drag: true, preventDefault: true },
+  { drag: "x", preventDefault: true },
+  { drag: true, preventDefault: true, ref: true },
 ]) {
   const expected = await run(modules.upstream, false, scenario),
     actual = await run(modules.native, true, scenario)
@@ -292,5 +308,9 @@ const result = {
   nativeActions: 0,
   records,
 }
-await writeFile("/private/tmp/codon-native-card-drag-oracle.json", JSON.stringify(result, null, 2) + "\n")
+await writeFile(
+  process.argv[2] ?? "/private/tmp/codon-native-card-drag-oracle.json",
+  JSON.stringify(result, null, 2) + "\n",
+  { flag: "wx" },
+)
 console.log(JSON.stringify({ ...result, records: `${records.length} exact traces stored outside seals` }, null, 2))

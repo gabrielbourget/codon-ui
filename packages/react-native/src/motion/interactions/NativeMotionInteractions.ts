@@ -90,7 +90,9 @@ export class NativeMotionInteractions {
     code?: number,
     registrationCurrent: () => boolean = () => true,
   ) => {
-    if (!this.tapEnabled() || !this.admitted() || this.cycle || event.isDefaultPrevented?.()) return false
+    // Pointer defaults do not veto the source gesture; keyboard admission keeps its own guard.
+    if (!this.tapEnabled() || !this.admitted() || this.cycle || (source === "keyboard" && event.isDefaultPrevented?.()))
+      return false
     try {
       const info = this.point(event)
       event.persist?.()
@@ -128,7 +130,7 @@ export class NativeMotionInteractions {
       this.admitted() &&
       cycle.current() &&
       cycle.dragRevision === nativeDragGestureRevision() &&
-      !event.isDefaultPrevented?.()
+      (cycle.source === "pointer" || !event.isDefaultPrevented?.())
     event.persist?.()
     let info = cycle.info
     try {

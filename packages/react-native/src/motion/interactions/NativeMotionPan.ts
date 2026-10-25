@@ -42,13 +42,7 @@ export class NativeMotionPan {
     }
   }
   start = (event: TNativeMotionPanEvent) => {
-    if (
-      !this.configured() ||
-      !this.owner.captureAnimationLease()() ||
-      !isNativeMotionPrimaryPointer(event) ||
-      event.isDefaultPrevented?.()
-    )
-      return
+    if (!this.configured() || !this.owner.captureAnimationLease()() || !isNativeMotionPrimaryPointer(event)) return
     const source = nativePanEventSource(event)
     if (this.session?.isCurrent() && this.source !== source) return
     try {

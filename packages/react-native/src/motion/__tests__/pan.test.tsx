@@ -3,6 +3,7 @@ import { createRef } from "react"
 import { AccessibilityInfo, TextInput } from "react-native"
 import type { GestureResponderEvent, View } from "react-native"
 
+import { Card } from "../../components/Card/Card"
 import type { TNativeKeyScope } from "../../input/keyScope"
 import { NativeMotionConfig } from "../config"
 import { NativeMotionPan } from "../interactions/NativeMotionPan"
@@ -536,4 +537,53 @@ it("preserves declared string touch IDs and numeric runtime IDs as distinct orig
   expect(move.mock.calls[0][0]).toBe(declared)
   expect(declared.nativeEvent.identifier).toBe("7")
   f.dispose()
+})
+
+it.each([false, true])("Card retains original pan callbacks when pointer default prevention is%s", async (prevent) => {
+  const ref = createRef<View>(),
+    session = jest.fn(),
+    start = jest.fn(),
+    move = jest.fn(),
+    end = jest.fn(),
+    query = jest.fn()
+  await render(
+    <Card
+      ref={ref}
+      testID="card"
+      onPointerDown={(event) => {
+        if (prevent) event.preventDefault()
+      }}
+      onPanSessionStart={session}
+      onPanStart={start}
+      onPan={move}
+      onPanEnd={end}
+    >
+      <TextInput testID="held" value="" onChangeText={query} />
+    </Card>,
+  )
+  const root = () => screen.getByTestId("card"),
+    original = ref.current,
+    editor = screen.getByTestId("held"),
+    down = pointer(10, 20),
+    shifted = pointer(30, 20),
+    released = pointer(40, 20)
+  expect(original).not.toBeNull()
+  await act(() => root().props.onPointerDown(down))
+  expect(down.isDefaultPrevented()).toBe(prevent)
+  await flush(1016)
+  await act(() => root().props.onPointerMove(shifted))
+  await flush(1032)
+  await act(() => root().props.onPointerUp(released))
+  await flush(1048)
+  expect(session).toHaveBeenCalledTimes(1)
+  expect(session.mock.calls[0][0]).toBe(down)
+  expect(start.mock.calls[0][0]).toBe(shifted)
+  expect(move.mock.calls[0][0]).toBe(shifted)
+  expect(end.mock.calls[0][0]).toBe(released)
+  expect(session.mock.calls[0][0].isDefaultPrevented()).toBe(prevent)
+  expect(ref.current).toBe(original)
+  expect(screen.getByTestId("held")).toBe(editor)
+  expect(editor.props.value).toBe("")
+  expect(query).not.toHaveBeenCalled()
+  await screen.unmount()
 })
