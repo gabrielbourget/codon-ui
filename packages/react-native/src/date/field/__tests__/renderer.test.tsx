@@ -14,6 +14,7 @@ import {
 } from "react-native"
 import type * as RN from "react-native"
 
+import { TimePicker as NativeTimePickerRenderer } from "../../../index"
 import type { TNativeFieldInputScope, TNativeFieldKeyEvent } from "../../../input/fieldInput"
 import { NativeFocusHost } from "../../../input/NativeFocusView"
 import type { TNativeKeyboardEvent } from "../../../input/types"
@@ -24,7 +25,6 @@ import type { TNativeDateSegmentInput } from "../../input/NativeDateSegment"
 import type { TimeValue } from "../../state/types"
 import { NativeTimeFieldStateContext } from "../context"
 import { NativeTimeFieldInputContext, NativeTimeFieldErrorContext } from "../descendants"
-import { NativeTimePickerRenderer } from "../NativeTimePickerRenderer"
 import { NativeTimeFieldError, NativeTimeFieldLabel, NativeTimeFieldText } from "../parts"
 
 jest.mock("../../../input/specs/CUIDateSegmentNativeComponent", () => ({
