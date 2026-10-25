@@ -103,7 +103,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
   const auto binding = fieldInputBinding(document);
   const auto target = fieldGroupTarget(key.at("target"));
   const bool pointer = originalInput && isFieldInputOriginalPointer(originalInput->type);
-  if (!pointer && snapshot.at("focusedTarget") != target) throw std::invalid_argument("field-input-original-focus-retired");
+  if (!pointer && snapshot.at("eventFocusedTarget") != target) throw std::invalid_argument("field-input-original-focus-retired");
   auto fabric = captureFabricFormDocument(*manager, fieldGroupTarget(document.at("surfaceId")));
   if (document.at("revision").asString() != std::to_string(fabric.revision) || !fabric.positions.contains(target))
     throw std::invalid_argument("field-input-original-document-retired");
@@ -125,7 +125,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     registered.push_back(scopeBinding);
     scopes.push_back(fieldInputIdentity(scopeDocument, entry.at("snapshot"), scopeBinding, target, fieldInputInteger(entry.at("epoch"))));
   }
-  const auto groups = orderedFieldInputGroups(document, registered, target);
+  const auto groups = orderedFieldInputGroups(document, registered, target, snapshot);
   const auto identity = fieldInputIdentity(document, snapshot, binding, target, fieldInputInteger(folly::dynamic(epoch)));
   const auto eventId = fieldInputInteger(key.at("eventId"));
   const auto phase = pointer ? fieldInputOriginalPointerPhase(originalInput->type) : originalInput ? "input" : key.at("cancelled").asBool() ? "cancel" : key.at("phase").asString();
@@ -158,7 +158,7 @@ static jni::local_ref<jstring> dispatchFieldOriginal(
     if (!selected) { result.current = true; return result; }
     const auto row = fieldInputOriginal(currentSnapshot, selected);
     std::unordered_set<int32_t> members;
-    for (const auto &node : currentDocument.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
+    for (const auto &node : currentSnapshot.at("instances")) members.insert(fieldGroupTarget(node.at("target")));
     members.insert(action.groupTarget);
     const auto request = folly::toJson(folly::dynamic::object("target", selected)("original", row)
       ("epoch", expectedScope->epoch)("scopeTarget", action.groupTarget)
@@ -281,13 +281,15 @@ static jni::local_ref<jstring> nativeEmitFieldPointer(jni::alias_ref<jclass>,
   const auto manager = scopedManager(managerObject);
   const auto source = folly::parseJson(document->toStdString());
   std::unordered_set<int32_t> members;
-  for (const auto &node : source.at("fieldGroup").at("nodes")) members.insert(fieldGroupTarget(node.at("target")));
-  members.insert(fieldGroupTarget(source.at("fieldGroup").at("outerTarget")));
+  const auto &pointerMembers = source.at("pointerMembers");
+  if (!pointerMembers.isArray()) throw std::invalid_argument("field-input-pointer-members-required");
+  for (const auto &target : pointerMembers) members.insert(fieldGroupTarget(target));
   static const auto run = jni::findClassStatic("java/lang/Runnable")->getMethod<void()>("run");
   jni::local_ref<jstring> receipt;
   folly::dynamic phases = folly::dynamic::array;
   folly::dynamic retired = folly::dynamic::array;
   static const auto read = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<jstring>(jint)>("currentPointerSnapshot");
+  static const auto selectOwner = JFieldInputBinding::javaClassStatic()->getMethod<jni::local_ref<JFieldInputBinding::javaobject>(jint)>("currentPointerOwner");
   const bool prevented = continueFieldOriginalPointer(*manager, [&](const RawEvent &event) {
     const auto family = event.shadowNodeFamily.lock();
     return family && family->getSurfaceId() == source.at("surfaceId").asInt() && members.contains(family->getTag());
@@ -295,7 +297,8 @@ static jni::local_ref<jstring> nativeEmitFieldPointer(jni::alias_ref<jclass>,
     folly::dynamic record = folly::dynamic::object;
     const auto family = original.shadowNodeFamily.lock();
     if (!family) throw std::runtime_error("field-input-pointer-family-retired");
-    const auto value = read(owner, family->getTag());
+    const auto currentOwner = selectOwner(owner, family->getTag());
+    const auto value = currentOwner ? read(currentOwner, family->getTag()) : nullptr;
     if (!value || value->toStdString().empty()) {
       retired.push_back(folly::dynamic::object("type", original.type)("target", family->getTag()));
       return std::nullopt;
@@ -307,7 +310,7 @@ static jni::local_ref<jstring> nativeEmitFieldPointer(jni::alias_ref<jclass>,
     const auto currentDocument = jni::make_jstring(current.at("encodedDocument").asString());
     const auto currentSnapshot = jni::make_jstring(folly::toJson(current.at("fieldGroupSnapshot")));
     const auto currentDeclarations = jni::make_jstring(folly::toJson(current.at("pointerDeclarations")));
-    receipt = dispatchFieldOriginal(managerObject, owner, currentDocument, currentSnapshot, encoded,
+    receipt = dispatchFieldOriginal(managerObject, currentOwner, currentDocument, currentSnapshot, encoded,
       currentDeclarations, static_cast<jdouble>(current.at("scopeEpoch").asInt()), &original, deadline);
     phases.push_back(folly::parseJson(receipt->toStdString()));
     return folly::parseJson(receipt->toStdString()).at("originalDefaultPrevented").asBool();

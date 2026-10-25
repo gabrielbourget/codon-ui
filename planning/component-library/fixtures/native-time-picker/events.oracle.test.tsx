@@ -1,6 +1,8 @@
 import { Time } from "@internationalized/date"
-import { act, cleanup, render, screen } from "@testing-library/react"
+import { act, cleanup, fireEvent, render, screen } from "@testing-library/react"
+import { useState } from "react"
 import { userEvent } from "@testing-library/user-event"
+import { createPortal } from "react-dom"
 import { I18nProvider } from "react-aria-components"
 import { afterEach, expect, it, vi } from "vitest"
 
@@ -22,6 +24,67 @@ const icon = (
     <input aria-label="Icon editor" />
   </>
 )
+
+it("preserves a held arrow's repeat flag while navigating original authored controls", async () => {
+  const repeats: boolean[] = []
+  render(
+    <TimePicker
+      aria-label="Clock"
+      onKeyDown={(event) => repeats.push(event.repeat)}
+      ComponentIcon={
+        <>
+          <button>Repeat start</button>
+          <button>Repeat next</button>
+          <button>Repeat end</button>
+        </>
+      }
+    />,
+  )
+  act(() => screen.getByRole("button", { name: "Repeat start" }).focus())
+  fireEvent.keyDown(screen.getByRole("button", { name: "Repeat start" }), { key: "ArrowRight", repeat: false })
+  fireEvent.keyDown(screen.getByRole("button", { name: "Repeat next" }), { key: "ArrowRight", repeat: true })
+  fireEvent.keyUp(screen.getByRole("button", { name: "Repeat end" }), { key: "ArrowRight" })
+  expect(repeats).toEqual([false, true])
+  expect(document.activeElement).toBe(screen.getByRole("button", { name: "Repeat end" }))
+})
+
+it("delivers field key callers through an authored portal outside its physical group", async () => {
+  const calls: unknown[][] = []
+  const portal = document.createElement("div")
+  document.body.append(portal)
+  try {
+    render(
+      <TimePicker
+        value={new Time(13, 45)}
+        aria-label="Clock"
+        ComponentIcon={createPortal(<button>Portaled action</button>, portal)}
+        onKeyDown={(event) => calls.push(["down", event.key, event.currentTarget.contains(event.target as Node)])}
+        onKeyUp={(event) => calls.push(["up", event.key, event.currentTarget.contains(event.target as Node)])}
+      />,
+    )
+    const button = screen.getByRole("button", { name: "Portaled action" })
+    expect(screen.getByTestId("time-picker").contains(button)).toBe(false)
+    const user = userEvent.setup()
+    await user.click(button)
+    expect(document.activeElement).toBe(button)
+    await user.keyboard("p")
+    expect(calls).toEqual([
+      ["down", "p", false],
+      ["up", "p", false],
+    ])
+    expect(document.activeElement).toBe(button)
+    calls.length = 0
+    await user.keyboard("{ArrowRight}")
+    expect(document.activeElement).toBe(button)
+    expect(calls).toEqual([
+      ["down", "ArrowRight", false],
+      ["up", "ArrowRight", false],
+    ])
+  } finally {
+    cleanup()
+    portal.remove()
+  }
+})
 
 it.each(Array.from({ length: 16 }, (_, mask) => mask))(
   "preserves original group navigation and key-up with modifier mask %i",
@@ -72,6 +135,77 @@ it.each(Array.from({ length: 16 }, (_, mask) => mask))(
       expect(downs[0][0][flag]).toBe(value)
       expect(ups[0][0][flag]).toBe(value)
     }
+    expect(change).not.toHaveBeenCalled()
+  },
+)
+
+it.each(["callback", "disabled", "readonly", "layout", "unmount"])(
+  "keeps the actual source ownership and callback lifetime across %s",
+  async (mutation) => {
+    const trace: { key: string; phase: string; revision: number; target: EventTarget | null }[] = [],
+      change = vi.fn()
+    const Scene = () => {
+      const [state, setState] = useState({ revision: 0, disabled: false, readonly: false, layout: 0, visible: true })
+      return (
+        <>
+          {content}
+          <button onClick={() => setState((value) => ({ ...value, disabled: false, readonly: false, visible: true }))}>
+            Restore scene
+          </button>
+          <span data-testid="mutation-source-state">{JSON.stringify(state)}</span>
+          {state.visible && (
+            <TimePicker
+              value={new Time(13, 45)}
+              aria-label="Clock"
+              isDisabled={state.disabled}
+              isReadOnly={state.readonly}
+              customStyles={{ paddingLeft: state.layout }}
+              onChange={change}
+              onKeyDown={(event) => {
+                trace.push({ key: event.key, phase: "down", revision: state.revision, target: event.target })
+                if (event.key !== "m") return
+                event.preventDefault()
+                setState((value) => ({
+                  ...value,
+                  revision: value.revision + (mutation === "callback" ? 1 : 0),
+                  disabled: mutation === "disabled",
+                  readonly: mutation === "readonly",
+                  layout: mutation === "layout" ? 16 : 0,
+                  visible: mutation !== "unmount",
+                }))
+              }}
+              onKeyUp={(event) =>
+                trace.push({ key: event.key, phase: "up", revision: state.revision, target: event.target })
+              }
+              ComponentIcon={<button>Authored action</button>}
+            />
+          )}
+        </>
+      )
+    }
+    render(<Scene />)
+    const original = screen.getByRole("button", { name: "Authored action" }),
+      user = userEvent.setup()
+    act(() => original.focus())
+    await user.keyboard("m")
+    expect(trace.filter((row) => row.key === "m" && row.phase === "down")).toHaveLength(1)
+    expect(trace[0].target).toBe(original)
+    const state = JSON.parse(screen.getByTestId("mutation-source-state").textContent!)
+    expect(state.revision).toBe(mutation === "callback" ? 1 : 0)
+    expect(state.visible).toBe(mutation !== "unmount")
+    if (mutation === "unmount") {
+      const length = trace.length
+      fireEvent.keyDown(original, { key: "j" })
+      expect(trace).toHaveLength(length)
+    }
+    await user.click(screen.getByRole("button", { name: "Restore scene" }))
+    const current = screen.getByRole("button", { name: "Authored action" })
+    expect(current === original).toBe(mutation !== "unmount")
+    act(() => current.focus())
+    await user.keyboard("j")
+    const fresh = trace.filter((row) => row.key === "j")
+    expect(fresh.map((row) => row.phase)).toEqual(["down", "up"])
+    expect(fresh.every((row) => row.revision === state.revision && row.target === current)).toBe(true)
     expect(change).not.toHaveBeenCalled()
   },
 )

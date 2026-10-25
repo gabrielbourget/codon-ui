@@ -3,6 +3,7 @@ package com.codonui.input;
 import android.graphics.RectF;
 import android.graphics.Matrix;
 import android.view.View;
+import android.view.ViewGroup;
 import com.facebook.react.bridge.UIManager;
 import com.facebook.react.bridge.UiThreadUtil;
 import com.facebook.react.uimanager.IllegalViewOperationException;
@@ -51,6 +52,33 @@ final class CUIFieldGroupDocument {
     matrix.preTranslate(target.getLeft(), target.getTop());
     matrix.preConcat(target.getMatrix());
   }
+  private static JSONArray nativeHierarchy(UIManager manager, JSONObject document, View outer) throws Exception {
+    java.util.Map<Integer, View> views = new java.util.LinkedHashMap<>();
+    java.util.Map<View, Integer> targets = new java.util.IdentityHashMap<>();
+    JSONArray nodes = document.getJSONArray("nodes");
+    for (int index = 0; index < nodes.length(); index++) {
+      int target = nodes.getJSONObject(index).getInt("target"); View view = resolve(manager, target);
+      if (view != null && view.isAttachedToWindow() && view.getRootView() == outer.getRootView()) {
+        views.put(target, view); targets.put(view, target);
+      }
+    }
+    JSONArray result = new JSONArray();
+    for (java.util.Map.Entry<Integer, View> entry : views.entrySet()) {
+      View view = entry.getValue(); int parentTarget = 0;
+      for (android.view.ViewParent parent = view.getParent(); parent instanceof View; parent = parent.getParent())
+        if (targets.containsKey(parent)) { parentTarget = targets.get(parent); break; }
+      java.util.ArrayList<Integer> reversed = new java.util.ArrayList<>();
+      for (View current = view; current != outer.getRootView();) {
+        if (!(current.getParent() instanceof ViewGroup)) throw new IllegalStateException("field-group-native-hierarchy-retired");
+        ViewGroup parent = (ViewGroup)current.getParent(); int position = parent.indexOfChild(current);
+        if (position < 0) throw new IllegalStateException("field-group-native-hierarchy-retired");
+        reversed.add(position); current = parent;
+      }
+      java.util.Collections.reverse(reversed);
+      result.put(new JSONObject().put("target", entry.getKey()).put("parent", parentTarget).put("order", new JSONArray(reversed)));
+    }
+    return result;
+  }
   static JSONObject read(UIManager manager, JSONObject document) throws Exception {
     UiThreadUtil.assertOnUiThread();
     JSONObject plan = document.getJSONObject("fieldGroup"), field = plan.getJSONObject("field"), mount = plan.getJSONObject("mount");
@@ -68,11 +96,19 @@ final class CUIFieldGroupDocument {
     ArrayList<CUIDateSegment> segments = CUIOwnedDateField.resolveAll(manager, metadata, owned, field.getInt("target"), document.getInt("surfaceId"));
     if (segments == null || segments.isEmpty()) throw new IllegalStateException("field-group-whole-segment-set-retired");
     for (CUIDateSegment segment : segments) if (!descendant(segment, input)) throw new IllegalStateException("field-group-original-input-retired");
+    JSONArray hierarchy = nativeHierarchy(manager, document, outer);
+    java.util.Map<Integer, JSONObject> eventNodes = new java.util.HashMap<>();
     java.util.HashSet<Integer> visibleTargets = new java.util.HashSet<>();
     JSONArray plannedNodes = plan.getJSONArray("nodes"), fields = document.getJSONArray("fields");
     for (int index = 0; index < plannedNodes.length(); index++) {
       JSONObject node = plannedNodes.getJSONObject(index);
+      eventNodes.put(node.getInt("target"), node);
       if (node.getBoolean("visible")) visibleTargets.add(node.getInt("target"));
+    }
+    JSONArray sourceNodes = document.getJSONArray("nodes");
+    for (int index = 0; index < sourceNodes.length(); index++) {
+      int target = sourceNodes.getJSONObject(index).getInt("target"); View view = resolve(manager, target);
+      if ((eventNodes.containsKey(target) || descendant(view, outer)) && visible(view, outer)) visibleTargets.add(target);
     }
     ArrayList<CUIFormMetadataView> nestedOwners = new ArrayList<>();
     ArrayList<JSONObject> nestedMounts = new ArrayList<>();
@@ -95,22 +131,23 @@ final class CUIFieldGroupDocument {
         throw new IllegalStateException("field-group-nested-whole-segment-set-retired");
       nestedOwners.add(nested); nestedMounts.add(nestedMount); nestedSets.add(nestedSegments);
     }
-    JSONArray originals = new JSONArray(), instances = new JSONArray(), nodes = plan.getJSONArray("nodes");
+    JSONArray originals = new JSONArray(), instances = new JSONArray(), nodes = document.getJSONArray("nodes");
     java.util.Map<Integer, Integer> parents = new java.util.HashMap<>();
     for (int index = 0; index < nodes.length(); index++) {
       JSONObject node = nodes.getJSONObject(index); parents.put(node.getInt("target"), node.getInt("parent"));
     }
     instances.put(new JSONObject().put("target", outer.getId()).put("nativeTarget", outer.getId()).put("nativeInstance", instance(outer)).put("editorInstance", instance(outer)));
     ArrayList<View> currentOriginals = new ArrayList<>();
-    int focused = 0;
+    int focused = 0, eventFocused = 0;
     for (int index = 0; index < nodes.length(); index++) {
       JSONObject node = nodes.getJSONObject(index), policy = node.optJSONObject("fieldFocus");
-      if (!node.getBoolean("visible")) continue;
+      if (node.getInt("target") == outer.getId()) continue;
+      JSONObject eventNode = eventNodes.get(node.getInt("target"));
+      boolean eventMember = eventNode != null && eventNode.getJSONArray("groups").length() > 0;
       View original = resolve(manager, node.getInt("target"));
       String name = node.getString("component");
       boolean core = "TextInput".equals(name) || "AndroidTextInput".equals(name);
       if (original == null) {
-        if (core || (policy != null && policy.getBoolean("candidate"))) throw new IllegalStateException("field-group-original-unavailable");
         int ancestor = node.getInt("parent"); View backed = null;
         java.util.Set<Integer> visited = new java.util.HashSet<>();
         while (ancestor > 0 && visited.add(ancestor)) {
@@ -118,14 +155,18 @@ final class CUIFieldGroupDocument {
           if (backed != null) break;
           ancestor = parents.getOrDefault(ancestor, 0);
         }
-        if (backed == null || !descendant(backed, outer) || backed.getRootView() != outer.getRootView())
+        if (!eventMember && !descendant(backed, outer)) continue;
+        if (core || (policy != null && policy.getBoolean("candidate"))) throw new IllegalStateException("field-group-original-unavailable");
+        if (backed == null || backed.getRootView() != outer.getRootView())
           throw new IllegalStateException("field-group-hit-backing-unavailable");
         instances.put(new JSONObject().put("target", node.getInt("target")).put("nativeTarget", backed.getId())
           .put("nativeInstance", instance(backed)).put("editorInstance", instance(backed)));
         currentOriginals.add(backed);
         continue;
       }
-      if (!descendant(original, outer) || original.getRootView() != outer.getRootView() ||
+      boolean physicalMember = descendant(original, outer);
+      if (!eventMember && !physicalMember) continue;
+      if (original.getRootView() != outer.getRootView() ||
           !CUIInputWindow.identity(original).equals(CUIInputWindow.identity(outer)))
         throw new IllegalStateException("field-group-original-window-or-containment-retired");
       if (core && !(original instanceof ReactEditText)) throw new IllegalStateException("field-group-original-editor-class-retired");
@@ -135,12 +176,13 @@ final class CUIFieldGroupDocument {
         throw new IllegalStateException("field-group-original-host-owner-retired");
       instances.put(new JSONObject().put("target", original.getId()).put("nativeTarget", original.getId()).put("nativeInstance", instance(original)).put("editorInstance", instance(original)));
       currentOriginals.add(original);
-      boolean eligible = node.getBoolean("visible") && visible(original, outer) && original.isEnabled() &&
+      boolean eligible = physicalMember && visible(original, outer) && original.isEnabled() &&
         original.isFocusable() && (policy == null || policy.getBoolean("focusable"));
       if (!eligible && !original.isFocused()) continue;
       if (original.isFocused()) {
         if (focused != 0) throw new IllegalStateException("field-group-focused-original-ambiguous");
         focused = original.getId();
+        if (eventMember) eventFocused = original.getId();
       }
       // Transform all four corners through the actual SDK hierarchy, retaining
       // scroll/ancestor transforms. Screen location alone loses native scale.
@@ -155,7 +197,8 @@ final class CUIFieldGroupDocument {
       boolean readOnly = policy != null ? policy.getBoolean("readOnly") : original instanceof ReactEditText && ((ReactEditText)original).getKeyListener() == null;
       JSONObject row = new JSONObject().put("target", original.getId()).put("nativeInstance", instance(original)).put("editorInstance", instance(original))
         .put("focused", original.isFocused()).put("eligible", eligible).put("tabStop", policy == null || policy.getBoolean("tabStop"))
-        .put("readOnly", readOnly).put("placeholder", policy != null && policy.getBoolean("placeholder")).put("groups", node.getJSONArray("groups"))
+        .put("readOnly", readOnly).put("placeholder", policy != null && policy.getBoolean("placeholder"))
+        .put("groups", eventNode == null ? new JSONArray() : eventNode.getJSONArray("groups"))
         .put("rect", new JSONObject().put("x", rectangle.left / density).put("y", rectangle.top / density)
           .put("width", rectangle.width() / density).put("height", rectangle.height() / density));
       if (original instanceof CUIDateSegment) row.put("segment", ((CUIDateSegment)original).formSegmentIdentity());
@@ -175,9 +218,12 @@ final class CUIFieldGroupDocument {
           !nestedSets.get(index).equals(CUIOwnedDateField.resolveAll(manager, nested, nested.ownedEditorBinding, nestedMount.getInt("originalTarget"), document.getInt("surfaceId"))))
         throw new IllegalStateException("field-group-nested-originals-retired-during-read");
     }
+    if (!hierarchy.toString().equals(nativeHierarchy(manager, document, outer).toString()))
+      throw new IllegalStateException("field-group-native-hierarchy-retired-during-read");
     return new JSONObject().put("documentId", document.getString("documentId")).put("revision", document.getString("revision"))
       .put("surfaceId", document.getInt("surfaceId")).put("windowId", mount.getString("windowId"))
       .put("outerTarget", outer.getId()).put("inputTarget", input.getId()).put("outerInstance", instance(outer)).put("inputInstance", instance(input))
-      .put("field", field).put("mount", mount).put("focusedTarget", focused).put("originals", originals).put("instances", instances);
+      .put("field", field).put("mount", mount).put("focusedTarget", focused).put("eventFocusedTarget", eventFocused)
+      .put("nativeHierarchy", hierarchy).put("originals", originals).put("instances", instances);
   }
 }

@@ -19,6 +19,26 @@
 #include <climits>
 #include <stdexcept>
 
+static NSString *CUIFieldInputReadDifference(const std::string &beforeEncoded, const std::string &afterEncoded)
+{
+  NSDictionary *before = [NSJSONSerialization JSONObjectWithData:[@(beforeEncoded.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nullptr];
+  NSDictionary *after = [NSJSONSerialization JSONObjectWithData:[@(afterEncoded.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:0 error:nullptr];
+  NSMutableDictionary *beforeStamp = [NSMutableDictionary new], *afterStamp = [NSMutableDictionary new];
+  for (NSString *key in @[@"documentId", @"surfaceId", @"rootTarget", @"revision"]) {
+    beforeStamp[key] = before[key] ?: NSNull.null;
+    afterStamp[key] = after[key] ?: NSNull.null;
+  }
+  NSMutableSet *keys = [NSMutableSet setWithArray:before.allKeys];
+  [keys addObjectsFromArray:after.allKeys];
+  NSMutableArray *changed = [NSMutableArray new];
+  for (NSString *key in [keys.allObjects sortedArrayUsingSelector:@selector(compare:)])
+    if (![before[key] isEqual:after[key]]) [changed addObject:key];
+  NSDictionary *difference = @{@"before":beforeStamp, @"after":afterStamp,
+    @"structuralEqual":@([before isEqual:after]), @"changedTopLevelKeys":changed};
+  NSData *encoded = [NSJSONSerialization dataWithJSONObject:difference options:NSJSONWritingSortedKeys error:nullptr];
+  return [[NSString alloc] initWithData:encoded encoding:NSUTF8StringEncoding];
+}
+
 static NSDictionary *CUIAdmitFormAction(RCTSurfacePresenter *presenter, NSDictionary *document, NSDictionary *request)
 {
   if (![request isKindOfClass:NSDictionary.class] || ![request[@"lease"] isKindOfClass:NSDictionary.class] ||
@@ -260,8 +280,10 @@ RCT_EXPORT_MODULE(CUIFormDocument)
   NSMutableDictionary *document = [[NSJSONSerialization JSONObjectWithData:[@(result.c_str()) dataUsingEncoding:NSUTF8StringEncoding] options:NSJSONReadingMutableContainers error:nil] mutableCopy];
   document[@"encodedDocument"] = @(result.c_str());
   document[@"fieldGroupSnapshot"] = CUIReadFieldGroupDocument(presenter, document);
-  if (result != codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group))
-    @throw [NSException exceptionWithName:@"CUI.FieldInput" reason:@"field-input-document-retired-during-read" userInfo:nil];
+  const auto after = codon::form::queryFabricFormDocument(*manager, [mount[@"surfaceId"] intValue], (int)metadata.originalTarget, *_session, check, group);
+  if (result != after)
+    @throw [NSException exceptionWithName:@"CUI.FieldInput"
+      reason:[@"field-input-document-retired-during-read " stringByAppendingString:CUIFieldInputReadDifference(result, after)] userInfo:nil];
   return document;
 }
 - (void)bindFieldInput:(NSString *)encoded resolve:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRejectBlock)reject

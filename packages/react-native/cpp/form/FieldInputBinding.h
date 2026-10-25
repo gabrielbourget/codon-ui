@@ -61,13 +61,14 @@ inline folly::dynamic fieldInputPacket(const FieldInputDispatchFrames::Handle &t
 }
 inline FieldGroupTraversal fieldInputTraversal(const folly::dynamic &document, const folly::dynamic &snapshot) {
   const auto &plan = document.at("fieldGroup");
-  std::vector<TFieldGroupNode> nodes;
-  for (const auto &row : document.at("nodes")) nodes.push_back({fieldGroupTarget(row.at("target")),
-    static_cast<int32_t>(row.at("parent").asInt()), row.at("hidden").asBool() || row.at("displayNone").asBool()});
-  FieldGroupTraversal traversal(std::move(nodes), fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
+  FieldGroupTraversal traversal(fieldGroupMountedNodes(document, snapshot),
+    fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
   std::vector<TFieldGroupFocusable> originals;
   for (const auto &row : snapshot.at("originals")) if (row.at("eligible").asBool()) originals.push_back({fieldGroupTarget(row.at("target")),
     row.at("placeholder").asBool(), row.at("rect").at("x").asDouble(), row.at("tabStop").asBool()});
+  std::sort(originals.begin(), originals.end(), [&](const auto &first, const auto &second) {
+    return traversal.preorderPosition(first.target) < traversal.preorderPosition(second.target);
+  });
   traversal.admit(std::move(originals));
   return traversal;
 }
@@ -111,7 +112,10 @@ inline folly::dynamic fieldInputSubphaseResults(FieldInputDispatchFrames &frames
   return results;
 }
 inline folly::dynamic orderedFieldInputGroups(const folly::dynamic &document,
-    const std::vector<TFieldInputBinding> &bindings, int32_t originalTarget) {
+    const std::vector<TFieldInputBinding> &bindings, int32_t originalTarget, const folly::dynamic &snapshot) {
+  const auto &plan = document.at("fieldGroup");
+  const FieldGroupTraversal physical(fieldGroupMountedNodes(document, snapshot),
+    fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
   std::unordered_map<int32_t, int32_t> parents;
   for (const auto &node : document.at("nodes")) parents.emplace(fieldGroupTarget(node.at("target")), static_cast<int32_t>(node.at("parent").asInt()));
   std::unordered_map<int32_t, size_t> ancestry;
@@ -143,7 +147,8 @@ inline folly::dynamic orderedFieldInputGroups(const folly::dynamic &document,
   std::sort(groups.begin(), groups.end(), [](const auto &left, const auto &right) { return left.distance < right.distance; });
   folly::dynamic result = folly::dynamic::array;
   for (const auto &group : groups) result.push_back(folly::dynamic::object("target", group.target)
-    ("bindingId", group.binding->bindingId)("bindingRevision", group.binding->bindingRevision)("scopeTarget", group.binding->outerTarget));
+    ("bindingId", group.binding->bindingId)("bindingRevision", group.binding->bindingRevision)("scopeTarget", group.binding->outerTarget)
+    ("containsTarget", physical.descendant(originalTarget, group.target)));
   return result;
 }
 inline std::shared_ptr<const FieldInputOwnedInput> captureFieldOwnedInput(
@@ -163,7 +168,7 @@ inline std::shared_ptr<const FieldInputOwnedInput> captureFieldOwnedInput(
     bindings.push_back(field);
     scopes.push_back(fieldInputIdentity(source, entry.at("snapshot"), field, target, fieldInputInteger(entry.at("epoch"))));
   }
-  const auto groups = orderedFieldInputGroups(document, bindings, target);
+  const auto groups = orderedFieldInputGroups(document, bindings, target, snapshot);
   const auto identity = fieldInputIdentity(document, snapshot, binding, target, epoch);
   const std::weak_ptr<facebook::react::UIManager> weakManager = manager;
   const std::weak_ptr<const facebook::react::ShadowNode> weakNode = node;

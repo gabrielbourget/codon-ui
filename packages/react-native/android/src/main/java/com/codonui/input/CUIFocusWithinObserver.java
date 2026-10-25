@@ -49,7 +49,7 @@ final class CUIFocusWithinObserver {
     if (view == null || binding.isEmpty()) return;
     try {
       JSONObject state = environment.read();
-      if (state.optString("viewOwnerId").isEmpty() || view.getId() <= 0) return;
+      if (state.optString("viewOwnerId").isEmpty() || view.getId() == View.NO_ID || view.getId() == 0) return;
       boolean attached = !detached && view.isAttachedToWindow();
       boolean active = attached && view.hasWindowFocus() && view.getWindowVisibility() == View.VISIBLE && state.optInt("surfaceId") > 0;
       View focused = active ? view.getRootView().findFocus() : null;

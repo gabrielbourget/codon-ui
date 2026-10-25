@@ -1,4 +1,5 @@
 import os
+import plistlib
 import sys
 import tempfile
 import unittest
@@ -14,10 +15,31 @@ class TransportTests(unittest.TestCase):
             replay_selection(cache, project=Path("Harness.xcodeproj"))
         with self.assertRaises(ValueError):
             replay_selection(cache, Path("Harness.xcodeproj"), "Tests", Path("other-cache"))
-        arguments = replay_selection(cache, Path("Harness.xcodeproj"), "Tests", Path("frozen"))
-        self.assertNotIn("-xctestrun", arguments)
-        self.assertIn(str(Path("frozen").resolve()), arguments)
+        with self.assertRaises(ValueError):
+            replay_selection(cache, Path("Harness.xcodeproj"), "Tests", Path("frozen"))
         self.assertEqual(replay_selection(cache), ["-xctestrun", str(cache.resolve())])
+
+    def test_project_configuration_must_match_the_compiled_test_runner(self):
+        with tempfile.TemporaryDirectory() as folder:
+            derived = Path(folder)
+            products = derived / "Build/Products"
+            runner = products / "Release-iphonesimulator/Tests-Runner.app"
+            bundle = runner / "PlugIns/Tests.xctest"
+            bundle.mkdir(parents=True)
+            frozen = products / "Tests.xctestrun"
+            frozen.write_bytes(plistlib.dumps({"Tests": {
+                "TestHostPath": "__TESTROOT__/Release-iphonesimulator/Tests-Runner.app",
+                "TestBundlePath": "__TESTHOST__/PlugIns/Tests.xctest",
+            }}))
+            project = derived / "Harness.xcodeproj"
+            with self.assertRaises(ValueError):
+                replay_selection(frozen, project, "Tests", derived, "Debug")
+            arguments = replay_selection(frozen, project, "Tests", derived, "Release")
+            self.assertNotIn("-xctestrun", arguments)
+            self.assertEqual(arguments[arguments.index("-configuration") + 1], "Release")
+            bundle.rmdir()
+            with self.assertRaises(ValueError):
+                replay_selection(frozen, project, "Tests", derived, "Release")
 
     def test_callback_requires_native_owner_and_single_pass(self):
         method = "Tests/Tests/testTransportPreflight"

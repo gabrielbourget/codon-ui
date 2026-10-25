@@ -2,7 +2,7 @@ import copy
 import json
 import unittest
 from test_inspect_field_receipts import fixture
-from validate_field_descendants import CASES, SETUPS, validate
+from validate_field_descendants import CASES, SETUPS, validate, validate_portals
 
 
 def journal():
@@ -23,7 +23,7 @@ def journal():
         if index in {6,7}:
             target=44 if index==6 else 45
             dispatch["identity"].update(ownerId="inner",bindingId="inner-binding",bindingRevision="inner-revision",outerTarget=50,inputTarget=51,outerInstance="inner-outer",inputInstance="inner-input",target=target,nativeInstance=str(target),editorInstance=str(target))
-            dispatch["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10) for t in [51,50,10]]
+            dispatch["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10, containsTarget=True) for t in [51,50,10]]
         event=dict(key="ArrowRight" if index in {0,1,2,5,6} else "7" if index==3 else "9" if index==4 else "ArrowUp" if index==7 else "f",target=dispatch["identity"]["target"],phase="down",fieldDispatch=json.dumps(dispatch))
         native.update(event=event,identity=copy.deepcopy(dispatch["identity"]),deliveryStarted=True,deliveryReturned=True,renderPhasesComplete=True,error="",decision="prevented" if index in {1,2,4,5,6,7,8,9} else "allowed",originalDefaultPrevented=index in {1,2,4,5,6,7,8,9})
         for snapshot in [native["before"],native["after"]]:
@@ -61,7 +61,7 @@ def journal():
             up["identity"].update(target=target,nativeInstance="core" if index>=8 else str(target),editorInstance="core-editor" if index>=8 else str(target))
             if index==5:
                 up["identity"].update(ownerId="inner",bindingId="inner-binding",bindingRevision="inner-revision",outerTarget=50,inputTarget=51,outerInstance="inner-outer",inputInstance="inner-input")
-                up["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10) for t in [51,50,10]]
+                up["groups"]=[dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10, containsTarget=True) for t in [51,50,10]]
             up_event=dict(key=event["key"],target=target,phase="up",fieldDispatch=json.dumps(up))
             up_frame=copy.deepcopy(native);up_frame.update(event=up_event,identity=copy.deepcopy(up["identity"]))
             for snapshot in [up_frame["before"],up_frame["after"]]:
@@ -174,3 +174,59 @@ class Descendants(unittest.TestCase):
 
 
 if __name__=="__main__":unittest.main()
+
+
+def portal_journal():
+    rows, reports = [], []
+    token = 0
+    def add(kind, **values):
+        row = dict(kind=kind, probe="codon-owned-time-entry-01", producer="producer", sequence=len(rows)+1, **values)
+        rows.append(row)
+        return row
+    for index, kind in enumerate(["key", "pointer"]):
+        add("field-state", field="outer", portaled=True, buttonTarget=12, disabled=False, readonly=False, veto=False, stop=False)
+        add("native-receipts", batch=index*2+1, records=[], dropped=0)
+        reports.append(dict(case="portal-original-setup" if kind=="key" else "portal-original-press-setup", batch=index*2+1))
+        records=[]
+        for phase in (["down", "up"] if kind=="key" else ["pointer-start", "pointer-end", "pointer-click"]):
+            token += 1
+            frame=copy.deepcopy(fixture()[-1]["records"][0])
+            dispatch=json.loads(frame["event"]["fieldDispatch"])
+            target=12 if kind=="key" else 13
+            dispatch.update(token=token,eventId=token,phase=phase)
+            dispatch["identity"].update(target=target,nativeInstance="component:"+str(target),editorInstance="editor:"+str(target))
+            dispatch["groups"]=[dict(target=10,bindingId="binding",bindingRevision="revision",scopeTarget=10,containsTarget=False)]
+            encoded=json.dumps(dispatch)
+            payload=dict(target=target,key="ArrowRight",phase=phase) if kind=="key" else dict(target=target,pointerId=1,pointerType="touch",isPrimary=True,button=0)
+            event={**payload,"fieldDispatch":encoded}
+            frame.update(kind=kind,event=copy.deepcopy(event),identity=copy.deepcopy(dispatch["identity"]),deliveryStarted=True,deliveryReturned=True,renderPhasesComplete=True,scopeCurrent=True,error="",decision="allowed",originalDefaultPrevented=False)
+            for snapshot in [frame["before"],frame["after"]]:
+                snapshot.update(eventFocusedTarget=12,nativeHierarchy=[dict(target=t,parent=parent,order=order) for t,parent,order in [(1,0,[]),(10,1,[0]),(11,10,[0,0]),(60,1,[1]),(12,60,[1,0]),(13,12,[1,0,0])]],instances=[dict(target=t,nativeTarget=t,nativeInstance="component:"+str(t),editorInstance="editor:"+str(t)) for t in [10,11,12,13]])
+            records.append(frame)
+            if kind=="pointer": records.append(dict(kind="original-pointer",token=token,eventId=token,payload=payload))
+            add("field-key" if kind=="key" else "group-pointer",field="outer",receiverTarget=10,data=event,originalPayloadId=token,prevented=False,stopped=False)
+        if kind=="pointer":add("child-press",field="outer",data=dict(target=12))
+        add("native-receipts",batch=index*2+2,records=records,dropped=0)
+        reports.append(dict(case="portal-original-keys" if kind=="key" else "portal-original-press",batch=index*2+2))
+    return rows,reports
+
+
+class PortalContracts(unittest.TestCase):
+    def test_joins_logical_callers_to_actual_outside_native_tree(self):
+        rows,reports=portal_journal()
+        result=validate_portals(rows,"producer",reports)
+        self.assertEqual(result["portalCheckpointContracts"],["portal-original-keys","portal-original-press"])
+        self.assertFalse(result["fullInputSurface"])
+
+    def test_rejects_changed_containment_missing_callbacks_focus_and_action(self):
+        changes=[
+            lambda rows: next(row for row in rows if row["kind"]=="field-state").update(portaled=False),
+            lambda rows: next(row for row in rows if row.get("batch")==2)["records"][0]["before"]["nativeHierarchy"][4].update(parent=10),
+            lambda rows: next(row for row in rows if row["kind"]=="field-key").update(kind="unrelated"),
+            lambda rows: next(row for row in rows if row.get("batch")==4)["records"].append(dict(kind="focus")),
+            lambda rows: next(row for row in rows if row["kind"]=="child-press").update(field="inner"),
+            lambda rows: next(row for row in rows if row.get("batch")==2)["records"][0]["after"].update(eventFocusedTarget=13),
+        ]
+        for change in changes:
+            rows,reports=portal_journal();change(rows)
+            with self.assertRaises(AssertionError):validate_portals(rows,"producer",reports)

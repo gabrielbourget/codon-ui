@@ -7,7 +7,7 @@ from inspect_field_receipts import PROBE, inspect
 
 def fixture():
     identity = dict(ownerId="owner", bindingId="binding", bindingRevision="revision", metadataTarget=5, outerTarget=10, inputTarget=11, surfaceId=1, target=12, documentId="document", documentRevision="1", windowId="window", mountRevision="1", outerInstance="outer", inputInstance="input", nativeInstance="component", editorInstance="editor", epoch=1)
-    dispatch = dict(moduleLease="module", token=1, eventId=1, phase="down", identity=identity, groups=[dict(target=t, bindingId="binding", bindingRevision="revision", scopeTarget=10) for t in [11, 10]])
+    dispatch = dict(moduleLease="module", token=1, eventId=1, phase="down", identity=identity, groups=[dict(target=t, bindingId="binding", bindingRevision="revision", scopeTarget=10, containsTarget=True) for t in [11, 10]])
     event = dict(key="ArrowUp", target=12, phase="down", fieldDispatch=json.dumps(dispatch))
     snapshot = {name: identity[name] for name in ["documentId", "surfaceId", "windowId", "outerTarget", "inputTarget", "outerInstance", "inputInstance"]}
     snapshot.update(focusedTarget=12, instances=[dict(target=12, nativeInstance="component", editorInstance="editor")])

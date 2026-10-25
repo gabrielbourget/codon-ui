@@ -22,8 +22,87 @@ struct TFieldGroupFocusable {
   double left{0};
   bool tabStop{true};
 };
+struct TFieldGroupNativePosition {
+  int32_t target;
+  int32_t parent;
+  std::vector<int32_t> order;
+};
 
-// Structural order comes from a single immutable Fabric revision. Native SDK
+// Portal event ancestry remains in Fabric. Focus walking follows the mounted
+// native tree; virtual nodes retain their source parents around ordinary views.
+inline std::vector<TFieldGroupNode> fieldGroupPhysicalNodes(
+    const std::vector<TFieldGroupNode> &logical, const std::vector<TFieldGroupNativePosition> &native) {
+  if (logical.empty()) throw std::invalid_argument("field-group-physical-root-missing");
+  std::unordered_map<int32_t, size_t> positions;
+  for (size_t index = 0; index < logical.size(); ++index)
+    if (!positions.emplace(logical[index].target, index).second)
+      throw std::invalid_argument("field-group-physical-source-ambiguous");
+  std::unordered_map<int32_t, const TFieldGroupNativePosition *> mounted;
+  for (const auto &row : native) {
+    if (!positions.contains(row.target) || (row.parent && !positions.contains(row.parent)) || row.target == row.parent ||
+        std::any_of(row.order.begin(), row.order.end(), [](int32_t index) { return index < 0; }) ||
+        !mounted.emplace(row.target, &row).second)
+      throw std::invalid_argument("field-group-physical-native-invalid");
+  }
+  auto physical = logical;
+  std::unordered_map<int32_t, std::vector<int32_t>> children;
+  std::unordered_map<int32_t, bool> reordered;
+  const auto root = logical.front().target;
+  for (auto &row : physical) {
+    if (row.target == root) { row.parent = 0; continue; }
+    if (const auto found = mounted.find(row.target); found != mounted.end()) {
+      auto ancestor = row.parent;
+      std::unordered_map<int32_t, bool> visited;
+      while (ancestor && !mounted.contains(ancestor)) {
+        if (!positions.contains(ancestor) || !visited.emplace(ancestor, true).second)
+          throw std::invalid_argument("field-group-physical-source-invalid");
+        ancestor = logical[positions.at(ancestor)].parent;
+      }
+      const auto parent = found->second->parent ? found->second->parent : root;
+      if (ancestor != parent) { row.parent = parent; reordered[parent] = true; }
+    }
+    if (!positions.contains(row.parent)) throw std::invalid_argument("field-group-physical-parent-missing");
+    children[row.parent].push_back(row.target);
+  }
+  const auto anchor = [&](const auto &self, int32_t target, std::unordered_map<int32_t, bool> &visiting)
+      -> const TFieldGroupNativePosition * {
+    if (!visiting.emplace(target, true).second) throw std::invalid_argument("field-group-physical-cycle");
+    const TFieldGroupNativePosition *result = nullptr;
+    if (const auto found = mounted.find(target); found != mounted.end()) result = found->second;
+    else if (const auto found = children.find(target); found != children.end())
+      for (const auto child : found->second) {
+        const auto candidate = self(self, child, visiting);
+        if (candidate && (!result || candidate->order < result->order)) result = candidate;
+      }
+    visiting.erase(target);
+    return result;
+  };
+  for (auto &[parent, siblings] : children) if (reordered[parent]) {
+    std::unordered_map<int32_t, const TFieldGroupNativePosition *> anchors;
+    for (const auto target : siblings) {
+      std::unordered_map<int32_t, bool> visiting;
+      const auto value = anchor(anchor, target, visiting);
+      if (!value) throw std::invalid_argument("field-group-physical-order-unavailable");
+      anchors.emplace(target, value);
+    }
+    std::stable_sort(siblings.begin(), siblings.end(), [&](int32_t first, int32_t second) {
+      return anchors.at(first)->order < anchors.at(second)->order;
+    });
+  }
+  std::vector<TFieldGroupNode> result;
+  std::unordered_map<int32_t, bool> visited;
+  const auto append = [&](const auto &self, int32_t target) -> void {
+    if (!visited.emplace(target, true).second) throw std::invalid_argument("field-group-physical-cycle");
+    result.push_back(physical[positions.at(target)]);
+    if (const auto found = children.find(target); found != children.end())
+      for (const auto child : found->second) self(self, child);
+  };
+  append(append, root);
+  if (result.size() != logical.size()) throw std::invalid_argument("field-group-physical-disconnected");
+  return result;
+}
+
+// Callers select logical Fabric or captured native order explicitly. Native SDK
 // admission supplies the eligible originals; no JS ref registry participates.
 class FieldGroupTraversal final {
  public:
@@ -48,6 +127,7 @@ class FieldGroupTraversal final {
       throw std::invalid_argument("field-group-roots-invalid");
   }
   bool contains(int32_t target) const { return positions_.contains(target); }
+  size_t preorderPosition(int32_t target) const { return positions_.at(target); }
   bool descendant(int32_t target, int32_t ancestor) const {
     if (!contains(ancestor)) return false;
     while (contains(target)) {

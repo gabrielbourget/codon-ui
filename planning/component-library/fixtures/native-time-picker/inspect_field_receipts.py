@@ -2,7 +2,7 @@
 import json
 
 PROBE = "codon-owned-time-entry-01"
-CALLBACKS = {"segment-key", "field-key", "child-key", "core-key", "segment-input", "group-pointer", "field-pointer", "child-pointer", "original-command-call", "original-command-return"}
+CALLBACKS = {"segment-key", "field-key", "child-key", "core-key", "segment-input", "group-pointer", "field-pointer", "child-pointer", "original-command-call", "original-command-return", "mutation-call", "mutation-return"}
 IDENTITY_FIELDS = {"ownerId", "bindingId", "bindingRevision", "metadataTarget", "outerTarget", "inputTarget", "surfaceId", "target", "documentId", "documentRevision", "windowId", "mountRevision", "outerInstance", "inputInstance", "nativeInstance", "editorInstance", "epoch"}
 PHASES = {"down", "up", "cancel", "input", "pointer-start", "pointer-end", "pointer-cancel", "pointer-click"}
 
@@ -26,7 +26,8 @@ def packet(value):
     assert isinstance(data["groups"], list) and data["groups"], "Missing original group path"
     targets = []
     for group in data["groups"]:
-        assert set(group) == {"target", "bindingId", "bindingRevision", "scopeTarget"}
+        assert set(group) == {"target", "bindingId", "bindingRevision", "scopeTarget", "containsTarget"}
+        assert type(group["containsTarget"]) is bool
         positive(group["target"]); positive(group["scopeTarget"])
         assert all(isinstance(group[name], str) and group[name] for name in ["bindingId", "bindingRevision"])
         targets.append(group["target"])
@@ -161,3 +162,115 @@ def same_argument(actual, original):
     if isinstance(original, dict): return actual.keys() == original.keys() and all(same_argument(actual[name], value) for name, value in original.items())
     if isinstance(original, list): return len(actual) == len(original) and all(same_argument(a, b) for a, b in zip(actual, original))
     return actual == original
+
+
+def validate_combined(rows, producer, checkpoints):
+    from validate_field_descendants import validate as descendants, validate_portals
+    from validate_field_pointers import validate as pointers, validate_streams
+    from validate_field_key_profiles import validate as key_profiles, completed
+    from validate_field_mutations import validate as mutations, validate_busy
+    integrity = inspect(rows, producer)
+    assert not integrity["nativeFailures"], "Combined original native input failed"
+    reports = {row["case"]: row for row in checkpoints}
+    assert len(reports) == len(checkpoints), "Duplicate original trial checkpoint"
+    batches = {row["batch"]: row for row in rows if row["kind"] == "native-receipts"}
+    values = [
+        ("Time", "13:45:07", "14:45:07"),
+        ("CalendarDateTime", "2024-10-01T13:45:07", "2024-10-01T14:45:07"),
+        ("ZonedDateTime", "2024-10-01T13:45:07-04:00[America/New_York]", "2024-10-01T14:45:07-04:00[America/New_York]"),
+    ]
+    matched_values = []
+    previous = 0
+    original_hour = None
+    for value_class, held, requested in values:
+        for arabic in [False, True]:
+            name = "original-" + value_class + ("-Arabic-veto" if arabic else "-veto")
+            assert name in reports, "Missing original TimeValue/locale trial"
+            batch = batches[reports[name]["batch"]]
+            source = [row for row in rows if previous < row["sequence"] < batch["sequence"]]
+            requests = [row for row in source if row["kind"] == "value-request"]
+            assert len(requests) == 1, "TimeValue request missing or repeated"
+            request = requests[0]
+            assert all(request[key] == value for key, value in dict(field="outer", value=requested, valueClass=value_class, held=held, heldClass=value_class, echo=False).items())
+            states = [row for row in source if row["kind"] == "field-state" and row["field"] == "outer"]
+            assert states and states[-1]["value"] == held and states[-1]["valueClass"] == value_class
+            assert states[-1]["locale"] == ("ar-EG" if arabic else "en-GB")
+            assert states[-1]["direction"] == ("rtl" if arabic else "ltr")
+            frames = [row for row in batch["records"] if row["kind"] == "key" and row["event"].get("key") == "ArrowUp"]
+            assert [packet(row["event"]["fieldDispatch"])["phase"] for row in frames] == ["down", "up"]
+            for frame in frames: completed(frame)
+            if original_hour is None: original_hour = frames[0]["identity"]
+            for frame in frames:
+                assert all(frame["identity"][key] == original_hour[key] for key in ["target", "nativeInstance", "editorInstance", "windowId"]), "TimeValue/locale replacement changed the original hour"
+            previous = batch["sequence"]
+            matched_values.append(name)
+    for guard in ["readonly", "disabled"]:
+        name = "original-" + guard + "-key-refusal"
+        assert name in reports, "Missing original guarded-input trial"
+        report = reports[name]
+        observations = [row for row in report["observations"] if row["field"] == "outer" and row[guard] is True and row["data"]["key"] == "9"]
+        assert observations and observations[-1]["data"]["focusedTarget"] == original_hour["target"]
+        assert not any(row["kind"] == "value-request" for row in rows if previous < row["sequence"] < batches[report["batch"]]["sequence"]), "Guarded original input changed the owner"
+        previous = batches[report["batch"]]["sequence"]
+    outcomes = {
+        "values": matched_values,
+        "descendants": descendants(rows, producer, checkpoints),
+        "pointers": pointers(rows, producer, checkpoints),
+        "pointerStreams": validate_streams(rows, producer, checkpoints),
+        "keyProfiles": key_profiles(rows, producer, checkpoints),
+        "mutations": mutations(rows, producer, checkpoints),
+        "portals": validate_portals(rows, producer, checkpoints),
+        "busyJS": validate_busy(rows, producer, checkpoints),
+    }
+    assert "unicode-original-setup" in reports and "unicode-original-commit" in reports, "Missing original Unicode insert trial"
+    start = batches[reports["unicode-original-setup"]["batch"]]["sequence"]
+    end = batches[reports["unicode-original-commit"]["batch"]]["sequence"]
+    source = [row for row in rows if start < row["sequence"] < end]
+    edits = [row for row in source if row["kind"] == "segment-input" and row["field"] == "outer" and row["data"]["kind"] == "insert" and row["data"]["text"] == "٢"]
+    assert len(edits) == 1 and json.loads(edits[0]["data"]["nativeData"])["method"], "Original SDK Unicode insert missing or repeated"
+    assert edits[0]["originalTarget"] == edits[0]["data"]["target"]
+    unicode_requests = [row for row in source if row["kind"] == "value-request"]
+    assert len(unicode_requests) == 1 and unicode_requests[0]["value"] == "2024-10-01T02:45:07-04:00[America/New_York]"
+    assert unicode_requests[0]["valueClass"] == "ZonedDateTime" and unicode_requests[0]["echo"] is False
+    candidate_cases = [
+        ("candidate-owned-entry", "ArrowUp", None),
+        ("candidate-original-control", "ArrowRight", "next"),
+        ("candidate-rtl-right", "ArrowLeft", "physical-right"),
+        ("candidate-rtl-left", "ArrowRight", "physical-left"),
+    ]
+    for name, key_name, action in candidate_cases:
+        assert name in reports and name+"-setup" in reports, "Incomplete actual TimePicker candidate trial"
+        start = batches[reports[name+"-setup"]["batch"]]["sequence"]
+        batch = batches[reports[name]["batch"]]
+        source = [row for row in rows if start < row["sequence"] < batch["sequence"]]
+        native = batch["records"]
+        frames = [row for row in native if row["kind"] == "key" and row["event"].get("key") == key_name]
+        assert [packet(row["event"]["fieldDispatch"])["phase"] for row in frames] == ["down", "up"]
+        for frame in frames:
+            completed(frame)
+            dispatch = packet(frame["event"]["fieldDispatch"])
+            callbacks = [row for row in source if row["kind"] == "field-key" and key(packet(row["data"]["fieldDispatch"])) == key(dispatch)]
+            groups = dispatch["groups"][:1] if action and dispatch["phase"] == "down" else dispatch["groups"]
+            assert [row["receiverTarget"] for row in callbacks] == [group["target"] for group in groups]
+            assert all(row["field"] == "candidate" for row in callbacks), "Candidate used the prototype's caller"
+        requests = [row for row in source if row["kind"] == "value-request"]
+        if action is None:
+            assert len(requests) == 1 and all(requests[0][key] == value for key,value in dict(field="candidate", value="14:45:07", held="13:45:07", valueClass="Time", heldClass="Time", echo=False).items())
+        else:
+            assert not requests
+            focuses = [row for row in native if row["kind"] == "focus"]
+            assert len(focuses) == 1
+            focus = focuses[0]
+            assert focus["action"] == action and all(focus[flag] is True for flag in ["requested", "observed", "current"])
+            assert focus["token"] == packet(frames[0]["event"]["fieldDispatch"])["token"]
+            assert focus["target"] == frames[1]["identity"]["target"]
+            if action.startswith("physical-"):
+                before = frames[0]["before"]
+                origin = next(row["rect"]["x"] for row in before["originals"] if row["target"] == frames[0]["identity"]["target"])
+                candidates = [row for row in before["originals"] if row["eligible"] and row["tabStop"] and
+                              ((row["rect"]["x"] > origin) if action == "physical-right" else (row["rect"]["x"] < origin))]
+                assert candidates and focus["target"] == min(candidates,key=lambda row: abs(row["rect"]["x"]-origin))["target"], "Candidate skipped the current nearest native geometry"
+    outcomes["actualTimePickerCandidate"] = [row[0] for row in candidate_cases]
+    return {"combinedCheckpointContracts": outcomes, "nativeReceiptIntegrity": True, "originalUnicodeInsert": True,
+            "fullInputSurface": False, "fullIME": False, "hardwareBurst": False, "hardwareRepeat": False,
+            "fullFamily": False, "fullGoal": False}

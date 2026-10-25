@@ -38,6 +38,51 @@ const pointer = (target: Element, type: string, pointerType: string) =>
     }),
   )
 
+it.each(["mouse", "touch", "pen"])(
+  "retains source field press behavior for a non-primary %s contact",
+  (pointerType) => {
+    render(
+      <>
+        <button>Outside</button>
+        <TimePicker aria-label="Clock" />
+      </>,
+    )
+    act(() => screen.getByRole("button").focus())
+    const group = screen.getByRole("group", { name: "TimePicker Input Icon Group" })
+    for (const type of ["pointerdown", "pointerup", "click"])
+      fireEvent(
+        group,
+        new SourcePointerEvent(type, {
+          bubbles: true,
+          cancelable: true,
+          pointerId: 2,
+          pointerType,
+          isPrimary: false,
+          button: 0,
+          buttons: type === "pointerdown" ? 1 : 0,
+          detail: 1,
+        }),
+      )
+    expect(document.activeElement).toBe(screen.getAllByRole("spinbutton")[0])
+  },
+)
+
+it("starts a fresh mouse press after the previous original release occurred outside the group", () => {
+  render(
+    <>
+      <button>Outside</button>
+      <TimePicker aria-label="Clock" />
+    </>,
+  )
+  const outside = screen.getByRole("button"),
+    group = screen.getByRole("group", { name: "TimePicker Input Icon Group" })
+  pointer(group, "pointerdown", "touch")
+  pointer(outside, "pointerup", "touch")
+  act(() => outside.focus())
+  pointer(group, "pointerdown", "mouse")
+  expect(document.activeElement).toBe(screen.getAllByRole("spinbutton")[0])
+})
+
 it("keeps field-root pointer callers outside the two context groups' internal start/click stops", async () => {
   const down = vi.fn(),
     up = vi.fn(),

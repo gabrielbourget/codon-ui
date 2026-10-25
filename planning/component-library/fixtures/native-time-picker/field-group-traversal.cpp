@@ -94,6 +94,34 @@ int main() {
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{3,2},{2,1}},2,3); });
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{3,2},{4,1},{5,2}},2,3); });
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{3,99}},2,3); });
+  {
+    const std::vector<TFieldGroupNode> logical = {{1,0},{2,1},{3,2},{10,3},{11,10},{20,2},{30,2},{50,1},{60,1}};
+    const std::vector<TFieldGroupNativePosition> mounted = {
+      {1,0,{}},{2,1,{0}},{3,2,{0,0}},{10,3,{0,0,0}},{20,60,{1,0}},{30,2,{0,1}},
+      {50,3,{0,0,1}},{60,1,{1}}
+    };
+    FieldGroupTraversal events(logical, 2, 3);
+    const auto physicalNodes = fieldGroupPhysicalNodes(logical, mounted);
+    FieldGroupTraversal focus(physicalNodes, 2, 3);
+    check(events.groups(20) == std::vector<int32_t>({2}));
+    check(events.groups(50).empty());
+    check(!focus.descendant(20, 2));
+    check(focus.descendant(50, 3));
+    check(focus.descendant(11, 10));
+    focus.admit({{10,false,0},{50,false,10},{30,false,20}});
+    check(focus.logical(20, 1) == 10);
+    check(focus.logical(20, -1) == 30);
+    check(focus.logical(10, 1) == 50);
+    check(focus.logical(50, 1) == 30);
+    check(focus.press(11) == 10);
+    auto invalid = mounted;
+    invalid.push_back(mounted.front());
+    rejects([&] { fieldGroupPhysicalNodes(logical, invalid); });
+    invalid = mounted; invalid[3].parent = 999;
+    rejects([&] { fieldGroupPhysicalNodes(logical, invalid); });
+    invalid = mounted; invalid[3].parent = 10;
+    rejects([&] { fieldGroupPhysicalNodes(logical, invalid); });
+  }
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{3,3}},2,3); });
   rejects([&] { FieldGroupTraversal value({{1,0},{2,1},{0,2}},2,3); });
   std::cout << assertions << " actual C++ field-group traversal assertions passed\n";

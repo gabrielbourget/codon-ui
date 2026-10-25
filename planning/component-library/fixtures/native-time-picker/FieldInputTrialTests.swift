@@ -61,7 +61,7 @@ final class FieldInputTrialTests: XCTestCase {
       return row["observedFocusTarget"] as? Int == target
     }
   }
-  private func receipt(_ name: String, nativeEditors: [String] = []) throws -> [String: Any] {
+  private func receipt(_ name: String, nativeEditors: [String] = [], nativeActionSeconds: Double? = nil) throws -> [String: Any] {
     let previous = read("field-sdk-receipt-snapshot")?["batch"] as? Int ?? 0
     element("field-sdk-checkpoint").tap()
     let row = try wait("field-sdk-receipt-snapshot") { ($0["batch"] as? Int ?? 0) > previous }
@@ -69,6 +69,8 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertTrue(try XCTUnwrap(row["failures"] as? [[String: Any]]).isEmpty)
     var report = row
     report["case"] = name
+    if let nativeActionSeconds { report["nativeActionElapsedSeconds"] = nativeActionSeconds }
+    report["scene"] = try XCTUnwrap(read("field-sdk-scene-state"))
     report["nativeValues"] = Dictionary(uniqueKeysWithValues: nativeEditors.map { ($0, element($0).value as? String ?? element($0).label) })
     let encoded = try JSONSerialization.data(withJSONObject: report, options: [.sortedKeys])
     let attachment = XCTAttachment(string: String(decoding: encoded, as: UTF8.self))
@@ -298,6 +300,26 @@ final class FieldInputTrialTests: XCTestCase {
     XCTAssertFalse(cancelFrames.contains { $0["phase"] as? String == "pointer-click" })
     XCTAssertTrue(try XCTUnwrap(cancelled["focusActions"] as? [[String: Any]]).isEmpty)
 
+    let streamTail = reveal("outer-press-tail", towardStart: true)
+    let insideStream = streamTail.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.5))
+    let outsideStream = app.coordinate(withNormalizedOffset: .zero).withOffset(
+      CGVector(dx: element("outer-outer").frame.maxX + 8, dy: streamTail.frame.midY))
+    _ = try receipt("outside-release-setup")
+    insideStream.press(forDuration: 0.05, thenDragTo: outsideStream)
+    let outsideRelease = try receipt("outside-release")
+    XCTAssertTrue(try XCTUnwrap(outsideRelease["focusActions"] as? [[String: Any]]).isEmpty)
+    _ = try receipt("outside-origin-setup")
+    outsideStream.press(forDuration: 0.05, thenDragTo: insideStream)
+    let outsideOrigin = try receipt("outside-origin")
+    XCTAssertTrue(try XCTUnwrap(outsideOrigin["focusActions"] as? [[String: Any]]).isEmpty)
+    _ = try receipt("fresh-pointer-stream-setup")
+    streamTail.tap()
+    let freshStream = try receipt("fresh-pointer-stream")
+    let freshFocus = try XCTUnwrap((freshStream["focusActions"] as? [[String: Any]])?.first)
+    XCTAssertEqual((freshStream["focusActions"] as? [[String: Any]])?.count, 1)
+    XCTAssertEqual(freshFocus["target"] as? Int, originalHourTarget)
+    XCTAssertEqual(freshFocus["observed"] as? Bool, true)
+
     control("stop")
     _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
     let authored = reveal("outer-button", towardStart: false)
@@ -372,5 +394,182 @@ final class FieldInputTrialTests: XCTestCase {
     _ = try receipt("consecutive-original-navigation-setup")
     for _ in 0..<4 { app.typeKey(.rightArrow, modifierFlags: []) }
     try navigationProfile("consecutive-original-navigation", requestCount: count, mask: 0, steps: 4)
+    for mutation in ["callback", "disabled", "readonly", "layout", "unmount"] {
+      control("mutation")
+      let before = try wait("field-sdk-scene-state") { $0["mutation"] as? String == mutation }
+      _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+      try focusAuthoredButton()
+      _ = try receipt("mutation-" + mutation + "-setup")
+      app.typeKey("m", modifierFlags: [])
+      _ = try wait("field-sdk-scene-state") { row in
+        if mutation == "callback" { return row["revision"] as? Int == (before["revision"] as? Int ?? 0) + 1 }
+        if mutation == "disabled" || mutation == "readonly" { return row[mutation] as? Bool == true }
+        if mutation == "layout" { return row["layoutRevision"] as? Int == (before["layoutRevision"] as? Int ?? 0) + 1 }
+        return row["visible"] as? Bool == false
+      }
+      let changed = try receipt("mutation-" + mutation)
+      let downs = try XCTUnwrap(changed["frames"] as? [[String: Any]])
+        .filter { $0["kind"] as? String == "key" && $0["key"] as? String == "m" && $0["phase"] as? String == "down" }
+      XCTAssertEqual(downs.count, 1)
+      let down = try XCTUnwrap(downs.first)
+      XCTAssertEqual(down["deliveryStarted"] as? Bool, true)
+      if mutation == "layout" {
+        XCTAssertEqual(down["scopeCurrent"] as? Bool, true)
+        XCTAssertEqual(down["renderPhasesComplete"] as? Bool, true)
+        XCTAssertEqual(down["error"] as? String, "")
+        XCTAssertEqual(down["decision"] as? String, "prevented")
+      } else {
+        XCTAssertEqual(down["scopeCurrent"] as? Bool, false)
+        XCTAssertEqual(down["decision"] as? String, "retired")
+        XCTAssertEqual(down["wait"] as? String, "retired")
+        XCTAssertEqual(down["deliveryReturned"] as? Bool, true)
+        XCTAssertEqual(down["renderPhasesComplete"] as? Bool, true)
+        XCTAssertTrue(["", "field-input-original-mount-event-retired"].contains(down["error"] as? String ?? "missing"))
+      }
+      let ups = try XCTUnwrap(changed["frames"] as? [[String: Any]])
+        .filter { $0["kind"] as? String == "key" && $0["key"] as? String == "m" && $0["phase"] as? String == "up" }
+      if mutation == "layout" { XCTAssertEqual(ups.count, 1) }
+      if mutation == "unmount" { XCTAssertTrue(ups.isEmpty) }
+      let currentRevision = try XCTUnwrap(read("field-sdk-scene-state")?["revision"] as? Int)
+      for up in ups {
+        XCTAssertEqual(up["scopeCurrent"] as? Bool, true)
+        XCTAssertEqual(up["deliveryReturned"] as? Bool, true)
+        XCTAssertEqual(up["renderPhasesComplete"] as? Bool, true)
+        XCTAssertEqual(up["error"] as? String, "")
+        let callbacks = try XCTUnwrap(changed["callbacks"] as? [[String: Any]])
+          .filter { $0["kind"] as? String == "field-key" && $0["token"] as? Int == up["token"] as? Int }
+        XCTAssertEqual(callbacks.count, 1)
+        XCTAssertEqual(callbacks.first?["revision"] as? Int, currentRevision)
+      }
+      XCTAssertEqual((changed["requests"] as? [[String: Any]])?.count, count)
+      XCTAssertTrue(try XCTUnwrap(changed["focusActions"] as? [[String: Any]]).isEmpty)
+      XCTAssertTrue(try XCTUnwrap(changed["commands"] as? [[String: Any]]).isEmpty)
+      if mutation == "disabled" || mutation == "readonly" { control(mutation) }
+      if mutation == "unmount" {
+        XCTAssertFalse(element("outer-root").exists)
+        control("show")
+      }
+      _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+      try focusAuthoredButton()
+      _ = try receipt("mutation-" + mutation + "-probe-setup")
+      app.typeKey("j", modifierFlags: [])
+      let probe = try checkpoint("mutation-" + mutation + "-probe", requestCount: count, hourTarget: false)
+      let revision = try XCTUnwrap(read("field-sdk-scene-state")?["revision"] as? Int)
+      let tokens = Set(try XCTUnwrap(probe["frames"] as? [[String: Any]]).compactMap { $0["token"] as? Int })
+      let callbacks = try XCTUnwrap(probe["callbacks"] as? [[String: Any]])
+        .filter { $0["kind"] as? String == "field-key" && tokens.contains($0["token"] as? Int ?? 0) }
+      XCTAssertEqual(callbacks.count, 2)
+      XCTAssertTrue(callbacks.allSatisfy { $0["revision"] as? Int == revision })
+    }
+    control("mutation")
+    control("portal")
+    _ = try wait("field-sdk-scene-state") { $0["portaled"] as? Bool == true }
+    _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+    control("focus-button")
+    _ = try receipt("portal-original-setup")
+    app.typeKey(.rightArrow, modifierFlags: [])
+    let portalKeys = try checkpoint("portal-original-keys", requestCount: count, hourTarget: false)
+    let buttonTarget = try XCTUnwrap(read("outer-value")?["buttonTarget"] as? Int)
+    let keyFrames = try XCTUnwrap(portalKeys["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "key" }
+    XCTAssertEqual(keyFrames.count, 2)
+    for frame in keyFrames {
+      XCTAssertEqual((frame["identity"] as? [String: Any])?["target"] as? Int, buttonTarget)
+      XCTAssertEqual(frame["beforeEventFocusedTarget"] as? Int, buttonTarget)
+      XCTAssertEqual(frame["afterEventFocusedTarget"] as? Int, buttonTarget)
+      XCTAssertEqual(frame["decision"] as? String, "allowed")
+      let groups = try XCTUnwrap(frame["groups"] as? [[String: Any]])
+      XCTAssertFalse(groups.isEmpty)
+      XCTAssertTrue(groups.allSatisfy { $0["containsTarget"] as? Bool == false })
+    }
+    XCTAssertTrue(try XCTUnwrap(portalKeys["focusActions"] as? [[String: Any]]).isEmpty)
+    _ = try receipt("portal-original-press-setup")
+    element("outer-button").tap()
+    let portalPress = try receipt("portal-original-press")
+    XCTAssertTrue(try XCTUnwrap(portalPress["focusActions"] as? [[String: Any]]).isEmpty)
+    let pointerFrames = try XCTUnwrap(portalPress["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "pointer" }
+    XCTAssertTrue(pointerFrames.contains { $0["phase"] as? String == "pointer-start" })
+    XCTAssertTrue(pointerFrames.contains { $0["phase"] as? String == "pointer-click" })
+    for frame in pointerFrames {
+      XCTAssertGreaterThan(try XCTUnwrap((frame["identity"] as? [String: Any])?["target"] as? Int), 0)
+      XCTAssertTrue(try XCTUnwrap(frame["groups"] as? [[String: Any]])
+        .allSatisfy { $0["containsTarget"] as? Bool == false })
+      XCTAssertEqual(frame["decision"] as? String, "allowed")
+    }
+    control("portal")
+    _ = try wait("field-sdk-scene-state") { $0["portaled"] as? Bool == false }
+    _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+    try focusAuthoredButton()
+    _ = try receipt("busy-original-setup")
+    control("busy")
+    _ = try wait("field-sdk-scene-state") { $0["busyPhase"] as? String == "running" }
+    let busyStarted = Date()
+    app.typeKey("q", modifierFlags: [])
+    let busyActionSeconds = Date().timeIntervalSince(busyStarted)
+    XCTAssertLessThan(busyActionSeconds, 5)
+    _ = try wait("field-sdk-scene-state") { $0["busyPhase"] as? String == "complete" }
+    let busy = try receipt("busy-original-expiry", nativeActionSeconds: busyActionSeconds)
+    let busyFrames = try XCTUnwrap(busy["frames"] as? [[String: Any]])
+      .filter { $0["kind"] as? String == "key" && $0["key"] as? String == "q" }
+    XCTAssertEqual(busyFrames.count, 2)
+    for frame in busyFrames {
+      XCTAssertEqual(frame["decision"] as? String, "timed-out")
+      XCTAssertEqual(frame["deliveryStarted"] as? Bool, false)
+      XCTAssertEqual(frame["deliveryReturned"] as? Bool, false)
+    }
+    let busyTokens = Set(busyFrames.compactMap { $0["token"] as? Int })
+    XCTAssertFalse(try XCTUnwrap(busy["callbacks"] as? [[String: Any]])
+      .contains { busyTokens.contains($0["token"] as? Int ?? 0) })
+    app.typeKey("j", modifierFlags: [])
+    _ = try checkpoint("busy-original-followup", requestCount: count, hourTarget: false)
+    control("zoned")
+    control("locale")
+    _ = try wait("outer-value") { $0["locale"] as? String == "ar-EG" && $0["valueClass"] as? String == "ZonedDateTime" }
+    _ = try wait("outer-binding") { $0["ready"] as? Bool == true }
+    let unicodeHour = revealHour()
+    unicodeHour.tap()
+    _ = try receipt("unicode-original-setup")
+    unicodeHour.typeText("٢")
+    count += 1
+    let unicode = try receipt("unicode-original-commit")
+    let unicodeRequest = try XCTUnwrap((unicode["requests"] as? [[String: Any]])?.last)
+    XCTAssertEqual(unicodeRequest["value"] as? String, "2024-10-01T02:45:07-04:00[America/New_York]")
+    XCTAssertEqual(unicodeRequest["valueClass"] as? String, "ZonedDateTime")
+    XCTAssertEqual((unicode["requests"] as? [[String: Any]])?.count, count)
+    XCTAssertEqual(read("outer-value")?["value"] as? String, "2024-10-01T13:45:07-04:00[America/New_York]")
+    control("candidate")
+    let candidateState = try wait("candidate-state") { $0["ready"] as? Bool == true && $0["value"] as? String == "13:45:07" }
+    let candidateHour = reveal(try XCTUnwrap(candidateState["hourTestID"] as? String), towardStart: true)
+    candidateHour.tap()
+    _ = try receipt("candidate-owned-entry-setup")
+    candidateHour.typeKey(.upArrow, modifierFlags: [])
+    count += 1
+    let candidateEntry = try checkpoint("candidate-owned-entry", requestCount: count, hourTarget: false)
+    let candidateRequest = try XCTUnwrap((candidateEntry["requests"] as? [[String: Any]])?.last)
+    XCTAssertEqual(candidateRequest["field"] as? String, "candidate")
+    XCTAssertEqual(candidateRequest["value"] as? String, "14:45:07")
+    XCTAssertEqual(read("candidate-state")?["value"] as? String, "13:45:07")
+    _ = reveal("candidate-button", towardStart: false)
+    control("focus-button")
+    _ = try receipt("candidate-original-control-setup")
+    app.typeKey(.rightArrow, modifierFlags: [])
+    let candidateControl = try checkpoint("candidate-original-control", requestCount: count, hourTarget: false)
+    let candidateFocus = try XCTUnwrap((candidateControl["focusActions"] as? [[String: Any]])?.first)
+    XCTAssertEqual(candidateFocus["action"] as? String, "next")
+    XCTAssertEqual(candidateFocus["observed"] as? Bool, true)
+    element("candidate-core").typeText("7")
+    XCTAssertEqual(element("candidate-core").value as? String, "7")
+    XCTAssertEqual(read("candidate-state")?["value"] as? String, "13:45:07")
+    control("locale")
+    let rtlCandidate = try wait("candidate-state") { $0["ready"] as? Bool == true && $0["locale"] as? String == "ar-EG" }
+    let rtlHour = reveal(try XCTUnwrap(rtlCandidate["hourTestID"] as? String), towardStart: true)
+    rtlHour.tap()
+    _ = try receipt("candidate-rtl-right-setup")
+    rtlHour.typeKey(.leftArrow, modifierFlags: [])
+    _ = try checkpoint("candidate-rtl-right", requestCount: count, hourTarget: false)
+    _ = try receipt("candidate-rtl-left-setup")
+    element(try XCTUnwrap(rtlCandidate["minuteTestID"] as? String)).typeKey(.rightArrow, modifierFlags: [])
+    _ = try checkpoint("candidate-rtl-left", requestCount: count, hourTarget: false)
   }
 }

@@ -376,5 +376,36 @@ int main() {
     check(!registry.captureCurrentThread() && !frames.accepts(input->token, identity, 2, "input"));
     frames.end(root, true);
   }
+  {
+    RuntimeScheduler_Modern scheduler; jsi::Runtime runtime; FieldInputDispatchFrames frames; NativeEventCommands registry;
+    std::deque<std::function<void()>> nativeOrigins;
+    std::vector<int> delivered;
+    int finishes = 0;
+    for (int index = 0; index < 64; ++index) nativeOrigins.push_back([&, index] {
+      const std::string phase = index % 3 == 0 ? "down" : index % 3 == 1 ? "up" : "cancel";
+      const auto ticket = frames.begin(identity, index + 1, phase, 1000ms);
+      check(ticket != nullptr);
+      check(scheduler.scheduleNativeEventWork([&, ticket, index, phase](auto &) {
+        check(registry.captureCurrentThread() != nullptr);
+        check(frames.accepts(ticket->token, identity, index + 1, phase));
+        delivered.push_back(index);
+        check(frames.acknowledge(ticket->token, identity, index + 1, phase, true, false, {}));
+        frames.finishHandler(ticket, false);
+      }, [&, ticket](auto &) {
+        return std::make_shared<CommandScope>(std::make_shared<int>(1), frames, ticket, registry, finishes);
+      }));
+      scheduler.runNext(runtime);
+      const auto result = frames.wait(ticket);
+      check(result.disposition == FieldInputDisposition::Allowed && result.deliveryStarted && result.deliveryReturned && result.phasesComplete);
+      frames.end(ticket, true);
+    });
+    check(delivered.empty() && nativeOrigins.size() == 64);
+    while (!nativeOrigins.empty()) {
+      auto origin = std::move(nativeOrigins.front()); nativeOrigins.pop_front(); origin();
+    }
+    check(scheduler.queue.empty() && finishes == 64 && delivered.size() == 64);
+    for (int index = 0; index < 64; ++index) check(delivered[index] == index);
+    check(!registry.captureCurrentThread());
+  }
   std::cout << assertions << " actual SDK Task/CUI scope and exact task/checkpoint/render assertions passed; no linked or installed verdict\n";
 }

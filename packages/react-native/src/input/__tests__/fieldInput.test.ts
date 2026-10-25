@@ -37,8 +37,8 @@ const packet = () => ({
     epoch: 2,
   },
   groups: [
-    { target: 3, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2 },
-    { target: 2, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2 },
+    { target: 3, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2, containsTarget: true },
+    { target: 2, bindingId: "field:1", bindingRevision: "rev:1", scopeTarget: 2, containsTarget: true },
   ],
 })
 const event = (data = packet(), extra: Partial<TNativeFieldKeyEvent["nativeEvent"]> = {}) => {
@@ -139,6 +139,56 @@ const groupEvent = (
   root = pressRoots.input,
 ) => Object.assign(pointerEvent(phase, { pointerType, ...options }), { currentTarget: root })
 
+it("delivers a portaled control's original group keys without physical group navigation", () => {
+  const f = setup(),
+    data = packet(),
+    caller = jest.fn()
+  data.groups.forEach((group) => {
+    group.containsTarget = false
+  })
+  const original = event(data)
+  expect(nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onKeyDown: caller })(original, 3)).toBe(true)
+  expect(caller).toHaveBeenCalledWith(original)
+  expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  expect(original.isDefaultPrevented()).toBe(false)
+  expect(original.isPropagationStopped()).toBe(false)
+})
+
+it("retains the original held-key repeat flag through group navigation and its caller", () => {
+  const f = setup(),
+    original = event(packet(), { repeat: true }),
+    caller = jest.fn()
+  nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onKeyDown: caller })(original, 3)
+  expect(caller).toHaveBeenCalledWith(original)
+  expect(original.nativeEvent.repeat).toBe(true)
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it.each(["pointer-start", "pointer-end", "pointer-cancel", "pointer-click"] as const)(
+  "delivers a portaled control's original %s without group press behavior",
+  (phase) => {
+    const f = setup(),
+      data = { ...packet(), phase },
+      caller = jest.fn()
+    data.groups.forEach((group) => {
+      group.containsTarget = false
+    })
+    const original = groupEvent(phase, "mouse", { fieldDispatch: JSON.stringify(data) })
+    const press = new NativeFieldGroupPress(() => ({
+      scope: f.scope,
+      onPointerDown: caller,
+      onPointerUp: caller,
+      onPointerCancel: caller,
+      onClick: caller,
+    }))
+    expect(press.receive(original, 3, phase)).toBe(true)
+    expect(caller).toHaveBeenCalledWith(original)
+    expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+    expect(original.isDefaultPrevented()).toBe(false)
+    expect(original.isPropagationStopped()).toBe(false)
+  },
+)
+
 it("runs source mouse-start focus before the same group's caller and stops only subsequent ancestors", () => {
   const f = setup(),
     original = groupEvent("pointer-start", "mouse"),
@@ -163,6 +213,24 @@ it("runs source mouse-start focus before the same group's caller and stops only 
   expect(trace).toEqual(["original-focus", "group-caller"])
   expect(original.isDefaultPrevented()).toBe(false)
   expect(press.receive(original, 2, "pointer-start")).toBe(false)
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it.each(["mouse", "touch", "pen"])("preserves the source's non-primary %s press", (pointerType) => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start", pointerType, { isPrimary: false }), 3, "pointer-start")
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(pointerType === "mouse" ? 1 : 0)
+  press.receive(groupEvent("pointer-end", pointerType, { isPrimary: false }), 3, "pointer-end")
+  press.receive(groupEvent("pointer-click", pointerType, { isPrimary: false }), 3, "pointer-click")
+  expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
+})
+
+it("starts the new native stream when the previous release was outside the field receivers", () => {
+  const f = setup(),
+    press = new NativeFieldGroupPress(() => ({ scope: f.scope }))
+  press.receive(groupEvent("pointer-start", "touch"), 3, "pointer-start")
+  press.receive(groupEvent("pointer-start", "mouse"), 3, "pointer-start")
   expect(f.native.moveFieldFocus).toHaveBeenCalledTimes(1)
 })
 
@@ -215,7 +283,7 @@ it.each(["cancel", "retire"])("does not focus from a click after %s", (change) =
   expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
 })
 
-it.each([{ button: 1 }, { button: 2 }, { isPrimary: false }])(
+it.each([{ button: 1 }, { button: 2 }])(
   "does not request native focus for ineligible source pointer data %j",
   (options) => {
     const f = setup(),
@@ -688,6 +756,18 @@ it.each([
     },
   ],
   [
+    "missing physical containment",
+    (data: ReturnType<typeof packet>) => {
+      Reflect.deleteProperty(data.groups[0], "containsTarget")
+    },
+  ],
+  [
+    "invalid physical containment",
+    (data: ReturnType<typeof packet>) => {
+      Object.assign(data.groups[0], { containsTarget: "false" })
+    },
+  ],
+  [
     "foreign owner",
     (data: ReturnType<typeof packet>) => {
       data.groups = [{ ...data.groups[1], bindingId: "other" }]
@@ -739,8 +819,8 @@ it("retains nested input/outer callbacks from their actual group path and settle
     data = packet(),
     trace: string[] = []
   data.groups.push(
-    { target: 21, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 },
-    { target: 20, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 },
+    { target: 21, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20, containsTarget: true },
+    { target: 20, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20, containsTarget: true },
   )
   const parent = { ...f.scope, bindingId: "parent", bindingRevision: "parent-revision" }
   const original = event(data, { key: "2" })
@@ -767,7 +847,13 @@ it("retains nested input/outer callbacks from their actual group path and settle
 it("routes an admitted ancestor's action through its own scope and refuses cross-scope requests", () => {
   const f = setup(),
     data = packet()
-  data.groups.push({ target: 20, bindingId: "parent", bindingRevision: "parent-revision", scopeTarget: 20 })
+  data.groups.push({
+    target: 20,
+    bindingId: "parent",
+    bindingRevision: "parent-revision",
+    scopeTarget: 20,
+    containsTarget: true,
+  })
   const parent = { ...f.scope, bindingId: "parent", bindingRevision: "parent-revision" }
   const original = event(data)
   expect(moveNativeFieldFocus(f.scope, original, { groupTarget: 20, kind: "next" })).toBeNull()

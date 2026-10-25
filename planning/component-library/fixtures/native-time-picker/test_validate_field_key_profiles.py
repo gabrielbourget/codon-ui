@@ -24,7 +24,7 @@ def journal():
         dispatch["groups"] = dispatch["groups"][-1:]
         if inner:
             dispatch["identity"].update(ownerId="inner",bindingId="inner-binding",bindingRevision="inner-revision",metadataTarget=55,outerTarget=50,inputTarget=51,outerInstance="inner-outer",inputInstance="inner-input")
-            dispatch["groups"] = [dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10) for t in [51,50,10]]
+            dispatch["groups"] = [dict(target=t,bindingId="inner-binding" if t!=10 else "binding",bindingRevision="inner-revision" if t!=10 else "revision",scopeTarget=50 if t!=10 else 10,containsTarget=True) for t in [51,50,10]]
         event = dict(key="ArrowRight", phase=phase, target=target, repeat=False, capsLock=False, nativeCode=79, nativeModifierData=str(mask), fieldDispatch=json.dumps(dispatch), **{name:bool(mask & (1<<bit)) for bit,name in enumerate(MODIFIERS)})
         native.update(event=event, identity=copy.deepcopy(dispatch["identity"]), deliveryStarted=True,deliveryReturned=True,renderPhasesComplete=True,error="",decision="prevented" if phase=="down" else "allowed",originalDefaultPrevented=phase=="down")
         for snapshot in [native["before"], native["after"]]:

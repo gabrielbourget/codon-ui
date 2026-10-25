@@ -173,3 +173,64 @@ def key_up(native, source, expected_key, target, field_names):
     assert [row["receiverTarget"] for row in callbacks] == [group["target"] for group in dispatch["groups"]], "New target's original key-up group path differs"
     assert [row["field"] for row in callbacks] == [field_names[group["scopeTarget"]] for group in dispatch["groups"]], "Key up reached a different field owner"
     return ups[0]
+
+
+def physical_contains(snapshot, target, ancestor):
+    parents = {row["target"]: row["parent"] for row in snapshot["nativeHierarchy"]}
+    assert len(parents) == len(snapshot["nativeHierarchy"]), "Ambiguous native portal hierarchy"
+    instances = {row["target"]: row["nativeTarget"] for row in snapshot["instances"]}
+    current = instances.get(target, target)
+    ancestor = instances.get(ancestor, ancestor)
+    assert current in parents and ancestor in parents, "Missing actual native portal endpoints"
+    visited = set()
+    while current:
+        assert current not in visited and current in parents, "Invalid native portal ancestry"
+        if current == ancestor: return True
+        visited.add(current)
+        current = parents[current]
+    return False
+
+
+def validate_portals(rows, producer, checkpoints):
+    integrity = inspect(rows, producer)
+    reports = {row["case"]: row for row in checkpoints}
+    assert len(reports) == len(checkpoints), "Duplicate native portal checkpoint"
+    batches = {row["batch"]: row for row in rows if row["kind"] == "native-receipts"}
+    matched = []
+    for setup_name, name, kind, phases in [
+        ("portal-original-setup", "portal-original-keys", "key", ["down", "up"]),
+        ("portal-original-press-setup", "portal-original-press", "pointer", ["pointer-start", "pointer-end", "pointer-click"]),
+    ]:
+        assert setup_name in reports and name in reports, "Incomplete native portal trial"
+        setup, report = reports[setup_name], reports[name]
+        assert setup["batch"] < report["batch"], "Portal setup follows its native action"
+        start, end = batches[setup["batch"]]["sequence"], batches[report["batch"]]["sequence"]
+        states = [row for row in rows if row["kind"] == "field-state" and row["field"] == "outer" and row["sequence"] < end]
+        assert states and states[-1]["portaled"] is True, "Original button was not portaled"
+        state = states[-1]
+        assert all(state[flag] is False for flag in ["disabled", "readonly", "veto", "stop"])
+        source = [row for row in rows if start < row["sequence"] < end]
+        native = batches[report["batch"]]["records"]
+        assert not any(row["kind"] in {"failure", "focus"} for row in native), "Portal performed group focus or failed"
+        frames = [row for row in native if row["kind"] == kind]
+        assert [packet(row["event"]["fieldDispatch"])["phase"] for row in frames] == phases, "Incomplete original portal phases"
+        for frame in frames:
+            dispatch = packet(frame["event"]["fieldDispatch"])
+            target = dispatch["identity"]["target"]
+            assert all(frame[flag] is True for flag in ["deliveryStarted", "deliveryReturned", "renderPhasesComplete", "scopeCurrent"])
+            assert frame["error"] == "" and frame["decision"] == "allowed" and frame["originalDefaultPrevented"] is False
+            assert dispatch["groups"] and all(group["containsTarget"] is False for group in dispatch["groups"])
+            for snapshot in [frame["before"], frame["after"]]:
+                assert physical_contains(snapshot, target, state["buttonTarget"]), "Native pointer missed the original portaled button"
+                assert all(not physical_contains(snapshot, target, group["target"]) for group in dispatch["groups"]), "Portal is physically inside a field group"
+            callbacks = [row for row in source if row["kind"] == ("field-key" if kind == "key" else "group-pointer") and dispatch_key(packet(row["data"]["fieldDispatch"])) == dispatch_key(dispatch)]
+            assert [row["receiverTarget"] for row in callbacks] == [group["target"] for group in dispatch["groups"]], "Portal lost its original logical callers"
+            assert all(row["field"] == "outer" and row["prevented"] is False and row["stopped"] is False for row in callbacks)
+            if kind == "key":
+                assert target == state["buttonTarget"] and frame["event"]["key"] == "ArrowRight"
+                assert all(snapshot["eventFocusedTarget"] == target for snapshot in [frame["before"], frame["after"]]), "Portal arrow moved original focus"
+        assert not any(row["kind"] == "value-request" for row in source), "Portal changed the time owner"
+        if kind == "pointer":
+            assert len([row for row in source if row["kind"] == "child-press" and row["field"] == "outer"]) == 1, "Portal lost or repeated its original authored action"
+        matched.append(name)
+    return {"portalCheckpointContracts": matched, "nativeReceiptIntegrity": integrity["receiptIntegrity"], "fullInputSurface": False, "fullFamily": False, "fullGoal": False}

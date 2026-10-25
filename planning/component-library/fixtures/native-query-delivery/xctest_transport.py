@@ -4,6 +4,7 @@ import argparse
 import hashlib
 import json
 import os
+import plistlib
 import signal
 import subprocess
 import time
@@ -100,15 +101,28 @@ def completed_method_verdict(summary, method):
                for failure in summary.get("testFailures", []))
 
 
-def replay_selection(xctestrun, project=None, scheme=None, derived_data=None):
-    project_options = (project, scheme, derived_data)
+def replay_selection(xctestrun, project=None, scheme=None, derived_data=None, configuration=None):
+    project_options = (project, scheme, derived_data, configuration)
     if any(project_options) and not all(project_options):
-        raise ValueError("Private project replay requires project, scheme and derived data together")
+        raise ValueError("Private project replay requires project, scheme, derived data and configuration together")
     if project:
         if xctestrun.parent.resolve() != (derived_data / "Build/Products").resolve():
             raise ValueError("The frozen xctestrun must belong to the selected derived-data products")
+        target = plistlib.loads(xctestrun.read_bytes()).get(scheme, {})
+        expected_directory = f"__TESTROOT__/{configuration}-iphonesimulator/"
+        host = target.get("TestHostPath", "")
+        if not host.startswith(expected_directory):
+            raise ValueError("The selected configuration must match the frozen test runner")
+        host_path = xctestrun.parent / host.removeprefix("__TESTROOT__/")
+        bundle = target.get("TestBundlePath", "")
+        if not bundle.startswith("__TESTHOST__/"):
+            raise ValueError("The private project requires its frozen hosted test bundle")
+        bundle_path = host_path / bundle.removeprefix("__TESTHOST__/")
+        if not host_path.is_dir() or not bundle_path.is_dir():
+            raise ValueError("The selected compiled test runner and bundle must exist")
         return ["-project", str(project.resolve()), "-scheme", scheme,
-                "-derivedDataPath", str(derived_data.resolve()), "-sdk", "iphonesimulator"]
+                "-derivedDataPath", str(derived_data.resolve()), "-sdk", "iphonesimulator",
+                "-configuration", configuration]
     return ["-xctestrun", str(xctestrun.resolve())]
 
 
@@ -144,6 +158,7 @@ def main():
     parser.add_argument("--project", type=Path)
     parser.add_argument("--scheme")
     parser.add_argument("--derived-data", type=Path)
+    parser.add_argument("--configuration")
     parser.add_argument("--total-seconds", type=int, default=600)
     parser.add_argument("--silence-seconds", type=int, default=180)
     args = parser.parse_args()
@@ -152,7 +167,8 @@ def main():
     if not args.xctestrun.is_file():
         parser.error("The frozen .xctestrun must exist")
     try:
-        selection = replay_selection(args.xctestrun, args.project, args.scheme, args.derived_data)
+        selection = replay_selection(args.xctestrun, args.project, args.scheme, args.derived_data,
+                                     args.configuration)
     except ValueError as error:
         parser.error(str(error))
     if any((parent / "SEALED.json").exists() for parent in [args.output, *args.output.parents]):

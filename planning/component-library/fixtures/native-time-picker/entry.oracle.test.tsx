@@ -45,7 +45,7 @@ const keyEvent = (key: string): TNativeDateSegmentKeyEvent => ({
 
 for (const locale of ["en-GB", "ar-EG"]) {
   for (const value of values) {
-    it.each([["1", "2"], ["2", "9"], ["0", "1"], ["0", "0"], ["x"]])(
+    it.each([["1", "2"], ["2", "9"], ["0", "1"], ["0", "0"], ["x"], ["٢"]])(
       `retains actual source prefix/restart/zero behavior for ${value.constructor.name} in ${locale}: %j`,
       async (...digits) => {
         const sourceRequests: TimeValue[] = [],

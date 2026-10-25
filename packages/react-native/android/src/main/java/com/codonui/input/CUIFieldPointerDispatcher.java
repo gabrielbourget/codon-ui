@@ -8,10 +8,13 @@ import com.facebook.react.uimanager.events.Event;
 import com.facebook.react.uimanager.events.EventDispatcher;
 import com.facebook.react.uimanager.events.EventDispatcherListener;
 import java.util.Set;
+import java.lang.ref.WeakReference;
+import java.util.WeakHashMap;
 
 // One original SDK dispatcher, scoped to the admitted field's logical targets.
 // The original native MotionEvent still reaches its normal native owner once.
 final class CUIFieldPointerDispatcher implements EventDispatcher {
+  private static final WeakHashMap<ViewGroup, WeakReference<CUIFieldPointerDispatcher>> surfaces = new WeakHashMap<>();
   private final ViewGroup surface;
   private final JSPointerDispatcher pointers;
   private final EventDispatcher original;
@@ -22,7 +25,17 @@ final class CUIFieldPointerDispatcher implements EventDispatcher {
     this.original = original;
     pointers = new JSPointerDispatcher(surface);
   }
+  static CUIFieldPointerDispatcher forSurface(ViewGroup surface, EventDispatcher original) {
+    WeakReference<CUIFieldPointerDispatcher> reference = surfaces.get(surface);
+    CUIFieldPointerDispatcher current = reference == null ? null : reference.get();
+    if (current == null || !current.matches(surface, original)) {
+      current = new CUIFieldPointerDispatcher(surface, original);
+      surfaces.put(surface, new WeakReference<>(current));
+    }
+    return current;
+  }
   boolean matches(ViewGroup surface, EventDispatcher original) { return this.surface == surface && this.original == original; }
+  ViewGroup surface() { return surface; }
   void dispatch(MotionEvent event, Set<Integer> members) {
     Set<Integer> previous = this.members;
     this.members = members;

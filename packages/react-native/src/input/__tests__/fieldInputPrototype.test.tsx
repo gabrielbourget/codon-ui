@@ -12,6 +12,17 @@ import type {
 import NativeDefaults from "../specs/NativeCUIEditorKeyboardDefaults"
 import NativeDocument from "../specs/NativeCUIFormDocument"
 
+// The fixture is outside this package; its imports must use the native peer
+// rather than whichever React version the repository happens to hoist.
+const fixtureReactPeers = {
+  react: jest.requireActual<typeof import("react")>("react"),
+  "react/jsx-runtime": jest.requireActual("react/jsx-runtime"),
+  "react/jsx-dev-runtime": jest.requireActual("react/jsx-dev-runtime"),
+}
+for (const [name, peer] of Object.entries(fixtureReactPeers)) {
+  jest.doMock(name, () => peer, { virtual: true })
+}
+
 const { FieldInputSDKScene } = jest.requireActual<{
   FieldInputSDKScene: ComponentType<{ record: (row: Record<string, unknown>) => void }>
 }>("../../../../../planning/component-library/fixtures/native-time-picker/FieldInputSDKApp")
@@ -77,6 +88,15 @@ jest.mock("../specs/NativeCUIFormDocument", () => ({
       })
     }),
     unbindFieldInput: jest.fn(async () => true),
+    bindField: jest.fn(async (encoded: string) => {
+      const request = JSON.parse(encoded)
+      return JSON.stringify({
+        requestId: request.requestId,
+        ownerToken: `semantic:${request.requestId}`,
+        metadataTarget: request.mount.target,
+      })
+    }),
+    unbindField: jest.fn(async () => true),
   },
 }))
 beforeEach(() => {
@@ -87,11 +107,13 @@ beforeEach(() => {
 })
 afterEach(() => jest.restoreAllMocks())
 
-const renderAdmittedScene = async (record: (row: Record<string, unknown>) => void) => {
-  await render(<FieldInputSDKScene record={record} />)
-  for (const name of ["outer-hour", "outer-minute", "inner-hour", "inner-minute"]) {
-    const host = screen.getByTestId(name),
-      props = host.props
+const admitCurrentOriginals = async () => {
+  const currentSegments = screen
+    .getAllByTestId(/^(outer|inner)-(hour|minute)$|^candidate-time-segment-/)
+    .filter((host) => host.props.ownerId)
+  for (const host of currentSegments) {
+    const props = host.props,
+      name = props.testID
     await act(() =>
       props.onNativeSegmentInput({
         nativeEvent: packet({
@@ -129,12 +151,49 @@ const renderAdmittedScene = async (record: (row: Record<string, unknown>) => voi
           metadataOnly: true,
           originalClass: "CUIDateSegment",
           error: "",
+          timeStamp: 123.5,
         },
       })
       await Promise.resolve()
     })
   }
 }
+
+const renderAdmittedScene = async (record: (row: Record<string, unknown>) => void) => {
+  await render(<FieldInputSDKScene record={record} />)
+  await admitCurrentOriginals()
+}
+
+it("binds the validated mount receipt when Fabric adds event metadata and withdraws an incomplete mount", async () => {
+  await renderAdmittedScene(jest.fn())
+  const requests = jest.mocked(NativeDocument!.bindFieldInput).mock.calls.map(([encoded]) => JSON.parse(encoded))
+  expect(requests).toHaveLength(2)
+  for (const request of requests) {
+    expect(request.mount).not.toHaveProperty("timeStamp")
+    expect(request.mount).toMatchObject({ active: true, complete: true, mountRevision: "mount:1" })
+  }
+  const original = requests.find(
+    (request) => request.mount.originalTarget === mockTargets.get("outer-hour")!.nativeTag,
+  )!
+  const metadata = screen
+    .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
+    .find((host) => host.props.editorTarget === original.mount.originalTarget)!
+  const incomplete = Object.freeze({
+    ...original.mount,
+    epoch: original.mount.epoch + 1,
+    sequence: original.mount.sequence + 1,
+    active: false,
+    complete: false,
+    error: "form-metadata-incomplete",
+    timeStamp: 124.5,
+  })
+  await act(() => metadata.props.onNativeFormCommit({ nativeEvent: incomplete }))
+  expect(JSON.parse(screen.getByTestId("outer-binding").props.accessibilityLabel).ready).toBe(false)
+  expect(NativeDocument!.unbindFieldInput).toHaveBeenCalledWith(
+    JSON.stringify({ metadataTarget: original.mount.target, ownerToken: `owner:${original.requestId}` }),
+  )
+  expect(incomplete.timeStamp).toBe(124.5)
+})
 
 const originalFieldEvent = <T extends object>(nativeEvent: T) => {
   let stopped = false,
@@ -157,7 +216,7 @@ const originalFieldEvent = <T extends object>(nativeEvent: T) => {
 }
 
 const scenePacket = (
-  name: "outer" | "inner",
+  name: "outer" | "inner" | "candidate",
   hit: string,
   phase: TNativeFieldInputPacket["phase"],
   token: number,
@@ -165,13 +224,25 @@ const scenePacket = (
 ): TNativeFieldInputPacket => {
   const metadata = screen
     .getAllByTestId(/^metadata:/, { includeHiddenElements: true })
-    .find((item) => item.props.editorTarget === mockTargets.get(`${name}-hour`)!.nativeTag)!
+    .find(
+      (item) =>
+        item.props.editorTarget ===
+        mockTargets.get(
+          name === "candidate"
+            ? screen
+                .getAllByTestId(/^candidate-time-segment-/)
+                .find((node) => typeof node.props.segmentId === "string" && node.props.segmentId.endsWith(":hour"))!
+                .props.testID
+            : `${name}-hour`,
+        )!.nativeTag,
+    )!
   const binding = JSON.parse(metadata.props.fieldGroupBinding)
   const group = (target: number) => ({
     target,
     bindingId: binding.bindingId,
     bindingRevision: binding.bindingRevision,
     scopeTarget: binding.outerTarget,
+    containsTarget: true,
   })
   const groups = (insideInput ? [binding.inputTarget, binding.outerTarget] : [binding.outerTarget]).map(group)
   if (name === "inner") {
@@ -378,6 +449,83 @@ it("calls the original core focus ref without substituting field focus and commi
   expect(jest.mocked(NativeDefaults!.moveFieldFocus).mock.calls).toHaveLength(focusRequests)
 })
 
+it.each(["callback", "disabled", "readonly", "layout", "unmount"])(
+  "applies %s in the original callback and admits only the current follow-up scope",
+  async (mutation) => {
+    const record = jest.fn()
+    await renderAdmittedScene(record)
+    for (let step = 0; step <= ["callback", "disabled", "readonly", "layout", "unmount"].indexOf(mutation); step++)
+      await fireEvent.press(screen.getByTestId("field-sdk-mutation"))
+    const dispatch = scenePacket("outer", "outer-button", "down", 130, false)
+    const retained = screen.getByTestId("outer-outer").props.onNativeFieldKey
+    const original = mockTargets.get("outer-button")!
+    const event = originalFieldEvent({
+      kind: "keyboard",
+      ownerId: dispatch.identity.ownerId,
+      target: dispatch.identity.target,
+      key: "m",
+      phase: "down",
+      cancelled: false,
+      nativeDefaultHandled: false,
+      fieldDispatch: JSON.stringify(dispatch),
+    }) as unknown as TNativeFieldKeyEvent
+    record.mockClear()
+    await act(() => {
+      screen.getByTestId("outer-button").props.onNativeFieldKey(event)
+      retained(event)
+    })
+    expect(
+      record.mock.calls
+        .map(([row]) => row)
+        .filter((row) => row.data?.fieldDispatch)
+        .map((row) => row.kind),
+    ).toEqual(["child-key", "field-key", "mutation-call", "mutation-return"])
+    expect(record).not.toHaveBeenCalledWith(expect.objectContaining({ kind: "value-request" }))
+    const scene = JSON.parse(screen.getByTestId("field-sdk-scene-state").props.accessibilityLabel)
+    expect(scene.revision).toBe(mutation === "callback" ? 1 : 0)
+    expect(scene.layoutRevision).toBe(mutation === "layout" ? 1 : 0)
+    expect(scene.visible).toBe(mutation !== "unmount")
+    expect(scene.disabled).toBe(mutation === "disabled")
+    expect(scene.readonly).toBe(mutation === "readonly")
+    record.mockClear()
+    const late = originalFieldEvent({
+      ...event.nativeEvent,
+      key: "j",
+      fieldDispatch: JSON.stringify({ ...dispatch, token: 131, eventId: 131 }),
+    }) as unknown as TNativeFieldKeyEvent
+    const acknowledgements = jest.mocked(NativeDefaults!.settleField).mock.calls.length
+    await act(() => retained(late))
+    if (mutation === "layout") {
+      expect(record.mock.calls.map(([row]) => row.kind)).toEqual(["field-key"])
+      expect(jest.mocked(NativeDefaults!.settleField).mock.calls).toHaveLength(acknowledgements + 1)
+    } else {
+      expect(record).not.toHaveBeenCalled()
+      expect(jest.mocked(NativeDefaults!.settleField).mock.calls).toHaveLength(acknowledgements)
+    }
+    if (mutation === "disabled" || mutation === "readonly")
+      await fireEvent.press(screen.getByTestId(`field-sdk-${mutation}`))
+    if (mutation === "unmount") await fireEvent.press(screen.getByTestId("field-sdk-show"))
+    await admitCurrentOriginals()
+    const probe = scenePacket("outer", "outer-button", "down", 132, false)
+    const next = originalFieldEvent({
+      ...event.nativeEvent,
+      key: "j",
+      ownerId: probe.identity.ownerId,
+      target: probe.identity.target,
+      fieldDispatch: JSON.stringify(probe),
+    }) as unknown as TNativeFieldKeyEvent
+    record.mockClear()
+    await act(() => {
+      screen.getByTestId("outer-button").props.onNativeFieldKey(next)
+      screen.getByTestId("outer-outer").props.onNativeFieldKey(next)
+    })
+    expect(record.mock.calls.filter(([row]) => row.kind === "field-key").map(([row]) => row.revision)).toEqual([
+      scene.revision,
+    ])
+    expect(mockTargets.get("outer-button") === original).toBe(mutation !== "unmount")
+  },
+)
+
 it("connects original segment entry, group callers and native binding lifetime without replacing roots on a valid value echo", async () => {
   const observations = jest.spyOn(
     jest.requireActual<typeof import("../NativeKeyboardScope")>("../NativeKeyboardScope"),
@@ -451,6 +599,7 @@ it("connects original segment entry, group callers and native binding lifetime w
           bindingId: binding.bindingId,
           bindingRevision: binding.bindingRevision,
           scopeTarget: binding.outerTarget,
+          containsTarget: true,
         })),
       }),
     },
@@ -770,4 +919,63 @@ it("retains ordinary core-editor callback signatures without using field acknowl
       expect.objectContaining({ kind: "core-selection", selection: { start: 1, end: 1 }, token: null }),
     ]),
   )
+})
+
+it("connects the actual private TimePicker candidate to original segment and group phases", async () => {
+  const rows: Record<string, unknown>[] = []
+  await renderAdmittedScene((row) => rows.push(row))
+  await act(() => fireEvent.press(screen.getByTestId("field-sdk-candidate")))
+  await admitCurrentOriginals()
+  const hour = screen
+    .getAllByTestId(/^candidate-time-segment-/)
+    .find((host) => typeof host.props.segmentId === "string" && host.props.segmentId.endsWith(":hour"))!
+  const data = scenePacket("candidate", hour.props.testID, "down", 900)
+  const down = originalFieldEvent({
+    kind: "keyboard",
+    ownerId: "original",
+    target: data.identity.target,
+    key: "ArrowUp",
+    nativeCode: 82,
+    characters: "",
+    phase: "down",
+    repeat: false,
+    cancelled: false,
+    shiftKey: false,
+    altKey: false,
+    ctrlKey: false,
+    metaKey: false,
+    capsLock: false,
+    nativeModifierData: "0",
+    nativeDefaultHandled: true,
+    timestamp: 90,
+    fieldDispatch: JSON.stringify(data),
+  })
+  await act(() => hour.props.onNativeFieldKey(down))
+  for (const id of ["candidate-time-input", "candidate-time-group"]) {
+    Object.assign(down, { currentTarget: mockTargets.get(id) })
+    await act(() => screen.getByTestId(id).props.onNativeFieldKey(down))
+  }
+  const changes = rows.filter((row) => row.kind === "value-request" && row.field === "candidate")
+  expect(changes).toHaveLength(1)
+  expect(changes[0]).toMatchObject({ value: "14:45:07", held: "13:45:07", valueClass: "Time" })
+  const callers = rows.filter((row) => row.kind === "field-key" && row.field === "candidate")
+  expect(callers.map((row) => row.receiverTarget)).toEqual(data.groups.map((group) => group.target))
+  expect(callers.every((row) => row.data === down.nativeEvent)).toBe(true)
+  expect(JSON.parse(jest.mocked(NativeDefaults!.settleField).mock.calls.at(-1)![0])).toMatchObject({ current: true })
+  const pointer = scenePacket("candidate", hour.props.testID, "pointer-end", 901)
+  const up = originalFieldEvent({
+    target: pointer.identity.target,
+    pointerId: 1,
+    pointerType: "touch",
+    isPrimary: true,
+    button: 0,
+    fieldDispatch: JSON.stringify(pointer),
+  })
+  for (const id of ["candidate-time-input", "candidate-time-group", "candidate-time"]) {
+    Object.assign(up, { currentTarget: mockTargets.get(id) })
+    await act(() => screen.getByTestId(id).props.onPointerUp(up))
+  }
+  const rootCalls = rows.filter((row) => row.kind === "field-pointer" && row.field === "candidate")
+  expect(rootCalls).toHaveLength(1)
+  expect(rootCalls[0].data).toBe(up.nativeEvent)
 })

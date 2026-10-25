@@ -27,6 +27,33 @@ static BOOL CUIGroupVisible(UIView *view, UIWindow *window)
     if (current.hidden || current.alpha <= 0 || !current.userInteractionEnabled) return NO;
   return YES;
 }
+static NSArray *CUIGroupNativeHierarchy(RCTSurfacePresenter *presenter, NSDictionary *document, UIWindow *window)
+{
+  NSMapTable<UIView *, NSNumber *> *targets = [NSMapTable strongToStrongObjectsMapTable];
+  NSMutableDictionary<NSNumber *, UIView *> *views = [NSMutableDictionary new];
+  for (NSDictionary *node in document[@"nodes"]) {
+    NSNumber *target = node[@"target"];
+    UIView *view = [presenter findComponentViewWithTag_DO_NOT_USE_DEPRECATED:target.integerValue];
+    if (view && view.window == window) { views[target] = view; [targets setObject:target forKey:view]; }
+  }
+  NSMutableArray *result = [NSMutableArray new];
+  for (NSDictionary *node in document[@"nodes"]) {
+    NSNumber *target = node[@"target"]; UIView *view = views[target];
+    if (!view) continue;
+    NSNumber *parentTarget = @0;
+    for (UIView *parent = view.superview; parent && parent != window; parent = parent.superview)
+      if ([targets objectForKey:parent]) { parentTarget = [targets objectForKey:parent]; break; }
+    NSMutableArray *reversed = [NSMutableArray new];
+    for (UIView *current = view; current != window; current = current.superview) {
+      UIView *parent = current.superview;
+      NSUInteger index = [parent.subviews indexOfObjectIdenticalTo:current];
+      if (!parent || index == NSNotFound) CUIGroupFail(@"field-group-native-hierarchy-retired");
+      [reversed addObject:@(index)];
+    }
+    [result addObject:@{@"target":target, @"parent":parentTarget, @"order":reversed.reverseObjectEnumerator.allObjects}];
+  }
+  return result;
+}
 BOOL CUIFieldGroupOriginalMatches(RCTSurfacePresenter *presenter, NSDictionary *row, UIView *component, UIView *editor)
 {
   RCTAssertMainQueue();
@@ -53,8 +80,16 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
   NSArray<CUIDateSegment *> *segments = CUIResolveOwnedDateFieldSegments(metadata, binding, primary.tag, [document[@"surfaceId"] integerValue]);
   if (!segments.count) CUIGroupFail(@"field-group-whole-segment-set-retired");
   for (CUIDateSegment *segment in segments) if (![segment isDescendantOfView:input]) CUIGroupFail(@"field-group-original-input-retired");
+  NSArray *nativeHierarchy = CUIGroupNativeHierarchy(presenter, document, outer.window);
+  NSMutableDictionary *eventNodes = [NSMutableDictionary new];
+  for (NSDictionary *node in plan[@"nodes"]) eventNodes[node[@"target"]] = node;
   NSMutableDictionary *visibleTargets = [NSMutableDictionary new];
   for (NSDictionary *node in plan[@"nodes"]) visibleTargets[node[@"target"]] = node[@"visible"];
+  for (NSDictionary *node in document[@"nodes"]) {
+    UIView *view = resolve(node[@"target"]);
+    if ((eventNodes[node[@"target"]] || [view isDescendantOfView:outer]) && CUIGroupVisible(view, outer.window))
+      visibleTargets[node[@"target"]] = @YES;
+  }
   NSMutableArray *nestedOwners = [NSMutableArray new];
   for (NSDictionary *candidate in document[@"fields"]) {
     if ([candidate[@"metadataTarget"] isEqual:field[@"metadataTarget"]] || ![candidate[@"ownedEditorBinding"] length]) continue;
@@ -77,17 +112,18 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
   NSMutableArray *instances = [NSMutableArray new];
   NSMutableArray<NSNumber *> *targets = [NSMutableArray new];
   NSMutableDictionary<NSNumber *, NSNumber *> *parents = [NSMutableDictionary new];
-  for (NSDictionary *node in plan[@"nodes"]) parents[node[@"target"]] = node[@"parent"];
+  for (NSDictionary *node in document[@"nodes"]) parents[node[@"target"]] = node[@"parent"];
   [instances addObject:@{@"target":plan[@"outerTarget"], @"nativeTarget":plan[@"outerTarget"], @"nativeInstance":CUIGroupInstance(outer), @"editorInstance":CUIGroupInstance(outer)}];
-  NSNumber *focused = @0;
-  for (NSDictionary *node in plan[@"nodes"]) {
-    if (![node[@"visible"] boolValue]) continue;
+  NSNumber *focused = @0, *eventFocused = @0;
+  for (NSDictionary *node in document[@"nodes"]) {
+    if ([node[@"target"] isEqual:plan[@"outerTarget"]]) continue;
+    NSDictionary *eventNode = eventNodes[node[@"target"]];
+    const BOOL eventMember = [eventNode[@"groups"] count] > 0;
     UIView *component = resolve(node[@"target"]);
     NSString *name = node[@"component"];
     const BOOL core = [name isEqual:@"TextInput"] || [name isEqual:@"AndroidTextInput"];
     NSDictionary *policy = node[@"fieldFocus"];
     if (!component) {
-      if (core || [policy[@"candidate"] boolValue]) CUIGroupFail(@"field-group-original-unavailable");
       NSNumber *ancestor = node[@"parent"]; UIView *backed = nil;
       NSMutableSet<NSNumber *> *visited = [NSMutableSet new];
       while (ancestor.integerValue > 0 && ![visited containsObject:ancestor]) {
@@ -96,7 +132,9 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
         if (backed) break;
         ancestor = parents[ancestor];
       }
-      if (!backed || backed.window != outer.window || ![backed isDescendantOfView:outer]) CUIGroupFail(@"field-group-hit-backing-unavailable");
+      if (!eventMember && ![backed isDescendantOfView:outer]) continue;
+      if (core || [policy[@"candidate"] boolValue]) CUIGroupFail(@"field-group-original-unavailable");
+      if (!backed || backed.window != outer.window) CUIGroupFail(@"field-group-hit-backing-unavailable");
       UIView *backedEditor = backed;
       if ([backed isKindOfClass:RCTTextInputComponentView.class]) {
         id element = [(RCTTextInputComponentView *)backed accessibilityElement];
@@ -107,7 +145,9 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
       [components addObject:backed]; [backedOriginals addObject:backedEditor]; [targets addObject:@(backed.tag)];
       continue;
     }
-    if (component.window != outer.window || ![component isDescendantOfView:outer])
+    const BOOL physicalMember = [component isDescendantOfView:outer];
+    if (!eventMember && !physicalMember) continue;
+    if (component.window != outer.window)
       CUIGroupFail(@"field-group-original-window-or-containment-retired");
     UIView *original = component;
     NSString *hostOwner = [component isKindOfClass:CUIDateSegment.class] ? [(CUIDateSegment *)component fieldOwnerId] :
@@ -121,14 +161,15 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
     }
     [instances addObject:@{@"target":node[@"target"], @"nativeTarget":node[@"target"], @"nativeInstance":CUIGroupInstance(component), @"editorInstance":CUIGroupInstance(original)}];
     [components addObject:component]; [backedOriginals addObject:original]; [targets addObject:node[@"target"]];
-    BOOL visible = [node[@"visible"] boolValue] && CUIGroupVisible(original, outer.window);
+    BOOL visible = CUIGroupVisible(original, outer.window);
     BOOL enabled = !(original.accessibilityTraits & UIAccessibilityTraitNotEnabled) &&
       (![original isKindOfClass:UIControl.class] || [(UIControl *)original isEnabled]);
-    BOOL eligible = visible && enabled && [original canBecomeFirstResponder] && (!policy || [policy[@"focusable"] boolValue]);
+    BOOL eligible = physicalMember && visible && enabled && [original canBecomeFirstResponder] && (!policy || [policy[@"focusable"] boolValue]);
     if (!eligible && !original.isFirstResponder) continue;
     if (original.isFirstResponder) {
       if (focused.integerValue) CUIGroupFail(@"field-group-focused-original-ambiguous");
       focused = node[@"target"];
+      if (eventMember) eventFocused = node[@"target"];
     }
     CGRect rectangle = [original convertRect:original.bounds toView:outer.window];
     if (!std::isfinite(rectangle.origin.x) || !std::isfinite(rectangle.origin.y) ||
@@ -139,7 +180,7 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
     NSMutableDictionary *row = [@{@"target":node[@"target"], @"nativeInstance":CUIGroupInstance(component),
       @"editorInstance":CUIGroupInstance(original), @"focused":@(original.isFirstResponder), @"eligible":@(eligible),
       @"tabStop":policy ? policy[@"tabStop"] : @YES, @"readOnly":@(readOnly),
-      @"placeholder":policy ? policy[@"placeholder"] : @NO, @"groups":node[@"groups"],
+      @"placeholder":policy ? policy[@"placeholder"] : @NO, @"groups":eventNode[@"groups"] ?: @[],
       @"rect":@{@"x":@(rectangle.origin.x), @"y":@(rectangle.origin.y), @"width":@(rectangle.size.width), @"height":@(rectangle.size.height)}} mutableCopy];
     if (hostOwner) row[@"hostOwnerId"] = hostOwner;
     if ([original isKindOfClass:CUIDateSegment.class]) row[@"segment"] = [(CUIDateSegment *)original formSegmentIdentity] ?: NSNull.null;
@@ -165,8 +206,11 @@ NSDictionary *CUIReadFieldGroupDocument(RCTSurfacePresenter *presenter, NSDictio
         ![owner[@"segments"] isEqual:CUIResolveOwnedDateFieldSegments(nested, owner[@"binding"], nestedPrimary.tag, [document[@"surfaceId"] integerValue])])
       CUIGroupFail(@"field-group-nested-originals-retired-during-read");
   }
+  if (![nativeHierarchy isEqualToArray:CUIGroupNativeHierarchy(presenter, document, outer.window)])
+    CUIGroupFail(@"field-group-native-hierarchy-retired-during-read");
   return @{@"documentId":document[@"documentId"], @"revision":document[@"revision"], @"surfaceId":document[@"surfaceId"],
     @"windowId":mount[@"windowId"], @"outerTarget":plan[@"outerTarget"], @"inputTarget":plan[@"inputTarget"],
     @"outerInstance":CUIGroupInstance(outer), @"inputInstance":CUIGroupInstance(input),
-    @"field":field, @"mount":mount, @"focusedTarget":focused, @"originals":originals, @"instances":instances};
+    @"field":field, @"mount":mount, @"focusedTarget":focused, @"eventFocusedTarget":eventFocused,
+    @"nativeHierarchy":nativeHierarchy, @"originals":originals, @"instances":instances};
 }

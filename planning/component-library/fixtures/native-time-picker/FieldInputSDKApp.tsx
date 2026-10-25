@@ -1,5 +1,7 @@
 import {
   useCallback,
+  useContext,
+  useEffect,
   useId,
   useInsertionEffect,
   useLayoutEffect,
@@ -9,6 +11,7 @@ import {
   useSyncExternalStore,
 } from "react"
 import { findNodeHandle, Platform, Pressable, ScrollView, Text, TextInput, View, type PointerEvent } from "react-native"
+import { Portal, PortalHost, PortalProvider } from "react-native-teleport"
 
 import { NUMBER_INTL_PREPARATION } from "../../../../apps/native-showcase/src/runtime/number-format"
 import { getNativeDateSegmentSemantics } from "../../../../packages/react-native/src/date/entry/semantics"
@@ -26,6 +29,8 @@ import type { DateFieldState, DateSegment } from "../../../../packages/react-nat
 import type { TimeValue } from "../../../../packages/react-native/src/date/state/types"
 import { useTimeFieldState } from "../../../../packages/react-native/src/date/state/useTimeFieldState"
 import { Time } from "../../../../packages/react-native/src/date/values"
+import { NativeTimePickerRenderer } from "../../../../packages/react-native/src/date/field/NativeTimePickerRenderer"
+import { NativeTimeFieldStateContext } from "../../../../packages/react-native/src/date/field/context"
 import { useNativeTimeFieldForm } from "../../../../packages/react-native/src/form/useTimeField"
 import {
   NativeFieldInputContext,
@@ -38,14 +43,8 @@ import {
   type TNativeFieldPointerEvent,
 } from "../../../../packages/react-native/src/input/fieldInput"
 import { useNativeFieldGroupPress } from "../../../../packages/react-native/src/input/useFieldGroupPress"
-import {
-  NativeFieldInputSession,
-  type TNativeFieldInputPlan,
-} from "../../../../packages/react-native/src/input/fieldInputBinding"
-import {
-  getNativeFieldInputModule,
-  takeNativeFieldInputRecords,
-} from "../../../../packages/react-native/src/input/fieldInputModule"
+import { type TNativeFieldInputPlan } from "../../../../packages/react-native/src/input/fieldInputBinding"
+import { takeNativeFieldInputRecords } from "../../../../packages/react-native/src/input/fieldInputModule"
 import { NativeFocusHost } from "../../../../packages/react-native/src/input/NativeFocusView"
 import {
   NativeKeyboardScope,
@@ -54,7 +53,7 @@ import {
 } from "../../../../packages/react-native/src/input/NativeKeyboardScope"
 import { NativePressable } from "../../../../packages/react-native/src/input/NativePressable"
 import { focusNativeTarget } from "../../../../packages/react-native/src/input/focus"
-import NativeDocument from "../../../../packages/react-native/src/input/specs/NativeCUIFormDocument"
+import { useNativeFieldInputBinding } from "../../../../packages/react-native/src/input/useFieldInputBinding"
 import type { TNativeKeyboardEvent } from "../../../../packages/react-native/src/input/types"
 import {
   NativeLocaleProvider,
@@ -66,6 +65,8 @@ import { TIME_ENTRY_VALUES, timeEntryValueClass } from "./sdk"
 type TRecord = (row: Record<string, unknown>) => void
 const COMMAND_MODES = ["none", "original-only", "mixed"] as const
 type TCommandMode = (typeof COMMAND_MODES)[number]
+const MUTATIONS = ["none", "callback", "disabled", "readonly", "layout", "unmount"] as const
+type TMutation = (typeof MUTATIONS)[number]
 const frame = { borderWidth: 1, padding: 8, margin: 4 } as const
 
 type TPartProps = {
@@ -183,6 +184,10 @@ type TFieldProps = {
   revision: number
   commandMode?: TCommandMode
   onButtonRef?: (target: View | null) => void
+  portaled?: boolean
+  mutation?: TMutation
+  layoutRevision?: number
+  onMutation?: (mutation: TMutation) => void
   nested?: boolean
   removeOnKey?: boolean
   onRemove?: () => void
@@ -200,6 +205,10 @@ const Field = ({
   revision,
   commandMode = "none",
   onButtonRef,
+  portaled = false,
+  mutation = "none",
+  layoutRevision = 0,
+  onMutation,
   nested = false,
   removeOnKey = false,
   onRemove,
@@ -266,14 +275,6 @@ const Field = ({
     const snapshot = hosts.snapshot(currentState.current.segments)
     return snapshot ? { root: snapshot.root, rootTarget: snapshot.rootTarget, segments: snapshot.rows } : null
   }, [hosts])
-  const [session] = useState(() => {
-    if (!NativeDocument) throw new Error("field-input-document-module-unavailable")
-    return new NativeFieldInputSession(getNativeFieldInputModule(), NativeDocument)
-  })
-  const bindingVersion = useSyncExternalStore(session.subscribe, session.version, session.version)
-  useLayoutEffect(() => {
-    record({ kind: "binding-status", field: name, ...session.status() })
-  }, [session, bindingVersion, record, name])
   const originalSignature = JSON.stringify(original?.rows.map((row) => row.identity))
   const outerTarget = outer ? (findNodeHandle(outer) ?? 0) : 0,
     inputTarget = input ? (findNodeHandle(input) ?? 0) : 0
@@ -288,7 +289,17 @@ const Field = ({
     onKeyDown: (event) =>
       record({ kind: "field-observed-key", field: name, disabled, readonly, data: event.nativeEvent }),
   })
-  const lifetime = JSON.stringify([originalSignature, disabled, readonly, locale, veto, stop, revision, removeOnKey])
+  const lifetime = JSON.stringify([
+    originalSignature,
+    disabled,
+    readonly,
+    locale,
+    veto,
+    stop,
+    revision,
+    removeOnKey,
+    mutation,
+  ])
   const plan = useMemo<TNativeFieldInputPlan | null>(
     () =>
       firstOriginalTarget && outer && input && outerTarget && inputTarget
@@ -304,11 +315,12 @@ const Field = ({
         : null,
     [ownerId, outer, input, outerTarget, inputTarget, firstOriginalTarget, lifetime],
   )
-  useInsertionEffect(() => {
-    session.configure(plan)
-  }, [session, plan])
-  useInsertionEffect(() => () => session.retire(), [session])
-  const scope = useMemo(() => (plan ? session.scope(plan) : null), [session, plan])
+  const inputBinding = useNativeFieldInputBinding(plan)
+  const { scope } = inputBinding
+  const bindingStatus = JSON.stringify(inputBinding.status)
+  useLayoutEffect(() => {
+    record({ kind: "binding-status", field: name, ...JSON.parse(bindingStatus) })
+  }, [bindingStatus, record, name])
   const focused = useRef(false)
   const metadata = useNativeTimeFieldForm(
     { name },
@@ -318,7 +330,7 @@ const Field = ({
     () => focused.current,
     "",
     {
-      ...session.metadataFor(plan),
+      ...inputBinding.metadata,
       record: (event) =>
         record({ kind: "native-field-input", field: name, data: JSON.parse(event.nativeEvent.record) }),
     },
@@ -336,16 +348,19 @@ const Field = ({
     veto,
     stop,
     revision,
+    mutation,
+    layoutRevision,
     commandMode,
     commandTransactions,
     coreTarget: originalCore.current ? findNodeHandle(originalCore.current) : null,
     buttonTarget: originalButton.current ? findNodeHandle(originalButton.current) : null,
+    portaled,
     observedFocusTarget,
     outerTarget,
     inputTarget,
     originalSegments: original?.rows.map((row) => row.identity) ?? [],
     placeholderSegments: state.segments.filter((segment) => segment.isPlaceholder).map((segment) => segment.type),
-    binding: session.status(),
+    binding: inputBinding.status,
     keyboardReady: keyboardScope?.isNativeReady() ?? false,
   })
   useLayoutEffect(() => record({ kind: "field-state", ...JSON.parse(snapshot) }), [record, snapshot])
@@ -362,6 +377,17 @@ const Field = ({
         stopped: event.isPropagationStopped(),
       })
       if (veto) event.preventDefault()
+      if (
+        mutation !== "none" &&
+        event.nativeEvent.phase === "down" &&
+        event.nativeEvent.key === "m" &&
+        receiverTarget.current === outerTarget
+      ) {
+        event.preventDefault()
+        record({ kind: "mutation-call", field: name, mutation, revision, data: event.nativeEvent })
+        onMutation?.(mutation)
+        record({ kind: "mutation-return", field: name, mutation, revision, data: event.nativeEvent })
+      }
       if (
         commandMode !== "none" &&
         event.nativeEvent.phase === "down" &&
@@ -398,7 +424,7 @@ const Field = ({
         onRemove?.()
       }
     },
-    [record, name, veto, revision, removeOnKey, onRemove, commandMode, outerTarget],
+    [record, name, veto, revision, removeOnKey, onRemove, commandMode, outerTarget, mutation, onMutation],
   )
   const group = scope ? nativeFieldGroupKeyHandler(scope, { direction, onKeyDown: caller, onKeyUp: caller }) : undefined
   const receiveGroup = group
@@ -474,14 +500,14 @@ const Field = ({
             setObservedFocusTarget(event.nativeEvent.within ? event.nativeEvent.focusedTarget : 0)
             record({ kind: "field-focus", field: name, data: event.nativeEvent })
           }}
-          style={frame}
+          style={[frame, { paddingLeft: 8 + layoutRevision * 16 }]}
         >
           {metadata}
           <Text testID={`${name}-value`} accessibilityLabel={snapshot}>
             {name}: {value?.toString() ?? "empty"}
           </Text>
-          <Text testID={`${name}-binding`} accessibilityLabel={JSON.stringify(session.status())}>
-            {JSON.stringify(session.status())}
+          <Text testID={`${name}-binding`} accessibilityLabel={bindingStatus}>
+            {bindingStatus}
           </Text>
           <Text testID={`${name}-command-transactions`}>{commandTransactions}</Text>
           <NativeFocusHost
@@ -519,32 +545,34 @@ const Field = ({
               </View>
             </NativeFocusHost>
           </NativeFocusHost>
-          <NativePressable
-            ref={bindButton}
-            testID={`${name}-button`}
-            onKeyDown={(event) => {
-              record({ kind: "child-key", field: name, data: event.nativeEvent })
-              if (stop) event.stopPropagation()
-            }}
-            onKeyUp={(event) => {
-              record({ kind: "child-key", field: name, data: event.nativeEvent })
-              if (stop) event.stopPropagation()
-            }}
-            onPointerDown={(event) => {
-              if (stop) event.stopPropagation()
-              record({
-                kind: "child-pointer",
-                field: name,
-                data: event.nativeEvent,
-                stopped: event.isPropagationStopped(),
-                prevented: event.defaultPrevented,
-              })
-            }}
-            onPress={(event) => record({ kind: "child-press", field: name, data: event.nativeEvent })}
-            style={frame}
-          >
-            <Text>Authored action</Text>
-          </NativePressable>
+          <Portal hostName={portaled ? "field-original-portal" : undefined}>
+            <NativePressable
+              ref={bindButton}
+              testID={`${name}-button`}
+              onKeyDown={(event) => {
+                record({ kind: "child-key", field: name, data: event.nativeEvent })
+                if (stop) event.stopPropagation()
+              }}
+              onKeyUp={(event) => {
+                record({ kind: "child-key", field: name, data: event.nativeEvent })
+                if (stop) event.stopPropagation()
+              }}
+              onPointerDown={(event) => {
+                if (stop) event.stopPropagation()
+                record({
+                  kind: "child-pointer",
+                  field: name,
+                  data: event.nativeEvent,
+                  stopped: event.isPropagationStopped(),
+                  prevented: event.defaultPrevented,
+                })
+              }}
+              onPress={(event) => record({ kind: "child-press", field: name, data: event.nativeEvent })}
+              style={frame}
+            >
+              <Text>Authored action</Text>
+            </NativePressable>
+          </Portal>
           <NativePressable testID={`${name}-negative-tab`} tabIndex={-1} nativeProgrammaticFocusable style={frame}>
             <Text>Programmatic action</Text>
           </NativePressable>
@@ -581,8 +609,47 @@ const Field = ({
   )
 }
 
+const CandidateIcon = ({ buttonRef, record }: { buttonRef: (target: View | null) => void; record: TRecord }) => {
+  const scope = useContext(NativeFieldInputContext)
+  const state = useContext(NativeTimeFieldStateContext)
+  const { locale, direction } = useNativeLocale()
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    const timer = setInterval(() => setReady(scope?.current() ?? false), 30)
+    return () => clearInterval(timer)
+  }, [scope])
+  const snapshot = JSON.stringify({
+    ready: ready && (scope?.current() ?? false),
+    locale,
+    direction,
+    hourTestID: `candidate-time-segment-${state?.segments.findIndex((segment) => segment.type === "hour")}`,
+    value: state?.timeValue?.toString() ?? null,
+    minuteTestID: `candidate-time-segment-${state?.segments.findIndex((segment) => segment.type === "minute")}`,
+    valueClass: state?.timeValue ? timeEntryValueClass(state.timeValue) : null,
+  })
+  useLayoutEffect(() => {
+    record({ kind: "candidate-state", ...JSON.parse(snapshot) })
+  }, [record, snapshot])
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center" }}>
+      <Text testID="candidate-state" accessibilityLabel={snapshot} style={{ fontSize: 1, width: 1 }}>
+        Candidate
+      </Text>
+      <NativePressable ref={buttonRef} testID="candidate-button" style={{ minWidth: 50, minHeight: 24 }}>
+        <Text>Action</Text>
+      </NativePressable>
+      <TextInput
+        testID="candidate-core"
+        accessibilityLabel="Candidate original core editor"
+        style={{ width: 64, height: 24 }}
+      />
+    </View>
+  )
+}
+
 export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
   const [value, setValue] = useState<TimeValue | null>(() => new Time(13, 45))
+  const [candidate, setCandidate] = useState(false)
   const requests = useRef<Record<string, unknown>[]>([])
   const observations = useRef<Record<string, unknown>[]>([])
   const callbacks = useRef<Record<string, unknown>[]>([])
@@ -591,6 +658,21 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
     authoredButton.current = target
   }, [])
   const [observationSnapshot, setObservationSnapshot] = useState("{}")
+  const [busyPhase, setBusyPhase] = useState("idle")
+  useEffect(() => {
+    if (busyPhase !== "running") return
+    const timer = setTimeout(() => {
+      const started = Date.now()
+      record({ kind: "busy-start", started })
+      // The non-shipping trial deliberately occupies JS beyond the native turn's deadline.
+      while (Date.now() - started < 10000) {
+        /* occupied */
+      }
+      record({ kind: "busy-end", elapsedMilliseconds: Date.now() - started })
+      setBusyPhase("complete")
+    }, 20)
+    return () => clearTimeout(timer)
+  }, [busyPhase, record])
   const receive = useCallback(
     (row: Record<string, unknown>) => {
       if (row.kind === "value-request") requests.current.push(row)
@@ -604,6 +686,8 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           "group-pointer",
           "field-pointer",
           "core-key",
+          "mutation-call",
+          "mutation-return",
           "core-focus",
           "original-command-call",
           "original-command-return",
@@ -622,6 +706,7 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           dispatch: typeof data?.fieldDispatch === "string" ? data.fieldDispatch : null,
           text: row.text ?? data?.text ?? null,
           revision: row.revision ?? null,
+          mutation: row.mutation ?? null,
           stopped: row.stopped ?? null,
           prevented: row.prevented ?? null,
           target: row.target ?? data?.target ?? null,
@@ -666,12 +751,16 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
           repeat: event?.repeat ?? null,
           phase: dispatch?.phase ?? null,
           decision: row.decision ?? null,
+          wait: row.wait ?? null,
           deliveryStarted: row.deliveryStarted === true,
           deliveryReturned: row.deliveryReturned === true,
           renderPhasesComplete: row.renderPhasesComplete === true,
           scopeCurrent: row.scopeCurrent === true,
           beforeFocusedTarget: before?.focusedTarget ?? null,
           afterFocusedTarget: after?.focusedTarget ?? null,
+          groups: dispatch?.groups ?? null,
+          beforeEventFocusedTarget: before?.eventFocusedTarget ?? null,
+          afterEventFocusedTarget: after?.eventFocusedTarget ?? null,
           error: row.error ?? "missing-native-frame-error",
         }
       })
@@ -700,84 +789,176 @@ export const FieldInputSDKScene = ({ record }: { record: TRecord }) => {
     [veto, setVeto] = useState(false),
     [stop, setStop] = useState(false),
     [revision, setRevision] = useState(0),
+    [mutation, setMutation] = useState<TMutation>("none"),
+    [layoutRevision, setLayoutRevision] = useState(0),
     [commandMode, setCommandMode] = useState<TCommandMode>("none"),
+    [portaled, setPortaled] = useState(false),
     [locale, setLocale] = useState("en-GB"),
     [visible, setVisible] = useState(true),
     [removeOnKey, setRemoveOnKey] = useState(false)
+  const candidateOwner = useRef({ value, echo })
+  useInsertionEffect(() => {
+    candidateOwner.current = { value, echo }
+  })
+  const candidateChange = useCallback(
+    (next: TimeValue | null) => {
+      receive({
+        kind: "value-request",
+        field: "candidate",
+        value: next?.toString() ?? null,
+        valueClass: next ? timeEntryValueClass(next) : null,
+        held: candidateOwner.current.value?.toString() ?? null,
+        heldClass: candidateOwner.current.value ? timeEntryValueClass(candidateOwner.current.value) : null,
+        echo: candidateOwner.current.echo,
+      })
+      if (candidateOwner.current.echo) setValue(next)
+    },
+    [receive],
+  )
+  const candidateKey = useCallback(
+    (event: TNativeKeyboardEvent) =>
+      receive({
+        kind: "field-key",
+        field: "candidate",
+        receiverTarget: findNodeHandle(event.currentTarget as unknown as View),
+        data: event.nativeEvent,
+        prevented: event.defaultPrevented,
+        stopped: event.isPropagationStopped(),
+      }),
+    [receive],
+  )
+  const candidatePointerUp = useCallback(
+    (event: PointerEvent) => {
+      receive({ kind: "field-pointer", field: "candidate", phase: "up", data: event.nativeEvent })
+    },
+    [receive],
+  )
   const removeField = useCallback(() => setVisible(false), [])
+  const mutate = useCallback((action: TMutation) => {
+    if (action === "callback") setRevision((value) => value + 1)
+    else if (action === "disabled") setDisabled(true)
+    else if (action === "readonly") setReadonly(true)
+    else if (action === "layout") setLayoutRevision((value) => value + 1)
+    else if (action === "unmount") setVisible(false)
+  }, [])
+  const sceneState = JSON.stringify({
+    mutation,
+    layoutRevision,
+    revision,
+    disabled,
+    readonly,
+    visible,
+    portaled,
+    busyPhase,
+  })
+  useLayoutEffect(() => {
+    record({ kind: "scene-state", ...JSON.parse(sceneState) })
+  }, [record, sceneState])
   return (
-    <NativeLocaleProvider locale={locale}>
-      <NativeKeyboardScope captureEnabled style={{ flex: 1 }}>
-        <Text testID="field-sdk-observation-snapshot" accessibilityLabel={observationSnapshot}>
-          Original passive key observation
-        </Text>
-        <Text testID="field-sdk-receipt-snapshot" accessibilityLabel={receiptSnapshot}>
-          Native receipt batches: {receiptBatches.current}
-        </Text>
-        <Pressable testID="field-sdk-checkpoint" onPress={receipts} style={frame}>
-          <Text>Check original receipts</Text>
-        </Pressable>
-        <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {[
-            ["time", () => setValue(TIME_ENTRY_VALUES[0])],
-            ["empty", () => setValue(null)],
-            ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
-            ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
-            ["unmount", () => setRemoveOnKey((value) => !value)],
-            ["show", () => setVisible(true)],
-            ["receipts", receipts],
-            ["disabled", () => setDisabled((value) => !value)],
-            ["readonly", () => setReadonly((value) => !value)],
-            ["echo", () => setEcho((value) => !value)],
-            ["veto", () => setVeto((value) => !value)],
-            ["stop", () => setStop((value) => !value)],
-            ["callback", () => setRevision((value) => value + 1)],
-            ["command-only", () => setCommandMode("original-only")],
-            ["command-mixed", () => setCommandMode("mixed")],
-            ["command-off", () => setCommandMode("none")],
-            [
-              "focus-button",
-              () =>
-                record({
-                  kind: "setup-focus-request",
-                  field: "outer",
-                  requested: focusNativeTarget(authoredButton.current),
-                }),
-            ],
-            ["locale", () => setLocale((value) => (value === "en-GB" ? "ar-EG" : "en-GB"))],
-          ].map(([name, action]) => (
-            <Pressable key={name as string} testID={`field-sdk-${name}`} onPress={action as () => void} style={frame}>
-              <Text>{name as string}</Text>
-            </Pressable>
-          ))}
-        </View>
-        <ScrollView
-          testID="field-sdk-content"
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="none"
-          contentContainerStyle={{ padding: 20 }}
-        >
-          <Text>Original field input prototype</Text>
-          {visible && (
-            <Field
-              name="outer"
-              value={value}
-              onOwnerValueChange={setValue}
-              record={receive}
-              disabled={disabled}
-              readonly={readonly}
-              echo={echo}
-              veto={veto}
-              stop={stop}
-              revision={revision}
-              commandMode={commandMode}
-              onButtonRef={bindAuthoredButton}
-              removeOnKey={removeOnKey}
-              onRemove={removeField}
-            />
-          )}
-        </ScrollView>
-      </NativeKeyboardScope>
-    </NativeLocaleProvider>
+    <PortalProvider>
+      <NativeLocaleProvider locale={locale}>
+        <NativeKeyboardScope captureEnabled style={{ flex: 1 }}>
+          <Text testID="field-sdk-scene-state" accessibilityLabel={sceneState}>
+            Mutation: {mutation}
+          </Text>
+          <Text testID="field-sdk-observation-snapshot" accessibilityLabel={observationSnapshot}>
+            Original passive key observation
+          </Text>
+          <Text testID="field-sdk-receipt-snapshot" accessibilityLabel={receiptSnapshot}>
+            Native receipt batches: {receiptBatches.current}
+          </Text>
+          <Pressable testID="field-sdk-checkpoint" onPress={receipts} style={frame}>
+            <Text>Check original receipts</Text>
+          </Pressable>
+          <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
+            {[
+              ["time", () => setValue(TIME_ENTRY_VALUES[0])],
+              ["empty", () => setValue(null)],
+              ["calendar", () => setValue(TIME_ENTRY_VALUES[1])],
+              ["zoned", () => setValue(TIME_ENTRY_VALUES[2])],
+              ["unmount", () => setRemoveOnKey((value) => !value)],
+              ["show", () => setVisible(true)],
+              ["receipts", receipts],
+              ["disabled", () => setDisabled((value) => !value)],
+              ["readonly", () => setReadonly((value) => !value)],
+              ["echo", () => setEcho((value) => !value)],
+              ["veto", () => setVeto((value) => !value)],
+              ["stop", () => setStop((value) => !value)],
+              ["callback", () => setRevision((value) => value + 1)],
+              ["mutation", () => setMutation((value) => MUTATIONS[(MUTATIONS.indexOf(value) + 1) % MUTATIONS.length])],
+              ["command-only", () => setCommandMode("original-only")],
+              ["command-mixed", () => setCommandMode("mixed")],
+              ["command-off", () => setCommandMode("none")],
+              ["portal", () => setPortaled((value) => !value)],
+              ["busy", () => setBusyPhase("running")],
+              [
+                "candidate",
+                () => {
+                  setValue(TIME_ENTRY_VALUES[0])
+                  setLocale("en-GB")
+                  setCandidate(true)
+                },
+              ],
+              [
+                "focus-button",
+                () =>
+                  record({
+                    kind: "setup-focus-request",
+                    field: "outer",
+                    requested: focusNativeTarget(authoredButton.current),
+                  }),
+              ],
+              ["locale", () => setLocale((value) => (value === "en-GB" ? "ar-EG" : "en-GB"))],
+            ].map(([name, action]) => (
+              <Pressable key={name as string} testID={`field-sdk-${name}`} onPress={action as () => void} style={frame}>
+                <Text>{name as string}</Text>
+              </Pressable>
+            ))}
+          </View>
+          <ScrollView
+            testID="field-sdk-content"
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="none"
+            contentContainerStyle={{ padding: 20 }}
+          >
+            <Text>Original field input prototype</Text>
+            {visible && !candidate && (
+              <Field
+                name="outer"
+                value={value}
+                onOwnerValueChange={setValue}
+                record={receive}
+                disabled={disabled}
+                readonly={readonly}
+                echo={echo}
+                veto={veto}
+                stop={stop}
+                revision={revision}
+                mutation={mutation}
+                layoutRevision={layoutRevision}
+                onMutation={mutate}
+                commandMode={commandMode}
+                onButtonRef={bindAuthoredButton}
+                portaled={portaled}
+                removeOnKey={removeOnKey}
+                onRemove={removeField}
+              />
+            )}
+            {candidate && (
+              <NativeTimePickerRenderer
+                testID="candidate-time"
+                value={value}
+                onChange={candidateChange}
+                onKeyDown={candidateKey}
+                onKeyUp={candidateKey}
+                onPointerUp={candidatePointerUp}
+                ComponentIcon={<CandidateIcon buttonRef={bindAuthoredButton} record={record} />}
+              />
+            )}
+          </ScrollView>
+          <PortalHost name="field-original-portal" style={{ minHeight: 70 }} />
+        </NativeKeyboardScope>
+      </NativeLocaleProvider>
+    </PortalProvider>
   )
 }

@@ -56,6 +56,11 @@ export class NativeFieldGroupPress {
           const packet = nativeFieldInputPacket(event),
             data = event.nativeEvent,
             group = packet.groups.find((entry) => entry.target === target)!
+          if (!group.containsTarget) {
+            if (this.#contact?.pointerId === data.pointerId && phase !== "pointer-start") this.retire()
+            if (isNativeFieldInputCurrent(scope, event)) this.current()[callbacks[phase]]?.(event)
+            return
+          }
           const contact = this.#contact
           if (
             contact &&
@@ -66,6 +71,7 @@ export class NativeFieldGroupPress {
           )
             this.retire()
           if (phase === "pointer-start" && data.button === 0) {
+            if (this.#contact?.pointerId === data.pointerId) this.retire()
             const starting = !this.#contact
             if (starting)
               this.#contact = {
@@ -78,13 +84,13 @@ export class NativeFieldGroupPress {
                 moduleLease: packet.moduleLease,
               }
             else this.#contact!.pointerType = data.pointerType
-            if (starting && data.isPrimary && data.pointerType === "mouse")
+            if (starting && data.pointerType === "mouse")
               moveNativeFieldFocus(scope, event, { groupTarget: group.scopeTarget, kind: "press" })
             event.stopPropagation()
           } else if (phase === "pointer-click" && data.button === 0) {
             const contact = this.#contact
             this.retire()
-            if (contact && data.isPrimary && (contact.pointerType === "touch" || contact.pointerType === "pen"))
+            if (contact && (contact.pointerType === "touch" || contact.pointerType === "pen"))
               moveNativeFieldFocus(scope, event, { groupTarget: group.scopeTarget, kind: "press" })
             event.stopPropagation()
           } else if (phase === "pointer-cancel") this.retire()
