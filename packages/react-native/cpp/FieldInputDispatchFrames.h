@@ -126,7 +126,7 @@ class FieldInputDispatchFrames final {
     if (!live_ || serial_ >= 9007199254740991ULL || !identity.valid() || eventId <= 0 || eventId > 9007199254740991LL ||
         (phase != "down" && phase != "up" && phase != "cancel" && phase != "pointer-start" &&
           phase != "pointer-end" && phase != "pointer-cancel" && phase != "pointer-click" && phase != "input") ||
-        timeout.count() <= 0 || timeout.count() > (pointer ? 2000 : 1000))
+        timeout.count() <= 0 || timeout.count() > (pointer ? 5000 : 1000))
       return nullptr;
     const auto deadline = std::min(Clock::now() + timeout, originDeadline);
     if (Clock::now() >= deadline) return nullptr;

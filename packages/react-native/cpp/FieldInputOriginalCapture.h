@@ -43,7 +43,7 @@ inline bool continueFieldOriginalPointer(facebook::react::UIManager &manager,
     std::chrono::milliseconds timeout = std::chrono::milliseconds(1000)) {
   using namespace facebook::react;
   if (!belongs || !emit || !receive) throw std::invalid_argument("field-input-pointer-receiver-required");
-  if (timeout.count() <= 0 || timeout.count() > 2000) throw std::invalid_argument("field-input-pointer-timeout-invalid");
+  if (timeout.count() <= 0 || timeout.count() > 5000) throw std::invalid_argument("field-input-pointer-timeout-invalid");
   if (FieldInputNativeOperation::contains(&manager)) { emit(); return false; }
   if (NativeEventListenerScope::active()) throw std::runtime_error("field-input-original-listener-stack-active");
   bool prevented = false, receiving = false;

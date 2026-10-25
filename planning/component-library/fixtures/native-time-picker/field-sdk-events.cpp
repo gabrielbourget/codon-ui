@@ -55,7 +55,7 @@ int main() {
   const auto makeEvent = [&](bool unique = false) {
     return RawEvent("topPointerDown", payload, target, family, RawEvent::Category::Discrete, unique, HighResTimeStamp{41});
   };
-  for (const auto timeout : {std::chrono::milliseconds(1000), std::chrono::milliseconds(2000)}) {
+  for (const auto timeout : {std::chrono::milliseconds(1000), std::chrono::milliseconds(2000), std::chrono::milliseconds(5000)}) {
     UIManager manager;
     const auto before = codon::FieldInputDispatchFrames::Clock::now();
     std::optional<codon::FieldInputDispatchFrames::Clock::time_point> originalDeadline;
@@ -77,7 +77,7 @@ int main() {
     else codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, emit, receive, timeout);
     check(received == 2);
   }
-  for (const auto timeout : {std::chrono::milliseconds(-1), std::chrono::milliseconds(0), std::chrono::milliseconds(2001)}) {
+  for (const auto timeout : {std::chrono::milliseconds(-1), std::chrono::milliseconds(0), std::chrono::milliseconds(5001)}) {
     UIManager manager; int emitted = 0; bool rejected = false;
     try {
       codon::continueFieldOriginalPointer(manager, [](const RawEvent &) { return true; }, [&] { emitted++; },

@@ -653,7 +653,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const BOOL prevented = [owner dispatch:nil phase:phase repeat:NO originalInput:&original deadline:deadline];
     decision(prevented);
     return static_cast<bool>(prevented);
-  }, std::chrono::milliseconds(2000));
+  }, std::chrono::milliseconds(5000));
 }
 - (BOOL)dispatch:(UIPress *)press phase:(NSString *)phase repeat:(BOOL)repeat
   originalInput:(const RawEvent *)originalInput deadline:(FieldInputDispatchFrames::Clock::time_point)deadline
@@ -701,7 +701,7 @@ void CUIEmitOwnedFieldInput(UIView *view, void (^emit)(void))
     const auto groups = orderedFieldInputGroups(document, bindings, target, snapshot);
     const auto identity = fieldInputIdentity(document, snapshot, binding, target, _epoch);
     const auto eventId = ++_eventId;
-    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(pointer ? 2000 : 1000), std::move(scopes), deadline);
+    const auto ticket = state->frames.begin(identity, eventId, phase.UTF8String, std::chrono::milliseconds(pointer ? 5000 : 1000), std::move(scopes), deadline);
     if (!ticket) throw std::invalid_argument("field-input-original-scope-frame-retired");
     FieldInputFrameLifetime lifetime(state->frames, ticket);
     UIKey *key = press.key; const auto flags = key.modifierFlags;
