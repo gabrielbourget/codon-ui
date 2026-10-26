@@ -9,6 +9,7 @@ import { FormField } from "../FormField/FormField"
 import { LineSegment } from "../LineSegment/LineSegment"
 import { NativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 import { NativePanelFocusIntentContext } from "../Panel/focus"
 import { Panel } from "../Panel/Panel"
 import type { TNativePanelProps } from "../Panel/types"
@@ -77,7 +78,7 @@ const QueryPanelBody = ({
     ),
   )
   const separator = <LineSegment color={theme.colors.controlBorder} height={1} size="100%" />
-  return (
+  const content = (
     <NativeContentContext.Provider
       value={{ foregroundColor: style.text.color ?? theme.colors.foreground, isButton: false }}
     >
@@ -165,6 +166,7 @@ const QueryPanelBody = ({
       </NativeFocusHost>
     </NativeContentContext.Provider>
   )
+  return <NativeTextStyleProvider style={style.text}>{content}</NativeTextStyleProvider>
 }
 
 // Private compound view; parent sort collection/reorder, temporal and native acceptance remain required.

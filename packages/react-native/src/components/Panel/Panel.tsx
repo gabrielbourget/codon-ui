@@ -14,6 +14,7 @@ import { useOverlay } from "../../overlays/useOverlay"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { NativeContentContext } from "../NativeContentContext"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { useNativePanelAppearance } from "./appearance"
 import { useNativePanelReturnFocus } from "./focus"
@@ -157,7 +158,9 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                   <NativeContentContext.Provider
                     value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
                   >
-                    {getNativeButtonContent(props.children, appearance.text)}
+                    <NativeTextStyleProvider style={appearance.text}>
+                      {getNativeButtonContent(props.children, appearance.text)}
+                    </NativeTextStyleProvider>
                   </NativeContentContext.Provider>
                 </NativePanelSurface>
               </NativeFloatingWindowHost>

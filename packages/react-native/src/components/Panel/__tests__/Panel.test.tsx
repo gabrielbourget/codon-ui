@@ -1,9 +1,10 @@
 import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef, useState } from "react"
-import { AccessibilityInfo, Animated, Platform, StyleSheet, View, type TextInput } from "react-native"
+import { AccessibilityInfo, Animated, Platform, StyleSheet, TextInput, View } from "react-native"
 
-import { NativeOverlayProvider, NativeThemeProvider, Text, type TNativeBackdropEffectProps } from "../../.."
+import { Button, NativeOverlayProvider, NativeThemeProvider, Text, type TNativeBackdropEffectProps } from "../../.."
 import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
+import { NativeFloatingScopeContext } from "../../../overlays/floating/scope"
 import { Panel } from "../Panel"
 import type { TNativePanelProps } from "../types"
 
@@ -23,6 +24,63 @@ const wrap = (props: Partial<TNativePanelProps> = {}) => (
 const show = async (id = "panel") => fireEvent(row(`${id}-window`), "show")
 const layout = async (width: number) =>
   fireEvent(row(), "layout", { nativeEvent: { layout: { x: 0, y: 0, width, height: 500 } } })
+
+it("inherits Panel text styles through owned descendants within the original window and retains explicit resets", async () => {
+  const root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    change = jest.fn()
+  const tree = (spacing: number, italic: boolean) => (
+    <NativeOverlayProvider>
+      <Panel
+        ref={root}
+        aria-label="Inherited styles"
+        isOpen
+        customStyles={{ letterSpacing: spacing, textAlign: "right", fontStyle: italic ? "italic" : "normal" }}
+      >
+        <Text testID="inherited-style">Inherited</Text>
+        <Button>Button inherits</Button>
+        <Button customStyles={{ fontStyle: "italic", letterSpacing: 3 }}>
+          <Text testID="button-authored">Button-owned styles</Text>
+        </Button>
+        <Text testID="explicit-style" style={{ letterSpacing: 0, fontStyle: "normal", textAlign: "left" }}>
+          Explicit
+        </Text>
+        <Text testID="cleared-style" customStyles={{ letterSpacing: 9 }} style={{ letterSpacing: undefined }}>
+          Cleared
+        </Text>
+        <NativeFloatingScopeContext.Provider value={{ id: "other-window", canAct: () => true }}>
+          <Text testID="other-window-text">Other window</Text>
+        </NativeFloatingScopeContext.Provider>
+        <TextInput ref={editor} testID="inherited-held" value="held" onChangeText={change} />
+      </Panel>
+    </NativeOverlayProvider>
+  )
+  const view = await render(tree(2, true))
+  const originalRoot = root.current,
+    originalEditor = editor.current
+  expect(row("inherited-style")).toHaveStyle({
+    letterSpacing: 2,
+    textAlign: "right",
+    fontStyle: "italic",
+    fontSize: 14,
+    fontWeight: "400",
+  })
+  expect(screen.getByText("Button inherits")).toHaveStyle({
+    letterSpacing: 0,
+    textAlign: "center",
+    fontStyle: "normal",
+  })
+  expect(row("button-authored")).toHaveStyle({ fontStyle: "italic", letterSpacing: 3 })
+  expect(row("explicit-style")).toHaveStyle({ letterSpacing: 0, fontStyle: "normal", textAlign: "left" })
+  expect(row("cleared-style")).toHaveStyle({ letterSpacing: 2 })
+  expect(StyleSheet.flatten(row("other-window-text").props.style).letterSpacing).toBeUndefined()
+  await view.rerender(tree(0, false))
+  expect(row("inherited-style")).toHaveStyle({ letterSpacing: 0, fontStyle: "normal" })
+  expect(root.current).toBe(originalRoot)
+  expect(editor.current).toBe(originalEditor)
+  expect(row("inherited-held").props.value).toBe("held")
+  expect(change).not.toHaveBeenCalled()
+})
 beforeEach(() => {
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
 })

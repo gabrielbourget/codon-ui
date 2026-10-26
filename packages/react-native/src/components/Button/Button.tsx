@@ -14,6 +14,7 @@ import { NativePressable, type TNativePressableRender } from "../../input/Native
 import type { TNativeFocusEvent, TNativePressEvent, TNativeFocusViewProps } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { NativeContentContext } from "../NativeContentContext"
+import { NativeTextStyleProvider } from "../NativeTextStyleProvider"
 
 import { getNativeButtonContent } from "./content"
 import { NativeButtonContext } from "./context"
@@ -163,7 +164,7 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
       }
     : undefined
 
-  return (
+  const control = (
     <NativeContentContext.Provider
       value={{ foregroundColor: resolved.foregroundColor, isButton: true, textStyle: resolved.textStyle }}
     >
@@ -313,6 +314,14 @@ export const NativeButton = forwardRef<TNativeButtonRef, TNativeButtonInternalPr
         {content}
       </NativePressable>
     </NativeContentContext.Provider>
+  )
+  return (
+    <NativeTextStyleProvider
+      reset
+      style={{ fontStyle: "normal", letterSpacing: 0, textAlign: "center", ...resolved.textStyle }}
+    >
+      {control}
+    </NativeTextStyleProvider>
   )
 })
 

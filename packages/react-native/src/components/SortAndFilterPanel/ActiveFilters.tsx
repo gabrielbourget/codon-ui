@@ -30,7 +30,14 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
     group.clauses.map((clause) => ({ id: clause.id, criteriaName: group.criteriaName })),
   )
   return (
-    <View testID="query-active-filters" style={{ flex: 1, minHeight: 0, width: "100%", gap: theme.spacing.unit * 2 }}>
+    <ScrollView
+      testID="query-active-filters"
+      style={{ flex: 1, minHeight: 0, width: "100%" }}
+      contentContainerStyle={{ flexGrow: 1, gap: theme.spacing.unit * 2 }}
+      keyboardShouldPersistTaps="always"
+      keyboardDismissMode="none"
+      nestedScrollEnabled
+    >
       <View style={{ width: "100%", flexDirection: "row", flexWrap: "wrap", gap: theme.spacing.unit }}>
         <Text variant="b10">{labels.activeFilters.headingLabel}</Text>
         {clauses.length === 0 ? (
@@ -63,9 +70,13 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
       </View>
       {controller.draft.filterGroups.length > 0 && (
         <ScrollView
+          testID="query-filter-parameter-list"
           accessibilityLabel={labels.activeFilters.activeFiltersListAriaLabel}
           style={{ width: "100%", flex: 1 }}
           contentContainerStyle={{ gap: theme.spacing.unit }}
+          keyboardShouldPersistTaps="always"
+          keyboardDismissMode="none"
+          nestedScrollEnabled
         >
           {controller.draft.filterGroups.map((group) => (
             <View
@@ -164,6 +175,6 @@ export const QueryActiveFilters = (props: TNativeQueryActiveFiltersProps) => {
           ))}
         </ScrollView>
       )}
-    </View>
+    </ScrollView>
   )
 }

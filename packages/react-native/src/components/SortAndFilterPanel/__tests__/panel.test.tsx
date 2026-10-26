@@ -137,6 +137,45 @@ it("retains a programmatic Dialog target without adding shell or backdrop Tab st
   expect(screen.getByRole("button", { name: "Add Sort Criteria" }).props.keyboardFocusable).toBe(true)
 })
 
+it("retains both filter scroll owners and the same editor through dialog style and metadata changes", async () => {
+  const view = await render(
+    tree({ activeFilters: applied, customDialogStyles: { letterSpacing: 2, fontStyle: "italic" } }),
+  )
+  await present()
+  const editor = screen.getByLabelText("Filter Name by contained text")
+  const dialog = host("query-panel-dialog")
+  const scrollers = () =>
+    screen.container.queryAll(
+      (node) =>
+        node.type.includes("ScrollView") &&
+        ["query-active-filters", "query-filter-parameter-list"].includes(node.props.testID),
+    )
+  expect(scrollers()).toHaveLength(2)
+  for (const scroller of scrollers()) {
+    expect(scroller.props.keyboardShouldPersistTaps).toBe("always")
+    expect(scroller.props.keyboardDismissMode).toBe("none")
+  }
+  expect(scrollers()[0].queryAll((node) => node.props.testID === "query-filter-parameter-list")).toEqual([
+    scrollers()[1],
+  ])
+  expect(screen.getByText("Filtering By:")).toHaveStyle({ letterSpacing: 2, fontStyle: "italic" })
+  expect(screen.getByText("Sort and Filter Panel")).toHaveStyle({ letterSpacing: 2, fontStyle: "italic" })
+  expect(screen.getByText("Apply")).toHaveStyle({ letterSpacing: 0, fontStyle: "normal", fontWeight: "700" })
+  await fireEvent.changeText(editor, " pending ")
+  await view.rerender(
+    tree({
+      activeFilters: applied,
+      customDialogStyles: { letterSpacing: 0, fontStyle: "normal" },
+      possibleFilterCriteria: criteria.map((criterion) => ({ ...criterion })),
+    }),
+  )
+  await acknowledge()
+  expect(screen.getByText("Filtering By:")).toHaveStyle({ letterSpacing: 0, fontStyle: "normal" })
+  expect(host("query-panel-dialog")).toBe(dialog)
+  expect(screen.getByLabelText("Filter Name by contained text")).toBe(editor)
+  expect(editor.props.value).toBe(" pending ")
+})
+
 it("keeps closed state owned and exposes the canonical default chrome, fields and separate style owners", async () => {
   const closed = await render(tree({ isOpen: false }))
   expect(screen.queryByTestId("query-panel-dialog")).toBeNull()
