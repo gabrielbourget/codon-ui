@@ -19,6 +19,8 @@ import {
   useWindowDimensions,
   View,
   type GestureResponderEvent,
+  type TextStyle,
+  type StyleProp,
 } from "react-native"
 
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
@@ -35,6 +37,7 @@ import { NativeFloatingScopeContext, NativeFloatingWindowContext } from "../../o
 import { resolveNativeStyle } from "../colors"
 import { useNativeLoaderReducedMotion } from "../Loaders/motion"
 
+import { CarouselContent } from "./CarouselContent"
 import { NativeCarouselContext, resolveNativeCarouselLabels } from "./CarouselContext"
 import type { TNativeBaseCarouselItem, TNativeCarouselContext, TNativeCarouselProps } from "./carouselTypes"
 import { NativeCarouselControlsContext } from "./context"
@@ -47,14 +50,24 @@ import {
   type TNativeCarouselPointerEvent,
 } from "./engine/nativeEnvironment"
 
-type THostProps = ComponentProps<typeof NativeFocusHost> & {
+type THostProps = Omit<ComponentProps<typeof NativeFocusHost>, "style"> & {
+  style?: StyleProp<TextStyle>
   identity: string
   attach: (identity: string, binding: TNativeCarouselNodeBinding | null) => void
   invalidate: () => void
   core?: boolean
 }
 // Each binding retains the original Fabric host and the actual event which invalidated its geometry.
-const CarouselHost = ({ identity, attach, invalidate, core = false, style, onLayout, ...props }: THostProps) => {
+const CarouselHost = ({
+  identity,
+  attach,
+  invalidate,
+  core = false,
+  style,
+  onLayout,
+  children,
+  ...props
+}: THostProps) => {
   const node = useRef<View | null>(null)
   const latestStyle = useRef(style)
   const [events] = useState(createNativeCarouselEvents)
@@ -79,20 +92,33 @@ const CarouselHost = ({ identity, attach, invalidate, core = false, style, onLay
     invalidate()
   }
   const { onFocus: _onFocus, onBlur: _onBlur, ...coreProps } = props
-  return core ? (
-    <View {...coreProps} ref={ref} style={style} onLayout={layout} />
-  ) : (
-    <NativeFocusHost
-      {...props}
-      ref={ref}
-      style={style}
-      onLayout={layout}
-      nativeFocusWithinObservation
-      nativeOnFocusWithin={(event) => {
-        props.nativeOnFocusWithin?.(event)
-        if (event.nativeEvent.within) events.emit("focus", event)
-      }}
-    />
+  return (
+    <CarouselContent
+      style={resolveNativeStyle(style, "Carousel", identity)}
+      render={(viewStyle, content) =>
+        core ? (
+          <View {...coreProps} ref={ref} style={viewStyle} onLayout={layout}>
+            {content}
+          </View>
+        ) : (
+          <NativeFocusHost
+            {...props}
+            ref={ref}
+            style={viewStyle}
+            onLayout={layout}
+            nativeFocusWithinObservation
+            nativeOnFocusWithin={(event) => {
+              props.nativeOnFocusWithin?.(event)
+              if (event.nativeEvent.within) events.emit("focus", event)
+            }}
+          >
+            {content}
+          </NativeFocusHost>
+        )
+      }
+    >
+      {children}
+    </CarouselContent>
   )
 }
 const unmodifiedTokens = (key: string) =>
@@ -538,7 +564,11 @@ export const Carousel = <TItem extends TNativeBaseCarouselItem>(props: TNativeCa
           </CarouselHost>
           {chromeSlot ? (
             chromeOverlayStrategy === "overlay" ? (
-              <View
+              <CarouselHost
+                core
+                identity="chrome"
+                attach={attach}
+                invalidate={invalidate}
                 testID="carousel-chrome"
                 pointerEvents="box-none"
                 style={resolveNativeStyle(
@@ -548,7 +578,7 @@ export const Carousel = <TItem extends TNativeBaseCarouselItem>(props: TNativeCa
                 )}
               >
                 {chrome}
-              </View>
+              </CarouselHost>
             ) : (
               chrome
             )

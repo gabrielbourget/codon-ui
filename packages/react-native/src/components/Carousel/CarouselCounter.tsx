@@ -5,6 +5,7 @@ import { resolveNativeStyle } from "../colors"
 import { Counter } from "../Counter/Counter"
 import { Text } from "../Text/Text"
 
+import { CarouselContent } from "./CarouselContent"
 import { useNativeCarouselContext } from "./CarouselContext"
 import type { TNativeCarouselCounterProps } from "./carouselTypes"
 
@@ -31,7 +32,14 @@ export const CarouselCounter = (props: TNativeCarouselCounterProps) => {
   )
   const radii = Object.fromEntries(Object.entries(style).filter(([key]) => /^border.*Radius$/.test(key)))
   return (
-    <View testID="carousel-counter" style={style}>
+    <CarouselContent
+      style={style}
+      render={(viewStyle, content) => (
+        <View testID="carousel-counter" style={viewStyle}>
+          {content}
+        </View>
+      )}
+    >
       <View
         testID="carousel-counter-surface"
         pointerEvents="none"
@@ -61,6 +69,6 @@ export const CarouselCounter = (props: TNativeCarouselCounterProps) => {
           </Text>
         ) : null}
       </Counter>
-    </View>
+    </CarouselContent>
   )
 }

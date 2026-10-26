@@ -1,5 +1,5 @@
 import type { ReactNode, ForwardRefExoticComponent, PropsWithoutRef, RefAttributes } from "react"
-import type { StyleProp, View, ViewStyle } from "react-native"
+import type { StyleProp, View, TextStyle } from "react-native"
 
 import type { TNativeButtonProps } from "../Button/types"
 import type { TNativeCounterProps } from "../Counter/types"
@@ -70,12 +70,12 @@ export type TNativeCarouselProps<TItem extends TNativeBaseCarouselItem> = {
   renderCarouselItem: (args: { item: TItem; index: number; isSelected: boolean }) => ReactNode
   onIndexChange?: (index: number) => void
   getItemID?: (index: number) => string
-  style?: StyleProp<ViewStyle>
-  customStyles?: StyleProp<ViewStyle>
-  customViewportStyles?: StyleProp<ViewStyle>
-  customContainerStyles?: StyleProp<ViewStyle>
-  customItemStyles?: StyleProp<ViewStyle>
-  customChromeStyles?: StyleProp<ViewStyle>
+  style?: StyleProp<TextStyle>
+  customStyles?: StyleProp<TextStyle>
+  customViewportStyles?: StyleProp<TextStyle>
+  customContainerStyles?: StyleProp<TextStyle>
+  customItemStyles?: StyleProp<TextStyle>
+  customChromeStyles?: StyleProp<TextStyle>
 }
 export type TNativeCarouselDotsProps = {
   interactive?: boolean
@@ -85,15 +85,15 @@ export type TNativeCarouselDotsProps = {
   ariaLabel?: string
   labels?: Partial<TNativeCarouselLabels["dots"]>
   raised?: boolean
-  style?: StyleProp<ViewStyle>
-  customStyles?: StyleProp<ViewStyle>
+  style?: StyleProp<TextStyle>
+  customStyles?: StyleProp<TextStyle>
   testID?: string
 }
 export type TNativeCarouselCounterProps = {
   counterText?: string
   labels?: Partial<TNativeCarouselLabels["counter"]>
-  style?: StyleProp<ViewStyle>
-  customStyles?: StyleProp<ViewStyle>
+  style?: StyleProp<TextStyle>
+  customStyles?: StyleProp<TextStyle>
   customCounterProps?: Partial<TNativeCounterProps>
   customTextProps?: Partial<TNativeTextProps>
   customCounterStyles?: TNativeCounterProps["customStyles"]

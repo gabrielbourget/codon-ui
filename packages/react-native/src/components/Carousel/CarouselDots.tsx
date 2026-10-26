@@ -11,6 +11,7 @@ import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 import { nativeControlTarget } from "../selection"
 
+import { CarouselContent } from "./CarouselContent"
 import { useNativeCarouselContext } from "./CarouselContext"
 import type { TNativeCarouselDotsProps } from "./carouselTypes"
 import { handleNativeCarouselDotKey } from "./dotsKeyPolicy"
@@ -140,29 +141,37 @@ export const CarouselDots = (props: TNativeCarouselDotsProps) => {
   })
   if (itemCount <= 1) return null
   const labels = { ...context.labels.dots, ...props.labels }
+  const style = resolveNativeStyle(
+    [
+      { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: theme.spacing.unit },
+      props.customStyles,
+      props.style,
+    ],
+    "CarouselDots",
+    "style",
+  )
   return (
-    <NativeFocusHost
-      ref={setGroup}
-      testID={testID}
-      role={interactive ? "radiogroup" : undefined}
-      accessibilityRole={interactive ? "radiogroup" : undefined}
-      accessibilityLabel={
-        interactive
-          ? (props.ariaLabel ?? props.labels?.navigationAriaLabel ?? context.labels.dots.navigationAriaLabel)
-          : undefined
-      }
-      focusable={false}
-      nativeTabStop={false}
-      accessibilityElementsHidden={!interactive}
-      importantForAccessibility={interactive ? "auto" : "no-hide-descendants"}
-      style={resolveNativeStyle(
-        [
-          { alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: theme.spacing.unit },
-          props.customStyles,
-          props.style,
-        ],
-        "CarouselDots",
-        "style",
+    <CarouselContent
+      style={style}
+      render={(viewStyle, content) => (
+        <NativeFocusHost
+          ref={setGroup}
+          testID={testID}
+          role={interactive ? "radiogroup" : undefined}
+          accessibilityRole={interactive ? "radiogroup" : undefined}
+          accessibilityLabel={
+            interactive
+              ? (props.ariaLabel ?? props.labels?.navigationAriaLabel ?? context.labels.dots.navigationAriaLabel)
+              : undefined
+          }
+          focusable={false}
+          nativeTabStop={false}
+          accessibilityElementsHidden={!interactive}
+          importantForAccessibility={interactive ? "auto" : "no-hide-descendants"}
+          style={viewStyle}
+        >
+          {content}
+        </NativeFocusHost>
       )}
     >
       <NativeCarouselDotsViewport
@@ -206,6 +215,6 @@ export const CarouselDots = (props: TNativeCarouselDotsProps) => {
       </NativeCarouselDotsViewport>
       {showOverflowSentinels && windowStart > 0 ? <NativeCarouselDotVisual variant="sentinel" shrink /> : null}
       {showOverflowSentinels && windowStart < maxStart ? <NativeCarouselDotVisual variant="sentinel" shrink /> : null}
-    </NativeFocusHost>
+    </CarouselContent>
   )
 }

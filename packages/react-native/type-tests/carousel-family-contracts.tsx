@@ -20,6 +20,8 @@ export const props: CarouselProps<{ ID: string; title: string }> = {
   align: "end",
   autoPlayEnabled: true,
   initialIndex: 0,
+  customStyles: { color: PlatformColor("labelColor"), fontSize: 20 },
+  customChromeStyles: { color: "purple", fontWeight: "bold" },
   customViewportStyles: styles.viewport,
   customItemStyles: [styles.item, { backgroundColor: PlatformColor("labelColor") }],
   onViewportRefChange: (node) => {

@@ -5,6 +5,7 @@ import type * as RN from "react-native"
 import type { TNativeKeyPolicy } from "../../../input/keyScope"
 import { Commands } from "../../../input/specs/CUIFocusViewNativeComponent"
 import { NativeThemeProvider } from "../../../theme"
+import { Text as LibraryText } from "../../Text/Text"
 import { Carousel } from "../Carousel"
 import { CarouselCloseButton, CarouselNextButton, CarouselPrevButton } from "../CarouselControls"
 import { CarouselCounter } from "../CarouselCounter"
@@ -346,4 +347,48 @@ it("moves manual roving focus without selecting until original Enter activation"
     isDefaultPrevented: () => true,
   })
   expect(context.selectedIndex).toBe(1)
+})
+
+it("renders raw zero/mixed item phrases with independent inherited native text styles", async () => {
+  await render(
+    tree({
+      ...base(),
+      customStyles: { color: "red", fontSize: 29 },
+      customContainerStyles: { color: "blue", fontSize: 25 },
+      customItemStyles: { fontSize: 17, color: undefined },
+      renderCarouselItem: () => (
+        <>
+          {0}
+          {false}
+          {" phrase"}
+          <LibraryText testID="authored">Authored</LibraryText>
+        </>
+      ),
+    }),
+  )
+  expect(screen.getAllByText("0 phrase")[0]).toHaveStyle({ color: "blue", fontSize: 17 })
+  expect(screen.getAllByTestId("authored")[0]).toHaveStyle({ color: "blue" })
+  expect(screen.getByTestId("carousel").props.style.color).toBeUndefined()
+  expect(screen.getByTestId("carousel-container").props.style.fontSize).toBeUndefined()
+})
+
+it("keeps chrome typography and Counter wrapper foreground in their own native owners", async () => {
+  await render(
+    tree({
+      ...base(),
+      customStyles: { color: "red" },
+      customChromeStyles: { color: "purple", fontSize: 31 },
+      renderCarouselItem: () => null,
+      chromeSlot: () => (
+        <>
+          {0}
+          <CarouselCounter customStyles={{ color: "orange", fontSize: 19 }} />
+        </>
+      ),
+    }),
+  )
+  expect(screen.getByText("0")).toHaveStyle({ color: "purple", fontSize: 31 })
+  expect(screen.getByTestId("counter-value")).toHaveStyle({ color: "orange" })
+  expect(screen.getByTestId("carousel-counter").props.style.color).toBeUndefined()
+  expect(screen.getByTestId("carousel-chrome").props.style.fontSize).toBeUndefined()
 })
