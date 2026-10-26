@@ -8,14 +8,7 @@ import {
   type ComponentProps,
   type Ref,
 } from "react"
-import {
-  View,
-  VirtualizedList,
-  useWindowDimensions,
-  type FocusEvent,
-  type TextInput,
-  type VirtualizedListProps,
-} from "react-native"
+import { View, VirtualizedList, useWindowDimensions, type TextInput, type VirtualizedListProps } from "react-native"
 
 import {
   DefaultNativeCollectionRenderer,
@@ -41,6 +34,7 @@ import { ColumnFixtureHeader } from "./TableColumnFixture"
 
 type TNode = TNativeCollectionNode<unknown>
 type TCellProps = ComponentProps<NonNullable<VirtualizedListProps<TNode>["CellRendererComponent"]>>
+type TCellFocusCaptureEvent = Parameters<NonNullable<TCellProps["onFocusCapture"]>>[0]
 type TBridge = {
   root: TNativeCollectionRootProps | null
   collection: NativeTableCollection<object> | null
@@ -99,7 +93,7 @@ const VirtualBody = ({ collection, parent, bridge }: TNativeCollectionBranchProp
       >
         <NativeCollectionCellFocusContext.Provider
           value={(event) => {
-            onFocusCapture?.(event as unknown as FocusEvent)
+            onFocusCapture?.(event as unknown as TCellFocusCaptureEvent)
             if (request.current != null && rowKeyFor(bridge, request.current) === item.key) {
               request.current = null
               setRequested(null)
