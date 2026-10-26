@@ -23,9 +23,11 @@ import type {
   TNativeTableHeaderProps,
   TNativeTableBodyProps,
   TNativeTableProps,
+  TNativeTableRowProps,
+  TNativeTableRowRenderState,
 } from "../../types"
 
-import { TableCellFixture } from "./TableCellFixture"
+import { CellFixtureBody, TableCellFixture } from "./TableCellFixture"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
@@ -267,10 +269,76 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
             <Text testID="table-widths">{JSON.stringify(widths)}</Text>
             <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
+            <TableRowFixture />
             <TableCellFixture />
           </ScrollView>
         </NativeFloatingLayerHost>
       </NativeOverlayProvider>
     </NativeThemeProvider>
+  )
+}
+
+const rowColumns = [{ id: "draft", name: "Custom row", isRowHeader: true }]
+const TableRowFixture = () => {
+  const [custom, setCustom] = useState(false),
+    [hold, setHold] = useState(false),
+    [offset, setOffset] = useState(false)
+  const [selected, setSelected] = useState<Set<string | number>>(new Set())
+  const [requests, setRequests] = useState<string[]>([])
+  const [snapshot, setSnapshot] = useState("")
+  const flags = useRef<TNativeTableRowRenderState | null>(null)
+  const renderRow = useCallback<NonNullable<TNativeTableRowProps<object>["render"]>>((props, values) => {
+    flags.current = values
+    return <NativeFocusView {...props} style={[props.style, { opacity: values.isHovered ? 0.85 : 1 }]} />
+  }, [])
+  return (
+    <>
+      <Button onPress={() => setCustom((value) => !value)}>Toggle row renderer</Button>
+      <Button onPress={() => setHold((value) => !value)}>Toggle row selection veto</Button>
+      <Button onPress={() => setOffset((value) => !value)}>Toggle row layout offset</Button>
+      <Button
+        onPress={() => setSnapshot(JSON.stringify({ flags: flags.current, fields: Object.keys(flags.current ?? {}) }))}
+      >
+        Inspect row render values
+      </Button>
+      <Table
+        accessibilityLabel="Custom row rendering"
+        selectionMode="multiple"
+        selectionBehavior="replace"
+        selectedKeys={selected}
+        onSelectionChange={(keys) => {
+          setRequests((previous) => [...previous, `selection:${JSON.stringify(keys === "all" ? keys : [...keys])}`])
+          if (!hold) setSelected(keys === "all" ? new Set(["custom-row"]) : new Set(keys))
+        }}
+      >
+        <TableHeader columns={rowColumns} />
+        <CellFixtureBody>
+          <TableRow
+            id="custom-row"
+            testID="table-custom-row"
+            item={{}}
+            columns={rowColumns}
+            render={custom ? renderRow : undefined}
+            style={{ marginLeft: offset ? 25 : 0 }}
+            onPress={(event) =>
+              setRequests((previous) => [
+                ...previous,
+                `press:${"kind" in event.nativeEvent ? event.nativeEvent.kind : "pointer"}`,
+              ])
+            }
+            renderCell={() => (
+              <Input
+                testID="table-custom-row-editor"
+                accessibilityLabel="Held custom row draft"
+                value=""
+                onChangeText={(value) => setRequests((previous) => [...previous, `draft:${value}`])}
+              />
+            )}
+          />
+        </CellFixtureBody>
+      </Table>
+      <Text testID="table-custom-row-values">{snapshot}</Text>
+      <Text testID="table-custom-row-requests">{JSON.stringify(requests)}</Text>
+    </>
   )
 }

@@ -7,6 +7,7 @@ import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TNativeFocusViewProps } from "../../input/types"
 import type { TCornerGeometry } from "../../tokens/geometry"
+import type { TNativeButtonProps } from "../Button/types"
 import type { TNativeLinkProps } from "../Link/types"
 import type { TNativePaginationProps } from "../Pagination/types"
 
@@ -195,9 +196,13 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     columnID: string
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
-export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "children" | "style"> &
+export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps, "id" | "children" | "style"> &
   Partial<Pick<TNativeLinkProps, "href" | "onNavigationError">> &
+  TNativeTableHoverEvents &
+  Pick<TNativeButtonProps, "onPress" | "onPressStart" | "onPressEnd" | "onPressUp" | "onPressChange"> &
   TStyleProps & {
+    children?: never
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableRowRenderState) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
     hasChildItems?: boolean
@@ -208,7 +213,31 @@ export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "chi
     dependencies?: readonly unknown[]
     isDisabled?: boolean
     onAction?: () => void
+    "data-testid"?: string
+    "aria-describedby"?: string
+    "aria-details"?: string
+    ariaDescribedBy?: string | readonly string[]
+    ariaDetails?: string | readonly string[]
   }
+export type TNativeTableRowRenderState = Readonly<{
+  isPressed: boolean
+  isSelected: boolean
+  isFocused: boolean
+  isDisabled: boolean
+  allowsSelection: boolean
+  hasAction: boolean
+  isHovered: boolean
+  isFocusVisible: boolean
+  selectionMode: "none" | "single" | "multiple"
+  selectionBehavior: "toggle" | "replace"
+  isDragging: boolean | undefined
+  isDropTarget: boolean | undefined
+  isFocusVisibleWithin: boolean
+  id: TNativeCollectionKey
+  hasChildItems: boolean
+  isExpanded: boolean
+  level: number
+}>
 export type TNativeTableBodyProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
     render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableBodyRenderState) => ReactElement

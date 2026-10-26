@@ -42,6 +42,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       measurement,
       motionOwner,
       projection,
+      nativeRender,
       ...props
     },
     forwardedRef,
@@ -165,6 +166,19 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
       { ...values, ...measured.values } as TNativeMotionVisualValues,
       transformTemplate,
     )
+    const host = {
+      ...props,
+      nativeMotionGeometryRevision: measured.revision ?? props.nativeMotionGeometryRevision,
+      nativeMotionGeometryObservation: true,
+      nativeMotionColorObservation: true,
+      nativeMotionDrawingOwner: true,
+      nativeMotionProjectionRadii: projected.radii,
+      nativeMotionVisible: projected.visible,
+      focusable: props.tabIndex === undefined ? (props.focusable ?? false) : !props.tabIndex,
+      ref: setRef,
+      style: [resolved.view, projected.style],
+      children: getNativeButtonContent(children, resolved.text),
+    }
     return (
       <NativeContentContext.Provider
         value={{
@@ -172,20 +186,7 @@ export const NativeMotionVisualHost = forwardRef<TNativeFocusViewRef, TNativeMot
           isButton: inherited?.isButton ?? false,
         }}
       >
-        <NativeFocusHost
-          {...props}
-          nativeMotionGeometryRevision={measured.revision ?? props.nativeMotionGeometryRevision}
-          nativeMotionGeometryObservation
-          nativeMotionColorObservation
-          nativeMotionDrawingOwner
-          nativeMotionProjectionRadii={projected.radii}
-          nativeMotionVisible={projected.visible}
-          focusable={props.tabIndex === undefined ? (props.focusable ?? false) : !props.tabIndex}
-          ref={setRef}
-          style={[resolved.view, projected.style]}
-        >
-          {getNativeButtonContent(children, resolved.text)}
-        </NativeFocusHost>
+        {nativeRender ? nativeRender(host) : <NativeFocusHost {...host} />}
       </NativeContentContext.Provider>
     )
   },

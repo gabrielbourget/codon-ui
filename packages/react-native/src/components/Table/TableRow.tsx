@@ -1,11 +1,14 @@
-import { useContext, useId, useInsertionEffect, useRef, type ForwardedRef } from "react"
+import { useContext, useId, useInsertionEffect, useRef, useState, useSyncExternalStore, type ForwardedRef } from "react"
 import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
 import { NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { nativeKeyTokens } from "../../input/keyScope"
+import { NativeFocusView } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import type { TNativePressEvent } from "../../input/types"
 import { NativeMotionOwnerHost } from "../../motion/owner/NativeMotionOwnerHost"
@@ -28,13 +31,14 @@ import { NativeTableOptionsContext, useNativeTable } from "./context"
 import { getNativeTableColumns, renderNativeTableValue } from "./rendering"
 import { TableSelectionCheckbox } from "./SelectionCheckbox"
 import { TableCell } from "./TableCell"
-import type { TNativeTableRowComponent, TNativeTableRowProps } from "./types"
+import type { TNativeTableRowComponent, TNativeTableRowProps, TNativeTableRowRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
 import { useTableHover } from "./useTableHover"
 import { useTableTargetRef } from "./useTableTargetRef"
 
 const BACKGROUND_TRANSITION = resolveNativeTagTransition(250)
 const FOREGROUND_TRANSITION = resolveNativeTagTransition(350)
+const noSubscription = () => () => {}
 
 const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node: TNativeCollectionNode<object>) => {
   const {
@@ -52,6 +56,24 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     onAction: _action,
     href: _href,
     onNavigationError: _navigationError,
+    render,
+    onFocus,
+    onBlur,
+    onKeyDown,
+    onKeyUp,
+    onHoverStart,
+    onHoverEnd,
+    onHoverChange,
+    onPress: _press,
+    onPressStart: _pressStart,
+    onPressEnd: _pressEnd,
+    onPressUp: _pressUp,
+    onPressChange: _pressChange,
+    "data-testid": aliasID,
+    "aria-describedby": describedBy,
+    "aria-details": details,
+    ariaDescribedBy,
+    ariaDetails,
     ...native
   } = props
   const table = useNativeTable()
@@ -67,6 +89,13 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   if (props.href !== undefined && typeof props.href !== "string") throw new TypeError("TableRow: href must be a string")
   const boundRef = useTableTargetRef(original, ref, { node, register: table.keyboard.register })
   const action = useTableAction(node, original)
+  const scope = useNativeKeyScope()
+  useSyncExternalStore(
+    scope?.subscribe ?? noSubscription,
+    () => `${scope?.lastInput()?.origin ?? ""}:${scope?.isWindowActive() !== false}`,
+    () => ":true",
+  )
+  const [focusWithin, setFocusWithin] = useState({ within: false, origin: "" })
   const state = getNativeTagGroupActionState({
     mode: table.manager.canSelectItem(node.key) ? table.manager.selectionMode : "none",
     behavior: table.manager.selectionBehavior,
@@ -76,9 +105,14 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     isLink: table.manager.isLink(node.key),
     linkBehavior: "action",
   })
-  const hover = useTableHover(original, action.isActive, {
+  const paint = useTableHover(original, action.isActive, {
     onPointerEnter: native.onPointerEnter,
     onPointerLeave: native.onPointerLeave,
+  })
+  const hover = useTableHover(original, () => action.isActive() && (state.allowsSelection || state.hasAction), {
+    onHoverStart,
+    onHoverEnd,
+    onHoverChange,
   })
   type TPointer = (typeof NATIVE_TAG_GROUP_POINTER_TYPES)[number]
   type TMetadata = {
@@ -166,6 +200,8 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
             else console.warn(`TableRow: unable to open ${JSON.stringify(href)}`, error)
           })
       }
+      if (phase === "start") row.props.onPressStart?.(event)
+      if (phase === "release") row.props.onPress?.(event)
     })
   }
   const styles = splitNativeTextStyle(
@@ -178,7 +214,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           backgroundColor:
             table.zebra && ordinal % 2 === 1
               ? table.zebraColor
-              : hover.isPointerOver
+              : paint.isPointerOver
                 ? table.hoverColor
                 : "transparent",
         },
@@ -199,26 +235,65 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
       <NativeButton
         {...nativeViewProps(native)}
         ref={boundRef}
-        testID={native.testID ?? `table-row-${encodeCollectionKey(node.key)}`}
+        testID={native.testID ?? aliasID ?? `table-row-${encodeCollectionKey(node.key)}`}
         nativeRole="row"
         nativeAccessible={false}
         nativeInteraction={state.allowsSelection || state.hasAction}
         nativeProgrammaticFocusable
-        onKeyDown={table.keyboard.captureTypeahead}
-        nativeRender={(props) => (
-          <NativeMotionOwnerHost
-            {...props}
-            motion={{ layout: true }}
-            capturedKeys={[
-              ...table.keyboard.keysFor(node.key),
-              ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
-            ]}
-            onKeyDown={(event) => {
-              props.onKeyDown?.(event)
-              table.keyboard.onKeyDown(event)
-            }}
-          />
-        )}
+        onKeyDown={(event) => {
+          onKeyDown?.(event)
+          table.keyboard.captureTypeahead(event)
+        }}
+        onKeyUp={onKeyUp}
+        nativeRender={(props, flags) => {
+          const hasChildItems = !!(
+            node.props.hasChildItems || table.collection.getItem(node.lastChildKey!)?.type !== "cell"
+          )
+          const values: TNativeTableRowRenderState = {
+            isPressed: flags.isPressed,
+            isSelected: table.manager.isSelected(node.key),
+            isFocused: flags.isFocused,
+            isDisabled: table.manager.isDisabled(node.key),
+            allowsSelection: state.allowsSelection,
+            hasAction: state.hasAction,
+            isHovered: hover.isHovered,
+            isFocusVisible: flags.isFocusVisible,
+            selectionMode: table.manager.selectionMode,
+            selectionBehavior: table.manager.selectionBehavior,
+            isDragging: undefined,
+            isDropTarget: undefined,
+            isFocusVisibleWithin:
+              focusWithin.within &&
+              action.isActive() &&
+              (scope?.lastInput()?.origin ?? focusWithin.origin) !== "pointer",
+            id: node.key,
+            hasChildItems,
+            isExpanded: hasChildItems && table.state.expandedKeys.has(node.key),
+            level: node.level + 1,
+          }
+          return (
+            <NativeMotionOwnerHost
+              {...props}
+              motion={{ layout: true }}
+              nativeRender={(host) => (render ? render(host, values) : <NativeFocusView {...host} />)}
+              nativeFocusWithinObservation
+              nativeOnFocusWithin={(event) =>
+                setFocusWithin({ within: event.nativeEvent.within, origin: event.nativeEvent.origin })
+              }
+              nativeOnFocusWithinRetired={() => setFocusWithin({ within: false, origin: "" })}
+              nativeDescribedBy={nativeAccessibilityIDs(describedBy ?? ariaDescribedBy)}
+              nativeDetailsBy={nativeAccessibilityIDs(details ?? ariaDetails)}
+              capturedKeys={[
+                ...table.keyboard.keysFor(node.key),
+                ...(state.allowsSelection || state.hasAction ? ["Enter", " "].flatMap(nativeKeyTokens) : []),
+              ]}
+              onKeyDown={(event) => {
+                props.onKeyDown?.(event)
+                table.keyboard.onKeyDown(event)
+              }}
+            />
+          )
+        }}
         nativeTabStop={table.manager.focusedKey === node.key}
         isDisabled={table.manager.isDisabled(node.key)}
         accessibilityState={{
@@ -237,10 +312,17 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
         })}
         onFocus={(event) => {
           table.keyboard.observe(node.key, event)
-          native.onFocus?.(event)
+          onFocus?.(event)
         }}
-        onPointerEnter={hover.onPointerEnter}
-        onPointerLeave={hover.onPointerLeave}
+        onBlur={onBlur}
+        onPointerEnter={(event) => {
+          paint.onPointerEnter(event)
+          hover.onPointerEnter(event)
+        }}
+        onPointerLeave={(event) => {
+          paint.onPointerLeave(event)
+          hover.onPointerLeave(event)
+        }}
         onPointerDown={(event: PointerEvent) => {
           native.onPointerDown?.(event)
           const data = event.nativeEvent
@@ -258,6 +340,9 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           cycle.current = { binding: action.binding, primary: state.hasPrimaryAction, long: false }
           press("start", event)
         }}
+        onPressEnd={(event) => action.request((_current, row) => row.props.onPressEnd?.(event))}
+        onPressUp={(event) => action.request((_current, row) => row.props.onPressUp?.(event))}
+        onPressChange={(pressed) => action.request((_current, row) => row.props.onPressChange?.(pressed))}
         onPress={(event) => {
           press("release", event)
           const data = metadata(event)
