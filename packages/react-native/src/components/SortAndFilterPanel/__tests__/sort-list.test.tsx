@@ -73,7 +73,7 @@ const observe = async (host: THost) =>
       nativeEvent: { ownerId: host.props.ownerId, target: tag(host), isFocused: true, isFocusVisible: true },
     }),
   )
-const key = async (host: THost, value: string, target = tag(host), settle = true) => {
+const key = async (host: THost, value: string, target = tag(host), settle = true, phase: "down" | "up" = "down") => {
   let prevented = false
   const event = {
     get defaultPrevented() {
@@ -92,7 +92,7 @@ const key = async (host: THost, value: string, target = tag(host), settle = true
       key: value,
       nativeCode: 1,
       characters: "",
-      phase: "down",
+      phase,
       repeat: false,
       cancelled: false,
       shiftKey: false,
@@ -297,4 +297,183 @@ it("keeps a physical sort option attached across current metadata updates and de
   expectFocus(option("name"))
   await view.rerender(tree({ ...value, sortParameterList: [rows[1]] }))
   expect(mockAttachments.filter((event) => event.ownerId === ownerId && !event.attached)).toHaveLength(1)
+})
+
+it("reorders on Enter release through the native collection admission while a held owner keeps its order", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  const original = mockViews.get(option().props.ownerId)
+  await observe(option())
+  await key(option(), "Enter")
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  await key(option(), "Enter", tag(option()), true, "up")
+  expect(screen.getByTestId("query-sort-drop-indicator")).toBeOnTheScreen()
+  expect(onReorder).not.toHaveBeenCalled()
+  await key(option(), "Enter", tag(option()), true, "up")
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+  expect(JSON.parse(option().props.nativeCollectionSemantics).ordinal).toBe(0)
+  expect(mockViews.get(option().props.ownerId)).toBe(original)
+  expectFocus(option())
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+})
+
+it("navigates valid insertion positions, holds Tab in the single collection and cancels with Escape", async () => {
+  const onReorder = jest.fn()
+  const third = { ...rows[1], id: "third", criteriaID: "third", criteriaName: "Third" }
+  await render(tree({ ...props(), onReorder, sortParameterList: [...rows, third] }))
+  await observe(option("name"))
+  await key(option("name"), "Enter", tag(option("name")), true, "up")
+  await key(option("name"), "Home")
+  expect(within(option()).getByTestId("query-sort-drop-indicator")).toBeOnTheScreen()
+  await key(option("name"), "Tab")
+  await key(option("name"), "Enter", tag(option("name")), true, "up")
+  expect(onReorder).toHaveBeenCalledWith("name", "", "before")
+  await key(option("name"), "Enter", tag(option("name")), true, "up")
+  await key(option("name"), "ArrowDown")
+  await key(option("name"), "ArrowUp")
+  await key(option("name"), "Escape")
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  expectFocus(option("name"))
+})
+
+it("leaves nested button Enter and an unconfigured list outside the reorder interaction", async () => {
+  const onReorder = jest.fn()
+  const value = props()
+  const view = await render(tree({ ...value, onReorder }))
+  const button = within(option()).getAllByRole("button")[1]
+  await key(option(), "Enter", tag(button), true, "up")
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  expect(onReorder).not.toHaveBeenCalled()
+  await view.rerender(tree(value))
+  await key(option(), "Enter", tag(option()), true, "up")
+  expect(screen.queryByTestId("query-sort-drop-indicator")).toBeNull()
+  expect(option().props.accessibilityActions).toBeUndefined()
+})
+
+it("drops before and after current targets through the actual native accessibility action", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  const action = async (id: string, actionName: string) =>
+    act(() => option(id).props.onAccessibilityAction({ nativeEvent: { actionName } }))
+  await action("", "activate")
+  await action("name", "dropAfter")
+  expect(onReorder).toHaveBeenLastCalledWith("", "name", "after")
+  await action("name", "activate")
+  await action("", "dropBefore")
+  expect(onReorder).toHaveBeenLastCalledWith("name", "", "before")
+  await action("", "activate")
+  await action("", "escape")
+  expect(onReorder).toHaveBeenCalledTimes(2)
+})
+
+const pointer = (x: number, y: number, timestamp = 1, touches = 1) => ({
+  nativeEvent: {
+    pageX: x,
+    pageY: y,
+    touches: Array.from({ length: touches }, (_, identifier) => ({ identifier, pageX: x, pageY: y, timestamp })),
+  },
+  touchHistory: {
+    indexOfSingleActiveTouch: 0,
+    numberActiveTouches: touches,
+    mostRecentTimeStamp: timestamp,
+    touchBank: [
+      {
+        touchActive: true,
+        startPageX: 10,
+        startPageY: 10,
+        startTimeStamp: 0,
+        previousPageX: 10,
+        previousPageY: 10,
+        previousTimeStamp: 0,
+        currentPageX: x,
+        currentPageY: y,
+        currentTimeStamp: timestamp,
+      },
+    ],
+  },
+})
+const measureRows = () => {
+  for (const [index, id] of ["", "name"].entries()) {
+    const view = mockViews.get(option(id).props.ownerId)!
+    jest.spyOn(view, "measureInWindow").mockImplementation((callback) => callback(0, index * 100, 200, 80))
+  }
+}
+
+it("uses the real responder and measured original targets for a pointer reorder", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  measureRows()
+  const source = option()
+  await act(() => {
+    expect(source.props.onStartShouldSetResponderCapture(pointer(10, 10))).toBe(false)
+    source.props.onMoveShouldSetResponderCapture(pointer(10, 20, 2))
+    expect(source.props.onMoveShouldSetResponder(pointer(10, 20, 2))).toBe(true)
+    source.props.onResponderGrant(pointer(10, 20, 2))
+  })
+  await act(() => source.props.onResponderMove(pointer(10, 170, 3)))
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => source.props.onResponderRelease(pointer(10, 170, 4)))
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it("retains original release coordinates until admission and measurement complete", async () => {
+  const onReorder = jest.fn()
+  await render(tree({ ...props(), onReorder }))
+  const measurements: (() => void)[] = []
+  for (const [index, id] of ["", "name"].entries())
+    jest
+      .spyOn(mockViews.get(option(id).props.ownerId)!, "measureInWindow")
+      .mockImplementation((callback) => measurements.push(() => callback(0, index * 100, 200, 80)))
+  const source = option()
+  await rawAct(() => {
+    source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+    source.props.onResponderGrant(pointer(10, 10))
+    source.props.onResponderRelease(pointer(10, 170, 2))
+  })
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => {})
+  expect(onReorder).not.toHaveBeenCalled()
+  await act(() => measurements.forEach((measure) => measure()))
+  expect(onReorder).toHaveBeenCalledTimes(1)
+  expect(onReorder).toHaveBeenCalledWith("", "name", "after")
+})
+
+it.each(["outside", "terminate", "multitouch"])(
+  "cancels a %s pointer drop without changing the query",
+  async (reason) => {
+    const onReorder = jest.fn()
+    await render(tree({ ...props(), onReorder }))
+    measureRows()
+    const source = option()
+    await act(() => {
+      source.props.onStartShouldSetResponderCapture(pointer(10, 10))
+      source.props.onResponderGrant(pointer(10, 10))
+    })
+    await act(() => {
+      if (reason === "terminate") source.props.onResponderTerminate(pointer(10, 170, 2))
+      else if (reason === "multitouch") source.props.onResponderMove(pointer(10, 170, 2, 2))
+      source.props.onResponderRelease(pointer(reason === "outside" ? 250 : 10, 170, 3))
+    })
+    expect(onReorder).not.toHaveBeenCalled()
+  },
+)
+
+it("retires a queued drop after owner close or original source removal", async () => {
+  const onReorder = jest.fn()
+  let open = true
+  const value = { ...props(), onReorder, canAct: () => open }
+  const view = await render(tree(value))
+  await key(option(), "Enter", tag(option()), true, "up")
+  await key(option(), "Enter", tag(option()), false, "up")
+  open = false
+  await act(() => {})
+  expect(onReorder).not.toHaveBeenCalled()
+  open = true
+  await key(option(), "Enter", tag(option()), true, "up")
+  await view.rerender(tree({ ...value, sortParameterList: [rows[1]] }))
+  await key(option("name"), "Enter", tag(option("name")), true, "up")
+  expect(onReorder).not.toHaveBeenCalled()
 })
