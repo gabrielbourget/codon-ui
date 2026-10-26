@@ -21,6 +21,7 @@ import type {
   TTableFilterOperationCode,
 } from "./queryTypes"
 import type { TNativeTableState } from "./state/useTableState"
+import type { TNativeTableStickyOffset } from "./stickyStyles"
 import type { TNativeTableHoverEvents } from "./useTableHover"
 
 export type TNativeTableColumnFilterMetadata = {
@@ -156,6 +157,9 @@ export type TNativeTableProps<T extends object = object> = Omit<
     queryControls?: TNativeTableQueryControls
     filteringLabels?: TPartialNativeTableFilteringLabels
     columnResizing?: TNativeTableColumnResizingControls
+    stickyHeader?: boolean
+    stickyHeaderOffset?: TNativeTableStickyOffset
+    stickyHeaderBackgroundColor?: ColorValue
   }
 export type TNativeTableReceivedProps<T extends object> = Omit<TNativeTableProps<T>, "style"> &
   Pick<TNativeTableInheritedProps, "style" | "sortDescriptor" | "onSortChange">

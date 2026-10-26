@@ -8,6 +8,14 @@ import { Table } from "../Table"
 
 const root = createRef<View>()
 export const tableRootCalls = [
+  <Table stickyHeader stickyHeaderOffset={-4} stickyHeaderBackgroundColor="transparent" />,
+  <Table stickyHeader={false} stickyHeaderOffset="12.5%" />,
+  // @ts-expect-error Native sticky insets use logical numbers or percentages, without CSS length parsing.
+  <Table stickyHeaderOffset="12px" />,
+  // @ts-expect-error Header behavior is an explicit boolean.
+  <Table stickyHeader="true" />,
+  // @ts-expect-error Native header paint uses a ColorValue, without a CSS-variable expression contract.
+  <Table stickyHeaderBackgroundColor={3} />,
   <Table ariaDescribedBy={["note"]} ariaDetails="detail" aria-labelledby="label-one label-two" data-testid="table" />,
   <Table
     ref={root}

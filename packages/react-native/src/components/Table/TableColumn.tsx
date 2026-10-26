@@ -12,7 +12,6 @@ import {
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
 import { useNativeTheme } from "../../theme"
@@ -24,6 +23,8 @@ import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
 import { NativeTableColumnResizeStateContext } from "./NativeResizableTableContainer"
+import { StickyColumnHost } from "./StickyColumnHost"
+import { resolveNativeTableStickyColumn } from "./stickyStyles"
 import { TableCellKeys } from "./TableCellKeys"
 import type { TNativeTableColumnProps, TNativeTableColumnRenderState } from "./types"
 import { useTableAction } from "./useTableAction"
@@ -166,7 +167,9 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
               "style",
             )
             const fluid = !layout && (authored.width == null || authored.width === "auto")
-            const styles = splitNativeTextStyle(
+            const sticky = resolveNativeTableStickyColumn(
+              table.sticky,
+              authored,
               resolveNativeStyle<TextStyle>(
                 [
                   content?.textStyle,
@@ -188,6 +191,7 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
                 "style",
               ),
             )
+            const styles = splitNativeTextStyle(sticky.style)
             const hostProps = {
               ...host,
               nativeID,
@@ -224,7 +228,17 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
                 </NativeTableColumnContext.Provider>
               ),
             }
-            return render ? render(hostProps, values) : <NativeFocusView {...hostProps} />
+            return (
+              <StickyColumnHost
+                host={hostProps}
+                target={target}
+                enabled={sticky.enabled}
+                insets={sticky.insets}
+                canAct={action.isActive}
+                render={render}
+                values={values}
+              />
+            )
           }}
         />
       </NativeCollectionSemanticsContext.Provider>

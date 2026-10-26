@@ -48,6 +48,7 @@ import { computeNextNativeTableSorts } from "./sorting"
 import { NativeTableCollection } from "./state/TableCollection"
 import { useNativeTableColumnResizeState } from "./state/useTableColumnResizeState"
 import { useNativeTableState, useNativeFilteredTableState } from "./state/useTableState"
+import { resolveNativeTableStickyOptions } from "./stickyStyles"
 import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
 import { useTableKeyboard } from "./useTableKeyboard"
@@ -102,6 +103,9 @@ const Receiver = <T extends object>({
     queryControls,
     filteringLabels,
     columnResizing,
+    stickyHeader,
+    stickyHeaderOffset,
+    stickyHeaderBackgroundColor,
     disallowSelectAll: _selectAll,
     escapeKeyBehavior: _escape,
     shouldFocusWrap: _wrap,
@@ -190,6 +194,10 @@ const Receiver = <T extends object>({
   const [isFocusVisible, setFocusVisible] = useState(false)
   const observedFocus = useRef(false)
   const input = useNativeKeyScope()
+  const subscribeStickyLifetime = useCallback(
+    (listener: () => void) => input?.subscribe(listener) ?? (() => {}),
+    [input],
+  )
   useLayoutEffect(
     () =>
       input?.subscribe(() => {
@@ -314,6 +322,12 @@ const Receiver = <T extends object>({
               state,
               collection,
               target,
+              root,
+              sticky: resolveNativeTableStickyOptions(
+                { stickyHeader, stickyHeaderOffset, stickyHeaderBackgroundColor },
+                theme,
+              ),
+              subscribeStickyLifetime,
               rows,
               headerCount,
               rowHeaderColumns,

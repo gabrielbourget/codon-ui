@@ -10,6 +10,7 @@ import type { SelectionManager } from "../../collection/state/SelectionManager"
 import type { resolveNativeTableFilteringLabels } from "./filterLabels"
 import type { NativeTableCollection } from "./state/TableCollection"
 import type { TNativeTableState } from "./state/useTableState"
+import type { TNativeTableStickyOptions } from "./stickyStyles"
 import type { TNativeTableQueryControls, TNativeTableColumnResizingControls, TNativeTableInheritedProps } from "./types"
 import type { useTableKeyboard } from "./useTableKeyboard"
 
@@ -41,6 +42,9 @@ export type TNativeTableContext = {
   state: TNativeTableState<object>
   collection: NativeTableCollection<object>
   target: number
+  root: RefObject<View | null>
+  sticky: TNativeTableStickyOptions
+  subscribeStickyLifetime: (listener: () => void) => () => void
   rows: TNativeCollectionNode<object>[]
   headerCount: number
   rowHeaderColumns: ReadonlySet<string>
