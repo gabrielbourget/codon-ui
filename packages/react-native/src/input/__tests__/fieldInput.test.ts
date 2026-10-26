@@ -10,6 +10,7 @@ import {
   type TNativeFieldKeyEvent,
   type TNativeFieldPointerEvent,
 } from "../fieldInput"
+import type { TNativeKeyboardEvent } from "../types"
 import { NativeFieldGroupPress } from "../useFieldGroupPress"
 
 const packet = () => ({
@@ -999,3 +1000,28 @@ it("rejects retired owned input and keeps key receivers out of direct input deli
   expect(receiveNativeFieldOwnedInput(f.scope, original, callback)).toBe(false)
   expect(callback).not.toHaveBeenCalled()
 })
+
+it.each([true, false])(
+  "admits picker Alt+Arrow control only inside the original group while retaining its original caller (contained=%s)",
+  (containsTarget) => {
+    const f = setup(),
+      data = packet(),
+      contained = jest.fn((original: TNativeKeyboardEvent) => {
+        original.preventDefault()
+        original.stopPropagation()
+      }),
+      caller = jest.fn()
+    data.groups.forEach((group) => {
+      group.containsTarget = containsTarget
+    })
+    const original = event(data, { key: "ArrowDown", altKey: true })
+    nativeFieldGroupKeyHandler(f.scope, { direction: "ltr", onContainedKeyDown: contained, onKeyDown: caller })(
+      original,
+      3,
+    )
+    expect(contained).toHaveBeenCalledTimes(containsTarget ? 1 : 0)
+    expect(caller).toHaveBeenCalledWith(original)
+    expect(original.isDefaultPrevented()).toBe(containsTarget)
+    expect(f.native.moveFieldFocus).not.toHaveBeenCalled()
+  },
+)

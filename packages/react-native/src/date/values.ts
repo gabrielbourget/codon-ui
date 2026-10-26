@@ -1,1 +1,1 @@
-export { CalendarDateTime, Time, ZonedDateTime, parseZonedDateTime } from "@internationalized/date"
+export { CalendarDate, CalendarDateTime, Time, ZonedDateTime, parseZonedDateTime } from "@internationalized/date"

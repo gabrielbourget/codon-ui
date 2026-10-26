@@ -196,3 +196,134 @@ it.each([
 ])("rejects malformed or business-value-bearing descriptor %j", (value) => {
   expect(() => decodeNativeDateFieldBinding(JSON.stringify(value))).toThrow()
 })
+
+const rangePacket = () => {
+  const value = packet()
+  const owned = {
+    ...binding(),
+    segments: [segment(6, "start:year"), segment(8, "end:year")],
+    groups: [
+      { slot: "start", target: 9, segmentIds: ["start:year"] },
+      { slot: "end", target: 10, segmentIds: ["end:year"] },
+    ],
+  }
+  value.nodes = [
+    node(1, 0, "RootView"),
+    node(2, 1),
+    node(3, 2, "CUIFormRoot"),
+    node(4, 2),
+    node(5, 4, "CUIFieldBinding"),
+    node(9, 4),
+    node(6, 9, "CUIDateSegment"),
+    node(10, 4),
+    node(8, 10, "CUIDateSegment"),
+  ]
+  value.fields[0].ownedEditorBinding = JSON.stringify(owned)
+  return { value, owned }
+}
+
+it("admits ordered original start/end groups as one field and retains flat TimePicker descriptors", () => {
+  const { value, owned } = rangePacket()
+  expect(decode(value).fields).toHaveLength(1)
+  const result = decodeNativeDateFieldBinding(value.fields[0].ownedEditorBinding)
+  expect(result.groups).toEqual(owned.groups)
+  expect(Object.isFrozen(result.groups?.[0].segmentIds)).toBe(true)
+  const targets = owned.segments.map((identity) => ({ original: {} as View, identity }))
+  expect(decodeNativeDateFieldBinding(encodeNativeDateFieldBinding(4, targets, result.groups))).toEqual(result)
+  expect(decode().fields).toHaveLength(1)
+})
+
+it("admits the single original value group with the full ordered segment set", () => {
+  const { value, owned } = rangePacket()
+  const single = {
+    ...owned,
+    groups: [{ slot: "value", target: 9, segmentIds: owned.segments.map((row) => row.segmentId) }],
+  }
+  value.nodes = value.nodes
+    .filter((row) => row.target !== 10)
+    .map((row) => (row.target === 8 ? { ...row, parent: 9 } : row))
+  value.fields[0].ownedEditorBinding = JSON.stringify(single)
+  expect(decode(value).fields).toHaveLength(1)
+})
+
+it.each([
+  ["reversed slots", (owned: ReturnType<typeof rangePacket>["owned"]) => owned.groups.reverse()],
+  [
+    "duplicate target",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[1].target = 9
+    },
+  ],
+  [
+    "root as group",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].target = 4
+    },
+  ],
+  [
+    "segment as group",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].target = 6
+    },
+  ],
+  [
+    "missing original group",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].target = 11
+    },
+  ],
+  [
+    "empty endpoint",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].segmentIds = []
+    },
+  ],
+  [
+    "missing endpoint membership",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups.pop()
+    },
+  ],
+  [
+    "wrong endpoint membership",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].segmentIds = ["end:year"]
+    },
+  ],
+  [
+    "misordered original groups",
+    (owned: ReturnType<typeof rangePacket>["owned"]) => {
+      owned.groups[0].target = 10
+      owned.groups[1].target = 9
+    },
+  ],
+] as const)("rejects %s before date field action admission", (_name, change) => {
+  const { value, owned } = rangePacket()
+  change(owned)
+  value.fields[0].ownedEditorBinding = JSON.stringify(owned)
+  expect(() => decode(value)).toThrow()
+})
+
+it("retires admission if either original group is moved, replaced or gains a segment", () => {
+  for (const change of [
+    (value: ReturnType<typeof packet>) => {
+      value.nodes.find((row) => row.target === 10)!.parent = 2
+    },
+    (value: ReturnType<typeof packet>) => {
+      value.nodes.find((row) => row.target === 10)!.component = "Text"
+    },
+    (value: ReturnType<typeof packet>) => {
+      value.nodes.push(node(11, 10, "CUIDateSegment"))
+    },
+  ]) {
+    const { value } = rangePacket()
+    change(value)
+    expect(() => decode(value)).toThrow()
+  }
+})
+
+it("accepts actual owned focus-view endpoint groups as well as plain View groups", () => {
+  const { value } = rangePacket()
+  for (const row of value.nodes) if (row.target === 9 || row.target === 10) row.component = "CUIFocusView"
+  expect(decode(value).fields).toHaveLength(1)
+})

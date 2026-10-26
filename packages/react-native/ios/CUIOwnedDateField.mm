@@ -43,6 +43,30 @@ NSArray<CUIDateSegment *> *CUIResolveOwnedDateFieldSegments(UIView *metadata, NS
           [targets containsObject:row[@"target"]] || ![[original formSegmentIdentity] isEqual:row]) return nil;
       owner = row[@"ownerId"]; [ids addObject:row[@"segmentId"]]; [targets addObject:row[@"target"]];
     }
+    id groups = value[@"groups"];
+    if (groups) {
+      if (![groups isKindOfClass:NSArray.class] || ([groups count] != 1 && [groups count] != 2)) return nil;
+      NSMutableSet *groupTargets = [NSMutableSet new]; NSUInteger offset = 0;
+      for (NSUInteger index = 0; index < [groups count]; index++) {
+        id group = groups[index]; NSString *slot = [groups count] == 1 ? @"value" : index == 0 ? @"start" : @"end";
+        if (![group isKindOfClass:NSDictionary.class] || [group count] != 3 || ![group[@"slot"] isEqual:slot] ||
+            !CUIDatePositiveInteger(group[@"target"], YES) || ![group[@"segmentIds"] isKindOfClass:NSArray.class] ||
+            ![group[@"segmentIds"] count] || [groupTargets containsObject:group[@"target"]] || [targets containsObject:group[@"target"]]) return nil;
+        UIView *groupRoot = [metadata.window viewWithTag:[group[@"target"] integerValue]];
+        if (!groupRoot || groupRoot == root || ![groupRoot isKindOfClass:RCTViewComponentView.class] ||
+            ![groupRoot isDescendantOfView:root] || groupRoot.window != metadata.window) return nil;
+        [groupTargets addObject:group[@"target"]];
+        NSMutableArray<CUIDateSegment *> *members = [NSMutableArray new]; CUICollectDateSegments(groupRoot, owner, members);
+        NSArray *segmentIds = group[@"segmentIds"];
+        if (members.count != segmentIds.count || offset + members.count > originals.count) return nil;
+        for (NSUInteger member = 0; member < members.count; member++) {
+          if (members[member] != originals[offset + member] || ![segmentIds[member] isKindOfClass:NSString.class] ||
+              ![segmentIds[member] isEqual:expected[offset + member][@"segmentId"]]) return nil;
+        }
+        offset += members.count;
+      }
+      if (offset != originals.count) return nil;
+    }
     return [originals copy];
   } @catch (NSException *retired) { return nil; }
 }

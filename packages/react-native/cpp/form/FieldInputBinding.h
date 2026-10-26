@@ -59,7 +59,7 @@ inline folly::dynamic fieldInputPacket(const FieldInputDispatchFrames::Handle &t
   return folly::dynamic::object("moduleLease", binding.moduleLease)("token", ticket->token)("eventId", ticket->eventId)
     ("phase", ticket->phase)("identity", encodeFieldInputIdentity(ticket->identity))("groups", groups);
 }
-inline FieldGroupTraversal fieldInputTraversal(const folly::dynamic &document, const folly::dynamic &snapshot) {
+inline FieldGroupTraversal fieldInputTraversal(const folly::dynamic &document, const folly::dynamic &snapshot, int32_t origin = 0) {
   const auto &plan = document.at("fieldGroup");
   FieldGroupTraversal traversal(fieldGroupMountedNodes(document, snapshot),
     fieldGroupTarget(plan.at("outerTarget")), fieldGroupTarget(plan.at("inputTarget")));
@@ -70,6 +70,7 @@ inline FieldGroupTraversal fieldInputTraversal(const folly::dynamic &document, c
     return traversal.preorderPosition(first.target) < traversal.preorderPosition(second.target);
   });
   traversal.admit(std::move(originals));
+  if (const auto root = fieldGroupDateInputRoot(document, traversal, origin)) traversal = traversal.within(root);
   return traversal;
 }
 inline int32_t fieldInputFocusTarget(const folly::dynamic &document, const folly::dynamic &snapshot,
@@ -77,8 +78,8 @@ inline int32_t fieldInputFocusTarget(const folly::dynamic &document, const folly
   const auto &plan = document.at("fieldGroup");
   if (action.groupTarget != fieldGroupTarget(plan.at("outerTarget")))
     throw std::invalid_argument("field-input-focus-scope-not-current");
-  const auto traversal = fieldInputTraversal(document, snapshot);
   const auto focused = static_cast<int32_t>(snapshot.at("focusedTarget").asInt());
+  const auto traversal = fieldInputTraversal(document, snapshot, action.kind == "press" ? originalHit : action.kind == "first" ? 0 : focused);
   if (action.kind == "first") return traversal.first();
   if (action.kind == "next") return traversal.logical(focused, 1);
   if (action.kind == "previous") return traversal.logical(focused, -1);
