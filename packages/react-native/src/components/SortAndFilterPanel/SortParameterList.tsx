@@ -8,7 +8,6 @@ import {
   NativeCollectionBuilder,
   createNativeCollectionLeaf,
 } from "../../collection/CollectionBuilder"
-import { useNativeCollectionRefs } from "../../collection/context"
 import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
@@ -22,6 +21,7 @@ import type { TTableSortInstruction } from "../Table/queryTypes"
 import { TableKeyPolicy } from "../Table/TableCellKeys"
 import { NativeCollectionTypeahead } from "../Table/TableTypeahead"
 import { useNativeCollectionKeyboard } from "../Table/useTableKeyboard"
+import { useTableTargetRef } from "../Table/useTableTargetRef"
 import { resolveNativeTagTransition, useNativeTagColor, useNativeTagReducedMotion } from "../Tag/motion"
 
 import type { TQueryControlLabels } from "./controlLabels"
@@ -45,14 +45,7 @@ const Option = (props: TItemProps, ref: ForwardedRef<View>, node: TNativeCollect
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const target = useRef<View | null>(null)
-  const register = useCallback(
-    (view: View | null) => {
-      target.current = view
-      list.keyboard.register(node, view)
-    },
-    [node, list.keyboard.register],
-  )
-  const merged = useNativeCollectionRefs(ref, register)
+  const merged = useTableTargetRef(target, ref, { node, register: list.keyboard.register })
   const scope = useNativeKeyScope()
   const focused = list.manager.isFocused && list.manager.focusedKey === node.key
   const reduced = useNativeTagReducedMotion()
