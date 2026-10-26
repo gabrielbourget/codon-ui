@@ -171,6 +171,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const styles = splitNativeTextStyle(
     resolveNativeStyle(
       [
+        content?.textStyle,
         {
           flexDirection: "row",
           // The canonical zebra selector outranks :hover; inline row styles outrank both.
@@ -274,7 +275,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           press("long", event)
         }}
       >
-        <NativeContentContext.Provider value={{ foregroundColor, isButton: false }}>
+        <NativeContentContext.Provider value={{ foregroundColor, isButton: false, textStyle: styles.text }}>
           <renderer.CollectionBranch collection={table.collection} parent={node} />
         </NativeContentContext.Provider>
       </NativeButton>

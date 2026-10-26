@@ -1,5 +1,5 @@
 {
-  "status": "Private complete Table state/collection and context construction; full Table delivery and native acceptance remain open",
+  "status": "Private complete Table state/collection and root props/render construction; full Table delivery and native acceptance remain open",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "license": "../../collection/LICENSE.react-aria.md",
   "sources": [
@@ -48,6 +48,17 @@
       "sourceContentSHA256": "afbb5c98589ec78d49c4403b3c5cd9d2cbd3a995d1268336db82c1929dbbf910",
       "sourceMapSHA256": "8e0927078b307b0657263906a21012dba8de8a3b24addc7e3695c968701cc5b8",
       "adaptation": "buildHeaderRows"
+    },
+    {
+      "package": "react-aria",
+      "version": "3.48.0",
+      "gitHead": "a6999bdf494a2e9c0381a5881908328bdd22ddae",
+      "distributionPath": "dist/private/focus/useFocusRing.mjs",
+      "distributionSHA256": "66c948e57c018c4683861baa6d7b2721b86f532dec6fece9aebb60696f45e085",
+      "sourceMapSHA256": "52d3428478a39577c692dfe56ab882ac2141265fe373e6880fa37c0c80c931b4",
+      "sourcePath": "packages/react-aria/src/focus/useFocusRing.ts",
+      "sourceContentSHA256": "d984640c24710ab8b7a3a88a12b645f1b32497d6a63ac32f1438f6e281fb914a",
+      "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria/src/focus/useFocusRing.ts"
     }
   ],
   "adaptations": [
@@ -63,6 +74,10 @@
     "The full eleven-field TableState uses the existing owned selection/controlled state with pinned grid focus retirement, exact sorting requests, expansion and keyboard-navigation control. Renderer, runtime and exposed state share the same actual collection/manager.",
     "Existing native null-aware zero/empty-key navigation and missing-key null returns remain intact; the new actual React oracle retains upstream filtered-previous-key and header-only failures as source observations, not qualification passes.",
     "Shared selectable props, styles, refs and cell filtering follow the pinned inner merge; the context is reset inside the table, and nested cell content restores the default renderer. Source ignored typeahead/virtual-focus flags remain ignored.",
-    "Metadata-generated columns now retain their original supplied IDs. Existing native default test IDs remain stable. Private scalar/query fixtures use unique keys and matching cell counts; their original behavioural assertions are retained."
+    "Metadata-generated columns now retain their original supplied IDs. Existing native default test IDs remain stable. Private scalar/query fixtures use unique keys and matching cell counts; their original behavioural assertions are retained.",
+    "The private raw Table props context merges after wrapper-owned calibration and before selection/options/metadata construction, then the existing shared selectable context merges inside. Raw context sort/action defaults and current query bridge callbacks retain the canonical merge order. Wrapper-specific metadata/appearance/query controls are not promoted into that raw context.",
+    "Default/custom root rendering uses the same public NativeFocusView with original refs, children and opaque collection/input bindings. All four root render fields include the actual complete filtered Table state, never a selection DTO. Original native target focus events and the existing same-window modality registry replace DOM useFocusRing observations.",
+    "Source slot-null drops context props/refs while retaining the mounted generated/authored root ID. A component-local committed ID fallback supplies that native identity without introducing a DOM ID registry or modifying shared/native identity protocols.",
+    "Existing native text-style context carries table/body/row/cell inherited typography with final authored precedence. Header name Text deliberately retains the canonical b10 bold rule; column-specific styles can override it. Unsupported source key callback extras are observations, not new Table APIs or passing acceptance."
   ]
 }

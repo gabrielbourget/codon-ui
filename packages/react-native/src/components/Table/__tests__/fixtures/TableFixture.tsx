@@ -1,7 +1,15 @@
 import { useCallback, useContext, useLayoutEffect, useRef, useState, type Ref, type RefObject } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
-import { Button, Input, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../../.."
+import {
+  Button,
+  Input,
+  NativeFloatingLayerHost,
+  NativeFocusView,
+  NativeOverlayProvider,
+  NativeThemeProvider,
+  Text,
+} from "../../../.."
 import { NativeTableStateContext } from "../../context"
 import type { TTableSortInstruction } from "../../queryTypes"
 import type { TTableFilterGroup } from "../../queryTypes"
@@ -10,7 +18,12 @@ import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
 import { TableRow } from "../../TableRow"
-import type { TNativeTableColumnMetadata, TNativeTableHeaderProps, TNativeTableBodyProps } from "../../types"
+import type {
+  TNativeTableColumnMetadata,
+  TNativeTableHeaderProps,
+  TNativeTableBodyProps,
+  TNativeTableProps,
+} from "../../types"
 
 import { TableCellFixture } from "./TableCellFixture"
 
@@ -33,6 +46,13 @@ const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props
   <View {...props} style={[props.style, { opacity: state.isEmpty ? 0.85 : 1 }]} />
 )
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
+  const [showTemporal, setShowTemporal] = useState(false)
+  const [customRoot, setCustomRoot] = useState(false)
+  const [largeText, setLargeText] = useState(false)
+  const renderRoot = useCallback<NonNullable<TNativeTableProps["render"]>>(
+    (props, values) => <NativeFocusView {...props} style={[props.style, { opacity: values.isFocused ? 1 : 0.98 }]} />,
+    [],
+  )
   const tableState = useRef<TNativeTableState<object> | null>(null)
   const [stateSummary, setStateSummary] = useState("No state snapshot")
   const [expanded, setExpanded] = useState<Set<string | number>>(new Set())
@@ -109,6 +129,15 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
         ),
     },
   ]
+  if (showTemporal)
+    columns.push(
+      ...(["date", "date-time", "time"] as const).map((dataType) => ({
+        id: dataType,
+        name: dataType,
+        cellRenderer: () => dataType,
+        filter: { enabled: true, criteriaID: dataType, dataType, allowedOperationCodes: ["equal", "between"] as const },
+      })),
+    )
   return (
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
       <NativeOverlayProvider>
@@ -119,6 +148,9 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
               Inspect cells, loading, empty content and the held editor through row reorder and theme changes.
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
+              <Button onPress={() => setCustomRoot((value) => !value)}>Toggle root renderer</Button>
+              <Button onPress={() => setShowTemporal((value) => !value)}>Toggle temporal columns</Button>
+              <Button onPress={() => setLargeText((value) => !value)}>Toggle table typography</Button>
               <Button onPress={() => setReversed((value) => !value)}>Reverse rows</Button>
               <Button onPress={() => setLoading((value) => !value)}>Toggle loading</Button>
               <Button onPress={() => setEmpty((value) => !value)}>Toggle empty</Button>
@@ -143,6 +175,8 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             </View>
             <Table
               ref={tableRef}
+              render={customRoot ? renderRoot : undefined}
+              customStyles={largeText ? { fontSize: 20 } : undefined}
               accessibilityLabel="People"
               hoverColor={dark ? "#444444" : "#ddeeff"}
               zebra

@@ -26,6 +26,13 @@ const filterCriteria: TAvailableFilterCriteria[] = [
     allowedOperationCodes: ["equal", "between"],
   },
   { id: "active", name: "Active", queryKey: "events.active", dataType: "boolean", allowedOperationCodes: ["equal"] },
+  ...(["date", "date-time", "time"] as const).map((dataType) => ({
+    id: dataType,
+    name: dataType,
+    queryKey: `events.${dataType}`,
+    dataType,
+    allowedOperationCodes: ["equal", "between"] as ("equal" | "between")[],
+  })),
 ]
 export const SortAndFilterPanelFixture = () => {
   const [open, setOpen] = useState(false)

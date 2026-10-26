@@ -18,6 +18,7 @@ import type {
   TTableFilterArgumentDataType,
   TTableFilterOperationCode,
 } from "./queryTypes"
+import type { TNativeTableState } from "./state/useTableState"
 import type { TNativeTableHoverEvents } from "./useTableHover"
 
 export type TNativeTableColumnFilterMetadata = {
@@ -104,28 +105,55 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
         filter?: never
       }
   )
-export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
+export type TNativeTableRenderState = Readonly<{
+  isFocused: boolean
+  isFocusVisible: boolean
+  isDropTarget: boolean
+  state: TNativeTableState<object>
+}>
+export type TNativeTableRenderStyle =
+  | StyleProp<TextStyle>
+  | ((values: TNativeTableRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
+export type TNativeTableInheritedProps = Omit<ViewProps, "children" | "style" | "onFocus" | "onBlur"> &
+  Pick<TNativeFocusViewProps, "onFocus" | "onBlur"> &
   RefAttributes<View> &
-  TStyleProps &
   MultipleSelectionStateProps &
   TNativeSlotProps &
-  Pick<TableStateProps<object>, "expandedKeys" | "defaultExpandedKeys" | "onExpandedChange" | "treeColumn"> & {
+  Pick<
+    TableStateProps<object>,
+    "expandedKeys" | "defaultExpandedKeys" | "onExpandedChange" | "treeColumn" | "sortDescriptor" | "onSortChange"
+  > & {
     children?: ReactNode
+    ariaDescribedBy?: string | readonly string[]
+    ariaDetails?: string | readonly string[]
+    "aria-describedby"?: string
+    "aria-details"?: string
+    "data-testid"?: string
+    style?: TNativeTableRenderStyle
+    render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableRenderState) => ReactElement
+    onRowAction?: (key: TNativeCollectionKey) => void
+    disallowSelectAll?: boolean
+    escapeKeyBehavior?: "clearSelection" | "none"
+    shouldFocusWrap?: boolean
+  }
+export type TNativeTableProps<T extends object = object> = Omit<
+  TNativeTableInheritedProps,
+  "style" | "sortDescriptor" | "onSortChange"
+> &
+  TStyleProps & {
     geometry?: TCornerGeometry
     hoverColor?: ColorValue
     zebra?: boolean
     zebraColor?: ColorValue
     labels?: { selection?: Partial<{ selectAllRowsAriaLabel: string; selectRowAriaLabel: string }> }
     clickableRows?: boolean
-    onRowAction?: (key: TNativeCollectionKey) => void
     columns?: TNativeTableColumnMetadata<T>[]
     queryControls?: TNativeTableQueryControls
     filteringLabels?: TPartialNativeTableFilteringLabels
     columnResizing?: TNativeTableColumnResizingControls
-    disallowSelectAll?: boolean
-    escapeKeyBehavior?: "clearSelection" | "none"
-    shouldFocusWrap?: boolean
   }
+export type TNativeTableReceivedProps<T extends object> = Omit<TNativeTableProps<T>, "style"> &
+  Pick<TNativeTableInheritedProps, "style" | "sortDescriptor" | "onSortChange">
 export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "children" | "style"> &
   TStyleProps & {
     columns: TNativeTableColumnMetadata<T>[]

@@ -6,7 +6,7 @@ import type {
   TAvailableFilterArgumentTypes,
   TAvailableListItem,
 } from "../Table/filterMetadata"
-import type { TTableFilterDraftArgumentValue } from "../Table/queryTypes"
+import type { TTableFilterArgumentDataType, TTableFilterDraftArgumentValue } from "../Table/queryTypes"
 import { Text } from "../Text/Text"
 
 import { BooleanFilterArgument } from "./BooleanArgument"
@@ -45,7 +45,10 @@ export type TNonTemporalFilterArgumentContext = TFilterAvailability & {
   customActionButtonStyles?: StyleProp<TextStyle>
   customPlaceholderStyles?: StyleProp<TextStyle>
 }
-type TResolvedContext = TNonTemporalFilterArgumentContext & { labels: TNonTemporalFilterArgumentLabels }
+type TResolvedContext = Omit<TNonTemporalFilterArgumentContext, "dataType"> & {
+  dataType: TTableFilterArgumentDataType
+  labels: TNonTemporalFilterArgumentLabels
+}
 type TRenderer = (context: TResolvedContext) => ReactElement
 
 const renderScalar: TRenderer = (props) => (
@@ -94,12 +97,15 @@ const renderers = {
   ),
 } satisfies Record<TAvailableFilterArgumentTypes, TRenderer>
 
-// Private renderer composition only. The root wrapper, Card row and temporal backend remain separate contracts.
+export const renderFilterArgumentKind = (props: TResolvedContext): ReactElement | null =>
+  props.filterArgumentType ? renderers[props.filterArgumentType](props) : null
+
+// Retain the named non-temporal renderer for its existing private callers.
 export const renderNonTemporalFilterArgumentInput = (props: TNonTemporalFilterArgumentContext): ReactElement | null => {
   if (!props.filterArgumentType) return null
   if (!isNonTemporalFilterArgumentDataType(props.dataType))
     throw new TypeError("Non-temporal filter argument renderer requires text, number or boolean data")
-  return renderers[props.filterArgumentType]({
+  return renderFilterArgumentKind({
     ...props,
     labels: props.labels ?? DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS,
   })

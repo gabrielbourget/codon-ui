@@ -9,13 +9,10 @@ import { resolveNativeStyle } from "../colors"
 import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
-import {
-  renderNonTemporalFilterArgumentInput,
-  type TNonTemporalFilterArgumentContext,
-} from "./renderNonTemporalArgument"
+import { renderFilterArgumentInput, type TFilterArgumentContext } from "./renderArgument"
 
 export type TNativeDynamicFilterArgumentInputProps = Omit<TNativeFocusViewProps, "children" | "style"> &
-  TNonTemporalFilterArgumentContext & {
+  TFilterArgumentContext & {
     children?: never
     customStyles?: StyleProp<TextStyle>
     style?: StyleProp<TextStyle>
@@ -29,7 +26,7 @@ export type TNativeDynamicFilterArgumentInputProps = Omit<TNativeFocusViewProps,
     onClick?: (event: GestureResponderEvent) => void
   }
 
-// Private source wrapper; temporal value policy is reviewed separately from host composition.
+// Private source wrapper shared by Table and SortAndFilterPanel.
 export const DynamicFilterArgumentInput = forwardRef<View, TNativeDynamicFilterArgumentInputProps>((props, ref) => {
   const theme = useNativeTheme()
   const inherited = useNativeContentContext()
@@ -69,7 +66,7 @@ export const DynamicFilterArgumentInput = forwardRef<View, TNativeDynamicFilterA
     tabIndex,
     ...root
   } = props
-  const child = renderNonTemporalFilterArgumentInput({
+  const child = renderFilterArgumentInput({
     dataType,
     argument,
     filterArgumentType,

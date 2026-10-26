@@ -230,7 +230,7 @@ it("keeps action vetoes current after dispatch without emitting during rendering
   saved("unmounted")
   expect(props.onArgumentChange).not.toHaveBeenCalled()
 })
-it("rejects an unreceived temporal backend rather than reinterpreting it as a scalar", () => {
+it("retains the named non-temporal renderer boundary for temporal data", () => {
   const props = propsFor()
   Object.assign(props, { dataType: "date" })
   expect(() => renderNonTemporalFilterArgumentInput(props)).toThrow("requires text, number or boolean")

@@ -77,6 +77,7 @@ const Cell = (
   const styles = splitNativeTextStyle(
     resolveNativeStyle(
       [
+        content?.textStyle,
         {
           padding: 5,
           minWidth: 0,
@@ -129,7 +130,11 @@ const Cell = (
     <NativeTableCellContext.Provider value={{ node, target, width }}>
       <TableCellKeys node={node} target={target} binding={actions?.bindingFor(node) ?? ""} />
       <NativeContentContext.Provider
-        value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
+        value={{
+          foregroundColor: styles.text.color ?? theme.colors.foreground,
+          isButton: false,
+          textStyle: styles.text,
+        }}
       >
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
           {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
@@ -189,7 +194,7 @@ const Cell = (
             }}
             accessibilityValue={
               allowsSorting
-                ? { text: table.primarySort?.column === columnID ? table.primarySort.direction : "none" }
+                ? { text: table.primarySort?.column === node.key ? table.primarySort.direction : "none" }
                 : native.accessibilityValue
             }
             nativeStyle={(flags, visible) => ({
@@ -203,7 +208,7 @@ const Cell = (
             })}
             onPress={() =>
               action.request((next, current) => {
-                if (current.props.allowsSorting) next.sortColumn(current.props.columnID)
+                if (current.props.allowsSorting) next.sortColumn(current.key)
               })
             }
           >

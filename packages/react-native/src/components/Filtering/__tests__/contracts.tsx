@@ -3,6 +3,7 @@ import type { TextInput, View } from "react-native"
 
 import { BooleanFilterArgument } from "../BooleanArgument"
 import { ComboBoxFilterArgument } from "../ComboBoxArgument"
+import { DEFAULT_FILTER_ARGUMENT_LABELS } from "../dispatchLabels"
 import { DynamicFilterArgumentInput } from "../DynamicFilterArgumentInput"
 import { ListFilterArgument } from "../ListArgument"
 import { NumberFilterArgument } from "../NumberArgument"
@@ -60,7 +61,7 @@ export const privateFilterEditorContracts = [
   <ListFilterArgument argument={[false]} onArgumentChange={() => {}} />,
   // @ts-expect-error Numeric steppers require explicit native accessible names.
   <NumberFilterArgument onArgumentChange={() => {}} />,
-  // @ts-expect-error Temporal range policy is not received by this private renderer.
+  // @ts-expect-error The named text/number range renderer retains its narrow data contract.
   <RangeFilterArgument dataType="date" onArgumentChange={() => {}} />,
 ]
 
@@ -91,6 +92,19 @@ export const defaultDispatch = renderNonTemporalFilterArgumentInput({ ...nativeD
 export const unnamedDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, nativeLabels: {} })
 
 export const privateArgumentRootContracts = [
+  <DynamicFilterArgumentInput
+    {...nativeDispatchContext}
+    dataType="date"
+    argument="2026-10-26"
+    labels={{ ...DEFAULT_FILTER_ARGUMENT_LABELS, dateTimePicker: { calendarAriaLabel: "Calendar" } }}
+  />,
+  <DynamicFilterArgumentInput
+    {...nativeDispatchContext}
+    dataType="date-time"
+    filterArgumentType="Range"
+    argument={[undefined, "2026-10-26T13:45:07"]}
+  />,
+  <DynamicFilterArgumentInput {...nativeDispatchContext} dataType="time" argument={null} />,
   <DynamicFilterArgumentInput
     {...nativeDispatchContext}
     ref={createRef<View>()}
