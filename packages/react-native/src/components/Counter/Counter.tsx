@@ -1,6 +1,8 @@
 import { forwardRef } from "react"
 import { View } from "react-native"
 
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { CircularProgress } from "../CircularProgress/CircularProgress"
@@ -44,8 +46,6 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
     "data-testid": aliasID,
     ...rootProps
   } = props
-  if ([ariaDescribedBy, ariaDetails, nativeDescribedBy, nativeDetails].some((value) => value !== undefined))
-    throw new TypeError("Counter: browser description/details relationships are not implemented")
   validateNativeColor(color, "Counter", "color")
   validateNativeDisplayDimension(height, "Counter", "height")
   validateNativeDisplayDimension(width, "Counter", "width")
@@ -91,11 +91,14 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
   const identity = testID ?? aliasID ?? "counter"
   return (
     <NativeContentContext.Provider value={{ foregroundColor: foreground, isButton: context?.isButton ?? false }}>
-      <View
+      <NativeFocusHost
         {...rootProps}
         ref={ref}
+        focusable={rootProps.focusable ?? false}
         accessibilityLabel={label}
-        accessibilityLabelledBy={labelledBy}
+        nativeLabelledBy={nativeAccessibilityIDs(labelledBy)}
+        nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
+        nativeDetailsBy={nativeAccessibilityIDs(nativeDetails ?? ariaDetails)}
         testID={identity}
         style={viewStyle}
       >
@@ -123,7 +126,7 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
           ) : null}
         </View>
         {getNativeButtonContent(children)}
-      </View>
+      </NativeFocusHost>
     </NativeContentContext.Provider>
   )
 })

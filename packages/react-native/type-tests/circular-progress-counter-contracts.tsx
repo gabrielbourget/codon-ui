@@ -110,5 +110,6 @@ export const MissingCounter = <Counter />
 export const DefaultCounter = <Counter value={0} defaultValue={1} />
 // @ts-expect-error DOM events cannot replace native layout payloads.
 export const DomEvent = <Counter value={0} onLayout={(event: React.MouseEvent<HTMLDivElement>) => void event} />
-// @ts-expect-error Browser details relationships remain a required open capability.
-export const DomCounterDetails = <Counter value={0} ariaDetails="details" />
+export const CounterRelationships = <Counter value={0} ariaDetails="details" ariaDescribedBy="first second" />
+// @ts-expect-error Native relationship targets use ID strings, never DOM objects.
+export const DomCounterDetails = <Counter value={0} ariaDetails={{ id: "details" }} />

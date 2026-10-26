@@ -37,6 +37,20 @@ it("opens the private TagComboBox owner scene through normal navigation", async 
   expect(screen.getByTestId("tag-combo-owner-state")).toHaveTextContent(/Selected: empty.*Open: false/)
 })
 
+it("opens the public Carousel family and retains its owner while hiding and restoring the viewport", async () => {
+  await renderShowcase()
+  const user = userEvent.setup()
+  await user.press(screen.getByRole("button", { name: "Carousel scene" }))
+  expect(screen.getByTestId("carousel-scene-state")).toHaveTextContent(/Selected: 1.*Items: 9/)
+  expect(screen.getByTestId("carousel")).toBeOnTheScreen()
+  await user.press(screen.getByRole("button", { name: "Hide carousel" }))
+  expect(screen.queryByTestId("carousel")).toBeNull()
+  await user.press(screen.getByRole("button", { name: "Show carousel" }))
+  expect(screen.getByTestId("carousel")).toBeOnTheScreen()
+  await user.press(screen.getByRole("button", { name: "Add item" }))
+  expect(screen.getByTestId("carousel-scene-state")).toHaveTextContent(/Items: 10/)
+})
+
 it("opens the public Pagination scene through the normal navigation", async () => {
   await renderShowcase()
   await userEvent.setup().press(screen.getByRole("button", { name: "Pagination scene" }))

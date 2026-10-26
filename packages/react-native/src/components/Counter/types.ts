@@ -22,9 +22,9 @@ export type TNativeCounterProps = Omit<ViewProps, "style" | "children"> & {
   customProgressIndicatorStyles?: StyleProp<TNativeCircularProgressRootStyle>
   ariaLabel?: string
   ariaLabelledBy?: string
-  ariaDescribedBy?: never
-  ariaDetails?: never
-  "aria-describedby"?: never
-  "aria-details"?: never
+  ariaDescribedBy?: string
+  ariaDetails?: string
+  "aria-describedby"?: string
+  "aria-details"?: string
   "data-testid"?: string
 }
