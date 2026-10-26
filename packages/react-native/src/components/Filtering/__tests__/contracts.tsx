@@ -3,6 +3,7 @@ import type { TextInput, View } from "react-native"
 
 import { BooleanFilterArgument } from "../BooleanArgument"
 import { ComboBoxFilterArgument } from "../ComboBoxArgument"
+import { DynamicFilterArgumentInput } from "../DynamicFilterArgumentInput"
 import { ListFilterArgument } from "../ListArgument"
 import { NumberFilterArgument } from "../NumberArgument"
 import { SelectFilterArgument, MultiSelectFilterArgument, type TSelectFilterArgumentProps } from "../OptionArguments"
@@ -88,3 +89,25 @@ export const rootDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDisp
 export const defaultDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, defaultValue: "" })
 // @ts-expect-error Native editor name contracts are required.
 export const unnamedDispatch = renderNonTemporalFilterArgumentInput({ ...nativeDispatchContext, nativeLabels: {} })
+
+export const privateArgumentRootContracts = [
+  <DynamicFilterArgumentInput
+    {...nativeDispatchContext}
+    ref={createRef<View>()}
+    role="group"
+    ariaLabel="Argument"
+    ariaDescribedBy="hint"
+  />,
+  <DynamicFilterArgumentInput
+    {...nativeDispatchContext}
+    filterArgumentType="Multi Input"
+    argument={["entry", 0, undefined]}
+    customStyles={{ width: "80%", height: 0 }}
+  />,
+  // @ts-expect-error The argument root never owns an uncontrolled argument mirror.
+  <DynamicFilterArgumentInput {...nativeDispatchContext} defaultValue="local" />,
+  // @ts-expect-error The wrapper owns its argument child.
+  <DynamicFilterArgumentInput {...nativeDispatchContext}>Replacement</DynamicFilterArgumentInput>,
+  // @ts-expect-error Native root styles reject browser lengths.
+  <DynamicFilterArgumentInput {...nativeDispatchContext} customStyles={{ width: "20px" }} />,
+]
