@@ -12,10 +12,11 @@ import { NativeFocusView } from "../../input/NativeFocusView"
 import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { NativePressable } from "../../input/NativePressable"
 import { nativeViewProps } from "../../input/nativeViewProps"
+import { NativeFloatingScopeContext } from "../../overlays/floating/scope"
 import { useNativeTheme } from "../../theme"
 import { getNativeButtonContent } from "../Button/content"
 import { resolveNativeStyle } from "../colors"
-import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, NativeTextLayoutContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 
 import { NativeTableCellContext, useNativeTable } from "./context"
@@ -33,6 +34,8 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
     columnID,
     colSpan: _colSpan,
     alignment,
+    truncate,
+    maxLines,
     children,
     render,
     customStyles,
@@ -45,6 +48,8 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
   const [focused, setFocused] = useState(false)
   const [focusVisible, setFocusVisible] = useState(false)
   const content = useNativeContentContext()
+  const windowId = useContext(NativeFloatingScopeContext)?.id ?? null
+  const lineLimit = truncate ? 1 : maxLines && Number.isInteger(maxLines) && maxLines > 0 ? maxLines : undefined
   const theme = useNativeTheme()
   const actions = useContext(NativeCollectionActionsContext)
   const isRowHeader = table.rowHeaderColumns.has(columnID)
@@ -80,6 +85,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
           justifyContent: "center",
           color: content?.foregroundColor,
           textAlign,
+          overflow: truncate ? "hidden" : "visible",
         },
         authored,
         layout
@@ -135,7 +141,11 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
         }}
       >
         <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
-          {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+          <NativeTextLayoutContext.Provider
+            value={{ numberOfLines: lineLimit, ellipsizeMode: lineLimit ? "tail" : undefined, windowId }}
+          >
+            {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+          </NativeTextLayoutContext.Provider>
         </NativeCollectionRendererContext.Provider>
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>

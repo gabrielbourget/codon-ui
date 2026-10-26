@@ -118,6 +118,11 @@ it("adds and removes the Cell renderer without replacing its original held edito
   const write = jest.spyOn(input, "setNativeProps")
   await press("Toggle cell renderer")
   expect(editor.current).toBe(input)
+  await press("Toggle cell line limit")
+  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBe(2)
+  await press("Toggle cell truncation")
+  expect(screen.getByTestId("table-custom-cell-text").props.numberOfLines).toBe(1)
+  expect(editor.current).toBe(input)
   await fireEvent(screen.getByTestId("table-custom-cell"), "pointerEnter", {
     nativeEvent: { pointerType: "mouse" },
     persist: jest.fn(),

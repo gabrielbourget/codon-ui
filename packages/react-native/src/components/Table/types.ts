@@ -80,6 +80,8 @@ type TColumnMetadataBase<T extends object> = {
   maxWidth?: TextStyle["maxWidth"]
   alignment?: "Left" | "Center" | "Right"
   headerAlignment?: "Left" | "Center" | "Right"
+  truncate?: boolean
+  maxLines?: number
   cellRenderer?: (context: { row: T; column: TNativeTableColumnMetadata<T> }) => ReactNode
   customHeaderColumnStyles?: StyleProp<TextStyle>
   customHeaderCellStyles?: StyleProp<TextStyle>
@@ -216,6 +218,8 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     colSpan?: number
     columnID: string
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
+    truncate?: boolean
+    maxLines?: number
   }
 export type TNativeTableRowProps<T extends object> = Omit<TNativeFocusViewProps, "id" | "children" | "style"> &
   Partial<Pick<TNativeLinkProps, "href" | "onNavigationError">> &

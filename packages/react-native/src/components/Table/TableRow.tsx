@@ -393,6 +393,8 @@ export const TableRow = createNativeCollectionBranch<object, TNativeTableRowProp
             id={`${encodeCollectionKey(props.id ?? generated)}:${column.id}`}
             columnID={column.id}
             alignment={column.alignment}
+            truncate={column.truncate}
+            maxLines={column.maxLines}
             customStyles={[
               {
                 width: column.width,

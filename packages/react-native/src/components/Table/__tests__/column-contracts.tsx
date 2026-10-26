@@ -5,10 +5,15 @@ import type { ColumnSize } from "react-stately/useTableState"
 import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeColumnResizer } from "../NativeColumnResizer"
 import { NativeResizableTableContainer } from "../NativeResizableTableContainer"
+import { TableCell } from "../TableCell"
 import { TableColumn } from "../TableColumn"
-import type { TNativeTableColumnRenderState } from "../types"
+import type { TNativeTableColumnMetadata, TNativeTableColumnRenderState } from "../types"
 
 export const nativeColumnContracts = [
+  <TableCell columnID="name" truncate maxLines={3} />,
+  <TableCell columnID="name" truncate={false} maxLines={0} />,
+  // @ts-expect-error Line bounds retain the canonical numeric contract.
+  <TableCell columnID="name" maxLines="3" />,
   <TableColumn
     columnID="name"
     ref={createRef<View>()}
@@ -48,6 +53,11 @@ export const nativeColumnContracts = [
   // @ts-expect-error A raw resize handle has no generic motion API.
   <NativeColumnResizer animate={{ opacity: 1 }} />,
 ]
+export const nativeColumnTextLayout: TNativeTableColumnMetadata<{ name: string }> = {
+  id: "name",
+  truncate: true,
+  maxLines: 2,
+}
 export const noColumnDefaultChildren = (value: TNativeTableColumnRenderState) => {
   // @ts-expect-error Only the Column children function receives defaultChildren.
   return value.defaultChildren
