@@ -81,7 +81,16 @@ export const PanelFixture = ({
                 backgroundColor={expanded ? "lavender" : undefined}
                 panelGeometry="rounded"
                 overlayBlur={blur}
-                customStyles={{ color: expanded ? "teal" : "navy", borderRadius: expanded ? 20 : undefined }}
+                customStyles={{
+                  color: expanded ? "teal" : "navy",
+                  borderRadius: expanded ? 20 : undefined,
+                  padding: expanded ? 20 : 0,
+                  borderWidth: expanded ? 2 : 0,
+                  borderColor: expanded ? "teal" : "navy",
+                  fontSize: expanded ? 22 : 16,
+                  letterSpacing: expanded ? 1 : 0,
+                }}
+                raised={expanded}
               >
                 <Text>Arbitrary panel content</Text>
                 <Input ref={inputRef} accessibilityLabel="Held query" value="" onChange={() => {}} />

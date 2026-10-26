@@ -5,6 +5,7 @@ import { AVAILABLE_CORNER_GEOMETRY_CODES } from "../../tokens/geometry"
 import { resolveNativeStyle, validateNativeColor } from "../colors"
 import { validateNativeDisplayDimension } from "../displayDimensions"
 
+import { resolvePanelBoxShadow } from "./appearanceValues"
 import { AVAILABLE_PANEL_POSITIONS, type TNativePanelProps } from "./types"
 
 const TEXT_FIELDS = [
@@ -107,6 +108,20 @@ export const getNativePanelStyles = (props: TNativePanelProps, theme: TNativeThe
   const view = Object.fromEntries(
     Object.entries(style).filter(([key]) => !TEXT_FIELDS.some((field) => field === key)),
   ) as ViewStyle
+  const foreground = text.color ?? theme.colors.foreground
+  if (
+    view.borderColor === undefined &&
+    Object.entries(view).some(([key, value]) => /^border.*Width$/.test(key) && value !== undefined)
+  )
+    view.borderColor = foreground
+  if (view.outlineColor === undefined && view.outlineWidth !== undefined) view.outlineColor = foreground
+  if (
+    text.textShadowColor === undefined &&
+    (text.textShadowOffset !== undefined || text.textShadowRadius !== undefined)
+  )
+    text.textShadowColor = foreground
+  if (view.boxShadow !== undefined)
+    view.boxShadow = resolvePanelBoxShadow(view.boxShadow, foreground) as ViewStyle["boxShadow"]
   const overlay = resolveNativeStyle(
     [{ backgroundColor: theme.colors.overlayBackdrop }, props.customOverlayStyles],
     "Panel",

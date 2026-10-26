@@ -26,7 +26,7 @@ import type { TNativePanelProps } from "./types"
 export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const theme = useNativeTheme()
   const window = useWindowDimensions()
-  const [viewportWidth, setViewportWidth] = useState<number | null>(null)
+  const [viewport, setViewport] = useState<{ width: number; height: number } | null>(null)
   const [width, setWidth] = useState<number | null>(null)
   const source = useContext(NativeBackdropSourceContext)
   const open = props.isOpen ?? false
@@ -35,8 +35,19 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
   const overlay = useOverlay(motion.present, true)
   useLayoutEffect(() => returnFocus(overlay.mounted))
   const dismiss = useRef<TNativeFloatingWindowDismiss | null>(null)
-  const styles = getNativePanelStyles(props, theme, viewportWidth ?? window.width)
-  const appearance = useNativePanelAppearance(styles.view, styles.text, motion.reduced !== false || !motion.present)
+  const styles = getNativePanelStyles(props, theme, viewport?.width ?? window.width)
+  const appearance = useNativePanelAppearance(
+    styles.view,
+    styles.text,
+    motion.reduced !== false || !motion.present,
+    viewport ?? window,
+    {
+      color: theme.colors.foreground,
+      fontSize: theme.typography.fontSizes.b10,
+      fontWeight: theme.typography.fontWeights.regular,
+      lineHeight: theme.typography.lineHeight,
+    },
+  )
   const identity = props.testID ?? props["data-testid"] ?? "panel"
   const label = props.accessibilityLabel ?? props["aria-label"]
   const current = useRef({ props, open, live: true })
@@ -88,9 +99,11 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     current.current.live &&
                     current.current.props === props &&
                     Number.isFinite(nativeEvent.layout.width) &&
-                    nativeEvent.layout.width >= 0
+                    nativeEvent.layout.width >= 0 &&
+                    Number.isFinite(nativeEvent.layout.height) &&
+                    nativeEvent.layout.height >= 0
                   )
-                    setViewportWidth(nativeEvent.layout.width)
+                    setViewport({ width: nativeEvent.layout.width, height: nativeEvent.layout.height })
                 }}
               >
                 {props.overlayBlur && <NativeBackdropEffect source={source} />}
@@ -132,7 +145,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                             inputRange: [0, 1],
                             outputRange: [
                               0,
-                              (styles.side === "left" ? -1 : 1) * (width ?? viewportWidth ?? window.width),
+                              (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
                             ],
                           }),
                         },
