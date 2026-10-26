@@ -2,13 +2,13 @@ import { forwardRef, useImperativeHandle, useRef, type ComponentProps } from "re
 import { Animated, type View } from "react-native"
 
 import { nativeKeyTokens } from "../../input/keyScope"
-import { NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeKeyPolicy } from "../../input/NativeKeyboardScope"
 
 import { NativePanelFocusIntentContext, useNativePanelInitialFocus } from "./focus"
 import type { TNativePanelProps } from "./types"
 
-const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusView)
+const AnimatedFocusView = Animated.createAnimatedComponent(NativeFocusHost)
 const escapeTokens = nativeKeyTokens("Escape")
 export const NativePanelSurface = forwardRef<
   View,
@@ -38,7 +38,7 @@ export const NativePanelSurface = forwardRef<
   })
   return (
     <NativePanelFocusIntentContext.Provider value={undefined}>
-      <AnimatedFocusView {...props} ref={root} />
+      <AnimatedFocusView {...props} nativeTabStop={false} ref={root} />
     </NativePanelFocusIntentContext.Provider>
   )
 })

@@ -110,6 +110,7 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                 <Pressable
                   testID={`${identity}-backdrop`}
                   accessible={false}
+                  focusable={false}
                   importantForAccessibility="no"
                   style={[StyleSheet.absoluteFill, styles.overlay]}
                   onPress={() => {

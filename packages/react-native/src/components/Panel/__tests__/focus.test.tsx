@@ -118,6 +118,19 @@ const setup = () => {
   return { prior, replacement, panel, first, second, node, shown, measured, ready, dismissed }
 }
 
+it("keeps the Panel boundary programmatically focusable without adding it to native Tab traversal", async () => {
+  const f = setup()
+  await render(f.node())
+  expect(row("panel").props.nativeTabStop).toBe(false)
+  expect(row("panel").props.keyboardFocusable).toBe(true)
+  expect(row("panel-backdrop").props.focusable).toBe(false)
+  expect(row("first").props.keyboardFocusable).toBe(true)
+  await f.ready()
+  await flush()
+  expect(focusRegistry.captureNativeFocusTarget(f.panel.current!)).not.toBeNull()
+  expect(Commands.requestKeyboardFocus).toHaveBeenLastCalledWith(f.panel.current, row("panel").props.ownerId)
+})
+
 it("CAP.panel.focus.002 waits for native presentation, measurement and scope readiness before requesting its actual root", async () => {
   const f = setup()
   await render(f.node())

@@ -1,7 +1,7 @@
 import { useRef, type ReactNode, type RefObject } from "react"
 import { View, type StyleProp, type TextStyle } from "react-native"
 
-import { NativeFocusView } from "../../input/NativeFocusView"
+import { NativeFocusHost } from "../../input/NativeFocusView"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
 import { useFilterRequest } from "../Filtering/requests"
@@ -81,10 +81,11 @@ const QueryPanelBody = ({
     <NativeContentContext.Provider
       value={{ foregroundColor: style.text.color ?? theme.colors.foreground, isButton: false }}
     >
-      <NativeFocusView
+      <NativeFocusHost
         testID="query-panel-dialog"
         role="dialog"
         accessible={false}
+        nativeTabStop={false}
         accessibilityLabel={props.title}
         style={style.view}
       >
@@ -161,7 +162,7 @@ const QueryPanelBody = ({
           onCancelPendingChanges={controller.cancel}
           onApplyPendingChanges={controller.apply}
         />
-      </NativeFocusView>
+      </NativeFocusHost>
     </NativeContentContext.Provider>
   )
 }

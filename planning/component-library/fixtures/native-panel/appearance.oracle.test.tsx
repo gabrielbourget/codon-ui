@@ -82,6 +82,7 @@ it("leaves entry and Tab order to arbitrary children when no child Dialog enable
     </Panel>,
   )
   const first = screen.getByRole("button", { name: "First" })
+  expect(screen.getByTestId("panel")).not.toHaveAttribute("tabindex")
   expect(document.body).toHaveFocus()
   await user.tab()
   expect(first).toHaveFocus()
@@ -108,7 +109,10 @@ it("enables actual entry and forward/backward containment when its child Dialog 
       </Dialog>
     </Panel>,
   )
-  expect(screen.getByRole("dialog", { name: "Composed dialog" })).toHaveFocus()
+  const dialog = screen.getByRole("dialog", { name: "Composed dialog" })
+  expect(screen.getByTestId("panel")).not.toHaveAttribute("tabindex")
+  expect(dialog.tabIndex).toBe(-1)
+  expect(dialog).toHaveFocus()
   await user.tab()
   const first = screen.getByRole("button", { name: "Dialog first" })
   expect(first).toHaveFocus()

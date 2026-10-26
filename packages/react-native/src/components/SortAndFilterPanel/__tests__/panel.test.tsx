@@ -127,6 +127,16 @@ afterEach(async () => {
   jest.useRealTimers()
 })
 
+it("retains a programmatic Dialog target without adding shell or backdrop Tab stops", async () => {
+  await render(tree())
+  await present()
+  expect(host("query-panel-dialog").props.nativeTabStop).toBe(false)
+  expect(host("query-panel-dialog").props.keyboardFocusable).toBe(true)
+  expect(host("sort-filter-panel").props.nativeTabStop).toBe(false)
+  expect(host("sort-filter-panel-backdrop").props.focusable).toBe(false)
+  expect(screen.getByRole("button", { name: "Add Sort Criteria" }).props.keyboardFocusable).toBe(true)
+})
+
 it("keeps closed state owned and exposes the canonical default chrome, fields and separate style owners", async () => {
   const closed = await render(tree({ isOpen: false }))
   expect(screen.queryByTestId("query-panel-dialog")).toBeNull()
