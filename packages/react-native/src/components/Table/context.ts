@@ -3,13 +3,14 @@ import type { RefObject } from "react"
 import type { ColorValue } from "react-native"
 import type { View } from "react-native"
 
-import type { TNativeCollectionNode } from "../../collection/snapshot"
+import type { TNativeContextValue } from "../../collection/context"
+import type { TNativeCollectionKey, TNativeCollectionNode } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 
 import type { resolveNativeTableFilteringLabels } from "./filterLabels"
 import type { NativeTableCollection } from "./state/TableCollection"
 import type { TNativeTableState } from "./state/useTableState"
-import type { TNativeTableQueryControls, TNativeTableColumnResizingControls } from "./types"
+import type { TNativeTableQueryControls, TNativeTableColumnResizingControls, TNativeTableInheritedProps } from "./types"
 import type { useTableKeyboard } from "./useTableKeyboard"
 
 export const NativeTableOptionsContext = createContext<{
@@ -31,6 +32,9 @@ export const NativeTableCellContext = createContext<{
   width: RefObject<number | null>
 } | null>(null)
 
+export const NativeTablePropsContext =
+  createContext<TNativeContextValue<Partial<TNativeTableInheritedProps>, View>>(null)
+
 export const NativeTableStateContext = createContext<TNativeTableState<object> | null>(null)
 
 export type TNativeTableContext = {
@@ -50,8 +54,8 @@ export type TNativeTableContext = {
   keyboard: ReturnType<typeof useTableKeyboard>
   onRowAction?: (key: string | number) => void
   queryControls?: TNativeTableQueryControls
-  primarySort?: { column: string; direction: "ascending" | "descending" }
-  sortColumn: (columnID: string) => void
+  primarySort?: { column: TNativeCollectionKey; direction: "ascending" | "descending" }
+  sortColumn: (columnID: TNativeCollectionKey) => void
   filteringLabels: ReturnType<typeof resolveNativeTableFilteringLabels>
   columnResizing?: TNativeTableColumnResizingControls
   canResizeWithKeyboard: (columnID: string) => boolean

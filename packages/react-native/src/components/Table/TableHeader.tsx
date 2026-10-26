@@ -233,7 +233,7 @@ const Header = (
   const action = useTableAction(node, target)
   const hover = useTableHover(target, action.isActive, props)
   const styles = splitNativeTextStyle(
-    resolveNativeStyle([{ flexDirection: "row" }, customStyles, style], "TableHeader", "style"),
+    resolveNativeStyle([content?.textStyle, { flexDirection: "row" }, customStyles, style], "TableHeader", "style"),
   )
   const hostProps = {
     ...nativeViewProps(native),
@@ -243,7 +243,11 @@ const Header = (
     onPointerLeave: hover.onPointerLeave,
     children: (
       <NativeContentContext.Provider
-        value={{ foregroundColor: styles.text.color ?? content!.foregroundColor, isButton: false }}
+        value={{
+          foregroundColor: styles.text.color ?? content!.foregroundColor,
+          isButton: false,
+          textStyle: styles.text,
+        }}
       >
         <renderer.CollectionBranch collection={table.collection} parent={node} />
       </NativeContentContext.Provider>

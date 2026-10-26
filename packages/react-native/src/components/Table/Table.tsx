@@ -1,4 +1,4 @@
-import { useCallback, useContext, useMemo, useRef, useState } from "react"
+import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { findNodeHandle, View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
@@ -15,15 +15,23 @@ import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
 import { useControlledState } from "../../collection/state/useControlledState"
 import { useMultipleSelectionState } from "../../collection/state/useMultipleSelectionState"
-import { NativeFocusHost } from "../../input/NativeFocusView"
+import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
+import { NativeFocusView } from "../../input/NativeFocusView"
+import { useNativeKeyScope } from "../../input/NativeKeyboardScope"
 import { nativeViewProps } from "../../input/nativeViewProps"
+import type { TNativeFocusEvent } from "../../input/types"
 import { useNativeTheme } from "../../theme"
 import { resolveNativeStyle } from "../colors"
-import { NativeContentContext } from "../NativeContentContext"
+import { NativeContentContext, useNativeContentContext } from "../NativeContentContext"
 import { splitNativeTextStyle } from "../nativeTextStyle"
 import { Pagination } from "../Pagination/Pagination"
 
-import { NativeTableContext, NativeTableOptionsContext, NativeTableStateContext } from "./context"
+import {
+  NativeTableContext,
+  NativeTableOptionsContext,
+  NativeTablePropsContext,
+  NativeTableStateContext,
+} from "./context"
 import { resolveNativeTableFilteringLabels } from "./filterLabels"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { resizeNativeTableColumn } from "./resizing"
@@ -31,7 +39,7 @@ import { computeNextNativeTableSorts } from "./sorting"
 import { NativeTableCollection } from "./state/TableCollection"
 import { useNativeTableState, useNativeFilteredTableState } from "./state/useTableState"
 import { TableTypeahead } from "./TableTypeahead"
-import type { TNativeTableProps } from "./types"
+import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
 import { useTableKeyboard } from "./useTableKeyboard"
 
 const Receiver = <T extends object>({
@@ -40,17 +48,12 @@ const Receiver = <T extends object>({
   selection,
   receipt,
 }: {
-  props: TNativeTableProps<T>
+  props: TNativeTableReceivedProps<T>
   collection: TNativeCollectionSnapshot<object>
   selection: ReturnType<typeof useMultipleSelectionState>
   receipt: TNativeCollectionSessionSnapshot<unknown>["receipt"]
 }) => {
-  const authoredStyle = resolveNativeStyle([incoming.customStyles, incoming.style], "Table", "authoredStyle")
-  const [props, contextRef] = useNativeContextProps(
-    { ...incoming, customStyles: undefined, style: authoredStyle },
-    incoming.ref,
-    NativeSelectableCollectionContext,
-  )
+  const [props, contextRef] = useNativeContextProps(incoming, incoming.ref, NativeSelectableCollectionContext)
   const [expandedKeys, setExpandedKeys] = useControlledState(
     props.expandedKeys ? new Set(props.expandedKeys) : undefined,
     props.defaultExpandedKeys ? new Set(props.defaultExpandedKeys) : new Set(),
@@ -65,7 +68,8 @@ const Receiver = <T extends object>({
     children: _children,
     geometry: _geometry,
     style,
-    customStyles,
+    render,
+    customStyles: _customStyles,
     hoverColor,
     zebra,
     zebraColor,
@@ -79,8 +83,10 @@ const Receiver = <T extends object>({
     onSelectionChange: _selection,
     disallowEmptySelection: _empty,
     allowDuplicateSelectionEvents: _duplicates,
-    clickableRows,
+    clickableRows: _clickableRows,
     onRowAction,
+    sortDescriptor,
+    onSortChange,
     columns,
     queryControls,
     filteringLabels,
@@ -96,11 +102,15 @@ const Receiver = <T extends object>({
     shouldUseVirtualFocus: _virtualFocus,
     disallowTypeAhead: _typeAhead,
     slot: _slot,
+    onFocus,
+    onBlur,
+    ariaDescribedBy,
+    ariaDetails,
+    "aria-describedby": nativeDescribedBy,
+    "aria-details": nativeDetails,
+    "data-testid": aliasTestID,
     ...native
   } = props
-  const sorting = queryControls?.sorting
-  const firstSort = sorting?.activeSorts[0]
-  const primaryColumn = firstSort && columns?.find((column) => column.sort?.criteriaID === firstSort.criteriaID)
   const state = useNativeFilteredTableState(
     useNativeTableState({
       ...props,
@@ -108,20 +118,8 @@ const Receiver = <T extends object>({
       selectionState: selection,
       expandedKeys,
       onExpandedChange: setExpandedKeys,
-      sortDescriptor:
-        primaryColumn && firstSort
-          ? {
-              column: primaryColumn.id,
-              direction: firstSort.sortDirection === TABLE_SORT_DIRECTION__ASCENDING ? "ascending" : "descending",
-            }
-          : undefined,
-      onSortChange: ({ column: key }) => {
-        const column = columns?.find((candidate) => candidate.id === key)
-        if (sorting && column?.sort?.criteriaID)
-          sorting.onSortChange(
-            computeNextNativeTableSorts({ activeSorts: sorting.activeSorts, column, mode: sorting.mode }),
-          )
-      },
+      sortDescriptor,
+      onSortChange,
     }),
     filter,
   )
@@ -129,6 +127,7 @@ const Receiver = <T extends object>({
   const renderer = useContext(NativeCollectionRendererContext)
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
+  const parentContent = useNativeContentContext()
   const [target, setTarget] = useState(0)
   const root = useRef<View | null>(null)
   const [headerTargets, setHeaderTargets] = useState(new Map<string, number>())
@@ -137,6 +136,24 @@ const Receiver = <T extends object>({
     setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
   }, [])
   const mergedRef = useNativeCollectionRefs(bind, contextRef)
+  const generatedID = useId()
+  const providedID = props.id ?? props.nativeID
+  const retainedID = useRef(providedID ?? `codon-table-${generatedID}`)
+  useLayoutEffect(() => {
+    if (providedID !== undefined) retainedID.current = providedID
+  }, [providedID])
+  const [isFocused, setFocused] = useState(false)
+  const [isFocusVisible, setFocusVisible] = useState(false)
+  const observedFocus = useRef(false)
+  const input = useNativeKeyScope()
+  useLayoutEffect(
+    () =>
+      input?.subscribe(() => {
+        const origin = input.lastInput()?.origin
+        if (observedFocus.current && origin) setFocusVisible(origin === "keyboard")
+      }),
+    [input],
+  )
   const registerHeader = useCallback(
     (id: string, target: number) =>
       setHeaderTargets((previous) => {
@@ -177,9 +194,64 @@ const Receiver = <T extends object>({
   const persistedKeys = useNativePersistedKeys(manager.focusedKey, keyboard.requestedKey, keyboard.observedKey)
   if (receipt.status === "confirmed" && columnCount > 0 && rowHeaderColumns.size === 0)
     throw new Error("A table must have at least one Column with the isRowHeader prop set to true")
+  const renderState: TNativeTableRenderState = { isFocused, isFocusVisible, isDropTarget: false, state }
+  const authoredStyle = typeof style === "function" ? style({ ...renderState, defaultStyle: {} }) : style
   const styles = splitNativeTextStyle(
-    resolveNativeStyle([{ width: "100%", flexShrink: 0 }, customStyles, style], "Table", "style"),
+    resolveNativeStyle([parentContent?.textStyle, { width: "100%", flexShrink: 0 }, authoredStyle], "Table", "style"),
   )
+  const rootTestID = props.testID ?? aliasTestID ?? "table"
+  const labelledBy =
+    native["aria-labelledby"] !== undefined
+      ? native["aria-labelledby"].split(",").flatMap((part) => nativeAccessibilityIDs(part) ?? [])
+      : typeof native.accessibilityLabelledBy === "string"
+        ? [native.accessibilityLabelledBy]
+        : native.accessibilityLabelledBy
+  const hostProps = {
+    ...nativeViewProps({ ...native, id: providedID ?? retainedID.current }),
+    ref: mergedRef,
+    testID: rootTestID,
+    accessibilityLabelledBy: labelledBy ? [...labelledBy] : undefined,
+    nativeLabelledBy: labelledBy,
+    nativeDescribedBy: nativeAccessibilityIDs(ariaDescribedBy ?? nativeDescribedBy),
+    nativeDetailsBy: nativeAccessibilityIDs(ariaDetails ?? nativeDetails),
+    accessible: false,
+    focusable: true,
+    nativeTabStop: manager.focusedKey == null,
+    capturedKeys: keyboard.keysFor(null),
+    onKeyDown: keyboard.onKeyDown,
+    onFocus: (event: TNativeFocusEvent) => {
+      if (event.nativeEvent.target !== findNodeHandle(root.current)) return
+      observedFocus.current = true
+      setFocused(true)
+      setFocusVisible(event.nativeEvent.isFocusVisible)
+      if (!state.isKeyboardNavigationDisabled) keyboard.onFocus(event)
+      else if (keyboard.canAct()) manager.setFocused(true)
+      onFocus?.(event)
+    },
+    onBlur: (event: TNativeFocusEvent) => {
+      if (event.nativeEvent.target !== findNodeHandle(root.current)) return
+      observedFocus.current = false
+      setFocused(false)
+      setFocusVisible(false)
+      onBlur?.(event)
+    },
+    role: "grid" as const,
+    style: styles.view,
+    children: (
+      <>
+        <TableTypeahead target={root} tag={target} />
+        <NativeContentContext.Provider
+          value={{
+            foregroundColor: styles.text.color ?? parentContent?.foregroundColor ?? theme.colors.foreground,
+            isButton: false,
+            textStyle: styles.text,
+          }}
+        >
+          <renderer.CollectionRoot collection={collection} persistedKeys={persistedKeys} />
+        </NativeContentContext.Provider>
+      </>
+    ),
+  }
   return (
     <NativeTableStateContext.Provider value={state}>
       <NativeSelectableCollectionContext.Provider value={null}>
@@ -199,7 +271,7 @@ const Receiver = <T extends object>({
             registerHeader,
             manager,
             keyboard,
-            onRowAction: clickableRows && onRowAction ? onRowAction : undefined,
+            onRowAction,
             queryControls,
             filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
             columnResizing,
@@ -215,24 +287,12 @@ const Receiver = <T extends object>({
                   (measuredWidth ?? (typeof column.width === "number" ? column.width : 0)) + delta,
                 )
             },
-            primarySort:
-              primaryColumn && firstSort
-                ? {
-                    column: primaryColumn.id,
-                    direction: firstSort.sortDirection === TABLE_SORT_DIRECTION__ASCENDING ? "ascending" : "descending",
-                  }
-                : undefined,
-            sortColumn: (columnID) => {
-              const column = columns?.find((candidate) => candidate.id === columnID)
-              if (sorting && column?.sort?.criteriaID)
-                sorting.onSortChange(
-                  computeNextNativeTableSorts({ activeSorts: sorting.activeSorts, column, mode: sorting.mode }),
-                )
-            },
+            primarySort: state.sortDescriptor ?? undefined,
+            sortColumn: (key) => state.sort(key),
           }}
         >
           <View
-            testID={`${props.testID ?? "table"}-shell`}
+            testID={`${rootTestID}-shell`}
             style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
           >
             <NativeCollectionSemanticsContext.Provider
@@ -245,29 +305,7 @@ const Receiver = <T extends object>({
               })}
             >
               <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
-                <NativeFocusHost
-                  {...nativeViewProps(native)}
-                  ref={mergedRef}
-                  testID={props.testID ?? "table"}
-                  accessible={false}
-                  focusable
-                  nativeTabStop={manager.focusedKey == null}
-                  capturedKeys={keyboard.keysFor(null)}
-                  onKeyDown={keyboard.onKeyDown}
-                  onFocus={(event) => {
-                    keyboard.onFocus(event)
-                    native.onFocus?.(event)
-                  }}
-                  role="grid"
-                  style={styles.view}
-                >
-                  <TableTypeahead target={root} tag={target} />
-                  <NativeContentContext.Provider
-                    value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
-                  >
-                    <renderer.CollectionRoot collection={collection} persistedKeys={persistedKeys} />
-                  </NativeContentContext.Provider>
-                </NativeFocusHost>
+                {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
               </NativeCollectionItemBindingContext.Provider>
             </NativeCollectionSemanticsContext.Provider>
             {queryControls?.pagination && (
@@ -286,7 +324,54 @@ const Receiver = <T extends object>({
     </NativeTableStateContext.Provider>
   )
 }
-export const Table = <T extends object = object>(props: TNativeTableProps<T>) => {
+export const Table = <T extends object = object>(authored: TNativeTableProps<T>) => {
+  const sorting = authored.queryControls?.sorting
+  const firstSort = sorting?.activeSorts[0]
+  const primaryColumn =
+    firstSort && authored.columns?.find((column) => column.sort?.criteriaID === firstSort.criteriaID)
+  const [inherited, ref] = useNativeContextProps(
+    {
+      ...authored,
+      customStyles: undefined,
+      style: resolveNativeStyle([authored.customStyles, authored.style], "Table", "authoredStyle"),
+      onRowAction: authored.clickableRows && authored.onRowAction ? authored.onRowAction : undefined,
+      sortDescriptor:
+        primaryColumn && firstSort
+          ? {
+              column: primaryColumn.id,
+              direction:
+                firstSort.sortDirection === TABLE_SORT_DIRECTION__ASCENDING
+                  ? ("ascending" as const)
+                  : ("descending" as const),
+            }
+          : undefined,
+      onSortChange: sorting
+        ? ({ column: key }: { column: string | number }) => {
+            const column = authored.columns?.find((candidate) => candidate.id === key)
+            if (column?.sort?.criteriaID)
+              sorting.onSortChange(
+                computeNextNativeTableSorts({ activeSorts: sorting.activeSorts, column, mode: sorting.mode }),
+              )
+          }
+        : undefined,
+    },
+    authored.ref,
+    NativeTablePropsContext,
+  )
+  const props: TNativeTableReceivedProps<T> = {
+    ...inherited,
+    ref,
+    geometry: authored.geometry,
+    hoverColor: authored.hoverColor,
+    zebra: authored.zebra,
+    zebraColor: authored.zebraColor,
+    labels: authored.labels,
+    clickableRows: authored.clickableRows,
+    columns: authored.columns,
+    queryControls: authored.queryControls,
+    filteringLabels: authored.filteringLabels,
+    columnResizing: authored.columnResizing,
+  }
   const selection = useMultipleSelectionState(props)
   const labels = useMemo(
     () => ({ selectAllRowsAriaLabel: "Select All", selectRowAriaLabel: "Select Row", ...props.labels?.selection }),

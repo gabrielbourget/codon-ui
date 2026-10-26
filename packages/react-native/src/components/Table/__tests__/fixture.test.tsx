@@ -198,3 +198,17 @@ it("exercises state expansion, source sorting and navigation controls through th
   expect(screen.getByTestId("table-sorts")).toHaveTextContent(/Ascending/)
   expect(screen.getByTestId("table-editor").props.value).toBe("held")
 })
+
+it("retains the original table and held editor through root rendering and typography controls", async () => {
+  const editor = createRef<TextInput>()
+  const table = createRef<View>()
+  await render(<TableFixture editorRef={editor} tableRef={table} />)
+  const original = { table: table.current, editor: editor.current }
+  const write = jest.spyOn(original.editor!, "setNativeProps")
+  await press("Toggle root renderer")
+  await press("Toggle table typography")
+  expect(table.current === original.table).toBe(true)
+  expect(editor.current === original.editor).toBe(true)
+  expect(screen.getByTestId("table-editor").props.value).toBe("held")
+  expect(write.mock.calls.some(([props]) => props && ("text" in props || "value" in props))).toBe(false)
+})

@@ -35,7 +35,9 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
   const table = useNativeTable()
   const content = useNativeContentContext()
   const renderer = useContext(NativeCollectionRendererContext)
-  const styles = splitNativeTextStyle(resolveNativeStyle([customStyles, style], "TableBody", "style"))
+  const styles = splitNativeTextStyle(
+    resolveNativeStyle([content?.textStyle, customStyles, style], "TableBody", "style"),
+  )
   const renderState = { isEmpty: table.collection.size === 0, isDropTarget: false }
   const hostProps = {
     ...nativeViewProps(native),
@@ -43,7 +45,11 @@ const Body = (props: TNativeTableBodyProps<object>, ref: ForwardedRef<View>, nod
     style: styles.view,
     children: (
       <NativeContentContext.Provider
-        value={{ foregroundColor: styles.text.color ?? content!.foregroundColor, isButton: false }}
+        value={{
+          foregroundColor: styles.text.color ?? content!.foregroundColor,
+          isButton: false,
+          textStyle: styles.text,
+        }}
       >
         {!isLoading && items.length === 0 && renderEmptyState ? (
           getNativeButtonContent(renderEmptyState(renderState), styles.text)
