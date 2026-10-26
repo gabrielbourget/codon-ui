@@ -1,4 +1,4 @@
-import { useCallback, useContext, useId, useLayoutEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useContext, useId, useInsertionEffect, useLayoutEffect, useMemo, useRef, useState } from "react"
 import { findNodeHandle, View } from "react-native"
 
 import { NativeCollectionActionsContext } from "../../collection/actions"
@@ -9,7 +9,12 @@ import {
   useNativeContextProps,
   useNativeCollectionRefs,
 } from "../../collection/context"
-import { NativeCollectionRendererContext, useNativePersistedKeys } from "../../collection/renderer"
+import {
+  NativeCollectionRendererContext,
+  useNativePersistedKeys,
+  type TNativeCollectionRootProps,
+  type TNativeCollectionScrollHost,
+} from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionSessionSnapshot } from "../../collection/session"
 import type { TNativeCollectionSnapshot } from "../../collection/snapshot"
@@ -110,6 +115,7 @@ const Receiver = <T extends object>({
     slot: _slot,
     onFocus,
     onBlur,
+    onScroll,
     ariaDescribedBy,
     ariaDetails,
     "aria-describedby": nativeDescribedBy,
@@ -131,8 +137,37 @@ const Receiver = <T extends object>({
   )
   const { collection, selectionManager: manager } = state
   const resizeContainer = useContext(NativeResizableTableContainerContext)
-  const resizeState = useNativeTableColumnResizeState({ tableWidth: resizeContainer?.tableWidth ?? 0 }, state)
   const renderer = useContext(NativeCollectionRendererContext)
+  const fallbackScrollRef = useRef<TNativeCollectionScrollHost | null>(null)
+  const scrollRef = resizeContainer?.scrollRef ?? fallbackScrollRef
+  const renderOwner = useMemo(() => ({ component: renderer.CollectionRoot }), [renderer.CollectionRoot])
+  const [viewport, setViewport] = useState<{
+    owner: typeof renderOwner
+    host: TNativeCollectionScrollHost
+    width: number
+  } | null>(null)
+  const currentRenderer = useRef<typeof renderOwner | null>(renderOwner)
+  useInsertionEffect(() => {
+    currentRenderer.current = renderOwner
+    return () => {
+      currentRenderer.current = null
+    }
+  }, [renderOwner])
+  const virtualWidth = viewport?.owner === renderOwner && viewport.host === scrollRef.current ? viewport.width : 0
+  const resizeState = useNativeTableColumnResizeState(
+    { tableWidth: renderer.isVirtualized ? virtualWidth : (resizeContainer?.tableWidth ?? 0) },
+    state,
+  )
+  const observeViewport: TNativeCollectionRootProps["onLayout"] = (event) => {
+    const width = event.nativeEvent.layout.width
+    const host = scrollRef.current
+    if (currentRenderer.current !== renderOwner || !host || !Number.isFinite(width) || width < 0) return
+    setViewport((previous) =>
+      previous?.owner === renderOwner && previous.host === host && previous.width === width
+        ? previous
+        : { owner: renderOwner, host, width },
+    )
+  }
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
   const parentContent = useNativeContentContext()
@@ -245,9 +280,10 @@ const Receiver = <T extends object>({
       onBlur?.(event)
     },
     role: "grid" as const,
-    style: resizeContainer
-      ? [styles.view, { width: [...resizeState.columnWidths.values()].reduce((sum, width) => sum + width, 0) }]
-      : styles.view,
+    style:
+      resizeContainer && !renderer.isVirtualized
+        ? [styles.view, { width: [...resizeState.columnWidths.values()].reduce((sum, width) => sum + width, 0) }]
+        : styles.view,
     children: (
       <>
         <TableTypeahead target={root} tag={target} />
@@ -258,7 +294,13 @@ const Receiver = <T extends object>({
             textStyle: styles.text,
           }}
         >
-          <renderer.CollectionRoot collection={collection} persistedKeys={persistedKeys} />
+          <renderer.CollectionRoot
+            collection={collection}
+            persistedKeys={persistedKeys}
+            scrollRef={scrollRef}
+            onLayout={observeViewport}
+            onScroll={onScroll}
+          />
         </NativeContentContext.Provider>
       </>
     ),

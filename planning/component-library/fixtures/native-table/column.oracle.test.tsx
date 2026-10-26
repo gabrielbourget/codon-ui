@@ -5,7 +5,9 @@ import userEvent from "@testing-library/user-event"
 import React, { createRef, useContext } from "react"
 import {
   Cell,
+  CollectionRendererContext,
   ColumnResizer,
+  DefaultCollectionRenderer,
   ResizableTableContainer,
   Row,
   TableBody,
@@ -24,6 +26,7 @@ import type { TTableProps } from "../../../../packages/react/src/components/Tabl
 type TRender = NonNullable<ColumnProps["render"]>
 type TValues = Parameters<TRender>[1]
 const records: unknown[] = []
+type TCollectionRootProps = React.ComponentProps<typeof DefaultCollectionRenderer.CollectionRoot>
 let state: NonNullable<React.ContextType<typeof TableStateContext>>
 let layout: React.ContextType<typeof TableColumnResizeStateContext>
 const Probe = () => {
@@ -250,3 +253,34 @@ it("keeps the original resize input separate from caller children and their defa
   expect(screen.getByRole("slider")).toBeTruthy()
   records.push({ scenario: "custom-resizer-content", inputPresent: true, defaultChildren: "undefined" })
 })
+it.each([false, true])(
+  "retains the actual scroll owner and source width policy in virtual mode %s",
+  (isVirtualized) => {
+    let received!: TCollectionRootProps
+    const container = createRef<HTMLDivElement>()
+    const scroll = vi.fn()
+    const Root = (props: TCollectionRootProps) => {
+      received = props
+      return <DefaultCollectionRenderer.CollectionRoot {...props} />
+    }
+    render(
+      <CollectionRendererContext.Provider value={{ ...DefaultCollectionRenderer, isVirtualized, CollectionRoot: Root }}>
+        <ResizableTableContainer ref={container}>
+          {tree({ width: 200 }, { style: { width: 444 }, onScroll: scroll })}
+        </ResizableTableContainer>
+      </CollectionRendererContext.Provider>,
+    )
+    expect(received.scrollRef?.current).toBe(container.current)
+    expect(received.collection).toBe(state.collection)
+    const grid = screen.getByRole("grid", { name: "Columns" })
+    expect(grid.style.width).toBe(isVirtualized ? "444px" : "min-content")
+    fireEvent.scroll(grid)
+    expect(scroll).toHaveBeenCalledTimes(1)
+    records.push({
+      scenario: "scroll-owner-width",
+      isVirtualized,
+      width: grid.style.width,
+      scrollOwner: container.current?.nodeName,
+    })
+  },
+)

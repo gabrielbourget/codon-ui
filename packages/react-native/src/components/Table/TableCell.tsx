@@ -5,7 +5,11 @@ import { findNodeHandle } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../collection/renderer"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionCellFocusContext,
+  NativeCollectionRendererContext,
+} from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { NativeFocusView } from "../../input/NativeFocusView"
@@ -43,6 +47,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
     ...native
   } = props
   const table = useNativeTable()
+  const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
   const layout = useContext(NativeTableColumnResizeStateContext)
   const scope = useNativeKeyScope()
   const [focused, setFocused] = useState(false)
@@ -183,6 +188,7 @@ const Cell = (props: TNativeTableCellProps, ref: ForwardedRef<View>, node: TNati
           }}
           onFocus={(event) => {
             if (event.nativeEvent.target !== findNodeHandle(target.current)) return
+            if (action.isActive()) nativeCellFocus?.(event)
             setFocused(true)
             setFocusVisible(event.nativeEvent.isFocusVisible)
             table.keyboard.observe(node.key, event)

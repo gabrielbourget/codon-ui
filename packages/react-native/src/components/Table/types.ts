@@ -1,5 +1,5 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
-import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
+import type { ColorValue, ScrollViewProps, StyleProp, TextStyle, View, ViewProps } from "react-native"
 import type { TableStateProps } from "react-stately/useTableState"
 import type { ColumnSize } from "react-stately/useTableState"
 
@@ -139,6 +139,7 @@ export type TNativeTableInheritedProps = Omit<ViewProps, "children" | "style" | 
     disallowSelectAll?: boolean
     escapeKeyBehavior?: "clearSelection" | "none"
     shouldFocusWrap?: boolean
+    onScroll?: ScrollViewProps["onScroll"]
   }
 export type TNativeTableProps<T extends object = object> = Omit<
   TNativeTableInheritedProps,

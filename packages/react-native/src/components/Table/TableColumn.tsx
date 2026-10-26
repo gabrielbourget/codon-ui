@@ -4,7 +4,11 @@ import { findNodeHandle, type TextStyle, type View } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
-import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../collection/renderer"
+import {
+  DefaultNativeCollectionRenderer,
+  NativeCollectionCellFocusContext,
+  NativeCollectionRendererContext,
+} from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -59,6 +63,7 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
     theme = useNativeTheme(),
     content = useNativeContentContext()
   const layout = useContext(NativeTableColumnResizeStateContext)
+  const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
   const actions = useContext(NativeCollectionActionsContext)
   const target = useRef<View | null>(null),
     measuredWidth = useRef<number | null>(null)
@@ -106,6 +111,7 @@ const Column = (props: TNativeTableColumnProps, ref: ForwardedRef<View>, node: T
           }}
           onKeyUp={onKeyUp}
           onFocus={(event) => {
+            if (action.isActive()) nativeCellFocus?.(event)
             table.keyboard.observe(node.key, event)
             onFocus?.(event)
           }}

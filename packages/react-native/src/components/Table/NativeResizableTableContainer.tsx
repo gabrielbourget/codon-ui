@@ -11,6 +11,7 @@ import {
 import type { StyleProp, TextStyle, View } from "react-native"
 import type { ColumnSize } from "react-stately/useTableState"
 
+import type { TNativeCollectionScrollHost } from "../../collection/renderer"
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import { NativeFocusView } from "../../input/NativeFocusView"
 import type { TNativeFocusViewProps } from "../../input/types"
@@ -28,6 +29,7 @@ export type TNativeTableResizeCallbacks = {
 }
 type TContainerContext = TNativeTableResizeCallbacks & {
   tableRef: React.RefObject<View | null>
+  scrollRef: React.RefObject<TNativeCollectionScrollHost | null>
   tableWidth: number
 }
 export const NativeResizableTableContainerContext = createContext<TContainerContext | null>(null)
@@ -42,9 +44,10 @@ export type TNativeResizableTableContainerProps = Omit<TNativeFocusViewProps, "c
 export const NativeResizableTableContainer = forwardRef<View, TNativeResizableTableContainerProps>((props, ref) => {
   const { onResizeStart, onResize, onResizeEnd, onLayout, style, children, render, ...native } = props
   const tableRef = useRef<View | null>(null)
+  const scrollRef = useRef<TNativeCollectionScrollHost | null>(null)
   const [tableWidth, setWidth] = useState(0)
   const context = useMemo(
-    () => ({ tableRef, tableWidth, onResizeStart, onResize, onResizeEnd }),
+    () => ({ tableRef, scrollRef, tableWidth, onResizeStart, onResize, onResizeEnd }),
     [tableWidth, onResizeStart, onResize, onResizeEnd],
   )
   const inherited = useNativeContentContext(),

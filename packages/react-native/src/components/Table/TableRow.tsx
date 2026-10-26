@@ -3,7 +3,7 @@ import { Platform, type PointerEvent, type View } from "react-native"
 
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionBranch } from "../../collection/CollectionBuilder"
-import { NativeCollectionRendererContext } from "../../collection/renderer"
+import { NativeCollectionCellFocusContext, NativeCollectionRendererContext } from "../../collection/renderer"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeAccessibilityIDs } from "../../input/accessibilityReferences"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -80,6 +80,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
   const content = useNativeContentContext()
   const theme = useNativeTheme()
   const renderer = useContext(NativeCollectionRendererContext)
+  const nativeCellFocus = useContext(NativeCollectionCellFocusContext)
   const ordinal = table.rows.findIndex((row) => row.key === node.key)
   const original = useRef<View | null>(null)
   const navigation = useRef(props)
@@ -311,6 +312,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
           target: 0,
         })}
         onFocus={(event) => {
+          if (action.isActive()) nativeCellFocus?.(event)
           table.keyboard.observe(node.key, event)
           onFocus?.(event)
         }}
