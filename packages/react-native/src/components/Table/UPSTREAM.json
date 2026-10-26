@@ -1,5 +1,5 @@
 {
-  "status": "Private Table hover/header-render construction; full Table delivery and native acceptance remain open",
+  "status": "Private complete Table state/collection and context construction; full Table delivery and native acceptance remain open",
   "canonicalReactManifest": "ddc9f066f67af4742e05e04bd870726141c44129",
   "license": "../../collection/LICENSE.react-aria.md",
   "sources": [
@@ -24,6 +24,30 @@
       "sourcePath": "packages/react-aria-components/src/Table.tsx",
       "sourceContentSHA256": "3248ea0c744e2cf4471b6b9bfeac58af4e5cc4ecb37e12bf31ce505e72454c5d",
       "sourceRef": "https://github.com/adobe/react-spectrum/blob/a6999bdf494a2e9c0381a5881908328bdd22ddae/packages/react-aria-components/src/Table.tsx"
+    },
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/table/useTableState.ts",
+      "sourceContentSHA256": "03f3fcd2a167440b5e789e966e33e7aa90141b13a6aacaf8b088b79b4225f3c5",
+      "sourceMapSHA256": "bb26a988f79ac943bac3f38d014fd80e100bd1caa7ff4f7d5a1eb3cd7062c7c1",
+      "adaptation": "useTableState"
+    },
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/grid/useGridState.ts",
+      "sourceContentSHA256": "902b811614eacbb0f87708fb4373caa8187dc7f89e2c4aa4a033a34fb0d403d0",
+      "sourceMapSHA256": "a8c5a4db1d4213e246c49b2489992f76070b53ad935814adc892758512a2e072",
+      "adaptation": "useGridState"
+    },
+    {
+      "package": "react-stately",
+      "version": "3.46.0",
+      "sourcePath": "packages/react-stately/src/table/TableCollection.ts",
+      "sourceContentSHA256": "afbb5c98589ec78d49c4403b3c5cd9d2cbd3a995d1268336db82c1929dbbf910",
+      "sourceMapSHA256": "8e0927078b307b0657263906a21012dba8de8a3b24addc7e3695c968701cc5b8",
+      "adaptation": "buildHeaderRows"
     }
   ],
   "adaptations": [
@@ -34,6 +58,11 @@
     "Canonical Motion-wrapped Row callback correspondence is retained as a separate open gate; the Header increment does not invent a Row callback implementation.",
     "Cell render callbacks receive raw native Cell values; only the children function receives defaultChildren. Default and custom paths use the same public NativeFocusView and preserve opaque keyboard/collection props.",
     "A Table-local target ref bridge refreshes cell/column/row metadata registration without detaching a stable consumer ref. Physical target and caller-ref changes retain ordinary cleanup and registration ownership.",
-    "Body render and empty callbacks receive committed isEmpty/isDropTarget values through the original View/ref and collection children; drop-target stays false under the existing private non-DnD boundary."
+    "Body render and empty callbacks receive committed isEmpty/isDropTarget values through the original View/ref and collection children; drop-target stays false under the existing private non-DnD boundary.",
+    "Complete Table-specific logical collection projects source tableheader/tablebody, leaf columns, header rows, row-only navigation, expansion, spanning-cell validation, cell-based filtering and row-header text from the original immutable native snapshot. Original descriptor identities, caller values/props/renderers and native refs remain unchanged.",
+    "The full eleven-field TableState uses the existing owned selection/controlled state with pinned grid focus retirement, exact sorting requests, expansion and keyboard-navigation control. Renderer, runtime and exposed state share the same actual collection/manager.",
+    "Existing native null-aware zero/empty-key navigation and missing-key null returns remain intact; the new actual React oracle retains upstream filtered-previous-key and header-only failures as source observations, not qualification passes.",
+    "Shared selectable props, styles, refs and cell filtering follow the pinned inner merge; the context is reset inside the table, and nested cell content restores the default renderer. Source ignored typeahead/virtual-focus flags remain ignored.",
+    "Metadata-generated columns now retain their original supplied IDs. Existing native default test IDs remain stable. Private scalar/query fixtures use unique keys and matching cell counts; their original behavioural assertions are retained."
   ]
 }

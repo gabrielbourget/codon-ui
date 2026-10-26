@@ -48,7 +48,7 @@ const node = (
         <NativeFloatingWindowContext.Provider value={windowActive}>
           <Table accessibilityLabel="Rows" columns={columns} {...props}>
             <TableHeader columns={header} />
-            <TableBody items={items} columns={columns} />
+            <TableBody items={items} columns={header} />
           </Table>
         </NativeFloatingWindowContext.Provider>
       </NativeFloatingLayerHost>

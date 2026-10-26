@@ -1,6 +1,8 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
+import type { TableStateProps } from "react-stately/useTableState"
 
+import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeCollectionKey } from "../../collection/snapshot"
 import type { MultipleSelectionStateProps } from "../../collection/state/useMultipleSelectionState"
 import type { TNativeFocusViewProps } from "../../input/types"
@@ -105,7 +107,9 @@ export type TNativeTableColumnMetadata<T extends object> = TColumnMetadataBase<T
 export type TNativeTableProps<T extends object = object> = Omit<ViewProps, "children" | "style"> &
   RefAttributes<View> &
   TStyleProps &
-  MultipleSelectionStateProps & {
+  MultipleSelectionStateProps &
+  TNativeSlotProps &
+  Pick<TableStateProps<object>, "expandedKeys" | "defaultExpandedKeys" | "onExpandedChange" | "treeColumn"> & {
     children?: ReactNode
     geometry?: TCornerGeometry
     hoverColor?: ColorValue
@@ -159,6 +163,7 @@ export type TNativeTableCellProps = Omit<ViewProps, "id" | "style" | "children">
     render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableCellRenderValues) => ReactElement
     textValue?: string
     id?: TNativeCollectionKey
+    colSpan?: number
     columnID: string
     alignment?: TNativeTableColumnMetadata<object>["alignment"]
   }
@@ -167,6 +172,7 @@ export type TNativeTableRowProps<T extends object> = Omit<ViewProps, "id" | "chi
   TStyleProps & {
     textValue?: string
     id?: TNativeCollectionKey
+    hasChildItems?: boolean
     item: T
     columns: TNativeTableColumnMetadata<T>[]
     geometry?: TCornerGeometry

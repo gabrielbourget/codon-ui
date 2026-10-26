@@ -15,6 +15,7 @@ import { NativeFloatingWindowContext } from "../../../overlays/floating/scope"
 import { NativeThemeProvider } from "../../../theme"
 import { useNativeTable } from "../context"
 import { Table } from "../Table"
+import { TableBody } from "../TableBody"
 import { TableHeader } from "../TableHeader"
 import { TableRow } from "../TableRow"
 import type { TNativeTableHeaderProps, TNativeTableProps, TNativeTableRowProps } from "../types"
@@ -110,6 +111,7 @@ it.each(["mouse", "pen"])(
             customStyles={{ padding: 7 }}
             style={{ padding: 9 }}
           />
+          <TableBody items={[]} columns={columns} />
         </Table>
       </NativeThemeProvider>,
     )

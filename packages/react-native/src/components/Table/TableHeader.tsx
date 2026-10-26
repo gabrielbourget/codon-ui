@@ -259,7 +259,12 @@ export const TableHeader = createNativeCollectionBranch<object, TNativeTableHead
     return (
       <>
         {options.behavior === "toggle" && (
-          <TableColumn id="header:__selection" columnID="__selection" style={{ width: 30, padding: 0 }}>
+          <TableColumn
+            id="__selection"
+            testID="table-column-header:__selection"
+            columnID="__selection"
+            style={{ width: 30, padding: 0 }}
+          >
             {options.mode === "multiple" && <TableSelectionCheckbox all />}
           </TableColumn>
         )}
@@ -273,7 +278,8 @@ export const TableHeader = createNativeCollectionBranch<object, TNativeTableHead
           return (
             <TableColumn
               key={column.id}
-              id={`header:${column.id}`}
+              id={column.id}
+              testID={`table-column-header:${column.id}`}
               columnID={column.id}
               textValue={column.headerAriaLabel}
               isRowHeader={column.isRowHeader}

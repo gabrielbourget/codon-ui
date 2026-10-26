@@ -938,7 +938,8 @@ const partialFixture = async (active = () => true) => {
   }
   const Branch = (props: TNativeCollectionBranchProps) => {
     const [visible, setVisible] = useState<(string | number)[]>([0])
-    if (props.parent.type !== "body") return <DefaultNativeCollectionRenderer.CollectionBranch {...props} />
+    if (props.parent.type !== "body" && props.parent.type !== "tablebody")
+      return <DefaultNativeCollectionRenderer.CollectionBranch {...props} />
     materialize = setVisible
     return [...props.collection.getChildren(props.parent.key)]
       .filter((entry) => visible.includes(entry.key))
