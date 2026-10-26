@@ -3,10 +3,12 @@ import type { RefObject } from "react"
 import type { ColorValue } from "react-native"
 import type { View } from "react-native"
 
-import type { TNativeCollectionNode, TNativeCollectionSnapshot } from "../../collection/snapshot"
+import type { TNativeCollectionNode } from "../../collection/snapshot"
 import type { SelectionManager } from "../../collection/state/SelectionManager"
 
 import type { resolveNativeTableFilteringLabels } from "./filterLabels"
+import type { NativeTableCollection } from "./state/TableCollection"
+import type { TNativeTableState } from "./state/useTableState"
 import type { TNativeTableQueryControls, TNativeTableColumnResizingControls } from "./types"
 import type { useTableKeyboard } from "./useTableKeyboard"
 
@@ -29,8 +31,11 @@ export const NativeTableCellContext = createContext<{
   width: RefObject<number | null>
 } | null>(null)
 
+export const NativeTableStateContext = createContext<TNativeTableState<object> | null>(null)
+
 export type TNativeTableContext = {
-  collection: TNativeCollectionSnapshot<object>
+  state: TNativeTableState<object>
+  collection: NativeTableCollection<object>
   target: number
   rows: TNativeCollectionNode<object>[]
   headerCount: number

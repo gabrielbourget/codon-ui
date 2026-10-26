@@ -155,3 +155,46 @@ it("retains the held editor while the owner vetoes then echoes sort and page req
   expect(editor.current).toBe(original)
   expect(write).not.toHaveBeenCalled()
 })
+
+it("exercises actual state-context selection veto and echo while retaining the held editor", async () => {
+  const editor = createRef<TextInput>()
+  await render(<TableFixture editorRef={editor} />)
+  const original = editor.current!
+  const write = jest.spyOn(original, "setNativeProps")
+  await press("Toggle selection veto")
+  await press("Programmatic select all")
+  await press("Programmatic select all")
+  await press("Inspect Table state")
+  expect(screen.getByTestId("table-selection-requests")).toHaveTextContent('["all","all"]')
+  expect(JSON.parse(screen.getByTestId("table-state-proof").props.children)).toMatchObject({
+    rows: ["a", "b"],
+    selected: [],
+    first: "a",
+    treeColumn: "name",
+  })
+  await press("Toggle selection veto")
+  await press("Programmatic select all")
+  await press("Inspect Table state")
+  expect(JSON.parse(screen.getByTestId("table-state-proof").props.children).selected).toEqual(["a", "b"])
+  expect(editor.current === original).toBe(true)
+  expect(write).not.toHaveBeenCalled()
+})
+
+it("exercises state expansion, source sorting and navigation controls through the maintained owner", async () => {
+  await render(<TableFixture />)
+  await press("Toggle query veto")
+  await press("Toggle Alpha expansion")
+  await press("Toggle Alpha expansion")
+  expect(screen.getByTestId("table-expansion-requests")).toHaveTextContent('[["a"],["a"]]')
+  await press("Toggle query veto")
+  await press("Toggle Alpha expansion")
+  await press("Programmatic Person sort")
+  await press("Toggle table navigation")
+  await press("Inspect Table state")
+  expect(JSON.parse(screen.getByTestId("table-state-proof").props.children)).toMatchObject({
+    expanded: ["a"],
+    navigationDisabled: true,
+  })
+  expect(screen.getByTestId("table-sorts")).toHaveTextContent(/Ascending/)
+  expect(screen.getByTestId("table-editor").props.value).toBe("held")
+})

@@ -1,9 +1,11 @@
-import { useState, type Ref } from "react"
+import { useCallback, useContext, useLayoutEffect, useRef, useState, type Ref, type RefObject } from "react"
 import { ScrollView, View, type TextInput } from "react-native"
 
 import { Button, Input, NativeFloatingLayerHost, NativeOverlayProvider, NativeThemeProvider, Text } from "../../../.."
+import { NativeTableStateContext } from "../../context"
 import type { TTableSortInstruction } from "../../queryTypes"
 import type { TTableFilterGroup } from "../../queryTypes"
+import type { TNativeTableState } from "../../state/useTableState"
 import { Table } from "../../Table"
 import { TableBody } from "../../TableBody"
 import { TableHeader } from "../../TableHeader"
@@ -17,13 +19,48 @@ const people: TPerson[] = [
   { id: "a", name: "Alpha", active: false },
   { id: "b", name: "Beta", active: true },
 ]
-const renderHeader: NonNullable<TNativeTableHeaderProps<TPerson>["render"]> = (props, state) => (
-  <View {...props} style={[props.style, { opacity: state.isHovered ? 0.85 : 1 }]} />
-)
+const StateCapture = ({ target }: { target: RefObject<TNativeTableState<object> | null> }) => {
+  const state = useContext(NativeTableStateContext)
+  useLayoutEffect(() => {
+    target.current = state
+    return () => {
+      if (target.current === state) target.current = null
+    }
+  }, [state, target])
+  return null
+}
 const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props, state) => (
   <View {...props} style={[props.style, { opacity: state.isEmpty ? 0.85 : 1 }]} />
 )
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
+  const tableState = useRef<TNativeTableState<object> | null>(null)
+  const [stateSummary, setStateSummary] = useState("No state snapshot")
+  const [expanded, setExpanded] = useState<Set<string | number>>(new Set())
+  const [expansionRequests, setExpansionRequests] = useState<(string | number)[][]>([])
+  const renderHeader = useCallback<NonNullable<TNativeTableHeaderProps<TPerson>["render"]>>(
+    (props, state) => (
+      <View {...props} style={[props.style, { opacity: state.isHovered ? 0.85 : 1 }]}>
+        <StateCapture target={tableState} />
+        {props.children}
+      </View>
+    ),
+    [],
+  )
+  const inspectState = () => {
+    const state = tableState.current
+    if (state)
+      setStateSummary(
+        JSON.stringify({
+          columns: state.collection.columns.map((node) => node.key),
+          rows: state.collection.rows.map((node) => node.key),
+          selected: [...state.selectionManager.selectedKeys],
+          expanded: [...state.expandedKeys],
+          navigationDisabled: state.isKeyboardNavigationDisabled,
+          first: state.collection.getFirstKey(),
+          treeColumn: state.treeColumn,
+        }),
+      )
+  }
   const [headerHovered, setHeaderHovered] = useState(false)
   const [reversed, setReversed] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -88,6 +125,21 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
               <Button onPress={() => setDark((value) => !value)}>Toggle theme</Button>
               <Button onPress={() => setHoldSelection((value) => !value)}>Toggle selection veto</Button>
               <Button onPress={() => setHoldQuery((value) => !value)}>Toggle query veto</Button>
+              <Button onPress={() => tableState.current?.selectionManager.selectAll()}>Programmatic select all</Button>
+              <Button onPress={() => tableState.current?.selectionManager.clearSelection()}>
+                Programmatic clear selection
+              </Button>
+              <Button onPress={() => tableState.current?.toggleKey("a")}>Toggle Alpha expansion</Button>
+              <Button
+                onPress={() => {
+                  const state = tableState.current
+                  state?.setKeyboardNavigationDisabled(!state.isKeyboardNavigationDisabled)
+                }}
+              >
+                Toggle table navigation
+              </Button>
+              <Button onPress={() => tableState.current?.sort("name", "descending")}>Programmatic Person sort</Button>
+              <Button onPress={inspectState}>Inspect Table state</Button>
             </View>
             <Table
               ref={tableRef}
@@ -97,6 +149,12 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
               zebraColor={dark ? "#333333" : "#eeeeee"}
               selectionMode="multiple"
               selectedKeys={selected}
+              expandedKeys={expanded}
+              treeColumn="name"
+              onExpandedChange={(next) => {
+                setExpansionRequests((previous) => [...previous, [...next]])
+                if (!holdQuery) setExpanded(next)
+              }}
               clickableRows
               onSelectionChange={(next) => {
                 setSelectionRequests((previous) => [...previous, next === "all" ? "all" : JSON.stringify([...next])])
@@ -160,6 +218,8 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
                 )}
               />
             </Table>
+            <Text testID="table-state-proof">{stateSummary}</Text>
+            <Text testID="table-expansion-requests">{JSON.stringify(expansionRequests)}</Text>
             <Text testID="table-requests">{JSON.stringify(requests)}</Text>
             <Text testID="table-header-hover">{String(headerHovered)}</Text>
             <Text testID="table-selection">{selected === "all" ? "all" : JSON.stringify([...selected])}</Text>

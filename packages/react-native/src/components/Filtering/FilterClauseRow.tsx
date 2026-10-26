@@ -9,10 +9,11 @@ import { resolveNativeStyle } from "../colors"
 import { createQueryFilterClauseDraft } from "../Table/filterDraft"
 import { resolveNativeTableFilteringLabels, type TPartialNativeTableFilteringLabels } from "../Table/filterLabels"
 
+import { DynamicFilterArgumentInput } from "./DynamicFilterArgumentInput"
 import { FilterClauseSelectors, type TFilterClauseSelectorsProps } from "./FilterClauseSelectors"
 import { FilterDeleteGlyph } from "./FilterDeleteGlyph"
 import { computeFilterArgumentType, computeFilterArgumentAccessibleLabel } from "./metadata"
-import { renderNonTemporalFilterArgumentInput, isNonTemporalFilterArgumentDataType } from "./renderNonTemporalArgument"
+import { isNonTemporalFilterArgumentDataType } from "./renderNonTemporalArgument"
 import { useFilterRequest } from "./requests"
 
 export type TNativeFilterClauseRowProps = Omit<TNativeCardProps, "children" | "style" | "customStyles"> &
@@ -107,23 +108,23 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
           }}
         />
         <View testID="filter-clause-row-argument" style={props.customArgumentStyles}>
-          {isNonTemporalFilterArgumentDataType(group.dataType) &&
-            renderNonTemporalFilterArgumentInput({
-              dataType: group.dataType,
-              argument: clause.argument,
-              filterArgumentType: kind,
-              filterArgumentSelectedKey: clause.filterArgumentSelectedKey ?? null,
-              availableFilterArguments: group.availableFilterArguments,
-              booleanArgumentComponent: props.booleanArgumentComponent,
-              filterArgumentAccessibleLabel: computeFilterArgumentAccessibleLabel({
+          {isNonTemporalFilterArgumentDataType(group.dataType) && (
+            <DynamicFilterArgumentInput
+              dataType={group.dataType}
+              argument={clause.argument}
+              filterArgumentType={kind}
+              filterArgumentSelectedKey={clause.filterArgumentSelectedKey ?? null}
+              availableFilterArguments={group.availableFilterArguments}
+              booleanArgumentComponent={props.booleanArgumentComponent}
+              filterArgumentAccessibleLabel={computeFilterArgumentAccessibleLabel({
                 criteriaName: group.criteriaName,
                 operationCode: clause.operationCode,
                 labels: labels.filterClause,
-              }),
-              labels: labels.argumentInput,
-              nativeLabels: labels.native,
-              canAct: props.canAct,
-              onArgumentChange: request((current, { argument, filterArgumentSelectedKey }) => {
+              })}
+              labels={labels.argumentInput}
+              nativeLabels={labels.native}
+              canAct={props.canAct}
+              onArgumentChange={request((current, { argument, filterArgumentSelectedKey }) => {
                 if (!current.group.clauses.some((candidate) => candidate.id === current.clause.id)) return
                 current.onModifyFilterClause({
                   newCriteriaID: current.group.criteriaID,
@@ -135,8 +136,9 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
                     filterArgumentSelectedKey,
                   }),
                 })
-              }),
-            })}
+              })}
+            />
+          )}
         </View>
       </View>
       {!props.hideDeleteButton && (

@@ -139,7 +139,7 @@ it.each([
   [null, ""],
   [{ nested: 0 }, '{"nested":0}'],
 ] as const)("renders canonical scalar/object cell value %j", async (value, expected) => {
-  const data = [{ id: "value", value }]
+  const data = [{ id: "row-value", value }]
   const metadata = [{ id: "value", name: "Value", isRowHeader: true }]
   await render(
     wrap(

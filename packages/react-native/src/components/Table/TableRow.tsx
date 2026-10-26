@@ -41,6 +41,7 @@ const Row = (props: TNativeTableRowProps<object>, ref: ForwardedRef<View>, node:
     id: _id,
     textValue: _textValue,
     item: _item,
+    hasChildItems: _hasChildItems,
     columns: _columns,
     renderCell: _render,
     geometry: _geometry,

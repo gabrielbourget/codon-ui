@@ -17,6 +17,7 @@ import { DEFAULT_QUERY_CONTROL_LABELS } from "../controlLabels"
 import { QuerySortParameterList, type TQuerySortParameterListProps } from "../SortParameterList"
 
 const mockViews = new Map<string, RN.View>()
+const mockAttachments: { ownerId: string; attached: boolean }[] = []
 jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => {
   const React = jest.requireActual<typeof import("react")>("react"),
     Native = jest.requireActual<typeof RN>("react-native")
@@ -25,6 +26,7 @@ jest.mock("../../../input/specs/CUIFocusViewNativeComponent", () => {
     default: React.forwardRef<RN.View, RN.ViewProps & { ownerId: string }>((props, ref) => {
       const bind = React.useCallback(
         (view: RN.View | null) => {
+          mockAttachments.push({ ownerId: props.ownerId, attached: view !== null })
           if (view) mockViews.set(props.ownerId, view)
           else mockViews.delete(props.ownerId)
           if (typeof ref === "function") ref(view)
@@ -113,6 +115,7 @@ beforeEach(() => {
   jest.clearAllMocks()
   jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true)
   mockViews.clear()
+  mockAttachments.length = 0
   const native = jest.requireActual<typeof RN>("react-native"),
     base = jest.mocked(native.findNodeHandle).getMockImplementation()!,
     tags = new WeakMap<object, number>()
@@ -278,4 +281,20 @@ it("uses current theme colors and opaque native colors without replacing the sor
   expect(background()).toEqual(nativeColor)
   expect(Commands.requestKeyboardFocus).toHaveBeenCalledTimes(commands)
   expect(mockViews.get(option().props.ownerId)).toBe(original)
+})
+
+it("keeps a physical sort option attached across current metadata updates and detaches on actual removal", async () => {
+  const value = props()
+  const view = await render(tree(value))
+  const ownerId = option().props.ownerId
+  const original = mockViews.get(ownerId)
+  mockAttachments.length = 0
+  await view.rerender(tree({ ...value, sortParameterList: [rows[1], { ...rows[0], criteriaName: "Current City" }] }))
+  expect(mockViews.get(ownerId) === original).toBe(true)
+  expect(mockAttachments.filter((event) => event.ownerId === ownerId && !event.attached)).toHaveLength(0)
+  await observe(option())
+  await key(option(), "ArrowUp")
+  expectFocus(option("name"))
+  await view.rerender(tree({ ...value, sortParameterList: [rows[1]] }))
+  expect(mockAttachments.filter((event) => event.ownerId === ownerId && !event.attached)).toHaveLength(1)
 })

@@ -5,6 +5,7 @@ import { findNodeHandle } from "react-native"
 import { NativeCollectionActionsContext } from "../../collection/actions"
 import { NativeCollectionItemBindingContext } from "../../collection/binding"
 import { createNativeCollectionLeaf } from "../../collection/CollectionBuilder"
+import { DefaultNativeCollectionRenderer, NativeCollectionRendererContext } from "../../collection/renderer"
 import { NativeCollectionSemanticsContext } from "../../collection/semantics"
 import type { TNativeCollectionNode } from "../../collection/snapshot"
 import { nativeKeyTokens } from "../../input/keyScope"
@@ -35,6 +36,7 @@ const Cell = (
     id: _id,
     textValue: _textValue,
     columnID,
+    colSpan: _colSpan,
     isRowHeader: _columnHeader,
     allowsSorting,
     alignment,
@@ -78,7 +80,7 @@ const Cell = (
         {
           padding: 5,
           minWidth: 0,
-          flexGrow: fluid ? 1 : 0,
+          flexGrow: fluid ? (node.colSpan ?? 1) : 0,
           flexShrink: fluid ? 1 : 0,
           flexBasis: fluid ? 0 : "auto",
           justifyContent: "center",
@@ -105,6 +107,7 @@ const Cell = (
     ancestor = ancestor.parentKey == null ? null : table.collection.getItem(ancestor.parentKey)
   }
   const lastChild = parent?.lastChildKey == null ? null : table.collection.getItem(parent.lastChildKey)
+  const hasChildItems = !!parent?.props.hasChildItems || (!!lastChild && lastChild.type !== "cell")
   const renderState: TNativeTableCellRenderState = {
     // The public source Table selects rows and exposes no cell-action prop.
     isPressed: false,
@@ -114,10 +117,10 @@ const Cell = (
     isSelected: !!parent && table.manager.isSelected(parent.key),
     isDisabled: !!parent && table.manager.isDisabled(parent.key),
     id: node.key,
-    columnIndex: index,
-    isTreeColumn: false,
-    isExpanded: false,
-    hasChildItems: !!parent?.props.hasChildItems || (!!lastChild && lastChild.type !== "cell"),
+    columnIndex: node.colIndex || index,
+    isTreeColumn: !heading && table.collection.columns[node.index]?.key === table.state.treeColumn,
+    isExpanded: hasChildItems && !!parent && table.state.expandedKeys.has(parent.key),
+    hasChildItems,
     level,
     defaultChildren: undefined,
   }
@@ -128,7 +131,9 @@ const Cell = (
       <NativeContentContext.Provider
         value={{ foregroundColor: styles.text.color ?? theme.colors.foreground, isButton: false }}
       >
-        {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+        <NativeCollectionRendererContext.Provider value={DefaultNativeCollectionRenderer}>
+          {getNativeButtonContent(typeof children === "function" ? children(renderState) : children, styles.text)}
+        </NativeCollectionRendererContext.Provider>
       </NativeContentContext.Provider>
     </NativeTableCellContext.Provider>
   )
@@ -141,9 +146,9 @@ const Cell = (
                 kind: "cell",
                 parentTarget: table.target,
                 rowIndex,
-                columnIndex: index,
+                columnIndex: node.colIndex ?? index,
                 rowSpan: 1,
-                columnSpan: 1,
+                columnSpan: node.colSpan ?? 1,
                 heading: heading || !!isRowHeader,
                 selected: !heading && parent ? table.manager.isSelected(parent.key) : false,
                 rowHeaderTargets: rowHeaders,
