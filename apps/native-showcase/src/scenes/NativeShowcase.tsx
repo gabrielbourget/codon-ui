@@ -26,6 +26,7 @@ import { AVAILABLE_LAYOUT_FIXTURES, LAYOUT_FIXTURE_LABELS, type TLayoutFixture }
 import { AvatarScene } from "./AvatarScene"
 import { BasicControlsScene } from "./BasicControlsScene"
 import { BreadcrumbsScene } from "./BreadcrumbsScene"
+import { CarouselScene } from "./CarouselScene"
 import { CircularCounterScene } from "./CircularCounterScene"
 import { ClickPopoverScene } from "./ClickPopoverScene"
 import { DisplayScene } from "./DisplayScene"
@@ -182,6 +183,7 @@ export const NativeShowcase = () => {
     | "tag"
     | "tag-group"
     | "tag-combo-box"
+    | "carousel"
     | "link"
     | "thumbnail"
     | "gallery"
@@ -291,6 +293,11 @@ export const NativeShowcase = () => {
               />
               <FixtureAction label="Link scene" selected={scene === "link"} onPress={() => setScene("link")} />
               <FixtureAction
+                label="Carousel scene"
+                selected={scene === "carousel"}
+                onPress={() => setScene("carousel")}
+              />
+              <FixtureAction
                 label="Thumbnail scene"
                 selected={scene === "thumbnail"}
                 onPress={() => setScene("thumbnail")}
@@ -372,6 +379,8 @@ export const NativeShowcase = () => {
                 <TagGroupScene />
               ) : scene === "tag-combo-box" ? (
                 <TagComboBoxScene />
+              ) : scene === "carousel" ? (
+                <CarouselScene />
               ) : scene === "avatar" ? (
                 <AvatarScene />
               ) : scene === "toggle" ? (

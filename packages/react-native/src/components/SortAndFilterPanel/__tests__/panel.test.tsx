@@ -224,6 +224,41 @@ it("composes registry-shaped sort editing, removal, clear, apply order and held 
   await present()
   expect(screen.getByText("No sorting currently applied")).toBeOnTheScreen()
 })
+
+it("reorders the visible draft, applies its exact order, and restores the owner's order on held Cancel", async () => {
+  const activeSorts: TTableSortInstruction[] = [
+    { id: "city", criteriaID: "city", criteriaName: "City", queryKey: "event.city", sortDirection: "Ascending" },
+    { id: "name", criteriaID: "name", criteriaName: "Name", queryKey: "event.name", sortDirection: "Descending" },
+  ]
+  const events: unknown[] = []
+  await render(
+    tree({
+      activeSorts,
+      applyPendingSortAndFilterChanges: (request) => events.push(request),
+      onOpenChange: (open) => events.push(open),
+    }),
+  )
+  await present()
+  await act(() =>
+    host("query-sort-option-city").props.onAccessibilityAction({ nativeEvent: { actionName: "activate" } }),
+  )
+  await acknowledge()
+  await act(() =>
+    host("query-sort-option-name").props.onAccessibilityAction({ nativeEvent: { actionName: "dropAfter" } }),
+  )
+  await acknowledge()
+  expect(JSON.parse(host("query-sort-option-name").props.nativeCollectionSemantics).ordinal).toBe(0)
+  expect(events).toEqual([])
+  expect(activeSorts.map((sort) => sort.id)).toEqual(["city", "name"])
+  await press("Apply")
+  expect(events).toEqual([{ sortInstructions: [activeSorts[1], activeSorts[0]], filterGroups: [] }, false])
+  await press("Apply")
+  expect(events).toHaveLength(4)
+  await press("Cancel")
+  expect(events.at(-1)).toBe(false)
+  expect(JSON.parse(host("query-sort-option-city").props.nativeCollectionSemantics).ordinal).toBe(0)
+  expect(activeSorts.map((sort) => sort.id)).toEqual(["city", "name"])
+})
 it("restores the applied snapshot on Cancel while Close only requests dismissal", async () => {
   const activeSorts: TTableSortInstruction[] = [
     { id: "city", criteriaID: "city", criteriaName: "City", sortDirection: "Ascending" },

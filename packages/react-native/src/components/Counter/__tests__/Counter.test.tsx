@@ -1,4 +1,4 @@
-import { act, render, screen } from "@testing-library/react-native"
+import { act, fireEvent, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
 import type { View } from "react-native"
 import { AccessibilityInfo, Animated, processColor, StyleSheet } from "react-native"
@@ -154,14 +154,42 @@ it("updates provider status colors and retains nonnumeric text while omitting in
   expect(screen.getByTestId("counter-value")).toHaveStyle({ color: "orange" })
 })
 
-it("consumes wrapper props and rejects unimplemented browser relationships", async () => {
-  await render(<Counter value={1} maxValue={2} showMaxValue warningPercentageThreshold={80} />)
+it("consumes wrapper props and binds native description/details ID relationships", async () => {
+  await render(
+    <Counter
+      value={1}
+      maxValue={2}
+      showMaxValue
+      warningPercentageThreshold={80}
+      ariaDetails="detail"
+      ariaDescribedBy="first second"
+    />,
+  )
   const root = screen.getByTestId("counter")
   for (const key of ["value", "maxValue", "showMaxValue", "warningPercentageThreshold", "customStyles", "color"])
     expect(root.props[key]).toBeUndefined()
-  await expect(render(<Counter value={1} {...({ ariaDetails: "detail" } as object)} />)).rejects.toThrow(
-    /relationships/,
-  )
+  expect(root.props.nativeDescribedBy).toEqual(["first", "second"])
+  expect(root.props.nativeDetailsBy).toEqual(["detail"])
+  expect(root.props.keyboardFocusable).toBe(false)
+})
+
+it.each([
+  [0, false, true],
+  [-1, true, false],
+] as const)("preserves tabIndex %s precedence over focusable %s", async (tabIndex, focusable, expected) => {
+  await render(<Counter value={1} tabIndex={tabIndex} focusable={focusable} />)
+  expect(screen.getByTestId("counter").props.keyboardFocusable).toBe(expected)
+})
+
+it("retains original bubbling core focus and blur callbacks on its native relationship host", async () => {
+  const onFocus = jest.fn(),
+    onBlur = jest.fn()
+  await render(<Counter value={1} onFocus={onFocus} onBlur={onBlur} />)
+  const original = { nativeEvent: { target: 41 } }
+  await fireEvent(screen.getByTestId("counter"), "focus", original)
+  await fireEvent(screen.getByTestId("counter"), "blur", original)
+  expect(onFocus.mock.calls).toEqual([[original]])
+  expect(onBlur.mock.calls).toEqual([[original]])
 })
 
 it("inherits the canonical color transition once, interrupts at current color and cleans up", async () => {

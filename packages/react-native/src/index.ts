@@ -1,8 +1,36 @@
-export { CarouselCloseButton } from "./components/Carousel/CarouselControls"
+export { Carousel } from "./components/Carousel/Carousel"
+export { CarouselCounter } from "./components/Carousel/CarouselCounter"
+export { CarouselDots } from "./components/Carousel/CarouselDots"
+export { CarouselCloseButton, CarouselPrevButton, CarouselNextButton } from "./components/Carousel/CarouselControls"
+export type {
+  TNativeBaseCarouselItem,
+  TNativeBaseCarouselItem as BaseCarouselItem,
+  TNativeCarouselProps,
+  TNativeCarouselProps as CarouselProps,
+  TNativeCarouselLabels,
+  TNativeCarouselLabels as CarouselLabels,
+  TNativeCarouselContext,
+  TNativeCarouselControlComponent,
+  TNativeCarouselControlComponent as CarouselControlComponent,
+  TNativeCarouselControlComponentProps,
+  TNativeCarouselControlComponentProps as CarouselControlComponentProps,
+  TNativeCarouselCounterProps,
+  TNativeCarouselCounterProps as CarouselCounterProps,
+  TNativeCarouselDotsProps,
+  TNativeCarouselDotsProps as CarouselDotsProps,
+} from "./components/Carousel/carouselTypes"
+export type { EmblaCarouselType as TNativeCarouselApi } from "./components/Carousel/engine/EmblaCarousel"
+export type { EmblaOptionsType as TNativeCarouselOptions } from "./components/Carousel/engine/Options"
+export type { EmblaPluginType as TNativeCarouselPlugin } from "./components/Carousel/engine/Plugins"
+export type { EmblaEventType as TNativeCarouselEvent } from "./components/Carousel/engine/EventHandler"
 export type {
   TNativeCarouselCloseButtonProps,
   TNativeCarouselCloseButtonProps as CarouselCloseButtonProps,
   TNativeCarouselCloseButtonRef,
+  TNativeCarouselPrevButtonProps,
+  TNativeCarouselPrevButtonProps as CarouselPrevButtonProps,
+  TNativeCarouselNextButtonProps,
+  TNativeCarouselNextButtonProps as CarouselNextButtonProps,
 } from "./components/Carousel/types"
 
 export { CircularProgress } from "./components/CircularProgress/CircularProgress"

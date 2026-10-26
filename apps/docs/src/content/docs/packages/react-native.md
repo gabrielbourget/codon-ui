@@ -772,9 +772,56 @@ const Example = () => {
 
 Use this provider once at the application boundary, rather than nesting the example under another overlay provider. The existing application-owned Intl setup still precedes importing the native barrel. The roadmap records current source availability and separate installed/consumer acceptance; remaining searchable/date/table checkpoints and physical/closer owner visual review remain distinct. iPhone signing stays deferred.
 
-## Carousel Close Control
+## Carousel
 
-CarouselCloseButton is independently usable before the full Carousel family exists. It composes the native Button with round geometry, raised=false, raisedOnHover=true, translucent black background, padding5 and a20-unit current-foreground SVG icon. The grouped labels.closeButtonAriaLabel defaults nullishly to Close Carousel; explicit empty names remain authored.
+Carousel provides the generic item renderer, initial-index synchronization, both axes and all alignments, looping with short-track fallback, selection callbacks, independent root/viewport/container/item/chrome styles and all five chrome components. Mount the family under the existing NativeFloatingLayerHost. A functional chromeSlot receives the current context and slot="custom"; context includes the original native engine, selection, availability, item IDs and resolved grouped labels. autoPlayEnabled retains the canonical reserved, unused behavior.
+
+```tsx
+import { View } from "react-native"
+import {
+  Carousel,
+  CarouselCounter,
+  CarouselDots,
+  CarouselPrevButton,
+  CarouselNextButton,
+  Text,
+} from "@codon-ui/react-native"
+
+const items = [
+  { ID: "first", title: "First" },
+  { ID: "second", title: "Second" },
+]
+const ItemCarousel = () => (
+  <Carousel
+    items={items}
+    style={{ height: 240 }}
+    renderCarouselItem={({ item, isSelected }) => (
+      <Text>
+        {item.title}
+        {isSelected ? " (selected)" : ""}
+      </Text>
+    )}
+    chromeSlot={() => (
+      <View style={{ flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between" }}>
+        <CarouselPrevButton />
+        <CarouselCounter />
+        <CarouselDots />
+        <CarouselNextButton />
+      </View>
+    )}
+  />
+)
+```
+
+onViewportRefChange receives the actual native viewport and null on detachment. The component-owned engine ports the pinned Embla8.6.0 scroll math with its MIT notice; it adds no Embla runtime dependency. The complete21-method API,13 events, internal engine, native reInit options and plugins remain available through context.emblaApi. Original native hosts replace DOM nodes. Custom container/slide selections use original-node/style/event/current bindings, and named breakpoints use predicates over the native window state. DOM selectors, browser objects and CSS media-query records are excluded by the native types. Engine cleanup retires observers, plugins, input leases and frames without replacing caller refs.
+
+Viewport keyboard navigation is the default; root targeting, axis arrows and optional Home/End retain the canonical modifier and editable-target rules. Dots provide manual/automatic roving focus, original native keys, checked radio targets, full window/reversal/wrap behavior and optional overflow sentinels. The native item-control association uses the caller's item ID in a named accessibility action which navigates to that item; it does not claim a browser aria-controls property. Passive dots hide their graphics from accessibility. Actual native keyboard/default, focus, gesture arbitration, accessibility relationships/actions, motion, clipping and profile equivalence remain acceptance obligations.
+
+CarouselCounter retains the independent wrapper, Counter and Text style/prop owners and late customCounterProps/customTextProps precedence. Its explicitly approved native paint is a root-local theme surface at75% opacity between the wrapper background and content; browser ancestor-dependent negative-z-index occlusion is not reproduced. Counter description/details ID strings use the existing native relationship binding, and dynamic native colors remain native color values.
+
+### Standalone Close Control
+
+CarouselCloseButton is independently usable. It composes the native Button with round geometry, raised=false, raisedOnHover=true, translucent black background, padding5 and a20-unit current-foreground SVG icon. The grouped labels.closeButtonAriaLabel defaults nullishly to Close Carousel; explicit empty names remain authored.
 
 ```tsx
 import { CarouselCloseButton } from "@codon-ui/react-native"
@@ -792,7 +839,7 @@ const CloseControl = ({ onClose }: { onClose: () => void }) => (
 
 Default props precede outer Button props, then customButtonProps; that inner layer can replace the callback, disabled state, name and final style. customStyles merges default→outer→inner. Explicit children have final ownership: false/0/empty render as authored, null/undefined select the icon and nested customButtonProps.children cannot replace them. Native View refs/events, registered styles, render children, live provider foreground and disabled/pending guards retain the Button contract. DOM classes/styles/refs/events are excluded.
 
-The Text/Button showcase scene exposes caller-owned preview visibility and a separate close-action count, restoration, scene guards/styles and explicit reset. Source/scene/type checks leave actual target geometry, SVG rendering, accessibility and installed profile acceptance open. Context-dependent Prev/Next remain private; Carousel root/engine interop, hardware keyboard behavior, dots and counter are required pending work. The extra public close export does not establish a complete Carousel counterpart or close its aggregate catalogue gates.
+The Text/Button showcase scene retains its independently owned close preview. The separate Carousel scene exercises the whole public family, caller-controlled visibility, collection insertion/removal/reordering, both axes, loop and requested-index changes, manual/passive dots, overlay/direct chrome, an editable child and raw engine commands. Source integration and compiled products do not close the component's native or profile gates.
 
 ## Toaster
 

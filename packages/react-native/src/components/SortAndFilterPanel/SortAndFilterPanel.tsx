@@ -141,6 +141,7 @@ const QueryPanelBody = ({
               onSortAscending={(id) => controller.setSortDirection(id, "Ascending")}
               onSortDescending={(id) => controller.setSortDirection(id, "Descending")}
               onDeleteSortParameter={controller.removeSort}
+              onReorder={controller.reorderSort}
             />
           )}
         </View>

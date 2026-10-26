@@ -32,13 +32,9 @@ export const CssStyle = <CarouselCloseButton customStyles="padding: 0" />
 export const DomRef = <CarouselCloseButton ref={createRef<HTMLButtonElement>()} />
 // @ts-expect-error Web click events do not replace native press events.
 export const DomEvent = <CarouselCloseButton onPress={(event: React.MouseEvent<HTMLButtonElement>) => void event} />
-// @ts-expect-error The full carousel root is not implemented by this chrome checkpoint.
 export { Carousel } from "../src"
-// @ts-expect-error Context-dependent controls remain private until root construction.
 export { CarouselPrevButton } from "../src"
-// @ts-expect-error Context-dependent controls remain private until root construction.
 export { CarouselNextButton } from "../src"
-// @ts-expect-error Private passive graphics do not export the full radio/keyboard contract.
 export { CarouselDots } from "../src"
 // @ts-expect-error Passive strip composition remains an implementation detail.
 export { NativeCarouselDotsVisualStrip } from "../src"
