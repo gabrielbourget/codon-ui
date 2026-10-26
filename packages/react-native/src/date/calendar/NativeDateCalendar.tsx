@@ -29,6 +29,7 @@ import { NativeCalendarRangeGesture } from "./rangeGesture"
 import { calendarStrings, nativeCalendarSelection, nativeCalendarTitle } from "./semantics"
 import { NativeCalendarTargets } from "./targets"
 import { useNativeCalendarPointers } from "./useCalendarPointers"
+import { nativeCalendarCallbackDate, nativeCalendarOutput } from "./valueBoundary"
 const noSubscription = () => () => {},
   zero = () => 0
 let calendarOwnerRevisions = 0
@@ -263,7 +264,9 @@ const SingleCalendar = (
   const state = useCalendarState({
     minValue: p.minValue,
     maxValue: p.maxValue,
-    isDateUnavailable: p.isDateUnavailable,
+    isDateUnavailable: p.isDateUnavailable
+      ? (date) => p.isDateUnavailable!(nativeCalendarCallbackDate(date))
+      : undefined,
     isDisabled: p.isDisabled,
     isReadOnly: p.isReadOnly,
     firstDayOfWeek: p.firstDayOfWeek,
@@ -272,7 +275,7 @@ const SingleCalendar = (
     locale: options.locale,
     createCalendar,
     value: options.state.dateValue,
-    onChange: options.state.setDateValue,
+    onChange: (date) => options.state.setDateValue(nativeCalendarOutput(date, options.state.dateValue)),
     visibleDuration: { months: (p.multiMonth ?? true) ? 2 : 1 },
     defaultFocusedValue: p.placeholderValue ?? undefined,
     isInvalid: options.state.isInvalid,
@@ -290,7 +293,9 @@ const RangeCalendar = (
     allowsNonContiguousRanges: p.allowsNonContiguousRanges,
     minValue: p.minValue,
     maxValue: p.maxValue,
-    isDateUnavailable: p.isDateUnavailable,
+    isDateUnavailable: p.isDateUnavailable
+      ? (date) => p.isDateUnavailable!(nativeCalendarCallbackDate(date))
+      : undefined,
     isDisabled: p.isDisabled,
     isReadOnly: p.isReadOnly,
     firstDayOfWeek: p.firstDayOfWeek,
@@ -299,7 +304,11 @@ const RangeCalendar = (
     locale: options.locale,
     createCalendar,
     value: value?.start && value?.end ? { start: value.start, end: value.end } : null,
-    onChange: options.state.setDateRange,
+    onChange: (range) =>
+      options.state.setDateRange({
+        start: nativeCalendarOutput(range.start, options.state.dateRange?.start ?? null),
+        end: nativeCalendarOutput(range.end, options.state.dateRange?.end ?? null),
+      }),
     visibleDuration: { months: (p.multiMonth ?? false) ? 2 : 1 },
     defaultFocusedValue: p.placeholderValue ?? undefined,
     isInvalid: options.state.isInvalid,
