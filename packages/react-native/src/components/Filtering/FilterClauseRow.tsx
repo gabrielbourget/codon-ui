@@ -13,7 +13,6 @@ import { DynamicFilterArgumentInput } from "./DynamicFilterArgumentInput"
 import { FilterClauseSelectors, type TFilterClauseSelectorsProps } from "./FilterClauseSelectors"
 import { FilterDeleteGlyph } from "./FilterDeleteGlyph"
 import { computeFilterArgumentType, computeFilterArgumentAccessibleLabel } from "./metadata"
-import { isNonTemporalFilterArgumentDataType } from "./renderNonTemporalArgument"
 import { useFilterRequest } from "./requests"
 
 export type TNativeFilterClauseRowProps = Omit<TNativeCardProps, "children" | "style" | "customStyles"> &
@@ -57,10 +56,6 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
     ...card
   } = props
   const kind = computeFilterArgumentType(group, clause)
-  if (kind && !isNonTemporalFilterArgumentDataType(group.dataType))
-    throw new Error(
-      `Native temporal filter editor is not constructed: ${group.dataType}. Picker construction remains required.`,
-    )
   return (
     <Card
       {...card}
@@ -108,37 +103,35 @@ export const FilterClauseRow = (props: TNativeFilterClauseRowProps) => {
           }}
         />
         <View testID="filter-clause-row-argument" style={props.customArgumentStyles}>
-          {isNonTemporalFilterArgumentDataType(group.dataType) && (
-            <DynamicFilterArgumentInput
-              dataType={group.dataType}
-              argument={clause.argument}
-              filterArgumentType={kind}
-              filterArgumentSelectedKey={clause.filterArgumentSelectedKey ?? null}
-              availableFilterArguments={group.availableFilterArguments}
-              booleanArgumentComponent={props.booleanArgumentComponent}
-              filterArgumentAccessibleLabel={computeFilterArgumentAccessibleLabel({
-                criteriaName: group.criteriaName,
-                operationCode: clause.operationCode,
-                labels: labels.filterClause,
-              })}
-              labels={labels.argumentInput}
-              nativeLabels={labels.native}
-              canAct={props.canAct}
-              onArgumentChange={request((current, { argument, filterArgumentSelectedKey }) => {
-                if (!current.group.clauses.some((candidate) => candidate.id === current.clause.id)) return
-                current.onModifyFilterClause({
-                  newCriteriaID: current.group.criteriaID,
-                  updatedClause: createQueryFilterClauseDraft({
-                    id: current.clause.id,
-                    operationCode: current.clause.operationCode,
-                    conditionType: current.clause.conditionType,
-                    argument: argument === null ? undefined : argument,
-                    filterArgumentSelectedKey,
-                  }),
-                })
-              })}
-            />
-          )}
+          <DynamicFilterArgumentInput
+            dataType={group.dataType}
+            argument={clause.argument}
+            filterArgumentType={kind}
+            filterArgumentSelectedKey={clause.filterArgumentSelectedKey ?? null}
+            availableFilterArguments={group.availableFilterArguments}
+            booleanArgumentComponent={props.booleanArgumentComponent}
+            filterArgumentAccessibleLabel={computeFilterArgumentAccessibleLabel({
+              criteriaName: group.criteriaName,
+              operationCode: clause.operationCode,
+              labels: labels.filterClause,
+            })}
+            labels={labels.argumentInput}
+            nativeLabels={labels.native}
+            canAct={props.canAct}
+            onArgumentChange={request((current, { argument, filterArgumentSelectedKey }) => {
+              if (!current.group.clauses.some((candidate) => candidate.id === current.clause.id)) return
+              current.onModifyFilterClause({
+                newCriteriaID: current.group.criteriaID,
+                updatedClause: createQueryFilterClauseDraft({
+                  id: current.clause.id,
+                  operationCode: current.clause.operationCode,
+                  conditionType: current.clause.conditionType,
+                  argument: argument === null ? undefined : argument,
+                  filterArgumentSelectedKey,
+                }),
+              })
+            })}
+          />
         </View>
       </View>
       {!props.hideDeleteButton && (

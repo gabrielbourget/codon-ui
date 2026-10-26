@@ -1,4 +1,3 @@
-import { parseDate, parseTime } from "@internationalized/date"
 import type { FC } from "react"
 
 import DateTimePicker from "../../../../DateTimePicker/DateTimePicker"
@@ -8,6 +7,7 @@ import NumberInput from "../../../../NumberInput/NumberInput"
 import TimePicker from "../../../../TimePicker/TimePicker"
 import { DEFAULT_TABLE_FILTERING_LABELS } from "../../../labels"
 import type { TFilterArgumentInputContext } from "../../helpers"
+import { parseFilterDateArgument, parseFilterDateTimeArgument, parseFilterTimeArgument } from "../temporalValues"
 
 export type TInputTypeFilterArgumentProps = TFilterArgumentInputContext
 
@@ -81,12 +81,11 @@ const InputTypeFilterArgument: FC<TInputTypeFilterArgumentProps> = (props) => {
           multiMonth
           aria-labelledby="date-input-type-filter-argument"
           className={customInputClassName}
-          value={argument ? parseDate(argument as string) : null}
+          value={parseFilterDateArgument(argument)}
           labels={resolvedLabels.dateTimePicker}
           customStyles={{ width: "100%", ...customInputStyles }}
           onChange={(value) => {
-            if (!value) return
-            onArgumentChange({ argument: value.toString() })
+            onArgumentChange({ argument: value?.toString() ?? null })
           }}
         />
       </FormField>
@@ -104,12 +103,11 @@ const InputTypeFilterArgument: FC<TInputTypeFilterArgumentProps> = (props) => {
           multiMonth
           aria-labelledby="date-time-input-type-filter-argument"
           className={customInputClassName}
-          value={argument ? parseDate(argument as string) : null}
+          value={parseFilterDateTimeArgument(argument)}
           labels={resolvedLabels.dateTimePicker}
           customStyles={{ width: "100%", ...customInputStyles }}
           onChange={(value) => {
-            if (!value) return
-            onArgumentChange({ argument: value.toString() })
+            onArgumentChange({ argument: value?.toString() ?? null })
           }}
         />
       </FormField>
@@ -126,12 +124,11 @@ const InputTypeFilterArgument: FC<TInputTypeFilterArgumentProps> = (props) => {
           granularity="second"
           aria-labelledby="time-input-type-filter-argument"
           className={customInputClassName}
-          value={argument ? parseTime(argument as string) : null}
+          value={parseFilterTimeArgument(argument)}
           labels={resolvedLabels.timePicker}
           customStyles={{ width: "100%", ...customInputStyles }}
           onChange={(value) => {
-            if (!value) return
-            onArgumentChange({ argument: value.toString() })
+            onArgumentChange({ argument: value?.toString() ?? null })
           }}
         />
       </FormField>

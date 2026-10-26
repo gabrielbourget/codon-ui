@@ -46,6 +46,7 @@ const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props
   <View {...props} style={[props.style, { opacity: state.isEmpty ? 0.85 : 1 }]} />
 )
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
+  const [showTemporal, setShowTemporal] = useState(false)
   const [customRoot, setCustomRoot] = useState(false)
   const [largeText, setLargeText] = useState(false)
   const renderRoot = useCallback<NonNullable<TNativeTableProps["render"]>>(
@@ -128,6 +129,15 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
         ),
     },
   ]
+  if (showTemporal)
+    columns.push(
+      ...(["date", "date-time", "time"] as const).map((dataType) => ({
+        id: dataType,
+        name: dataType,
+        cellRenderer: () => dataType,
+        filter: { enabled: true, criteriaID: dataType, dataType, allowedOperationCodes: ["equal", "between"] as const },
+      })),
+    )
   return (
     <NativeThemeProvider mode={dark ? "dark" : "light"}>
       <NativeOverlayProvider>
@@ -139,6 +149,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             </Text>
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5 }}>
               <Button onPress={() => setCustomRoot((value) => !value)}>Toggle root renderer</Button>
+              <Button onPress={() => setShowTemporal((value) => !value)}>Toggle temporal columns</Button>
               <Button onPress={() => setLargeText((value) => !value)}>Toggle table typography</Button>
               <Button onPress={() => setReversed((value) => !value)}>Reverse rows</Button>
               <Button onPress={() => setLoading((value) => !value)}>Toggle loading</Button>

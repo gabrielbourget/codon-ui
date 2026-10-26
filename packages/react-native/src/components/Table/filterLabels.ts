@@ -1,7 +1,4 @@
-import {
-  DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS,
-  type TNonTemporalFilterArgumentLabels,
-} from "../Filtering/dispatchLabels"
+import { DEFAULT_FILTER_ARGUMENT_LABELS, type TFilterArgumentLabels } from "../Filtering/dispatchLabels"
 import { resolveFilterClauseLabels, type TPartialFilterClauseLabels } from "../Filtering/labels"
 import type { TNonTemporalFilterArgumentContext } from "../Filtering/renderNonTemporalArgument"
 
@@ -20,8 +17,8 @@ export type TPartialNativeTableFilteringLabels = {
     joinOperators?: Partial<TPopoverLabels["joinOperators"]>
   }
   filterClause?: TPartialFilterClauseLabels
-  argumentInput?: Omit<Partial<TNonTemporalFilterArgumentLabels>, "comboBox"> & {
-    comboBox?: Partial<TNonTemporalFilterArgumentLabels["comboBox"]>
+  argumentInput?: Omit<Partial<TFilterArgumentLabels>, "comboBox"> & {
+    comboBox?: Partial<TFilterArgumentLabels["comboBox"]>
   }
   native?: {
     [K in keyof TNonTemporalFilterArgumentContext["nativeLabels"]]?: Partial<
@@ -50,14 +47,16 @@ export const resolveNativeTableFilteringLabels = (labels?: TPartialNativeTableFi
   },
   filterClause: resolveFilterClauseLabels(labels?.filterClause),
   argumentInput: {
-    ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS,
+    ...DEFAULT_FILTER_ARGUMENT_LABELS,
     ...labels?.argumentInput,
-    comboBox: { ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS.comboBox, ...labels?.argumentInput?.comboBox },
+    comboBox: { ...DEFAULT_FILTER_ARGUMENT_LABELS.comboBox, ...labels?.argumentInput?.comboBox },
+    dateTimePicker: { ...DEFAULT_FILTER_ARGUMENT_LABELS.dateTimePicker, ...labels?.argumentInput?.dateTimePicker },
+    timePicker: { ...DEFAULT_FILTER_ARGUMENT_LABELS.timePicker, ...labels?.argumentInput?.timePicker },
     tagComboBox: {
-      ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS.tagComboBox,
+      ...DEFAULT_FILTER_ARGUMENT_LABELS.tagComboBox,
       ...labels?.argumentInput?.tagComboBox,
       comboBox: {
-        ...DEFAULT_NON_TEMPORAL_FILTER_ARGUMENT_LABELS.tagComboBox.comboBox,
+        ...DEFAULT_FILTER_ARGUMENT_LABELS.tagComboBox.comboBox,
         ...labels?.argumentInput?.tagComboBox?.comboBox,
       },
     },

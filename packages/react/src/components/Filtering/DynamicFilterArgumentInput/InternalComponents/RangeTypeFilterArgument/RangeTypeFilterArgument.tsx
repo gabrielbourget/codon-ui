@@ -1,4 +1,3 @@
-import { parseDate, parseTime } from "@internationalized/date"
 import classNames from "classnames"
 import { type FC } from "react"
 
@@ -9,6 +8,7 @@ import NumberInput from "../../../../NumberInput/NumberInput"
 import TimePicker from "../../../../TimePicker/TimePicker"
 import { DEFAULT_TABLE_FILTERING_LABELS } from "../../../labels"
 import type { TFilterArgumentInputContext } from "../../helpers"
+import { parseFilterDateArgument, parseFilterDateTimeArgument, parseFilterTimeArgument } from "../temporalValues"
 
 import styles from "./RangeTypeFilterArgumentStyles.module.css"
 
@@ -153,14 +153,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0] as string)}
+            value={parseFilterDateArgument(rangeArgument[0])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -177,14 +175,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1] as string)}
+            value={parseFilterDateArgument(rangeArgument[1])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />
@@ -210,14 +206,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[0] as string)}
+            value={parseFilterDateTimeArgument(rangeArgument[0])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -234,14 +228,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             multiMonth
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseDate(rangeArgument[1] as string)}
+            value={parseFilterDateTimeArgument(rangeArgument[1])}
             labels={resolvedLabels.dateTimePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert date from date picker back to a ms-since-epoch string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />
@@ -266,14 +258,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--minimum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[0] as string)}
+            value={parseFilterTimeArgument(rangeArgument[0])}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert time from time picker back to a ms-since-midnight string.
               onArgumentChange({
-                argument: [value.toString(), rangeArgument[1]],
+                argument: [value?.toString() ?? null, rangeArgument[1]],
               })
             }}
           />
@@ -289,14 +279,12 @@ const RangeTypeFilterArgument: FC<TRangeTypeFilterArgumentProps> = (props) => {
             granularity="second"
             aria-labelledby="filter-argument-input--maximum"
             className={customInputClassName}
-            value={parseTime(rangeArgument[1] as string)}
+            value={parseFilterTimeArgument(rangeArgument[1])}
             labels={resolvedLabels.timePicker}
             customStyles={{ width: "100%", ...customInputStyles }}
             onChange={(value) => {
-              if (!value) return
-              // - TODO: -> Probably need to convert time from time picker back to a ms-since-midnight string.
               onArgumentChange({
-                argument: [rangeArgument[0], value.toString()],
+                argument: [rangeArgument[0], value?.toString() ?? null],
               })
             }}
           />
