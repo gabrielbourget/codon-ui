@@ -157,7 +157,7 @@ export const Carousel = <TItem extends TNativeBaseCarouselItem>(props: TNativeCa
   const [events] = useState(createNativeCarouselEvents)
   const bindings = useRef(new Map<string, TNativeCarouselNodeBinding>())
   const mounted = useRef(true)
-  const [revision, setRevision] = useState(0)
+  const [, setRevision] = useState(0)
   const invalidate = useCallback(() => {
     if (mounted.current) setRevision((value) => value + 1)
   }, [])
@@ -272,20 +272,10 @@ export const Carousel = <TItem extends TNativeBaseCarouselItem>(props: TNativeCa
     },
     [attach],
   )
-  const requested = useRef<{ api: EmblaCarouselType; index: number; count: number } | null>(null)
   useEffect(() => {
     if (!api) return
-    const previous = requested.current
-    if (previous?.api === api && Object.is(previous.index, initialIndex) && previous.count === items.length) return
-    const actual = api.slideNodes()
-    if (
-      actual.length !== items.length ||
-      actual.some((node, index) => node !== bindings.current.get(currentSlides.current[index])?.node)
-    )
-      return
-    requested.current = { api, index: initialIndex, count: items.length }
     api.scrollTo(Math.max(0, Math.min(items.length - 1, initialIndex)), true)
-  }, [api, initialIndex, items.length, revision])
+  }, [api, initialIndex, items.length])
   useEffect(() => {
     if (!api) return
     const select = () => {

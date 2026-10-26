@@ -320,6 +320,19 @@ it("retains original keyed item hosts through reordering and resynchronizes on c
   expect(context.itemCount).toBe(0)
 })
 
+it("resynchronizes the requested index when the raw owner disables slide observation", async () => {
+  const props = base(),
+    { rerender } = await render(tree(props))
+  const api = context.emblaApi!
+  await act(() => {
+    api.scrollTo(2, true)
+    api.reInit({ watchSlides: false })
+  })
+  await rerender(tree({ ...props, items: items.slice(0, 2) }))
+  expect(api.slideNodes()).toHaveLength(3)
+  expect(context.selectedIndex).toBe(0)
+})
+
 it("moves manual roving focus without selecting until original Enter activation", async () => {
   await render(
     tree({
