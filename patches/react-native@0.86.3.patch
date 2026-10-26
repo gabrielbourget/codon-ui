@@ -309,6 +309,58 @@ index 0000000000000000000000000000000000000000..c6c2bcc40f92410ff613d3fc88ebc963
 +    dispatcher.endNativeEventCapture(this)
 +  }
 +}
+diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
+index ae2da15fc0a4b265f48bfb6b6aff80800bbe2e79..b50266748e9fce2bc6516cc5fc26acd1b214e1cf 100644
+--- a/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
++++ b/ReactCommon/react/renderer/components/view/YogaStylableProps.cpp
+@@ -24,7 +24,8 @@ YogaStylableProps::YogaStylableProps(
+     const YogaStylableProps& sourceProps,
+     const RawProps& rawProps,
+     const std::function<bool(const std::string&)>& filterObjectKeys)
+-    : Props() {
++    : Props(),
++      cuiHasAuthoredPosition(sourceProps.cuiHasAuthoredPosition) {
+   initialize(context, sourceProps, rawProps, filterObjectKeys);
+
+   yogaStyle = ReactNativeFeatureFlags::enableCppPropsIteratorSetter()
+@@ -32,6 +33,9 @@ YogaStylableProps::YogaStylableProps(
+       : convertRawProp(context, rawProps, sourceProps.yogaStyle);
+
+   if (!ReactNativeFeatureFlags::enableCppPropsIteratorSetter()) {
++    if (const auto *position = rawProps.at("position", nullptr, nullptr)) {
++      cuiHasAuthoredPosition = position->hasValue();
++    }
+     convertRawPropAliases(context, sourceProps, rawProps);
+   }
+ };
+@@ -145,7 +149,12 @@ void YogaStylableProps::setProp(
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexGrow, setFlexGrow);
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexShrink, setFlexShrink);
+     REBUILD_FIELD_SWITCH_CASE_YSP(flexBasis, setFlexBasis);
+-    REBUILD_FIELD_SWITCH_CASE2(positionType, setPositionType, "position");
++    case CONSTEXPR_RAW_PROPS_KEY_HASH("position"): {
++      cuiHasAuthoredPosition = value.hasValue();
++      yogaStyle.setPositionType(
++          getFieldValue(context, value, ygDefaults.positionType()));
++      return;
++    }
+     REBUILD_FIELD_YG_GUTTER(gap, setGap, "rowGap", "columnGap", "gap");
+     case CONSTEXPR_RAW_PROPS_KEY_HASH("aspectRatio"): {
+       yogaStyle.setAspectRatio(
+diff --git a/ReactCommon/react/renderer/components/view/YogaStylableProps.h b/ReactCommon/react/renderer/components/view/YogaStylableProps.h
+index 6febf08d5ce4a65b3fb1751072274c8dd4f73f01..adc64e5dc182ea273f16ba6878750bf1dc1fe451 100644
+--- a/ReactCommon/react/renderer/components/view/YogaStylableProps.h
++++ b/ReactCommon/react/renderer/components/view/YogaStylableProps.h
+@@ -30,6 +30,9 @@ class YogaStylableProps : public Props {
+ #pragma mark - Props
+   yoga::Style yogaStyle{};
+
++  // CUI Table sticky ownership distinguishes omission from explicit relative.
++  bool cuiHasAuthoredPosition{false};
++
+   // Duplicates of existing properties with different names, taking
+   // precedence. E.g. "marginBlock" instead of "marginVertical"
+   yoga::Style::Length insetInlineStart;
 diff --git a/ReactCommon/react/renderer/core/EventDispatcher.cpp b/ReactCommon/react/renderer/core/EventDispatcher.cpp
 index 5fa5e6821a514c60b8aa7155362c1c2849d8b2fd..78eacc28e044a4651ff46b0faf296d9b6047a2fe 100644
 --- a/ReactCommon/react/renderer/core/EventDispatcher.cpp
