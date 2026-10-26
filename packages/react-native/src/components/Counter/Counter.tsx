@@ -94,7 +94,9 @@ export const Counter = forwardRef<TNativeCounterRef, TNativeCounterProps>((props
       <NativeFocusHost
         {...rootProps}
         ref={ref}
-        focusable={rootProps.focusable ?? false}
+        focusable={rootProps.tabIndex !== undefined ? rootProps.tabIndex === 0 : (rootProps.focusable ?? false)}
+        onBubbledFocus={rootProps.onFocus}
+        onBubbledBlur={rootProps.onBlur}
         accessibilityLabel={label}
         nativeLabelledBy={nativeAccessibilityIDs(labelledBy)}
         nativeDescribedBy={nativeAccessibilityIDs(nativeDescribedBy ?? ariaDescribedBy)}
