@@ -13,6 +13,7 @@ import {
 import { NativeThemeProvider } from "../../../theme"
 
 import { TableCellFixture } from "./fixtures/TableCellFixture"
+import { TableColumnFixture } from "./fixtures/TableColumnFixture"
 import { TableFixture } from "./fixtures/TableFixture"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
@@ -230,4 +231,25 @@ it("retains the original table and held editor through root rendering and typogr
   expect(editor.current === original.editor).toBe(true)
   expect(screen.getByTestId("table-editor").props.value).toBe("held")
   expect(write.mock.calls.some(([props]) => props && ("text" in props || "value" in props))).toBe(false)
+})
+
+it("keeps raw column resizing and the original held editor connected in the maintained scene", async () => {
+  await render(
+    <NativeThemeProvider>
+      <TableColumnFixture />
+    </NativeThemeProvider>,
+  )
+  const editor = screen.getByTestId("raw-column-editor"),
+    header = screen.getByTestId("raw-column")
+  await fireEvent(screen.getByTestId("raw-resize-container"), "layout", {
+    nativeEvent: { layout: { x: 0, y: 0, width: 500, height: 100 } },
+  })
+  await press("Toggle column renderer")
+  await press("Start raw column resizing")
+  expect(screen.getByRole("slider").props.accessibilityValue.now).toBe(180)
+  await fireEvent.changeText(editor, "pending")
+  expect(screen.getByTestId("raw-column-editor")).toBe(editor)
+  expect(screen.getByTestId("raw-column")).toBe(header)
+  expect(editor.props.value).toBe("")
+  expect(JSON.parse(screen.getByTestId("raw-column-requests").props.children)).toContain("draft:pending")
 })

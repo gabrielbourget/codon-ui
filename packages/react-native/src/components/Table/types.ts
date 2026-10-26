@@ -1,6 +1,7 @@
 import type { ReactElement, ReactNode, RefAttributes } from "react"
 import type { ColorValue, StyleProp, TextStyle, View, ViewProps } from "react-native"
 import type { TableStateProps } from "react-stately/useTableState"
+import type { ColumnSize } from "react-stately/useTableState"
 
 import type { TNativeSlotProps } from "../../collection/context"
 import type { TNativeCollectionKey } from "../../collection/snapshot"
@@ -161,15 +162,35 @@ export type TNativeTableHeaderProps<T extends object> = Omit<ViewProps, "childre
     render?: (props: ViewProps & RefAttributes<View>, state: TNativeTableHeaderRenderState) => ReactElement
   } & TNativeTableHoverEvents
 export type TNativeTableHeaderRenderState = Readonly<{ isHovered: boolean }>
-export type TNativeTableColumnProps = Omit<ViewProps, "id" | "style"> &
-  TStyleProps & {
-    textValue?: string
-    id?: TNativeCollectionKey
-    columnID: string
-    isRowHeader?: boolean
-    allowsSorting?: boolean
-    alignment?: TNativeTableColumnMetadata<object>["alignment"]
-  }
+export type TNativeTableColumnRenderState = Readonly<{
+  isHovered: boolean
+  isPressed: boolean
+  isFocused: boolean
+  isFocusVisible: boolean
+  allowsSorting: boolean | undefined
+  sortDirection: "ascending" | "descending" | undefined
+  isResizing: boolean
+  sort: (direction: "ascending" | "descending") => void
+  startResize: () => void
+}>
+export type TNativeTableColumnProps = Omit<TNativeFocusViewProps, "id" | "style" | "children"> & {
+  customStyles?: StyleProp<TextStyle>
+  style?:
+    | StyleProp<TextStyle>
+    | ((state: TNativeTableColumnRenderState & { defaultStyle: TextStyle }) => StyleProp<TextStyle>)
+  children?: ReactNode | ((state: TNativeTableColumnRenderState & { defaultChildren: undefined }) => ReactNode)
+  render?: (props: TNativeFocusViewProps & RefAttributes<View>, state: TNativeTableColumnRenderState) => ReactElement
+  width?: ColumnSize
+  defaultWidth?: ColumnSize
+  minWidth?: ColumnSize
+  maxWidth?: ColumnSize
+  textValue?: string
+  id?: TNativeCollectionKey
+  columnID: string
+  isRowHeader?: boolean
+  allowsSorting?: boolean
+  alignment?: TNativeTableColumnMetadata<object>["alignment"]
+}
 export type TNativeTableCellRenderState = Readonly<{
   isPressed: boolean
   isFocused: boolean

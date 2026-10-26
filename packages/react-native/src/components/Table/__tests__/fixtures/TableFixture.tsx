@@ -28,6 +28,7 @@ import type {
 } from "../../types"
 
 import { CellFixtureBody, TableCellFixture } from "./TableCellFixture"
+import { TableColumnFixture } from "./TableColumnFixture"
 
 type TPerson = { id: string; name: string; active: boolean }
 const people: TPerson[] = [
@@ -269,6 +270,7 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <Text testID="table-filter-requests">{JSON.stringify(filterRequests)}</Text>
             <Text testID="table-widths">{JSON.stringify(widths)}</Text>
             <Text testID="table-resize-requests">{JSON.stringify(resizeRequests)}</Text>
+            <TableColumnFixture />
             <TableRowFixture />
             <TableCellFixture />
           </ScrollView>

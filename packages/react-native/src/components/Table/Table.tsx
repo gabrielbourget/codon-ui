@@ -33,10 +33,15 @@ import {
   NativeTableStateContext,
 } from "./context"
 import { resolveNativeTableFilteringLabels } from "./filterLabels"
+import {
+  NativeResizableTableContainerContext,
+  NativeTableColumnResizeStateContext,
+} from "./NativeResizableTableContainer"
 import { TABLE_SORT_DIRECTION__ASCENDING } from "./queryTypes"
 import { resizeNativeTableColumn } from "./resizing"
 import { computeNextNativeTableSorts } from "./sorting"
 import { NativeTableCollection } from "./state/TableCollection"
+import { useNativeTableColumnResizeState } from "./state/useTableColumnResizeState"
 import { useNativeTableState, useNativeFilteredTableState } from "./state/useTableState"
 import { TableTypeahead } from "./TableTypeahead"
 import type { TNativeTableProps, TNativeTableReceivedProps, TNativeTableRenderState } from "./types"
@@ -59,9 +64,10 @@ const Receiver = <T extends object>({
     props.defaultExpandedKeys ? new Set(props.defaultExpandedKeys) : new Set(),
     props.onExpandedChange,
   )
+  const baseCollection = useMemo(() => new NativeTableCollection(sourceCollection), [sourceCollection])
   const unfilteredCollection = useMemo(
-    () => new NativeTableCollection(sourceCollection, expandedKeys),
-    [sourceCollection, expandedKeys],
+    () => new NativeTableCollection(baseCollection, expandedKeys),
+    [baseCollection, expandedKeys],
   )
   const {
     ref: _consumerRef,
@@ -124,6 +130,8 @@ const Receiver = <T extends object>({
     filter,
   )
   const { collection, selectionManager: manager } = state
+  const resizeContainer = useContext(NativeResizableTableContainerContext)
+  const resizeState = useNativeTableColumnResizeState({ tableWidth: resizeContainer?.tableWidth ?? 0 }, state)
   const renderer = useContext(NativeCollectionRendererContext)
   const actions = useContext(NativeCollectionActionsContext)!
   const theme = useNativeTheme()
@@ -135,7 +143,8 @@ const Receiver = <T extends object>({
     root.current = view
     setTarget(view ? (findNodeHandle(view) ?? 0) : 0)
   }, [])
-  const mergedRef = useNativeCollectionRefs(bind, contextRef)
+  const callerRef = useNativeCollectionRefs(contextRef, resizeContainer?.tableRef)
+  const mergedRef = useNativeCollectionRefs(bind, callerRef)
   const generatedID = useId()
   const providedID = props.id ?? props.nativeID
   const retainedID = useRef(providedID ?? `codon-table-${generatedID}`)
@@ -236,7 +245,9 @@ const Receiver = <T extends object>({
       onBlur?.(event)
     },
     role: "grid" as const,
-    style: styles.view,
+    style: resizeContainer
+      ? [styles.view, { width: [...resizeState.columnWidths.values()].reduce((sum, width) => sum + width, 0) }]
+      : styles.view,
     children: (
       <>
         <TableTypeahead target={root} tag={target} />
@@ -253,75 +264,77 @@ const Receiver = <T extends object>({
     ),
   }
   return (
-    <NativeTableStateContext.Provider value={state}>
-      <NativeSelectableCollectionContext.Provider value={null}>
-        <NativeTableContext.Provider
-          value={{
-            state,
-            collection,
-            target,
-            rows,
-            headerCount,
-            rowHeaderColumns,
-            columnCount,
-            hoverColor: hoverColor ?? "transparent",
-            zebra: !!zebra,
-            zebraColor: zebraColor ?? "transparent",
-            headerTargets,
-            registerHeader,
-            manager,
-            keyboard,
-            onRowAction,
-            queryControls,
-            filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
-            columnResizing,
-            canResizeWithKeyboard: (id) =>
-              !!columnResizing?.enabled &&
-              !!columns?.some((column) => column.id === id && !column.isHidden && !column.headerVisuallyHidden),
-            resizeWithKeyboard: (id, measuredWidth, delta) => {
-              const column = columns?.find((candidate) => candidate.id === id)
-              if (columnResizing?.enabled && column && !column.isHidden && !column.headerVisuallyHidden)
-                resizeNativeTableColumn(
-                  column,
-                  columnResizing,
-                  (measuredWidth ?? (typeof column.width === "number" ? column.width : 0)) + delta,
-                )
-            },
-            primarySort: state.sortDescriptor ?? undefined,
-            sortColumn: (key) => state.sort(key),
-          }}
-        >
-          <View
-            testID={`${rootTestID}-shell`}
-            style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
+    <NativeTableColumnResizeStateContext.Provider value={resizeContainer ? resizeState : null}>
+      <NativeTableStateContext.Provider value={state}>
+        <NativeSelectableCollectionContext.Provider value={null}>
+          <NativeTableContext.Provider
+            value={{
+              state,
+              collection,
+              target,
+              rows,
+              headerCount,
+              rowHeaderColumns,
+              columnCount,
+              hoverColor: hoverColor ?? "transparent",
+              zebra: !!zebra,
+              zebraColor: zebraColor ?? "transparent",
+              headerTargets,
+              registerHeader,
+              manager,
+              keyboard,
+              onRowAction,
+              queryControls,
+              filteringLabels: resolveNativeTableFilteringLabels(filteringLabels),
+              columnResizing,
+              canResizeWithKeyboard: (id) =>
+                !!columnResizing?.enabled &&
+                !!columns?.some((column) => column.id === id && !column.isHidden && !column.headerVisuallyHidden),
+              resizeWithKeyboard: (id, measuredWidth, delta) => {
+                const column = columns?.find((candidate) => candidate.id === id)
+                if (columnResizing?.enabled && column && !column.isHidden && !column.headerVisuallyHidden)
+                  resizeNativeTableColumn(
+                    column,
+                    columnResizing,
+                    (measuredWidth ?? (typeof column.width === "number" ? column.width : 0)) + delta,
+                  )
+              },
+              primarySort: state.sortDescriptor ?? undefined,
+              sortColumn: (key) => state.sort(key),
+            }}
           >
-            <NativeCollectionSemanticsContext.Provider
-              value={JSON.stringify({
-                kind: "root",
-                rowCount: rows.length + headerCount,
-                columnCount,
-                hierarchical: state.treeColumn != null,
-                selectionMode: manager.selectionMode,
-              })}
+            <View
+              testID={`${rootTestID}-shell`}
+              style={{ width: "100%", height: "100%", minHeight: 0, flexDirection: "column" }}
             >
-              <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
-                {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
-              </NativeCollectionItemBindingContext.Provider>
-            </NativeCollectionSemanticsContext.Provider>
-            {queryControls?.pagination && (
-              <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
-                <Pagination
-                  maxVisiblePages={4}
-                  showIncrementButtonsWithOnePage={false}
-                  chosenPaginationSubcomponents={["items-per-page", "primary-controls"]}
-                  {...queryControls.pagination}
-                />
-              </View>
-            )}
-          </View>
-        </NativeTableContext.Provider>
-      </NativeSelectableCollectionContext.Provider>
-    </NativeTableStateContext.Provider>
+              <NativeCollectionSemanticsContext.Provider
+                value={JSON.stringify({
+                  kind: "root",
+                  rowCount: rows.length + headerCount,
+                  columnCount,
+                  hierarchical: state.treeColumn != null,
+                  selectionMode: manager.selectionMode,
+                })}
+              >
+                <NativeCollectionItemBindingContext.Provider value={actions.bindingFor(null)}>
+                  {render ? render(hostProps, renderState) : <NativeFocusView {...hostProps} />}
+                </NativeCollectionItemBindingContext.Provider>
+              </NativeCollectionSemanticsContext.Provider>
+              {queryControls?.pagination && (
+                <View style={{ flexShrink: 0, flexDirection: "row", justifyContent: "flex-end", paddingTop: 5 }}>
+                  <Pagination
+                    maxVisiblePages={4}
+                    showIncrementButtonsWithOnePage={false}
+                    chosenPaginationSubcomponents={["items-per-page", "primary-controls"]}
+                    {...queryControls.pagination}
+                  />
+                </View>
+              )}
+            </View>
+          </NativeTableContext.Provider>
+        </NativeSelectableCollectionContext.Provider>
+      </NativeTableStateContext.Provider>
+    </NativeTableColumnResizeStateContext.Provider>
   )
 }
 export const Table = <T extends object = object>(authored: TNativeTableProps<T>) => {
