@@ -29,6 +29,7 @@ import type {
 
 import { CellFixtureBody, TableCellFixture } from "./TableCellFixture"
 import { TableColumnFixture } from "./TableColumnFixture"
+import { TableStickyFixture } from "./TableStickyFixture"
 import { TableVirtualizedFixture } from "./TableVirtualizedFixture"
 
 type TPerson = { id: string; name: string; active: boolean }
@@ -52,6 +53,7 @@ const renderBody: NonNullable<TNativeTableBodyProps<TPerson>["render"]> = (props
 export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInput>; tableRef?: Ref<View> }) => {
   const [showTemporal, setShowTemporal] = useState(false)
   const [showVirtual, setShowVirtual] = useState(false)
+  const [showSticky, setShowSticky] = useState(false)
   const [customRoot, setCustomRoot] = useState(false)
   const [largeText, setLargeText] = useState(false)
   const renderRoot = useCallback<NonNullable<TNativeTableProps["render"]>>(
@@ -275,6 +277,8 @@ export const TableFixture = ({ editorRef, tableRef }: { editorRef?: Ref<TextInpu
             <TableColumnFixture />
             <TableRowFixture />
             <TableCellFixture />
+            <Button onPress={() => setShowSticky((value) => !value)}>Toggle sticky header source scene</Button>
+            {showSticky && <TableStickyFixture />}
             <Button onPress={() => setShowVirtual((value) => !value)}>Toggle virtualized Table owner</Button>
             {showVirtual && <TableVirtualizedFixture />}
           </ScrollView>

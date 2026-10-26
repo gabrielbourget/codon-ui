@@ -44,6 +44,7 @@ export type TNativeTableContext = {
   target: number
   root: RefObject<View | null>
   sticky: TNativeTableStickyOptions
+  stickySession: () => { scopeOwnerId: string; windowId: string; epoch: number } | null
   subscribeStickyLifetime: (listener: () => void) => () => void
   rows: TNativeCollectionNode<object>[]
   headerCount: number

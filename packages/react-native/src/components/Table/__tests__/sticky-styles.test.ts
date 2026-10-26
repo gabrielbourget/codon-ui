@@ -23,8 +23,8 @@ it("retains zero/negative/percentage offset and final transparent/background/sta
     const authored = { top: 0, left: "10%", backgroundColor: "transparent", zIndex: 0 } as const
     const result = resolveNativeTableStickyColumn(options, authored, { ...authored, width: 180 })
     expect(result.enabled).toBe(true)
-    expect(result.insets).toMatchObject({ top: 0, left: "10%" })
-    expect(result.style).toEqual({ backgroundColor: "transparent", zIndex: 0, width: 180 })
+    expect(result.insets).toEqual({ top: offset })
+    expect(result.style).toEqual({ ...authored, width: 180 })
     expect(processColor(result.style.backgroundColor)).toBe(processColor("transparent"))
     expect(resolveNativeTableStickyColumn(options, {}, {}).insets.top).toBe(offset)
   }
@@ -40,7 +40,7 @@ it.each(["relative", "absolute", "static"] as const)(
     expect(result.style.backgroundColor).toBe(theme.colors.background)
   },
 )
-it("moves every physical/logical sticky inset out of normal Yoga positioning without touching other styles", () => {
+it("preserves every authored inset for the original renderer and leaves only the stylesheet fallback in the binding", () => {
   const authored = {
     top: "auto",
     bottom: 2,
@@ -64,25 +64,9 @@ it("moves every physical/logical sticky inset out of normal Yoga positioning wit
     authored,
     { ...authored, width: 180 },
   )
-  expect(result.insets).toEqual({
-    top: "auto",
-    bottom: 2,
-    left: -4,
-    right: "25%",
-    start: 3,
-    end: 4,
-    inset: 5,
-    insetBlock: 6,
-    insetInline: 7,
-    insetBlockStart: 8,
-    insetBlockEnd: 9,
-    insetInlineStart: 10,
-    insetInlineEnd: 11,
-  })
+  expect(result.insets).toEqual({ top: 0 })
   expect(result.style).toEqual({
-    margin: 12,
-    padding: 14,
-    transform: [{ rotate: "15deg" }],
+    ...authored,
     width: 180,
     backgroundColor: theme.colors.background,
     zIndex: 3,

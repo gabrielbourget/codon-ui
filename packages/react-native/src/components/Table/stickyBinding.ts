@@ -1,4 +1,4 @@
-import { findNodeHandle, TurboModuleRegistry, type View } from "react-native"
+import { findNodeHandle, processColor, TurboModuleRegistry, type ColorValue, type View } from "react-native"
 
 import type { Spec } from "../../input/specs/NativeCUIMotionSnapshot"
 
@@ -30,6 +30,10 @@ export const createNativeTableStickyBinding = (
   target: () => View | null,
   root: () => View | null,
   isCurrent: () => boolean,
+  environment: () => {
+    backgroundColor: ColorValue
+    session: { scopeOwnerId: string; windowId: string; epoch: number } | null
+  },
 ) => {
   const owner = `native-table-sticky:${++sequence}`
   let current: TCapture | undefined
@@ -72,12 +76,33 @@ export const createNativeTableStickyBinding = (
   }
   return {
     synchronize: (enabled: boolean, insets: TNativeTableStickyInsets, rendererRequiresStyleAuthority: boolean) => {
-      const configuration = JSON.stringify({ insets, rendererRequiresStyleAuthority })
       if (!enabled || !isCurrent() || disposed) {
         release()
         return
       }
-      if (current && connected(current) && current.configuration === configuration) return
+      const { backgroundColor, session } = environment()
+      const processedBackground = processColor(backgroundColor)
+      if (processedBackground == null) throw failure("native background color required")
+      const configuration = JSON.stringify({
+        insets,
+        rendererRequiresStyleAuthority,
+        backgroundColor: processedBackground,
+        session,
+      })
+      if (current && connected(current) && current.configuration === configuration) {
+        const response: unknown = JSON.parse(
+          current.backend.tableStickyPresentation(JSON.stringify({ action: "check", owner, lease: current.lease })),
+        )
+        if (
+          !response ||
+          typeof response !== "object" ||
+          (response as Record<string, unknown>).owner !== owner ||
+          (response as Record<string, unknown>).lease !== current.lease ||
+          typeof (response as Record<string, unknown>).current !== "boolean"
+        )
+          throw failure("invalid current-lease acknowledgement")
+        if ((response as Record<string, unknown>).current) return
+      }
       release()
       const view = target() as TConnectedView | null
       const table = root() as TConnectedView | null
@@ -100,6 +125,8 @@ export const createNativeTableStickyBinding = (
             target: targetTag,
             containingRoot: rootTag,
             insets,
+            backgroundColor: processedBackground,
+            session,
             rendererRequiresStyleAuthority,
           }),
         ),

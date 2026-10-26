@@ -5,6 +5,7 @@ import { createRef, type RefAttributes } from "react"
 import { StyleSheet, TextInput, View } from "react-native"
 
 import { renderWithNativeCollections as render, screen } from "../../../collection/__tests__/nativeReceipts"
+import { NativeFocusView } from "../../../input/NativeFocusView"
 import { NativeThemeProvider } from "../../../theme"
 import { createNativeTableStickyBinding } from "../stickyBinding"
 import { Table } from "../Table"
@@ -77,6 +78,18 @@ const setup = async (props: TNativeTableProps = {}, column: Partial<TNativeTable
   return { ...view, node, root, header, editor, change }
 }
 
+it("passes the complete authored inset style to the original renderer and keeps root fallback separate", async () => {
+  const renderColumn = jest.fn<
+    ReturnType<NonNullable<TNativeTableColumnProps["render"]>>,
+    Parameters<NonNullable<TNativeTableColumnProps["render"]>>
+  >((props) => <NativeFocusView {...props} style={[props.style, { top: undefined, right: 0 }]} />)
+  await setup({ stickyHeader: true, stickyHeaderOffset: -4 }, { style: { top: 12, right: 7 }, render: renderColumn })
+  expect(StyleSheet.flatten(renderColumn.mock.calls.at(-1)![0].style)).toMatchObject({ top: 12, right: 7 })
+  expect(StyleSheet.flatten(row("sticky-column").props.style).top).toBeUndefined()
+  expect(StyleSheet.flatten(row("sticky-column").props.style).right).toBe(0)
+  expect(controllers.at(-1)!.synchronize).toHaveBeenLastCalledWith(true, { top: -4 }, true)
+})
+
 it("consumes sticky props and binds the original column/Table/editor without JS positioning", async () => {
   const f = await setup({ stickyHeader: true, stickyHeaderOffset: "10%", stickyHeaderBackgroundColor: "plum" })
   expect(f.header.current).not.toBeNull()
@@ -103,12 +116,12 @@ it("retains final column paint/insets and the current width while a plain positi
     { stickyHeader: true, stickyHeaderOffset: -12, stickyHeaderBackgroundColor: "plum" },
     { style: { top: 0, backgroundColor: "transparent", zIndex: 0 } },
   )
-  expect(controllers.at(-1)!.synchronize).toHaveBeenLastCalledWith(true, { top: 0 }, false)
+  expect(controllers.at(-1)!.synchronize).toHaveBeenLastCalledWith(true, { top: -12 }, false)
   expect(StyleSheet.flatten(row("sticky-column").props.style)).toMatchObject({
     backgroundColor: "transparent",
     zIndex: 0,
   })
-  expect(StyleSheet.flatten(row("sticky-column").props.style).top).toBeUndefined()
+  expect(StyleSheet.flatten(row("sticky-column").props.style).top).toBe(0)
   const original = f.header.current
   await f.rerender(
     f.node({ stickyHeader: true }, { style: { position: "relative", top: 12, backgroundColor: "blue" } }),

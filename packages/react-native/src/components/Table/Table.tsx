@@ -328,6 +328,12 @@ const Receiver = <T extends object>({
                 theme,
               ),
               subscribeStickyLifetime,
+              stickySession: () => {
+                const session = input?.acknowledgedSession()
+                return input && session?.windowId && session.epoch > 0
+                  ? { scopeOwnerId: input.ownerId, windowId: session.windowId, epoch: session.epoch }
+                  : null
+              },
               rows,
               headerCount,
               rowHeaderColumns,

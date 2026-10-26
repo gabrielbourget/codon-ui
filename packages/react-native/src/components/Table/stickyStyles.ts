@@ -63,13 +63,12 @@ export const resolveNativeTableStickyColumn = (
   resolved: TextStyle,
 ) => {
   const enabled = options.enabled && authored.position == null
-  const insets: Record<string, number | string> = { top: options.offset }
+  const insets: TNativeTableStickyInsets = { top: options.offset }
   if (enabled)
     for (const field of NATIVE_TABLE_STICKY_INSET_FIELDS) {
       const value = authored[field as keyof TextStyle]
       if (value != null) {
         validateInset(value, `column style.${field}`)
-        insets[field] = value as number | string
       }
     }
   const style = {
@@ -81,6 +80,5 @@ export const resolveNativeTableStickyColumn = (
         }
       : {}),
   }
-  if (enabled) for (const field of NATIVE_TABLE_STICKY_INSET_FIELDS) delete style[field as keyof TextStyle]
-  return { style, enabled, insets: insets as TNativeTableStickyInsets }
+  return { style, enabled, insets }
 }

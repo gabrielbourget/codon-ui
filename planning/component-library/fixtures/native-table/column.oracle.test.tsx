@@ -24,6 +24,7 @@ import Column from "../../../../packages/react/src/components/Table/components/T
 import type { TTableProps } from "../../../../packages/react/src/components/Table/helpers"
 
 type TRender = NonNullable<ColumnProps["render"]>
+type TColumnChildren = Extract<ColumnProps["children"], (...args: never[]) => unknown>
 type TValues = Parameters<TRender>[1]
 const records: unknown[] = []
 type TCollectionRootProps = React.ComponentProps<typeof DefaultCollectionRenderer.CollectionRoot>
@@ -34,8 +35,13 @@ const Probe = () => {
   layout = useContext(TableColumnResizeStateContext)
   return null
 }
-const receive = () => vi.fn<TRender>((props) => <th {...props} />)
-const tree = (column: ColumnProps = {}, table: TTableProps = {}, resizer = false) => (
+// These callback controls use the actual nonvirtual table-header host.
+const receive = () => vi.fn<TRender>((props) => <th {...props} ref={props.ref as React.Ref<HTMLTableCellElement>} />)
+const tree = (
+  column: ColumnProps & React.RefAttributes<HTMLTableCellElement | HTMLDivElement> = {},
+  table: TTableProps = {},
+  resizer = false,
+) => (
   <Table aria-label="Columns" {...table}>
     <TableHeader>
       <Column id="name" isRowHeader {...column}>
@@ -104,6 +110,20 @@ it("provides nine raw fields and the original error without a resizing container
   expect(() => values.startResize()).toThrow("Wrap your <Table> in a <ResizableTableContainer>")
   records.push({ scenario: "raw-fields", fields: Object.keys(values), values })
 })
+it("retains authored sticky insets in raw render props and lets the renderer clear or replace them", () => {
+  const receiveColumn = vi.fn<TRender>((props) => (
+    <th
+      {...props}
+      ref={props.ref as React.Ref<HTMLTableCellElement>}
+      style={{ ...props.style, top: undefined, right: 0 }}
+    />
+  ))
+  render(tree({ style: { top: 12, right: 7 }, render: receiveColumn }, { stickyHeader: true }))
+  expect(receiveColumn.mock.calls.at(-1)![0].style).toMatchObject({ top: 12, right: 7 })
+  const header = screen.getByRole("columnheader", { name: "Name" })
+  expect(header.style.top).toBe("")
+  expect(header.style.right).toBe("0px")
+})
 it("sorts with the actual key/direction and held owner descriptor even without allowsSorting", () => {
   const renderColumn = receive(),
     changed = vi.fn()
@@ -138,7 +158,7 @@ it("routes children/style defaults and preserves the original header and held ed
   const ref = createRef<HTMLTableCellElement | HTMLDivElement>(),
     editor = createRef<HTMLInputElement>()
   const renderColumn = receive(),
-    children = vi.fn(() => <input ref={editor} aria-label="Held" value="" onChange={() => {}} />)
+    children = vi.fn<TColumnChildren>(() => <input ref={editor} aria-label="Held" value="" onChange={() => {}} />)
   const style = vi.fn((values) => ({ ...values.defaultStyle, padding: 9 }))
   const view = render(tree({ ref, children, style }))
   const original = ref.current,

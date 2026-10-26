@@ -34,9 +34,9 @@ export const StickyColumnHost = ({
   values: TNativeTableColumnRenderState
 }) => {
   const table = useNativeTable()
-  const current = useRef({ target, root: table.root, enabled, canAct, insets, custom: !!render })
+  const current = useRef({ target, root: table.root, enabled, canAct, insets, custom: !!render, table })
   useInsertionEffect(() => {
-    current.current = { target, root: table.root, enabled, canAct, insets, custom: !!render }
+    current.current = { target, root: table.root, enabled, canAct, insets, custom: !!render, table }
   })
   const binding = useRef<ReturnType<typeof createNativeTableStickyBinding> | null>(null)
   useLayoutEffect(() => {
@@ -44,6 +44,10 @@ export const StickyColumnHost = ({
       () => current.current.target.current,
       () => current.current.root.current,
       () => current.current.enabled && current.current.canAct(),
+      () => ({
+        backgroundColor: current.current.table.sticky.backgroundColor,
+        session: current.current.table.stickySession(),
+      }),
     )
     binding.current = owned
     const unsubscribe = table.subscribeStickyLifetime(() => {

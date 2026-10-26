@@ -22,6 +22,8 @@ add_library(codon_motion SHARED
   "${CODON_MOTION_DIR}/PopFrame.cpp"
   "${CODON_MOTION_DIR}/PopStyle.cpp"
   "${CODON_MOTION_DIR}/PopPresentation.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/table/StickyStyle.cpp"
+  "${CMAKE_CURRENT_LIST_DIR}/../../../../cpp/table/StickyPresentation.cpp"
   "${CODON_MOTION_DIR}/ViewportQuery.cpp"
   "${CODON_MOTION_DIR}/InitialValueQuery.cpp"
   "${CODON_MOTION_DIR}/InitialValueStyle.cpp"
@@ -33,6 +35,7 @@ target_include_directories(codon_motion PRIVATE "${CODON_MOTION_DIR}" "${CODEGEN
   "${CUI_TELEPORT_CPP_DIR}" "${CUI_TELEPORT_CODEGEN_DIR}"
   "${REACT_NATIVE_DIR}/ReactCommon"
   "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/text/platform/android"
+  "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/scrollview/platform/android"
   "${REACT_NATIVE_DIR}/ReactCommon/react/renderer/components/progressbar/android")
 target_compile_options(codon_motion PRIVATE ${folly_FLAGS})
 target_compile_reactnative_options(codon_motion PRIVATE)

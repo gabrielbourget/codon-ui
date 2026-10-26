@@ -18,7 +18,9 @@ beforeEach(() => {
       return JSON.stringify(
         message.action === "release"
           ? { lease: message.lease, released: true }
-          : { ...message, lease: `lease:${messages.length}`, registered: true },
+          : message.action === "check"
+            ? { owner: message.owner, lease: message.lease, current: true }
+            : { ...message, lease: `lease:${messages.length}`, registered: true },
       )
     }),
   }
@@ -30,10 +32,12 @@ const setup = () => {
   let target: View | null = makeView(document)
   let root: View | null = makeView(document)
   let active = true
+  let epoch = 1
   const binding = createNativeTableStickyBinding(
     () => target,
     () => root,
     () => active,
+    () => ({ backgroundColor: "white", session: { scopeOwnerId: "scope", windowId: "window", epoch } }),
   )
   return {
     binding,
@@ -49,13 +53,16 @@ const setup = () => {
     setActive: (next: boolean) => {
       active = next
     },
+    nextEpoch: () => {
+      epoch++
+    },
   }
 }
 it("registers only actual original tags/insets and reuses an unchanged registration without JS geometry", () => {
   const f = setup()
   f.binding.synchronize(true, { top: "10%", bottom: "auto" }, false)
   f.binding.synchronize(true, { top: "10%", bottom: "auto" }, false)
-  expect(messages).toHaveLength(1)
+  expect(messages.map((message) => message.action)).toEqual(["register", "check"])
   expect(messages[0]).toMatchObject({
     action: "register",
     target: Native.findNodeHandle(f.target()),
@@ -65,6 +72,22 @@ it("registers only actual original tags/insets and reuses an unchanged registrat
   })
   expect(messages[0]).not.toHaveProperty("x")
   expect(messages[0]).not.toHaveProperty("y")
+})
+it("replaces a natively retired lease and a later epoch without reviving the old registration", () => {
+  const f = setup()
+  f.binding.synchronize(true, { top: 0 }, false)
+  const original = backend.tableStickyPresentation.getMockImplementation()!
+  backend.tableStickyPresentation.mockImplementation((encoded) =>
+    JSON.parse(encoded).action === "check"
+      ? JSON.stringify({ ...JSON.parse(encoded), current: false })
+      : original(encoded),
+  )
+  f.binding.synchronize(true, { top: 0 }, false)
+  expect(messages.map((message) => message.action)).toEqual(["register", "release", "register"])
+  f.nextEpoch()
+  f.binding.synchronize(true, { top: 0 }, false)
+  expect(messages.map((message) => message.action)).toEqual(["register", "release", "register", "release", "register"])
+  expect(messages.at(-1)!.session).toMatchObject({ epoch: 2 })
 })
 it("releases before configuration changes, current target/root replacement and owner retirement", () => {
   const f = setup()

@@ -39,8 +39,9 @@ folly::dynamic captureNativePopStyle(const facebook::react::YogaStylableProps &p
   const auto &style = props.yogaStyle;
   const auto position = style.positionType();
   folly::dynamic result = folly::dynamic::object
-      ("position", position == y::PositionType::Absolute ? "absolute" :
-          position == y::PositionType::Static ? "static" : "relative")
+      ("position", !props.cuiHasAuthoredPosition && position == y::PositionType::Relative ? folly::dynamic(nullptr) :
+          folly::dynamic(position == y::PositionType::Absolute ? "absolute" :
+              position == y::PositionType::Static ? "static" : "relative"))
       ("width", encodeLength(style.dimension(y::Dimension::Width)))
       ("height", encodeLength(style.dimension(y::Dimension::Height)))
       ("boxSizing", style.boxSizing() == y::BoxSizing::ContentBox ? "content-box" : "border-box");

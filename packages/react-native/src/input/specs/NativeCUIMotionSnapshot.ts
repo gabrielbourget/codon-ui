@@ -8,6 +8,7 @@ export interface Spec extends TurboModule {
   getTargetGeometry(request: string): Promise<string>
   getPopFrame(request: string): string
   popPresentation(request: string): string
+  tableStickyPresentation(request: string): string
   getViewportSnapshot(request: string): string
 }
 
