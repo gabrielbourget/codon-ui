@@ -28,6 +28,25 @@ const press = async (name: string) => {
   await userEvent.setup().press(screen.getByRole("button", { name }))
   await act(() => {})
 }
+it("keeps the complete row renderer, layout owner and held editor connected in the maintained scene", async () => {
+  await render(<TableFixture />)
+  const row = screen.getByTestId("table-custom-row"),
+    input = screen.getByTestId("table-custom-row-editor")
+  const owner = row.props.ownerId
+  await press("Toggle row renderer")
+  await press("Toggle row layout offset")
+  await fireEvent.changeText(input, "pending")
+  await press("Inspect row render values")
+  expect(screen.getByTestId("table-custom-row")).toBe(row)
+  expect(row.props.ownerId).toBe(owner)
+  expect(row.props.nativeMotionGeometryBinding).not.toBe("")
+  expect(screen.getByTestId("table-custom-row-editor")).toBe(input)
+  expect(input.props.value).toBe("")
+  expect(JSON.parse(screen.getByTestId("table-custom-row-values").props.children)).toMatchObject({
+    flags: { selectionMode: "multiple" },
+  })
+  expect(JSON.parse(screen.getByTestId("table-custom-row-requests").props.children)).toContain("draft:pending")
+})
 it("keeps the same held editor through row reorder and theme changes without writing its value", async () => {
   const editor = createRef<TextInput>()
   const table = createRef<View>()

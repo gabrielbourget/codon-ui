@@ -1,5 +1,5 @@
 // Native mapping of Motion 12.40.0; see UPSTREAM.json and ../kernel/LICENSE.motion-dom.md.
-import type { ComponentProps } from "react"
+import type { ComponentProps, ReactElement } from "react"
 import type { StyleProp, TextStyle, ViewStyle } from "react-native"
 
 import type { NativeFocusHost } from "../../input/NativeFocusView"
@@ -69,6 +69,7 @@ export type TNativeMotionVisualBindings = {
   readonly [Key in keyof TNativeMotionVisualValues]?: TNativeMotionValueBinding<TNativeMotionVisualValues[Key]>
 }
 export type TNativeMotionVisualHostProps = Omit<ComponentProps<typeof NativeFocusHost>, "style"> & {
+  nativeRender?: (props: ComponentProps<typeof NativeFocusHost>) => ReactElement
   motionOwner?: NativeMotionOwner
   projection?: NativeProjectionState
   measurement?: NativeMotionMeasurementState
