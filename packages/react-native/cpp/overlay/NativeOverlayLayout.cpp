@@ -13,6 +13,16 @@
 namespace facebook::react {
 namespace {
 
+bool isFlowBody(const CUIOverlayHostProps &props) {
+  return props.panelPosition == CUIOverlayHostPanelPosition::Relative || props.panelPosition == CUIOverlayHostPanelPosition::Static;
+}
+
+ShadowNodeFragment withoutChildren(const ShadowNodeFragment &fragment) {
+  static const auto empty = ShadowNode::emptySharedShadowNodeSharedList();
+  return {.props = fragment.props, .children = empty, .state = fragment.state,
+      .runtimeShadowNodeReference = fragment.runtimeShadowNodeReference};
+}
+
 LayoutConstraints constraintsFor(Size size, LayoutDirection direction) {
   if (!std::isfinite(size.width) || !std::isfinite(size.height) || size.width < 0 || size.height < 0)
     throw std::runtime_error("Panel overlay requires an actual finite native window layout");
@@ -53,6 +63,7 @@ void applyRootMetrics(YogaLayoutableShadowNode &owner, yoga::Node &node, LayoutC
 std::shared_ptr<CUIOverlaySlotProps> planeProps(const ShadowNode &node, Rect frame, Size containingBlock, LayoutDirection direction) {
   auto result = cloneOwnedProps<CUIOverlaySlotProps>(node);
   auto &style = result->yogaStyle;
+  style.setDisplay(yoga::Display::Flex);
   style.setPositionType(yoga::PositionType::Absolute);
   for (auto edge : yoga::ordinals<yoga::Edge>()) {
     style.setPosition(edge, yoga::StyleLength::undefined());
@@ -88,6 +99,75 @@ void publishOverflow(LayoutableShadowNode &owner, const Rect &bounds) {
 }
 
 } // namespace
+
+CUIOwnedOverlayHostShadowNode::CUIOwnedOverlayHostShadowNode(
+    const ShadowNodeFragment &fragment, const ShadowNodeFamily::Shared &family, ShadowNodeTraits traits)
+    : ConcreteViewShadowNode(withoutChildren(fragment), family, traits) {
+  configureChildren(fragment.children ? *fragment.children : std::vector<std::shared_ptr<const ShadowNode>>{});
+}
+
+CUIOwnedOverlayHostShadowNode::CUIOwnedOverlayHostShadowNode(const ShadowNode &source, const ShadowNodeFragment &fragment)
+    : ConcreteViewShadowNode(source, withoutChildren(fragment)) {
+  configureChildren(fragment.children ? *fragment.children : source.getChildren());
+}
+
+void CUIOwnedOverlayHostShadowNode::configureChildren(const std::vector<std::shared_ptr<const ShadowNode>> &children) {
+  if (isFlowBody(getConcreteProps())) traits_.unset(ShadowNodeTraits::Trait::LeafYogaNode);
+  else traits_.set(ShadowNodeTraits::Trait::LeafYogaNode);
+  for (const auto &child : children) appendChild(child);
+  dirtyLayout();
+}
+
+void CUIOwnedOverlayHostShadowNode::prepareFlowChildren(LayoutContext context) {
+  const auto children = getChildren();
+  if (children.size() != 3) throw std::runtime_error("Panel flow requires its original three owned slots");
+  const auto &props = getConcreteProps();
+  for (size_t index = 0; index < children.size(); index++) {
+    auto slotProps = cloneOwnedProps<CUIOverlaySlotProps>(*children[index]);
+    const auto expectedRole = index == 0 ? CUIOverlaySlotSlotRole::Underlay
+        : index == 1 ? CUIOverlaySlotSlotRole::Paint : CUIOverlaySlotSlotRole::Body;
+    if (slotProps->slotRole != expectedRole) throw std::runtime_error("Panel flow must preserve its original slot roles");
+    auto nested = std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children[index]->getChildren());
+    if (index == 2) {
+      slotProps->yogaStyle.setDisplay(yoga::Display::Contents);
+      if (nested->size() != 1 || !dynamic_cast<const CUIFocusViewProps *>(nested->front()->getProps().get()))
+        throw std::runtime_error("Panel flow must retain its original focus/drawing body");
+      if (props.panelViewportHeight || props.panelViewportWidth) {
+        auto bodyProps = cloneOwnedProps<CUIFocusViewProps>(*nested->front());
+        if (props.panelViewportHeight)
+          bodyProps->yogaStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(context.viewportSize.height));
+        if (props.panelViewportWidth)
+          bodyProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
+              context.viewportSize.width < 500 ? context.viewportSize.width * Float{0.8} : Float{300}));
+        nested->front() = nested->front()->clone({.props = bodyProps});
+      }
+    } else {
+      slotProps->yogaStyle.setDisplay(props.yogaStyle.display() == yoga::Display::Contents ? yoga::Display::None : yoga::Display::Flex);
+      slotProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::ofAuto());
+      slotProps->yogaStyle.setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::ofAuto());
+    }
+    auto child = children[index]->clone({.props = slotProps, .children = nested});
+    replaceChild(*children[index], child, index);
+  }
+}
+
+void CUIOwnedOverlayHostShadowNode::prepareFlowPaintBounds() {
+  const auto children = getChildren();
+  const auto &metrics = getLayoutMetrics();
+  const bool rtl = metrics.layoutDirection == LayoutDirection::RightToLeft;
+  for (size_t index = 0; index < 2; index++) {
+    auto props = cloneOwnedProps<CUIOverlaySlotProps>(*children[index]);
+    auto &style = props->yogaStyle;
+    style.setPosition(yoga::Edge::Left, yoga::StyleLength::undefined());
+    style.setPosition(yoga::Edge::Right, yoga::StyleLength::undefined());
+    style.setPosition(yoga::Edge::Start, yoga::StyleLength::points(-(rtl ? metrics.borderWidth.right : metrics.borderWidth.left)));
+    style.setPosition(yoga::Edge::End, yoga::StyleLength::points(-(rtl ? metrics.borderWidth.left : metrics.borderWidth.right)));
+    style.setPosition(yoga::Edge::Top, yoga::StyleLength::points(-metrics.borderWidth.top));
+    style.setPosition(yoga::Edge::Bottom, yoga::StyleLength::points(-metrics.borderWidth.bottom));
+    auto child = children[index]->clone({.props = props});
+    replaceChild(*children[index], child, index);
+  }
+}
 
 ShadowNodeTraits CUIOwnedOverlayViewportShadowNode::BaseTraits() {
   auto traits = ConcreteViewShadowNode::BaseTraits();
@@ -133,6 +213,8 @@ void CUIOwnedOverlayViewportShadowNode::layout(LayoutContext context) {
 }
 
 void CUIOwnedOverlayHostShadowNode::layoutTree(LayoutContext context, LayoutConstraints constraints) {
+  const bool flow = isFlowBody(getConcreteProps());
+  if (flow) prepareFlowChildren(context);
   // Configure this original owned Yoga root through Fabric before resolving its
   // authored min/max against the viewport. A viewport is an owner size, not an
   // implicit CSS max-width/max-height on an explicitly oversized overlay.
@@ -143,6 +225,7 @@ void CUIOwnedOverlayHostShadowNode::layoutTree(LayoutContext context, LayoutCons
   configuringRoot_ = true;
   YogaLayoutableShadowNode::layoutTree(context, constraints);
   configuringRoot_ = false;
+  if (flow) prepareFlowPaintBounds();
   yogaNode_.style().setMinDimension(yoga::Dimension::Width, authoredMinWidth);
   yogaNode_.style().setMinDimension(yoga::Dimension::Height, authoredMinHeight);
   yogaNode_.style().setMaxDimension(yoga::Dimension::Width, authoredMaxWidth);
@@ -155,6 +238,10 @@ void CUIOwnedOverlayHostShadowNode::layoutTree(LayoutContext context, LayoutCons
 
 void CUIOwnedOverlayHostShadowNode::layout(LayoutContext context) {
   if (configuringRoot_ || getLayoutMetrics().displayType == DisplayType::None) return;
+  if (isFlowBody(getConcreteProps())) {
+    YogaLayoutableShadowNode::layout(context);
+    return;
+  }
   const auto children = getChildren();
   if (children.size() != 3) throw std::runtime_error("Panel overlay requires its original underlay, paint and body planes");
   const auto &metrics = getLayoutMetrics();
@@ -169,10 +256,6 @@ void CUIOwnedOverlayHostShadowNode::layout(LayoutContext context) {
     body = {{metrics.borderWidth.left, metrics.borderWidth.top},
         {std::max(Float{0}, metrics.frame.size.width - metrics.borderWidth.left - metrics.borderWidth.right),
          std::max(Float{0}, metrics.frame.size.height - metrics.borderWidth.top - metrics.borderWidth.bottom)}};
-  } else if (!fixed && !absolute && !contents) {
-    body = {{metrics.contentInsets.left, metrics.contentInsets.top},
-        {std::max(Float{0}, metrics.frame.size.width - metrics.contentInsets.left - metrics.contentInsets.right),
-         std::max(Float{0}, metrics.frame.size.height - metrics.contentInsets.top - metrics.contentInsets.bottom)}};
   }
   Rect ink{};
   for (size_t index = 0; index < children.size(); index++) {
@@ -197,14 +280,6 @@ void CUIOwnedOverlayHostShadowNode::layout(LayoutContext context) {
           bodyProps->yogaStyle.setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(
               context.viewportSize.width < 500 ? context.viewportSize.width * Float{0.8} : Float{300}));
         nested->front() = nested->front()->clone({.props = bodyProps});
-      }
-      if (!fixed && !absolute) {
-        resolved->yogaStyle.setFlexDirection(props.yogaStyle.flexDirection());
-        resolved->yogaStyle.setJustifyContent(props.yogaStyle.justifyContent());
-        resolved->yogaStyle.setAlignItems(props.yogaStyle.alignItems());
-        resolved->yogaStyle.setAlignContent(props.yogaStyle.alignContent());
-        resolved->yogaStyle.setFlexWrap(props.yogaStyle.flexWrap());
-        for (auto gutter : yoga::ordinals<yoga::Gutter>()) resolved->yogaStyle.setGap(gutter, props.yogaStyle.gap(gutter));
       }
     }
     auto child = original->clone({.props = resolved, .children = nested});

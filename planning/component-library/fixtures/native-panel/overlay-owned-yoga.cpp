@@ -59,6 +59,45 @@ int main() {
       plane.removeChild(&body);
       body.setOwner(nullptr);
     }
+    yoga::Node flow(&config), contents(&config), originalBody(&config), paint(&config);
+    flow.style().setPositionType(yoga::PositionType::Absolute);
+    flow.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::points(240));
+    flow.style().setPosition(yoga::Edge::Left, yoga::StyleLength::points(40));
+    flow.style().setPosition(yoga::Edge::Top, yoga::StyleLength::points(30));
+    flow.style().setPadding(yoga::Edge::All, yoga::StyleLength::points(10));
+    flow.style().setBorder(yoga::Edge::All, yoga::StyleLength::points(4));
+    contents.style().setDisplay(yoga::Display::Contents);
+    originalBody.style().setPositionType(yoga::PositionType::Relative);
+    originalBody.style().setDimension(yoga::Dimension::Width, yoga::StyleSizeLength::percent(50));
+    originalBody.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(80));
+    paint.style().setPositionType(yoga::PositionType::Absolute);
+    for (auto edge : {yoga::Edge::Start, yoga::Edge::End, yoga::Edge::Top, yoga::Edge::Bottom})
+      paint.style().setPosition(edge, yoga::StyleLength::points(-4));
+    contents.insertChild(&originalBody, 0);
+    originalBody.setOwner(&contents);
+    flow.insertChild(&paint, 0);
+    paint.setOwner(&flow);
+    flow.insertChild(&contents, 1);
+    contents.setOwner(&flow);
+    codon::overlay::layoutOwnedOverlayRoot(flow, config, 1280, 720, direction);
+    near(YGNodeLayoutGetHeight(&flow), 108, "authored auto overlay height must include original in-flow body and real border/padding");
+    near(YGNodeLayoutGetWidth(&originalBody), 106, "contents slot must not change the original body's percentage containing block");
+    near(YGNodeLayoutGetWidth(&paint), 240, "owned paint must include the overlay's border box");
+    near(YGNodeLayoutGetHeight(&paint), 108, "owned paint must follow intrinsic overlay height");
+    near(YGNodeLayoutGetLeft(&paint), 0, "negative border offsets must not shift paint outside its original box");
+    near(YGNodeLayoutGetTop(&paint), 0, "paint top must retain the overlay border-box origin");
+    checks += 6;
+    originalBody.style().setDimension(yoga::Dimension::Height, yoga::StyleSizeLength::points(120));
+    originalBody.markDirtyAndPropagate();
+    codon::overlay::layoutOwnedOverlayRoot(flow, config, 1280, 720, direction);
+    near(YGNodeLayoutGetHeight(&flow), 148, "original body updates must resize the auto overlay");
+    near(YGNodeLayoutGetHeight(&paint), 148, "paint must retain the updated intrinsic height");
+    check(contents.getChild(0) == &originalBody && originalBody.getOwner() == &contents,
+        "normal flow must preserve the original body node and parent");
+    checks += 3;
+    flow.removeChild(&paint); paint.setOwner(nullptr);
+    flow.removeChild(&contents); contents.setOwner(nullptr);
+    contents.removeChild(&originalBody); originalBody.setOwner(nullptr);
   }
   std::printf("%zu original-node owned Yoga checks passed; not an installed Fabric/input/pixel qualification\n", checks);
 }
