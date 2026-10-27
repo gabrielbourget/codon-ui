@@ -84,6 +84,7 @@
         "CUIEditorKeyboardDefaults": "CUIEditorKeyboardDefaults"
       },
       "componentProvider": {
+        "CUIOverlayHost": "CUIOverlayHost",
         "CUIFocusView": "CUIFocusView",
         "CUIKeyboardScope": "CUIKeyboardScope",
         "CUICollectionRoot": "CUICollectionRoot",

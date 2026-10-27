@@ -1,11 +1,15 @@
-import { cleanup, render, screen } from "@testing-library/react-native"
+import { act, cleanup, render, screen } from "@testing-library/react-native"
 import { createRef } from "react"
-import { AccessibilityInfo, StyleSheet, TextInput, type View, type ViewStyle } from "react-native"
+import { AccessibilityInfo, Animated, StyleSheet, TextInput, View, type ViewStyle } from "react-native"
 
+import { NativeBackdropHost } from "../../../overlays/backdrop/NativeBackdropHost"
+import type { TNativeBackdropEffectProps } from "../../../overlays/backdrop/types"
 import { NativeOverlayProvider } from "../../../overlays/NativeOverlayProvider"
 import { Panel } from "../Panel"
 
 jest.unmock("react-native/Libraries/Components/TextInput/TextInput")
+jest.unmock("react-native/Libraries/Components/View/View")
+jest.unmock("react-native/Libraries/Components/View/ViewNativeComponent")
 jest.mock("react-native-safe-area-context", () => ({ SafeAreaProvider: jest.requireActual("react-native").View }))
 beforeEach(() => jest.spyOn(AccessibilityInfo, "isReduceMotionEnabled").mockResolvedValue(true))
 afterEach(async () => {
@@ -13,6 +17,117 @@ afterEach(async () => {
   jest.restoreAllMocks()
 })
 const row = (id: string) => screen.getByTestId(id, { includeHiddenElements: true })
+
+it("retains the original custom-adapter source and Effect under the stable underlay plane through paint updates", async () => {
+  const target = createRef<View>(),
+    editor = createRef<TextInput>(),
+    changed = jest.fn(),
+    effects: TNativeBackdropEffectProps[] = []
+  const Effect = (props: TNativeBackdropEffectProps) => {
+    effects.push(props)
+    return <View testID="original-effect" />
+  }
+  const adapter = { Target: View, Effect }
+  const tree = (opacity?: number) => (
+    <NativeOverlayProvider backdropAdapter={adapter}>
+      <NativeBackdropHost ref={target} testID="original-source">
+        <Panel accessibilityLabel="Custom backdrop" isOpen overlayBlur customOverlayStyles={{ opacity }}>
+          <TextInput ref={editor} testID="adapter-editor" value="held" onChangeText={changed} />
+        </Panel>
+      </NativeBackdropHost>
+    </NativeOverlayProvider>
+  )
+  const view = await render(tree(0.4))
+  const source = target.current,
+    input = editor.current,
+    original = row("original-effect"),
+    underlay = row("panel-overlay-underlay"),
+    backdrop = row("panel-backdrop")
+  expect(source).not.toBeNull()
+  expect(input).not.toBeNull()
+  const ancestors = []
+  for (let parent = original.parent; parent; parent = parent.parent) ancestors.push(parent)
+  expect(ancestors).toContain(underlay)
+  expect(underlay.props.pointerEvents).toBe("none")
+  for (const opacity of [0, 0.8, undefined]) {
+    await view.rerender(tree(opacity))
+    expect(row("original-effect")).toBe(original)
+    expect(row("panel-overlay-underlay")).toBe(underlay)
+    expect(row("panel-backdrop")).toBe(backdrop)
+    expect(target.current).toBe(source)
+    expect(editor.current).toBe(input)
+    expect(effects.at(-1)?.targetRef.current).toBe(source)
+    expect(effects.at(-1)?.radius).toBe(10)
+    expect(row("adapter-editor").props.value).toBe("held")
+  }
+  expect(changed).not.toHaveBeenCalled()
+})
+
+it.each([false, true])(
+  "retains authored animated opacity including derived nodes (%s) on native paint instead of View alpha",
+  async (derived) => {
+    const opacity = new Animated.Value(0.4)
+    await render(
+      <NativeOverlayProvider>
+        <Panel
+          accessibilityLabel="Animated paint"
+          isOpen
+          customOverlayStyles={{ opacity: derived ? Animated.add(opacity, 0) : opacity }}
+        />
+      </NativeOverlayProvider>,
+    )
+    const group = row("panel-overlay-composite")
+    expect(group.props.paintOpacity).toBe(0.4)
+    await act(() => opacity.setValue(0))
+    expect(group.props.paintOpacity).toBe(0)
+    expect(StyleSheet.flatten(group.props.style).opacity).toBeUndefined()
+    await act(() => opacity.setValue(0.8))
+    expect(group.props.paintOpacity).toBe(0.8)
+  },
+)
+
+it("routes overlay zero opacity through native paint while retaining the original control and separate body plane", async () => {
+  const root = createRef<View>(),
+    editor = createRef<TextInput>(),
+    changed = jest.fn()
+  const tree = (opacity?: number, zIndex = -1) => (
+    <NativeOverlayProvider>
+      <Panel
+        ref={root}
+        accessibilityLabel="Paint ownership"
+        isOpen
+        customStyles={{ zIndex }}
+        customOverlayStyles={{ opacity }}
+      >
+        <TextInput ref={editor} testID="paint-editor" value="held" onChangeText={changed} />
+      </Panel>
+    </NativeOverlayProvider>
+  )
+  const view = await render(tree(0.4))
+  const group = row("panel-overlay-composite"),
+    original = root.current,
+    input = editor.current,
+    backdrop = row("panel-backdrop"),
+    bodyPlane = row("panel-overlay-body")
+  expect(original).not.toBeNull()
+  expect(input).not.toBeNull()
+  expect(group.props.paintOpacity).toBe(0.4)
+  expect(StyleSheet.flatten(group.props.style).opacity).toBeUndefined()
+  expect(bodyPlane.props.collapsable).toBe(false)
+  expect(bodyPlane.props.pointerEvents).toBe("box-none")
+  expect(row("panel").parent).toBe(bodyPlane)
+  for (const opacity of [0, 0.8, undefined]) {
+    await view.rerender(tree(opacity, -2147483648))
+    expect(group.props.paintOpacity).toBe(opacity ?? 1)
+    expect(StyleSheet.flatten(group.props.style).opacity).toBeUndefined()
+    expect(row("panel-overlay-body")).toBe(bodyPlane)
+    expect(row("panel-backdrop")).toBe(backdrop)
+    expect(root.current).toBe(original)
+    expect(editor.current).toBe(input)
+    expect(row("paint-editor").props.value).toBe("held")
+  }
+  expect(changed).not.toHaveBeenCalled()
+})
 
 it("hides the complete original Panel subtree when the overlay display is none and restores it without resetting the editor", async () => {
   const root = createRef<View>(),

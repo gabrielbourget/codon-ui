@@ -156,7 +156,7 @@ it("groups overlay opacity across the original Panel and backdrop without dimmin
   const effectiveOpacity = (element: ReturnType<typeof row>) => {
     let result = 1
     for (let node: ReturnType<typeof row> | null = element; node; node = node.parent) {
-      const value = StyleSheet.flatten(node.props.style)?.opacity
+      const value = node.props.paintOpacity ?? StyleSheet.flatten(node.props.style)?.opacity
       if (typeof value === "number") result *= value
     }
     return result
@@ -165,13 +165,13 @@ it("groups overlay opacity across the original Panel and backdrop without dimmin
   expect(effectiveOpacity(row("panel-backdrop"))).toBeCloseTo(0.4, 8)
   const opacityParent = (element: ReturnType<typeof row>) => {
     for (let parent = element.parent; parent; parent = parent.parent)
-      if (StyleSheet.flatten(parent.props.style)?.opacity === 0.4) return parent
+      if (parent.props.paintOpacity === 0.4) return parent
     return null
   }
   const group = opacityParent(row("panel"))
   expect(group).not.toBeNull()
   expect(group).toBe(opacityParent(row("panel-backdrop")))
-  expect(group!.props.needsOffscreenAlphaCompositing).toBe(true)
+  expect(StyleSheet.flatten(group!.props.style).opacity).toBeUndefined()
   expect(StyleSheet.flatten(row("panel-floating-host").props.style).opacity).toBeUndefined()
   await f.rerender(tree(0.8))
   expect(effectiveOpacity(row("panel"))).toBeCloseTo(0.48, 8)

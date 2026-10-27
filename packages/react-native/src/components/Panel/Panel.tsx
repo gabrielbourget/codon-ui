@@ -1,7 +1,17 @@
-import { forwardRef, useCallback, useContext, useInsertionEffect, useLayoutEffect, useRef, useState } from "react"
-import { Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
+import {
+  forwardRef,
+  useCallback,
+  useContext,
+  useInsertionEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type ComponentProps,
+} from "react"
+import { Animated, Modal as NativeModal, Pressable, StyleSheet, useWindowDimensions, View } from "react-native"
 import { SafeAreaProvider } from "react-native-safe-area-context"
 
+import CUIOverlayHost from "../../input/specs/CUIOverlayHostNativeComponent"
 import { NativeBackdropSourceContext } from "../../overlays/backdrop/context"
 import { NativeBackdropEffect } from "../../overlays/backdrop/NativeBackdropEffect"
 import { NativeBackdropWindow } from "../../overlays/backdrop/NativeBackdropWindow"
@@ -23,6 +33,10 @@ import { NativePanelSurface } from "./PanelSurface"
 import type { TPanelBorderBox } from "./radii"
 import { getNativePanelStyles } from "./styles"
 import type { TNativePanelProps } from "./types"
+
+const AnimatedOverlayHost = Animated.createAnimatedComponent(CUIOverlayHost)
+// Pinned AnimatedProps accepts every AnimatedNode; its custom-number type names only two subclasses.
+type TOverlayPaintOpacity = ComponentProps<typeof AnimatedOverlayHost>["paintOpacity"]
 
 // Private until the complete inherited contract and real backdrop renderer have passed acceptance.
 export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
@@ -140,18 +154,17 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                 }}
               >
                 {/* Portal layers stay outside the authored overlay's common compositing group. */}
-                <View
+                <AnimatedOverlayHost
                   testID={`${identity}-overlay-composite`}
                   collapsable={false}
                   accessible={false}
                   focusable={false}
                   pointerEvents="box-none"
-                  needsOffscreenAlphaCompositing
+                  paintOpacity={(overlayOpacity ?? 1) as TOverlayPaintOpacity}
                   style={[
                     StyleSheet.absoluteFill,
                     {
                       display: overlayPaint.display,
-                      opacity: overlayOpacity,
                       transform: overlayTransform,
                       transformOrigin: overlayTransformOrigin,
                       filter: overlayFilter,
@@ -161,7 +174,15 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                     },
                   ]}
                 >
-                  {props.overlayBlur && <NativeBackdropEffect source={source} />}
+                  <View
+                    testID={`${identity}-overlay-underlay`}
+                    collapsable={false}
+                    accessible={false}
+                    pointerEvents="none"
+                    style={StyleSheet.absoluteFill}
+                  >
+                    {props.overlayBlur && <NativeBackdropEffect source={source} />}
+                  </View>
                   <Pressable
                     testID={`${identity}-backdrop`}
                     accessible={false}
@@ -172,60 +193,73 @@ export const Panel = forwardRef<View, TNativePanelProps>((props, ref) => {
                       if (current.current.props.isDismissable !== false) close()
                     }}
                   />
-                  <NativePanelSurface
-                    ref={ref}
-                    open={open}
-                    ready={width !== null && overlay.active}
-                    isActive={isActive}
-                    systemClose={systemClose}
-                    keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
-                    observeContentBox={appearance.needsContentObservation}
-                    onContentBox={contentMeasured}
-                    observeRadii={appearance.needsRadiusObservation}
-                    onBorderBox={borderMeasured}
-                    appearanceHost={appearanceHost}
-                    appearanceScope={appearanceScope}
-                    nativeMotionDrawingOwner
-                    nativeMotionProjectionRadii={appearance.radii}
-                    initialFocusRef={props.initialFocusRef}
-                    testID={identity}
+                  <View
+                    testID={`${identity}-overlay-body`}
                     collapsable={false}
                     accessible={false}
-                    accessibilityLabel={label}
-                    accessibilityElementsHidden={overlay.covered || !open}
-                    importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
-                    pointerEvents={open && overlay.active ? "auto" : "none"}
-                    onLayout={({ nativeEvent }) => {
-                      const next = nativeEvent.layout.width
-                      if (current.current.live && current.current.props === props && Number.isFinite(next) && next >= 0)
-                        setWidth(next)
-                    }}
-                    style={[
-                      appearance.view,
-                      {
-                        transform: [
-                          {
-                            translateX: motion.progress.interpolate({
-                              inputRange: [0, 1],
-                              outputRange: [
-                                0,
-                                (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
-                              ],
-                            }),
-                          },
-                        ],
-                      },
-                    ]}
+                    pointerEvents="box-none"
+                    style={StyleSheet.absoluteFill}
                   >
-                    <NativeContentContext.Provider
-                      value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
+                    <NativePanelSurface
+                      ref={ref}
+                      open={open}
+                      ready={width !== null && overlay.active}
+                      isActive={isActive}
+                      systemClose={systemClose}
+                      keyboardDisabled={props.isKeyboardDismissDisabled ?? false}
+                      observeContentBox={appearance.needsContentObservation}
+                      onContentBox={contentMeasured}
+                      observeRadii={appearance.needsRadiusObservation}
+                      onBorderBox={borderMeasured}
+                      appearanceHost={appearanceHost}
+                      appearanceScope={appearanceScope}
+                      nativeMotionDrawingOwner
+                      nativeMotionProjectionRadii={appearance.radii}
+                      initialFocusRef={props.initialFocusRef}
+                      testID={identity}
+                      collapsable={false}
+                      accessible={false}
+                      accessibilityLabel={label}
+                      accessibilityElementsHidden={overlay.covered || !open}
+                      importantForAccessibility={overlay.covered || !open ? "no-hide-descendants" : "auto"}
+                      pointerEvents={open && overlay.active ? "auto" : "none"}
+                      onLayout={({ nativeEvent }) => {
+                        const next = nativeEvent.layout.width
+                        if (
+                          current.current.live &&
+                          current.current.props === props &&
+                          Number.isFinite(next) &&
+                          next >= 0
+                        )
+                          setWidth(next)
+                      }}
+                      style={[
+                        appearance.view,
+                        {
+                          transform: [
+                            {
+                              translateX: motion.progress.interpolate({
+                                inputRange: [0, 1],
+                                outputRange: [
+                                  0,
+                                  (styles.side === "left" ? -1 : 1) * (width ?? viewport?.width ?? window.width),
+                                ],
+                              }),
+                            },
+                          ],
+                        },
+                      ]}
                     >
-                      <NativeTextStyleProvider style={appearance.text}>
-                        {getNativeButtonContent(props.children, appearance.text)}
-                      </NativeTextStyleProvider>
-                    </NativeContentContext.Provider>
-                  </NativePanelSurface>
-                </View>
+                      <NativeContentContext.Provider
+                        value={{ foregroundColor: appearance.text.color ?? theme.colors.foreground, isButton: false }}
+                      >
+                        <NativeTextStyleProvider style={appearance.text}>
+                          {getNativeButtonContent(props.children, appearance.text)}
+                        </NativeTextStyleProvider>
+                      </NativeContentContext.Provider>
+                    </NativePanelSurface>
+                  </View>
+                </AnimatedOverlayHost>
               </NativeFloatingWindowHost>
             </NativeBackdropWindow>
           </SafeAreaProvider>
